@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-unbork-meminfo.patch added to -mm tree
-Date: Tue, 21 Oct 2008 16:53:09 -0700
-Message-ID: <200810220007.m9M07oXk020737@imap1.linux-foundation.org>
+Subject: + devpts-fix-unused-function-warning.patch added to -mm tree
+Date: Tue, 21 Oct 2008 17:02:33 -0700
+Message-ID: <200810220017.m9M0HDWA022408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57175 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33865 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751179AbYJVAIA (ORCPT
+	by vger.kernel.org with ESMTP id S1751326AbYJVARg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 20:08:00 -0400
+	Tue, 21 Oct 2008 20:17:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, alan@redhat.com, sukadev@us.ibm.com
 
 
 The patch titled
-     linux-next-unbork-meminfo
+     devpts: fix unused function warning
 has been added to the -mm tree.  Its filename is
-     linux-next-unbork-meminfo.patch
+     devpts-fix-unused-function-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,133 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-unbork-meminfo
+Subject: devpts: fix unused function warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+fs/devpts/inode.c:324: warning: 'compare_init_pts_sb' defined but not used
+
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c |   87 +++++++++++++++++++++++++++-----------------
- 1 file changed, 54 insertions(+), 33 deletions(-)
+ fs/devpts/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/meminfo.c~linux-next-unbork-meminfo fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~linux-next-unbork-meminfo
-+++ a/fs/proc/meminfo.c
-@@ -26,6 +26,8 @@ static int meminfo_proc_show(struct seq_
- 	unsigned long allowed;
- 	struct vmalloc_info vmi;
- 	long cached;
-+	unsigned long pages[NR_LRU_LISTS];
-+	int lru;
+diff -puN fs/devpts/inode.c~devpts-fix-unused-function-warning fs/devpts/inode.c
+--- a/fs/devpts/inode.c~devpts-fix-unused-function-warning
++++ a/fs/devpts/inode.c
+@@ -320,6 +320,7 @@ fail:
+ 	return -ENOMEM;
+ }
  
++#ifdef CONFIG_DEVPTS_MULTIPLE_INSTANCES
+ static int compare_init_pts_sb(struct super_block *s, void *p)
+ {
+ 	if (devpts_mnt)
+@@ -327,7 +328,6 @@ static int compare_init_pts_sb(struct su
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_DEVPTS_MULTIPLE_INSTANCES
  /*
-  * display in kilobytes.
-@@ -44,51 +46,70 @@ static int meminfo_proc_show(struct seq_
- 
- 	get_vmalloc_info(&vmi);
- 
-+	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
-+		pages[lru] = global_page_state(NR_LRU_BASE + lru);
-+
- 	/*
- 	 * Tagged format, for easy grepping and expansion.
- 	 */
- 	seq_printf(m,
--		"MemTotal:     %8lu kB\n"
--		"MemFree:      %8lu kB\n"
--		"Buffers:      %8lu kB\n"
--		"Cached:       %8lu kB\n"
--		"SwapCached:   %8lu kB\n"
--		"Active:       %8lu kB\n"
--		"Inactive:     %8lu kB\n"
-+		"MemTotal:       %8lu kB\n"
-+		"MemFree:        %8lu kB\n"
-+		"Buffers:        %8lu kB\n"
-+		"Cached:         %8lu kB\n"
-+		"SwapCached:     %8lu kB\n"
-+		"Active:         %8lu kB\n"
-+		"Inactive:       %8lu kB\n"
-+		"Active(anon):   %8lu kB\n"
-+		"Inactive(anon): %8lu kB\n"
-+		"Active(file):   %8lu kB\n"
-+		"Inactive(file): %8lu kB\n"
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		"Unevictable:    %8lu kB\n"
-+		"Mlocked:        %8lu kB\n"
-+#endif
- #ifdef CONFIG_HIGHMEM
--		"HighTotal:    %8lu kB\n"
--		"HighFree:     %8lu kB\n"
--		"LowTotal:     %8lu kB\n"
--		"LowFree:      %8lu kB\n"
--#endif
--		"SwapTotal:    %8lu kB\n"
--		"SwapFree:     %8lu kB\n"
--		"Dirty:        %8lu kB\n"
--		"Writeback:    %8lu kB\n"
--		"AnonPages:    %8lu kB\n"
--		"Mapped:       %8lu kB\n"
--		"Slab:         %8lu kB\n"
--		"SReclaimable: %8lu kB\n"
--		"SUnreclaim:   %8lu kB\n"
--		"PageTables:   %8lu kB\n"
-+		"HighTotal:      %8lu kB\n"
-+		"HighFree:       %8lu kB\n"
-+		"LowTotal:       %8lu kB\n"
-+		"LowFree:        %8lu kB\n"
-+#endif
-+		"SwapTotal:      %8lu kB\n"
-+		"SwapFree:       %8lu kB\n"
-+		"Dirty:          %8lu kB\n"
-+		"Writeback:      %8lu kB\n"
-+		"AnonPages:      %8lu kB\n"
-+		"Mapped:         %8lu kB\n"
-+		"Slab:           %8lu kB\n"
-+		"SReclaimable:   %8lu kB\n"
-+		"SUnreclaim:     %8lu kB\n"
-+		"PageTables:     %8lu kB\n"
- #ifdef CONFIG_QUICKLIST
--		"Quicklists:   %8lu kB\n"
-+		"Quicklists:     %8lu kB\n"
- #endif
--		"NFS_Unstable: %8lu kB\n"
--		"Bounce:       %8lu kB\n"
--		"WritebackTmp: %8lu kB\n"
--		"CommitLimit:  %8lu kB\n"
--		"Committed_AS: %8lu kB\n"
--		"VmallocTotal: %8lu kB\n"
--		"VmallocUsed:  %8lu kB\n"
--		"VmallocChunk: %8lu kB\n",
-+		"NFS_Unstable:   %8lu kB\n"
-+		"Bounce:         %8lu kB\n"
-+		"WritebackTmp:   %8lu kB\n"
-+		"CommitLimit:    %8lu kB\n"
-+		"Committed_AS:   %8lu kB\n"
-+		"VmallocTotal:   %8lu kB\n"
-+		"VmallocUsed:    %8lu kB\n"
-+		"VmallocChunk:   %8lu kB\n",
- 		K(i.totalram),
- 		K(i.freeram),
- 		K(i.bufferram),
- 		K(cached),
- 		K(total_swapcache_pages),
--		K(global_page_state(NR_ACTIVE)),
--		K(global_page_state(NR_INACTIVE)),
-+		K(pages[LRU_ACTIVE_ANON]   + pages[LRU_ACTIVE_FILE]),
-+		K(pages[LRU_INACTIVE_ANON] + pages[LRU_INACTIVE_FILE]),
-+		K(pages[LRU_ACTIVE_ANON]),
-+		K(pages[LRU_INACTIVE_ANON]),
-+		K(pages[LRU_ACTIVE_FILE]),
-+		K(pages[LRU_INACTIVE_FILE]),
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		K(pages[LRU_UNEVICTABLE]),
-+		K(global_page_state(NR_MLOCK)),
-+#endif
- #ifdef CONFIG_HIGHMEM
- 		K(i.totalhigh),
- 		K(i.freehigh),
+  * Safely parse the mount options in @data and update @opts.
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,6 +75,7 @@ epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
 freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
 fs-remove-prepare_write-commit_write-fix.patch
 mm-write_cache_pages-writepage-error-fix.patch
+devpts-fix-unused-function-warning.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 linux-next-git-rejects.patch
