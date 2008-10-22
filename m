@@ -1,59 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-fix-page_cgroup-allocation-fix.patch removed from -mm tree
-Date: Wed, 22 Oct 2008 14:13:29 -0700
-Message-ID: <200810222113.m9MLDT4w025954@imap1.linux-foundation.org>
+Subject: - memcg-fix-page_cgroup-allocation-fix-2.patch removed from -mm tree
+Date: Wed, 22 Oct 2008 14:13:32 -0700
+Message-ID: <200810222113.m9MLDWms025960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754224AbYJVVOB (ORCPT
+	by vger.kernel.org with ESMTP id S1754181AbYJVVOH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Oct 2008 17:14:01 -0400
+	Wed, 22 Oct 2008 17:14:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-fix-page_cgroup-allocation-fix
+     memcg-fix-page_cgroup-allocation-fix-2
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-page_cgroup-allocation-fix.patch
+     memcg-fix-page_cgroup-allocation-fix-2.patch
 
 This patch was dropped because it was folded into memcg-fix-page_cgroup-allocation.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-page_cgroup-allocation-fix
+Subject: memcg-fix-page_cgroup-allocation-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
+
+init/main.c: In function 'start_kernel':
+init/main.c:660: error: implicit declaration of function 'page_cgroup_init'
 
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/page_cgroup.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/page_cgroup.c~memcg-fix-page_cgroup-allocation-fix mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-fix-page_cgroup-allocation-fix
-+++ a/mm/page_cgroup.c
-@@ -9,8 +9,6 @@
- #include <linux/vmalloc.h>
- #include <linux/cgroup.h>
- 
--extern struct cgroup_subsys mem_cgroup_subsys;
--
- static void __meminit
- __init_page_cgroup(struct page_cgroup *pc, unsigned long pfn)
+diff -puN init/main.c~memcg-fix-page_cgroup-allocation-fix-2 init/main.c
+diff -puN mm/memcontrol.c~memcg-fix-page_cgroup-allocation-fix-2 mm/memcontrol.c
+diff -puN mm/page_cgroup.c~memcg-fix-page_cgroup-allocation-fix-2 mm/page_cgroup.c
+diff -puN include/linux/page_cgroup.h~memcg-fix-page_cgroup-allocation-fix-2 include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-fix-page_cgroup-allocation-fix-2
++++ a/include/linux/page_cgroup.h
+@@ -99,5 +99,10 @@ static inline struct page_cgroup *lookup
  {
+ 	return NULL;
+ }
++
++static inline void page_cgroup_init(void)
++{
++}
++
+ #endif
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 memcg-fix-page_cgroup-allocation.patch
-memcg-fix-page_cgroup-allocation-fix.patch
 memcg-fix-page_cgroup-allocation-fix-2.patch
 epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
 freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
