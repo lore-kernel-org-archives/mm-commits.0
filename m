@@ -1,241 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - leds-driver-for-hp-harddisk-protection-led.patch removed from -mm tree
-Date: Wed, 22 Oct 2008 13:08:59 -0700
-Message-ID: <200810222008.m9MK8xdF013896@imap1.linux-foundation.org>
+Subject: - x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch removed from -mm tree
+Date: Wed, 22 Oct 2008 13:08:49 -0700
+Message-ID: <200810222008.m9MK8nvT013852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752888AbYJVUJX (ORCPT
+	by vger.kernel.org with ESMTP id S1753713AbYJVUJ0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Oct 2008 16:09:23 -0400
+	Wed, 22 Oct 2008 16:09:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@suse.cz, burman.yan@gmail.com, eric.piel@tremplin-utc.net, rpurdie@rpsys.net, trenn@suse.de, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, ajw1980@gmail.com, lenb@kernel.org, mingo@elte.hu, pavel@suse.cz, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds driver for HP harddisk protection LED
+     x86 acpi: fix breakage of resume on 64-bit UP systems with SMP kernel
 has been removed from the -mm tree.  Its filename was
-     leds-driver-for-hp-harddisk-protection-led.patch
+     x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds driver for HP harddisk protection LED
-From: Pavel Machek <pavel@suse.cz>
+Subject: x86 acpi: fix breakage of resume on 64-bit UP systems with SMP kernel
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-HP notebooks contain accelerometer-based disk protection subsystem, and
-LED that indicates hard disk is protected.  This is driver for the LED
-part.
+We are now using per CPU GDT tables in head_64.S and the original
+early_gdt_descr.address is invalidated after boot by
+setup_per_cpu_areas().  This breaks resume from suspend to RAM on x86_64
+UP systems using SMP kernels, because this part of head_64.S is also
+executed during the resume and the invalid GDT address causes the system
+to crash.  It doesn't break on 'true' SMP systems, because
+early_gdt_descr.address is modified every time native_cpu_up() runs. 
+However, during resume it should point to the GDT of the boot CPU rather
+than to another CPU's GDT.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Yan Burman <burman.yan@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+For this reason, during suspend to RAM always make early_gdt_descr.address
+point to the boot CPU's GDT.
+
+This fixes http://bugzilla.kernel.org/show_bug.cgi?id=11568, which is a
+regression from 2.6.26.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-and-tested-by: Andy Wettstein <ajw1980@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Len Brown <lenb@kernel.org>
+Acked-by: Pavel Machek <pavel@suse.cz>
+Cc: <stable@kernel.org>		[2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig        |    7 +
- drivers/leds/Makefile       |    1 
- drivers/leds/leds-hp-disk.c |  155 ++++++++++++++++++++++++++++++++++
- 3 files changed, 163 insertions(+)
+ arch/x86/kernel/acpi/sleep.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/leds/Kconfig~leds-driver-for-hp-harddisk-protection-led drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-driver-for-hp-harddisk-protection-led
-+++ a/drivers/leds/Kconfig
-@@ -125,6 +125,13 @@ config LEDS_CM_X270
- 	help
- 	  This option enables support for the CM-X270 LEDs.
+diff -puN arch/x86/kernel/acpi/sleep.c~x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel arch/x86/kernel/acpi/sleep.c
+--- a/arch/x86/kernel/acpi/sleep.c~x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel
++++ a/arch/x86/kernel/acpi/sleep.c
+@@ -10,6 +10,7 @@
+ #include <linux/dmi.h>
+ #include <linux/cpumask.h>
+ #include <asm/segment.h>
++#include <asm/desc.h>
  
-+config LEDS_HP_DISK
-+	tristate "LED Support for disk protection LED on HP notebooks"
-+	depends on LEDS_CLASS && ACPI
-+	help
-+	  This option enable support for disk protection LED, found on
-+	  newer HP notebooks.
-+
- config LEDS_CLEVO_MAIL
- 	tristate "Mail LED on Clevo notebook (EXPERIMENTAL)"
- 	depends on LEDS_CLASS && X86 && SERIO_I8042 && DMI && EXPERIMENTAL
-diff -puN drivers/leds/Makefile~leds-driver-for-hp-harddisk-protection-led drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-driver-for-hp-harddisk-protection-led
-+++ a/drivers/leds/Makefile
-@@ -15,6 +15,7 @@ obj-$(CONFIG_LEDS_ALIX)			+= leds-alix.o
- obj-$(CONFIG_LEDS_H1940)		+= leds-h1940.o
- obj-$(CONFIG_LEDS_COBALT_QUBE)		+= leds-cobalt-qube.o
- obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
-+obj-$(CONFIG_LEDS_HP_DISK)		+= leds-hp-disk.o
- obj-$(CONFIG_LEDS_SUNFIRE)		+= leds-sunfire.o
- obj-$(CONFIG_LEDS_PCA9532)		+= leds-pca9532.o
- obj-$(CONFIG_LEDS_GPIO)			+= leds-gpio.o
-diff -puN /dev/null drivers/leds/leds-hp-disk.c
---- /dev/null
-+++ a/drivers/leds/leds-hp-disk.c
-@@ -0,0 +1,155 @@
-+/*
-+ *  leds-hp-disk.c - driver for HP "hard disk protection" LED
-+ *
-+ *  Copyright (C) 2008 Pavel Machek
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/dmi.h>
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/input.h>
-+#include <linux/kthread.h>
-+#include <linux/version.h>
-+#include <linux/leds.h>
-+#include <acpi/acpi_drivers.h>
-+
-+#define DRIVER_NAME     "leds-hp-disk"
-+#define ACPI_MDPS_CLASS "led"
-+
-+/* For automatic insertion of the module */
-+static struct acpi_device_id hpled_device_ids[] = {
-+	{"HPQ0004", 0}, /* HP Mobile Data Protection System PNP */
-+	{"", 0},
-+};
-+MODULE_DEVICE_TABLE(acpi, hpled_device_ids);
-+
-+struct acpi_hpled {
-+	struct acpi_device	*device;   /* The ACPI device */
-+};
-+
-+static struct acpi_hpled adev;
-+
-+static acpi_status hpled_acpi_write(acpi_handle handle, int reg)
-+{
-+	unsigned long ret; /* Not used when writting */
-+	union acpi_object in_obj[1];
-+	struct acpi_object_list args = { 1, in_obj };
-+
-+	in_obj[0].type          = ACPI_TYPE_INTEGER;
-+	in_obj[0].integer.value = reg;
-+
-+	return acpi_evaluate_integer(handle, "ALED", &args, &ret);
-+}
-+
-+static void hpled_set(struct led_classdev *led_cdev,
-+			       enum led_brightness value)
-+{
-+	hpled_acpi_write(adev.device->handle, !!value);
-+}
-+
-+static struct led_classdev hpled_led = {
-+	.name			= "hp:red:hddprotection",
-+	.default_trigger	= "heartbeat",
-+	.brightness_set		= hpled_set,
-+};
-+
-+#ifdef CONFIG_PM
-+static int hpled_suspend(struct acpi_device *dev, pm_message_t state)
-+{
-+	led_classdev_suspend(&hpled_led);
-+	return 0;
-+}
-+
-+static int hpled_resume(struct acpi_device *dev)
-+{
-+	led_classdev_resume(&hpled_led);
-+	return 0;
-+}
-+#endif
-+
-+static int hpled_add(struct acpi_device *device)
-+{
-+	int ret;
-+
-+	if (!device)
-+		return -EINVAL;
-+
-+	adev.device = device;
-+	strcpy(acpi_device_name(device), DRIVER_NAME);
-+	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
-+	acpi_driver_data(device) = &adev;
-+
-+	ret = led_classdev_register(NULL, &hpled_led);
-+	return ret;
-+}
-+
-+static int hpled_remove(struct acpi_device *device, int type)
-+{
-+	if (!device)
-+		return -EINVAL;
-+
-+	led_classdev_unregister(&hpled_led);
-+	return 0;
-+}
-+
-+
-+
-+static struct acpi_driver leds_hp_driver = {
-+	.name  = DRIVER_NAME,
-+	.class = ACPI_MDPS_CLASS,
-+	.ids   = hpled_device_ids,
-+	.ops = {
-+		.add     = hpled_add,
-+		.remove  = hpled_remove,
-+#ifdef CONFIG_PM
-+		.suspend = hpled_suspend,
-+		.resume  = hpled_resume,
-+#endif
-+	}
-+};
-+
-+static int __init hpled_init_module(void)
-+{
-+	int ret;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	ret = acpi_bus_register_driver(&leds_hp_driver);
-+	if (ret < 0)
-+		return ret;
-+
-+	printk(KERN_INFO DRIVER_NAME " driver loaded.\n");
-+
-+	return 0;
-+}
-+
-+static void __exit hpled_exit_module(void)
-+{
-+	acpi_bus_unregister_driver(&leds_hp_driver);
-+}
-+
-+MODULE_DESCRIPTION("Driver for HP disk protection LED");
-+MODULE_AUTHOR("Pavel Machek <pavel@suse.cz>");
-+MODULE_LICENSE("GPL");
-+
-+module_init(hpled_init_module);
-+module_exit(hpled_exit_module);
+ #include "realmode/wakeup.h"
+ #include "sleep.h"
+@@ -98,6 +99,8 @@ int acpi_save_state_mem(void)
+ 	header->trampoline_segment = setup_trampoline() >> 4;
+ #ifdef CONFIG_SMP
+ 	stack_start.sp = temp_stack + sizeof(temp_stack);
++	early_gdt_descr.address =
++			(unsigned long)get_cpu_gdt_table(smp_processor_id());
+ #endif
+ 	initial_code = (unsigned long)wakeup_long64;
+ 	saved_magic = 0x123456789abcdef0;
 _
 
-Patches currently in -mm which might be from pavel@suse.cz are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
 linux-next.patch
-leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+e100-adapt-to-the-reworked-pci-pm.patch
+shrink_slab-handle-bad-shrinkers.patch
 
