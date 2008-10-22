@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + devpts-fix-unused-function-warning.patch added to -mm tree
-Date: Tue, 21 Oct 2008 17:02:33 -0700
-Message-ID: <200810220017.m9M0HDWA022408@imap1.linux-foundation.org>
+Subject: + why-does-this-keep-happening.patch added to -mm tree
+Date: Tue, 21 Oct 2008 17:06:43 -0700
+Message-ID: <200810220021.m9M0LNvU023104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33865 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58738 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751326AbYJVARg (ORCPT
+	by vger.kernel.org with ESMTP id S1751273AbYJVAVr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 20:17:36 -0400
+	Tue, 21 Oct 2008 20:21:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com, sukadev@us.ibm.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     devpts: fix unused function warning
+     why does this keep happening?
 has been added to the -mm tree.  Its filename is
-     devpts-fix-unused-function-warning.patch
+     why-does-this-keep-happening.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: fix unused function warning
+Subject: why does this keep happening?
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/devpts/inode.c:324: warning: 'compare_init_pts_sb' defined but not used
+arch/x86/kernel/io_apic_32.c: In function 'print_local_APIC':
+arch/x86/kernel/io_apic_32.c:1539: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'u64'
+arch/x86/kernel/io_apic_32.c:1540: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'u64'
 
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Alan Cox <alan@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/io_apic_32.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/devpts/inode.c~devpts-fix-unused-function-warning fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-fix-unused-function-warning
-+++ a/fs/devpts/inode.c
-@@ -320,6 +320,7 @@ fail:
- 	return -ENOMEM;
- }
+diff -puN arch/x86/kernel/io_apic_32.c~why-does-this-keep-happening arch/x86/kernel/io_apic_32.c
+--- a/arch/x86/kernel/io_apic_32.c~why-does-this-keep-happening
++++ a/arch/x86/kernel/io_apic_32.c
+@@ -1536,8 +1536,8 @@ __apicdebuginit(void) print_local_APIC(v
+ 	}
  
-+#ifdef CONFIG_DEVPTS_MULTIPLE_INSTANCES
- static int compare_init_pts_sb(struct super_block *s, void *p)
- {
- 	if (devpts_mnt)
-@@ -327,7 +328,6 @@ static int compare_init_pts_sb(struct su
- 	return 0;
- }
+ 	icr = apic_icr_read();
+-	printk(KERN_DEBUG "... APIC ICR: %08x\n", icr);
+-	printk(KERN_DEBUG "... APIC ICR2: %08x\n", icr >> 32);
++	printk(KERN_DEBUG "... APIC ICR: %08x\n", (unsigned)icr);
++	printk(KERN_DEBUG "... APIC ICR2: %08x\n", upper_32_bits(icr));
  
--#ifdef CONFIG_DEVPTS_MULTIPLE_INSTANCES
- /*
-  * Safely parse the mount options in @data and update @opts.
-  *
+ 	v = apic_read(APIC_LVTT);
+ 	printk(KERN_DEBUG "... APIC LVTT: %08x\n", v);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,4 +118,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+why-does-this-keep-happening.patch
 
