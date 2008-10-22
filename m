@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch added to -mm tree
-Date: Tue, 21 Oct 2008 17:09:59 -0700
-Message-ID: <200810220024.m9M0Oe2P023708@imap1.linux-foundation.org>
+Subject: + add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch added to -mm tree
+Date: Tue, 21 Oct 2008 17:27:22 -0700
+Message-ID: <200810220042.m9M0g3Od026844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57678 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751508AbYJVAZF (ORCPT
+	by vger.kernel.org with ESMTP id S1751352AbYJVAmk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 20:25:05 -0400
+	Tue, 21 Oct 2008 20:42:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, burman.yan@gmail.com, eric.piel@tremplin-utc.net, pavel@suse.cz, rpurdie@rpsys.net, trenn@suse.de
+Cc: akpm@linux-foundation.org, agust@denx.de, avorontsov@ru.mvista.com, dbaryshkov@gmail.com, krzysztof.h1@poczta.fm, m.fortini@selcomgroup.com
 
 
 The patch titled
-     leds-driver-for-hp-harddisk-protection-led-fix-fix-2
+     add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix
 has been added to the -mm tree.  Its filename is
-     leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
+     add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-driver-for-hp-harddisk-protection-led-fix-fix-2
+Subject: add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/leds/leds-hp-disk.c: In function 'hpled_acpi_write':
-drivers/leds/leds-hp-disk.c:59: warning: passing argument 4 of 'acpi_evaluate_integer' from incompatible pointer type
+drivers/video/mb862xx/mb862xxfb.h:65:2: error: #error "Select Lime GDC or CoralP/Carmine support, but not both together"
+drivers/video/mb862xx/mb862xxfb.c:549: warning: 'struct of_device' declared inside parameter list
+drivers/video/mb862xx/mb862xxfb.c:549: warning: its scope is only this definition or declaration, which is probably not what you want
+drivers/video/mb862xx/mb862xxfb.c: In function 'of_platform_mb862xx_probe':
+drivers/video/mb862xx/mb862xxfb.c:551: error: dereferencing pointer to incomplete type
+drivers/video/mb862xx/mb862xxfb.c:552: error: dereferencing pointer to incomplete type
+drivers/video/mb862xx/mb862xxfb.c:559: error: implicit declaration of function 'of_address_to_resource'
+drivers/video/mb862xx/mb862xxfb.c:574: error: implicit declaration of function 'irq_of_parse_and_map'
+drivers/video/mb862xx/mb862xxfb.c:575: error: 'NO_IRQ' undeclared (first use in this function)
+drivers/video/mb862xx/mb862xxfb.c:575: error: (Each undeclared identifier is reported only once
+drivers/video/mb862xx/mb862xxfb.c:575: error: for each function it appears in.)
+drivers/video/mb862xx/mb862xxfb.c:664: error: implicit declaration of function 'irq_dispose_mapping'
+drivers/video/mb862xx/mb862xxfb.c: At top level:
+drivers/video/mb862xx/mb862xxfb.c:671: warning: 'struct of_device' declared inside parameter list
+drivers/video/mb862xx/mb862xxfb.c: In function 'of_platform_mb862xx_remove':
+drivers/video/mb862xx/mb862xxfb.c:673: error: dereferencing pointer to incomplete type
+drivers/video/mb862xx/mb862xxfb.c:691: error: dereferencing pointer to incomplete type
+drivers/video/mb862xx/mb862xxfb.c:699: error: dereferencing pointer to incomplete type
+drivers/video/mb862xx/mb862xxfb.c: At top level:
+drivers/video/mb862xx/mb862xxfb.c:719: error: variable 'of_platform_mb862xxfb_driver' has initializer but incomplete type
+drivers/video/mb862xx/mb862xxfb.c:720: error: unknown field 'owner' specified in initializer
+drivers/video/mb862xx/mb862xxfb.c:720: warning: excess elements in struct initializer
+drivers/video/mb862xx/mb862xxfb.c:720: warning: (near initialization for 'of_platform_mb862xxfb_driver')
+drivers/video/mb862xx/mb862xxfb.c:721: error: unknown field 'name' specified in initializer
+drivers/video/mb862xx/mb862xxfb.c:721: warning: excess elements in struct initializer
+drivers/video/mb862xx/mb862xxfb.c:721: warning: (near initialization for 'of_platform_mb862xxfb_driver')
+drivers/video/mb862xx/mb862xxfb.c:722: error: unknown field 'match_table' specified in initializer
+drivers/video/mb862xx/mb862xxfb.c:722: warning: excess elements in struct initializer
+drivers/video/mb862xx/mb862xxfb.c:722: warning: (near initialization for 'of_platform_mb862xxfb_driver')
+drivers/video/mb862xx/mb862xxfb.c:723: error: unknown field 'probe' specified in initializer
+drivers/video/mb862xx/mb862xxfb.c:723: warning: excess elements in struct initializer
+drivers/video/mb862xx/mb862xxfb.c:723: warning: (near initialization for 'of_platform_mb862xxfb_driver')
+drivers/video/mb862xx/mb862xxfb.c:724: error: unknown field 'remove' specified in initializer
+drivers/video/mb862xx/mb862xxfb.c:724: warning: excess elements in struct initializer
+drivers/video/mb862xx/mb862xxfb.c:724: warning: (near initialization for 'of_platform_mb862xxfb_driver')
+drivers/video/mb862xx/mb862xxfb.c: In function 'mb862xxfb_init':
+drivers/video/mb862xx/mb862xxfb.c:1038: error: implicit declaration of function 'of_register_platform_driver'
+drivers/video/mb862xx/mb862xxfb.c: In function 'mb862xxfb_exit':
+drivers/video/mb862xx/mb862xxfb.c:1049: error: implicit declaration of function 'of_unregister_platform_driver'
 
-Someone changed acpi_evaluate_integer()
+nfi is this is correct...
 
-drivers/leds/leds-hp-disk.c: In function 'hpled_add':
-drivers/leds/leds-hp-disk.c:101: error: invalid lvalue in assignment
-
-I changed that!
-
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Pavel Machek <pavel@suse.cz>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Yan Burman <burman.yan@gmail.com>
+Cc: Anatolij Gustschin <agust@denx.de>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Matteo Fortini <m.fortini@selcomgroup.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-hp-disk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/leds/leds-hp-disk.c~leds-driver-for-hp-harddisk-protection-led-fix-fix-2 drivers/leds/leds-hp-disk.c
---- a/drivers/leds/leds-hp-disk.c~leds-driver-for-hp-harddisk-protection-led-fix-fix-2
-+++ a/drivers/leds/leds-hp-disk.c
-@@ -49,7 +49,7 @@ static struct acpi_hpled adev;
- 
- static acpi_status hpled_acpi_write(acpi_handle handle, int reg)
- {
--	unsigned long ret; /* Not used when writing */
-+	unsigned long long ret; /* Not used when writing */
- 	union acpi_object in_obj[1];
- 	struct acpi_object_list args = { 1, in_obj };
- 
-@@ -98,7 +98,7 @@ static int hpled_add(struct acpi_device 
- 	adev.device = device;
- 	strcpy(acpi_device_name(device), DRIVER_NAME);
- 	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
--	acpi_driver_data(device) = &adev;
-+	device->driver_data = &adev;
- 
- 	ret = led_classdev_register(NULL, &hpled_led);
- 	return ret;
+diff -puN drivers/video/Kconfig~add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix drivers/video/Kconfig
+--- a/drivers/video/Kconfig~add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix
++++ a/drivers/video/Kconfig
+@@ -2086,6 +2086,7 @@ config FB_METRONOME
+ config FB_MB862XX
+ 	tristate "Fujitsu MB862xx GDC support"
+ 	depends on FB
++	depends on OF
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,7 +110,6 @@ epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
 freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
 fs-remove-prepare_write-commit_write-fix.patch
 mm-write_cache_pages-writepage-error-fix.patch
-devpts-fix-unused-function-warning.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 linux-next-git-rejects.patch
@@ -113,7 +134,9 @@ mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
 mm-invoke-oom-killer-from-page-fault-fix.patch
 init-properly-placing-noinline-keyword.patch
 spi_gpio-driver-cleanups.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
 ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+devpts-fix-unused-function-warning.patch
 w1-export-w1_read_8-function-checkpatch-fixes.patch
 nilfs2-inode-operations-fix.patch
 nilfs2-pathname-operations-fix.patch
