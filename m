@@ -1,327 +1,327 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2008-10-22-00-36 uploaded
-Date: Wed, 22 Oct 2008 00:41:08 -0700
-Message-ID: <200810220741.m9M7f85S004406@imap1.linux-foundation.org>
+Subject: - linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 22 Oct 2008 13:04:24 -0700
+Message-ID: <200810222004.m9MK4OvG013064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754459AbYJVHlL (ORCPT
+	by vger.kernel.org with ESMTP id S1753313AbYJVUE6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Oct 2008 03:41:11 -0400
+	Wed, 22 Oct 2008 16:04:58 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9M7f8rV011336
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9MK4O6k009404
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2008 00:41:09 -0700
-Received: from localhost.localdomain (localhost [127.0.0.1])
-	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9M7f85S004406
-	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2008 00:41:08 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2008 13:04:25 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
-The mm-of-the-moment snapshot 2008-10-22-00-36 has been uploaded to
 
-   http://userweb.kernel.org/~akpm/mmotm/
+The patch titled
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-It contains the following patches against 2.6.27:
+This patch was dropped because it is obsolete
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/mtd/nand/Kconfig |    3 ---
+ drivers/pci/probe.c      |   28 ----------------------------
+ fs/proc/vmcore.c         |    7 +------
+ include/linux/mm_types.h |    3 ---
+ kernel/sysctl.c          |    3 ---
+ mm/Makefile              |    4 ----
+ mm/hugetlb.c             |    9 ---------
+ mm/migrate.c             |    3 ---
+ 8 files changed, 1 insertion(+), 59 deletions(-)
+
+diff -puN drivers/mtd/nand/Kconfig~linux-next-git-rejects drivers/mtd/nand/Kconfig
+--- a/drivers/mtd/nand/Kconfig~linux-next-git-rejects
++++ a/drivers/mtd/nand/Kconfig
+@@ -56,15 +56,12 @@ config MTD_NAND_H1900
+ 	help
+ 	  This enables the driver for the iPAQ h1900 flash.
+ 
+-<<<<<<< HEAD:drivers/mtd/nand/Kconfig
+ config MTD_NAND_GPIO
+ 	tristate "GPIO NAND Flash driver"
+ 	depends on GENERIC_GPIO && ARM
+ 	help
+ 	  This enables a GPIO based NAND flash driver.
+ 
+-=======
+->>>>>>> FETCH_HEAD:drivers/mtd/nand/Kconfig
+ config MTD_NAND_SPIA
+ 	tristate "NAND Flash device on SPIA board"
+ 	depends on ARCH_P720T
+diff -puN drivers/pci/probe.c~linux-next-git-rejects drivers/pci/probe.c
+--- a/drivers/pci/probe.c~linux-next-git-rejects
++++ a/drivers/pci/probe.c
+@@ -236,15 +236,10 @@ static int __pci_read_base(struct pci_de
+ 		} else {
+ 			res->start = l64;
+ 			res->end = l64 + sz64;
+-<<<<<<< HEAD:drivers/pci/probe.c
+-			printk(KERN_DEBUG "PCI: %s reg %x 64bit mmio: %pR\n",
+-				pci_name(dev), pos, res);
+-=======
+ 			dev_printk(KERN_DEBUG, &dev->dev,
+ 				"reg %x 64bit mmio: [%#llx-%#llx]\n", pos,
+ 				(unsigned long long)res->start,
+ 				(unsigned long long)res->end);
+->>>>>>> FETCH_HEAD:drivers/pci/probe.c
+ 		}
+ 	} else {
+ 		sz = pci_size(l, sz, mask);
+@@ -254,16 +249,9 @@ static int __pci_read_base(struct pci_de
+ 
+ 		res->start = l;
+ 		res->end = l + sz;
+-<<<<<<< HEAD:drivers/pci/probe.c
+-		printk(KERN_DEBUG "PCI: %s reg %x %s: %pR\n",
+-		       pci_name(dev), pos,
+-		       (res->flags & IORESOURCE_IO) ? "io port":"32bit mmio",
+-		       res);
+-=======
+ 		dev_printk(KERN_DEBUG, &dev->dev, "reg %x %s: [%#llx-%#llx]\n", pos,
+ 			(res->flags & IORESOURCE_IO) ? "io port" : "32bit mmio",
+ 			(unsigned long long)res->start, (unsigned long long)res->end);
+->>>>>>> FETCH_HEAD:drivers/pci/probe.c
+ 	}
+ 
+  out:
+@@ -334,14 +322,9 @@ void __devinit pci_read_bridge_bases(str
+ 			res->start = base;
+ 		if (!res->end)
+ 			res->end = limit + 0xfff;
+-<<<<<<< HEAD:drivers/pci/probe.c
+-		printk(KERN_DEBUG "PCI: bridge %s io port: %pR\n",
+-		       pci_name(dev), res);
+-=======
+ 		dev_printk(KERN_DEBUG, &dev->dev, "bridge io port: [%#llx-%#llx]\n",
+ 			(unsigned long long) res->start,
+ 			(unsigned long long) res->end);
+->>>>>>> FETCH_HEAD:drivers/pci/probe.c
+ 	}
+ 
+ 	res = child->resource[1];
+@@ -353,14 +336,9 @@ void __devinit pci_read_bridge_bases(str
+ 		res->flags = (mem_base_lo & PCI_MEMORY_RANGE_TYPE_MASK) | IORESOURCE_MEM;
+ 		res->start = base;
+ 		res->end = limit + 0xfffff;
+-<<<<<<< HEAD:drivers/pci/probe.c
+-		printk(KERN_DEBUG "PCI: bridge %s 32bit mmio: %pR\n",
+-		       pci_name(dev), res);
+-=======
+ 		dev_printk(KERN_DEBUG, &dev->dev, "bridge 32bit mmio: [%#llx-%#llx]\n",
+ 			(unsigned long long) res->start,
+ 			(unsigned long long) res->end);
+->>>>>>> FETCH_HEAD:drivers/pci/probe.c
+ 	}
+ 
+ 	res = child->resource[2];
+@@ -396,15 +374,9 @@ void __devinit pci_read_bridge_bases(str
+ 		res->flags = (mem_base_lo & PCI_MEMORY_RANGE_TYPE_MASK) | IORESOURCE_MEM | IORESOURCE_PREFETCH;
+ 		res->start = base;
+ 		res->end = limit + 0xfffff;
+-<<<<<<< HEAD:drivers/pci/probe.c
+-		printk(KERN_DEBUG "PCI: bridge %s %sbit mmio pref: %pR\n",
+-		       pci_name(dev),
+-		       (res->flags & PCI_PREF_RANGE_TYPE_64) ? "64":"32", res);
+-=======
+ 		dev_printk(KERN_DEBUG, &dev->dev, "bridge %sbit mmio pref: [%#llx-%#llx]\n",
+ 			(res->flags & PCI_PREF_RANGE_TYPE_64) ? "64" : "32",
+ 			(unsigned long long) res->start, (unsigned long long) res->end);
+->>>>>>> FETCH_HEAD:drivers/pci/probe.c
+ 	}
+ }
+ 
+diff -puN fs/proc/vmcore.c~linux-next-git-rejects fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~linux-next-git-rejects
++++ a/fs/proc/vmcore.c
+@@ -32,15 +32,10 @@ static size_t elfcorebuf_sz;
+ /* Total size of vmcore file. */
+ static u64 vmcore_size;
+ 
+-<<<<<<< HEAD:fs/proc/vmcore.c
+-struct proc_dir_entry *proc_vmcore = NULL;
+-=======
++static struct proc_dir_entry *proc_vmcore = NULL;
+ /* Stores the physical address of elf header of crash image. */
+ unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
+ 
+-static struct proc_dir_entry *proc_vmcore = NULL;
+->>>>>>> FETCH_HEAD:fs/proc/vmcore.c
+-
+ /* Reads a page from the oldmem device from given offset. */
+ static ssize_t read_from_oldmem(char *buf, size_t count,
+ 				u64 *ppos, int userbuf)
+diff -puN include/linux/mm_types.h~linux-next-git-rejects include/linux/mm_types.h
+--- a/include/linux/mm_types.h~linux-next-git-rejects
++++ a/include/linux/mm_types.h
+@@ -94,8 +94,6 @@ struct page {
+ 	void *virtual;			/* Kernel virtual address (NULL if
+ 					   not kmapped, ie. highmem) */
+ #endif /* WANT_PAGE_VIRTUAL */
+-<<<<<<< HEAD:include/linux/mm_types.h
+-=======
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ 	unsigned long page_cgroup;
+ #endif
+@@ -103,7 +101,6 @@ struct page {
+ #ifdef CONFIG_KMEMCHECK
+ 	void *shadow;
+ #endif
+->>>>>>> FETCH_HEAD:include/linux/mm_types.h
+ };
+ 
+ /*
+diff -puN kernel/sysctl.c~linux-next-git-rejects kernel/sysctl.c
+--- a/kernel/sysctl.c~linux-next-git-rejects
++++ a/kernel/sysctl.c
+@@ -834,7 +834,6 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ #endif
+-<<<<<<< HEAD:kernel/sysctl.c
+ #ifdef CONFIG_UNEVICTABLE_LRU
+ 	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+@@ -845,9 +844,7 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler	= &scan_unevictable_handler,
+ 	},
+ #endif
+-=======
+ 
+->>>>>>> FETCH_HEAD:kernel/sysctl.c
+ /*
+  * NOTE: do not add new entries to this table unless you have read
+  * Documentation/sysctl/ctl_unnumbered.txt
+diff -puN mm/Makefile~linux-next-git-rejects mm/Makefile
+--- a/mm/Makefile~linux-next-git-rejects
++++ a/mm/Makefile
+@@ -34,9 +34,5 @@ obj-$(CONFIG_FS_XIP) += filemap_xip.o
+ obj-$(CONFIG_MIGRATION) += migrate.o
+ obj-$(CONFIG_SMP) += allocpercpu.o
+ obj-$(CONFIG_QUICKLIST) += quicklist.o
+-<<<<<<< HEAD:mm/Makefile
+ obj-$(CONFIG_CGROUP_MEM_RES_CTLR) += memcontrol.o page_cgroup.o
+-=======
+-obj-$(CONFIG_CGROUP_MEM_RES_CTLR) += memcontrol.o
+ obj-$(CONFIG_KMEMTRACE) += kmemtrace.o
+->>>>>>> FETCH_HEAD:mm/Makefile
+diff -puN mm/hugetlb.c~linux-next-git-rejects mm/hugetlb.c
+--- a/mm/hugetlb.c~linux-next-git-rejects
++++ a/mm/hugetlb.c
+@@ -1459,21 +1459,12 @@ int hugetlb_overcommit_handler(struct ct
+ void hugetlb_report_meminfo(struct seq_file *m)
+ {
+ 	struct hstate *h = &default_hstate;
+-<<<<<<< HEAD:mm/hugetlb.c
+-	return sprintf(buf,
+-			"HugePages_Total:   %5lu\n"
+-			"HugePages_Free:    %5lu\n"
+-			"HugePages_Rsvd:    %5lu\n"
+-			"HugePages_Surp:    %5lu\n"
+-			"Hugepagesize:   %8lu kB\n",
+-=======
+ 	seq_printf(m,
+ 			"HugePages_Total: %5lu\n"
+ 			"HugePages_Free:  %5lu\n"
+ 			"HugePages_Rsvd:  %5lu\n"
+ 			"HugePages_Surp:  %5lu\n"
+ 			"Hugepagesize:    %5lu kB\n",
+->>>>>>> FETCH_HEAD:mm/hugetlb.c
+ 			h->nr_huge_pages,
+ 			h->free_huge_pages,
+ 			h->resv_huge_pages,
+diff -puN mm/migrate.c~linux-next-git-rejects mm/migrate.c
+--- a/mm/migrate.c~linux-next-git-rejects
++++ a/mm/migrate.c
+@@ -1045,12 +1045,9 @@ asmlinkage long sys_move_pages(pid_t pid
+ 			const int __user *nodes,
+ 			int __user *status, int flags)
+ {
+-<<<<<<< HEAD:mm/migrate.c
+-=======
+ 	const struct cred *cred = current_cred(), *tcred;
+ 	int err = 0;
+ 	int i;
+->>>>>>> FETCH_HEAD:mm/migrate.c
+ 	struct task_struct *task;
+ 	struct mm_struct *mm;
+ 	int err;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch
-profiling-fix-up-config_proc_fs=n-build.patch
-byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch
-binfmt_elf_fdpic-update-for-cputime-changes.patch
-jbd-fix-error-handling-for-checkpoint-io.patch
-ext3-add-checks-for-errors-from-jbd.patch
-jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch
-jbd-abort-instead-of-waiting-for-nonexistent-transactions.patch
-memcg-fix-page_cgroup-allocation.patch
 memcg-fix-page_cgroup-allocation-fix.patch
 memcg-fix-page_cgroup-allocation-fix-2.patch
-mm-increase-the-default-mlock-limit-from-32k-to-64k.patch
-viafb-removed-duplicated-includes.patch
-gitignore-updates.patch
-edac-x38-new-mc-driver-module.patch
-epoll-avoid-double-inserts-in-case-of-efault.patch
 epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
-export-tiny-shmem_file_setup-for-drm-gem.patch
-freezer_cg-fix-improper-bug_on-causing-oops.patch
-freezer_cg-remove-redundant-check-in-freezer_can_attach.patch
-freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
 freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
-freezer_cg-simplify-freezer_change_state.patch
-cgroups-tiny-cleanups.patch
-fs-remove-prepare_write-commit_write.patch
 fs-remove-prepare_write-commit_write-fix.patch
 mm-write_cache_pages-writepage-error-fix.patch
-docbook-fix-command-spacing.patch
-docs-fix-managementstyle-book-name.patch
-rtc-s3c-fix-section-mismatch-warnings.patch
 mm-remove-the-might_sleep-from-lock_page.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
 linux-next-git-rejects.patch
 linux-next-unbork-meminfo.patch
 linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
-git-tests.patch
+git-sh.patch
 git-tests-git-rejects.patch
+git-acpi.patch
 revert-i7300_idle-driver-v155.patch
-drivers-i2c-busses-i2c-s3c2410c-correct-use-of-and.patch
-fujitsu-laptop-fix-section-mismatch-warning.patch
-acpi-compal-laptop-use-rfkill-switch-subsystem.patch
-acpi-compal-laptop-use-rfkill-switch-subsystem-fix.patch
-panasonic-laptop-depends-on-acpi.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-x86-remove-init_mm-export-as-planned-for-2626.patch
-x86-use-dev_printk-in-quirk-message.patch
-x86_64-add-memory-hotremove-config-option.patch
+git-tip.patch
 arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch
-kexec-fix-hang-on-i386-when-panic-occurs-while-console_sem-is-held.patch
-kvmclockc-fix-section-mismatch-warning.patch
 why-does-this-keep-happening.patch
-x86-use-common-header-for-software-io-tlb.patch
-agp-follow-lspci-device-vendor-style.patch
-intel-agp-avoid-oops-for-g33-on-1mb-stolen-case.patch
-gpio_free-might-sleep-arm-architecture.patch
-cifs-remove-global_extern-macro.patch
-pcmcia-pccard-deadlock-fix.patch
-sysfs-fix-return-values-for-sysdev_store_ulongint.patch
-drivers-base-sysc-update-comments.patch
-anysee-initialize-anysee_usb_mutex-statically.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
-ia64-fix-the-difference-between-node_mem_map-and-node_start_pfn.patch
-ia64-use-common-header-for-software-io-tlb.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
-input-touchscreen-driver-add-support-ad7877-touchscreen-driver-try-5.patch
-input-ads7846c-sparse-lock-annotation.patch
-serio_raw-add-support-for-translated-serio_i8042xl-ports.patch
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
-i8042-add-blue-fb5601-to-noloop-execption-table.patch
-input-ad7879-touchscreen-driver.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch
-scripts-package-allow-custom-options-to-rpm.patch
-scripts-checksyscallssh-fix-for-non-gnu-sed.patch
-adjust-init-section-definitions.patch
-tags-skip-in-filenames.patch
-kbuild-fix-kbuild_extra_symbols.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
 kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
 led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-leds-pca955x-mark-pca955x_led_set-static.patch
-leds-pca9532-mark-pca9532_event-static.patch
-leds-driver-for-hp-harddisk-protection-led.patch
 leds-driver-for-hp-harddisk-protection-led-fix.patch
 leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
-m32r-kernel-smpbootc-must-include-linux-cpuh.patch
 drivers-rtc-rtc-ds1286c-is-borked.patch
 drivers-rtc-rtc-m48t35c-is-borked-too.patch
-mmc-fix-clock-off-in-pxa255-270.patch
-pci-use-pci_ioremap_bar-in-drivers-mmc.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-skge-adapt-skge-to-use-reworked-pci-pm.patch
-the-overdue-eepro100-removal.patch
-forcdeth-increase-max_interrupt_work.patch
 drivers-net-sfc-falconc-fix-min-warnings.patch
-e100-adapt-to-the-reworked-pci-pm.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-3x59x-fix-pci-resource-management.patch
-smc-ultra-get-rid-of-eth%d-message.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-gpio_free-might-sleep-blackfin-architecture.patch
-blackfin-remove-__function__-in-new-serial-driver.patch
-blackfin-remove-__function__-in-video-driver.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-piix3-warn-softer-about-enabling-passive-release.patch
-drivers-pci-hotplug-cpqphp_ctrlc-convert-to.patch
-mutex-improve-header-comment-to-be-actually-informative-about-the-api.patch
-if-0-ses_match_host.patch
-scsi-replace-__inline-with-inline.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-drivers-scsi-use-div_round_up.patch
-drivers-scsi-megaraid-use-div_round_up.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-gdth-fix-section-mismatch-warnings.patch
-esp-fix-section-mismatch-warning.patch
-scsi-remove-private-implementation-of-get_unaligned_be32.patch
-scsi-fix-bad-use-of-udelay-in-atp870uc.patch
-cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch
-usb-protect-hcdh-from-multiple-inclusions.patch
-drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci.patch
-usb-add-nikon-d300-camera-to-unusual_devs.patch
-usb-avoid-needless-address-taking-of-function-parameters.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-vfs-make-security_inode_setattr-calling-consistent.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-include-linux-fsh-put-declarations-in-__kernel__.patch
-fs-namespacec-drop-code-after-return.patch
-introduce-new-lsm-hooks-where-vfsmount-is-available.patch
-introduce-new-lsm-hooks-where-vfsmount-is-available-update.patch
-fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch
-i_version-remount-support.patch
-vfs-replace-parent-==-dentry-d_parent-by-is_root.patch
-vfs-add-d_ancestor.patch
-vfs-add-__d_instantiate-helper.patch
-vfs-remove-unnecessary-fsnotify_d_instantiate.patch
-vfs-remove-lookup_parent-from-non-lookup_parent-lookup.patch
-vfs-add-lookup_rename_target-intent.patch
-pika-warp-appliance-watchdog-timer.patch
-mm.patch
-make-do_mounts_md-use-of-msleep-more-robust.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
-posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
-posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
-posix-timers-simplify-de_thread-exit_itimers-path.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-mm-dont-mark_page_accessed-in-fault-path.patch
-mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
-mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
-mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
-mm-invoke-oom-killer-from-page-fault.patch
 mm-invoke-oom-killer-from-page-fault-fix.patch
 init-properly-placing-noinline-keyword.patch
-atomic_t-unify-all-arch-definitions.patch
-misc-replace-remaining-__function__-with-__func__.patch
-pci-use-pci_ioremap_bar-in-drivers-misc.patch
-pci-use-pci_ioremap_bar-in-drivers-serial.patch
-max3100-spi-uart-driver.patch
-max3100-spi-uart-driver-fix.patch
-spi_gpio-driver.patch
 spi_gpio-driver-cleanups.patch
-kprobes-indirectly-call-kprobe_target.patch
-kprobes-add-tests-for-register_kprobes.patch
-rtc-ds1307-smbus-compatibility.patch
-add-dallas-ds1390-93-94-rtc-chips.patch
-add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs.patch
 add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
-pci-use-pci_ioremap_bar-in-drivers-video.patch
-intelfb-support-i854.patch
-ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch
 ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
-fat-document-additional-vfat-mount-options.patch
-fat-move-fs-vfat-and-fs-msdos-to-fs-fat.patch
-fat-split-include-msdos_fsh.patch
-fat-fix-and-cleanup-timestamp-conversion.patch
-fat-use-generic_file_llseek-for-directory.patch
-fat-cleanup-fat_parse_long-error-handling.patch
-fat-improve-fat_hash.patch
-fat-fix-fat_ent_update_ptr-for-fat12.patch
-fat-use-fat_detach-in-fat_clear_inode.patch
-vfat-fix-vfat_find-error-path-in-vfat_lookup.patch
-fat-fix-cleanup-dcache-handling-for-vfat.patch
-fat-kill-d_invalidate-in-vfat_lookup.patch
-fat-cleanup-msdos_lookup.patch
-fat-cleanup-fat-attribute-stuff.patch
-fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0.patch
-fat-fix-attr_ro-for-directory.patch
-fat-fix-_fat_bmap-race.patch
-fat-add-printf-attribute-to-fat_fs_panic.patch
-fat-mmu_private-race-fix.patch
-fat-i_pos-race-fix.patch
-fat-i_blocks-warning-fix.patch
-genirq-null-struct-irq_descs-member-name-in-dynamic_irq_cleanup.patch
 devpts-fix-unused-function-warning.patch
-relay-reset-consumed.patch
-trace-code-and-documentation.patch
-trace-code-and-documentation-merging-documentation-tracetxt-with-documentation-filesystems-relaytxt.patch
-trace-sample.patch
-rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements.patch
-rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements-fix.patch
-pci-use-pci_ioremap_bar-in-drivers-edac.patch
-bfs-add-some-basic-sanity-checks.patch
-bfs-check-that-filesystem-fits-on-the-blockdevice.patch
-w1-export-w1_read_8-function.patch
 w1-export-w1_read_8-function-checkpatch-fixes.patch
-hdq-driver-for-omap2430-3430.patch
-hdq-bq27000-hdq-slave-interface-driver.patch
-hdq-documentation-for-omap-hdq.patch
-vmcore-remove-saved_max_pfn-check.patch
-powerpc-hugetlb-pgtable-cache-access-cleanup.patch
-nilfs2-add-document.patch
-nilfs2-disk-format-and-userland-interface.patch
-nilfs2-add-inode-and-other-major-structures.patch
-nilfs2-integrated-block-mapping.patch
-nilfs2-b-tree-based-block-mapping.patch
-nilfs2-direct-block-mapping.patch
-nilfs2-b-tree-node-cache.patch
-nilfs2-buffer-and-page-operations.patch
-nilfs2-meta-data-file.patch
-nilfs2-persistent-object-allocator.patch
-nilfs2-disk-address-translator.patch
-nilfs2-inode-map-file.patch
-nilfs2-checkpoint-file.patch
-nilfs2-segment-usage-file.patch
-nilfs2-inode-operations.patch
 nilfs2-inode-operations-fix.patch
-nilfs2-file-operations.patch
-nilfs2-directory-entry-operations.patch
-nilfs2-pathname-operations.patch
 nilfs2-pathname-operations-fix.patch
-nilfs2-operations-for-the_nilfs-core-object.patch
-nilfs2-super-block-operations.patch
-nilfs2-segment-buffer.patch
-nilfs2-segment-constructor.patch
-nilfs2-recovery-functions.patch
-nilfs2-another-dat-for-garbage-collection.patch
-nilfs2-block-cache-for-garbage-collection.patch
-nilfs2-ioctl-operations.patch
-nilfs2-update-makefile-and-kconfig.patch
-reiser4-vfs-add-super_operationssync_inodes-2.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4-export-find_get_pages.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
-reiser4-fix-handling-enospc-cryptcompress.patch
-reiser4-fix-handling-enospc-unix_file.patch
-reiser4-fix-kill_hook_internal.patch
 reiser4-semaphore-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
 reiser4-suid.patch
-reiser4-compile-warning-cleanups.patch
-reiser4-use-wake_up_process-instead-of-wake_up-when-possible.patch
 reiser4-track-upstream-changes.patch
 reiser4-broke.patch
-make-sure-nobodys-leaking-resources.patch
-journal_add_journal_head-debug.patch
 page-owner-tracking-leak-detector.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-releasing-resources-with-children.patch
 nr_blockdev_pages-in_interrupt-warning.patch
-detect-atomic-counter-underflows.patch
-mm-debug-dump-pageframes-on-bad_page.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
 shrink_slab-handle-bad-shrinkers.patch
-keep-track-of-network-interface-renaming.patch
-workaround-for-a-pci-restoring-bug.patch
-prio_tree-debugging-patch.patch
-single_open-seq_release-leak-diagnostics.patch
-add-a-refcount-check-in-dput.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
-likely_prof-changed-to-use-proc_create.patch
-likeliness-accounting-change-and-cleanup.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
-likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
-likely-profiling-disable-ftrace.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+
