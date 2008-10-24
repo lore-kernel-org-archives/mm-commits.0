@@ -1,79 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-remove-unnecessary-fsnotify_d_instantiate.patch removed from -mm tree
-Date: Fri, 24 Oct 2008 12:41:09 -0700
-Message-ID: <200810241941.m9OJf94Y001153@imap1.linux-foundation.org>
+Subject: - mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch removed from -mm tree
+Date: Fri, 24 Oct 2008 12:40:26 -0700
+Message-ID: <200810241940.m9OJeQ8e000899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57428 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752309AbYJXTlr (ORCPT
+	by vger.kernel.org with ESMTP id S1752512AbYJXTm0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Oct 2008 15:41:47 -0400
+	Fri, 24 Oct 2008 15:42:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, heiko.carstens@de.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: remove unnecessary fsnotify_d_instantiate()
+     mm: page_cgroup needs linux/vmalloc.h for vmalloc_node()/vfree().
 has been removed from the -mm tree.  Its filename was
-     vfs-remove-unnecessary-fsnotify_d_instantiate.patch
+     mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: remove unnecessary fsnotify_d_instantiate()
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: mm: page_cgroup needs linux/vmalloc.h for vmalloc_node()/vfree().
+From: Paul Mundt <lethal@linux-sh.org>
 
-This calls d_move(), so fsnotify_d_instantiate() is unnecessary like
-rename path.
+mm/page_cgroup.c: In function 'init_section_page_cgroup':
+mm/page_cgroup.c:111: error: implicit declaration of function 'vmalloc_node'
+mm/page_cgroup.c:111: warning: assignment makes pointer from integer without a cast
+mm/page_cgroup.c: In function '__free_page_cgroup':
+mm/page_cgroup.c:140: error: implicit declaration of function 'vfree'
 
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/page_cgroup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/dcache.c~vfs-remove-unnecessary-fsnotify_d_instantiate fs/dcache.c
---- a/fs/dcache.c~vfs-remove-unnecessary-fsnotify_d_instantiate
-+++ a/fs/dcache.c
-@@ -1210,7 +1210,6 @@ struct dentry *d_splice_alias(struct ino
- 		new = __d_find_alias(inode, 1);
- 		if (new) {
- 			BUG_ON(!(new->d_flags & DCACHE_DISCONNECTED));
--			fsnotify_d_instantiate(new, inode);
- 			spin_unlock(&dcache_lock);
- 			security_d_instantiate(new, inode);
- 			d_rehash(dentry);
+diff -puN mm/page_cgroup.c~mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree mm/page_cgroup.c
+--- a/mm/page_cgroup.c~mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree
++++ a/mm/page_cgroup.c
+@@ -5,6 +5,7 @@
+ #include <linux/page_cgroup.h>
+ #include <linux/hash.h>
+ #include <linux/memory.h>
++#include <linux/vmalloc.h>
+ 
+ static void __meminit
+ __init_page_cgroup(struct page_cgroup *pc, unsigned long pfn)
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
+origin.patch
 linux-next.patch
-fat-document-additional-vfat-mount-options.patch
-fat-move-fs-vfat-and-fs-msdos-to-fs-fat.patch
-fat-split-include-msdos_fsh.patch
-fat-fix-and-cleanup-timestamp-conversion.patch
-fat-use-generic_file_llseek-for-directory.patch
-fat-cleanup-fat_parse_long-error-handling.patch
-fat-improve-fat_hash.patch
-fat-fix-fat_ent_update_ptr-for-fat12.patch
-fat-use-fat_detach-in-fat_clear_inode.patch
-vfat-fix-vfat_find-error-path-in-vfat_lookup.patch
-fat-fix-cleanup-dcache-handling-for-vfat.patch
-fat-kill-d_invalidate-in-vfat_lookup.patch
-fat-cleanup-msdos_lookup.patch
-fat-cleanup-fat-attribute-stuff.patch
-fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0.patch
-fat-fix-attr_ro-for-directory.patch
-fat-fix-_fat_bmap-race.patch
-fat-add-printf-attribute-to-fat_fs_panic.patch
-fat-mmu_private-race-fix.patch
-fat-i_pos-race-fix.patch
-fat-i_blocks-warning-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
 
