@@ -1,105 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch removed from -mm tree
-Date: Fri, 24 Oct 2008 12:40:45 -0700
-Message-ID: <200810241940.m9OJejFZ000984@imap1.linux-foundation.org>
+Subject: - ext3-add-checks-for-errors-from-jbd.patch removed from -mm tree
+Date: Fri, 24 Oct 2008 12:40:33 -0700
+Message-ID: <200810241940.m9OJeX4O000921__48209.8270942972$1224877334$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49203 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752138AbYJXTkw (ORCPT
+	by vger.kernel.org with ESMTP id S1752107AbYJXTkt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Oct 2008 15:40:52 -0400
+	Fri, 24 Oct 2008 15:40:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hidehiro.kawai.ez@hitachi.com, jack@ucw.cz, linux-ext4@vger.kernel.org, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next: fix vfs for about-to-be-merged ext3 patches
+     ext3: add checks for errors from jbd
 has been removed from the -mm tree.  Its filename was
-     linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
+     ext3-add-checks-for-errors-from-jbd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next: fix vfs for about-to-be-merged ext3 patches
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ext3: add checks for errors from jbd
+From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 
-ext3-add-checks-for-errors-from-jbd.patch will break linux-next.
+If the journal has aborted due to a checkpointing failure, we have to
+keep the contents of the journal space.  Otherwise, the filesystem will
+lose uncheckpointed metadata completely and become inconsistent.  To
+avoid this, we need to keep needs_recovery flag if checkpoint has
+failed.
 
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+With this patch, ext3_put_super() detects a checkpointing failure from
+the return value of journal_destroy(), then it invokes ext3_abort() to
+make the filesystem read only and keep needs_recovery flag.  Errors
+from journal_flush() are also handled by this patch in some places.
+
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Jan Kara <jack@ucw.cz>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext3/ioctl.c |   12 ++++++++----
+ fs/ext3/super.c |   23 +++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 8 deletions(-)
 
-diff -puN fs/ext3/super.c~linux-next-fix-vfs-for-about-to-be-merged-ext3-patches fs/ext3/super.c
---- a/fs/ext3/super.c~linux-next-fix-vfs-for-about-to-be-merged-ext3-patches
-+++ a/fs/ext3/super.c
-@@ -2836,7 +2836,7 @@ static int ext3_quota_on(struct super_bl
- 		err = journal_flush(EXT3_SB(sb)->s_journal);
- 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
- 		if (err) {
--			path_put(&nd.path);
-+			path_put(&path);
- 			return err;
+diff -puN fs/ext3/ioctl.c~ext3-add-checks-for-errors-from-jbd fs/ext3/ioctl.c
+--- a/fs/ext3/ioctl.c~ext3-add-checks-for-errors-from-jbd
++++ a/fs/ext3/ioctl.c
+@@ -239,7 +239,7 @@ setrsvsz_out:
+ 	case EXT3_IOC_GROUP_EXTEND: {
+ 		ext3_fsblk_t n_blocks_count;
+ 		struct super_block *sb = inode->i_sb;
+-		int err;
++		int err, err2;
+ 
+ 		if (!capable(CAP_SYS_RESOURCE))
+ 			return -EPERM;
+@@ -254,8 +254,10 @@ setrsvsz_out:
  		}
+ 		err = ext3_group_extend(sb, EXT3_SB(sb)->s_es, n_blocks_count);
+ 		journal_lock_updates(EXT3_SB(sb)->s_journal);
+-		journal_flush(EXT3_SB(sb)->s_journal);
++		err2 = journal_flush(EXT3_SB(sb)->s_journal);
+ 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
++		if (err == 0)
++			err = err2;
+ group_extend_out:
+ 		mnt_drop_write(filp->f_path.mnt);
+ 		return err;
+@@ -263,7 +265,7 @@ group_extend_out:
+ 	case EXT3_IOC_GROUP_ADD: {
+ 		struct ext3_new_group_data input;
+ 		struct super_block *sb = inode->i_sb;
+-		int err;
++		int err, err2;
+ 
+ 		if (!capable(CAP_SYS_RESOURCE))
+ 			return -EPERM;
+@@ -280,8 +282,10 @@ group_extend_out:
+ 
+ 		err = ext3_group_add(sb, &input);
+ 		journal_lock_updates(EXT3_SB(sb)->s_journal);
+-		journal_flush(EXT3_SB(sb)->s_journal);
++		err2 = journal_flush(EXT3_SB(sb)->s_journal);
+ 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
++		if (err == 0)
++			err = err2;
+ group_add_out:
+ 		mnt_drop_write(filp->f_path.mnt);
+ 		return err;
+diff -puN fs/ext3/super.c~ext3-add-checks-for-errors-from-jbd fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-add-checks-for-errors-from-jbd
++++ a/fs/ext3/super.c
+@@ -393,7 +393,8 @@ static void ext3_put_super (struct super
+ 	int i;
+ 
+ 	ext3_xattr_put_super(sb);
+-	journal_destroy(sbi->s_journal);
++	if (journal_destroy(sbi->s_journal) < 0)
++		ext3_abort(sb, __func__, "Couldn't clean up the journal");
+ 	if (!(sb->s_flags & MS_RDONLY)) {
+ 		EXT3_CLEAR_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER);
+ 		es->s_state = cpu_to_le16(sbi->s_mount_state);
+@@ -2296,7 +2297,9 @@ static void ext3_mark_recovery_complete(
+ 	journal_t *journal = EXT3_SB(sb)->s_journal;
+ 
+ 	journal_lock_updates(journal);
+-	journal_flush(journal);
++	if (journal_flush(journal) < 0)
++		goto out;
++
+ 	lock_super(sb);
+ 	if (EXT3_HAS_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER) &&
+ 	    sb->s_flags & MS_RDONLY) {
+@@ -2305,6 +2308,8 @@ static void ext3_mark_recovery_complete(
+ 		ext3_commit_super(sb, es, 1);
  	}
+ 	unlock_super(sb);
++
++out:
+ 	journal_unlock_updates(journal);
+ }
+ 
+@@ -2404,7 +2409,13 @@ static void ext3_write_super_lockfs(stru
+ 
+ 		/* Now we set up the journal barrier. */
+ 		journal_lock_updates(journal);
+-		journal_flush(journal);
++
++		/*
++		 * We don't want to clear needs_recovery flag when we failed
++		 * to flush the journal.
++		 */
++		if (journal_flush(journal) < 0)
++			return;
+ 
+ 		/* Journal blocked and flushed, clear needs_recovery flag. */
+ 		EXT3_CLEAR_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER);
+@@ -2822,8 +2833,12 @@ static int ext3_quota_on(struct super_bl
+ 		 * otherwise be livelocked...
+ 		 */
+ 		journal_lock_updates(EXT3_SB(sb)->s_journal);
+-		journal_flush(EXT3_SB(sb)->s_journal);
++		err = journal_flush(EXT3_SB(sb)->s_journal);
+ 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
++		if (err) {
++			path_put(&nd.path);
++			return err;
++		}
+ 	}
+ 
+ 	err = vfs_quota_on_path(sb, type, format_id, &nd.path);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
-epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
-freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
-fs-remove-prepare_write-commit_write-fix.patch
-mm-write_cache_pages-writepage-error-fix.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
-drivers-rtc-rtc-ds1286c-is-borked.patch
-drivers-rtc-rtc-m48t35c-is-borked-too.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-pci-uninline-pci_ioremap_bar.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-init-properly-placing-noinline-keyword.patch
-spi_gpio-driver-cleanups.patch
-add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
-ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
-devpts-fix-unused-function-warning.patch
-w1-export-w1_read_8-function-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
