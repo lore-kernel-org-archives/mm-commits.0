@@ -1,164 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-add-checks-for-errors-from-jbd.patch removed from -mm tree
-Date: Fri, 24 Oct 2008 12:40:33 -0700
-Message-ID: <200810241940.m9OJeX4O000921__48209.8270942972$1224877334$gmane$org@imap1.linux-foundation.org>
+Subject: - fs_mbcache-dont-needlessly-make-it-built-in.patch removed from -mm tree
+Date: Fri, 24 Oct 2008 12:40:53 -0700
+Message-ID: <200810241940.m9OJer5v001011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49203 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55323 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752107AbYJXTkt (ORCPT
+	by vger.kernel.org with ESMTP id S1752184AbYJXTlG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Oct 2008 15:40:49 -0400
+	Fri, 24 Oct 2008 15:41:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidehiro.kawai.ez@hitachi.com, jack@ucw.cz, linux-ext4@vger.kernel.org, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bunk@kernel.org, agruen@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: add checks for errors from jbd
+     FS_MBCACHE: don't needlessly make it built-in
 has been removed from the -mm tree.  Its filename was
-     ext3-add-checks-for-errors-from-jbd.patch
+     fs_mbcache-dont-needlessly-make-it-built-in.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: add checks for errors from jbd
-From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Subject: FS_MBCACHE: don't needlessly make it built-in
+From: Adrian Bunk <bunk@kernel.org>
 
-If the journal has aborted due to a checkpointing failure, we have to
-keep the contents of the journal space.  Otherwise, the filesystem will
-lose uncheckpointed metadata completely and become inconsistent.  To
-avoid this, we need to keep needs_recovery flag if checkpoint has
-failed.
+Assume you have:
+- one or more of ext2/3/4 statically built into your kernel
+- none of these with extended attributes enabled and
+- want to add onother one of ext2/3/4 modular and with
+  extended attributes enabled
 
-With this patch, ext3_put_super() detects a checkpointing failure from
-the return value of journal_destroy(), then it invokes ext3_abort() to
-make the filesystem read only and keep needs_recovery flag.  Errors
-from journal_flush() are also handled by this patch in some places.
+then you currently have to reboot to use it since this results in
+CONFIG_FS_MBCACHE=y.
 
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+That's not a common issue, but I just ran into it and since there's no
+reason to get a built-in mbcache in this case this patch fixes it.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Andreas Gruenbacher <agruen@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/ioctl.c |   12 ++++++++----
- fs/ext3/super.c |   23 +++++++++++++++++++----
- 2 files changed, 27 insertions(+), 8 deletions(-)
+ fs/Kconfig |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext3/ioctl.c~ext3-add-checks-for-errors-from-jbd fs/ext3/ioctl.c
---- a/fs/ext3/ioctl.c~ext3-add-checks-for-errors-from-jbd
-+++ a/fs/ext3/ioctl.c
-@@ -239,7 +239,7 @@ setrsvsz_out:
- 	case EXT3_IOC_GROUP_EXTEND: {
- 		ext3_fsblk_t n_blocks_count;
- 		struct super_block *sb = inode->i_sb;
--		int err;
-+		int err, err2;
+diff -puN fs/Kconfig~fs_mbcache-dont-needlessly-make-it-built-in fs/Kconfig
+--- a/fs/Kconfig~fs_mbcache-dont-needlessly-make-it-built-in
++++ a/fs/Kconfig
+@@ -270,9 +270,10 @@ config JBD2_DEBUG
+ config FS_MBCACHE
+ # Meta block cache for Extended Attributes (ext2/ext3/ext4)
+ 	tristate
+-	depends on EXT2_FS_XATTR || EXT3_FS_XATTR || EXT4_FS_XATTR
+-	default y if EXT2_FS=y || EXT3_FS=y || EXT4_FS=y
+-	default m if EXT2_FS=m || EXT3_FS=m || EXT4_FS=m
++	default y if EXT2_FS=y && EXT2_FS_XATTR
++	default y if EXT3_FS=y && EXT3_FS_XATTR
++	default y if EXT4_FS=y && EXT4_FS_XATTR
++	default m if EXT2_FS_XATTR || EXT3_FS_XATTR || EXT4_FS_XATTR
  
- 		if (!capable(CAP_SYS_RESOURCE))
- 			return -EPERM;
-@@ -254,8 +254,10 @@ setrsvsz_out:
- 		}
- 		err = ext3_group_extend(sb, EXT3_SB(sb)->s_es, n_blocks_count);
- 		journal_lock_updates(EXT3_SB(sb)->s_journal);
--		journal_flush(EXT3_SB(sb)->s_journal);
-+		err2 = journal_flush(EXT3_SB(sb)->s_journal);
- 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
-+		if (err == 0)
-+			err = err2;
- group_extend_out:
- 		mnt_drop_write(filp->f_path.mnt);
- 		return err;
-@@ -263,7 +265,7 @@ group_extend_out:
- 	case EXT3_IOC_GROUP_ADD: {
- 		struct ext3_new_group_data input;
- 		struct super_block *sb = inode->i_sb;
--		int err;
-+		int err, err2;
- 
- 		if (!capable(CAP_SYS_RESOURCE))
- 			return -EPERM;
-@@ -280,8 +282,10 @@ group_extend_out:
- 
- 		err = ext3_group_add(sb, &input);
- 		journal_lock_updates(EXT3_SB(sb)->s_journal);
--		journal_flush(EXT3_SB(sb)->s_journal);
-+		err2 = journal_flush(EXT3_SB(sb)->s_journal);
- 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
-+		if (err == 0)
-+			err = err2;
- group_add_out:
- 		mnt_drop_write(filp->f_path.mnt);
- 		return err;
-diff -puN fs/ext3/super.c~ext3-add-checks-for-errors-from-jbd fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-add-checks-for-errors-from-jbd
-+++ a/fs/ext3/super.c
-@@ -393,7 +393,8 @@ static void ext3_put_super (struct super
- 	int i;
- 
- 	ext3_xattr_put_super(sb);
--	journal_destroy(sbi->s_journal);
-+	if (journal_destroy(sbi->s_journal) < 0)
-+		ext3_abort(sb, __func__, "Couldn't clean up the journal");
- 	if (!(sb->s_flags & MS_RDONLY)) {
- 		EXT3_CLEAR_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER);
- 		es->s_state = cpu_to_le16(sbi->s_mount_state);
-@@ -2296,7 +2297,9 @@ static void ext3_mark_recovery_complete(
- 	journal_t *journal = EXT3_SB(sb)->s_journal;
- 
- 	journal_lock_updates(journal);
--	journal_flush(journal);
-+	if (journal_flush(journal) < 0)
-+		goto out;
-+
- 	lock_super(sb);
- 	if (EXT3_HAS_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER) &&
- 	    sb->s_flags & MS_RDONLY) {
-@@ -2305,6 +2308,8 @@ static void ext3_mark_recovery_complete(
- 		ext3_commit_super(sb, es, 1);
- 	}
- 	unlock_super(sb);
-+
-+out:
- 	journal_unlock_updates(journal);
- }
- 
-@@ -2404,7 +2409,13 @@ static void ext3_write_super_lockfs(stru
- 
- 		/* Now we set up the journal barrier. */
- 		journal_lock_updates(journal);
--		journal_flush(journal);
-+
-+		/*
-+		 * We don't want to clear needs_recovery flag when we failed
-+		 * to flush the journal.
-+		 */
-+		if (journal_flush(journal) < 0)
-+			return;
- 
- 		/* Journal blocked and flushed, clear needs_recovery flag. */
- 		EXT3_CLEAR_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER);
-@@ -2822,8 +2833,12 @@ static int ext3_quota_on(struct super_bl
- 		 * otherwise be livelocked...
- 		 */
- 		journal_lock_updates(EXT3_SB(sb)->s_journal);
--		journal_flush(EXT3_SB(sb)->s_journal);
-+		err = journal_flush(EXT3_SB(sb)->s_journal);
- 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
-+		if (err) {
-+			path_put(&nd.path);
-+			return err;
-+		}
- 	}
- 
- 	err = vfs_quota_on_path(sb, type, format_id, &nd.path);
+ config REISERFS_FS
+ 	tristate "Reiserfs support"
 _
 
-Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
+linux-next.patch
+m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+the-overdue-eepro100-removal.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+reiser4.patch
 
