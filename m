@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-add-lookup_rename_target-intent.patch removed from -mm tree
-Date: Fri, 24 Oct 2008 12:41:13 -0700
-Message-ID: <200810241941.m9OJfDH3001171@imap1.linux-foundation.org>
+Subject: - vfs-add-d_ancestor.patch removed from -mm tree
+Date: Fri, 24 Oct 2008 12:41:05 -0700
+Message-ID: <200810241941.m9OJf5bc001146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60526 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752566AbYJXTlx (ORCPT
+	by vger.kernel.org with ESMTP id S1753180AbYJXTlf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Oct 2008 15:41:53 -0400
+	Fri, 24 Oct 2008 15:41:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hirofumi@mail.parknet.co.jp, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: add LOOKUP_RENAME_TARGET intent
+     vfs: add d_ancestor()
 has been removed from the -mm tree.  Its filename was
-     vfs-add-lookup_rename_target-intent.patch
+     vfs-add-d_ancestor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: add LOOKUP_RENAME_TARGET intent
+Subject: vfs: add d_ancestor()
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-This adds LOOKUP_RENAME_TARGET intent for lookup of rename destination.
+This adds d_ancestor() instead of d_isparent(), then use it.
 
-LOOKUP_RENAME_TARGET is going to be used like LOOKUP_CREATE.  But since
-the destination of rename() can be existing directory entry, so it has a
-tells it to user of this intent.
+If new_dentry == old_dentry, is_subdir() returns 1, looks strange.
+"new_dentry == old_dentry" is not subdir obviously. But I'm not
+checking callers for now, so this keeps current behavior.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -39,32 +39,141 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |    1 +
- include/linux/namei.h |    1 +
- 2 files changed, 2 insertions(+)
+ fs/dcache.c            |   45 +++++++++++++++++++--------------------
+ fs/namei.c             |   22 ++++++++-----------
+ include/linux/dcache.h |    1 
+ 3 files changed, 34 insertions(+), 34 deletions(-)
 
-diff -puN fs/namei.c~vfs-add-lookup_rename_target-intent fs/namei.c
---- a/fs/namei.c~vfs-add-lookup_rename_target-intent
+diff -puN fs/dcache.c~vfs-add-d_ancestor fs/dcache.c
+--- a/fs/dcache.c~vfs-add-d_ancestor
++++ a/fs/dcache.c
+@@ -1720,18 +1720,23 @@ void d_move(struct dentry * dentry, stru
+ 	spin_unlock(&dcache_lock);
+ }
+ 
+-/*
+- * Helper that returns 1 if p1 is a parent of p2, else 0
++/**
++ * d_ancestor - search for an ancestor
++ * @p1: ancestor dentry
++ * @p2: child dentry
++ *
++ * Returns the ancestor dentry of p2 which is a child of p1, if p1 is
++ * an ancestor of p2, else NULL.
+  */
+-static int d_isparent(struct dentry *p1, struct dentry *p2)
++struct dentry *d_ancestor(struct dentry *p1, struct dentry *p2)
+ {
+ 	struct dentry *p;
+ 
+ 	for (p = p2; !IS_ROOT(p); p = p->d_parent) {
+ 		if (p->d_parent == p1)
+-			return 1;
++			return p;
+ 	}
+-	return 0;
++	return NULL;
+ }
+ 
+ /*
+@@ -1755,7 +1760,7 @@ static struct dentry *__d_unalias(struct
+ 
+ 	/* Check for loops */
+ 	ret = ERR_PTR(-ELOOP);
+-	if (d_isparent(alias, dentry))
++	if (d_ancestor(alias, dentry))
+ 		goto out_err;
+ 
+ 	/* See lock_rename() */
+@@ -2155,31 +2160,27 @@ out:
+  * Caller must ensure that "new_dentry" is pinned before calling is_subdir()
+  */
+   
+-int is_subdir(struct dentry * new_dentry, struct dentry * old_dentry)
++int is_subdir(struct dentry *new_dentry, struct dentry *old_dentry)
+ {
+ 	int result;
+-	struct dentry * saved = new_dentry;
+ 	unsigned long seq;
+ 
+-	/* need rcu_readlock to protect against the d_parent trashing due to
+-	 * d_move
++	/* FIXME: This is old behavior, needed? Please check callers. */
++	if (new_dentry == old_dentry)
++		return 1;
++
++	/*
++	 * Need rcu_readlock to protect against the d_parent trashing
++	 * due to d_move
+ 	 */
+ 	rcu_read_lock();
+-        do {
++	do {
+ 		/* for restarting inner loop in case of seq retry */
+-		new_dentry = saved;
+-		result = 0;
+ 		seq = read_seqbegin(&rename_lock);
+-		for (;;) {
+-			if (new_dentry != old_dentry) {
+-				if (IS_ROOT(new_dentry))
+-					break;
+-				new_dentry = new_dentry->d_parent;
+-				continue;
+-			}
++		if (d_ancestor(old_dentry, new_dentry))
+ 			result = 1;
+-			break;
+-		}
++		else
++			result = 0;
+ 	} while (read_seqretry(&rename_lock, seq));
+ 	rcu_read_unlock();
+ 
+diff -puN fs/namei.c~vfs-add-d_ancestor fs/namei.c
+--- a/fs/namei.c~vfs-add-d_ancestor
 +++ a/fs/namei.c
-@@ -2684,6 +2684,7 @@ asmlinkage long sys_renameat(int olddfd,
+@@ -1454,20 +1454,18 @@ struct dentry *lock_rename(struct dentry
  
- 	oldnd.flags &= ~LOOKUP_PARENT;
- 	newnd.flags &= ~LOOKUP_PARENT;
-+	newnd.flags |= LOOKUP_RENAME_TARGET;
+ 	mutex_lock(&p1->d_inode->i_sb->s_vfs_rename_mutex);
  
- 	trap = lock_rename(new_dir, old_dir);
+-	for (p = p1; !IS_ROOT(p); p = p->d_parent) {
+-		if (p->d_parent == p2) {
+-			mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_PARENT);
+-			mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_CHILD);
+-			return p;
+-		}
++	p = d_ancestor(p2, p1);
++	if (p) {
++		mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_PARENT);
++		mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_CHILD);
++		return p;
+ 	}
  
-diff -puN include/linux/namei.h~vfs-add-lookup_rename_target-intent include/linux/namei.h
---- a/include/linux/namei.h~vfs-add-lookup_rename_target-intent
-+++ a/include/linux/namei.h
-@@ -54,6 +54,7 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LA
- #define LOOKUP_OPEN		0x0100
- #define LOOKUP_CREATE		0x0200
- #define LOOKUP_EXCL		0x0400
-+#define LOOKUP_RENAME_TARGET	0x0800
+-	for (p = p2; !IS_ROOT(p); p = p->d_parent) {
+-		if (p->d_parent == p1) {
+-			mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_PARENT);
+-			mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_CHILD);
+-			return p;
+-		}
++	p = d_ancestor(p1, p2);
++	if (p) {
++		mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_PARENT);
++		mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_CHILD);
++		return p;
+ 	}
  
- extern int user_path_at(int, const char __user *, unsigned, struct path *);
+ 	mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_PARENT);
+diff -puN include/linux/dcache.h~vfs-add-d_ancestor include/linux/dcache.h
+--- a/include/linux/dcache.h~vfs-add-d_ancestor
++++ a/include/linux/dcache.h
+@@ -287,6 +287,7 @@ static inline struct dentry *d_add_uniqu
  
+ /* used for rename() and baskets */
+ extern void d_move(struct dentry *, struct dentry *);
++extern struct dentry *d_ancestor(struct dentry *, struct dentry *);
+ 
+ /* appendix may either be NULL or be used for transname suffixes */
+ extern struct dentry * d_lookup(struct dentry *, struct qstr *);
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
