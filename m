@@ -1,63 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch removed from -mm tree
-Date: Fri, 24 Oct 2008 12:40:26 -0700
-Message-ID: <200810241940.m9OJeQ8e000899@imap1.linux-foundation.org>
+Subject: + edac-fix-enabling-of-polling-cell-module.patch added to -mm tree
+Date: Sat, 25 Oct 2008 00:34:39 -0700
+Message-ID: <200810250734.m9P7YdON016164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43872 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58831 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752512AbYJXTm0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751690AbYJYHex (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Oct 2008 15:42:26 -0400
+	Sat, 25 Oct 2008 03:34:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, heiko.carstens@de.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: benh@kernel.crashing.org, arnd@arndb.de, dougthompson@xmission.com, jens@linux.vnet.ibm.com
 
 
 The patch titled
-     mm: page_cgroup needs linux/vmalloc.h for vmalloc_node()/vfree().
-has been removed from the -mm tree.  Its filename was
-     mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch
+     edac: fix enabling of polling cell module
+has been added to the -mm tree.  Its filename is
+     edac-fix-enabling-of-polling-cell-module.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: page_cgroup needs linux/vmalloc.h for vmalloc_node()/vfree().
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: edac: fix enabling of polling cell module
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-mm/page_cgroup.c: In function 'init_section_page_cgroup':
-mm/page_cgroup.c:111: error: implicit declaration of function 'vmalloc_node'
-mm/page_cgroup.c:111: warning: assignment makes pointer from integer without a cast
-mm/page_cgroup.c: In function '__free_page_cgroup':
-mm/page_cgroup.c:140: error: implicit declaration of function 'vfree'
+The edac driver on cell turned out to be not enabled because of a missing
+op_state.  This patch introduces it.  Verified to work on top of Ben's
+next branch.
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Jens Osterkamp <jens@linux.vnet.ibm.com>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/edac/cell_edac.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/page_cgroup.c~mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree mm/page_cgroup.c
---- a/mm/page_cgroup.c~mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree
-+++ a/mm/page_cgroup.c
-@@ -5,6 +5,7 @@
- #include <linux/page_cgroup.h>
- #include <linux/hash.h>
- #include <linux/memory.h>
-+#include <linux/vmalloc.h>
+diff -puN drivers/edac/cell_edac.c~edac-fix-enabling-of-polling-cell-module drivers/edac/cell_edac.c
+--- a/drivers/edac/cell_edac.c~edac-fix-enabling-of-polling-cell-module
++++ a/drivers/edac/cell_edac.c
+@@ -9,6 +9,7 @@
+  */
+ #undef DEBUG
  
- static void __meminit
- __init_page_cgroup(struct page_cgroup *pc, unsigned long pfn)
++#include <linux/edac.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+@@ -164,6 +165,8 @@ static int __devinit cell_edac_probe(str
+ 	if (regs == NULL)
+ 		return -ENODEV;
+ 
++	edac_op_state = EDAC_OPSTATE_POLL;
++
+ 	/* Get channel population */
+ 	reg = in_be64(&regs->mic_mnt_cfg);
+ 	dev_dbg(&pdev->dev, "MIC_MNT_CFG = 0x%016lx\n", reg);
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-origin.patch
+edac-fix-enabling-of-polling-cell-module.patch
 linux-next.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
 
