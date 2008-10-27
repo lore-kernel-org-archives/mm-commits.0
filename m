@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-fix-sysfs-broken-symlink-regression.patch added to -mm tree
-Date: Mon, 27 Oct 2008 14:30:03 -0700
-Message-ID: <200810272130.m9RLU3kQ004412@imap1.linux-foundation.org>
+Subject: + checkpatch-comment-ends-inside-strings-is-most-likely-not-an-open-comment.patch added to -mm tree
+Date: Mon, 27 Oct 2008 14:32:15 -0700
+Message-ID: <200810272132.m9RLWFuW005176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43783 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753605AbYJ0VaZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752436AbYJ0VcY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 17:30:25 -0400
+	Mon, 27 Oct 2008 17:32:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike.miller@hp.com, jens.axboe@oracle.com, stable@kernel.org
+Cc: apw@shadowen.org
 
 
 The patch titled
-     cciss: fix sysfs broken symlink regression
+     checkpatch: comment ends inside strings is most likely not an open comment
 has been added to the -mm tree.  Its filename is
-     cciss-fix-sysfs-broken-symlink-regression.patch
+     checkpatch-comment-ends-inside-strings-is-most-likely-not-an-open-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix sysfs broken symlink regression
-From: Mike Miller <mike.miller@hp.com>
+Subject: checkpatch: comment ends inside strings is most likely not an open comment
+From: Andy Whitcroft <apw@shadowen.org>
 
-Regression introduced by commit 6ae5ce8e8d4de666f31286808d2285aa6a50fa40
-("cciss: remove redundant code").
+When we are detecting whether a comment is open when we start a hunk we
+check for the first comment edge in the hunk and assume its inverse. 
+However if the hunk contains something like below, then we will assume
+that a comment was open.  Update this heuristic to see if the comment edge
+is obviously within double quotes and ignore it if so:
 
-This patch fixes a broken symlink in sysfs that was introduced by the
-above commit.  We broke it in 2.6.27-rc on or about 20080804.  Some
-installers are broken if this symlink does not exist and they may not
-detect the logical drives configured on the controller.  It does not
-require being backported into 2.6.26.x or earlier kernels.
+	foo(" */);
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>		[2.6.27.x]
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-sysfs-broken-symlink-regression drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-sysfs-broken-symlink-regression
-+++ a/drivers/block/cciss.c
-@@ -1370,6 +1370,7 @@ static void cciss_add_disk(ctlr_info_t *
- 	disk->first_minor = drv_index << NWD_SHIFT;
- 	disk->fops = &cciss_fops;
- 	disk->private_data = &h->drv[drv_index];
-+	disk->driverfs_dev = &h->pdev->dev;
+diff -puN scripts/checkpatch.pl~checkpatch-comment-ends-inside-strings-is-most-likely-not-an-open-comment scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-comment-ends-inside-strings-is-most-likely-not-an-open-comment
++++ a/scripts/checkpatch.pl
+@@ -367,7 +367,7 @@ sub sanitise_line {
+ 			}
+ 		}
  
- 	/* Set up queue information */
- 	blk_queue_bounce_limit(disk->queue, h->pdev->dma_mask);
+-		#print "SQ:$sanitise_quote\n";
++		#print "c<$c> SQ<$sanitise_quote>\n";
+ 		if ($off != 0 && $sanitise_quote eq '*/' && $c ne "\t") {
+ 			substr($res, $off, 1, $;);
+ 		} elsif ($off != 0 && $sanitise_quote && $c ne "\t") {
+@@ -1103,8 +1103,11 @@ sub process {
+ 				$cnt--;
+ 				#print "RAW<$rawlines[$ln - 1]>\n";
+ 				last if (!defined $rawlines[$ln - 1]);
+-				($edge) = ($rawlines[$ln - 1] =~ m@(/\*|\*/)@);
+-				last if (defined $edge);
++				if ($rawlines[$ln - 1] =~ m@(/\*|\*/)@ &&
++				    $rawlines[$ln - 1] !~ m@"[^"]*(?:/\*|\*/)[^"]*"@) {
++					($edge) = $1;
++					last;
++				}
+ 			}
+ 			if (defined $edge && $edge eq '*/') {
+ 				$in_comment = 1;
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch
-cciss-new-hardware-support.patch
-cciss-fix-sysfs-broken-symlink-regression.patch
+checkpatch-add-checks-for-in_atomic.patch
+checkpatch-comment-detection-may-miss-an-implied-comment-on-the-last-hunk.patch
+checkpatch-widen-implied-comment-detection-to-allow-multiple-stars.patch
+checkpatch-structure-member-assignments-are-not-complex.patch
+checkpatch-__weak-is-an-official-attribute.patch
+checkpatch-detect-multiple-bitfield-declarations.patch
+checkpatch-comment-ends-inside-strings-is-most-likely-not-an-open-comment.patch
+checkpatch-dissallow-spaces-between-stars-in-pointer-types.patch
+checkpatch-version-025.patch
 
