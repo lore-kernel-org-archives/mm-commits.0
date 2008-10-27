@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-truncate-outstanding-block-after-direct-io-failure.patch added to -mm tree
-Date: Sun, 26 Oct 2008 21:54:25 -0700
-Message-ID: <200810270454.m9R4sPHH022825@imap1.linux-foundation.org>
+Subject: + rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms.patch added to -mm tree
+Date: Sun, 26 Oct 2008 22:11:05 -0700
+Message-ID: <200810270511.m9R5B5tR028428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46022 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750735AbYJ0Eyo (ORCPT
+	by vger.kernel.org with ESMTP id S1751376AbYJ0FLu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 00:54:44 -0400
+	Mon, 27 Oct 2008 01:11:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org, Joel.Becker@oracle.com, jmoyer@redhat.com, mark.fasheh@oracle.com, nickpiggin@yahoo.com.au
+Cc: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     ocfs2: truncate outstanding block after direct io failure
+     rtc: fix handling of missing tm_year data when reading alarms
 has been added to the -mm tree.  Its filename is
-     ocfs2-truncate-outstanding-block-after-direct-io-failure.patch
+     rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ocfs2: truncate outstanding block after direct io failure
-From: Dmitri Monakhov <dmonakhov@openvz.org>
+Subject: rtc: fix handling of missing tm_year data when reading alarms
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Signed-off-by: Dmitri Monakhov <dmonakhov@openvz.org>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Joel Becker <Joel.Becker@oracle.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+When fixing up invalid years rtc_read_alarm() was calling rtc_valid_tm()
+as a boolean but rtc_valid_tm() returns zero on success or a negative
+number if the time is not valid so the test was inverted.
+
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/rtc/interface.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-truncate-outstanding-block-after-direct-io-failure fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-truncate-outstanding-block-after-direct-io-failure
-+++ a/fs/ocfs2/file.c
-@@ -1866,6 +1866,13 @@ relock:
- 		written = generic_file_direct_write(iocb, iov, &nr_segs, *ppos,
- 						    ppos, count, ocount);
- 		if (written < 0) {
-+			/*
-+			 * direct write may have instantiated a few
-+			 * blocks outside i_size. Trim these off again.
-+			 * Don't need i_size_read because we hold i_mutex.
-+			 */
-+			if (*ppos + count > inode->i_size)
-+				vmtruncate(inode, inode->i_size);
- 			ret = written;
- 			goto out_dio;
- 		}
+diff -puN drivers/rtc/interface.c~rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms
++++ a/drivers/rtc/interface.c
+@@ -271,7 +271,7 @@ int rtc_read_alarm(struct rtc_device *rt
+ 		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "year");
+ 		do {
+ 			alarm->time.tm_year++;
+-		} while (!rtc_valid_tm(&alarm->time));
++		} while (rtc_valid_tm(&alarm->time) != 0);
+ 		break;
+ 
+ 	default:
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
-ocfs2-truncate-outstanding-block-after-direct-io-failure.patch
-kill-suid-bit-only-for-regular-files.patch
-fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error.patch
-fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
+linux-next.patch
+rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
 
