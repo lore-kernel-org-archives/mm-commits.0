@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sony-laptop-ignore-missing-_dis-method-on-pic-device.patch added to -mm tree
-Date: Sun, 26 Oct 2008 20:42:44 -0700
-Message-ID: <200810270342.m9R3givr031356@imap1.linux-foundation.org>
+Subject: + init-do_mounts_mdc-msleep-compile-fix.patch added to -mm tree
+Date: Sun, 26 Oct 2008 20:46:49 -0700
+Message-ID: <200810270346.m9R3knih032717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751314AbYJ0DnU (ORCPT
+	by vger.kernel.org with ESMTP id S1751328AbYJ0Dqx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 26 Oct 2008 23:43:20 -0400
+	Sun, 26 Oct 2008 23:46:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mjg59@srcf.ucam.org, ajax@redhat.com, lenb@kernel.org, malattia@linux.it
+Cc: adobriyan@gmail.com
 
 
 The patch titled
-     sony-laptop: ignore missing _DIS method on pic device
+     init/do_mounts_md.c: msleep compile fix
 has been added to the -mm tree.  Its filename is
-     sony-laptop-ignore-missing-_dis-method-on-pic-device.patch
+     init-do_mounts_mdc-msleep-compile-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sony-laptop: ignore missing _DIS method on pic device
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: init/do_mounts_md.c: msleep compile fix
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-At least the Vaio VGN-Z540N doesn't have this method, so let's not fail
-to suspend just because it doesn't exist.
+init/do_mounts_md.c:285: error: implicit declaration of function 'msleep'
 
-Signed-off-by: Adam Jackson <ajax@redhat.com>
-Acked-by: Mattia Dongili <malattia@linux.it>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sony-laptop.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ init/do_mounts_md.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/sony-laptop.c~sony-laptop-ignore-missing-_dis-method-on-pic-device drivers/misc/sony-laptop.c
---- a/drivers/misc/sony-laptop.c~sony-laptop-ignore-missing-_dis-method-on-pic-device
-+++ a/drivers/misc/sony-laptop.c
-@@ -2315,8 +2315,10 @@ end:
-  */
- static int sony_pic_disable(struct acpi_device *device)
- {
--	if (ACPI_FAILURE(acpi_evaluate_object(device->handle,
--			"_DIS", NULL, NULL)))
-+	acpi_status ret = acpi_evaluate_object(device->handle, "_DIS", NULL,
-+					       NULL);
-+
-+	if (ACPI_FAILURE(ret) && ret != AE_NOT_FOUND)
- 		return -ENXIO;
- 
- 	dprintk("Device disabled\n");
-_
-
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
-
-sony-laptop-ignore-missing-_dis-method-on-pic-device.patch
-linux-next.patch
-
+diff -puN init/do_mounts_md.c~init-do_mounts_mdc-msleep-compile-fix init/do_mounts_md.c
+--- a/init/do_mounts_md.c~init-do_mounts_mdc-msleep-compile-fix
++++ a/init/do_mounts_md.c
+@@ -1,4 +1,4 @@
