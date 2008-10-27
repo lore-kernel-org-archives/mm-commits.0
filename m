@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-remove-the-bkl.patch added to -mm tree
-Date: Mon, 27 Oct 2008 13:56:25 -0700
-Message-ID: <200810272056.m9RKuP88025438@imap1.linux-foundation.org>
+Subject: + cciss-fix-sysfs-broken-symlink-regression.patch added to -mm tree
+Date: Mon, 27 Oct 2008 14:30:03 -0700
+Message-ID: <200810272130.m9RLU3kQ004412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751372AbYJ0U4z (ORCPT
+	by vger.kernel.org with ESMTP id S1753605AbYJ0VaZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 16:56:55 -0400
+	Mon, 27 Oct 2008 17:30:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidjon@xenontk.org, alan@lxorguk.ukuu.org.uk, corbet@lwn.net, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de
+Cc: mike.miller@hp.com, jens.axboe@oracle.com, stable@kernel.org
 
 
 The patch titled
-     RTC: remove the BKL
+     cciss: fix sysfs broken symlink regression
 has been added to the -mm tree.  Its filename is
-     rtc-remove-the-bkl.patch
+     cciss-fix-sysfs-broken-symlink-regression.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: RTC: remove the BKL
-From: David John <davidjon@xenontk.org>
+Subject: cciss: fix sysfs broken symlink regression
+From: Mike Miller <mike.miller@hp.com>
 
-Remove calls to the BKL since concurrent access is protected by the spin
-lock rtc_lock.
+Regression introduced by commit 6ae5ce8e8d4de666f31286808d2285aa6a50fa40
+("cciss: remove redundant code").
 
-Signed-off-by: David John <davidjon@xenontk.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+This patch fixes a broken symlink in sysfs that was introduced by the
+above commit.  We broke it in 2.6.27-rc on or about 20080804.  Some
+installers are broken if this symlink does not exist and they may not
+detect the logical drives configured on the controller.  It does not
+require being backported into 2.6.26.x or earlier kernels.
+
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: <stable@kernel.org>		[2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rtc.c |   17 ++++-------------
- 1 file changed, 4 insertions(+), 13 deletions(-)
+ drivers/block/cciss.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/rtc.c~rtc-remove-the-bkl drivers/char/rtc.c
---- a/drivers/char/rtc.c~rtc-remove-the-bkl
-+++ a/drivers/char/rtc.c
-@@ -48,9 +48,10 @@
-  *		CONFIG_HPET_EMULATE_RTC
-  *	1.12a	Maciej W. Rozycki: Handle memory-mapped chips properly.
-  *	1.12ac	Alan Cox: Allow read access to the day of week register
-+ *	1.12b	David John: Remove calls to the BKL.
-  */
+diff -puN drivers/block/cciss.c~cciss-fix-sysfs-broken-symlink-regression drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-sysfs-broken-symlink-regression
++++ a/drivers/block/cciss.c
+@@ -1370,6 +1370,7 @@ static void cciss_add_disk(ctlr_info_t *
+ 	disk->first_minor = drv_index << NWD_SHIFT;
+ 	disk->fops = &cciss_fops;
+ 	disk->private_data = &h->drv[drv_index];
++	disk->driverfs_dev = &h->pdev->dev;
  
--#define RTC_VERSION		"1.12ac"
-+#define RTC_VERSION		"1.12b"
- 
- /*
-  *	Note that *all* calls to CMOS_READ and CMOS_WRITE are done with
-@@ -73,7 +74,6 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/spinlock.h>
--#include <linux/smp_lock.h>
- #include <linux/sysctl.h>
- #include <linux/wait.h>
- #include <linux/bcd.h>
-@@ -182,8 +182,8 @@ static int rtc_proc_open(struct inode *i
- 
- /*
-  * rtc_status is never changed by rtc_interrupt, and ioctl/open/close is
-- * protected by the big kernel lock. However, ioctl can still disable the timer
-- * in rtc_status and then with del_timer after the interrupt has read
-+ * protected by the spin lock rtc_lock. However, ioctl can still disable the
-+ * timer in rtc_status and then with del_timer after the interrupt has read
-  * rtc_status but before mod_timer is called, which would then reenable the
-  * timer (but you would need to have an awful timing before you'd trip on it)
-  */
-@@ -720,9 +720,7 @@ static int rtc_do_ioctl(unsigned int cmd
- static long rtc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long ret;
--	lock_kernel();
- 	ret = rtc_do_ioctl(cmd, arg, 0);
--	unlock_kernel();
- 	return ret;
- }
- 
-@@ -731,12 +729,8 @@ static long rtc_ioctl(struct file *file,
-  *	Also clear the previous interrupt data on an open, and clean
-  *	up things on a close.
-  */
--
--/* We use rtc_lock to protect against concurrent opens. So the BKL is not
-- * needed here. Or anywhere else in this driver. */
- static int rtc_open(struct inode *inode, struct file *file)
- {
--	lock_kernel();
- 	spin_lock_irq(&rtc_lock);
- 
- 	if (rtc_status & RTC_IS_OPEN)
-@@ -746,12 +740,10 @@ static int rtc_open(struct inode *inode,
- 
- 	rtc_irq_data = 0;
- 	spin_unlock_irq(&rtc_lock);
--	unlock_kernel();
- 	return 0;
- 
- out_busy:
- 	spin_unlock_irq(&rtc_lock);
--	unlock_kernel();
- 	return -EBUSY;
- }
- 
-@@ -802,7 +794,6 @@ no_irq:
- }
- 
- #ifdef RTC_IRQ
--/* Called without the kernel lock - fine */
- static unsigned int rtc_poll(struct file *file, poll_table *wait)
- {
- 	unsigned long l;
+ 	/* Set up queue information */
+ 	blk_queue_bounce_limit(disk->queue, h->pdev->dma_mask);
 _
 
-Patches currently in -mm which might be from davidjon@xenontk.org are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-rtc-remove-the-bkl.patch
+cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch
+cciss-new-hardware-support.patch
+cciss-fix-sysfs-broken-symlink-regression.patch
 
