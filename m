@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt-incomplete-initialization-of-vc_tab_stop.patch added to -mm tree
-Date: Sun, 26 Oct 2008 21:15:13 -0700
-Message-ID: <200810270415.m9R4FDYP009808@imap1.linux-foundation.org>
+Subject: + hdpuftrs-fix-build.patch added to -mm tree
+Date: Sun, 26 Oct 2008 21:24:17 -0700
+Message-ID: <200810270424.m9R4OHd7012796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50730 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45233 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751119AbYJ0EPl (ORCPT
+	by vger.kernel.org with ESMTP id S1750728AbYJ0EYu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 00:15:41 -0400
+	Mon, 27 Oct 2008 00:24:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wolfgang@kroworsch.de, alan@lxorguk.ukuu.org.uk, hch@lst.de
+Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     vt: incomplete initialization of vc_tab_stop
+     hdpuftrs: fix build
 has been added to the -mm tree.  Its filename is
-     vt-incomplete-initialization-of-vc_tab_stop.patch
+     hdpuftrs-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: incomplete initialization of vc_tab_stop
-From: Wolfgang Kroworsch <wolfgang@kroworsch.de>
+Subject: hdpuftrs: fix build
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Problem 1 (see patch below):
-  vc_tab_stop is declared as an array of 8 unsigned ints in struct
-  vc_data in include/linux/console_struct.h .
-  In drivers/char/vt.c only 5 of these 8 unsigned ints get initialized
-  leading to unintended tabulator placement on displays with more than
-  160 columns text.
+drivers/misc/hdpuftrs/hdpu_nexus.c:118: error: expected identifier or '(' before 'return'
+drivers/misc/hdpuftrs/hdpu_nexus.c:119: error: expected identifier or '(' before '}' token
 
-Problem 2 (open):
-  Upcoming displays will have more than 256 columns of text leading to
-  invalid memory access in drivers/char/vt.c during tabulator
-  calculations:
-    if (vc->vc_tab_stop[vc->vc_x >> 5] & (1 << (vc->vc_x & 31)))
-	break;
-
-Signed-off-by: Wolfgang Kroworsch <wolfgang@kroworsch.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/misc/hdpuftrs/hdpu_nexus.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/vt.c~vt-incomplete-initialization-of-vc_tab_stop drivers/char/vt.c
---- a/drivers/char/vt.c~vt-incomplete-initialization-of-vc_tab_stop
-+++ a/drivers/char/vt.c
-@@ -1642,7 +1642,10 @@ static void reset_terminal(struct vc_dat
- 	vc->vc_tab_stop[1]	=
- 	vc->vc_tab_stop[2]	=
- 	vc->vc_tab_stop[3]	=
--	vc->vc_tab_stop[4]	= 0x01010101;
-+	vc->vc_tab_stop[4]	=
-+	vc->vc_tab_stop[5]	=
-+	vc->vc_tab_stop[6]	=
-+	vc->vc_tab_stop[7]	= 0x01010101;
+diff -puN drivers/misc/hdpuftrs/hdpu_nexus.c~hdpuftrs-fix-build drivers/misc/hdpuftrs/hdpu_nexus.c
+--- a/drivers/misc/hdpuftrs/hdpu_nexus.c~hdpuftrs-fix-build
++++ a/drivers/misc/hdpuftrs/hdpu_nexus.c
+@@ -113,7 +113,6 @@ static int hdpu_nexus_probe(struct platf
+ 	if (!hdpu_chassis_id)
+ 		printk(KERN_WARNING "sky_nexus: "
+ 		       "Unable to create proc dir entry: sky_chassis_id\n");
+-	}
  
- 	vc->vc_bell_pitch = DEFAULT_BELL_PITCH;
- 	vc->vc_bell_duration = DEFAULT_BELL_DURATION;
-@@ -1933,7 +1936,10 @@ static void do_con_trol(struct tty_struc
- 					vc->vc_tab_stop[1] =
- 					vc->vc_tab_stop[2] =
- 					vc->vc_tab_stop[3] =
--					vc->vc_tab_stop[4] = 0;
-+					vc->vc_tab_stop[4] =
-+					vc->vc_tab_stop[5] =
-+					vc->vc_tab_stop[6] =
-+					vc->vc_tab_stop[7] = 0;
- 			}
- 			return;
- 		case 'm':
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from wolfgang@kroworsch.de are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-vt-incomplete-initialization-of-vc_tab_stop.patch
-vt-incomplete-initialization-of-vc_tab_stop-fix.patch
+hdpuftrs-fix-build.patch
+linux-next.patch
+reiser4.patch
 
