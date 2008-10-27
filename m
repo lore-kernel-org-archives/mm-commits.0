@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2.patch added to -mm tree
-Date: Mon, 27 Oct 2008 15:03:05 -0700
-Message-ID: <200810272203.m9RM353o015716@imap1.linux-foundation.org>
+Subject: + acpi-suspend-fix-compilation-for-acpi_sleep-unset-and-xen_save_restore-set.patch added to -mm tree
+Date: Mon, 27 Oct 2008 15:08:20 -0700
+Message-ID: <200810272208.m9RM8KAC017492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48119 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41578 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752273AbYJ0WD3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751464AbYJ0WIq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 18:03:29 -0400
+	Mon, 27 Oct 2008 18:08:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dcn@sgi.com, tony.luck@intel.com
+Cc: rjw@sisk.pl, lenb@kernel.org
 
 
 The patch titled
-     sgi-xp: only build for ia64-sn2 when CONFIG_IA64_GENERIC specified
+     ACPI suspend: fix compilation for ACPI_SLEEP unset and XEN_SAVE_RESTORE set
 has been added to the -mm tree.  Its filename is
-     sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2.patch
+     acpi-suspend-fix-compilation-for-acpi_sleep-unset-and-xen_save_restore-set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: only build for ia64-sn2 when CONFIG_IA64_GENERIC specified
-From: Dean Nelson <dcn@sgi.com>
+Subject: ACPI suspend: fix compilation for ACPI_SLEEP unset and XEN_SAVE_RESTORE set
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-For the time being build for ia64-sn2 alone when CONFIG_IA64_GENERIC is
-specified.
-
-Signed-off-by: Dean Nelson <dcn@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/Makefile   |    4 ++--
- drivers/misc/sgi-xp/xp.h       |    4 ++++
- drivers/misc/sgi-xp/xpc_main.c |    4 ++--
- 3 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/acpi/sleep/main.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/misc/sgi-xp/Makefile~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2 drivers/misc/sgi-xp/Makefile
---- a/drivers/misc/sgi-xp/Makefile~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2
-+++ a/drivers/misc/sgi-xp/Makefile
-@@ -5,14 +5,14 @@
- obj-$(CONFIG_SGI_XP)		+= xp.o
- xp-y				:= xp_main.o
- xp-$(CONFIG_IA64_SGI_SN2)	+= xp_sn2.o xp_nofault.o
--xp-$(CONFIG_IA64_GENERIC)	+= xp_sn2.o xp_nofault.o xp_uv.o
-+xp-$(CONFIG_IA64_GENERIC)	+= xp_sn2.o xp_nofault.o
- xp-$(CONFIG_IA64_SGI_UV)	+= xp_uv.o
- xp-$(CONFIG_X86_64)		+= xp_uv.o
- 
- obj-$(CONFIG_SGI_XP)		+= xpc.o
- xpc-y				:= xpc_main.o xpc_channel.o xpc_partition.o
- xpc-$(CONFIG_IA64_SGI_SN2)	+= xpc_sn2.o
--xpc-$(CONFIG_IA64_GENERIC)	+= xpc_sn2.o xpc_uv.o
-+xpc-$(CONFIG_IA64_GENERIC)	+= xpc_sn2.o
- xpc-$(CONFIG_IA64_SGI_UV) 	+= xpc_uv.o
- xpc-$(CONFIG_X86_64)		+= xpc_uv.o
- 
-diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2 drivers/misc/sgi-xp/xp.h
---- a/drivers/misc/sgi-xp/xp.h~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2
-+++ a/drivers/misc/sgi-xp/xp.h
-@@ -19,7 +19,11 @@
- #include <asm/system.h>
- #include <asm/sn/arch.h>	/* defines is_shub1() and is_shub2() */
- #define is_shub()	ia64_platform_is("sn2")
-+#ifdef CONFIG_IA64_SGI_UV
- #define is_uv()		ia64_platform_is("uv")
-+#else
-+#define is_uv()		0
-+#endif
- #endif
- #ifdef CONFIG_X86_64
- #include <asm/genapic.h>
-diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2 drivers/misc/sgi-xp/xpc_main.c
---- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2
-+++ a/drivers/misc/sgi-xp/xpc_main.c
-@@ -1104,7 +1104,7 @@ xpc_do_exit(enum xp_retval reason)
- 
- 	if (is_shub())
- 		xpc_exit_sn2();
--	else
-+	else if (is_uv())
- 		xpc_exit_uv();
+diff -puN drivers/acpi/sleep/main.c~acpi-suspend-fix-compilation-for-acpi_sleep-unset-and-xen_save_restore-set drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi-suspend-fix-compilation-for-acpi_sleep-unset-and-xen_save_restore-set
++++ a/drivers/acpi/sleep/main.c
+@@ -163,6 +163,8 @@ static void acpi_pm_end(void)
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
+ 	acpi_sleep_tts_switch(acpi_target_sleep_state);
  }
++#else /* !CONFIG_ACPI_SLEEP */
++#define acpi_target_sleep_state	ACPI_STATE_S0
+ #endif /* CONFIG_ACPI_SLEEP */
  
-@@ -1363,7 +1363,7 @@ out_2:
- out_1:
- 	if (is_shub())
- 		xpc_exit_sn2();
--	else
-+	else if (is_uv())
- 		xpc_exit_uv();
- 	return ret;
- }
+ #ifdef CONFIG_SUSPEND
 _
 
-Patches currently in -mm which might be from dcn@sgi.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2.patch
+origin.patch
+acpi-suspend-fix-compilation-for-acpi_sleep-unset-and-xen_save_restore-set.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+e100-adapt-to-the-reworked-pci-pm.patch
+shrink_slab-handle-bad-shrinkers.patch
 
