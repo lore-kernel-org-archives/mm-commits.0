@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpqarry-fix-return-value-of-cpqarray_init.patch added to -mm tree
-Date: Sun, 26 Oct 2008 21:42:47 -0700
-Message-ID: <200810270442.m9R4gloQ018984@imap1.linux-foundation.org>
+Subject: + kill-suid-bit-only-for-regular-files.patch added to -mm tree
+Date: Sun, 26 Oct 2008 21:48:01 -0700
+Message-ID: <200810270448.m9R4m13T020731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52075 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752613AbYJ0EnI (ORCPT
+	by vger.kernel.org with ESMTP id S1752645AbYJ0EsF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 00:43:08 -0400
+	Mon, 27 Oct 2008 00:48:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arvidjaar@mail.ru, dvgevers@xs4all.nl, gregkh@suse.de, jens.axboe@oracle.com
+Cc: dmonakhov@openvz.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     cpqarry: fix return value of cpqarray_init()
+     kill suid bit only for regular files
 has been added to the -mm tree.  Its filename is
-     cpqarry-fix-return-value-of-cpqarray_init.patch
+     kill-suid-bit-only-for-regular-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpqarry: fix return value of cpqarray_init()
-From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: kill suid bit only for regular files
+From: Dmitri Monakhov <dmonakhov@openvz.org>
 
-As reported by Dick Gevers on Compaq ProLiant:
+We don't have to do it because it is useless for non regular files.
+In fact block device may trigger this path without dentry->d_inode->i_mutex.
 
-Oct 13 18:06:51 dvgcpl kernel: Compaq SMART2 Driver (v 2.6.0)
-Oct 13 18:06:51 dvgcpl kernel: sys_init_module: 'cpqarray'->init
-suspiciously returned 1, it should follow 0/-E convention
-Oct 13 18:06:51 dvgcpl kernel: sys_init_module: loading module anyway...
-Oct 13 18:06:51 dvgcpl kernel: Pid: 315, comm: modprobe Not tainted
-2.6.27-desktop-0.rc8.2mnb #1
-Oct 13 18:06:51 dvgcpl kernel:  [<c0380612>] ? printk+0x18/0x1e
-Oct 13 18:06:51 dvgcpl kernel:  [<c0158f85>] sys_init_module+0x155/0x1c0
-Oct 13 18:06:51 dvgcpl kernel:  [<c0103f06>] syscall_call+0x7/0xb
-Oct 13 18:06:51 dvgcpl kernel:  =======================
-
-
-Make it return 0 on success and -ENODEV if no array was found.
-
-Reported-by: Dick Gevers <dvgevers@xs4all.nl>
-Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Dmitri Monakhov <dmonakhov@openvz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cpqarray.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cpqarray.c~cpqarry-fix-return-value-of-cpqarray_init drivers/block/cpqarray.c
---- a/drivers/block/cpqarray.c~cpqarry-fix-return-value-of-cpqarray_init
-+++ a/drivers/block/cpqarray.c
-@@ -567,7 +567,12 @@ static int __init cpqarray_init(void)
- 			num_cntlrs_reg++;
- 	}
+diff -puN mm/filemap.c~kill-suid-bit-only-for-regular-files mm/filemap.c
+--- a/mm/filemap.c~kill-suid-bit-only-for-regular-files
++++ a/mm/filemap.c
+@@ -1765,7 +1765,7 @@ int should_remove_suid(struct dentry *de
+ 	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
+ 		kill |= ATTR_KILL_SGID;
  
--	return(num_cntlrs_reg);
-+	if (num_cntlrs_reg)
-+		return 0;
-+	else {
-+		pci_unregister_driver(&cpqarray_pci_driver);
-+		return -ENODEV;
-+	}
- }
+-	if (unlikely(kill && !capable(CAP_FSETID)))
++	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
+ 		return kill;
  
- /* Function to find the first free pointer into our hba[] array */
+ 	return 0;
 _
 
-Patches currently in -mm which might be from arvidjaar@mail.ru are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
-cpqarry-fix-return-value-of-cpqarray_init.patch
+kill-suid-bit-only-for-regular-files.patch
 
