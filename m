@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-ioctl-fix-kernel-doc-warning.patch added to -mm tree
-Date: Mon, 27 Oct 2008 13:11:57 -0700
-Message-ID: <200810272011.m9RKBvkC010200@imap1.linux-foundation.org>
+Subject: + kgdb-fix-kernel-doc-error.patch added to -mm tree
+Date: Mon, 27 Oct 2008 13:11:27 -0700
+Message-ID: <200810272011.m9RKBRVk010047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54331 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752663AbYJ0UML (ORCPT
+	by vger.kernel.org with ESMTP id S1752705AbYJ0UM0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 16:12:11 -0400
+	Mon, 27 Oct 2008 16:12:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com
+Cc: randy.dunlap@oracle.com, jason.wessel@windriver.com
 
 
 The patch titled
-     scsi ioctl: fix kernel-doc warning
+     kgdb: fix kernel-doc error
 has been added to the -mm tree.  Its filename is
-     scsi-ioctl-fix-kernel-doc-warning.patch
+     kgdb-fix-kernel-doc-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi ioctl: fix kernel-doc warning
+Subject: kgdb: fix kernel-doc error
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix kernel-doc parameter warning and correct the function name:
+Fix kernel-doc format error in kgdb.h:
 
-Warning(linux-next-20081022//drivers/scsi/scsi_ioctl.c:281): No description found for parameter 'ndelay'
+linux-next-20081022//include/linux/kgdb.h:308): duplicate section name 'Description'
+
+and fix typos in that file's kernel-doc comments.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_ioctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kgdb.h |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN drivers/scsi/scsi_ioctl.c~scsi-ioctl-fix-kernel-doc-warning drivers/scsi/scsi_ioctl.c
---- a/drivers/scsi/scsi_ioctl.c~scsi-ioctl-fix-kernel-doc-warning
-+++ a/drivers/scsi/scsi_ioctl.c
-@@ -270,11 +270,11 @@ int scsi_ioctl(struct scsi_device *sdev,
- EXPORT_SYMBOL(scsi_ioctl);
+diff -puN include/linux/kgdb.h~kgdb-fix-kernel-doc-error include/linux/kgdb.h
+--- a/include/linux/kgdb.h~kgdb-fix-kernel-doc-error
++++ a/include/linux/kgdb.h
+@@ -29,8 +29,7 @@ struct pt_regs;
+  *
+  *	On some architectures it is required to skip a breakpoint
+  *	exception when it occurs after a breakpoint has been removed.
+- *	This can be implemented in the architecture specific portion of
+- *	for kgdb.
++ *	This can be implemented in the architecture specific portion of kgdb.
+  */
+ extern int kgdb_skipexception(int exception, struct pt_regs *regs);
+ 
+@@ -42,7 +41,7 @@ extern int kgdb_skipexception(int except
+  *
+  *	This is usually needed on architectures which support SMP and
+  *	KGDB.  This function is called after all the secondary cpus have
+- *	been put to a know spin state and the primary CPU has control over
++ *	been put to a known spin state and the primary CPU has control over
+  *	KGDB.
+  */
+ extern void kgdb_post_primary_code(struct pt_regs *regs, int e_vector,
+@@ -65,7 +64,7 @@ struct uart_port;
+ /**
+  *	kgdb_breakpoint - compiled in breakpoint
+  *
+- *	This will be impelmented a static inline per architecture.  This
++ *	This will be implemented as a static inline per architecture.  This
+  *	function is called by the kgdb core to execute an architecture
+  *	specific trap to cause kgdb to enter the exception processing.
+  *
+@@ -190,7 +189,7 @@ kgdb_arch_handle_exception(int vector, i
+  *	@flags: Current IRQ state
+  *
+  *	On SMP systems, we need to get the attention of the other CPUs
+- *	and get them be in a known state.  This should do what is needed
++ *	and get them into a known state.  This should do what is needed
+  *	to get the other CPUs to call kgdb_wait(). Note that on some arches,
+  *	the NMI approach is not used for rounding up all the CPUs. For example,
+  *	in case of MIPS, smp_call_function() is used to roundup CPUs. In
+@@ -295,8 +294,7 @@ extern int __weak kgdb_mem2hex(char *mem
+ extern int __weak kgdb_hex2mem(char *buf, char *mem, int count);
  
  /**
-- * scsi_nonblock_ioctl() - Handle SG_SCSI_RESET
-+ * scsi_nonblockable_ioctl() - Handle SG_SCSI_RESET
-  * @sdev: scsi device receiving ioctl
-  * @cmd: Must be SC_SCSI_RESET
-  * @arg: pointer to int containing SG_SCSI_RESET_{DEVICE,BUS,HOST}
-- * @filp: either NULL or a &struct file which must have the O_NONBLOCK flag.
-+ * @ndelay: file mode O_NDELAY flag
-  */
- int scsi_nonblockable_ioctl(struct scsi_device *sdev, int cmd,
- 			    void __user *arg, int ndelay)
+- *      kgdb_ebin2mem - (optional arch override) Copy the binary array
+- *     pointed to by buf into mem.
++ *      kgdb_ebin2mem - (optional arch override) Copy binary array from @buf into @mem
+  *      @buf: source buffer
+  *      @mem: target buffer
+  *      @count: number of bytes in mem
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -82,7 +117,6 @@ lkdtm-fix-for-config_scsi=n.patch
 e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 gdth-fix-section-mismatch-warnings.patch
 esp-fix-section-mismatch-warning.patch
-scsi-ioctl-fix-kernel-doc-warning.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
 profile-likely-unlikely-macros.patch
 
