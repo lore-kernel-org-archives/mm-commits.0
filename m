@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kill-sig-1-must-only-apply-to-callers-namespace.patch added to -mm tree
-Date: Mon, 27 Oct 2008 14:58:28 -0700
-Message-ID: <200810272158.m9RLwSLG014140@imap1.linux-foundation.org>
+Subject: + sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2.patch added to -mm tree
+Date: Mon, 27 Oct 2008 15:03:05 -0700
+Message-ID: <200810272203.m9RM353o015716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48119 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751338AbYJ0V6r (ORCPT
+	by vger.kernel.org with ESMTP id S1752273AbYJ0WD3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 17:58:47 -0400
+	Mon, 27 Oct 2008 18:03:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@linux.vnet.ibm.com, daniel@hozac.com, ebiederm@xmission.com, oleg@redhat.com
+Cc: dcn@sgi.com, tony.luck@intel.com
 
 
 The patch titled
-     'kill sig -1' must only apply to caller's namespace
+     sgi-xp: only build for ia64-sn2 when CONFIG_IA64_GENERIC specified
 has been added to the -mm tree.  Its filename is
-     kill-sig-1-must-only-apply-to-callers-namespace.patch
+     sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 'kill sig -1' must only apply to caller's namespace
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Subject: sgi-xp: only build for ia64-sn2 when CONFIG_IA64_GENERIC specified
+From: Dean Nelson <dcn@sgi.com>
 
-Currently "kill <sig> -1" kills processes in all namespaces and breaks the
-isolation of namespaces.  Earlier attempt to fix this was discussed at:
+For the time being build for ia64-sn2 alone when CONFIG_IA64_GENERIC is
+specified.
 
-	http://lkml.org/lkml/2008/7/23/148
-
-As suggested by Oleg Nesterov in that thread, use "task_pid_vnr() > 1"
-check since task_pid_vnr() returns 0 if process is outside the caller's
-namespace.
-
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
-Tested-by: Daniel Hokka Zakrisson <daniel@hozac.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/misc/sgi-xp/Makefile   |    4 ++--
+ drivers/misc/sgi-xp/xp.h       |    4 ++++
+ drivers/misc/sgi-xp/xpc_main.c |    4 ++--
+ 3 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN kernel/signal.c~kill-sig-1-must-only-apply-to-callers-namespace kernel/signal.c
---- a/kernel/signal.c~kill-sig-1-must-only-apply-to-callers-namespace
-+++ a/kernel/signal.c
-@@ -1144,7 +1144,8 @@ static int kill_something_info(int sig, 
- 		struct task_struct * p;
+diff -puN drivers/misc/sgi-xp/Makefile~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2 drivers/misc/sgi-xp/Makefile
+--- a/drivers/misc/sgi-xp/Makefile~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2
++++ a/drivers/misc/sgi-xp/Makefile
+@@ -5,14 +5,14 @@
+ obj-$(CONFIG_SGI_XP)		+= xp.o
+ xp-y				:= xp_main.o
+ xp-$(CONFIG_IA64_SGI_SN2)	+= xp_sn2.o xp_nofault.o
+-xp-$(CONFIG_IA64_GENERIC)	+= xp_sn2.o xp_nofault.o xp_uv.o
++xp-$(CONFIG_IA64_GENERIC)	+= xp_sn2.o xp_nofault.o
+ xp-$(CONFIG_IA64_SGI_UV)	+= xp_uv.o
+ xp-$(CONFIG_X86_64)		+= xp_uv.o
  
- 		for_each_process(p) {
--			if (p->pid > 1 && !same_thread_group(p, current)) {
-+			if (task_pid_vnr(p) > 1 &&
-+					!same_thread_group(p, current)) {
- 				int err = group_send_sig_info(sig, info, p);
- 				++count;
- 				if (err != -EPERM)
+ obj-$(CONFIG_SGI_XP)		+= xpc.o
+ xpc-y				:= xpc_main.o xpc_channel.o xpc_partition.o
+ xpc-$(CONFIG_IA64_SGI_SN2)	+= xpc_sn2.o
+-xpc-$(CONFIG_IA64_GENERIC)	+= xpc_sn2.o xpc_uv.o
++xpc-$(CONFIG_IA64_GENERIC)	+= xpc_sn2.o
+ xpc-$(CONFIG_IA64_SGI_UV) 	+= xpc_uv.o
+ xpc-$(CONFIG_X86_64)		+= xpc_uv.o
+ 
+diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2 drivers/misc/sgi-xp/xp.h
+--- a/drivers/misc/sgi-xp/xp.h~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2
++++ a/drivers/misc/sgi-xp/xp.h
+@@ -19,7 +19,11 @@
+ #include <asm/system.h>
+ #include <asm/sn/arch.h>	/* defines is_shub1() and is_shub2() */
+ #define is_shub()	ia64_platform_is("sn2")
++#ifdef CONFIG_IA64_SGI_UV
+ #define is_uv()		ia64_platform_is("uv")
++#else
++#define is_uv()		0
++#endif
+ #endif
+ #ifdef CONFIG_X86_64
+ #include <asm/genapic.h>
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2 drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -1104,7 +1104,7 @@ xpc_do_exit(enum xp_retval reason)
+ 
+ 	if (is_shub())
+ 		xpc_exit_sn2();
+-	else
++	else if (is_uv())
+ 		xpc_exit_uv();
+ }
+ 
+@@ -1363,7 +1363,7 @@ out_2:
+ out_1:
+ 	if (is_shub())
+ 		xpc_exit_sn2();
+-	else
++	else if (is_uv())
+ 		xpc_exit_uv();
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
+Patches currently in -mm which might be from dcn@sgi.com are
 
-kill-sig-1-must-only-apply-to-callers-namespace.patch
-linux-next.patch
+sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2.patch
 
