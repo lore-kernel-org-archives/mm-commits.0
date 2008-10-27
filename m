@@ -1,199 +1,320 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-annotate-endianness-of-attribute-structs.patch added to -mm tree
-Date: Sun, 26 Oct 2008 23:51:11 -0700
-Message-ID: <200810270651.m9R6pBVx029613@imap1.linux-foundation.org>
+Subject: mmotm 2008-10-27-00-14 uploaded
+Date: Mon, 27 Oct 2008 00:15:28 -0700
+Message-ID: <200810270715.m9R7FSSb005316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751624AbYJ0Gvr (ORCPT
+	by vger.kernel.org with ESMTP id S1751803AbYJ0HPb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 02:51:47 -0400
+	Mon, 27 Oct 2008 03:15:31 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9R7FSqS014772
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 27 Oct 2008 00:15:29 -0700
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9R7FSSb005316
+	for <mm-commits@vger.kernel.org>; Mon, 27 Oct 2008 00:15:28 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, oakad@yahoo.com
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2008-10-27-00-14 has been uploaded to
 
-The patch titled
-     memstick: annotate endianness of attribute structs
-has been added to the -mm tree.  Its filename is
-     memstick-annotate-endianness-of-attribute-structs.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+It contains the following patches against 2.6.28-rc1:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: memstick: annotate endianness of attribute structs
-From: Harvey Harrison <harvey.harrison@gmail.com>
-
-The code was shifting the endianness appropriately everywhere, annotate
-the structs to avoid the sparse warnings when assigning the endian types
-to the struct members, or passing them to be[16|32]_to_cpu:
-
-drivers/memstick/core/mspro_block.c:331:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:333:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:335:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:337:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:341:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:347:4: warning: cast to restricted __be32
-drivers/memstick/core/mspro_block.c:356:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:358:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:364:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:367:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:369:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:371:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:377:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:478:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:480:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:482:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:484:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:486:4: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:689:22:    expected unsigned int [unsigned] [assigned] data_address
-drivers/memstick/core/mspro_block.c:689:22:    got restricted __be32 [usertype] <noident>
-drivers/memstick/core/mspro_block.c:697:3: warning: cast to restricted __be32
-drivers/memstick/core/mspro_block.c:960:17: warning: incorrect type in initializer (different base types)
-drivers/memstick/core/mspro_block.c:960:17:    expected unsigned short [unsigned] data_count
-drivers/memstick/core/mspro_block.c:960:17:    got restricted __be16 [usertype] <noident>
-drivers/memstick/core/mspro_block.c:993:6: warning: cast to restricted __be16
-drivers/memstick/core/mspro_block.c:995:28: warning: cast to restricted __be16
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Alex Dubov <oakad@yahoo.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/memstick/core/mspro_block.c |   43 ++++++++++++--------------
- include/linux/memstick.h            |    4 +-
- 2 files changed, 23 insertions(+), 24 deletions(-)
-
-diff -puN drivers/memstick/core/mspro_block.c~memstick-annotate-endianness-of-attribute-structs drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-annotate-endianness-of-attribute-structs
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -52,14 +52,14 @@ struct mspro_sys_attr {
- };
- 
- struct mspro_attr_entry {
--	unsigned int  address;
--	unsigned int  size;
-+	__be32 address;
-+	__be32 size;
- 	unsigned char id;
- 	unsigned char reserved[3];
- } __attribute__((packed));
- 
- struct mspro_attribute {
--	unsigned short          signature;
-+	__be16 signature;
- 	unsigned short          version;
- 	unsigned char           count;
- 	unsigned char           reserved[11];
-@@ -69,28 +69,28 @@ struct mspro_attribute {
- struct mspro_sys_info {
- 	unsigned char  class;
- 	unsigned char  reserved0;
--	unsigned short block_size;
--	unsigned short block_count;
--	unsigned short user_block_count;
--	unsigned short page_size;
-+	__be16 block_size;
-+	__be16 block_count;
-+	__be16 user_block_count;
-+	__be16 page_size;
- 	unsigned char  reserved1[2];
- 	unsigned char  assembly_date[8];
--	unsigned int   serial_number;
-+	__be32 serial_number;
- 	unsigned char  assembly_maker_code;
- 	unsigned char  assembly_model_code[3];
--	unsigned short memory_maker_code;
--	unsigned short memory_model_code;
-+	__be16 memory_maker_code;
-+	__be16 memory_model_code;
- 	unsigned char  reserved2[4];
- 	unsigned char  vcc;
- 	unsigned char  vpp;
--	unsigned short controller_number;
--	unsigned short controller_function;
--	unsigned short start_sector;
--	unsigned short unit_size;
-+	__be16 controller_number;
-+	__be16 controller_function;
-+	__be16 start_sector;
-+	__be16 unit_size;
- 	unsigned char  ms_sub_class;
- 	unsigned char  reserved3[4];
- 	unsigned char  interface_type;
--	unsigned short controller_code;
-+	__be16 controller_code;
- 	unsigned char  format_type;
- 	unsigned char  reserved4;
- 	unsigned char  device_type;
-@@ -124,11 +124,11 @@ struct mspro_specfile {
- } __attribute__((packed));
- 
- struct mspro_devinfo {
--	unsigned short cylinders;
--	unsigned short heads;
--	unsigned short bytes_per_track;
--	unsigned short bytes_per_sector;
--	unsigned short sectors_per_track;
-+	__be16 cylinders;
-+	__be16 heads;
-+	__be16 bytes_per_track;
-+	__be16 bytes_per_sector;
-+	__be16 sectors_per_track;
- 	unsigned char  reserved[6];
- } __attribute__((packed));
- 
-@@ -338,8 +338,7 @@ static ssize_t mspro_block_attr_show_sys
- 	rc += scnprintf(buffer + rc, PAGE_SIZE - rc, "assembly date: "
- 			"GMT%+d:%d %04u-%02u-%02u %02u:%02u:%02u\n",
- 			date_tz, date_tz_f,
--			be16_to_cpu(*(unsigned short *)
--				    &x_sys->assembly_date[1]),
-+			be16_to_cpup((__be16 *)&x_sys->assembly_date[1]),
- 			x_sys->assembly_date[3], x_sys->assembly_date[4],
- 			x_sys->assembly_date[5], x_sys->assembly_date[6],
- 			x_sys->assembly_date[7]);
-diff -puN include/linux/memstick.h~memstick-annotate-endianness-of-attribute-structs include/linux/memstick.h
---- a/include/linux/memstick.h~memstick-annotate-endianness-of-attribute-structs
-+++ a/include/linux/memstick.h
-@@ -100,8 +100,8 @@ struct mspro_param_register {
- #define MEMSTICK_SYS_PAR8   0x40
- #define MEMSTICK_SYS_SERIAL 0x80
- 
--	unsigned short data_count;
--	unsigned int   data_address;
-+	__be16 data_count;
-+	__be32 data_address;
- 	unsigned char  tpc_param;
- } __attribute__((packed));
- 
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
+origin.patch
+mm-increase-the-default-mlock-limit-from-32k-to-64k.patch
+viafb-removed-duplicated-includes.patch
+gitignore-updates.patch
+edac-x38-new-mc-driver-module.patch
+epoll-avoid-double-inserts-in-case-of-efault.patch
+epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
+freezer_cg-fix-improper-bug_on-causing-oops.patch
+freezer_cg-remove-redundant-check-in-freezer_can_attach.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+freezer_cg-simplify-freezer_change_state.patch
+cgroups-tiny-cleanups.patch
+fs-remove-prepare_write-commit_write.patch
+fs-remove-prepare_write-commit_write-fix.patch
+mm-write_cache_pages-writepage-error-fix.patch
+docbook-fix-command-spacing.patch
+docs-fix-managementstyle-book-name.patch
+rtc-s3c-fix-section-mismatch-warnings.patch
+edac-fix-enabling-of-polling-cell-module.patch
+fbcon-dont-inline-updatescrollmode.patch
+linux-ratelimith-fixed-missing-initializer-warning.patch
+sony-laptop-ignore-missing-_dis-method-on-pic-device.patch
+init-do_mounts_mdc-msleep-compile-fix.patch
+hdpuftrs-fix-build.patch
+memcg-update-menuconfig-help-text.patch
+kernel-profile-fix-profile_init-section-mismatch.patch
+ecryptfs-fix-memory-corruption-when-storing-crypto-info-in-xattrs.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
+next-remove-localversion.patch
+git-vfs.patch
+drivers-i2c-busses-i2c-s3c2410c-correct-use-of-and.patch
+fujitsu-laptop-fix-section-mismatch-warning.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem-fix.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+x86-remove-init_mm-export-as-planned-for-2626.patch
+x86_64-add-memory-hotremove-config-option.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+kvmclockc-fix-section-mismatch-warning.patch
+agp-follow-lspci-device-vendor-style.patch
+intel-agp-avoid-oops-for-g33-on-1mb-stolen-case.patch
+gpio_free-might-sleep-arm-architecture.patch
 cifs-remove-global_extern-macro.patch
+cpu-freq-documentation-add-blackfin-to-list-of-supported-processors.patch
+pcmcia-pccard-deadlock-fix.patch
+anysee-initialize-anysee_usb_mutex-statically.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+ia64-fix-the-difference-between-node_mem_map-and-node_start_pfn.patch
+ia64-use-common-header-for-software-io-tlb.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver-try-5.patch
 input-ads7846c-sparse-lock-annotation.patch
+serio_raw-add-support-for-translated-serio_i8042xl-ports.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+i8042-add-blue-fb5601-to-noloop-execption-table.patch
+input-ad7879-touchscreen-driver.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch
+scripts-package-allow-custom-options-to-rpm.patch
+scripts-checksyscallssh-fix-for-non-gnu-sed.patch
+adjust-init-section-definitions.patch
+tags-skip-in-filenames.patch
+kbuild-fix-kbuild_extra_symbols.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
+fix-incompatibility-with-versions-of-perl-less-than-560.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-pca9532-mark-pca9532_event-static.patch
+leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
+m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+mmc-fix-clock-off-in-pxa255-270.patch
+pci-use-pci_ioremap_bar-in-drivers-mmc.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+the-overdue-eepro100-removal.patch
+forcdeth-increase-max_interrupt_work.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+e100-adapt-to-the-reworked-pci-pm.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+3x59x-fix-pci-resource-management.patch
+smc-ultra-get-rid-of-eth%d-message.patch
+gpio_free-might-sleep-blackfin-architecture.patch
 blackfin-remove-__function__-in-new-serial-driver.patch
 blackfin-remove-__function__-in-video-driver.patch
+ocfs2-truncate-outstanding-block-after-direct-io-failure.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+piix3-warn-softer-about-enabling-passive-release.patch
+pci-uninline-pci_ioremap_bar.patch
+mutex-improve-header-comment-to-be-actually-informative-about-the-api.patch
+if-0-ses_match_host.patch
 scsi-replace-__inline-with-inline.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
 scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+drivers-scsi-use-div_round_up.patch
+drivers-scsi-megaraid-use-div_round_up.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
 scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
 scsi-remove-private-implementation-of-get_unaligned_be32.patch
+scsi-fix-bad-use-of-udelay-in-atp870uc.patch
+u14-34f-fix-scsi_dma_map-failure-case.patch
+megaraid-fix-mega_internal_command-oops.patch
+cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch
+cciss-new-hardware-support.patch
+cpqarry-fix-return-value-of-cpqarray_init.patch
+usb-protect-hcdh-from-multiple-inclusions.patch
+drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci.patch
+usb-add-nikon-d300-camera-to-unusual_devs.patch
 usb-avoid-needless-address-taking-of-function-parameters.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+include-linux-fsh-put-declarations-in-__kernel__.patch
+fs-namespacec-drop-code-after-return.patch
+introduce-new-lsm-hooks-where-vfsmount-is-available.patch
+introduce-new-lsm-hooks-where-vfsmount-is-available-update.patch
+fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch
+kill-suid-bit-only-for-regular-files.patch
+pika-warp-appliance-watchdog-timer.patch
+p54-fix-misbehavings-when-firmware-cant-be-found.patch
+mm.patch
+vt-incomplete-initialization-of-vc_tab_stop.patch
+vt-incomplete-initialization-of-vc_tab_stop-fix.patch
+rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms.patch
+hwmon-applesmc-add-support-for-imac-5.patch
+hwmon-applesmc-add-support-for-macbook-5.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+pata_it821x-in-2627-works-but-no-lba48-and-hdparm-t-is-slower.patch
+posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
+posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-dont-mark_page_accessed-in-fault-path.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
+mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
+mm-invoke-oom-killer-from-page-fault.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
+init-properly-placing-noinline-keyword.patch
+atomic_t-unify-all-arch-definitions.patch
+pci-use-pci_ioremap_bar-in-drivers-misc.patch
+check-fops_get-return-value.patch
+lis3lv02dx-accelerometer-driver.patch
+lis3lv02dx-accelerometer-driver-fix.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+max3100-spi-uart-driver.patch
+max3100-spi-uart-driver-fix.patch
+spi_gpio-driver.patch
+spi_gpio-driver-cleanups.patch
+kprobes-indirectly-call-kprobe_target.patch
+kprobes-add-tests-for-register_kprobes.patch
+rtc-ds1307-smbus-compatibility.patch
+add-dallas-ds1390-93-94-rtc-chips.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
+pci-use-pci_ioremap_bar-in-drivers-video.patch
+intelfb-support-i854.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+fat-document-additional-vfat-mount-options.patch
+fat-move-fs-vfat-and-fs-msdos-to-fs-fat.patch
+fat-split-include-msdos_fsh.patch
+fat-fix-and-cleanup-timestamp-conversion.patch
+fat-use-generic_file_llseek-for-directory.patch
+fat-cleanup-fat_parse_long-error-handling.patch
+fat-improve-fat_hash.patch
+fat-fix-fat_ent_update_ptr-for-fat12.patch
+fat-use-fat_detach-in-fat_clear_inode.patch
+vfat-fix-vfat_find-error-path-in-vfat_lookup.patch
+fat-fix-cleanup-dcache-handling-for-vfat.patch
+fat-kill-d_invalidate-in-vfat_lookup.patch
+fat-cleanup-msdos_lookup.patch
+fat-cleanup-fat-attribute-stuff.patch
+fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0.patch
+fat-fix-attr_ro-for-directory.patch
+fat-fix-_fat_bmap-race.patch
+fat-add-printf-attribute-to-fat_fs_panic.patch
+fat-mmu_private-race-fix.patch
+fat-i_pos-race-fix.patch
+fat-i_blocks-warning-fix.patch
+devpts-fix-unused-function-warning.patch
+elf-implement-at_random-for-glibc-prng-seeding.patch
+relay-reset-consumed.patch
+trace-code-and-documentation.patch
+trace-code-and-documentation-merging-documentation-tracetxt-with-documentation-filesystems-relaytxt.patch
+trace-sample.patch
+rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements.patch
+rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements-fix.patch
+pci-use-pci_ioremap_bar-in-drivers-edac.patch
+bfs-add-some-basic-sanity-checks.patch
+bfs-check-that-filesystem-fits-on-the-blockdevice.patch
 memstick-annotate-endianness-of-attribute-structs.patch
-
+w1-export-w1_read_8-function.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+hdq-driver-for-omap2430-3430.patch
+hdq-bq27000-hdq-slave-interface-driver.patch
+hdq-documentation-for-omap-hdq.patch
+add-c2-port-support.patch
+c2port-add-c2port-support-for-eurotech-duramar-2150.patch
+vmcore-remove-saved_max_pfn-check.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-fix-handling-enospc-cryptcompress.patch
+reiser4-fix-handling-enospc-unix_file.patch
+reiser4-fix-kill_hook_internal.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-compile-warning-cleanups.patch
+reiser4-use-wake_up_process-instead-of-wake_up-when-possible.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+releasing-resources-with-children.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+mm-debug-dump-pageframes-on-bad_page.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+likely_prof-changed-to-use-proc_create.patch
+likeliness-accounting-change-and-cleanup.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
+likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
+likely-profiling-disable-ftrace.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
