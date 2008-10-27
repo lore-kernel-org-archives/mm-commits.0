@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_it821x-in-2627-works-but-no-lba48-and-hdparm-t-is-slower.patch added to -mm tree
-Date: Sun, 26 Oct 2008 21:36:21 -0700
-Message-ID: <200810270436.m9R4aL9f016827@imap1.linux-foundation.org>
+Subject: + cpqarry-fix-return-value-of-cpqarray_init.patch added to -mm tree
+Date: Sun, 26 Oct 2008 21:42:47 -0700
+Message-ID: <200810270442.m9R4gloQ018984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57358 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751374AbYJ0EhN (ORCPT
+	by vger.kernel.org with ESMTP id S1752613AbYJ0EnI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 00:37:13 -0400
+	Mon, 27 Oct 2008 00:43:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@rainbow-software.org, alan@redhat.com, jeff@garzik.org, stable@kernel.org
+Cc: arvidjaar@mail.ru, dvgevers@xs4all.nl, gregkh@suse.de, jens.axboe@oracle.com
 
 
 The patch titled
-     pata_it821x in 2.6.27: works but no LBA48 and "hdparm -t" is slower
+     cpqarry: fix return value of cpqarray_init()
 has been added to the -mm tree.  Its filename is
-     pata_it821x-in-2627-works-but-no-lba48-and-hdparm-t-is-slower.patch
+     cpqarry-fix-return-value-of-cpqarray_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_it821x in 2.6.27: works but no LBA48 and "hdparm -t" is slower
-From: Ondrej Zary <linux@rainbow-software.org>
+Subject: cpqarry: fix return value of cpqarray_init()
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 
-This patch fixes LBA48 on pata_it821x RAID volumes - and to my surprise, also
-increases the "hdparm -t" speed back. Haven't tested access to >128GB area.
+As reported by Dick Gevers on Compaq ProLiant:
 
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
-pata_it821x 0000:00:12.0: PCI INT A -> Link[LNKC] -> GSI 11 (level, low) -> IRQ 11
-pata_it821x: controller in smart mode.
-pata_it821x 0000:00:12.0: setting latency timer to 64
-pata_it821x: Firmware 02/09/3030
-0: MWDMA2 RAID1RAID 0+1 Volume: 0 SAMSUNG HD400LD
-1: MWDMA2 RAID1RAID 0+1 Volume: 0 SAMSUNG HD400LD
-scsi2 : pata_it821x
-scsi3 : pata_it821x
-ata3: PATA max UDMA/133 cmd 0x6800 ctl 0x6c00 bmdma 0x7800 irq 11
-ata4: PATA max UDMA/133 cmd 0x7000 ctl 0x7400 bmdma 0x7808 irq 11
-ata3.00: ATA-4: Integrated Technology Express Inc, , max MWDMA2
-ata3.00: 781422766 sectors, multi 0: LBA48
-ata3.00: RAID1 volume.
-ata3.00: configured for DMA
-scsi 2:0:0:0: Direct-Access     ATA      Integrated Techn n/a  PQ: 0 ANSI: 5
-sd 2:0:0:0: [sdb] 781422766 512-byte hardware sectors (400088 MB)
-sd 2:0:0:0: [sdb] Write Protect is off
-sd 2:0:0:0: [sdb] Mode Sense: 00 3a 00 00
-sd 2:0:0:0: [sdb] Write cache: disabled, read cache: enabled, doesn't support DPO or FUA
-sd 2:0:0:0: [sdb] 781422766 512-byte hardware sectors (400088 MB)
-sd 2:0:0:0: [sdb] Write Protect is off
-sd 2:0:0:0: [sdb] Mode Sense: 00 3a 00 00
-sd 2:0:0:0: [sdb] Write cache: disabled, read cache: enabled, doesn't support DPO or FUA
- sdb: sdb1 sdb2 sdb3 sdb4
-sd 2:0:0:0: [sdb] Attached SCSI disk
-sd 2:0:0:0: Attached scsi generic sg2 type 0
+Oct 13 18:06:51 dvgcpl kernel: Compaq SMART2 Driver (v 2.6.0)
+Oct 13 18:06:51 dvgcpl kernel: sys_init_module: 'cpqarray'->init
+suspiciously returned 1, it should follow 0/-E convention
+Oct 13 18:06:51 dvgcpl kernel: sys_init_module: loading module anyway...
+Oct 13 18:06:51 dvgcpl kernel: Pid: 315, comm: modprobe Not tainted
+2.6.27-desktop-0.rc8.2mnb #1
+Oct 13 18:06:51 dvgcpl kernel:  [<c0380612>] ? printk+0x18/0x1e
+Oct 13 18:06:51 dvgcpl kernel:  [<c0158f85>] sys_init_module+0x155/0x1c0
+Oct 13 18:06:51 dvgcpl kernel:  [<c0103f06>] syscall_call+0x7/0xb
+Oct 13 18:06:51 dvgcpl kernel:  =======================
 
-/dev/sdb:
- Timing buffered disk reads:   60 MB in  3.01 seconds =  19.91 MB/sec
 
-Fix LBA48 on pata_it821x RAID volumes.
+Make it return 0 on success and -ENODEV if no array was found.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: <stable@kernel.org>
-Acked-by: Alan Cox <alan@redhat.com>
+Reported-by: Dick Gevers <dvgevers@xs4all.nl>
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_it821x.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/block/cpqarray.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_it821x.c~pata_it821x-in-2627-works-but-no-lba48-and-hdparm-t-is-slower drivers/ata/pata_it821x.c
---- a/drivers/ata/pata_it821x.c~pata_it821x-in-2627-works-but-no-lba48-and-hdparm-t-is-slower
-+++ a/drivers/ata/pata_it821x.c
-@@ -557,9 +557,8 @@ static unsigned int it821x_read_id(struc
- 	if (strstr(model_num, "Integrated Technology Express")) {
- 		/* Set feature bits the firmware neglects */
- 		id[49] |= 0x0300;	/* LBA, DMA */
--		id[82] |= 0x0400;	/* LBA48 */
- 		id[83] &= 0x7FFF;
--		id[83] |= 0x4000;	/* Word 83 is valid */
-+		id[83] |= 0x4400;	/* Word 83 is valid and LBA48 */
- 		id[86] |= 0x0400;	/* LBA48 on */
- 		id[ATA_ID_MAJOR_VER] |= 0x1F;
+diff -puN drivers/block/cpqarray.c~cpqarry-fix-return-value-of-cpqarray_init drivers/block/cpqarray.c
+--- a/drivers/block/cpqarray.c~cpqarry-fix-return-value-of-cpqarray_init
++++ a/drivers/block/cpqarray.c
+@@ -567,7 +567,12 @@ static int __init cpqarray_init(void)
+ 			num_cntlrs_reg++;
  	}
+ 
+-	return(num_cntlrs_reg);
++	if (num_cntlrs_reg)
++		return 0;
++	else {
++		pci_unregister_driver(&cpqarray_pci_driver);
++		return -ENODEV;
++	}
+ }
+ 
+ /* Function to find the first free pointer into our hba[] array */
 _
 
-Patches currently in -mm which might be from linux@rainbow-software.org are
+Patches currently in -mm which might be from arvidjaar@mail.ru are
 
-pata_it821x-in-2627-works-but-no-lba48-and-hdparm-t-is-slower.patch
+cpqarry-fix-return-value-of-cpqarray_init.patch
 
