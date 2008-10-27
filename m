@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-update-menuconfig-help-text.patch added to -mm tree
-Date: Sun, 26 Oct 2008 22:58:17 -0700
-Message-ID: <200810270558.m9R5wHaX011781@imap1.linux-foundation.org>
+Subject: + mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch added to -mm tree
+Date: Sun, 26 Oct 2008 23:05:04 -0700
+Message-ID: <200810270605.m9R654wX014117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59160 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750727AbYJ0F6Z (ORCPT
+	by vger.kernel.org with ESMTP id S1751277AbYJ0GFn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 01:58:25 -0400
+	Mon, 27 Oct 2008 02:05:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, jdike@addtoit.com, mingo@elte.hu, npiggin@suse.de, tglx@linutronix.de
 
 
 The patch titled
-     memcg: update menuconfig help text
+     mm-invoke-oom-killer-from-page-fault-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     memcg-update-menuconfig-help-text.patch
+     mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: update menuconfig help text
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mm-invoke-oom-killer-from-page-fault-fix-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-page_cgroup is now allocated at boot and memmap doesn't includes pointer
-for page_cgroup.  Fix the menu help text.
+fix now-wrong comment, noted by Ingo.
 
-Reviewed-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: KAMEZAWA hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/Kconfig~memcg-update-menuconfig-help-text init/Kconfig
---- a/init/Kconfig~memcg-update-menuconfig-help-text
-+++ a/init/Kconfig
-@@ -401,16 +401,20 @@ config CGROUP_MEM_RES_CTLR
- 	depends on CGROUPS && RESOURCE_COUNTERS
- 	select MM_OWNER
- 	help
--	  Provides a memory resource controller that manages both page cache and
--	  RSS memory.
-+	  Provides a memory resource controller that manages both anonymous
-+	  memory and page cache. (See Documentation/controllers/memory.txt)
+diff -puN mm/oom_kill.c~mm-invoke-oom-killer-from-page-fault-fix-fix-2 mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-invoke-oom-killer-from-page-fault-fix-fix-2
++++ a/mm/oom_kill.c
+@@ -565,7 +565,7 @@ void pagefault_out_of_memory(void)
  
- 	  Note that setting this option increases fixed memory overhead
--	  associated with each page of memory in the system by 4/8 bytes
--	  and also increases cache misses because struct page on many 64bit
--	  systems will not fit into a single cache line anymore.
-+	  associated with each page of memory in the system. By this,
-+	  20(40)bytes/PAGE_SIZE on 32(64)bit system will be occupied by memory
-+	  usage tracking struct at boot. Total amount of this is printed out
-+	  at boot.
- 
- 	  Only enable when you're ok with these trade offs and really
--	  sure you need the memory resource controller.
-+	  sure you need the memory resource controller. Even when you enable
-+	  this, you can set "cgroup_disable=memory" at your boot option to
-+	  disable memory resource controller and you can avoid overheads.
-+	  (and lose benefits of memory resource contoller)
- 
- 	  This config option also selects MM_OWNER config option, which
- 	  could in turn add some fork/exit overhead.
+ 	/*
+ 	 * Give "p" a good chance of killing itself before we
+-	 * retry to allocate memory unless "p" is current
++	 * retry to allocate memory.
+ 	 */
+ 	if (!test_thread_flag(TIF_MEMDIE))
+ 		schedule_timeout_uninterruptible(1);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-update-menuconfig-help-text.patch
+epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+fs-remove-prepare_write-commit_write-fix.patch
+mm-write_cache_pages-writepage-error-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+pci-uninline-pci_ioremap_bar.patch
+vt-incomplete-initialization-of-vc_tab_stop-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+devpts-fix-unused-function-warning.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
