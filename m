@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + p54-fix-misbehavings-when-firmware-cant-be-found.patch added to -mm tree
-Date: Sun, 26 Oct 2008 22:41:02 -0700
-Message-ID: <200810270541.m9R5f2a1006035@imap1.linux-foundation.org>
+Subject: + elf-implement-at_random-for-glibc-prng-seeding.patch added to -mm tree
+Date: Sun, 26 Oct 2008 22:47:17 -0700
+Message-ID: <200810270547.m9R5lIMx008117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751116AbYJ0Fmf (ORCPT
+	by vger.kernel.org with ESMTP id S1750868AbYJ0Frp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 01:42:35 -0400
+	Mon, 27 Oct 2008 01:47:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chunkeey@web.de, johannes@sipsolutions.net, sean@mess.org
+Cc: kees.cook@canonical.com, andi@firstfloor.org, drepper@redhat.com, jakub@redhat.com
 
 
 The patch titled
-     p54: fix misbehavings when firmware can't be found
+     ELF: implement AT_RANDOM for glibc PRNG seeding
 has been added to the -mm tree.  Its filename is
-     p54-fix-misbehavings-when-firmware-cant-be-found.patch
+     elf-implement-at_random-for-glibc-prng-seeding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,203 +26,101 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: p54: fix misbehavings when firmware can't be found
-=46rom: Christian Lamparter <chunkeey@web.de>
+Subject: ELF: implement AT_RANDOM for glibc PRNG seeding
+From: Kees Cook <kees.cook@canonical.com>
 
-=46ix a double-free error in p54pci.
+While discussing[1] the need for glibc to have access to random bytes
+during program load, it seems that an earlier attempt to implement
+AT_RANDOM got stalled.  This implements a random 16 byte string, available
+to every ELF program via a new auxv AT_RANDOM vector.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=3D11782.
+[1] http://sourceware.org/ml/libc-alpha/2008-10/msg00006.html
 
-Trying to free already-free IRQ 10
-Pid: 108, comm: pccardd Not tainted 2.6.27-05577-g0cfd810-dirty #1
-Call Trace:
-=A0[<c01265dc>] free_irq+0xad/0xb9
-=A0[<c01050dd>] dma_generic_alloc_coherent+0x0/0xd7
-=A0[<c01ba8e6>] p54p_stop+0x4a/0x1fa
-=A0[<c01050dd>] dma_generic_alloc_coherent+0x0/0xd7
-=A0[<c02348c5>] p54p_probe+0x23e/0x302
+Ulrich said:
 
-Tested-by: Sean Young <sean@mess.org>
-Signed-off-by: Christian Lamparter <chunkeey@web.de>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+glibc needs right after startup a bit of random data for internal
+protections (stack canary etc).  What is now in upstream glibc is that we
+always unconditionally open /dev/urandom, read some data, and use it.  For
+every process startup.  That's slow.
+
+...
+
+The solution is to provide a limited amount of random data to the
+starting process in the aux vector.  I suggested 16 bytes and this is
+what the patch implements.  If we need only 16 bytes or less we use the
+data directly.  If we need more we'll use the 16 bytes to see a PRNG.
+This avoids the costly /dev/urandom use and it allows the kernel to use
+the most adequate source of random data for this purpose.  It might not
+be the same pool as that for /dev/urandom.
+
+Concerns were expressed about the depletion of the randomness pool.  But
+this patch doesn't make the situation worse, it doesn't deplete entropy
+more than happens now.
+
+Signed-off-by: Kees Cook <kees.cook@canonical.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/p54/p54pci.c |  132 ++++++++++++++--------------
- 1 file changed, 66 insertions(+), 66 deletions(-)
+ fs/binfmt_elf.c        |   12 ++++++++++++
+ include/linux/auxvec.h |    6 +++---
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/wireless/p54/p54pci.c~p54-fix-misbehavings-when-f=
-irmware-cant-be-found drivers/net/wireless/p54/p54pci.c
---- a/drivers/net/wireless/p54/p54pci.c~p54-fix-misbehavings-when-firmw=
-are-cant-be-found
-+++ a/drivers/net/wireless/p54/p54pci.c
-@@ -346,68 +346,6 @@ static void p54p_tx(struct ieee80211_hw=20
- 		printk(KERN_INFO "%s: tx overflow.\n", wiphy_name(dev->wiphy));
- }
-=20
--static int p54p_open(struct ieee80211_hw *dev)
--{
--	struct p54p_priv *priv =3D dev->priv;
--	int err;
--
--	init_completion(&priv->boot_comp);
--	err =3D request_irq(priv->pdev->irq, &p54p_interrupt,
--			  IRQF_SHARED, "p54pci", dev);
--	if (err) {
--		printk(KERN_ERR "%s: failed to register IRQ handler\n",
--		       wiphy_name(dev->wiphy));
--		return err;
--	}
--
--	memset(priv->ring_control, 0, sizeof(*priv->ring_control));
--	err =3D p54p_upload_firmware(dev);
--	if (err) {
--		free_irq(priv->pdev->irq, dev);
--		return err;
--	}
--	priv->rx_idx_data =3D priv->tx_idx_data =3D 0;
--	priv->rx_idx_mgmt =3D priv->tx_idx_mgmt =3D 0;
--
--	p54p_refill_rx_ring(dev, 0, priv->ring_control->rx_data,
--		ARRAY_SIZE(priv->ring_control->rx_data), priv->rx_buf_data);
--
--	p54p_refill_rx_ring(dev, 2, priv->ring_control->rx_mgmt,
--		ARRAY_SIZE(priv->ring_control->rx_mgmt), priv->rx_buf_mgmt);
--
--	P54P_WRITE(ring_control_base, cpu_to_le32(priv->ring_control_dma));
--	P54P_READ(ring_control_base);
--	wmb();
--	udelay(10);
--
--	P54P_WRITE(int_enable, cpu_to_le32(ISL38XX_INT_IDENT_INIT));
--	P54P_READ(int_enable);
--	wmb();
--	udelay(10);
--
--	P54P_WRITE(dev_int, cpu_to_le32(ISL38XX_DEV_INT_RESET));
--	P54P_READ(dev_int);
--
--	if (!wait_for_completion_interruptible_timeout(&priv->boot_comp, HZ))=
- {
--		printk(KERN_ERR "%s: Cannot boot firmware!\n",
--		       wiphy_name(dev->wiphy));
--		free_irq(priv->pdev->irq, dev);
--		return -ETIMEDOUT;
--	}
--
--	P54P_WRITE(int_enable, cpu_to_le32(ISL38XX_INT_IDENT_UPDATE));
--	P54P_READ(int_enable);
--	wmb();
--	udelay(10);
--
--	P54P_WRITE(dev_int, cpu_to_le32(ISL38XX_DEV_INT_UPDATE));
--	P54P_READ(dev_int);
--	wmb();
--	udelay(10);
--
--	return 0;
--}
--
- static void p54p_stop(struct ieee80211_hw *dev)
- {
- 	struct p54p_priv *priv =3D dev->priv;
-@@ -474,6 +412,68 @@ static void p54p_stop(struct ieee80211_h
- 	memset(ring_control, 0, sizeof(*ring_control));
- }
-=20
-+static int p54p_open(struct ieee80211_hw *dev)
-+{
-+	struct p54p_priv *priv =3D dev->priv;
-+	int err;
+diff -puN fs/binfmt_elf.c~elf-implement-at_random-for-glibc-prng-seeding fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~elf-implement-at_random-for-glibc-prng-seeding
++++ a/fs/binfmt_elf.c
+@@ -152,8 +152,10 @@ create_elf_tables(struct linux_binprm *b
+ 	elf_addr_t __user *sp;
+ 	elf_addr_t __user *u_platform;
+ 	elf_addr_t __user *u_base_platform;
++	elf_addr_t __user *u_rand_bytes;
+ 	const char *k_platform = ELF_PLATFORM;
+ 	const char *k_base_platform = ELF_BASE_PLATFORM;
++	unsigned char k_rand_bytes[16];
+ 	int items;
+ 	elf_addr_t *elf_info;
+ 	int ei_index = 0;
+@@ -196,6 +198,15 @@ create_elf_tables(struct linux_binprm *b
+ 			return -EFAULT;
+ 	}
+ 
++	/*
++	 * Generate 16 random bytes for userspace PRNG seeding.
++	 */
++	get_random_bytes(k_rand_bytes, sizeof(k_rand_bytes));
++	u_rand_bytes = (elf_addr_t __user *)
++		       STACK_ALLOC(p, sizeof(k_rand_bytes));
++	if (__copy_to_user(u_rand_bytes, k_rand_bytes, sizeof(k_rand_bytes)))
++		return -EFAULT;
 +
-+	init_completion(&priv->boot_comp);
-+	err =3D request_irq(priv->pdev->irq, &p54p_interrupt,
-+			  IRQF_SHARED, "p54pci", dev);
-+	if (err) {
-+		printk(KERN_ERR "%s: failed to register IRQ handler\n",
-+		       wiphy_name(dev->wiphy));
-+		return err;
-+	}
-+
-+	memset(priv->ring_control, 0, sizeof(*priv->ring_control));
-+	err =3D p54p_upload_firmware(dev);
-+	if (err) {
-+		free_irq(priv->pdev->irq, dev);
-+		return err;
-+	}
-+	priv->rx_idx_data =3D priv->tx_idx_data =3D 0;
-+	priv->rx_idx_mgmt =3D priv->tx_idx_mgmt =3D 0;
-+
-+	p54p_refill_rx_ring(dev, 0, priv->ring_control->rx_data,
-+		ARRAY_SIZE(priv->ring_control->rx_data), priv->rx_buf_data);
-+
-+	p54p_refill_rx_ring(dev, 2, priv->ring_control->rx_mgmt,
-+		ARRAY_SIZE(priv->ring_control->rx_mgmt), priv->rx_buf_mgmt);
-+
-+	P54P_WRITE(ring_control_base, cpu_to_le32(priv->ring_control_dma));
-+	P54P_READ(ring_control_base);
-+	wmb();
-+	udelay(10);
-+
-+	P54P_WRITE(int_enable, cpu_to_le32(ISL38XX_INT_IDENT_INIT));
-+	P54P_READ(int_enable);
-+	wmb();
-+	udelay(10);
-+
-+	P54P_WRITE(dev_int, cpu_to_le32(ISL38XX_DEV_INT_RESET));
-+	P54P_READ(dev_int);
-+
-+	if (!wait_for_completion_interruptible_timeout(&priv->boot_comp, HZ))=
- {
-+		printk(KERN_ERR "%s: Cannot boot firmware!\n",
-+		       wiphy_name(dev->wiphy));
-+		p54p_stop(dev);
-+		return -ETIMEDOUT;
-+	}
-+
-+	P54P_WRITE(int_enable, cpu_to_le32(ISL38XX_INT_IDENT_UPDATE));
-+	P54P_READ(int_enable);
-+	wmb();
-+	udelay(10);
-+
-+	P54P_WRITE(dev_int, cpu_to_le32(ISL38XX_DEV_INT_UPDATE));
-+	P54P_READ(dev_int);
-+	wmb();
-+	udelay(10);
-+
-+	return 0;
-+}
-+
- static int __devinit p54p_probe(struct pci_dev *pdev,
- 				const struct pci_device_id *id)
- {
-@@ -556,11 +556,13 @@ static int __devinit p54p_probe(struct p
- 	spin_lock_init(&priv->lock);
- 	tasklet_init(&priv->rx_tasklet, p54p_rx_tasklet, (unsigned long)dev);
-=20
--	p54p_open(dev);
-+	err =3D p54p_open(dev);
-+	if (err)
-+		goto err_free_common;
- 	err =3D p54_read_eeprom(dev);
- 	p54p_stop(dev);
- 	if (err)
--		goto err_free_desc;
-+		goto err_free_common;
-=20
- 	err =3D ieee80211_register_hw(dev);
- 	if (err) {
-@@ -573,8 +575,6 @@ static int __devinit p54p_probe(struct p
-=20
-  err_free_common:
- 	p54_free_common(dev);
+ 	/* Create the ELF interpreter info */
+ 	elf_info = (elf_addr_t *)current->mm->saved_auxv;
+ 	/* update AT_VECTOR_SIZE_BASE if the number of NEW_AUX_ENT() changes */
+@@ -228,6 +239,7 @@ create_elf_tables(struct linux_binprm *b
+ 	NEW_AUX_ENT(AT_GID, cred->gid);
+ 	NEW_AUX_ENT(AT_EGID, cred->egid);
+  	NEW_AUX_ENT(AT_SECURE, security_bprm_secureexec(bprm));
++	NEW_AUX_ENT(AT_RANDOM, (elf_addr_t)(unsigned long)u_rand_bytes);
+ 	NEW_AUX_ENT(AT_EXECFN, bprm->exec);
+ 	if (k_platform) {
+ 		NEW_AUX_ENT(AT_PLATFORM,
+diff -puN include/linux/auxvec.h~elf-implement-at_random-for-glibc-prng-seeding include/linux/auxvec.h
+--- a/include/linux/auxvec.h~elf-implement-at_random-for-glibc-prng-seeding
++++ a/include/linux/auxvec.h
+@@ -23,16 +23,16 @@
+ #define AT_PLATFORM 15  /* string identifying CPU for optimizations */
+ #define AT_HWCAP  16    /* arch dependent hints at CPU capabilities */
+ #define AT_CLKTCK 17	/* frequency at which times() increments */
+-
++/* AT_* values 18 through 22 are reserved */
+ #define AT_SECURE 23   /* secure mode boolean */
