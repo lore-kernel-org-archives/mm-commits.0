@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix.patch added to -mm tree
-Date: Sun, 26 Oct 2008 22:15:40 -0700
-Message-ID: <200810270515.m9R5FeVT029964@imap1.linux-foundation.org>
+Subject: + u14-34f-fix-scsi_dma_map-failure-case.patch added to -mm tree
+Date: Sun, 26 Oct 2008 22:23:23 -0700
+Message-ID: <200810270523.m9R5NNBZ032544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57801 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50367 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751538AbYJ0FQZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751450AbYJ0FX2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 01:16:25 -0400
+	Mon, 27 Oct 2008 01:23:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net, linux@wolfsonmicro.com
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix
+     U14-34F: fix scsi_dma_map failure case
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix.patch
+     u14-34f-fix-scsi_dma_map-failure-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: U14-34F: fix scsi_dma_map failure case
+From: roel kluin <roel.kluin@gmail.com>
 
-s/schedule_timeout_interruptible/schedule_timeout_uninterruptible/ to
-prevent bogus timeout when signal_pending().
+When unsigned, scsi_dma_map may return -ENOMEM without triggering BUG_ON()
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Liam Girdwood <linux@wolfsonmicro.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-wm8350.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/scsi/u14-34f.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix drivers/rtc/rtc-wm8350.c
---- a/drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix
-+++ a/drivers/rtc/rtc-wm8350.c
-@@ -121,7 +121,7 @@ static int wm8350_rtc_settime(struct dev
- 	/* Wait until confirmation of stopping */
- 	do {
- 		rtc_ctrl = wm8350_reg_read(wm8350, WM8350_RTC_TIME_CONTROL);
--		schedule_timeout_interruptible(msecs_to_jiffies(1));
-+		schedule_timeout_uninterruptible(msecs_to_jiffies(1));
- 	} while (retries-- && !(rtc_ctrl & WM8350_RTC_STS));
+diff -puN drivers/scsi/u14-34f.c~u14-34f-fix-scsi_dma_map-failure-case drivers/scsi/u14-34f.c
+--- a/drivers/scsi/u14-34f.c~u14-34f-fix-scsi_dma_map-failure-case
++++ a/drivers/scsi/u14-34f.c
+@@ -1111,7 +1111,8 @@ static int u14_34f_detect(struct scsi_ho
  
- 	if (!retries) {
-@@ -204,7 +204,7 @@ static int wm8350_rtc_stop_alarm(struct 
- 	/* Wait until confirmation of stopping */
- 	do {
- 		rtc_ctrl = wm8350_reg_read(wm8350, WM8350_RTC_TIME_CONTROL);
--		schedule_timeout_interruptible(msecs_to_jiffies(1));
-+		schedule_timeout_uninterruptible(msecs_to_jiffies(1));
- 	} while (retries-- && !(rtc_ctrl & WM8350_RTC_ALMSTS));
- 
- 	if (!(rtc_ctrl & WM8350_RTC_ALMSTS))
-@@ -227,7 +227,7 @@ static int wm8350_rtc_start_alarm(struct
- 	/* Wait until confirmation */
- 	do {
- 		rtc_ctrl = wm8350_reg_read(wm8350, WM8350_RTC_TIME_CONTROL);
--		schedule_timeout_interruptible(msecs_to_jiffies(1));
-+		schedule_timeout_uninterruptible(msecs_to_jiffies(1));
- 	} while (retries-- && rtc_ctrl & WM8350_RTC_ALMSTS);
- 
- 	if (rtc_ctrl & WM8350_RTC_ALMSTS)
+ static void map_dma(unsigned int i, unsigned int j) {
+    unsigned int data_len = 0;
+-   unsigned int k, count, pci_dir;
++   unsigned int k, pci_dir;
++   int count;
+    struct scatterlist *sg;
+    struct mscp *cpp;
+    struct scsi_cmnd *SCpnt;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
-freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
-fs-remove-prepare_write-commit_write-fix.patch
-mm-write_cache_pages-writepage-error-fix.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
-drivers-rtc-rtc-ds1286c-is-borked.patch
-drivers-rtc-rtc-m48t35c-is-borked-too.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-pci-uninline-pci_ioremap_bar.patch
-vt-incomplete-initialization-of-vc_tab_stop-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
-init-properly-placing-noinline-keyword.patch
-spi_gpio-driver-cleanups.patch
-rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix.patch
-add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
-ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
-devpts-fix-unused-function-warning.patch
-w1-export-w1_read_8-function-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+u14-34f-fix-scsi_dma_map-failure-case.patch
 
