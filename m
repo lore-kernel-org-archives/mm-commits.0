@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-collect-version-check-return.patch added to -mm tree
-Date: Mon, 27 Oct 2008 13:33:12 -0700
-Message-ID: <200810272033.m9RKXCRt017422@imap1.linux-foundation.org>
+Subject: + autofs4-collect-version-check-return-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 27 Oct 2008 13:33:44 -0700
+Message-ID: <200810272033.m9RKXiKt017636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59715 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752129AbYJ0Ud2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751988AbYJ0Ue3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 16:33:28 -0400
+	Mon, 27 Oct 2008 16:34:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: raven@themaw.net, jmoyer@redhat.com
+Cc: akpm@linux-foundation.org, jmoyer@redhat.com, raven@themaw.net
 
 
 The patch titled
-     autofs4: collect version check return
+     autofs4-collect-version-check-return-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     autofs4-collect-version-check-return.patch
+     autofs4-collect-version-check-return-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: collect version check return
-From: Ian Kent <raven@themaw.net>
+Subject: autofs4-collect-version-check-return-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The function check_dev_ioctl_version() returns an error code upon fail but
-it isn't captured and returned in validate_dev_ioctl() as it should be.
+ERROR: do not use assignment in if condition
+#25: FILE: fs/autofs4/dev-ioctl.c:121:
++	if ((err = check_dev_ioctl_version(cmd, param))) {
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+total: 1 errors, 0 warnings, 11 lines checked
+
+./patches/autofs4-collect-version-check-return.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ian Kent <raven@themaw.net>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/autofs4/dev-ioctl.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs4-collect-version-check-return fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs4-collect-version-check-return
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-collect-version-check-return-checkpatch-fixes fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-collect-version-check-return-checkpatch-fixes
 +++ a/fs/autofs4/dev-ioctl.c
-@@ -116,9 +116,9 @@ static inline void free_dev_ioctl(struct
-  */
- static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
+@@ -118,7 +118,8 @@ static int validate_dev_ioctl(int cmd, s
  {
--	int err = -EINVAL;
-+	int err;
+ 	int err;
  
--	if (check_dev_ioctl_version(cmd, param)) {
-+	if ((err = check_dev_ioctl_version(cmd, param))) {
+-	if ((err = check_dev_ioctl_version(cmd, param))) {
++	err = check_dev_ioctl_version(cmd, param);
++	if (err) {
  		AUTOFS_WARN("invalid device control module version "
  		     "supplied for cmd(0x%08x)", cmd);
  		goto out;
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+fs-remove-prepare_write-commit_write-fix.patch
+mm-write_cache_pages-writepage-error-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-autofs4-correct-offset-mount-expire-check.patch
-autofs4-remove-string-terminator-check.patch
-autofs4-collect-version-check-return.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+pci-uninline-pci_ioremap_bar.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+autofs4-collect-version-check-return-checkpatch-fixes.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+devpts-fix-unused-function-warning.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
