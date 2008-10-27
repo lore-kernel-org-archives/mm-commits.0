@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-comment-detection-may-miss-an-implied-comment-on-the-last-hunk.patch added to -mm tree
-Date: Mon, 27 Oct 2008 14:32:05 -0700
-Message-ID: <200810272132.m9RLW5aK005106@imap1.linux-foundation.org>
+Subject: + checkpatch-add-checks-for-in_atomic.patch added to -mm tree
+Date: Mon, 27 Oct 2008 14:32:03 -0700
+Message-ID: <200810272132.m9RLW3c9005103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46893 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752188AbYJ0VcO (ORCPT
+	by vger.kernel.org with ESMTP id S1751771AbYJ0VcN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 17:32:14 -0400
+	Mon, 27 Oct 2008 17:32:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: comment detection may miss an implied comment on the last hunk
+     checkpatch: add checks for in_atomic()
 has been added to the -mm tree.  Its filename is
-     checkpatch-comment-detection-may-miss-an-implied-comment-on-the-last-hunk.patch
+     checkpatch-add-checks-for-in_atomic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: comment detection may miss an implied comment on the last hunk
+Subject: checkpatch: add checks for in_atomic()
 From: Andy Whitcroft <apw@shadowen.org>
 
-When detecting implied comments from leading stars we may incorrectly
-think we have detected an edge one way or the other when we have not if we
-drop off the end of the last hunk.  Fix this up.
+in_atomic() is not for driver use so report any such use as an ERROR. 
+Also in_atomic() is often used to determine if we may sleep, but it is not
+reliable in this use model therefore strongly discourage its use.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-comment-detection-may-miss-an-implied-comment-on-the-last-hunk scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-comment-detection-may-miss-an-implied-comment-on-the-last-hunk
+diff -puN scripts/checkpatch.pl~checkpatch-add-checks-for-in_atomic scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-checks-for-in_atomic
 +++ a/scripts/checkpatch.pl
-@@ -1097,8 +1097,8 @@ sub process {
- 					 $rawlines[$ln - 1] =~ /^-/);
- 				$cnt--;
- 				#print "RAW<$rawlines[$ln - 1]>\n";
--				($edge) = (defined $rawlines[$ln - 1] &&
--					$rawlines[$ln - 1] =~ m@(/\*|\*/)@);
-+				last if (!defined $rawlines[$ln - 1]);
-+				($edge) = ($rawlines[$ln - 1] =~ m@(/\*|\*/)@);
- 				last if (defined $edge);
+@@ -2466,6 +2466,15 @@ sub process {
+ 				last;
  			}
- 			if (defined $edge && $edge eq '*/') {
+ 		}
++
++# whine mightly about in_atomic
++		if ($line =~ /\bin_atomic\s*\(/) {
++			if ($realfile =~ m@^drivers/@) {
++				ERROR("do not use in_atomic in drivers\n" . $herecurr);
++			} else {
++				WARN("use of in_atomic() is incorrect outside core kernel code\n" . $herecurr);
++			}
++		}
+ 	}
+ 
+ 	# If we have no input at all, then there is nothing to report on
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
