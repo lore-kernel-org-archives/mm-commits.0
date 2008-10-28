@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + framebuffer-compat_ioctl-deadlock.patch added to -mm tree
-Date: Tue, 28 Oct 2008 14:34:46 -0700
-Message-ID: <200810282134.m9SLYkhU009617@imap1.linux-foundation.org>
+Subject: + vmemmap-warn-about-page_structs-with-remote-distance.patch added to -mm tree
+Date: Tue, 28 Oct 2008 14:38:23 -0700
+Message-ID: <200810282138.m9SLcNnl010853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752381AbYJ1VfZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752871AbYJ1Via (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 17:35:25 -0400
+	Tue, 28 Oct 2008 17:38:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpatocka@redhat.com, alan@lxorguk.ukuu.org.uk
+Cc: rientjes@google.com, cl@linux-foundation.org
 
 
 The patch titled
-     framebuffer compat_ioctl deadlock
+     vmemmap: warn about page_structs with remote distance
 has been added to the -mm tree.  Its filename is
-     framebuffer-compat_ioctl-deadlock.patch
+     vmemmap-warn-about-page_structs-with-remote-distance.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: framebuffer compat_ioctl deadlock
-From: Mikulas Patocka <mpatocka@redhat.com>
+Subject: vmemmap: warn about page_structs with remote distance
+From: David Rientjes <rientjes@google.com>
 
-Fix deadlock in fb_compat_ioctl.  fb_compat_ioctl acquires a mutex and
-calls fb_ioctl that tries to acquire that mutex too.  A regression added
-during BKL removal.
+It's insufficient to simply compare node ids when warning about offnode
+page_structs since it's possible to still have local affinity.
 
-Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/sparse-vmemmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/fbmem.c~framebuffer-compat_ioctl-deadlock drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~framebuffer-compat_ioctl-deadlock
-+++ a/drivers/video/fbmem.c
-@@ -1262,8 +1262,8 @@ fb_compat_ioctl(struct file *file, unsig
- 	case FBIOPUT_CON2FBMAP:
- 		arg = (unsigned long) compat_ptr(arg);
- 	case FBIOBLANK:
--		ret = fb_ioctl(file, cmd, arg);
--		break;
-+		mutex_unlock(&info->lock);
-+		return fb_ioctl(file, cmd, arg);
+diff -puN mm/sparse-vmemmap.c~vmemmap-warn-about-page_structs-with-remote-distance mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~vmemmap-warn-about-page_structs-with-remote-distance
++++ a/mm/sparse-vmemmap.c
+@@ -64,7 +64,7 @@ void __meminit vmemmap_verify(pte_t *pte
+ 	unsigned long pfn = pte_pfn(*pte);
+ 	int actual_node = early_pfn_to_nid(pfn);
  
- 	case FBIOGET_FSCREENINFO:
- 		ret = fb_get_fscreeninfo(inode, file, cmd, arg);
+-	if (actual_node != node)
++	if (node_distance(actual_node, node) > LOCAL_DISTANCE)
+ 		printk(KERN_WARNING "[%lx-%lx] potential offnode "
+ 			"page_structs\n", start, end - 1);
+ }
 _
 
-Patches currently in -mm which might be from mpatocka@redhat.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-framebuffer-compat_ioctl-deadlock.patch
+oom-do-not-dump-task-state-for-non-thread-group-leaders.patch
+vmemmap-warn-about-page_structs-with-remote-distance.patch
 
