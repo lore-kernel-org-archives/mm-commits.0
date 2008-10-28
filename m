@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-applesmc-add-support-for-macbook-pro-5.patch added to -mm tree
-Date: Mon, 27 Oct 2008 17:43:04 -0700
-Message-ID: <200810280043.m9S0h4SK005312@imap1.linux-foundation.org>
+Subject: + fbdev-fix-typo-in-drivers-video-modedbc.patch added to -mm tree
+Date: Mon, 27 Oct 2008 17:48:41 -0700
+Message-ID: <200810280048.m9S0mf6Z007231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752004AbYJ1AnM (ORCPT
+	by vger.kernel.org with ESMTP id S1751595AbYJ1AtF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 20:43:12 -0400
+	Mon, 27 Oct 2008 20:49:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se
+Cc: jim.lkml@gmail.com, geert@linux-m68k.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     hwmon: applesmc: Add support for Macbook Pro 5
+     fbdev: fix typo in drivers/video/modedb.c
 has been added to the -mm tree.  Its filename is
-     hwmon-applesmc-add-support-for-macbook-pro-5.patch
+     fbdev-fix-typo-in-drivers-video-modedbc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: applesmc: Add support for Macbook Pro 5
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: fbdev: fix typo in drivers/video/modedb.c
+From: Jiri Moravec <jim.lkml@gmail.com>
 
-tAdd adds accelerometer, backlight and temperature sensor support for the
-new unibody Macbook Pro 5.
+When I viewed drivers/video/modedb.c, I noticed a very old typo already
+contained in 2.6.0.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+This typo remained unheeded at least 5 years.  Clear evidence of its
+importance.  ;)
+
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/video/modedb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-macbook-pro-5 drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-macbook-pro-5
-+++ a/drivers/hwmon/applesmc.c
-@@ -121,6 +121,10 @@ static const char* temperature_sensors_s
- /* Set 11: Macbook 5,1 */
- 	{ "TB0T", "TB1T", "TB2T", "TB3T", "TC0D", "TC0P", "TN0D", "TN0P",
- 	  "TTF0", "Th0H", "Th1H", "ThFH", "Ts0P", "Ts0S", NULL },
-+/* Set 12: Macbook Pro 5,1 */
-+	{ "TB0T", "TB1T", "TB2T", "TB3T", "TC0D", "TC0F", "TC0P", "TG0D",
-+	  "TG0F", "TG0H", "TG0P", "TG0T", "TG1H", "TN0D", "TN0P", "TTF0",
-+	  "Th2H", "Tm0P", "Ts0P", "Ts0S", NULL },
- };
- 
- /* List of keys used to read/write fan speeds */
-@@ -1285,6 +1289,8 @@ static __initdata struct dmi_match_data 
- 	{ .accelerometer = 0, .light = 0, .temperature_set = 10 },
- /* MacBook 5: accelerometer, backlight and temperature set 11 */
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 11 },
-+/* MacBook Pro 5: accelerometer, backlight and temperature set 12 */
-+	{ .accelerometer = 1, .light = 1, .temperature_set = 12 },
- };
- 
- /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-@@ -1294,6 +1300,10 @@ static __initdata struct dmi_system_id a
- 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir") },
- 		&applesmc_dmi_data[7]},
-+	{ applesmc_dmi_match, "Apple MacBook Pro 5", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro5") },
-+		&applesmc_dmi_data[12]},
- 	{ applesmc_dmi_match, "Apple MacBook Pro 4", {
- 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro4") },
+diff -puN drivers/video/modedb.c~fbdev-fix-typo-in-drivers-video-modedbc drivers/video/modedb.c
+--- a/drivers/video/modedb.c~fbdev-fix-typo-in-drivers-video-modedbc
++++ a/drivers/video/modedb.c
+@@ -329,7 +329,7 @@ const struct fb_videomode vesa_modes[] =
+ 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+ 	  FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+ 	/* 17 1152x864-75 VESA */
+-	{ NULL, 75, 1153, 864, 9259, 256, 64, 32, 1, 128, 3,
++	{ NULL, 75, 1152, 864, 9259, 256, 64, 32, 1, 128, 3,
+ 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+ 	  FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+ 	/* 18 1280x960-60 VESA */
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from jim.lkml@gmail.com are
 
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
-hwmon-applesmc-add-support-for-imac-5.patch
-hwmon-applesmc-add-support-for-macbook-5.patch
-hwmon-applesmc-add-support-for-macbook-pro-5.patch
+fbdev-fix-typo-in-drivers-video-modedbc.patch
 
