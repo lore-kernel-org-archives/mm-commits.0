@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-fix-string-validation-check-order.patch added to -mm tree
-Date: Mon, 27 Oct 2008 23:02:00 -0700
-Message-ID: <200810280602.m9S620nM015431@imap1.linux-foundation.org>
+Subject: + filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch added to -mm tree
+Date: Mon, 27 Oct 2008 23:15:57 -0700
+Message-ID: <200810280615.m9S6FvYh020124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751952AbYJ1GCQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752269AbYJ1GRu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 02:02:16 -0400
+	Tue, 28 Oct 2008 02:17:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: raven@themaw.net, jmoyer@redhat.com
+Cc: t-sato@yk.jp.nec.com, agk@redhat.com, david@fromorbit.com, dgc@sgi.com, hch@lst.de, linux-ext4@vger.kernel.org, shaggy@austin.ibm.com, viro@zeniv.linux.org.uk, xfs-masters@oss.sgi.com
 
 
 The patch titled
-     autofs4: fix string validation check order
+     filesystem freeze: remove XFS specific ioctl interfaces for freeze feature
 has been added to the -mm tree.  Its filename is
-     autofs4-fix-string-validation-check-order.patch
+     filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: fix string validation check order
-From: Ian Kent <raven@themaw.net>
+Subject: filesystem freeze: remove XFS specific ioctl interfaces for freeze feature
+From: Takashi Sato <t-sato@yk.jp.nec.com>
 
-In function validate_dev_ioctl() we check that the string we've been sent
-is a valid path.  The function that does this check assumes the string is
-NULL terminated but our NULL termination check isn't done until after this
-call.  This patch changes the order of the check.
+It removes XFS specific ioctl interfaces and request codes
+for freeze feature.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+This patch has been supplied by David Chinner.
+
+Signed-off-by: Dave Chinner <dgc@sgi.com>
+Signed-off-by: Takashi Sato <t-sato@yk.jp.nec.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: <xfs-masters@oss.sgi.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Alasdair G Kergon <agk@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl.c   |   15 ---------------
+ fs/xfs/linux-2.6/xfs_ioctl32.c |    2 --
+ fs/xfs/xfs_fs.h                |    4 ++--
+ 3 files changed, 2 insertions(+), 19 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs4-fix-string-validation-check-order fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs4-fix-string-validation-check-order
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -124,7 +124,7 @@ static inline void free_dev_ioctl(struct
- 
- /*
-  * Check sanity of parameter control fields and if a path is present
-- * check that it has a "/" and is terminated.
-+ * check that it is terminated and contains at least one "/".
-  */
- static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
- {
-@@ -138,15 +138,16 @@ static int validate_dev_ioctl(int cmd, s
+diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/linux-2.6/xfs_ioctl.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl.c~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/linux-2.6/xfs_ioctl.c
+@@ -1529,21 +1529,6 @@ xfs_ioctl(
+ 		return -error;
  	}
  
- 	if (param->size > sizeof(*param)) {
--		err = check_name(param->path);
-+		err = invalid_str(param->path,
-+				 (void *) ((size_t) param + param->size));
- 		if (err) {
--			AUTOFS_WARN("invalid path supplied for cmd(0x%08x)",
--				    cmd);
-+			AUTOFS_WARN(
-+			  "path string terminator missing for cmd(0x%08x)",
-+			  cmd);
- 			goto out;
- 		}
+-	case XFS_IOC_FREEZE:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (inode->i_sb->s_frozen == SB_UNFROZEN)
+-			freeze_bdev(inode->i_sb->s_bdev);
+-		return 0;
+-
+-	case XFS_IOC_THAW:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-		if (inode->i_sb->s_frozen != SB_UNFROZEN)
+-			thaw_bdev(inode->i_sb->s_bdev, inode->i_sb);
+-		return 0;
+-
+ 	case XFS_IOC_GOINGDOWN: {
+ 		__uint32_t in;
  
--		err = invalid_str(param->path,
--				 (void *) ((size_t) param + param->size));
-+		err = check_name(param->path);
- 		if (err) {
- 			AUTOFS_WARN("invalid path supplied for cmd(0x%08x)",
- 				    cmd);
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/linux-2.6/xfs_ioctl32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -398,8 +398,6 @@ xfs_compat_ioctl(
+ 	case XFS_IOC_FSGROWFSDATA:
+ 	case XFS_IOC_FSGROWFSLOG:
+ 	case XFS_IOC_FSGROWFSRT:
+-	case XFS_IOC_FREEZE:
+-	case XFS_IOC_THAW:
+ 	case XFS_IOC_GOINGDOWN:
+ 	case XFS_IOC_ERROR_INJECTION:
+ 	case XFS_IOC_ERROR_CLEARALL:
+diff -puN fs/xfs/xfs_fs.h~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/xfs_fs.h
+--- a/fs/xfs/xfs_fs.h~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/xfs_fs.h
+@@ -477,8 +477,8 @@ typedef struct xfs_handle {
+ #define XFS_IOC_ERROR_INJECTION	     _IOW ('X', 116, struct xfs_error_injection)
+ #define XFS_IOC_ERROR_CLEARALL	     _IOW ('X', 117, struct xfs_error_injection)
+ /*	XFS_IOC_ATTRCTL_BY_HANDLE -- deprecated 118	 */
+-#define XFS_IOC_FREEZE		     _IOWR('X', 119, int)
+-#define XFS_IOC_THAW		     _IOWR('X', 120, int)
++/*	XFS_IOC_FREEZE		  -- FIFREEZE   119	 */
++/*	XFS_IOC_THAW		  -- FITHAW     120	 */
+ #define XFS_IOC_FSSETDM_BY_HANDLE    _IOW ('X', 121, struct xfs_fsop_setdm_handlereq)
+ #define XFS_IOC_ATTRLIST_BY_HANDLE   _IOW ('X', 122, struct xfs_fsop_attrlist_handlereq)
+ #define XFS_IOC_ATTRMULTI_BY_HANDLE  _IOW ('X', 123, struct xfs_fsop_attrmulti_handlereq)
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from t-sato@yk.jp.nec.com are
 
-linux-next.patch
-autofs4-correct-offset-mount-expire-check.patch
-autofs4-collect-version-check-return.patch
-autofs4-collect-version-check-return-checkpatch-fixes.patch
-autofs4-improve-parameter-usage.patch
-autofs4-fix-var-shadowed-by-local-delaration.patch
-autofs4-make-autofs-type-usage-explicit.patch
-autofs4-fix-string-validation-check-order.patch
+filesystem-freeze-add-error-handling-of-write_super_lockfs-unlockfs.patch
+filesystem-freeze-implement-generic-freeze-feature.patch
+filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
 
