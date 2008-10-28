@@ -1,148 +1,383 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ds1307-remove-legacy-probe-checks.patch added to -mm tree
-Date: Mon, 27 Oct 2008 23:33:17 -0700
-Message-ID: <200810280633.m9S6XHJ6025942@imap1.linux-foundation.org>
+Subject: mmotm 2008-10-27-23-39 uploaded
+Date: Mon, 27 Oct 2008 23:40:17 -0700
+Message-ID: <200810280640.m9S6eHjh028344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53891 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752532AbYJ1Ge5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752247AbYJ1Gku (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 02:34:57 -0400
+	Tue, 28 Oct 2008 02:40:50 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9S6eH1j017911
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 27 Oct 2008 23:40:18 -0700
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9S6eHjh028344
+	for <mm-commits@vger.kernel.org>; Mon, 27 Oct 2008 23:40:17 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: juri.reitel@liewenthal.ee, a.zummo@towertech.it, dbrownell@users.sourceforge.net, giometti@enneenne.com, khali@linux-fr.org, sbarre@sdelcc.com
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2008-10-27-23-39 has been uploaded to
 
-The patch titled
-     rtc-ds1307: remove legacy probe() checks
-has been added to the -mm tree.  Its filename is
-     rtc-ds1307-remove-legacy-probe-checks.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+It contains the following patches against 2.6.28-rc2:
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
-
-------------------------------------------------------
-Subject: rtc-ds1307: remove legacy probe() checks
-=46rom: J=FCri Reitel <juri.reitel@liewenthal.ee>
-
-Remove RTC register value checks from the rtc-ds1307 probe() function.=20
-They were left over from the legacy style I2C driver, which had to defe=
-nd
-against finding a non-RTC chip when the driver was probed.
-
-Also fix a minor glitch in the alarm support: DS1307 chips don't have
-alarms, so name those methods after one of the chips which actually *do=
-*
-have alarms (DS1337).
-
-Signed-off-by: J=FCri Reitel <juri.reitel@liewenthal.ee>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Sebastien Barre <sbarre@sdelcc.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Rodolfo Giometti <giometti@enneenne.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/rtc/rtc-ds1307.c |   31 ++++---------------------------
- 1 file changed, 4 insertions(+), 27 deletions(-)
-
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-remove-legacy-probe-check=
-s drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-remove-legacy-probe-checks
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -287,7 +287,7 @@ static int ds1307_set_time(struct device
- 	return 0;
- }
-=20
--static int ds1307_read_alarm(struct device *dev, struct rtc_wkalrm *t)
-+static int ds1337_read_alarm(struct device *dev, struct rtc_wkalrm *t)
- {
- 	struct i2c_client       *client =3D to_i2c_client(dev);
- 	struct ds1307		*ds1307 =3D i2c_get_clientdata(client);
-@@ -338,7 +338,7 @@ static int ds1307_read_alarm(struct devi
- 	return 0;
- }
-=20
--static int ds1307_set_alarm(struct device *dev, struct rtc_wkalrm *t)
-+static int ds1337_set_alarm(struct device *dev, struct rtc_wkalrm *t)
- {
- 	struct i2c_client       *client =3D to_i2c_client(dev);
- 	struct ds1307		*ds1307 =3D i2c_get_clientdata(client);
-@@ -452,8 +452,8 @@ static int ds1307_ioctl(struct device *d
- static const struct rtc_class_ops ds13xx_rtc_ops =3D {
- 	.read_time	=3D ds1307_get_time,
- 	.set_time	=3D ds1307_set_time,
--	.read_alarm	=3D ds1307_read_alarm,
--	.set_alarm	=3D ds1307_set_alarm,
-+	.read_alarm	=3D ds1337_read_alarm,
-+	.set_alarm	=3D ds1337_set_alarm,
- 	.ioctl		=3D ds1307_ioctl,
- };
-=20
-@@ -654,22 +654,6 @@ read_rtc:
- 		break;
- 	}
-=20
--	tmp =3D ds1307->regs[DS1307_REG_SECS];
--	tmp =3D bcd2bin(tmp & 0x7f);
--	if (tmp > 60)
--		goto exit_bad;
--	tmp =3D bcd2bin(ds1307->regs[DS1307_REG_MIN] & 0x7f);
--	if (tmp > 60)
--		goto exit_bad;
--
--	tmp =3D bcd2bin(ds1307->regs[DS1307_REG_MDAY] & 0x3f);
--	if (tmp =3D=3D 0 || tmp > 31)
--		goto exit_bad;
--
--	tmp =3D bcd2bin(ds1307->regs[DS1307_REG_MONTH] & 0x1f);
--	if (tmp =3D=3D 0 || tmp > 12)
--		goto exit_bad;
--
- 	tmp =3D ds1307->regs[DS1307_REG_HOUR];
- 	switch (ds1307->type) {
- 	case ds_1340:
-@@ -726,13 +710,6 @@ read_rtc:
-=20
- 	return 0;
-=20
--exit_bad:
--	dev_dbg(&client->dev, "%s: %02x %02x %02x %02x %02x %02x %02x\n",
--			"bogus register",
--			ds1307->regs[0], ds1307->regs[1],
--			ds1307->regs[2], ds1307->regs[3],
--			ds1307->regs[4], ds1307->regs[5],
--			ds1307->regs[6]);
- exit_irq:
- 	if (ds1307->rtc)
- 		rtc_device_unregister(ds1307->rtc);
-_
-
-Patches currently in -mm which might be from juri.reitel@liewenthal.ee =
-are
-
+origin.patch
+mm-increase-the-default-mlock-limit-from-32k-to-64k.patch
+viafb-removed-duplicated-includes.patch
+gitignore-updates.patch
+edac-x38-new-mc-driver-module.patch
+epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
+freezer_cg-fix-improper-bug_on-causing-oops.patch
+freezer_cg-remove-redundant-check-in-freezer_can_attach.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+freezer_cg-simplify-freezer_change_state.patch
+cgroups-tiny-cleanups.patch
+fs-remove-prepare_write-commit_write.patch
+fs-remove-prepare_write-commit_write-fix.patch
+mm-write_cache_pages-writepage-error-fix.patch
+docbook-fix-command-spacing.patch
+docs-fix-managementstyle-book-name.patch
+rtc-s3c-fix-section-mismatch-warnings.patch
+edac-fix-enabling-of-polling-cell-module.patch
+fbcon-dont-inline-updatescrollmode.patch
+linux-ratelimith-fixed-missing-initializer-warning.patch
+sony-laptop-ignore-missing-_dis-method-on-pic-device.patch
+init-do_mounts_mdc-msleep-compile-fix.patch
+hdpuftrs-fix-build.patch
+memcg-update-menuconfig-help-text.patch
+kernel-profile-fix-profile_init-section-mismatch.patch
+ecryptfs-fix-memory-corruption-when-storing-crypto-info-in-xattrs.patch
+i2o-fix-kernel-doc-warnings.patch
+mm-fix-kernel-doc-function-notation.patch
+fs-remove-excess-kernel-doc.patch
+kill-sig-1-must-only-apply-to-callers-namespace.patch
+sgi-xp-only-build-for-ia64-sn2-when-config_ia64_generic-specified-v2.patch
+maintainers-add-ltp-info-to-the-list.patch
+rtc-ds3234-doesnt-link-when-built-in.patch
+rationalise-randys-address-a-bit.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+linux-next.patch
+next-remove-localversion.patch
+drivers-i2c-busses-i2c-s3c2410c-correct-use-of-and.patch
+fujitsu-laptop-fix-section-mismatch-warning.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem-fix.patch
+drivers-idle-memory-power-in-config-show-up-only-when-it-applies.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+x86-remove-init_mm-export-as-planned-for-2626.patch
+x86_64-add-memory-hotremove-config-option.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+kvmclockc-fix-section-mismatch-warning.patch
+kgdb-fix-kernel-doc-error.patch
+agp-follow-lspci-device-vendor-style.patch
+intel-agp-avoid-oops-for-g33-on-1mb-stolen-case.patch
+gpio_free-might-sleep-arm-architecture.patch
+audit-remove-excess-kernel-doc.patch
+cifs-remove-global_extern-macro.patch
+cpu-freq-documentation-add-blackfin-to-list-of-supported-processors.patch
+pcmcia-pccard-deadlock-fix.patch
+anysee-initialize-anysee_usb_mutex-statically.patch
+gfs2-sparse-annotation-of-gl-gl_spin.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+ia64-fix-the-difference-between-node_mem_map-and-node_start_pfn.patch
+ia64-use-common-header-for-software-io-tlb.patch
+linux-timexh-cleanup-for-userspace.patch
+linux-timexh-cleanup-for-userspace-checkpatch-fixes.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver-try-5.patch
+input-ads7846c-sparse-lock-annotation.patch
+serio_raw-add-support-for-translated-serio_i8042xl-ports.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+i8042-add-blue-fb5601-to-noloop-execption-table.patch
+input-ad7879-touchscreen-driver.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch
+scripts-package-allow-custom-options-to-rpm.patch
+scripts-checksyscallssh-fix-for-non-gnu-sed.patch
+adjust-init-section-definitions.patch
+tags-skip-in-filenames.patch
+kbuild-fix-kbuild_extra_symbols.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
+fix-incompatibility-with-versions-of-perl-less-than-560.patch
+kconfig-add-module_name-shortcut.patch
+setlocalversion-dont-include-svn-change-count.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-pca9532-mark-pca9532_event-static.patch
+libata-add-missing-kernel-doc.patch
+m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+mips-use-the-new-byteorder-headers.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+mmc-fix-clock-off-in-pxa255-270.patch
+pci-use-pci_ioremap_bar-in-drivers-mmc.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+the-overdue-eepro100-removal.patch
+forcdeth-increase-max_interrupt_work.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+e100-adapt-to-the-reworked-pci-pm.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+3x59x-fix-pci-resource-management.patch
+smc-ultra-get-rid-of-eth%d-message.patch
+gpio_free-might-sleep-blackfin-architecture.patch
+blackfin-remove-__function__-in-new-serial-driver.patch
+blackfin-remove-__function__-in-video-driver.patch
+ext4-fix-a-bug-accessing-freed-memory-in-ext4_abort.patch
+ocfs2-truncate-outstanding-block-after-direct-io-failure.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+piix3-warn-softer-about-enabling-passive-release.patch
+pci-uninline-pci_ioremap_bar.patch
+mutex-improve-header-comment-to-be-actually-informative-about-the-api.patch
+sh-use-the-new-byteorder-headers.patch
+if-0-ses_match_host.patch
+scsi-replace-__inline-with-inline.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+drivers-scsi-use-div_round_up.patch
+drivers-scsi-megaraid-use-div_round_up.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+scsi-remove-private-implementation-of-get_unaligned_be32.patch
+scsi-fix-bad-use-of-udelay-in-atp870uc.patch
+u14-34f-fix-scsi_dma_map-failure-case.patch
+megaraid-fix-mega_internal_command-oops.patch
+scsi-ioctl-fix-kernel-doc-warning.patch
+cciss-new-hardware-support.patch
+cpqarry-fix-return-value-of-cpqarray_init.patch
+block-remove-excess-kernel-doc.patch
+sparc-use-the-new-byteorder-headers.patch
+usb-protect-hcdh-from-multiple-inclusions.patch
+drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci.patch
+usb-add-nikon-d300-camera-to-unusual_devs.patch
+usb-avoid-needless-address-taking-of-function-parameters.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+include-linux-fsh-put-declarations-in-__kernel__.patch
+fs-namespacec-drop-code-after-return.patch
+introduce-new-lsm-hooks-where-vfsmount-is-available.patch
+introduce-new-lsm-hooks-where-vfsmount-is-available-update.patch
+fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch
+fs-fix-inodec-kernel-doc-warnings.patch
+kill-suid-bit-only-for-regular-files.patch
+pika-warp-appliance-watchdog-timer.patch
+p54-fix-misbehavings-when-firmware-cant-be-found.patch
+mm.patch
+vt-incomplete-initialization-of-vc_tab_stop.patch
+rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms.patch
+hwmon-applesmc-add-support-for-imac-5.patch
+hwmon-applesmc-add-support-for-macbook-5.patch
+hwmon-applesmc-add-support-for-macbook-pro-5.patch
+autofs4-correct-offset-mount-expire-check.patch
+autofs4-collect-version-check-return.patch
+autofs4-collect-version-check-return-checkpatch-fixes.patch
+cciss-fix-sysfs-broken-symlink-regression.patch
+cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch
+hugetlbfs-handle-pages-higher-order-than-max_order.patch
+hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path.patch
+maintainers-make-ioat-easier-to-find.patch
+oom-do-not-dump-task-state-for-non-thread-group-leaders.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
+reintroduce-accept4.patch
+macfb-do-not-overflow-fb_fix_screeninfoid.patch
+ext3-fix-a-bug-accessing-freed-memory-in-ext3_abort.patch
+fat-document-additional-vfat-mount-options.patch
+fat-move-fs-vfat-and-fs-msdos-to-fs-fat.patch
+fat-split-include-msdos_fsh.patch
+fat-fix-and-cleanup-timestamp-conversion.patch
+fat-use-generic_file_llseek-for-directory.patch
+fat-cleanup-fat_parse_long-error-handling.patch
+fat-improve-fat_hash.patch
+fat-fix-fat_ent_update_ptr-for-fat12.patch
+fat-use-fat_detach-in-fat_clear_inode.patch
+vfat-fix-vfat_find-error-path-in-vfat_lookup.patch
+fat-fix-cleanup-dcache-handling-for-vfat.patch
+fat-kill-d_invalidate-in-vfat_lookup.patch
+fat-cleanup-msdos_lookup.patch
+fat-cleanup-fat-attribute-stuff.patch
+fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0.patch
+fat-fix-attr_ro-for-directory.patch
+fat-fix-_fat_bmap-race.patch
+fat-add-printf-attribute-to-fat_fs_panic.patch
+fat-mmu_private-race-fix.patch
+fat-i_pos-race-fix.patch
+fat-i_blocks-warning-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+pata_it821x-in-2627-works-but-no-lba48-and-hdparm-t-is-slower.patch
+posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
+posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-dont-mark_page_accessed-in-fault-path.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
+mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
+mm-invoke-oom-killer-from-page-fault.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
+m68knommu-use-the-new-byteorder-headers.patch
+cris-use-the-new-byteorder-headers.patch
+init-properly-placing-noinline-keyword.patch
+atomic_t-unify-all-arch-definitions.patch
+pci-use-pci_ioremap_bar-in-drivers-misc.patch
+check-fops_get-return-value.patch
+checkpatch-add-checks-for-in_atomic.patch
+checkpatch-comment-detection-may-miss-an-implied-comment-on-the-last-hunk.patch
+checkpatch-widen-implied-comment-detection-to-allow-multiple-stars.patch
+checkpatch-structure-member-assignments-are-not-complex.patch
+checkpatch-__weak-is-an-official-attribute.patch
+checkpatch-detect-multiple-bitfield-declarations.patch
+checkpatch-comment-ends-inside-strings-is-most-likely-not-an-open-comment.patch
+checkpatch-dissallow-spaces-between-stars-in-pointer-types.patch
+checkpatch-version-025.patch
+lis3lv02dx-accelerometer-driver.patch
+lis3lv02dx-accelerometer-driver-fix.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+max3100-spi-uart-driver.patch
+max3100-spi-uart-driver-fix.patch
+spi_gpio-driver.patch
+spi_gpio-driver-cleanups.patch
+kprobes-indirectly-call-kprobe_target.patch
+kprobes-add-tests-for-register_kprobes.patch
+autofs4-improve-parameter-usage.patch
+autofs4-fix-var-shadowed-by-local-delaration.patch
+autofs4-make-autofs-type-usage-explicit.patch
+autofs4-fix-string-validation-check-order.patch
+rtc-ds1307-smbus-compatibility.patch
 rtc-ds1307-remove-legacy-probe-checks.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+add-dallas-ds1390-93-94-rtc-chips.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-2.patch
+rtc-remove-the-bkl.patch
+pci-use-pci_ioremap_bar-in-drivers-video.patch
+fbdev-fix-typo-in-drivers-video-modedbc.patch
+intelfb-support-i854.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+quota-add-callbacks-for-allocating-and-destroying-dquot-structures.patch
+quota-increase-size-of-variables-for-limits-and-inode-usage.patch
+quota-remove-bogus-optimization-in-check_idq-and-check_bdq.patch
+quota-make-_suspended-just-a-flag.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits.patch
+ext3-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
+ext4-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
+reiserfs-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
+quota-remove-compatibility-function-sb_any_quota_enabled.patch
+quota-introduce-dquot_quota_sys_file-flag.patch
+quota-move-quotaio_vh-from-include-linux-to-fs.patch
+quota-split-off-quota-tree-handling-into-a-separate-file.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format.patch
+elf-implement-at_random-for-glibc-prng-seeding.patch
+relay-reset-consumed.patch
+trace-code-and-documentation.patch
+trace-code-and-documentation-merging-documentation-tracetxt-with-documentation-filesystems-relaytxt.patch
+trace-sample.patch
+rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements.patch
+rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements-fix.patch
+pci-use-pci_ioremap_bar-in-drivers-edac.patch
+bfs-add-some-basic-sanity-checks.patch
+bfs-check-that-filesystem-fits-on-the-blockdevice.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+w1-export-w1_read_8-function.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+hdq-driver-for-omap2430-3430.patch
+hdq-bq27000-hdq-slave-interface-driver.patch
+hdq-documentation-for-omap-hdq.patch
+add-c2-port-support.patch
+c2port-add-c2port-support-for-eurotech-duramar-2150.patch
+vmcore-remove-saved_max_pfn-check.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+filesystem-freeze-add-error-handling-of-write_super_lockfs-unlockfs.patch
+filesystem-freeze-implement-generic-freeze-feature.patch
+filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-fix-handling-enospc-cryptcompress.patch
+reiser4-fix-handling-enospc-unix_file.patch
+reiser4-fix-kill_hook_internal.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-compile-warning-cleanups.patch
+reiser4-use-wake_up_process-instead-of-wake_up-when-possible.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+releasing-resources-with-children.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+mm-debug-dump-pageframes-on-bad_page.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
