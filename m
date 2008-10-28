@@ -1,173 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: + docbooks-fix-fatal-errors-header-files-moved.patch added to -mm tree
-Date: Mon, 27 Oct 2008 16:00:01 -0700
-Message-ID: <200810272300.m9RN01T3002680@imap1.linux-foundation.org>
+Subject: - devpts-fix-unused-function-warning.patch removed from -mm tree
+Date: Mon, 27 Oct 2008 17:10:22 -0700
+Message-ID: <200810280010.m9S0ANmW026687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44669 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751092AbYJ0XAO (ORCPT
+	by vger.kernel.org with ESMTP id S1751303AbYJ1AKl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 19:00:14 -0400
+	Mon, 27 Oct 2008 20:10:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+To: akpm@linux-foundation.org, alan@redhat.com, sukadev@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docbooks: fix fatal errors: header files moved
-has been added to the -mm tree.  Its filename is
-     docbooks-fix-fatal-errors-header-files-moved.patch
+     devpts: fix unused function warning
+has been removed from the -mm tree.  Its filename was
+     devpts-fix-unused-function-warning.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbooks: fix fatal errors: header files moved
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: devpts: fix unused function warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix docbook fatal errors (file location changed):
+fs/devpts/inode.c:324: warning: 'compare_init_pts_sb' defined but not used
 
-docproc: lin2628-rc1/include/asm-x86/io_32.h: No such file or directory
-make[1]: *** [Documentation/DocBook/deviceiobook.xml] Error 1
-
-docproc: lin2628-rc1/include/asm-x86/atomic_32.h: No such file or directory
-make[1]: *** [Documentation/DocBook/kernel-api.xml] Error 1
-
-docproc: lin2628-rc1/include/asm-x86/mca_dma.h: No such file or directory
-make[1]: *** [Documentation/DocBook/mcabook.xml] Error 1
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/deviceiobook.tmpl   |    2 +-
- Documentation/DocBook/kernel-api.tmpl     |   10 +++++-----
- Documentation/DocBook/kernel-hacking.tmpl |    4 ++--
- Documentation/DocBook/mcabook.tmpl        |    2 +-
- 4 files changed, 9 insertions(+), 9 deletions(-)
+ fs/devpts/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/deviceiobook.tmpl~docbooks-fix-fatal-errors-header-files-moved Documentation/DocBook/deviceiobook.tmpl
---- a/Documentation/DocBook/deviceiobook.tmpl~docbooks-fix-fatal-errors-header-files-moved
-+++ a/Documentation/DocBook/deviceiobook.tmpl
-@@ -316,7 +316,7 @@ CPU B:  spin_unlock_irqrestore(&amp;dev_
+diff -puN fs/devpts/inode.c~devpts-fix-unused-function-warning fs/devpts/inode.c
+--- a/fs/devpts/inode.c~devpts-fix-unused-function-warning
++++ a/fs/devpts/inode.c
+@@ -320,6 +320,7 @@ fail:
+ 	return -ENOMEM;
+ }
  
-   <chapter id="pubfunctions">
-      <title>Public Functions Provided</title>
--!Iinclude/asm-x86/io_32.h
-+!Iarch/x86/include/asm/io_32.h
- !Elib/iomap.c
-   </chapter>
++#ifdef CONFIG_DEVPTS_MULTIPLE_INSTANCES
+ static int compare_init_pts_sb(struct super_block *s, void *p)
+ {
+ 	if (devpts_mnt)
+@@ -327,7 +328,6 @@ static int compare_init_pts_sb(struct su
+ 	return 0;
+ }
  
-diff -puN Documentation/DocBook/kernel-api.tmpl~docbooks-fix-fatal-errors-header-files-moved Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~docbooks-fix-fatal-errors-header-files-moved
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -45,8 +45,8 @@
-      </sect1>
- 
-      <sect1><title>Atomic and pointer manipulation</title>
--!Iinclude/asm-x86/atomic_32.h
--!Iinclude/asm-x86/unaligned.h
-+!Iarch/x86/include/asm/atomic_32.h
-+!Iarch/x86/include/asm/unaligned.h
-      </sect1>
- 
-      <sect1><title>Delaying, scheduling, and timer routines</title>
-@@ -119,7 +119,7 @@ X!Ilib/string.c
- !Elib/string.c
-      </sect1>
-      <sect1><title>Bit Operations</title>
--!Iinclude/asm-x86/bitops.h
-+!Iarch/x86/include/asm/bitops.h
-      </sect1>
-   </chapter>
- 
-@@ -155,7 +155,7 @@ X!Ilib/string.c
- !Emm/slab.c
-      </sect1>
-      <sect1><title>User Space Memory Access</title>
--!Iinclude/asm-x86/uaccess_32.h
-+!Iarch/x86/include/asm/uaccess_32.h
- !Earch/x86/lib/usercopy_32.c
-      </sect1>
-      <sect1><title>More Memory Management Functions</title>
-@@ -265,7 +265,7 @@ X!Earch/x86/kernel/mca_32.c
- -->
- 	</sect2>
- 	<sect2><title>MCA Bus DMA</title>
--!Iinclude/asm-x86/mca_dma.h
-+!Iarch/x86/include/asm/mca_dma.h
- 	</sect2>
-      </sect1>
-   </chapter>
-diff -puN Documentation/DocBook/kernel-hacking.tmpl~docbooks-fix-fatal-errors-header-files-moved Documentation/DocBook/kernel-hacking.tmpl
---- a/Documentation/DocBook/kernel-hacking.tmpl~docbooks-fix-fatal-errors-header-files-moved
-+++ a/Documentation/DocBook/kernel-hacking.tmpl
-@@ -1239,7 +1239,7 @@ static struct block_device_operations op
-   </para>
- 
-   <para>
--   <filename>include/asm-x86/delay_32.h:</filename>
-+   <filename>arch/x86/include/asm/delay.h:</filename>
-   </para>
-   <programlisting>
- #define ndelay(n) (__builtin_constant_p(n) ? \
-@@ -1265,7 +1265,7 @@ static struct block_device_operations op
- </programlisting>
- 
-   <para>
--   <filename>include/asm-x86/uaccess_32.h:</filename>
-+   <filename>arch/x86/include/asm/uaccess_32.h:</filename>
-   </para>
- 
-   <programlisting>
-diff -puN Documentation/DocBook/mcabook.tmpl~docbooks-fix-fatal-errors-header-files-moved Documentation/DocBook/mcabook.tmpl
---- a/Documentation/DocBook/mcabook.tmpl~docbooks-fix-fatal-errors-header-files-moved
-+++ a/Documentation/DocBook/mcabook.tmpl
-@@ -101,7 +101,7 @@
- 
-   <chapter id="dmafunctions">
-      <title>DMA Functions Provided</title>
--!Iinclude/asm-x86/mca_dma.h
-+!Iarch/x86/include/asm/mca_dma.h
-   </chapter>
- 
- </book>
+-#ifdef CONFIG_DEVPTS_MULTIPLE_INSTANCES
+ /*
+  * Safely parse the mount options in @data and update @opts.
+  *
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-docbook-fix-command-spacing.patch
-docs-fix-managementstyle-book-name.patch
-i2o-fix-kernel-doc-warnings.patch
-mm-fix-kernel-doc-function-notation.patch
-fs-remove-excess-kernel-doc.patch
-docbooks-fix-fatal-errors-header-files-moved.patch
+epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+fs-remove-prepare_write-commit_write-fix.patch
+mm-write_cache_pages-writepage-error-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-fujitsu-laptop-fix-section-mismatch-warning.patch
-acpi-compal-laptop-use-rfkill-switch-subsystem-fix.patch
-kgdb-fix-kernel-doc-error.patch
-audit-remove-excess-kernel-doc.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-gdth-fix-section-mismatch-warnings.patch
-esp-fix-section-mismatch-warning.patch
-scsi-ioctl-fix-kernel-doc-warning.patch
-block-remove-excess-kernel-doc.patch
-fs-fix-inodec-kernel-doc-warnings.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+pci-uninline-pci_ioremap_bar.patch
+autofs4-collect-version-check-return-checkpatch-fixes.patch
+maintainers-make-ioat-easier-to-find.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc-fix.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+devpts-fix-unused-function-warning.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
