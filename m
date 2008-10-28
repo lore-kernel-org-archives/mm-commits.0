@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + macfb-do-not-overflow-fb_fix_screeninfoid.patch added to -mm tree
-Date: Mon, 27 Oct 2008 22:10:39 -0700
-Message-ID: <200810280510.m9S5AdfH030511@imap1.linux-foundation.org>
+Subject: + ext4-fix-a-bug-accessing-freed-memory-in-ext4_abort.patch added to -mm tree
+Date: Mon, 27 Oct 2008 22:13:28 -0700
+Message-ID: <200810280513.m9S5DSdP031438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35386 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752381AbYJ1FLf (ORCPT
+	by vger.kernel.org with ESMTP id S1752110AbYJ1FOI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 01:11:35 -0400
+	Tue, 28 Oct 2008 01:14:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fthain@telegraphics.com.au, geert@linux-m68k.org, jonsmir@gmail.com, krzysztof.h1@poczta.fm, tim@physik3.uni-rostock.de
+Cc: hidehiro.kawai.ez@hitachi.com, jack@suse.cz, vegard.nossum@gmail.com
 
 
 The patch titled
-     macfb: do not overflow fb_fix_screeninfo.id
+     ext4: fix a bug accessing freed memory in ext4_abort
 has been added to the -mm tree.  Its filename is
-     macfb-do-not-overflow-fb_fix_screeninfoid.patch
+     ext4-fix-a-bug-accessing-freed-memory-in-ext4_abort.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,246 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: macfb: do not overflow fb_fix_screeninfo.id
-From: Finn Thain <fthain@telegraphics.com.au>
+Subject: ext4: fix a bug accessing freed memory in ext4_abort
+From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 
-Don't overflow the 16-character fb_fix_screeninfo id string (fixes some
-console erasing and blanking artifacts). Have the ID default to "Unknown"
-on machines with no built-in video and no nubus devices. Check for
-fb_alloc_cmap failure.
+Vegard Nossum reported a bug which accesses freed memory.  When journal
+has been aborted, ext4_put_super() calls ext4_abort() after freeing the
+journal_t object, and then ext4_abort() accesses it.  This patch fixes it.
 
-Signed-off-by: Finn Thain <fthain@telegraphics.com.au>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Tim Schmielau <tim@physik3.uni-rostock.de>
-Cc: Jon Smirl <jonsmir@gmail.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Found by kmemcheck.
+
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/macfb.c |   74 ++++++++++++++++++----------------------
- 1 file changed, 35 insertions(+), 39 deletions(-)
+ fs/ext4/super.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/macfb.c~macfb-do-not-overflow-fb_fix_screeninfoid drivers/video/macfb.c
---- a/drivers/video/macfb.c~macfb-do-not-overflow-fb_fix_screeninfoid
-+++ a/drivers/video/macfb.c
-@@ -164,7 +164,6 @@ static struct fb_var_screeninfo macfb_de
- };
- 
- static struct fb_fix_screeninfo macfb_fix = {
--	.id	= "Macintosh ",
- 	.type	= FB_TYPE_PACKED_PIXELS,
- 	.accel	= FB_ACCEL_NONE,
- };
-@@ -760,22 +759,22 @@ static int __init macfb_init(void)
- 
- 		switch(ndev->dr_hw) {
- 		case NUBUS_DRHW_APPLE_MDC:
--			strcat( macfb_fix.id, "Display Card" );
-+			strcpy(macfb_fix.id, "Mac Disp. Card");
- 			macfb_setpalette = mdc_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
- 			break;
- 		case NUBUS_DRHW_APPLE_TFB:
--			strcat( macfb_fix.id, "Toby" );
-+			strcpy(macfb_fix.id, "Toby");
- 			macfb_setpalette = toby_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
- 			break;
- 		case NUBUS_DRHW_APPLE_JET:
--			strcat( macfb_fix.id, "Jet");
-+			strcpy(macfb_fix.id, "Jet");
- 			macfb_setpalette = jet_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
- 			break;			
- 		default:
--			strcat( macfb_fix.id, "Generic NuBus" );
-+			strcpy(macfb_fix.id, "Generic NuBus");
- 			break;
- 		}
- 	}
-@@ -786,21 +785,11 @@ static int __init macfb_init(void)
- 	if (!video_is_nubus)
- 		switch( mac_bi_data.id )
- 		{
--			/* These don't have onboard video.  Eventually, we may
--			   be able to write separate framebuffer drivers for
--			   them (tobyfb.c, hiresfb.c, etc, etc) */
--		case MAC_MODEL_II:
--		case MAC_MODEL_IIX:
--		case MAC_MODEL_IICX:
--		case MAC_MODEL_IIFX:
--			strcat( macfb_fix.id, "Generic NuBus" );
--			break;
--
- 			/* Valkyrie Quadras */
- 		case MAC_MODEL_Q630:
- 			/* I'm not sure about this one */
- 		case MAC_MODEL_P588:
--			strcat( macfb_fix.id, "Valkyrie built-in" );
-+			strcpy(macfb_fix.id, "Valkyrie");
- 			macfb_setpalette = valkyrie_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
- 			valkyrie_cmap_regs = ioremap(DAC_BASE, 0x1000);
-@@ -823,7 +812,7 @@ static int __init macfb_init(void)
- 		case MAC_MODEL_Q700:
- 		case MAC_MODEL_Q900:
- 		case MAC_MODEL_Q950:
--			strcat( macfb_fix.id, "DAFB built-in" );
-+			strcpy(macfb_fix.id, "DAFB");
- 			macfb_setpalette = dafb_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
- 			dafb_cmap_regs = ioremap(DAFB_BASE, 0x1000);
-@@ -831,7 +820,7 @@ static int __init macfb_init(void)
- 
- 			/* LC II uses the V8 framebuffer */
- 		case MAC_MODEL_LCII:
--			strcat( macfb_fix.id, "V8 built-in" );
-+			strcpy(macfb_fix.id, "V8");
- 			macfb_setpalette = v8_brazil_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
- 			v8_brazil_cmap_regs = ioremap(DAC_BASE, 0x1000);
-@@ -843,7 +832,7 @@ static int __init macfb_init(void)
- 		case MAC_MODEL_IIVI:
- 		case MAC_MODEL_IIVX:
- 		case MAC_MODEL_P600:
--			strcat( macfb_fix.id, "Brazil built-in" );
-+			strcpy(macfb_fix.id, "Brazil");
- 			macfb_setpalette = v8_brazil_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
- 			v8_brazil_cmap_regs = ioremap(DAC_BASE, 0x1000);
-@@ -860,7 +849,7 @@ static int __init macfb_init(void)
- 		case MAC_MODEL_P460:
- 			macfb_setpalette = v8_brazil_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
--			strcat( macfb_fix.id, "Sonora built-in" );
-+			strcpy(macfb_fix.id, "Sonora");
- 			v8_brazil_cmap_regs = ioremap(DAC_BASE, 0x1000);
- 			break;
- 
-@@ -871,7 +860,7 @@ static int __init macfb_init(void)
- 		case MAC_MODEL_IISI:
- 			macfb_setpalette = rbv_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
--			strcat( macfb_fix.id, "RBV built-in" );
-+			strcpy(macfb_fix.id, "RBV");
- 			rbv_cmap_regs = ioremap(DAC_BASE, 0x1000);
- 			break;
- 
-@@ -880,7 +869,7 @@ static int __init macfb_init(void)
- 		case MAC_MODEL_C660:
- 			macfb_setpalette = civic_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
--			strcat( macfb_fix.id, "Civic built-in" );
-+			strcpy(macfb_fix.id, "Civic");
- 			civic_cmap_regs = ioremap(CIVIC_BASE, 0x1000);
- 			break;
- 
-@@ -901,7 +890,7 @@ static int __init macfb_init(void)
- 				v8_brazil_cmap_regs =
- 					ioremap(DAC_BASE, 0x1000);
- 			}
--			strcat( macfb_fix.id, "LC built-in" );
-+			strcpy(macfb_fix.id, "LC");
- 			break;
- 			/* We think this may be like the LC II */
- 		case MAC_MODEL_CCL:
-@@ -911,18 +900,18 @@ static int __init macfb_init(void)
- 				v8_brazil_cmap_regs =
- 					ioremap(DAC_BASE, 0x1000);
- 			}
--			strcat( macfb_fix.id, "Color Classic built-in" );
-+			strcpy(macfb_fix.id, "Color Classic");
- 			break;
- 
- 			/* And we *do* mean "weirdos" */
- 		case MAC_MODEL_TV:
--			strcat( macfb_fix.id, "Mac TV built-in" );
-+			strcpy(macfb_fix.id, "Mac TV");
- 			break;
- 
- 			/* These don't have colour, so no need to worry */
- 		case MAC_MODEL_SE30:
- 		case MAC_MODEL_CLII:
--			strcat( macfb_fix.id, "Monochrome built-in" );
-+			strcpy(macfb_fix.id, "Monochrome");
- 			break;
- 
- 			/* Powerbooks are particularly difficult.  Many of
-@@ -935,7 +924,7 @@ static int __init macfb_init(void)
- 		case MAC_MODEL_PB140:
- 		case MAC_MODEL_PB145:
- 		case MAC_MODEL_PB170:
--			strcat( macfb_fix.id, "DDC built-in" );
-+			strcpy(macfb_fix.id, "DDC");
- 			break;
- 
- 			/* Internal is GSC, External (if present) is ViSC */
-@@ -945,13 +934,13 @@ static int __init macfb_init(void)
- 		case MAC_MODEL_PB180:
- 		case MAC_MODEL_PB210:
- 		case MAC_MODEL_PB230:
--			strcat( macfb_fix.id, "GSC built-in" );
-+			strcpy(macfb_fix.id, "GSC");
- 			break;
- 
- 			/* Internal is TIM, External is ViSC */
- 		case MAC_MODEL_PB165C:
- 		case MAC_MODEL_PB180C:
--			strcat( macfb_fix.id, "TIM built-in" );
-+			strcpy(macfb_fix.id, "TIM");
- 			break;
- 
- 			/* Internal is CSC, External is Keystone+Ariel. */
-@@ -963,12 +952,12 @@ static int __init macfb_init(void)
- 		case MAC_MODEL_PB280C:
- 			macfb_setpalette = csc_setpalette;
- 			macfb_defined.activate = FB_ACTIVATE_NOW;
--			strcat( macfb_fix.id, "CSC built-in" );
-+			strcpy(macfb_fix.id, "CSC");
- 			csc_cmap_regs = ioremap(CSC_BASE, 0x1000);
- 			break;
- 		
- 		default:
--			strcat( macfb_fix.id, "Unknown/Unsupported built-in" );
-+			strcpy(macfb_fix.id, "Unknown");
- 			break;
- 		}
- 
-@@ -978,16 +967,23 @@ static int __init macfb_init(void)
- 	fb_info.pseudo_palette	= pseudo_palette;
- 	fb_info.flags		= FBINFO_DEFAULT;
- 
--	fb_alloc_cmap(&fb_info.cmap, video_cmap_len, 0);
-+	err = fb_alloc_cmap(&fb_info.cmap, video_cmap_len, 0);
-+	if (err)
-+		goto fail_unmap;
- 	
- 	err = register_framebuffer(&fb_info);
--	if (!err)
--		printk("fb%d: %s frame buffer device\n",
--		       fb_info.node, fb_info.fix.id);
--	else {
--		iounmap(fb_info.screen_base);
--		iounmap_macfb();
--	}
-+	if (err)
-+		goto fail_dealloc;
-+
-+	printk("fb%d: %s frame buffer device\n",
-+	       fb_info.node, fb_info.fix.id);
-+	return 0;
-+
-+fail_dealloc:
-+	fb_dealloc_cmap(&fb_info.cmap);
-+fail_unmap:
-+	iounmap(fb_info.screen_base);
-+	iounmap_macfb();
- 	return err;
+diff -puN fs/ext4/super.c~ext4-fix-a-bug-accessing-freed-memory-in-ext4_abort fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-fix-a-bug-accessing-freed-memory-in-ext4_abort
++++ a/fs/ext4/super.c
+@@ -333,7 +333,8 @@ void ext4_abort(struct super_block *sb, 
+ 	EXT4_SB(sb)->s_mount_state |= EXT4_ERROR_FS;
+ 	sb->s_flags |= MS_RDONLY;
+ 	EXT4_SB(sb)->s_mount_opt |= EXT4_MOUNT_ABORT;
+-	jbd2_journal_abort(EXT4_SB(sb)->s_journal, -EIO);
++	if (EXT4_SB(sb)->s_journal)
++		jbd2_journal_abort(EXT4_SB(sb)->s_journal, -EIO);
  }
  
+ void ext4_warning(struct super_block *sb, const char *function,
+@@ -442,14 +443,16 @@ static void ext4_put_super(struct super_
+ {
+ 	struct ext4_sb_info *sbi = EXT4_SB(sb);
+ 	struct ext4_super_block *es = sbi->s_es;
+-	int i;
++	int i, err;
+ 
+ 	ext4_mb_release(sb);
+ 	ext4_ext_release(sb);
+ 	ext4_xattr_put_super(sb);
+-	if (jbd2_journal_destroy(sbi->s_journal) < 0)
+-		ext4_abort(sb, __func__, "Couldn't clean up the journal");
++	err = jbd2_journal_destroy(sbi->s_journal);
+ 	sbi->s_journal = NULL;
++	if (err < 0)
++		ext4_abort(sb, __func__, "Couldn't clean up the journal");
++
+ 	if (!(sb->s_flags & MS_RDONLY)) {
+ 		EXT4_CLEAR_INCOMPAT_FEATURE(sb, EXT4_FEATURE_INCOMPAT_RECOVER);
+ 		es->s_state = cpu_to_le16(sbi->s_mount_state);
 _
 
-Patches currently in -mm which might be from fthain@telegraphics.com.au are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
-macfb-do-not-overflow-fb_fix_screeninfoid.patch
+ext4-fix-a-bug-accessing-freed-memory-in-ext4_abort.patch
+ext3-fix-a-bug-accessing-freed-memory-in-ext3_abort.patch
 
