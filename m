@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch removed from -mm tree
-Date: Tue, 28 Oct 2008 14:43:23 -0700
-Message-ID: <200810282143.m9SLhNrY012622@imap1.linux-foundation.org>
+Subject: + ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch added to -mm tree
+Date: Tue, 28 Oct 2008 14:44:45 -0700
+Message-ID: <200810282144.m9SLijmD013146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53607 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754588AbYJ1Vnz (ORCPT
+	by vger.kernel.org with ESMTP id S1753888AbYJ1VpQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 17:43:55 -0400
+	Tue, 28 Oct 2008 17:45:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tytso@mit.edu, phillips@phunq.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tytso@mit.edu, phillips@phunq.net
 
 
 The patch titled
      ext3: add support for non-native signed/unsigned htree hash algorithms
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -38,109 +48,144 @@ Cc: Daniel Phillips <phillips@phunq.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/hash.c             |   42 +++++++++++++++++++++++++++--------
- fs/ext3/namei.c            |    7 +++++
- fs/ext3/super.c            |   15 ++++++++++++
- include/linux/ext3_fs.h    |   28 ++++++++++++++++++++++-
+ fs/ext3/hash.c             |   77 ++++++++++++++++++++++++++++++-----
+ fs/ext3/namei.c            |    7 +++
+ fs/ext3/super.c            |   12 +++++
+ include/linux/ext3_fs.h    |   28 ++++++++++++
  include/linux/ext3_fs_sb.h |    1 
- 5 files changed, 83 insertions(+), 10 deletions(-)
+ 5 files changed, 114 insertions(+), 11 deletions(-)
 
 diff -puN fs/ext3/hash.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms fs/ext3/hash.c
 --- a/fs/ext3/hash.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
 +++ a/fs/ext3/hash.c
-@@ -35,11 +35,20 @@ static void TEA_transform(__u32 buf[4], 
+@@ -35,23 +35,71 @@ static void TEA_transform(__u32 buf[4], 
  
  
  /* The old legacy hash */
 -static __u32 dx_hack_hash (const char *name, int len)
-+static __u32 dx_hack_hash (const char *name, int len, int unsigned_flag)
++static __u32 dx_hack_hash_unsigned(const char *name, int len)
  {
 -	__u32 hash0 = 0x12a3fe2d, hash1 = 0x37abe8f9;
 +	__u32 hash, hash0 = 0x12a3fe2d, hash1 = 0x37abe8f9;
-+ 	const unsigned char *ucp = (const unsigned char *) name;
++	const unsigned char *ucp = (const unsigned char *) name;
++
++	while (len--) {
++		hash = hash1 + (hash0 ^ (((int) *ucp++) * 7152373));
++
++		if (hash & 0x80000000)
++			hash -= 0x7fffffff;
++		hash1 = hash0;
++		hash0 = hash;
++	}
++	return hash0 << 1;
++}
++
++static __u32 dx_hack_hash_signed(const char *name, int len)
++{
++	__u32 hash, hash0 = 0x12a3fe2d, hash1 = 0x37abe8f9;
 +	const signed char *scp = (const signed char *) name;
-+	int c;
 +
  	while (len--) {
 -		__u32 hash = hash1 + (hash0 ^ (*name++ * 7152373));
-+		if (unsigned_flag)
-+			c = (int) *ucp++;
-+		else
-+			c = (int) *scp++;
-+
-+		hash = hash1 + (hash0 ^ (c * 7152373));
++		hash = hash1 + (hash0 ^ (((int) *scp++) * 7152373));
  
- 		if (hash & 0x80000000) hash -= 0x7fffffff;
+-		if (hash & 0x80000000) hash -= 0x7fffffff;
++		if (hash & 0x80000000)
++			hash -= 0x7fffffff;
  		hash1 = hash0;
-@@ -48,10 +57,13 @@ static __u32 dx_hack_hash (const char *n
- 	return (hash0 << 1);
+ 		hash0 = hash;
+ 	}
+-	return (hash0 << 1);
++	return hash0 << 1;
  }
  
 -static void str2hashbuf(const char *msg, int len, __u32 *buf, int num)
-+static void str2hashbuf(const char *msg, int len, __u32 *buf, int num,
-+			int unsigned_flag)
++static void str2hashbuf_signed(const char *msg, int len, __u32 *buf, int num)
  {
  	__u32	pad, val;
--	int	i;
-+	int	i, c;
-+	const unsigned char *ucp = (const unsigned char *) msg;
+ 	int	i;
 +	const signed char *scp = (const signed char *) msg;
++
++	pad = (__u32)len | ((__u32)len << 8);
++	pad |= pad << 16;
++
++	val = pad;
++	if (len > num*4)
++		len = num * 4;
++	for (i = 0; i < len; i++) {
++		if ((i % 4) == 0)
++			val = pad;
++		val = ((int) scp[i]) + (val << 8);
++		if ((i % 4) == 3) {
++			*buf++ = val;
++			val = pad;
++			num--;
++		}
++	}
++	if (--num >= 0)
++		*buf++ = val;
++	while (--num >= 0)
++		*buf++ = pad;
++}
++
++static void str2hashbuf_unsigned(const char *msg, int len, __u32 *buf, int num)
++{
++	__u32	pad, val;
++	int	i;
++	const unsigned char *ucp = (const unsigned char *) msg;
  
  	pad = (__u32)len | ((__u32)len << 8);
  	pad |= pad << 16;
-@@ -62,7 +74,12 @@ static void str2hashbuf(const char *msg,
+@@ -62,7 +110,7 @@ static void str2hashbuf(const char *msg,
  	for (i=0; i < len; i++) {
  		if ((i % 4) == 0)
  			val = pad;
 -		val = msg[i] + (val << 8);
-+		if (unsigned_flag)
-+			c = (int) ucp[i];
-+		else
-+			c = (int) scp[i];
-+
-+		val = c + (val << 8);
++		val = ((int) ucp[i]) + (val << 8);
  		if ((i % 4) == 3) {
  			*buf++ = val;
  			val = pad;
-@@ -95,6 +112,7 @@ int ext3fs_dirhash(const char *name, int
+@@ -95,6 +143,8 @@ int ext3fs_dirhash(const char *name, int
  	const char	*p;
  	int		i;
  	__u32		in[8], buf[4];
-+	int		unsigned_flag = 0;
++	void		(*str2hashbuf)(const char *, int, __u32 *, int) =
++				str2hashbuf_signed;
  
  	/* Initialize the default seed for the hash checksum functions */
  	buf[0] = 0x67452301;
-@@ -113,13 +131,17 @@ int ext3fs_dirhash(const char *name, int
+@@ -113,13 +163,18 @@ int ext3fs_dirhash(const char *name, int
  	}
  
  	switch (hinfo->hash_version) {
 +	case DX_HASH_LEGACY_UNSIGNED:
-+		unsigned_flag++;
++		hash = dx_hack_hash_unsigned(name, len);
++		break;
  	case DX_HASH_LEGACY:
 -		hash = dx_hack_hash(name, len);
-+		hash = dx_hack_hash(name, len, unsigned_flag);
++		hash = dx_hack_hash_signed(name, len);
  		break;
 +	case DX_HASH_HALF_MD4_UNSIGNED:
-+		unsigned_flag++;
++		str2hashbuf = str2hashbuf_unsigned;
  	case DX_HASH_HALF_MD4:
  		p = name;
  		while (len > 0) {
 -			str2hashbuf(p, len, in, 8);
-+			str2hashbuf(p, len, in, 8, unsigned_flag);
++			(*str2hashbuf)(p, len, in, 8);
  			half_md4_transform(buf, in);
  			len -= 32;
  			p += 32;
-@@ -127,10 +149,12 @@ int ext3fs_dirhash(const char *name, int
+@@ -127,10 +182,12 @@ int ext3fs_dirhash(const char *name, int
  		minor_hash = buf[2];
  		hash = buf[1];
  		break;
 +	case DX_HASH_TEA_UNSIGNED:
-+		unsigned_flag++;
++		str2hashbuf = str2hashbuf_unsigned;
  	case DX_HASH_TEA:
  		p = name;
  		while (len > 0) {
 -			str2hashbuf(p, len, in, 4);
-+			str2hashbuf(p, len, in, 4, unsigned_flag);
++			(*str2hashbuf)(p, len, in, 4);
  			TEA_transform(buf, in);
  			len -= 16;
  			p += 16;
@@ -178,7 +223,7 @@ diff -puN fs/ext3/namei.c~ext3-add-support-for-non-native-signed-unsigned-htree-
 diff -puN fs/ext3/super.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms fs/ext3/super.c
 --- a/fs/ext3/super.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
 +++ a/fs/ext3/super.c
-@@ -1740,6 +1740,21 @@ static int ext3_fill_super (struct super
+@@ -1744,6 +1744,18 @@ static int ext3_fill_super (struct super
  	for (i=0; i < 4; i++)
  		sbi->s_hash_seed[i] = le32_to_cpu(es->s_hash_seed[i]);
  	sbi->s_def_hash_version = es->s_def_hash_version;
@@ -186,15 +231,12 @@ diff -puN fs/ext3/super.c~ext3-add-support-for-non-native-signed-unsigned-htree-
 +	if (i & EXT2_FLAGS_UNSIGNED_HASH)
 +		sbi->s_hash_unsigned = 3;
 +	else if ((i & EXT2_FLAGS_SIGNED_HASH) == 0) {
-+		char	c;
-+
-+		c = (char) 255;
-+		if (((int) c) == -1) {
-+			es->s_flags |= cpu_to_le32(EXT2_FLAGS_SIGNED_HASH);
-+		} else {
-+			es->s_flags |= cpu_to_le32(EXT2_FLAGS_UNSIGNED_HASH);
-+			sbi->s_hash_unsigned = 3;
-+		}
++#ifdef __CHAR_UNSIGNED__
++		es->s_flags |= cpu_to_le32(EXT2_FLAGS_UNSIGNED_HASH);
++		sbi->s_hash_unsigned = 3;
++#else
++		es->s_flags |= cpu_to_le32(EXT2_FLAGS_SIGNED_HASH);
++#endif
 +		sb->s_dirt = 1;
 +	}
  
