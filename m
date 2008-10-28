@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch added to -mm tree
-Date: Tue, 28 Oct 2008 14:44:45 -0700
-Message-ID: <200810282144.m9SLijmD013146@imap1.linux-foundation.org>
+Subject: + oom-print-triggering-tasks-cpuset-and-mems-allowed.patch added to -mm tree
+Date: Tue, 28 Oct 2008 14:45:49 -0700
+Message-ID: <200810282145.m9SLjncv013531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47488 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48694 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753888AbYJ1VpQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752411AbYJ1Vpy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 17:45:16 -0400
+	Tue, 28 Oct 2008 17:45:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tytso@mit.edu, phillips@phunq.net
+Cc: rientjes@google.com, menage@google.com
 
 
 The patch titled
-     ext3: add support for non-native signed/unsigned htree hash algorithms
+     oom: print triggering task's cpuset and mems allowed
 has been added to the -mm tree.  Its filename is
-     ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch
+     oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,281 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: add support for non-native signed/unsigned htree hash algorithms
-From: "Theodore Ts'o" <tytso@mit.edu>
+Subject: oom: print triggering task's cpuset and mems allowed
+From: David Rientjes <rientjes@google.com>
 
-The original ext3 hash algorithms assumed that variables of type char were
-signed, as God and K&R intended.  Unfortunately, this assumption is not
-true on some architectures.  Userspace support for marking filesystems
-with non-native signed/unsigned chars was added two years ago, but the
-kernel-side support was never added (until now).
+When cpusets are enabled, it's necessary to print the triggering task's
+set of allowable nodes so the subsequently printed meminfo can be
+interpreted correctly.
 
-Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Daniel Phillips <phillips@phunq.net>
+We also print the task's cpuset name for informational purposes.
+
+Cc: Paul Menage <menage@google.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/hash.c             |   77 ++++++++++++++++++++++++++++++-----
- fs/ext3/namei.c            |    7 +++
- fs/ext3/super.c            |   12 +++++
- include/linux/ext3_fs.h    |   28 ++++++++++++
- include/linux/ext3_fs_sb.h |    1 
- 5 files changed, 114 insertions(+), 11 deletions(-)
+ include/linux/cpuset.h |    6 ++++++
+ kernel/cpuset.c        |   34 ++++++++++++++++++++++++++++++++++
+ mm/oom_kill.c          |    1 +
+ 3 files changed, 41 insertions(+)
 
-diff -puN fs/ext3/hash.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms fs/ext3/hash.c
---- a/fs/ext3/hash.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
-+++ a/fs/ext3/hash.c
-@@ -35,23 +35,71 @@ static void TEA_transform(__u32 buf[4], 
+diff -puN include/linux/cpuset.h~oom-print-triggering-tasks-cpuset-and-mems-allowed include/linux/cpuset.h
+--- a/include/linux/cpuset.h~oom-print-triggering-tasks-cpuset-and-mems-allowed
++++ a/include/linux/cpuset.h
+@@ -80,6 +80,8 @@ extern int current_cpuset_is_being_rebou
  
+ extern void rebuild_sched_domains(void);
  
- /* The old legacy hash */
--static __u32 dx_hack_hash (const char *name, int len)
-+static __u32 dx_hack_hash_unsigned(const char *name, int len)
- {
--	__u32 hash0 = 0x12a3fe2d, hash1 = 0x37abe8f9;
-+	__u32 hash, hash0 = 0x12a3fe2d, hash1 = 0x37abe8f9;
-+	const unsigned char *ucp = (const unsigned char *) name;
++extern void cpuset_print_task_mems_allowed(struct task_struct *p);
 +
-+	while (len--) {
-+		hash = hash1 + (hash0 ^ (((int) *ucp++) * 7152373));
-+
-+		if (hash & 0x80000000)
-+			hash -= 0x7fffffff;
-+		hash1 = hash0;
-+		hash0 = hash;
-+	}
-+	return hash0 << 1;
-+}
-+
-+static __u32 dx_hack_hash_signed(const char *name, int len)
-+{
-+	__u32 hash, hash0 = 0x12a3fe2d, hash1 = 0x37abe8f9;
-+	const signed char *scp = (const signed char *) name;
-+
- 	while (len--) {
--		__u32 hash = hash1 + (hash0 ^ (*name++ * 7152373));
-+		hash = hash1 + (hash0 ^ (((int) *scp++) * 7152373));
+ #else /* !CONFIG_CPUSETS */
  
--		if (hash & 0x80000000) hash -= 0x7fffffff;
-+		if (hash & 0x80000000)
-+			hash -= 0x7fffffff;
- 		hash1 = hash0;
- 		hash0 = hash;
- 	}
--	return (hash0 << 1);
-+	return hash0 << 1;
+ static inline int cpuset_init_early(void) { return 0; }
+@@ -163,6 +165,10 @@ static inline void rebuild_sched_domains
+ 	partition_sched_domains(1, NULL, NULL);
  }
  
--static void str2hashbuf(const char *msg, int len, __u32 *buf, int num)
-+static void str2hashbuf_signed(const char *msg, int len, __u32 *buf, int num)
- {
- 	__u32	pad, val;
- 	int	i;
-+	const signed char *scp = (const signed char *) msg;
-+
-+	pad = (__u32)len | ((__u32)len << 8);
-+	pad |= pad << 16;
-+
-+	val = pad;
-+	if (len > num*4)
-+		len = num * 4;
-+	for (i = 0; i < len; i++) {
-+		if ((i % 4) == 0)
-+			val = pad;
-+		val = ((int) scp[i]) + (val << 8);
-+		if ((i % 4) == 3) {
-+			*buf++ = val;
-+			val = pad;
-+			num--;
-+		}
-+	}
-+	if (--num >= 0)
-+		*buf++ = val;
-+	while (--num >= 0)
-+		*buf++ = pad;
++static inline void cpuset_print_task_mems_allowed(struct task_struct *p)
++{
 +}
 +
-+static void str2hashbuf_unsigned(const char *msg, int len, __u32 *buf, int num)
-+{
-+	__u32	pad, val;
-+	int	i;
-+	const unsigned char *ucp = (const unsigned char *) msg;
+ #endif /* !CONFIG_CPUSETS */
  
- 	pad = (__u32)len | ((__u32)len << 8);
- 	pad |= pad << 16;
-@@ -62,7 +110,7 @@ static void str2hashbuf(const char *msg,
- 	for (i=0; i < len; i++) {
- 		if ((i % 4) == 0)
- 			val = pad;
--		val = msg[i] + (val << 8);
-+		val = ((int) ucp[i]) + (val << 8);
- 		if ((i % 4) == 3) {
- 			*buf++ = val;
- 			val = pad;
-@@ -95,6 +143,8 @@ int ext3fs_dirhash(const char *name, int
- 	const char	*p;
- 	int		i;
- 	__u32		in[8], buf[4];
-+	void		(*str2hashbuf)(const char *, int, __u32 *, int) =
-+				str2hashbuf_signed;
- 
- 	/* Initialize the default seed for the hash checksum functions */
- 	buf[0] = 0x67452301;
-@@ -113,13 +163,18 @@ int ext3fs_dirhash(const char *name, int
- 	}
- 
- 	switch (hinfo->hash_version) {
-+	case DX_HASH_LEGACY_UNSIGNED:
-+		hash = dx_hack_hash_unsigned(name, len);
-+		break;
- 	case DX_HASH_LEGACY:
--		hash = dx_hack_hash(name, len);
-+		hash = dx_hack_hash_signed(name, len);
- 		break;
-+	case DX_HASH_HALF_MD4_UNSIGNED:
-+		str2hashbuf = str2hashbuf_unsigned;
- 	case DX_HASH_HALF_MD4:
- 		p = name;
- 		while (len > 0) {
--			str2hashbuf(p, len, in, 8);
-+			(*str2hashbuf)(p, len, in, 8);
- 			half_md4_transform(buf, in);
- 			len -= 32;
- 			p += 32;
-@@ -127,10 +182,12 @@ int ext3fs_dirhash(const char *name, int
- 		minor_hash = buf[2];
- 		hash = buf[1];
- 		break;
-+	case DX_HASH_TEA_UNSIGNED:
-+		str2hashbuf = str2hashbuf_unsigned;
- 	case DX_HASH_TEA:
- 		p = name;
- 		while (len > 0) {
--			str2hashbuf(p, len, in, 4);
-+			(*str2hashbuf)(p, len, in, 4);
- 			TEA_transform(buf, in);
- 			len -= 16;
- 			p += 16;
-diff -puN fs/ext3/namei.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
-+++ a/fs/ext3/namei.c
-@@ -368,6 +368,8 @@ dx_probe(struct qstr *entry, struct inod
- 		goto fail;
- 	}
- 	hinfo->hash_version = root->info.hash_version;
-+	if (hinfo->hash_version <= DX_HASH_TEA)
-+		hinfo->hash_version += EXT3_SB(dir->i_sb)->s_hash_unsigned;
- 	hinfo->seed = EXT3_SB(dir->i_sb)->s_hash_seed;
- 	if (entry)
- 		ext3fs_dirhash(entry->name, entry->len, hinfo);
-@@ -636,6 +638,9 @@ int ext3_htree_fill_tree(struct file *di
- 	dir = dir_file->f_path.dentry->d_inode;
- 	if (!(EXT3_I(dir)->i_flags & EXT3_INDEX_FL)) {
- 		hinfo.hash_version = EXT3_SB(dir->i_sb)->s_def_hash_version;
-+		if (hinfo.hash_version <= DX_HASH_TEA)
-+			hinfo.hash_version +=
-+				EXT3_SB(dir->i_sb)->s_hash_unsigned;
- 		hinfo.seed = EXT3_SB(dir->i_sb)->s_hash_seed;
- 		count = htree_dirblock_to_tree(dir_file, dir, 0, &hinfo,
- 					       start_hash, start_minor_hash);
-@@ -1398,6 +1403,8 @@ static int make_indexed_dir(handle_t *ha
- 
- 	/* Initialize as for dx_probe */
- 	hinfo.hash_version = root->info.hash_version;
-+	if (hinfo.hash_version <= DX_HASH_TEA)
-+		hinfo.hash_version += EXT3_SB(dir->i_sb)->s_hash_unsigned;
- 	hinfo.seed = EXT3_SB(dir->i_sb)->s_hash_seed;
- 	ext3fs_dirhash(name, namelen, &hinfo);
- 	frame = frames;
-diff -puN fs/ext3/super.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
-+++ a/fs/ext3/super.c
-@@ -1744,6 +1744,18 @@ static int ext3_fill_super (struct super
- 	for (i=0; i < 4; i++)
- 		sbi->s_hash_seed[i] = le32_to_cpu(es->s_hash_seed[i]);
- 	sbi->s_def_hash_version = es->s_def_hash_version;
-+	i = le32_to_cpu(es->s_flags);
-+	if (i & EXT2_FLAGS_UNSIGNED_HASH)
-+		sbi->s_hash_unsigned = 3;
-+	else if ((i & EXT2_FLAGS_SIGNED_HASH) == 0) {
-+#ifdef __CHAR_UNSIGNED__
-+		es->s_flags |= cpu_to_le32(EXT2_FLAGS_UNSIGNED_HASH);
-+		sbi->s_hash_unsigned = 3;
-+#else
-+		es->s_flags |= cpu_to_le32(EXT2_FLAGS_SIGNED_HASH);
-+#endif
-+		sb->s_dirt = 1;
-+	}
- 
- 	if (sbi->s_blocks_per_group > blocksize * 8) {
- 		printk (KERN_ERR
-diff -puN include/linux/ext3_fs.h~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms include/linux/ext3_fs.h
---- a/include/linux/ext3_fs.h~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
-+++ a/include/linux/ext3_fs.h
-@@ -354,6 +354,13 @@ struct ext3_inode {
- #define	EXT3_ORPHAN_FS			0x0004	/* Orphans being recovered */
+ #endif /* _LINUX_CPUSET_H */
+diff -puN kernel/cpuset.c~oom-print-triggering-tasks-cpuset-and-mems-allowed kernel/cpuset.c
+--- a/kernel/cpuset.c~oom-print-triggering-tasks-cpuset-and-mems-allowed
++++ a/kernel/cpuset.c
+@@ -239,6 +239,17 @@ static struct cpuset top_cpuset = {
+ static DEFINE_MUTEX(callback_mutex);
  
  /*
-+ * Misc. filesystem flags
++ * cpuset_buffer_lock protects both the cpuset_name and cpuset_nodelist
++ * buffers.  They are statically allocated to prevent using excess stack
++ * when calling cpuset_print_task_mems_allowed().
 + */
-+#define EXT2_FLAGS_SIGNED_HASH		0x0001  /* Signed dirhash in use */
-+#define EXT2_FLAGS_UNSIGNED_HASH	0x0002  /* Unsigned dirhash in use */
-+#define EXT2_FLAGS_TEST_FILESYS		0x0004	/* to test development code */
++#define CPUSET_NAME_LEN		(128)
++#define	CPUSET_NODELIST_LEN	(256)
++static char cpuset_name[CPUSET_NAME_LEN];
++static char cpuset_nodelist[CPUSET_NODELIST_LEN];
++static DEFINE_SPINLOCK(cpuset_buffer_lock);
 +
 +/*
-  * Mount flags
-  */
- #define EXT3_MOUNT_CHECK		0x00001	/* Do mount-time checks */
-@@ -489,7 +496,23 @@ struct ext3_super_block {
- 	__u16	s_reserved_word_pad;
- 	__le32	s_default_mount_opts;
- 	__le32	s_first_meta_bg;	/* First metablock block group */
--	__u32	s_reserved[190];	/* Padding to the end of the block */
-+	__le32	s_mkfs_time;		/* When the filesystem was created */
-+	__le32	s_jnl_blocks[17];	/* Backup of the journal inode */
-+	/* 64bit support valid if EXT4_FEATURE_COMPAT_64BIT */
-+/*150*/	__le32	s_blocks_count_hi;	/* Blocks count */
-+	__le32	s_r_blocks_count_hi;	/* Reserved blocks count */
-+	__le32	s_free_blocks_count_hi;	/* Free blocks count */
-+	__le16	s_min_extra_isize;	/* All inodes have at least # bytes */
-+	__le16	s_want_extra_isize; 	/* New inodes should reserve # bytes */
-+	__le32	s_flags;		/* Miscellaneous flags */
-+	__le16  s_raid_stride;		/* RAID stride */
-+	__le16  s_mmp_interval;         /* # seconds to wait in MMP checking */
-+	__le64  s_mmp_block;            /* Block for multi-mount protection */
-+	__le32  s_raid_stripe_width;    /* blocks on all data disks (N*stride)*/
-+	__u8	s_log_groups_per_flex;  /* FLEX_BG group size */
-+	__u8	s_reserved_char_pad2;
-+	__le16  s_reserved_pad;
-+	__u32   s_reserved[162];        /* Padding to the end of the block */
- };
+  * This is ugly, but preserves the userspace API for existing cpuset
+  * users. If someone tries to mount the "cpuset" filesystem, we
+  * silently switch it to mount "cgroup" instead
+@@ -2339,6 +2350,29 @@ int cpuset_mems_allowed_intersects(const
+ 	return nodes_intersects(tsk1->mems_allowed, tsk2->mems_allowed);
+ }
  
- #ifdef __KERNEL__
-@@ -694,6 +717,9 @@ static inline __le16 ext3_rec_len_to_dis
- #define DX_HASH_LEGACY		0
- #define DX_HASH_HALF_MD4	1
- #define DX_HASH_TEA		2
-+#define DX_HASH_LEGACY_UNSIGNED	3
-+#define DX_HASH_HALF_MD4_UNSIGNED	4
-+#define DX_HASH_TEA_UNSIGNED		5
- 
- #ifdef __KERNEL__
- 
-diff -puN include/linux/ext3_fs_sb.h~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms include/linux/ext3_fs_sb.h
---- a/include/linux/ext3_fs_sb.h~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
-+++ a/include/linux/ext3_fs_sb.h
-@@ -57,6 +57,7 @@ struct ext3_sb_info {
- 	u32 s_next_generation;
- 	u32 s_hash_seed[4];
- 	int s_def_hash_version;
-+	int s_hash_unsigned;	/* 3 if hash should be signed, 0 if not */
- 	struct percpu_counter s_freeblocks_counter;
- 	struct percpu_counter s_freeinodes_counter;
- 	struct percpu_counter s_dirs_counter;
++/**
++ * cpuset_print_task_mems_allowed - prints task's cpuset and mems_allowed
++ * @task: pointer to task_struct of some task.
++ *
++ * Description: Prints @task's name, cpuset name, and cached copy of its
++ * mems_allowed to the kernel log.  Must hold task_lock(task) to allow
++ * dereferencing task_cs(task).
++ */
++void cpuset_print_task_mems_allowed(struct task_struct *tsk)
++{
++	struct dentry *dentry;
++
++	dentry = task_cs(tsk)->css.cgroup->dentry;
++	spin_lock(&cpuset_buffer_lock);
++	snprintf(cpuset_name, CPUSET_NAME_LEN,
++		 dentry ? (const char *)dentry->d_name.name : "/");
++	nodelist_scnprintf(cpuset_nodelist, CPUSET_NODELIST_LEN,
++			   tsk->mems_allowed);
++	printk(KERN_INFO "%s cpuset=%s mems_allowed=%s\n",
++	       tsk->comm, cpuset_name, cpuset_nodelist);
++	spin_unlock(&cpuset_buffer_lock);
++}
++
+ /*
+  * Collection of memory_pressure is suppressed unless
+  * this flag is enabled by writing "1" to the special
+diff -puN mm/oom_kill.c~oom-print-triggering-tasks-cpuset-and-mems-allowed mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-print-triggering-tasks-cpuset-and-mems-allowed
++++ a/mm/oom_kill.c
+@@ -393,6 +393,7 @@ static int oom_kill_process(struct task_
+ 		printk(KERN_WARNING "%s invoked oom-killer: "
+ 			"gfp_mask=0x%x, order=%d, oomkilladj=%d\n",
+ 			current->comm, gfp_mask, order, current->oomkilladj);
++		cpuset_print_task_mems_allowed(current);
+ 		dump_stack();
+ 		show_mem();
+ 		if (sysctl_oom_dump_tasks)
 _
 
-Patches currently in -mm which might be from tytso@mit.edu are
+Patches currently in -mm which might be from rientjes@google.com are
 
-linux-next.patch
-ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch
+oom-do-not-dump-task-state-for-non-thread-group-leaders.patch
+vmemmap-warn-about-page_structs-with-remote-distance.patch
+oom-fix-zone_scan_mutex-name.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
 
