@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + quota-support-64-bit-quota-format.patch added to -mm tree
-Date: Mon, 27 Oct 2008 22:56:24 -0700
-Message-ID: <200810280556.m9S5uOvE013527@imap1.linux-foundation.org>
+Subject: + autofs4-make-autofs-type-usage-explicit.patch added to -mm tree
+Date: Mon, 27 Oct 2008 23:00:47 -0700
+Message-ID: <200810280600.m9S60l6I015052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752434AbYJ1GA5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752430AbYJ1GBY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 02:00:57 -0400
+	Tue, 28 Oct 2008 02:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, andrew.perepechko@sun.com
+Cc: raven@themaw.net, jmoyer@redhat.com
 
 
 The patch titled
-     quota: support 64-bit quota format
+     autofs4: make autofs type usage explicit
 has been added to the -mm tree.  Its filename is
-     quota-support-64-bit-quota-format.patch
+     autofs4-make-autofs-type-usage-explicit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,308 +34,265 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: support 64-bit quota format
-From: Jan Kara <jack@suse.cz>
+Subject: autofs4: make autofs type usage explicit
+From: Ian Kent <raven@themaw.net>
 
-Implement conversion functions for new version (version 1) of quota format
-which supports 64-bit block and inode limits and 64-bit inode usage.  The
-original implementation has been written by Andrew Perepechko.
+- the type assigned at mount when no type is given is changed
+  from 0 to AUTOFS_TYPE_INDIRECT. This was done because 0 and
+  AUTOFS_TYPE_INDIRECT were being treated implicitly as the same
+  type.
 
-Signed-off-by: Andrew Perepechko <andrew.perepechko@sun.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+- previously, an offset mount had it's type set to
+  AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET but the mount control
+  re-implementation needs to be able distinguish all three types.
+  So this was changed to make the type setting explicit.
+
+- a type AUTOFS_TYPE_ANY was added for use by the re-implementation
+  when checking if a given path is a mountpoint. It's not really a
+  type as we use this to ask if a given path is a mountpoint in the
+  autofs_dev_ioctl_ismountpoint() function.
+
+- functions to set and test the autofs mount types have been added to
+  improve readability and make the type usage explicit.
+
+- the mount type is used from user space for the mount control
+  re-implementtion so, for consistency, all the definitions have
+  been moved to the user space include file include/linux/auto_fs4.h.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/quota_v2.c   |  140 ++++++++++++++++++++++++++++++++++++----------
- fs/quotaio_v2.h |   26 ++++++--
- 2 files changed, 132 insertions(+), 34 deletions(-)
+ fs/autofs4/autofs_i.h    |    2 -
+ fs/autofs4/dev-ioctl.c   |    4 +-
+ fs/autofs4/expire.c      |    4 +-
+ fs/autofs4/inode.c       |   14 ++++----
+ fs/autofs4/waitq.c       |    8 ++--
+ include/linux/auto_fs4.h |   62 ++++++++++++++++++++++++++++++++++---
+ 6 files changed, 73 insertions(+), 21 deletions(-)
 
-diff -puN fs/quota_v2.c~quota-support-64-bit-quota-format fs/quota_v2.c
---- a/fs/quota_v2.c~quota-support-64-bit-quota-format
-+++ a/fs/quota_v2.c
-@@ -23,14 +23,24 @@ MODULE_LICENSE("GPL");
+diff -puN fs/autofs4/autofs_i.h~autofs4-make-autofs-type-usage-explicit fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-make-autofs-type-usage-explicit
++++ a/fs/autofs4/autofs_i.h
+@@ -25,8 +25,6 @@
+ #define AUTOFS_DEV_IOCTL_IOC_FIRST	(AUTOFS_DEV_IOCTL_VERSION)
+ #define AUTOFS_DEV_IOCTL_IOC_COUNT	(AUTOFS_IOC_COUNT - 11)
  
- #define __QUOTA_V2_PARANOIA
- 
--static void v2_mem2diskdqb(void *dp, struct dquot *dquot);
--static void v2_disk2memdqb(struct dquot *dquot, void *dp);
--static int v2_is_id(void *dp, struct dquot *dquot);
+-#define AUTOFS_TYPE_TRIGGER	(AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET)
 -
--static struct qtree_fmt_operations v2_qtree_ops = {
--	.mem2disk_dqblk = v2_mem2diskdqb,
--	.disk2mem_dqblk = v2_disk2memdqb,
--	.is_id = v2_is_id,
-+static void v2r0_mem2diskdqb(void *dp, struct dquot *dquot);
-+static void v2r0_disk2memdqb(struct dquot *dquot, void *dp);
-+static int v2r0_is_id(void *dp, struct dquot *dquot);
-+
-+static struct qtree_fmt_operations v2r0_qtree_ops = {
-+	.mem2disk_dqblk = v2r0_mem2diskdqb,
-+	.disk2mem_dqblk = v2r0_disk2memdqb,
-+	.is_id = v2r0_is_id,
-+};
-+
-+static void v2r1_mem2diskdqb(void *dp, struct dquot *dquot);
-+static void v2r1_disk2memdqb(struct dquot *dquot, void *dp);
-+static int v2r1_is_id(void *dp, struct dquot *dquot);
-+
-+static struct qtree_fmt_operations v2r1_qtree_ops = {
-+	.mem2disk_dqblk = v2r1_mem2diskdqb,
-+	.disk2mem_dqblk = v2r1_disk2memdqb,
-+	.is_id = v2r1_is_id,
- };
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/time.h>
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-make-autofs-type-usage-explicit fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-make-autofs-type-usage-explicit
++++ a/fs/autofs4/dev-ioctl.c
+@@ -532,7 +532,7 @@ static int autofs_dev_ioctl_expire(struc
+ 	how = param->expire.how;
+ 	mnt = fp->f_path.mnt;
  
- #define QUOTABLOCK_BITS 10
-@@ -46,8 +56,7 @@ static inline qsize_t v2_qbtos(qsize_t b
- 	return blocks << QUOTABLOCK_BITS;
- }
+-	if (sbi->type & AUTOFS_TYPE_TRIGGER)
++	if (autofs_type_trigger(sbi->type))
+ 		dentry = autofs4_expire_direct(sbi->sb, mnt, sbi, how);
+ 	else
+ 		dentry = autofs4_expire_indirect(sbi->sb, mnt, sbi, how);
+@@ -615,7 +615,7 @@ static int autofs_dev_ioctl_ismountpoint
+ 	param->ismountpoint.out.magic = magic = 0;
  
--/* Check whether given file is really vfsv0 quotafile */
--static int v2_check_quota_file(struct super_block *sb, int type)
-+static int v2_check_quota_file_header(struct super_block *sb, int type)
- {
- 	struct v2_disk_dqheader dqhead;
- 	ssize_t size;
-@@ -58,12 +67,20 @@ static int v2_check_quota_file(struct su
- 	if (size != sizeof(struct v2_disk_dqheader)) {
- 		printk("quota_v2: failed read expected=%zd got=%zd\n",
- 			sizeof(struct v2_disk_dqheader), size);
--		return 0;
-+		return -EIO;
+ 	if (!fp || param->ioctlfd == -1) {
+-		if (type == AUTOFS_TYPE_ANY) {
++		if (autofs_type_any(type)) {
+ 			struct super_block *sb;
+ 
+ 			err = path_lookup(path, LOOKUP_FOLLOW, &nd);
+diff -puN fs/autofs4/expire.c~autofs4-make-autofs-type-usage-explicit fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs4-make-autofs-type-usage-explicit
++++ a/fs/autofs4/expire.c
+@@ -63,7 +63,7 @@ static int autofs4_mount_busy(struct vfs
+ 		struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 
+ 		/* This is an autofs submount, we can't expire it */
+-		if (sbi->type == AUTOFS_TYPE_INDIRECT)
++		if (autofs_type_indirect(sbi->type))
+ 			goto done;
+ 
+ 		/*
+@@ -490,7 +490,7 @@ int autofs4_expire_multi(struct super_bl
+ 	if (arg && get_user(do_now, arg))
+ 		return -EFAULT;
+ 
+-	if (sbi->type & AUTOFS_TYPE_TRIGGER)
++	if (autofs_type_trigger(sbi->type))
+ 		dentry = autofs4_expire_direct(sb, mnt, sbi, do_now);
+ 	else
+ 		dentry = autofs4_expire_indirect(sb, mnt, sbi, do_now);
+diff -puN fs/autofs4/inode.c~autofs4-make-autofs-type-usage-explicit fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~autofs4-make-autofs-type-usage-explicit
++++ a/fs/autofs4/inode.c
+@@ -197,9 +197,9 @@ static int autofs4_show_options(struct s
+ 	seq_printf(m, ",minproto=%d", sbi->min_proto);
+ 	seq_printf(m, ",maxproto=%d", sbi->max_proto);
+ 
+-	if (sbi->type & AUTOFS_TYPE_OFFSET)
++	if (autofs_type_offset(sbi->type))
+ 		seq_printf(m, ",offset");
+-	else if (sbi->type & AUTOFS_TYPE_DIRECT)
++	else if (autofs_type_direct(sbi->type))
+ 		seq_printf(m, ",direct");
+ 	else
+ 		seq_printf(m, ",indirect");
+@@ -284,13 +284,13 @@ static int parse_options(char *options, 
+ 			*maxproto = option;
+ 			break;
+ 		case Opt_indirect:
+-			*type = AUTOFS_TYPE_INDIRECT;
++			set_autofs_type_indirect(type);
+ 			break;
+ 		case Opt_direct:
+-			*type = AUTOFS_TYPE_DIRECT;
++			set_autofs_type_direct(type);
+ 			break;
+ 		case Opt_offset:
+-			*type = AUTOFS_TYPE_OFFSET;
++			set_autofs_type_offset(type);
+ 			break;
+ 		default:
+ 			return 1;
+@@ -338,7 +338,7 @@ int autofs4_fill_super(struct super_bloc
+ 	sbi->sb = s;
+ 	sbi->version = 0;
+ 	sbi->sub_version = 0;
+-	sbi->type = AUTOFS_TYPE_INDIRECT;
++	set_autofs_type_indirect(&sbi->type);
+ 	sbi->min_proto = 0;
+ 	sbi->max_proto = 0;
+ 	mutex_init(&sbi->wq_mutex);
+@@ -380,7 +380,7 @@ int autofs4_fill_super(struct super_bloc
  	}
--	if (le32_to_cpu(dqhead.dqh_magic) != quota_magics[type] ||
--	    le32_to_cpu(dqhead.dqh_version) != quota_versions[type])
--		return 0;
--	return 1;
-+	if (le32_to_cpu(dqhead.dqh_magic) != quota_magics[type])
-+		return -ENOENT;
-+	if (le32_to_cpu(dqhead.dqh_version) > quota_versions[type])
-+		return -EOPNOTSUPP;
-+	return le32_to_cpu(dqhead.dqh_version);
+ 
+ 	root_inode->i_fop = &autofs4_root_operations;
+-	root_inode->i_op = sbi->type & AUTOFS_TYPE_TRIGGER ?
++	root_inode->i_op = autofs_type_trigger(sbi->type) ?
+ 			&autofs4_direct_root_inode_operations :
+ 			&autofs4_indirect_root_inode_operations;
+ 
+diff -puN fs/autofs4/waitq.c~autofs4-make-autofs-type-usage-explicit fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs4-make-autofs-type-usage-explicit
++++ a/fs/autofs4/waitq.c
+@@ -337,7 +337,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 		 * is very similar for indirect mounts except only dentrys
+ 		 * in the root of the autofs file system may be negative.
+ 		 */
+-		if (sbi->type & AUTOFS_TYPE_TRIGGER)
++		if (autofs_type_trigger(sbi->type))
+ 			return -ENOENT;
+ 		else if (!IS_ROOT(dentry->d_parent))
+ 			return -ENOENT;
+@@ -348,7 +348,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 		return -ENOMEM;
+ 
+ 	/* If this is a direct mount request create a dummy name */
+-	if (IS_ROOT(dentry) && sbi->type & AUTOFS_TYPE_TRIGGER)
++	if (IS_ROOT(dentry) && autofs_type_trigger(sbi->type))
+ 		qstr.len = sprintf(name, "%p", dentry);
+ 	else {
+ 		qstr.len = autofs4_getpath(sbi, dentry, &name);
+@@ -406,11 +406,11 @@ int autofs4_wait(struct autofs_sb_info *
+ 				type = autofs_ptype_expire_multi;
+ 		} else {
+ 			if (notify == NFY_MOUNT)
+-				type = (sbi->type & AUTOFS_TYPE_TRIGGER) ?
++				type = autofs_type_trigger(sbi->type) ?
+ 					autofs_ptype_missing_direct :
+ 					 autofs_ptype_missing_indirect;
+ 			else
+-				type = (sbi->type & AUTOFS_TYPE_TRIGGER) ?
++				type = autofs_type_trigger(sbi->type) ?
+ 					autofs_ptype_expire_direct :
+ 					autofs_ptype_expire_indirect;
+ 		}
+diff -puN include/linux/auto_fs4.h~autofs4-make-autofs-type-usage-explicit include/linux/auto_fs4.h
+--- a/include/linux/auto_fs4.h~autofs4-make-autofs-type-usage-explicit
++++ a/include/linux/auto_fs4.h
+@@ -29,10 +29,64 @@
+ #define AUTOFS_EXP_IMMEDIATE		1
+ #define AUTOFS_EXP_LEAVES		2
+ 
+-#define AUTOFS_TYPE_ANY			0x0000
+-#define AUTOFS_TYPE_INDIRECT		0x0001
+-#define AUTOFS_TYPE_DIRECT		0x0002
+-#define AUTOFS_TYPE_OFFSET		0x0004
++#define AUTOFS_TYPE_ANY			0U
++#define AUTOFS_TYPE_INDIRECT		1U
++#define AUTOFS_TYPE_DIRECT		2U
++#define AUTOFS_TYPE_OFFSET		4U
++
++static inline void set_autofs_type_indirect(unsigned int *type)
++{
++	*type = AUTOFS_TYPE_INDIRECT;
++	return;
 +}
 +
-+
-+/* Check whether given file is really vfsv0 quotafile */
-+static int v2_check_quota_file(struct super_block *sb, int type)
++static inline unsigned int autofs_type_indirect(unsigned int type)
 +{
-+	return v2_check_quota_file_header(sb, type) >= 0;
- }
- 
- /* Read information header from quota file */
-@@ -73,7 +90,13 @@ static int v2_read_file_info(struct supe
- 	struct mem_dqinfo *info = sb_dqinfo(sb, type);
- 	struct qtree_mem_dqinfo *qinfo;
- 	ssize_t size;
-+	int version = v2_check_quota_file_header(sb, type);
- 
-+	if (version < 0) {
-+		printk(KERN_WARNING "Cannot identify quota file version on "
-+		       "device %s: %d\n", sb->s_id, version);
-+		return -1;
-+	}
- 	size = sb->s_op->quota_read(sb, type, (char *)&dinfo,
- 	       sizeof(struct v2_disk_dqinfo), V2_DQINFOOFF);
- 	if (size != sizeof(struct v2_disk_dqinfo)) {
-@@ -88,9 +111,14 @@ static int v2_read_file_info(struct supe
- 		return -1;
- 	}
- 	qinfo = info->dqi_priv;
--	/* limits are stored as unsigned 32-bit data */
--	info->dqi_maxblimit = 0xffffffff;
--	info->dqi_maxilimit = 0xffffffff;
-+	if (version == 0) {
-+		/* limits are stored as unsigned 32-bit data */
-+		info->dqi_maxblimit = 0xffffffff;
-+		info->dqi_maxilimit = 0xffffffff;
-+	} else {
-+		info->dqi_maxblimit = 0x7fffffffffffffff;
-+		info->dqi_maxilimit = 0x7fffffffffffffff;
-+	}
- 	info->dqi_bgrace = le32_to_cpu(dinfo.dqi_bgrace);
- 	info->dqi_igrace = le32_to_cpu(dinfo.dqi_igrace);
- 	info->dqi_flags = le32_to_cpu(dinfo.dqi_flags);
-@@ -102,8 +130,13 @@ static int v2_read_file_info(struct supe
- 	qinfo->dqi_blocksize_bits = V2_DQBLKSIZE_BITS;
- 	qinfo->dqi_usable_bs = 1 << V2_DQBLKSIZE_BITS;
- 	qinfo->dqi_qtree_depth = qtree_depth(qinfo);
--	qinfo->dqi_entry_size = sizeof(struct v2_disk_dqblk);
--	qinfo->dqi_ops = &v2_qtree_ops;
-+	if (version == 0) {
-+		qinfo->dqi_entry_size = sizeof(struct v2r0_disk_dqblk);
-+		qinfo->dqi_ops = &v2r0_qtree_ops;
-+	} else {
-+		qinfo->dqi_entry_size = sizeof(struct v2r1_disk_dqblk);
-+		qinfo->dqi_ops = &v2r1_qtree_ops;
-+	}
- 	return 0;
- }
- 
-@@ -134,9 +167,9 @@ static int v2_write_file_info(struct sup
- 	return 0;
- }
- 
--static void v2_disk2memdqb(struct dquot *dquot, void *dp)
-+static void v2r0_disk2memdqb(struct dquot *dquot, void *dp)
- {
--	struct v2_disk_dqblk *d = dp, empty;
-+	struct v2r0_disk_dqblk *d = dp, empty;
- 	struct mem_dqblk *m = &dquot->dq_dqb;
- 
- 	m->dqb_ihardlimit = le32_to_cpu(d->dqb_ihardlimit);
-@@ -148,15 +181,15 @@ static void v2_disk2memdqb(struct dquot 
- 	m->dqb_curspace = le64_to_cpu(d->dqb_curspace);
- 	m->dqb_btime = le64_to_cpu(d->dqb_btime);
- 	/* We need to escape back all-zero structure */
--	memset(&empty, 0, sizeof(struct v2_disk_dqblk));
-+	memset(&empty, 0, sizeof(struct v2r0_disk_dqblk));
- 	empty.dqb_itime = cpu_to_le64(1);
--	if (!memcmp(&empty, dp, sizeof(struct v2_disk_dqblk)))
-+	if (!memcmp(&empty, dp, sizeof(struct v2r0_disk_dqblk)))
- 		m->dqb_itime = 0;
- }
- 
--static void v2_mem2diskdqb(void *dp, struct dquot *dquot)
-+static void v2r0_mem2diskdqb(void *dp, struct dquot *dquot)
- {
--	struct v2_disk_dqblk *d = dp;
-+	struct v2r0_disk_dqblk *d = dp;
- 	struct mem_dqblk *m = &dquot->dq_dqb;
- 	struct qtree_mem_dqinfo *info =
- 			sb_dqinfo(dquot->dq_sb, dquot->dq_type)->dqi_priv;
-@@ -174,9 +207,60 @@ static void v2_mem2diskdqb(void *dp, str
- 		d->dqb_itime = cpu_to_le64(1);
- }
- 
--static int v2_is_id(void *dp, struct dquot *dquot)
-+static int v2r0_is_id(void *dp, struct dquot *dquot)
-+{
-+	struct v2r0_disk_dqblk *d = dp;
-+	struct qtree_mem_dqinfo *info =
-+			sb_dqinfo(dquot->dq_sb, dquot->dq_type)->dqi_priv;
-+
-+	if (qtree_entry_unused(info, dp))
-+		return 0;
-+	return le32_to_cpu(d->dqb_id) == dquot->dq_id;
++	return (type == AUTOFS_TYPE_INDIRECT);
 +}
 +
-+static void v2r1_disk2memdqb(struct dquot *dquot, void *dp)
++static inline void set_autofs_type_direct(unsigned int *type)
 +{
-+	struct v2r1_disk_dqblk *d = dp, empty;
-+	struct mem_dqblk *m = &dquot->dq_dqb;
-+
-+	m->dqb_ihardlimit = le64_to_cpu(d->dqb_ihardlimit);
-+	m->dqb_isoftlimit = le64_to_cpu(d->dqb_isoftlimit);
-+	m->dqb_curinodes = le64_to_cpu(d->dqb_curinodes);
-+	m->dqb_itime = le64_to_cpu(d->dqb_itime);
-+	m->dqb_bhardlimit = v2_qbtos(le64_to_cpu(d->dqb_bhardlimit));
-+	m->dqb_bsoftlimit = v2_qbtos(le64_to_cpu(d->dqb_bsoftlimit));
-+	m->dqb_curspace = le64_to_cpu(d->dqb_curspace);
-+	m->dqb_btime = le64_to_cpu(d->dqb_btime);
-+	/* We need to escape back all-zero structure */
-+	memset(&empty, 0, sizeof(struct v2r1_disk_dqblk));
-+	empty.dqb_itime = cpu_to_le64(1);
-+	if (!memcmp(&empty, dp, sizeof(struct v2r1_disk_dqblk)))
-+		m->dqb_itime = 0;
++	*type = AUTOFS_TYPE_DIRECT;
++	return;
 +}
 +
-+static void v2r1_mem2diskdqb(void *dp, struct dquot *dquot)
++static inline unsigned int autofs_type_direct(unsigned int type)
 +{
-+	struct v2r1_disk_dqblk *d = dp;
-+	struct mem_dqblk *m = &dquot->dq_dqb;
-+	struct qtree_mem_dqinfo *info =
-+			sb_dqinfo(dquot->dq_sb, dquot->dq_type)->dqi_priv;
-+
-+	d->dqb_ihardlimit = cpu_to_le64(m->dqb_ihardlimit);
-+	d->dqb_isoftlimit = cpu_to_le64(m->dqb_isoftlimit);
-+	d->dqb_curinodes = cpu_to_le64(m->dqb_curinodes);
-+	d->dqb_itime = cpu_to_le64(m->dqb_itime);
-+	d->dqb_bhardlimit = cpu_to_le64(v2_stoqb(m->dqb_bhardlimit));
-+	d->dqb_bsoftlimit = cpu_to_le64(v2_stoqb(m->dqb_bsoftlimit));
-+	d->dqb_curspace = cpu_to_le64(m->dqb_curspace);
-+	d->dqb_btime = cpu_to_le64(m->dqb_btime);
-+	d->dqb_id = cpu_to_le32(dquot->dq_id);
-+	if (qtree_entry_unused(info, dp))
-+		d->dqb_itime = cpu_to_le64(1);
++	return (type == AUTOFS_TYPE_DIRECT);
 +}
 +
-+static int v2r1_is_id(void *dp, struct dquot *dquot)
- {
--	struct v2_disk_dqblk *d = dp;
-+	struct v2r1_disk_dqblk *d = dp;
- 	struct qtree_mem_dqinfo *info =
- 			sb_dqinfo(dquot->dq_sb, dquot->dq_type)->dqi_priv;
- 
-diff -puN fs/quotaio_v2.h~quota-support-64-bit-quota-format fs/quotaio_v2.h
---- a/fs/quotaio_v2.h~quota-support-64-bit-quota-format
-+++ a/fs/quotaio_v2.h
-@@ -17,8 +17,8 @@
- }
- 
- #define V2_INITQVERSIONS {\
--	0,		/* USRQUOTA */\
--	0		/* GRPQUOTA */\
-+	1,		/* USRQUOTA */\
-+	1		/* GRPQUOTA */\
- }
- 
- /* First generic header */
-@@ -28,11 +28,11 @@ struct v2_disk_dqheader {
- };
- 
- /*
-- * The following structure defines the format of the disk quota file
-- * (as it appears on disk) - the file is a radix tree whose leaves point
-- * to blocks of these structures.
-+ * The following structure defines the format of the disk quota file in version
-+ * 0 - the file is a radix tree whose leaves point to blocks of these
-+ * structures.
-  */
--struct v2_disk_dqblk {
-+struct v2r0_disk_dqblk {
- 	__le32 dqb_id;		/* id this quota applies to */
- 	__le32 dqb_ihardlimit;	/* absolute limit on allocated inodes */
- 	__le32 dqb_isoftlimit;	/* preferred inode limit */
-@@ -44,6 +44,20 @@ struct v2_disk_dqblk {
- 	__le64 dqb_itime;	/* time limit for excessive inode use */
- };
- 
-+/* The same structure in quota file version 1 */
-+struct v2r1_disk_dqblk {
-+	__le32 dqb_id;		/* id this quota applies to */
-+	__le32 dqb_padding;	/* padding field */
-+	__le64 dqb_ihardlimit;	/* absolute limit on allocated inodes */
-+	__le64 dqb_isoftlimit;	/* preferred inode limit */
-+	__le64 dqb_curinodes;	/* current # allocated inodes */
-+	__le64 dqb_bhardlimit;	/* absolute limit on disk space */
-+	__le64 dqb_bsoftlimit;	/* preferred limit on disk space */
-+	__le64 dqb_curspace;	/* current space occupied (in bytes) */
-+	__le64 dqb_btime;	/* time limit for excessive disk use */
-+	__le64 dqb_itime;	/* time limit for excessive inode use */
-+};
++static inline void set_autofs_type_offset(unsigned int *type)
++{
++	*type = AUTOFS_TYPE_OFFSET;
++	return;
++}
 +
- /* Header with type and version specific information */
- struct v2_disk_dqinfo {
- 	__le32 dqi_bgrace;	/* Time before block soft limit becomes hard limit */
++static inline unsigned int autofs_type_offset(unsigned int type)
++{
++	return (type == AUTOFS_TYPE_OFFSET);
++}
++
++static inline unsigned int autofs_type_trigger(unsigned int type)
++{
++	return (type == AUTOFS_TYPE_DIRECT || type == AUTOFS_TYPE_OFFSET);
++}
++
++/*
++ * This isn't really a type as we use it to say "no type set" to
++ * indicate we want to search for "any" mount in the
++ * autofs_dev_ioctl_ismountpoint() device ioctl function.
++ */
++static inline void set_autofs_type_any(unsigned int *type)
++{
++	*type = AUTOFS_TYPE_ANY;
++	return;
++}
++
++static inline unsigned int autofs_type_any(unsigned int type)
++{
++	return (type == AUTOFS_TYPE_ANY);
++}
+ 
+ /* Daemon notification packet types */
+ enum autofs_notify {
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from raven@themaw.net are
 
 linux-next.patch
-ext4-fix-a-bug-accessing-freed-memory-in-ext4_abort.patch
-ext3-fix-a-bug-accessing-freed-memory-in-ext3_abort.patch
-quota-add-callbacks-for-allocating-and-destroying-dquot-structures.patch
-quota-increase-size-of-variables-for-limits-and-inode-usage.patch
-quota-remove-bogus-optimization-in-check_idq-and-check_bdq.patch
-quota-make-_suspended-just-a-flag.patch
-quota-permit-separately-enabling-quota-accounting-and-enforcing-limits.patch
-ext3-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
-ext4-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
-reiserfs-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
-quota-remove-compatibility-function-sb_any_quota_enabled.patch
-quota-introduce-dquot_quota_sys_file-flag.patch
-quota-move-quotaio_vh-from-include-linux-to-fs.patch
-quota-split-off-quota-tree-handling-into-a-separate-file.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format.patch
+autofs4-correct-offset-mount-expire-check.patch
+autofs4-collect-version-check-return.patch
+autofs4-collect-version-check-return-checkpatch-fixes.patch
+autofs4-improve-parameter-usage.patch
+autofs4-fix-var-shadowed-by-local-delaration.patch
+autofs4-make-autofs-type-usage-explicit.patch
+autofs4-fix-string-validation-check-order.patch
 
