@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-applesmc-add-support-for-imac-8.patch added to -mm tree
-Date: Tue, 28 Oct 2008 14:21:31 -0700
-Message-ID: <200810282121.m9SLLVM5004970@imap1.linux-foundation.org>
+Subject: + framebuffer-compat_ioctl-deadlock.patch added to -mm tree
+Date: Tue, 28 Oct 2008 14:34:46 -0700
+Message-ID: <200810282134.m9SLYkhU009617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55788 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56998 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752768AbYJ1VWI (ORCPT
+	by vger.kernel.org with ESMTP id S1752381AbYJ1VfZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 17:22:08 -0400
+	Tue, 28 Oct 2008 17:35:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se, klaus.doblmann@gmail.com
+Cc: mpatocka@redhat.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     hwmon: applesmc: add support for iMac 8
+     framebuffer compat_ioctl deadlock
 has been added to the -mm tree.  Its filename is
-     hwmon-applesmc-add-support-for-imac-8.patch
+     framebuffer-compat_ioctl-deadlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: applesmc: add support for iMac 8
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: framebuffer compat_ioctl deadlock
+From: Mikulas Patocka <mpatocka@redhat.com>
 
-Add temperature sensor support for iMac 8.
+Fix deadlock in fb_compat_ioctl.  fb_compat_ioctl acquires a mutex and
+calls fb_ioctl that tries to acquire that mutex too.  A regression added
+during BKL removal.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Tested-by: Klaus Doblmann <klaus.doblmann@gmail.com>
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/video/fbmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-imac-8 drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-imac-8
-+++ a/drivers/hwmon/applesmc.c
-@@ -125,6 +125,9 @@ static const char* temperature_sensors_s
- 	{ "TB0T", "TB1T", "TB2T", "TB3T", "TC0D", "TC0F", "TC0P", "TG0D",
- 	  "TG0F", "TG0H", "TG0P", "TG0T", "TG1H", "TN0D", "TN0P", "TTF0",
- 	  "Th2H", "Tm0P", "Ts0P", "Ts0S", NULL },
-+/* Set 13: iMac 8,1 */
-+	{ "TA0P", "TC0D", "TC0H", "TC0P", "TG0D", "TG0H", "TG0P", "TH0P",
-+	  "TL0P", "TO0P", "TW0P", "Tm0P", "Tp0P", NULL },
- };
+diff -puN drivers/video/fbmem.c~framebuffer-compat_ioctl-deadlock drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~framebuffer-compat_ioctl-deadlock
++++ a/drivers/video/fbmem.c
+@@ -1262,8 +1262,8 @@ fb_compat_ioctl(struct file *file, unsig
+ 	case FBIOPUT_CON2FBMAP:
+ 		arg = (unsigned long) compat_ptr(arg);
+ 	case FBIOBLANK:
+-		ret = fb_ioctl(file, cmd, arg);
+-		break;
++		mutex_unlock(&info->lock);
++		return fb_ioctl(file, cmd, arg);
  
- /* List of keys used to read/write fan speeds */
-@@ -1291,6 +1294,8 @@ static __initdata struct dmi_match_data 
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 11 },
- /* MacBook Pro 5: accelerometer, backlight and temperature set 12 */
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 12 },
-+/* iMac 8: light sensor only, temperature set 13 */
-+	{ .accelerometer = 0, .light = 0, .temperature_set = 13 },
- };
- 
- /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-@@ -1340,6 +1345,10 @@ static __initdata struct dmi_system_id a
- 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacPro2") },
- 		&applesmc_dmi_data[4]},
-+	{ applesmc_dmi_match, "Apple iMac 8", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac8") },
-+		&applesmc_dmi_data[13]},
- 	{ applesmc_dmi_match, "Apple iMac 5", {
- 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac5") },
+ 	case FBIOGET_FSCREENINFO:
+ 		ret = fb_get_fscreeninfo(inode, file, cmd, arg);
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from mpatocka@redhat.com are
 
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
-hwmon-applesmc-add-support-for-imac-5.patch
-hwmon-applesmc-add-support-for-macbook-5.patch
-hwmon-applesmc-add-support-for-macbook-pro-5.patch
-hwmon-applesmc-add-support-for-imac-8.patch
+framebuffer-compat_ioctl-deadlock.patch
 
