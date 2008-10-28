@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + sh-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Mon, 27 Oct 2008 23:29:09 -0700
-Message-ID: <200810280629.m9S6T94G024639@imap1.linux-foundation.org>
+Subject: + rationalise-randys-address-a-bit.patch added to -mm tree
+Date: Mon, 27 Oct 2008 23:30:11 -0700
+Message-ID: <200810280630.m9S6UBN1024960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59976 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43208 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752494AbYJ1G3M (ORCPT
+	by vger.kernel.org with ESMTP id S1752496AbYJ1Ga1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 02:29:12 -0400
+	Tue, 28 Oct 2008 02:30:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, lethal@linux-sh.org
+Cc: alan@redhat.com, rdunlap@xenotime.net
 
 
 The patch titled
-     sh: use the new byteorder headers
+     Rationalise Randy's address a bit
 has been added to the -mm tree.  Its filename is
-     sh-use-the-new-byteorder-headers.patch
+     rationalise-randys-address-a-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,116 +29,155 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: sh: use the new byteorder headers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: Rationalise Randy's address a bit
+=46rom: Alan Cox <alan@redhat.com>
 
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/byteorder.h |   36 ++++++++++++++----------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ Documentation/DocBook/deviceiobook.tmpl     |    2 +-
+ Documentation/DocBook/mcabook.tmpl          |    2 +-
+ Documentation/DocBook/wanbook.tmpl          |    2 +-
+ Documentation/DocBook/z8530book.tmpl        |    2 +-
+ Documentation/isdn/CREDITS                  |    2 +-
+ Documentation/networking/dmfe.txt           |    2 +-
+ Documentation/scsi/aacraid.txt              |    2 +-
+ Documentation/video4linux/bttv/CONTRIBUTORS |    2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/sh/include/asm/byteorder.h~sh-use-the-new-byteorder-headers arch/sh/include/asm/byteorder.h
---- a/arch/sh/include/asm/byteorder.h~sh-use-the-new-byteorder-headers
-+++ a/arch/sh/include/asm/byteorder.h
-@@ -8,7 +8,15 @@
- #include <linux/compiler.h>
- #include <linux/types.h>
- 
--static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
-+#ifdef __LITTLE_ENDIAN__
-+# define __LITTLE_ENDIAN
-+#else
-+# define __BIG_ENDIAN
-+#endif
-+
-+#define __SWAB_64_THRU_32__
-+
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
- {
- 	__asm__(
- #ifdef __SH5__
-@@ -24,8 +32,9 @@ static inline __attribute_const__ __u32 
- 
- 	return x;
- }
-+#define __arch_swab32 __arch_swab32
- 
--static inline __attribute_const__ __u16 ___arch__swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
- {
- 	__asm__(
- #ifdef __SH5__
-@@ -39,32 +48,21 @@ static inline __attribute_const__ __u16 
- 
- 	return x;
- }
-+#define __arch_swab16 __arch_swab16
- 
--static inline __u64 ___arch__swab64(__u64 val)
-+static inline __u64 __arch_swab64(__u64 val)
- {
- 	union {
- 		struct { __u32 a,b; } s;
- 		__u64 u;
- 	} v, w;
- 	v.u = val;
--	w.s.b = ___arch__swab32(v.s.a);
--	w.s.a = ___arch__swab32(v.s.b);
-+	w.s.b = __arch_swab32(v.s.a);
-+	w.s.a = __arch_swab32(v.s.b);
- 	return w.u;
- }
-+#define __arch_swab64 __arch_swab64
- 
--#define __arch__swab64(x) ___arch__swab64(x)
--#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
--
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
--#endif
--
--#ifdef __LITTLE_ENDIAN__
--#include <linux/byteorder/little_endian.h>
--#else
--#include <linux/byteorder/big_endian.h>
--#endif
-+#include <linux/byteorder.h>
- 
- #endif /* __ASM_SH_BYTEORDER_H */
+diff -puN Documentation/DocBook/deviceiobook.tmpl~rationalise-randys-ad=
+dress-a-bit Documentation/DocBook/deviceiobook.tmpl
+--- a/Documentation/DocBook/deviceiobook.tmpl~rationalise-randys-addres=
+s-a-bit
++++ a/Documentation/DocBook/deviceiobook.tmpl
+@@ -24,7 +24,7 @@
+     <surname>Cox</surname>
+     <affiliation>
+      <address>
+-      <email>alan@redhat.com</email>
++      <email>alan@lxorguk.ukuu.org.uk</email>
+      </address>
+     </affiliation>
+    </author>
+diff -puN Documentation/DocBook/mcabook.tmpl~rationalise-randys-address=
+-a-bit Documentation/DocBook/mcabook.tmpl
+--- a/Documentation/DocBook/mcabook.tmpl~rationalise-randys-address-a-b=
+it
++++ a/Documentation/DocBook/mcabook.tmpl
+@@ -12,7 +12,7 @@
+     <surname>Cox</surname>
+     <affiliation>
+      <address>
+-      <email>alan@redhat.com</email>
++      <email>alan@lxorguk.ukuu.org.uk</email>
+      </address>
+     </affiliation>
+    </author>
+diff -puN Documentation/DocBook/wanbook.tmpl~rationalise-randys-address=
+-a-bit Documentation/DocBook/wanbook.tmpl
+--- a/Documentation/DocBook/wanbook.tmpl~rationalise-randys-address-a-b=
+it
++++ a/Documentation/DocBook/wanbook.tmpl
+@@ -12,7 +12,7 @@
+     <surname>Cox</surname>
+     <affiliation>
+      <address>
+-      <email>alan@redhat.com</email>
++      <email>alan@lxorguk.ukuu.org.uk</email>
+      </address>
+     </affiliation>
+    </author>
+diff -puN Documentation/DocBook/z8530book.tmpl~rationalise-randys-addre=
+ss-a-bit Documentation/DocBook/z8530book.tmpl
+--- a/Documentation/DocBook/z8530book.tmpl~rationalise-randys-address-a=
+-bit
++++ a/Documentation/DocBook/z8530book.tmpl
+@@ -12,7 +12,7 @@
+     <surname>Cox</surname>
+     <affiliation>
+      <address>
+-      <email>alan@redhat.com</email>
++      <email>alan@lxorguk.ukuu.org.uk</email>
+      </address>
+     </affiliation>
+    </author>
+diff -puN Documentation/isdn/CREDITS~rationalise-randys-address-a-bit D=
+ocumentation/isdn/CREDITS
+--- a/Documentation/isdn/CREDITS~rationalise-randys-address-a-bit
++++ a/Documentation/isdn/CREDITS
+@@ -5,7 +5,7 @@ I want to thank all who contributed to t
+ Thomas Bogend=C3=B6rfer (tsbogend@bigbug.franken.de)
+   Tester, lots of bugfixes and hints.
+=20
+-Alan Cox (alan@redhat.com)
++Alan Cox (alan@lxorguk.ukuu.org.uk)
+   For help getting into standard-kernel.
+=20
+ Henner Eisen (eis@baty.hanse.de)
+diff -puN Documentation/networking/dmfe.txt~rationalise-randys-address-=
+a-bit Documentation/networking/dmfe.txt
+--- a/Documentation/networking/dmfe.txt~rationalise-randys-address-a-bi=
+t
++++ a/Documentation/networking/dmfe.txt
+@@ -60,6 +60,6 @@ Tobias Ringstrom <tori@unhappy.mine.nu>=20
+ Contributors:
+=20
+ Marcelo Tosatti <marcelo@conectiva.com.br>
+-Alan Cox <alan@redhat.com>
++Alan Cox <alan@lxorguk.ukuu.org.uk>
+ Jeff Garzik <jgarzik@pobox.com>
+ Vojtech Pavlik <vojtech@suse.cz>
+diff -puN Documentation/scsi/aacraid.txt~rationalise-randys-address-a-b=
+it Documentation/scsi/aacraid.txt
+--- a/Documentation/scsi/aacraid.txt~rationalise-randys-address-a-bit
++++ a/Documentation/scsi/aacraid.txt
+@@ -128,7 +128,7 @@ Supported Cards/Chipsets
+=20
+ People
+ -------------------------
+-Alan Cox <alan@redhat.com>
++Alan Cox <alan@lxorguk.ukuu.org.uk>
+ Christoph Hellwig <hch@infradead.org>	(updates for new-style PCI probi=
+ng and SCSI host registration,
+ 					 small cleanups/fixes)
+ Matt Domsch <matt_domsch@dell.com>	(revision ioctl, adapter messages)
+diff -puN Documentation/video4linux/bttv/CONTRIBUTORS~rationalise-randy=
+s-address-a-bit Documentation/video4linux/bttv/CONTRIBUTORS
+--- a/Documentation/video4linux/bttv/CONTRIBUTORS~rationalise-randys-ad=
+dress-a-bit
++++ a/Documentation/video4linux/bttv/CONTRIBUTORS
+@@ -3,7 +3,7 @@ Contributors to bttv:
+ Michael Chu <mmchu@pobox.com>
+   AverMedia fix and more flexible card recognition
+=20
+-Alan Cox <alan@redhat.com>
++Alan Cox <alan@lxorguk.ukuu.org.uk>
+   Video4Linux interface and 2.1.x kernel adaptation
+=20
+ Chris Kleitsch
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from alan@redhat.com are
 
+origin.patch
+rationalise-randys-address-a-bit.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-gfs2-sparse-annotation-of-gl-gl_spin.patch
-input-ads7846c-sparse-lock-annotation.patch
-mips-use-the-new-byteorder-headers.patch
-blackfin-remove-__function__-in-new-serial-driver.patch
-blackfin-remove-__function__-in-video-driver.patch
-sh-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-scsi-remove-private-implementation-of-get_unaligned_be32.patch
-sparc-use-the-new-byteorder-headers.patch
-usb-avoid-needless-address-taking-of-function-parameters.patch
-m68knommu-use-the-new-byteorder-headers.patch
-cris-use-the-new-byteorder-headers.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-memstick-annotate-endianness-of-attribute-structs.patch
+pata_it821x-in-2627-works-but-no-lba48-and-hdparm-t-is-slower.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
