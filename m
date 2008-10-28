@@ -1,221 +1,269 @@
 From: akpm@linux-foundation.org
-Subject: - p54-fix-misbehavings-when-firmware-cant-be-found.patch removed from -mm tree
-Date: Tue, 28 Oct 2008 12:07:03 -0700
-Message-ID: <200810281907.m9SJ733r023730@imap1.linux-foundation.org>
+Subject: - macfb-do-not-overflow-fb_fix_screeninfoid.patch removed from -mm tree
+Date: Tue, 28 Oct 2008 12:07:06 -0700
+Message-ID: <200810281907.m9SJ768x023753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752376AbYJ1TIZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752362AbYJ1TIZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 28 Oct 2008 15:08:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chunkeey@web.de, johannes@sipsolutions.net, sean@mess.org, mm-commits@vger.kernel.org
+To: fthain@telegraphics.com.au, geert@linux-m68k.org, jonsmir@gmail.com, krzysztof.h1@poczta.fm, stable@kernel.org, tim@physik3.uni-rostock.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     p54: fix misbehavings when firmware can't be found
+     macfb: do not overflow fb_fix_screeninfo.id
 has been removed from the -mm tree.  Its filename was
-     p54-fix-misbehavings-when-firmware-cant-be-found.patch
+     macfb-do-not-overflow-fb_fix_screeninfoid.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: p54: fix misbehavings when firmware can't be found
-=46rom: Christian Lamparter <chunkeey@web.de>
+Subject: macfb: do not overflow fb_fix_screeninfo.id
+From: Finn Thain <fthain@telegraphics.com.au>
 
-=46ix a double-free error in p54pci.
+Don't overflow the 16-character fb_fix_screeninfo id string (fixes some
+console erasing and blanking artifacts). Have the ID default to "Unknown"
+on machines with no built-in video and no nubus devices. Check for
+fb_alloc_cmap failure.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=3D11782.
-
-Trying to free already-free IRQ 10
-Pid: 108, comm: pccardd Not tainted 2.6.27-05577-g0cfd810-dirty #1
-Call Trace:
-=A0[<c01265dc>] free_irq+0xad/0xb9
-=A0[<c01050dd>] dma_generic_alloc_coherent+0x0/0xd7
-=A0[<c01ba8e6>] p54p_stop+0x4a/0x1fa
-=A0[<c01050dd>] dma_generic_alloc_coherent+0x0/0xd7
-=A0[<c02348c5>] p54p_probe+0x23e/0x302
-
-Tested-by: Sean Young <sean@mess.org>
-Signed-off-by: Christian Lamparter <chunkeey@web.de>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Finn Thain <fthain@telegraphics.com.au>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Tim Schmielau <tim@physik3.uni-rostock.de>
+Cc: Jon Smirl <jonsmir@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/p54/p54pci.c |  132 ++++++++++++++--------------
- 1 file changed, 66 insertions(+), 66 deletions(-)
+ drivers/video/macfb.c |   74 ++++++++++++++++++----------------------
+ 1 file changed, 35 insertions(+), 39 deletions(-)
 
-diff -puN drivers/net/wireless/p54/p54pci.c~p54-fix-misbehavings-when-f=
-irmware-cant-be-found drivers/net/wireless/p54/p54pci.c
---- a/drivers/net/wireless/p54/p54pci.c~p54-fix-misbehavings-when-firmw=
-are-cant-be-found
-+++ a/drivers/net/wireless/p54/p54pci.c
-@@ -346,68 +346,6 @@ static void p54p_tx(struct ieee80211_hw=20
- 		printk(KERN_INFO "%s: tx overflow.\n", wiphy_name(dev->wiphy));
- }
-=20
--static int p54p_open(struct ieee80211_hw *dev)
--{
--	struct p54p_priv *priv =3D dev->priv;
--	int err;
+diff -puN drivers/video/macfb.c~macfb-do-not-overflow-fb_fix_screeninfoid drivers/video/macfb.c
+--- a/drivers/video/macfb.c~macfb-do-not-overflow-fb_fix_screeninfoid
++++ a/drivers/video/macfb.c
+@@ -164,7 +164,6 @@ static struct fb_var_screeninfo macfb_de
+ };
+ 
+ static struct fb_fix_screeninfo macfb_fix = {
+-	.id	= "Macintosh ",
+ 	.type	= FB_TYPE_PACKED_PIXELS,
+ 	.accel	= FB_ACCEL_NONE,
+ };
+@@ -760,22 +759,22 @@ static int __init macfb_init(void)
+ 
+ 		switch(ndev->dr_hw) {
+ 		case NUBUS_DRHW_APPLE_MDC:
+-			strcat( macfb_fix.id, "Display Card" );
++			strcpy(macfb_fix.id, "Mac Disp. Card");
+ 			macfb_setpalette = mdc_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+ 			break;
+ 		case NUBUS_DRHW_APPLE_TFB:
+-			strcat( macfb_fix.id, "Toby" );
++			strcpy(macfb_fix.id, "Toby");
+ 			macfb_setpalette = toby_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+ 			break;
+ 		case NUBUS_DRHW_APPLE_JET:
+-			strcat( macfb_fix.id, "Jet");
++			strcpy(macfb_fix.id, "Jet");
+ 			macfb_setpalette = jet_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+ 			break;			
+ 		default:
+-			strcat( macfb_fix.id, "Generic NuBus" );
++			strcpy(macfb_fix.id, "Generic NuBus");
+ 			break;
+ 		}
+ 	}
+@@ -786,21 +785,11 @@ static int __init macfb_init(void)
+ 	if (!video_is_nubus)
+ 		switch( mac_bi_data.id )
+ 		{
+-			/* These don't have onboard video.  Eventually, we may
+-			   be able to write separate framebuffer drivers for
+-			   them (tobyfb.c, hiresfb.c, etc, etc) */
+-		case MAC_MODEL_II:
+-		case MAC_MODEL_IIX:
+-		case MAC_MODEL_IICX:
+-		case MAC_MODEL_IIFX:
+-			strcat( macfb_fix.id, "Generic NuBus" );
+-			break;
 -
--	init_completion(&priv->boot_comp);
--	err =3D request_irq(priv->pdev->irq, &p54p_interrupt,
--			  IRQF_SHARED, "p54pci", dev);
--	if (err) {
--		printk(KERN_ERR "%s: failed to register IRQ handler\n",
--		       wiphy_name(dev->wiphy));
--		return err;
--	}
--
--	memset(priv->ring_control, 0, sizeof(*priv->ring_control));
--	err =3D p54p_upload_firmware(dev);
--	if (err) {
--		free_irq(priv->pdev->irq, dev);
--		return err;
--	}
--	priv->rx_idx_data =3D priv->tx_idx_data =3D 0;
--	priv->rx_idx_mgmt =3D priv->tx_idx_mgmt =3D 0;
--
--	p54p_refill_rx_ring(dev, 0, priv->ring_control->rx_data,
--		ARRAY_SIZE(priv->ring_control->rx_data), priv->rx_buf_data);
--
--	p54p_refill_rx_ring(dev, 2, priv->ring_control->rx_mgmt,
--		ARRAY_SIZE(priv->ring_control->rx_mgmt), priv->rx_buf_mgmt);
--
--	P54P_WRITE(ring_control_base, cpu_to_le32(priv->ring_control_dma));
--	P54P_READ(ring_control_base);
--	wmb();
--	udelay(10);
--
--	P54P_WRITE(int_enable, cpu_to_le32(ISL38XX_INT_IDENT_INIT));
--	P54P_READ(int_enable);
--	wmb();
--	udelay(10);
--
--	P54P_WRITE(dev_int, cpu_to_le32(ISL38XX_DEV_INT_RESET));
--	P54P_READ(dev_int);
--
--	if (!wait_for_completion_interruptible_timeout(&priv->boot_comp, HZ))=
- {
--		printk(KERN_ERR "%s: Cannot boot firmware!\n",
--		       wiphy_name(dev->wiphy));
--		free_irq(priv->pdev->irq, dev);
--		return -ETIMEDOUT;
--	}
--
--	P54P_WRITE(int_enable, cpu_to_le32(ISL38XX_INT_IDENT_UPDATE));
--	P54P_READ(int_enable);
--	wmb();
--	udelay(10);
--
--	P54P_WRITE(dev_int, cpu_to_le32(ISL38XX_DEV_INT_UPDATE));
--	P54P_READ(dev_int);
--	wmb();
--	udelay(10);
--
--	return 0;
--}
--
- static void p54p_stop(struct ieee80211_hw *dev)
- {
- 	struct p54p_priv *priv =3D dev->priv;
-@@ -474,6 +412,68 @@ static void p54p_stop(struct ieee80211_h
- 	memset(ring_control, 0, sizeof(*ring_control));
- }
-=20
-+static int p54p_open(struct ieee80211_hw *dev)
-+{
-+	struct p54p_priv *priv =3D dev->priv;
-+	int err;
-+
-+	init_completion(&priv->boot_comp);
-+	err =3D request_irq(priv->pdev->irq, &p54p_interrupt,
-+			  IRQF_SHARED, "p54pci", dev);
-+	if (err) {
-+		printk(KERN_ERR "%s: failed to register IRQ handler\n",
-+		       wiphy_name(dev->wiphy));
-+		return err;
-+	}
-+
-+	memset(priv->ring_control, 0, sizeof(*priv->ring_control));
-+	err =3D p54p_upload_firmware(dev);
-+	if (err) {
-+		free_irq(priv->pdev->irq, dev);
-+		return err;
-+	}
-+	priv->rx_idx_data =3D priv->tx_idx_data =3D 0;
-+	priv->rx_idx_mgmt =3D priv->tx_idx_mgmt =3D 0;
-+
-+	p54p_refill_rx_ring(dev, 0, priv->ring_control->rx_data,
-+		ARRAY_SIZE(priv->ring_control->rx_data), priv->rx_buf_data);
-+
-+	p54p_refill_rx_ring(dev, 2, priv->ring_control->rx_mgmt,
-+		ARRAY_SIZE(priv->ring_control->rx_mgmt), priv->rx_buf_mgmt);
-+
-+	P54P_WRITE(ring_control_base, cpu_to_le32(priv->ring_control_dma));
-+	P54P_READ(ring_control_base);
-+	wmb();
-+	udelay(10);
-+
-+	P54P_WRITE(int_enable, cpu_to_le32(ISL38XX_INT_IDENT_INIT));
-+	P54P_READ(int_enable);
-+	wmb();
-+	udelay(10);
-+
-+	P54P_WRITE(dev_int, cpu_to_le32(ISL38XX_DEV_INT_RESET));
-+	P54P_READ(dev_int);
-+
-+	if (!wait_for_completion_interruptible_timeout(&priv->boot_comp, HZ))=
- {
-+		printk(KERN_ERR "%s: Cannot boot firmware!\n",
-+		       wiphy_name(dev->wiphy));
-+		p54p_stop(dev);
-+		return -ETIMEDOUT;
-+	}
-+
-+	P54P_WRITE(int_enable, cpu_to_le32(ISL38XX_INT_IDENT_UPDATE));
-+	P54P_READ(int_enable);
-+	wmb();
-+	udelay(10);
-+
-+	P54P_WRITE(dev_int, cpu_to_le32(ISL38XX_DEV_INT_UPDATE));
-+	P54P_READ(dev_int);
-+	wmb();
-+	udelay(10);
-+
-+	return 0;
-+}
-+
- static int __devinit p54p_probe(struct pci_dev *pdev,
- 				const struct pci_device_id *id)
- {
-@@ -556,11 +556,13 @@ static int __devinit p54p_probe(struct p
- 	spin_lock_init(&priv->lock);
- 	tasklet_init(&priv->rx_tasklet, p54p_rx_tasklet, (unsigned long)dev);
-=20
--	p54p_open(dev);
-+	err =3D p54p_open(dev);
+ 			/* Valkyrie Quadras */
+ 		case MAC_MODEL_Q630:
+ 			/* I'm not sure about this one */
+ 		case MAC_MODEL_P588:
+-			strcat( macfb_fix.id, "Valkyrie built-in" );
++			strcpy(macfb_fix.id, "Valkyrie");
+ 			macfb_setpalette = valkyrie_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+ 			valkyrie_cmap_regs = ioremap(DAC_BASE, 0x1000);
+@@ -823,7 +812,7 @@ static int __init macfb_init(void)
+ 		case MAC_MODEL_Q700:
+ 		case MAC_MODEL_Q900:
+ 		case MAC_MODEL_Q950:
+-			strcat( macfb_fix.id, "DAFB built-in" );
++			strcpy(macfb_fix.id, "DAFB");
+ 			macfb_setpalette = dafb_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+ 			dafb_cmap_regs = ioremap(DAFB_BASE, 0x1000);
+@@ -831,7 +820,7 @@ static int __init macfb_init(void)
+ 
+ 			/* LC II uses the V8 framebuffer */
+ 		case MAC_MODEL_LCII:
+-			strcat( macfb_fix.id, "V8 built-in" );
++			strcpy(macfb_fix.id, "V8");
+ 			macfb_setpalette = v8_brazil_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+ 			v8_brazil_cmap_regs = ioremap(DAC_BASE, 0x1000);
+@@ -843,7 +832,7 @@ static int __init macfb_init(void)
+ 		case MAC_MODEL_IIVI:
+ 		case MAC_MODEL_IIVX:
+ 		case MAC_MODEL_P600:
+-			strcat( macfb_fix.id, "Brazil built-in" );
++			strcpy(macfb_fix.id, "Brazil");
+ 			macfb_setpalette = v8_brazil_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+ 			v8_brazil_cmap_regs = ioremap(DAC_BASE, 0x1000);
+@@ -860,7 +849,7 @@ static int __init macfb_init(void)
+ 		case MAC_MODEL_P460:
+ 			macfb_setpalette = v8_brazil_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+-			strcat( macfb_fix.id, "Sonora built-in" );
++			strcpy(macfb_fix.id, "Sonora");
+ 			v8_brazil_cmap_regs = ioremap(DAC_BASE, 0x1000);
+ 			break;
+ 
+@@ -871,7 +860,7 @@ static int __init macfb_init(void)
+ 		case MAC_MODEL_IISI:
+ 			macfb_setpalette = rbv_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+-			strcat( macfb_fix.id, "RBV built-in" );
++			strcpy(macfb_fix.id, "RBV");
+ 			rbv_cmap_regs = ioremap(DAC_BASE, 0x1000);
+ 			break;
+ 
+@@ -880,7 +869,7 @@ static int __init macfb_init(void)
+ 		case MAC_MODEL_C660:
+ 			macfb_setpalette = civic_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+-			strcat( macfb_fix.id, "Civic built-in" );
++			strcpy(macfb_fix.id, "Civic");
+ 			civic_cmap_regs = ioremap(CIVIC_BASE, 0x1000);
+ 			break;
+ 
+@@ -901,7 +890,7 @@ static int __init macfb_init(void)
+ 				v8_brazil_cmap_regs =
+ 					ioremap(DAC_BASE, 0x1000);
+ 			}
+-			strcat( macfb_fix.id, "LC built-in" );
++			strcpy(macfb_fix.id, "LC");
+ 			break;
+ 			/* We think this may be like the LC II */
+ 		case MAC_MODEL_CCL:
+@@ -911,18 +900,18 @@ static int __init macfb_init(void)
+ 				v8_brazil_cmap_regs =
+ 					ioremap(DAC_BASE, 0x1000);
+ 			}
+-			strcat( macfb_fix.id, "Color Classic built-in" );
++			strcpy(macfb_fix.id, "Color Classic");
+ 			break;
+ 
+ 			/* And we *do* mean "weirdos" */
+ 		case MAC_MODEL_TV:
+-			strcat( macfb_fix.id, "Mac TV built-in" );
++			strcpy(macfb_fix.id, "Mac TV");
+ 			break;
+ 
+ 			/* These don't have colour, so no need to worry */
+ 		case MAC_MODEL_SE30:
+ 		case MAC_MODEL_CLII:
+-			strcat( macfb_fix.id, "Monochrome built-in" );
++			strcpy(macfb_fix.id, "Monochrome");
+ 			break;
+ 
+ 			/* Powerbooks are particularly difficult.  Many of
+@@ -935,7 +924,7 @@ static int __init macfb_init(void)
+ 		case MAC_MODEL_PB140:
+ 		case MAC_MODEL_PB145:
+ 		case MAC_MODEL_PB170:
+-			strcat( macfb_fix.id, "DDC built-in" );
++			strcpy(macfb_fix.id, "DDC");
+ 			break;
+ 
+ 			/* Internal is GSC, External (if present) is ViSC */
+@@ -945,13 +934,13 @@ static int __init macfb_init(void)
+ 		case MAC_MODEL_PB180:
+ 		case MAC_MODEL_PB210:
+ 		case MAC_MODEL_PB230:
+-			strcat( macfb_fix.id, "GSC built-in" );
++			strcpy(macfb_fix.id, "GSC");
+ 			break;
+ 
+ 			/* Internal is TIM, External is ViSC */
+ 		case MAC_MODEL_PB165C:
+ 		case MAC_MODEL_PB180C:
+-			strcat( macfb_fix.id, "TIM built-in" );
++			strcpy(macfb_fix.id, "TIM");
+ 			break;
+ 
+ 			/* Internal is CSC, External is Keystone+Ariel. */
+@@ -963,12 +952,12 @@ static int __init macfb_init(void)
+ 		case MAC_MODEL_PB280C:
+ 			macfb_setpalette = csc_setpalette;
+ 			macfb_defined.activate = FB_ACTIVATE_NOW;
+-			strcat( macfb_fix.id, "CSC built-in" );
++			strcpy(macfb_fix.id, "CSC");
+ 			csc_cmap_regs = ioremap(CSC_BASE, 0x1000);
+ 			break;
+ 		
+ 		default:
+-			strcat( macfb_fix.id, "Unknown/Unsupported built-in" );
++			strcpy(macfb_fix.id, "Unknown");
+ 			break;
+ 		}
+ 
+@@ -978,16 +967,23 @@ static int __init macfb_init(void)
+ 	fb_info.pseudo_palette	= pseudo_palette;
+ 	fb_info.flags		= FBINFO_DEFAULT;
+ 
+-	fb_alloc_cmap(&fb_info.cmap, video_cmap_len, 0);
++	err = fb_alloc_cmap(&fb_info.cmap, video_cmap_len, 0);
 +	if (err)
-+		goto err_free_common;
- 	err =3D p54_read_eeprom(dev);
- 	p54p_stop(dev);
- 	if (err)
--		goto err_free_desc;
-+		goto err_free_common;
-=20
- 	err =3D ieee80211_register_hw(dev);
- 	if (err) {
-@@ -573,8 +575,6 @@ static int __devinit p54p_probe(struct p
-=20
-  err_free_common:
- 	p54_free_common(dev);
++		goto fail_unmap;
+ 	
+ 	err = register_framebuffer(&fb_info);
+-	if (!err)
+-		printk("fb%d: %s frame buffer device\n",
+-		       fb_info.node, fb_info.fix.id);
+-	else {
+-		iounmap(fb_info.screen_base);
+-		iounmap_macfb();
+-	}
++	if (err)
++		goto fail_dealloc;
++
++	printk("fb%d: %s frame buffer device\n",
++	       fb_info.node, fb_info.fix.id);
++	return 0;
++
++fail_dealloc:
++	fb_dealloc_cmap(&fb_info.cmap);
++fail_unmap:
++	iounmap(fb_info.screen_base);
++	iounmap_macfb();
+ 	return err;
+ }
+ 
+_
+
+Patches currently in -mm which might be from fthain@telegraphics.com.au are
+
+linux-next.patch
+
