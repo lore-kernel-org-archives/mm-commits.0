@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + quota-support-64-bit-quota-format-fix.patch added to -mm tree
-Date: Tue, 28 Oct 2008 15:23:07 -0700
-Message-ID: <200810282237.m9SMbvtP031658@imap1.linux-foundation.org>
+Subject: + quota-more-headers_check-hackarounds.patch added to -mm tree
+Date: Tue, 28 Oct 2008 15:34:22 -0700
+Message-ID: <200810282249.m9SMnC3D003131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37295 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752089AbYJ1WiD (ORCPT
+	by vger.kernel.org with ESMTP id S1752120AbYJ1WtR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 18:38:03 -0400
+	Tue, 28 Oct 2008 18:49:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrew.perepechko@sun.com, jack@suse.cz
+Cc: akpm@linux-foundation.org, jack@ucw.cz
 
 
 The patch titled
-     quota-support-64-bit-quota-format-fix
+     quota: more headers_check hackarounds
 has been added to the -mm tree.  Its filename is
-     quota-support-64-bit-quota-format-fix.patch
+     quota-more-headers_check-hackarounds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-support-64-bit-quota-format-fix
+Subject: quota: more headers_check hackarounds
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386:
+/usr/src/devel/usr/include/linux/dqblk_v2.h:8: included file 'linux/dqblk_qtree.h' is not exported
 
-fs/quota_v2.c: In function 'v2_read_file_info':
-fs/quota_v2.c:119: warning: integer constant is too large for 'long' type
-fs/quota_v2.c:120: warning: integer constant is too large for 'long' type
-
-Cc: Andrew Perepechko <andrew.perepechko@sun.com>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/quota_v2.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/Kbuild |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/quota_v2.c~quota-support-64-bit-quota-format-fix fs/quota_v2.c
---- a/fs/quota_v2.c~quota-support-64-bit-quota-format-fix
-+++ a/fs/quota_v2.c
-@@ -116,8 +116,8 @@ static int v2_read_file_info(struct supe
- 		info->dqi_maxblimit = 0xffffffff;
- 		info->dqi_maxilimit = 0xffffffff;
- 	} else {
--		info->dqi_maxblimit = 0x7fffffffffffffff;
--		info->dqi_maxilimit = 0x7fffffffffffffff;
-+		info->dqi_maxblimit = 0x7fffffffffffffffUL;
-+		info->dqi_maxilimit = 0x7fffffffffffffffUL;
- 	}
- 	info->dqi_bgrace = le32_to_cpu(dinfo.dqi_bgrace);
- 	info->dqi_igrace = le32_to_cpu(dinfo.dqi_igrace);
+diff -puN include/linux/Kbuild~quota-more-headers_check-hackarounds include/linux/Kbuild
+--- a/include/linux/Kbuild~quota-more-headers_check-hackarounds
++++ a/include/linux/Kbuild
+@@ -56,9 +56,6 @@ header-y += dlm_device.h
+ header-y += dlm_netlink.h
+ header-y += dm-ioctl.h
+ header-y += dn.h
+-header-y += dqblk_v1.h
+-header-y += dqblk_v2.h
+-header-y += dqblk_xfs.h
+ header-y += efs_fs_sb.h
+ header-y += elf-fdpic.h
+ header-y += elf-em.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +95,7 @@ rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
 quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
 quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
 quota-support-64-bit-quota-format-fix.patch
+quota-more-headers_check-hackarounds.patch
 memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
 w1-export-w1_read_8-function-checkpatch-fixes.patch
 nilfs2-inode-operations-fix.patch
