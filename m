@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-ltp-info-to-the-list.patch added to -mm tree
-Date: Mon, 27 Oct 2008 20:32:14 -0700
-Message-ID: <200810280332.m9S3WE34029827@imap1.linux-foundation.org>
+Subject: + rtc-ds3234-doesnt-link-when-built-in.patch added to -mm tree
+Date: Mon, 27 Oct 2008 20:33:39 -0700
+Message-ID: <200810280333.m9S3Xd48030309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43701 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51750 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752444AbYJ1DcR (ORCPT
+	by vger.kernel.org with ESMTP id S1752085AbYJ1DeE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Oct 2008 23:32:17 -0400
+	Mon, 27 Oct 2008 23:34:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, subrata@linux.vnet.ibm.com
+Cc: geert@linux-m68k.org, a.zummo@towertech.it
 
 
 The patch titled
-     MAINTAINERS: add LTP info to the list
+     rtc: ds3234 doesn't link when built-in
 has been added to the -mm tree.  Its filename is
-     maintainers-add-ltp-info-to-the-list.patch
+     rtc-ds3234-doesnt-link-when-built-in.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add LTP info to the list
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: rtc: ds3234 doesn't link when built-in
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Cc: Subrata Modak <subrata@linux.vnet.ibm.com>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+When ds3234 is built-in, the final links fails with the following vague error
+message:
+
+`.exit.text' referenced in section `.data' of drivers/built-in.o: defined in discarded section `.exit.text' of drivers/built-in.o
+
+ds3234_remove() cannot be marked __exit, as it's accessed via __devexit_p().
+In addition, mark ds3234_probe() __devinit while we're at it.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/rtc/rtc-ds3234.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-ltp-info-to-the-list MAINTAINERS
---- a/MAINTAINERS~maintainers-add-ltp-info-to-the-list
-+++ a/MAINTAINERS
-@@ -2701,6 +2701,16 @@ M:	matthew@wil.cx
- L:	linux-scsi@vger.kernel.org
- S:	Maintained
+diff -puN drivers/rtc/rtc-ds3234.c~rtc-ds3234-doesnt-link-when-built-in drivers/rtc/rtc-ds3234.c
+--- a/drivers/rtc/rtc-ds3234.c~rtc-ds3234-doesnt-link-when-built-in
++++ a/drivers/rtc/rtc-ds3234.c
+@@ -189,7 +189,7 @@ static const struct rtc_class_ops ds3234
+ 	.set_time	= ds3234_set_time,
+ };
  
-+LTP (Linux Test Project)
-+P:	Subrata Modak
-+M:	subrata@linux.vnet.ibm.com
-+P:	Mike Frysinger
-+M:	vapier@gentoo.org
-+L:	ltp-list@lists.sourceforge.net (subscribers-only)
-+W:	http://ltp.sourceforge.net/
-+T:	git kernel.org/pub/scm/linux/kernel/git/galak/ltp.git
-+S:	Maintained
-+
- M32R ARCHITECTURE
- P:	Hirokazu Takata
- M:	takata@linux-m32r.org
+-static int ds3234_probe(struct spi_device *spi)
++static int __devinit ds3234_probe(struct spi_device *spi)
+ {
+ 	struct rtc_device *rtc;
+ 	unsigned char tmp;
+@@ -249,7 +249,7 @@ static int ds3234_probe(struct spi_devic
+ 	return 0;
+ }
+ 
+-static int __exit ds3234_remove(struct spi_device *spi)
++static int __devexit ds3234_remove(struct spi_device *spi)
+ {
+ 	struct ds3234 *chip = platform_get_drvdata(spi);
+ 	struct rtc_device *rtc = chip->rtc;
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-maintainers-add-ltp-info-to-the-list.patch
-linux-timexh-cleanup-for-userspace.patch
-linux-timexh-cleanup-for-userspace-checkpatch-fixes.patch
-setlocalversion-dont-include-svn-change-count.patch
+origin.patch
+rtc-ds3234-doesnt-link-when-built-in.patch
+linux-next.patch
+fbdev-fix-typo-in-drivers-video-modedbc.patch
 
