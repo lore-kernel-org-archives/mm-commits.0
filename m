@@ -1,40 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-rtc-rtc-ds1286c-is-borked.patch removed from -mm tree
-Date: Wed, 29 Oct 2008 16:28:04 -0700
-Message-ID: <200810292328.m9TNS4JO003356@imap1.linux-foundation.org>
+Subject: - drivers-rtc-rtc-m48t35c-is-borked-too.patch removed from -mm tree
+Date: Wed, 29 Oct 2008 16:28:13 -0700
+Message-ID: <200810292328.m9TNSD77003416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754393AbYJ2X27 (ORCPT
+	by vger.kernel.org with ESMTP id S1750720AbYJ2XaV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Oct 2008 19:28:59 -0400
+	Wed, 29 Oct 2008 19:30:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alessandro.zummo@towertech.it, ralf@linux-mips.org, tsbogend@alpha.franken.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/rtc/rtc-ds1286.c is borked
+     drivers/rtc/rtc-m48t35.c is borked too
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-ds1286c-is-borked.patch
+     drivers-rtc-rtc-m48t35c-is-borked-too.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-ds1286.c is borked
+Subject: drivers/rtc/rtc-m48t35.c is borked too
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/rtc/rtc-ds1286.c: In function 'ds1286_rtc_read':
-drivers/rtc/rtc-ds1286.c:33: error: implicit declaration of function '__raw_readl'
-drivers/rtc/rtc-ds1286.c: In function 'ds1286_rtc_write':
-drivers/rtc/rtc-ds1286.c:38: error: implicit declaration of function '__raw_writel'
-drivers/rtc/rtc-ds1286.c: In function 'ds1286_probe':
-drivers/rtc/rtc-ds1286.c:345: error: implicit declaration of function 'ioremap'
-drivers/rtc/rtc-ds1286.c:345: warning: assignment makes pointer from integer without a cast
-drivers/rtc/rtc-ds1286.c:365: error: implicit declaration of function 'iounmap'
+drivers/rtc/rtc-m48t35.c: In function 'm48t35_read_time':
+drivers/rtc/rtc-m48t35.c:59: error: implicit declaration of function 'readb'
+drivers/rtc/rtc-m48t35.c:60: error: implicit declaration of function 'writeb'
+drivers/rtc/rtc-m48t35.c: In function 'm48t35_probe':
+drivers/rtc/rtc-m48t35.c:168: error: implicit declaration of function 'ioremap'
+drivers/rtc/rtc-m48t35.c:168: warning: assignment makes pointer from integer without a cast
+drivers/rtc/rtc-m48t35.c:188: error: implicit declaration of function 'iounmap'
 
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
@@ -45,17 +44,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/rtc/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/Kconfig~drivers-rtc-rtc-ds1286c-is-borked drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-rtc-ds1286c-is-borked
+diff -puN drivers/rtc/Kconfig~drivers-rtc-rtc-m48t35c-is-borked-too drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~drivers-rtc-rtc-m48t35c-is-borked-too
 +++ a/drivers/rtc/Kconfig
-@@ -373,6 +373,7 @@ config RTC_DRV_DS1216
+@@ -432,6 +432,7 @@ config RTC_DRV_M48T86
  
- config RTC_DRV_DS1286
- 	tristate "Dallas DS1286"
+ config RTC_DRV_M48T35
+ 	tristate "ST M48T35"
 +	depends on MIPS
  	help
- 	  If you say yes here you get support for the Dallas DS1286 RTC chips.
- 
+ 	  If you say Y here you will get support for the
+ 	  ST M48T35 RTC chip.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +74,6 @@ tick-schedc-suppress-needless-timer-reprogramming.patch
 linux-timexh-cleanup-for-userspace.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
-drivers-rtc-rtc-ds1286c-is-borked.patch
 drivers-rtc-rtc-m48t35c-is-borked-too.patch
 pci-uninline-pci_ioremap_bar.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
