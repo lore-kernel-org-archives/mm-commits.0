@@ -1,102 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch removed from -mm tree
-Date: Wed, 29 Oct 2008 12:57:24 -0700
-Message-ID: <200810291957.m9TJvPvJ020258@imap1.linux-foundation.org>
+Subject: - nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 29 Oct 2008 12:59:03 -0700
+Message-ID: <200810291959.m9TJx3Q4020936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34776 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752449AbYJ2T7N (ORCPT
+	by vger.kernel.org with ESMTP id S1752974AbYJ2T7q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Oct 2008 15:59:13 -0400
+	Wed, 29 Oct 2008 15:59:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clg@fr.ibm.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@redhat.com, hooanon05@yahoo.co.jp, jmorris@namei.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix
+     nfsd-fix-vm-overcommit-crash-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+     nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
+This patch was dropped because it was folded into nfsd-fix-vm-overcommit-crash.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix
+Subject: nfsd-fix-vm-overcommit-crash-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+ERROR: spaces required around that ':' (ctx:VxW)
+#75: FILE: mm/shmem.c:165:
++		security_vm_enough_memory_kern(VM_ACCT(size)): 0;
+ 		                                             ^
+
+ERROR: spaces required around that ':' (ctx:VxW)
+#84: FILE: mm/shmem.c:183:
++		0: security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
+ 		 ^
+
+WARNING: labels should not be indented
+#84: FILE: mm/shmem.c:183:
++		0: security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
+
+total: 2 errors, 1 warnings, 64 lines checked
+
+./patches/nfsd-fix-vm-overcommit-crash.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alan Cox <alan@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Junjiro R. Okajima <hooanon05@yahoo.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |    5 -----
- kernel/freezer.c        |   20 ++++++++++----------
- 2 files changed, 10 insertions(+), 15 deletions(-)
+ mm/shmem.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/freezer.h~freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix include/linux/freezer.h
---- a/include/linux/freezer.h~freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix
-+++ a/include/linux/freezer.h
-@@ -44,11 +44,6 @@ static inline bool should_send_signal(st
- 	return !(p->flags & PF_FREEZER_NOSIG);
- }
- 
--/*
-- * Wake up a frozen process
-- */
--extern int __thaw_process(struct task_struct *p);
--
- /* Takes and releases task alloc lock using task_lock() */
- extern int thaw_process(struct task_struct *p);
- 
-diff -puN kernel/freezer.c~freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix kernel/freezer.c
---- a/kernel/freezer.c~freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix
-+++ a/kernel/freezer.c
-@@ -121,16 +121,7 @@ void cancel_freezing(struct task_struct 
- 	}
- }
- 
--/*
-- * Wake up a frozen process
-- *
-- * task_lock() is needed to prevent the race with refrigerator() which may
-- * occur if the freezing of tasks fails.  Namely, without the lock, if the
-- * freezing of tasks failed, thaw_tasks() might have run before a task in
-- * refrigerator() could call frozen_process(), in which case the task would be
-- * frozen and no one would thaw it.
-- */
--int __thaw_process(struct task_struct *p)
-+static int __thaw_process(struct task_struct *p)
+diff -puN mm/shmem.c~nfsd-fix-vm-overcommit-crash-checkpatch-fixes mm/shmem.c
+--- a/mm/shmem.c~nfsd-fix-vm-overcommit-crash-checkpatch-fixes
++++ a/mm/shmem.c
+@@ -161,8 +161,8 @@ static inline struct shmem_sb_info *SHME
+  */
+ static inline int shmem_acct_size(unsigned long flags, loff_t size)
  {
- 	if (frozen(p)) {
- 		p->flags &= ~PF_FROZEN;
-@@ -140,6 +131,15 @@ int __thaw_process(struct task_struct *p
- 	return 0;
+-	return (flags & VM_ACCOUNT)?
+-		security_vm_enough_memory_kern(VM_ACCT(size)): 0;
++	return (flags & VM_ACCOUNT) ?
++		security_vm_enough_memory_kern(VM_ACCT(size)) : 0;
  }
  
-+/*
-+ * Wake up a frozen process
-+ *
-+ * task_lock() is needed to prevent the race with refrigerator() which may
-+ * occur if the freezing of tasks fails.  Namely, without the lock, if the
-+ * freezing of tasks failed, thaw_tasks() might have run before a task in
-+ * refrigerator() could call frozen_process(), in which case the task would be
-+ * frozen and no one would thaw it.
-+ */
- int thaw_process(struct task_struct *p)
+ static inline void shmem_unacct_size(unsigned long flags, loff_t size)
+@@ -179,8 +179,8 @@ static inline void shmem_unacct_size(uns
+  */
+ static inline int shmem_acct_block(unsigned long flags)
  {
- 	task_lock(p);
+-	return (flags & VM_ACCOUNT)?
+-		0: security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
++	return (flags & VM_ACCOUNT) ?
++		0 : security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
+ }
+ 
+ static inline void shmem_unacct_blocks(unsigned long flags, long pages)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
 freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
-freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
-fs-remove-prepare_write-commit_write-fix.patch
+fs-remove-prepare_write-commit_write.patch
 mm-write_cache_pages-writepage-error-fix.patch
+nfsd-fix-vm-overcommit-crash.patch
 nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch
 nfsd-fix-vm-overcommit-crash-fix.patch
 mm-remove-the-might_sleep-from-lock_page.patch
