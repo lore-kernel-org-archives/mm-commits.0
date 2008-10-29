@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch added to -mm tree
-Date: Tue, 28 Oct 2008 17:15:16 -0700
-Message-ID: <200810290030.m9T0U7GM006267@imap1.linux-foundation.org>
+Subject: + ipmi-add-module_alias-to-load-ipmi_devintf-with-ipmi_si.patch added to -mm tree
+Date: Tue, 28 Oct 2008 17:31:35 -0700
+Message-ID: <200810290031.m9T0VZMo006854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753218AbYJ2AaQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753316AbYJ2Abz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 20:30:16 -0400
+	Tue, 28 Oct 2008 20:31:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@suse.cz
+Cc: scott@canonical.com, minyard@acm.org, scott@ubuntu.com, stable@kernel.org, tcanonical@tpi.com
 
 
 The patch titled
-     quota-move-quotaio_vh-from-include-linux-to-fs-fix
+     ipmi: add MODULE_ALIAS to load ipmi_devintf with ipmi_si
 has been added to the -mm tree.  Its filename is
-     quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+     ipmi-add-module_alias-to-load-ipmi_devintf-with-ipmi_si.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-move-quotaio_vh-from-include-linux-to-fs-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipmi: add MODULE_ALIAS to load ipmi_devintf with ipmi_si
+From: Scott James Remnant <scott@canonical.com>
 
-Cc: Jan Kara <jack@suse.cz>
+The ipmi_devintf module contains the userspace interface for IPMI devices,
+yet will not be loaded automatically with a system interface handler
+driver.
+
+Add a MODULE_ALIAS for the "platform:ipmi_si" MODALIAS exported by the
+ipmi_si driver, so that userspace knows of the recommendation.
+
+Signed-off-by: Scott James Remnant <scott@ubuntu.com>
+Cc: Tim Gardner <tcanonical@tpi.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: <stable@kernel.org>		[2.6.27.x, maybe earlier?]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/char/ipmi/ipmi_devintf.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/Kbuild~quota-move-quotaio_vh-from-include-linux-to-fs-fix include/linux/Kbuild
---- a/include/linux/Kbuild~quota-move-quotaio_vh-from-include-linux-to-fs-fix
-+++ a/include/linux/Kbuild
-@@ -134,8 +134,6 @@ header-y += posix_types.h
- header-y += ppdev.h
- header-y += prctl.h
- header-y += qnxtypes.h
--header-y += quotaio_v1.h
--header-y += quotaio_v2.h
- header-y += radeonfb.h
- header-y += raw.h
- header-y += resource.h
+diff -puN drivers/char/ipmi/ipmi_devintf.c~ipmi-add-module_alias-to-load-ipmi_devintf-with-ipmi_si drivers/char/ipmi/ipmi_devintf.c
+--- a/drivers/char/ipmi/ipmi_devintf.c~ipmi-add-module_alias-to-load-ipmi_devintf-with-ipmi_si
++++ a/drivers/char/ipmi/ipmi_devintf.c
+@@ -957,3 +957,4 @@ module_exit(cleanup_ipmi);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Corey Minyard <minyard@mvista.com>");
+ MODULE_DESCRIPTION("Linux device interface for the IPMI message handler.");
++MODULE_ALIAS("platform:ipmi_si");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from scott@canonical.com are
 
-epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
-freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
-fs-remove-prepare_write-commit_write-fix.patch
-mm-write_cache_pages-writepage-error-fix.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace-checkpatch-fixes.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-drivers-rtc-rtc-ds1286c-is-borked.patch
-drivers-rtc-rtc-m48t35c-is-borked-too.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-pci-uninline-pci_ioremap_bar.patch
-autofs4-collect-version-check-return-checkpatch-fixes.patch
-maintainers-make-ioat-easier-to-find.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
-init-properly-placing-noinline-keyword.patch
-spi_gpio-driver-cleanups.patch
-rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
-rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format-fix.patch
-quota-more-headers_check-hackarounds.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-w1-export-w1_read_8-function-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+ipmi-add-module_alias-to-load-ipmi_devintf-with-ipmi_si.patch
 
