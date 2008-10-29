@@ -1,60 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - nfsd-fix-vm-overcommit-crash-fix.patch removed from -mm tree
-Date: Wed, 29 Oct 2008 12:59:06 -0700
-Message-ID: <200810291959.m9TJx65A020966@imap1.linux-foundation.org>
+Subject: - epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 29 Oct 2008 13:00:14 -0700
+Message-ID: <200810292000.m9TK0E2p021386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752423AbYJ2T7q (ORCPT
+	by vger.kernel.org with ESMTP id S1753140AbYJ2UAY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Oct 2008 15:59:46 -0400
+	Wed, 29 Oct 2008 16:00:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@redhat.com, hooanon05@yahoo.co.jp, jmorris@namei.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.beregalov@gmail.com, davidel@xmailserver.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfsd-fix-vm-overcommit-crash-fix
+     epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     nfsd-fix-vm-overcommit-crash-fix.patch
+     epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into nfsd-fix-vm-overcommit-crash.patch
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfsd-fix-vm-overcommit-crash-fix
+Subject: epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/shmem.c: In function 'shmem_acct_size':
-mm/shmem.c:165: error: implicit declaration of function 'security_vm_enough_memory_kern'
+WARNING: line over 80 characters
+#44: FILE: fs/eventpoll.c:935:
++		 * If the above loop quit with errors, the epoll item might still
 
-Cc: Alan Cox <alan@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Junjiro R. Okajima <hooanon05@yahoo.co.jp>
+total: 0 errors, 1 warnings, 17 lines checked
+
+./patches/epoll-avoid-double-inserts-in-case-of-efault.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/eventpoll.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/shmem.c~nfsd-fix-vm-overcommit-crash-fix mm/shmem.c
-diff -puN include/linux/security.h~nfsd-fix-vm-overcommit-crash-fix include/linux/security.h
---- a/include/linux/security.h~nfsd-fix-vm-overcommit-crash-fix
-+++ a/include/linux/security.h
-@@ -1821,6 +1821,11 @@ static inline int security_vm_enough_mem
- 	return cap_vm_enough_memory(current->mm, pages);
- }
- 
-+static inline int security_vm_enough_memory_kern(long pages)
-+{
-+	return cap_vm_enough_memory(current->mm, pages);
-+}
-+
- static inline int security_vm_enough_memory_mm(struct mm_struct *mm, long pages)
- {
- 	return cap_vm_enough_memory(mm, pages);
+diff -puN fs/eventpoll.c~epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes
++++ a/fs/eventpoll.c
+@@ -932,9 +932,9 @@ errxit:
+ 	for (nepi = ep->ovflist; (epi = nepi) != NULL;
+ 	     nepi = epi->next, epi->next = EP_UNACTIVE_PTR) {
+ 		/*
+-		 * If the above loop quit with errors, the epoll item might still
+-		 * be linked to "txlist", and the list_splice() done below will
+-		 * take care of those cases.
++		 * If the above loop quit with errors, the epoll item might
++		 * still be linked to "txlist", and the list_splice() done
++		 * below will take care of those cases.
+ 		 */
+ 		if (!ep_is_linked(&epi->rdllink))
+ 			list_add_tail(&epi->rdllink, &ep->rdllist);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +73,6 @@ freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
 fs-remove-prepare_write-commit_write.patch
 mm-write_cache_pages-writepage-error-fix.patch
 nfsd-fix-vm-overcommit-crash.patch
-nfsd-fix-vm-overcommit-crash-fix.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 linux-next-rejects.patch
