@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nfsd-fix-vm-overcommit-crash.patch added to -mm tree
-Date: Tue, 28 Oct 2008 17:35:03 -0700
-Message-ID: <200810290035.m9T0Z3Gk008109@imap1.linux-foundation.org>
+Subject: + nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 28 Oct 2008 17:35:47 -0700
+Message-ID: <200810290035.m9T0ZlpC008359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59782 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751955AbYJ2Afy (ORCPT
+	by vger.kernel.org with ESMTP id S1753158AbYJ2Agf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 20:35:54 -0400
+	Tue, 28 Oct 2008 20:36:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@redhat.com, hooanon05@yahoo.co.jp, jmorris@namei.org
+Cc: akpm@linux-foundation.org, alan@redhat.com, hooanon05@yahoo.co.jp, jmorris@namei.org
 
 
 The patch titled
-     nfsd: fix vm overcommit crash
+     nfsd-fix-vm-overcommit-crash-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     nfsd-fix-vm-overcommit-crash.patch
+     nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfsd: fix vm overcommit crash
-From: Alan Cox <alan@redhat.com>
+Subject: nfsd-fix-vm-overcommit-crash-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Junjiro R.  Okajima reported a problem where knfsd crashes if you are
-using it to export shmemfs objects and run strict overcommit.  In this
-situation the current->mm based modifier to the overcommit goes through a
-NULL pointer.
+ERROR: spaces required around that ':' (ctx:VxW)
+#75: FILE: mm/shmem.c:165:
++		security_vm_enough_memory_kern(VM_ACCT(size)): 0;
+ 		                                             ^
 
-We could simply check for NULL and skip the modifier but we've caught
-other real bugs in the past from mm being NULL here - cases where we did
-need a valid mm set up (eg the exec bug about a year ago).
+ERROR: spaces required around that ':' (ctx:VxW)
+#84: FILE: mm/shmem.c:183:
++		0: security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
+ 		 ^
 
-To preserve the checks and get the logic we want shuffle the checking
-around and add a new helper to the vm_ security wrappers
+WARNING: labels should not be indented
+#84: FILE: mm/shmem.c:183:
++		0: security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
 
-Also fix a current->mm reference in nommu that should use the passed mm
+total: 2 errors, 1 warnings, 64 lines checked
 
-Reported-by: Junjiro R. Okajima <hooanon05@yahoo.co.jp>
-Acked-by: James Morris <jmorris@namei.org>
-Signed-off-by: Alan Cox <alan@redhat.com>
+./patches/nfsd-fix-vm-overcommit-crash.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alan Cox <alan@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Junjiro R. Okajima <hooanon05@yahoo.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h |    1 +
- mm/mmap.c                |    3 ++-
- mm/nommu.c               |    3 ++-
- mm/shmem.c               |    4 ++--
- security/security.c      |    9 +++++++++
- 5 files changed, 16 insertions(+), 4 deletions(-)
+ mm/shmem.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/security.h~nfsd-fix-vm-overcommit-crash include/linux/security.h
---- a/include/linux/security.h~nfsd-fix-vm-overcommit-crash
-+++ a/include/linux/security.h
-@@ -1585,6 +1585,7 @@ int security_syslog(int type);
- int security_settime(struct timespec *ts, struct timezone *tz);
- int security_vm_enough_memory(long pages);
- int security_vm_enough_memory_mm(struct mm_struct *mm, long pages);
-+int security_vm_enough_memory_kern(long pages);
- int security_bprm_alloc(struct linux_binprm *bprm);
- void security_bprm_free(struct linux_binprm *bprm);
- void security_bprm_apply_creds(struct linux_binprm *bprm, int unsafe);
-diff -puN mm/mmap.c~nfsd-fix-vm-overcommit-crash mm/mmap.c
---- a/mm/mmap.c~nfsd-fix-vm-overcommit-crash
-+++ a/mm/mmap.c
-@@ -175,7 +175,8 @@ int __vm_enough_memory(struct mm_struct 
- 
- 	/* Don't let a single process grow too big:
- 	   leave 3% of the size of this process for other processes */
--	allowed -= mm->total_vm / 32;
-+	if (mm)
-+		allowed -= mm->total_vm / 32;
- 
- 	/*
- 	 * cast `allowed' as a signed long because vm_committed_space
-diff -puN mm/nommu.c~nfsd-fix-vm-overcommit-crash mm/nommu.c
---- a/mm/nommu.c~nfsd-fix-vm-overcommit-crash
-+++ a/mm/nommu.c
-@@ -1454,7 +1454,8 @@ int __vm_enough_memory(struct mm_struct 
- 
- 	/* Don't let a single process grow too big:
- 	   leave 3% of the size of this process for other processes */
--	allowed -= current->mm->total_vm / 32;
-+	if (mm)
-+		allowed -= mm->total_vm / 32;
- 
- 	/*
- 	 * cast `allowed' as a signed long because vm_committed_space
-diff -puN mm/shmem.c~nfsd-fix-vm-overcommit-crash mm/shmem.c
---- a/mm/shmem.c~nfsd-fix-vm-overcommit-crash
+diff -puN mm/shmem.c~nfsd-fix-vm-overcommit-crash-checkpatch-fixes mm/shmem.c
+--- a/mm/shmem.c~nfsd-fix-vm-overcommit-crash-checkpatch-fixes
 +++ a/mm/shmem.c
-@@ -162,7 +162,7 @@ static inline struct shmem_sb_info *SHME
+@@ -161,8 +161,8 @@ static inline struct shmem_sb_info *SHME
+  */
  static inline int shmem_acct_size(unsigned long flags, loff_t size)
  {
- 	return (flags & VM_ACCOUNT)?
--		security_vm_enough_memory(VM_ACCT(size)): 0;
-+		security_vm_enough_memory_kern(VM_ACCT(size)): 0;
+-	return (flags & VM_ACCOUNT)?
+-		security_vm_enough_memory_kern(VM_ACCT(size)): 0;
++	return (flags & VM_ACCOUNT) ?
++		security_vm_enough_memory_kern(VM_ACCT(size)) : 0;
  }
  
  static inline void shmem_unacct_size(unsigned long flags, loff_t size)
-@@ -180,7 +180,7 @@ static inline void shmem_unacct_size(uns
+@@ -179,8 +179,8 @@ static inline void shmem_unacct_size(uns
+  */
  static inline int shmem_acct_block(unsigned long flags)
  {
- 	return (flags & VM_ACCOUNT)?
--		0: security_vm_enough_memory(VM_ACCT(PAGE_CACHE_SIZE));
-+		0: security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
+-	return (flags & VM_ACCOUNT)?
+-		0: security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
++	return (flags & VM_ACCOUNT) ?
++		0 : security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
  }
  
  static inline void shmem_unacct_blocks(unsigned long flags, long pages)
-diff -puN security/security.c~nfsd-fix-vm-overcommit-crash security/security.c
---- a/security/security.c~nfsd-fix-vm-overcommit-crash
-+++ a/security/security.c
-@@ -198,14 +198,23 @@ int security_settime(struct timespec *ts
- 
- int security_vm_enough_memory(long pages)
- {
-+	WARN_ON(current->mm == NULL);
- 	return security_ops->vm_enough_memory(current->mm, pages);
- }
- 
- int security_vm_enough_memory_mm(struct mm_struct *mm, long pages)
- {
-+	WARN_ON(mm == NULL);
- 	return security_ops->vm_enough_memory(mm, pages);
- }
- 
-+int security_vm_enough_memory_kern(long pages)
-+{
-+	/* If current->mm is a kernel thread then we will pass NULL,
-+	   for this specific case that is fine */
-+	return security_ops->vm_enough_memory(current->mm, pages);
-+}
-+
- int security_bprm_alloc(struct linux_binprm *bprm)
- {
- 	return security_ops->bprm_alloc_security(bprm);
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-rationalise-randys-address-a-bit.patch
-nfsd-fix-vm-overcommit-crash.patch
+epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+fs-remove-prepare_write-commit_write-fix.patch
+mm-write_cache_pages-writepage-error-fix.patch
+nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace-checkpatch-fixes.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+pci-uninline-pci_ioremap_bar.patch
+autofs4-collect-version-check-return-checkpatch-fixes.patch
+maintainers-make-ioat-easier-to-find.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-more-headers_check-hackarounds.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
