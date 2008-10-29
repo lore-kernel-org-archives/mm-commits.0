@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 28 Oct 2008 17:35:47 -0700
-Message-ID: <200810290035.m9T0ZlpC008359@imap1.linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Tue, 28 Oct 2008 17:37:49 -0700
+Message-ID: <200810290037.m9T0bneB009132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753158AbYJ2Agf (ORCPT
+	by vger.kernel.org with ESMTP id S1751701AbYJ2Ahv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Oct 2008 20:36:35 -0400
+	Tue, 28 Oct 2008 20:37:51 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9T0bnZ6004438
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 28 Oct 2008 17:37:50 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com, hooanon05@yahoo.co.jp, jmorris@namei.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     nfsd-fix-vm-overcommit-crash-checkpatch-fixes
+     linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch
+     linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +38,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfsd-fix-vm-overcommit-crash-checkpatch-fixes
+Subject: linux-next-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: spaces required around that ':' (ctx:VxW)
-#75: FILE: mm/shmem.c:165:
-+		security_vm_enough_memory_kern(VM_ACCT(size)): 0;
- 		                                             ^
-
-ERROR: spaces required around that ':' (ctx:VxW)
-#84: FILE: mm/shmem.c:183:
-+		0: security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
- 		 ^
-
-WARNING: labels should not be indented
-#84: FILE: mm/shmem.c:183:
-+		0: security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
-
-total: 2 errors, 1 warnings, 64 lines checked
-
-./patches/nfsd-fix-vm-overcommit-crash.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alan Cox <alan@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Junjiro R. Okajima <hooanon05@yahoo.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/security.h |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/shmem.c~nfsd-fix-vm-overcommit-crash-checkpatch-fixes mm/shmem.c
---- a/mm/shmem.c~nfsd-fix-vm-overcommit-crash-checkpatch-fixes
-+++ a/mm/shmem.c
-@@ -161,8 +161,8 @@ static inline struct shmem_sb_info *SHME
-  */
- static inline int shmem_acct_size(unsigned long flags, loff_t size)
- {
--	return (flags & VM_ACCOUNT)?
--		security_vm_enough_memory_kern(VM_ACCT(size)): 0;
-+	return (flags & VM_ACCOUNT) ?
-+		security_vm_enough_memory_kern(VM_ACCT(size)) : 0;
- }
- 
- static inline void shmem_unacct_size(unsigned long flags, loff_t size)
-@@ -179,8 +179,8 @@ static inline void shmem_unacct_size(uns
-  */
- static inline int shmem_acct_block(unsigned long flags)
- {
--	return (flags & VM_ACCOUNT)?
--		0: security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
-+	return (flags & VM_ACCOUNT) ?
-+		0 : security_vm_enough_memory_kern(VM_ACCT(PAGE_CACHE_SIZE));
- }
- 
- static inline void shmem_unacct_blocks(unsigned long flags, long pages)
+diff -puN include/linux/security.h~linux-next-rejects include/linux/security.h
+--- a/include/linux/security.h~linux-next-rejects
++++ a/include/linux/security.h
+@@ -1562,12 +1562,10 @@ int security_settime(struct timespec *ts
+ int security_vm_enough_memory(long pages);
+ int security_vm_enough_memory_mm(struct mm_struct *mm, long pages);
+ int security_vm_enough_memory_kern(long pages);
+-int security_bprm_alloc(struct linux_binprm *bprm);
+-void security_bprm_free(struct linux_binprm *bprm);
+-void security_bprm_apply_creds(struct linux_binprm *bprm, int unsafe);
+-void security_bprm_post_apply_creds(struct linux_binprm *bprm);
+-int security_bprm_set(struct linux_binprm *bprm);
++int security_bprm_set_creds(struct linux_binprm *bprm);
+ int security_bprm_check(struct linux_binprm *bprm);
++void security_bprm_committing_creds(struct linux_binprm *bprm);
++void security_bprm_committed_creds(struct linux_binprm *bprm);
+ int security_bprm_secureexec(struct linux_binprm *bprm);
+ int security_sb_alloc(struct super_block *sb);
+ void security_sb_free(struct super_block *sb);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,8 +77,9 @@ mm-write_cache_pages-writepage-error-fix.patch
 nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-next-remove-localversion.patch
 linux-next-git-rejects.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
 arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 linux-timexh-cleanup-for-userspace-checkpatch-fixes.patch
