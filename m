@@ -1,74 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 29 Oct 2008 12:44:06 -0700
-Message-ID: <200810291944.m9TJi7qR015315@imap1.linux-foundation.org>
+Subject: - ia64-fix-arch-ia64-kernel-iosapicc-build.patch removed from -mm tree
+Date: Wed, 29 Oct 2008 12:53:42 -0700
+Message-ID: <200810291953.m9TJrgqD018851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40594 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752324AbYJ2To4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753541AbYJ2Txo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Oct 2008 15:44:56 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9TJi7UZ001349
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 29 Oct 2008 12:44:08 -0700
+	Wed, 29 Oct 2008 15:53:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     ia64: fix arch/ia64/kernel/iosapic.c build
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     ia64-fix-arch-ia64-kernel-iosapicc-build.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: ia64: fix arch/ia64/kernel/iosapic.c build
 From: Andrew Morton <akpm@linux-foundation.org>
 
+- someone can't type (or test)
+
+- nr_cpu_ids is declared in cpumask.h.  Include it.
+
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kvm_host.h |    5 -----
- virt/kvm/kvm_main.c      |    4 ----
- 2 files changed, 9 deletions(-)
+ arch/ia64/kernel/iosapic.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kvm_host.h~linux-next-git-rejects include/linux/kvm_host.h
---- a/include/linux/kvm_host.h~linux-next-git-rejects
-+++ a/include/linux/kvm_host.h
-@@ -316,12 +316,7 @@ void kvm_set_irq(struct kvm *kvm, int ir
- void kvm_notify_acked_irq(struct kvm *kvm, unsigned gsi);
- void kvm_register_irq_ack_notifier(struct kvm *kvm,
- 				   struct kvm_irq_ack_notifier *kian);
--<<<<<<< HEAD:include/linux/kvm_host.h
--void kvm_unregister_irq_ack_notifier(struct kvm *kvm,
--				     struct kvm_irq_ack_notifier *kian);
--=======
- void kvm_unregister_irq_ack_notifier(struct kvm_irq_ack_notifier *kian);
-->>>>>>> FETCH_HEAD:include/linux/kvm_host.h
- int kvm_request_irq_source_id(struct kvm *kvm);
- void kvm_free_irq_source_id(struct kvm *kvm, int irq_source_id);
+diff -puN arch/ia64/kernel/iosapic.c~ia64-fix-arch-ia64-kernel-iosapicc-build arch/ia64/kernel/iosapic.c
+--- a/arch/ia64/kernel/iosapic.c~ia64-fix-arch-ia64-kernel-iosapicc-build
++++ a/arch/ia64/kernel/iosapic.c
+@@ -85,6 +85,7 @@
+ #include <linux/irq.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
++#include <linux/cpumask.h>
+ #include <linux/pci.h>
+ #include <linux/smp.h>
+ #include <linux/string.h>
+@@ -720,7 +721,7 @@ get_target_cpu (unsigned int gsi, int ir
+ 		for (numa_cpu = first_cpu(cpu_mask) ; i < cpu_index ; i++)
+ 			numa_cpu = next_cpu(numa_cpu, cpu_mask);
  
-diff -puN virt/kvm/kvm_main.c~linux-next-git-rejects virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~linux-next-git-rejects
-+++ a/virt/kvm/kvm_main.c
-@@ -143,11 +143,7 @@ static void kvm_free_assigned_device(str
- 	if (irqchip_in_kernel(kvm) && assigned_dev->irq_requested)
- 		free_irq(assigned_dev->host_irq, (void *)assigned_dev);
- 
--<<<<<<< HEAD:virt/kvm/kvm_main.c
--	kvm_unregister_irq_ack_notifier(kvm, &assigned_dev->ack_notifier);
--=======
- 	kvm_unregister_irq_ack_notifier(&assigned_dev->ack_notifier);
-->>>>>>> FETCH_HEAD:virt/kvm/kvm_main.c
- 	kvm_free_irq_source_id(kvm, assigned_dev->irq_source_id);
- 
- 	if (cancel_work_sync(&assigned_dev->interrupt_work))
+-		if (numa_cpu < nr_cpus_ids)
++		if (numa_cpu < nr_cpu_ids)
+ 			return cpu_physical_id(numa_cpu);
+ 	}
+ skip_numa_setup:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,10 +70,8 @@ nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch
 nfsd-fix-vm-overcommit-crash-fix.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-linux-next-git-rejects.patch
 linux-next-rejects.patch
 next-remove-localversion.patch
-ia64-fix-arch-ia64-kernel-iosapicc-build.patch
 arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 linux-timexh-cleanup-for-userspace-checkpatch-fixes.patch
