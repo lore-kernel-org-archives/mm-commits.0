@@ -1,305 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-new-lsm-hooks-where-vfsmount-is-available-update.patch removed from -mm tree
-Date: Wed, 29 Oct 2008 14:26:58 -0700
-Message-ID: <200810292126.m9TLQw2s022150@imap1.linux-foundation.org>
+Subject: - drivers-net-sfc-falconc-fix-min-warnings.patch removed from -mm tree
+Date: Wed, 29 Oct 2008 14:35:50 -0700
+Message-ID: <200810292135.m9TLZppO025527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753679AbYJ2V2R (ORCPT
+	by vger.kernel.org with ESMTP id S1755614AbYJ2Vgf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Oct 2008 17:28:17 -0400
+	Wed, 29 Oct 2008 17:36:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: takedakn@nttdata.co.jp, casey@schaufler-ca.com, crispin@crispincowan.com, haradats@nttdata.co.jp, hch@lst.de, jmorris@namei.org, penguin-kernel@I-love.SAKURA.ne.jp, sds@tycho.nsa.gov
+To: akpm@linux-foundation.org, bhutchings@solarflare.com, jgarzik@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce-new-lsm-hooks-where-vfsmount-is-available update
+     drivers/net/sfc/falcon.c: fix min() warnings
 has been removed from the -mm tree.  Its filename was
-     introduce-new-lsm-hooks-where-vfsmount-is-available-update.patch
+     drivers-net-sfc-falconc-fix-min-warnings.patch
 
-This patch was dropped because it was folded into introduce-new-lsm-hooks-where-vfsmount-is-available.patch
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: introduce-new-lsm-hooks-where-vfsmount-is-available update
-From: Kentaro Takeda <takedakn@nttdata.co.jp>
+Subject: drivers/net/sfc/falcon.c: fix min() warnings
+From: Andrew Morton <akpm@linux-foundation.org>
 
-James Morris wrote:
-> I don't see any technical errors in this patch.
-Thanks for your review.
+drivers/net/sfc/falcon.c: In function 'falcon_spi_write_limit':
+drivers/net/sfc/falcon.c:1679: warning: comparison of distinct pointer types lacks a cast
+drivers/net/sfc/falcon.c: In function 'falcon_spi_read':
+drivers/net/sfc/falcon.c:1720: warning: comparison of distinct pointer types lacks a cast
 
-> If it is going to be merged, please make a new config option for
-> path-based hooks (similar to that for the network hooks), so they can be
-> compiled out.
-I see, here it is.
+Driver seems rather confused about types.  Try to help it.
 
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Toshiharu Harada <haradats@nttdata.co.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Crispin Cowan <crispin@crispincowan.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: James Morris <jmorris@namei.org>
+Cc: Ben Hutchings <bhutchings@solarflare.com>
+Cc: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h |  132 +++++++++++++++++++------------------
- security/Kconfig         |    9 ++
- security/capability.c    |    4 +
- security/security.c      |    2 
- 4 files changed, 83 insertions(+), 64 deletions(-)
+ drivers/net/sfc/falcon.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/security.h~introduce-new-lsm-hooks-where-vfsmount-is-available-update include/linux/security.h
---- a/include/linux/security.h~introduce-new-lsm-hooks-where-vfsmount-is-available-update
-+++ a/include/linux/security.h
-@@ -1384,6 +1384,7 @@ struct security_operations {
- 				   struct super_block *newsb);
- 	int (*sb_parse_opts_str) (char *options, struct security_mnt_opts *opts);
- 
-+#ifdef CONFIG_SECURITY_PATH
- 	int (*path_unlink) (struct path *dir, struct dentry *dentry);
- 	int (*path_mkdir) (struct path *dir, struct dentry *dentry, int mode);
- 	int (*path_rmdir) (struct path *dir, struct dentry *dentry);
-@@ -1397,6 +1398,7 @@ struct security_operations {
- 			  struct dentry *new_dentry);
- 	int (*path_rename) (struct path *old_dir, struct dentry *old_dentry,
- 			    struct path *new_dir, struct dentry *new_dentry);
-+#endif
- 
- 	int (*inode_alloc_security) (struct inode *inode);
- 	void (*inode_free_security) (struct inode *inode);
-@@ -1659,20 +1661,6 @@ void security_sb_clone_mnt_opts(const st
- 				struct super_block *newsb);
- int security_sb_parse_opts_str(char *options, struct security_mnt_opts *opts);
- 
--int security_path_unlink(struct path *dir, struct dentry *dentry);
--int security_path_mkdir(struct path *dir, struct dentry *dentry, int mode);
--int security_path_rmdir(struct path *dir, struct dentry *dentry);
--int security_path_mknod(struct path *dir, struct dentry *dentry, int mode,
--			unsigned int dev);
--int security_path_truncate(struct path *path, loff_t length,
--			   unsigned int time_attrs, struct file *filp);
--int security_path_symlink(struct path *dir, struct dentry *dentry,
--			  const char *old_name);
--int security_path_link(struct dentry *old_dentry, struct path *new_dir,
--		       struct dentry *new_dentry);
--int security_path_rename(struct path *old_dir, struct dentry *old_dentry,
--			 struct path *new_dir, struct dentry *new_dentry);
--
- int security_inode_alloc(struct inode *inode);
- void security_inode_free(struct inode *inode);
- int security_inode_init_security(struct inode *inode, struct inode *dir,
-@@ -1994,56 +1982,6 @@ static inline int security_sb_parse_opts
+diff -puN drivers/net/sfc/falcon.c~drivers-net-sfc-falconc-fix-min-warnings drivers/net/sfc/falcon.c
+--- a/drivers/net/sfc/falcon.c~drivers-net-sfc-falconc-fix-min-warnings
++++ a/drivers/net/sfc/falcon.c
+@@ -1685,8 +1685,8 @@ static int falcon_spi_cmd(const struct e
  	return 0;
  }
  
--static inline int security_path_unlink(struct path *dir, struct dentry *dentry)
--{
--	return 0;
--}
--
--static inline int security_path_mkdir(struct path *dir, struct dentry *dentry,
--				      int mode)
--{
--	return 0;
--}
--
--static inline int security_path_rmdir(struct path *dir, struct dentry *dentry)
--{
--	return 0;
--}
--
--static inline int security_path_mknod(struct path *dir, struct dentry *dentry,
--				      int mode, unsigned int dev)
--{
--	return 0;
--}
--
--static inline int security_path_truncate(struct path *path, loff_t length,
--					 unsigned int time_attrs,
--					 struct file *filp)
--{
--	return 0;
--}
--
--static inline int security_path_symlink(struct path *dir, struct dentry *dentry,
--					const char *old_name)
--{
--	return 0;
--}
--
--static inline int security_path_link(struct dentry *old_dentry,
--				     struct path *new_dir,
--				     struct dentry *new_dentry)
--{
--	return 0;
--}
--
--static inline int security_path_rename(struct path *old_dir,
--				       struct dentry *old_dentry,
--				       struct path *new_dir,
--				       struct dentry *new_dentry)
--{
--	return 0;
--}
--
- static inline int security_inode_alloc(struct inode *inode)
+-static unsigned int
+-falcon_spi_write_limit(const struct efx_spi_device *spi, unsigned int start)
++static size_t
++falcon_spi_write_limit(const struct efx_spi_device *spi, size_t start)
  {
- 	return 0;
-@@ -2826,6 +2764,72 @@ static inline void security_skb_classify
+ 	return min(FALCON_SPI_MAX_LEN,
+ 		   (spi->block_size - (start & (spi->block_size - 1))));
+@@ -1729,8 +1729,7 @@ int falcon_spi_read(const struct efx_spi
+ 	int rc = 0;
  
- #endif	/* CONFIG_SECURITY_NETWORK_XFRM */
+ 	while (pos < len) {
+-		block_len = min((unsigned int)len - pos,
+-				FALCON_SPI_MAX_LEN);
++		block_len = min(len - pos, FALCON_SPI_MAX_LEN);
  
-+#ifdef CONFIG_SECURITY_PATH
-+int security_path_unlink(struct path *dir, struct dentry *dentry);
-+int security_path_mkdir(struct path *dir, struct dentry *dentry, int mode);
-+int security_path_rmdir(struct path *dir, struct dentry *dentry);
-+int security_path_mknod(struct path *dir, struct dentry *dentry, int mode,
-+			unsigned int dev);
-+int security_path_truncate(struct path *path, loff_t length,
-+			   unsigned int time_attrs, struct file *filp);
-+int security_path_symlink(struct path *dir, struct dentry *dentry,
-+			  const char *old_name);
-+int security_path_link(struct dentry *old_dentry, struct path *new_dir,
-+		       struct dentry *new_dentry);
-+int security_path_rename(struct path *old_dir, struct dentry *old_dentry,
-+			 struct path *new_dir, struct dentry *new_dentry);
-+#else	/* CONFIG_SECURITY_PATH */
-+static inline int security_path_unlink(struct path *dir, struct dentry *dentry)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_mkdir(struct path *dir, struct dentry *dentry,
-+				      int mode)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_rmdir(struct path *dir, struct dentry *dentry)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_mknod(struct path *dir, struct dentry *dentry,
-+				      int mode, unsigned int dev)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_truncate(struct path *path, loff_t length,
-+					 unsigned int time_attrs,
-+					 struct file *filp)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_symlink(struct path *dir, struct dentry *dentry,
-+					const char *old_name)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_link(struct dentry *old_dentry,
-+				     struct path *new_dir,
-+				     struct dentry *new_dentry)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_rename(struct path *old_dir,
-+				       struct dentry *old_dentry,
-+				       struct path *new_dir,
-+				       struct dentry *new_dentry)
-+{
-+	return 0;
-+}
-+#endif	/* CONFIG_SECURITY_PATH */
-+
- #ifdef CONFIG_KEYS
- #ifdef CONFIG_SECURITY
+ 		command = efx_spi_munge_command(spi, SPI_READ, start + pos);
+ 		rc = falcon_spi_cmd(spi, command, start + pos, NULL,
+@@ -1764,7 +1763,7 @@ int falcon_spi_write(const struct efx_sp
+ 		if (rc)
+ 			break;
  
-diff -puN security/Kconfig~introduce-new-lsm-hooks-where-vfsmount-is-available-update security/Kconfig
---- a/security/Kconfig~introduce-new-lsm-hooks-where-vfsmount-is-available-update
-+++ a/security/Kconfig
-@@ -81,6 +81,15 @@ config SECURITY_NETWORK_XFRM
- 	  IPSec.
- 	  If you are unsure how to answer this question, answer N.
- 
-+config SECURITY_PATH
-+	bool "Security hooks for pathname based access control"
-+	depends on SECURITY
-+	help
-+	  This enables the security hooks for pathname based access control.
-+	  If enabled, a security module can use these hooks to
-+	  implement pathname based access controls.
-+	  If you are unsure how to answer this question, answer N.
-+
- config SECURITY_FILE_CAPABILITIES
- 	bool "File POSIX Capabilities"
- 	default n
-diff -puN security/capability.c~introduce-new-lsm-hooks-where-vfsmount-is-available-update security/capability.c
---- a/security/capability.c~introduce-new-lsm-hooks-where-vfsmount-is-available-update
-+++ a/security/capability.c
-@@ -263,6 +263,7 @@ static void cap_inode_getsecid(const str
- 	*secid = 0;
- }
- 
-+#ifdef CONFIG_SECURITY_PATH
- static int cap_path_mknod(struct path *dir, struct dentry *dentry, int mode,
- 			  unsigned int dev)
- {
-@@ -307,6 +308,7 @@ static int cap_path_truncate(struct path
- {
- 	return 0;
- }
-+#endif
- 
- static int cap_file_permission(struct file *file, int mask)
- {
-@@ -928,6 +930,7 @@ void security_fixup_ops(struct security_
- 	set_to_cap_if_null(ops, inode_setsecurity);
- 	set_to_cap_if_null(ops, inode_listsecurity);
- 	set_to_cap_if_null(ops, inode_getsecid);
-+#ifdef CONFIG_SECURITY_PATH
- 	set_to_cap_if_null(ops, path_mknod);
- 	set_to_cap_if_null(ops, path_mkdir);
- 	set_to_cap_if_null(ops, path_rmdir);
-@@ -936,6 +939,7 @@ void security_fixup_ops(struct security_
- 	set_to_cap_if_null(ops, path_link);
- 	set_to_cap_if_null(ops, path_rename);
- 	set_to_cap_if_null(ops, path_truncate);
-+#endif
- 	set_to_cap_if_null(ops, file_permission);
- 	set_to_cap_if_null(ops, file_alloc_security);
- 	set_to_cap_if_null(ops, file_free_security);
-diff -puN security/security.c~introduce-new-lsm-hooks-where-vfsmount-is-available-update security/security.c
---- a/security/security.c~introduce-new-lsm-hooks-where-vfsmount-is-available-update
-+++ a/security/security.c
-@@ -350,6 +350,7 @@ int security_inode_init_security(struct 
- }
- EXPORT_SYMBOL(security_inode_init_security);
- 
-+#ifdef CONFIG_SECURITY_PATH
- int security_path_mknod(struct path *path, struct dentry *dentry, int mode,
- 			unsigned int dev)
- {
-@@ -413,6 +414,7 @@ int security_path_truncate(struct path *
- 		return 0;
- 	return security_ops->path_truncate(path, length, time_attrs, filp);
- }
-+#endif
- 
- int security_inode_create(struct inode *dir, struct dentry *dentry, int mode)
- {
+-		block_len = min((unsigned int)len - pos,
++		block_len = min(len - pos,
+ 				falcon_spi_write_limit(spi, start + pos));
+ 		command = efx_spi_munge_command(spi, SPI_WRITE, start + pos);
+ 		rc = falcon_spi_cmd(spi, command, start + pos,
 _
 
-Patches currently in -mm which might be from takedakn@nttdata.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-introduce-new-lsm-hooks-where-vfsmount-is-available.patch
-introduce-new-lsm-hooks-where-vfsmount-is-available-update.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
+fs-remove-prepare_write-commit_write.patch
+mm-write_cache_pages-writepage-error-fix.patch
+nfsd-fix-vm-overcommit-crash.patch
+autofs4-collect-version-check-return-checkpatch-fixes.patch
+maintainers-make-ioat-easier-to-find.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+pci-uninline-pci_ioremap_bar.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
