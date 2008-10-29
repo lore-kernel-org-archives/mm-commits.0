@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-fix-arch-ia64-kernel-iosapicc-build.patch added to -mm tree
-Date: Tue, 28 Oct 2008 21:47:03 -0700
-Message-ID: <200810290501.m9T51ssA009976@imap1.linux-foundation.org>
+Subject: + nfsd-fix-vm-overcommit-crash-fix.patch added to -mm tree
+Date: Tue, 28 Oct 2008 22:36:30 -0700
+Message-ID: <200810290536.m9T5aUQg022810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39663 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751223AbYJ2FB5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751870AbYJ2FiF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Oct 2008 01:01:57 -0400
+	Wed, 29 Oct 2008 01:38:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, alan@redhat.com, hooanon05@yahoo.co.jp, jmorris@namei.org
 
 
 The patch titled
-     ia64: fix arch/ia64/kernel/iosapic.c build
+     nfsd-fix-vm-overcommit-crash-fix
 has been added to the -mm tree.  Its filename is
-     ia64-fix-arch-ia64-kernel-iosapicc-build.patch
+     nfsd-fix-vm-overcommit-crash-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: fix arch/ia64/kernel/iosapic.c build
+Subject: nfsd-fix-vm-overcommit-crash-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- someone can't type (or test)
+mm/shmem.c: In function 'shmem_acct_size':
+mm/shmem.c:165: error: implicit declaration of function 'security_vm_enough_memory_kern'
 
-- nr_cpu_ids is declared in cpumask.h.  Include it.
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Alan Cox <alan@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Junjiro R. Okajima <hooanon05@yahoo.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/iosapic.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/security.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN arch/ia64/kernel/iosapic.c~ia64-fix-arch-ia64-kernel-iosapicc-build arch/ia64/kernel/iosapic.c
---- a/arch/ia64/kernel/iosapic.c~ia64-fix-arch-ia64-kernel-iosapicc-build
-+++ a/arch/ia64/kernel/iosapic.c
-@@ -85,6 +85,7 @@
- #include <linux/irq.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
-+#include <linux/cpumask.h>
- #include <linux/pci.h>
- #include <linux/smp.h>
- #include <linux/string.h>
-@@ -720,7 +721,7 @@ get_target_cpu (unsigned int gsi, int ir
- 		for (numa_cpu = first_cpu(cpu_mask) ; i < cpu_index ; i++)
- 			numa_cpu = next_cpu(numa_cpu, cpu_mask);
+diff -puN mm/shmem.c~nfsd-fix-vm-overcommit-crash-fix mm/shmem.c
+diff -puN include/linux/security.h~nfsd-fix-vm-overcommit-crash-fix include/linux/security.h
+--- a/include/linux/security.h~nfsd-fix-vm-overcommit-crash-fix
++++ a/include/linux/security.h
+@@ -1821,6 +1821,11 @@ static inline int security_vm_enough_mem
+ 	return cap_vm_enough_memory(current->mm, pages);
+ }
  
--		if (numa_cpu < nr_cpus_ids)
-+		if (numa_cpu < nr_cpu_ids)
- 			return cpu_physical_id(numa_cpu);
- 	}
- skip_numa_setup:
++static inline int security_vm_enough_memory_kern(long pages)
++{
++	return cap_vm_enough_memory(current->mm, pages);
++}
++
+ static inline int security_vm_enough_memory_mm(struct mm_struct *mm, long pages)
+ {
+ 	return cap_vm_enough_memory(mm, pages);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +74,7 @@ freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
 fs-remove-prepare_write-commit_write-fix.patch
 mm-write_cache_pages-writepage-error-fix.patch
 nfsd-fix-vm-overcommit-crash-checkpatch-fixes.patch
+nfsd-fix-vm-overcommit-crash-fix.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 linux-next-git-rejects.patch
