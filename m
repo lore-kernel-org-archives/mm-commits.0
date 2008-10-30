@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-email-clientstxt-add-some-info-about-gmail.patch added to -mm tree
-Date: Thu, 30 Oct 2008 12:50:58 -0700
-Message-ID: <200810301950.m9UJowvv010595@imap1.linux-foundation.org>
+Subject: + wireless-iwlwifi-fix-debugfs_create_bools-error-checking.patch added to -mm tree
+Date: Thu, 30 Oct 2008 13:07:13 -0700
+Message-ID: <200810302007.m9UK7Ddf016957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37919 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32798 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750907AbYJ3Tvd (ORCPT
+	by vger.kernel.org with ESMTP id S1750990AbYJ3UHy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 15:51:33 -0400
+	Thu, 30 Oct 2008 16:07:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thockin@google.com
+Cc: zhaolei@cn.fujitsu.com, emmanuel.grumbach@intel.com, linville@tuxdriver.com, reinette.chatre@intel.com, tomas.winkler@intel.com, yi.zhu@intel.com
 
 
 The patch titled
-     Documentation/email-clients.txt: add some info about gmail
+     wireless/iwlwifi/: fix debugfs_create_bool()'s error checking
 has been added to the -mm tree.  Its filename is
-     documentation-email-clientstxt-add-some-info-about-gmail.patch
+     wireless-iwlwifi-fix-debugfs_create_bools-error-checking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/email-clients.txt: add some info about gmail
-From: Tim Hockin <thockin@google.com>
+Subject: wireless/iwlwifi/: fix debugfs_create_bool()'s error checking
+From: Zhao Lei <zhaolei@cn.fujitsu.com>
 
-Signed-off-by: Tim Hockin <thockin@google.com>
+debugfs_create_bool() returns NULL if an error occurs, returns -ENODEV
+when debugfs is not enabled in the kernel.
+
+Signed-off-by: Zhao Lei <zhaolei@cn.fujitsu.com>
+Cc: Tomas Winkler <tomas.winkler@intel.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Reinette Chatre <reinette.chatre@intel.com>
+Cc: Emmanuel Grumbach <emmanuel.grumbach@intel.com>
+Cc: Zhu Yi <yi.zhu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/email-clients.txt |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ drivers/net/wireless/iwlwifi/iwl-debugfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/email-clients.txt~documentation-email-clientstxt-add-some-info-about-gmail Documentation/email-clients.txt
---- a/Documentation/email-clients.txt~documentation-email-clientstxt-add-some-info-about-gmail
-+++ a/Documentation/email-clients.txt
-@@ -213,4 +213,29 @@ TkRat (GUI)
+diff -puN drivers/net/wireless/iwlwifi/iwl-debugfs.c~wireless-iwlwifi-fix-debugfs_create_bools-error-checking drivers/net/wireless/iwlwifi/iwl-debugfs.c
+--- a/drivers/net/wireless/iwlwifi/iwl-debugfs.c~wireless-iwlwifi-fix-debugfs_create_bools-error-checking
++++ a/drivers/net/wireless/iwlwifi/iwl-debugfs.c
+@@ -58,7 +58,8 @@
+ #define DEBUGFS_ADD_BOOL(name, parent, ptr) do {                        \
+ 	dbgfs->dbgfs_##parent##_files.file_##name =                     \
+ 	debugfs_create_bool(#name, 0644, dbgfs->dir_##parent, ptr);     \
+-	if (IS_ERR(dbgfs->dbgfs_##parent##_files.file_##name))          \
++	if (IS_ERR(dbgfs->dbgfs_##parent##_files.file_##name)		\
++			|| !dbgfs->dbgfs_##parent##_files.file_##name)	\
+ 		goto err;                                               \
+ } while (0)
  
- Works.  Use "Insert file..." or external editor.
- 
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+Gmail (Web GUI)
-+
-+If you just have to use Gmail to send patches, it CAN be made to work.  It
-+requires a bit of external help, though.
-+
-+The first problem is that Gmail converts tabs to spaces.  This will
-+totally break your patches.  To prevent this, you have to use a different
-+editor.  There is a firefox extension called "ViewSourceWith"
-+(https://addons.mozilla.org/en-US/firefox/addon/394) which allows you to
-+edit any text box in the editor of your choice.  Configure it to launch
-+your favorite editor.  When you want to send a patch, use this technique.
-+Once you have crafted your messsage + patch, save and exit the editor,
-+which should reload the Gmail edit box.  GMAIL WILL PRESERVE THE TABS.
-+Hoorah.  Apparently you can cut-n-paste literal tabs, but Gmail will
-+convert those to spaces upon sending!
-+
-+The second problem is that Gmail converts tabs to spaces on replies.  If
-+you reply to a patch, don't expect to be able to apply it as a patch.
-+
-+The last problem is that Gmail will base64-encode any message that has a
-+non-ASCII character.  That includes things like European names.  Be aware.
-+
-+Gmail is not convenient for lkml patches, but CAN be made to work.
-+
-                                 ###
 _
 
-Patches currently in -mm which might be from thockin@google.com are
+Patches currently in -mm which might be from zhaolei@cn.fujitsu.com are
 
-documentation-email-clientstxt-add-some-info-about-gmail.patch
+origin.patch
+linux-next.patch
+wireless-iwlwifi-fix-debugfs_create_bools-error-checking.patch
 
