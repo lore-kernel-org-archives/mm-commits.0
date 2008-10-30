@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-write_cache_pages-integrity-fix.patch added to -mm tree
-Date: Thu, 30 Oct 2008 16:14:36 -0700
-Message-ID: <200810302314.m9UNEagZ027523@imap1.linux-foundation.org>
+Subject: + mm-write_cache_pages-more-terminate-quickly.patch added to -mm tree
+Date: Thu, 30 Oct 2008 16:14:44 -0700
+Message-ID: <200810302314.m9UNEiID027593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46898 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754387AbYJ3XPQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754472AbYJ3XPY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 19:15:16 -0400
+	Thu, 30 Oct 2008 19:15:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, chris.mason@oracle.com, david@fromorbit.com, jowens@hp.com
+Cc: akpm@linux-foundation.org, chris.mason@oracle.com, david@fromorbit.com, jowens@hp.com, npiggin@suse.de
 
 
 The patch titled
-     mm: write_cache_pages integrity fix
+     mm: write_cache_pages more terminate quickly
 has been added to the -mm tree.  Its filename is
-     mm-write_cache_pages-integrity-fix.patch
+     mm-write_cache_pages-more-terminate-quickly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: write_cache_pages integrity fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: mm: write_cache_pages more terminate quickly
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In write_cache_pages, nr_to_write is heeded even for data-integrity syncs,
-so the function will return success after writing out nr_to_write pages,
-even if that was not sufficient to guarantee data integrity.
-
-The callers tend to set it to values that could break data interity
-semantics easily in practice.  For example, nr_to_write can be set to
-mapping->nr_pages * 2, however if a file has a single, dirty page, then
-fsync is called, subsequent pages might be concurrently added and dirtied,
-then write_cache_pages might writeout two of these newly dirty pages,
-while not writing out the old page that should have been written out.
-
-Fix this by ignoring nr_to_write if it is a data integrity sync.
-
-This is a data integrity bug.
-
-The reason this has been done in the past is to avoid stalling sync
-operations behind page dirtiers.
-
- "If a file has one dirty page at offset 1000000000000000 then someone
-  does an fsync() and someone else gets in first and starts madly writing
-  pages at offset 0, we want to write that page at 1000000000000000. 
-  Somehow."
-
-What we do today is return success after an arbitrary amount of pages are
-written, whether or not we have provided the data-integrity semantics that
-the caller has asked for.  Even this doesn't actually fix all stall cases
-completely: in the above situation, if the file has a huge number of pages
-in pagecache (but not dirty), then mapping->nrpages is going to be huge,
-even if pages are being dirtied.
-
-This change does indeed make the possibility of long stalls lager, and
-that's not a good thing, but lying about data integrity is even worse.  We
-have to either perform the sync, or return -ELINUXISLAME so at least the
-caller knows what has happened.
-
-There are subsequent competing approaches in the works to solve the stall
-problems properly, without compromising data integrity.
+Now that we have the early-termination logic in place, it makes sense to
+bail out early in all other cases where done is set to 1.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -82,58 +47,86 @@ Cc: jim owens <jowens@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c        |    2 +-
- mm/page-writeback.c |    6 ++++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ mm/page-writeback.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-write_cache_pages-integrity-fix mm/filemap.c
---- a/mm/filemap.c~mm-write_cache_pages-integrity-fix
-+++ a/mm/filemap.c
-@@ -210,7 +210,7 @@ int __filemap_fdatawrite_range(struct ad
- 	int ret;
- 	struct writeback_control wbc = {
- 		.sync_mode = sync_mode,
--		.nr_to_write = mapping->nrpages * 2,
-+		.nr_to_write = LONG_MAX,
- 		.range_start = start,
- 		.range_end = end,
- 	};
-diff -puN mm/page-writeback.c~mm-write_cache_pages-integrity-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-write_cache_pages-integrity-fix
+diff -puN mm/page-writeback.c~mm-write_cache_pages-more-terminate-quickly mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-write_cache_pages-more-terminate-quickly
 +++ a/mm/page-writeback.c
-@@ -963,8 +963,10 @@ retry:
- 				}
-  			}
+@@ -983,12 +983,15 @@ continue_unlock:
  
--			if (--nr_to_write <= 0)
--				done = 1;
-+			if (wbc->sync_mode == WB_SYNC_NONE) {
-+				if (--wbc->nr_to_write <= 0)
-+					done = 1;
-+			}
+ 			if (wbc->sync_mode == WB_SYNC_NONE) {
+ 				wbc->nr_to_write--;
+-				if (wbc->nr_to_write <= 0)
++				if (wbc->nr_to_write <= 0) {
+ 					done = 1;
++					break;
++				}
+ 			}
  			if (wbc->nonblocking && bdi_write_congested(bdi)) {
  				wbc->encountered_congestion = 1;
  				done = 1;
++				break;
+ 			}
+ 		}
+ 		pagevec_release(&pvec);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-increase-the-default-mlock-limit-from-32k-to-64k.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
 fs-remove-prepare_write-commit_write.patch
+nfsd-fix-vm-overcommit-crash.patch
+autofs4-collect-version-check-return-checkpatch-fixes.patch
+maintainers-make-ioat-easier-to-find.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-mm-dont-mark_page_accessed-in-fault-path.patch
-mm-invoke-oom-killer-from-page-fault.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+pci-uninline-pci_ioremap_bar.patch
+cpusets-update-mems-allowed-in-page-allocator-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-invoke-oom-killer-from-page-fault-fix.patch
 mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-cyclic-fix.patch
-mm-write_cache_pages-cyclic-fix-fix.patch
-mm-write_cache_pages-early-loop-termination.patch
-mm-write_cache_pages-writepage-error-fix.patch
-mm-write_cache_pages-integrity-fix.patch
-mm-write_cache_pages-cleanups.patch
-mm-write_cache_pages-optimise-page-cleaning.patch
-mm-write_cache_pages-terminate-quickly.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
 mm-write_cache_pages-more-terminate-quickly.patch
-mm-do_sync_mapping_range-integrity-fix.patch
+init-properly-placing-noinline-keyword.patch
+oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix.patch
+spi_gpio-driver-cleanups.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
 reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
