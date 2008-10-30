@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wireless-rt2x00-fix-debugfs_create_s-error-checking.patch added to -mm tree
-Date: Thu, 30 Oct 2008 13:08:22 -0700
-Message-ID: <200810302008.m9UK8Ncq017405@imap1.linux-foundation.org>
+Subject: + oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix.patch added to -mm tree
+Date: Thu, 30 Oct 2008 13:17:45 -0700
+Message-ID: <200810302017.m9UKHjsN021193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751292AbYJ3UJC (ORCPT
+	by vger.kernel.org with ESMTP id S1754493AbYJ3UTM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 16:09:02 -0400
+	Thu, 30 Oct 2008 16:19:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zhaolei@cn.fujitsu.com, IvDoorn@gmail.com, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, mingo@elte.hu, viktor.rosendahl@nokia.com
 
 
 The patch titled
-     wireless/rt2x00/: fix debugfs_create_*()'s error checking
+     oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix
 has been added to the -mm tree.  Its filename is
-     wireless-rt2x00-fix-debugfs_create_s-error-checking.patch
+     oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +34,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wireless/rt2x00/: fix debugfs_create_*()'s error checking
+Subject: oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
+We can now remove that unblank_screen(), because the console_unblank()
+will call vt_console_driver.unblank() for us.
 
-debugfs_create_*() returns NULL if an error occurs, returns -ENODEV when
-debugfs is not enabled in the kernel.
-
-Signed-off-by: Zhao Lei <zhaolei@cn.fujitsu.com>
-Acked-by: Ivo van Doorn <IvDoorn@gmail.com>
-Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Viktor Rosendahl <viktor.rosendahl@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/rt2x00/rt2x00debug.c |   21 +++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ lib/bust_spinlocks.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/net/wireless/rt2x00/rt2x00debug.c~wireless-rt2x00-fix-debugfs_create_s-error-checking drivers/net/wireless/rt2x00/rt2x00debug.c
---- a/drivers/net/wireless/rt2x00/rt2x00debug.c~wireless-rt2x00-fix-debugfs_create_s-error-checking
-+++ a/drivers/net/wireless/rt2x00/rt2x00debug.c
-@@ -587,29 +587,29 @@ void rt2x00debug_register(struct rt2x00_
- 	intf->driver_folder =
- 	    debugfs_create_dir(intf->rt2x00dev->ops->name,
- 			       rt2x00dev->hw->wiphy->debugfsdir);
--	if (IS_ERR(intf->driver_folder))
-+	if (IS_ERR(intf->driver_folder) || !intf->driver_folder)
- 		goto exit;
+diff -puN lib/bust_spinlocks.c~oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix lib/bust_spinlocks.c
+--- a/lib/bust_spinlocks.c~oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix
++++ a/lib/bust_spinlocks.c
+@@ -11,7 +11,6 @@
+ #include <linux/spinlock.h>
+ #include <linux/tty.h>
+ #include <linux/wait.h>
+-#include <linux/vt_kern.h>
+ #include <linux/console.h>
  
- 	intf->driver_entry =
- 	    rt2x00debug_create_file_driver("driver", intf, &intf->driver_blob);
--	if (IS_ERR(intf->driver_entry))
-+	if (IS_ERR(intf->driver_entry) || !intf->driver_entry)
- 		goto exit;
  
- 	intf->chipset_entry =
- 	    rt2x00debug_create_file_chipset("chipset",
- 					    intf, &intf->chipset_blob);
--	if (IS_ERR(intf->chipset_entry))
-+	if (IS_ERR(intf->chipset_entry) || !intf->chipset_entry)
- 		goto exit;
- 
- 	intf->dev_flags = debugfs_create_file("dev_flags", S_IRUSR,
- 					      intf->driver_folder, intf,
- 					      &rt2x00debug_fop_dev_flags);
--	if (IS_ERR(intf->dev_flags))
-+	if (IS_ERR(intf->dev_flags) || !intf->dev_flags)
- 		goto exit;
- 
- 	intf->register_folder =
- 	    debugfs_create_dir("register", intf->driver_folder);
--	if (IS_ERR(intf->register_folder))
-+	if (IS_ERR(intf->register_folder) || !intf->register_folder)
- 		goto exit;
- 
- #define RT2X00DEBUGFS_CREATE_REGISTER_ENTRY(__intf, __name)	\
-@@ -619,7 +619,8 @@ void rt2x00debug_register(struct rt2x00_
- 			       S_IRUSR | S_IWUSR,		\
- 			       (__intf)->register_folder,	\
- 			       &(__intf)->offset_##__name);	\
--	if (IS_ERR((__intf)->__name##_off_entry))		\
-+	if (IS_ERR((__intf)->__name##_off_entry)		\
-+			|| !(__intf)->__name##_off_entry)	\
- 		goto exit;					\
- 								\
- 	(__intf)->__name##_val_entry =				\
-@@ -627,7 +628,8 @@ void rt2x00debug_register(struct rt2x00_
- 				S_IRUSR | S_IWUSR,		\
- 				(__intf)->register_folder,	\
- 				(__intf), &rt2x00debug_fop_##__name);\
--	if (IS_ERR((__intf)->__name##_val_entry))		\
-+	if (IS_ERR((__intf)->__name##_val_entry)		\
-+			|| !(__intf)->__name##_val_entry)	\
- 		goto exit;					\
- })
- 
-@@ -640,13 +642,14 @@ void rt2x00debug_register(struct rt2x00_
- 
- 	intf->queue_folder =
- 	    debugfs_create_dir("queue", intf->driver_folder);
--	if (IS_ERR(intf->queue_folder))
-+	if (IS_ERR(intf->queue_folder) || !intf->queue_folder)
- 		goto exit;
- 
- 	intf->queue_frame_dump_entry =
- 	    debugfs_create_file("dump", S_IRUSR, intf->queue_folder,
- 				intf, &rt2x00debug_fop_queue_dump);
--	if (IS_ERR(intf->queue_frame_dump_entry))
-+	if (IS_ERR(intf->queue_frame_dump_entry)
-+		|| !intf->queue_frame_dump_entry)
- 		goto exit;
- 
- 	skb_queue_head_init(&intf->frame_dump_skbqueue);
+@@ -20,9 +19,6 @@ void __attribute__((weak)) bust_spinlock
+ 	if (yes) {
+ 		++oops_in_progress;
+ 	} else {
+-#ifdef CONFIG_VT
+-		unblank_screen();
+-#endif
+ 		console_unblank();
+ 		if (--oops_in_progress == 0)
+ 			wake_up_klogd();
 _
 
-Patches currently in -mm which might be from zhaolei@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
+fs-remove-prepare_write-commit_write.patch
+mm-write_cache_pages-writepage-error-fix.patch
+nfsd-fix-vm-overcommit-crash.patch
+autofs4-collect-version-check-return-checkpatch-fixes.patch
+maintainers-make-ioat-easier-to-find.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-wireless-iwlwifi-fix-debugfs_create_bools-error-checking.patch
-wireless-rt2x00-fix-debugfs_create_s-error-checking.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+pci-uninline-pci_ioremap_bar.patch
+cpusets-update-mems-allowed-in-page-allocator-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
+init-properly-placing-noinline-keyword.patch
+oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix.patch
+spi_gpio-driver-cleanups.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
