@@ -1,60 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - scripts-checksyscallssh-fix-for-non-gnu-sed.patch removed from -mm tree
-Date: Thu, 30 Oct 2008 12:04:41 -0700
-Message-ID: <200810301904.m9UJ4fsv024885@imap1.linux-foundation.org>
+Subject: - adjust-init-section-definitions.patch removed from -mm tree
+Date: Thu, 30 Oct 2008 12:04:44 -0700
+Message-ID: <200810301904.m9UJ4ijV024892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50844 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758714AbYJ3TEt (ORCPT
+	by vger.kernel.org with ESMTP id S1755427AbYJ3TEx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 15:04:49 -0400
+	Thu, 30 Oct 2008 15:04:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tvolpini@gmx.net, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/checksyscalls.sh: fix for non-gnu sed
+     adjust init section definitions
 has been removed from the -mm tree.  Its filename was
-     scripts-checksyscallssh-fix-for-non-gnu-sed.patch
+     adjust-init-section-definitions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/checksyscalls.sh: fix for non-gnu sed
-From: Thomas Volpini <tvolpini@gmx.net>
+Subject: adjust init section definitions
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Make the checksyscalls script work even on systems where sed is non-gnu.
+Add rodata equivalents for assembly use, and fix the section attributes
+used by __REFCONST.
 
-Cc: Sam Ravnborg <sam@ravnborg.org>a
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checksyscalls.sh |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/init.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checksyscalls.sh~scripts-checksyscallssh-fix-for-non-gnu-sed scripts/checksyscalls.sh
---- a/scripts/checksyscalls.sh~scripts-checksyscallssh-fix-for-non-gnu-sed
-+++ a/scripts/checksyscalls.sh
-@@ -113,10 +113,10 @@ EOF
- }
+diff -puN include/linux/init.h~adjust-init-section-definitions include/linux/init.h
+--- a/include/linux/init.h~adjust-init-section-definitions
++++ a/include/linux/init.h
+@@ -112,21 +112,25 @@
+ #define __FINIT		.previous
  
- syscall_list() {
--sed -n -e '/^\#define/ { s/[^_]*__NR_\([^[:space:]]*\).*/\
-+sed -n -e '/^\#define/ s/[^_]*__NR_\([^[:space:]]*\).*/\
- \#if !defined \(__NR_\1\) \&\& !defined \(__IGNORE_\1\)\
- \#warning syscall \1 not implemented\
--\#endif/p }' $1
-+\#endif/p' $1
- }
+ #define __INITDATA	.section	".init.data","aw"
++#define __INITRODATA	.section	".init.rodata","a"
+ #define __FINITDATA	.previous
  
- (ignore_list && syscall_list ${srctree}/arch/x86/include/asm/unistd_32.h) | \
+ #define __DEVINIT        .section	".devinit.text", "ax"
+ #define __DEVINITDATA    .section	".devinit.data", "aw"
++#define __DEVINITRODATA  .section	".devinit.rodata", "a"
+ 
+ #define __CPUINIT        .section	".cpuinit.text", "ax"
+ #define __CPUINITDATA    .section	".cpuinit.data", "aw"
++#define __CPUINITRODATA  .section	".cpuinit.rodata", "a"
+ 
+ #define __MEMINIT        .section	".meminit.text", "ax"
+ #define __MEMINITDATA    .section	".meminit.data", "aw"
++#define __MEMINITRODATA  .section	".meminit.rodata", "a"
+ 
+ /* silence warnings when references are OK */
+ #define __REF            .section       ".ref.text", "ax"
+ #define __REFDATA        .section       ".ref.data", "aw"
+-#define __REFCONST       .section       ".ref.rodata", "aw"
++#define __REFCONST       .section       ".ref.rodata", "a"
+ 
+ #ifndef __ASSEMBLY__
+ /*
 _
 
-Patches currently in -mm which might be from tvolpini@gmx.net are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 linux-next.patch
 
