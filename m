@@ -1,82 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch removed from -mm tree
-Date: Thu, 30 Oct 2008 12:04:48 -0700
-Message-ID: <200810301904.m9UJ4mef024922@imap1.linux-foundation.org>
+Subject: - scripts-checksyscallssh-fix-for-non-gnu-sed.patch removed from -mm tree
+Date: Thu, 30 Oct 2008 12:04:41 -0700
+Message-ID: <200810301904.m9UJ4fsv024885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37151 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756127AbYJ3TFA (ORCPT
+	by vger.kernel.org with ESMTP id S1758714AbYJ3TEt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 15:05:00 -0400
+	Thu, 30 Oct 2008 15:04:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ashutosh@chelsio.com, ashutosh.naik@gmail.com, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: tvolpini@gmx.net, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: prevent modpost from looking for a .cmd file for a static library linked into a module
+     scripts/checksyscalls.sh: fix for non-gnu sed
 has been removed from the -mm tree.  Its filename was
-     kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
+     scripts-checksyscallssh-fix-for-non-gnu-sed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: prevent modpost from looking for a .cmd file for a static library linked into a module
-From: "Ashutosh Naik" <ashutosh@chelsio.com>
+Subject: scripts/checksyscalls.sh: fix for non-gnu sed
+From: Thomas Volpini <tvolpini@gmx.net>
 
-This fixes a compile time warning which occurs whenever a static library
-is linked into a kernel module.  MODPOST tries to look for a
-".<modulename>.cmd" file to look for its dependencies, but that file
-doesn't exist or get generated for static libraries.
+Make the checksyscalls script work even on systems where sed is non-gnu.
 
-This patch prevents modpost from looking for a .cmd file when a module is
-linked with a static library
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Ashutosh Naik <ashutosh.naik@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Sam Ravnborg <sam@ravnborg.org>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/sumversion.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ scripts/checksyscalls.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/mod/sumversion.c~kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module scripts/mod/sumversion.c
---- a/scripts/mod/sumversion.c~kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module
-+++ a/scripts/mod/sumversion.c
-@@ -290,6 +290,15 @@ static int parse_file(const char *fname,
- 	release_file(file, len);
- 	return 1;
+diff -puN scripts/checksyscalls.sh~scripts-checksyscallssh-fix-for-non-gnu-sed scripts/checksyscalls.sh
+--- a/scripts/checksyscalls.sh~scripts-checksyscallssh-fix-for-non-gnu-sed
++++ a/scripts/checksyscalls.sh
+@@ -113,10 +113,10 @@ EOF
  }
-+/* Check whether the file is a static library or not */
-+static int is_static_library(const char *objfile)
-+{
-+	int len = strlen(objfile);
-+	if (objfile[len - 2] == '.' && objfile[len - 1] == 'a')
-+		return 1;
-+	else
-+		return 0;
-+}
  
- /* We have dir/file.o.  Open dir/.file.o.cmd, look for deps_ line to
-  * figure out source file. */
-@@ -420,7 +429,8 @@ void get_src_version(const char *modname
- 	while ((fname = strsep(&sources, " ")) != NULL) {
- 		if (!*fname)
- 			continue;
--		if (!parse_source_files(fname, &md))
-+		if (!(is_static_library(fname)) &&
-+				!parse_source_files(fname, &md))
- 			goto release;
- 	}
+ syscall_list() {
+-sed -n -e '/^\#define/ { s/[^_]*__NR_\([^[:space:]]*\).*/\
++sed -n -e '/^\#define/ s/[^_]*__NR_\([^[:space:]]*\).*/\
+ \#if !defined \(__NR_\1\) \&\& !defined \(__IGNORE_\1\)\
+ \#warning syscall \1 not implemented\
+-\#endif/p }' $1
++\#endif/p' $1
+ }
  
+ (ignore_list && syscall_list ${srctree}/arch/x86/include/asm/unistd_32.h) | \
 _
 
-Patches currently in -mm which might be from ashutosh@chelsio.com are
+Patches currently in -mm which might be from tvolpini@gmx.net are
 
 linux-next.patch
 
