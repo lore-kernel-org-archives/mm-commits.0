@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-write_cache_pages-early-loop-termination.patch added to -mm tree
-Date: Thu, 30 Oct 2008 16:14:31 -0700
-Message-ID: <200810302314.m9UNEVHD027488@imap1.linux-foundation.org>
+Subject: + mm-do_sync_mapping_range-integrity-fix.patch added to -mm tree
+Date: Thu, 30 Oct 2008 16:14:46 -0700
+Message-ID: <200810302314.m9UNEkrE027598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32942 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754364AbYJ3XPN (ORCPT
+	by vger.kernel.org with ESMTP id S1754481AbYJ3XP0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 19:15:13 -0400
+	Thu, 30 Oct 2008 19:15:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, chris.mason@oracle.com, david@fromorbit.com, jowens@hp.com
 
 
 The patch titled
-     mm: write_cache_pages early loop termination
+     mm: do_sync_mapping_range integrity fix
 has been added to the -mm tree.  Its filename is
-     mm-write_cache_pages-early-loop-termination.patch
+     mm-do_sync_mapping_range-integrity-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,22 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: write_cache_pages early loop termination
+Subject: mm: do_sync_mapping_range integrity fix
 From: Nick Piggin <npiggin@suse.de>
 
-We'd like to break out of the loop early in many situations, however the
-existing code has been setting mapping->writeback_index past the final
-page in the pagevec lookup for cyclic writeback.  This is a problem if we
-don't process all pages up to the final page.
+Chris Mason notices do_sync_mapping_range didn't actually ask for data
+integrity writeout.  Unfortunately, it is advertised as being usable for
+data integrity operations.
 
-Currently the code mostly keeps writeback_index reasonable and hacked
-around this by not breaking out of the loop or writing pages outside the
-range in these cases.  Keep track of a real "done index" that enables us
-to terminate the loop in a much more flexible manner.
-
-Needed by the subsequent patch to preserve writepage errors, and then
-further patches to break out of the loop early for other reasons.  However
-there are no functional changes with this patch alone.
+This is a data integrity bug.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -58,46 +50,21 @@ Cc: jim owens <jowens@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/sync.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-write_cache_pages-early-loop-termination mm/page-writeback.c
---- a/mm/page-writeback.c~mm-write_cache_pages-early-loop-termination
-+++ a/mm/page-writeback.c
-@@ -871,6 +871,7 @@ int write_cache_pages(struct address_spa
- 	pgoff_t uninitialized_var(writeback_index);
- 	pgoff_t index;
- 	pgoff_t end;		/* Inclusive */
-+	pgoff_t done_index;
- 	int cycled;
- 	int range_whole = 0;
- 	long nr_to_write = wbc->nr_to_write;
-@@ -897,6 +898,7 @@ int write_cache_pages(struct address_spa
- 		cycled = 1; /* ignore range_cyclic tests */
- 	}
- retry:
-+	done_index = index;
- 	while (!done && (index <= end) &&
- 	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
- 					      PAGECACHE_TAG_DIRTY,
-@@ -906,6 +908,8 @@ retry:
- 		for (i = 0; i < nr_pages; i++) {
- 			struct page *page = pvec.pages[i];
+diff -puN fs/sync.c~mm-do_sync_mapping_range-integrity-fix fs/sync.c
+--- a/fs/sync.c~mm-do_sync_mapping_range-integrity-fix
++++ a/fs/sync.c
+@@ -269,7 +269,7 @@ int do_sync_mapping_range(struct address
  
-+			done_index = page->index + 1;
-+
- 			/*
- 			 * At this point we hold neither mapping->tree_lock nor
- 			 * lock on the page itself: the page may be truncated or
-@@ -968,7 +972,7 @@ retry:
+ 	if (flags & SYNC_FILE_RANGE_WRITE) {
+ 		ret = __filemap_fdatawrite_range(mapping, offset, endbyte,
+-						WB_SYNC_NONE);
++						WB_SYNC_ALL);
+ 		if (ret < 0)
+ 			goto out;
  	}
- 	if (!wbc->no_nrwrite_index_update) {
- 		if (wbc->range_cyclic || (range_whole && nr_to_write > 0))
--			mapping->writeback_index = index;
-+			mapping->writeback_index = done_index;
- 		wbc->nr_to_write = nr_to_write;
- 	}
- 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
