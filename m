@@ -1,103 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-hugetlb-pgtable-cache-access-cleanup.patch removed from -mm tree
-Date: Thu, 30 Oct 2008 00:24:15 -0700
-Message-ID: <200810300724.m9U7OFSd018254@imap1.linux-foundation.org>
+Subject: + cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed.patch added to -mm tree
+Date: Thu, 30 Oct 2008 00:32:41 -0700
+Message-ID: <200810300732.m9U7Wfua021358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752041AbYJ3HY6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753903AbYJ3Hdc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 03:24:58 -0400
+	Thu, 30 Oct 2008 03:33:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kniht@linux.vnet.ibm.com, benh@kernel.crashing.org, david@gibson.dropbear.id.au, nickpiggin@yahoo.com.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lizf@cn.fujitsu.com, a.p.zijlstra@chello.nl, menage@google.com, mingo@elte.hu
 
 
 The patch titled
-     powerpc: hugetlb pgtable cache access cleanup
-has been removed from the -mm tree.  Its filename was
-     powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+     cgroups: fix invalid cgrp->dentry before cgroup has been completely removed
+has been added to the -mm tree.  Its filename is
+     cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed.patch
 
-This patch was dropped because of boredom
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: hugetlb pgtable cache access cleanup
-From: Jon Tollefson <kniht@linux.vnet.ibm.com>
+Subject: cgroups: fix invalid cgrp->dentry before cgroup has been completely removed
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Cleaned up use of macro.  We now reference the pgtable_cache array
-directly instead of using a macro.
+This fixes an oops when reading /proc/sched_debug.
 
-Signed-off-by: Jon Tollefson <kniht@linux.vnet.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+A cgroup won't be removed completely until finishing cgroup_diput(), so we
+shouldn't invalidate cgrp->dentry in cgroup_rmdir().  Otherwise, when a
+group is being removed while cgroup_path() gets called, we may trigger
+NULL dereference BUG.
+
+The bug can be reproduced:
+
+ # cat test.sh
+ #!/bin/sh
+ mount -t cgroup -o cpu xxx /mnt
+ for (( ; ; ))
+ {
+	mkdir /mnt/sub
+	rmdir /mnt/sub
+ }
+ # ./test.sh &
+ # cat /proc/sched_debug
+
+BUG: unable to handle kernel NULL pointer dereference at 00000038
+IP: [<c045a47f>] cgroup_path+0x39/0x90
+...
+Call Trace:
+ [<c0420344>] ? print_cfs_rq+0x6e/0x75d
+ [<c0421160>] ? sched_debug_show+0x72d/0xc1e
+...
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ kernel/cgroup.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-hugetlb-pgtable-cache-access-cleanup arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~powerpc-hugetlb-pgtable-cache-access-cleanup
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -53,8 +53,7 @@ unsigned int mmu_huge_psizes[MMU_PAGE_CO
+diff -puN kernel/cgroup.c~cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed
++++ a/kernel/cgroup.c
+@@ -2497,7 +2497,6 @@ static int cgroup_rmdir(struct inode *un
+ 	list_del(&cgrp->sibling);
+ 	spin_lock(&cgrp->dentry->d_lock);
+ 	d = dget(cgrp->dentry);
+-	cgrp->dentry = NULL;
+ 	spin_unlock(&d->d_lock);
  
- /* Subtract one from array size because we don't need a cache for 4K since
-  * is not a huge page size */
--#define huge_pgtable_cache(psize)	(pgtable_cache[HUGEPTE_CACHE_NUM \
--							+ psize-1])
-+#define HUGE_PGTABLE_INDEX(psize)	(HUGEPTE_CACHE_NUM + psize - 1)
- #define HUGEPTE_CACHE_NAME(psize)	(huge_pgtable_cache_name[psize])
- 
- static const char *huge_pgtable_cache_name[MMU_PAGE_COUNT] = {
-@@ -113,7 +112,7 @@ static inline pte_t *hugepte_offset(huge
- static int __hugepte_alloc(struct mm_struct *mm, hugepd_t *hpdp,
- 			   unsigned long address, unsigned int psize)
- {
--	pte_t *new = kmem_cache_zalloc(huge_pgtable_cache(psize),
-+	pte_t *new = kmem_cache_zalloc(pgtable_cache[HUGE_PGTABLE_INDEX(psize)],
- 				      GFP_KERNEL|__GFP_REPEAT);
- 
- 	if (! new)
-@@ -121,7 +120,7 @@ static int __hugepte_alloc(struct mm_str
- 
- 	spin_lock(&mm->page_table_lock);
- 	if (!hugepd_none(*hpdp))
--		kmem_cache_free(huge_pgtable_cache(psize), new);
-+		kmem_cache_free(pgtable_cache[HUGE_PGTABLE_INDEX(psize)], new);
- 	else
- 		hpdp->pd = (unsigned long)new | HUGEPD_OK;
- 	spin_unlock(&mm->page_table_lock);
-@@ -760,13 +759,14 @@ static int __init hugetlbpage_init(void)
- 
- 	for (psize = 0; psize < MMU_PAGE_COUNT; ++psize) {
- 		if (mmu_huge_psizes[psize]) {
--			huge_pgtable_cache(psize) = kmem_cache_create(
--						HUGEPTE_CACHE_NAME(psize),
--						HUGEPTE_TABLE_SIZE(psize),
--						HUGEPTE_TABLE_SIZE(psize),
--						0,
--						NULL);
--			if (!huge_pgtable_cache(psize))
-+			pgtable_cache[HUGE_PGTABLE_INDEX(psize)] =
-+				kmem_cache_create(
-+					HUGEPTE_CACHE_NAME(psize),
-+					HUGEPTE_TABLE_SIZE(psize),
-+					HUGEPTE_TABLE_SIZE(psize),
-+					0,
-+					NULL);
-+			if (!pgtable_cache[HUGE_PGTABLE_INDEX(psize)])
- 				panic("hugetlbpage_init(): could not create %s"\
- 				      "\n", HUGEPTE_CACHE_NAME(psize));
- 		}
+ 	cgroup_d_remove_dir(d);
 _
 
-Patches currently in -mm which might be from kniht@linux.vnet.ibm.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-hugetlbfs-handle-pages-higher-order-than-max_order.patch
-hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path.patch
-powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+origin.patch
+freezer_cg-fix-improper-bug_on-causing-oops.patch
+freezer_cg-remove-redundant-check-in-freezer_can_attach.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
+freezer_cg-simplify-freezer_change_state.patch
+cgroups-tiny-cleanups.patch
+cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed.patch
 
