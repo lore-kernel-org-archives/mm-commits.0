@@ -1,99 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-megaraid-use-div_round_up.patch removed from -mm tree
-Date: Thu, 30 Oct 2008 10:16:11 -0700
-Message-ID: <200810301716.m9UHGBO5014596@imap1.linux-foundation.org>
+Subject: - scsi-remove-private-implementation-of-get_unaligned_be32.patch removed from -mm tree
+Date: Thu, 30 Oct 2008 10:21:01 -0700
+Message-ID: <200810301721.m9UHL1Fp016526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752759AbYJ3RQ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752554AbYJ3RVg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 13:16:28 -0400
+	Thu, 30 Oct 2008 13:21:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, Bo.Yang@lsi.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/megaraid: Use DIV_ROUND_UP
+     scsi: remove private implementation of get_unaligned_be32
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-megaraid-use-div_round_up.patch
+     scsi-remove-private-implementation-of-get_unaligned_be32.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because of boredom
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/megaraid: Use DIV_ROUND_UP
-From: Julia Lawall <julia@diku.dk>
+Subject: scsi: remove private implementation of get_unaligned_be32
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
-(d)) but is perhaps more readable.
-
-An extract of the semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@haskernel@
-@@
-
-#include <linux/kernel.h>
-
-@depends on haskernel@
-expression n,d;
-@@
-
-(
-- (n + d - 1) / d
-+ DIV_ROUND_UP(n,d)
-|
-- (n + (d - 1)) / d
-+ DIV_ROUND_UP(n,d)
-)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP((n),d)
-+ DIV_ROUND_UP(n,d)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP(n,(d))
-+ DIV_ROUND_UP(n,d)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: "Yang, Bo" <Bo.Yang@lsi.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_sas.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/libsas/sas_expander.c |    9 +++++----
+ include/scsi/scsi.h                |    6 ------
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_sas.c~drivers-scsi-megaraid-use-div_round_up drivers/scsi/megaraid/megaraid_sas.c
---- a/drivers/scsi/megaraid/megaraid_sas.c~drivers-scsi-megaraid-use-div_round_up
-+++ a/drivers/scsi/megaraid/megaraid_sas.c
-@@ -1718,7 +1718,7 @@ static int megasas_create_frame_pool(str
- 	 * Calculated the number of 64byte frames required for SGL
- 	 */
- 	sgl_sz = sge_sz * instance->max_num_sge;
--	frame_count = (sgl_sz + MEGAMFI_FRAME_SIZE - 1) / MEGAMFI_FRAME_SIZE;
-+	frame_count = DIV_ROUND_UP(sgl_sz, MEGAMFI_FRAME_SIZE);
+diff -puN drivers/scsi/libsas/sas_expander.c~scsi-remove-private-implementation-of-get_unaligned_be32 drivers/scsi/libsas/sas_expander.c
+--- a/drivers/scsi/libsas/sas_expander.c~scsi-remove-private-implementation-of-get_unaligned_be32
++++ a/drivers/scsi/libsas/sas_expander.c
+@@ -24,6 +24,7 @@
  
- 	/*
- 	 * We need one extra frame for the MFI command
-_
-
-Patches currently in -mm which might be from julia@diku.dk are
-
-linux-next.patch
-drivers-i2c-busses-i2c-s3c2410c-correct-use-of-and.patch
-drivers-scsi-use-div_round_up.patch
-drivers-scsi-megaraid-use-div_round_up.patch
-fs-namespacec-drop-code-after-return.patch
-
+ #include <linux/scatterlist.h>
+ #include <linux/blkdev.h>
++#include <asm/unaligned.h>
+ 
+ #include "sas_internal.h"
+ 
+@@ -541,10 +542,10 @@ int sas_smp_get_phy_events(struct sas_ph
+ 	if (!res)
+ 		goto out;
+ 
+-	phy->invalid_dword_count = scsi_to_u32(&resp[12]);
+-	phy->running_disparity_error_count = scsi_to_u32(&resp[16]);
+-	phy->loss_of_dword_sync_count = scsi_to_u32(&resp[20]);
+-	phy->phy_reset_problem_count = scsi_to_u32(&resp[24]);
++	phy->invalid_dword_count = get_unaligned_be32(&resp[12]);
++	phy->running_disparity_error_count = get_unaligned_be32(&resp[16]);
++	phy->loss_of_dword_sync_count = get_unaligned_be32(&resp[20]);
++	phy->phy_reset_problem_count = get_unaligned_be32(&resp[24]);
+ 
+  out:
+ 	kfree(resp);
+diff -puN include/scsi/scsi.h~scsi-remove-private-implementation-of-get_unaligned_be32 include/scsi/scsi.h
+--- a/include/scsi/scsi.h~scsi-remove-private-implementation-of-get_unaligned_be32
++++ a/include/scsi/scsi.h
+@@ -527,10 +527,4 @@ static inline void set_driver_byte(struc
+ /* Used to obtain the PCI location of a device */
+ #define SCSI_IOCTL_GET_PCI		0x5387
+ 
+-/* Pull a u32 out of a SCSI message (using BE SCSI conventions) */
+-static inline __u32 scsi_to_u32(__u8 *ptr)
+-{
+-	return (ptr[0]<<24) + (ptr[1]<<16) + (ptr[2]<<8) + ptr[3];
+-}
