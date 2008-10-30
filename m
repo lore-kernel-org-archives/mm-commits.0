@@ -1,72 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch removed from -mm tree
-Date: Thu, 30 Oct 2008 12:04:37 -0700
-Message-ID: <200810301904.m9UJ4bgb024846@imap1.linux-foundation.org>
+Subject: - kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch removed from -mm tree
+Date: Thu, 30 Oct 2008 12:04:48 -0700
+Message-ID: <200810301904.m9UJ4mef024922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43008 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758717AbYJ3TEt (ORCPT
+	by vger.kernel.org with ESMTP id S1756127AbYJ3TFA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 15:04:49 -0400
+	Thu, 30 Oct 2008 15:05:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jk@ozlabs.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: ashutosh@chelsio.com, ashutosh.naik@gmail.com, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/package: don't break if %{_smp_mflags} isn't set
+     kbuild: prevent modpost from looking for a .cmd file for a static library linked into a module
 has been removed from the -mm tree.  Its filename was
-     scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch
+     kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/package: don't break if %{_smp_mflags} isn't set
-From: Jeremy Kerr <jk@ozlabs.org>
+Subject: kbuild: prevent modpost from looking for a .cmd file for a static library linked into a module
+From: "Ashutosh Naik" <ashutosh@chelsio.com>
 
-Currently, if we do a 'make rpm-pkg' without the _smp_mflags rpm macro
-defined, the build fails with:
+This fixes a compile time warning which occurs whenever a static library
+is linked into a kernel module.  MODPOST tries to look for a
+".<modulename>.cmd" file to look for its dependencies, but that file
+doesn't exist or get generated for static libraries.
 
-  [snip]
-  Executing(%build): /bin/bash -e /var/tmp/rpm-tmp.67959
-  + umask 022
-  + cd /home/jk/devel/kernel-snapshot/rpm/BUILD
-  + cd kernel-2.6.26
-  + make clean
-  + make '%{_smp_mflags}'
-  make[3]: *** No rule to make target `%{_smp_mflags}'.  Stop.
-  error: Bad exit status from /var/tmp/rpm-tmp.67959 (%build)
+This patch prevents modpost from looking for a .cmd file when a module is
+linked with a static library
 
-This change uses the 'null if not set' reference to the _smp_mflags
-macro instead.
-
-Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Ashutosh Naik <ashutosh.naik@gmail.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/package/mkspec |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/mod/sumversion.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN scripts/package/mkspec~scripts-package-dont-break-if-%_smp_mflags-isnt-set scripts/package/mkspec
---- a/scripts/package/mkspec~scripts-package-dont-break-if-%_smp_mflags-isnt-set
-+++ a/scripts/package/mkspec
-@@ -57,7 +57,7 @@ fi
- echo "%build"
+diff -puN scripts/mod/sumversion.c~kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module scripts/mod/sumversion.c
+--- a/scripts/mod/sumversion.c~kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module
++++ a/scripts/mod/sumversion.c
+@@ -290,6 +290,15 @@ static int parse_file(const char *fname,
+ 	release_file(file, len);
+ 	return 1;
+ }
++/* Check whether the file is a static library or not */
++static int is_static_library(const char *objfile)
++{
++	int len = strlen(objfile);
++	if (objfile[len - 2] == '.' && objfile[len - 1] == 'a')
++		return 1;
++	else
++		return 0;
++}
  
- if ! $PREBUILT; then
--echo "make clean && make %{_smp_mflags}"
-+echo "make clean && make %{?_smp_mflags}"
- echo ""
- fi
+ /* We have dir/file.o.  Open dir/.file.o.cmd, look for deps_ line to
+  * figure out source file. */
+@@ -420,7 +429,8 @@ void get_src_version(const char *modname
+ 	while ((fname = strsep(&sources, " ")) != NULL) {
+ 		if (!*fname)
+ 			continue;
+-		if (!parse_source_files(fname, &md))
++		if (!(is_static_library(fname)) &&
++				!parse_source_files(fname, &md))
+ 			goto release;
+ 	}
  
 _
 
-Patches currently in -mm which might be from jk@ozlabs.org are
+Patches currently in -mm which might be from ashutosh@chelsio.com are
 
 linux-next.patch
-scripts-package-allow-custom-options-to-rpm.patch
 
