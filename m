@@ -1,60 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - setlocalversion-dont-include-svn-change-count.patch removed from -mm tree
-Date: Thu, 30 Oct 2008 12:04:54 -0700
-Message-ID: <200810301904.m9UJ4stt024962@imap1.linux-foundation.org>
+Subject: + documentation-email-clientstxt-add-some-info-about-gmail.patch added to -mm tree
+Date: Thu, 30 Oct 2008 12:50:58 -0700
+Message-ID: <200810301950.m9UJowvv010595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35842 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755621AbYJ3TFK (ORCPT
+	by vger.kernel.org with ESMTP id S1750907AbYJ3Tvd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 15:05:10 -0400
+	Thu, 30 Oct 2008 15:51:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: thockin@google.com
 
 
 The patch titled
-     setlocalversion: don't include svn change count
-has been removed from the -mm tree.  Its filename was
-     setlocalversion-dont-include-svn-change-count.patch
+     Documentation/email-clients.txt: add some info about gmail
+has been added to the -mm tree.  Its filename is
+     documentation-email-clientstxt-add-some-info-about-gmail.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: setlocalversion: don't include svn change count
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: Documentation/email-clients.txt: add some info about gmail
+From: Tim Hockin <thockin@google.com>
 
-The number of pending changes is pretty useless, so encoding it into the
-version is just annoying by the constant shuffle in corresponding modules.
-
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Tim Hockin <thockin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/setlocalversion |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/email-clients.txt |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN scripts/setlocalversion~setlocalversion-dont-include-svn-change-count scripts/setlocalversion
---- a/scripts/setlocalversion~setlocalversion-dont-include-svn-change-count
-+++ a/scripts/setlocalversion
-@@ -55,7 +55,7 @@ if rev=`svn info 2>/dev/null | grep '^Re
+diff -puN Documentation/email-clients.txt~documentation-email-clientstxt-add-some-info-about-gmail Documentation/email-clients.txt
+--- a/Documentation/email-clients.txt~documentation-email-clientstxt-add-some-info-about-gmail
++++ a/Documentation/email-clients.txt
+@@ -213,4 +213,29 @@ TkRat (GUI)
  
- 	# Are there uncommitted changes?
- 	if [ $changes != 0 ]; then
--		printf -- '-svn%s%s%s' "$rev" -dirty "$changes"
-+		printf -- '-svn%s%s' "$rev" -dirty
- 	else
- 		printf -- '-svn%s' "$rev"
- 	fi
+ Works.  Use "Insert file..." or external editor.
+ 
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Gmail (Web GUI)
++
++If you just have to use Gmail to send patches, it CAN be made to work.  It
++requires a bit of external help, though.
++
++The first problem is that Gmail converts tabs to spaces.  This will
++totally break your patches.  To prevent this, you have to use a different
++editor.  There is a firefox extension called "ViewSourceWith"
++(https://addons.mozilla.org/en-US/firefox/addon/394) which allows you to
++edit any text box in the editor of your choice.  Configure it to launch
++your favorite editor.  When you want to send a patch, use this technique.
++Once you have crafted your messsage + patch, save and exit the editor,
++which should reload the Gmail edit box.  GMAIL WILL PRESERVE THE TABS.
++Hoorah.  Apparently you can cut-n-paste literal tabs, but Gmail will
++convert those to spaces upon sending!
++
++The second problem is that Gmail converts tabs to spaces on replies.  If
++you reply to a patch, don't expect to be able to apply it as a patch.
++
++The last problem is that Gmail will base64-encode any message that has a
++non-ASCII character.  That includes things like European names.  Be aware.
++
++Gmail is not convenient for lkml patches, but CAN be made to work.
++
+                                 ###
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from thockin@google.com are
 
-maintainers-add-ltp-info-to-the-list.patch
-linux-next.patch
-linux-timexh-cleanup-for-userspace.patch
+documentation-email-clientstxt-add-some-info-about-gmail.patch
 
