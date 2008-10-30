@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-write_cache_pages-cleanups.patch added to -mm tree
-Date: Thu, 30 Oct 2008 16:14:38 -0700
-Message-ID: <200810302314.m9UNEcqg027552@imap1.linux-foundation.org>
+Subject: + mm-write_cache_pages-writepage-error-fix.patch added to -mm tree
+Date: Thu, 30 Oct 2008 16:14:33 -0700
+Message-ID: <200810302314.m9UNEYQL027518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43658 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754469AbYJ3XPY (ORCPT
+	by vger.kernel.org with ESMTP id S1754462AbYJ3XPW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 19:15:24 -0400
+	Thu, 30 Oct 2008 19:15:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, chris.mason@oracle.com, david@fromorbit.com, jowens@hp.com
 
 
 The patch titled
-     mm: write_cache_pages cleanups
+     mm: write_cache_pages writepage error fix
 has been added to the -mm tree.  Its filename is
-     mm-write_cache_pages-cleanups.patch
+     mm-write_cache_pages-writepage-error-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: write_cache_pages cleanups
+Subject: mm: write_cache_pages writepage error fix
 From: Nick Piggin <npiggin@suse.de>
 
-Get rid of some complex expressions from flow control statements, add a
-comment, remove some duplicate code.
+In write_cache_pages, if ret signals a real error, but we still have some
+pages left in the pagevec, done would be set to 1, but the remaining pages
+would continue to be processed and ret will be overwritten in the process.
+ It could easily be overwritten with success, and thus success will be
+returned even if there is an error.  Thus the caller is told all writes
+succeeded, wheras in reality some did not.
+
+Fix this by bailing immediately if there is an error, and retaining the
+first error code.
+
+This is a data integrity bug.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -47,81 +56,44 @@ Cc: jim owens <jowens@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   34 ++++++++++++++++++++++------------
- 1 file changed, 22 insertions(+), 12 deletions(-)
+ mm/page-writeback.c |   24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-write_cache_pages-cleanups mm/page-writeback.c
---- a/mm/page-writeback.c~mm-write_cache_pages-cleanups
+diff -puN mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix
 +++ a/mm/page-writeback.c
-@@ -899,11 +899,14 @@ int write_cache_pages(struct address_spa
- 	}
- retry:
- 	done_index = index;
--	while (!done && (index <= end) &&
--	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
--					      PAGECACHE_TAG_DIRTY,
--					      min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
--		unsigned i;
-+	while (!done && (index <= end)) {
-+		int i;
-+
-+		nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
-+			      PAGECACHE_TAG_DIRTY,
-+			      min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1);
-+		if (nr_pages == 0)
-+			break;
- 
- 		for (i = 0; i < nr_pages; i++) {
- 			struct page *page = pvec.pages[i];
-@@ -919,7 +922,16 @@ retry:
- 			 */
- 			lock_page(page);
- 
-+			/*
-+			 * Page truncated or invalidated. We can freely skip it
-+			 * then, even for data integrity operations: the page
-+			 * has disappeared concurrently, so there could be no
-+			 * real expectation of this data interity operation
-+			 * even if there is now a new, dirty page at the same
-+			 * pagecache address.
-+			 */
- 			if (unlikely(page->mapping != mapping)) {
-+continue_unlock:
- 				unlock_page(page);
- 				continue;
+@@ -944,12 +944,26 @@ retry:
  			}
-@@ -930,18 +942,15 @@ retry:
- 				 * end == -1 in that case.
- 				 */
- 				done = 1;
--				unlock_page(page);
--				continue;
-+				goto continue_unlock;
- 			}
- 
- 			if (wbc->sync_mode != WB_SYNC_NONE)
- 				wait_on_page_writeback(page);
- 
- 			if (PageWriteback(page) ||
--			    !clear_page_dirty_for_io(page)) {
--				unlock_page(page);
--				continue;
--			}
-+			    !clear_page_dirty_for_io(page))
-+				goto continue_unlock;
  
  			ret = (*writepage)(page, wbc, data);
- 			if (unlikely(ret)) {
-@@ -964,7 +973,8 @@ retry:
-  			}
++			if (unlikely(ret)) {
++				if (ret == AOP_WRITEPAGE_ACTIVATE) {
++					unlock_page(page);
++					ret = 0;
++				} else {
++					/*
++					 * done_index is set past this page,
++					 * so media errors will not choke
++					 * background writeout for the entire
++					 * file. This has consequences for
++					 * range_cyclic semantics (ie. it may
++					 * not be suitable for data integrity
++					 * writeout).
++					 */
++					done = 1;
++					break;
++				}
++ 			}
  
- 			if (wbc->sync_mode == WB_SYNC_NONE) {
--				if (--wbc->nr_to_write <= 0)
-+				wbc->nr_to_write--;
-+				if (wbc->nr_to_write <= 0)
- 					done = 1;
- 			}
+-			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE)) {
+-				unlock_page(page);
+-				ret = 0;
+-			}
+-			if (ret || (--nr_to_write <= 0))
++			if (--nr_to_write <= 0)
+ 				done = 1;
  			if (wbc->nonblocking && bdi_write_congested(bdi)) {
+ 				wbc->encountered_congestion = 1;
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
