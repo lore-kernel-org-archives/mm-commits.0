@@ -1,59 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - kbuild-fix-kbuild_extra_symbols.patch removed from -mm tree
-Date: Thu, 30 Oct 2008 12:04:46 -0700
-Message-ID: <200810301904.m9UJ4kh7024919@imap1.linux-foundation.org>
+Subject: - scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch removed from -mm tree
+Date: Thu, 30 Oct 2008 12:04:37 -0700
+Message-ID: <200810301904.m9UJ4bgb024846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756075AbYJ3TEz (ORCPT
+	by vger.kernel.org with ESMTP id S1758717AbYJ3TEt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 15:04:55 -0400
+	Thu, 30 Oct 2008 15:04:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pva@gentoo.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: jk@ozlabs.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: fix KBUILD_EXTRA_SYMBOLS
+     scripts/package: don't break if %{_smp_mflags} isn't set
 has been removed from the -mm tree.  Its filename was
-     kbuild-fix-kbuild_extra_symbols.patch
+     scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: fix KBUILD_EXTRA_SYMBOLS
-From: Peter Volkov <pva@gentoo.org>
+Subject: scripts/package: don't break if %{_smp_mflags} isn't set
+From: Jeremy Kerr <jk@ozlabs.org>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=11567
+Currently, if we do a 'make rpm-pkg' without the _smp_mflags rpm macro
+defined, the build fails with:
 
-If you even define KBUILD_EXTRA_SYMBOLS in Makefile it will not be expanded
-into command line argument for modpost.
+  [snip]
+  Executing(%build): /bin/bash -e /var/tmp/rpm-tmp.67959
+  + umask 022
+  + cd /home/jk/devel/kernel-snapshot/rpm/BUILD
+  + cd kernel-2.6.26
+  + make clean
+  + make '%{_smp_mflags}'
+  make[3]: *** No rule to make target `%{_smp_mflags}'.  Stop.
+  error: Bad exit status from /var/tmp/rpm-tmp.67959 (%build)
 
+This change uses the 'null if not set' reference to the _smp_mflags
+macro instead.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.modpost |    2 +-
+ scripts/package/mkspec |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/Makefile.modpost~kbuild-fix-kbuild_extra_symbols scripts/Makefile.modpost
---- a/scripts/Makefile.modpost~kbuild-fix-kbuild_extra_symbols
-+++ a/scripts/Makefile.modpost
-@@ -82,7 +82,7 @@ modpost = scripts/mod/modpost           
-  $(if $(CONFIG_MODULE_SRCVERSION_ALL),-a,)       \
-  $(if $(KBUILD_EXTMOD),-i,-o) $(kernelsymfile)   \
-  $(if $(KBUILD_EXTMOD),-I $(modulesymfile))      \
-- $(if $(KBUILD_EXTRA_SYMBOLS), $(patsubst %, -e %,$(EXTRA_SYMBOLS))) \
-+ $(if $(KBUILD_EXTRA_SYMBOLS), $(patsubst %, -e %,$(KBUILD_EXTRA_SYMBOLS))) \
-  $(if $(KBUILD_EXTMOD),-o $(modulesymfile))      \
-  $(if $(CONFIG_DEBUG_SECTION_MISMATCH),,-S)      \
-  $(if $(CONFIG_MARKERS),-K $(kernelmarkersfile)) \
+diff -puN scripts/package/mkspec~scripts-package-dont-break-if-%_smp_mflags-isnt-set scripts/package/mkspec
+--- a/scripts/package/mkspec~scripts-package-dont-break-if-%_smp_mflags-isnt-set
++++ a/scripts/package/mkspec
+@@ -57,7 +57,7 @@ fi
+ echo "%build"
+ 
+ if ! $PREBUILT; then
+-echo "make clean && make %{_smp_mflags}"
++echo "make clean && make %{?_smp_mflags}"
+ echo ""
+ fi
+ 
 _
 
-Patches currently in -mm which might be from pva@gentoo.org are
+Patches currently in -mm which might be from jk@ozlabs.org are
 
 linux-next.patch
+scripts-package-allow-custom-options-to-rpm.patch
 
