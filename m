@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-delete-old-and-now-unused-m48t35-rtc-driver-for-sgi-ip27.patch added to -mm tree
-Date: Thu, 30 Oct 2008 15:04:01 -0700
-Message-ID: <200810302204.m9UM41su031713@imap1.linux-foundation.org>
+Subject: + char-delete-old-and-now-unused-ds1286-driver.patch added to -mm tree
+Date: Thu, 30 Oct 2008 15:03:50 -0700
+Message-ID: <200810302203.m9UM3oiM031637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754305AbYJ3WEm (ORCPT
+	by vger.kernel.org with ESMTP id S1750937AbYJ3WEj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 18:04:42 -0400
+	Thu, 30 Oct 2008 18:04:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ralf@linux-mips.org, dmitri.vorobiev@movial.fi
 
 
 The patch titled
-     char: delete old and now unused M48T35 RTC driver for SGI IP27
+     char: delete old and now unused DS1286 driver
 has been added to the -mm tree.  Its filename is
-     char-delete-old-and-now-unused-m48t35-rtc-driver-for-sgi-ip27.patch
+     char-delete-old-and-now-unused-ds1286-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char: delete old and now unused M48T35 RTC driver for SGI IP27
+Subject: char: delete old and now unused DS1286 driver
 From: Ralf Baechle <ralf@linux-mips.org>
 
-It was only used by this one SGI platform which recently was converted to
-RTC_LIB and with RTC_LIB enabled the legacy drivers are no more selectable.
+It was only used by two SGI platforms which recently were converted to
+RTC_LIB and with RTC_LIB enabled the legacy drivers are no more
+selectable.
 
 Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Acked-by: Dmitri Vorobiev <dmitri.vorobiev@movial.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/configs/ip27_defconfig |    1 
- arch/mips/include/asm/m48t35.h   |   27 --
+ arch/mips/Kconfig                |    5 
+ arch/mips/configs/ip22_defconfig |    1 
+ arch/mips/configs/ip28_defconfig |    2 
  drivers/char/Kconfig             |   11 
  drivers/char/Makefile            |    1 
- drivers/char/ip27-rtc.c          |  329 -----------------------------
- 5 files changed, 369 deletions(-)
+ drivers/char/ds1286.c            |  585 -----------------------------
+ 6 files changed, 605 deletions(-)
 
-diff -puN arch/mips/configs/ip27_defconfig~char-delete-old-and-now-unused-m48t35-rtc-driver-for-sgi-ip27 arch/mips/configs/ip27_defconfig
---- a/arch/mips/configs/ip27_defconfig~char-delete-old-and-now-unused-m48t35-rtc-driver-for-sgi-ip27
-+++ a/arch/mips/configs/ip27_defconfig
-@@ -701,7 +701,6 @@ CONFIG_LEGACY_PTY_COUNT=256
- # CONFIG_WATCHDOG is not set
- CONFIG_HW_RANDOM=m
+diff -puN arch/mips/Kconfig~char-delete-old-and-now-unused-ds1286-driver arch/mips/Kconfig
+--- a/arch/mips/Kconfig~char-delete-old-and-now-unused-ds1286-driver
++++ a/arch/mips/Kconfig
+@@ -327,7 +327,6 @@ config SGI_IP22
+ 	select IP22_CPU_SCACHE
+ 	select IRQ_CPU
+ 	select GENERIC_ISA_DMA_SUPPORT_BROKEN
+-	select SGI_HAS_DS1286
+ 	select SGI_HAS_I8042
+ 	select SGI_HAS_INDYDOG
+ 	select SGI_HAS_HAL2
+@@ -382,7 +381,6 @@ config SGI_IP28
+ 	select HW_HAS_EISA
+ 	select I8253
+ 	select I8259
+-	select SGI_HAS_DS1286
+ 	select SGI_HAS_I8042
+ 	select SGI_HAS_INDYDOG
+ 	select SGI_HAS_HAL2
+@@ -893,9 +891,6 @@ config EMMA2RH
+ config SERIAL_RM9000
+ 	bool
+ 
+-config SGI_HAS_DS1286
+-	bool
+-
+ config SGI_HAS_INDYDOG
+ 	bool
+ 
+diff -puN arch/mips/configs/ip22_defconfig~char-delete-old-and-now-unused-ds1286-driver arch/mips/configs/ip22_defconfig
+--- a/arch/mips/configs/ip22_defconfig~char-delete-old-and-now-unused-ds1286-driver
++++ a/arch/mips/configs/ip22_defconfig
+@@ -771,7 +771,6 @@ CONFIG_WATCHDOG=y
+ CONFIG_INDYDOG=m
+ # CONFIG_HW_RANDOM is not set
  # CONFIG_RTC is not set
--CONFIG_SGI_IP27_RTC=y
+-CONFIG_SGI_DS1286=m
  # CONFIG_R3964 is not set
- # CONFIG_APPLICOM is not set
- # CONFIG_DRM is not set
-diff -puN arch/mips/include/asm/m48t35.h~char-delete-old-and-now-unused-m48t35-rtc-driver-for-sgi-ip27 /dev/null
---- a/arch/mips/include/asm/m48t35.h
-+++ /dev/null
-@@ -1,27 +0,0 @@
--/*
-- *  Registers for the SGS-Thomson M48T35 Timekeeper RAM chip
-- */
--#ifndef _ASM_M48T35_H
--#define _ASM_M48T35_H
--
--#include <linux/spinlock.h>
--
--extern spinlock_t rtc_lock;
--
--struct m48t35_rtc {
--	volatile u8	pad[0x7ff8];    /* starts at 0x7ff8 */
--	volatile u8	control;
--	volatile u8	sec;
--	volatile u8	min;
--	volatile u8	hour;
--	volatile u8	day;
--	volatile u8	date;
--	volatile u8	month;
--	volatile u8	year;
--};
--
--#define M48T35_RTC_SET		0x80
--#define M48T35_RTC_STOPPED	0x80
--#define M48T35_RTC_READ		0x40
--
--#endif /* _ASM_M48T35_H */
-diff -puN drivers/char/Kconfig~char-delete-old-and-now-unused-m48t35-rtc-driver-for-sgi-ip27 drivers/char/Kconfig
---- a/drivers/char/Kconfig~char-delete-old-and-now-unused-m48t35-rtc-driver-for-sgi-ip27
+ CONFIG_RAW_DRIVER=m
+ CONFIG_MAX_RAW_DEVS=256
+diff -puN arch/mips/configs/ip28_defconfig~char-delete-old-and-now-unused-ds1286-driver arch/mips/configs/ip28_defconfig
+--- a/arch/mips/configs/ip28_defconfig~char-delete-old-and-now-unused-ds1286-driver
++++ a/arch/mips/configs/ip28_defconfig
+@@ -70,7 +70,6 @@ CONFIG_CPU_BIG_ENDIAN=y
+ CONFIG_SYS_SUPPORTS_BIG_ENDIAN=y
+ CONFIG_IRQ_CPU=y
+ CONFIG_SWAP_IO_SPACE=y
+-CONFIG_SGI_HAS_DS1286=y
+ CONFIG_SGI_HAS_INDYDOG=y
+ CONFIG_SGI_HAS_SEEQ=y
+ CONFIG_SGI_HAS_WD93=y
+@@ -585,7 +584,6 @@ CONFIG_LEGACY_PTY_COUNT=256
+ # CONFIG_IPMI_HANDLER is not set
+ # CONFIG_HW_RANDOM is not set
+ # CONFIG_RTC is not set
+-CONFIG_SGI_DS1286=y
+ # CONFIG_DTLK is not set
+ # CONFIG_R3964 is not set
+ # CONFIG_RAW_DRIVER is not set
+diff -puN drivers/char/Kconfig~char-delete-old-and-now-unused-ds1286-driver drivers/char/Kconfig
+--- a/drivers/char/Kconfig~char-delete-old-and-now-unused-ds1286-driver
 +++ a/drivers/char/Kconfig
 @@ -812,17 +812,6 @@ config JS_RTC
  	  To compile this driver as a module, choose M here: the
  	  module will be called js-rtc.
  
--config SGI_IP27_RTC
--	bool "SGI M48T35 RTC support"
--	depends on SGI_IP27
+-config SGI_DS1286
+-	tristate "SGI DS1286 RTC support"
+-	depends on SGI_HAS_DS1286
 -	help
 -	  If you say Y here and create a character special file /dev/rtc with
 -	  major number 10 and minor number 135 using mknod ("man mknod"), you
@@ -112,118 +131,255 @@ diff -puN drivers/char/Kconfig~char-delete-old-and-now-unused-m48t35-rtc-driver-
 -	  via the file /proc/rtc and its behaviour is set by various ioctls on
 -	  /dev/rtc.
 -
- config GEN_RTC
- 	tristate "Generic /dev/rtc emulation"
- 	depends on RTC!=y && !IA64 && !ARM && !M32R && !MIPS && !SPARC && !FRV && !S390 && !SUPERH && !AVR32
-diff -puN drivers/char/Makefile~char-delete-old-and-now-unused-m48t35-rtc-driver-for-sgi-ip27 drivers/char/Makefile
---- a/drivers/char/Makefile~char-delete-old-and-now-unused-m48t35-rtc-driver-for-sgi-ip27
+ config SGI_IP27_RTC
+ 	bool "SGI M48T35 RTC support"
+ 	depends on SGI_IP27
+diff -puN drivers/char/Makefile~char-delete-old-and-now-unused-ds1286-driver drivers/char/Makefile
+--- a/drivers/char/Makefile~char-delete-old-and-now-unused-ds1286-driver
 +++ a/drivers/char/Makefile
 @@ -74,7 +74,6 @@ obj-$(CONFIG_RTC)		+= rtc.o
  obj-$(CONFIG_HPET)		+= hpet.o
  obj-$(CONFIG_GEN_RTC)		+= genrtc.o
  obj-$(CONFIG_EFI_RTC)		+= efirtc.o
--obj-$(CONFIG_SGI_IP27_RTC)	+= ip27-rtc.o
+-obj-$(CONFIG_SGI_DS1286)	+= ds1286.o
+ obj-$(CONFIG_SGI_IP27_RTC)	+= ip27-rtc.o
  obj-$(CONFIG_DS1302)		+= ds1302.o
  obj-$(CONFIG_XILINX_HWICAP)	+= xilinx_hwicap/
- ifeq ($(CONFIG_GENERIC_NVRAM),y)
-diff -puN drivers/char/ip27-rtc.c~char-delete-old-and-now-unused-m48t35-rtc-driver-for-sgi-ip27 /dev/null
---- a/drivers/char/ip27-rtc.c
+diff -puN drivers/char/ds1286.c~char-delete-old-and-now-unused-ds1286-driver /dev/null
+--- a/drivers/char/ds1286.c
 +++ /dev/null
-@@ -1,329 +0,0 @@
+@@ -1,585 +0,0 @@
 -/*
-- *	Driver for the SGS-Thomson M48T35 Timekeeper RAM chip
+- * DS1286 Real Time Clock interface for Linux
 - *
-- *	Real Time Clock interface for Linux
+- * Copyright (C) 1998, 1999, 2000 Ralf Baechle
 - *
-- *	TODO: Implement periodic interrupts.
+- * Based on code written by Paul Gortmaker.
 - *
-- *	Copyright (C) 2000 Silicon Graphics, Inc.
-- *	Written by Ulf Carlsson (ulfc@engr.sgi.com)
+- * This driver allows use of the real time clock (built into nearly all
+- * computers) from user space. It exports the /dev/rtc interface supporting
+- * various ioctl() and also the /proc/rtc pseudo-file for status
+- * information.
 - *
-- *	Based on code written by Paul Gortmaker.
+- * The ioctls can be used to set the interrupt behaviour and generation rate
+- * from the RTC via IRQ 8. Then the /dev/rtc interface can be used to make
+- * use of these timer interrupts, be they interval or alarm based.
 - *
-- *	This driver allows use of the real time clock (built into
-- *	nearly all computers) from user space. It exports the /dev/rtc
-- *	interface supporting various ioctl() and also the /proc/rtc
-- *	pseudo-file for status information.
+- * The /dev/rtc interface will block on reads until an interrupt has been
+- * received. If a RTC interrupt has already happened, it will output an
+- * unsigned long and then block. The output value contains the interrupt
+- * status in the low byte and the number of interrupts since the last read
+- * in the remaining high bytes. The /dev/rtc interface can also be used with
+- * the select(2) call.
 - *
-- *	This program is free software; you can redistribute it and/or
-- *	modify it under the terms of the GNU General Public License
-- *	as published by the Free Software Foundation; either version
-- *	2 of the License, or (at your option) any later version.
-- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the
+- * Free Software Foundation; either version 2 of the License, or (at your
+- * option) any later version.
 - */
--
--#define RTC_VERSION		"1.09b"
--
--#include <linux/bcd.h>
--#include <linux/module.h>
--#include <linux/kernel.h>
+-#include <linux/ds1286.h>
 -#include <linux/smp_lock.h>
 -#include <linux/types.h>
+-#include <linux/errno.h>
 -#include <linux/miscdevice.h>
+-#include <linux/slab.h>
 -#include <linux/ioport.h>
 -#include <linux/fcntl.h>
--#include <linux/rtc.h>
 -#include <linux/init.h>
 -#include <linux/poll.h>
+-#include <linux/rtc.h>
+-#include <linux/spinlock.h>
+-#include <linux/bcd.h>
 -#include <linux/proc_fs.h>
+-#include <linux/jiffies.h>
 -
--#include <asm/m48t35.h>
--#include <asm/sn/ioc3.h>
--#include <asm/io.h>
 -#include <asm/uaccess.h>
 -#include <asm/system.h>
--#include <asm/sn/klconfig.h>
--#include <asm/sn/sn0/ip27.h>
--#include <asm/sn/sn0/hub.h>
--#include <asm/sn/sn_private.h>
 -
--static long rtc_ioctl(struct file *filp, unsigned int cmd,
--			unsigned long arg);
--
--static int rtc_read_proc(char *page, char **start, off_t off,
--                         int count, int *eof, void *data);
--
--static void get_rtc_time(struct rtc_time *rtc_tm);
+-#define DS1286_VERSION		"1.0"
 -
 -/*
-- *	Bits in rtc_status. (6 bits of room for future expansion)
+- *	We sponge a minor off of the misc major. No need slurping
+- *	up another valuable major dev number for this. If you add
+- *	an ioctl, make sure you don't conflict with SPARC's RTC
+- *	ioctls.
+- */
+-
+-static DECLARE_WAIT_QUEUE_HEAD(ds1286_wait);
+-
+-static ssize_t ds1286_read(struct file *file, char *buf,
+-			size_t count, loff_t *ppos);
+-
+-static int ds1286_ioctl(struct inode *inode, struct file *file,
+-                        unsigned int cmd, unsigned long arg);
+-
+-static unsigned int ds1286_poll(struct file *file, poll_table *wait);
+-
+-static void ds1286_get_alm_time (struct rtc_time *alm_tm);
+-static void ds1286_get_time(struct rtc_time *rtc_tm);
+-static int ds1286_set_time(struct rtc_time *rtc_tm);
+-
+-static inline unsigned char ds1286_is_updating(void);
+-
+-static DEFINE_SPINLOCK(ds1286_lock);
+-
+-static int ds1286_read_proc(char *page, char **start, off_t off,
+-                            int count, int *eof, void *data);
+-
+-/*
+- *	Bits in rtc_status. (7 bits of room for future expansion)
 - */
 -
 -#define RTC_IS_OPEN		0x01	/* means /dev/rtc is in use	*/
 -#define RTC_TIMER_ON		0x02	/* missed irq timer active	*/
 -
--static unsigned char rtc_status;	/* bitmapped status byte.	*/
--static unsigned long rtc_freq;	/* Current periodic IRQ rate	*/
--static struct m48t35_rtc *rtc;
+-static unsigned char ds1286_status;	/* bitmapped status byte.	*/
+-
+-static unsigned char days_in_mo[] = {
+-	0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+-};
 -
 -/*
-- *	If this driver ever becomes modularised, it will be really nice
-- *	to make the epoch retain its value across module reload...
+- *	Now all the various file operations that we export.
 - */
 -
--static unsigned long epoch = 1970;	/* year corresponding to 0x00	*/
--
--static const unsigned char days_in_mo[] =
--{0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
--
--static long rtc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+-static ssize_t ds1286_read(struct file *file, char *buf,
+-                           size_t count, loff_t *ppos)
 -{
+-	return -EIO;
+-}
 -
+-static int ds1286_ioctl(struct inode *inode, struct file *file,
+-                        unsigned int cmd, unsigned long arg)
+-{
 -	struct rtc_time wtime;
 -
 -	switch (cmd) {
+-	case RTC_AIE_OFF:	/* Mask alarm int. enab. bit	*/
+-	{
+-		unsigned long flags;
+-		unsigned char val;
+-
+-		if (!capable(CAP_SYS_TIME))
+-			return -EACCES;
+-
+-		spin_lock_irqsave(&ds1286_lock, flags);
+-		val = rtc_read(RTC_CMD);
+-		val |=  RTC_TDM;
+-		rtc_write(val, RTC_CMD);
+-		spin_unlock_irqrestore(&ds1286_lock, flags);
+-
+-		return 0;
+-	}
+-	case RTC_AIE_ON:	/* Allow alarm interrupts.	*/
+-	{
+-		unsigned long flags;
+-		unsigned char val;
+-
+-		if (!capable(CAP_SYS_TIME))
+-			return -EACCES;
+-
+-		spin_lock_irqsave(&ds1286_lock, flags);
+-		val = rtc_read(RTC_CMD);
+-		val &=  ~RTC_TDM;
+-		rtc_write(val, RTC_CMD);
+-		spin_unlock_irqrestore(&ds1286_lock, flags);
+-
+-		return 0;
+-	}
+-	case RTC_WIE_OFF:	/* Mask watchdog int. enab. bit	*/
+-	{
+-		unsigned long flags;
+-		unsigned char val;
+-
+-		if (!capable(CAP_SYS_TIME))
+-			return -EACCES;
+-
+-		spin_lock_irqsave(&ds1286_lock, flags);
+-		val = rtc_read(RTC_CMD);
+-		val |= RTC_WAM;
+-		rtc_write(val, RTC_CMD);
+-		spin_unlock_irqrestore(&ds1286_lock, flags);
+-
+-		return 0;
+-	}
+-	case RTC_WIE_ON:	/* Allow watchdog interrupts.	*/
+-	{
+-		unsigned long flags;
+-		unsigned char val;
+-
+-		if (!capable(CAP_SYS_TIME))
+-			return -EACCES;
+-
+-		spin_lock_irqsave(&ds1286_lock, flags);
+-		val = rtc_read(RTC_CMD);
+-		val &= ~RTC_WAM;
+-		rtc_write(val, RTC_CMD);
+-		spin_unlock_irqrestore(&ds1286_lock, flags);
+-
+-		return 0;
+-	}
+-	case RTC_ALM_READ:	/* Read the present alarm time */
+-	{
+-		/*
+-		 * This returns a struct rtc_time. Reading >= 0xc0
+-		 * means "don't care" or "match all". Only the tm_hour,
+-		 * tm_min, and tm_sec values are filled in.
+-		 */
+-
+-		memset(&wtime, 0, sizeof(wtime));
+-		ds1286_get_alm_time(&wtime);
+-		break;
+-	}
+-	case RTC_ALM_SET:	/* Store a time into the alarm */
+-	{
+-		/*
+-		 * This expects a struct rtc_time. Writing 0xff means
+-		 * "don't care" or "match all". Only the tm_hour,
+-		 * tm_min and tm_sec are used.
+-		 */
+-		unsigned char hrs, min, sec;
+-		struct rtc_time alm_tm;
+-
+-		if (!capable(CAP_SYS_TIME))
+-			return -EACCES;
+-
+-		if (copy_from_user(&alm_tm, (struct rtc_time*)arg,
+-				   sizeof(struct rtc_time)))
+-			return -EFAULT;
+-
+-		hrs = alm_tm.tm_hour;
+-		min = alm_tm.tm_min;
+-		sec = alm_tm.tm_sec;
+-
+-		if (hrs >= 24)
+-			hrs = 0xff;
+-
+-		if (min >= 60)
+-			min = 0xff;
+-
+-		if (sec != 0)
+-			return -EINVAL;
+-
+-		min = bin2bcd(min);
+-		min = bin2bcd(hrs);
+-
+-		spin_lock(&ds1286_lock);
+-		rtc_write(hrs, RTC_HOURS_ALARM);
+-		rtc_write(min, RTC_MINUTES_ALARM);
+-		spin_unlock(&ds1286_lock);
+-
+-		return 0;
+-	}
 -	case RTC_RD_TIME:	/* Read the time/date from RTC	*/
 -	{
--		get_rtc_time(&wtime);
+-		memset(&wtime, 0, sizeof(wtime));
+-		ds1286_get_time(&wtime);
 -		break;
 -	}
 -	case RTC_SET_TIME:	/* Set the RTC */
 -	{
 -		struct rtc_time rtc_tm;
--		unsigned char mon, day, hrs, min, sec, leap_yr;
--		unsigned int yrs;
 -
 -		if (!capable(CAP_SYS_TIME))
 -			return -EACCES;
@@ -232,55 +388,7 @@ diff -puN drivers/char/ip27-rtc.c~char-delete-old-and-now-unused-m48t35-rtc-driv
 -				   sizeof(struct rtc_time)))
 -			return -EFAULT;
 -
--		yrs = rtc_tm.tm_year + 1900;
--		mon = rtc_tm.tm_mon + 1;   /* tm_mon starts at zero */
--		day = rtc_tm.tm_mday;
--		hrs = rtc_tm.tm_hour;
--		min = rtc_tm.tm_min;
--		sec = rtc_tm.tm_sec;
--
--		if (yrs < 1970)
--			return -EINVAL;
--
--		leap_yr = ((!(yrs % 4) && (yrs % 100)) || !(yrs % 400));
--
--		if ((mon > 12) || (day == 0))
--			return -EINVAL;
--
--		if (day > (days_in_mo[mon] + ((mon == 2) && leap_yr)))
--			return -EINVAL;
--
--		if ((hrs >= 24) || (min >= 60) || (sec >= 60))
--			return -EINVAL;
--
--		if ((yrs -= epoch) > 255)    /* They are unsigned */
--			return -EINVAL;
--
--		if (yrs > 169)
--			return -EINVAL;
--
--		if (yrs >= 100)
--			yrs -= 100;
--
--		sec = bin2bcd(sec);
--		min = bin2bcd(min);
--		hrs = bin2bcd(hrs);
--		day = bin2bcd(day);
--		mon = bin2bcd(mon);
--		yrs = bin2bcd(yrs);
--
--		spin_lock_irq(&rtc_lock);
--		rtc->control |= M48T35_RTC_SET;
--		rtc->year = yrs;
--		rtc->month = mon;
--		rtc->date = day;
--		rtc->hour = hrs;
--		rtc->min = min;
--		rtc->sec = sec;
--		rtc->control &= ~M48T35_RTC_SET;
--		spin_unlock_irq(&rtc_lock);
--
--		return 0;
+-		return ds1286_set_time(&rtc_tm);
 -	}
 -	default:
 -		return -EINVAL;
@@ -294,34 +402,36 @@ diff -puN drivers/char/ip27-rtc.c~char-delete-old-and-now-unused-m48t35-rtc-driv
 - *	up things on a close.
 - */
 -
--static int rtc_open(struct inode *inode, struct file *file)
+-static int ds1286_open(struct inode *inode, struct file *file)
 -{
 -	lock_kernel();
--	spin_lock_irq(&rtc_lock);
+-	spin_lock_irq(&ds1286_lock);
 -
--	if (rtc_status & RTC_IS_OPEN) {
--		spin_unlock_irq(&rtc_lock);
--		unlock_kernel();
--		return -EBUSY;
--	}
+-	if (ds1286_status & RTC_IS_OPEN)
+-		goto out_busy;
 -
--	rtc_status |= RTC_IS_OPEN;
--	spin_unlock_irq(&rtc_lock);
+-	ds1286_status |= RTC_IS_OPEN;
+-
+-	spin_unlock_irq(&ds1286_lock);
 -	unlock_kernel();
+-	return 0;
+-
+-out_busy:
+-	spin_lock_irq(&ds1286_lock);
+-	unlock_kernel();
+-	return -EBUSY;
+-}
+-
+-static int ds1286_release(struct inode *inode, struct file *file)
+-{
+-	ds1286_status &= ~RTC_IS_OPEN;
 -
 -	return 0;
 -}
 -
--static int rtc_release(struct inode *inode, struct file *file)
+-static unsigned int ds1286_poll(struct file *file, poll_table *wait)
 -{
--	/*
--	 * Turn off all interrupts once the device is no longer
--	 * in use, and clear the data.
--	 */
--
--	spin_lock_irq(&rtc_lock);
--	rtc_status &= ~RTC_IS_OPEN;
--	spin_unlock_irq(&rtc_lock);
+-	poll_wait(file, &ds1286_wait, wait);
 -
 -	return 0;
 -}
@@ -330,101 +440,173 @@ diff -puN drivers/char/ip27-rtc.c~char-delete-old-and-now-unused-m48t35-rtc-driv
 - *	The various file operations we support.
 - */
 -
--static const struct file_operations rtc_fops = {
--	.owner		= THIS_MODULE,
--	.unlocked_ioctl	= rtc_ioctl,
--	.open		= rtc_open,
--	.release	= rtc_release,
+-static const struct file_operations ds1286_fops = {
+-	.llseek		= no_llseek,
+-	.read		= ds1286_read,
+-	.poll		= ds1286_poll,
+-	.ioctl		= ds1286_ioctl,
+-	.open		= ds1286_open,
+-	.release	= ds1286_release,
 -};
 -
--static struct miscdevice rtc_dev=
+-static struct miscdevice ds1286_dev=
 -{
--	RTC_MINOR,
--	"rtc",
--	&rtc_fops
+-	.minor	= RTC_MINOR,
+-	.name	= "rtc",
+-	.fops	= &ds1286_fops,
 -};
 -
--static int __init rtc_init(void)
+-static int __init ds1286_init(void)
 -{
--	rtc = (struct m48t35_rtc *)
--	(KL_CONFIG_CH_CONS_INFO(master_nasid)->memory_base + IOC3_BYTEBUS_DEV0);
+-	int err;
 -
--	printk(KERN_INFO "Real Time Clock Driver v%s\n", RTC_VERSION);
--	if (misc_register(&rtc_dev)) {
--		printk(KERN_ERR "rtc: cannot register misc device.\n");
--		return -ENODEV;
--	}
--	if (!create_proc_read_entry("driver/rtc", 0, NULL, rtc_read_proc, NULL)) {
--		printk(KERN_ERR "rtc: cannot create /proc/rtc.\n");
--		misc_deregister(&rtc_dev);
--		return -ENOENT;
--	}
+-	printk(KERN_INFO "DS1286 Real Time Clock Driver v%s\n", DS1286_VERSION);
 -
--	rtc_freq = 1024;
+-	err = misc_register(&ds1286_dev);
+-	if (err)
+-		goto out;
+-
+-	if (!create_proc_read_entry("driver/rtc", 0, 0, ds1286_read_proc, NULL)) {
+-		err = -ENOMEM;
+-
+-		goto out_deregister;
+-	}
 -
 -	return 0;
+-
+-out_deregister:
+-	misc_deregister(&ds1286_dev);
+-
+-out:
+-	return err;
 -}
 -
--static void __exit rtc_exit (void)
+-static void __exit ds1286_exit(void)
 -{
--	/* interrupts and timer disabled at this point by rtc_release */
--
--	remove_proc_entry ("rtc", NULL);
--	misc_deregister(&rtc_dev);
+-	remove_proc_entry("driver/rtc", NULL);
+-	misc_deregister(&ds1286_dev);
 -}
 -
--module_init(rtc_init);
--module_exit(rtc_exit);
+-static char *days[] = {
+-	"***", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+-};
 -
 -/*
 - *	Info exported via "/proc/rtc".
 - */
--
--static int rtc_get_status(char *buf)
+-static int ds1286_proc_output(char *buf)
 -{
--	char *p;
+-	char *p, *s;
 -	struct rtc_time tm;
--
--	/*
--	 * Just emulate the standard /proc/rtc
--	 */
+-	unsigned char hundredth, month, cmd, amode;
 -
 -	p = buf;
 -
--	get_rtc_time(&tm);
+-	ds1286_get_time(&tm);
+-	hundredth = rtc_read(RTC_HUNDREDTH_SECOND);
+-	hundredth = bcd2bin(hundredth);
+-
+-	p += sprintf(p,
+-	             "rtc_time\t: %02d:%02d:%02d.%02d\n"
+-	             "rtc_date\t: %04d-%02d-%02d\n",
+-		     tm.tm_hour, tm.tm_min, tm.tm_sec, hundredth,
+-		     tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 -
 -	/*
--	 * There is no way to tell if the luser has the RTC set for local
--	 * time or for Universal Standard Time (GMT). Probably local though.
+-	 * We implicitly assume 24hr mode here. Alarm values >= 0xc0 will
+-	 * match any value for that particular field. Values that are
+-	 * greater than a valid time, but less than 0xc0 shouldn't appear.
 -	 */
+-	ds1286_get_alm_time(&tm);
+-	p += sprintf(p, "alarm\t\t: %s ", days[tm.tm_wday]);
+-	if (tm.tm_hour <= 24)
+-		p += sprintf(p, "%02d:", tm.tm_hour);
+-	else
+-		p += sprintf(p, "**:");
+-
+-	if (tm.tm_min <= 59)
+-		p += sprintf(p, "%02d\n", tm.tm_min);
+-	else
+-		p += sprintf(p, "**\n");
+-
+-	month = rtc_read(RTC_MONTH);
 -	p += sprintf(p,
--		     "rtc_time\t: %02d:%02d:%02d\n"
--		     "rtc_date\t: %04d-%02d-%02d\n"
--	 	     "rtc_epoch\t: %04lu\n"
--		     "24hr\t\t: yes\n",
--		     tm.tm_hour, tm.tm_min, tm.tm_sec,
--		     tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, epoch);
+-	             "oscillator\t: %s\n"
+-	             "square_wave\t: %s\n",
+-	             (month & RTC_EOSC) ? "disabled" : "enabled",
+-	             (month & RTC_ESQW) ? "disabled" : "enabled");
+-
+-	amode = ((rtc_read(RTC_MINUTES_ALARM) & 0x80) >> 5) |
+-	        ((rtc_read(RTC_HOURS_ALARM) & 0x80) >> 6) |
+-	        ((rtc_read(RTC_DAY_ALARM) & 0x80) >> 7);
+-	if (amode == 7)      s = "each minute";
+-	else if (amode == 3) s = "minutes match";
+-	else if (amode == 1) s = "hours and minutes match";
+-	else if (amode == 0) s = "days, hours and minutes match";
+-	else                 s = "invalid";
+-	p += sprintf(p, "alarm_mode\t: %s\n", s);
+-
+-	cmd = rtc_read(RTC_CMD);
+-	p += sprintf(p,
+-	             "alarm_enable\t: %s\n"
+-	             "wdog_alarm\t: %s\n"
+-	             "alarm_mask\t: %s\n"
+-	             "wdog_alarm_mask\t: %s\n"
+-	             "interrupt_mode\t: %s\n"
+-	             "INTB_mode\t: %s_active\n"
+-	             "interrupt_pins\t: %s\n",
+-		     (cmd & RTC_TDF) ? "yes" : "no",
+-		     (cmd & RTC_WAF) ? "yes" : "no",
+-		     (cmd & RTC_TDM) ? "disabled" : "enabled",
+-		     (cmd & RTC_WAM) ? "disabled" : "enabled",
+-		     (cmd & RTC_PU_LVL) ? "pulse" : "level",
+-		     (cmd & RTC_IBH_LO) ? "low" : "high",
+-	             (cmd & RTC_IPSW) ? "unswapped" : "swapped");
 -
 -	return  p - buf;
 -}
 -
--static int rtc_read_proc(char *page, char **start, off_t off,
--                                 int count, int *eof, void *data)
+-static int ds1286_read_proc(char *page, char **start, off_t off,
+-                         int count, int *eof, void *data)
 -{
--        int len = rtc_get_status(page);
--        if (len <= off+count) *eof = 1;
--        *start = page + off;
--        len -= off;
--        if (len>count) len = count;
--        if (len<0) len = 0;
--        return len;
+-	int len = ds1286_proc_output (page);
+-	if (len <= off+count) *eof = 1;
+-	*start = page + off;
+-	len -= off;
+-	if (len>count)
+-		len = count;
+-	if (len<0)
+-		len = 0;
+-
+-	return len;
 -}
 -
--static void get_rtc_time(struct rtc_time *rtc_tm)
+-/*
+- * Returns true if a clock update is in progress
+- */
+-static inline unsigned char ds1286_is_updating(void)
 -{
+-	return rtc_read(RTC_CMD) & RTC_TE;
+-}
+-
+-
+-static void ds1286_get_time(struct rtc_time *rtc_tm)
+-{
+-	unsigned char save_control;
+-	unsigned long flags;
+-
 -	/*
--	 * Do we need to wait for the last update to finish?
+-	 * read RTC once any update in progress is done. The update
+-	 * can take just over 2ms. We wait 10 to 20ms. There is no need to
+-	 * to poll-wait (up to 1s - eeccch) for the falling edge of RTC_UIP.
+-	 * If you need to know *exactly* when a second has started, enable
+-	 * periodic update complete interrupts, (via ioctl) and then
+-	 * immediately read /dev/rtc which will block until you get the IRQ.
+-	 * Once the read clears, read the RTC time (again via ioctl). Easy.
 -	 */
+-
+-	if (ds1286_is_updating() != 0)
+-		msleep(20);
 -
 -	/*
 -	 * Only the values that we read from the RTC are set. We leave
@@ -432,16 +614,19 @@ diff -puN drivers/char/ip27-rtc.c~char-delete-old-and-now-unused-m48t35-rtc-driv
 -	 * RTC has RTC_DAY_OF_WEEK, we ignore it, as it is only updated
 -	 * by the RTC when initially set to a non-zero value.
 -	 */
--	spin_lock_irq(&rtc_lock);
--	rtc->control |= M48T35_RTC_READ;
--	rtc_tm->tm_sec = rtc->sec;
--	rtc_tm->tm_min = rtc->min;
--	rtc_tm->tm_hour = rtc->hour;
--	rtc_tm->tm_mday = rtc->date;
--	rtc_tm->tm_mon = rtc->month;
--	rtc_tm->tm_year = rtc->year;
--	rtc->control &= ~M48T35_RTC_READ;
--	spin_unlock_irq(&rtc_lock);
+-	spin_lock_irqsave(&ds1286_lock, flags);
+-	save_control = rtc_read(RTC_CMD);
+-	rtc_write((save_control|RTC_TE), RTC_CMD);
+-
+-	rtc_tm->tm_sec = rtc_read(RTC_SECONDS);
+-	rtc_tm->tm_min = rtc_read(RTC_MINUTES);
+-	rtc_tm->tm_hour = rtc_read(RTC_HOURS) & 0x3f;
+-	rtc_tm->tm_mday = rtc_read(RTC_DATE);
+-	rtc_tm->tm_mon = rtc_read(RTC_MONTH) & 0x1f;
+-	rtc_tm->tm_year = rtc_read(RTC_YEAR);
+-
+-	rtc_write(save_control, RTC_CMD);
+-	spin_unlock_irqrestore(&ds1286_lock, flags);
 -
 -	rtc_tm->tm_sec = bcd2bin(rtc_tm->tm_sec);
 -	rtc_tm->tm_min = bcd2bin(rtc_tm->tm_min);
@@ -454,5 +639,94 @@ diff -puN drivers/char/ip27-rtc.c~char-delete-old-and-now-unused-m48t35-rtc-driv
 -	 * Account for differences between how the RTC uses the values
 -	 * and how they are defined in a struct rtc_time;
 -	 */
--	if ((rtc_tm->tm_year += (epoch - 1900)) <= 69)
+-	if (rtc_tm->tm_year < 45)
+-		rtc_tm->tm_year += 30;
+-	if ((rtc_tm->tm_year += 40) < 70)
 -		rtc_tm->tm_year += 100;
+-
+-	rtc_tm->tm_mon--;
+-}
+-
+-static int ds1286_set_time(struct rtc_time *rtc_tm)
+-{
+-	unsigned char mon, day, hrs, min, sec, leap_yr;
+-	unsigned char save_control;
+-	unsigned int yrs;
+-	unsigned long flags;
+-
+-
+-	yrs = rtc_tm->tm_year + 1900;
+-	mon = rtc_tm->tm_mon + 1;   /* tm_mon starts at zero */
+-	day = rtc_tm->tm_mday;
+-	hrs = rtc_tm->tm_hour;
+-	min = rtc_tm->tm_min;
+-	sec = rtc_tm->tm_sec;
+-
+-	if (yrs < 1970)
+-		return -EINVAL;
+-
+-	leap_yr = ((!(yrs % 4) && (yrs % 100)) || !(yrs % 400));
+-
+-	if ((mon > 12) || (day == 0))
+-		return -EINVAL;
+-
+-	if (day > (days_in_mo[mon] + ((mon == 2) && leap_yr)))
+-		return -EINVAL;
+-
+-	if ((hrs >= 24) || (min >= 60) || (sec >= 60))
+-		return -EINVAL;
+-
+-	if ((yrs -= 1940) > 255)    /* They are unsigned */
+-		return -EINVAL;
+-
+-	if (yrs >= 100)
+-		yrs -= 100;
+-
+-	sec = bin2bcd(sec);
+-	min = bin2bcd(min);
+-	hrs = bin2bcd(hrs);
+-	day = bin2bcd(day);
+-	mon = bin2bcd(mon);
+-	yrs = bin2bcd(yrs);
+-
+-	spin_lock_irqsave(&ds1286_lock, flags);
+-	save_control = rtc_read(RTC_CMD);
+-	rtc_write((save_control|RTC_TE), RTC_CMD);
+-
+-	rtc_write(yrs, RTC_YEAR);
+-	rtc_write(mon, RTC_MONTH);
+-	rtc_write(day, RTC_DATE);
+-	rtc_write(hrs, RTC_HOURS);
+-	rtc_write(min, RTC_MINUTES);
+-	rtc_write(sec, RTC_SECONDS);
+-	rtc_write(0, RTC_HUNDREDTH_SECOND);
+-
+-	rtc_write(save_control, RTC_CMD);
+-	spin_unlock_irqrestore(&ds1286_lock, flags);
+-
+-	return 0;
+-}
+-
+-static void ds1286_get_alm_time(struct rtc_time *alm_tm)
+-{
+-	unsigned char cmd;
+-	unsigned long flags;
+-
+-	/*
+-	 * Only the values that we read from the RTC are set. That
+-	 * means only tm_wday, tm_hour, tm_min.
+-	 */
+-	spin_lock_irqsave(&ds1286_lock, flags);
+-	alm_tm->tm_min = rtc_read(RTC_MINUTES_ALARM) & 0x7f;
+-	alm_tm->tm_hour = rtc_read(RTC_HOURS_ALARM)  & 0x1f;
+-	alm_tm->tm_wday = rtc_read(RTC_DAY_ALARM)    & 0x07;
+-	cmd = rtc_read(RTC_CMD);
+-	spin_unlock_irqrestore(&ds1286_lock, flags);
+-
+-	alm_tm->tm_min = bcd2bin(alm_tm->tm_min);
+-	alm_tm->tm_hour = bcd2bin(alm_tm->tm_hour);
+-	alm_tm->tm_sec = 0;
+-}
+-
+-module_init(ds1286_init);
+-module_exit(ds1286_exit);
