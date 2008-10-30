@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-write_cache_pages-cyclic-fix.patch added to -mm tree
-Date: Thu, 30 Oct 2008 16:14:27 -0700
-Message-ID: <200810302314.m9UNER80027452@imap1.linux-foundation.org>
+Subject: + mm-write_cache_pages-cyclic-fix-fix.patch added to -mm tree
+Date: Thu, 30 Oct 2008 16:14:29 -0700
+Message-ID: <200810302314.m9UNETQ8027479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38252 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754313AbYJ3XPJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754350AbYJ3XPQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 19:15:09 -0400
+	Thu, 30 Oct 2008 19:15:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, chris.mason@oracle.com, david@fromorbit.com, jowens@hp.com
 
 
 The patch titled
-     mm: write_cache_pages cyclic fix
+     mm: write_cache_pages cyclic fix fix
 has been added to the -mm tree.  Its filename is
-     mm-write_cache_pages-cyclic-fix.patch
+     mm-write_cache_pages-cyclic-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,22 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: write_cache_pages cyclic fix
+Subject: mm: write_cache_pages cyclic fix fix
 From: Nick Piggin <npiggin@suse.de>
 
-In write_cache_pages, scanned == 1 is supposed to mean that cyclic
-writeback has circled through zero, thus we should not circle again. 
-However it gets set to 1 after the first successful pagevec lookup.  This
-leads to cases where not enough data gets written.
-
-Counterexample: file with first 10 pages dirty, writeback_index == 5,
-nr_to_write == 10.  Then the 5 last pages will be found, and scanned will
-be set to 1, after writing those out, we will not cycle back to get the
-first 5.
-
-Rework this logic, now we'll always cycle unless we started off from index
-0.  When cycling, only write out as far as 1 page before the start page
-from the first cycle (so we don't write parts of the file twice).
+shut up gcc
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -58,85 +46,21 @@ Cc: jim owens <jowens@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ mm/page-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-write_cache_pages-cyclic-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-write_cache_pages-cyclic-fix
+diff -puN mm/page-writeback.c~mm-write_cache_pages-cyclic-fix-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-write_cache_pages-cyclic-fix-fix
 +++ a/mm/page-writeback.c
-@@ -868,9 +868,10 @@ int write_cache_pages(struct address_spa
+@@ -868,7 +868,7 @@ int write_cache_pages(struct address_spa
  	int done = 0;
  	struct pagevec pvec;
  	int nr_pages;
-+	pgoff_t writeback_index;
+-	pgoff_t writeback_index;
++	pgoff_t uninitialized_var(writeback_index);
  	pgoff_t index;
  	pgoff_t end;		/* Inclusive */
--	int scanned = 0;
-+	int cycled;
- 	int range_whole = 0;
- 	long nr_to_write = wbc->nr_to_write;
- 
-@@ -881,14 +882,19 @@ int write_cache_pages(struct address_spa
- 
- 	pagevec_init(&pvec, 0);
- 	if (wbc->range_cyclic) {
--		index = mapping->writeback_index; /* Start from prev offset */
-+		writeback_index = mapping->writeback_index; /* prev offset */
-+		index = writeback_index;
-+		if (index == 0)
-+			cycled = 1;
-+		else
-+			cycled = 0;
- 		end = -1;
- 	} else {
- 		index = wbc->range_start >> PAGE_CACHE_SHIFT;
- 		end = wbc->range_end >> PAGE_CACHE_SHIFT;
- 		if (wbc->range_start == 0 && wbc->range_end == LLONG_MAX)
- 			range_whole = 1;
--		scanned = 1;
-+		cycled = 1; /* ignore range_cyclic tests */
- 	}
- retry:
- 	while (!done && (index <= end) &&
-@@ -897,7 +903,6 @@ retry:
- 					      min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
- 		unsigned i;
- 
--		scanned = 1;
- 		for (i = 0; i < nr_pages; i++) {
- 			struct page *page = pvec.pages[i];
- 
-@@ -915,7 +920,11 @@ retry:
- 				continue;
- 			}
- 
--			if (!wbc->range_cyclic && page->index > end) {
-+			if (page->index > end) {
-+				/*
-+				 * can't be range_cyclic (1st pass) because
-+				 * end == -1 in that case.
-+				 */
- 				done = 1;
- 				unlock_page(page);
- 				continue;
-@@ -946,13 +955,15 @@ retry:
- 		pagevec_release(&pvec);
- 		cond_resched();
- 	}
--	if (!scanned && !done) {
-+	if (!cycled) {
- 		/*
-+		 * range_cyclic:
- 		 * We hit the last page and there is more work to be done: wrap
- 		 * back to the start of the file
- 		 */
--		scanned = 1;
-+		cycled = 1;
- 		index = 0;
-+		end = writeback_index - 1;
- 		goto retry;
- 	}
- 	if (!wbc->no_nrwrite_index_update) {
+ 	int cycled;
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
