@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + do_mpage_readpage-dont-submit-lots-of-small-bios-on-boundary.patch added to -mm tree
-Date: Thu, 30 Oct 2008 14:24:29 -0700
-Message-ID: <200810302124.m9ULOTXl015826@imap1.linux-foundation.org>
+Subject: + ext4-fix-printk-format-warning.patch added to -mm tree
+Date: Thu, 30 Oct 2008 14:40:11 -0700
+Message-ID: <200810302140.m9ULeBh8022169@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753434AbYJ3VYw (ORCPT
+	by vger.kernel.org with ESMTP id S1753334AbYJ3VkQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 17:24:52 -0400
+	Thu, 30 Oct 2008 17:40:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikevs@xs4all.net, jens.axboe@oracle.com, nickpiggin@yahoo.com.au
+Cc: a.beregalov@gmail.com, tytso@mit.edu
 
 
 The patch titled
-     do_mpage_readpage(): don't submit lots of small bios on boundary
+     ext4: fix printk format warning
 has been added to the -mm tree.  Its filename is
-     do_mpage_readpage-dont-submit-lots-of-small-bios-on-boundary.patch
+     ext4-fix-printk-format-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_mpage_readpage(): don't submit lots of small bios on boundary
-From: Miquel van Smoorenburg <mikevs@xs4all.net>
+Subject: ext4: fix printk format warning
+From: Alexander Beregalov <a.beregalov@gmail.com>
 
-While tracing I/O patterns with blktrace (a great tool) a few weeks ago I
-identified a minor issue in fs/mpage.c
+fs/ext4/balloc.c:607: warning: format '%lld' expects type 'long long int', but argument 2 has type 's64'
+fs/ext4/inode.c:1822: warning: format '%lld' expects type 'long long int', but argument 2 has type 's64'
+fs/ext4/inode.c:1824: warning: format '%lld' expects type 'long long int', but argument 2 has type 's64'
 
-As the comment above mpage_readpages() says, a fs's get_block function
-will set BH_Boundary when it maps a block just before a block for which
-extra I/O is required.
-
-Since get_block() can map a range of pages, for all these pages the
-BH_Boundary flag will be set.  But we only need to push what I/O we have
-accumulated at the last block of this range.
-
-This makes do_mpage_readpage() send out the largest possible bio instead
-of a bunch of page-sized ones in the BH_Boundary case.
-
-Signed-off-by: Miquel van Smoorenburg <mikevs@xs4all.net>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/ext4/balloc.c |    2 +-
+ fs/ext4/inode.c  |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/mpage.c~do_mpage_readpage-dont-submit-lots-of-small-bios-on-boundary fs/mpage.c
---- a/fs/mpage.c~do_mpage_readpage-dont-submit-lots-of-small-bios-on-boundary
-+++ a/fs/mpage.c
-@@ -308,7 +308,10 @@ alloc_new:
- 		goto alloc_new;
+diff -puN fs/ext4/balloc.c~ext4-fix-printk-format-warning fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-fix-printk-format-warning
++++ a/fs/ext4/balloc.c
+@@ -612,7 +612,7 @@ int ext4_claim_free_blocks(struct ext4_s
+ 		if (dirty_blocks < 0) {
+ 			printk(KERN_CRIT "Dirty block accounting "
+ 					"went wrong %lld\n",
+-					dirty_blocks);
++					(long long)dirty_blocks);
+ 		}
  	}
- 
--	if (buffer_boundary(map_bh) || (first_hole != blocks_per_page))
-+	relative_block = block_in_file - *first_logical_block;
-+	nblocks = map_bh->b_size >> blkbits;
-+	if ((buffer_boundary(map_bh) && relative_block == nblocks) ||
-+	    (first_hole != blocks_per_page))
- 		bio = mpage_bio_submit(READ, bio);
- 	else
- 		*last_block_in_bio = blocks[blocks_per_page - 1];
+ 	/* Check whether we have space after
+diff -puN fs/ext4/inode.c~ext4-fix-printk-format-warning fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-fix-printk-format-warning
++++ a/fs/ext4/inode.c
+@@ -1830,9 +1830,9 @@ static void ext4_print_free_blocks(struc
+ 			ext4_count_free_blocks(inode->i_sb));
+ 	printk(KERN_EMERG "Free/Dirty block details\n");
+ 	printk(KERN_EMERG "free_blocks=%lld\n",
+-			percpu_counter_sum(&sbi->s_freeblocks_counter));
++			(long long)percpu_counter_sum(&sbi->s_freeblocks_counter));
+ 	printk(KERN_EMERG "dirty_blocks=%lld\n",
+-			percpu_counter_sum(&sbi->s_dirtyblocks_counter));
++			(long long)percpu_counter_sum(&sbi->s_dirtyblocks_counter));
+ 	printk(KERN_EMERG "Block reservation details\n");
+ 	printk(KERN_EMERG "i_reserved_data_blocks=%lu\n",
+ 			EXT4_I(inode)->i_reserved_data_blocks);
 _
 
-Patches currently in -mm which might be from mikevs@xs4all.net are
+Patches currently in -mm which might be from a.beregalov@gmail.com are
 
-elevatorc-prevent-flushing-small-requests-to-device.patch
-do_mpage_readpage-dont-submit-lots-of-small-bios-on-boundary.patch
+linux-next.patch
+ext4-fix-printk-format-warning.patch
 
