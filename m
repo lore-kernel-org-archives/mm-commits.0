@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + genirq-record-irq_level-in-irq_desc.patch added to -mm tree
-Date: Thu, 30 Oct 2008 15:21:55 -0700
-Message-ID: <200810302221.m9UMLtoN006534@imap1.linux-foundation.org>
+Subject: + acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch added to -mm tree
+Date: Thu, 30 Oct 2008 15:29:57 -0700
+Message-ID: <200810302229.m9UMTvS7009782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36439 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58448 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753141AbYJ3WXB (ORCPT
+	by vger.kernel.org with ESMTP id S1752412AbYJ3WaO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 18:23:01 -0400
+	Thu, 30 Oct 2008 18:30:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, mingo@elte.hu, tglx@linutronix.de
+Cc: dbrownell@users.sourceforge.net, lenb@kernel.org
 
 
 The patch titled
-     genirq: record IRQ_LEVEL in irq_desc[]
+     acpi: fix ACPI_FADT_S4_RTC_WAKE comment
 has been added to the -mm tree.  Its filename is
-     genirq-record-irq_level-in-irq_desc.patch
+     acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: genirq: record IRQ_LEVEL in irq_desc[]
+Subject: acpi: fix ACPI_FADT_S4_RTC_WAKE comment
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-When recording the irq trigger type, let's also make sure
-that IRQ_LEVEL gets set correctly.
+Make the comment for ACPI_FADT_S4_RTC_WAKE match the ACPI spec;
+that bit has nothing to do with status bits.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/chip.c   |    1 +
- kernel/irq/manage.c |   15 +++++++++------
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ include/acpi/actbl.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/irq/chip.c~genirq-record-irq_level-in-irq_desc kernel/irq/chip.c
---- a/kernel/irq/chip.c~genirq-record-irq_level-in-irq_desc
-+++ a/kernel/irq/chip.c
-@@ -124,6 +124,7 @@ int set_irq_type(unsigned int irq, unsig
- 		return -ENODEV;
- 	}
- 
-+	type &= IRQ_TYPE_SENSE_MASK;
- 	if (type == IRQ_TYPE_NONE)
- 		return 0;
- 
-diff -puN kernel/irq/manage.c~genirq-record-irq_level-in-irq_desc kernel/irq/manage.c
---- a/kernel/irq/manage.c~genirq-record-irq_level-in-irq_desc
-+++ a/kernel/irq/manage.c
-@@ -332,16 +332,18 @@ int __irq_set_trigger(struct irq_desc *d
- 		return 0;
- 	}
- 
--	ret = chip->set_type(irq, flags & IRQF_TRIGGER_MASK);
-+	/* caller masked out all except trigger mode flags */
-+	ret = chip->set_type(irq, flags);
- 
- 	if (ret)
- 		pr_err("setting trigger mode %d for irq %u failed (%pF)\n",
--				(int)(flags & IRQF_TRIGGER_MASK),
--				irq, chip->set_type);
-+				(int)flags, irq, chip->set_type);
- 	else {
-+		if (flags & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
-+			flags |= IRQ_LEVEL;
- 		/* note that IRQF_TRIGGER_MASK == IRQ_TYPE_SENSE_MASK */
--		desc->status &= ~IRQ_TYPE_SENSE_MASK;
--		desc->status |= flags & IRQ_TYPE_SENSE_MASK;
-+		desc->status &= ~(IRQ_LEVEL | IRQ_TYPE_SENSE_MASK);
-+		desc->status |= flags;
- 	}
- 
- 	return ret;
-@@ -421,7 +423,8 @@ __setup_irq(unsigned int irq, struct irq
- 
- 		/* Setup the type (level, edge polarity) if configured: */
- 		if (new->flags & IRQF_TRIGGER_MASK) {
--			ret = __irq_set_trigger(desc, irq, new->flags);
-+			ret = __irq_set_trigger(desc, irq,
-+					new->flags & IRQF_TRIGGER_MASK);
- 
- 			if (ret) {
- 				spin_unlock_irqrestore(&desc->lock, flags);
+diff -puN include/acpi/actbl.h~acpi-fix-acpi_fadt_s4_rtc_wake-comment include/acpi/actbl.h
+--- a/include/acpi/actbl.h~acpi-fix-acpi_fadt_s4_rtc_wake-comment
++++ a/include/acpi/actbl.h
+@@ -245,7 +245,7 @@ struct acpi_table_fadt {
+ #define ACPI_FADT_POWER_BUTTON      (1<<4)	/* 04: Power button is handled as a generic feature */
+ #define ACPI_FADT_SLEEP_BUTTON      (1<<5)	/* 05: Sleep button is handled as a generic feature, or  not present */
+ #define ACPI_FADT_FIXED_RTC         (1<<6)	/* 06: RTC wakeup stat not in fixed register space */
+-#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup stat not possible from S4 */
++#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup possible from S4 */
+ #define ACPI_FADT_32BIT_TIMER       (1<<8)	/* 08: tmr_val is 32 bits 0=24-bits */
+ #define ACPI_FADT_DOCKING_SUPPORTED (1<<9)	/* 09: Docking supported */
+ #define ACPI_FADT_RESET_REGISTER    (1<<10)	/* 10: System reset via the FADT RESET_REG supported */
 _
 
 Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 linux-next.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
 spi_gpio-driver.patch
 spi_gpio-driver-cleanups.patch
 rtc-ds1307-remove-legacy-probe-checks.patch
