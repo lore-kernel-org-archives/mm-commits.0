@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + binfmtsh-include-listh.patch added to -mm tree
-Date: Wed, 29 Oct 2008 18:37:26 -0700
-Message-ID: <200810300137.m9U1bQ8c019363@imap1.linux-foundation.org>
+Subject: + cpusets-update-mems-allowed-in-page-allocator.patch added to -mm tree
+Date: Wed, 29 Oct 2008 23:48:21 -0700
+Message-ID: <200810300648.m9U6mLvG004831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60523 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751971AbYJ3Bh3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752704AbYJ3Gse (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Oct 2008 21:37:29 -0400
+	Thu, 30 Oct 2008 02:48:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: h-shimamoto@ct.jp.nec.com
+Cc: rientjes@google.com, cl@linux-foundation.org, mel@csn.ul.ie, menage@google.com
 
 
 The patch titled
-     binfmts.h: include list.h
+     cpusets: update mems allowed in page allocator
 has been added to the -mm tree.  Its filename is
-     binfmtsh-include-listh.patch
+     cpusets-update-mems-allowed-in-page-allocator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmts.h: include list.h
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Subject: cpusets: update mems allowed in page allocator
+From: David Rientjes <rientjes@google.com>
 
-linux_binfmt uses list_head, so list.h is needed.
+If all allowable memory is unreclaimable, it is possible to loop forever
+in the page allocator for ~__GFP_NORETRY allocations.
 
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+During this time, it is also possible for a task's cpuset to expand its
+set of allowable nodes so that it now includes free memory.  The cached
+copy of this set, current->mems_allowed, is stale, however, since there
+has not been a subsequent call to cpuset_update_task_memory_state().
+
+The cached copy of the set of allowable nodes is now updated in the page
+allocator's slow path so the additional memory is available to
+get_page_from_freelist().
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/binfmts.h |    1 +
+ mm/page_alloc.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN include/linux/binfmts.h~binfmtsh-include-listh include/linux/binfmts.h
---- a/include/linux/binfmts.h~binfmtsh-include-listh
-+++ a/include/linux/binfmts.h
-@@ -1,6 +1,7 @@
- #ifndef _LINUX_BINFMTS_H
- #define _LINUX_BINFMTS_H
+diff -puN mm/page_alloc.c~cpusets-update-mems-allowed-in-page-allocator mm/page_alloc.c
+--- a/mm/page_alloc.c~cpusets-update-mems-allowed-in-page-allocator
++++ a/mm/page_alloc.c
+@@ -1561,6 +1561,7 @@ nofail_alloc:
  
-+#include <linux/list.h>
- #include <linux/capability.h>
- 
- struct pt_regs;
+ 	/* We now go into synchronous reclaim */
+ 	cpuset_memory_pressure_bump();
++	cpuset_update_task_memory_state();
+ 	p->flags |= PF_MEMALLOC;
+ 	reclaim_state.reclaimed_slab = 0;
+ 	p->reclaim_state = &reclaim_state;
 _
 
-Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-binfmtsh-include-listh.patch
-linux-next.patch
+oom-do-not-dump-task-state-for-non-thread-group-leaders.patch
+vmemmap-warn-about-page_structs-with-remote-distance.patch
+cpusets-update-mems-allowed-in-page-allocator.patch
+oom-fix-zone_scan_mutex-name.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
 
