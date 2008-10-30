@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom_killc-fix-badness-kerneldoc.patch added to -mm tree
-Date: Thu, 30 Oct 2008 14:47:53 -0700
-Message-ID: <200810302147.m9ULlr49025182@imap1.linux-foundation.org>
+Subject: + fix-hid_device_id-for-cross-compiling.patch added to -mm tree
+Date: Thu, 30 Oct 2008 14:53:05 -0700
+Message-ID: <200810302153.m9ULr5H7027315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56945 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758358AbYJ3VuD (ORCPT
+	by vger.kernel.org with ESMTP id S1754343AbYJ3Vx0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 17:50:03 -0400
+	Thu, 30 Oct 2008 17:53:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: qhfeng.kernel@gmail.com, rdunlap@xenotime.net
+Cc: schwab@suse.de, geert@linux-m68k.org, jkosina@suse.cz
 
 
 The patch titled
-     mm/oom_kill.c: fix badness() kerneldoc
+     Fix hid_device_id for cross compiling
 has been added to the -mm tree.  Its filename is
-     mm-oom_killc-fix-badness-kerneldoc.patch
+     fix-hid_device_id-for-cross-compiling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/oom_kill.c: fix badness() kerneldoc
-From: Qinghuang Feng <qhfeng.kernel@gmail.com>
+Subject: Fix hid_device_id for cross compiling
+From: Andreas Schwab <schwab@suse.de>
 
-Paramter @mem has been removed since v2.6.26, now delete it's comment.
+struct hid_device_id contains hidden padding which is bad for cross
+compiling.  It depends on the alignment restrictions of the architecture. 
+On m68k everything is aligned on a 2-byte boundary, so this padding does
+not exist.
 
-Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
-Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+Make the padding explicit and consistent across architectures.
+
+Signed-off-by: Andreas Schwab <schwab@suse.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/mod_devicetable.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/oom_kill.c~mm-oom_killc-fix-badness-kerneldoc mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_killc-fix-badness-kerneldoc
-+++ a/mm/oom_kill.c
-@@ -38,7 +38,6 @@ static DEFINE_SPINLOCK(zone_scan_mutex);
-  * badness - calculate a numeric value for how bad this task has been
-  * @p: task struct of which task we should calculate
-  * @uptime: current uptime in seconds
-- * @mem: target memory controller
-  *
-  * The formula used is relatively simple and documented inline in the
-  * function. The main rationale is that we want to select a good task
+diff -puN include/linux/mod_devicetable.h~fix-hid_device_id-for-cross-compiling include/linux/mod_devicetable.h
+--- a/include/linux/mod_devicetable.h~fix-hid_device_id-for-cross-compiling
++++ a/include/linux/mod_devicetable.h
+@@ -135,6 +135,7 @@ struct usb_device_id {
+ 
+ struct hid_device_id {
+ 	__u16 bus;
++	__u16 pad1;
+ 	__u32 vendor;
+ 	__u32 product;
+ 	kernel_ulong_t driver_data
 _
 
-Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
+Patches currently in -mm which might be from schwab@suse.de are
 
-origin.patch
-mm-oom_killc-fix-badness-kerneldoc.patch
-linux-next.patch
+fix-hid_device_id-for-cross-compiling.patch
 
