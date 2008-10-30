@@ -1,188 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - cifs-clean-up-server-protocol-handling-for-tcp_server_info.patch removed from -mm tree
-Date: Thu, 30 Oct 2008 12:01:03 -0700
-Message-ID: <200810301901.m9UJ1357023422@imap1.linux-foundation.org>
+Subject: - cris-use-the-new-byteorder-headers.patch removed from -mm tree
+Date: Thu, 30 Oct 2008 12:01:59 -0700
+Message-ID: <200810301902.m9UJ1x7A023791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45391 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41034 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753562AbYJ3TBf (ORCPT
+	by vger.kernel.org with ESMTP id S1752374AbYJ3TCL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 15:01:35 -0400
+	Thu, 30 Oct 2008 15:02:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@redhat.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, jesper.nilsson@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cifs: clean up server protocol handling for TCP_Server_Info
+     cris: use the new byteorder headers
 has been removed from the -mm tree.  Its filename was
-     cifs-clean-up-server-protocol-handling-for-tcp_server_info.patch
+     cris-use-the-new-byteorder-headers.patch
 
 This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: clean up server protocol handling for TCP_Server_Info
-From: Jeff Layton <jlayton@redhat.com>
+Subject: cris: use the new byteorder headers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-We're currently declaring both a sockaddr_in and sockaddr6_in on the
-stack, but we really only need storage for one of them.  Declare a
-sockaddr struct and cast it to the proper type.  Also, eliminate the
-protocolType field in the TCP_Server_Info struct.  It's redundant since we
-have a sin_family field in the sockaddr anyway.
-
-We may need to revisit this if SCTP is ever implemented, but for now this
-will simplify the code.
-
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifsglob.h |    8 --------
- fs/cifs/connect.c  |   39 +++++++++++++++++++--------------------
- 2 files changed, 19 insertions(+), 28 deletions(-)
+ include/asm-cris/arch-v10/byteorder.h |    6 ++++--
+ include/asm-cris/arch-v32/byteorder.h |    6 ++++--
+ include/asm-cris/byteorder.h          |   18 +++---------------
+ 3 files changed, 11 insertions(+), 19 deletions(-)
 
-diff -puN fs/cifs/cifsglob.h~cifs-clean-up-server-protocol-handling-for-tcp_server_info fs/cifs/cifsglob.h
---- a/fs/cifs/cifsglob.h~cifs-clean-up-server-protocol-handling-for-tcp_server_info
-+++ a/fs/cifs/cifsglob.h
-@@ -84,13 +84,6 @@ enum securityEnum {
- 	MSKerberos,		/* MS Kerberos via SPNEGO */
- };
+diff -puN include/asm-cris/arch-v10/byteorder.h~cris-use-the-new-byteorder-headers include/asm-cris/arch-v10/byteorder.h
+--- a/include/asm-cris/arch-v10/byteorder.h~cris-use-the-new-byteorder-headers
++++ a/include/asm-cris/arch-v10/byteorder.h
+@@ -9,18 +9,20 @@
+  * them together into ntohl etc.
+  */
  
--enum protocolEnum {
--	IPV4 = 0,
--	IPV6,
--	SCTP
--	/* Netbios frames protocol not supported at this time */
--};
--
- struct mac_key {
- 	unsigned int len;
- 	union {
-@@ -137,7 +130,6 @@ struct TCP_Server_Info {
- 	void *Server_NlsInfo;	/* BB - placeholder for future NLS info  */
- 	unsigned short server_codepage;	/* codepage for the server    */
- 	unsigned long ip_address;	/* IP addr for the server if known */
--	enum protocolEnum protocolType;
- 	char versionMajor;
- 	char versionMinor;
- 	bool svlocal:1;			/* local server or remote */
-diff -puN fs/cifs/connect.c~cifs-clean-up-server-protocol-handling-for-tcp_server_info fs/cifs/connect.c
---- a/fs/cifs/connect.c~cifs-clean-up-server-protocol-handling-for-tcp_server_info
-+++ a/fs/cifs/connect.c
-@@ -189,7 +189,7 @@ cifs_reconnect(struct TCP_Server_Info *s
- 	while ((server->tcpStatus != CifsExiting) &&
- 	       (server->tcpStatus != CifsGood)) {
- 		try_to_freeze();
--		if (server->protocolType == IPV6) {
-+		if (server->addr.sockAddr6.sin6_family == AF_INET6) {
- 			rc = ipv6_connect(&server->addr.sockAddr6,
- 					  &server->ssocket);
- 		} else {
-@@ -1873,10 +1873,10 @@ cifs_mount(struct super_block *sb, struc
+-static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
++static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
  {
- 	int rc = 0;
- 	int xid;
--	int address_type = AF_INET;
- 	struct socket *csocket = NULL;
--	struct sockaddr_in sin_server;
--	struct sockaddr_in6 sin_server6;
-+	struct sockaddr addr;
-+	struct sockaddr_in *sin_server = (struct sockaddr_in *) &addr;
-+	struct sockaddr_in6 *sin_server6 = (struct sockaddr_in6 *) &addr;
- 	struct smb_vol volume_info;
- 	struct cifsSesInfo *pSesInfo = NULL;
- 	struct cifsSesInfo *existingCifsSes = NULL;
-@@ -1909,16 +1909,16 @@ cifs_mount(struct super_block *sb, struc
+ 	__asm__ ("swapwb %0" : "=r" (x) : "0" (x));
+   
+ 	return(x);
+ }
++#define __arch_swab32 __arch_swab32
  
- 	if (volume_info.UNCip && volume_info.UNC) {
- 		rc = cifs_inet_pton(AF_INET, volume_info.UNCip,
--				    &sin_server.sin_addr.s_addr);
-+				    &sin_server->sin_addr.s_addr);
+-static inline __attribute_const__ __u16 ___arch__swab16(__u16 x)
++static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
+ {
+ 	__asm__ ("swapb %0" : "=r" (x) : "0" (x));
+ 	
+ 	return(x);
+ }
++#define __arch_swab16 __arch_swab16
  
- 		if (rc <= 0) {
- 			/* not ipv4 address, try ipv6 */
- 			rc = cifs_inet_pton(AF_INET6, volume_info.UNCip,
--					    &sin_server6.sin6_addr.in6_u);
-+					    &sin_server6->sin6_addr.in6_u);
- 			if (rc > 0)
--				address_type = AF_INET6;
-+				addr.sa_family = AF_INET6;
- 		} else {
--			address_type = AF_INET;
-+			addr.sa_family = AF_INET;
- 		}
+ #endif
+diff -puN include/asm-cris/arch-v32/byteorder.h~cris-use-the-new-byteorder-headers include/asm-cris/arch-v32/byteorder.h
+--- a/include/asm-cris/arch-v32/byteorder.h~cris-use-the-new-byteorder-headers
++++ a/include/asm-cris/arch-v32/byteorder.h
+@@ -4,17 +4,19 @@
+ #include <asm/types.h>
  
- 		if (rc <= 0) {
-@@ -1958,14 +1958,14 @@ cifs_mount(struct super_block *sb, struc
- 		}
- 	}
+ static inline __const__ __u32
+-___arch__swab32(__u32 x)
++__arch_swab32(__u32 x)
+ {
+ 	__asm__ __volatile__ ("swapwb %0" : "=r" (x) : "0" (x));
+ 	return (x);
+ }
++#define __arch_swab32 __arch_swab32
  
--	if (address_type == AF_INET)
--		existingCifsSes = cifs_find_tcp_session(&sin_server.sin_addr,
-+	if (addr.sa_family == AF_INET)
-+		existingCifsSes = cifs_find_tcp_session(&sin_server->sin_addr,
- 			NULL /* no ipv6 addr */,
- 			volume_info.username, &srvTcp);
--	else if (address_type == AF_INET6) {
-+	else if (addr.sa_family == AF_INET6) {
- 		cFYI(1, ("looking for ipv6 address"));
- 		existingCifsSes = cifs_find_tcp_session(NULL /* no ipv4 addr */,
--			&sin_server6.sin6_addr,
-+			&sin_server6->sin6_addr,
- 			volume_info.username, &srvTcp);
- 	} else {
- 		rc = -EINVAL;
-@@ -1976,16 +1976,16 @@ cifs_mount(struct super_block *sb, struc
- 		cFYI(1, ("Existing tcp session with server found"));
- 	} else {	/* create socket */
- 		if (volume_info.port)
--			sin_server.sin_port = htons(volume_info.port);
-+			sin_server->sin_port = htons(volume_info.port);
- 		else
--			sin_server.sin_port = 0;
--		if (address_type == AF_INET6) {
-+			sin_server->sin_port = 0;
-+		if (addr.sa_family == AF_INET6) {
- 			cFYI(1, ("attempting ipv6 connect"));
- 			/* BB should we allow ipv6 on port 139? */
- 			/* other OS never observed in Wild doing 139 with v6 */
--			rc = ipv6_connect(&sin_server6, &csocket);
-+			rc = ipv6_connect(sin_server6, &csocket);
- 		} else
--			rc = ipv4_connect(&sin_server, &csocket,
-+			rc = ipv4_connect(sin_server, &csocket,
- 				  volume_info.source_rfc1001_name,
- 				  volume_info.target_rfc1001_name);
- 		if (rc < 0) {
-@@ -2002,12 +2002,11 @@ cifs_mount(struct super_block *sb, struc
- 			sock_release(csocket);
- 			goto out;
- 		} else {
--			memcpy(&srvTcp->addr.sockAddr, &sin_server,
-+			memcpy(&srvTcp->addr.sockAddr, sin_server,
- 				sizeof(struct sockaddr_in));
- 			atomic_set(&srvTcp->inFlight, 0);
- 			/* BB Add code for ipv6 case too */
- 			srvTcp->ssocket = csocket;
--			srvTcp->protocolType = IPV4;
- 			srvTcp->hostname = extract_hostname(volume_info.UNC);
- 			if (IS_ERR(srvTcp->hostname)) {
- 				rc = PTR_ERR(srvTcp->hostname);
-@@ -2059,7 +2058,7 @@ cifs_mount(struct super_block *sb, struc
- 		else {
- 			pSesInfo->server = srvTcp;
- 			sprintf(pSesInfo->serverName, "%u.%u.%u.%u",
--				NIPQUAD(sin_server.sin_addr.s_addr));
-+				NIPQUAD(sin_server->sin_addr.s_addr));
- 		}
+ static inline __const__ __u16
+-___arch__swab16(__u16 x)
++__arch_swab16(__u16 x)
+ {
+ 	__asm__ __volatile__ ("swapb %0" : "=r" (x) : "0" (x));
+ 	return (x);
+ }
++#define __arch_swab16 __arch_swab16
  
- 		if (!rc) {
+ #endif /* _ASM_CRIS_ARCH_BYTEORDER_H */
+diff -puN include/asm-cris/byteorder.h~cris-use-the-new-byteorder-headers include/asm-cris/byteorder.h
+--- a/include/asm-cris/byteorder.h~cris-use-the-new-byteorder-headers
++++ a/include/asm-cris/byteorder.h
+@@ -1,26 +1,14 @@
+ #ifndef _CRIS_BYTEORDER_H
+ #define _CRIS_BYTEORDER_H
+ 
+-#ifdef __GNUC__
++#define __LITTLE_ENDIAN
++#define __SWAB_64_THRU_32__
+ 
+ #ifdef __KERNEL__
+ #include <asm/arch/byteorder.h>
+-
+-/* defines are necessary because the other files detect the presence
+- * of a defined __arch_swab32, not an inline
+- */
+-#define __arch__swab32(x) ___arch__swab32(x)
+-#define __arch__swab16(x) ___arch__swab16(x)
+-#endif /* __KERNEL__ */
+-
+-#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-#  define __BYTEORDER_HAS_U64__
+-#  define __SWAB_64_THRU_32__
+ #endif
+ 
+-#endif /* __GNUC__ */
+-
+-#include <linux/byteorder/little_endian.h>
++#include <linux/byteorder.h>
+ 
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-cifs-clean-up-server-protocol-handling-for-tcp_server_info.patch
+linux-next.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+mips-use-the-new-byteorder-headers.patch
+blackfin-remove-__function__-in-new-serial-driver.patch
+blackfin-remove-__function__-in-video-driver.patch
+sh-use-the-new-byteorder-headers.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+sparc-use-the-new-byteorder-headers.patch
+usb-avoid-needless-address-taking-of-function-parameters.patch
+m68knommu-use-the-new-byteorder-headers.patch
+cris-use-the-new-byteorder-headers.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+memstick-annotate-endianness-of-attribute-structs.patch
 
