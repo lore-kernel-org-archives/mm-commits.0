@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix.patch added to -mm tree
-Date: Thu, 30 Oct 2008 13:17:45 -0700
-Message-ID: <200810302017.m9UKHjsN021193@imap1.linux-foundation.org>
+Subject: + oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console.patch added to -mm tree
+Date: Thu, 30 Oct 2008 13:17:42 -0700
+Message-ID: <200810302017.m9UKHg8f021180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754493AbYJ3UTM (ORCPT
+	by vger.kernel.org with ESMTP id S1755647AbYJ3UTU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 16:19:12 -0400
+	Thu, 30 Oct 2008 16:19:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, mingo@elte.hu, viktor.rosendahl@nokia.com
+Cc: viktor.rosendahl@nokia.com, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, mingo@elte.hu
 
 
 The patch titled
-     oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix
+     oops handling: ensure that any oops is flushed to the mtdoops console
 has been added to the -mm tree.  Its filename is
-     oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix.patch
+     oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: oops handling: ensure that any oops is flushed to the mtdoops console
+From: Viktor Rosendahl <viktor.rosendahl@nokia.com>
 
-We can now remove that unblank_screen(), because the console_unblank()
-will call vt_console_driver.unblank() for us.
+This used to work unpatched with older kernels, during the development
+phase of mtdoops.  Before commit e3e8a75d2acfc61ebf25524666a0a2c6abb0620c
+a space was printed with console_loglevel set to 15, which probably
+flushed the oops message as a side effect.
 
+This is another patch from the Nokia N810 kernel.
+
+Signed-off-by: Viktor Rosendahl <viktor.rosendahl@nokia.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Viktor Rosendahl <viktor.rosendahl@nokia.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bust_spinlocks.c |    4 ----
- 1 file changed, 4 deletions(-)
+ lib/bust_spinlocks.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN lib/bust_spinlocks.c~oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix lib/bust_spinlocks.c
---- a/lib/bust_spinlocks.c~oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix
+diff -puN lib/bust_spinlocks.c~oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console lib/bust_spinlocks.c
+--- a/lib/bust_spinlocks.c~oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console
 +++ a/lib/bust_spinlocks.c
-@@ -11,7 +11,6 @@
- #include <linux/spinlock.h>
+@@ -12,6 +12,7 @@
  #include <linux/tty.h>
  #include <linux/wait.h>
--#include <linux/vt_kern.h>
- #include <linux/console.h>
+ #include <linux/vt_kern.h>
++#include <linux/console.h>
  
  
-@@ -20,9 +19,6 @@ void __attribute__((weak)) bust_spinlock
- 	if (yes) {
- 		++oops_in_progress;
- 	} else {
--#ifdef CONFIG_VT
--		unblank_screen();
--#endif
- 		console_unblank();
+ void __attribute__((weak)) bust_spinlocks(int yes)
+@@ -22,6 +23,7 @@ void __attribute__((weak)) bust_spinlock
+ #ifdef CONFIG_VT
+ 		unblank_screen();
+ #endif
++		console_unblank();
  		if (--oops_in_progress == 0)
  			wake_up_klogd();
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from viktor.rosendahl@nokia.com are
 
-freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
-fs-remove-prepare_write-commit_write.patch
-mm-write_cache_pages-writepage-error-fix.patch
-nfsd-fix-vm-overcommit-crash.patch
-autofs4-collect-version-check-return-checkpatch-fixes.patch
-maintainers-make-ioat-easier-to-find.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-pci-uninline-pci_ioremap_bar.patch
-cpusets-update-mems-allowed-in-page-allocator-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
-init-properly-placing-noinline-keyword.patch
+oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console.patch
 oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix.patch
-spi_gpio-driver-cleanups.patch
-rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
-rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
-quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format-fix.patch
-quota-support-64-bit-quota-format-fix-2.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-w1-export-w1_read_8-function-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
