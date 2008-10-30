@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + gpio-adding-new-xilinx-driver.patch added to -mm tree
-Date: Wed, 29 Oct 2008 23:53:44 -0700
-Message-ID: <200810300653.m9U6ri3B006821@imap1.linux-foundation.org>
+Date: Wed, 29 Oct 2008 23:56:30 -0700
+Message-ID: <200810300656.m9U6uUYd007859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53931 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752758AbYJ3Gx5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752878AbYJ3G5F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 02:53:57 -0400
+	Thu, 30 Oct 2008 02:57:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: john.linn@xilinx.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, kirans@xilinx.com, paulus@samba.org
+Cc: john.linn@xilinx.com, avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, grant.likely@secretlab.ca, kirans@xilinx.com, paulus@samba.org
 
 
 The patch titled
@@ -46,6 +46,8 @@ Cc: David Brownell <david-b@pacbell.net>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: "Grant Likely" <grant.likely@secretlab.ca>
+Cc: <avorontsov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
