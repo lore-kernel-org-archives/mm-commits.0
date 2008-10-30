@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + fix-hid_device_id-for-cross-compiling.patch added to -mm tree
-Date: Thu, 30 Oct 2008 14:53:05 -0700
-Message-ID: <200810302153.m9ULr5H7027315@imap1.linux-foundation.org>
+Subject: + cirrusfb-remove-unused-variables.patch added to -mm tree
+Date: Thu, 30 Oct 2008 15:00:05 -0700
+Message-ID: <200810302200.m9UM052S030202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36156 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39791 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754343AbYJ3Vx0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752376AbYJ3WAh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 17:53:26 -0400
+	Thu, 30 Oct 2008 18:00:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: schwab@suse.de, geert@linux-m68k.org, jkosina@suse.cz
+Cc: vlada.peric@gmail.com, krzysztof.h1@wp.pl
 
 
 The patch titled
-     Fix hid_device_id for cross compiling
+     cirrusfb: remove unused variables
 has been added to the -mm tree.  Its filename is
-     fix-hid_device_id-for-cross-compiling.patch
+     cirrusfb-remove-unused-variables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,47 +29,53 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: Fix hid_device_id for cross compiling
-From: Andreas Schwab <schwab@suse.de>
+Subject: cirrusfb: remove unused variables
+=46rom: "Vlada Peric" <vlada.peric@gmail.com>
 
-struct hid_device_id contains hidden padding which is bad for cross
-compiling.  It depends on the alignment restrictions of the architecture. 
-On m68k everything is aligned on a 2-byte boundary, so this padding does
-not exist.
+After commit a1d35a7a (cirrusfb: use modedb and add mode_option
+parameter), these variables are no longer used, so remove them to fix
+compilation warning.
 
-Make the padding explicit and consistent across architectures.
-
-Signed-off-by: Andreas Schwab <schwab@suse.de>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Vlada Peri=E6 <vlada.peric@gmail.com>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mod_devicetable.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/cirrusfb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/mod_devicetable.h~fix-hid_device_id-for-cross-compiling include/linux/mod_devicetable.h
---- a/include/linux/mod_devicetable.h~fix-hid_device_id-for-cross-compiling
-+++ a/include/linux/mod_devicetable.h
-@@ -135,6 +135,7 @@ struct usb_device_id {
- 
- struct hid_device_id {
- 	__u16 bus;
-+	__u16 pad1;
- 	__u32 vendor;
- 	__u32 product;
- 	kernel_ulong_t driver_data
+diff -puN drivers/video/cirrusfb.c~cirrusfb-remove-unused-variables dri=
+vers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-remove-unused-variables
++++ a/drivers/video/cirrusfb.c
+@@ -2462,8 +2462,7 @@ static int __init cirrusfb_init(void)
+=20
+ #ifndef MODULE
+ static int __init cirrusfb_setup(char *options) {
+-	char *this_opt, s[32];
+-	int i;
++	char *this_opt;
+=20
+ 	DPRINTK("ENTER\n");
+=20
 _
 
-Patches currently in -mm which might be from schwab@suse.de are
+Patches currently in -mm which might be from vlada.peric@gmail.com are
 
-fix-hid_device_id-for-cross-compiling.patch
+cirrusfb-remove-unused-variables.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
