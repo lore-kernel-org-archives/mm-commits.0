@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-fix-printk-format-warning.patch added to -mm tree
-Date: Thu, 30 Oct 2008 14:40:11 -0700
-Message-ID: <200810302140.m9ULeBh8022169@imap1.linux-foundation.org>
+Subject: + dm1105-fix-the-misuse-of-pci_dma_mapping_error.patch added to -mm tree
+Date: Thu, 30 Oct 2008 14:43:03 -0700
+Message-ID: <200810302143.m9ULh3Ge023246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753334AbYJ3VkQ (ORCPT
+	by vger.kernel.org with ESMTP id S1758958AbYJ3Vnl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 17:40:16 -0400
+	Thu, 30 Oct 2008 17:43:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.beregalov@gmail.com, tytso@mit.edu
+Cc: fujita.tomonori@lab.ntt.co.jp, mchehab@infradead.org
 
 
 The patch titled
-     ext4: fix printk format warning
+     dm1105: fix the misuse of pci_dma_mapping_error
 has been added to the -mm tree.  Its filename is
-     ext4-fix-printk-format-warning.patch
+     dm1105-fix-the-misuse-of-pci_dma_mapping_error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: fix printk format warning
-From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: dm1105: fix the misuse of pci_dma_mapping_error
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-fs/ext4/balloc.c:607: warning: format '%lld' expects type 'long long int', but argument 2 has type 's64'
-fs/ext4/inode.c:1822: warning: format '%lld' expects type 'long long int', but argument 2 has type 's64'
-fs/ext4/inode.c:1824: warning: format '%lld' expects type 'long long int', but argument 2 has type 's64'
+pci_dma_mapping_error can't be used for pci_alloc_consistent
+(pci_dma_mapping_error is for dma_map_single and dma_map_page). 
+pci_alloc_consistent returns NULL if the allocation fails.
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c |    2 +-
- fs/ext4/inode.c  |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/dvb/dm1105/dm1105.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/balloc.c~ext4-fix-printk-format-warning fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext4-fix-printk-format-warning
-+++ a/fs/ext4/balloc.c
-@@ -612,7 +612,7 @@ int ext4_claim_free_blocks(struct ext4_s
- 		if (dirty_blocks < 0) {
- 			printk(KERN_CRIT "Dirty block accounting "
- 					"went wrong %lld\n",
--					dirty_blocks);
-+					(long long)dirty_blocks);
- 		}
- 	}
- 	/* Check whether we have space after
-diff -puN fs/ext4/inode.c~ext4-fix-printk-format-warning fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-fix-printk-format-warning
-+++ a/fs/ext4/inode.c
-@@ -1830,9 +1830,9 @@ static void ext4_print_free_blocks(struc
- 			ext4_count_free_blocks(inode->i_sb));
- 	printk(KERN_EMERG "Free/Dirty block details\n");
- 	printk(KERN_EMERG "free_blocks=%lld\n",
--			percpu_counter_sum(&sbi->s_freeblocks_counter));
-+			(long long)percpu_counter_sum(&sbi->s_freeblocks_counter));
- 	printk(KERN_EMERG "dirty_blocks=%lld\n",
--			percpu_counter_sum(&sbi->s_dirtyblocks_counter));
-+			(long long)percpu_counter_sum(&sbi->s_dirtyblocks_counter));
- 	printk(KERN_EMERG "Block reservation details\n");
- 	printk(KERN_EMERG "i_reserved_data_blocks=%lu\n",
- 			EXT4_I(inode)->i_reserved_data_blocks);
+diff -puN drivers/media/dvb/dm1105/dm1105.c~dm1105-fix-the-misuse-of-pci_dma_mapping_error drivers/media/dvb/dm1105/dm1105.c
+--- a/drivers/media/dvb/dm1105/dm1105.c~dm1105-fix-the-misuse-of-pci_dma_mapping_error
++++ a/drivers/media/dvb/dm1105/dm1105.c
+@@ -367,7 +367,7 @@ static int __devinit dm1105dvb_dma_map(s
+ {
+ 	dm1105dvb->ts_buf = pci_alloc_consistent(dm1105dvb->pdev, 6*DM1105_DMA_BYTES, &dm1105dvb->dma_addr);
+ 
+-	return pci_dma_mapping_error(dm1105dvb->pdev, dm1105dvb->dma_addr);
++	return !dm1105dvb->ts_buf;
+ }
+ 
+ static void dm1105dvb_dma_unmap(struct dm1105dvb *dm1105dvb)
 _
 
-Patches currently in -mm which might be from a.beregalov@gmail.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
+origin.patch
+cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch
 linux-next.patch
-ext4-fix-printk-format-warning.patch
+megaraid-fix-mega_internal_command-oops.patch
+dm1105-fix-the-misuse-of-pci_dma_mapping_error.patch
 
