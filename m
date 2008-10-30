@@ -1,118 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-rtc-rtc-m48t35c-is-borked-too.patch removed from -mm tree
-Date: Wed, 29 Oct 2008 16:28:13 -0700
-Message-ID: <200810292328.m9TNSD77003416@imap1.linux-foundation.org>
+Subject: + cifs-clean-up-server-protocol-handling-for-tcp_server_info.patch added to -mm tree
+Date: Wed, 29 Oct 2008 17:10:23 -0700
+Message-ID: <200810300010.m9U0ANQu019271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750720AbYJ2XaV (ORCPT
+	by vger.kernel.org with ESMTP id S1755301AbYJ3AKi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 29 Oct 2008 19:30:21 -0400
+	Wed, 29 Oct 2008 20:10:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alessandro.zummo@towertech.it, ralf@linux-mips.org, tsbogend@alpha.franken.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jlayton@redhat.com
 
 
 The patch titled
-     drivers/rtc/rtc-m48t35.c is borked too
-has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-m48t35c-is-borked-too.patch
+     cifs: clean up server protocol handling for TCP_Server_Info
+has been added to the -mm tree.  Its filename is
+     cifs-clean-up-server-protocol-handling-for-tcp_server_info.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-m48t35.c is borked too
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cifs: clean up server protocol handling for TCP_Server_Info
+From: Jeff Layton <jlayton@redhat.com>
 
-drivers/rtc/rtc-m48t35.c: In function 'm48t35_read_time':
-drivers/rtc/rtc-m48t35.c:59: error: implicit declaration of function 'readb'
-drivers/rtc/rtc-m48t35.c:60: error: implicit declaration of function 'writeb'
-drivers/rtc/rtc-m48t35.c: In function 'm48t35_probe':
-drivers/rtc/rtc-m48t35.c:168: error: implicit declaration of function 'ioremap'
-drivers/rtc/rtc-m48t35.c:168: warning: assignment makes pointer from integer without a cast
-drivers/rtc/rtc-m48t35.c:188: error: implicit declaration of function 'iounmap'
+We're currently declaring both a sockaddr_in and sockaddr6_in on the
+stack, but we really only need storage for one of them.  Declare a
+sockaddr struct and cast it to the proper type.  Also, eliminate the
+protocolType field in the TCP_Server_Info struct.  It's redundant since we
+have a sin_family field in the sockaddr anyway.
 
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+We may need to revisit this if SCTP is ever implemented, but for now this
+will simplify the code.
+
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/cifs/cifsglob.h |    8 --------
+ fs/cifs/connect.c  |   39 +++++++++++++++++++--------------------
+ 2 files changed, 19 insertions(+), 28 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~drivers-rtc-rtc-m48t35c-is-borked-too drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-rtc-m48t35c-is-borked-too
-+++ a/drivers/rtc/Kconfig
-@@ -432,6 +432,7 @@ config RTC_DRV_M48T86
+diff -puN fs/cifs/cifsglob.h~cifs-clean-up-server-protocol-handling-for-tcp_server_info fs/cifs/cifsglob.h
+--- a/fs/cifs/cifsglob.h~cifs-clean-up-server-protocol-handling-for-tcp_server_info
++++ a/fs/cifs/cifsglob.h
+@@ -84,13 +84,6 @@ enum securityEnum {
+ 	MSKerberos,		/* MS Kerberos via SPNEGO */
+ };
  
- config RTC_DRV_M48T35
- 	tristate "ST M48T35"
-+	depends on MIPS
- 	help
- 	  If you say Y here you will get support for the
- 	  ST M48T35 RTC chip.
+-enum protocolEnum {
+-	IPV4 = 0,
+-	IPV6,
+-	SCTP
+-	/* Netbios frames protocol not supported at this time */
+-};
+-
+ struct mac_key {
+ 	unsigned int len;
+ 	union {
+@@ -137,7 +130,6 @@ struct TCP_Server_Info {
+ 	void *Server_NlsInfo;	/* BB - placeholder for future NLS info  */
+ 	unsigned short server_codepage;	/* codepage for the server    */
+ 	unsigned long ip_address;	/* IP addr for the server if known */
+-	enum protocolEnum protocolType;
+ 	char versionMajor;
+ 	char versionMinor;
+ 	bool svlocal:1;			/* local server or remote */
+diff -puN fs/cifs/connect.c~cifs-clean-up-server-protocol-handling-for-tcp_server_info fs/cifs/connect.c
+--- a/fs/cifs/connect.c~cifs-clean-up-server-protocol-handling-for-tcp_server_info
++++ a/fs/cifs/connect.c
+@@ -189,7 +189,7 @@ cifs_reconnect(struct TCP_Server_Info *s
+ 	while ((server->tcpStatus != CifsExiting) &&
+ 	       (server->tcpStatus != CifsGood)) {
+ 		try_to_freeze();
+-		if (server->protocolType == IPV6) {
++		if (server->addr.sockAddr6.sin6_family == AF_INET6) {
+ 			rc = ipv6_connect(&server->addr.sockAddr6,
+ 					  &server->ssocket);
+ 		} else {
+@@ -1873,10 +1873,10 @@ cifs_mount(struct super_block *sb, struc
+ {
+ 	int rc = 0;
+ 	int xid;
+-	int address_type = AF_INET;
+ 	struct socket *csocket = NULL;
+-	struct sockaddr_in sin_server;
+-	struct sockaddr_in6 sin_server6;
++	struct sockaddr addr;
++	struct sockaddr_in *sin_server = (struct sockaddr_in *) &addr;
++	struct sockaddr_in6 *sin_server6 = (struct sockaddr_in6 *) &addr;
+ 	struct smb_vol volume_info;
+ 	struct cifsSesInfo *pSesInfo = NULL;
+ 	struct cifsSesInfo *existingCifsSes = NULL;
+@@ -1909,16 +1909,16 @@ cifs_mount(struct super_block *sb, struc
+ 
+ 	if (volume_info.UNCip && volume_info.UNC) {
+ 		rc = cifs_inet_pton(AF_INET, volume_info.UNCip,
+-				    &sin_server.sin_addr.s_addr);
++				    &sin_server->sin_addr.s_addr);
+ 
+ 		if (rc <= 0) {
+ 			/* not ipv4 address, try ipv6 */
+ 			rc = cifs_inet_pton(AF_INET6, volume_info.UNCip,
+-					    &sin_server6.sin6_addr.in6_u);
++					    &sin_server6->sin6_addr.in6_u);
+ 			if (rc > 0)
+-				address_type = AF_INET6;
++				addr.sa_family = AF_INET6;
+ 		} else {
+-			address_type = AF_INET;
++			addr.sa_family = AF_INET;
+ 		}
+ 
+ 		if (rc <= 0) {
+@@ -1958,14 +1958,14 @@ cifs_mount(struct super_block *sb, struc
+ 		}
+ 	}
+ 
+-	if (address_type == AF_INET)
+-		existingCifsSes = cifs_find_tcp_session(&sin_server.sin_addr,
++	if (addr.sa_family == AF_INET)
++		existingCifsSes = cifs_find_tcp_session(&sin_server->sin_addr,
+ 			NULL /* no ipv6 addr */,
+ 			volume_info.username, &srvTcp);
+-	else if (address_type == AF_INET6) {
++	else if (addr.sa_family == AF_INET6) {
+ 		cFYI(1, ("looking for ipv6 address"));
+ 		existingCifsSes = cifs_find_tcp_session(NULL /* no ipv4 addr */,
+-			&sin_server6.sin6_addr,
++			&sin_server6->sin6_addr,
+ 			volume_info.username, &srvTcp);
+ 	} else {
+ 		rc = -EINVAL;
+@@ -1976,16 +1976,16 @@ cifs_mount(struct super_block *sb, struc
+ 		cFYI(1, ("Existing tcp session with server found"));
+ 	} else {	/* create socket */
+ 		if (volume_info.port)
+-			sin_server.sin_port = htons(volume_info.port);
++			sin_server->sin_port = htons(volume_info.port);
+ 		else
+-			sin_server.sin_port = 0;
+-		if (address_type == AF_INET6) {
++			sin_server->sin_port = 0;
++		if (addr.sa_family == AF_INET6) {
+ 			cFYI(1, ("attempting ipv6 connect"));
+ 			/* BB should we allow ipv6 on port 139? */
+ 			/* other OS never observed in Wild doing 139 with v6 */
+-			rc = ipv6_connect(&sin_server6, &csocket);
++			rc = ipv6_connect(sin_server6, &csocket);
+ 		} else
+-			rc = ipv4_connect(&sin_server, &csocket,
++			rc = ipv4_connect(sin_server, &csocket,
+ 				  volume_info.source_rfc1001_name,
+ 				  volume_info.target_rfc1001_name);
+ 		if (rc < 0) {
+@@ -2002,12 +2002,11 @@ cifs_mount(struct super_block *sb, struc
+ 			sock_release(csocket);
+ 			goto out;
+ 		} else {
+-			memcpy(&srvTcp->addr.sockAddr, &sin_server,
++			memcpy(&srvTcp->addr.sockAddr, sin_server,
+ 				sizeof(struct sockaddr_in));
+ 			atomic_set(&srvTcp->inFlight, 0);
+ 			/* BB Add code for ipv6 case too */
+ 			srvTcp->ssocket = csocket;
+-			srvTcp->protocolType = IPV4;
+ 			srvTcp->hostname = extract_hostname(volume_info.UNC);
+ 			if (IS_ERR(srvTcp->hostname)) {
+ 				rc = PTR_ERR(srvTcp->hostname);
+@@ -2059,7 +2058,7 @@ cifs_mount(struct super_block *sb, struc
+ 		else {
+ 			pSesInfo->server = srvTcp;
+ 			sprintf(pSesInfo->serverName, "%u.%u.%u.%u",
+-				NIPQUAD(sin_server.sin_addr.s_addr));
++				NIPQUAD(sin_server->sin_addr.s_addr));
+ 		}
+ 
+ 		if (!rc) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
-freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
-fs-remove-prepare_write-commit_write.patch
-mm-write_cache_pages-writepage-error-fix.patch
-nfsd-fix-vm-overcommit-crash.patch
-autofs4-collect-version-check-return-checkpatch-fixes.patch
-maintainers-make-ioat-easier-to-find.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
-drivers-rtc-rtc-m48t35c-is-borked-too.patch
-pci-uninline-pci_ioremap_bar.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
-init-properly-placing-noinline-keyword.patch
-spi_gpio-driver-cleanups.patch
-rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
-rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
-quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format-fix.patch
-quota-support-64-bit-quota-format-fix-2.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-w1-export-w1_read_8-function-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+cifs-clean-up-server-protocol-handling-for-tcp_server_info.patch
 
