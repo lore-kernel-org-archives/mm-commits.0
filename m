@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-write_cache_pages-writepage-error-fix.patch added to -mm tree
-Date: Thu, 30 Oct 2008 16:14:33 -0700
-Message-ID: <200810302314.m9UNEYQL027518@imap1.linux-foundation.org>
+Subject: + mm-write_cache_pages-optimise-page-cleaning.patch added to -mm tree
+Date: Thu, 30 Oct 2008 16:14:40 -0700
+Message-ID: <200810302314.m9UNEec2027555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754462AbYJ3XPW (ORCPT
+	by vger.kernel.org with ESMTP id S1754613AbYJ3XP2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 19:15:22 -0400
+	Thu, 30 Oct 2008 19:15:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, chris.mason@oracle.com, david@fromorbit.com, jowens@hp.com
 
 
 The patch titled
-     mm: write_cache_pages writepage error fix
+     mm: write_cache_pages optimise page cleaning
 has been added to the -mm tree.  Its filename is
-     mm-write_cache_pages-writepage-error-fix.patch
+     mm-write_cache_pages-optimise-page-cleaning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: write_cache_pages writepage error fix
+Subject: mm: write_cache_pages optimise page cleaning
 From: Nick Piggin <npiggin@suse.de>
 
-In write_cache_pages, if ret signals a real error, but we still have some
-pages left in the pagevec, done would be set to 1, but the remaining pages
-would continue to be processed and ret will be overwritten in the process.
- It could easily be overwritten with success, and thus success will be
-returned even if there is an error.  Thus the caller is told all writes
-succeeded, wheras in reality some did not.
+In write_cache_pages, if we get stuck behind another process that is
+cleaning pages, we will be forced to wait for them to finish, then perform
+our own writeout (if it was redirtied during the long wait), then wait for
+that.
 
-Fix this by bailing immediately if there is an error, and retaining the
-first error code.
-
-This is a data integrity bug.
+If a page under writeout is still clean, we can skip waiting for it (if
+we're part of a data integrity sync, we'll be waiting for all writeout
+pages afterwards, so we'll still be waiting for the other guy's write
+that's cleaned the page).
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -56,44 +54,37 @@ Cc: jim owens <jowens@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ mm/page-writeback.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix
+diff -puN mm/page-writeback.c~mm-write_cache_pages-optimise-page-cleaning mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-write_cache_pages-optimise-page-cleaning
 +++ a/mm/page-writeback.c
-@@ -944,12 +944,26 @@ retry:
+@@ -945,11 +945,20 @@ continue_unlock:
+ 				goto continue_unlock;
  			}
  
- 			ret = (*writepage)(page, wbc, data);
-+			if (unlikely(ret)) {
-+				if (ret == AOP_WRITEPAGE_ACTIVATE) {
-+					unlock_page(page);
-+					ret = 0;
-+				} else {
-+					/*
-+					 * done_index is set past this page,
-+					 * so media errors will not choke
-+					 * background writeout for the entire
-+					 * file. This has consequences for
-+					 * range_cyclic semantics (ie. it may
-+					 * not be suitable for data integrity
-+					 * writeout).
-+					 */
-+					done = 1;
-+					break;
-+				}
-+ 			}
+-			if (wbc->sync_mode != WB_SYNC_NONE)
+-				wait_on_page_writeback(page);
++			if (!PageDirty(page)) {
++				/* someone wrote it for us */
++				goto continue_unlock;
++			}
++
++			if (PageWriteback(page)) {
++				if (wbc->sync_mode != WB_SYNC_NONE)
++					wait_on_page_writeback(page);
++				else
++					goto continue_unlock;
++			}
  
--			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE)) {
--				unlock_page(page);
--				ret = 0;
--			}
--			if (ret || (--nr_to_write <= 0))
-+			if (--nr_to_write <= 0)
- 				done = 1;
- 			if (wbc->nonblocking && bdi_write_congested(bdi)) {
- 				wbc->encountered_congestion = 1;
+-			if (PageWriteback(page) ||
+-			    !clear_page_dirty_for_io(page))
++			BUG_ON(PageWriteback(page));
++			if (!clear_page_dirty_for_io(page))
+ 				goto continue_unlock;
+ 
+ 			ret = (*writepage)(page, wbc, data);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
