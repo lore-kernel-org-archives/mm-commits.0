@@ -1,55 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch removed from -mm tree
-Date: Thu, 30 Oct 2008 17:43:35 -0700
-Message-ID: <200810310043.m9V0hZfk030688@imap1.linux-foundation.org>
+Subject: + filesystem-freeze-implement-generic-freeze-feature-fix.patch added to -mm tree
+Date: Thu, 30 Oct 2008 17:48:26 -0700
+Message-ID: <200810310048.m9V0mQhA032621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753829AbYJaAnu (ORCPT
+	by vger.kernel.org with ESMTP id S1756514AbYJaAs2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 20:43:50 -0400
+	Thu, 30 Oct 2008 20:48:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dmonakhov@openvz.org, jmoyer@redhat.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, t-sato@yk.jp.nec.com
 
 
 The patch titled
-     fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix
-has been removed from the -mm tree.  Its filename was
-     fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
+     filesystem-freeze-implement-generic-freeze-feature-fix
+has been added to the -mm tree.  Its filename is
+     filesystem-freeze-implement-generic-freeze-feature-fix.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix
+Subject: filesystem-freeze-implement-generic-freeze-feature-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix comment
+Fix CONFIG_BLOCK=n.
 
-Cc: Dmitri Monakhov <dmonakhov@openvz.org>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Takashi Sato <t-sato@yk.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/buffer_head.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/filemap.c~fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix mm/filemap.c
---- a/mm/filemap.c~fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix
-+++ a/mm/filemap.c
-@@ -2123,7 +2123,7 @@ generic_file_direct_write(struct kiocb *
- 	 * of course not the data as we did direct DMA for the IO.
- 	 * i_mutex is held in case of DIO_LOCKING, which protects
- 	 * generic_osync_inode() from livelocking. If it is not held, then
--	 * the filesystem must prevent this livelock by its own meaner.
-+	 * the filesystem must prevent this livelock by its own means.
- 	 * AIO O_DIRECT ops attempt to sync metadata here.
- 	 */
- out:
+diff -puN include/linux/buffer_head.h~filesystem-freeze-implement-generic-freeze-feature-fix include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~filesystem-freeze-implement-generic-freeze-feature-fix
++++ a/include/linux/buffer_head.h
+@@ -345,6 +345,15 @@ static inline int remove_inode_buffers(s
+ static inline int sync_mapping_buffers(struct address_space *mapping) { return 0; }
+ static inline void invalidate_bdev(struct block_device *bdev) {}
+ 
++static inline struct super_block *freeze_bdev(struct block_device *sb)
++{
++	return NULL;
++}
++
++static inline int thaw_bdev(struct block_device *bdev, struct super_block *sb)
++{
++	return 0;
++}
+ 
+ #endif /* CONFIG_BLOCK */
+ #endif /* _LINUX_BUFFER_HEAD_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +87,6 @@ cpusets-update-mems-allowed-in-page-allocator-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-invoke-oom-killer-from-page-fault-fix.patch
 mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
 mm-write_cache_pages-more-terminate-quickly.patch
 init-properly-placing-noinline-keyword.patch
 oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console-fix.patch
@@ -87,6 +101,7 @@ quota-support-64-bit-quota-format-fix.patch
 quota-support-64-bit-quota-format-fix-2.patch
 memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
 w1-export-w1_read_8-function-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
 nilfs2-inode-operations-fix.patch
 nilfs2-pathname-operations-fix.patch
 nilfs2-super-block-operations-fix.patch
