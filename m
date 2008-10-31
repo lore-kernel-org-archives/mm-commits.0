@@ -1,169 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch added to -mm tree
-Date: Thu, 30 Oct 2008 16:31:11 -0700
-Message-ID: <200810302331.m9UNVBoY001837@imap1.linux-foundation.org>
+Subject: - fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error.patch removed from -mm tree
+Date: Thu, 30 Oct 2008 17:43:30 -0700
+Message-ID: <200810310043.m9V0hUSr030660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754933AbYJ3Xb3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753731AbYJaAnr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Oct 2008 19:31:29 -0400
+	Thu, 30 Oct 2008 20:43:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: frederik.deweerdt@xprog.eu, arvidjaar@mail.ru, frederik.deweerdt@gmail.com, len.brown@intel.com, rpurdie@rpsys.net
+To: dmonakhov@openvz.org, jmoyer@redhat.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI toshiba: only register rfkill if bt is enabled
-has been added to the -mm tree.  Its filename is
-     acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch
+     fs: truncate blocks outside i_size after generic_file_direct_write error
+has been removed from the -mm tree.  Its filename was
+     fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI toshiba: only register rfkill if bt is enabled
-From: Frederik Deweerdt <frederik.deweerdt@xprog.eu>
+Subject: fs: truncate blocks outside i_size after generic_file_direct_write error
+From: Dmitri Monakhov <dmonakhov@openvz.org>
 
-Part of the rfkill initialization was done whenever BT was on or not.  The
-following patch checks for BT presence before registering the rfkill to
-the input layer.  Some minor cleanups (> 80 char lines) were also added in
-the process.
+We need to remove block that was allocated in generic_file_direct_write()
+if we fail.  We have to do it *regardless* to blocksize.  At least ext2,
+ext3 and reiserfs interpret (i_size < biggest block) condition as error. 
+Fsck will complain about wrong i_size.  Then fsck will fix the error by
+changing i_size according to the biggest block.  This is bad because this
+blocks contain gurbage from previous write attempt.  And result in data
+corruption.
 
-On Tue, Oct 28, 2008 at 10:10:37PM +0300, Andrey Borzenkov wrote:
-[...]
-> [   66.633036] toshiba_acpi: Toshiba Laptop ACPI Extras version 0.19
-> [   66.633054] toshiba_acpi:     HCI method: \_SB_.VALD.GHCI
-> [   66.637764] input: Toshiba RFKill Switch as /devices/virtual/input/input3
-[...]
-> [  113.920753] ------------[ cut here ]------------
-> [  113.920828] kernel BUG at /home/bor/src/linux-git/net/rfkill/rfkill.c:347!
-> [  113.920845] invalid opcode: 0000 [#1]
-> [  113.920877] last sysfs file: /sys/devices/pci0000:00/0000:00:04.0/host0/target0:0:0/0:0:0:0/block/sda/size
-> [  113.920900] Dumping ftrace buffer:
-> [  113.920919]    (ftrace buffer empty)
-> [  113.920933] Modules linked in: af_packet irnet ppp_generic slhc ircomm_tty ircomm binfmt_misc loop dm_mirror dm_region_hash dm_log dm_round_robin dm_multipath dm_mod alim15x3 ide_core nvram toshiba cryptomgr aead crypto_blkcipher michael_mic crypto_algapi orinoco_cs orinoco hermes_dld hermes pcmcia firmware_class snd_ali5451 snd_ac97_codec ac97_bus snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device smsc_ircc2 snd_pcm_oss snd_pcm rtc_cmos irda snd_timer snd_mixer_oss rtc_core snd crc_ccitt yenta_socket rtc_lib rsrc_nonstatic i2c_ali1535 pcmcia_core pcspkr psmouse soundcore i2c_core evdev sr_mod snd_page_alloc alim1535_wdt cdrom fan sg video output toshiba_acpi rfkill thermal backlight ali_agp processor ac button input_polldev battery agpgart ohci_hcd usbcore reiserfs p
- ata_ali libata sd_mod scsi_mod [last unloaded: scsi_wait_scan]
-> [  113.921765]
-> [  113.921785] Pid: 3272, comm: ipolldevd Not tainted (2.6.28-rc2-1avb #3) PORTEGE 4000
-> [  113.921801] EIP: 0060:[<dfaa4683>] EFLAGS: 00010246 CPU: 0
-> [  113.921854] EIP is at rfkill_force_state+0x53/0x90 [rfkill]
-> [  113.921870] EAX: 00000000 EBX: 00000000 ECX: 00000003 EDX: 00000000
-> [  113.921885] ESI: 00000000 EDI: ddd50300 EBP: d8d7af40 ESP: d8d7af24
-> [  113.921900]  DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068
-> [  113.921918] Process ipolldevd (pid: 3272, ti=d8d7a000 task=d8d93c90 task.ti=d8d7a000)
-> [  113.921933] Stack:
-> [  113.921945]  d8d7af38 00000246 dfb029d8 dfb029c0 dfb029d8 dfb029c0 ddd50300 d8d7af5c
-> [  113.922014]  dfb018e2 01000246 01000000 ddd50300 ddd50314 ddabb8a0 d8d7af68 dfb381c1
-> [  113.922098]  00000000 d8d7afa4 c012ec0a 00000000 00000002 00000000 c012eba8 ddabb8c0
-> [  113.922240] Call Trace:
-> [  113.922240]  [<dfb018e2>] ? bt_poll_rfkill+0x5c/0x82 [toshiba_acpi]
-> [  113.922240]  [<dfb381c1>] ? input_polled_device_work+0x11/0x40 [input_polldev]
-> [  113.922240]  [<c012ec0a>] ? run_workqueue+0xea/0x1f0
-> [  113.922240]  [<c012eba8>] ? run_workqueue+0x88/0x1f0
-> [  113.922240]  [<dfb381b0>] ? input_polled_device_work+0x0/0x40 [input_polldev]
-> [  113.922240]  [<c012f047>] ? worker_thread+0x87/0xf0
-> [  113.922240]  [<c0132b00>] ? autoremove_wake_function+0x0/0x50
-> [  113.922240]  [<c012efc0>] ? worker_thread+0x0/0xf0
-> [  113.922240]  [<c013280f>] ? kthread+0x3f/0x80
-> [  113.922240]  [<c01327d0>] ? kthread+0x0/0x80
-> [  113.922240]  [<c01040d7>] ? kernel_thread_helper+0x7/0x10
-> [  113.922240] Code: 43 54 89 73 54 39 c6 74 11 89 d9 ba 01 00 00 00 b8 40 68 aa df e8 3e 35 69 e0 89 f8 e8 77 fd 85 e0 31 c0 83 c4 10 5b 5e 5f 5d c3 <0f> 0b eb fe 89 f6 8d bc 27 00 00 00 00 be f4 4d aa df bb 5f 01
-> [  113.922240] EIP: [<dfaa4683>] rfkill_force_state+0x53/0x90 [rfkill] SS:ESP 0068:d8d7af24
-> [  113.924700] ---[ end trace 0e404eb40cadd5f0 ]---
+In order to call vmtruncate() we have to hold host->i_mutex.  This is true
+for generic_file_aio_write().  In fact occasionally it is also true for
+all generic_file_aio_write_nolock() callers except blockdev.  But this
+situation may change someday.  This patch fix only
+generic_write_aio_write() case.  BTW: update generic_file_direct_write's
+comment with currently outdated.
 
-Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+testcase:
+
+$touch /mnt/test/BIG_FILE
+## at this moment /mnt/test/BIG_FILE size and blocks equal to zero
+open("/mnt/test/BIG_FILE", O_WRONLY|O_CREAT|O_DIRECT, 0666) = 3
+write(3, "aaaaaaaaaaaa"..., 104857600) = -1 ENOSPC (No space left on device)
+## size and block sould't be changed because write op failed.
+$stat /mnt/test/BIG_FILE
+File: `/mnt/test/BIG_FILE'
+Size: 0 Blocks: 110896 IO Block: 1024 regular empty file
+<<<<<<<<^^^^^^^^^^^^^^^^^^^^^^^^^^^^^file size is less than biggest block idx
+Device: fe07h/65031d Inode: 14 Links: 1
+Access: (0644/-rw-r--r--) Uid: ( 0/ root) Gid: ( 0/ root)
+Access: 2007-01-24 20:03:38.000000000 +0300
+Modify: 2007-01-24 20:03:38.000000000 +0300
+Change: 2007-01-24 20:03:39.000000000 +0300
+
+#fsck.ext3 -f /dev/VG/test
+e2fsck 1.39 (29-May-2006)
+Pass 1: Checking inodes, blocks, and sizes
+Inode 14, i_size is 0, should be 56556544. Fix<y>? yes
+Pass 2: Checking directory structure
+....
+
+
+Signed-off-by: Dmitri Monakhov <dmonakhov@openvz.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/toshiba_acpi.c |   54 ++++++++++++++++++----------------
- 1 file changed, 29 insertions(+), 25 deletions(-)
+ mm/filemap.c |   26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN drivers/acpi/toshiba_acpi.c~acpi-toshiba-only-register-rfkill-if-bt-is-enabled drivers/acpi/toshiba_acpi.c
---- a/drivers/acpi/toshiba_acpi.c~acpi-toshiba-only-register-rfkill-if-bt-is-enabled
-+++ a/drivers/acpi/toshiba_acpi.c
-@@ -824,34 +824,38 @@ static int __init toshiba_acpi_init(void
- 			toshiba_acpi_exit();
- 			return -ENOMEM;
- 		}
--	}
+diff -puN mm/filemap.c~fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error mm/filemap.c
+--- a/mm/filemap.c~fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error
++++ a/mm/filemap.c
+@@ -2121,8 +2121,10 @@ generic_file_direct_write(struct kiocb *
+ 	/*
+ 	 * Sync the fs metadata but not the minor inode changes and
+ 	 * of course not the data as we did direct DMA for the IO.
+-	 * i_mutex is held, which protects generic_osync_inode() from
+-	 * livelocking.  AIO O_DIRECT ops attempt to sync metadata here.
++	 * i_mutex is held in case of DIO_LOCKING, which protects
++	 * generic_osync_inode() from livelocking. If it is not held, then
++	 * the filesystem must prevent this livelock by its own meaner.
++	 * AIO O_DIRECT ops attempt to sync metadata here.
+ 	 */
+ out:
+ 	if ((written >= 0 || written == -EIOCBQUEUED) &&
+@@ -2293,7 +2295,8 @@ EXPORT_SYMBOL(generic_file_buffered_writ
  
--	/* Register input device for kill switch */
--	toshiba_acpi.poll_dev = input_allocate_polled_device();
--	if (!toshiba_acpi.poll_dev) {
--		printk(MY_ERR "unable to allocate kill-switch input device\n");
--		toshiba_acpi_exit();
--		return -ENOMEM;
--	}
--	toshiba_acpi.poll_dev->private = &toshiba_acpi;
--	toshiba_acpi.poll_dev->poll = bt_poll_rfkill;
--	toshiba_acpi.poll_dev->poll_interval = 1000; /* msecs */
-+		/* Register input device for kill switch */
-+		toshiba_acpi.poll_dev = input_allocate_polled_device();
-+		if (!toshiba_acpi.poll_dev) {
-+			printk(MY_ERR
-+			       "unable to allocate kill-switch input device\n");
-+			toshiba_acpi_exit();
-+			return -ENOMEM;
+ static ssize_t
+ __generic_file_aio_write_nolock(struct kiocb *iocb, const struct iovec *iov,
+-				unsigned long nr_segs, loff_t *ppos)
++				unsigned long nr_segs, loff_t *ppos,
++				int lock_type)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct address_space * mapping = file->f_mapping;
+@@ -2338,7 +2341,18 @@ __generic_file_aio_write_nolock(struct k
+ 
+ 		written = generic_file_direct_write(iocb, iov, &nr_segs, pos,
+ 							ppos, count, ocount);
+-		if (written < 0 || written == count)
++		if (written < 0) {
++			if (lock_type == DIO_LOCKING) {
++				/*
++				 * direct write may have instantiated a few
++				 * blocks outside i_size. Trim these off again.
++				 */
++				if (pos + count > inode->i_size)
++					vmtruncate(inode, inode->i_size);
++			}
++			goto out;
 +		}
-+		toshiba_acpi.poll_dev->private = &toshiba_acpi;
-+		toshiba_acpi.poll_dev->poll = bt_poll_rfkill;
-+		toshiba_acpi.poll_dev->poll_interval = 1000; /* msecs */
++		if (written == count)
+ 			goto out;
+ 		/*
+ 		 * direct-io write to a hole: fall through to buffered I/O
+@@ -2402,7 +2416,7 @@ ssize_t generic_file_aio_write_nolock(st
+ 	BUG_ON(iocb->ki_pos != pos);
  
--	toshiba_acpi.poll_dev->input->name = toshiba_acpi.rfk_name;
--	toshiba_acpi.poll_dev->input->id.bustype = BUS_HOST;
--	toshiba_acpi.poll_dev->input->id.vendor = 0x0930; /* Toshiba USB ID */
--	set_bit(EV_SW, toshiba_acpi.poll_dev->input->evbit);
--	set_bit(SW_RFKILL_ALL, toshiba_acpi.poll_dev->input->swbit);
--	input_report_switch(toshiba_acpi.poll_dev->input, SW_RFKILL_ALL, TRUE);
--	input_sync(toshiba_acpi.poll_dev->input);
-+		toshiba_acpi.poll_dev->input->name = toshiba_acpi.rfk_name;
-+		toshiba_acpi.poll_dev->input->id.bustype = BUS_HOST;
-+		/* Toshiba USB ID */
-+		toshiba_acpi.poll_dev->input->id.vendor = 0x0930;
-+		set_bit(EV_SW, toshiba_acpi.poll_dev->input->evbit);
-+		set_bit(SW_RFKILL_ALL, toshiba_acpi.poll_dev->input->swbit);
-+		input_report_switch(toshiba_acpi.poll_dev->input,
-+				    SW_RFKILL_ALL, TRUE);
-+		input_sync(toshiba_acpi.poll_dev->input);
+ 	ret = __generic_file_aio_write_nolock(iocb, iov, nr_segs,
+-			&iocb->ki_pos);
++					&iocb->ki_pos, DIO_OWN_LOCKING);
  
--	ret = input_register_polled_device(toshiba_acpi.poll_dev);
--	if (ret) {
--		printk(MY_ERR "unable to register kill-switch input device\n");
--		rfkill_free(toshiba_acpi.rfk_dev);
--		toshiba_acpi.rfk_dev = NULL;
--		toshiba_acpi_exit();
--		return ret;
-+		ret = input_register_polled_device(toshiba_acpi.poll_dev);
-+		if (ret) {
-+			printk(MY_ERR
-+			       "unable to register kill-switch input device\n");
-+			rfkill_free(toshiba_acpi.rfk_dev);
-+			toshiba_acpi.rfk_dev = NULL;
-+			toshiba_acpi_exit();
-+			return ret;
-+		}
- 	}
+ 	if (ret > 0 && ((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
+ 		ssize_t err;
+@@ -2427,7 +2441,7 @@ ssize_t generic_file_aio_write(struct ki
  
- 	return 0;
+ 	mutex_lock(&inode->i_mutex);
+ 	ret = __generic_file_aio_write_nolock(iocb, iov, nr_segs,
+-			&iocb->ki_pos);
++					&iocb->ki_pos, DIO_LOCKING);
+ 	mutex_unlock(&inode->i_mutex);
+ 
+ 	if (ret > 0 && ((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
 _
 
-Patches currently in -mm which might be from frederik.deweerdt@xprog.eu are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
-acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch
+linux-next.patch
+kill-suid-bit-only-for-regular-files.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error.patch
+fs-truncate-blocks-outside-i_size-after-generic_file_direct_write-error-fix.patch
 
