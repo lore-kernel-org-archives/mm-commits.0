@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 03 Nov 2008 14:57:56 -0800
-Message-ID: <200811032257.mA3MvvYg017813@imap1.linux-foundation.org>
+Subject: + drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci-fix.patch added to -mm tree
+Date: Mon, 03 Nov 2008 15:27:35 -0800
+Message-ID: <200811032327.mA3NRa0C031092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36752 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756239AbYKCW6J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 17:58:09 -0500
+	by vger.kernel.org with ESMTP id S1754025AbYKCX2L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 18:28:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dougthompson@xmission.com, gregkh@suse.de, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, david-b@pacbell.net, greg@kroah.com, stern@rowland.harvard.edu, steven.noonan@uplinklabs.net, steven@uplinklabs.net
 
 
 The patch titled
-     edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes
+     drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci-fix
 has been added to the -mm tree.  Its filename is
-     edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+     drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes
+Subject: drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required after that ',' (ctx:VxV)
-#40: FILE: drivers/edac/edac_mc.c:404:
-+		"%s (%s) %s %s already assigned %d\n",dev_name( p->dev),
- 		                                     ^
-
-ERROR: space prohibited after that open parenthesis '('
-#40: FILE: drivers/edac/edac_mc.c:404:
-+		"%s (%s) %s %s already assigned %d\n",dev_name( p->dev),
-
-WARNING: line over 80 characters
-#73: FILE: drivers/edac/edac_pci_sysfs.c:603:
-+	debugf4("PCI HEADER TYPE= 0x%02x %s\n", header_type, dev_name(&dev->dev));
-
-WARNING: line over 80 characters
-#80: FILE: drivers/edac/edac_pci_sysfs.c:609:
-+		debugf4("PCI SEC_STATUS= 0x%04x %s\n", status, dev_name(&dev->dev));
-
-total: 2 errors, 2 warnings, 47 lines checked
-
-./patches/edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Doug Thompson <dougthompson@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Steven Noonan <steven.noonan@uplinklabs.net>
+Cc: Steven Noonan <steven@uplinklabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/host/pci-quirks.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/edac/edac_mc.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes
-+++ a/drivers/edac/edac_mc.c
-@@ -401,7 +401,7 @@ static int add_mc_to_global_list(struct 
+diff -puN drivers/usb/host/pci-quirks.c~drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci-fix drivers/usb/host/pci-quirks.c
+--- a/drivers/usb/host/pci-quirks.c~drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci-fix
++++ a/drivers/usb/host/pci-quirks.c
+@@ -271,7 +271,7 @@ static void __devinit quirk_usb_disable_
+ 			/* if boot firmware now owns EHCI, spin till
+ 			 * it hands it over.
+ 			 */
+-			msec = 250;
++			msec = 1000;
+ 			while ((cap & EHCI_USBLEGSUP_BIOS) && (msec > 0)) {
+ 				tried_handoff = 1;
+ 				msleep(10);
+@@ -287,7 +287,7 @@ static void __devinit quirk_usb_disable_
+ 				pci_write_config_byte(pdev, offset + 2, 0);
  
- fail0:
- 	edac_printk(KERN_WARNING, EDAC_MC,
--		"%s (%s) %s %s already assigned %d\n",dev_name( p->dev),
-+		"%s (%s) %s %s already assigned %d\n", dev_name(p->dev),
- 		edac_dev_name(mci), p->mod_name, p->ctl_name, p->mc_idx);
- 	return 1;
- 
+ 				/* verify that the BIOS handoff was forced */
+-				msec = 250;
++				msec = 1000;
+ 				while ((cap & EHCI_USBLEGSUP_BIOS) && (msec > 0)) {
+ 					msleep(10);
+ 					msec -= 10;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +83,7 @@ linux-timexh-cleanup-for-userspace.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 pci-uninline-pci_ioremap_bar.patch
 pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci-fix.patch
 cpusets-update-mems-allowed-in-page-allocator-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-invoke-oom-killer-from-page-fault-fix.patch
