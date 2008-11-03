@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hibernation-should-work-ok-with-memory-hotplug.patch added to -mm tree
-Date: Mon, 03 Nov 2008 12:52:37 -0800
-Message-ID: <200811032052.mA3KqbJ8026179@imap1.linux-foundation.org>
+Subject: + lockd-convert-reclaimer-thread-to-kthread-interface.patch added to -mm tree
+Date: Mon, 03 Nov 2008 13:12:20 -0800
+Message-ID: <200811032112.mA3LCK6G002686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45744 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756369AbYKCUx1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 15:53:27 -0500
+	by vger.kernel.org with ESMTP id S1756848AbYKCVMr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 16:12:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@suse.cz, haveblue@us.ibm.com, matthew.e.tolentino@intel.com, rjw@sisk.pl, y-goto@jp.fujitsu.com
+Cc: jlayton@redhat.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     hibernation should work ok with memory hotplug
+     lockd: convert reclaimer thread to kthread interface
 has been added to the -mm tree.  Its filename is
-     hibernation-should-work-ok-with-memory-hotplug.patch
+     lockd-convert-reclaimer-thread-to-kthread-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hibernation should work ok with memory hotplug
-From: Pavel Machek <pavel@suse.cz>
+Subject: lockd: convert reclaimer thread to kthread interface
+From: Jeff Layton <jlayton@redhat.com>
 
-hibernation + memory hotplug was disabled in kconfig because we could
-not handle hibernation + sparse mem at some point. It seems to work
-now, so I guess we can enable it.
+My understanding is that there is a push to turn the kernel_thread
+interface into a non-exported symbol and move all kernel threads to use
+the kthread API.  This patch changes lockd to use kthread_run to spawn the
+reclaimer thread.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matt Tolentino <matthew.e.tolentino@intel.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+I've made the assumption here that the extra module references taken when
+we spawn this thread are unnecessary and removed them.  I've also added a
+KERN_ERR printk that pops if the thread can't be spawned to warn the admin
+that the locks won't be reclaimed.
+
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/lockd/clntlock.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN mm/Kconfig~hibernation-should-work-ok-with-memory-hotplug mm/Kconfig
---- a/mm/Kconfig~hibernation-should-work-ok-with-memory-hotplug
-+++ a/mm/Kconfig
-@@ -128,12 +128,9 @@ config SPARSEMEM_VMEMMAP
- config MEMORY_HOTPLUG
- 	bool "Allow for memory hot-add"
- 	depends on SPARSEMEM || X86_64_ACPI_NUMA
--	depends on HOTPLUG && !HIBERNATION && ARCH_ENABLE_MEMORY_HOTPLUG
-+	depends on HOTPLUG && ARCH_ENABLE_MEMORY_HOTPLUG
- 	depends on (IA64 || X86 || PPC64 || SUPERH || S390)
+diff -puN fs/lockd/clntlock.c~lockd-convert-reclaimer-thread-to-kthread-interface fs/lockd/clntlock.c
+--- a/fs/lockd/clntlock.c~lockd-convert-reclaimer-thread-to-kthread-interface
++++ a/fs/lockd/clntlock.c
+@@ -14,6 +14,7 @@
+ #include <linux/sunrpc/svc.h>
+ #include <linux/lockd/lockd.h>
+ #include <linux/smp_lock.h>
++#include <linux/kthread.h>
  
--comment "Memory hotplug is currently incompatible with Software Suspend"
--	depends on SPARSEMEM && HOTPLUG && HIBERNATION
+ #define NLMDBG_FACILITY		NLMDBG_CLIENT
+ 
+@@ -191,11 +192,15 @@ __be32 nlmclnt_grant(const struct sockad
+ void
+ nlmclnt_recovery(struct nlm_host *host)
+ {
++	struct task_struct *task;
++
+ 	if (!host->h_reclaiming++) {
+ 		nlm_get_host(host);
+-		__module_get(THIS_MODULE);
+-		if (kernel_thread(reclaimer, host, CLONE_FS | CLONE_FILES) < 0)
+-			module_put(THIS_MODULE);
++		task = kthread_run(reclaimer, host, "%s-reclaim", host->h_name);
++		if (IS_ERR(task))
++			printk(KERN_ERR "lockd: unable to spawn reclaimer "
++				"thread. Locks for %s won't be reclaimed! "
++				"(%ld)\n", host->h_name, PTR_ERR(task));
+ 	}
+ }
+ 
+@@ -207,7 +212,6 @@ reclaimer(void *ptr)
+ 	struct file_lock *fl, *next;
+ 	u32 nsmstate;
+ 
+-	daemonize("%s-reclaim", host->h_name);
+ 	allow_signal(SIGKILL);
+ 
+ 	down_write(&host->h_rwsem);
+@@ -261,5 +265,5 @@ restart:
+ 	nlm_release_host(host);
+ 	lockd_down();
+ 	unlock_kernel();
+-	module_put_and_exit(0);
++	return 0;
+ }
+_
+
+Patches currently in -mm which might be from jlayton@redhat.com are
+
+linux-next.patch
+lockd-convert-reclaimer-thread-to-kthread-interface.patch
+
