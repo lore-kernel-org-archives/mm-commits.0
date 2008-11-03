@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lockd-convert-reclaimer-thread-to-kthread-interface.patch added to -mm tree
-Date: Mon, 03 Nov 2008 13:12:20 -0800
-Message-ID: <200811032112.mA3LCK6G002686@imap1.linux-foundation.org>
+Subject: + m25p80-fix-detection-of-spi-parts.patch added to -mm tree
+Date: Mon, 03 Nov 2008 13:37:31 -0800
+Message-ID: <200811032137.mA3LbVCD014086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45744 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50839 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756848AbYKCVMr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 16:12:47 -0500
+	by vger.kernel.org with ESMTP id S1753456AbYKCVho (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 16:37:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: vapier@gentoo.org, dwmw2@infradead.org
 
 
 The patch titled
-     lockd: convert reclaimer thread to kthread interface
+     m25p80: fix detection of SPI parts
 has been added to the -mm tree.  Its filename is
-     lockd-convert-reclaimer-thread-to-kthread-interface.patch
+     m25p80-fix-detection-of-spi-parts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockd: convert reclaimer thread to kthread interface
-From: Jeff Layton <jlayton@redhat.com>
+Subject: m25p80: fix detection of SPI parts
+From: Mike Frysinger <vapier@gentoo.org>
 
-My understanding is that there is a push to turn the kernel_thread
-interface into a non-exported symbol and move all kernel threads to use
-the kthread API.  This patch changes lockd to use kthread_run to spawn the
-reclaimer thread.
+Commit d0e8c47c58575b9131e786edb488fd029eba443e ("m25p80.c extended jedec
+support") added support for extended ids but in the process managed to
+break detection of all flashes.
 
-I've made the assumption here that the extra module references taken when
-we spawn this thread are unnecessary and removed them.  I've also added a
-KERN_ERR printk that pops if the thread can't be spawned to warn the admin
-that the locks won't be reclaimed.
+The ext jedec id check was inserted into an if statement that lacked
+braces, and it did not add the required braces.  As such, the detection
+routine always returns the first entry in the SPI flash list.
 
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/clntlock.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/mtd/devices/m25p80.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/lockd/clntlock.c~lockd-convert-reclaimer-thread-to-kthread-interface fs/lockd/clntlock.c
---- a/fs/lockd/clntlock.c~lockd-convert-reclaimer-thread-to-kthread-interface
-+++ a/fs/lockd/clntlock.c
-@@ -14,6 +14,7 @@
- #include <linux/sunrpc/svc.h>
- #include <linux/lockd/lockd.h>
- #include <linux/smp_lock.h>
-+#include <linux/kthread.h>
- 
- #define NLMDBG_FACILITY		NLMDBG_CLIENT
- 
-@@ -191,11 +192,15 @@ __be32 nlmclnt_grant(const struct sockad
- void
- nlmclnt_recovery(struct nlm_host *host)
- {
-+	struct task_struct *task;
-+
- 	if (!host->h_reclaiming++) {
- 		nlm_get_host(host);
--		__module_get(THIS_MODULE);
--		if (kernel_thread(reclaimer, host, CLONE_FS | CLONE_FILES) < 0)
--			module_put(THIS_MODULE);
-+		task = kthread_run(reclaimer, host, "%s-reclaim", host->h_name);
-+		if (IS_ERR(task))
-+			printk(KERN_ERR "lockd: unable to spawn reclaimer "
-+				"thread. Locks for %s won't be reclaimed! "
-+				"(%ld)\n", host->h_name, PTR_ERR(task));
+diff -puN drivers/mtd/devices/m25p80.c~m25p80-fix-detection-of-spi-parts drivers/mtd/devices/m25p80.c
+--- a/drivers/mtd/devices/m25p80.c~m25p80-fix-detection-of-spi-parts
++++ a/drivers/mtd/devices/m25p80.c
+@@ -574,10 +574,11 @@ static struct flash_info *__devinit jede
+ 	for (tmp = 0, info = m25p_data;
+ 			tmp < ARRAY_SIZE(m25p_data);
+ 			tmp++, info++) {
+-		if (info->jedec_id == jedec)
++		if (info->jedec_id == jedec) {
+ 			if (ext_jedec != 0 && info->ext_id != ext_jedec)
+ 				continue;
+ 			return info;
++		}
  	}
- }
- 
-@@ -207,7 +212,6 @@ reclaimer(void *ptr)
- 	struct file_lock *fl, *next;
- 	u32 nsmstate;
- 
--	daemonize("%s-reclaim", host->h_name);
- 	allow_signal(SIGKILL);
- 
- 	down_write(&host->h_rwsem);
-@@ -261,5 +265,5 @@ restart:
- 	nlm_release_host(host);
- 	lockd_down();
- 	unlock_kernel();
--	module_put_and_exit(0);
-+	return 0;
- }
+ 	dev_err(&spi->dev, "unrecognized JEDEC id %06x\n", jedec);
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 linux-next.patch
-lockd-convert-reclaimer-thread-to-kthread-interface.patch
+linux-timexh-cleanup-for-userspace.patch
+m25p80-fix-detection-of-spi-parts.patch
+m25p80-fix-detection-of-m25p16-flashes.patch
 
