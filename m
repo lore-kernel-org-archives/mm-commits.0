@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + m68knommu-set-no_dma.patch added to -mm tree
-Date: Mon, 03 Nov 2008 12:45:56 -0800
-Message-ID: <200811032045.mA3KjurQ023242@imap1.linux-foundation.org>
+Subject: + hibernation-should-work-ok-with-memory-hotplug.patch added to -mm tree
+Date: Mon, 03 Nov 2008 12:52:37 -0800
+Message-ID: <200811032052.mA3KqbJ8026179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753341AbYKCUqq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 15:46:46 -0500
+	by vger.kernel.org with ESMTP id S1756369AbYKCUx1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 15:53:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, gerg@snapgear.com
+Cc: pavel@suse.cz, haveblue@us.ibm.com, matthew.e.tolentino@intel.com, rjw@sisk.pl, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     m68knommu: set NO_DMA
+     hibernation should work ok with memory hotplug
 has been added to the -mm tree.  Its filename is
-     m68knommu-set-no_dma.patch
+     hibernation-should-work-ok-with-memory-hotplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu: set NO_DMA
-From: Adrian Bunk <bunk@kernel.org>
+Subject: hibernation should work ok with memory hotplug
+From: Pavel Machek <pavel@suse.cz>
 
-m68knommu does not set the Kconfig NO_DMA variable, but also does
-not provide the required functions, resulting in the following
-build error triggered by commit a40c24a13366e324bc0ff8c3bb107db89312c984
-(net: Add SKB DMA mapping helper functions.):
+hibernation + memory hotplug was disabled in kconfig because we could
+not handle hibernation + sparse mem at some point. It seems to work
+now, so I guess we can enable it.
 
-  LD      vmlinux
-net/built-in.o: In function `skb_dma_unmap':
-(.text+0xac5e): undefined reference to `dma_unmap_single'
-net/built-in.o: In function `skb_dma_unmap':
-(.text+0xac7a): undefined reference to `dma_unmap_page'
-net/built-in.o: In function `skb_dma_map':
-(.text+0xacdc): undefined reference to `dma_map_single'
-net/built-in.o: In function `skb_dma_map':
-(.text+0xace8): undefined reference to `dma_mapping_error'
-net/built-in.o: In function `skb_dma_map':
-(.text+0xad10): undefined reference to `dma_map_page'
-net/built-in.o: In function `skb_dma_map':
-(.text+0xad82): undefined reference to `dma_unmap_page'
-net/built-in.o: In function `skb_dma_map':
-(.text+0xadc6): undefined reference to `dma_unmap_single'
-make[1]: *** [vmlinux] Error 1
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Greg Ungerer <gerg@snapgear.com>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matt Tolentino <matthew.e.tolentino@intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/Kconfig |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/Kconfig |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN arch/m68knommu/Kconfig~m68knommu-set-no_dma arch/m68knommu/Kconfig
---- a/arch/m68knommu/Kconfig~m68knommu-set-no_dma
-+++ a/arch/m68knommu/Kconfig
-@@ -14,6 +14,10 @@ config MMU
- 	bool
- 	default n
+diff -puN mm/Kconfig~hibernation-should-work-ok-with-memory-hotplug mm/Kconfig
+--- a/mm/Kconfig~hibernation-should-work-ok-with-memory-hotplug
++++ a/mm/Kconfig
+@@ -128,12 +128,9 @@ config SPARSEMEM_VMEMMAP
+ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
+ 	depends on SPARSEMEM || X86_64_ACPI_NUMA
+-	depends on HOTPLUG && !HIBERNATION && ARCH_ENABLE_MEMORY_HOTPLUG
++	depends on HOTPLUG && ARCH_ENABLE_MEMORY_HOTPLUG
+ 	depends on (IA64 || X86 || PPC64 || SUPERH || S390)
  
-+config NO_DMA
-+	bool
-+	default y
-+
- config FPU
- 	bool
- 	default n
-_
-
-Patches currently in -mm which might be from bunk@kernel.org are
-
-linux-next.patch
-m32r-kernel-smpbootc-must-include-linux-cpuh.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-m68knommu-set-no_dma.patch
-reiser4.patch
-
+-comment "Memory hotplug is currently incompatible with Software Suspend"
+-	depends on SPARSEMEM && HOTPLUG && HIBERNATION
