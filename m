@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-improve-the-decodecode-script.patch added to -mm tree
-Date: Mon, 03 Nov 2008 14:11:43 -0800
-Message-ID: <200811032211.mA3MBhUs029419@imap1.linux-foundation.org>
+Subject: + pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch added to -mm tree
+Date: Mon, 03 Nov 2008 14:23:55 -0800
+Message-ID: <200811032223.mA3MNtmn002399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45630 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751052AbYKCWMS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 17:12:18 -0500
+	by vger.kernel.org with ESMTP id S1750880AbYKCWZ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 17:25:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com, sam@ravnborg.org, wangcong@zeuux.org
+Cc: mjg59@srcf.ucam.org, jbarnes@virtuousgeek.org, kristen.c.accardi@intel.com, mjg@redhat.com
 
 
 The patch titled
-     scripts: improve the decodecode script
+     pcie: add option to passively listen for PCIE hotplug events
 has been added to the -mm tree.  Its filename is
-     scripts-improve-the-decodecode-script.patch
+     pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,101 +33,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts: improve the decodecode script
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: pcie: add option to passively listen for PCIE hotplug events
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-kerneloops.org has been using an improved "decodecode" script,
-specifically it has a special marker that shows which line in the assembly
-the oops happened at, like this:
+Various pieces of hardware (such as the Acer Aspire One and Asus EEE) use
+PCIE hotplug to change the state of devices in response to events such as
+the removal of SD cards or disabling the wireless radio.  However, they do
+not provide firmware support for this.  As a consequence pciehp will
+refuse to load and various things break.
 
-  20:	83 e0 03             	and    $0x3,%eax
-  23:	09 d8                	or     %ebx,%eax
-  25:	85 db                	test   %ebx,%ebx
-  27:	89 02                	mov    %eax,(%edx)
-  29:	74 0f                	je     0x3a
-  2b:*	3b 73 04             	cmp    0x4(%ebx),%esi     <-- trapping instruction
-  2e:	75 05                	jne    0x35
-  30:	89 53 04             	mov    %edx,0x4(%ebx)
-  33:	eb 07                	jmp    0x3c
-  35:	89 53 08             	mov    %edx,0x8(%ebx)
+The existing workaround has been to use the pciehp_force option.  This is
+undesirable as there is little guarantee that manipulating the power file
+in the slot directory will actually result in anything happening, leading
+to potential user confusion and hardware damage.  This patch adds a new
+option, pciehp_passive.  In this configuration pciehp will listen for
+events and notify the PCI core appropriately.  However, it will not
+provide any user controllable sysfs attributes and so the risk of
+confusion or damage is averted.  Any system slots that do have firmware
+support will continue to provide full functionality.
 
-this patch updates the kernel copy to also have this functionality.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Reviewed-by: WANG Cong <wangcong@zeuux.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decodecode |   32 ++++++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 10 deletions(-)
+ drivers/pci/hotplug/pciehp_core.c |   22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
-diff -puN scripts/decodecode~scripts-improve-the-decodecode-script scripts/decodecode
---- a/scripts/decodecode~scripts-improve-the-decodecode-script
-+++ a/scripts/decodecode
-@@ -7,7 +7,7 @@
- # AFLAGS=--32 decodecode < 386.oops
+diff -puN drivers/pci/hotplug/pciehp_core.c~pcie-add-option-to-passively-listen-for-pcie-hotplug-events drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pcie-add-option-to-passively-listen-for-pcie-hotplug-events
++++ a/drivers/pci/hotplug/pciehp_core.c
+@@ -41,6 +41,7 @@ int pciehp_debug;
+ int pciehp_poll_mode;
+ int pciehp_poll_time;
+ int pciehp_force;
++int pciehp_passive;
+ struct workqueue_struct *pciehp_wq;
  
- cleanup() {
--	rm -f $T $T.s $T.o
-+	rm -f $T $T.s $T.o $T.oo $T.aa  $T.aaa
- 	exit 1
- }
+ #define DRIVER_VERSION	"0.4"
+@@ -55,10 +56,12 @@ module_param(pciehp_debug, bool, 0644);
+ module_param(pciehp_poll_mode, bool, 0644);
+ module_param(pciehp_poll_time, int, 0644);
+ module_param(pciehp_force, bool, 0644);
++module_param(pciehp_passive, bool, 0644);
+ MODULE_PARM_DESC(pciehp_debug, "Debugging mode enabled or not");
+ MODULE_PARM_DESC(pciehp_poll_mode, "Using polling mechanism for hot-plug events or not");
+ MODULE_PARM_DESC(pciehp_poll_time, "Polling mechanism frequency, in seconds");
+ MODULE_PARM_DESC(pciehp_force, "Force pciehp, even if _OSC and OSHP are missing");
++MODULE_PARM_DESC(pciehp_passive, "Listen for pciehp events, even if _OSC and OSHP are missing");
  
-@@ -44,21 +44,33 @@ if [ $marker -eq 0 ]; then
- 	marker=`expr index "$code" "\("`
- fi
+ #define PCIE_MODULE_NAME "pciehp"
  
-+touch $T.oo
- if [ $marker -ne 0 ]; then
--	beforemark=`echo "$code" | cut -c-$((${marker} - 1))`
-+	echo All code >> $T.oo
-+	echo ======== >> $T.oo
-+	beforemark=`echo "$code"`
- 	echo -n "	.byte 0x" > $T.s
--	echo $beforemark | sed -e 's/ /,0x/g' >> $T.s
--	as $AFLAGS -o $T.o $T.s
--	objdump -S $T.o
--	rm $T.o $T.s
-+	echo $beforemark | sed -e 's/ /,0x/g' | sed -e 's/<//g' | sed -e 's/>//g' >> $T.s
-+	as $AFLAGS -o $T.o $T.s &> /dev/null
-+	objdump -S $T.o | grep -v "/tmp" | grep -v "Disassembly" | grep -v "\.text" | grep -v "^$" &> $T.ooo
-+	cat $T.ooo >> $T.oo
-+	rm -f $T.o $T.s  $T.ooo
+@@ -85,6 +88,13 @@ static struct hotplug_slot_ops pciehp_ho
+   	.get_cur_bus_speed =	get_cur_bus_speed,
+ };
  
- # and fix code at-and-after marker
- 	code=`echo "$code" | cut -c$((${marker} + 1))-`
- fi
--
-+echo Code starting with the faulting instruction  > $T.aa
-+echo =========================================== >> $T.aa
- code=`echo $code | sed -e 's/ [<(]/ /;s/[>)] / /;s/ /,0x/g'`
- echo -n "	.byte 0x" > $T.s
- echo $code >> $T.s
--as $AFLAGS -o $T.o $T.s
--objdump -S $T.o
--rm $T $T.s $T.o
-+as $AFLAGS -o $T.o $T.s &> /dev/null
-+objdump -S $T.o | grep -v "Disassembly" | grep -v "/tmp" | grep -v "\.text" | grep -v "^$" &> $T.aaa
-+cat $T.aaa >> $T.aa
++static struct hotplug_slot_ops pciehp_passive_hotplug_slot_ops = {
++	.owner =		THIS_MODULE,
++	.get_adapter_status =	get_adapter_status,
++  	.get_max_bus_speed =	get_max_bus_speed,
++  	.get_cur_bus_speed =	get_cur_bus_speed,
++};
 +
-+faultline=`cat $T.aaa | head -1 | cut -d":" -f2`
-+
-+cat $T.oo | sed -e "s/\($faultline\)/\*\1     <-- trapping instruction/g"
-+echo
-+cat $T.aa
-+cleanup
+ /*
+  * Check the status of the Electro Mechanical Interlock (EMI)
+  */
+@@ -212,7 +222,11 @@ static int init_slots(struct controller 
+ 		hotplug_slot->info = info;
+ 		hotplug_slot->private = slot;
+ 		hotplug_slot->release = &release_slot;
+-		hotplug_slot->ops = &pciehp_hotplug_slot_ops;
++		if (pciehp_passive &&
++		    pciehp_get_hp_hw_control_from_firmware(ctrl->pci_dev))
++			hotplug_slot->ops = &pciehp_passive_hotplug_slot_ops;
++		else
++			hotplug_slot->ops = &pciehp_hotplug_slot_ops;
+ 		slot->hotplug_slot = hotplug_slot;
+ 		snprintf(name, SLOT_NAME_SIZE, "%u", slot->number);
+ 
+@@ -407,7 +421,7 @@ static int pciehp_probe(struct pcie_devi
+ 	u8 value;
+ 	struct pci_dev *pdev = dev->port;
+ 
+-	if (pciehp_force)
++	if (pciehp_force || pciehp_passive)
+ 		dev_info(&dev->device,
+ 			 "Bypassing BIOS check for pciehp use on %s\n",
+ 			 pci_name(pdev));
+@@ -435,7 +449,7 @@ static int pciehp_probe(struct pcie_devi
+ 	t_slot = pciehp_find_slot(ctrl, ctrl->slot_device_offset);
+ 
+ 	t_slot->hpc_ops->get_adapter_status(t_slot, &value); /* Check if slot is occupied */
+-	if (value && pciehp_force) {
++	if (value && (pciehp_force || pciehp_passive)) {
+ 		rc = pciehp_enable_slot(t_slot);
+ 		if (rc)	/* -ENODEV: shouldn't happen, but deal with it */
+ 			value = 0;
+@@ -474,7 +488,7 @@ static int pciehp_suspend (struct pcie_d
+ static int pciehp_resume (struct pcie_device *dev)
+ {
+ 	dev_info(&dev->device, "%s ENTRY\n", __func__);
+-	if (pciehp_force) {
++	if (pciehp_force || pciehp_passive) {
+ 		struct controller *ctrl = get_service_data(dev);
+ 		struct slot *t_slot;
+ 		u8 status;
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
 linux-next.patch
-scripts-improve-the-decodecode-script.patch
-pci-use-pci_ioremap_bar-in-drivers-mmc.patch
-pci-uninline-pci_ioremap_bar.patch
-mutex-improve-header-comment-to-be-actually-informative-about-the-api.patch
-pci-use-pci_ioremap_bar-in-drivers-misc.patch
-pci-use-pci_ioremap_bar-in-drivers-serial.patch
-pci-use-pci_ioremap_bar-in-drivers-video.patch
-pci-use-pci_ioremap_bar-in-drivers-edac.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch
 
