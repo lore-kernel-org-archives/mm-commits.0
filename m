@@ -1,73 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: + m25p80-fix-detection-of-m25p16-flashes.patch added to -mm tree
-Date: Mon, 03 Nov 2008 13:37:33 -0800
-Message-ID: <200811032137.mA3LbXf5014089@imap1.linux-foundation.org>
+Subject: - hibernation-should-work-ok-with-memory-hotplug.patch removed from -mm tree
+Date: Mon, 03 Nov 2008 13:46:42 -0800
+Message-ID: <200811032146.mA3LkhEd018236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38844 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754668AbYKCVho (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 16:37:44 -0500
+	by vger.kernel.org with ESMTP id S1751792AbYKCVrP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 16:47:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, Michael.Hennerich@analog.com, dwmw2@infradead.org
+To: pavel@suse.cz, haveblue@us.ibm.com, matthew.e.tolentino@intel.com, rjw@sisk.pl, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m25p80: fix detection of m25p16 flashes
-has been added to the -mm tree.  Its filename is
-     m25p80-fix-detection-of-m25p16-flashes.patch
+     hibernation should work ok with memory hotplug
+has been removed from the -mm tree.  Its filename was
+     hibernation-should-work-ok-with-memory-hotplug.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is premature
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m25p80: fix detection of m25p16 flashes
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: hibernation should work ok with memory hotplug
+From: Pavel Machek <pavel@suse.cz>
 
-Commit d0e8c47c58575b9131e786edb488fd029eba443e ("m25p80.c extended jedec
-support") added support for extended ids but seems to break on flashes
-which don't have an extended id defined.  If the table does not have an
-extid defined, then we should ignore it.
+hibernation + memory hotplug was disabled in kconfig because we could
+not handle hibernation + sparse mem at some point. It seems to work
+now, so I guess we can enable it.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Signed-off-by: Michael Hennerich <Michael.Hennerich@analog.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matt Tolentino <matthew.e.tolentino@intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/m25p80.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~m25p80-fix-detection-of-m25p16-flashes drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~m25p80-fix-detection-of-m25p16-flashes
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -575,7 +575,7 @@ static struct flash_info *__devinit jede
- 			tmp < ARRAY_SIZE(m25p_data);
- 			tmp++, info++) {
- 		if (info->jedec_id == jedec) {
--			if (ext_jedec != 0 && info->ext_id != ext_jedec)
-+			if (info->ext_id != 0 && info->ext_id != ext_jedec)
- 				continue;
- 			return info;
- 		}
-_
-
-Patches currently in -mm which might be from vapier@gentoo.org are
-
-linux-next.patch
-linux-timexh-cleanup-for-userspace.patch
-m25p80-fix-detection-of-spi-parts.patch
-m25p80-fix-detection-of-m25p16-flashes.patch
-
+diff -puN mm/Kconfig~hibernation-should-work-ok-with-memory-hotplug mm/Kconfig
+--- a/mm/Kconfig~hibernation-should-work-ok-with-memory-hotplug
++++ a/mm/Kconfig
+@@ -128,12 +128,9 @@ config SPARSEMEM_VMEMMAP
+ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
+ 	depends on SPARSEMEM || X86_64_ACPI_NUMA
+-	depends on HOTPLUG && !HIBERNATION && ARCH_ENABLE_MEMORY_HOTPLUG
++	depends on HOTPLUG && ARCH_ENABLE_MEMORY_HOTPLUG
+ 	depends on (IA64 || X86 || PPC64 || SUPERH || S390)
+ 
+-comment "Memory hotplug is currently incompatible with Software Suspend"
+-	depends on SPARSEMEM && HOTPLUG && HIBERNATION
