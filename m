@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-wait-on-all-pending-commits-in-ext3_sync_fs.patch added to -mm tree
-Date: Mon, 03 Nov 2008 12:37:56 -0800
-Message-ID: <200811032037.mA3Kbud5019550__41859.6649462872$1225744893$gmane$org@imap1.linux-foundation.org>
+Subject: + pci-fix-range-check-on-mmapped-sysfs-resource-files.patch added to -mm tree
+Date: Mon, 03 Nov 2008 12:43:46 -0800
+Message-ID: <200811032043.mA3KhkqW022212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754198AbYKCUkB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 15:40:01 -0500
+	by vger.kernel.org with ESMTP id S1753624AbYKCUoT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 15:44:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ajones@riverbed.com, linux-ext4@vger.kernel.org, sandeen@redhat.com, stable@kernel.org
+Cc: eswierk@aristanetworks.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     ext3: wait on all pending commits in ext3_sync_fs
+     pci: fix range check on mmapped sysfs resource files
 has been added to the -mm tree.  Its filename is
-     ext3-wait-on-all-pending-commits-in-ext3_sync_fs.patch
+     pci-fix-range-check-on-mmapped-sysfs-resource-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: wait on all pending commits in ext3_sync_fs
-From: Arthur Jones <ajones@riverbed.com>
+Subject: pci: fix range check on mmapped sysfs resource files
+From: "Ed Swierk" <eswierk@aristanetworks.com>
 
-In ext3_sync_fs, we only wait for a commit to finish if we started it, but
-there may be one already in progress which will not be synced.
+pci_mmap_fits() returns the wrong answer if the sysfs resource file size
+is not a multiple of the page size.  vm_end and vm_start are already
+page-aligned, so size - start < nr, causing mmap() to return EINVAL.
 
-In the case of a data=ordered umount with pending long symlinks which are
-delayed due to a long list of other I/O on the backing block device, this
-causes the buffer associated with the long symlinks to not be moved to the
-inode dirty list in the second phase of fsync_super.  Then, before they
-can be dirtied again, kjournald exits, seeing the UMOUNT flag and the
-dirty pages are never written to the backing block device, causing long
-symlink corruption and exposing new or previously freed block data to
-userspace.
-
-This can be reproduced with a script created
-by Eric Sandeen <sandeen@redhat.com>:
-
-	#!/bin/bash
-
-	umount /mnt/test2
-	mount /dev/sdb4 /mnt/test2
-	rm -f /mnt/test2/*
-	dd if=/dev/zero of=/mnt/test2/bigfile bs=1M count=512
-	touch
-	/mnt/test2/thisisveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongfilename
-	ln -s
-	/mnt/test2/thisisveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongfilename
-	/mnt/test2/link
-	umount /mnt/test2
-	mount /dev/sdb4 /mnt/test2
-	ls /mnt/test2/
-	umount /mnt/test2
-
-To ensure all commits are synced, we flush all journal commits now when
-sync_fs'ing ext3.
-
-Signed-off-by: Arthur Jones <ajones@riverbed.com>
-Eric Sandeen <sandeen@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: <stable@kernel.org>		[2.6.everything]
+Signed-off-by: Ed Swierk <eswierk@aristanetworks.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/pci/pci-sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext3/super.c~ext3-wait-on-all-pending-commits-in-ext3_sync_fs fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-wait-on-all-pending-commits-in-ext3_sync_fs
-+++ a/fs/ext3/super.c
-@@ -2390,13 +2390,12 @@ static void ext3_write_super (struct sup
+diff -puN drivers/pci/pci-sysfs.c~pci-fix-range-check-on-mmapped-sysfs-resource-files drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~pci-fix-range-check-on-mmapped-sysfs-resource-files
++++ a/drivers/pci/pci-sysfs.c
+@@ -575,7 +575,7 @@ int pci_mmap_fits(struct pci_dev *pdev, 
  
- static int ext3_sync_fs(struct super_block *sb, int wait)
- {
--	tid_t target;
+ 	nr = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
+ 	start = vma->vm_pgoff;
+-	size = pci_resource_len(pdev, resno) >> PAGE_SHIFT;
++	size = ((pci_resource_len(pdev, resno) - 1) >> PAGE_SHIFT) + 1;
+ 	if (start < size && size - start >= nr)
+ 		return 1;
+ 	WARN(1, "process \"%s\" tried to map 0x%08lx-0x%08lx on %s BAR %d (size 0x%08lx)\n",
+_
+
+Patches currently in -mm which might be from eswierk@aristanetworks.com are
+
+pci-fix-range-check-on-mmapped-sysfs-resource-files.patch
+
