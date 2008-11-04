@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch added to -mm tree
-Date: Tue, 04 Nov 2008 12:37:37 -0800
-Message-ID: <200811042037.mA4KbbuO014805@imap1.linux-foundation.org>
+Subject: + powerpc-hugetlb-pgtable-cache-access-cleanup.patch added to -mm tree
+Date: Tue, 04 Nov 2008 13:30:40 -0800
+Message-ID: <200811042130.mA4LUeCS006238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54613 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753627AbYKDUiX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2008 15:38:23 -0500
+	by vger.kernel.org with ESMTP id S1753765AbYKDVaz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Nov 2008 16:30:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kay.sievers@vrfy.org, a.zummo@towertech.it, david-b@pacbell.net, gregkh@suse.de
+Cc: kniht@linux.vnet.ibm.com, benh@kernel.crashing.org, david@gibson.dropbear.id.au, nickpiggin@yahoo.com.au, paulus@samba.org
 
 
 The patch titled
-     rtc: struct device: replace bus_id with dev_name(), dev_set_name()
+     powerpc: hugetlb pgtable cache access cleanup
 has been added to the -mm tree.  Its filename is
-     rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
+     powerpc-hugetlb-pgtable-cache-access-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,144 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: struct device: replace bus_id with dev_name(), dev_set_name()
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: powerpc: hugetlb pgtable cache access cleanup
+From: Jon Tollefson <kniht@linux.vnet.ibm.com>
 
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Acked-By: Greg Kroah-Hartman <gregkh@suse.de>
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
-Cc: David Brownell <david-b@pacbell.net>
+It was suggested by Andrew that using a macro that made an array look like
+a function call made it harder to understand the code.  Cleaned up use of
+macro.  We now reference the pgtable_cache array directly instead of using
+a macro.
+
+Signed-off-by: Jon Tollefson <kniht@linux.vnet.ibm.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c     |   16 ++++++----------
- drivers/rtc/interface.c |    2 +-
- drivers/rtc/rtc-cmos.c  |   10 +++++-----
- 3 files changed, 12 insertions(+), 16 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name
-+++ a/drivers/rtc/class.c
-@@ -48,9 +48,7 @@ static int rtc_suspend(struct device *de
- 	struct rtc_time		tm;
- 	struct timespec		ts = current_kernel_time();
+diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-hugetlb-pgtable-cache-access-cleanup arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-hugetlb-pgtable-cache-access-cleanup
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -53,8 +53,7 @@ unsigned int mmu_huge_psizes[MMU_PAGE_CO
  
--	if (strncmp(rtc->dev.bus_id,
--				CONFIG_RTC_HCTOSYS_DEVICE,
--				BUS_ID_SIZE) != 0)
-+	if (strcmp(dev_name(&rtc->dev), CONFIG_RTC_HCTOSYS_DEVICE) != 0)
- 		return 0;
+ /* Subtract one from array size because we don't need a cache for 4K since
+  * is not a huge page size */
+-#define huge_pgtable_cache(psize)	(pgtable_cache[HUGEPTE_CACHE_NUM \
+-							+ psize-1])
++#define HUGE_PGTABLE_INDEX(psize)	(HUGEPTE_CACHE_NUM + psize - 1)
+ #define HUGEPTE_CACHE_NAME(psize)	(huge_pgtable_cache_name[psize])
  
- 	rtc_read_time(rtc, &tm);
-@@ -71,20 +69,18 @@ static int rtc_resume(struct device *dev
- 	time_t			newtime;
- 	struct timespec		time;
- 
--	if (strncmp(rtc->dev.bus_id,
--				CONFIG_RTC_HCTOSYS_DEVICE,
--				BUS_ID_SIZE) != 0)
-+	if (strcmp(dev_name(&rtc->dev), CONFIG_RTC_HCTOSYS_DEVICE) != 0)
- 		return 0;
- 
- 	rtc_read_time(rtc, &tm);
- 	if (rtc_valid_tm(&tm) != 0) {
--		pr_debug("%s:  bogus resume time\n", rtc->dev.bus_id);
-+		pr_debug("%s:  bogus resume time\n", dev_name(&rtc->dev));
- 		return 0;
- 	}
- 	rtc_tm_to_time(&tm, &newtime);
- 	if (newtime <= oldtime) {
- 		if (newtime < oldtime)
--			pr_debug("%s:  time travel!\n", rtc->dev.bus_id);
-+			pr_debug("%s:  time travel!\n", dev_name(&rtc->dev));
- 		return 0;
- 	}
- 
-@@ -156,7 +152,7 @@ struct rtc_device *rtc_device_register(c
- 	init_waitqueue_head(&rtc->irq_queue);
- 
- 	strlcpy(rtc->name, name, RTC_DEVICE_NAME_SIZE);
--	snprintf(rtc->dev.bus_id, BUS_ID_SIZE, "rtc%d", id);
-+	dev_set_name(&rtc->dev, "rtc%d", id);
- 
- 	rtc_dev_prepare(rtc);
- 
-@@ -169,7 +165,7 @@ struct rtc_device *rtc_device_register(c
- 	rtc_proc_add_device(rtc);
- 
- 	dev_info(dev, "rtc core: registered %s as %s\n",
--			rtc->name, rtc->dev.bus_id);
-+			rtc->name, dev_name(&rtc->dev));
- 
- 	return rtc;
- 
-diff -puN drivers/rtc/interface.c~rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name
-+++ a/drivers/rtc/interface.c
-@@ -335,7 +335,7 @@ static int __rtc_match(struct device *de
+ static const char *huge_pgtable_cache_name[MMU_PAGE_COUNT] = {
+@@ -113,7 +112,7 @@ static inline pte_t *hugepte_offset(huge
+ static int __hugepte_alloc(struct mm_struct *mm, hugepd_t *hpdp,
+ 			   unsigned long address, unsigned int psize)
  {
- 	char *name = (char *)data;
+-	pte_t *new = kmem_cache_zalloc(huge_pgtable_cache(psize),
++	pte_t *new = kmem_cache_zalloc(pgtable_cache[HUGE_PGTABLE_INDEX(psize)],
+ 				      GFP_KERNEL|__GFP_REPEAT);
  
--	if (strncmp(dev->bus_id, name, BUS_ID_SIZE) == 0)
-+	if (strcmp(dev_name(dev), name) == 0)
- 		return 1;
- 	return 0;
- }
-diff -puN drivers/rtc/rtc-cmos.c~rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -729,7 +729,7 @@ cmos_do_probe(struct device *dev, struct
+ 	if (! new)
+@@ -121,7 +120,7 @@ static int __hugepte_alloc(struct mm_str
  
- 	cmos_rtc.dev = dev;
- 	dev_set_drvdata(dev, &cmos_rtc);
--	rename_region(ports, cmos_rtc.rtc->dev.bus_id);
-+	rename_region(ports, dev_name(&cmos_rtc.rtc->dev));
+ 	spin_lock(&mm->page_table_lock);
+ 	if (!hugepd_none(*hpdp))
+-		kmem_cache_free(huge_pgtable_cache(psize), new);
++		kmem_cache_free(pgtable_cache[HUGE_PGTABLE_INDEX(psize)], new);
+ 	else
+ 		hpdp->pd = (unsigned long)new | HUGEPD_OK;
+ 	spin_unlock(&mm->page_table_lock);
+@@ -760,13 +759,14 @@ static int __init hugetlbpage_init(void)
  
- 	spin_lock_irq(&rtc_lock);
- 
-@@ -777,7 +777,7 @@ cmos_do_probe(struct device *dev, struct
- 			rtc_cmos_int_handler = cmos_interrupt;
- 
- 		retval = request_irq(rtc_irq, rtc_cmos_int_handler,
--				IRQF_DISABLED, cmos_rtc.rtc->dev.bus_id,
-+				IRQF_DISABLED, dev_name(&cmos_rtc.rtc->dev),
- 				cmos_rtc.rtc);
- 		if (retval < 0) {
- 			dev_dbg(dev, "IRQ %d is already in use\n", rtc_irq);
-@@ -795,7 +795,7 @@ cmos_do_probe(struct device *dev, struct
- 	}
- 
- 	pr_info("%s: alarms up to one %s%s, %zd bytes nvram, %s irqs\n",
--			cmos_rtc.rtc->dev.bus_id,
-+			dev_name(&cmos_rtc.rtc->dev),
- 			is_valid_irq(rtc_irq)
- 				?  (cmos_rtc.mon_alrm
- 					? "year"
-@@ -885,7 +885,7 @@ static int cmos_suspend(struct device *d
- 	}
- 
- 	pr_debug("%s: suspend%s, ctrl %02x\n",
--			cmos_rtc.rtc->dev.bus_id,
-+			dev_name(&cmos_rtc.rtc->dev),
- 			(tmp & RTC_AIE) ? ", alarm may wake" : "",
- 			tmp);
- 
-@@ -941,7 +941,7 @@ static int cmos_resume(struct device *de
- 	}
- 
- 	pr_debug("%s: resume, ctrl %02x\n",
--			cmos_rtc.rtc->dev.bus_id,
-+			dev_name(&cmos_rtc.rtc->dev),
- 			tmp);
- 
- 	return 0;
+ 	for (psize = 0; psize < MMU_PAGE_COUNT; ++psize) {
+ 		if (mmu_huge_psizes[psize]) {
+-			huge_pgtable_cache(psize) = kmem_cache_create(
+-						HUGEPTE_CACHE_NAME(psize),
+-						HUGEPTE_TABLE_SIZE(psize),
+-						HUGEPTE_TABLE_SIZE(psize),
+-						0,
+-						NULL);
+-			if (!huge_pgtable_cache(psize))
++			pgtable_cache[HUGE_PGTABLE_INDEX(psize)] =
++				kmem_cache_create(
++					HUGEPTE_CACHE_NAME(psize),
++					HUGEPTE_TABLE_SIZE(psize),
++					HUGEPTE_TABLE_SIZE(psize),
++					0,
++					NULL);
++			if (!pgtable_cache[HUGE_PGTABLE_INDEX(psize)])
+ 				panic("hugetlbpage_init(): could not create %s"\
+ 				      "\n", HUGEPTE_CACHE_NAME(psize));
+ 		}
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from kniht@linux.vnet.ibm.com are
 
-origin.patch
-linux-next.patch
-rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+hugetlbfs-handle-pages-higher-order-than-max_order.patch
+hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
 
