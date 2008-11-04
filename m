@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fusion-remove-excess-kernel-doc-notation.patch added to -mm tree
-Date: Mon, 03 Nov 2008 16:39:30 -0800
-Message-ID: <200811040039.mA40dUtk030590@imap1.linux-foundation.org>
+Subject: + docs-document-how-to-write-varargs-in-kernel-doc.patch added to -mm tree
+Date: Mon, 03 Nov 2008 16:39:26 -0800
+Message-ID: <200811040039.mA40dQeb030568@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60285 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46658 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754663AbYKDAji (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 19:39:38 -0500
+	by vger.kernel.org with ESMTP id S1753772AbYKDAjh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Nov 2008 19:39:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, Eric.Moore@lsil.com
+Cc: randy.dunlap@oracle.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     fusion: remove excess kernel-doc notation
+     docs: document how to write @varargs in kernel-doc
 has been added to the -mm tree.  Its filename is
-     fusion-remove-excess-kernel-doc-notation.patch
+     docs-document-how-to-write-varargs-in-kernel-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fusion: remove excess kernel-doc notation
+Subject: docs: document how to write @varargs in kernel-doc
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Remove excess kernel-doc function parameter notation:
-
-Warning(drivers/message/fusion/mptbase.c:964): Excess function parameter or struct member 'handle' description in 'mpt_free_msg_frame'
-Warning(drivers/message/fusion/mptbase.c:5434): Excess function parameter or struct member 'portnum' description in 'mpt_findImVolumes'
-Warning(drivers/message/fusion/mptbase.c:6949): Excess function parameter or struct member 'mr' description in 'mpt_spi_log_info'
+Add documentation on how to use kernel-doc for function parameters
+that are "..." (varargs).
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.c |    3 ---
- 1 file changed, 3 deletions(-)
+ Documentation/kernel-doc-nano-HOWTO.txt |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/message/fusion/mptbase.c~fusion-remove-excess-kernel-doc-notation drivers/message/fusion/mptbase.c
---- a/drivers/message/fusion/mptbase.c~fusion-remove-excess-kernel-doc-notation
-+++ a/drivers/message/fusion/mptbase.c
-@@ -952,7 +952,6 @@ mpt_put_msg_frame_hi_pri(u8 cb_idx, MPT_
- /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+diff -puN Documentation/kernel-doc-nano-HOWTO.txt~docs-document-how-to-write-varargs-in-kernel-doc Documentation/kernel-doc-nano-HOWTO.txt
+--- a/Documentation/kernel-doc-nano-HOWTO.txt~docs-document-how-to-write-varargs-in-kernel-doc
++++ a/Documentation/kernel-doc-nano-HOWTO.txt
+@@ -71,6 +71,11 @@ The @argument descriptions must begin on
+ this opening short function description line, with no intervening
+ empty comment lines.
+ 
++If a function parameter is "..." (varargs), it should be listed in
++kernel-doc notation as:
++ * @...: description
++
++
+ Example kernel-doc data structure comment.
+ 
  /**
-  *	mpt_free_msg_frame - Place MPT request frame back on FreeQ.
-- *	@handle: Handle of registered MPT protocol driver
-  *	@ioc: Pointer to MPT adapter structure
-  *	@mf: Pointer to MPT request frame
-  *
-@@ -5422,7 +5421,6 @@ mpt_raid_phys_disk_pg0(MPT_ADAPTER *ioc,
- /**
-  *	mpt_findImVolumes - Identify IDs of hidden disks and RAID Volumes
-  *	@ioc: Pointer to a Adapter Strucutre
-- *	@portnum: IOC port number
-  *
-  *	Return:
-  *	0 on success
-@@ -6939,7 +6937,6 @@ mpt_fc_log_info(MPT_ADAPTER *ioc, u32 lo
- /**
-  *	mpt_spi_log_info - Log information returned from SCSI Parallel IOC.
-  *	@ioc: Pointer to MPT_ADAPTER structure
-- *	@mr: Pointer to MPT reply frame
-  *	@log_info: U32 LogInfo word from the IOC
-  *
-  *	Refer to lsi/sp_log.h.
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
