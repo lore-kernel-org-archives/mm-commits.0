@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-cmos-fix-boot-log-message.patch added to -mm tree
-Date: Wed, 05 Nov 2008 12:15:01 -0800
-Message-ID: <200811052015.mA5KF1mc032295@imap1.linux-foundation.org>
+Subject: + linux-serialh-touchup-for-userspace.patch added to -mm tree
+Date: Wed, 05 Nov 2008 12:16:29 -0800
+Message-ID: <200811052016.mA5KGTPd000483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37019 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754018AbYKEUPj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2008 15:15:39 -0500
+	by vger.kernel.org with ESMTP id S1754985AbYKEURI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2008 15:17:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: elendil@planet.nl, david-b@pacbell.net
+Cc: vapier@gentoo.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     rtc-cmos: fix boot log message
+     linux/serial.h: touchup for userspace
 has been added to the -mm tree.  Its filename is
-     rtc-cmos-fix-boot-log-message.patch
+     linux-serialh-touchup-for-userspace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-cmos: fix boot log message
-From: Frans Pop <elendil@planet.nl>
+Subject: linux/serial.h: touchup for userspace
+From: Mike Frysinger <vapier@gentoo.org>
 
--rtc0: alarms up to one month, y3k, 114 bytes nvram, , hpet irqs irqs
-+rtc0: alarms up to one month, y3k, 114 bytes nvram, hpet irqs
+The linux/serial.h header has __u32 in some structs it exports to userspace,
+so make sure we pull in linux/types.h all the time.
 
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/serial.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-fix-boot-log-message drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-fix-boot-log-message
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -794,7 +794,7 @@ cmos_do_probe(struct device *dev, struct
- 		goto cleanup2;
- 	}
+diff -puN include/linux/serial.h~linux-serialh-touchup-for-userspace include/linux/serial.h
+--- a/include/linux/serial.h~linux-serialh-touchup-for-userspace
++++ a/include/linux/serial.h
+@@ -10,8 +10,9 @@
+ #ifndef _LINUX_SERIAL_H
+ #define _LINUX_SERIAL_H
  
--	pr_info("%s: alarms up to one %s%s, %zd bytes nvram, %s irqs\n",
-+	pr_info("%s: alarms up to one %s%s, %zd bytes nvram%s\n",
- 			cmos_rtc.rtc->dev.bus_id,
- 			is_valid_irq(rtc_irq)
- 				?  (cmos_rtc.mon_alrm
+-#ifdef __KERNEL__
+ #include <linux/types.h>
++
++#ifdef __KERNEL__
+ #include <asm/page.h>
+ 
+ /*
 _
 
-Patches currently in -mm which might be from elendil@planet.nl are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-rtc-cmos-fix-boot-log-message.patch
 linux-next.patch
+linux-timexh-cleanup-for-userspace.patch
+m25p80-fix-detection-of-spi-parts.patch
+m25p80-fix-detection-of-m25p16-flashes.patch
+linux-serialh-touchup-for-userspace.patch
 
