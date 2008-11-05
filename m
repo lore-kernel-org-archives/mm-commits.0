@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-keep-clock-off-when-its-not-needed.patch added to -mm tree
-Date: Wed, 05 Nov 2008 12:05:47 -0800
-Message-ID: <200811052005.mA5K5l6Q028157@imap1.linux-foundation.org>
+Subject: + bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch added to -mm tree
+Date: Wed, 05 Nov 2008 12:10:47 -0800
+Message-ID: <200811052010.mA5KAlMP030394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46959 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752766AbYKEUGA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2008 15:06:00 -0500
+	by vger.kernel.org with ESMTP id S1757480AbYKEULY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2008 15:11:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, haavard.skinnemoen@atmel.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dwmw2@infradead.org, jacmet@sunsite.dk, kay.sievers@vrfy.org
 
 
 The patch titled
-     atmel_serial: keep clock off when it's not needed
+     bdi-register-sysfs-bdi-device-only-once-per-queue-fix
 has been added to the -mm tree.  Its filename is
-     atmel_serial-keep-clock-off-when-its-not-needed.patch
+     bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: keep clock off when it's not needed
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: bdi-register-sysfs-bdi-device-only-once-per-queue-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The atmel_serial driver is mismanaging its clock by leaving it on at all
-times ...  the whole point of clock management is to leave it off unless
-it's actively needed, which conserves power!!
+Add a WARN_ON so we know which drivers are misbehaving.
 
-Although the kernel doesn't actually hang without my fix, it does
-discard quite a lot of early console output.
-
-The result still looks correct:
-
-          usart        users= 1 on   35000000 Hz, for atmel_usart.0
-          usart        users= 0 off  35000000 Hz, for atmel_usart.2
-
-when using ttyS0 as serial console.
-
-[haavard.skinnemoen@atmel.com: Make sure clock is enabled early for console]
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ mm/backing-dev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-keep-clock-off-when-its-not-needed drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-keep-clock-off-when-its-not-needed
-+++ a/drivers/serial/atmel_serial.c
-@@ -1258,6 +1258,8 @@ static void __devinit atmel_init_port(st
- 		atmel_port->clk = clk_get(&pdev->dev, "usart");
- 		clk_enable(atmel_port->clk);
- 		port->uartclk = clk_get_rate(atmel_port->clk);
-+		clk_disable(atmel_port->clk);
-+		/* only enable clock when USART is in use */
- 	}
+diff -puN mm/backing-dev.c~bdi-register-sysfs-bdi-device-only-once-per-queue-fix mm/backing-dev.c
+--- a/mm/backing-dev.c~bdi-register-sysfs-bdi-device-only-once-per-queue-fix
++++ a/mm/backing-dev.c
+@@ -176,7 +176,7 @@ int bdi_register(struct backing_dev_info
+ 	int ret = 0;
+ 	struct device *dev;
  
- 	atmel_port->use_dma_rx = data->use_dma_rx;
-@@ -1379,6 +1381,8 @@ static int __init atmel_console_setup(st
- 		return -ENODEV;
- 	}
+-	if (bdi->dev)
++	if (WARN_ON(bdi->dev))
+ 		goto exit;
  
-+	clk_enable(atmel_ports[co->index].clk);
-+
- 	UART_PUT_IDR(port, -1);
- 	UART_PUT_CR(port, ATMEL_US_RSTSTA | ATMEL_US_RSTRX);
- 	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);
-@@ -1403,7 +1407,7 @@ static struct console atmel_console = {
- 	.data		= &atmel_uart,
- };
- 
--#define ATMEL_CONSOLE_DEVICE	&atmel_console
-+#define ATMEL_CONSOLE_DEVICE	(&atmel_console)
- 
- /*
-  * Early console initialization (before VM subsystem initialized).
-@@ -1534,6 +1538,15 @@ static int __devinit atmel_serial_probe(
- 	if (ret)
- 		goto err_add_port;
- 
-+	if (atmel_is_console_port(&port->uart)
-+			&& ATMEL_CONSOLE_DEVICE->flags & CON_ENABLED) {
-+		/*
-+		 * The serial core enabled the clock for us, so undo
-+		 * the clk_enable() in atmel_console_setup()
-+		 */
-+		clk_disable(port->clk);
-+	}
-+
- 	device_init_wakeup(&pdev->dev, 1);
- 	platform_set_drvdata(pdev, port);
- 
-@@ -1544,7 +1557,6 @@ err_add_port:
- 	port->rx_ring.buf = NULL;
- err_alloc_ring:
- 	if (!atmel_is_console_port(&port->uart)) {
--		clk_disable(port->clk);
- 		clk_put(port->clk);
- 		port->clk = NULL;
- 	}
-@@ -1568,7 +1580,6 @@ static int __devexit atmel_serial_remove
- 
- 	/* "port" is allocated statically, so we shouldn't free it */
- 
--	clk_disable(atmel_port->clk);
- 	clk_put(atmel_port->clk);
- 
- 	return ret;
+ 	va_start(args, fmt);
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-atmel_serial-keep-clock-off-when-its-not-needed.patch
+autofs4-collect-version-check-return-checkpatch-fixes.patch
+maintainers-make-ioat-easier-to-find.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
-spi_gpio-driver.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+cpusets-update-mems-allowed-in-page-allocator-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
 spi_gpio-driver-cleanups.patch
-rtc-ds1307-remove-legacy-probe-checks.patch
-genirq-warn-when-irqf_disabled-may-be-ignored.patch
-genirq-record-irq_level-in-irq_desc.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+quota-add-reservation-support-for-delayed-block-allocation-checkpatch-fixes.patch
+quota-add-quota-claim-and-release-reserved-quota-blocks-operations-checkpatch-fixes.patch
+ext4-quota-handling-for-delayed-allocation-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
