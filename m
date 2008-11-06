@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-update-header-file-paths.patch added to -mm tree
-Date: Thu, 06 Nov 2008 15:37:40 -0800
-Message-ID: <200811062337.mA6NbeKt023944@imap1.linux-foundation.org>
+Subject: + documentation-move-msi-howtotxt-to-doc-pci.patch added to -mm tree
+Date: Thu, 06 Nov 2008 15:37:48 -0800
+Message-ID: <200811062337.mA6NbmwP024026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751675AbYKFXiG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 18:38:06 -0500
+	by vger.kernel.org with ESMTP id S1752044AbYKFXiX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 18:38:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     documentation: update header file paths
+     move MSI-HOWTO.txt to Doc/PCI/
 has been added to the -mm tree.  Its filename is
-     documentation-update-header-file-paths.patch
+     documentation-move-msi-howtotxt-to-doc-pci.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,155 +33,1074 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: update header file paths
+Subject: move MSI-HOWTO.txt to Doc/PCI/
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Update several Documentation/ files and a few sub-dir files (only one
-change in each) to reflect changed header files locations.
+Move MSI-HOWTO.txt to the PCI/ subdirectory since it is PCI-related.  Add
+PCI/ entry to top-level 00-INDEX file.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-mapping.txt          |    2 +-
- Documentation/ioctl-number.txt         |    8 ++++----
- Documentation/kernel-parameters.txt    |    4 ++--
- Documentation/magic-number.txt         |    6 +++---
- Documentation/mips/AU1xxx_IDE.README   |    2 +-
- Documentation/powerpc/cpu_features.txt |    2 +-
- Documentation/x86/zero-page.txt        |    2 +-
- 7 files changed, 13 insertions(+), 13 deletions(-)
+ Documentation/00-INDEX          |    4 
+ Documentation/MSI-HOWTO.txt     |  509 ------------------------------
+ Documentation/PCI/00-INDEX      |    2 
+ Documentation/PCI/MSI-HOWTO.txt |  509 ++++++++++++++++++++++++++++++
+ 4 files changed, 513 insertions(+), 511 deletions(-)
 
-diff -puN Documentation/DMA-mapping.txt~documentation-update-header-file-paths Documentation/DMA-mapping.txt
---- a/Documentation/DMA-mapping.txt~documentation-update-header-file-paths
-+++ a/Documentation/DMA-mapping.txt
-@@ -26,7 +26,7 @@ mapped only for the time they are actual
- transfer.
- 
- The following API will work of course even on platforms where no such
--hardware exists, see e.g. include/asm-i386/pci.h for how it is implemented on
-+hardware exists, see e.g. arch/x86/include/asm/pci.h for how it is implemented on
- top of the virt_to_bus interface.
- 
- First of all, you should make sure
-diff -puN Documentation/ioctl-number.txt~documentation-update-header-file-paths Documentation/ioctl-number.txt
---- a/Documentation/ioctl-number.txt~documentation-update-header-file-paths
-+++ a/Documentation/ioctl-number.txt
-@@ -84,7 +84,7 @@ Code	Seq#	Include File		Comments
- 'B'	C0-FF				advanced bbus
- 					<mailto:maassen@uni-freiburg.de>
- 'C'	all	linux/soundcard.h
--'D'	all	asm-s390/dasd.h
-+'D'	all	arch/s390/include/asm/dasd.h
- 'E'	all	linux/input.h
- 'F'	all	linux/fb.h
- 'H'	all	linux/hiddev.h
-@@ -104,7 +104,7 @@ Code	Seq#	Include File		Comments
- 'S'	80-81	scsi/scsi_ioctl.h	conflict!
- 'S'	82-FF	scsi/scsi.h		conflict!
- 'T'	all	linux/soundcard.h	conflict!
--'T'	all	asm-i386/ioctls.h	conflict!
-+'T'	all	arch/x86/include/asm/ioctls.h	conflict!
- 'U'	00-EF	linux/drivers/usb/usb.h
- 'V'	all	linux/vt.h
- 'W'	00-1F	linux/watchdog.h	conflict!
-@@ -119,7 +119,7 @@ Code	Seq#	Include File		Comments
- 					<mailto:natalia@nikhefk.nikhef.nl>
- 'c'	00-7F	linux/comstats.h	conflict!
- 'c'	00-7F	linux/coda.h		conflict!
--'c'	80-9F	asm-s390/chsc.h
-+'c'	80-9F	arch/s390/include/asm/chsc.h
- 'd'	00-FF	linux/char/drm/drm/h	conflict!
- 'd'	00-DF	linux/video_decoder.h	conflict!
- 'd'	F0-FF	linux/digi1.h
-@@ -166,7 +166,7 @@ Code	Seq#	Include File		Comments
- 					<mailto:oe@port.de>
- 0x80	00-1F	linux/fb.h
- 0x81	00-1F	linux/videotext.h
--0x89	00-06	asm-i386/sockios.h
-+0x89	00-06	arch/x86/include/asm/sockios.h
- 0x89	0B-DF	linux/sockios.h
- 0x89	E0-EF	linux/sockios.h		SIOCPROTOPRIVATE range
- 0x89	F0-FF	linux/sockios.h		SIOCDEVPRIVATE range
-diff -puN Documentation/kernel-parameters.txt~documentation-update-header-file-paths Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~documentation-update-header-file-paths
-+++ a/Documentation/kernel-parameters.txt
-@@ -484,8 +484,8 @@ and is between 256 and 4096 characters. 
- 
- 	clearcpuid=BITNUM [X86]
- 			Disable CPUID feature X for the kernel. See
--			include/asm-x86/cpufeature.h for the valid bit numbers.
--			Note the Linux specific bits are not necessarily
-+			arch/x86/include/asm/cpufeature.h for the valid bit
-+			numbers. Note the Linux specific bits are not necessarily
- 			stable over kernel options, but the vendor specific
- 			ones should be.
- 			Also note that user programs calling CPUID directly
-diff -puN Documentation/magic-number.txt~documentation-update-header-file-paths Documentation/magic-number.txt
---- a/Documentation/magic-number.txt~documentation-update-header-file-paths
-+++ a/Documentation/magic-number.txt
-@@ -125,14 +125,14 @@ TRIDENT_CARD_MAGIC    0x5072696E  triden
- ROUTER_MAGIC          0x524d4157  wan_device        include/linux/wanrouter.h
- SCC_MAGIC             0x52696368  gs_port           drivers/char/scc.h
- SAVEKMSG_MAGIC1       0x53415645  savekmsg          arch/*/amiga/config.c
--GDA_MAGIC             0x58464552  gda               include/asm-mips64/sn/gda.h
-+GDA_MAGIC             0x58464552  gda               arch/mips/include/asm/sn/gda.h
- RED_MAGIC1            0x5a2cf071  (any)             mm/slab.c
- STL_PORTMAGIC         0x5a7182c9  stlport           include/linux/stallion.h
- EEPROM_MAGIC_VALUE    0x5ab478d2  lanai_dev         drivers/atm/lanai.c
- HDLCDRV_MAGIC         0x5ac6e778  hdlcdrv_state     include/linux/hdlcdrv.h
- EPCA_MAGIC            0x5c6df104  channel           include/linux/epca.h
- PCXX_MAGIC            0x5c6df104  channel           drivers/char/pcxx.h
--KV_MAGIC              0x5f4b565f  kernel_vars_s     include/asm-mips64/sn/klkernvars.h
-+KV_MAGIC              0x5f4b565f  kernel_vars_s     arch/mips/include/asm/sn/klkernvars.h
- I810_STATE_MAGIC      0x63657373  i810_state        sound/oss/i810_audio.c
- TRIDENT_STATE_MAGIC   0x63657373  trient_state      sound/oss/trident.c
- M3_CARD_MAGIC         0x646e6f50  m3_card           sound/oss/maestro3.c
-@@ -158,7 +158,7 @@ CCB_MAGIC             0xf2691ad2  ccb   
- QUEUE_MAGIC_FREE      0xf7e1c9a3  queue_entry       drivers/scsi/arm/queue.c
- QUEUE_MAGIC_USED      0xf7e1cc33  queue_entry       drivers/scsi/arm/queue.c
- HTB_CMAGIC            0xFEFAFEF1  htb_class         net/sched/sch_htb.c
--NMI_MAGIC             0x48414d4d455201 nmi_s        include/asm-mips64/sn/nmi.h
-+NMI_MAGIC             0x48414d4d455201 nmi_s        arch/mips/include/asm/sn/nmi.h
- 
- Note that there are also defined special per-driver magic numbers in sound
- memory management. See include/sound/sndmagic.h for complete list of them. Many
-diff -puN Documentation/mips/AU1xxx_IDE.README~documentation-update-header-file-paths Documentation/mips/AU1xxx_IDE.README
---- a/Documentation/mips/AU1xxx_IDE.README~documentation-update-header-file-paths
-+++ a/Documentation/mips/AU1xxx_IDE.README
-@@ -44,7 +44,7 @@ FILES, CONFIGS AND COMPATABILITY
- 
- Two files are introduced:
- 
--  a) 'include/asm-mips/mach-au1x00/au1xxx_ide.h'
-+  a) 'arch/mips/include/asm/mach-au1x00/au1xxx_ide.h'
-      containes : struct _auide_hwif
-                  timing parameters for PIO mode 0/1/2/3/4
-                  timing parameters for MWDMA 0/1/2
-diff -puN Documentation/powerpc/cpu_features.txt~documentation-update-header-file-paths Documentation/powerpc/cpu_features.txt
---- a/Documentation/powerpc/cpu_features.txt~documentation-update-header-file-paths
-+++ a/Documentation/powerpc/cpu_features.txt
-@@ -31,7 +31,7 @@ anyways).
- 
- After detecting the processor type, the kernel patches out sections of code
- that shouldn't be used by writing nop's over it. Using cpufeatures requires
--just 2 macros (found in include/asm-ppc/cputable.h), as seen in head.S
-+just 2 macros (found in arch/powerpc/include/asm/cputable.h), as seen in head.S
- transfer_to_handler:
- 
- 	#ifdef CONFIG_ALTIVEC
-diff -puN Documentation/x86/zero-page.txt~documentation-update-header-file-paths Documentation/x86/zero-page.txt
---- a/Documentation/x86/zero-page.txt~documentation-update-header-file-paths
-+++ a/Documentation/x86/zero-page.txt
-@@ -3,7 +3,7 @@ protocol of kernel. These should be fill
- real-mode setup code of the kernel. References/settings to it mainly
- are in:
- 
--  include/asm-x86/bootparam.h
-+  arch/x86/include/asm/bootparam.h
- 
- 
- Offset	Proto	Name		Meaning
+diff -puN Documentation/00-INDEX~documentation-move-msi-howtotxt-to-doc-pci Documentation/00-INDEX
+--- a/Documentation/00-INDEX~documentation-move-msi-howtotxt-to-doc-pci
++++ a/Documentation/00-INDEX
+@@ -42,8 +42,8 @@ IRQ.txt
+ 	- description of what an IRQ is.
+ ManagementStyle
+ 	- how to (attempt to) manage kernel hackers.
+-MSI-HOWTO.txt
+-	- the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
++PCI/
++	- directory with PCI-related information
+ RCU/
+ 	- directory with info on RCU (read-copy update).
+ README.DAC960
+diff -puN Documentation/MSI-HOWTO.txt~documentation-move-msi-howtotxt-to-doc-pci /dev/null
+--- a/Documentation/MSI-HOWTO.txt
++++ /dev/null
+@@ -1,509 +0,0 @@
+-		The MSI Driver Guide HOWTO
+-	Tom L Nguyen tom.l.nguyen@intel.com
+-			10/03/2003
+-	Revised Feb 12, 2004 by Martine Silbermann
+-		email: Martine.Silbermann@hp.com
+-	Revised Jun 25, 2004 by Tom L Nguyen
+-
+-1. About this guide
+-
+-This guide describes the basics of Message Signaled Interrupts (MSI),
+-the advantages of using MSI over traditional interrupt mechanisms,
+-and how to enable your driver to use MSI or MSI-X. Also included is
+-a Frequently Asked Questions (FAQ) section.
+-
+-1.1 Terminology
+-
+-PCI devices can be single-function or multi-function.  In either case,
+-when this text talks about enabling or disabling MSI on a "device
+-function," it is referring to one specific PCI device and function and
+-not to all functions on a PCI device (unless the PCI device has only
+-one function).
+-
+-2. Copyright 2003 Intel Corporation
+-
+-3. What is MSI/MSI-X?
+-
+-Message Signaled Interrupt (MSI), as described in the PCI Local Bus
+-Specification Revision 2.3 or later, is an optional feature, and a
+-required feature for PCI Express devices. MSI enables a device function
+-to request service by sending an Inbound Memory Write on its PCI bus to
+-the FSB as a Message Signal Interrupt transaction. Because MSI is
+-generated in the form of a Memory Write, all transaction conditions,
+-such as a Retry, Master-Abort, Target-Abort or normal completion, are
+-supported.
+-
+-A PCI device that supports MSI must also support pin IRQ assertion
+-interrupt mechanism to provide backward compatibility for systems that
+-do not support MSI. In systems which support MSI, the bus driver is
+-responsible for initializing the message address and message data of
+-the device function's MSI/MSI-X capability structure during device
+-initial configuration.
+-
+-An MSI capable device function indicates MSI support by implementing
+-the MSI/MSI-X capability structure in its PCI capability list. The
+-device function may implement both the MSI capability structure and
+-the MSI-X capability structure; however, the bus driver should not
+-enable both.
+-
+-The MSI capability structure contains Message Control register,
+-Message Address register and Message Data register. These registers
+-provide the bus driver control over MSI. The Message Control register
+-indicates the MSI capability supported by the device. The Message
+-Address register specifies the target address and the Message Data
+-register specifies the characteristics of the message. To request
+-service, the device function writes the content of the Message Data
+-register to the target address. The device and its software driver
+-are prohibited from writing to these registers.
+-
+-The MSI-X capability structure is an optional extension to MSI. It
+-uses an independent and separate capability structure. There are
+-some key advantages to implementing the MSI-X capability structure
+-over the MSI capability structure as described below.
+-
+-	- Support a larger maximum number of vectors per function.
+-
+-	- Provide the ability for system software to configure
+-	each vector with an independent message address and message
+-	data, specified by a table that resides in Memory Space.
+-
+-        - MSI and MSI-X both support per-vector masking. Per-vector
+-	masking is an optional extension of MSI but a required
+-	feature for MSI-X. Per-vector masking provides the kernel the
+-	ability to mask/unmask a single MSI while running its
+-	interrupt service routine. If per-vector masking is
+-	not supported, then the device driver should provide the
+-	hardware/software synchronization to ensure that the device
+-	generates MSI when the driver wants it to do so.
+-
+-4. Why use MSI?
+-
+-As a benefit to the simplification of board design, MSI allows board
+-designers to remove out-of-band interrupt routing. MSI is another
+-step towards a legacy-free environment.
+-
+-Due to increasing pressure on chipset and processor packages to
+-reduce pin count, the need for interrupt pins is expected to
+-diminish over time. Devices, due to pin constraints, may implement
+-messages to increase performance.
+-
+-PCI Express endpoints uses INTx emulation (in-band messages) instead
+-of IRQ pin assertion. Using INTx emulation requires interrupt
+-sharing among devices connected to the same node (PCI bridge) while
+-MSI is unique (non-shared) and does not require BIOS configuration
+-support. As a result, the PCI Express technology requires MSI
+-support for better interrupt performance.
+-
+-Using MSI enables the device functions to support two or more
+-vectors, which can be configured to target different CPUs to
+-increase scalability.
+-
+-5. Configuring a driver to use MSI/MSI-X
+-
+-By default, the kernel will not enable MSI/MSI-X on all devices that
+-support this capability. The CONFIG_PCI_MSI kernel option
+-must be selected to enable MSI/MSI-X support.
+-
+-5.1 Including MSI/MSI-X support into the kernel
+-
+-To allow MSI/MSI-X capable device drivers to selectively enable
+-MSI/MSI-X (using pci_enable_msi()/pci_enable_msix() as described
+-below), the VECTOR based scheme needs to be enabled by setting
+-CONFIG_PCI_MSI during kernel config.
+-
+-Since the target of the inbound message is the local APIC, providing
+-CONFIG_X86_LOCAL_APIC must be enabled as well as CONFIG_PCI_MSI.
+-
+-5.2 Configuring for MSI support
+-
+-Due to the non-contiguous fashion in vector assignment of the
+-existing Linux kernel, this version does not support multiple
+-messages regardless of a device function is capable of supporting
+-more than one vector. To enable MSI on a device function's MSI
+-capability structure requires a device driver to call the function
+-pci_enable_msi() explicitly.
+-
+-5.2.1 API pci_enable_msi
+-
+-int pci_enable_msi(struct pci_dev *dev)
+-
+-With this new API, a device driver that wants to have MSI
+-enabled on its device function must call this API to enable MSI.
+-A successful call will initialize the MSI capability structure
+-with ONE vector, regardless of whether a device function is
+-capable of supporting multiple messages. This vector replaces the
+-pre-assigned dev->irq with a new MSI vector. To avoid a conflict
+-of the new assigned vector with existing pre-assigned vector requires
+-a device driver to call this API before calling request_irq().
+-
+-5.2.2 API pci_disable_msi
+-
+-void pci_disable_msi(struct pci_dev *dev)
+-
+-This API should always be used to undo the effect of pci_enable_msi()
+-when a device driver is unloading. This API restores dev->irq with
+-the pre-assigned IOAPIC vector and switches a device's interrupt
+-mode to PCI pin-irq assertion/INTx emulation mode.
+-
+-Note that a device driver should always call free_irq() on the MSI vector
+-that it has done request_irq() on before calling this API. Failure to do
+-so results in a BUG_ON() and a device will be left with MSI enabled and
+-leaks its vector.
+-
+-5.2.3 MSI mode vs. legacy mode diagram
+-
+-The below diagram shows the events which switch the interrupt
+-mode on the MSI-capable device function between MSI mode and
+-PIN-IRQ assertion mode.
+-
+-	 ------------   pci_enable_msi 	 ------------------------
+-	|	     | <===============	| 			 |
+-	| MSI MODE   |	  	     	| PIN-IRQ ASSERTION MODE |
+-	| 	     | ===============>	|			 |
+- 	 ------------	pci_disable_msi  ------------------------
+-
+-
+-Figure 1. MSI Mode vs. Legacy Mode
+-
+-In Figure 1, a device operates by default in legacy mode. Legacy
+-in this context means PCI pin-irq assertion or PCI-Express INTx
+-emulation. A successful MSI request (using pci_enable_msi()) switches
+-a device's interrupt mode to MSI mode. A pre-assigned IOAPIC vector
+-stored in dev->irq will be saved by the PCI subsystem and a new
+-assigned MSI vector will replace dev->irq.
+-
+-To return back to its default mode, a device driver should always call
+-pci_disable_msi() to undo the effect of pci_enable_msi(). Note that a
+-device driver should always call free_irq() on the MSI vector it has
+-done request_irq() on before calling pci_disable_msi(). Failure to do
+-so results in a BUG_ON() and a device will be left with MSI enabled and
+-leaks its vector. Otherwise, the PCI subsystem restores a device's
+-dev->irq with a pre-assigned IOAPIC vector and marks the released
+-MSI vector as unused.
+-
+-Once being marked as unused, there is no guarantee that the PCI
+-subsystem will reserve this MSI vector for a device. Depending on
+-the availability of current PCI vector resources and the number of
+-MSI/MSI-X requests from other drivers, this MSI may be re-assigned.
+-
+-For the case where the PCI subsystem re-assigns this MSI vector to
+-another driver, a request to switch back to MSI mode may result
+-in being assigned a different MSI vector or a failure if no more
+-vectors are available.
+-
+-5.3 Configuring for MSI-X support
+-
+-Due to the ability of the system software to configure each vector of
+-the MSI-X capability structure with an independent message address
+-and message data, the non-contiguous fashion in vector assignment of
+-the existing Linux kernel has no impact on supporting multiple
+-messages on an MSI-X capable device functions. To enable MSI-X on
+-a device function's MSI-X capability structure requires its device
+-driver to call the function pci_enable_msix() explicitly.
+-
+-The function pci_enable_msix(), once invoked, enables either
+-all or nothing, depending on the current availability of PCI vector
+-resources. If the PCI vector resources are available for the number
+-of vectors requested by a device driver, this function will configure
+-the MSI-X table of the MSI-X capability structure of a device with
+-requested messages. To emphasize this reason, for example, a device
+-may be capable for supporting the maximum of 32 vectors while its
+-software driver usually may request 4 vectors. It is recommended
+-that the device driver should call this function once during the
+-initialization phase of the device driver.
+-
+-Unlike the function pci_enable_msi(), the function pci_enable_msix()
+-does not replace the pre-assigned IOAPIC dev->irq with a new MSI
+-vector because the PCI subsystem writes the 1:1 vector-to-entry mapping
+-into the field vector of each element contained in a second argument.
+-Note that the pre-assigned IOAPIC dev->irq is valid only if the device
+-operates in PIN-IRQ assertion mode. In MSI-X mode, any attempt at
+-using dev->irq by the device driver to request for interrupt service
+-may result in unpredictable behavior.
+-
+-For each MSI-X vector granted, a device driver is responsible for calling
+-other functions like request_irq(), enable_irq(), etc. to enable
+-this vector with its corresponding interrupt service handler. It is
+-a device driver's choice to assign all vectors with the same
+-interrupt service handler or each vector with a unique interrupt
+-service handler.
+-
+-5.3.1 Handling MMIO address space of MSI-X Table
+-
+-The PCI 3.0 specification has implementation notes that MMIO address
+-space for a device's MSI-X structure should be isolated so that the
+-software system can set different pages for controlling accesses to the
+-MSI-X structure. The implementation of MSI support requires the PCI
+-subsystem, not a device driver, to maintain full control of the MSI-X
+-table/MSI-X PBA (Pending Bit Array) and MMIO address space of the MSI-X
+-table/MSI-X PBA.  A device driver should not access the MMIO address
+-space of the MSI-X table/MSI-X PBA.
+-
+-5.3.2 API pci_enable_msix
+-
+-int pci_enable_msix(struct pci_dev *dev, struct msix_entry *entries, int nvec)
+-
+-This API enables a device driver to request the PCI subsystem
+-to enable MSI-X messages on its hardware device. Depending on
+-the availability of PCI vectors resources, the PCI subsystem enables
+-either all or none of the requested vectors.
+-
+-Argument 'dev' points to the device (pci_dev) structure.
+-
+-Argument 'entries' is a pointer to an array of msix_entry structs.
+-The number of entries is indicated in argument 'nvec'.
+-struct msix_entry is defined in /driver/pci/msi.h:
+-
+-struct msix_entry {
+-	u16 	vector; /* kernel uses to write alloc vector */
+-	u16	entry; /* driver uses to specify entry */
+-};
+-
+-A device driver is responsible for initializing the field 'entry' of
+-each element with a unique entry supported by MSI-X table. Otherwise,
+--EINVAL will be returned as a result. A successful return of zero
+-indicates the PCI subsystem completed initializing each of the requested
+-entries of the MSI-X table with message address and message data.
+-Last but not least, the PCI subsystem will write the 1:1
+-vector-to-entry mapping into the field 'vector' of each element. A
+-device driver is responsible for keeping track of allocated MSI-X
+-vectors in its internal data structure.
+-
+-A return of zero indicates that the number of MSI-X vectors was
+-successfully allocated. A return of greater than zero indicates
+-MSI-X vector shortage. Or a return of less than zero indicates
+-a failure. This failure may be a result of duplicate entries
+-specified in second argument, or a result of no available vector,
+-or a result of failing to initialize MSI-X table entries.
+-
+-5.3.3 API pci_disable_msix
+-
+-void pci_disable_msix(struct pci_dev *dev)
+-
+-This API should always be used to undo the effect of pci_enable_msix()
+-when a device driver is unloading. Note that a device driver should
+-always call free_irq() on all MSI-X vectors it has done request_irq()
+-on before calling this API. Failure to do so results in a BUG_ON() and
+-a device will be left with MSI-X enabled and leaks its vectors.
+-
+-5.3.4 MSI-X mode vs. legacy mode diagram
+-
+-The below diagram shows the events which switch the interrupt
+-mode on the MSI-X capable device function between MSI-X mode and
+-PIN-IRQ assertion mode (legacy).
+-
+-	 ------------   pci_enable_msix(,,n) ------------------------
+-	|	     | <===============	    | 			     |
+-	| MSI-X MODE |	  	     	    | PIN-IRQ ASSERTION MODE |
+-	| 	     | ===============>	    |			     |
+- 	 ------------	pci_disable_msix     ------------------------
+-
+-Figure 2. MSI-X Mode vs. Legacy Mode
+-
+-In Figure 2, a device operates by default in legacy mode. A
+-successful MSI-X request (using pci_enable_msix()) switches a
+-device's interrupt mode to MSI-X mode. A pre-assigned IOAPIC vector
+-stored in dev->irq will be saved by the PCI subsystem; however,
+-unlike MSI mode, the PCI subsystem will not replace dev->irq with
+-assigned MSI-X vector because the PCI subsystem already writes the 1:1
+-vector-to-entry mapping into the field 'vector' of each element
+-specified in second argument.
+-
+-To return back to its default mode, a device driver should always call
+-pci_disable_msix() to undo the effect of pci_enable_msix(). Note that
+-a device driver should always call free_irq() on all MSI-X vectors it
+-has done request_irq() on before calling pci_disable_msix(). Failure
+-to do so results in a BUG_ON() and a device will be left with MSI-X
+-enabled and leaks its vectors. Otherwise, the PCI subsystem switches a
+-device function's interrupt mode from MSI-X mode to legacy mode and
+-marks all allocated MSI-X vectors as unused.
+-
+-Once being marked as unused, there is no guarantee that the PCI
+-subsystem will reserve these MSI-X vectors for a device. Depending on
+-the availability of current PCI vector resources and the number of
+-MSI/MSI-X requests from other drivers, these MSI-X vectors may be
+-re-assigned.
+-
+-For the case where the PCI subsystem re-assigned these MSI-X vectors
+-to other drivers, a request to switch back to MSI-X mode may result
+-being assigned with another set of MSI-X vectors or a failure if no
+-more vectors are available.
+-
+-5.4 Handling function implementing both MSI and MSI-X capabilities
+-
+-For the case where a function implements both MSI and MSI-X
+-capabilities, the PCI subsystem enables a device to run either in MSI
+-mode or MSI-X mode but not both. A device driver determines whether it
+-wants MSI or MSI-X enabled on its hardware device. Once a device
+-driver requests for MSI, for example, it is prohibited from requesting
+-MSI-X; in other words, a device driver is not permitted to ping-pong
+-between MSI mod MSI-X mode during a run-time.
+-
+-5.5 Hardware requirements for MSI/MSI-X support
+-
+-MSI/MSI-X support requires support from both system hardware and
+-individual hardware device functions.
+-
+-5.5.1 Required x86 hardware support
+-
+-Since the target of MSI address is the local APIC CPU, enabling
+-MSI/MSI-X support in the Linux kernel is dependent on whether existing
+-system hardware supports local APIC. Users should verify that their
+-system supports local APIC operation by testing that it runs when
+-CONFIG_X86_LOCAL_APIC=y.
+-
+-In SMP environment, CONFIG_X86_LOCAL_APIC is automatically set;
+-however, in UP environment, users must manually set
+-CONFIG_X86_LOCAL_APIC. Once CONFIG_X86_LOCAL_APIC=y, setting
+-CONFIG_PCI_MSI enables the VECTOR based scheme and the option for
+-MSI-capable device drivers to selectively enable MSI/MSI-X.
+-
+-Note that CONFIG_X86_IO_APIC setting is irrelevant because MSI/MSI-X
+-vector is allocated new during runtime and MSI/MSI-X support does not
+-depend on BIOS support. This key independency enables MSI/MSI-X
+-support on future IOxAPIC free platforms.
+-
+-5.5.2 Device hardware support
+-
+-The hardware device function supports MSI by indicating the
+-MSI/MSI-X capability structure on its PCI capability list. By
+-default, this capability structure will not be initialized by
+-the kernel to enable MSI during the system boot. In other words,
+-the device function is running on its default pin assertion mode.
+-Note that in many cases the hardware supporting MSI have bugs,
+-which may result in system hangs. The software driver of specific
+-MSI-capable hardware is responsible for deciding whether to call
+-pci_enable_msi or not. A return of zero indicates the kernel
+-successfully initialized the MSI/MSI-X capability structure of the
+-device function. The device function is now running on MSI/MSI-X mode.
+-
+-5.6 How to tell whether MSI/MSI-X is enabled on device function
+-
+-At the driver level, a return of zero from the function call of
+-pci_enable_msi()/pci_enable_msix() indicates to a device driver that
+-its device function is initialized successfully and ready to run in
+-MSI/MSI-X mode.
+-
+-At the user level, users can use the command 'cat /proc/interrupts'
+-to display the vectors allocated for devices and their interrupt
+-MSI/MSI-X modes ("PCI-MSI"/"PCI-MSI-X"). Below shows MSI mode is
+-enabled on a SCSI Adaptec 39320D Ultra320 controller.
+-
+-           CPU0       CPU1
+-  0:     324639          0    IO-APIC-edge  timer
+-  1:       1186          0    IO-APIC-edge  i8042
+-  2:          0          0          XT-PIC  cascade
+- 12:       2797          0    IO-APIC-edge  i8042
+- 14:       6543          0    IO-APIC-edge  ide0
+- 15:          1          0    IO-APIC-edge  ide1
+-169:          0          0   IO-APIC-level  uhci-hcd
+-185:          0          0   IO-APIC-level  uhci-hcd
+-193:        138         10         PCI-MSI  aic79xx
+-201:         30          0         PCI-MSI  aic79xx
+-225:         30          0   IO-APIC-level  aic7xxx
+-233:         30          0   IO-APIC-level  aic7xxx
+-NMI:          0          0
+-LOC:     324553     325068
+-ERR:          0
+-MIS:          0
+-
+-6. MSI quirks
+-
+-Several PCI chipsets or devices are known to not support MSI.
+-The PCI stack provides 3 possible levels of MSI disabling:
+-* on a single device
+-* on all devices behind a specific bridge
+-* globally
+-
+-6.1. Disabling MSI on a single device
+-
+-Under some circumstances it might be required to disable MSI on a
+-single device.  This may be achieved by either not calling pci_enable_msi()
+-or all, or setting the pci_dev->no_msi flag before (most of the time
+-in a quirk).
+-
+-6.2. Disabling MSI below a bridge
+-
+-The vast majority of MSI quirks are required by PCI bridges not
+-being able to route MSI between busses. In this case, MSI have to be
+-disabled on all devices behind this bridge. It is achieves by setting
+-the PCI_BUS_FLAGS_NO_MSI flag in the pci_bus->bus_flags of the bridge
+-subordinate bus. There is no need to set the same flag on bridges that
+-are below the broken bridge. When pci_enable_msi() is called to enable
+-MSI on a device, pci_msi_supported() takes care of checking the NO_MSI
+-flag in all parent busses of the device.
+-
+-Some bridges actually support dynamic MSI support enabling/disabling
+-by changing some bits in their PCI configuration space (especially
+-the Hypertransport chipsets such as the nVidia nForce and Serverworks
+-HT2000). It may then be required to update the NO_MSI flag on the
+-corresponding devices in the sysfs hierarchy. To enable MSI support
+-on device "0000:00:0e", do:
+-
+-	echo 1 > /sys/bus/pci/devices/0000:00:0e/msi_bus
+-
+-To disable MSI support, echo 0 instead of 1. Note that it should be
+-used with caution since changing this value might break interrupts.
+-
+-6.3. Disabling MSI globally
+-
+-Some extreme cases may require to disable MSI globally on the system.
+-For now, the only known case is a Serverworks PCI-X chipsets (MSI are
+-not supported on several busses that are not all connected to the
+-chipset in the Linux PCI hierarchy). In the vast majority of other
+-cases, disabling only behind a specific bridge is enough.
+-
+-For debugging purpose, the user may also pass pci=nomsi on the kernel
+-command-line to explicitly disable MSI globally. But, once the appro-
+-priate quirks are added to the kernel, this option should not be
+-required anymore.
+-
+-6.4. Finding why MSI cannot be enabled on a device
+-
+-Assuming that MSI are not enabled on a device, you should look at
+-dmesg to find messages that quirks may output when disabling MSI
+-on some devices, some bridges or even globally.
+-Then, lspci -t gives the list of bridges above a device. Reading
+-/sys/bus/pci/devices/0000:00:0e/msi_bus will tell you whether MSI
+-are enabled (1) or disabled (0). In 0 is found in a single bridge
+-msi_bus file above the device, MSI cannot be enabled.
+-
+-7. FAQ
+-
+-Q1. Are there any limitations on using the MSI?
+-
+-A1. If the PCI device supports MSI and conforms to the
+-specification and the platform supports the APIC local bus,
+-then using MSI should work.
+-
+-Q2. Will it work on all the Pentium processors (P3, P4, Xeon,
+-AMD processors)? In P3 IPI's are transmitted on the APIC local
+-bus and in P4 and Xeon they are transmitted on the system
+-bus. Are there any implications with this?
+-
+-A2. MSI support enables a PCI device sending an inbound
+-memory write (0xfeexxxxx as target address) on its PCI bus
+-directly to the FSB. Since the message address has a
+-redirection hint bit cleared, it should work.
+-
+-Q3. The target address 0xfeexxxxx will be translated by the
+-Host Bridge into an interrupt message. Are there any
+-limitations on the chipsets such as Intel 8xx, Intel e7xxx,
+-or VIA?
+-
+-A3. If these chipsets support an inbound memory write with
+-target address set as 0xfeexxxxx, as conformed to PCI
+-specification 2.3 or latest, then it should work.
+-
+-Q4. From the driver point of view, if the MSI is lost because
+-of errors occurring during inbound memory write, then it may
+-wait forever. Is there a mechanism for it to recover?
+-
+-A4. Since the target of the transaction is an inbound memory
+-write, all transaction termination conditions (Retry,
+-Master-Abort, Target-Abort, or normal completion) are
+-supported. A device sending an MSI must abide by all the PCI
+-rules and conditions regarding that inbound memory write. So,
+-if a retry is signaled it must retry, etc... We believe that
+-the recommendation for Abort is also a retry (refer to PCI
+-specification 2.3 or latest).
+diff -puN Documentation/PCI/00-INDEX~documentation-move-msi-howtotxt-to-doc-pci Documentation/PCI/00-INDEX
+--- a/Documentation/PCI/00-INDEX~documentation-move-msi-howtotxt-to-doc-pci
++++ a/Documentation/PCI/00-INDEX
+@@ -1,5 +1,7 @@
+ 00-INDEX
+ 	- this file
++MSI-HOWTO.txt
++	- the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
+ PCI-DMA-mapping.txt
+ 	- info for PCI drivers using DMA portably across all platforms
+ PCIEBUS-HOWTO.txt
+diff -puN /dev/null Documentation/PCI/MSI-HOWTO.txt
+--- /dev/null
++++ a/Documentation/PCI/MSI-HOWTO.txt
+@@ -0,0 +1,509 @@
++		The MSI Driver Guide HOWTO
++	Tom L Nguyen tom.l.nguyen@intel.com
++			10/03/2003
++	Revised Feb 12, 2004 by Martine Silbermann
++		email: Martine.Silbermann@hp.com
++	Revised Jun 25, 2004 by Tom L Nguyen
++
++1. About this guide
++
++This guide describes the basics of Message Signaled Interrupts (MSI),
++the advantages of using MSI over traditional interrupt mechanisms,
++and how to enable your driver to use MSI or MSI-X. Also included is
++a Frequently Asked Questions (FAQ) section.
++
++1.1 Terminology
++
++PCI devices can be single-function or multi-function.  In either case,
++when this text talks about enabling or disabling MSI on a "device
++function," it is referring to one specific PCI device and function and
++not to all functions on a PCI device (unless the PCI device has only
++one function).
++
++2. Copyright 2003 Intel Corporation
++
++3. What is MSI/MSI-X?
++
++Message Signaled Interrupt (MSI), as described in the PCI Local Bus
++Specification Revision 2.3 or later, is an optional feature, and a
++required feature for PCI Express devices. MSI enables a device function
++to request service by sending an Inbound Memory Write on its PCI bus to
++the FSB as a Message Signal Interrupt transaction. Because MSI is
++generated in the form of a Memory Write, all transaction conditions,
++such as a Retry, Master-Abort, Target-Abort or normal completion, are
++supported.
++
++A PCI device that supports MSI must also support pin IRQ assertion
++interrupt mechanism to provide backward compatibility for systems that
++do not support MSI. In systems which support MSI, the bus driver is
++responsible for initializing the message address and message data of
++the device function's MSI/MSI-X capability structure during device
++initial configuration.
++
++An MSI capable device function indicates MSI support by implementing
++the MSI/MSI-X capability structure in its PCI capability list. The
++device function may implement both the MSI capability structure and
++the MSI-X capability structure; however, the bus driver should not
++enable both.
++
++The MSI capability structure contains Message Control register,
++Message Address register and Message Data register. These registers
++provide the bus driver control over MSI. The Message Control register
++indicates the MSI capability supported by the device. The Message
++Address register specifies the target address and the Message Data
++register specifies the characteristics of the message. To request
++service, the device function writes the content of the Message Data
++register to the target address. The device and its software driver
++are prohibited from writing to these registers.
++
++The MSI-X capability structure is an optional extension to MSI. It
++uses an independent and separate capability structure. There are
++some key advantages to implementing the MSI-X capability structure
++over the MSI capability structure as described below.
++
++	- Support a larger maximum number of vectors per function.
++
++	- Provide the ability for system software to configure
++	each vector with an independent message address and message
++	data, specified by a table that resides in Memory Space.
++
++        - MSI and MSI-X both support per-vector masking. Per-vector
++	masking is an optional extension of MSI but a required
++	feature for MSI-X. Per-vector masking provides the kernel the
++	ability to mask/unmask a single MSI while running its
++	interrupt service routine. If per-vector masking is
++	not supported, then the device driver should provide the
++	hardware/software synchronization to ensure that the device
++	generates MSI when the driver wants it to do so.
++
++4. Why use MSI?
++
++As a benefit to the simplification of board design, MSI allows board
++designers to remove out-of-band interrupt routing. MSI is another
++step towards a legacy-free environment.
++
++Due to increasing pressure on chipset and processor packages to
++reduce pin count, the need for interrupt pins is expected to
++diminish over time. Devices, due to pin constraints, may implement
++messages to increase performance.
++
++PCI Express endpoints uses INTx emulation (in-band messages) instead
++of IRQ pin assertion. Using INTx emulation requires interrupt
++sharing among devices connected to the same node (PCI bridge) while
++MSI is unique (non-shared) and does not require BIOS configuration
++support. As a result, the PCI Express technology requires MSI
++support for better interrupt performance.
++
++Using MSI enables the device functions to support two or more
++vectors, which can be configured to target different CPUs to
++increase scalability.
++
++5. Configuring a driver to use MSI/MSI-X
++
++By default, the kernel will not enable MSI/MSI-X on all devices that
++support this capability. The CONFIG_PCI_MSI kernel option
++must be selected to enable MSI/MSI-X support.
++
++5.1 Including MSI/MSI-X support into the kernel
++
++To allow MSI/MSI-X capable device drivers to selectively enable
++MSI/MSI-X (using pci_enable_msi()/pci_enable_msix() as described
++below), the VECTOR based scheme needs to be enabled by setting
++CONFIG_PCI_MSI during kernel config.
++
++Since the target of the inbound message is the local APIC, providing
++CONFIG_X86_LOCAL_APIC must be enabled as well as CONFIG_PCI_MSI.
++
++5.2 Configuring for MSI support
++
++Due to the non-contiguous fashion in vector assignment of the
++existing Linux kernel, this version does not support multiple
++messages regardless of a device function is capable of supporting
++more than one vector. To enable MSI on a device function's MSI
++capability structure requires a device driver to call the function
++pci_enable_msi() explicitly.
++
++5.2.1 API pci_enable_msi
++
++int pci_enable_msi(struct pci_dev *dev)
++
++With this new API, a device driver that wants to have MSI
++enabled on its device function must call this API to enable MSI.
++A successful call will initialize the MSI capability structure
++with ONE vector, regardless of whether a device function is
++capable of supporting multiple messages. This vector replaces the
++pre-assigned dev->irq with a new MSI vector. To avoid a conflict
++of the new assigned vector with existing pre-assigned vector requires
++a device driver to call this API before calling request_irq().
++
++5.2.2 API pci_disable_msi
++
++void pci_disable_msi(struct pci_dev *dev)
++
++This API should always be used to undo the effect of pci_enable_msi()
++when a device driver is unloading. This API restores dev->irq with
++the pre-assigned IOAPIC vector and switches a device's interrupt
++mode to PCI pin-irq assertion/INTx emulation mode.
++
++Note that a device driver should always call free_irq() on the MSI vector
++that it has done request_irq() on before calling this API. Failure to do
++so results in a BUG_ON() and a device will be left with MSI enabled and
++leaks its vector.
++
++5.2.3 MSI mode vs. legacy mode diagram
++
++The below diagram shows the events which switch the interrupt
++mode on the MSI-capable device function between MSI mode and
++PIN-IRQ assertion mode.
++
++	 ------------   pci_enable_msi 	 ------------------------
++	|	     | <===============	| 			 |
++	| MSI MODE   |	  	     	| PIN-IRQ ASSERTION MODE |
++	| 	     | ===============>	|			 |
++ 	 ------------	pci_disable_msi  ------------------------
++
++
++Figure 1. MSI Mode vs. Legacy Mode
++
++In Figure 1, a device operates by default in legacy mode. Legacy
++in this context means PCI pin-irq assertion or PCI-Express INTx
++emulation. A successful MSI request (using pci_enable_msi()) switches
++a device's interrupt mode to MSI mode. A pre-assigned IOAPIC vector
++stored in dev->irq will be saved by the PCI subsystem and a new
++assigned MSI vector will replace dev->irq.
++
++To return back to its default mode, a device driver should always call
++pci_disable_msi() to undo the effect of pci_enable_msi(). Note that a
++device driver should always call free_irq() on the MSI vector it has
++done request_irq() on before calling pci_disable_msi(). Failure to do
++so results in a BUG_ON() and a device will be left with MSI enabled and
++leaks its vector. Otherwise, the PCI subsystem restores a device's
++dev->irq with a pre-assigned IOAPIC vector and marks the released
++MSI vector as unused.
++
++Once being marked as unused, there is no guarantee that the PCI
++subsystem will reserve this MSI vector for a device. Depending on
++the availability of current PCI vector resources and the number of
++MSI/MSI-X requests from other drivers, this MSI may be re-assigned.
++
++For the case where the PCI subsystem re-assigns this MSI vector to
++another driver, a request to switch back to MSI mode may result
++in being assigned a different MSI vector or a failure if no more
++vectors are available.
++
++5.3 Configuring for MSI-X support
++
++Due to the ability of the system software to configure each vector of
++the MSI-X capability structure with an independent message address
++and message data, the non-contiguous fashion in vector assignment of
++the existing Linux kernel has no impact on supporting multiple
++messages on an MSI-X capable device functions. To enable MSI-X on
++a device function's MSI-X capability structure requires its device
++driver to call the function pci_enable_msix() explicitly.
++
++The function pci_enable_msix(), once invoked, enables either
++all or nothing, depending on the current availability of PCI vector
++resources. If the PCI vector resources are available for the number
++of vectors requested by a device driver, this function will configure
++the MSI-X table of the MSI-X capability structure of a device with
++requested messages. To emphasize this reason, for example, a device
++may be capable for supporting the maximum of 32 vectors while its
++software driver usually may request 4 vectors. It is recommended
++that the device driver should call this function once during the
++initialization phase of the device driver.
++
++Unlike the function pci_enable_msi(), the function pci_enable_msix()
++does not replace the pre-assigned IOAPIC dev->irq with a new MSI
++vector because the PCI subsystem writes the 1:1 vector-to-entry mapping
++into the field vector of each element contained in a second argument.
++Note that the pre-assigned IOAPIC dev->irq is valid only if the device
++operates in PIN-IRQ assertion mode. In MSI-X mode, any attempt at
++using dev->irq by the device driver to request for interrupt service
++may result in unpredictable behavior.
++
++For each MSI-X vector granted, a device driver is responsible for calling
++other functions like request_irq(), enable_irq(), etc. to enable
++this vector with its corresponding interrupt service handler. It is
++a device driver's choice to assign all vectors with the same
++interrupt service handler or each vector with a unique interrupt
++service handler.
++
++5.3.1 Handling MMIO address space of MSI-X Table
++
++The PCI 3.0 specification has implementation notes that MMIO address
++space for a device's MSI-X structure should be isolated so that the
++software system can set different pages for controlling accesses to the
++MSI-X structure. The implementation of MSI support requires the PCI
++subsystem, not a device driver, to maintain full control of the MSI-X
++table/MSI-X PBA (Pending Bit Array) and MMIO address space of the MSI-X
++table/MSI-X PBA.  A device driver should not access the MMIO address
++space of the MSI-X table/MSI-X PBA.
++
++5.3.2 API pci_enable_msix
++
++int pci_enable_msix(struct pci_dev *dev, struct msix_entry *entries, int nvec)
++
++This API enables a device driver to request the PCI subsystem
++to enable MSI-X messages on its hardware device. Depending on
++the availability of PCI vectors resources, the PCI subsystem enables
++either all or none of the requested vectors.
++
++Argument 'dev' points to the device (pci_dev) structure.
++
++Argument 'entries' is a pointer to an array of msix_entry structs.
++The number of entries is indicated in argument 'nvec'.
++struct msix_entry is defined in /driver/pci/msi.h:
++
++struct msix_entry {
++	u16 	vector; /* kernel uses to write alloc vector */
++	u16	entry; /* driver uses to specify entry */
++};
++
++A device driver is responsible for initializing the field 'entry' of
++each element with a unique entry supported by MSI-X table. Otherwise,
++-EINVAL will be returned as a result. A successful return of zero
++indicates the PCI subsystem completed initializing each of the requested
++entries of the MSI-X table with message address and message data.
++Last but not least, the PCI subsystem will write the 1:1
++vector-to-entry mapping into the field 'vector' of each element. A
++device driver is responsible for keeping track of allocated MSI-X
++vectors in its internal data structure.
++
++A return of zero indicates that the number of MSI-X vectors was
++successfully allocated. A return of greater than zero indicates
++MSI-X vector shortage. Or a return of less than zero indicates
++a failure. This failure may be a result of duplicate entries
++specified in second argument, or a result of no available vector,
++or a result of failing to initialize MSI-X table entries.
++
++5.3.3 API pci_disable_msix
++
++void pci_disable_msix(struct pci_dev *dev)
++
++This API should always be used to undo the effect of pci_enable_msix()
++when a device driver is unloading. Note that a device driver should
++always call free_irq() on all MSI-X vectors it has done request_irq()
++on before calling this API. Failure to do so results in a BUG_ON() and
++a device will be left with MSI-X enabled and leaks its vectors.
++
++5.3.4 MSI-X mode vs. legacy mode diagram
++
++The below diagram shows the events which switch the interrupt
++mode on the MSI-X capable device function between MSI-X mode and
++PIN-IRQ assertion mode (legacy).
++
++	 ------------   pci_enable_msix(,,n) ------------------------
++	|	     | <===============	    | 			     |
++	| MSI-X MODE |	  	     	    | PIN-IRQ ASSERTION MODE |
++	| 	     | ===============>	    |			     |
++ 	 ------------	pci_disable_msix     ------------------------
++
++Figure 2. MSI-X Mode vs. Legacy Mode
++
++In Figure 2, a device operates by default in legacy mode. A
++successful MSI-X request (using pci_enable_msix()) switches a
++device's interrupt mode to MSI-X mode. A pre-assigned IOAPIC vector
++stored in dev->irq will be saved by the PCI subsystem; however,
++unlike MSI mode, the PCI subsystem will not replace dev->irq with
++assigned MSI-X vector because the PCI subsystem already writes the 1:1
++vector-to-entry mapping into the field 'vector' of each element
++specified in second argument.
++
++To return back to its default mode, a device driver should always call
++pci_disable_msix() to undo the effect of pci_enable_msix(). Note that
++a device driver should always call free_irq() on all MSI-X vectors it
++has done request_irq() on before calling pci_disable_msix(). Failure
++to do so results in a BUG_ON() and a device will be left with MSI-X
++enabled and leaks its vectors. Otherwise, the PCI subsystem switches a
++device function's interrupt mode from MSI-X mode to legacy mode and
++marks all allocated MSI-X vectors as unused.
++
++Once being marked as unused, there is no guarantee that the PCI
++subsystem will reserve these MSI-X vectors for a device. Depending on
++the availability of current PCI vector resources and the number of
++MSI/MSI-X requests from other drivers, these MSI-X vectors may be
++re-assigned.
++
++For the case where the PCI subsystem re-assigned these MSI-X vectors
++to other drivers, a request to switch back to MSI-X mode may result
++being assigned with another set of MSI-X vectors or a failure if no
++more vectors are available.
++
++5.4 Handling function implementing both MSI and MSI-X capabilities
++
++For the case where a function implements both MSI and MSI-X
++capabilities, the PCI subsystem enables a device to run either in MSI
++mode or MSI-X mode but not both. A device driver determines whether it
++wants MSI or MSI-X enabled on its hardware device. Once a device
++driver requests for MSI, for example, it is prohibited from requesting
++MSI-X; in other words, a device driver is not permitted to ping-pong
++between MSI mod MSI-X mode during a run-time.
++
++5.5 Hardware requirements for MSI/MSI-X support
++
++MSI/MSI-X support requires support from both system hardware and
++individual hardware device functions.
++
++5.5.1 Required x86 hardware support
++
++Since the target of MSI address is the local APIC CPU, enabling
++MSI/MSI-X support in the Linux kernel is dependent on whether existing
++system hardware supports local APIC. Users should verify that their
++system supports local APIC operation by testing that it runs when
++CONFIG_X86_LOCAL_APIC=y.
++
++In SMP environment, CONFIG_X86_LOCAL_APIC is automatically set;
++however, in UP environment, users must manually set
++CONFIG_X86_LOCAL_APIC. Once CONFIG_X86_LOCAL_APIC=y, setting
++CONFIG_PCI_MSI enables the VECTOR based scheme and the option for
++MSI-capable device drivers to selectively enable MSI/MSI-X.
++
++Note that CONFIG_X86_IO_APIC setting is irrelevant because MSI/MSI-X
++vector is allocated new during runtime and MSI/MSI-X support does not
++depend on BIOS support. This key independency enables MSI/MSI-X
++support on future IOxAPIC free platforms.
++
++5.5.2 Device hardware support
++
++The hardware device function supports MSI by indicating the
++MSI/MSI-X capability structure on its PCI capability list. By
++default, this capability structure will not be initialized by
++the kernel to enable MSI during the system boot. In other words,
++the device function is running on its default pin assertion mode.
++Note that in many cases the hardware supporting MSI have bugs,
++which may result in system hangs. The software driver of specific
++MSI-capable hardware is responsible for deciding whether to call
++pci_enable_msi or not. A return of zero indicates the kernel
++successfully initialized the MSI/MSI-X capability structure of the
++device function. The device function is now running on MSI/MSI-X mode.
++
++5.6 How to tell whether MSI/MSI-X is enabled on device function
++
++At the driver level, a return of zero from the function call of
++pci_enable_msi()/pci_enable_msix() indicates to a device driver that
++its device function is initialized successfully and ready to run in
++MSI/MSI-X mode.
++
++At the user level, users can use the command 'cat /proc/interrupts'
++to display the vectors allocated for devices and their interrupt
++MSI/MSI-X modes ("PCI-MSI"/"PCI-MSI-X"). Below shows MSI mode is
++enabled on a SCSI Adaptec 39320D Ultra320 controller.
++
++           CPU0       CPU1
++  0:     324639          0    IO-APIC-edge  timer
++  1:       1186          0    IO-APIC-edge  i8042
++  2:          0          0          XT-PIC  cascade
++ 12:       2797          0    IO-APIC-edge  i8042
++ 14:       6543          0    IO-APIC-edge  ide0
++ 15:          1          0    IO-APIC-edge  ide1
++169:          0          0   IO-APIC-level  uhci-hcd
++185:          0          0   IO-APIC-level  uhci-hcd
++193:        138         10         PCI-MSI  aic79xx
++201:         30          0         PCI-MSI  aic79xx
++225:         30          0   IO-APIC-level  aic7xxx
++233:         30          0   IO-APIC-level  aic7xxx
++NMI:          0          0
++LOC:     324553     325068
++ERR:          0
++MIS:          0
++
++6. MSI quirks
++
++Several PCI chipsets or devices are known to not support MSI.
++The PCI stack provides 3 possible levels of MSI disabling:
++* on a single device
++* on all devices behind a specific bridge
++* globally
++
++6.1. Disabling MSI on a single device
++
++Under some circumstances it might be required to disable MSI on a
++single device.  This may be achieved by either not calling pci_enable_msi()
++or all, or setting the pci_dev->no_msi flag before (most of the time
++in a quirk).
++
++6.2. Disabling MSI below a bridge
++
++The vast majority of MSI quirks are required by PCI bridges not
++being able to route MSI between busses. In this case, MSI have to be
++disabled on all devices behind this bridge. It is achieves by setting
++the PCI_BUS_FLAGS_NO_MSI flag in the pci_bus->bus_flags of the bridge
++subordinate bus. There is no need to set the same flag on bridges that
++are below the broken bridge. When pci_enable_msi() is called to enable
++MSI on a device, pci_msi_supported() takes care of checking the NO_MSI
++flag in all parent busses of the device.
++
++Some bridges actually support dynamic MSI support enabling/disabling
++by changing some bits in their PCI configuration space (especially
++the Hypertransport chipsets such as the nVidia nForce and Serverworks
++HT2000). It may then be required to update the NO_MSI flag on the
++corresponding devices in the sysfs hierarchy. To enable MSI support
++on device "0000:00:0e", do:
++
++	echo 1 > /sys/bus/pci/devices/0000:00:0e/msi_bus
++
++To disable MSI support, echo 0 instead of 1. Note that it should be
++used with caution since changing this value might break interrupts.
++
++6.3. Disabling MSI globally
++
++Some extreme cases may require to disable MSI globally on the system.
++For now, the only known case is a Serverworks PCI-X chipsets (MSI are
++not supported on several busses that are not all connected to the
++chipset in the Linux PCI hierarchy). In the vast majority of other
++cases, disabling only behind a specific bridge is enough.
++
++For debugging purpose, the user may also pass pci=nomsi on the kernel
++command-line to explicitly disable MSI globally. But, once the appro-
++priate quirks are added to the kernel, this option should not be
++required anymore.
++
++6.4. Finding why MSI cannot be enabled on a device
++
++Assuming that MSI are not enabled on a device, you should look at
++dmesg to find messages that quirks may output when disabling MSI
++on some devices, some bridges or even globally.
++Then, lspci -t gives the list of bridges above a device. Reading
++/sys/bus/pci/devices/0000:00:0e/msi_bus will tell you whether MSI
++are enabled (1) or disabled (0). In 0 is found in a single bridge
++msi_bus file above the device, MSI cannot be enabled.
++
++7. FAQ
++
++Q1. Are there any limitations on using the MSI?
++
++A1. If the PCI device supports MSI and conforms to the
++specification and the platform supports the APIC local bus,
++then using MSI should work.
++
++Q2. Will it work on all the Pentium processors (P3, P4, Xeon,
++AMD processors)? In P3 IPI's are transmitted on the APIC local
++bus and in P4 and Xeon they are transmitted on the system
++bus. Are there any implications with this?
++
++A2. MSI support enables a PCI device sending an inbound
++memory write (0xfeexxxxx as target address) on its PCI bus
++directly to the FSB. Since the message address has a
++redirection hint bit cleared, it should work.
++
++Q3. The target address 0xfeexxxxx will be translated by the
++Host Bridge into an interrupt message. Are there any
++limitations on the chipsets such as Intel 8xx, Intel e7xxx,
++or VIA?
++
++A3. If these chipsets support an inbound memory write with
++target address set as 0xfeexxxxx, as conformed to PCI
++specification 2.3 or latest, then it should work.
++
++Q4. From the driver point of view, if the MSI is lost because
++of errors occurring during inbound memory write, then it may
++wait forever. Is there a mechanism for it to recover?
++
++A4. Since the target of the transaction is an inbound memory
++write, all transaction termination conditions (Retry,
++Master-Abort, Target-Abort, or normal completion) are
++supported. A device sending an MSI must abide by all the PCI
++rules and conditions regarding that inbound memory write. So,
++if a retry is signaled it must retry, etc... We believe that
++the recommendation for Abort is also a retry (refer to PCI
++specification 2.3 or latest).
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
