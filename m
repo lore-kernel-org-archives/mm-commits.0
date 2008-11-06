@@ -1,73 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + binfmtsh-include-listh-fix.patch added to -mm tree
-Date: Thu, 06 Nov 2008 12:20:35 -0800
-Message-ID: <200811062035.mA6KZbP7005162@imap1.linux-foundation.org>
+Subject: - autofs4-collect-version-check-return-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 06 Nov 2008 12:46:40 -0800
+Message-ID: <200811062046.mA6Kke83010173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40914 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750698AbYKFUga (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 15:36:30 -0500
+	by vger.kernel.org with ESMTP id S1751324AbYKFUr0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 15:47:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, h-shimamoto@ct.jp.nec.com
+To: akpm@linux-foundation.org, jmoyer@redhat.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     binfmtsh-include-listh-fix
-has been added to the -mm tree.  Its filename is
-     binfmtsh-include-listh-fix.patch
+     autofs4-collect-version-check-return-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     autofs4-collect-version-check-return-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into autofs4-collect-version-check-return.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmtsh-include-listh-fix
+Subject: autofs4-collect-version-check-return-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-/usr/src/devel/usr/include/linux/binfmts.h:4: included file 'linux/list.h' is not exported
+ERROR: do not use assignment in if condition
+#25: FILE: fs/autofs4/dev-ioctl.c:121:
++	if ((err = check_dev_ioctl_version(cmd, param))) {
 
-Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+total: 1 errors, 0 warnings, 11 lines checked
+
+./patches/autofs4-collect-version-check-return.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ian Kent <raven@themaw.net>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/binfmts.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs4/dev-ioctl.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/binfmts.h~binfmtsh-include-listh-fix include/linux/binfmts.h
---- a/include/linux/binfmts.h~binfmtsh-include-listh-fix
-+++ a/include/linux/binfmts.h
-@@ -1,7 +1,6 @@
- #ifndef _LINUX_BINFMTS_H
- #define _LINUX_BINFMTS_H
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-collect-version-check-return-checkpatch-fixes fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-collect-version-check-return-checkpatch-fixes
++++ a/fs/autofs4/dev-ioctl.c
+@@ -130,7 +130,8 @@ static int validate_dev_ioctl(int cmd, s
+ {
+ 	int err;
  
--#include <linux/list.h>
- #include <linux/capability.h>
- 
- struct pt_regs;
-@@ -19,6 +18,7 @@ struct pt_regs;
- #define BINPRM_BUF_SIZE 128
- 
- #ifdef __KERNEL__
-+#include <linux/list.h>
- 
- #define CORENAME_MAX_SIZE 128
- 
+-	if ((err = check_dev_ioctl_version(cmd, param))) {
++	err = check_dev_ioctl_version(cmd, param);
++	if (err) {
+ 		AUTOFS_WARN("invalid device control module version "
+ 		     "supplied for cmd(0x%08x)", cmd);
+ 		goto out;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+autofs4-collect-version-check-return.patch
 autofs4-collect-version-check-return-checkpatch-fixes.patch
 maintainers-make-ioat-easier-to-find.patch
 binfmtsh-include-listh-fix.patch
