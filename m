@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-move-ioctl-numbertxt-to-doc-ioctl.patch added to -mm tree
-Date: Thu, 06 Nov 2008 15:37:46 -0800
-Message-ID: <200811062337.mA6NbkN5023957@imap1.linux-foundation.org>
+Subject: + memcg-move-all-acccounts-to-parent-at-rmdir.patch added to -mm tree
+Date: Thu, 06 Nov 2008 15:40:10 -0800
+Message-ID: <200811062340.mA6NeAgi025111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43361 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752146AbYKFXiY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 18:38:24 -0500
+	by vger.kernel.org with ESMTP id S1752146AbYKFXky (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 18:40:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     move ioctl-number.txt to Doc/ioctl/
+     memcg: move all acccounting to parent at rmdir()
 has been added to the -mm tree.  Its filename is
-     documentation-move-ioctl-numbertxt-to-doc-ioctl.patch
+     memcg-move-all-acccounts-to-parent-at-rmdir.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,485 +33,504 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: move ioctl-number.txt to Doc/ioctl/
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: memcg: move all acccounting to parent at rmdir()
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Move ioctl-number.txt to Documentation/ioctl/ since it is ioctl-related. 
-Add an ioctl/00-INDEX file.
+This patch provides a function to move account information of a page
+between mem_cgroups and rewrite force_empty to make use of this.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+This moving of page_cgroup is done under
+ - lru_lock of source/destination mem_cgroup is held.
+ - lock_page_cgroup() is held.
+
+Then, a routine which touches pc->mem_cgroup without lock_page_cgroup()
+should confirm pc->mem_cgroup is still valid or not.  Typical code can be
+following.
+
+(while page is not under lock_page())
+	mem = pc->mem_cgroup;
+	mz = page_cgroup_zoneinfo(pc)
+	spin_lock_irqsave(&mz->lru_lock);
+	if (pc->mem_cgroup == mem)
+		...../* some list handling */
+	spin_unlock_irqrestore(&mz->lru_lock);
+
+Of course, better way is
+	lock_page_cgroup(pc);
+	....
+	unlock_page_cgroup(pc);
+
+But you should confirm the nest of lock and avoid deadlock.
+
+If you treats page_cgroup from mem_cgroup's LRU under mz->lru_lock,
+you don't have to worry about what pc->mem_cgroup points to.
+moved pages are added to head of lru, not to tail.
+
+Expected users of this routine is:
+  - force_empty (rmdir)
+  - moving tasks between cgroup (for moving account information.)
+  - hierarchy (maybe useful.)
+
+force_empty(rmdir) uses this move_account and move pages to its parent.
+This "move" will not cause OOM (I added "oom" parameter to try_charge().)
+
+If the parent is busy (not enough memory), force_empty calls try_to_free_page()
+and reduce usage.
+
+Purpose of this behavior is
+  - Fix "forget all" behavior of force_empty and avoid leak of accounting.
+  - By "moving first, free if necessary", keep pages on memory as much as
+    possible.
+
+Adding a switch to change behavior of force_empty to
+  - free first, move if necessary
+  - free all, if there is mlocked/busy pages, return -EBUSY.
+is under consideration. (I'll add if someone requtests.)
+
+This patch also removes memory.force_empty file, a brutal debug-only interface.
+
+Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Tested-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX               |    4 
- Documentation/ioctl-number.txt       |  201 -------------------------
- Documentation/ioctl/00-INDEX         |   10 +
- Documentation/ioctl/ioctl-number.txt |  201 +++++++++++++++++++++++++
- 4 files changed, 212 insertions(+), 204 deletions(-)
+ Documentation/controllers/memory.txt |   12 -
+ mm/memcontrol.c                      |  277 ++++++++++++++++++-------
+ 2 files changed, 214 insertions(+), 75 deletions(-)
 
-diff -puN Documentation/00-INDEX~documentation-move-ioctl-numbertxt-to-doc-ioctl Documentation/00-INDEX
---- a/Documentation/00-INDEX~documentation-move-ioctl-numbertxt-to-doc-ioctl
-+++ a/Documentation/00-INDEX
-@@ -185,9 +185,7 @@ input/
- io_ordering.txt
- 	- info on ordering I/O writes to memory-mapped addresses.
- ioctl/
--	- directory with documents describing various IOCTL calls.
--ioctl-number.txt
--	- how to implement and register device/driver ioctl calls.
-+	- documents describing various IOCTL calls and how to implement/register IOCTLs
- iostats.txt
- 	- info on I/O statistics Linux kernel provides.
- irqflags-tracing.txt
-diff -puN Documentation/ioctl-number.txt~documentation-move-ioctl-numbertxt-to-doc-ioctl /dev/null
---- a/Documentation/ioctl-number.txt
-+++ /dev/null
-@@ -1,201 +0,0 @@
--Ioctl Numbers
--19 October 1999
--Michael Elizabeth Chastain
--<mec@shout.net>
+diff -puN Documentation/controllers/memory.txt~memcg-move-all-acccounts-to-parent-at-rmdir Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memcg-move-all-acccounts-to-parent-at-rmdir
++++ a/Documentation/controllers/memory.txt
+@@ -207,12 +207,6 @@ exceeded.
+ The memory.stat file gives accounting information. Now, the number of
+ caches, RSS and Active pages/Inactive pages are shown.
+ 
+-The memory.force_empty gives an interface to drop *all* charges by force.
 -
--If you are adding new ioctl's to the kernel, you should use the _IO
--macros defined in <linux/ioctl.h>:
+-# echo 1 > memory.force_empty
 -
--    _IO    an ioctl with no parameters
--    _IOW   an ioctl with write parameters (copy_from_user)
--    _IOR   an ioctl with read parameters  (copy_to_user)
--    _IOWR  an ioctl with both write and read parameters.
+-will drop all charges in cgroup. Currently, this is maintained for test.
 -
--'Write' and 'read' are from the user's point of view, just like the
--system calls 'write' and 'read'.  For example, a SET_FOO ioctl would
--be _IOW, although the kernel would actually read data from user space;
--a GET_FOO ioctl would be _IOR, although the kernel would actually write
--data to user space.
+ 4. Testing
+ 
+ Balbir posted lmbench, AIM9, LTP and vmmstress results [10] and [11].
+@@ -242,8 +236,10 @@ reclaimed.
+ 
+ A cgroup can be removed by rmdir, but as discussed in sections 4.1 and 4.2, a
+ cgroup might have some charge associated with it, even though all
+-tasks have migrated away from it. Such charges are automatically dropped at
+-rmdir() if there are no tasks.
++tasks have migrated away from it.
++Such charges are moved to its parent as much as possible and freed if parent
++is full. Both of RSS and CACHES are moved to parent.
++If both of them are busy, rmdir() returns -EBUSY.
+ 
+ 5. TODO
+ 
+diff -puN mm/memcontrol.c~memcg-move-all-acccounts-to-parent-at-rmdir mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-move-all-acccounts-to-parent-at-rmdir
++++ a/mm/memcontrol.c
+@@ -257,7 +257,7 @@ static void __mem_cgroup_remove_list(str
+ }
+ 
+ static void __mem_cgroup_add_list(struct mem_cgroup_per_zone *mz,
+-				struct page_cgroup *pc)
++				struct page_cgroup *pc, bool hot)
+ {
+ 	int lru = LRU_BASE;
+ 
+@@ -271,7 +271,10 @@ static void __mem_cgroup_add_list(struct
+ 	}
+ 
+ 	MEM_CGROUP_ZSTAT(mz, lru) += 1;
+-	list_add(&pc->lru, &mz->lists[lru]);
++	if (hot)
++		list_add(&pc->lru, &mz->lists[lru]);
++	else
++		list_add_tail(&pc->lru, &mz->lists[lru]);
+ 
+ 	mem_cgroup_charge_statistics(pc->mem_cgroup, pc, true);
+ }
+@@ -467,21 +470,12 @@ unsigned long mem_cgroup_isolate_pages(u
+ 	return nr_taken;
+ }
+ 
 -
--The first argument to _IO, _IOW, _IOR, or _IOWR is an identifying letter
--or number from the table below.  Because of the large number of drivers,
--many drivers share a partial letter with other drivers.
+-/**
+- * mem_cgroup_try_charge - get charge of PAGE_SIZE.
+- * @mm: an mm_struct which is charged against. (when *memcg is NULL)
+- * @gfp_mask: gfp_mask for reclaim.
+- * @memcg: a pointer to memory cgroup which is charged against.
+- *
+- * charge against memory cgroup pointed by *memcg. if *memcg == NULL, estimated
+- * memory cgroup from @mm is got and stored in *memcg.
+- *
+- * Returns 0 if success. -ENOMEM at failure.
++/*
++ * Unlike exported interface, "oom" parameter is added. if oom==true,
++ * oom-killer can be invoked.
+  */
 -
--If you are writing a driver for a new device and need a letter, pick an
--unused block with enough room for expansion: 32 to 256 ioctl commands.
--You can register the block by patching this file and submitting the
--patch to Linus Torvalds.  Or you can e-mail me at <mec@shout.net> and
--I'll register one for you.
+-int mem_cgroup_try_charge(struct mm_struct *mm,
+-			gfp_t gfp_mask, struct mem_cgroup **memcg)
++static int __mem_cgroup_try_charge(struct mm_struct *mm,
++			gfp_t gfp_mask, struct mem_cgroup **memcg, bool oom)
+ {
+ 	struct mem_cgroup *mem;
+ 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
+@@ -528,7 +522,8 @@ int mem_cgroup_try_charge(struct mm_stru
+ 			continue;
+ 
+ 		if (!nr_retries--) {
+-			mem_cgroup_out_of_memory(mem, gfp_mask);
++			if (oom)
++				mem_cgroup_out_of_memory(mem, gfp_mask);
+ 			goto nomem;
+ 		}
+ 	}
+@@ -538,6 +533,25 @@ nomem:
+ 	return -ENOMEM;
+ }
+ 
++/**
++ * mem_cgroup_try_charge - get charge of PAGE_SIZE.
++ * @mm: an mm_struct which is charged against. (when *memcg is NULL)
++ * @gfp_mask: gfp_mask for reclaim.
++ * @memcg: a pointer to memory cgroup which is charged against.
++ *
++ * charge against memory cgroup pointed by *memcg. if *memcg == NULL, estimated
++ * memory cgroup from @mm is got and stored in *memcg.
++ *
++ * Returns 0 if success. -ENOMEM at failure.
++ * This call can invoke OOM-Killer.
++ */
++
++int mem_cgroup_try_charge(struct mm_struct *mm,
++			  gfp_t mask, struct mem_cgroup **memcg)
++{
++	return __mem_cgroup_try_charge(mm, mask, memcg, true);
++}
++
+ /*
+  * commit a charge got by mem_cgroup_try_charge() and makes page_cgroup to be
+  * USED state. If already USED, uncharge and return.
+@@ -571,11 +585,109 @@ static void __mem_cgroup_commit_charge(s
+ 	mz = page_cgroup_zoneinfo(pc);
+ 
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_add_list(mz, pc);
++	__mem_cgroup_add_list(mz, pc, true);
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 	unlock_page_cgroup(pc);
+ }
+ 
++/**
++ * mem_cgroup_move_account - move account of the page
++ * @pc:	page_cgroup of the page.
++ * @from: mem_cgroup which the page is moved from.
++ * @to:	mem_cgroup which the page is moved to. @from != @to.
++ *
++ * The caller must confirm following.
++ * 1. disable irq.
++ * 2. lru_lock of old mem_cgroup(@from) should be held.
++ *
++ * returns 0 at success,
++ * returns -EBUSY when lock is busy or "pc" is unstable.
++ *
++ * This function does "uncharge" from old cgroup but doesn't do "charge" to
++ * new cgroup. It should be done by a caller.
++ */
++
++static int mem_cgroup_move_account(struct page_cgroup *pc,
++	struct mem_cgroup *from, struct mem_cgroup *to)
++{
++	struct mem_cgroup_per_zone *from_mz, *to_mz;
++	int nid, zid;
++	int ret = -EBUSY;
++
++	VM_BUG_ON(!irqs_disabled());
++	VM_BUG_ON(from == to);
++
++	nid = page_cgroup_nid(pc);
++	zid = page_cgroup_zid(pc);
++	from_mz =  mem_cgroup_zoneinfo(from, nid, zid);
++	to_mz =  mem_cgroup_zoneinfo(to, nid, zid);
++
++
++	if (!trylock_page_cgroup(pc))
++		return ret;
++
++	if (!PageCgroupUsed(pc))
++		goto out;
++
++	if (pc->mem_cgroup != from)
++		goto out;
++
++	if (spin_trylock(&to_mz->lru_lock)) {
++		__mem_cgroup_remove_list(from_mz, pc);
++		css_put(&from->css);
++		res_counter_uncharge(&from->res, PAGE_SIZE);
++		pc->mem_cgroup = to;
++		css_get(&to->css);
++		__mem_cgroup_add_list(to_mz, pc, false);
++		ret = 0;
++		spin_unlock(&to_mz->lru_lock);
++	}
++out:
++	unlock_page_cgroup(pc);
++	return ret;
++}
++
++/*
++ * move charges to its parent.
++ */
++
++static int mem_cgroup_move_parent(struct page_cgroup *pc,
++				  struct mem_cgroup *child,
++				  gfp_t gfp_mask)
++{
++	struct cgroup *cg = child->css.cgroup;
++	struct cgroup *pcg = cg->parent;
++	struct mem_cgroup *parent;
++	struct mem_cgroup_per_zone *mz;
++	unsigned long flags;
++	int ret;
++
++	/* Is ROOT ? */
++	if (!pcg)
++		return -EINVAL;
++
++	parent = mem_cgroup_from_cont(pcg);
++
++	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false);
++	if (ret)
++		return ret;
++
++	mz = mem_cgroup_zoneinfo(child,
++			page_cgroup_nid(pc), page_cgroup_zid(pc));
++
++	spin_lock_irqsave(&mz->lru_lock, flags);
++	ret = mem_cgroup_move_account(pc, child, parent);
++	spin_unlock_irqrestore(&mz->lru_lock, flags);
++
++	/* drop extra refcnt */
++	css_put(&parent->css);
++	/* uncharge if move fails */
++	if (ret)
++		res_counter_uncharge(&parent->res, PAGE_SIZE);
++
++	return ret;
++}
++
+ /*
+  * Charge the memory controller for page usage.
+  * Return
+@@ -597,7 +709,7 @@ static int mem_cgroup_charge_common(stru
+ 	prefetchw(pc);
+ 
+ 	mem = memcg;
+-	ret = mem_cgroup_try_charge(mm, gfp_mask, &mem);
++	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, true);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -898,46 +1010,52 @@ int mem_cgroup_resize_limit(struct mem_c
+  * This routine traverse page_cgroup in given list and drop them all.
+  * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
+  */
+-#define FORCE_UNCHARGE_BATCH	(128)
+-static void mem_cgroup_force_empty_list(struct mem_cgroup *mem,
++static int mem_cgroup_force_empty_list(struct mem_cgroup *mem,
+ 			    struct mem_cgroup_per_zone *mz,
+ 			    enum lru_list lru)
+ {
+-	struct page_cgroup *pc;
+-	struct page *page;
+-	int count = FORCE_UNCHARGE_BATCH;
++	struct page_cgroup *pc, *busy;
+ 	unsigned long flags;
++	unsigned long loop;
+ 	struct list_head *list;
++	int ret = 0;
+ 
+ 	list = &mz->lists[lru];
+ 
+-	spin_lock_irqsave(&mz->lru_lock, flags);
+-	while (!list_empty(list)) {
+-		pc = list_entry(list->prev, struct page_cgroup, lru);
+-		page = pc->page;
+-		if (!PageCgroupUsed(pc))
++	loop = MEM_CGROUP_ZSTAT(mz, lru);
++	/* give some margin against EBUSY etc...*/
++	loop += 256;
++	busy = NULL;
++	while (loop--) {
++		ret = 0;
++		spin_lock_irqsave(&mz->lru_lock, flags);
++		if (list_empty(list)) {
++			spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 			break;
+-		get_page(page);
++		}
++		pc = list_entry(list->prev, struct page_cgroup, lru);
++		if (busy == pc) {
++			list_move(&pc->lru, list);
++			busy = 0;
++			spin_unlock_irqrestore(&mz->lru_lock, flags);
++			continue;
++		}
+ 		spin_unlock_irqrestore(&mz->lru_lock, flags);
+-		/*
+-		 * Check if this page is on LRU. !LRU page can be found
+-		 * if it's under page migration.
+-		 */
+-		if (PageLRU(page)) {
+-			__mem_cgroup_uncharge_common(page,
+-					MEM_CGROUP_CHARGE_TYPE_FORCE);
+-			put_page(page);
+-			if (--count <= 0) {
+-				count = FORCE_UNCHARGE_BATCH;
+-				cond_resched();
+-			}
+-		} else {
+-			spin_lock_irqsave(&mz->lru_lock, flags);
++
++		ret = mem_cgroup_move_parent(pc, mem, GFP_HIGHUSER_MOVABLE);
++		if (ret == -ENOMEM)
+ 			break;
+-		}
+-		spin_lock_irqsave(&mz->lru_lock, flags);
++
++		if (ret == -EBUSY || ret == -EINVAL) {
++			/* found lock contention or "pc" is obsolete. */
++			busy = pc;
++			cond_resched();
++		} else
++			busy = NULL;
+ 	}
+-	spin_unlock_irqrestore(&mz->lru_lock, flags);
++	if (!ret && !list_empty(list))
++		return -EBUSY;
++	return ret;
+ }
+ 
+ /*
+@@ -946,34 +1064,68 @@ static void mem_cgroup_force_empty_list(
+  */
+ static int mem_cgroup_force_empty(struct mem_cgroup *mem)
+ {
+-	int ret = -EBUSY;
+-	int node, zid;
++	int ret;
++	int node, zid, shrink;
++	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
+ 
+ 	css_get(&mem->css);
+-	/*
+-	 * page reclaim code (kswapd etc..) will move pages between
+-	 * active_list <-> inactive_list while we don't take a lock.
+-	 * So, we have to do loop here until all lists are empty.
+-	 */
++
++	shrink = 0;
++move_account:
+ 	while (mem->res.usage > 0) {
++		ret = -EBUSY;
+ 		if (atomic_read(&mem->css.cgroup->count) > 0)
+ 			goto out;
++
+ 		/* This is for making all *used* pages to be on LRU. */
+ 		lru_add_drain_all();
+-		for_each_node_state(node, N_POSSIBLE)
+-			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
++		ret = 0;
++		for_each_node_state(node, N_POSSIBLE) {
++			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
+ 				struct mem_cgroup_per_zone *mz;
+ 				enum lru_list l;
+ 				mz = mem_cgroup_zoneinfo(mem, node, zid);
+-				for_each_lru(l)
+-					mem_cgroup_force_empty_list(mem, mz, l);
++				for_each_lru(l) {
++					ret = mem_cgroup_force_empty_list(mem,
++								  mz, l);
++					if (ret)
++						break;
++				}
+ 			}
++			if (ret)
++				break;
++		}
++		/* it seems parent cgroup doesn't have enough mem */
++		if (ret == -ENOMEM)
++			goto try_to_free;
+ 		cond_resched();
+ 	}
+ 	ret = 0;
+ out:
+ 	css_put(&mem->css);
+ 	return ret;
++
++try_to_free:
++	/* returns EBUSY if we come here twice. */
++	if (shrink)  {
++		ret = -EBUSY;
++		goto out;
++	}
++	/* try to free all pages in this cgroup */
++	shrink = 1;
++	while (nr_retries && mem->res.usage > 0) {
++		int progress;
++		progress = try_to_free_mem_cgroup_pages(mem,
++						  GFP_HIGHUSER_MOVABLE);
++		if (!progress)
++			nr_retries--;
++
++	}
++	/* try move_account...there may be some *locked* pages. */
++	if (mem->res.usage)
++		goto move_account;
++	ret = 0;
++	goto out;
+ }
+ 
+ static u64 mem_cgroup_read(struct cgroup *cont, struct cftype *cft)
+@@ -1022,11 +1174,6 @@ static int mem_cgroup_reset(struct cgrou
+ 	return 0;
+ }
+ 
+-static int mem_force_empty_write(struct cgroup *cont, unsigned int event)
+-{
+-	return mem_cgroup_force_empty(mem_cgroup_from_cont(cont));
+-}
 -
--The second argument to _IO, _IOW, _IOR, or _IOWR is a sequence number
--to distinguish ioctls from each other.  The third argument to _IOW,
--_IOR, or _IOWR is the type of the data going into the kernel or coming
--out of the kernel (e.g.  'int' or 'struct foo').  NOTE!  Do NOT use
--sizeof(arg) as the third argument as this results in your ioctl thinking
--it passes an argument of type size_t.
--
--Some devices use their major number as the identifier; this is OK, as
--long as it is unique.  Some devices are irregular and don't follow any
--convention at all.
--
--Following this convention is good because:
--
--(1) Keeping the ioctl's globally unique helps error checking:
--    if a program calls an ioctl on the wrong device, it will get an
--    error rather than some unexpected behaviour.
--
--(2) The 'strace' build procedure automatically finds ioctl numbers
--    defined with _IO, _IOW, _IOR, or _IOWR.
--
--(3) 'strace' can decode numbers back into useful names when the
--    numbers are unique.
--
--(4) People looking for ioctls can grep for them more easily when
--    this convention is used to define the ioctl numbers.
--
--(5) When following the convention, the driver code can use generic
--    code to copy the parameters between user and kernel space.
--
--This table lists ioctls visible from user land for Linux/i386.  It contains
--most drivers up to 2.3.14, but I know I am missing some.
--
--Code	Seq#	Include File		Comments
--========================================================
--0x00	00-1F	linux/fs.h		conflict!
--0x00	00-1F	scsi/scsi_ioctl.h	conflict!
--0x00	00-1F	linux/fb.h		conflict!
--0x00	00-1F	linux/wavefront.h	conflict!
--0x02	all	linux/fd.h
--0x03	all	linux/hdreg.h
--0x04	D2-DC	linux/umsdos_fs.h	Dead since 2.6.11, but don't reuse these.
--0x06	all	linux/lp.h
--0x09	all	linux/md.h
--0x12	all	linux/fs.h
--		linux/blkpg.h
--0x1b	all	InfiniBand Subsystem	<http://www.openib.org/>
--0x20	all	drivers/cdrom/cm206.h
--0x22	all	scsi/sg.h
--'#'	00-3F	IEEE 1394 Subsystem	Block for the entire subsystem
--'1'	00-1F	<linux/timepps.h>	PPS kit from Ulrich Windl
--					<ftp://ftp.de.kernel.org/pub/linux/daemons/ntp/PPS/>
--'8'	all				SNP8023 advanced NIC card
--					<mailto:mcr@solidum.com>
--'A'	00-1F	linux/apm_bios.h
--'B'	C0-FF				advanced bbus
--					<mailto:maassen@uni-freiburg.de>
--'C'	all	linux/soundcard.h
--'D'	all	arch/s390/include/asm/dasd.h
--'E'	all	linux/input.h
--'F'	all	linux/fb.h
--'H'	all	linux/hiddev.h
--'I'	all	linux/isdn.h
--'J'	00-1F	drivers/scsi/gdth_ioctl.h
--'K'	all	linux/kd.h
--'L'	00-1F	linux/loop.h
--'L'	20-2F	driver/usb/misc/vstusb.h
--'L'	E0-FF	linux/ppdd.h		encrypted disk device driver
--					<http://linux01.gwdg.de/~alatham/ppdd.html>
--'M'	all	linux/soundcard.h
--'N'	00-1F	drivers/usb/scanner.h
--'P'	all	linux/soundcard.h
--'Q'	all	linux/soundcard.h
--'R'	00-1F	linux/random.h
--'S'	all	linux/cdrom.h		conflict!
--'S'	80-81	scsi/scsi_ioctl.h	conflict!
--'S'	82-FF	scsi/scsi.h		conflict!
--'T'	all	linux/soundcard.h	conflict!
--'T'	all	arch/x86/include/asm/ioctls.h	conflict!
--'U'	00-EF	linux/drivers/usb/usb.h
--'V'	all	linux/vt.h
--'W'	00-1F	linux/watchdog.h	conflict!
--'W'	00-1F	linux/wanrouter.h	conflict!
--'X'	all	linux/xfs_fs.h
--'Y'	all	linux/cyclades.h
--'['	00-07	linux/usb/usbtmc.h	USB Test and Measurement Devices
--					<mailto:gregkh@suse.de>
--'a'	all				ATM on linux
--					<http://lrcwww.epfl.ch/linux-atm/magic.html>
--'b'	00-FF				bit3 vme host bridge
--					<mailto:natalia@nikhefk.nikhef.nl>
--'c'	00-7F	linux/comstats.h	conflict!
--'c'	00-7F	linux/coda.h		conflict!
--'c'	80-9F	arch/s390/include/asm/chsc.h
--'d'	00-FF	linux/char/drm/drm/h	conflict!
--'d'	00-DF	linux/video_decoder.h	conflict!
--'d'	F0-FF	linux/digi1.h
--'e'	all	linux/digi1.h		conflict!
--'e'	00-1F	linux/video_encoder.h	conflict!
--'e'	00-1F	net/irda/irtty.h	conflict!
--'f'	00-1F	linux/ext2_fs.h
--'h'	00-7F				Charon filesystem
--					<mailto:zapman@interlan.net>
--'i'	00-3F	linux/i2o.h
--'j'	00-3F	linux/joystick.h
--'l'	00-3F	linux/tcfs_fs.h		transparent cryptographic file system
--					<http://mikonos.dia.unisa.it/tcfs>
--'l'	40-7F	linux/udf_fs_i.h	in development:
--					<http://sourceforge.net/projects/linux-udf/>
--'m'	all	linux/mtio.h		conflict!
--'m'	all	linux/soundcard.h	conflict!
--'m'	all	linux/synclink.h	conflict!
--'m'	00-1F	net/irda/irmod.h	conflict!
--'n'	00-7F	linux/ncp_fs.h
--'n'	E0-FF	video/matrox.h          matroxfb
--'o'	00-1F	fs/ocfs2/ocfs2_fs.h	OCFS2
--'p'	00-0F	linux/phantom.h		conflict! (OpenHaptics needs this)
--'p'	00-3F	linux/mc146818rtc.h	conflict!
--'p'	40-7F	linux/nvram.h
--'p'	80-9F				user-space parport
--					<mailto:tim@cyberelk.net>
--'q'	00-1F	linux/serio.h
--'q'	80-FF				Internet PhoneJACK, Internet LineJACK
--					<http://www.quicknet.net>
--'r'	00-1F	linux/msdos_fs.h
--'s'	all	linux/cdk.h
--'t'	00-7F	linux/if_ppp.h
--'t'	80-8F	linux/isdn_ppp.h
--'u'	00-1F	linux/smb_fs.h
--'v'	00-1F	linux/ext2_fs.h		conflict!
--'v'	all	linux/videodev.h	conflict!
--'w'	all				CERN SCI driver
--'y'	00-1F				packet based user level communications
--					<mailto:zapman@interlan.net>
--'z'	00-3F				CAN bus card
--					<mailto:hdstich@connectu.ulm.circular.de>
--'z'	40-7F				CAN bus card
--					<mailto:oe@port.de>
--0x80	00-1F	linux/fb.h
--0x81	00-1F	linux/videotext.h
--0x89	00-06	arch/x86/include/asm/sockios.h
--0x89	0B-DF	linux/sockios.h
--0x89	E0-EF	linux/sockios.h		SIOCPROTOPRIVATE range
--0x89	F0-FF	linux/sockios.h		SIOCDEVPRIVATE range
--0x8B	all	linux/wireless.h
--0x8C	00-3F				WiNRADiO driver
--					<http://www.proximity.com.au/~brian/winradio/>
--0x90	00	drivers/cdrom/sbpcd.h
--0x93	60-7F	linux/auto_fs.h
--0x99	00-0F				537-Addinboard driver
--					<mailto:buk@buks.ipn.de>
--0xA0	all	linux/sdp/sdp.h		Industrial Device Project
--					<mailto:kenji@bitgate.com>
--0xA3	80-8F	Port ACL		in development:
--					<mailto:tlewis@mindspring.com>
--0xA3	90-9F	linux/dtlk.h
--0xAB	00-1F	linux/nbd.h
--0xAC	00-1F	linux/raw.h
--0xAD	00	Netfilter device	in development:
--					<mailto:rusty@rustcorp.com.au>	
--0xAE	all	linux/kvm.h		Kernel-based Virtual Machine
--					<mailto:kvm-devel@lists.sourceforge.net>
--0xB0	all	RATIO devices		in development:
--					<mailto:vgo@ratio.de>
--0xB1	00-1F	PPPoX			<mailto:mostrows@styx.uwaterloo.ca>
--0xCB	00-1F	CBM serial IEC bus	in development:
--					<mailto:michael.klein@puffin.lb.shuttle.de>
--0xDD	00-3F	ZFCP device driver	see drivers/s390/scsi/
--					<mailto:aherrman@de.ibm.com>
--0xF3	00-3F	video/sisfb.h		sisfb (in development)
--					<mailto:thomas@winischhofer.net>
--0xF4	00-1F	video/mbxfb.h		mbxfb
--					<mailto:raph@8d.com>
-diff -puN /dev/null Documentation/ioctl/00-INDEX
---- /dev/null
-+++ a/Documentation/ioctl/00-INDEX
-@@ -0,0 +1,10 @@
-+00-INDEX
-+	- this file
-+cdrom.txt
-+	- summary of CDROM ioctl calls
-+hdio.txt
-+	- summary of HDIO_ ioctl calls
-+ioctl-decoding.txt
-+	- how to decode the bits of an IOCTL code
-+ioctl-number.txt
-+	- how to implement and register device/driver ioctl calls
-diff -puN /dev/null Documentation/ioctl/ioctl-number.txt
---- /dev/null
-+++ a/Documentation/ioctl/ioctl-number.txt
-@@ -0,0 +1,201 @@
-+Ioctl Numbers
-+19 October 1999
-+Michael Elizabeth Chastain
-+<mec@shout.net>
-+
-+If you are adding new ioctl's to the kernel, you should use the _IO
-+macros defined in <linux/ioctl.h>:
-+
-+    _IO    an ioctl with no parameters
-+    _IOW   an ioctl with write parameters (copy_from_user)
-+    _IOR   an ioctl with read parameters  (copy_to_user)
-+    _IOWR  an ioctl with both write and read parameters.
-+
-+'Write' and 'read' are from the user's point of view, just like the
-+system calls 'write' and 'read'.  For example, a SET_FOO ioctl would
-+be _IOW, although the kernel would actually read data from user space;
-+a GET_FOO ioctl would be _IOR, although the kernel would actually write
-+data to user space.
-+
-+The first argument to _IO, _IOW, _IOR, or _IOWR is an identifying letter
-+or number from the table below.  Because of the large number of drivers,
-+many drivers share a partial letter with other drivers.
-+
-+If you are writing a driver for a new device and need a letter, pick an
-+unused block with enough room for expansion: 32 to 256 ioctl commands.
-+You can register the block by patching this file and submitting the
-+patch to Linus Torvalds.  Or you can e-mail me at <mec@shout.net> and
-+I'll register one for you.
-+
-+The second argument to _IO, _IOW, _IOR, or _IOWR is a sequence number
-+to distinguish ioctls from each other.  The third argument to _IOW,
-+_IOR, or _IOWR is the type of the data going into the kernel or coming
-+out of the kernel (e.g.  'int' or 'struct foo').  NOTE!  Do NOT use
-+sizeof(arg) as the third argument as this results in your ioctl thinking
-+it passes an argument of type size_t.
-+
-+Some devices use their major number as the identifier; this is OK, as
-+long as it is unique.  Some devices are irregular and don't follow any
-+convention at all.
-+
-+Following this convention is good because:
-+
-+(1) Keeping the ioctl's globally unique helps error checking:
-+    if a program calls an ioctl on the wrong device, it will get an
-+    error rather than some unexpected behaviour.
-+
-+(2) The 'strace' build procedure automatically finds ioctl numbers
-+    defined with _IO, _IOW, _IOR, or _IOWR.
-+
-+(3) 'strace' can decode numbers back into useful names when the
-+    numbers are unique.
-+
-+(4) People looking for ioctls can grep for them more easily when
-+    this convention is used to define the ioctl numbers.
-+
-+(5) When following the convention, the driver code can use generic
-+    code to copy the parameters between user and kernel space.
-+
-+This table lists ioctls visible from user land for Linux/i386.  It contains
-+most drivers up to 2.3.14, but I know I am missing some.
-+
-+Code	Seq#	Include File		Comments
-+========================================================
-+0x00	00-1F	linux/fs.h		conflict!
-+0x00	00-1F	scsi/scsi_ioctl.h	conflict!
-+0x00	00-1F	linux/fb.h		conflict!
-+0x00	00-1F	linux/wavefront.h	conflict!
-+0x02	all	linux/fd.h
-+0x03	all	linux/hdreg.h
-+0x04	D2-DC	linux/umsdos_fs.h	Dead since 2.6.11, but don't reuse these.
-+0x06	all	linux/lp.h
-+0x09	all	linux/md.h
-+0x12	all	linux/fs.h
-+		linux/blkpg.h
-+0x1b	all	InfiniBand Subsystem	<http://www.openib.org/>
-+0x20	all	drivers/cdrom/cm206.h
-+0x22	all	scsi/sg.h
-+'#'	00-3F	IEEE 1394 Subsystem	Block for the entire subsystem
-+'1'	00-1F	<linux/timepps.h>	PPS kit from Ulrich Windl
-+					<ftp://ftp.de.kernel.org/pub/linux/daemons/ntp/PPS/>
-+'8'	all				SNP8023 advanced NIC card
-+					<mailto:mcr@solidum.com>
-+'A'	00-1F	linux/apm_bios.h
-+'B'	C0-FF				advanced bbus
-+					<mailto:maassen@uni-freiburg.de>
-+'C'	all	linux/soundcard.h
-+'D'	all	arch/s390/include/asm/dasd.h
-+'E'	all	linux/input.h
-+'F'	all	linux/fb.h
-+'H'	all	linux/hiddev.h
-+'I'	all	linux/isdn.h
-+'J'	00-1F	drivers/scsi/gdth_ioctl.h
-+'K'	all	linux/kd.h
-+'L'	00-1F	linux/loop.h
-+'L'	20-2F	driver/usb/misc/vstusb.h
-+'L'	E0-FF	linux/ppdd.h		encrypted disk device driver
-+					<http://linux01.gwdg.de/~alatham/ppdd.html>
-+'M'	all	linux/soundcard.h
-+'N'	00-1F	drivers/usb/scanner.h
-+'P'	all	linux/soundcard.h
-+'Q'	all	linux/soundcard.h
-+'R'	00-1F	linux/random.h
-+'S'	all	linux/cdrom.h		conflict!
-+'S'	80-81	scsi/scsi_ioctl.h	conflict!
-+'S'	82-FF	scsi/scsi.h		conflict!
-+'T'	all	linux/soundcard.h	conflict!
-+'T'	all	arch/x86/include/asm/ioctls.h	conflict!
-+'U'	00-EF	linux/drivers/usb/usb.h
-+'V'	all	linux/vt.h
-+'W'	00-1F	linux/watchdog.h	conflict!
-+'W'	00-1F	linux/wanrouter.h	conflict!
-+'X'	all	linux/xfs_fs.h
-+'Y'	all	linux/cyclades.h
-+'['	00-07	linux/usb/usbtmc.h	USB Test and Measurement Devices
-+					<mailto:gregkh@suse.de>
-+'a'	all				ATM on linux
-+					<http://lrcwww.epfl.ch/linux-atm/magic.html>
-+'b'	00-FF				bit3 vme host bridge
-+					<mailto:natalia@nikhefk.nikhef.nl>
-+'c'	00-7F	linux/comstats.h	conflict!
-+'c'	00-7F	linux/coda.h		conflict!
-+'c'	80-9F	arch/s390/include/asm/chsc.h
-+'d'	00-FF	linux/char/drm/drm/h	conflict!
-+'d'	00-DF	linux/video_decoder.h	conflict!
-+'d'	F0-FF	linux/digi1.h
-+'e'	all	linux/digi1.h		conflict!
-+'e'	00-1F	linux/video_encoder.h	conflict!
-+'e'	00-1F	net/irda/irtty.h	conflict!
-+'f'	00-1F	linux/ext2_fs.h
-+'h'	00-7F				Charon filesystem
-+					<mailto:zapman@interlan.net>
-+'i'	00-3F	linux/i2o.h
-+'j'	00-3F	linux/joystick.h
-+'l'	00-3F	linux/tcfs_fs.h		transparent cryptographic file system
-+					<http://mikonos.dia.unisa.it/tcfs>
-+'l'	40-7F	linux/udf_fs_i.h	in development:
-+					<http://sourceforge.net/projects/linux-udf/>
-+'m'	all	linux/mtio.h		conflict!
-+'m'	all	linux/soundcard.h	conflict!
-+'m'	all	linux/synclink.h	conflict!
-+'m'	00-1F	net/irda/irmod.h	conflict!
-+'n'	00-7F	linux/ncp_fs.h
-+'n'	E0-FF	video/matrox.h          matroxfb
-+'o'	00-1F	fs/ocfs2/ocfs2_fs.h	OCFS2
-+'p'	00-0F	linux/phantom.h		conflict! (OpenHaptics needs this)
-+'p'	00-3F	linux/mc146818rtc.h	conflict!
-+'p'	40-7F	linux/nvram.h
-+'p'	80-9F				user-space parport
-+					<mailto:tim@cyberelk.net>
-+'q'	00-1F	linux/serio.h
-+'q'	80-FF				Internet PhoneJACK, Internet LineJACK
-+					<http://www.quicknet.net>
-+'r'	00-1F	linux/msdos_fs.h
-+'s'	all	linux/cdk.h
-+'t'	00-7F	linux/if_ppp.h
-+'t'	80-8F	linux/isdn_ppp.h
-+'u'	00-1F	linux/smb_fs.h
-+'v'	00-1F	linux/ext2_fs.h		conflict!
-+'v'	all	linux/videodev.h	conflict!
-+'w'	all				CERN SCI driver
-+'y'	00-1F				packet based user level communications
-+					<mailto:zapman@interlan.net>
-+'z'	00-3F				CAN bus card
-+					<mailto:hdstich@connectu.ulm.circular.de>
-+'z'	40-7F				CAN bus card
-+					<mailto:oe@port.de>
-+0x80	00-1F	linux/fb.h
-+0x81	00-1F	linux/videotext.h
-+0x89	00-06	arch/x86/include/asm/sockios.h
-+0x89	0B-DF	linux/sockios.h
-+0x89	E0-EF	linux/sockios.h		SIOCPROTOPRIVATE range
-+0x89	F0-FF	linux/sockios.h		SIOCDEVPRIVATE range
-+0x8B	all	linux/wireless.h
-+0x8C	00-3F				WiNRADiO driver
-+					<http://www.proximity.com.au/~brian/winradio/>
-+0x90	00	drivers/cdrom/sbpcd.h
-+0x93	60-7F	linux/auto_fs.h
-+0x99	00-0F				537-Addinboard driver
-+					<mailto:buk@buks.ipn.de>
-+0xA0	all	linux/sdp/sdp.h		Industrial Device Project
-+					<mailto:kenji@bitgate.com>
-+0xA3	80-8F	Port ACL		in development:
-+					<mailto:tlewis@mindspring.com>
-+0xA3	90-9F	linux/dtlk.h
-+0xAB	00-1F	linux/nbd.h
-+0xAC	00-1F	linux/raw.h
-+0xAD	00	Netfilter device	in development:
-+					<mailto:rusty@rustcorp.com.au>
-+0xAE	all	linux/kvm.h		Kernel-based Virtual Machine
-+					<mailto:kvm-devel@lists.sourceforge.net>
-+0xB0	all	RATIO devices		in development:
-+					<mailto:vgo@ratio.de>
-+0xB1	00-1F	PPPoX			<mailto:mostrows@styx.uwaterloo.ca>
-+0xCB	00-1F	CBM serial IEC bus	in development:
-+					<mailto:michael.klein@puffin.lb.shuttle.de>
-+0xDD	00-3F	ZFCP device driver	see drivers/s390/scsi/
-+					<mailto:aherrman@de.ibm.com>
-+0xF3	00-3F	video/sisfb.h		sisfb (in development)
-+					<mailto:thomas@winischhofer.net>
-+0xF4	00-1F	video/mbxfb.h		mbxfb
-+					<mailto:raph@8d.com>
+ static const struct mem_cgroup_stat_desc {
+ 	const char *msg;
+ 	u64 unit;
+@@ -1103,10 +1250,6 @@ static struct cftype mem_cgroup_files[] 
+ 		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
+-		.name = "force_empty",
+-		.trigger = mem_force_empty_write,
+-	},
+-	{
+ 		.name = "stat",
+ 		.read_map = mem_control_stat_show,
+ 	},
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-linux-next.patch
-fujitsu-laptop-fix-section-mismatch-warning.patch
-acpi-compal-laptop-use-rfkill-switch-subsystem.patch
-kgdb-fix-kernel-doc-error.patch
-audit-remove-excess-kernel-doc.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-gdth-fix-section-mismatch-warnings.patch
-esp-fix-section-mismatch-warning.patch
-scsi-ioctl-fix-kernel-doc-warning.patch
-fusion-remove-excess-kernel-doc-notation.patch
-block-remove-excess-kernel-doc.patch
-fs-fix-inodec-kernel-doc-warnings.patch
-kmod-fix-varargs-kernel-doc.patch
-docs-document-how-to-write-varargs-in-kernel-doc.patch
-rapidio-remove-excess-kernel-doc-notation.patch
-documentation-update-header-file-paths.patch
-documentation-update-s390-header-file-paths.patch
-documentation-update-scheduler-header-file-paths.patch
-documentation-move-ioctl-numbertxt-to-doc-ioctl.patch
-documentation-move-msi-howtotxt-to-doc-pci.patch
-profile-likely-unlikely-macros.patch
+memory-hotplug-fix-page_zone-calculation-in-test_pages_isolated.patch
+cgroups-make-cgroup-config-a-submenu.patch
+memcg-introduce-charge-commit-cancel-style-of-functions.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-fix-gfp_mask-of-callers-of-charge.patch
+memcg-simple-migration-handling.patch
+memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
+memcg-move-all-acccounts-to-parent-at-rmdir.patch
 
