@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hid-add-support-for-the-new-unibody-macbooks-fix.patch added to -mm tree
-Date: Thu, 06 Nov 2008 13:26:08 -0800
-Message-ID: <200811062126.mA6LQ81l028320@imap1.linux-foundation.org>
+Subject: + tpm-clean-up-tpm_nsc-driver-for-platform_device-suspend-resume-compliance.patch added to -mm tree
+Date: Thu, 06 Nov 2008 13:28:11 -0800
+Message-ID: <200811062128.mA6LSBxC029261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51220 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751497AbYKFV0q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 16:26:46 -0500
+	by vger.kernel.org with ESMTP id S1751157AbYKFV2c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 16:28:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se, dmitry.torokhov@gmail.com, jkosina@suse.cz
+Cc: dds@google.com, tpm@selhorst.net
 
 
 The patch titled
-     hid: put new unibody macbooks in hid_blacklist
+     tpm: clean up tpm_nsc driver for platform_device suspend/resume compliance
 has been added to the -mm tree.  Its filename is
-     hid-add-support-for-the-new-unibody-macbooks-fix.patch
+     tpm-clean-up-tpm_nsc-driver-for-platform_device-suspend-resume-compliance.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hid: put new unibody macbooks in hid_blacklist
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: tpm: clean up tpm_nsc driver for platform_device suspend/resume compliance
+From: David Smith <dds@google.com>
 
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Marcel Selhorst <tpm@selhorst.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-core.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/char/tpm/tpm_nsc.c |   35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-diff -puN drivers/hid/hid-core.c~hid-add-support-for-the-new-unibody-macbooks-fix drivers/hid/hid-core.c
---- a/drivers/hid/hid-core.c~hid-add-support-for-the-new-unibody-macbooks-fix
-+++ a/drivers/hid/hid-core.c
-@@ -1250,6 +1250,9 @@ static const struct hid_device_id hid_bl
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_ANSI) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_ISO) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_JIS) },
-+	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING3_ANSI) },
-+	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING3_ISO) },
-+	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING3_JIS) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_TP_ONLY) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER1_TP_ONLY) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_AVERMEDIA, USB_DEVICE_ID_AVER_FM_MR800) },
+diff -puN drivers/char/tpm/tpm_nsc.c~tpm-clean-up-tpm_nsc-driver-for-platform_device-suspend-resume-compliance drivers/char/tpm/tpm_nsc.c
+--- a/drivers/char/tpm/tpm_nsc.c~tpm-clean-up-tpm_nsc-driver-for-platform_device-suspend-resume-compliance
++++ a/drivers/char/tpm/tpm_nsc.c
+@@ -273,12 +273,23 @@ static void tpm_nsc_remove(struct device
+ 	}
+ }
+ 
+-static struct device_driver nsc_drv = {
+-	.name = "tpm_nsc",
+-	.bus = &platform_bus_type,
+-	.owner = THIS_MODULE,
+-	.suspend = tpm_pm_suspend,
+-	.resume = tpm_pm_resume,
++static int tpm_nsc_suspend(struct platform_device *dev, pm_message_t msg)
++{
++	return tpm_pm_suspend(&dev->dev, msg);
++}
++
++static int tpm_nsc_resume(struct platform_device *dev)
++{
++	return tpm_pm_resume(&dev->dev);
++}
++
++static struct platform_driver nsc_drv = {
++	.suspend         = tpm_nsc_suspend,
++	.resume          = tpm_nsc_resume,
++	.driver          = {
++		.name    = "tpm_nsc",
++		.owner   = THIS_MODULE,
++	},
+ };
+ 
+ static int __init init_nsc(void)
+@@ -297,7 +308,7 @@ static int __init init_nsc(void)
+ 			return -ENODEV;
+ 	}
+ 
+-	err = driver_register(&nsc_drv);
++	err = platform_driver_register(&nsc_drv);
+ 	if (err)
+ 		return err;
+ 
+@@ -308,17 +319,15 @@ static int __init init_nsc(void)
+ 	/* enable the DPM module */
+ 	tpm_write_index(nscAddrBase, NSC_LDC_INDEX, 0x01);
+ 
+-	pdev = kzalloc(sizeof(struct platform_device), GFP_KERNEL);
++	pdev = platform_device_alloc("tpm_nscl0", -1);
+ 	if (!pdev) {
+ 		rc = -ENOMEM;
+ 		goto err_unreg_drv;
+ 	}
+ 
+-	pdev->name = "tpm_nscl0";
+-	pdev->id = -1;
+ 	pdev->num_resources = 0;
++	pdev->dev.driver = &nsc_drv.driver;
+ 	pdev->dev.release = tpm_nsc_remove;
+-	pdev->dev.driver = &nsc_drv;
+ 
+ 	if ((rc = platform_device_register(pdev)) < 0)
+ 		goto err_free_dev;
+@@ -377,7 +386,7 @@ err_unreg_dev:
+ err_free_dev:
+ 	kfree(pdev);
+ err_unreg_drv:
+-	driver_unregister(&nsc_drv);
++	platform_driver_unregister(&nsc_drv);
+ 	return rc;
+ }
+ 
+@@ -390,7 +399,7 @@ static void __exit cleanup_nsc(void)
+ 		pdev = NULL;
+ 	}
+ 
+-	driver_unregister(&nsc_drv);
++	platform_driver_unregister(&nsc_drv);
+ }
+ 
+ module_init(init_nsc);
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from dds@google.com are
 
-hwmon-applesmc-add-support-for-imac-5.patch
-hwmon-applesmc-add-support-for-macbook-5.patch
-hwmon-applesmc-add-support-for-macbook-pro-5.patch
-hwmon-applesmc-add-support-for-imac-8.patch
-hid-add-support-for-the-new-unibody-macbooks.patch
-hid-add-support-for-the-new-unibody-macbooks-fix.patch
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
-input-map-missing-keys-to-appropriate-functions.patch
+tpm-clean-up-tpm_nsc-driver-for-platform_device-suspend-resume-compliance.patch
 
