@@ -1,23 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + driver-core-use-ret-variable-in-unregister_dynamic_debug_module.patch added to -mm tree
-Date: Thu, 06 Nov 2008 13:22:38 -0800
-Message-ID: <200811062122.mA6LMcdN026759@imap1.linux-foundation.org>
+Subject: + input-map-missing-keys-to-appropriate-functions.patch added to -mm tree
+Date: Thu, 06 Nov 2008 13:24:38 -0800
+Message-ID: <200811062124.mA6LOcrM027650@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41744 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44967 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754735AbYKFVXw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 16:23:52 -0500
+	by vger.kernel.org with ESMTP id S1753748AbYKFVZZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 16:25:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johfel@users.sourceforge.net, greg@kroah.com, jbaron@redhat.com
+Cc: rydberg@euromail.se, dmitry.torokhov@gmail.com, jkosina@suse.cz
 
 
 The patch titled
-     driver core: use 'ret' variable in unregister_dynamic_debug_module
+     input: map missing keys to appropriate functions
 has been added to the -mm tree.  Its filename is
-     driver-core-use-ret-variable-in-unregister_dynamic_debug_module.patch
+     input-map-missing-keys-to-appropriate-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,44 +28,89 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: driver core: use 'ret' variable in unregister_dynamic_debug_module
-From: Johann Felix Soden <johfel@users.sourceforge.net>
+Subject: input: map missing keys to appropriate functions
+=46rom: Henrik Rydberg <rydberg@euromail.se>
 
-The 'ret' variable is assigned, but not used in the return statement.  Fix
-this.
+On macbooks there are specific keys for the user-space functions Expose
+and Dashboard, which currently has no counterpart in input.h.  This pat=
+ch
+adds KEY_SCALE and KEY_DASHBOARD, and maps the keyboard accordingly.
 
-Signed-off-by: Johann Felix Soden <johfel@users.sourceforge.net>
-Acked-by: Jason Baron <jbaron@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dynamic_printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hid/hid-apple.c |    5 +++--
+ include/linux/input.h   |    2 ++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN lib/dynamic_printk.c~driver-core-use-ret-variable-in-unregister_dynamic_debug_module lib/dynamic_printk.c
---- a/lib/dynamic_printk.c~driver-core-use-ret-variable-in-unregister_dynamic_debug_module
-+++ a/lib/dynamic_printk.c
-@@ -135,7 +135,7 @@ int unregister_dynamic_debug_module(char
- 	nr_entries--;
- out:
- 	up(&debug_list_mutex);
--	return 0;
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(unregister_dynamic_debug_module);
- 
+diff -puN drivers/hid/hid-apple.c~input-map-missing-keys-to-appropriate=
+-functions drivers/hid/hid-apple.c
+--- a/drivers/hid/hid-apple.c~input-map-missing-keys-to-appropriate-fun=
+ctions
++++ a/drivers/hid/hid-apple.c
+@@ -55,10 +55,11 @@ struct apple_key_translation {
+=20
+ static struct apple_key_translation apple_fn_keys[] =3D {
+ 	{ KEY_BACKSPACE, KEY_DELETE },
++	{ KEY_ENTER,	KEY_INSERT },
+ 	{ KEY_F1,	KEY_BRIGHTNESSDOWN, APPLE_FLAG_FKEY },
+ 	{ KEY_F2,	KEY_BRIGHTNESSUP,   APPLE_FLAG_FKEY },
+-	{ KEY_F3,	KEY_FN_F5,          APPLE_FLAG_FKEY }, /* Expos=C3=A9 */
+-	{ KEY_F4,	KEY_FN_F4,          APPLE_FLAG_FKEY }, /* Dashboard */
++	{ KEY_F3,	KEY_SCALE,          APPLE_FLAG_FKEY },
++	{ KEY_F4,	KEY_DASHBOARD,      APPLE_FLAG_FKEY },
+ 	{ KEY_F5,	KEY_KBDILLUMDOWN,   APPLE_FLAG_FKEY },
+ 	{ KEY_F6,	KEY_KBDILLUMUP,     APPLE_FLAG_FKEY },
+ 	{ KEY_F7,	KEY_PREVIOUSSONG,   APPLE_FLAG_FKEY },
+diff -puN include/linux/input.h~input-map-missing-keys-to-appropriate-f=
+unctions include/linux/input.h
+--- a/include/linux/input.h~input-map-missing-keys-to-appropriate-funct=
+ions
++++ a/include/linux/input.h
+@@ -238,6 +238,7 @@ struct input_absinfo {
+ #define KEY_KPEQUAL		117
+ #define KEY_KPPLUSMINUS		118
+ #define KEY_PAUSE		119
++#define KEY_SCALE		120	/* AL Compiz Scale (Expose) */
+=20
+ #define KEY_KPCOMMA		121
+ #define KEY_HANGEUL		122
+@@ -322,6 +323,7 @@ struct input_absinfo {
+ #define KEY_PAUSECD		201
+ #define KEY_PROG3		202
+ #define KEY_PROG4		203
++#define KEY_DASHBOARD		204	/* AL Dashboard */
+ #define KEY_SUSPEND		205
+ #define KEY_CLOSE		206	/* AC Close */
+ #define KEY_PLAY		207
 _
 
-Patches currently in -mm which might be from johfel@users.sourceforge.net are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
-driver-core-use-ret-variable-in-unregister_dynamic_debug_module.patch
+hwmon-applesmc-add-support-for-imac-5.patch
+hwmon-applesmc-add-support-for-macbook-5.patch
+hwmon-applesmc-add-support-for-macbook-pro-5.patch
+hwmon-applesmc-add-support-for-imac-8.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+input-map-missing-keys-to-appropriate-functions.patch
+hid-add-support-for-the-new-unibody-macbooks.patch
+hid-put-new-unibody-macbooks-in-hid_blacklist.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
