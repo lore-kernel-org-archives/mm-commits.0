@@ -1,16 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + input-map-missing-keys-to-appropriate-functions.patch added to -mm tree
-Date: Thu, 06 Nov 2008 13:24:38 -0800
-Message-ID: <200811062124.mA6LOcrM027650@imap1.linux-foundation.org>
+Subject: + hid-add-support-for-the-new-unibody-macbooks.patch added to -mm tree
+Date: Thu, 06 Nov 2008 13:26:06 -0800
+Message-ID: <200811062126.mA6LQ6eM028317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44967 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753748AbYKFVZZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 16:25:25 -0500
+	by vger.kernel.org with ESMTP id S1750698AbYKFV0o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 16:26:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +15,9 @@ Cc: rydberg@euromail.se, dmitry.torokhov@gmail.com, jkosina@suse.cz
 
 
 The patch titled
-     input: map missing keys to appropriate functions
+     hid: add support for the new unibody macbooks
 has been added to the -mm tree.  Its filename is
-     input-map-missing-keys-to-appropriate-functions.patch
+     hid-add-support-for-the-new-unibody-macbooks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,23 +25,20 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: map missing keys to appropriate functions
-=46rom: Henrik Rydberg <rydberg@euromail.se>
+Subject: hid: add support for the new unibody macbooks
+From: Henrik Rydberg <rydberg@euromail.se>
 
-On macbooks there are specific keys for the user-space functions Expose
-and Dashboard, which currently has no counterpart in input.h.  This pat=
-ch
-adds KEY_SCALE and KEY_DASHBOARD, and maps the keyboard accordingly.
+The unibody MacBook 5 and MacBook Pro 5 come with a new version of
+the bcm5974 trackpad. This patch adds the USB device ids and the
+appropriate quirks.
 
 Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
@@ -52,50 +46,53 @@ Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-apple.c |    5 +++--
- include/linux/input.h   |    2 ++
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/hid/hid-apple.c |    6 ++++++
+ drivers/hid/hid-core.c  |    3 +++
+ drivers/hid/hid-ids.h   |    3 +++
+ 3 files changed, 12 insertions(+)
 
-diff -puN drivers/hid/hid-apple.c~input-map-missing-keys-to-appropriate=
--functions drivers/hid/hid-apple.c
---- a/drivers/hid/hid-apple.c~input-map-missing-keys-to-appropriate-fun=
-ctions
+diff -puN drivers/hid/hid-apple.c~hid-add-support-for-the-new-unibody-macbooks drivers/hid/hid-apple.c
+--- a/drivers/hid/hid-apple.c~hid-add-support-for-the-new-unibody-macbooks
 +++ a/drivers/hid/hid-apple.c
-@@ -55,10 +55,11 @@ struct apple_key_translation {
-=20
- static struct apple_key_translation apple_fn_keys[] =3D {
- 	{ KEY_BACKSPACE, KEY_DELETE },
-+	{ KEY_ENTER,	KEY_INSERT },
- 	{ KEY_F1,	KEY_BRIGHTNESSDOWN, APPLE_FLAG_FKEY },
- 	{ KEY_F2,	KEY_BRIGHTNESSUP,   APPLE_FLAG_FKEY },
--	{ KEY_F3,	KEY_FN_F5,          APPLE_FLAG_FKEY }, /* Expos=C3=A9 */
--	{ KEY_F4,	KEY_FN_F4,          APPLE_FLAG_FKEY }, /* Dashboard */
-+	{ KEY_F3,	KEY_SCALE,          APPLE_FLAG_FKEY },
-+	{ KEY_F4,	KEY_DASHBOARD,      APPLE_FLAG_FKEY },
- 	{ KEY_F5,	KEY_KBDILLUMDOWN,   APPLE_FLAG_FKEY },
- 	{ KEY_F6,	KEY_KBDILLUMUP,     APPLE_FLAG_FKEY },
- 	{ KEY_F7,	KEY_PREVIOUSSONG,   APPLE_FLAG_FKEY },
-diff -puN include/linux/input.h~input-map-missing-keys-to-appropriate-f=
-unctions include/linux/input.h
---- a/include/linux/input.h~input-map-missing-keys-to-appropriate-funct=
-ions
-+++ a/include/linux/input.h
-@@ -238,6 +238,7 @@ struct input_absinfo {
- #define KEY_KPEQUAL		117
- #define KEY_KPPLUSMINUS		118
- #define KEY_PAUSE		119
-+#define KEY_SCALE		120	/* AL Compiz Scale (Expose) */
-=20
- #define KEY_KPCOMMA		121
- #define KEY_HANGEUL		122
-@@ -322,6 +323,7 @@ struct input_absinfo {
- #define KEY_PAUSECD		201
- #define KEY_PROG3		202
- #define KEY_PROG4		203
-+#define KEY_DASHBOARD		204	/* AL Dashboard */
- #define KEY_SUSPEND		205
- #define KEY_CLOSE		206	/* AC Close */
- #define KEY_PLAY		207
+@@ -418,6 +418,12 @@ static const struct hid_device_id apple_
+ 		.driver_data = APPLE_HAS_FN | APPLE_ISO_KEYBOARD },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_JIS),
+ 		.driver_data = APPLE_HAS_FN | APPLE_RDESC_JIS },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING3_ANSI),
++		.driver_data = APPLE_HAS_FN },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING3_ISO),
++		.driver_data = APPLE_HAS_FN | APPLE_ISO_KEYBOARD },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING3_JIS),
++		.driver_data = APPLE_HAS_FN | APPLE_RDESC_JIS },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_TP_ONLY),
+ 		.driver_data = APPLE_NUMLOCK_EMULATION | APPLE_HAS_FN },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER1_TP_ONLY),
+diff -puN drivers/hid/hid-core.c~hid-add-support-for-the-new-unibody-macbooks drivers/hid/hid-core.c
+--- a/drivers/hid/hid-core.c~hid-add-support-for-the-new-unibody-macbooks
++++ a/drivers/hid/hid-core.c
+@@ -1567,6 +1567,9 @@ static const struct hid_device_id hid_mo
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_ANSI) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_ISO) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_JIS) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING3_ANSI) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING3_ISO) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING3_JIS) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_TP_ONLY) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER1_TP_ONLY) },
+ 	{ }
+diff -puN drivers/hid/hid-ids.h~hid-add-support-for-the-new-unibody-macbooks drivers/hid/hid-ids.h
+--- a/drivers/hid/hid-ids.h~hid-add-support-for-the-new-unibody-macbooks
++++ a/drivers/hid/hid-ids.h
+@@ -82,6 +82,9 @@
+ #define USB_DEVICE_ID_APPLE_WELLSPRING2_ANSI	0x0230
+ #define USB_DEVICE_ID_APPLE_WELLSPRING2_ISO	0x0231
+ #define USB_DEVICE_ID_APPLE_WELLSPRING2_JIS	0x0232
++#define USB_DEVICE_ID_APPLE_WELLSPRING3_ANSI	0x0236
++#define USB_DEVICE_ID_APPLE_WELLSPRING3_ISO	0x0237
++#define USB_DEVICE_ID_APPLE_WELLSPRING3_JIS	0x0238
+ #define USB_DEVICE_ID_APPLE_FOUNTAIN_TP_ONLY	0x030a
+ #define USB_DEVICE_ID_APPLE_GEYSER1_TP_ONLY	0x030b
+ #define USB_DEVICE_ID_APPLE_ATV_IRCONTROL	0x8241
 _
 
 Patches currently in -mm which might be from rydberg@euromail.se are
@@ -104,13 +101,8 @@ hwmon-applesmc-add-support-for-imac-5.patch
 hwmon-applesmc-add-support-for-macbook-5.patch
 hwmon-applesmc-add-support-for-macbook-pro-5.patch
 hwmon-applesmc-add-support-for-imac-8.patch
+hid-add-support-for-the-new-unibody-macbooks.patch
+hid-add-support-for-the-new-unibody-macbooks-fix.patch
 input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
 input-map-missing-keys-to-appropriate-functions.patch
-hid-add-support-for-the-new-unibody-macbooks.patch
-hid-put-new-unibody-macbooks-in-hid_blacklist.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
