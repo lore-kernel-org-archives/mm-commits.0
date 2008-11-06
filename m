@@ -1,536 +1,325 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-all-acccounts-to-parent-at-rmdir.patch added to -mm tree
-Date: Thu, 06 Nov 2008 15:40:10 -0800
-Message-ID: <200811062340.mA6NeAgi025111@imap1.linux-foundation.org>
+Subject: - quota-add-reservation-support-for-delayed-block-allocation.patch removed from -mm tree
+Date: Thu, 06 Nov 2008 15:51:10 -0800
+Message-ID: <200811062351.mA6NpAU8030196__25478.9851875559$1226015564$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43829 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752146AbYKFXky (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 18:40:54 -0500
+	by vger.kernel.org with ESMTP id S1752466AbYKFXvT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 18:51:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
+To: cmm@us.ibm.com, jack@ucw.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: move all acccounting to parent at rmdir()
-has been added to the -mm tree.  Its filename is
-     memcg-move-all-acccounts-to-parent-at-rmdir.patch
+     quota: add reservation support for delayed block allocation
+has been removed from the -mm tree.  Its filename was
+     quota-add-reservation-support-for-delayed-block-allocation.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: move all acccounting to parent at rmdir()
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: quota: add reservation support for delayed block allocation
+From: Mingming Cao <cmm@us.ibm.com>
 
-This patch provides a function to move account information of a page
-between mem_cgroups and rewrite force_empty to make use of this.
+Delayed allocation defers the block allocation until the dirty pages
+flush-out time.  Doing a quota charge/check at that time is too late.  But
+we can't charge the quota blocks until blocks are really allocated,
+otherwise users could get overcharged after reboot from system crash.
 
-This moving of page_cgroup is done under
- - lru_lock of source/destination mem_cgroup is held.
- - lock_page_cgroup() is held.
+This patch adds quota reservation for delayed llocation.  Quota blocks are
+reserved in memory, inode and quota won't gets dirtied until later block
+allocation time.
 
-Then, a routine which touches pc->mem_cgroup without lock_page_cgroup()
-should confirm pc->mem_cgroup is still valid or not.  Typical code can be
-following.
-
-(while page is not under lock_page())
-	mem = pc->mem_cgroup;
-	mz = page_cgroup_zoneinfo(pc)
-	spin_lock_irqsave(&mz->lru_lock);
-	if (pc->mem_cgroup == mem)
-		...../* some list handling */
-	spin_unlock_irqrestore(&mz->lru_lock);
-
-Of course, better way is
-	lock_page_cgroup(pc);
-	....
-	unlock_page_cgroup(pc);
-
-But you should confirm the nest of lock and avoid deadlock.
-
-If you treats page_cgroup from mem_cgroup's LRU under mz->lru_lock,
-you don't have to worry about what pc->mem_cgroup points to.
-moved pages are added to head of lru, not to tail.
-
-Expected users of this routine is:
-  - force_empty (rmdir)
-  - moving tasks between cgroup (for moving account information.)
-  - hierarchy (maybe useful.)
-
-force_empty(rmdir) uses this move_account and move pages to its parent.
-This "move" will not cause OOM (I added "oom" parameter to try_charge().)
-
-If the parent is busy (not enough memory), force_empty calls try_to_free_page()
-and reduce usage.
-
-Purpose of this behavior is
-  - Fix "forget all" behavior of force_empty and avoid leak of accounting.
-  - By "moving first, free if necessary", keep pages on memory as much as
-    possible.
-
-Adding a switch to change behavior of force_empty to
-  - free first, move if necessary
-  - free all, if there is mlocked/busy pages, return -EBUSY.
-is under consideration. (I'll add if someone requtests.)
-
-This patch also removes memory.force_empty file, a brutal debug-only interface.
-
-Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Tested-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/controllers/memory.txt |   12 -
- mm/memcontrol.c                      |  277 ++++++++++++++++++-------
- 2 files changed, 214 insertions(+), 75 deletions(-)
+ fs/dquot.c               |  113 +++++++++++++++++++++++++++----------
+ include/linux/quota.h    |    2 
+ include/linux/quotaops.h |   23 +++++++
+ 3 files changed, 108 insertions(+), 30 deletions(-)
 
-diff -puN Documentation/controllers/memory.txt~memcg-move-all-acccounts-to-parent-at-rmdir Documentation/controllers/memory.txt
---- a/Documentation/controllers/memory.txt~memcg-move-all-acccounts-to-parent-at-rmdir
-+++ a/Documentation/controllers/memory.txt
-@@ -207,12 +207,6 @@ exceeded.
- The memory.stat file gives accounting information. Now, the number of
- caches, RSS and Active pages/Inactive pages are shown.
- 
--The memory.force_empty gives an interface to drop *all* charges by force.
--
--# echo 1 > memory.force_empty
--
--will drop all charges in cgroup. Currently, this is maintained for test.
--
- 4. Testing
- 
- Balbir posted lmbench, AIM9, LTP and vmmstress results [10] and [11].
-@@ -242,8 +236,10 @@ reclaimed.
- 
- A cgroup can be removed by rmdir, but as discussed in sections 4.1 and 4.2, a
- cgroup might have some charge associated with it, even though all
--tasks have migrated away from it. Such charges are automatically dropped at
--rmdir() if there are no tasks.
-+tasks have migrated away from it.
-+Such charges are moved to its parent as much as possible and freed if parent
-+is full. Both of RSS and CACHES are moved to parent.
-+If both of them are busy, rmdir() returns -EBUSY.
- 
- 5. TODO
- 
-diff -puN mm/memcontrol.c~memcg-move-all-acccounts-to-parent-at-rmdir mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-all-acccounts-to-parent-at-rmdir
-+++ a/mm/memcontrol.c
-@@ -257,7 +257,7 @@ static void __mem_cgroup_remove_list(str
+diff -puN fs/dquot.c~quota-add-reservation-support-for-delayed-block-allocation fs/dquot.c
+--- a/fs/dquot.c~quota-add-reservation-support-for-delayed-block-allocation
++++ a/fs/dquot.c
+@@ -841,6 +841,11 @@ static inline void dquot_incr_space(stru
+ 	dquot->dq_dqb.dqb_curspace += number;
  }
  
- static void __mem_cgroup_add_list(struct mem_cgroup_per_zone *mz,
--				struct page_cgroup *pc)
-+				struct page_cgroup *pc, bool hot)
++static inline void dquot_resv_space(struct dquot *dquot, qsize_t number)
++{
++	dquot->dq_dqb.dqb_rsvspace += number;
++}
++
+ static inline void dquot_decr_inodes(struct dquot *dquot, qsize_t number)
  {
- 	int lru = LRU_BASE;
+ 	if (dquot->dq_dqb.dqb_curinodes > number)
+@@ -1069,13 +1074,18 @@ static int check_idq(struct dquot *dquot
+ /* needs dq_data_lock */
+ static int check_bdq(struct dquot *dquot, qsize_t space, int prealloc, char *warntype)
+ {
++	qsize_t tspace;
++
+ 	*warntype = QUOTA_NL_NOWARN;
+ 	if (!sb_has_quota_limits_enabled(dquot->dq_sb, dquot->dq_type) ||
+ 	    test_bit(DQ_FAKE_B, &dquot->dq_flags))
+ 		return QUOTA_OK;
  
-@@ -271,7 +271,10 @@ static void __mem_cgroup_add_list(struct
++	tspace = dquot->dq_dqb.dqb_curspace + dquot->dq_dqb.dqb_rsvspace
++		+ space;
++
+ 	if (dquot->dq_dqb.dqb_bhardlimit &&
+-	    dquot->dq_dqb.dqb_curspace + space > dquot->dq_dqb.dqb_bhardlimit &&
++	    tspace > dquot->dq_dqb.dqb_bhardlimit &&
+             !ignore_hardlimit(dquot)) {
+ 		if (!prealloc)
+ 			*warntype = QUOTA_NL_BHARDWARN;
+@@ -1083,7 +1093,7 @@ static int check_bdq(struct dquot *dquot
  	}
  
- 	MEM_CGROUP_ZSTAT(mz, lru) += 1;
--	list_add(&pc->lru, &mz->lists[lru]);
-+	if (hot)
-+		list_add(&pc->lru, &mz->lists[lru]);
-+	else
-+		list_add_tail(&pc->lru, &mz->lists[lru]);
+ 	if (dquot->dq_dqb.dqb_bsoftlimit &&
+-	    dquot->dq_dqb.dqb_curspace + space > dquot->dq_dqb.dqb_bsoftlimit &&
++	    tspace > dquot->dq_dqb.dqb_bsoftlimit &&
+ 	    dquot->dq_dqb.dqb_btime && get_seconds() >= dquot->dq_dqb.dqb_btime &&
+             !ignore_hardlimit(dquot)) {
+ 		if (!prealloc)
+@@ -1092,7 +1102,7 @@ static int check_bdq(struct dquot *dquot
+ 	}
  
- 	mem_cgroup_charge_statistics(pc->mem_cgroup, pc, true);
- }
-@@ -467,21 +470,12 @@ unsigned long mem_cgroup_isolate_pages(u
- 	return nr_taken;
- }
- 
--
--/**
-- * mem_cgroup_try_charge - get charge of PAGE_SIZE.
-- * @mm: an mm_struct which is charged against. (when *memcg is NULL)
-- * @gfp_mask: gfp_mask for reclaim.
-- * @memcg: a pointer to memory cgroup which is charged against.
-- *
-- * charge against memory cgroup pointed by *memcg. if *memcg == NULL, estimated
-- * memory cgroup from @mm is got and stored in *memcg.
-- *
-- * Returns 0 if success. -ENOMEM at failure.
-+/*
-+ * Unlike exported interface, "oom" parameter is added. if oom==true,
-+ * oom-killer can be invoked.
+ 	if (dquot->dq_dqb.dqb_bsoftlimit &&
+-	    dquot->dq_dqb.dqb_curspace + space > dquot->dq_dqb.dqb_bsoftlimit &&
++	    tspace > dquot->dq_dqb.dqb_bsoftlimit &&
+ 	    dquot->dq_dqb.dqb_btime == 0) {
+ 		if (!prealloc) {
+ 			*warntype = QUOTA_NL_BSOFTWARN;
+@@ -1227,48 +1237,90 @@ void vfs_dq_drop(struct inode *inode)
+ /*
+  * This operation can block, but only after everything is updated
   */
--
--int mem_cgroup_try_charge(struct mm_struct *mm,
--			gfp_t gfp_mask, struct mem_cgroup **memcg)
-+static int __mem_cgroup_try_charge(struct mm_struct *mm,
-+			gfp_t gfp_mask, struct mem_cgroup **memcg, bool oom)
+-int dquot_alloc_space(struct inode *inode, qsize_t number, int warn)
++int __dquot_alloc_space(struct inode *inode, qsize_t number,
++			int warn, int reserve)
  {
- 	struct mem_cgroup *mem;
- 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
-@@ -528,7 +522,8 @@ int mem_cgroup_try_charge(struct mm_stru
+-	int cnt, ret = NO_QUOTA;
++	int cnt, ret = QUOTA_OK;
+ 	char warntype[MAXQUOTAS];
+ 
+-	/* First test before acquiring mutex - solves deadlocks when we
+-         * re-enter the quota code and are already holding the mutex */
+-	if (IS_NOQUOTA(inode)) {
+-out_add:
+-		inode_add_bytes(inode, number);
+-		return QUOTA_OK;
+-	}
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++)
+ 		warntype[cnt] = QUOTA_NL_NOWARN;
+ 
+-	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
+-	if (IS_NOQUOTA(inode)) {	/* Now we can do reliable test... */
+-		up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
+-		goto out_add;
+-	}
+ 	spin_lock(&dq_data_lock);
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+ 		if (inode->i_dquot[cnt] == NODQUOT)
  			continue;
- 
- 		if (!nr_retries--) {
--			mem_cgroup_out_of_memory(mem, gfp_mask);
-+			if (oom)
-+				mem_cgroup_out_of_memory(mem, gfp_mask);
- 			goto nomem;
- 		}
+-		if (check_bdq(inode->i_dquot[cnt], number, warn, warntype+cnt) == NO_QUOTA)
+-			goto warn_put_all;
++		if (check_bdq(inode->i_dquot[cnt], number, warn, warntype+cnt)
++		    == NO_QUOTA) {
++			ret = NO_QUOTA;
++			goto out_unlock;
++		}
  	}
-@@ -538,6 +533,25 @@ nomem:
- 	return -ENOMEM;
- }
- 
-+/**
-+ * mem_cgroup_try_charge - get charge of PAGE_SIZE.
-+ * @mm: an mm_struct which is charged against. (when *memcg is NULL)
-+ * @gfp_mask: gfp_mask for reclaim.
-+ * @memcg: a pointer to memory cgroup which is charged against.
-+ *
-+ * charge against memory cgroup pointed by *memcg. if *memcg == NULL, estimated
-+ * memory cgroup from @mm is got and stored in *memcg.
-+ *
-+ * Returns 0 if success. -ENOMEM at failure.
-+ * This call can invoke OOM-Killer.
-+ */
-+
-+int mem_cgroup_try_charge(struct mm_struct *mm,
-+			  gfp_t mask, struct mem_cgroup **memcg)
-+{
-+	return __mem_cgroup_try_charge(mm, mask, memcg, true);
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+ 		if (inode->i_dquot[cnt] == NODQUOT)
+ 			continue;
+-		dquot_incr_space(inode->i_dquot[cnt], number);
++		if (reserve)
++			dquot_resv_space(inode->i_dquot[cnt], number);
++		else
++			dquot_incr_space(inode->i_dquot[cnt], number);
+ 	}
+-	inode_add_bytes(inode, number);
+-	ret = QUOTA_OK;
+-warn_put_all:
+-	spin_unlock(&dq_data_lock);
+-	if (ret == QUOTA_OK)
+-		/* Dirtify all the dquots - this can block when journalling */
+-		for (cnt = 0; cnt < MAXQUOTAS; cnt++)
+-			if (inode->i_dquot[cnt])
+-				mark_dquot_dirty(inode->i_dquot[cnt]);
++out_unlock:
+ 	flush_warnings(inode->i_dquot, warntype);
++	spin_unlock(&dq_data_lock);
++	return ret;
 +}
 +
- /*
-  * commit a charge got by mem_cgroup_try_charge() and makes page_cgroup to be
-  * USED state. If already USED, uncharge and return.
-@@ -571,11 +585,109 @@ static void __mem_cgroup_commit_charge(s
- 	mz = page_cgroup_zoneinfo(pc);
- 
- 	spin_lock_irqsave(&mz->lru_lock, flags);
--	__mem_cgroup_add_list(mz, pc);
-+	__mem_cgroup_add_list(mz, pc, true);
- 	spin_unlock_irqrestore(&mz->lru_lock, flags);
- 	unlock_page_cgroup(pc);
- }
- 
-+/**
-+ * mem_cgroup_move_account - move account of the page
-+ * @pc:	page_cgroup of the page.
-+ * @from: mem_cgroup which the page is moved from.
-+ * @to:	mem_cgroup which the page is moved to. @from != @to.
-+ *
-+ * The caller must confirm following.
-+ * 1. disable irq.
-+ * 2. lru_lock of old mem_cgroup(@from) should be held.
-+ *
-+ * returns 0 at success,
-+ * returns -EBUSY when lock is busy or "pc" is unstable.
-+ *
-+ * This function does "uncharge" from old cgroup but doesn't do "charge" to
-+ * new cgroup. It should be done by a caller.
-+ */
-+
-+static int mem_cgroup_move_account(struct page_cgroup *pc,
-+	struct mem_cgroup *from, struct mem_cgroup *to)
++int dquot_alloc_space(struct inode *inode, qsize_t number, int warn)
 +{
-+	struct mem_cgroup_per_zone *from_mz, *to_mz;
-+	int nid, zid;
-+	int ret = -EBUSY;
++	int cnt, ret = QUOTA_OK;
 +
-+	VM_BUG_ON(!irqs_disabled());
-+	VM_BUG_ON(from == to);
-+
-+	nid = page_cgroup_nid(pc);
-+	zid = page_cgroup_zid(pc);
-+	from_mz =  mem_cgroup_zoneinfo(from, nid, zid);
-+	to_mz =  mem_cgroup_zoneinfo(to, nid, zid);
-+
-+
-+	if (!trylock_page_cgroup(pc))
++	/*
++	 * First test before acquiring mutex - solves deadlocks when we
++         * re-enter the quota code and are already holding the mutex
++         */
++	if (IS_NOQUOTA(inode)) {
++		inode_add_bytes(inode, number);
 +		return ret;
-+
-+	if (!PageCgroupUsed(pc))
-+		goto out;
-+
-+	if (pc->mem_cgroup != from)
-+		goto out;
-+
-+	if (spin_trylock(&to_mz->lru_lock)) {
-+		__mem_cgroup_remove_list(from_mz, pc);
-+		css_put(&from->css);
-+		res_counter_uncharge(&from->res, PAGE_SIZE);
-+		pc->mem_cgroup = to;
-+		css_get(&to->css);
-+		__mem_cgroup_add_list(to_mz, pc, false);
-+		ret = 0;
-+		spin_unlock(&to_mz->lru_lock);
 +	}
-+out:
-+	unlock_page_cgroup(pc);
++
++	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
++	if (IS_NOQUOTA(inode))	{
++		/* Now we can do reliable test... */
++		up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
++		inode_add_bytes(inode, number);
++		return ret;
++	}
++
++	ret = __dquot_alloc_space(inode, number, warn, 0);
++	if (ret == NO_QUOTA) {
++		up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
++		return ret;
++	}
++
++	/* Dirtify all the dquots - this can block when journalling */
++	for (cnt = 0; cnt < MAXQUOTAS; cnt++)
++		if (inode->i_dquot[cnt])
++			mark_dquot_dirty(inode->i_dquot[cnt]);
++	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
++	inode_add_bytes(inode, number);
 +	return ret;
 +}
 +
-+/*
-+ * move charges to its parent.
-+ */
-+
-+static int mem_cgroup_move_parent(struct page_cgroup *pc,
-+				  struct mem_cgroup *child,
-+				  gfp_t gfp_mask)
++int dquot_reserve_space(struct inode *inode, qsize_t number, int warn)
 +{
-+	struct cgroup *cg = child->css.cgroup;
-+	struct cgroup *pcg = cg->parent;
-+	struct mem_cgroup *parent;
-+	struct mem_cgroup_per_zone *mz;
-+	unsigned long flags;
-+	int ret;
++	int ret = QUOTA_OK;
 +
-+	/* Is ROOT ? */
-+	if (!pcg)
-+		return -EINVAL;
-+
-+	parent = mem_cgroup_from_cont(pcg);
-+
-+	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false);
-+	if (ret)
++	if (IS_NOQUOTA(inode))
 +		return ret;
 +
-+	mz = mem_cgroup_zoneinfo(child,
-+			page_cgroup_nid(pc), page_cgroup_zid(pc));
++	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
++	if (IS_NOQUOTA(inode))	{
++		/* Now we can do reliable test... */
++		up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
++		return ret;
++	}
 +
-+	spin_lock_irqsave(&mz->lru_lock, flags);
-+	ret = mem_cgroup_move_account(pc, child, parent);
-+	spin_unlock_irqrestore(&mz->lru_lock, flags);
-+
-+	/* drop extra refcnt */
-+	css_put(&parent->css);
-+	/* uncharge if move fails */
-+	if (ret)
-+		res_counter_uncharge(&parent->res, PAGE_SIZE);
-+
-+	return ret;
-+}
-+
- /*
-  * Charge the memory controller for page usage.
-  * Return
-@@ -597,7 +709,7 @@ static int mem_cgroup_charge_common(stru
- 	prefetchw(pc);
- 
- 	mem = memcg;
--	ret = mem_cgroup_try_charge(mm, gfp_mask, &mem);
-+	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, true);
- 	if (ret)
- 		return ret;
- 
-@@ -898,46 +1010,52 @@ int mem_cgroup_resize_limit(struct mem_c
-  * This routine traverse page_cgroup in given list and drop them all.
-  * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
-  */
--#define FORCE_UNCHARGE_BATCH	(128)
--static void mem_cgroup_force_empty_list(struct mem_cgroup *mem,
-+static int mem_cgroup_force_empty_list(struct mem_cgroup *mem,
- 			    struct mem_cgroup_per_zone *mz,
- 			    enum lru_list lru)
- {
--	struct page_cgroup *pc;
--	struct page *page;
--	int count = FORCE_UNCHARGE_BATCH;
-+	struct page_cgroup *pc, *busy;
- 	unsigned long flags;
-+	unsigned long loop;
- 	struct list_head *list;
-+	int ret = 0;
- 
- 	list = &mz->lists[lru];
- 
--	spin_lock_irqsave(&mz->lru_lock, flags);
--	while (!list_empty(list)) {
--		pc = list_entry(list->prev, struct page_cgroup, lru);
--		page = pc->page;
--		if (!PageCgroupUsed(pc))
-+	loop = MEM_CGROUP_ZSTAT(mz, lru);
-+	/* give some margin against EBUSY etc...*/
-+	loop += 256;
-+	busy = NULL;
-+	while (loop--) {
-+		ret = 0;
-+		spin_lock_irqsave(&mz->lru_lock, flags);
-+		if (list_empty(list)) {
-+			spin_unlock_irqrestore(&mz->lru_lock, flags);
- 			break;
--		get_page(page);
-+		}
-+		pc = list_entry(list->prev, struct page_cgroup, lru);
-+		if (busy == pc) {
-+			list_move(&pc->lru, list);
-+			busy = 0;
-+			spin_unlock_irqrestore(&mz->lru_lock, flags);
-+			continue;
-+		}
- 		spin_unlock_irqrestore(&mz->lru_lock, flags);
--		/*
--		 * Check if this page is on LRU. !LRU page can be found
--		 * if it's under page migration.
--		 */
--		if (PageLRU(page)) {
--			__mem_cgroup_uncharge_common(page,
--					MEM_CGROUP_CHARGE_TYPE_FORCE);
--			put_page(page);
--			if (--count <= 0) {
--				count = FORCE_UNCHARGE_BATCH;
--				cond_resched();
--			}
--		} else {
--			spin_lock_irqsave(&mz->lru_lock, flags);
-+
-+		ret = mem_cgroup_move_parent(pc, mem, GFP_HIGHUSER_MOVABLE);
-+		if (ret == -ENOMEM)
- 			break;
--		}
--		spin_lock_irqsave(&mz->lru_lock, flags);
-+
-+		if (ret == -EBUSY || ret == -EINVAL) {
-+			/* found lock contention or "pc" is obsolete. */
-+			busy = pc;
-+			cond_resched();
-+		} else
-+			busy = NULL;
- 	}
--	spin_unlock_irqrestore(&mz->lru_lock, flags);
-+	if (!ret && !list_empty(list))
-+		return -EBUSY;
-+	return ret;
- }
- 
- /*
-@@ -946,34 +1064,68 @@ static void mem_cgroup_force_empty_list(
-  */
- static int mem_cgroup_force_empty(struct mem_cgroup *mem)
- {
--	int ret = -EBUSY;
--	int node, zid;
-+	int ret;
-+	int node, zid, shrink;
-+	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
- 
- 	css_get(&mem->css);
--	/*
--	 * page reclaim code (kswapd etc..) will move pages between
--	 * active_list <-> inactive_list while we don't take a lock.
--	 * So, we have to do loop here until all lists are empty.
--	 */
-+
-+	shrink = 0;
-+move_account:
- 	while (mem->res.usage > 0) {
-+		ret = -EBUSY;
- 		if (atomic_read(&mem->css.cgroup->count) > 0)
- 			goto out;
-+
- 		/* This is for making all *used* pages to be on LRU. */
- 		lru_add_drain_all();
--		for_each_node_state(node, N_POSSIBLE)
--			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+		ret = 0;
-+		for_each_node_state(node, N_POSSIBLE) {
-+			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
- 				struct mem_cgroup_per_zone *mz;
- 				enum lru_list l;
- 				mz = mem_cgroup_zoneinfo(mem, node, zid);
--				for_each_lru(l)
--					mem_cgroup_force_empty_list(mem, mz, l);
-+				for_each_lru(l) {
-+					ret = mem_cgroup_force_empty_list(mem,
-+								  mz, l);
-+					if (ret)
-+						break;
-+				}
- 			}
-+			if (ret)
-+				break;
-+		}
-+		/* it seems parent cgroup doesn't have enough mem */
-+		if (ret == -ENOMEM)
-+			goto try_to_free;
- 		cond_resched();
- 	}
- 	ret = 0;
- out:
- 	css_put(&mem->css);
++	ret = __dquot_alloc_space(inode, number, warn, 1);
+ 	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
  	return ret;
-+
-+try_to_free:
-+	/* returns EBUSY if we come here twice. */
-+	if (shrink)  {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+	/* try to free all pages in this cgroup */
-+	shrink = 1;
-+	while (nr_retries && mem->res.usage > 0) {
-+		int progress;
-+		progress = try_to_free_mem_cgroup_pages(mem,
-+						  GFP_HIGHUSER_MOVABLE);
-+		if (!progress)
-+			nr_retries--;
-+
-+	}
-+	/* try move_account...there may be some *locked* pages. */
-+	if (mem->res.usage)
-+		goto move_account;
-+	ret = 0;
-+	goto out;
+ }
+@@ -1958,7 +2010,7 @@ static void do_get_dqblk(struct dquot *d
+ 	spin_lock(&dq_data_lock);
+ 	di->dqb_bhardlimit = stoqb(dm->dqb_bhardlimit);
+ 	di->dqb_bsoftlimit = stoqb(dm->dqb_bsoftlimit);
+-	di->dqb_curspace = dm->dqb_curspace;
++	di->dqb_curspace = dm->dqb_curspace + dm->dqb_rsvspace;
+ 	di->dqb_ihardlimit = dm->dqb_ihardlimit;
+ 	di->dqb_isoftlimit = dm->dqb_isoftlimit;
+ 	di->dqb_curinodes = dm->dqb_curinodes;
+@@ -2297,6 +2349,7 @@ EXPORT_SYMBOL(dquot_alloc_space);
+ EXPORT_SYMBOL(dquot_alloc_inode);
+ EXPORT_SYMBOL(dquot_free_space);
+ EXPORT_SYMBOL(dquot_free_inode);
++EXPORT_SYMBOL(dquot_reserve_space);
+ EXPORT_SYMBOL(dquot_transfer);
+ EXPORT_SYMBOL(vfs_dq_transfer);
+ EXPORT_SYMBOL(vfs_dq_quota_on_remount);
+diff -puN include/linux/quota.h~quota-add-reservation-support-for-delayed-block-allocation include/linux/quota.h
+--- a/include/linux/quota.h~quota-add-reservation-support-for-delayed-block-allocation
++++ a/include/linux/quota.h
+@@ -186,6 +186,7 @@ struct mem_dqblk {
+ 	qsize_t dqb_bhardlimit;	/* absolute limit on disk blks alloc */
+ 	qsize_t dqb_bsoftlimit;	/* preferred limit on disk blks */
+ 	qsize_t dqb_curspace;	/* current used space */
++	qsize_t dqb_rsvspace;   /* current reserved space for delalloc*/
+ 	qsize_t dqb_ihardlimit;	/* absolute limit on allocated inodes */
+ 	qsize_t dqb_isoftlimit;	/* preferred inode limit */
+ 	qsize_t dqb_curinodes;	/* current # allocated inodes */
+@@ -291,6 +292,7 @@ struct dquot_operations {
+ 	int (*release_dquot) (struct dquot *);		/* Quota is going to be deleted from disk */
+ 	int (*mark_dirty) (struct dquot *);		/* Dquot is marked dirty */
+ 	int (*write_info) (struct super_block *, int);	/* Write of quota "superblock" */
++	int (*reserve_space) (struct inode *, qsize_t, int); /* reserve quota for delayed block allocation */
+ };
+ 
+ /* Operations handling requests from userspace */
+diff -puN include/linux/quotaops.h~quota-add-reservation-support-for-delayed-block-allocation include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-add-reservation-support-for-delayed-block-allocation
++++ a/include/linux/quotaops.h
+@@ -176,6 +176,16 @@ static inline int vfs_dq_alloc_space(str
+ 	return ret;
  }
  
- static u64 mem_cgroup_read(struct cgroup *cont, struct cftype *cft)
-@@ -1022,11 +1174,6 @@ static int mem_cgroup_reset(struct cgrou
++static inline int vfs_dq_reserve_space(struct inode *inode, qsize_t nr)
++{
++	if (sb_any_quota_active(inode->i_sb)) {
++		/* Used space is updated in alloc_space() */
++		if (inode->i_sb->dq_op->reserve_space(inode, nr, 0) == NO_QUOTA)
++			return 1;
++	}
++	return 0;
++}
++
+ static inline int vfs_dq_alloc_inode(struct inode *inode)
+ {
+ 	if (sb_any_quota_active(inode->i_sb)) {
+@@ -332,6 +342,11 @@ static inline int vfs_dq_alloc_space(str
  	return 0;
  }
  
--static int mem_force_empty_write(struct cgroup *cont, unsigned int event)
--{
--	return mem_cgroup_force_empty(mem_cgroup_from_cont(cont));
--}
--
- static const struct mem_cgroup_stat_desc {
- 	const char *msg;
- 	u64 unit;
-@@ -1103,10 +1250,6 @@ static struct cftype mem_cgroup_files[] 
- 		.read_u64 = mem_cgroup_read,
- 	},
- 	{
--		.name = "force_empty",
--		.trigger = mem_force_empty_write,
--	},
--	{
- 		.name = "stat",
- 		.read_map = mem_control_stat_show,
- 	},
++static inline int vfs_dq_reserve_space(struct inode *inode, qsize_t nr)
++{
++	return 0;
++}
++
+ static inline void vfs_dq_free_space_nodirty(struct inode *inode, qsize_t nr)
+ {
+ 	inode_sub_bytes(inode, nr);
+@@ -363,12 +378,19 @@ static inline int vfs_dq_alloc_block_nod
+ 			nr << inode->i_sb->s_blocksize_bits);
+ }
+ 
++
+ static inline int vfs_dq_alloc_block(struct inode *inode, qsize_t nr)
+ {
+ 	return vfs_dq_alloc_space(inode,
+ 			nr << inode->i_sb->s_blocksize_bits);
+ }
+ 
++static inline int vfs_dq_reserve_block(struct inode *inode, qsize_t nr)
++{
++	return vfs_dq_reserve_space(inode,
++			nr << inode->i_sb->s_blocksize_bits);
++}
++
+ static inline void vfs_dq_free_block_nodirty(struct inode *inode, qsize_t nr)
+ {
+ 	vfs_dq_free_space_nodirty(inode, nr << inode->i_sb->s_blocksize_bits);
+@@ -397,6 +419,7 @@ static inline void vfs_dq_free_block(str
+ #define DQUOT_ALLOC_BLOCK_NODIRTY(inode, nr) \
+ 				vfs_dq_alloc_block_nodirty(inode, nr)
+ #define DQUOT_ALLOC_BLOCK(inode, nr) vfs_dq_alloc_block(inode, nr)
++#define DQUOT_RESERVE_BLOCK(inode, nr) vfs_dq_reserve_block(inode, nr)
+ #define DQUOT_ALLOC_INODE(inode) vfs_dq_alloc_inode(inode)
+ #define DQUOT_FREE_SPACE_NODIRTY(inode, nr) \
+ 				vfs_dq_free_space_nodirty(inode, nr)
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from cmm@us.ibm.com are
 
-memory-hotplug-fix-page_zone-calculation-in-test_pages_isolated.patch
-cgroups-make-cgroup-config-a-submenu.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-fix-gfp_mask-of-callers-of-charge.patch
-memcg-simple-migration-handling.patch
-memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
+quota-add-reservation-support-for-delayed-block-allocation.patch
+quota-add-reservation-support-for-delayed-block-allocation-checkpatch-fixes.patch
+quota-add-quota-claim-and-release-reserved-quota-blocks-operations.patch
+quota-add-quota-claim-and-release-reserved-quota-blocks-operations-checkpatch-fixes.patch
+ext4-quota-handling-for-delayed-allocation.patch
+ext4-quota-handling-for-delayed-allocation-checkpatch-fixes.patch
 
