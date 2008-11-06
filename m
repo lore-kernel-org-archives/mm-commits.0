@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-fix-snd_bug_on-and-friends.patch added to -mm tree
-Date: Thu, 06 Nov 2008 12:05:21 -0800
-Message-ID: <200811062020.mA6KKO8T030775@imap1.linux-foundation.org>
+Subject: + binfmtsh-include-listh-fix.patch added to -mm tree
+Date: Thu, 06 Nov 2008 12:20:35 -0800
+Message-ID: <200811062035.mA6KZbP7005162@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40914 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752312AbYKFUUc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 15:20:32 -0500
+	by vger.kernel.org with ESMTP id S1750698AbYKFUga (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 15:36:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tiwai@suse.de
+Cc: akpm@linux-foundation.org, h-shimamoto@ct.jp.nec.com
 
 
 The patch titled
-     alsa: fix snd_BUG_on() and friends
+     binfmtsh-include-listh-fix
 has been added to the -mm tree.  Its filename is
-     alsa-fix-snd_bug_on-and-friends.patch
+     binfmtsh-include-listh-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alsa: fix snd_BUG_on() and friends
+Subject: binfmtsh-include-listh-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sound/pci/pcxhr/pcxhr_core.c: In function 'pcxhr_set_pipe_cmd_params':
-sound/pci/pcxhr/pcxhr_core.c:700: warning: statement with no effect
-sound/pci/pcxhr/pcxhr_core.c:706: warning: statement with no effect
-sound/pci/pcxhr/pcxhr_core.c:710: warning: statement with no effect
+/usr/src/devel/usr/include/linux/binfmts.h:4: included file 'linux/list.h' is not exported
 
-Due to
-
-#define snd_BUG_ON(cond)        ({ 0;})
-
-try to fix this, and be more conventional about the empty stubs.
-
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/sound/core.h |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ include/linux/binfmts.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/sound/core.h~alsa-fix-snd_bug_on-and-friends include/sound/core.h
---- a/include/sound/core.h~alsa-fix-snd_bug_on-and-friends
-+++ a/include/sound/core.h
-@@ -385,9 +385,13 @@ void snd_verbose_printd(const char *file
+diff -puN include/linux/binfmts.h~binfmtsh-include-listh-fix include/linux/binfmts.h
+--- a/include/linux/binfmts.h~binfmtsh-include-listh-fix
++++ a/include/linux/binfmts.h
+@@ -1,7 +1,6 @@
+ #ifndef _LINUX_BINFMTS_H
+ #define _LINUX_BINFMTS_H
  
- #else /* !CONFIG_SND_DEBUG */
+-#include <linux/list.h>
+ #include <linux/capability.h>
  
--#define snd_printd(fmt, args...)	/* nothing */
--#define snd_BUG()			/* nothing */
--#define snd_BUG_ON(cond)	({/*(void)(cond);*/ 0;})  /* always false */
-+#define snd_printd(fmt, args...)	do { } while (0)
-+#define snd_BUG()			do { } while (0)
-+static inline int __snd_bug_on(void)
-+{
-+	return 0;
-+}
-+#define snd_BUG_ON(cond)		__snd_bug_on()  /* always false */
+ struct pt_regs;
+@@ -19,6 +18,7 @@ struct pt_regs;
+ #define BINPRM_BUF_SIZE 128
  
- #endif /* CONFIG_SND_DEBUG */
+ #ifdef __KERNEL__
++#include <linux/list.h>
+ 
+ #define CORENAME_MAX_SIZE 128
  
 _
 
@@ -80,6 +70,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 autofs4-collect-version-check-return-checkpatch-fixes.patch
 maintainers-make-ioat-easier-to-find.patch
+binfmtsh-include-listh-fix.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 next-remove-localversion.patch
