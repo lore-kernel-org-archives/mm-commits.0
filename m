@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + freezer_cg-remove-task_lock-from-freezer_fork.patch added to -mm tree
-Date: Wed, 05 Nov 2008 13:01:25 -0800
-Message-ID: <200811052101.mA5L1PmM020730@imap1.linux-foundation.org>
+Subject: + sam9-watchdog-supported-on-all-sam9-and-cap9-processors.patch added to -mm tree
+Date: Wed, 05 Nov 2008 16:12:34 -0800
+Message-ID: <200811060012.mA60CYQo009269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751060AbYKEVDG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2008 16:03:06 -0500
+	by vger.kernel.org with ESMTP id S1752135AbYKFANN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2008 19:13:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, clg@fr.ibm.com, matthltc@us.ibm.com, menage@google.com, serue@us.ibm.com
+Cc: avictor.za@gmail.com, linux@maxim.org.za, wim@iguana.be
 
 
 The patch titled
-     freezer_cg: remove task_lock from freezer_fork()
+     SAM9 watchdog: supported on all SAM9 and CAP9 processors
 has been added to the -mm tree.  Its filename is
-     freezer_cg-remove-task_lock-from-freezer_fork.patch
+     sam9-watchdog-supported-on-all-sam9-and-cap9-processors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: freezer_cg: remove task_lock from freezer_fork()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: SAM9 watchdog: supported on all SAM9 and CAP9 processors
+From: "Andrew Victor" <avictor.za@gmail.com>
 
-In theory the task can be moved to another cgroup and the freezer will be
-freed right after task_lock is dropped, so the lock results in zero
-protection.
+The SAM9 watchdog driver is usable on the whole family of AT91SAM9 and
+CAP9 processors.  Update the configuration to indicate this and allow the
+driver to be selected.
 
-But in the case of freezer_fork() no lock is needed, since the task is not
-in tasklist yet so it won't be moved to another cgroup, so task->cgroups
-won't be changed or invalidated.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Andrew Victor <linux@maxim.org.za>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup_freezer.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/watchdog/Kconfig |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/cgroup_freezer.c~freezer_cg-remove-task_lock-from-freezer_fork kernel/cgroup_freezer.c
---- a/kernel/cgroup_freezer.c~freezer_cg-remove-task_lock-from-freezer_fork
-+++ a/kernel/cgroup_freezer.c
-@@ -184,9 +184,13 @@ static void freezer_fork(struct cgroup_s
- {
- 	struct freezer *freezer;
+diff -puN drivers/watchdog/Kconfig~sam9-watchdog-supported-on-all-sam9-and-cap9-processors drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~sam9-watchdog-supported-on-all-sam9-and-cap9-processors
++++ a/drivers/watchdog/Kconfig
+@@ -74,11 +74,11 @@ config AT91RM9200_WATCHDOG
+ 	  system when the timeout is reached.
  
--	task_lock(task);
-+	/*
-+	 * No lock is needed, since the task isn't on tasklist yet,
-+	 * so it can't be moved to another cgroup, which means the
-+	 * freezer won't be removed and will be valid during this
-+	 * function call.
-+	 */
- 	freezer = task_freezer(task);
--	task_unlock(task);
+ config AT91SAM9X_WATCHDOG
+-	tristate "AT91SAM9X watchdog"
+-	depends on WATCHDOG && (ARCH_AT91SAM9260 || ARCH_AT91SAM9261)
++	tristate "AT91SAM9X / AT91CAP9 watchdog"
++	depends on ARCH_AT91 && !ARCH_AT91RM9200
+ 	help
+-	  Watchdog timer embedded into AT91SAM9X chips. This will reboot your
+-	  system when the timeout is reached.
++	  Watchdog timer embedded into AT91SAM9X and AT91CAP9 chips. This will
++	  reboot your system when the timeout is reached.
  
- 	spin_lock_irq(&freezer->lock);
- 	BUG_ON(freezer->state == CGROUP_FROZEN);
+ config 21285_WATCHDOG
+ 	tristate "DC21285 watchdog"
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from avictor.za@gmail.com are
 
-cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed.patch
-documentation-kernel-parameterstxt-update-isolcpus-kernel-option.patch
-freezer_cg-remove-task_lock-from-freezer_fork.patch
+sam9-watchdog-update-for-moved-headers.patch
+sam9-watchdog-supported-on-all-sam9-and-cap9-processors.patch
 
