@@ -1,86 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix-2.patch removed from -mm tree
-Date: Thu, 06 Nov 2008 12:47:15 -0800
-Message-ID: <200811062047.mA6KlFk2010458@imap1.linux-foundation.org>
+Subject: + b1isa-fix-b1isa_exit-to-really-remove-registered-capi-controllers.patch added to -mm tree
+Date: Thu, 06 Nov 2008 13:21:43 -0800
+Message-ID: <200811062121.mA6LLh4Q026313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34009 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751353AbYKFUuH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 15:50:07 -0500
+	by vger.kernel.org with ESMTP id S1753376AbYKFVW3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 16:22:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agust@denx.de, avorontsov@ru.mvista.com, dbaryshkov@gmail.com, krzysztof.h1@poczta.fm, m.fortini@selcomgroup.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: linux-kernel@lebenslange-mailadresse.de, calle@calle.de, kkeil@suse.de, stable@kernel.org
 
 
 The patch titled
-     fbdev: Fujitsu MB862xx framebuffer driver i386 allmodconfig fix
-has been removed from the -mm tree.  Its filename was
-     add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix-2.patch
+     b1isa: fix b1isa_exit() to really remove registered capi controllers
+has been added to the -mm tree.  Its filename is
+     b1isa-fix-b1isa_exit-to-really-remove-registered-capi-controllers.patch
 
-This patch was dropped because it was folded into add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: Fujitsu MB862xx framebuffer driver i386 allmodconfig fix
-From: Anatolij Gustschin <agust@denx.de>
+Subject: b1isa: fix b1isa_exit() to really remove registered capi controllers
+From: Wilfried Klaebe <linux-kernel@lebenslange-mailadresse.de>
 
-Fix i386 allmodconfig build previously failed with:
+On "/etc/init.d/capiutils stop", this oops happened.
 
-drivers/video/mb862xx/mb862xxfb.h:65:2: error: #error "Select Lime GDC or CoralP/Carmine support, but not both together"
-drivers/video/mb862xx/mb862xxfb.c:549: warning: 'struct of_device' declared inside parameter list
-drivers/video/mb862xx/mb862xxfb.c:549: warning: its scope is only this definition or declaration, which is probably not what you want
-...
+The oops happens on reading /proc/capi/controllers because
+capi_ctrl->procinfo is called for the wrongly not unregistered
+controller, which points to b1isa_procinfo(), which was removed on
+module unload.
 
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Matteo Fortini <m.fortini@selcomgroup.com>
+b1isa_exit() did not call b1isa_remove() for its controllers because
+io[0] == 0 on module unload despite having been 0x340 on module load.
+
+Besides, just removing the controllers that where added on module
+load time and not those that were added later via b1isa_add_card() is
+wrong too - the place where all added cards are found is isa_dev[].
+
+relevant dmesg lines:
+
+[    0.000000] Linux version 2.6.27.4 (w@shubashi) (gcc version 4.3.2 (Debian 4.3.2-1) ) #3 Thu Oct 30 16:49:03 CET 2008
+
+[   67.403555] CAPI Subsystem Rev 1.1.2.8
+[   68.529154] capifs: Rev 1.1.2.3
+[   68.563292] capi20: Rev 1.1.2.7: started up with major 68 (middleware+capifs)
+[   77.026936] b1: revision 1.1.2.2
+[   77.049992] b1isa: revision 1.1.2.3
+[   77.722655] kcapi: Controller [001]: b1isa-340 attached
+[   77.722671] b1isa: AVM B1 ISA at i/o 0x340, irq 5, revision 255
+[   81.272669] b1isa-340: card 1 "B1" ready.
+[   81.272683] b1isa-340: card 1 Protocol: DSS1
+[   81.272689] b1isa-340: card 1 Linetype: point to multipoint
+[   81.272695] b1isa-340: B1-card (3.11-03) now active
+[   81.272702] kcapi: card [001] "b1isa-340" ready.
+
+[  153.721281] kcapi: card [001] down.
+[  154.151889] BUG: unable to handle kernel paging request at e87af000
+[  154.152081] IP: [<e87af000>]
+[  154.153292] *pde = 2655b067 *pte = 00000000
+[  154.153307] Oops: 0000 [#1]
+[  154.153360] Modules linked in: rfcomm l2cap ppdev lp ipt_MASQUERADE tun capi capifs kernelcapi ac battery nfsd exportfs nfs lockd nfs_acl sunrpc sit tunnel4 bridge stp llc ipt_REJECT ipt_LOG xt_tcpudp xt_state iptable_filter iptable_mangle iptable_nat nf_nat nf_conntrack_ipv4 nf_conntrack ip_tables x_tables nls_utf8 isofs nls_base zlib_inflate loop ipv6 netconsole snd_via82xx dvb_usb_dib0700 gameport dib7000p dib7000m dvb_usb snd_ac97_codec ac97_bus dvb_core mt2266 snd_pcm tuner_xc2028 dib3000mc dibx000_common mt2060 dib0070 snd_page_alloc snd_mpu401_uart snd_seq_midi snd_seq_midi_event btusb snd_rawmidi bluetooth snd_seq snd_timer snd_seq_device snd via686a i2c_viapro soundcore i2c_core parport_pc parport button dm_mirror dm_log dm_snapshot floppy sg ohci1394 uhci_hcd ehci_hcd 8139too 
+ mii ieee1394 usbcore sr_mod cdrom sd_mod thermal processor fan [last unloaded: b1]
+[  154.153360]
+[  154.153360] Pid: 4132, comm: capiinit Not tainted (2.6.27.4 #3)
+[  154.153360] EIP: 0060:[<e87af000>] EFLAGS: 00010286 CPU: 0
+[  154.153360] EIP is at 0xe87af000
+[  154.153360] EAX: e6b9ccc8 EBX: e6b9ccc8 ECX: e87a0c67 EDX: e87af000
+[  154.153360] ESI: e142bbc0 EDI: e87a56e0 EBP: e0505f0c ESP: e0505ee4
+[  154.153360]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+[  154.153360] Process capiinit (pid: 4132, ti=e0504000 task=d1196cf0 task.ti=e0504000)
+[  154.153360] Stack: e879f650 00000246 e0505ef4 c01472eb e0505f0c 00000246 e7001780 fffffff4
+[  154.153360]        fffffff4 e142bbc0 e0505f48 c01a56c6 00000400 b805e000 d102dc80 e142bbe0
+[  154.153360]        00000000 e87a56e0 00000246 e12617ac 00000000 00000000 e1261760 fffffffb
+[  154.153360] Call Trace:
+[  154.153360]  [<e879f650>] ? controller_show+0x20/0x90 [kernelcapi]
+[  154.153360]  [<c01472eb>] ? trace_hardirqs_on+0xb/0x10
+[  154.153360]  [<c01a56c6>] ? seq_read+0x126/0x2f0
+[  154.153360]  [<c01a55a0>] ? seq_read+0x0/0x2f0
+[  154.153360]  [<c01c033c>] ? proc_reg_read+0x5c/0x90
+[  154.153360]  [<c0189919>] ? vfs_read+0x99/0x140
+[  154.153360]  [<c01c02e0>] ? proc_reg_read+0x0/0x90
+[  154.153360]  [<c0189a7d>] ? sys_read+0x3d/0x70
+[  154.153360]  [<c0103c3d>] ? sysenter_do_call+0x12/0x35
+[  154.153360]  =======================
+[  154.153360] Code:  Bad EIP value.
+[  154.153360] EIP: [<e87af000>] 0xe87af000 SS:ESP 0068:e0505ee4
+[  154.153360] ---[ end trace 23750b6c2862de94 ]---
+
+Signed-off-by: Wilfried Klaebe <linux-kernel@lebenslange-mailadresse.de>
+Cc: <calle@calle.de>
+Cc: Karsten Keil <kkeil@suse.de>
+Cc: <stable@kernel.org> 	[2.6.everything]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig             |    3 ++-
- drivers/video/mb862xx/mb862xxfb.c |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/isdn/hardware/avm/b1isa.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/Kconfig~add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix-2 drivers/video/Kconfig
---- a/drivers/video/Kconfig~add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix-2
-+++ a/drivers/video/Kconfig
-@@ -2094,7 +2094,7 @@ config FB_MB862XX
+diff -puN drivers/isdn/hardware/avm/b1isa.c~b1isa-fix-b1isa_exit-to-really-remove-registered-capi-controllers drivers/isdn/hardware/avm/b1isa.c
+--- a/drivers/isdn/hardware/avm/b1isa.c~b1isa-fix-b1isa_exit-to-really-remove-registered-capi-controllers
++++ a/drivers/isdn/hardware/avm/b1isa.c
+@@ -233,10 +233,8 @@ static void __exit b1isa_exit(void)
+ 	int i;
  
- config FB_MB862XX_PCI_GDC
- 	bool "Carmine/Coral-P(A) GDC"
--	depends on FB_MB862XX
-+	depends on PCI && FB_MB862XX
- 	---help---
- 	  This enables framebuffer support for Fujitsu Carmine/Coral-P(A)
- 	  PCI graphics controller devices.
-@@ -2102,6 +2102,7 @@ config FB_MB862XX_PCI_GDC
- config FB_MB862XX_LIME
- 	bool "Lime GDC"
- 	depends on FB_MB862XX
-+	depends on OF && !FB_MB862XX_PCI_GDC
- 	select FB_FOREIGN_ENDIAN
- 	select FB_LITTLE_ENDIAN
- 	---help---
-diff -puN drivers/video/mb862xx/mb862xxfb.c~add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix-2 drivers/video/mb862xx/mb862xxfb.c
---- a/drivers/video/mb862xx/mb862xxfb.c~add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix-2
-+++ a/drivers/video/mb862xx/mb862xxfb.c
-@@ -554,7 +554,7 @@ static int __devinit of_platform_mb862xx
- 	struct fb_info *info;
- 	struct resource res;
- 	resource_size_t res_size;
--	unsigned long ret;
-+	unsigned long ret = -ENODEV;
- 
- 	if (of_address_to_resource(np, 0, &res)) {
- 		dev_err(dev, "Invalid address\n");
-_
-
-Patches currently in -mm which might be from agust@denx.de are
-
-add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs.patch
-add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix-2.patch
-
+ 	for (i = 0; i < MAX_CARDS; i++) {
+-		if (!io[i])
+-			break;
