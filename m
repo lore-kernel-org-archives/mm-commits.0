@@ -1,76 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + sam9-watchdog-supported-on-all-sam9-and-cap9-processors.patch added to -mm tree
-Date: Wed, 05 Nov 2008 16:12:34 -0800
-Message-ID: <200811060012.mA60CYQo009269@imap1.linux-foundation.org>
+Subject: - ia64-use-common-header-for-software-io-tlb.patch removed from -mm tree
+Date: Thu, 06 Nov 2008 11:20:05 -0800
+Message-ID: <200811061920.mA6JK51S003619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752135AbYKFANN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Nov 2008 19:13:13 -0500
+	by vger.kernel.org with ESMTP id S1750774AbYKFTUJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 14:20:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: avictor.za@gmail.com, linux@maxim.org.za, wim@iguana.be
+To: joerg.roedel@amd.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SAM9 watchdog: supported on all SAM9 and CAP9 processors
-has been added to the -mm tree.  Its filename is
-     sam9-watchdog-supported-on-all-sam9-and-cap9-processors.patch
+     ia64: use common header for software IO/TLB
+has been removed from the -mm tree.  Its filename was
+     ia64-use-common-header-for-software-io-tlb.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SAM9 watchdog: supported on all SAM9 and CAP9 processors
-From: "Andrew Victor" <avictor.za@gmail.com>
+Subject: ia64: use common header for software IO/TLB
+From: Joerg Roedel <joerg.roedel@amd.com>
 
-The SAM9 watchdog driver is usable on the whole family of AT91SAM9 and
-CAP9 processors.  Update the configuration to indicate this and allow the
-driver to be selected.
+Remove the swiotlb prototypes from the architecture code and use the
+common header file instead.
 
-Signed-off-by: Andrew Victor <linux@maxim.org.za>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/ia64/hp/common/hwsw_iommu.c |    9 +--------
+ arch/ia64/include/asm/machvec.h  |   22 +---------------------
+ 2 files changed, 2 insertions(+), 29 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~sam9-watchdog-supported-on-all-sam9-and-cap9-processors drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~sam9-watchdog-supported-on-all-sam9-and-cap9-processors
-+++ a/drivers/watchdog/Kconfig
-@@ -74,11 +74,11 @@ config AT91RM9200_WATCHDOG
- 	  system when the timeout is reached.
+diff -puN arch/ia64/hp/common/hwsw_iommu.c~ia64-use-common-header-for-software-io-tlb arch/ia64/hp/common/hwsw_iommu.c
+--- a/arch/ia64/hp/common/hwsw_iommu.c~ia64-use-common-header-for-software-io-tlb
++++ a/arch/ia64/hp/common/hwsw_iommu.c
+@@ -13,19 +13,12 @@
+  */
  
- config AT91SAM9X_WATCHDOG
--	tristate "AT91SAM9X watchdog"
--	depends on WATCHDOG && (ARCH_AT91SAM9260 || ARCH_AT91SAM9261)
-+	tristate "AT91SAM9X / AT91CAP9 watchdog"
-+	depends on ARCH_AT91 && !ARCH_AT91RM9200
- 	help
--	  Watchdog timer embedded into AT91SAM9X chips. This will reboot your
--	  system when the timeout is reached.
-+	  Watchdog timer embedded into AT91SAM9X and AT91CAP9 chips. This will
-+	  reboot your system when the timeout is reached.
+ #include <linux/device.h>
++#include <linux/swiotlb.h>
  
- config 21285_WATCHDOG
- 	tristate "DC21285 watchdog"
-_
-
-Patches currently in -mm which might be from avictor.za@gmail.com are
-
-sam9-watchdog-update-for-moved-headers.patch
-sam9-watchdog-supported-on-all-sam9-and-cap9-processors.patch
-
+ #include <asm/machvec.h>
+ 
+ /* swiotlb declarations & definitions: */
+ extern int swiotlb_late_init_with_default_size (size_t size);
+-extern ia64_mv_dma_alloc_coherent	swiotlb_alloc_coherent;
+-extern ia64_mv_dma_free_coherent	swiotlb_free_coherent;
+-extern ia64_mv_dma_map_single_attrs	swiotlb_map_single_attrs;
+-extern ia64_mv_dma_unmap_single_attrs	swiotlb_unmap_single_attrs;
+-extern ia64_mv_dma_map_sg_attrs		swiotlb_map_sg_attrs;
+-extern ia64_mv_dma_unmap_sg_attrs	swiotlb_unmap_sg_attrs;
+-extern ia64_mv_dma_supported		swiotlb_dma_supported;
+-extern ia64_mv_dma_mapping_error	swiotlb_dma_mapping_error;
+ 
+ /* hwiommu declarations & definitions: */
+ 
+diff -puN arch/ia64/include/asm/machvec.h~ia64-use-common-header-for-software-io-tlb arch/ia64/include/asm/machvec.h
+--- a/arch/ia64/include/asm/machvec.h~ia64-use-common-header-for-software-io-tlb
++++ a/arch/ia64/include/asm/machvec.h
+@@ -11,6 +11,7 @@
+ #define _ASM_IA64_MACHVEC_H
+ 
+ #include <linux/types.h>
++#include <linux/swiotlb.h>
+ 
+ /* forward declarations: */
+ struct device;
+@@ -298,27 +299,6 @@ extern void machvec_init_from_cmdline(co
+ # endif /* CONFIG_IA64_GENERIC */
+ 
+ /*
+- * Declare default routines which aren't declared anywhere else:
+- */
+-extern ia64_mv_dma_init			swiotlb_init;
+-extern ia64_mv_dma_alloc_coherent	swiotlb_alloc_coherent;
+-extern ia64_mv_dma_free_coherent	swiotlb_free_coherent;
+-extern ia64_mv_dma_map_single		swiotlb_map_single;
+-extern ia64_mv_dma_map_single_attrs	swiotlb_map_single_attrs;
+-extern ia64_mv_dma_unmap_single		swiotlb_unmap_single;
+-extern ia64_mv_dma_unmap_single_attrs	swiotlb_unmap_single_attrs;
+-extern ia64_mv_dma_map_sg		swiotlb_map_sg;
+-extern ia64_mv_dma_map_sg_attrs		swiotlb_map_sg_attrs;
+-extern ia64_mv_dma_unmap_sg		swiotlb_unmap_sg;
+-extern ia64_mv_dma_unmap_sg_attrs	swiotlb_unmap_sg_attrs;
+-extern ia64_mv_dma_sync_single_for_cpu	swiotlb_sync_single_for_cpu;
+-extern ia64_mv_dma_sync_sg_for_cpu	swiotlb_sync_sg_for_cpu;
+-extern ia64_mv_dma_sync_single_for_device swiotlb_sync_single_for_device;
+-extern ia64_mv_dma_sync_sg_for_device	swiotlb_sync_sg_for_device;
+-extern ia64_mv_dma_mapping_error	swiotlb_dma_mapping_error;
+-extern ia64_mv_dma_supported		swiotlb_dma_supported;
