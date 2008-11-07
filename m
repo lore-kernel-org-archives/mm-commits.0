@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Thu, 06 Nov 2008 16:41:03 -0800
-Message-ID: <200811070041.mA70f3nF020796@imap1.linux-foundation.org>
+Subject: + arm-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Thu, 06 Nov 2008 16:40:56 -0800
+Message-ID: <200811070040.mA70eu5m020731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59550 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754884AbYKGAlO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 19:41:14 -0500
+	by vger.kernel.org with ESMTP id S1755132AbYKGAlQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 19:41:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, ysato@users.sourceforge.jp
+Cc: harvey.harrison@gmail.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     h8300: use the new byteorder headers
+     arm: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     h8300-use-the-new-byteorder-headers.patch
+     arm-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: use the new byteorder headers
+Subject: arm: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/include/asm/byteorder.h |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ arch/arm/include/asm/byteorder.h |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN arch/h8300/include/asm/byteorder.h~h8300-use-the-new-byteorder-headers arch/h8300/include/asm/byteorder.h
---- a/arch/h8300/include/asm/byteorder.h~h8300-use-the-new-byteorder-headers
-+++ a/arch/h8300/include/asm/byteorder.h
-@@ -1,13 +1,9 @@
- #ifndef _H8300_BYTEORDER_H
- #define _H8300_BYTEORDER_H
+diff -puN arch/arm/include/asm/byteorder.h~arm-use-the-new-byteorder-headers arch/arm/include/asm/byteorder.h
+--- a/arch/arm/include/asm/byteorder.h~arm-use-the-new-byteorder-headers
++++ a/arch/arm/include/asm/byteorder.h
+@@ -18,7 +18,15 @@
+ #include <linux/compiler.h>
+ #include <asm/types.h>
  
--#include <asm/types.h>
-+#define __BIG_ENDIAN
+-static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
++#ifdef __ARMEB__
++# define __BIG_ENDIAN
++#else
++# define __LITTLE_ENDIAN
++#endif
++
 +#define __SWAB_64_THRU_32__
++
++static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
+ {
+ 	__u32 t;
  
--#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+@@ -40,19 +48,8 @@ static inline __attribute_const__ __u32 
+ 
+ 	return x;
+ }
++#define __arch_swab32 __arch_swab32
+ 
+-#define __arch__swab32(x) ___arch__swab32(x)
+-
+-#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
 -#  define __BYTEORDER_HAS_U64__
 -#  define __SWAB_64_THRU_32__
 -#endif
 -
+-#ifdef __ARMEB__
 -#include <linux/byteorder/big_endian.h>
+-#else
+-#include <linux/byteorder/little_endian.h>
+-#endif
 +#include <linux/byteorder.h>
  
- #endif /* _H8300_BYTEORDER_H */
+ #endif
+-
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
