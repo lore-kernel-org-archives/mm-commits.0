@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ics932s401-new-driver.patch added to -mm tree
-Date: Fri, 07 Nov 2008 11:32:25 -0800
-Message-ID: <200811071932.mA7JWPeP008706@imap1.linux-foundation.org>
+Subject: + fix-platform-drivers-that-crash-on-suspend-resume.patch added to -mm tree
+Date: Fri, 07 Nov 2008 11:35:33 -0800
+Message-ID: <200811071935.mA7JZXRD010295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34103 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751400AbYKGTca (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 14:32:30 -0500
+	by vger.kernel.org with ESMTP id S1751353AbYKGTgE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 14:36:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: djwong@us.ibm.com
+Cc: djwong@us.ibm.com, greg@kroah.com, kay.sievers@vrfy.org, khali@linux-fr.org, minyard@acm.org
 
 
 The patch titled
-     ics932s401: new clock generator chip driver
+     Fix platform drivers that crash on suspend/resume
 has been added to the -mm tree.  Its filename is
-     ics932s401-new-driver.patch
+     fix-platform-drivers-that-crash-on-suspend-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,611 +33,217 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ics932s401: new clock generator chip driver
+Subject: Fix platform drivers that crash on suspend/resume
 From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-The ics932s401 is a clock generator chip.  This driver allows users to
-read the current clock outputs.
+It turns out that if one registers a struct platform_device, the platform
+device code expects that platform_device.device->driver points to a struct
+driver inside a struct platform_driver.  This is not the case with the
+ipmi-si, ipmi-msghandler and ibmaem drivers, which causes the
+suspend/resume hook functions to jump off into nowhere, causing a crash. 
+Make this assumption hold true for these three drivers.
 
 Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ics932s401  |   31 ++
- drivers/misc/Kconfig      |   10 
- drivers/misc/Makefile     |    1 
- drivers/misc/ics932s401.c |  515 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 557 insertions(+)
+ drivers/char/ipmi/ipmi_msghandler.c |   20 +++++++++++---------
+ drivers/char/ipmi/ipmi_si_intf.c    |   16 +++++++++-------
+ drivers/hwmon/ibmaem.c              |   18 ++++++++++--------
+ 3 files changed, 30 insertions(+), 24 deletions(-)
 
-diff -puN /dev/null Documentation/ics932s401
---- /dev/null
-+++ a/Documentation/ics932s401
-@@ -0,0 +1,31 @@
-+Kernel driver ics932s401
-+======================
-+
-+Supported chips:
-+  * IDT ICS932S401
-+    Prefix: 'ics932s401'
-+    Addresses scanned: I2C 0x69
-+    Datasheet: Publically available at the IDT website
-+
-+Author: Darrick J. Wong
-+
-+Description
-+-----------
-+
-+This driver implements support for the IDT ICS932S401 chip family.
-+
-+This chip has 4 clock outputs--a base clock for the CPU (which is likely
-+multiplied to get the real CPU clock), a system clock, a PCI clock, a USB
-+clock, and a reference clock.  The driver reports selected and actual
-+frequency.  If spread spectrum mode is enabled, the driver also reports by what
-+percent the clock signal is being spread, which should be between 0 and -0.5%.
-+All frequencies are reported in KHz.
-+
-+The ICS932S401 monitors all inputs continuously. The driver will not read
-+the registers more often than once every other second.
-+
-+Special Features
-+----------------
-+
-+The clocks could be reprogrammed to increase system speed.  I will not help you
-+do this, as you risk damaging your system!
-diff -puN drivers/misc/Kconfig~ics932s401-new-driver drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~ics932s401-new-driver
-+++ a/drivers/misc/Kconfig
-@@ -227,6 +227,16 @@ config HP_WMI
-          To compile this driver as a module, choose M here: the module will
-          be called hp-wmi.
- 
-+config ICS932S401
-+	tristate "Integrated Circuits ICS932S401"
-+	depends on I2C && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the Integrated Circuits
-+	  ICS932S401 clock control chips.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called ics932s401.
-+
- config MSI_LAPTOP
-         tristate "MSI Laptop Extras"
-         depends on X86
-diff -puN drivers/misc/Makefile~ics932s401-new-driver drivers/misc/Makefile
---- a/drivers/misc/Makefile~ics932s401-new-driver
-+++ a/drivers/misc/Makefile
-@@ -14,6 +14,7 @@ obj-$(CONFIG_ATMEL_PWM)		+= atmel_pwm.o
- obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
- obj-$(CONFIG_ATMEL_TCLIB)	+= atmel_tclib.o
- obj-$(CONFIG_HP_WMI)		+= hp-wmi.o
-+obj-$(CONFIG_ICS932S401)	+= ics932s401.o
- obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
- obj-$(CONFIG_LKDTM)		+= lkdtm.o
- obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
-diff -puN /dev/null drivers/misc/ics932s401.c
---- /dev/null
-+++ a/drivers/misc/ics932s401.c
-@@ -0,0 +1,515 @@
-+/*
-+ * A driver for the Integrated Circuits ICS932S401
-+ * Copyright (C) 2008 IBM
-+ *
-+ * Author: Darrick J. Wong <djwong@us.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/jiffies.h>
-+#include <linux/i2c.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+#include <linux/delay.h>
-+#include <linux/log2.h>
-+
-+/* Addresses to scan */
-+static const unsigned short normal_i2c[] = { 0x69, I2C_CLIENT_END };
-+
-+/* Insmod parameters */
-+I2C_CLIENT_INSMOD_1(ics932s401);
-+
-+/* ICS932S401 registers */
-+#define ICS932S401_REG_CFG2			0x01
-+#define 	ICS932S401_CFG1_SPREAD		0x01
-+#define ICS932S401_REG_CFG7			0x06
-+#define		ICS932S401_FS_MASK		0x07
-+#define	ICS932S401_REG_VENDOR_REV		0x07
-+#define		ICS932S401_VENDOR		1
-+#define		ICS932S401_VENDOR_MASK		0x0F
-+#define		ICS932S401_REV			4
-+#define		ICS932S401_REV_SHIFT		4
-+#define ICS932S401_REG_DEVICE			0x09
-+#define		ICS932S401_DEVICE		11
-+#define	ICS932S401_REG_CTRL			0x0A
-+#define		ICS932S401_MN_ENABLED		0x80
-+#define		ICS932S401_CPU_ALT		0x04
-+#define		ICS932S401_SRC_ALT		0x08
-+#define ICS932S401_REG_CPU_M_CTRL		0x0B
-+#define		ICS932S401_M_MASK		0x3F
-+#define	ICS932S401_REG_CPU_N_CTRL		0x0C
-+#define	ICS932S401_REG_CPU_SPREAD1		0x0D
-+#define ICS932S401_REG_CPU_SPREAD2		0x0E
-+#define		ICS932S401_SPREAD_MASK		0x7FFF
-+#define ICS932S401_REG_SRC_M_CTRL		0x0F
-+#define ICS932S401_REG_SRC_N_CTRL		0x10
-+#define	ICS932S401_REG_SRC_SPREAD1		0x11
-+#define ICS932S401_REG_SRC_SPREAD2		0x12
-+#define ICS932S401_REG_CPU_DIVISOR		0x13
-+#define 	ICS932S401_CPU_DIVISOR_SHIFT	4
-+#define ICS932S401_REG_PCISRC_DIVISOR		0x14
-+#define		ICS932S401_SRC_DIVISOR_MASK	0x0F
-+#define		ICS932S401_PCI_DIVISOR_SHIFT	4
-+
-+/* Base clock is 14.318MHz */
-+#define BASE_CLOCK				14318
-+
-+#define NUM_REGS				21
-+#define NUM_MIRRORED_REGS			15
-+
-+static int regs_to_copy[NUM_MIRRORED_REGS] = {
-+	ICS932S401_REG_CFG2,
-+	ICS932S401_REG_CFG7,
-+	ICS932S401_REG_VENDOR_REV,
-+	ICS932S401_REG_DEVICE,
-+	ICS932S401_REG_CTRL,
-+	ICS932S401_REG_CPU_M_CTRL,
-+	ICS932S401_REG_CPU_N_CTRL,
-+	ICS932S401_REG_CPU_SPREAD1,
-+	ICS932S401_REG_CPU_SPREAD2,
-+	ICS932S401_REG_SRC_M_CTRL,
-+	ICS932S401_REG_SRC_N_CTRL,
-+	ICS932S401_REG_SRC_SPREAD1,
-+	ICS932S401_REG_SRC_SPREAD2,
-+	ICS932S401_REG_CPU_DIVISOR,
-+	ICS932S401_REG_PCISRC_DIVISOR,
-+};
-+
-+/* How often do we reread sensors values? (In jiffies) */
-+#define SENSOR_REFRESH_INTERVAL	(2 * HZ)
-+
-+/* How often do we reread sensor limit values? (In jiffies) */
-+#define LIMIT_REFRESH_INTERVAL	(60 * HZ)
-+
-+struct ics932s401_data {
-+	struct attribute_group	attrs;
-+	struct mutex		lock;
-+	char			sensors_valid;
-+	unsigned long		sensors_last_updated;	/* In jiffies */
-+
-+	u8			regs[NUM_REGS];
-+};
-+
-+static int ics932s401_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id);
-+static int ics932s401_detect(struct i2c_client *client, int kind,
-+			  struct i2c_board_info *info);
-+static int ics932s401_remove(struct i2c_client *client);
-+
-+static const struct i2c_device_id ics932s401_id[] = {
-+	{ "ics932s401", ics932s401 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, ics932s401_id);
-+
-+static struct i2c_driver ics932s401_driver = {
-+	.class		= I2C_CLASS_HWMON,
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~fix-platform-drivers-that-crash-on-suspend-resume
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -422,9 +422,11 @@ struct ipmi_smi {
+ /**
+  * The driver model view of the IPMI messaging driver.
+  */
+-static struct device_driver ipmidriver = {
+-	.name = "ipmi",
+-	.bus = &platform_bus_type
++static struct platform_driver ipmidriver = {
 +	.driver = {
-+		.name	= "ics932s401",
-+	},
-+	.probe		= ics932s401_probe,
-+	.remove		= ics932s401_remove,
-+	.id_table	= ics932s401_id,
-+	.detect		= ics932s401_detect,
-+	.address_data	= &addr_data,
-+};
-+
-+static struct ics932s401_data *ics932s401_update_device(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ics932s401_data *data = i2c_get_clientdata(client);
-+	unsigned long local_jiffies = jiffies;
-+	int i, temp;
-+
-+	mutex_lock(&data->lock);
-+	if (time_before(local_jiffies, data->sensors_last_updated +
-+		SENSOR_REFRESH_INTERVAL)
-+		&& data->sensors_valid)
-+		goto out;
-+
-+	/*
-+	 * Each register must be read as a word and then right shifted 8 bits.
-+	 * Not really sure why this is; setting the "byte count programming"
-+	 * register to 1 does not fix this problem.
-+	 */
-+	for (i = 0; i < NUM_MIRRORED_REGS; i++) {
-+		temp = i2c_smbus_read_word_data(client, regs_to_copy[i]);
-+		data->regs[regs_to_copy[i]] = temp >> 8;
++		.name = "ipmi",
++		.bus = &platform_bus_type
 +	}
-+
-+	data->sensors_last_updated = local_jiffies;
-+	data->sensors_valid = 1;
-+
-+out:
-+	mutex_unlock(&data->lock);
-+	return data;
-+}
-+
-+static ssize_t show_spread_enabled(struct device *dev,
-+				   struct device_attribute *devattr,
-+				   char *buf)
-+{
-+	struct ics932s401_data *data = ics932s401_update_device(dev);
-+
-+	if (data->regs[ICS932S401_REG_CFG2] & ICS932S401_CFG1_SPREAD)
-+		return sprintf(buf, "1\n");
-+
-+	return sprintf(buf, "0\n");
-+}
-+
-+/* bit to cpu khz map */
-+static const int fs_speeds[] = {
-+	266666,
-+	133333,
-+	200000,
-+	166666,
-+	333333,
-+	100000,
-+	400000,
-+	0,
-+};
-+
-+/* clock divisor map */
-+static const int divisors[] = {2, 3, 5, 15, 4, 6, 10, 30, 8, 12, 20, 60, 16,
-+			       24, 40, 120};
-+
-+/* Calculate CPU frequency from the M/N registers. */
-+static int calculate_cpu_freq(struct ics932s401_data *data)
-+{
-+	int m, n, freq;
-+
-+	m = data->regs[ICS932S401_REG_CPU_M_CTRL] & ICS932S401_M_MASK;
-+	n = data->regs[ICS932S401_REG_CPU_N_CTRL];
-+
-+	/* Pull in bits 8 & 9 from the M register */
-+	n |= ((int)data->regs[ICS932S401_REG_CPU_M_CTRL] & 0x80) << 1;
-+	n |= ((int)data->regs[ICS932S401_REG_CPU_M_CTRL] & 0x40) << 3;
-+
-+	freq = BASE_CLOCK * (n + 8) / (m + 2);
-+	freq /= divisors[data->regs[ICS932S401_REG_CPU_DIVISOR] >>
-+			 ICS932S401_CPU_DIVISOR_SHIFT];
-+
-+	return freq;
-+}
-+
-+static ssize_t show_cpu_clock(struct device *dev,
-+			      struct device_attribute *devattr,
-+			      char *buf)
-+{
-+	struct ics932s401_data *data = ics932s401_update_device(dev);
-+
-+	return sprintf(buf, "%d\n", calculate_cpu_freq(data));
-+}
-+
-+static ssize_t show_cpu_clock_sel(struct device *dev,
-+				  struct device_attribute *devattr,
-+				  char *buf)
-+{
-+	struct ics932s401_data *data = ics932s401_update_device(dev);
-+	int freq;
-+
-+	if (data->regs[ICS932S401_REG_CTRL] & ICS932S401_MN_ENABLED)
-+		freq = calculate_cpu_freq(data);
-+	else {
-+		/* Freq is neatly wrapped up for us */
-+		int fid = data->regs[ICS932S401_REG_CFG7] & ICS932S401_FS_MASK;
-+		freq = fs_speeds[fid];
-+		if (data->regs[ICS932S401_REG_CTRL] & ICS932S401_CPU_ALT) {
-+			switch (freq) {
-+			case 166666:
-+				freq = 160000;
-+				break;
-+			case 333333:
-+				freq = 320000;
-+				break;
-+			}
-+		}
+ };
+ static DEFINE_MUTEX(ipmidriver_mutex);
+ 
+@@ -2384,9 +2386,9 @@ static int ipmi_bmc_register(ipmi_smi_t 
+ 	 * representing the interfaced BMC already
+ 	 */
+ 	if (bmc->guid_set)
+-		old_bmc = ipmi_find_bmc_guid(&ipmidriver, bmc->guid);
++		old_bmc = ipmi_find_bmc_guid(&ipmidriver.driver, bmc->guid);
+ 	else
+-		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver,
++		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
+ 						    bmc->id.product_id,
+ 						    bmc->id.device_id);
+ 
+@@ -2416,7 +2418,7 @@ static int ipmi_bmc_register(ipmi_smi_t 
+ 		snprintf(name, sizeof(name),
+ 			 "ipmi_bmc.%4.4x", bmc->id.product_id);
+ 
+-		while (ipmi_find_bmc_prod_dev_id(&ipmidriver,
++		while (ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
+ 						 bmc->id.product_id,
+ 						 bmc->id.device_id)) {
+ 			if (!warn_printed) {
+@@ -2446,7 +2448,7 @@ static int ipmi_bmc_register(ipmi_smi_t 
+ 			       " Unable to allocate platform device\n");
+ 			return -ENOMEM;
+ 		}
+-		bmc->dev->dev.driver = &ipmidriver;
++		bmc->dev->dev.driver = &ipmidriver.driver;
+ 		dev_set_drvdata(&bmc->dev->dev, bmc);
+ 		kref_init(&bmc->refcount);
+ 
+@@ -4247,7 +4249,7 @@ static int ipmi_init_msghandler(void)
+ 	if (initialized)
+ 		return 0;
+ 
+-	rv = driver_register(&ipmidriver);
++	rv = driver_register(&ipmidriver.driver);
+ 	if (rv) {
+ 		printk(KERN_ERR PFX "Could not register IPMI driver\n");
+ 		return rv;
+@@ -4308,7 +4310,7 @@ static __exit void cleanup_ipmi(void)
+ 	remove_proc_entry(proc_ipmi_root->name, NULL);
+ #endif /* CONFIG_PROC_FS */
+ 
+-	driver_unregister(&ipmidriver);
++	driver_unregister(&ipmidriver.driver);
+ 
+ 	initialized = 0;
+ 
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~fix-platform-drivers-that-crash-on-suspend-resume
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -114,9 +114,11 @@ static char *si_to_str[] = { "kcs", "smi
+ 
+ #define DEVICE_NAME "ipmi_si"
+ 
+-static struct device_driver ipmi_driver = {
+-	.name = DEVICE_NAME,
+-	.bus = &platform_bus_type
++static struct platform_driver ipmi_driver = {
++	.driver = {
++		.name = DEVICE_NAME,
++		.bus = &platform_bus_type
 +	}
-+
-+	return sprintf(buf, "%d\n", freq);
-+}
-+
-+/* Calculate SRC frequency from the M/N registers. */
-+static int calculate_src_freq(struct ics932s401_data *data)
-+{
-+	int m, n, freq;
-+
-+	m = data->regs[ICS932S401_REG_SRC_M_CTRL] & ICS932S401_M_MASK;
-+	n = data->regs[ICS932S401_REG_SRC_N_CTRL];
-+
-+	/* Pull in bits 8 & 9 from the M register */
-+	n |= ((int)data->regs[ICS932S401_REG_SRC_M_CTRL] & 0x80) << 1;
-+	n |= ((int)data->regs[ICS932S401_REG_SRC_M_CTRL] & 0x40) << 3;
-+
-+	freq = BASE_CLOCK * (n + 8) / (m + 2);
-+	freq /= divisors[data->regs[ICS932S401_REG_PCISRC_DIVISOR] &
-+			 ICS932S401_SRC_DIVISOR_MASK];
-+
-+	return freq;
-+}
-+
-+static ssize_t show_src_clock(struct device *dev,
-+			      struct device_attribute *devattr,
-+			      char *buf)
-+{
-+	struct ics932s401_data *data = ics932s401_update_device(dev);
-+
-+	return sprintf(buf, "%d\n", calculate_src_freq(data));
-+}
-+
-+static ssize_t show_src_clock_sel(struct device *dev,
-+				  struct device_attribute *devattr,
-+				  char *buf)
-+{
-+	struct ics932s401_data *data = ics932s401_update_device(dev);
-+	int freq;
-+
-+	if (data->regs[ICS932S401_REG_CTRL] & ICS932S401_MN_ENABLED)
-+		freq = calculate_src_freq(data);
-+	else
-+		/* Freq is neatly wrapped up for us */
-+		if (data->regs[ICS932S401_REG_CTRL] & ICS932S401_CPU_ALT &&
-+		    data->regs[ICS932S401_REG_CTRL] & ICS932S401_SRC_ALT)
-+			freq = 96000;
-+		else
-+			freq = 100000;
-+
-+	return sprintf(buf, "%d\n", freq);
-+}
-+
-+/* Calculate PCI frequency from the SRC M/N registers. */
-+static int calculate_pci_freq(struct ics932s401_data *data)
-+{
-+	int m, n, freq;
-+
-+	m = data->regs[ICS932S401_REG_SRC_M_CTRL] & ICS932S401_M_MASK;
-+	n = data->regs[ICS932S401_REG_SRC_N_CTRL];
-+
-+	/* Pull in bits 8 & 9 from the M register */
-+	n |= ((int)data->regs[ICS932S401_REG_SRC_M_CTRL] & 0x80) << 1;
-+	n |= ((int)data->regs[ICS932S401_REG_SRC_M_CTRL] & 0x40) << 3;
-+
-+	freq = BASE_CLOCK * (n + 8) / (m + 2);
-+	freq /= divisors[data->regs[ICS932S401_REG_PCISRC_DIVISOR] >>
-+			 ICS932S401_PCI_DIVISOR_SHIFT];
-+
-+	return freq;
-+}
-+
-+static ssize_t show_pci_clock(struct device *dev,
-+			      struct device_attribute *devattr,
-+			      char *buf)
-+{
-+	struct ics932s401_data *data = ics932s401_update_device(dev);
-+
-+	return sprintf(buf, "%d\n", calculate_pci_freq(data));
-+}
-+
-+static ssize_t show_pci_clock_sel(struct device *dev,
-+				  struct device_attribute *devattr,
-+				  char *buf)
-+{
-+	struct ics932s401_data *data = ics932s401_update_device(dev);
-+	int freq;
-+
-+	if (data->regs[ICS932S401_REG_CTRL] & ICS932S401_MN_ENABLED)
-+		freq = calculate_pci_freq(data);
-+	else
-+		freq = 33333;
-+
-+	return sprintf(buf, "%d\n", freq);
-+}
-+
-+static ssize_t show_value(struct device *dev,
-+			  struct device_attribute *devattr,
-+			  char *buf);
-+
-+static ssize_t show_spread(struct device *dev,
-+			   struct device_attribute *devattr,
-+			   char *buf);
-+
-+static DEVICE_ATTR(spread_enabled, S_IRUGO, show_spread_enabled, NULL);
-+static DEVICE_ATTR(cpu_clock_selection, S_IRUGO, show_cpu_clock_sel, NULL);
-+static DEVICE_ATTR(cpu_clock, S_IRUGO, show_cpu_clock, NULL);
-+static DEVICE_ATTR(src_clock_selection, S_IRUGO, show_src_clock_sel, NULL);
-+static DEVICE_ATTR(src_clock, S_IRUGO, show_src_clock, NULL);
-+static DEVICE_ATTR(pci_clock_selection, S_IRUGO, show_pci_clock_sel, NULL);
-+static DEVICE_ATTR(pci_clock, S_IRUGO, show_pci_clock, NULL);
-+static DEVICE_ATTR(usb_clock, S_IRUGO, show_value, NULL);
-+static DEVICE_ATTR(ref_clock, S_IRUGO, show_value, NULL);
-+static DEVICE_ATTR(cpu_spread, S_IRUGO, show_spread, NULL);
-+static DEVICE_ATTR(src_spread, S_IRUGO, show_spread, NULL);
-+
-+static struct attribute *ics932s401_attr[] =
-+{
-+	&dev_attr_spread_enabled.attr,
-+	&dev_attr_cpu_clock_selection.attr,
-+	&dev_attr_cpu_clock.attr,
-+	&dev_attr_src_clock_selection.attr,
-+	&dev_attr_src_clock.attr,
-+	&dev_attr_pci_clock_selection.attr,
-+	&dev_attr_pci_clock.attr,
-+	&dev_attr_usb_clock.attr,
-+	&dev_attr_ref_clock.attr,
-+	&dev_attr_cpu_spread.attr,
-+	&dev_attr_src_spread.attr,
-+	NULL
-+};
-+
-+static ssize_t show_value(struct device *dev,
-+			  struct device_attribute *devattr,
-+			  char *buf)
-+{
-+	int x;
-+
-+	if (devattr == &dev_attr_usb_clock)
-+		x = 48000;
-+	else if (devattr == &dev_attr_ref_clock)
-+		x = BASE_CLOCK;
-+	else
-+		BUG();
-+
-+	return sprintf(buf, "%d\n", x);
-+}
-+
-+static ssize_t show_spread(struct device *dev,
-+			   struct device_attribute *devattr,
-+			   char *buf)
-+{
-+	struct ics932s401_data *data = ics932s401_update_device(dev);
-+	int reg;
-+	unsigned long val;
-+
-+	if (!(data->regs[ICS932S401_REG_CFG2] & ICS932S401_CFG1_SPREAD))
-+		return sprintf(buf, "0%%\n");
-+
-+	if (devattr == &dev_attr_src_spread)
-+		reg = ICS932S401_REG_SRC_SPREAD1;
-+	else if (devattr == &dev_attr_cpu_spread)
-+		reg = ICS932S401_REG_CPU_SPREAD1;
-+	else
-+		BUG();
-+
-+	val = data->regs[reg] | (data->regs[reg + 1] << 8);
-+	val &= ICS932S401_SPREAD_MASK;
-+
-+	/* Scale 0..2^14 to -0.5. */
-+	val = 500000 * val / 16384;
-+	return sprintf(buf, "-0.%lu%%\n", val);
-+}
-+
-+/* Return 0 if detection is successful, -ENODEV otherwise */
-+static int ics932s401_detect(struct i2c_client *client, int kind,
-+			  struct i2c_board_info *info)
-+{
-+	struct i2c_adapter *adapter = client->adapter;
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-+		return -ENODEV;
-+
-+	if (kind <= 0) {
-+		int vendor, device, revision;
-+
-+		vendor = i2c_smbus_read_word_data(client,
-+						  ICS932S401_REG_VENDOR_REV);
-+		vendor >>= 8;
-+		revision = vendor >> ICS932S401_REV_SHIFT;
-+		vendor &= ICS932S401_VENDOR_MASK;
-+		if (vendor != ICS932S401_VENDOR)
-+			return -ENODEV;
-+
-+		device = i2c_smbus_read_word_data(client,
-+						  ICS932S401_REG_DEVICE);
-+		device >>= 8;
-+		if (device != ICS932S401_DEVICE)
-+			return -ENODEV;
-+
-+		if (revision != ICS932S401_REV)
-+			dev_info(&adapter->dev, "Unknown revision %d\n",
-+				 revision);
-+	} else
-+		dev_dbg(&adapter->dev, "detection forced\n");
-+
-+	strlcpy(info->type, "ics932s401", I2C_NAME_SIZE);
-+
-+	return 0;
-+}
-+
-+static int ics932s401_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	struct ics932s401_data *data;
-+	int err;
-+
-+	data = kzalloc(sizeof(struct ics932s401_data), GFP_KERNEL);
-+	if (!data) {
-+		err = -ENOMEM;
-+		goto exit;
+ };
+ 
+ 
+@@ -2868,7 +2870,7 @@ static int try_smi_init(struct smi_info 
+ 			goto out_err;
+ 		}
+ 		new_smi->dev = &new_smi->pdev->dev;
+-		new_smi->dev->driver = &ipmi_driver;
++		new_smi->dev->driver = &ipmi_driver.driver;
+ 
+ 		rv = platform_device_add(new_smi->pdev);
+ 		if (rv) {
+@@ -2983,7 +2985,7 @@ static __devinit int init_ipmi_si(void)
+ 	initialized = 1;
+ 
+ 	/* Register the device drivers. */
+-	rv = driver_register(&ipmi_driver);
++	rv = driver_register(&ipmi_driver.driver);
+ 	if (rv) {
+ 		printk(KERN_ERR
+ 		       "init_ipmi_si: Unable to register driver: %d\n",
+@@ -3052,7 +3054,7 @@ static __devinit int init_ipmi_si(void)
+ #ifdef CONFIG_PPC_OF
+ 		of_unregister_platform_driver(&ipmi_of_platform_driver);
+ #endif
+-		driver_unregister(&ipmi_driver);
++		driver_unregister(&ipmi_driver.driver);
+ 		printk(KERN_WARNING
+ 		       "ipmi_si: Unable to find any System Interface(s)\n");
+ 		return -ENODEV;
+@@ -3151,7 +3153,7 @@ static __exit void cleanup_ipmi_si(void)
+ 		cleanup_one_si(e);
+ 	mutex_unlock(&smi_infos_lock);
+ 
+-	driver_unregister(&ipmi_driver);
++	driver_unregister(&ipmi_driver.driver);
+ }
+ module_exit(cleanup_ipmi_si);
+ 
+diff -puN drivers/hwmon/ibmaem.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/hwmon/ibmaem.c
+--- a/drivers/hwmon/ibmaem.c~fix-platform-drivers-that-crash-on-suspend-resume
++++ a/drivers/hwmon/ibmaem.c
+@@ -88,9 +88,11 @@
+ static DEFINE_IDR(aem_idr);
+ static DEFINE_SPINLOCK(aem_idr_lock);
+ 
+-static struct device_driver aem_driver = {
+-	.name = DRVNAME,
+-	.bus = &platform_bus_type,
++static struct platform_driver aem_driver = {
++	.driver = {
++		.name = DRVNAME,
++		.bus = &platform_bus_type,
 +	}
-+
-+	i2c_set_clientdata(client, data);
-+	mutex_init(&data->lock);
-+
-+	dev_info(&client->dev, "%s chip found\n", client->name);
-+
-+	/* Register sysfs hooks */
-+	data->attrs.attrs = ics932s401_attr;
-+	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
-+	if (err)
-+		goto exit_free;
-+
-+	return 0;
-+
-+exit_free:
-+	kfree(data);
-+exit:
-+	return err;
-+}
-+
-+static int ics932s401_remove(struct i2c_client *client)
-+{
-+	struct ics932s401_data *data = i2c_get_clientdata(client);
-+
-+	sysfs_remove_group(&client->dev.kobj, &data->attrs);
-+	kfree(data);
-+	return 0;
-+}
-+
-+static int __init ics932s401_init(void)
-+{
-+	return i2c_add_driver(&ics932s401_driver);
-+}
-+
-+static void __exit ics932s401_exit(void)
-+{
-+	i2c_del_driver(&ics932s401_driver);
-+}
-+
-+MODULE_AUTHOR("Darrick J. Wong <djwong@us.ibm.com>");
-+MODULE_DESCRIPTION("ICS932S401 driver");
-+MODULE_LICENSE("GPL");
-+
-+module_init(ics932s401_init);
-+module_exit(ics932s401_exit);
-+
-+/* IBM IntelliStation Z30 */
-+MODULE_ALIAS("dmi:bvnIBM:*:rn9228:*");
-+MODULE_ALIAS("dmi:bvnIBM:*:rn9232:*");
-+
-+/* IBM x3650/x3550 */
-+MODULE_ALIAS("dmi:bvnIBM:*:pnIBMSystemx3650*");
-+MODULE_ALIAS("dmi:bvnIBM:*:pnIBMSystemx3550*");
+ };
+ 
+ struct aem_ipmi_data {
+@@ -583,7 +585,7 @@ static int aem_init_aem1_inst(struct aem
+ 	data->pdev = platform_device_alloc(DRVNAME, data->id);
+ 	if (!data->pdev)
+ 		goto dev_err;
+-	data->pdev->dev.driver = &aem_driver;
++	data->pdev->dev.driver = &aem_driver.driver;
+ 
+ 	res = platform_device_add(data->pdev);
+ 	if (res)
+@@ -716,7 +718,7 @@ static int aem_init_aem2_inst(struct aem
+ 	data->pdev = platform_device_alloc(DRVNAME, data->id);
+ 	if (!data->pdev)
+ 		goto dev_err;
+-	data->pdev->dev.driver = &aem_driver;
++	data->pdev->dev.driver = &aem_driver.driver;
+ 
+ 	res = platform_device_add(data->pdev);
+ 	if (res)
+@@ -1085,7 +1087,7 @@ static int __init aem_init(void)
+ {
+ 	int res;
+ 
+-	res = driver_register(&aem_driver);
++	res = driver_register(&aem_driver.driver);
+ 	if (res) {
+ 		printk(KERN_ERR "Can't register aem driver\n");
+ 		return res;
+@@ -1097,7 +1099,7 @@ static int __init aem_init(void)
+ 	return 0;
+ 
+ ipmi_reg_err:
+-	driver_unregister(&aem_driver);
++	driver_unregister(&aem_driver.driver);
+ 	return res;
+ 
+ }
+@@ -1107,7 +1109,7 @@ static void __exit aem_exit(void)
+ 	struct aem_data *p1, *next1;
+ 
+ 	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
+-	driver_unregister(&aem_driver);
++	driver_unregister(&aem_driver.driver);
+ 	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
+ 		aem_delete(p1);
+ }
 _
 
 Patches currently in -mm which might be from djwong@us.ibm.com are
 
+fix-platform-drivers-that-crash-on-suspend-resume.patch
 ibmpex-add-endian-annotation-to-extract_data-helper.patch
 adt7462-new-hwmon-driver.patch
 i5k_amb-load-automatically-on-all-5000-5400-chipsets.patch
