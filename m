@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch added to -mm tree
-Date: Thu, 06 Nov 2008 17:17:51 -0800
-Message-ID: <200811070117.mA71HplD005370@imap1.linux-foundation.org>
+Subject: + rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update.patch added to -mm tree
+Date: Thu, 06 Nov 2008 17:19:13 -0800
+Message-ID: <200811070119.mA71JEnZ005984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47462 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753214AbYKGBSI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:18:08 -0500
+	by vger.kernel.org with ESMTP id S1752834AbYKGBUQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:20:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael.hennerich@analog.com, cooloney@kernel.org, dtor@mail.ru
+Cc: martyn.welch@gefanuc.com, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org
 
 
 The patch titled
-     Input/AD7879: Fix/workaroud build error reported by Andrew Morton:
+     rtc: improvements to the basic implementation of Epson RX-8581 I2C Real Time Clock
 has been added to the -mm tree.  Its filename is
-     input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+     rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,158 +33,232 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Input/AD7879: Fix/workaroud build error reported by Andrew Morton:
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: rtc: improvements to the basic implementation of Epson RX-8581 I2C Real Time Clock
+From: Martyn Welch <martyn.welch@gefanuc.com>
 
-On Thu, 30 Oct 2008 02:24:25 -0700 akpm@linux-foundation.org wrote:
+These improvements resolve the issues raised by Jean Delvare in the Epson
+RX-8581 driver (thank you for your help):
 
-> The mm-of-the-moment snapshot 2008-10-30-02-23 has been uploaded to
->
->    http://userweb.kernel.org/~akpm/mmotm/
->
-> It contains the following patches against 2.6.28-rc2:
+ * Added linux/module.h include
+ * Removed black line
+ * Removed useless test in rx8581_remove
+ * Us i2c_smbus_* functions rather than raw i2c messaging
 
-CONFIG_TOUCHSCREEN_AD7879=y
-CONFIG_TOUCHSCREEN_AD7879_I2C=y
-CONFIG_I2C=m <<<<<<<<<<
-CONFIG_I2C_BOARDINFO=y
-CONFIG_I2C_CHARDEV=m
-CONFIG_I2C_HELPER_AUTO=y
-CONFIG_I2C_ALGOBIT=m
-CONFIG_I2C_ALGOPCA=m
-CONFIG_I2C_GPIO=m
-
-causes
-drivers/built-in.o: In function `ad7879_write':
-ad7879.c:(.text+0x749ce): undefined reference to
-`i2c_smbus_write_word_data'
-drivers/built-in.o: In function `ad7879_read':
-ad7879.c:(.text+0x749ee): undefined reference to
-`i2c_smbus_read_word_data'
-drivers/built-in.o: In function `ad7879_init':
-ad7879.c:(.init.text+0x3a6e): undefined reference to
-`i2c_register_driver'
-drivers/built-in.o: In function `ad7879_exit':
-ad7879.c:(.exit.text+0x6c1): undefined reference to `i2c_del_driver'
-
-rand-config attached.
-
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Martyn Welch <martyn.welch@gefanuc.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/Kconfig  |   35 +++++++++++++++------------
- drivers/input/touchscreen/ad7879.c |   10 +++----
- 2 files changed, 25 insertions(+), 20 deletions(-)
+ drivers/rtc/rtc-rx8581.c |  127 ++++++++++++-------------------------
+ 1 file changed, 43 insertions(+), 84 deletions(-)
 
-diff -puN drivers/input/touchscreen/Kconfig~input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton drivers/input/touchscreen/Kconfig
---- a/drivers/input/touchscreen/Kconfig~input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton
-+++ a/drivers/input/touchscreen/Kconfig
-@@ -42,32 +42,37 @@ config TOUCHSCREEN_AD7877
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ad7877.
+diff -puN drivers/rtc/rtc-rx8581.c~rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update drivers/rtc/rtc-rx8581.c
+--- a/drivers/rtc/rtc-rx8581.c~rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update
++++ a/drivers/rtc/rtc-rx8581.c
+@@ -12,6 +12,7 @@
+  * Copyright 2005-06 Tower Technologies
+  */
  
--config TOUCHSCREEN_AD7879
--	tristate "AD7879 based touchscreens"
--	depends on SPI_MASTER || I2C
-+config TOUCHSCREEN_AD7879_I2C
-+	tristate "AD7879 based touchscreens: AD7879-1 I2C Interface"
-+	depends on I2C
-+	select TOUCHSCREEN_AD7879
- 	help
- 	  Say Y here if you have a touchscreen interface using the
--	  AD7879(-1) controller, and your board-specific initialization
--	  code includes that in its table of SPI/I2C devices.
-+	  AD7879-1 controller, and your board-specific initialization
-+	  code includes that in its table of I2C devices.
++#include <linux/module.h>
+ #include <linux/i2c.h>
+ #include <linux/bcd.h>
+ #include <linux/rtc.h>
+@@ -59,66 +60,49 @@ static struct i2c_driver rx8581_driver;
+  */
+ static int rx8581_get_datetime(struct i2c_client *client, struct rtc_time *tm)
+ {
+-	unsigned char date[7] = { RX8581_REG_SC };
+-	unsigned char flags = RX8581_REG_FLAG;
+-	int err;
++	unsigned char date[7];
++	int data, err;
  
- 	  If unsure, say N (but it's safe to say "Y").
+ 	/* First we ensure that the "update flag" is not set, we read the
+ 	 * time and date then re-read the "update flag". If the update flag
+ 	 * has been set, we know that the time has changed during the read so
+ 	 * we repeat the whole process again.
+ 	 */
+-	/* Read flag register */
+-	struct i2c_msg msgs[] = {
+-		{ client->addr, 0, 1, &flags },		/* setup read ptr */
+-		{ client->addr, I2C_M_RD, 1, &flags },	/* read flags */
+-	};
+-
+-	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __func__);
++	data = i2c_smbus_read_byte_data(client, RX8581_REG_FLAG);
++	if (data < 0) {
++		dev_err(&client->dev, "Unable to read device flags\n");
+ 		return -EIO;
+ 	}
  
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ad7879.
+ 	do {
+-
+ 		/* If update flag set, clear it */
+-		if (flags & RX8581_FLAG_UF) {
+-			unsigned char data[2] = { RX8581_REG_FLAG,
+-				(flags & ~RX8581_FLAG_UF) };
+-
+-			err = i2c_master_send(client, data, sizeof(data));
+-			if (err != sizeof(data)) {
+-				dev_err(&client->dev,
+-					"%s: err=%d addr=%02x, data=%02x\n",
+-					__func__, err, data[0], data[1]);
++		if (data & RX8581_FLAG_UF) {
++			err = i2c_smbus_write_byte_data(client,
++				RX8581_REG_FLAG, (data & ~RX8581_FLAG_UF));
++			if (err != 0) {
++				dev_err(&client->dev, "Unable to write device "
++					"flags\n");
+ 				return -EIO;
+ 			}
+ 		}
  
--choice
--	prompt "Interface Selection"
--	depends on TOUCHSCREEN_AD7879
-+config TOUCHSCREEN_AD7879_SPI
-+	tristate "AD7879 based touchscreens: AD7879 SPI Interface"
-+	depends on SPI_MASTER && TOUCHSCREEN_AD7879_I2C = n
-+	select TOUCHSCREEN_AD7879
-+	help
-+	  Say Y here if you have a touchscreen interface using the
-+	  AD7879 controller, and your board-specific initialization
-+	  code includes that in its table of SPI devices.
+ 		/* Now read time and date */
+-		date[0] = RX8581_REG_SC;
+-		msgs[0].buf = date;
+-		msgs[1].buf = date;
+-		msgs[1].len = 7;
+-
+-		if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-			dev_err(&client->dev, "%s: read error\n", __func__);
++		err = i2c_smbus_read_i2c_block_data(client, RX8581_REG_SC,
++			7, date);
++		if (err < 0) {
++			dev_err(&client->dev, "Unable to read date\n");
+ 			return -EIO;
+ 		}
  
--config TOUCHSCREEN_AD7879_I2C
--	bool "AD7879-1 I2C"
--	depends on I2C
-+	  If unsure, say N (but it's safe to say "Y").
+ 		/* Check flag register */
+-		flags = RX8581_REG_FLAG;
+-		msgs[0].buf = &flags;
+-		msgs[1].buf = &flags;
+-		msgs[1].len = 1;
+-
+-		if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-			dev_err(&client->dev, "%s: read error\n", __func__);
++		data = i2c_smbus_read_byte_data(client, RX8581_REG_FLAG);
++		if (data < 0) {
++			dev_err(&client->dev, "Unable to read device flags\n");
+ 			return -EIO;
+ 		}
+-	} while (flags & RX8581_FLAG_UF);
++	} while (data & RX8581_FLAG_UF);
  
--config TOUCHSCREEN_AD7879_SPI
--	bool "AD7879 SPI"
--	depends on SPI_MASTER
--endchoice
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ad7879.
+-	if (flags & RX8581_FLAG_VLF)
++	if (data & RX8581_FLAG_VLF)
+ 		dev_info(&client->dev,
+ 			"low voltage detected, date/time is not reliable.\n");
  
-+config TOUCHSCREEN_AD7879
-+	tristate
-+	default n
+@@ -154,14 +138,8 @@ static int rx8581_get_datetime(struct i2
  
- config TOUCHSCREEN_BITSY
- 	tristate "Compaq iPAQ H3600 (Bitsy) touchscreen"
-diff -puN drivers/input/touchscreen/ad7879.c~input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton drivers/input/touchscreen/ad7879.c
---- a/drivers/input/touchscreen/ad7879.c~input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton
-+++ a/drivers/input/touchscreen/ad7879.c
-@@ -120,10 +120,10 @@ enum {
- #define	MAX_12BIT			((1<<12)-1)
- #define	TS_PEN_UP_TIMEOUT		msecs_to_jiffies(50)
+ static int rx8581_set_datetime(struct i2c_client *client, struct rtc_time *tm)
+ {
+-	int i, err;
+-	unsigned char buf[9];
+-	unsigned char ctrl = RX8581_REG_CTRL;
+-	unsigned char data[2];
+-	struct i2c_msg msgs[] = {
+-		{ client->addr, 0, 1, &ctrl },		/* setup read ptr */
+-		{ client->addr, I2C_M_RD, 1, &ctrl },	/* read flags */
+-	};
++	int data, err;
++	unsigned char buf[7];
  
--#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI)
-+#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI) || defined(CONFIG_TOUCHSCREEN_AD7879_SPI_MODULE)
- #define AD7879_DEVID		0x7A
- typedef struct spi_device	bus_device;
--#elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C)
-+#elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C) || defined(CONFIG_TOUCHSCREEN_AD7879_I2C_MODULE)
- #define AD7879_DEVID		0x79
- typedef struct i2c_client	bus_device;
- #endif
-@@ -135,7 +135,7 @@ struct ad7879 {
- 	struct timer_list	timer;
- 	spinlock_t		lock;
+ 	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+@@ -184,55 +162,37 @@ static int rx8581_set_datetime(struct i2
+ 	buf[RX8581_REG_DW] = (0x1 << tm->tm_wday);
  
--#ifdef CONFIG_TOUCHSCREEN_AD7879_SPI
-+#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI) || defined(CONFIG_TOUCHSCREEN_AD7879_SPI_MODULE)
- 	struct spi_message	msg;
- 	struct spi_transfer	xfer[AD7879_NR_SENSE + 1];
- 	u16			cmd;
-@@ -527,7 +527,7 @@ static int ad7879_resume(bus_device *bus
- #define ad7879_resume  NULL
- #endif
+ 	/* Stop the clock */
+-	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __func__);
++	data = i2c_smbus_read_byte_data(client, RX8581_REG_CTRL);
++	if (data < 0) {
++		dev_err(&client->dev, "Unable to read control register\n");
+ 		return -EIO;
+ 	}
  
--#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI)
-+#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI) || defined(CONFIG_TOUCHSCREEN_AD7879_SPI_MODULE)
- #define MAX_SPI_FREQ_HZ		5000000
- #define AD7879_CMD_MAGIC	0xE000
- #define AD7879_CMD_READ		(1 << 10)
-@@ -700,7 +700,7 @@ static void __exit ad7879_exit(void)
+-	data[0] = RX8581_REG_CTRL;
+-	data[1] = (ctrl | RX8581_CTRL_STOP);
+-
+-	err = i2c_master_send(client, data, sizeof(data));
+-	if (err != sizeof(data)) {
+-		dev_err(&client->dev,
+-			"%s: err=%d addr=%02x, data=%02x\n",
+-			__func__, err, data[0], data[1]);
++	err = i2c_smbus_write_byte_data(client, RX8581_REG_FLAG,
++		(data | RX8581_CTRL_STOP));
++	if (err < 0) {
++		dev_err(&client->dev, "Unable to write control register\n");
+ 		return -EIO;
+ 	}
+ 
+ 	/* write register's data */
+-	for (i = 0; i < 7; i++) {
+-		data[0] = RX8581_REG_SC + i;
+-		data[1] = buf[RX8581_REG_SC + i];
+-
+-		err = i2c_master_send(client, data, sizeof(data));
+-		if (err != sizeof(data)) {
+-			dev_err(&client->dev,
+-				"%s: err=%d addr=%02x, data=%02x\n",
+-				__func__, err, data[0], data[1]);
+-			return -EIO;
+-		}
+-	};
++	err = i2c_smbus_write_i2c_block_data(client, RX8581_REG_SC, 7, buf);
++	if (err < 0) {
++		dev_err(&client->dev, "Unable to write to date registers\n");
++		return -EIO;
++	}
+ 
+ 	/* Restart the clock */
+-	ctrl = RX8581_REG_CTRL;
+-
+-	msgs[0].buf = &ctrl;
+-	msgs[1].buf = &ctrl;
+-
+-	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __func__);
++	data = i2c_smbus_read_byte_data(client, RX8581_REG_CTRL);
++	if (data < 0) {
++		dev_err(&client->dev, "Unable to read control register\n");
+ 		return -EIO;
+ 	}
+ 
+-	data[0] = RX8581_REG_CTRL;
+-	data[1] = (ctrl & ~(RX8581_CTRL_STOP));
+-
+-	err = i2c_master_send(client, data, sizeof(data));
+-	if (err != sizeof(data)) {
+-		dev_err(&client->dev,
+-			"%s: err=%d addr=%02x, data=%02x\n",
+-			__func__, err, data[0], data[1]);
++	err = i2c_smbus_write_byte_data(client, RX8581_REG_FLAG,
++		(data | ~(RX8581_CTRL_STOP)));
++	if (err != 0) {
++		dev_err(&client->dev, "Unable to write control register\n");
+ 		return -EIO;
+ 	}
+ 
+@@ -281,8 +241,7 @@ static int __devexit rx8581_remove(struc
+ {
+ 	struct rtc_device *rtc = i2c_get_clientdata(client);
+ 
+-	if (rtc)
+-		rtc_device_unregister(rtc);
++	rtc_device_unregister(rtc);
+ 
+ 	return 0;
  }
- module_exit(ad7879_exit);
- 
--#elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C)
-+#elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C) || defined(CONFIG_TOUCHSCREEN_AD7879_I2C_MODULE)
- 
- /* All registers are word-sized.
-  * AD7879 uses a high-byte first convention.
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from martyn.welch@gefanuc.com are
 
-input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
-input-touchscreen-driver-add-support-ad7877-touchscreen-driver-fix.patch
-input-ad7879-touchscreen-driver.patch
-input-ad7879-touchscreen-driver-cleanup.patch
-input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update.patch
 
