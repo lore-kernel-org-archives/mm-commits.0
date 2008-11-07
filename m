@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lockd-convert-reclaimer-thread-to-kthread-interface-update.patch added to -mm tree
-Date: Thu, 06 Nov 2008 16:44:28 -0800
-Message-ID: <200811070044.mA70iToN022419@imap1.linux-foundation.org>
+Subject: + kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch added to -mm tree
+Date: Thu, 06 Nov 2008 17:01:08 -0800
+Message-ID: <200811070101.mA7118mh030105@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45505 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752404AbYKGAo5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 19:44:57 -0500
+	by vger.kernel.org with ESMTP id S1753333AbYKGBBu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:01:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: mhiramat@redhat.com, ananth@in.ibm.com, h-shimamoto@ct.jp.nec.com, laijs@cn.fujitsu.com
 
 
 The patch titled
-     lockd-convert-reclaimer-thread-to-kthread-interface update
+     kprobes: bugfix: try_module_get even if calling_mod is NULL
 has been added to the -mm tree.  Its filename is
-     lockd-convert-reclaimer-thread-to-kthread-interface-update.patch
+     kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockd-convert-reclaimer-thread-to-kthread-interface update
-From: Jeff Layton <jlayton@redhat.com>
+Subject: kprobes: bugfix: try_module_get even if calling_mod is NULL
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-My understanding is that there is a push to turn the kernel_thread
-interface into a non-exported symbol and move all kernel threads to use
-the kthread API. This patch changes lockd to use kthread_run to spawn
-the reclaimer thread.
+Get probed module even if the caller is in the kernel core code.
 
-I've made the assumption here that the extra module references taken
-when we spawn this thread are unnecessary and removed them. I've also
-added a KERN_ERR printk that pops if the thread can't be spawned to warn
-the admin that the locks won't be reclaimed.
-
-In the future, it would be nice to be able to notify userspace that
-locks have been lost (probably by implementing SIGLOST), and adding some
-good policies about how long we should reattempt to reclaim the locks.
-
-Finally, I removed a comment about memory leaks that I believe is
-obsolete and added a new one to clarify the result of sending a SIGKILL
-to the reclaimer thread. As best I can tell, doing so doesn't actually
-cause a memory leak.
-
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/clntlock.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ kernel/kprobes.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/lockd/clntlock.c~lockd-convert-reclaimer-thread-to-kthread-interface-update fs/lockd/clntlock.c
---- a/fs/lockd/clntlock.c~lockd-convert-reclaimer-thread-to-kthread-interface-update
-+++ a/fs/lockd/clntlock.c
-@@ -237,7 +237,12 @@ restart:
- 	list_for_each_entry_safe(fl, next, &host->h_reclaim, fl_u.nfs_fl.list) {
- 		list_del_init(&fl->fl_u.nfs_fl.list);
- 
--		/* Why are we leaking memory here? --okir */
-+		/*
-+		 * sending this thread a SIGKILL will result in any unreclaimed
-+		 * locks being removed from the h_granted list. This means that
-+		 * the kernel will not attempt to reclaim them again if a new
-+		 * reclaimer thread is spawned for this host.
-+		 */
- 		if (signalled())
- 			continue;
- 		if (nlmclnt_reclaim(host, fl) != 0)
+diff -puN kernel/kprobes.c~kprobes-bugfix-try_module_get-even-if-calling_mod-is-null kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-bugfix-try_module_get-even-if-calling_mod-is-null
++++ a/kernel/kprobes.c
+@@ -630,7 +630,7 @@ static int __kprobes __register_kprobe(s
+ 		 * avoid incrementing the module refcount, so as to allow
+ 		 * unloading of self probing modules.
+ 		 */
+-		if (calling_mod && calling_mod != probed_mod) {
++		if (calling_mod != probed_mod) {
+ 			if (unlikely(!try_module_get(probed_mod)))
+ 				return -EINVAL;
+ 			p->mod_refcounted = 1;
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
-origin.patch
-linux-next.patch
-lockd-convert-reclaimer-thread-to-kthread-interface.patch
-lockd-convert-reclaimer-thread-to-kthread-interface-update.patch
+kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
+kprobes-indirectly-call-kprobe_target.patch
+kprobes-add-tests-for-register_kprobes.patch
 
