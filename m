@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-tsc-10-dm-usb-touchscreen-driver-assumes-2-byte-response-from-controller.patch added to -mm tree
-Date: Thu, 06 Nov 2008 16:37:18 -0800
-Message-ID: <200811070037.mA70bIii019034@imap1.linux-foundation.org>
+Subject: + alpha-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Thu, 06 Nov 2008 16:40:54 -0800
+Message-ID: <200811070040.mA70esH0020728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754567AbYKGAh0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 19:37:26 -0500
+	by vger.kernel.org with ESMTP id S1751665AbYKGAlB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 19:41:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ntlucas@gmail.com, dtor@mail.ru
+Cc: harvey.harrison@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     input: TSC-10 DM USB touchscreen driver assumes 2-byte response from controller
+     alpha: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     input-tsc-10-dm-usb-touchscreen-driver-assumes-2-byte-response-from-controller.patch
+     alpha-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: TSC-10 DM USB touchscreen driver assumes 2-byte response from controller
-From: "Nuno Lucas" <ntlucas@gmail.com>
+Subject: alpha: use the new byteorder headers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-The usbtouchscreen module implements a driver for the TSC-10 DM USB
-touchscreen controllers, but assumes a 2-byte response for the CMD_RESET
-and CMD_RATE commands, when they can be only a single byte when no EEPROM
-is connected.
-
-The driver worked with an earlier controller revision, but new revisions
-of the controller fail.
-
-It seems the problem is that the early controller had the SEL4/EEPROM-CS
-pin high, but the new controller has it down, making the response
-different.
-
-Without the fix, the controller would answer the single byte 0x06 (ACK),
-making the init fail with -ENODEV because buf[1] is 0xFF (as initialized
-before).
-
-As the single byte is the only thing we need to check it was ok, there is
-no need to verify the second byte.
-
-The [0x15 0x01] case is the NAK [0x15] response for when there is no data
-in the EEPROM [bit-0 of second byte set], so I let that be, as I don't
-have any controller with an EEPROM.
-
-With this patch, both the earlier and latest controller work the same.
-
-Note: This was previously submited as BUG #11961 on the bugzilla
-tracker, but rebased to version 2.6.27.4 and with unnecessary comments and
-printk's removed.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11961
-
-Signed-off-by: Nuno Lucas <ntlucas@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/usbtouchscreen.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/alpha/include/asm/byteorder.h |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN drivers/input/touchscreen/usbtouchscreen.c~input-tsc-10-dm-usb-touchscreen-driver-assumes-2-byte-response-from-controller drivers/input/touchscreen/usbtouchscreen.c
---- a/drivers/input/touchscreen/usbtouchscreen.c~input-tsc-10-dm-usb-touchscreen-driver-assumes-2-byte-response-from-controller
-+++ a/drivers/input/touchscreen/usbtouchscreen.c
-@@ -424,7 +424,7 @@ static int dmc_tsc10_init(struct usbtouc
- 	                      0, 0, buf, 2, USB_CTRL_SET_TIMEOUT);
- 	if (ret < 0)
- 		goto err_out;
--	if (buf[0] != 0x06 || buf[1] != 0x00) {
-+	if (buf[0] != 0x06) {
- 		ret = -ENODEV;
- 		goto err_out;
- 	}
-@@ -437,8 +437,7 @@ static int dmc_tsc10_init(struct usbtouc
- 	                      TSC10_RATE_150, 0, buf, 2, USB_CTRL_SET_TIMEOUT);
- 	if (ret < 0)
- 		goto err_out;
--	if ((buf[0] != 0x06 || buf[1] != 0x00) &&
--	    (buf[0] != 0x15 || buf[1] != 0x01)) {
-+	if ((buf[0] != 0x06) && (buf[0] != 0x15 || buf[1] != 0x01)) {
- 		ret = -ENODEV;
- 		goto err_out;
- 	}
+diff -puN arch/alpha/include/asm/byteorder.h~alpha-use-the-new-byteorder-headers arch/alpha/include/asm/byteorder.h
+--- a/arch/alpha/include/asm/byteorder.h~alpha-use-the-new-byteorder-headers
++++ a/arch/alpha/include/asm/byteorder.h
+@@ -5,9 +5,9 @@
+ #include <linux/compiler.h>
+ #include <asm/compiler.h>
+ 
+-#ifdef __GNUC__
++#define __LITTLE_ENDIAN
+ 
+-static inline __attribute_const__ __u32 __arch__swab32(__u32 x)
++static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
+ {
+ 	/*
+ 	 * Unfortunately, we can't use the 6 instruction sequence
+@@ -35,13 +35,8 @@ static inline __attribute_const__ __u32 
+ 
+ 	return t1;
+ }
++#define __arch_swab32 __arch_swab32
+ 
+-#define __arch__swab32 __arch__swab32
+-
+-#endif /* __GNUC__ */
+-
+-#define __BYTEORDER_HAS_U64__
+-
+-#include <linux/byteorder/little_endian.h>
++#include <linux/byteorder.h>
+ 
+ #endif /* _ALPHA_BYTEORDER_H */
 _
 
-Patches currently in -mm which might be from ntlucas@gmail.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-input-tsc-10-dm-usb-touchscreen-driver-assumes-2-byte-response-from-controller.patch
+linux-next.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+blackfin-remove-__function__-in-new-serial-driver.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+m68knommu-use-the-new-byteorder-headers.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+blackfin-remove-__function__-in-video-driver.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+alpha-use-the-new-byteorder-headers.patch
+arm-use-the-new-byteorder-headers.patch
+blackfin-use-the-new-byteorder-headers.patch
+frv-use-the-new-byteorder-headers.patch
+h8300-use-the-new-byteorder-headers.patch
+ia64-use-the-new-byteorder-headers.patch
+m32r-use-the-new-byteorder-headers.patch
+parisc-use-the-new-byteorder-headers.patch
+s390-use-the-new-byteorder-headers.patch
+xtensa-use-the-new-byteorder-headers.patch
 
