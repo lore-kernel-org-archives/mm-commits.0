@@ -1,76 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-shrink_submounts.patch added to -mm tree
-Date: Thu, 06 Nov 2008 17:23:15 -0800
-Message-ID: <200811070123.mA71NFsY007826@imap1.linux-foundation.org>
+Subject: - rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-2.patch removed from -mm tree
+Date: Thu, 06 Nov 2008 17:31:11 -0800
+Message-ID: <200811070131.mA71VBVl011496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751505AbYKGBYH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:24:07 -0500
+	by vger.kernel.org with ESMTP id S1751150AbYKGBb1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:31:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, adobriyan@gmail.com, viro@ZenIV.linux.org.uk
+To: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, david-b@pacbell.net, linux@wolfsonmicro.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: fix shrink_submounts
-has been added to the -mm tree.  Its filename is
-     vfs-fix-shrink_submounts.patch
+     rtc-rtc-wm8350-add-support-for-wm8350-rtc update 2
+has been removed from the -mm tree.  Its filename was
+     rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix shrink_submounts
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: rtc-rtc-wm8350-add-support-for-wm8350-rtc update 2
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-In the last refactoring of shrink_submounts a variable was not completely
-renamed.  So finish the renaming of mnt to m now.
+ - Marks remove() with __devexit_p()
+ - Fixes grammar in MODULE_DESCRIPTION()
 
-Without this if you attempt to mount an nfs mount that has both automatic
-nfs sub mounts on it, and has normal mounts on it.  The unmount will
-succeed when it should not.
+which should address all the feedback from Alessandro.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Liam Girdwood <linux@wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    4 ++--
+ drivers/rtc/rtc-wm8350.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~vfs-fix-shrink_submounts fs/namespace.c
---- a/fs/namespace.c~vfs-fix-shrink_submounts
-+++ a/fs/namespace.c
-@@ -1815,8 +1815,8 @@ static void shrink_submounts(struct vfsm
- 		while (!list_empty(&graveyard)) {
- 			m = list_first_entry(&graveyard, struct vfsmount,
- 						mnt_expire);
--			touch_mnt_namespace(mnt->mnt_ns);
--			umount_tree(mnt, 1, umounts);
-+			touch_mnt_namespace(m->mnt_ns);
-+			umount_tree(m, 1, umounts);
- 		}
- 	}
- }
+diff -puN drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-2 drivers/rtc/rtc-wm8350.c
+--- a/drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-2
++++ a/drivers/rtc/rtc-wm8350.c
+@@ -488,7 +488,7 @@ static int __devexit wm8350_rtc_remove(s
+ 
+ static struct platform_driver wm8350_rtc_driver = {
+ 	.probe = wm8350_rtc_probe,
+-	.remove = wm8350_rtc_remove,
++	.remove = __devexit_p(wm8350_rtc_remove),
+ 	.suspend = wm8350_rtc_suspend,
+ 	.resume = wm8350_rtc_resume,
+ 	.driver = {
+@@ -509,6 +509,6 @@ static void __exit wm8350_rtc_exit(void)
+ module_exit(wm8350_rtc_exit);
+ 
+ MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
+-MODULE_DESCRIPTION("RTC driver WM8350");
++MODULE_DESCRIPTION("RTC driver for the WM8350");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("platform:wm8350-rtc");
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
+rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms.patch
 linux-next.patch
-vfs-fix-shrink_submounts.patch
-vmcore-remove-saved_max_pfn-check.patch
+watchdog-add-support-for-the-wm8350-watchdog.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-2.patch
 
