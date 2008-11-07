@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-3.patch added to -mm tree
-Date: Thu, 06 Nov 2008 17:34:08 -0800
-Message-ID: <200811070134.mA71Y8Is012864@imap1.linux-foundation.org>
+Subject: + atmel_lcdfb-change-irq_base-definition-to-allow-error-reporting.patch added to -mm tree
+Date: Thu, 06 Nov 2008 17:35:07 -0800
+Message-ID: <200811070135.mA71Z78G013269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42293 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750698AbYKGBeU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:34:20 -0500
+	by vger.kernel.org with ESMTP id S1750698AbYKGBfX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:35:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, david-b@pacbell.net, linux@wolfsonmicro.com
+Cc: nicolas.ferre@atmel.com, hskinnemoen@atmel.com, linux@maxim.org.za, roel.kluin@gmail.com
 
 
 The patch titled
-     watchdog: add support for the WM8350 watchdog
+     atmel_lcdfb: change irq_base definition to allow error reporting
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-3.patch
+     atmel_lcdfb-change-irq_base-definition-to-allow-error-reporting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: add support for the WM8350 watchdog
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: atmel_lcdfb: change irq_base definition to allow error reporting
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-Since last submission the driver has been changed to use bit zero rather
-than bit 1 when using test_and_set_bit() to ensure that we only have
-one user.
+Changed because old the definition of unsigned long cannot be negative.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Liam Girdwood <linux@wolfsonmicro.com>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Reported-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andrew Victor <linux@maxim.org.za>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/wm8350_wdt.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/video/atmel_lcdc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/wm8350_wdt.c~rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-3 drivers/watchdog/wm8350_wdt.c
---- a/drivers/watchdog/wm8350_wdt.c~rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-3
-+++ a/drivers/watchdog/wm8350_wdt.c
-@@ -123,7 +123,7 @@ static int wm8350_wdt_open(struct inode 
- 	if (!wm8350)
- 		return -ENODEV;
+diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-change-irq_base-definition-to-allow-error-reporting include/video/atmel_lcdc.h
+--- a/include/video/atmel_lcdc.h~atmel_lcdfb-change-irq_base-definition-to-allow-error-reporting
++++ a/include/video/atmel_lcdc.h
+@@ -38,7 +38,7 @@ struct atmel_lcdfb_info {
+ 	spinlock_t		lock;
+ 	struct fb_info		*info;
+ 	void __iomem		*mmio;
+-	unsigned long		irq_base;
++	int			irq_base;
+ 	struct work_struct	task;
  
--	if (test_and_set_bit(1, &wm8350_wdt_users))
-+	if (test_and_set_bit(0, &wm8350_wdt_users))
- 		return -EBUSY;
- 
- 	ret = wm8350_wdt_start(wm8350);
-@@ -144,7 +144,7 @@ static int wm8350_wdt_release(struct ino
- 		wm8350_wdt_kick(wm8350);
- 	}
- 
--	clear_bit(1, &wm8350_wdt_users);
-+	clear_bit(0, &wm8350_wdt_users);
- 
- 	return 0;
- }
+ 	unsigned int		guard_time;
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from nicolas.ferre@atmel.com are
 
-rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms.patch
-linux-next.patch
-watchdog-add-support-for-the-wm8350-watchdog.patch
-rtc-rtc-wm8350-add-support-for-wm8350-rtc-update-3.patch
-rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+atmel_lcdfb-change-irq_base-definition-to-allow-error-reporting.patch
 
