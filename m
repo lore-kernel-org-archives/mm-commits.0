@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + quota-add-quota-claim-and-release-reserved-quota-blocks-operations.patch added to -mm tree
-Date: Thu, 06 Nov 2008 16:00:30 -0800
-Message-ID: <200811070000.mA700Ujk002126@imap1.linux-foundation.org>
+Subject: + fix-accidental-implicit-cast-in-hr-timer-conversion.patch added to -mm tree
+Date: Thu, 06 Nov 2008 16:35:14 -0800
+Message-ID: <200811070035.mA70ZEhR018063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50280 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753197AbYKGABK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 19:01:10 -0500
+	by vger.kernel.org with ESMTP id S1755093AbYKGAgT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 19:36:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cmm@us.ibm.com, jack@ucw.cz, linux-ext4@vger.kernel.org
+Cc: dhowells@redhat.com, arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     quota: add quota claim and release reserved quota blocks operations
+     hrtimers: fix accidental implicit cast in HR-timer conversion
 has been added to the -mm tree.  Its filename is
-     quota-add-quota-claim-and-release-reserved-quota-blocks-operations.patch
+     fix-accidental-implicit-cast-in-hr-timer-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,246 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: add quota claim and release reserved quota blocks operations
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: hrtimers: fix accidental implicit cast in HR-timer conversion
+From: David Howells <dhowells@redhat.com>
 
-Reserved quota will be claimed at the block allocation time.  Over-booked
-quota could be returned back with the release callback function.
+Fix the hrtimer_add_expires_ns() function.  It should take a 'u64 ns'
+argument, but rather takes an 'unsigned long ns' argument - which might
+only be 32-bits.
 
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: <linux-ext4@vger.kernel.org>
+On FRV, this results in the kernel locking up because hrtimer_forward()
+passes the result of a 64-bit multiplication to this function, for which
+the compiler discards the top 32-bits - something that didn't happen when
+ktime_add_ns() was called directly.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c               |   87 +++++++++++++++++++++++++++++++++++++
- include/linux/quota.h    |    4 +
- include/linux/quotaops.h |   55 +++++++++++++++++++++++
- 3 files changed, 145 insertions(+), 1 deletion(-)
+ include/linux/hrtimer.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dquot.c~quota-add-quota-claim-and-release-reserved-quota-blocks-operations fs/dquot.c
---- a/fs/dquot.c~quota-add-quota-claim-and-release-reserved-quota-blocks-operations
-+++ a/fs/dquot.c
-@@ -846,6 +846,24 @@ static inline void dquot_resv_space(stru
- 	dquot->dq_dqb.dqb_rsvspace += number;
+diff -puN include/linux/hrtimer.h~fix-accidental-implicit-cast-in-hr-timer-conversion include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~fix-accidental-implicit-cast-in-hr-timer-conversion
++++ a/include/linux/hrtimer.h
+@@ -239,7 +239,7 @@ static inline void hrtimer_add_expires(s
+ 	timer->_softexpires = ktime_add_safe(timer->_softexpires, time);
  }
  
-+/*
-+ * Claim reserved quota space
-+ */
-+static int dquot_claim_reserved_space(struct dquot *dquot,
-+						qsize_t number)
-+{
-+	if (dquot->dq_dqb.dqb_rsvspace < number) {
-+		printk(KERN_WARNING "Reserved quota %llu is not enough for"
-+			"request %llu bytes\n",
-+			(unsigned long long)dquot->dq_dqb.dqb_rsvspace, number);
-+		return 1;
-+	}
-+
-+	dquot->dq_dqb.dqb_curspace += number;
-+	dquot->dq_dqb.dqb_rsvspace -= number;
-+	return 0;
-+}
-+
- static inline void dquot_decr_inodes(struct dquot *dquot, qsize_t number)
+-static inline void hrtimer_add_expires_ns(struct hrtimer *timer, unsigned long ns)
++static inline void hrtimer_add_expires_ns(struct hrtimer *timer, u64 ns)
  {
- 	if (dquot->dq_dqb.dqb_curinodes > number)
-@@ -1319,6 +1337,73 @@ out:
- 	return ret;
- }
- 
-+int dquot_claim_space(struct inode *inode, qsize_t number)
-+{
-+	int cnt;
-+	int ret = QUOTA_OK;
-+
-+	if (IS_NOQUOTA(inode)) {
-+		inode_add_bytes(inode, number);
-+		return ret;
-+	}
-+
-+	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+	if (IS_NOQUOTA(inode))	{
-+		up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+		inode_add_bytes(inode, number);
-+		return ret;
-+	}
-+
-+	/* Claim reserved quotas to allocated quotas */
-+	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
-+		if (inode->i_dquot[cnt] != NODQUOT)
-+			ret = dquot_claim_reserved_space(inode->i_dquot[cnt],
-+							number);
-+	}
-+	if (ret == NO_QUOTA) {
-+		up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+		return ret;
-+	}
-+	/* Dirtify all the dquots - this can block when journalling */
-+	for (cnt = 0; cnt < MAXQUOTAS; cnt++)
-+		if (inode->i_dquot[cnt])
-+			mark_dquot_dirty(inode->i_dquot[cnt]);
-+	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+
-+	/* Update inode bytes */
-+	inode_add_bytes(inode, number);
-+	return ret;
-+}
-+
-+/*
-+ * Release reserved quota space
-+ */
-+void dquot_release_reserved_space(struct inode *inode, qsize_t number)
-+{
-+	int cnt;
-+	struct dquot *dquot;
-+
-+	if (IS_NOQUOTA(inode))
-+		goto out;
-+
-+	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+	if (IS_NOQUOTA(inode))
-+		goto out_unlock;
-+
-+	/* Release reserved dquots */
-+	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
-+		if (inode->i_dquot[cnt] != NODQUOT) {
-+			dquot = inode->i_dquot[cnt];
-+			dquot->dq_dqb.dqb_rsvspace -= number;
-+		}
-+	}
-+
-+out_unlock:
-+	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+out:
-+	return;
-+}
-+
- /*
-  * This operation can block, but only after everything is updated
-  */
-@@ -2344,6 +2429,8 @@ EXPORT_SYMBOL(dquot_alloc_inode);
- EXPORT_SYMBOL(dquot_free_space);
- EXPORT_SYMBOL(dquot_free_inode);
- EXPORT_SYMBOL(dquot_reserve_space);
-+EXPORT_SYMBOL(dquot_claim_space);
-+EXPORT_SYMBOL(dquot_release_reserved_space);
- EXPORT_SYMBOL(dquot_transfer);
- EXPORT_SYMBOL(vfs_dq_transfer);
- EXPORT_SYMBOL(vfs_dq_quota_on_remount);
-diff -puN include/linux/quota.h~quota-add-quota-claim-and-release-reserved-quota-blocks-operations include/linux/quota.h
---- a/include/linux/quota.h~quota-add-quota-claim-and-release-reserved-quota-blocks-operations
-+++ a/include/linux/quota.h
-@@ -292,7 +292,9 @@ struct dquot_operations {
- 	int (*release_dquot) (struct dquot *);		/* Quota is going to be deleted from disk */
- 	int (*mark_dirty) (struct dquot *);		/* Dquot is marked dirty */
- 	int (*write_info) (struct super_block *, int);	/* Write of quota "superblock" */
--	int (*reserve_space) (struct inode *, qsize_t, int); /* reserve quota for delayed block allocation */
-+	int (*reserve_space) (struct inode *, qsize_t, int); /* reserve quota for delayed alloc */
-+	int (*claim_space) (struct inode *, qsize_t); /* claim reserved quota for delayed alloc */
-+	void (*release_rsv) (struct inode *, qsize_t); /* release rsved quota for delayed alloc */
- };
- 
- /* Operations handling requests from userspace */
-diff -puN include/linux/quotaops.h~quota-add-quota-claim-and-release-reserved-quota-blocks-operations include/linux/quotaops.h
---- a/include/linux/quotaops.h~quota-add-quota-claim-and-release-reserved-quota-blocks-operations
-+++ a/include/linux/quotaops.h
-@@ -28,6 +28,11 @@ int dquot_drop(struct inode *inode);
- int dquot_alloc_space(struct inode *inode, qsize_t number, int prealloc);
- int dquot_alloc_inode(const struct inode *inode, qsize_t number);
- 
-+int dquot_reserve_space(struct inode *inode, qsize_t number, int prealloc);
-+int dquot_claim_space(struct inode *inode, qsize_t number);
-+void dquot_release_reserved_space(struct inode *inode, qsize_t number);
-+
-+
- int dquot_free_space(struct inode *inode, qsize_t number);
- int dquot_free_inode(const struct inode *inode, qsize_t number);
- 
-@@ -196,6 +201,31 @@ static inline int vfs_dq_alloc_inode(str
- 	return 0;
- }
- 
-+/*
-+ * Convert in-memory reserved quotas to real consumed quotas
-+ */
-+static inline int vfs_dq_claim_space(struct inode *inode, qsize_t nr)
-+{
-+	if (sb_any_quota_active(inode->i_sb)) {
-+		if (inode->i_sb->dq_op->claim_space(inode, nr) == NO_QUOTA)
-+			return 1;
-+	} else
-+		inode_add_bytes(inode, nr);
-+
-+	mark_inode_dirty(inode);
-+	return 0;
-+}
-+
-+/*
-+ * Release reserved (in-memory) quotas
-+ */
-+static inline
-+void vfs_dq_release_reservation_space(struct inode *inode, qsize_t nr)
-+{
-+	if (sb_any_quota_active(inode->i_sb))
-+		inode->i_sb->dq_op->release_rsv(inode, nr);
-+}
-+
- static inline void vfs_dq_free_space_nodirty(struct inode *inode, qsize_t nr)
- {
- 	if (sb_any_quota_active(inode->i_sb))
-@@ -347,6 +377,17 @@ static inline int vfs_dq_reserve_space(s
- 	return 0;
- }
- 
-+static inline int vfs_dq_claim_space(struct inode *inode, qsize_t nr)
-+{
-+	return vfs_dq_alloc_space(inode, nr);
-+}
-+
-+static inline
-+int vfs_dq_release_reservation_space(struct inode *inode, qsize_t nr)
-+{
-+	return 0;
-+}
-+
- static inline void vfs_dq_free_space_nodirty(struct inode *inode, qsize_t nr)
- {
- 	inode_sub_bytes(inode, nr);
-@@ -391,6 +432,18 @@ static inline int vfs_dq_reserve_block(s
- 			nr << inode->i_blkbits);
- }
- 
-+static inline int vfs_dq_claim_block(struct inode *inode, qsize_t nr)
-+{
-+	return vfs_dq_claim_space(inode,
-+			nr << inode->i_blkbits);
-+}
-+
-+static inline
-+void vfs_dq_release_reservation(struct inode *inode, qsize_t nr)
-+{
-+	vfs_dq_release_reservation_space(inode, nr << inode->i_blkbits);
-+}
-+
- static inline void vfs_dq_free_block_nodirty(struct inode *inode, qsize_t nr)
- {
- 	vfs_dq_free_space_nodirty(inode, nr << inode->i_sb->s_blocksize_bits);
-@@ -420,6 +473,8 @@ static inline void vfs_dq_free_block(str
- 				vfs_dq_alloc_block_nodirty(inode, nr)
- #define DQUOT_ALLOC_BLOCK(inode, nr) vfs_dq_alloc_block(inode, nr)
- #define DQUOT_RESERVE_BLOCK(inode, nr) vfs_dq_reserve_block(inode, nr)
-+#define DQUOT_CLAIM_BLOCK(inode, nr) vfs_dq_claim_block(inode, nr)
-+#define DQUOT_RELEASE_RSV_BLOCK(inode, nr) vfs_dq_release_reservation(inode, nr)
- #define DQUOT_ALLOC_INODE(inode) vfs_dq_alloc_inode(inode)
- #define DQUOT_FREE_SPACE_NODIRTY(inode, nr) \
- 				vfs_dq_free_space_nodirty(inode, nr)
+ 	timer->_expires = ktime_add_ns(timer->_expires, ns);
+ 	timer->_softexpires = ktime_add_ns(timer->_softexpires, ns);
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-quota-add-reservation-support-for-delayed-block-allocation.patch
-quota-add-quota-claim-and-release-reserved-quota-blocks-operations.patch
-ext4-quota-handling-for-delayed-allocation.patch
+linux-next.patch
+fix-accidental-implicit-cast-in-hr-timer-conversion.patch
+mutex-subsystem-synchro-test-module.patch
 
