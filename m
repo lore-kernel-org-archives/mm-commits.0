@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + doc-update-xip-method-info.patch added to -mm tree
-Date: Fri, 07 Nov 2008 14:40:17 -0800
-Message-ID: <200811072240.mA7MeHhb003677@imap1.linux-foundation.org>
+Subject: + via-velocity-enable-perfect-filtering-for-multicast-packets.patch added to -mm tree
+Date: Fri, 07 Nov 2008 14:52:13 -0800
+Message-ID: <200811072252.mA7MqDIO009604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42008 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752139AbYKGWlJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 17:41:09 -0500
+	by vger.kernel.org with ESMTP id S1751171AbYKGWwx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 17:52:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marco.stornelli@gmail.com, cotte@de.ibm.com, randy.dunlap@oracle.com
+Cc: romieu@fr.zoreil.com, jeff@garzik.org, joeyzhuo@via.com.tw
 
 
 The patch titled
-     DOC: update xip method info
+     via-velocity: enable perfect filtering for multicast packets
 has been added to the -mm tree.  Its filename is
-     doc-update-xip-method-info.patch
+     via-velocity-enable-perfect-filtering-for-multicast-packets.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: DOC: update xip method info
-From: Marco Stornelli <marco.stornelli@gmail.com>
+Subject: via-velocity: enable perfect filtering for multicast packets
+From: Francois Romieu <romieu@fr.zoreil.com>
 
-xip documentation updated:
-- change "get_xip_page" to "get_xip_mem";
-- explain changed function parameters
-
-Signed-off-by: Marco Stornelli <marco.stornelli@gmail.com>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Carsten Otte <cotte@de.ibm.com>
+Signed-off-by: Joey Zhuo <joeyzhuo@via.com.tw>
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/xip.txt |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/net/via-velocity.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/xip.txt~doc-update-xip-method-info Documentation/filesystems/xip.txt
---- a/Documentation/filesystems/xip.txt~doc-update-xip-method-info
-+++ a/Documentation/filesystems/xip.txt
-@@ -39,10 +39,11 @@ The block device operation is optional, 
- today:
- - dcssblk: s390 dcss block device driver
+diff -puN drivers/net/via-velocity.c~via-velocity-enable-perfect-filtering-for-multicast-packets drivers/net/via-velocity.c
+--- a/drivers/net/via-velocity.c~via-velocity-enable-perfect-filtering-for-multicast-packets
++++ a/drivers/net/via-velocity.c
+@@ -2294,7 +2294,7 @@ static void velocity_set_multi(struct ne
+ 		}
  
--An address space operation named get_xip_page is used to retrieve reference
--to a struct page. To address the target page, a reference to an address_space,
--and a sector number is provided. A 3rd argument indicates whether the
--function should allocate blocks if needed.
-+An address space operation named get_xip_mem is used to retrieve references
-+to a page frame number and a kernel address. To obtain these values a reference
-+to an address_space is provided. This function assigns values to the kmem and
-+pfn parameters. The third argument indicates whether the function should allocate
-+blocks if needed.
- 
- This address space operation is mutually exclusive with readpage&writepage that
- do page cache read/write operations.
+ 		mac_set_cam_mask(regs, vptr->mCAMmask);
+-		rx_mode = (RCR_AM | RCR_AB);
++		rx_mode = RCR_AM | RCR_AB | RCR_AP;
+ 	}
+ 	if (dev->mtu > 1500)
+ 		rx_mode |= RCR_AL;
 _
 
-Patches currently in -mm which might be from marco.stornelli@gmail.com are
+Patches currently in -mm which might be from romieu@fr.zoreil.com are
 
-doc-update-xip-method-info.patch
+via-velocity-enable-perfect-filtering-for-multicast-packets.patch
 
