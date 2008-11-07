@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-platform-drivers-that-crash-on-suspend-resume.patch added to -mm tree
-Date: Fri, 07 Nov 2008 11:35:33 -0800
-Message-ID: <200811071935.mA7JZXRD010295@imap1.linux-foundation.org>
+Subject: + i5000-edac-hold-reference-to-mci-kobject.patch added to -mm tree
+Date: Fri, 07 Nov 2008 11:36:25 -0800
+Message-ID: <200811071936.mA7JaPbS010679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53246 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751353AbYKGTgE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 14:36:04 -0500
+	by vger.kernel.org with ESMTP id S1751353AbYKGTg2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 14:36:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: djwong@us.ibm.com, greg@kroah.com, kay.sievers@vrfy.org, khali@linux-fr.org, minyard@acm.org
+Cc: djwong@us.ibm.com, norsk5@yahoo.com
 
 
 The patch titled
-     Fix platform drivers that crash on suspend/resume
+     i5000-edac: hold reference to mci kobject
 has been added to the -mm tree.  Its filename is
-     fix-platform-drivers-that-crash-on-suspend-resume.patch
+     i5000-edac-hold-reference-to-mci-kobject.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,222 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix platform drivers that crash on suspend/resume
+Subject: i5000-edac: hold reference to mci kobject
 From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-It turns out that if one registers a struct platform_device, the platform
-device code expects that platform_device.device->driver points to a struct
-driver inside a struct platform_driver.  This is not the case with the
-ipmi-si, ipmi-msghandler and ibmaem drivers, which causes the
-suspend/resume hook functions to jump off into nowhere, causing a crash. 
-Make this assumption hold true for these three drivers.
+It turns out that edac_mc_del_mc will kobject_put the last kref on the mci
+object.  If the timing is just right, that means that the mci object is
+freed before before i5000_remove_one has a chance to free the resources
+associated with it, causing a null pointer exceptions when unloading the
+driver.  Insert a kobject_{get,put} pair so that this doesn't happen.
 
 Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: Corey Minyard <minyard@acm.org>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |   20 +++++++++++---------
- drivers/char/ipmi/ipmi_si_intf.c    |   16 +++++++++-------
- drivers/hwmon/ibmaem.c              |   18 ++++++++++--------
- 3 files changed, 30 insertions(+), 24 deletions(-)
+ drivers/edac/i5000_edac.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~fix-platform-drivers-that-crash-on-suspend-resume
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -422,9 +422,11 @@ struct ipmi_smi {
- /**
-  * The driver model view of the IPMI messaging driver.
-  */
--static struct device_driver ipmidriver = {
--	.name = "ipmi",
--	.bus = &platform_bus_type
-+static struct platform_driver ipmidriver = {
-+	.driver = {
-+		.name = "ipmi",
-+		.bus = &platform_bus_type
-+	}
- };
- static DEFINE_MUTEX(ipmidriver_mutex);
+diff -puN drivers/edac/i5000_edac.c~i5000-edac-hold-reference-to-mci-kobject drivers/edac/i5000_edac.c
+--- a/drivers/edac/i5000_edac.c~i5000-edac-hold-reference-to-mci-kobject
++++ a/drivers/edac/i5000_edac.c
+@@ -1381,6 +1381,7 @@ static int i5000_probe1(struct pci_dev *
+ 	if (mci == NULL)
+ 		return -ENOMEM;
  
-@@ -2384,9 +2386,9 @@ static int ipmi_bmc_register(ipmi_smi_t 
- 	 * representing the interfaced BMC already
- 	 */
- 	if (bmc->guid_set)
--		old_bmc = ipmi_find_bmc_guid(&ipmidriver, bmc->guid);
-+		old_bmc = ipmi_find_bmc_guid(&ipmidriver.driver, bmc->guid);
- 	else
--		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver,
-+		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
- 						    bmc->id.product_id,
- 						    bmc->id.device_id);
++	kobject_get(&mci->edac_mci_kobj);
+ 	debugf0("MC: " __FILE__ ": %s(): mci = %p\n", __func__, mci);
  
-@@ -2416,7 +2418,7 @@ static int ipmi_bmc_register(ipmi_smi_t 
- 		snprintf(name, sizeof(name),
- 			 "ipmi_bmc.%4.4x", bmc->id.product_id);
+ 	mci->dev = &pdev->dev;	/* record ptr  to the generic device */
+@@ -1453,6 +1454,7 @@ fail1:
+ 	i5000_put_devices(mci);
  
--		while (ipmi_find_bmc_prod_dev_id(&ipmidriver,
-+		while (ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
- 						 bmc->id.product_id,
- 						 bmc->id.device_id)) {
- 			if (!warn_printed) {
-@@ -2446,7 +2448,7 @@ static int ipmi_bmc_register(ipmi_smi_t 
- 			       " Unable to allocate platform device\n");
- 			return -ENOMEM;
- 		}
--		bmc->dev->dev.driver = &ipmidriver;
-+		bmc->dev->dev.driver = &ipmidriver.driver;
- 		dev_set_drvdata(&bmc->dev->dev, bmc);
- 		kref_init(&bmc->refcount);
- 
-@@ -4247,7 +4249,7 @@ static int ipmi_init_msghandler(void)
- 	if (initialized)
- 		return 0;
- 
--	rv = driver_register(&ipmidriver);
-+	rv = driver_register(&ipmidriver.driver);
- 	if (rv) {
- 		printk(KERN_ERR PFX "Could not register IPMI driver\n");
- 		return rv;
-@@ -4308,7 +4310,7 @@ static __exit void cleanup_ipmi(void)
- 	remove_proc_entry(proc_ipmi_root->name, NULL);
- #endif /* CONFIG_PROC_FS */
- 
--	driver_unregister(&ipmidriver);
-+	driver_unregister(&ipmidriver.driver);
- 
- 	initialized = 0;
- 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~fix-platform-drivers-that-crash-on-suspend-resume
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -114,9 +114,11 @@ static char *si_to_str[] = { "kcs", "smi
- 
- #define DEVICE_NAME "ipmi_si"
- 
--static struct device_driver ipmi_driver = {
--	.name = DEVICE_NAME,
--	.bus = &platform_bus_type
-+static struct platform_driver ipmi_driver = {
-+	.driver = {
-+		.name = DEVICE_NAME,
-+		.bus = &platform_bus_type
-+	}
- };
- 
- 
-@@ -2868,7 +2870,7 @@ static int try_smi_init(struct smi_info 
- 			goto out_err;
- 		}
- 		new_smi->dev = &new_smi->pdev->dev;
--		new_smi->dev->driver = &ipmi_driver;
-+		new_smi->dev->driver = &ipmi_driver.driver;
- 
- 		rv = platform_device_add(new_smi->pdev);
- 		if (rv) {
-@@ -2983,7 +2985,7 @@ static __devinit int init_ipmi_si(void)
- 	initialized = 1;
- 
- 	/* Register the device drivers. */
--	rv = driver_register(&ipmi_driver);
-+	rv = driver_register(&ipmi_driver.driver);
- 	if (rv) {
- 		printk(KERN_ERR
- 		       "init_ipmi_si: Unable to register driver: %d\n",
-@@ -3052,7 +3054,7 @@ static __devinit int init_ipmi_si(void)
- #ifdef CONFIG_PPC_OF
- 		of_unregister_platform_driver(&ipmi_of_platform_driver);
- #endif
--		driver_unregister(&ipmi_driver);
-+		driver_unregister(&ipmi_driver.driver);
- 		printk(KERN_WARNING
- 		       "ipmi_si: Unable to find any System Interface(s)\n");
- 		return -ENODEV;
-@@ -3151,7 +3153,7 @@ static __exit void cleanup_ipmi_si(void)
- 		cleanup_one_si(e);
- 	mutex_unlock(&smi_infos_lock);
- 
--	driver_unregister(&ipmi_driver);
-+	driver_unregister(&ipmi_driver.driver);
+ fail0:
++	kobject_put(&mci->edac_mci_kobj);
+ 	edac_mc_free(mci);
+ 	return -ENODEV;
  }
- module_exit(cleanup_ipmi_si);
+@@ -1498,7 +1500,7 @@ static void __devexit i5000_remove_one(s
  
-diff -puN drivers/hwmon/ibmaem.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/hwmon/ibmaem.c
---- a/drivers/hwmon/ibmaem.c~fix-platform-drivers-that-crash-on-suspend-resume
-+++ a/drivers/hwmon/ibmaem.c
-@@ -88,9 +88,11 @@
- static DEFINE_IDR(aem_idr);
- static DEFINE_SPINLOCK(aem_idr_lock);
- 
--static struct device_driver aem_driver = {
--	.name = DRVNAME,
--	.bus = &platform_bus_type,
-+static struct platform_driver aem_driver = {
-+	.driver = {
-+		.name = DRVNAME,
-+		.bus = &platform_bus_type,
-+	}
- };
- 
- struct aem_ipmi_data {
-@@ -583,7 +585,7 @@ static int aem_init_aem1_inst(struct aem
- 	data->pdev = platform_device_alloc(DRVNAME, data->id);
- 	if (!data->pdev)
- 		goto dev_err;
--	data->pdev->dev.driver = &aem_driver;
-+	data->pdev->dev.driver = &aem_driver.driver;
- 
- 	res = platform_device_add(data->pdev);
- 	if (res)
-@@ -716,7 +718,7 @@ static int aem_init_aem2_inst(struct aem
- 	data->pdev = platform_device_alloc(DRVNAME, data->id);
- 	if (!data->pdev)
- 		goto dev_err;
--	data->pdev->dev.driver = &aem_driver;
-+	data->pdev->dev.driver = &aem_driver.driver;
- 
- 	res = platform_device_add(data->pdev);
- 	if (res)
-@@ -1085,7 +1087,7 @@ static int __init aem_init(void)
- {
- 	int res;
- 
--	res = driver_register(&aem_driver);
-+	res = driver_register(&aem_driver.driver);
- 	if (res) {
- 		printk(KERN_ERR "Can't register aem driver\n");
- 		return res;
-@@ -1097,7 +1099,7 @@ static int __init aem_init(void)
- 	return 0;
- 
- ipmi_reg_err:
--	driver_unregister(&aem_driver);
-+	driver_unregister(&aem_driver.driver);
- 	return res;
- 
- }
-@@ -1107,7 +1109,7 @@ static void __exit aem_exit(void)
- 	struct aem_data *p1, *next1;
- 
- 	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
--	driver_unregister(&aem_driver);
-+	driver_unregister(&aem_driver.driver);
- 	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
- 		aem_delete(p1);
- }
-_
-
-Patches currently in -mm which might be from djwong@us.ibm.com are
-
-fix-platform-drivers-that-crash-on-suspend-resume.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-adt7462-new-hwmon-driver.patch
-i5k_amb-load-automatically-on-all-5000-5400-chipsets.patch
-adt7470-check-input-range-when-sysfs-files-are-written.patch
-adt7473-check-inputs-from-sysfs-writes.patch
-lm85-support-adt7468-chips.patch
-ics932s401-new-driver.patch
-
+ 	/* retrieve references to resources, and free those resources */
+ 	i5000_put_devices(mci);
