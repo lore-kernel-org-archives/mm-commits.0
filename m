@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Thu, 06 Nov 2008 16:41:17 -0800
-Message-ID: <200811070041.mA70fHp0020901@imap1.linux-foundation.org>
+Subject: + m32r-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Thu, 06 Nov 2008 16:41:08 -0800
+Message-ID: <200811070041.mA70f8VX020822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59839 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41986 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755219AbYKGAlU (ORCPT
+	by vger.kernel.org with ESMTP id S1755206AbYKGAlU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 19:41:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, chris@zankel.net
+Cc: harvey.harrison@gmail.com, takata@linux-m32r.org
 
 
 The patch titled
-     xtensa: use the new byteorder headers
+     m32r: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     xtensa-use-the-new-byteorder-headers.patch
+     m32r-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: use the new byteorder headers
+Subject: m32r: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-xtensa/byteorder.h |   32 ++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ include/asm-m32r/byteorder.h |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN include/asm-xtensa/byteorder.h~xtensa-use-the-new-byteorder-headers include/asm-xtensa/byteorder.h
---- a/include/asm-xtensa/byteorder.h~xtensa-use-the-new-byteorder-headers
-+++ a/include/asm-xtensa/byteorder.h
-@@ -14,7 +14,17 @@
- #include <asm/types.h>
- #include <linux/compiler.h>
+diff -puN include/asm-m32r/byteorder.h~m32r-use-the-new-byteorder-headers include/asm-m32r/byteorder.h
+--- a/include/asm-m32r/byteorder.h~m32r-use-the-new-byteorder-headers
++++ a/include/asm-m32r/byteorder.h
+@@ -1,17 +1,14 @@
+ #ifndef _ASM_M32R_BYTEORDER_H
+ #define _ASM_M32R_BYTEORDER_H
  
--static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 x)
-+#ifdef __XTENSA_EL__
-+# define __LITTLE_ENDIAN
-+#elif defined(__XTENSA_EB__)
-+# define __BIG_ENDIAN
-+#else
-+# error processor byte order undefined!
-+#endif
-+
-+#define __SWAB_64_THRU_32__
-+
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
- {
-     __u32 res;
-     /* instruction sequence from Xtensa ISA release 2/2000 */
-@@ -28,8 +38,9 @@ static __inline__ __attribute_const__ __
- 	    );
-     return res;
- }
-+#define __arch_swab32 __arch_swab32
- 
--static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
- {
-     /* Given that 'short' values are signed (i.e., can be negative),
-      * we cannot assume that the upper 16-bits of the register are
-@@ -62,21 +73,8 @@ static __inline__ __attribute_const__ __
- 
-     return res;
- }
-+#define __arch_swab16 __arch_swab16
- 
--#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
+-#include <asm/types.h>
 -
 -#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
 -#  define __BYTEORDER_HAS_U64__
 -#  define __SWAB_64_THRU_32__
 -#endif
 -
--#ifdef __XTENSA_EL__
--# include <linux/byteorder/little_endian.h>
--#elif defined(__XTENSA_EB__)
--# include <linux/byteorder/big_endian.h>
--#else
--# error processor byte order undefined!
--#endif
-+#include <linux/byteorder.h>
+ #if defined(__LITTLE_ENDIAN__)
+-#  include <linux/byteorder/little_endian.h>
++# define __LITTLE_ENDIAN
+ #else
+-#  include <linux/byteorder/big_endian.h>
++# define __BIG_ENDIAN
+ #endif
  
- #endif /* _XTENSA_BYTEORDER_H */
++#define __SWAB_64_THRU_32__
++
++#include <linux/byteorder.h>
++
+ #endif /* _ASM_M32R_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
