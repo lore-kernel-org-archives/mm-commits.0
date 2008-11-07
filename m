@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + edac-x38-use-the-architectures-readq-function.patch added to -mm tree
-Date: Thu, 06 Nov 2008 23:11:08 -0800
-Message-ID: <200811070711.mA77B8TH009193@imap1.linux-foundation.org>
+Subject: + edac-x38-use-the-architectures-readq-function-fix.patch added to -mm tree
+Date: Thu, 06 Nov 2008 23:11:49 -0800
+Message-ID: <200811070711.mA77BnZY009494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47814 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751857AbYKGHLn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 02:11:43 -0500
+	by vger.kernel.org with ESMTP id S1750861AbYKGHMT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 02:12:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mitake@clustcom.com, dougthompson@xmission.com
+Cc: akpm@linux-foundation.org, dougthompson@xmission.com, mitake@clustcom.com
 
 
 The patch titled
-     edac x38: use the architecture's readq() function
+     edac-x38-use-the-architectures-readq-function-fix
 has been added to the -mm tree.  Its filename is
-     edac-x38-use-the-architectures-readq-function.patch
+     edac-x38-use-the-architectures-readq-function-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac x38: use the architecture's readq() function
-From: Hitoshi Mitake <mitake@clustcom.com>
+Subject: edac-x38-use-the-architectures-readq-function-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make x38_edac.c use the kernel's readq() function when it is compiled for
-x86_64.
+X86 is sufficient.
 
-Signed-off-by: Hitoshi Mitake <mitake@clustcom.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Hitoshi Mitake <mitake@clustcom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig    |    2 +-
- drivers/edac/x38_edac.c |   12 +++++++-----
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ drivers/edac/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/Kconfig~edac-x38-use-the-architectures-readq-function drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~edac-x38-use-the-architectures-readq-function
+diff -puN drivers/edac/Kconfig~edac-x38-use-the-architectures-readq-function-fix drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~edac-x38-use-the-architectures-readq-function-fix
 +++ a/drivers/edac/Kconfig
 @@ -104,7 +104,7 @@ config EDAC_I3000
  
  config EDAC_X38
  	tristate "Intel X38"
--	depends on EDAC_MM_EDAC && PCI && X86
-+	depends on EDAC_MM_EDAC && PCI && (X86 || X86_64)
+-	depends on EDAC_MM_EDAC && PCI && (X86 || X86_64)
++	depends on EDAC_MM_EDAC && PCI && X86
  	help
  	  Support for error detection and correction on the Intel
  	  X38 server chipsets.
-diff -puN drivers/edac/x38_edac.c~edac-x38-use-the-architectures-readq-function drivers/edac/x38_edac.c
---- a/drivers/edac/x38_edac.c~edac-x38-use-the-architectures-readq-function
-+++ a/drivers/edac/x38_edac.c
-@@ -162,10 +162,12 @@ static void x38_clear_error_info(struct 
- 			 X38_ERRSTS_BITS);
- }
- 
--static u64 x38_readq(const void __iomem *addr)
-+#ifndef CONFIG_X86_64
-+static u64 readq(const void __iomem *addr)
- {
- 	return readl(addr) | (((u64)readl(addr + 4)) << 32);
- }
-+#endif	/* CONFIG_X86_64 */
- 
- static void x38_get_and_clear_error_info(struct mem_ctl_info *mci,
- 				 struct x38_error_info *info)
-@@ -184,9 +186,9 @@ static void x38_get_and_clear_error_info
- 	if (!(info->errsts & X38_ERRSTS_BITS))
- 		return;
- 
--	info->eccerrlog[0] = x38_readq(window + X38_C0ECCERRLOG);
-+	info->eccerrlog[0] = readq(window + X38_C0ECCERRLOG);
- 	if (x38_channel_num == 2)
--		info->eccerrlog[1] = x38_readq(window + X38_C1ECCERRLOG);
-+		info->eccerrlog[1] = readq(window + X38_C1ECCERRLOG);
- 
- 	pci_read_config_word(pdev, X38_ERRSTS, &info->errsts2);
- 
-@@ -197,10 +199,10 @@ static void x38_get_and_clear_error_info
- 	 * should be UE info.
- 	 */
- 	if ((info->errsts ^ info->errsts2) & X38_ERRSTS_BITS) {
--		info->eccerrlog[0] = x38_readq(window + X38_C0ECCERRLOG);
-+		info->eccerrlog[0] = readq(window + X38_C0ECCERRLOG);
- 		if (x38_channel_num == 2)
- 			info->eccerrlog[1] =
--				x38_readq(window + X38_C1ECCERRLOG);
-+				readq(window + X38_C1ECCERRLOG);
- 	}
- 
- 	x38_clear_error_info(mci);
 _
 
-Patches currently in -mm which might be from mitake@clustcom.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-edac-x38-use-the-architectures-readq-function.patch
+autofs4-collect-version-check-return.patch
+maintainers-make-ioat-easier-to-find.patch
+binfmtsh-include-listh-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+cpusets-update-mems-allowed-in-page-allocator-fix.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+alsa-fix-snd_bug_on-and-friends.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
