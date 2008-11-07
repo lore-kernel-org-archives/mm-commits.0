@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-disable-preempt-for-module_text_address-and-kernel_text_address.patch added to -mm tree
-Date: Thu, 06 Nov 2008 17:06:38 -0800
-Message-ID: <200811070106.mA716cAC032603@imap1.linux-foundation.org>
+Subject: + hwmon-applesmc-add-support-for-macbook-4.patch added to -mm tree
+Date: Thu, 06 Nov 2008 17:16:58 -0800
+Message-ID: <200811070116.mA71GwIG004927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59051 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57070 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750719AbYKGBHd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:07:33 -0500
+	by vger.kernel.org with ESMTP id S1750938AbYKGBRS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:17:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhiramat@redhat.com, ananth@in.ibm.com, h-shimamoto@ct.jp.nec.com, laijs@cn.fujitsu.com
+Cc: rydberg@euromail.se, nicolas@boichat.ch
 
 
 The patch titled
-     kprobes: disable preempt for module_text_address() and kernel_text_address()
+     hwmon: applesmc: add support for Macbook 4
 has been added to the -mm tree.  Its filename is
-     kprobes-disable-preempt-for-module_text_address-and-kernel_text_address.patch
+     hwmon-applesmc-add-support-for-macbook-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: disable preempt for module_text_address() and kernel_text_address()
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: hwmon: applesmc: add support for Macbook 4
+From: Henrik Rydberg <rydberg@euromail.se>
 
-__register_kprobe() can be preempted after checking probing address but
-before module_text_address() or try_module_get(), and in this interval the
-module can be unloaded.  In that case, try_module_get(probed_mod) will
-access to invalid address, or kprobe will probe invalid address.
+This patch adds accelerometer and temperature sensor support for Macbook 4.
 
-This patch uses preempt_disable() to protect it and uses
-__module_text_address() and __kernel_text_address().
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Nicolas Boichat <nicolas@boichat.ch
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ drivers/hwmon/applesmc.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kprobes.c~kprobes-disable-preempt-for-module_text_address-and-kernel_text_address kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-disable-preempt-for-module_text_address-and-kernel_text_address
-+++ a/kernel/kprobes.c
-@@ -613,30 +613,37 @@ static int __kprobes __register_kprobe(s
- 		return -EINVAL;
- 	p->addr = addr;
- 
--	if (!kernel_text_address((unsigned long) p->addr) ||
--	    in_kprobes_functions((unsigned long) p->addr))
-+	preempt_disable();
-+	if (!__kernel_text_address((unsigned long) p->addr) ||
-+	    in_kprobes_functions((unsigned long) p->addr)) {
-+		preempt_enable();
- 		return -EINVAL;
-+	}
- 
- 	p->mod_refcounted = 0;
- 
- 	/*
- 	 * Check if are we probing a module.
- 	 */
--	probed_mod = module_text_address((unsigned long) p->addr);
-+	probed_mod = __module_text_address((unsigned long) p->addr);
- 	if (probed_mod) {
--		struct module *calling_mod = module_text_address(called_from);
-+		struct module *calling_mod;
-+		calling_mod = __module_text_address(called_from);
- 		/*
- 		 * We must allow modules to probe themself and in this case
- 		 * avoid incrementing the module refcount, so as to allow
- 		 * unloading of self probing modules.
- 		 */
- 		if (calling_mod && calling_mod != probed_mod) {
--			if (unlikely(!try_module_get(probed_mod)))
-+			if (unlikely(!try_module_get(probed_mod))) {
-+				preempt_enable();
- 				return -EINVAL;
-+			}
- 			p->mod_refcounted = 1;
- 		} else
- 			probed_mod = NULL;
- 	}
-+	preempt_enable();
- 
- 	p->nmissed = 0;
- 	INIT_LIST_HEAD(&p->list);
-@@ -718,6 +725,10 @@ static void __kprobes __unregister_kprob
- 	struct kprobe *old_p;
- 
- 	if (p->mod_refcounted) {
-+		/*
-+		 * Since we've already incremented refcount,
-+		 * we don't need to disable preemption.
-+		 */
- 		mod = module_text_address((unsigned long)p->addr);
- 		if (mod)
- 			module_put(mod);
+diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-macbook-4 drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-macbook-4
++++ a/drivers/hwmon/applesmc.c
+@@ -1280,7 +1280,7 @@ static __initdata struct dmi_match_data 
+ 	{ .accelerometer = 0, .light = 0, .temperature_set = 4 },
+ /* iMac: temperature set 5 */
+ 	{ .accelerometer = 0, .light = 0, .temperature_set = 5 },
+-/* MacBook3: accelerometer and temperature set 6 */
++/* MacBook3, MacBook4: accelerometer and temperature set 6 */
+ 	{ .accelerometer = 1, .light = 0, .temperature_set = 6 },
+ /* MacBook Air: accelerometer, backlight and temperature set 7 */
+ 	{ .accelerometer = 1, .light = 1, .temperature_set = 7 },
+@@ -1329,6 +1329,10 @@ static __initdata struct dmi_system_id a
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook3") },
+ 		&applesmc_dmi_data[6]},
++	{ applesmc_dmi_match, "Apple MacBook 4", {
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBook4") },
++		&applesmc_dmi_data[6]},
+ 	{ applesmc_dmi_match, "Apple MacBook 5", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBook5") },
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
-kprobes-disable-preempt-for-module_text_address-and-kernel_text_address.patch
-kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
-kprobes-indirectly-call-kprobe_target.patch
-kprobes-add-tests-for-register_kprobes.patch
+hwmon-applesmc-add-support-for-imac-5.patch
+hwmon-applesmc-add-support-for-macbook-5.patch
+hwmon-applesmc-add-support-for-macbook-pro-5.patch
+hwmon-applesmc-add-support-for-imac-8.patch
+hwmon-applesmc-add-support-for-macbook-4.patch
+hid-add-support-for-the-new-unibody-macbooks.patch
+hid-add-support-for-the-new-unibody-macbooks-fix.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+input-map-missing-keys-to-appropriate-functions.patch
 
