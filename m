@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + twl4030-gpio-cleanup-debounce.patch added to -mm tree
-Date: Fri, 07 Nov 2008 14:36:39 -0800
-Message-ID: <200811072236.mA7MadVj001811@imap1.linux-foundation.org>
+Subject: + doc-add-printk-formatstxt.patch added to -mm tree
+Date: Fri, 07 Nov 2008 14:37:23 -0800
+Message-ID: <200811072237.mA7MbNu2002149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52889 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752103AbYKGWgv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 17:36:51 -0500
+	by vger.kernel.org with ESMTP id S1751593AbYKGWhc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 17:37:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, tony@atomide.com
+Cc: randy.dunlap@oracle.com, adobriyan@gmail.com
 
 
 The patch titled
-     twl4030-gpio: cleanup debounce 
+     DOC: add printk-formats.txt
 has been added to the -mm tree.  Its filename is
-     twl4030-gpio-cleanup-debounce.patch
+     doc-add-printk-formatstxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,143 +33,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: twl4030-gpio: cleanup debounce 
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: DOC: add printk-formats.txt
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Provide a static debounce configuration mechanism for twl4030 GPIOs,
-replacing the previous dynamic one.  The single user of that mechanism was
-for MMC card detect debouncing.
+Add printk-formats.txt so that we don't have to keep fixing the
+same things over and over again.  <wishful thinking>
 
-Boards can provide a bitmask saying which GPIOs to debounce (30 msec). 
-It's always enabled for pins with the MMC card-detect/VMMCx link active,
-so most boards won't need to set the debounce mask.
-
-This is a net code shrink, including runtime footprint.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/twl4030-gpio.c |   54 ++++++++++++++--------------------
- include/linux/i2c/twl4030.h |    9 +----
- 2 files changed, 26 insertions(+), 37 deletions(-)
+ Documentation/00-INDEX           |    2 +
+ Documentation/printk-formats.txt |   36 +++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-diff -puN drivers/gpio/twl4030-gpio.c~twl4030-gpio-cleanup-debounce drivers/gpio/twl4030-gpio.c
---- a/drivers/gpio/twl4030-gpio.c~twl4030-gpio-cleanup-debounce
-+++ a/drivers/gpio/twl4030-gpio.c
-@@ -202,37 +202,6 @@ static int twl4030_get_gpio_datain(int g
- 	return ret;
- }
- 
--/*
-- * Configure debounce timing value for a GPIO pin on TWL4030
-- */
--int twl4030_set_gpio_debounce(int gpio, int enable)
--{
--	u8 d_bnk = gpio >> 3;
--	u8 d_msk = BIT(gpio & 0x7);
--	u8 reg = 0;
--	u8 base = 0;
--	int ret = 0;
--
--	if (unlikely((gpio >= TWL4030_GPIO_MAX)
--		|| !(gpio_usage_count & BIT(gpio))))
--		return -EPERM;
--
--	base = REG_GPIO_DEBEN1 + d_bnk;
--	mutex_lock(&gpio_lock);
--	ret = gpio_twl4030_read(base);
--	if (ret >= 0) {
--		if (enable)
--			reg = ret | d_msk;
--		else
--			reg = ret & ~d_msk;
--
--		ret = gpio_twl4030_write(base, reg);
--	}
--	mutex_unlock(&gpio_lock);
--	return ret;
--}
--EXPORT_SYMBOL(twl4030_set_gpio_debounce);
--
- /*----------------------------------------------------------------------*/
- 
- static int twl_request(struct gpio_chip *chip, unsigned offset)
-@@ -405,6 +374,23 @@ static int __devinit gpio_twl4030_pulls(
- 				REG_GPIOPUPDCTR1, 5);
- }
- 
-+static int __devinit gpio_twl4030_debounce(u32 debounce, u8 mmc_cd)
-+{
-+	u8		message[4];
+diff -puN Documentation/00-INDEX~doc-add-printk-formatstxt Documentation/00-INDEX
+--- a/Documentation/00-INDEX~doc-add-printk-formatstxt
++++ a/Documentation/00-INDEX
+@@ -290,6 +290,8 @@ powerpc/
+ 	- directory with info on using Linux with the PowerPC.
+ preempt-locking.txt
+ 	- info on locking under a preemptive kernel.
++printk-formats.txt
++	- how to get printk format specifiers right
+ prio_tree.txt
+ 	- info on radix-priority-search-tree use for indexing vmas.
+ ramdisk.txt
+diff -puN /dev/null Documentation/printk-formats.txt
+--- /dev/null
++++ a/Documentation/printk-formats.txt
+@@ -0,0 +1,36 @@
++If variable is of Type,		use printk format specifier:
++---------------------------------------------------------
++		int			%d or %x
++		unsigned int		%u or %x
++		long			%ld or %lx
++		unsigned long		%lu or %lx
++		long long		%lld or %llx
++		unsigned long long	%llu or %llx
++		size_t			%zu or %zx
++		ssize_t			%zd or %zx
 +
-+	/* 30 msec of debouncing is always used for MMC card detect,
-+	 * and is optional for everything else.
-+	 */
-+	message[1] = (debounce & 0xff) | (mmc_cd & 0x03);
-+	debounce >>= 8;
-+	message[2] = (debounce & 0xff);
-+	debounce >>= 8;
-+	message[3] = (debounce & 0x03);
++Raw pointer value SHOULD be printed with %p.
 +
-+	return twl4030_i2c_write(TWL4030_MODULE_GPIO, message,
-+				REG_GPIO_DEBEN1, 3);
-+}
++u64 SHOULD be printed with %llu/%llx, (unsigned long long):
 +
- static int gpio_twl4030_remove(struct platform_device *pdev);
- 
- static int __devinit gpio_twl4030_probe(struct platform_device *pdev)
-@@ -439,6 +425,12 @@ no_irqs:
- 				pdata->pullups, pdata->pulldowns,
- 				ret);
- 
-+	ret = gpio_twl4030_debounce(pdata->debounce, pdata->mmc_cd);
-+	if (ret)
-+		dev_dbg(&pdev->dev, "debounce %.03x %.01x --> %d\n",
-+				pdata->debounce, pdata->mmc_cd,
-+				ret);
++	printk("%llu", (unsigned long long)u64_var);
 +
- 	twl_gpiochip.base = pdata->gpio_base;
- 	twl_gpiochip.ngpio = TWL4030_GPIO_MAX;
- 	twl_gpiochip.dev = &pdev->dev;
-diff -puN include/linux/i2c/twl4030.h~twl4030-gpio-cleanup-debounce include/linux/i2c/twl4030.h
---- a/include/linux/i2c/twl4030.h~twl4030-gpio-cleanup-debounce
-+++ a/include/linux/i2c/twl4030.h
-@@ -234,6 +234,9 @@ struct twl4030_gpio_platform_data {
- 	/* gpio-n should control VMMC(n+1) if BIT(n) in mmc_cd is set */
- 	u8		mmc_cd;
- 
-+	/* if BIT(N) is set, or VMMC(n+1) is linked, debounce GPIO-N */
-+	u32		debounce;
++s64 SHOULD be printed with %lld/%llx, (long long):
 +
- 	/* For gpio-N, bit (1 << N) in "pullups" is set if that pullup
- 	 * should be enabled.  Else, if that bit is set in "pulldowns",
- 	 * that pulldown is enabled.  Don't waste power by letting any
-@@ -326,12 +329,6 @@ int twl4030_sih_setup(int module);
- 
- #define TWL4030_GPIO_IRQ_NO(n)		(TWL4030_GPIO_IRQ_BASE + (n))
- 
--/*
-- * Exported TWL4030 GPIO APIs
-- *
-- * WARNING -- use standard GPIO and IRQ calls instead; these will vanish.
-- */
--int twl4030_set_gpio_debounce(int gpio, int enable);
- 
- #if defined(CONFIG_TWL4030_BCI_BATTERY) || \
- 	defined(CONFIG_TWL4030_BCI_BATTERY_MODULE)
++	printk("%lld", (long long)s64_var);
++
++If <type> is dependent on a config option for its size (e.g., sector_t,
++blkcnt_t, phys_addr_t, resource_size_t) or is architecture-dependent
++for its size (e.g., tcflag_t), use a format specifier of its largest
++possible type and explicitly cast to it.  Example:
++
++	printk("test: sector number/total blocks: %llu/%llu\n",
++		(unsigned long long)sector, (unsigned long long)blockcount);
++
++Reminder: sizeof() result is of type size_t.
++
++Thank you for your cooperation and attention.
++
++
++Written by Alexey Dobriyan <adobriyan@gmail.com>
++Updated by Randy Dunlap <rdunlap@xenotime.net>
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-atmel_serial-keep-clock-off-when-its-not-needed.patch
 linux-next.patch
-acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
-spi_gpio-driver.patch
-spi_gpio-driver-cleanups.patch
-rtc-ds1307-remove-legacy-probe-checks.patch
-twl4030-gpio-cleanup-debounce.patch
-genirq-warn-when-irqf_disabled-may-be-ignored.patch
-genirq-record-irq_level-in-irq_desc.patch
+fujitsu-laptop-fix-section-mismatch-warning.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem.patch
+kgdb-fix-kernel-doc-error.patch
+audit-remove-excess-kernel-doc.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+scsi-ioctl-fix-kernel-doc-warning.patch
+fusion-remove-excess-kernel-doc-notation.patch
+block-remove-excess-kernel-doc.patch
+fs-fix-inodec-kernel-doc-warnings.patch
+doc-add-printk-formatstxt.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+documentation-update-scheduler-header-file-paths.patch
+documentation-move-ioctl-numbertxt-to-doc-ioctl.patch
+documentation-move-msi-howtotxt-to-doc-pci.patch
+profile-likely-unlikely-macros.patch
 
