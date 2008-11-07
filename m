@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + adt7473-check-inputs-from-sysfs-writes.patch added to -mm tree
-Date: Fri, 07 Nov 2008 11:21:24 -0800
-Message-ID: <200811071921.mA7JLO6K003305@imap1.linux-foundation.org>
+Subject: + align-avoid-evaluating-its-argument-twice.patch added to -mm tree
+Date: Fri, 07 Nov 2008 11:24:20 -0800
+Message-ID: <200811071924.mA7JOKrY004862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47001 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43962 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752304AbYKGTVg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 14:21:36 -0500
+	by vger.kernel.org with ESMTP id S1751080AbYKGTYX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Nov 2008 14:24:23 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mA7JOLLV026677
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 7 Nov 2008 11:24:22 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: djwong@us.ibm.com, khali@linux-fr.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     adt7473: check inputs from sysfs writes
+     ALIGN(): avoid evaluating its argument twice
 has been added to the -mm tree.  Its filename is
-     adt7473-check-inputs-from-sysfs-writes.patch
+     align-avoid-evaluating-its-argument-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,227 +37,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adt7473: check inputs from sysfs writes
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: ALIGN(): avoid evaluating its argument twice
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Implement proper rounding and range checking for adt7473.
+ALIGN() will misbehave if passed an expression with side-effects.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/adt7473.c |   89 +++++++++++++++++++++++++++++++-------
- 1 file changed, 74 insertions(+), 15 deletions(-)
+ include/linux/kernel.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/adt7473.c~adt7473-check-inputs-from-sysfs-writes drivers/hwmon/adt7473.c
---- a/drivers/hwmon/adt7473.c~adt7473-check-inputs-from-sysfs-writes
-+++ a/drivers/hwmon/adt7473.c
-@@ -129,6 +129,8 @@ I2C_CLIENT_INSMOD_1(adt7473);
- #define FAN_PERIOD_INVALID	65535
- #define FAN_DATA_VALID(x)	((x) && (x) != FAN_PERIOD_INVALID)
+diff -puN include/linux/kernel.h~align-avoid-evaluating-its-argument-twice include/linux/kernel.h
+--- a/include/linux/kernel.h~align-avoid-evaluating-its-argument-twice
++++ a/include/linux/kernel.h
+@@ -39,7 +39,12 @@ extern const char linux_proc_banner[];
+ #define STACK_MAGIC	0xdeadbeef
  
-+#define ROUND_DIV(x, divisor)	(((x) + ((divisor) / 2)) / (divisor))
+ #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
+-#define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
 +
- struct adt7473_data {
- 	struct device		*hwmon_dev;
- 	struct attribute_group	attrs;
-@@ -357,7 +359,12 @@ static ssize_t set_volt_min(struct devic
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int volt = encode_volt(attr->index, simple_strtol(buf, NULL, 10));
-+	long volt;
++#define __ALIGN_MASK(x,mask)	({		\
++	typeof(mask) __mask = mask;		\
++	(((x) + __mask) & ~__mask);		\
++})
 +
-+	if (strict_strtol(buf, 10, &volt))
-+		return -EINVAL;
-+
-+	volt = encode_volt(attr->index, volt);
+ #define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
+ #define IS_ALIGNED(x, a)		(((x) & ((typeof(x))(a) - 1)) == 0)
  
- 	mutex_lock(&data->lock);
- 	data->volt_min[attr->index] = volt;
-@@ -386,7 +393,12 @@ static ssize_t set_volt_max(struct devic
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int volt = encode_volt(attr->index, simple_strtol(buf, NULL, 10));
-+	long volt;
-+
-+	if (strict_strtol(buf, 10, &volt))
-+		return -EINVAL;
-+
-+	volt = encode_volt(attr->index, volt);
- 
- 	mutex_lock(&data->lock);
- 	data->volt_max[attr->index] = volt;
-@@ -419,7 +431,8 @@ static int decode_temp(u8 twos_complemen
- 
- static u8 encode_temp(u8 twos_complement, int cooked)
- {
--	return twos_complement ? cooked & 0xFF : cooked + 64;
-+	u8 ret = twos_complement ? cooked & 0xFF : cooked + 64;
-+	return SENSORS_LIMIT(ret, 0, 255);
- }
- 
- static ssize_t show_temp_min(struct device *dev,
-@@ -441,7 +454,12 @@ static ssize_t set_temp_min(struct devic
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10) / 1000;
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = ROUND_DIV(temp, 1000);
- 	temp = encode_temp(data->temp_twos_complement, temp);
- 
- 	mutex_lock(&data->lock);
-@@ -472,7 +490,12 @@ static ssize_t set_temp_max(struct devic
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10) / 1000;
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = ROUND_DIV(temp, 1000);
- 	temp = encode_temp(data->temp_twos_complement, temp);
- 
- 	mutex_lock(&data->lock);
-@@ -515,11 +538,13 @@ static ssize_t set_fan_min(struct device
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
- 
--	if (!temp)
-+	if (strict_strtol(buf, 10, &temp) || !temp)
- 		return -EINVAL;
-+
- 	temp = FAN_RPM_TO_PERIOD(temp);
-+	temp = SENSORS_LIMIT(temp, 1, 65534);
- 
- 	mutex_lock(&data->lock);
- 	data->fan_min[attr->index] = temp;
-@@ -558,7 +583,10 @@ static ssize_t set_max_duty_at_crit(stru
- 	u8 reg;
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
- 
- 	mutex_lock(&data->lock);
- 	data->max_duty_at_overheat = !!temp;
-@@ -587,7 +615,12 @@ static ssize_t set_pwm(struct device *de
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
- 	data->pwm[attr->index] = temp;
-@@ -614,7 +647,12 @@ static ssize_t set_pwm_max(struct device
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
- 	data->pwm_max[attr->index] = temp;
-@@ -642,7 +680,12 @@ static ssize_t set_pwm_min(struct device
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = SENSORS_LIMIT(temp, 0, 255);
- 
- 	mutex_lock(&data->lock);
- 	data->pwm_min[attr->index] = temp;
-@@ -672,7 +715,12 @@ static ssize_t set_temp_tmax(struct devi
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10) / 1000;
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = ROUND_DIV(temp, 1000);
- 	temp = encode_temp(data->temp_twos_complement, temp);
- 
- 	mutex_lock(&data->lock);
-@@ -703,7 +751,12 @@ static ssize_t set_temp_tmin(struct devi
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10) / 1000;
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = ROUND_DIV(temp, 1000);
- 	temp = encode_temp(data->temp_twos_complement, temp);
- 
- 	mutex_lock(&data->lock);
-@@ -741,7 +794,10 @@ static ssize_t set_pwm_enable(struct dev
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
- 
- 	switch (temp) {
- 	case 0:
-@@ -805,7 +861,10 @@ static ssize_t set_pwm_auto_temp(struct 
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
- 
- 	switch (temp) {
- 	case 1:
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-adt7462-new-hwmon-driver.patch
-i5k_amb-load-automatically-on-all-5000-5400-chipsets.patch
-adt7470-check-input-range-when-sysfs-files-are-written.patch
-adt7473-check-inputs-from-sysfs-writes.patch
-lm85-support-adt7468-chips.patch
+autofs4-collect-version-check-return.patch
+maintainers-make-ioat-easier-to-find.patch
+binfmtsh-include-listh-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+cpusets-update-mems-allowed-in-page-allocator-fix.patch
+remove-ratelimt.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+alsa-fix-snd_bug_on-and-friends.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+align-avoid-evaluating-its-argument-twice.patch
+spi_gpio-driver-cleanups.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
