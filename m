@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + freezer_cg-disable-writing-freezerstate-of-root-cgroup.patch added to -mm tree
-Date: Thu, 06 Nov 2008 17:15:58 -0800
-Message-ID: <200811070115.mA71FwIR004451@imap1.linux-foundation.org>
+Subject: + input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch added to -mm tree
+Date: Thu, 06 Nov 2008 17:17:51 -0800
+Message-ID: <200811070117.mA71HplD005370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60779 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47462 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752146AbYKGBRf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:17:35 -0500
+	by vger.kernel.org with ESMTP id S1753214AbYKGBSI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Nov 2008 20:18:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, clg@fr.ibm.com, matthltc@us.ibm.com, menage@google.com, serue@us.ibm.com
+Cc: michael.hennerich@analog.com, cooloney@kernel.org, dtor@mail.ru
 
 
 The patch titled
-     freezer_cg: disable writing freezer.state of root cgroup
+     Input/AD7879: Fix/workaroud build error reported by Andrew Morton:
 has been added to the -mm tree.  Its filename is
-     freezer_cg-disable-writing-freezerstate-of-root-cgroup.patch
+     input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,143 +33,158 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: freezer_cg: disable writing freezer.state of root cgroup
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: Input/AD7879: Fix/workaroud build error reported by Andrew Morton:
+From: Michael Hennerich <michael.hennerich@analog.com>
 
-With this change, control file 'freezer.state' doesn't exist in root
-cgroup, making root cgroup unfreezable.
+On Thu, 30 Oct 2008 02:24:25 -0700 akpm@linux-foundation.org wrote:
 
-I think it's reasonable to disallow freeze tasks in the root cgroup.  And
-then we can avoid fork overhead when freezer subsystem is compiled but not
-used.
+> The mm-of-the-moment snapshot 2008-10-30-02-23 has been uploaded to
+>
+>    http://userweb.kernel.org/~akpm/mmotm/
+>
+> It contains the following patches against 2.6.28-rc2:
 
-Also make writing invalid value to freezer.state returns EINVAL rather
-than EIO.  This is more consistent with other cgroup subsystem.
+CONFIG_TOUCHSCREEN_AD7879=y
+CONFIG_TOUCHSCREEN_AD7879_I2C=y
+CONFIG_I2C=m <<<<<<<<<<
+CONFIG_I2C_BOARDINFO=y
+CONFIG_I2C_CHARDEV=m
+CONFIG_I2C_HELPER_AUTO=y
+CONFIG_I2C_ALGOBIT=m
+CONFIG_I2C_ALGOPCA=m
+CONFIG_I2C_GPIO=m
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+causes
+drivers/built-in.o: In function `ad7879_write':
+ad7879.c:(.text+0x749ce): undefined reference to
+`i2c_smbus_write_word_data'
+drivers/built-in.o: In function `ad7879_read':
+ad7879.c:(.text+0x749ee): undefined reference to
+`i2c_smbus_read_word_data'
+drivers/built-in.o: In function `ad7879_init':
+ad7879.c:(.init.text+0x3a6e): undefined reference to
+`i2c_register_driver'
+drivers/built-in.o: In function `ad7879_exit':
+ad7879.c:(.exit.text+0x6c1): undefined reference to `i2c_del_driver'
+
+rand-config attached.
+
+Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/freezer-subsystem.txt |   21 ++++++++++--------
- kernel/cgroup_freezer.c                     |   11 ++++++++-
- 2 files changed, 22 insertions(+), 10 deletions(-)
+ drivers/input/touchscreen/Kconfig  |   35 +++++++++++++++------------
+ drivers/input/touchscreen/ad7879.c |   10 +++----
+ 2 files changed, 25 insertions(+), 20 deletions(-)
 
-diff -puN Documentation/cgroups/freezer-subsystem.txt~freezer_cg-disable-writing-freezerstate-of-root-cgroup Documentation/cgroups/freezer-subsystem.txt
---- a/Documentation/cgroups/freezer-subsystem.txt~freezer_cg-disable-writing-freezerstate-of-root-cgroup
-+++ a/Documentation/cgroups/freezer-subsystem.txt
-@@ -1,4 +1,4 @@
--	The cgroup freezer is useful to batch job management system which start
-+The cgroup freezer is useful to batch job management system which start
- and stop sets of tasks in order to schedule the resources of a machine
- according to the desires of a system administrator. This sort of program
- is often used on HPC clusters to schedule access to the cluster as a
-@@ -6,7 +6,7 @@ whole. The cgroup freezer uses cgroups t
- be started/stopped by the batch job management system. It also provides
- a means to start and stop the tasks composing the job.
+diff -puN drivers/input/touchscreen/Kconfig~input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton drivers/input/touchscreen/Kconfig
+--- a/drivers/input/touchscreen/Kconfig~input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton
++++ a/drivers/input/touchscreen/Kconfig
+@@ -42,32 +42,37 @@ config TOUCHSCREEN_AD7877
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ad7877.
  
--	The cgroup freezer will also be useful for checkpointing running groups
-+The cgroup freezer will also be useful for checkpointing running groups
- of tasks. The freezer allows the checkpoint code to obtain a consistent
- image of the tasks by attempting to force the tasks in a cgroup into a
- quiescent state. Once the tasks are quiescent another task can
-@@ -16,7 +16,7 @@ recoverable error occur. This also allow
- migrated between nodes in a cluster by copying the gathered information
- to another node and restarting the tasks there.
+-config TOUCHSCREEN_AD7879
+-	tristate "AD7879 based touchscreens"
+-	depends on SPI_MASTER || I2C
++config TOUCHSCREEN_AD7879_I2C
++	tristate "AD7879 based touchscreens: AD7879-1 I2C Interface"
++	depends on I2C
++	select TOUCHSCREEN_AD7879
+ 	help
+ 	  Say Y here if you have a touchscreen interface using the
+-	  AD7879(-1) controller, and your board-specific initialization
+-	  code includes that in its table of SPI/I2C devices.
++	  AD7879-1 controller, and your board-specific initialization
++	  code includes that in its table of I2C devices.
  
--	Sequences of SIGSTOP and SIGCONT are not always sufficient for stopping
-+Sequences of SIGSTOP and SIGCONT are not always sufficient for stopping
- and resuming tasks in userspace. Both of these signals are observable
- from within the tasks we wish to freeze. While SIGSTOP cannot be caught,
- blocked, or ignored it can be seen by waiting or ptracing parent tasks.
-@@ -37,26 +37,29 @@ demonstrate this problem using nested ba
+ 	  If unsure, say N (but it's safe to say "Y").
  
- 	<at this point 16990 exits and causes 16644 to exit too>
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ad7879.
  
--	This happens because bash can observe both signals and choose how it
-+This happens because bash can observe both signals and choose how it
- responds to them.
+-choice
+-	prompt "Interface Selection"
+-	depends on TOUCHSCREEN_AD7879
++config TOUCHSCREEN_AD7879_SPI
++	tristate "AD7879 based touchscreens: AD7879 SPI Interface"
++	depends on SPI_MASTER && TOUCHSCREEN_AD7879_I2C = n
++	select TOUCHSCREEN_AD7879
++	help
++	  Say Y here if you have a touchscreen interface using the
++	  AD7879 controller, and your board-specific initialization
++	  code includes that in its table of SPI devices.
  
--	Another example of a program which catches and responds to these
-+Another example of a program which catches and responds to these
- signals is gdb. In fact any program designed to use ptrace is likely to
- have a problem with this method of stopping and resuming tasks.
+-config TOUCHSCREEN_AD7879_I2C
+-	bool "AD7879-1 I2C"
+-	depends on I2C
++	  If unsure, say N (but it's safe to say "Y").
  
--	 In contrast, the cgroup freezer uses the kernel freezer code to
-+In contrast, the cgroup freezer uses the kernel freezer code to
- prevent the freeze/unfreeze cycle from becoming visible to the tasks
- being frozen. This allows the bash example above and gdb to run as
- expected.
+-config TOUCHSCREEN_AD7879_SPI
+-	bool "AD7879 SPI"
+-	depends on SPI_MASTER
+-endchoice
++	  To compile this driver as a module, choose M here: the
++	  module will be called ad7879.
  
--	The freezer subsystem in the container filesystem defines a file named
-+The freezer subsystem in the container filesystem defines a file named
- freezer.state. Writing "FROZEN" to the state file will freeze all tasks in the
- cgroup. Subsequently writing "THAWED" will unfreeze the tasks in the cgroup.
- Reading will return the current state.
++config TOUCHSCREEN_AD7879
++	tristate
++	default n
  
-+Note freezer.state doesn't exist in root cgroup, which means root cgroup
-+is non-freezable.
-+
- * Examples of usage :
+ config TOUCHSCREEN_BITSY
+ 	tristate "Compaq iPAQ H3600 (Bitsy) touchscreen"
+diff -puN drivers/input/touchscreen/ad7879.c~input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton drivers/input/touchscreen/ad7879.c
+--- a/drivers/input/touchscreen/ad7879.c~input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton
++++ a/drivers/input/touchscreen/ad7879.c
+@@ -120,10 +120,10 @@ enum {
+ #define	MAX_12BIT			((1<<12)-1)
+ #define	TS_PEN_UP_TIMEOUT		msecs_to_jiffies(50)
  
--   # mkdir /containers/freezer
-+   # mkdir /containers
-    # mount -t cgroup -ofreezer freezer  /containers
-    # mkdir /containers/0
-    # echo $some_pid > /containers/0/tasks
-@@ -94,6 +97,6 @@ things happens:
- 		the freezer.state file
- 	2) Userspace retries the freezing operation by writing "FROZEN" to
- 		the freezer.state file (writing "FREEZING" is not legal
--		and returns EIO)
-+		and returns EINVAL)
- 	3) The tasks that blocked the cgroup from entering the "FROZEN"
- 		state disappear from the cgroup's set of tasks.
-diff -puN kernel/cgroup_freezer.c~freezer_cg-disable-writing-freezerstate-of-root-cgroup kernel/cgroup_freezer.c
---- a/kernel/cgroup_freezer.c~freezer_cg-disable-writing-freezerstate-of-root-cgroup
-+++ a/kernel/cgroup_freezer.c
-@@ -192,6 +192,13 @@ static void freezer_fork(struct cgroup_s
- 	 */
- 	freezer = task_freezer(task);
+-#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI)
++#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI) || defined(CONFIG_TOUCHSCREEN_AD7879_SPI_MODULE)
+ #define AD7879_DEVID		0x7A
+ typedef struct spi_device	bus_device;
+-#elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C)
++#elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C) || defined(CONFIG_TOUCHSCREEN_AD7879_I2C_MODULE)
+ #define AD7879_DEVID		0x79
+ typedef struct i2c_client	bus_device;
+ #endif
+@@ -135,7 +135,7 @@ struct ad7879 {
+ 	struct timer_list	timer;
+ 	spinlock_t		lock;
  
-+	/*
-+	 * The root cgroup is non-freezable, so we can skip the
-+	 * following check.
-+	 */
-+	if (!freezer->css.cgroup->parent)
-+		return;
-+
- 	spin_lock_irq(&freezer->lock);
- 	BUG_ON(freezer->state == CGROUP_FROZEN);
+-#ifdef CONFIG_TOUCHSCREEN_AD7879_SPI
++#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI) || defined(CONFIG_TOUCHSCREEN_AD7879_SPI_MODULE)
+ 	struct spi_message	msg;
+ 	struct spi_transfer	xfer[AD7879_NR_SENSE + 1];
+ 	u16			cmd;
+@@ -527,7 +527,7 @@ static int ad7879_resume(bus_device *bus
+ #define ad7879_resume  NULL
+ #endif
  
-@@ -335,7 +342,7 @@ static int freezer_write(struct cgroup *
- 	else if (strcmp(buffer, freezer_state_strs[CGROUP_FROZEN]) == 0)
- 		goal_state = CGROUP_FROZEN;
- 	else
--		return -EIO;
-+		return -EINVAL;
- 
- 	if (!cgroup_lock_live_group(cgroup))
- 		return -ENODEV;
-@@ -354,6 +361,8 @@ static struct cftype files[] = {
- 
- static int freezer_populate(struct cgroup_subsys *ss, struct cgroup *cgroup)
- {
-+	if (!cgroup->parent)
-+		return 0;
- 	return cgroup_add_files(cgroup, ss, files, ARRAY_SIZE(files));
+-#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI)
++#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI) || defined(CONFIG_TOUCHSCREEN_AD7879_SPI_MODULE)
+ #define MAX_SPI_FREQ_HZ		5000000
+ #define AD7879_CMD_MAGIC	0xE000
+ #define AD7879_CMD_READ		(1 << 10)
+@@ -700,7 +700,7 @@ static void __exit ad7879_exit(void)
  }
+ module_exit(ad7879_exit);
  
+-#elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C)
++#elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C) || defined(CONFIG_TOUCHSCREEN_AD7879_I2C_MODULE)
+ 
+ /* All registers are word-sized.
+  * AD7879 uses a high-byte first convention.
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from michael.hennerich@analog.com are
 
-cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed.patch
-documentation-kernel-parameterstxt-update-isolcpus-kernel-option.patch
-freezer_cg-remove-task_lock-from-freezer_fork.patch
-freezer_cg-disable-writing-freezerstate-of-root-cgroup.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver-fix.patch
+input-ad7879-touchscreen-driver.patch
+input-ad7879-touchscreen-driver-cleanup.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
 
