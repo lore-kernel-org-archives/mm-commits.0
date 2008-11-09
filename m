@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
 Subject: + viafb-fix-crash-due-to-4k-stack-overflow.patch added to -mm tree
-Date: Sun, 09 Nov 2008 11:36:23 -0800
-Message-ID: <200811091936.mA9JaNn9031127@imap1.linux-foundation.org>
+Date: Sun, 09 Nov 2008 14:54:22 -0800
+Message-ID: <200811092254.mA9MsMqU031914@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60048 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755645AbYKITgd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 9 Nov 2008 14:36:33 -0500
+	by vger.kernel.org with ESMTP id S1755869AbYKIWyf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 9 Nov 2008 17:54:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -80,8 +80,8 @@ flow
 =20
  	if (cursor->set & FB_CUR_SETSHAPE) {
 -		size =3D
-+		u8 *data =3D kzalloc(CURSOR_SIZE / 8, GFP_KERNEL);
-+		u32 *data_bak =3D kzalloc(CURSOR_SIZE / 32, GFP_KERNEL);
++		u8 *data =3D kzalloc(CURSOR_SIZE / 8, GFP_ATOMIC);
++		u32 *data_bak =3D kzalloc(CURSOR_SIZE / 32, GFP_ATOMIC);
 +		int size =3D
  		    ((viacursor.image.width + 7) >> 3) *
  		    viacursor.image.height;
