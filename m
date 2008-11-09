@@ -1,23 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + fix-__pfn_to_pagepfn-for-config_discontigmem=y.patch added to -mm tree
-Date: Sat, 08 Nov 2008 21:55:03 -0800
-Message-ID: <200811090555.mA95t3c7016783@imap1.linux-foundation.org>
+Subject: + viafb-fix-crash-due-to-4k-stack-overflow.patch added to -mm tree
+Date: Sun, 09 Nov 2008 11:36:23 -0800
+Message-ID: <200811091936.mA9JaNn9031127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59724 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60048 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754127AbYKIFze (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 9 Nov 2008 00:55:34 -0500
+	by vger.kernel.org with ESMTP id S1755645AbYKITgd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 9 Nov 2008 14:36:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, pavel@suse.cz, stable@kernel.org
+Cc: bonbons@linux-vserver.org, JosephChan@via.com.tw, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     Fix __pfn_to_page(pfn) for CONFIG_DISCONTIGMEM=y
+     viafb: fix crash due to 4k stack overflow
 has been added to the -mm tree.  Its filename is
-     fix-__pfn_to_pagepfn-for-config_discontigmem=y.patch
+     viafb-fix-crash-due-to-4k-stack-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,56 +28,89 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: Fix __pfn_to_page(pfn) for CONFIG_DISCONTIGMEM=y
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: viafb: fix crash due to 4k stack overflow
+=46rom: Bruno Pr=E9mont <bonbons@linux-vserver.org>
 
-Fix macro __pfn_to_page(pfn) so that it doesn't evaluate its argument
-twice in the CONFIG_DISCONTIGMEM=y case, because 'pfn' may be a result of
-a funtion call having side effects.
+The function viafb_cursor() uses 2 stack-variables of CURSOR_SIZE bits;
+CURSOR_SIZE is defined as (8 * 1024).  Using up twice 1k on stack is to=
+o
+much for 4k-stack (though it works with 8k-stacks).
 
-For example, the hibernation code applies pfn_to_page(pfn) to the result
-of a function returning the pfn corresponding to the next set bit in a
-bitmap and the current bit position is modified on each call.  This leads
-to "interesting" failures for CONFIG_DISCONTIGMEM=y due to the current
-behavior of __pfn_to_page(pfn).
+Make those two variables kzalloc'ed to preserve stack space.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@suse.cz>
-Cc: <stable@kernel.org>		[2.6.27.x]
+Signed-off-by: Bruno Pr=E9mont <bonbons@linux-vserver.org>
+Cc: <JosephChan@via.com.tw>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/memory_model.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/via/viafbdev.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-generic/memory_model.h~fix-__pfn_to_pagepfn-for-config_discontigmem=y include/asm-generic/memory_model.h
---- a/include/asm-generic/memory_model.h~fix-__pfn_to_pagepfn-for-config_discontigmem=y
-+++ a/include/asm-generic/memory_model.h
-@@ -34,7 +34,7 @@
- 
- #define __pfn_to_page(pfn)			\
- ({	unsigned long __pfn = (pfn);		\
--	unsigned long __nid = arch_pfn_to_nid(pfn);  \
-+	unsigned long __nid = arch_pfn_to_nid(__pfn);  \
- 	NODE_DATA(__nid)->node_mem_map + arch_local_page_offset(__pfn, __nid);\
- })
- 
+diff -puN drivers/video/via/viafbdev.c~viafb-fix-crash-due-to-4k-stack-=
+overflow drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-fix-crash-due-to-4k-stack-over=
+flow
++++ a/drivers/video/via/viafbdev.c
+@@ -1052,10 +1052,8 @@ static void viafb_imageblit(struct fb_in
+=20
+ static int viafb_cursor(struct fb_info *info, struct fb_cursor *cursor=
+)
+ {
+-	u8 data[CURSOR_SIZE / 8];
+-	u32 data_bak[CURSOR_SIZE / 32];
+ 	u32 temp, xx, yy, bg_col =3D 0, fg_col =3D 0;
+-	int size, i, j =3D 0;
++	int i, j =3D 0;
+ 	static int hw_cursor;
+ 	struct viafb_par *p_viafb_par;
+=20
+@@ -1178,10 +1176,15 @@ static int viafb_cursor(struct fb_info *
+ 	}
+=20
+ 	if (cursor->set & FB_CUR_SETSHAPE) {
+-		size =3D
++		u8 *data =3D kzalloc(CURSOR_SIZE / 8, GFP_KERNEL);
++		u32 *data_bak =3D kzalloc(CURSOR_SIZE / 32, GFP_KERNEL);
++		int size =3D
+ 		    ((viacursor.image.width + 7) >> 3) *
+ 		    viacursor.image.height;
+=20
++		if (data =3D=3D NULL || data_bak =3D=3D NULL)
++			goto out;
++
+ 		if (MAX_CURS =3D=3D 32) {
+ 			for (i =3D 0; i < (CURSOR_SIZE / 32); i++) {
+ 				data_bak[i] =3D 0x0;
+@@ -1231,6 +1234,9 @@ static int viafb_cursor(struct fb_info *
+ 		memcpy(((struct viafb_par *)(info->par))->fbmem_virt +
+ 		       ((struct viafb_par *)(info->par))->cursor_start,
+ 		       data_bak, CURSOR_SIZE);
++out:
++		kfree(data);
++		kfree(data_bak);
+ 	}
+=20
+ 	if (viacursor.enable)
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from bonbons@linux-vserver.org =
+are
 
-fix-__pfn_to_pagepfn-for-config_discontigmem=y.patch
-linux-next.patch
-e1000e-use-device_set_wakeup_enable.patch
-e1000-use-device_set_wakeup_enable.patch
-igb-use-device_set_wakeup_enable.patch
-shrink_slab-handle-bad-shrinkers.patch
+viafb-fix-crash-due-to-4k-stack-overflow.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
