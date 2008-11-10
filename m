@@ -1,84 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - autofs4-correct-offset-mount-expire-check.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:32:05 -0800
-Message-ID: <200811102032.mAAKW5h3023741@imap1.linux-foundation.org>
+Subject: - jffs2-fix-race-condition-in-jffs2_lzo_compress.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:34:30 -0800
+Message-ID: <200811102034.mAAKYUV9025120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55549 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37409 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754328AbYKJUi7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754381AbYKJUiw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:38:59 -0500
+	Mon, 10 Nov 2008 15:38:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, jmoyer@redhat.com, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, dwmw2@infradead.org, rpurdie@openedhand.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: correct offset mount expire check
+     jffs2: fix race condition in jffs2_lzo_compress()
 has been removed from the -mm tree.  Its filename was
-     autofs4-correct-offset-mount-expire-check.patch
+     jffs2-fix-race-condition-in-jffs2_lzo_compress.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: correct offset mount expire check
-From: Ian Kent <raven@themaw.net>
+Subject: jffs2: fix race condition in jffs2_lzo_compress()
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-When checking a directory tree in autofs_tree_busy() we can incorrectly
-decide that the tree isn't busy.  This happens for the case of an active
-offset mount as autofs4_follow_mount() follows past the active offset
-mount, which has an open file handle used for expires, causing the file
-handle not to count toward the busyness check.
+deflate_mutex protects the globals lzo_mem and lzo_compress_buf.  However,
+jffs2_lzo_compress() unlocks deflate_mutex _before_ it has copied out the
+compressed data from lzo_compress_buf.  Correct this by moving the mutex
+unlock after the copy.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+In addition, document what deflate_mutex actually protects.
+
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Acked-by: Richard Purdie <rpurdie@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/expire.c |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ fs/jffs2/compr_lzo.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN fs/autofs4/expire.c~autofs4-correct-offset-mount-expire-check fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs4-correct-offset-mount-expire-check
-+++ a/fs/autofs4/expire.c
-@@ -56,12 +56,23 @@ static int autofs4_mount_busy(struct vfs
- 	mntget(mnt);
- 	dget(dentry);
+diff -puN fs/jffs2/compr_lzo.c~jffs2-fix-race-condition-in-jffs2_lzo_compress fs/jffs2/compr_lzo.c
+--- a/fs/jffs2/compr_lzo.c~jffs2-fix-race-condition-in-jffs2_lzo_compress
++++ a/fs/jffs2/compr_lzo.c
+@@ -19,7 +19,7 @@
  
--	if (!autofs4_follow_mount(&mnt, &dentry))
-+	if (!follow_down(&mnt, &dentry))
- 		goto done;
+ static void *lzo_mem;
+ static void *lzo_compress_buf;
+-static DEFINE_MUTEX(deflate_mutex);
++static DEFINE_MUTEX(deflate_mutex);	/* for lzo_mem and lzo_compress_buf */
  
--	/* This is an autofs submount, we can't expire it */
--	if (is_autofs4_dentry(dentry))
--		goto done;
-+	if (is_autofs4_dentry(dentry)) {
-+		struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ static void free_workspace(void)
+ {
+@@ -49,18 +49,21 @@ static int jffs2_lzo_compress(unsigned c
+ 
+ 	mutex_lock(&deflate_mutex);
+ 	ret = lzo1x_1_compress(data_in, *sourcelen, lzo_compress_buf, &compress_size, lzo_mem);
+-	mutex_unlock(&deflate_mutex);
+-
+ 	if (ret != LZO_E_OK)
+-		return -1;
++		goto fail;
+ 
+ 	if (compress_size > *dstlen)
+-		return -1;
++		goto fail;
+ 
+ 	memcpy(cpage_out, lzo_compress_buf, compress_size);
+-	*dstlen = compress_size;
++	mutex_unlock(&deflate_mutex);
+ 
++	*dstlen = compress_size;
+ 	return 0;
 +
-+		/* This is an autofs submount, we can't expire it */
-+		if (sbi->type == AUTOFS_TYPE_INDIRECT)
-+			goto done;
-+
-+		/*
-+		 * Otherwise it's an offset mount and we need to check
-+		 * if we can umount its mount, if there is one.
-+		 */
-+		if (!d_mountpoint(dentry))
-+			goto done;
-+	}
++ fail:
++	mutex_unlock(&deflate_mutex);
++	return -1;
+ }
  
- 	/* Update the expiry counter if fs is busy */
- 	if (!may_umount_tree(mnt)) {
+ static int jffs2_lzo_decompress(unsigned char *data_in, unsigned char *cpage_out,
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
-linux-next.patch
-autofs4-improve-parameter-usage.patch
-autofs4-fix-var-shadowed-by-local-delaration.patch
-autofs4-make-autofs-type-usage-explicit.patch
-autofs4-fix-string-validation-check-order.patch
 
