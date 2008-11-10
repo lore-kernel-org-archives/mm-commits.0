@@ -1,80 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - cpqarry-fix-return-value-of-cpqarray_init.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:31:47 -0800
-Message-ID: <200811102031.mAAKVlKm023583@imap1.linux-foundation.org>
+Subject: - rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:31:53 -0800
+Message-ID: <200811102031.mAAKVrSP023639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752946AbYKJUcf (ORCPT
+	by vger.kernel.org with ESMTP id S1753021AbYKJUck (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:32:35 -0500
+	Mon, 10 Nov 2008 15:32:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvidjaar@mail.ru, dvgevers@xs4all.nl, gregkh@suse.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpqarry: fix return value of cpqarray_init()
+     rtc: fix handling of missing tm_year data when reading alarms
 has been removed from the -mm tree.  Its filename was
-     cpqarry-fix-return-value-of-cpqarray_init.patch
+     rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpqarry: fix return value of cpqarray_init()
-From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: rtc: fix handling of missing tm_year data when reading alarms
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-As reported by Dick Gevers on Compaq ProLiant:
+When fixing up invalid years rtc_read_alarm() was calling rtc_valid_tm()
+as a boolean but rtc_valid_tm() returns zero on success or a negative
+number if the time is not valid so the test was inverted.
 
-Oct 13 18:06:51 dvgcpl kernel: Compaq SMART2 Driver (v 2.6.0)
-Oct 13 18:06:51 dvgcpl kernel: sys_init_module: 'cpqarray'->init
-suspiciously returned 1, it should follow 0/-E convention
-Oct 13 18:06:51 dvgcpl kernel: sys_init_module: loading module anyway...
-Oct 13 18:06:51 dvgcpl kernel: Pid: 315, comm: modprobe Not tainted
-2.6.27-desktop-0.rc8.2mnb #1
-Oct 13 18:06:51 dvgcpl kernel:  [<c0380612>] ? printk+0x18/0x1e
-Oct 13 18:06:51 dvgcpl kernel:  [<c0158f85>] sys_init_module+0x155/0x1c0
-Oct 13 18:06:51 dvgcpl kernel:  [<c0103f06>] syscall_call+0x7/0xb
-Oct 13 18:06:51 dvgcpl kernel:  =======================
-
-
-Make it return 0 on success and -ENODEV if no array was found.
-
-Reported-by: Dick Gevers <dvgevers@xs4all.nl>
-Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cpqarray.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/rtc/interface.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cpqarray.c~cpqarry-fix-return-value-of-cpqarray_init drivers/block/cpqarray.c
---- a/drivers/block/cpqarray.c~cpqarry-fix-return-value-of-cpqarray_init
-+++ a/drivers/block/cpqarray.c
-@@ -567,7 +567,12 @@ static int __init cpqarray_init(void)
- 			num_cntlrs_reg++;
- 	}
+diff -puN drivers/rtc/interface.c~rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-fix-handling-of-missing-tm_year-data-when-reading-alarms
++++ a/drivers/rtc/interface.c
+@@ -271,7 +271,7 @@ int rtc_read_alarm(struct rtc_device *rt
+ 		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "year");
+ 		do {
+ 			alarm->time.tm_year++;
+-		} while (!rtc_valid_tm(&alarm->time));
++		} while (rtc_valid_tm(&alarm->time) != 0);
+ 		break;
  
--	return(num_cntlrs_reg);
-+	if (num_cntlrs_reg)
-+		return 0;
-+	else {
-+		pci_unregister_driver(&cpqarray_pci_driver);
-+		return -ENODEV;
-+	}
- }
- 
- /* Function to find the first free pointer into our hba[] array */
+ 	default:
 _
 
-Patches currently in -mm which might be from arvidjaar@mail.ru are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
 linux-next.patch
-acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch
-x86-use-bios-reboot-on-toshiba-portege-4000.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
 
