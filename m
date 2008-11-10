@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i915-filter-pci-devices-based-on-pci_class_display_vga.patch added to -mm tree
-Date: Mon, 10 Nov 2008 15:27:20 -0800
-Message-ID: <200811102327.mAANRK9g013532@imap1.linux-foundation.org>
+Subject: + mm-get-rid-of-pagevec_release_nonlru.patch added to -mm tree
+Date: Mon, 10 Nov 2008 15:28:57 -0800
+Message-ID: <200811102328.mAANSvUI014314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46261 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752126AbYKJX10 (ORCPT
+	by vger.kernel.org with ESMTP id S1750811AbYKJX3F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 18:27:26 -0500
+	Mon, 10 Nov 2008 18:29:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric@anholt.net, airlied@linux.ie
+Cc: kosaki.motohiro@jp.fujitsu.com, npiggin@suse.de
 
 
 The patch titled
-     i915: filter pci devices based on PCI_CLASS_DISPLAY_VGA
+     mm: get rid of pagevec_release_nonlru()
 has been added to the -mm tree.  Its filename is
-     i915-filter-pci-devices-based-on-pci_class_display_vga.patch
+     mm-get-rid-of-pagevec_release_nonlru.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i915: filter pci devices based on PCI_CLASS_DISPLAY_VGA
-From: Eric Anholt <eric@anholt.net>
+Subject: mm: get rid of pagevec_release_nonlru()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-This fixes hangs on 855-class hardware by avoiding double attachment of
-the driver due to the stub second head device having the same pci id as
-the real device.
+speculative page references patch (commit:
+e286781d5f2e9c846e012a39653a166e9d31777d) removed last
+pagevec_release_nonlru() caller.
 
-Other DRM drivers probably want this treatment as well, but I'm applying
-it just to this one for safety.
+So this function can be removed now.
 
-Signed-off-by: Eric Anholt <eric@anholt.net>
-Cc: Dave Airlie <airlied@linux.ie>
+This patch doesn't have any functional change.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_drv.c |   10 ++++++
- include/drm/drm_pciids.h  |   52 ++++++++++++++++++++----------------
- 2 files changed, 38 insertions(+), 24 deletions(-)
+ include/linux/pagevec.h |    7 -------
+ mm/swap.c               |   22 ----------------------
+ 2 files changed, 29 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_drv.c~i915-filter-pci-devices-based-on-pci_class_display_vga drivers/gpu/drm/drm_drv.c
---- a/drivers/gpu/drm/drm_drv.c~i915-filter-pci-devices-based-on-pci_class_display_vga
-+++ a/drivers/gpu/drm/drm_drv.c
-@@ -266,11 +266,19 @@ int drm_init(struct drm_driver *driver)
- 	for (i = 0; driver->pci_driver.id_table[i].vendor != 0; i++) {
- 		pid = (struct pci_device_id *)&driver->pci_driver.id_table[i];
+diff -puN include/linux/pagevec.h~mm-get-rid-of-pagevec_release_nonlru include/linux/pagevec.h
+--- a/include/linux/pagevec.h~mm-get-rid-of-pagevec_release_nonlru
++++ a/include/linux/pagevec.h
+@@ -21,7 +21,6 @@ struct pagevec {
+ };
  
-+		/* Loop around setting up a DRM device for each PCI device
-+		 * matching our ID and device class.  If we had the internal
-+		 * function that pci_get_subsys and pci_get_class used, we'd
-+		 * be able to just pass pid in instead of doing a two-stage
-+		 * thing.
-+		 */
- 		pdev = NULL;
--		/* pass back in pdev to account for multiple identical cards */
- 		while ((pdev =
- 			pci_get_subsys(pid->vendor, pid->device, pid->subvendor,
- 				       pid->subdevice, pdev)) != NULL) {
-+			if ((pdev->class & pid->class_mask) != pid->class)
-+				continue;
-+
- 			/* stealth mode requires a manual probe */
- 			pci_dev_get(pdev);
- 			drm_get_dev(pdev, pid, driver);
-diff -puN include/drm/drm_pciids.h~i915-filter-pci-devices-based-on-pci_class_display_vga include/drm/drm_pciids.h
---- a/include/drm/drm_pciids.h~i915-filter-pci-devices-based-on-pci_class_display_vga
-+++ a/include/drm/drm_pciids.h
-@@ -394,28 +394,34 @@
- #define ffb_PCI_IDS \
- 	{0, 0, 0}
+ void __pagevec_release(struct pagevec *pvec);
+-void __pagevec_release_nonlru(struct pagevec *pvec);
+ void __pagevec_free(struct pagevec *pvec);
+ void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
+ void pagevec_strip(struct pagevec *pvec);
+@@ -69,12 +68,6 @@ static inline void pagevec_release(struc
+ 		__pagevec_release(pvec);
+ }
  
-+#define i915_PCI_DEVID(vendor, device) {				\
-+	vendor, device,							\
-+	PCI_ANY_ID, PCI_ANY_ID,						\
-+	PCI_CLASS_DISPLAY_VGA << 8, 0xffff00,				\
-+	0								\
-+}
- #define i915_PCI_IDS \
--	{0x8086, 0x3577, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2562, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x3582, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2572, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2582, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x258a, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2592, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2772, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x27a2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x27ae, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2972, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2982, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2992, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x29a2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x29b2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x29c2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x29d2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2a02, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2a12, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2a42, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2e02, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2e12, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
--	{0x8086, 0x2e22, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
-+	i915_PCI_DEVID(0x8086, 0x3577), \
-+	i915_PCI_DEVID(0x8086, 0x2562), \
-+	i915_PCI_DEVID(0x8086, 0x3582), \
-+	i915_PCI_DEVID(0x8086, 0x2572), \
-+	i915_PCI_DEVID(0x8086, 0x2582), \
-+	i915_PCI_DEVID(0x8086, 0x258a), \
-+	i915_PCI_DEVID(0x8086, 0x2592), \
-+	i915_PCI_DEVID(0x8086, 0x2772), \
-+	i915_PCI_DEVID(0x8086, 0x27a2), \
-+	i915_PCI_DEVID(0x8086, 0x27ae), \
-+	i915_PCI_DEVID(0x8086, 0x2972), \
-+	i915_PCI_DEVID(0x8086, 0x2982), \
-+	i915_PCI_DEVID(0x8086, 0x2992), \
-+	i915_PCI_DEVID(0x8086, 0x29a2), \
-+	i915_PCI_DEVID(0x8086, 0x29b2), \
-+	i915_PCI_DEVID(0x8086, 0x29c2), \
-+	i915_PCI_DEVID(0x8086, 0x29d2), \
-+	i915_PCI_DEVID(0x8086, 0x2a02), \
-+	i915_PCI_DEVID(0x8086, 0x2a12), \
-+	i915_PCI_DEVID(0x8086, 0x2a42), \
-+	i915_PCI_DEVID(0x8086, 0x2e02), \
-+	i915_PCI_DEVID(0x8086, 0x2e12), \
-+	i915_PCI_DEVID(0x8086, 0x2e22), \
- 	{0, 0, 0}
-_
-
-Patches currently in -mm which might be from eric@anholt.net are
-
-linux-next.patch
-i915-filter-pci-devices-based-on-pci_class_display_vga.patch
-
+-static inline void pagevec_release_nonlru(struct pagevec *pvec)
+-{
+-	if (pagevec_count(pvec))
+-		__pagevec_release_nonlru(pvec);
+-}
+-
+ static inline void pagevec_free(struct pagevec *pvec)
+ {
+ 	if (pagevec_count(pvec))
+diff -puN mm/swap.c~mm-get-rid-of-pagevec_release_nonlru mm/swap.c
+--- a/mm/swap.c~mm-get-rid-of-pagevec_release_nonlru
++++ a/mm/swap.c
+@@ -411,28 +411,6 @@ void __pagevec_release(struct pagevec *p
+ EXPORT_SYMBOL(__pagevec_release);
+ 
+ /*
+- * pagevec_release() for pages which are known to not be on the LRU
+- *
+- * This function reinitialises the caller's pagevec.
+- */
+-void __pagevec_release_nonlru(struct pagevec *pvec)
+-{
+-	int i;
+-	struct pagevec pages_to_free;
+-
+-	pagevec_init(&pages_to_free, pvec->cold);
+-	for (i = 0; i < pagevec_count(pvec); i++) {
+-		struct page *page = pvec->pages[i];
+-
+-		VM_BUG_ON(PageLRU(page));
+-		if (put_page_testzero(page))
+-			pagevec_add(&pages_to_free, page);
+-	}
+-	pagevec_free(&pages_to_free);
+-	pagevec_reinit(pvec);
+-}
