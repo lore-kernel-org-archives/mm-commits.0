@@ -1,63 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - oom-do-not-dump-task-state-for-non-thread-group-leaders.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:32:23 -0800
-Message-ID: <200811102032.mAAKWNxs023918@imap1.linux-foundation.org>
+Subject: - mm-oom_killc-fix-badness-kerneldoc.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:32:42 -0800
+Message-ID: <200811102032.mAAKWgvK024092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48371 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753227AbYKJUc5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753041AbYKJUdN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:32:57 -0500
+	Mon, 10 Nov 2008 15:33:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, cl@linux-foundation.org, mm-commits@vger.kernel.org
+To: qhfeng.kernel@gmail.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: do not dump task state for non thread group leaders
+     mm/oom_kill.c: fix badness() kerneldoc
 has been removed from the -mm tree.  Its filename was
-     oom-do-not-dump-task-state-for-non-thread-group-leaders.patch
+     mm-oom_killc-fix-badness-kerneldoc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: do not dump task state for non thread group leaders
-From: David Rientjes <rientjes@google.com>
+Subject: mm/oom_kill.c: fix badness() kerneldoc
+From: Qinghuang Feng <qhfeng.kernel@gmail.com>
 
-When /proc/sys/vm/oom_dump_tasks is enabled, it's only necessary to dump
-task state information for thread group leaders.  The kernel log gets
-quickly overwhelmed on machines with a massive number of threads by
-dumping non-thread group leaders.
+Paramter @mem has been removed since v2.6.26, now delete it's comment.
 
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/oom_kill.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-do-not-dump-task-state-for-non-thread-group-leaders mm/oom_kill.c
---- a/mm/oom_kill.c~oom-do-not-dump-task-state-for-non-thread-group-leaders
+diff -puN mm/oom_kill.c~mm-oom_killc-fix-badness-kerneldoc mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_killc-fix-badness-kerneldoc
 +++ a/mm/oom_kill.c
-@@ -295,6 +295,8 @@ static void dump_tasks(const struct mem_
- 			continue;
- 		if (mem && !task_in_mem_cgroup(p, mem))
- 			continue;
-+		if (!thread_group_leader(p))
-+			continue;
- 
- 		task_lock(p);
- 		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
+@@ -38,7 +38,6 @@ static DEFINE_SPINLOCK(zone_scan_mutex);
+  * badness - calculate a numeric value for how bad this task has been
+  * @p: task struct of which task we should calculate
+  * @uptime: current uptime in seconds
+- * @mem: target memory controller
+  *
+  * The formula used is relatively simple and documented inline in the
+  * function. The main rationale is that we want to select a good task
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
 
-cpusets-update-mems-allowed-in-page-allocator.patch
-cpusets-update-mems-allowed-in-page-allocator-fix.patch
-oom-fix-zone_scan_mutex-name.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
 
