@@ -1,98 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:32:12 -0800
-Message-ID: <200811102032.mAAKWCXW023829@imap1.linux-foundation.org>
+Subject: - maintainers-make-ioat-easier-to-find.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:32:21 -0800
+Message-ID: <200811102032.mAAKWLTP023915@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35129 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39929 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753165AbYKJUc4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753126AbYKJUcw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:32:56 -0500
+	Mon, 10 Nov 2008 15:32:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.miller@hp.com, fujita.tomonori@lab.ntt.co.jp, jens.axboe@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, maciej.sosnowski@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: fix regression firmware not displayed in procfs
+     MAINTAINERS: make IOAT easier to find
 has been removed from the -mm tree.  Its filename was
-     cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch
+     maintainers-make-ioat-easier-to-find.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix regression firmware not displayed in procfs
-From: Mike Miller <mike.miller@hp.com>
+Subject: MAINTAINERS: make IOAT easier to find
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This regression was introduced by commit
-6ae5ce8e8d4de666f31286808d2285aa6a50fa40 ("cciss: remove redundant code").
+Searching MAINTAINERS for "ioat" comes up empty.  Fix this.
 
-This patch fixes a regression where the controller firmware version is not
-displayed in procfs.  The previous patch would be called anytime something
-changed.  This will get called only once for each controller.
-
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>		[2.6.27.x]
+Cc: "Dan Williams" <dan.j.williams@intel.com>
+Cc: "Sosnowski, Maciej" <maciej.sosnowski@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again
-+++ a/drivers/block/cciss.c
-@@ -3409,7 +3409,8 @@ static int __devinit cciss_init_one(stru
- 	int i;
- 	int j = 0;
- 	int rc;
--	int dac;
-+	int dac, return_code;
-+	InquiryData_struct *inq_buff = NULL;
+diff -puN MAINTAINERS~maintainers-make-ioat-easier-to-find MAINTAINERS
+--- a/MAINTAINERS~maintainers-make-ioat-easier-to-find
++++ a/MAINTAINERS
+@@ -721,7 +721,7 @@ W:	http://sourceforge.net/projects/acpi4
+ W:	http://xf.iksaif.net/acpi4asus
+ S:	Maintained
  
- 	i = alloc_cciss_hba();
- 	if (i < 0)
-@@ -3515,6 +3516,25 @@ static int __devinit cciss_init_one(stru
- 	/* Turn the interrupts on so we can service requests */
- 	hba[i]->access.set_intr_mask(hba[i], CCISS_INTR_ON);
- 
-+	/* Get the firmware version */
-+	inq_buff = kzalloc(sizeof(InquiryData_struct), GFP_KERNEL);
-+	if (inq_buff == NULL) {
-+		printk(KERN_ERR "cciss: out of memory\n");
-+		goto clean4;
-+	}
-+
-+	return_code = sendcmd_withirq(CISS_INQUIRY, i, inq_buff,
-+		sizeof(InquiryData_struct), 0, 0 , 0, TYPE_CMD);
-+	if (return_code == IO_OK) {
-+		hba[i]->firm_ver[0] = inq_buff->data_byte[32];
-+		hba[i]->firm_ver[1] = inq_buff->data_byte[33];
-+		hba[i]->firm_ver[2] = inq_buff->data_byte[34];
-+		hba[i]->firm_ver[3] = inq_buff->data_byte[35];
-+	} else {	 /* send command failed */
-+		printk(KERN_WARNING "cciss: unable to determine firmware"
-+			" version of controller\n");
-+	}
-+
- 	cciss_procinit(i);
- 
- 	hba[i]->cciss_max_sectors = 2048;
-@@ -3525,6 +3545,7 @@ static int __devinit cciss_init_one(stru
- 	return 1;
- 
- clean4:
-+	kfree(inq_buff);
- #ifdef CONFIG_CISS_SCSI_TAPE
- 	kfree(hba[i]->scsi_rejects.complete);
- #endif
+-ASYNCHRONOUS TRANSFERS/TRANSFORMS API
++ASYNCHRONOUS TRANSFERS/TRANSFORMS (IOAT) API
+ P:	Dan Williams
+ M:	dan.j.williams@intel.com
+ P:	Maciej Sosnowski
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+binfmtsh-include-listh-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+cpusets-update-mems-allowed-in-page-allocator-fix.patch
+remove-ratelimt.patch
+doc-add-printk-formatstxt-fix.patch
+kernel-kprobesc-dont-pad-kretprobe_table_locks-on-uniprocessor-builds.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+alsa-fix-snd_bug_on-and-friends.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+align-avoid-evaluating-its-argument-twice.patch
+spi_gpio-driver-cleanups.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
