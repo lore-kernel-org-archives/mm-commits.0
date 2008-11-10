@@ -1,120 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - xtensa-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:34:25 -0800
-Message-ID: <200811102034.mAAKYPoB025037@imap1.linux-foundation.org>
+Subject: - powerpc-hugetlb-pgtable-cache-access-cleanup.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:33:59 -0800
+Message-ID: <200811102033.mAAKXxsY024809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753446AbYKJUey (ORCPT
+	by vger.kernel.org with ESMTP id S1752852AbYKJUel (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:34:54 -0500
+	Mon, 10 Nov 2008 15:34:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, chris@zankel.net, mm-commits@vger.kernel.org
+To: kniht@linux.vnet.ibm.com, benh@kernel.crashing.org, david@gibson.dropbear.id.au, nickpiggin@yahoo.com.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: use the new byteorder headers
+     powerpc: hugetlb pgtable cache access cleanup
 has been removed from the -mm tree.  Its filename was
-     xtensa-use-the-new-byteorder-headers.patch
+     powerpc-hugetlb-pgtable-cache-access-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: use the new byteorder headers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: powerpc: hugetlb pgtable cache access cleanup
+From: Jon Tollefson <kniht@linux.vnet.ibm.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Chris Zankel <chris@zankel.net>
+It was suggested by Andrew that using a macro that made an array look like
+a function call made it harder to understand the code.  Cleaned up use of
+macro.  We now reference the pgtable_cache array directly instead of using
+a macro.
+
+Signed-off-by: Jon Tollefson <kniht@linux.vnet.ibm.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/byteorder.h |   32 ++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/xtensa/include/asm/byteorder.h~xtensa-use-the-new-byteorder-headers arch/xtensa/include/asm/byteorder.h
---- a/arch/xtensa/include/asm/byteorder.h~xtensa-use-the-new-byteorder-headers
-+++ a/arch/xtensa/include/asm/byteorder.h
-@@ -14,7 +14,17 @@
- #include <asm/types.h>
- #include <linux/compiler.h>
+diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-hugetlb-pgtable-cache-access-cleanup arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-hugetlb-pgtable-cache-access-cleanup
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -53,8 +53,7 @@ unsigned int mmu_huge_psizes[MMU_PAGE_CO
  
--static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 x)
-+#ifdef __XTENSA_EL__
-+# define __LITTLE_ENDIAN
-+#elif defined(__XTENSA_EB__)
-+# define __BIG_ENDIAN
-+#else
-+# error processor byte order undefined!
-+#endif
-+
-+#define __SWAB_64_THRU_32__
-+
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
+ /* Subtract one from array size because we don't need a cache for 4K since
+  * is not a huge page size */
+-#define huge_pgtable_cache(psize)	(pgtable_cache[HUGEPTE_CACHE_NUM \
+-							+ psize-1])
++#define HUGE_PGTABLE_INDEX(psize)	(HUGEPTE_CACHE_NUM + psize - 1)
+ #define HUGEPTE_CACHE_NAME(psize)	(huge_pgtable_cache_name[psize])
+ 
+ static const char *huge_pgtable_cache_name[MMU_PAGE_COUNT] = {
+@@ -113,7 +112,7 @@ static inline pte_t *hugepte_offset(huge
+ static int __hugepte_alloc(struct mm_struct *mm, hugepd_t *hpdp,
+ 			   unsigned long address, unsigned int psize)
  {
-     __u32 res;
-     /* instruction sequence from Xtensa ISA release 2/2000 */
-@@ -28,8 +38,9 @@ static __inline__ __attribute_const__ __
- 	    );
-     return res;
- }
-+#define __arch_swab32 __arch_swab32
+-	pte_t *new = kmem_cache_zalloc(huge_pgtable_cache(psize),
++	pte_t *new = kmem_cache_zalloc(pgtable_cache[HUGE_PGTABLE_INDEX(psize)],
+ 				      GFP_KERNEL|__GFP_REPEAT);
  
--static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
- {
-     /* Given that 'short' values are signed (i.e., can be negative),
-      * we cannot assume that the upper 16-bits of the register are
-@@ -62,21 +73,8 @@ static __inline__ __attribute_const__ __
+ 	if (! new)
+@@ -121,7 +120,7 @@ static int __hugepte_alloc(struct mm_str
  
-     return res;
- }
-+#define __arch_swab16 __arch_swab16
+ 	spin_lock(&mm->page_table_lock);
+ 	if (!hugepd_none(*hpdp))
+-		kmem_cache_free(huge_pgtable_cache(psize), new);
++		kmem_cache_free(pgtable_cache[HUGE_PGTABLE_INDEX(psize)], new);
+ 	else
+ 		hpdp->pd = (unsigned long)new | HUGEPD_OK;
+ 	spin_unlock(&mm->page_table_lock);
+@@ -760,13 +759,14 @@ static int __init hugetlbpage_init(void)
  
--#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
--
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
--#endif
--
--#ifdef __XTENSA_EL__
--# include <linux/byteorder/little_endian.h>
--#elif defined(__XTENSA_EB__)
--# include <linux/byteorder/big_endian.h>
--#else
--# error processor byte order undefined!
--#endif
-+#include <linux/byteorder.h>
- 
- #endif /* _XTENSA_BYTEORDER_H */
+ 	for (psize = 0; psize < MMU_PAGE_COUNT; ++psize) {
+ 		if (mmu_huge_psizes[psize]) {
+-			huge_pgtable_cache(psize) = kmem_cache_create(
+-						HUGEPTE_CACHE_NAME(psize),
+-						HUGEPTE_TABLE_SIZE(psize),
+-						HUGEPTE_TABLE_SIZE(psize),
+-						0,
+-						NULL);
+-			if (!huge_pgtable_cache(psize))
++			pgtable_cache[HUGE_PGTABLE_INDEX(psize)] =
++				kmem_cache_create(
++					HUGEPTE_CACHE_NAME(psize),
++					HUGEPTE_TABLE_SIZE(psize),
++					HUGEPTE_TABLE_SIZE(psize),
++					0,
++					NULL);
++			if (!pgtable_cache[HUGE_PGTABLE_INDEX(psize)])
+ 				panic("hugetlbpage_init(): could not create %s"\
+ 				      "\n", HUGEPTE_CACHE_NAME(psize));
+ 		}
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from kniht@linux.vnet.ibm.com are
 
+hugetlb-make-unmap_ref_private-multi-size-aware.patch
 linux-next.patch
-arm-use-the-new-byteorder-headers.patch
-cifs-remove-global_extern-macro.patch
-ia64-use-the-new-byteorder-headers.patch
-input-ads7846c-sparse-lock-annotation.patch
-m32r-use-the-new-byteorder-headers.patch
-blackfin-remove-__function__-in-new-serial-driver.patch
-blackfin-use-the-new-byteorder-headers.patch
-parisc-use-the-new-byteorder-headers.patch
-s390-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-frv-use-the-new-byteorder-headers.patch
-m68knommu-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-memstick-annotate-endianness-of-attribute-structs.patch
 
