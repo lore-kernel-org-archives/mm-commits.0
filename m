@@ -1,87 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:32:35 -0800
-Message-ID: <200811102032.mAAKWZ92024007@imap1.linux-foundation.org>
+Subject: - atmel_serial-keep-clock-off-when-its-not-needed.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:32:55 -0800
+Message-ID: <200811102032.mAAKWtUH024186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50659 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60633 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752858AbYKJUjO (ORCPT
+	by vger.kernel.org with ESMTP id S1754471AbYKJUjh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:39:14 -0500
+	Mon, 10 Nov 2008 15:39:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, a.p.zijlstra@chello.nl, menage@google.com, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, haavard.skinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: fix invalid cgrp->dentry before cgroup has been completely removed
+     atmel_serial: keep clock off when it's not needed
 has been removed from the -mm tree.  Its filename was
-     cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed.patch
+     atmel_serial-keep-clock-off-when-its-not-needed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix invalid cgrp->dentry before cgroup has been completely removed
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: atmel_serial: keep clock off when it's not needed
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-This fixes an oops when reading /proc/sched_debug.
+The atmel_serial driver is mismanaging its clock by leaving it on at all
+times ...  the whole point of clock management is to leave it off unless
+it's actively needed, which conserves power!!
 
-A cgroup won't be removed completely until finishing cgroup_diput(), so we
-shouldn't invalidate cgrp->dentry in cgroup_rmdir().  Otherwise, when a
-group is being removed while cgroup_path() gets called, we may trigger
-NULL dereference BUG.
+Although the kernel doesn't actually hang without my fix, it does
+discard quite a lot of early console output.
 
-The bug can be reproduced:
+The result still looks correct:
 
- # cat test.sh
- #!/bin/sh
- mount -t cgroup -o cpu xxx /mnt
- for (( ; ; ))
- {
-	mkdir /mnt/sub
-	rmdir /mnt/sub
- }
- # ./test.sh &
- # cat /proc/sched_debug
+          usart        users= 1 on   35000000 Hz, for atmel_usart.0
+          usart        users= 0 off  35000000 Hz, for atmel_usart.2
 
-BUG: unable to handle kernel NULL pointer dereference at 00000038
-IP: [<c045a47f>] cgroup_path+0x39/0x90
-...
-Call Trace:
- [<c0420344>] ? print_cfs_rq+0x6e/0x75d
- [<c0421160>] ? sched_debug_show+0x72d/0xc1e
-...
+when using ttyS0 as serial console.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>		[2.6.26.x, 2.6.27.x]
+[haavard.skinnemoen@atmel.com: Make sure clock is enabled early for console]
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/serial/atmel_serial.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-invalid-cgrp-dentry-before-cgroup-has-been-completely-removed
-+++ a/kernel/cgroup.c
-@@ -2497,7 +2497,6 @@ static int cgroup_rmdir(struct inode *un
- 	list_del(&cgrp->sibling);
- 	spin_lock(&cgrp->dentry->d_lock);
- 	d = dget(cgrp->dentry);
--	cgrp->dentry = NULL;
- 	spin_unlock(&d->d_lock);
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-keep-clock-off-when-its-not-needed drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-keep-clock-off-when-its-not-needed
++++ a/drivers/serial/atmel_serial.c
+@@ -1258,6 +1258,8 @@ static void __devinit atmel_init_port(st
+ 		atmel_port->clk = clk_get(&pdev->dev, "usart");
+ 		clk_enable(atmel_port->clk);
+ 		port->uartclk = clk_get_rate(atmel_port->clk);
++		clk_disable(atmel_port->clk);
++		/* only enable clock when USART is in use */
+ 	}
  
- 	cgroup_d_remove_dir(d);
+ 	atmel_port->use_dma_rx = data->use_dma_rx;
+@@ -1379,6 +1381,8 @@ static int __init atmel_console_setup(st
+ 		return -ENODEV;
+ 	}
+ 
++	clk_enable(atmel_ports[co->index].clk);
++
+ 	UART_PUT_IDR(port, -1);
+ 	UART_PUT_CR(port, ATMEL_US_RSTSTA | ATMEL_US_RSTRX);
+ 	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);
+@@ -1403,7 +1407,7 @@ static struct console atmel_console = {
+ 	.data		= &atmel_uart,
+ };
+ 
+-#define ATMEL_CONSOLE_DEVICE	&atmel_console
++#define ATMEL_CONSOLE_DEVICE	(&atmel_console)
+ 
+ /*
+  * Early console initialization (before VM subsystem initialized).
+@@ -1534,6 +1538,15 @@ static int __devinit atmel_serial_probe(
+ 	if (ret)
+ 		goto err_add_port;
+ 
++	if (atmel_is_console_port(&port->uart)
++			&& ATMEL_CONSOLE_DEVICE->flags & CON_ENABLED) {
++		/*
++		 * The serial core enabled the clock for us, so undo
++		 * the clk_enable() in atmel_console_setup()
++		 */
++		clk_disable(port->clk);
++	}
++
+ 	device_init_wakeup(&pdev->dev, 1);
+ 	platform_set_drvdata(pdev, port);
+ 
+@@ -1544,7 +1557,6 @@ err_add_port:
+ 	port->rx_ring.buf = NULL;
+ err_alloc_ring:
+ 	if (!atmel_is_console_port(&port->uart)) {
+-		clk_disable(port->clk);
+ 		clk_put(port->clk);
+ 		port->clk = NULL;
+ 	}
+@@ -1568,7 +1580,6 @@ static int __devexit atmel_serial_remove
+ 
+ 	/* "port" is allocated statically, so we shouldn't free it */
+ 
+-	clk_disable(atmel_port->clk);
+ 	clk_put(atmel_port->clk);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 linux-next.patch
-freezer_cg-remove-task_lock-from-freezer_fork.patch
-freezer_cg-disable-writing-freezerstate-of-root-cgroup.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
+spi_gpio-driver.patch
+spi_gpio-driver-cleanups.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
+twl4030-gpio-cleanup-debounce.patch
+genirq-warn-when-irqf_disabled-may-be-ignored.patch
+genirq-record-irq_level-in-irq_desc.patch
 
