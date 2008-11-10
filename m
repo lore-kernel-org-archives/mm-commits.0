@@ -1,68 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - fix-accidental-implicit-cast-in-hr-timer-conversion.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:34:32 -0800
-Message-ID: <200811102034.mAAKYWqB025123@imap1.linux-foundation.org>
+Subject: - vmemmap-warn-about-page_structs-with-remote-distance.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:32:33 -0800
+Message-ID: <200811102032.mAAKWXdV024004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754998AbYKJUfa (ORCPT
+	by vger.kernel.org with ESMTP id S1754965AbYKJUf3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:35:30 -0500
+	Mon, 10 Nov 2008 15:35:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: rientjes@google.com, cl@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimers: fix accidental implicit cast in HR-timer conversion
+     vmemmap: warn about page_structs with remote distance
 has been removed from the -mm tree.  Its filename was
-     fix-accidental-implicit-cast-in-hr-timer-conversion.patch
+     vmemmap-warn-about-page_structs-with-remote-distance.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimers: fix accidental implicit cast in HR-timer conversion
-From: David Howells <dhowells@redhat.com>
+Subject: vmemmap: warn about page_structs with remote distance
+From: David Rientjes <rientjes@google.com>
 
-Fix the hrtimer_add_expires_ns() function.  It should take a 'u64 ns'
-argument, but rather takes an 'unsigned long ns' argument - which might
-only be 32-bits.
+It's insufficient to simply compare node ids when warning about offnode
+page_structs since it's possible to still have local affinity.
 
-On FRV, this results in the kernel locking up because hrtimer_forward()
-passes the result of a 64-bit multiplication to this function, for which
-the compiler discards the top 32-bits - something that didn't happen when
-ktime_add_ns() was called directly.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hrtimer.h |    2 +-
+ mm/sparse-vmemmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hrtimer.h~fix-accidental-implicit-cast-in-hr-timer-conversion include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~fix-accidental-implicit-cast-in-hr-timer-conversion
-+++ a/include/linux/hrtimer.h
-@@ -239,7 +239,7 @@ static inline void hrtimer_add_expires(s
- 	timer->_softexpires = ktime_add_safe(timer->_softexpires, time);
- }
+diff -puN mm/sparse-vmemmap.c~vmemmap-warn-about-page_structs-with-remote-distance mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~vmemmap-warn-about-page_structs-with-remote-distance
++++ a/mm/sparse-vmemmap.c
+@@ -64,7 +64,7 @@ void __meminit vmemmap_verify(pte_t *pte
+ 	unsigned long pfn = pte_pfn(*pte);
+ 	int actual_node = early_pfn_to_nid(pfn);
  
--static inline void hrtimer_add_expires_ns(struct hrtimer *timer, unsigned long ns)
-+static inline void hrtimer_add_expires_ns(struct hrtimer *timer, u64 ns)
- {
- 	timer->_expires = ktime_add_ns(timer->_expires, ns);
- 	timer->_softexpires = ktime_add_ns(timer->_softexpires, ns);
+-	if (actual_node != node)
++	if (node_distance(actual_node, node) > LOCAL_DISTANCE)
+ 		printk(KERN_WARNING "[%lx-%lx] potential offnode "
+ 			"page_structs\n", start, end - 1);
+ }
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-linux-next.patch
-frv-use-the-new-byteorder-headers.patch
-mutex-subsystem-synchro-test-module.patch
+cpusets-update-mems-allowed-in-page-allocator.patch
+cpusets-update-mems-allowed-in-page-allocator-fix.patch
+oom-fix-zone_scan_mutex-name.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
 
