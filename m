@@ -1,83 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + drm-fix-radeon-suspend-resume-oops.patch added to -mm tree
-Date: Sun, 09 Nov 2008 15:01:22 -0800
-Message-ID: <200811092301.mA9N1MGb002929@imap1.linux-foundation.org>
+Subject: - linux-ratelimith-fixed-missing-initializer-warning.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 09:46:36 -0800
+Message-ID: <200811101746.mAAHkaY3006591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756188AbYKIXCR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 9 Nov 2008 18:02:17 -0500
+	by vger.kernel.org with ESMTP id S1753934AbYKJRrR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 10 Nov 2008 12:47:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, airlied@linux.ie, rjw@sisk.pl
+To: mk@cm4all.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm: fix radeon suspend/resume oops
-has been added to the -mm tree.  Its filename is
-     drm-fix-radeon-suspend-resume-oops.patch
+     linux/ratelimit.h: fixed "missing initializer" warning
+has been removed from the -mm tree.  Its filename was
+     linux-ratelimith-fixed-missing-initializer-warning.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: fix radeon suspend/resume oops
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: linux/ratelimit.h: fixed "missing initializer" warning
+From: Max Kellermann <mk@cm4all.com>
 
-When the driver is bound to a device and nobody opens the device node, it
-will oops on suspend and resume, since it's not mapped and dev_priv->mmio
-is NULL.
+When compiled with -Wmissing-field-initializers (-Wextra), gcc complains
+that there are uninitialized fields in the struct:
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+ include/linux/ratelimit.h: In function 'ratelimit':
+ include/linux/ratelimit.h:23: warning: missing initializer
+ include/linux/ratelimit.h:23: warning: (near initialization for 'rs.printed')
+
+Fix this by using C99 initializers.
+
+Signed-off-by: Max Kellermann <mk@cm4all.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/radeon_drv.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/ratelimit.h |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/radeon/radeon_drv.c~drm-fix-radeon-suspend-resume-oops drivers/gpu/drm/radeon/radeon_drv.c
---- a/drivers/gpu/drm/radeon/radeon_drv.c~drm-fix-radeon-suspend-resume-oops
-+++ a/drivers/gpu/drm/radeon/radeon_drv.c
-@@ -56,6 +56,9 @@ static int radeon_suspend(struct drm_dev
- {
- 	drm_radeon_private_t *dev_priv = dev->dev_private;
+diff -puN include/linux/ratelimit.h~linux-ratelimith-fixed-missing-initializer-warning include/linux/ratelimit.h
+--- a/include/linux/ratelimit.h~linux-ratelimith-fixed-missing-initializer-warning
++++ a/include/linux/ratelimit.h
+@@ -13,8 +13,11 @@ struct ratelimit_state {
+ 	unsigned long begin;
+ };
  
-+	if (!dev_priv->mmio)
-+		return 0;
-+
- 	/* Disable *all* interrupts */
- 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_RS690)
- 		RADEON_WRITE(R500_DxMODE_INT_MASK, 0);
-@@ -67,6 +70,9 @@ static int radeon_resume(struct drm_devi
- {
- 	drm_radeon_private_t *dev_priv = dev->dev_private;
+-#define DEFINE_RATELIMIT_STATE(name, interval, burst)		\
+-		struct ratelimit_state name = {interval, burst,}
++#define DEFINE_RATELIMIT_STATE(name, _interval, _burst) \
++		struct ratelimit_state name = { \
++			.interval = _interval, \
++			.burst = _burst, \
++		}
  
-+	if (!dev_priv->mmio)
-+		return 0;
-+
- 	/* Restore interrupt registers */
- 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_RS690)
- 		RADEON_WRITE(R500_DxMODE_INT_MASK, dev_priv->r500_disp_irq_reg);
+ extern int __ratelimit(struct ratelimit_state *rs);
+ 
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from mk@cm4all.com are
 
-linux-next.patch
-drm-fix-radeon-suspend-resume-oops.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+linux-ratelimith-fixed-missing-initializer-warning.patch
 
