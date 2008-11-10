@@ -1,82 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-wait-on-all-pending-commits-in-ext3_sync_fs.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:32:44 -0800
-Message-ID: <200811102032.mAAKWi9j024095@imap1.linux-foundation.org>
+Subject: - fix-__pfn_to_pagepfn-for-config_discontigmem=y.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:33:49 -0800
+Message-ID: <200811102033.mAAKXnw5024719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59527 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48132 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753358AbYKJUd5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751096AbYKJUea (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:33:57 -0500
+	Mon, 10 Nov 2008 15:34:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ajones@riverbed.com, linux-ext4@vger.kernel.org, sandeen@redhat.com, stable@kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, pavel@suse.cz, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: wait on all pending commits in ext3_sync_fs
+     Fix __pfn_to_page(pfn) for CONFIG_DISCONTIGMEM=y
 has been removed from the -mm tree.  Its filename was
-     ext3-wait-on-all-pending-commits-in-ext3_sync_fs.patch
+     fix-__pfn_to_pagepfn-for-config_discontigmem=y.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: wait on all pending commits in ext3_sync_fs
-From: Arthur Jones <ajones@riverbed.com>
+Subject: Fix __pfn_to_page(pfn) for CONFIG_DISCONTIGMEM=y
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-In ext3_sync_fs, we only wait for a commit to finish if we started it, but
-there may be one already in progress which will not be synced.
+Fix macro __pfn_to_page(pfn) so that it doesn't evaluate its argument
+twice in the CONFIG_DISCONTIGMEM=y case, because 'pfn' may be a result of
+a funtion call having side effects.
 
-In the case of a data=ordered umount with pending long symlinks which are
-delayed due to a long list of other I/O on the backing block device, this
-causes the buffer associated with the long symlinks to not be moved to the
-inode dirty list in the second phase of fsync_super.  Then, before they
-can be dirtied again, kjournald exits, seeing the UMOUNT flag and the
-dirty pages are never written to the backing block device, causing long
-symlink corruption and exposing new or previously freed block data to
-userspace.
+For example, the hibernation code applies pfn_to_page(pfn) to the result
+of a function returning the pfn corresponding to the next set bit in a
+bitmap and the current bit position is modified on each call.  This leads
+to "interesting" failures for CONFIG_DISCONTIGMEM=y due to the current
+behavior of __pfn_to_page(pfn).
 
-This can be reproduced with a script created
-by Eric Sandeen <sandeen@redhat.com>:
-
-	#!/bin/bash
-
-	umount /mnt/test2
-	mount /dev/sdb4 /mnt/test2
-	rm -f /mnt/test2/*
-	dd if=/dev/zero of=/mnt/test2/bigfile bs=1M count=512
-	touch
-	/mnt/test2/thisisveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongfilename
-	ln -s
-	/mnt/test2/thisisveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongfilename
-	/mnt/test2/link
-	umount /mnt/test2
-	mount /dev/sdb4 /mnt/test2
-	ls /mnt/test2/
-	umount /mnt/test2
-
-To ensure all commits are synced, we flush all journal commits now when
-sync_fs'ing ext3.
-
-Signed-off-by: Arthur Jones <ajones@riverbed.com>
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: <stable@kernel.org>		[2.6.everything]
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@suse.cz>
+Cc: <stable@kernel.org>		[2.6.27.x, and earlier]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ include/asm-generic/memory_model.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext3/super.c~ext3-wait-on-all-pending-commits-in-ext3_sync_fs fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-wait-on-all-pending-commits-in-ext3_sync_fs
-+++ a/fs/ext3/super.c
-@@ -2390,13 +2390,12 @@ static void ext3_write_super (struct sup
+diff -puN include/asm-generic/memory_model.h~fix-__pfn_to_pagepfn-for-config_discontigmem=y include/asm-generic/memory_model.h
+--- a/include/asm-generic/memory_model.h~fix-__pfn_to_pagepfn-for-config_discontigmem=y
++++ a/include/asm-generic/memory_model.h
+@@ -34,7 +34,7 @@
  
- static int ext3_sync_fs(struct super_block *sb, int wait)
- {
--	tid_t target;
+ #define __pfn_to_page(pfn)			\
+ ({	unsigned long __pfn = (pfn);		\
+-	unsigned long __nid = arch_pfn_to_nid(pfn);  \
++	unsigned long __nid = arch_pfn_to_nid(__pfn);  \
+ 	NODE_DATA(__nid)->node_mem_map + arch_local_page_offset(__pfn, __nid);\
+ })
+ 
+_
+
+Patches currently in -mm which might be from rjw@sisk.pl are
+
+linux-next.patch
+e1000e-use-device_set_wakeup_enable.patch
+e1000-use-device_set_wakeup_enable.patch
+igb-use-device_set_wakeup_enable.patch
+drm-fix-radeon-suspend-resume-oops.patch
+shrink_slab-handle-bad-shrinkers.patch
+
