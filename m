@@ -1,58 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - sam9-watchdog-update-for-moved-headers.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:33:01 -0800
-Message-ID: <200811102033.mAAKX16a024268@imap1.linux-foundation.org>
+Subject: - fat-cleanup-msdos_lookup.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:33:31 -0800
+Message-ID: <200811102033.mAAKXVnN024551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51688 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48784 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754690AbYKJUdy (ORCPT
+	by vger.kernel.org with ESMTP id S1753421AbYKJUeD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:33:54 -0500
+	Mon, 10 Nov 2008 15:34:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avictor.za@gmail.com, linux@maxim.org.za, wim@iguana.be, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SAM9 watchdog: update for moved headers
+     fat: Cleanup msdos_lookup()
 has been removed from the -mm tree.  Its filename was
-     sam9-watchdog-update-for-moved-headers.patch
+     fat-cleanup-msdos_lookup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SAM9 watchdog: update for moved headers
-From: "Andrew Victor" <avictor.za@gmail.com>
+Subject: fat: Cleanup msdos_lookup()
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-The architecture header files were recently moved from
-include/asm-arm/mach-at91/ to arch/arm/mach-at91/include/mach/.  The SAM9
-watchdog driver still includes a header from the old location.
+Use same style with vfat_lookup().
 
-Signed-off-by: Andrew Victor <linux@maxim.org.za>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/at91sam9_wdt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fat/namei_msdos.c |   38 +++++++++++++++++++++-----------------
+ 1 file changed, 21 insertions(+), 17 deletions(-)
 
-diff -puN drivers/watchdog/at91sam9_wdt.c~sam9-watchdog-update-for-moved-headers drivers/watchdog/at91sam9_wdt.c
---- a/drivers/watchdog/at91sam9_wdt.c~sam9-watchdog-update-for-moved-headers
-+++ a/drivers/watchdog/at91sam9_wdt.c
-@@ -30,7 +30,7 @@
- #include <linux/bitops.h>
- #include <linux/uaccess.h>
+diff -puN fs/fat/namei_msdos.c~fat-cleanup-msdos_lookup fs/fat/namei_msdos.c
+--- a/fs/fat/namei_msdos.c~fat-cleanup-msdos_lookup
++++ a/fs/fat/namei_msdos.c
+@@ -203,33 +203,37 @@ static struct dentry *msdos_lookup(struc
+ {
+ 	struct super_block *sb = dir->i_sb;
+ 	struct fat_slot_info sinfo;
+-	struct inode *inode = NULL;
+-	int res;
+-
+-	dentry->d_op = &msdos_dentry_operations;
++	struct inode *inode;
++	int err;
  
--#include <asm/arch/at91_wdt.h>
-+#include <mach/at91_wdt.h>
+ 	lock_super(sb);
+-	res = msdos_find(dir, dentry->d_name.name, dentry->d_name.len, &sinfo);
+-	if (res == -ENOENT)
+-		goto add;
+-	if (res < 0)
+-		goto out;
++
++	err = msdos_find(dir, dentry->d_name.name, dentry->d_name.len, &sinfo);
++	if (err) {
++		if (err == -ENOENT) {
++			inode = NULL;
++			goto out;
++		}
++		goto error;
++	}
++
+ 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
+ 	brelse(sinfo.bh);
+ 	if (IS_ERR(inode)) {
+-		res = PTR_ERR(inode);
+-		goto out;
++		err = PTR_ERR(inode);
++		goto error;
+ 	}
+-add:
+-	res = 0;
++out:
++	unlock_super(sb);
++	dentry->d_op = &msdos_dentry_operations;
+ 	dentry = d_splice_alias(inode, dentry);
+ 	if (dentry)
+ 		dentry->d_op = &msdos_dentry_operations;
+-out:
++	return dentry;
++
++error:
+ 	unlock_super(sb);
+-	if (!res)
+-		return dentry;
+-	return ERR_PTR(res);
++	return ERR_PTR(err);
+ }
  
- #define DRV_NAME "AT91SAM9 Watchdog"
- 
+ /***** Creates a directory entry (name is already formatted). */
 _
 
-Patches currently in -mm which might be from avictor.za@gmail.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
+linux-next.patch
 
