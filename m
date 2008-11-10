@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aacraid-disable-dell-percraid-quirk-on-adaptec-2200s-and-2120s.patch added to -mm tree
-Date: Mon, 10 Nov 2008 15:20:13 -0800
-Message-ID: <200811102320.mAANKDMi009958@imap1.linux-foundation.org>
+Subject: + i915-filter-pci-devices-based-on-pci_class_display_vga.patch added to -mm tree
+Date: Mon, 10 Nov 2008 15:27:20 -0800
+Message-ID: <200811102327.mAANRK9g013532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51055 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750811AbYKJXVG (ORCPT
+	by vger.kernel.org with ESMTP id S1752126AbYKJX10 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 18:21:06 -0500
+	Mon, 10 Nov 2008 18:27:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thenzl@redhat.com, James.Bottomley@HansenPartnership.com, dermoth@aei.ca, gernot.hillier@siemens.com, mark_salyzyn@adaptec.com, stable@kernel.org
+Cc: eric@anholt.net, airlied@linux.ie
 
 
 The patch titled
-     aacraid: disable Dell Percraid quirk on Adaptec 2200S and 2120S
+     i915: filter pci devices based on PCI_CLASS_DISPLAY_VGA
 has been added to the -mm tree.  Its filename is
-     aacraid-disable-dell-percraid-quirk-on-adaptec-2200s-and-2120s.patch
+     i915-filter-pci-devices-based-on-pci_class_display_vga.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aacraid: disable Dell Percraid quirk on Adaptec 2200S and 2120S
-From: Tomas Henzl <thenzl@redhat.com>
+Subject: i915: filter pci devices based on PCI_CLASS_DISPLAY_VGA
+From: Eric Anholt <eric@anholt.net>
 
-A lot of 64bit machines with Adaptec 2200S and 2120S controllers don't
-recognize SCSI disks any more with the patch "fix driver failure with Dell
-PowerEdge Expandable RAID Controller 3/Di", but fail with tons of "aac_srb:
-aac_fib_send failed with status: 8195" instead. This patch disables the
-quirk introduced in the change cited above for those two controllers again.
+This fixes hangs on 855-class hardware by avoiding double attachment of
+the driver due to the stub second head device having the same pci id as
+the real device.
 
-Signed-off-by: Gernot Hillier <gernot.hillier@siemens.com>
-Signed-off-by: Tomas Henzl <thenzl@redhat.com>
-Cc: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Tested-by: Thomas Guyot-Sionnest <dermoth@aei.ca>
-Cc: <stable@kernel.org>		[2.6.27.x, 2.6.26.x, 2.6.25.x]
+Other DRM drivers probably want this treatment as well, but I'm applying
+it just to this one for safety.
+
+Signed-off-by: Eric Anholt <eric@anholt.net>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/linit.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/drm_drv.c |   10 ++++++
+ include/drm/drm_pciids.h  |   52 ++++++++++++++++++++----------------
+ 2 files changed, 38 insertions(+), 24 deletions(-)
 
-diff -puN drivers/scsi/aacraid/linit.c~aacraid-disable-dell-percraid-quirk-on-adaptec-2200s-and-2120s drivers/scsi/aacraid/linit.c
---- a/drivers/scsi/aacraid/linit.c~aacraid-disable-dell-percraid-quirk-on-adaptec-2200s-and-2120s
-+++ a/drivers/scsi/aacraid/linit.c
-@@ -175,8 +175,8 @@ static struct aac_driver_ident aac_drive
- 	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Boxster/PERC3DiB) */
- 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "catapult        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* catapult */
- 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "tomcat          ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* tomcat */
--	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2120S   ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2120S (Crusader) */
--	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2200S (Vulcan) */
-+	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2120S   ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG },		      /* Adaptec 2120S (Crusader) */
-+	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG },		      /* Adaptec 2200S (Vulcan) */
- 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2200S (Vulcan-2m) */
- 	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S220     ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Legend S220 (Legend Crusader) */
- 	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S230     ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Legend S230 (Legend Vulcan) */
+diff -puN drivers/gpu/drm/drm_drv.c~i915-filter-pci-devices-based-on-pci_class_display_vga drivers/gpu/drm/drm_drv.c
+--- a/drivers/gpu/drm/drm_drv.c~i915-filter-pci-devices-based-on-pci_class_display_vga
++++ a/drivers/gpu/drm/drm_drv.c
+@@ -266,11 +266,19 @@ int drm_init(struct drm_driver *driver)
+ 	for (i = 0; driver->pci_driver.id_table[i].vendor != 0; i++) {
+ 		pid = (struct pci_device_id *)&driver->pci_driver.id_table[i];
+ 
++		/* Loop around setting up a DRM device for each PCI device
++		 * matching our ID and device class.  If we had the internal
++		 * function that pci_get_subsys and pci_get_class used, we'd
++		 * be able to just pass pid in instead of doing a two-stage
++		 * thing.
++		 */
+ 		pdev = NULL;
+-		/* pass back in pdev to account for multiple identical cards */
+ 		while ((pdev =
+ 			pci_get_subsys(pid->vendor, pid->device, pid->subvendor,
+ 				       pid->subdevice, pdev)) != NULL) {
++			if ((pdev->class & pid->class_mask) != pid->class)
++				continue;
++
+ 			/* stealth mode requires a manual probe */
+ 			pci_dev_get(pdev);
+ 			drm_get_dev(pdev, pid, driver);
+diff -puN include/drm/drm_pciids.h~i915-filter-pci-devices-based-on-pci_class_display_vga include/drm/drm_pciids.h
+--- a/include/drm/drm_pciids.h~i915-filter-pci-devices-based-on-pci_class_display_vga
++++ a/include/drm/drm_pciids.h
+@@ -394,28 +394,34 @@
+ #define ffb_PCI_IDS \
+ 	{0, 0, 0}
+ 
++#define i915_PCI_DEVID(vendor, device) {				\
++	vendor, device,							\
++	PCI_ANY_ID, PCI_ANY_ID,						\
++	PCI_CLASS_DISPLAY_VGA << 8, 0xffff00,				\
++	0								\
++}
+ #define i915_PCI_IDS \
+-	{0x8086, 0x3577, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2562, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x3582, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2572, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2582, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x258a, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2592, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2772, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x27a2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x27ae, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2972, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2982, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2992, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x29a2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x29b2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x29c2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x29d2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2a02, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2a12, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2a42, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2e02, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2e12, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+-	{0x8086, 0x2e22, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
++	i915_PCI_DEVID(0x8086, 0x3577), \
++	i915_PCI_DEVID(0x8086, 0x2562), \
++	i915_PCI_DEVID(0x8086, 0x3582), \
++	i915_PCI_DEVID(0x8086, 0x2572), \
++	i915_PCI_DEVID(0x8086, 0x2582), \
++	i915_PCI_DEVID(0x8086, 0x258a), \
++	i915_PCI_DEVID(0x8086, 0x2592), \
++	i915_PCI_DEVID(0x8086, 0x2772), \
++	i915_PCI_DEVID(0x8086, 0x27a2), \
++	i915_PCI_DEVID(0x8086, 0x27ae), \
++	i915_PCI_DEVID(0x8086, 0x2972), \
++	i915_PCI_DEVID(0x8086, 0x2982), \
++	i915_PCI_DEVID(0x8086, 0x2992), \
++	i915_PCI_DEVID(0x8086, 0x29a2), \
++	i915_PCI_DEVID(0x8086, 0x29b2), \
++	i915_PCI_DEVID(0x8086, 0x29c2), \
++	i915_PCI_DEVID(0x8086, 0x29d2), \
++	i915_PCI_DEVID(0x8086, 0x2a02), \
++	i915_PCI_DEVID(0x8086, 0x2a12), \
++	i915_PCI_DEVID(0x8086, 0x2a42), \
++	i915_PCI_DEVID(0x8086, 0x2e02), \
++	i915_PCI_DEVID(0x8086, 0x2e12), \
++	i915_PCI_DEVID(0x8086, 0x2e22), \
+ 	{0, 0, 0}
 _
 
-Patches currently in -mm which might be from thenzl@redhat.com are
+Patches currently in -mm which might be from eric@anholt.net are
 
-aacraid-disable-dell-percraid-quirk-on-adaptec-2200s-and-2120s.patch
+linux-next.patch
+i915-filter-pci-devices-based-on-pci_class_display_vga.patch
 
