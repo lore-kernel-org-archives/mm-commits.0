@@ -1,71 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - fix-__pfn_to_pagepfn-for-config_discontigmem=y.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:33:49 -0800
-Message-ID: <200811102033.mAAKXnw5024719@imap1.linux-foundation.org>
+Subject: - anysee-initialize-anysee_usb_mutex-statically.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:34:02 -0800
+Message-ID: <200811102034.mAAKY2FY024838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48132 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51092 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096AbYKJUea (ORCPT
+	by vger.kernel.org with ESMTP id S1753412AbYKJUec (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:34:30 -0500
+	Mon, 10 Nov 2008 15:34:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, pavel@suse.cz, stable@kernel.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix __pfn_to_page(pfn) for CONFIG_DISCONTIGMEM=y
+     anysee: initialize anysee_usb_mutex statically
 has been removed from the -mm tree.  Its filename was
-     fix-__pfn_to_pagepfn-for-config_discontigmem=y.patch
+     anysee-initialize-anysee_usb_mutex-statically.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix __pfn_to_page(pfn) for CONFIG_DISCONTIGMEM=y
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: anysee: initialize anysee_usb_mutex statically
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Fix macro __pfn_to_page(pfn) so that it doesn't evaluate its argument
-twice in the CONFIG_DISCONTIGMEM=y case, because 'pfn' may be a result of
-a funtion call having side effects.
+anysee_usb_mutex is initialized at every time the anysee device is probed.
+ If the second anysee device is probed while anysee_usb_mutex is locked by
+the first anysee device, the mutex is broken.
 
-For example, the hibernation code applies pfn_to_page(pfn) to the result
-of a function returning the pfn corresponding to the next set bit in a
-bitmap and the current bit position is modified on each call.  This leads
-to "interesting" failures for CONFIG_DISCONTIGMEM=y due to the current
-behavior of __pfn_to_page(pfn).
+This patch fixes by initialize anysee_usb_mutex statically rather
+than initialize at probe time.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@suse.cz>
-Cc: <stable@kernel.org>		[2.6.27.x, and earlier]
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: v4l-dvb-maintainer@linuxtv.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/memory_model.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb/dvb-usb/anysee.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/asm-generic/memory_model.h~fix-__pfn_to_pagepfn-for-config_discontigmem=y include/asm-generic/memory_model.h
---- a/include/asm-generic/memory_model.h~fix-__pfn_to_pagepfn-for-config_discontigmem=y
-+++ a/include/asm-generic/memory_model.h
-@@ -34,7 +34,7 @@
+diff -puN drivers/media/dvb/dvb-usb/anysee.c~anysee-initialize-anysee_usb_mutex-statically drivers/media/dvb/dvb-usb/anysee.c
+--- a/drivers/media/dvb/dvb-usb/anysee.c~anysee-initialize-anysee_usb_mutex-statically
++++ a/drivers/media/dvb/dvb-usb/anysee.c
+@@ -46,7 +46,7 @@ module_param_named(delsys, dvb_usb_anyse
+ MODULE_PARM_DESC(delsys, "select delivery mode (0=DVB-C, 1=DVB-T)");
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  
- #define __pfn_to_page(pfn)			\
- ({	unsigned long __pfn = (pfn);		\
--	unsigned long __nid = arch_pfn_to_nid(pfn);  \
-+	unsigned long __nid = arch_pfn_to_nid(__pfn);  \
- 	NODE_DATA(__nid)->node_mem_map + arch_local_page_offset(__pfn, __nid);\
- })
+-static struct mutex anysee_usb_mutex;
++static DEFINE_MUTEX(anysee_usb_mutex);
  
-_
-
-Patches currently in -mm which might be from rjw@sisk.pl are
-
-linux-next.patch
-e1000e-use-device_set_wakeup_enable.patch
-e1000-use-device_set_wakeup_enable.patch
-igb-use-device_set_wakeup_enable.patch
-drm-fix-radeon-suspend-resume-oops.patch
-shrink_slab-handle-bad-shrinkers.patch
-
+ static int anysee_ctrl_msg(struct dvb_usb_device *d, u8 *sbuf, u8 slen,
+ 	u8 *rbuf, u8 rlen)
+@@ -456,8 +456,6 @@ static int anysee_probe(struct usb_inter
+ 	struct usb_host_interface *alt;
+ 	int ret;
+ 
+-	mutex_init(&anysee_usb_mutex);
