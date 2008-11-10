@@ -1,105 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - fat-document-additional-vfat-mount-options.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 12:33:05 -0800
-Message-ID: <200811102033.mAAKX5mg024278@imap1.linux-foundation.org>
+Subject: - fat-i_blocks-warning-fix.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:33:47 -0800
+Message-ID: <200811102033.mAAKXl3I024680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56385 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751005AbYKJUe0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753435AbYKJUeT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 15:34:26 -0500
+	Mon, 10 Nov 2008 15:34:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bart@jukie.net, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: document additional vfat mount options
+     fat: i_blocks warning fix
 has been removed from the -mm tree.  Its filename was
-     fat-document-additional-vfat-mount-options.patch
+     fat-i_blocks-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: document additional vfat mount options
-From: Bart Trojanowski <bart@jukie.net>
+Subject: fat: i_blocks warning fix
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-While debugging a sync mount regression on vfat I noticed that there were
-mount options parsed by the driver that were not documented.
+blkcnt_t type depends on CONFIG_LSF. Use unsigned long long always for
+printk().  But lazy to type it, so add "llu" and use it.
 
-[hirofumi@mail.parknet.co.jp: fix some parts]
-Signed-off-by: Bart Trojanowski <bart@jukie.net>
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ fs/fat/dir.c    |    2 +-
+ fs/fat/fat.h    |    3 +++
+ fs/fat/fatent.c |    5 ++---
+ fs/fat/misc.c   |    5 +++--
+ 4 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/filesystems/vfat.txt~fat-document-additional-vfat-mount-options Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~fat-document-additional-vfat-mount-options
-+++ a/Documentation/filesystems/vfat.txt
-@@ -8,6 +8,12 @@ if you want to format from within Linux.
+diff -puN fs/fat/dir.c~fat-i_blocks-warning-fix fs/fat/dir.c
+--- a/fs/fat/dir.c~fat-i_blocks-warning-fix
++++ a/fs/fat/dir.c
+@@ -86,7 +86,7 @@ next:
+ 	*bh = sb_bread(sb, phys);
+ 	if (*bh == NULL) {
+ 		printk(KERN_ERR "FAT: Directory bread(block %llu) failed\n",
+-		       (unsigned long long)phys);
++		       (llu)phys);
+ 		/* skip this block */
+ 		*pos = (iblock + 1) << sb->s_blocksize_bits;
+ 		goto next;
+diff -puN fs/fat/fat.h~fat-i_blocks-warning-fix fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-i_blocks-warning-fix
++++ a/fs/fat/fat.h
+@@ -323,4 +323,7 @@ extern int fat_sync_bhs(struct buffer_he
+ int fat_cache_init(void);
+ void fat_cache_destroy(void);
  
- VFAT MOUNT OPTIONS
- ----------------------------------------------------------------------
-+uid=###       -- Set the owner of all files on this filesystem.
-+		 The default is the uid of current process.
++/* helper for printk */
++typedef unsigned long long	llu;
 +
-+gid=###       -- Set the group of all files on this filesystem.
-+		 The default is the gid of current process.
-+
- umask=###     -- The permission mask (for files and directories, see umask(1)).
-                  The default is the umask of current process.
+ #endif /* !_FAT_H */
+diff -puN fs/fat/fatent.c~fat-i_blocks-warning-fix fs/fat/fatent.c
+--- a/fs/fat/fatent.c~fat-i_blocks-warning-fix
++++ a/fs/fat/fatent.c
+@@ -93,8 +93,7 @@ static int fat12_ent_bread(struct super_
+ err_brelse:
+ 	brelse(bhs[0]);
+ err:
+-	printk(KERN_ERR "FAT: FAT read failed (blocknr %llu)\n",
+-	       (unsigned long long)blocknr);
++	printk(KERN_ERR "FAT: FAT read failed (blocknr %llu)\n", (llu)blocknr);
+ 	return -EIO;
+ }
  
-@@ -36,7 +42,7 @@ codepage=###  -- Sets the codepage numbe
- 		 characters on FAT filesystem.
- 		 By default, FAT_DEFAULT_CODEPAGE setting is used.
- 
--iocharset=name -- Character set to use for converting between the
-+iocharset=<name> -- Character set to use for converting between the
- 		 encoding is used for user visible filename and 16 bit
- 		 Unicode characters. Long filenames are stored on disk
- 		 in Unicode format, but Unix for the most part doesn't
-@@ -86,6 +92,8 @@ check=s|r|n   -- Case sensitivity checki
-                  r: relaxed, case insensitive
-                  n: normal, default setting, currently case insensitive
- 
-+nocase        -- This was deprecated for vfat. Use shortname=win95 instead.
-+
- shortname=lower|win95|winnt|mixed
- 	      -- Shortname display/create setting.
- 		 lower: convert to lowercase for display,
-@@ -99,11 +107,23 @@ shortname=lower|win95|winnt|mixed
- tz=UTC        -- Interpret timestamps as UTC rather than local time.
-                  This option disables the conversion of timestamps
-                  between local time (as used by Windows on FAT) and UTC
--                 (which Linux uses internally).  This is particuluarly
-+                 (which Linux uses internally).  This is particularly
-                  useful when mounting devices (like digital cameras)
-                  that are set to UTC in order to avoid the pitfalls of
-                  local time.
- 
-+showexec      -- If set, the execute permission bits of the file will be
-+		 allowed only if the extension part of the name is .EXE,
-+		 .COM, or .BAT. Not set by default.
-+
-+debug         -- Can be set, but unused by the current implementation.
-+
-+sys_immutable -- If set, ATTR_SYS attribute on FAT is handled as
-+		 IMMUTABLE flag on Linux. Not set by default.
-+
-+flush         -- If set, the filesystem will try to flush to disk more
-+		 early than normal. Not set by default.
-+
- <bool>: 0,1,yes,no,true,false
- 
- TODO
+@@ -107,7 +106,7 @@ static int fat_ent_bread(struct super_bl
+ 	fatent->bhs[0] = sb_bread(sb, blocknr);
+ 	if (!fatent->bhs[0]) {
+ 		printk(KERN_ERR "FAT: FAT read failed (blocknr %llu)\n",
+-		       (unsigned long long)blocknr);
++		       (llu)blocknr);
+ 		return -EIO;
+ 	}
+ 	fatent->nr_bhs = 1;
+diff -puN fs/fat/misc.c~fat-i_blocks-warning-fix fs/fat/misc.c
+--- a/fs/fat/misc.c~fat-i_blocks-warning-fix
++++ a/fs/fat/misc.c
+@@ -124,8 +124,9 @@ int fat_chain_add(struct inode *inode, i
+ 			mark_inode_dirty(inode);
+ 	}
+ 	if (new_fclus != (inode->i_blocks >> (sbi->cluster_bits - 9))) {
+-		fat_fs_panic(sb, "clusters badly computed (%d != %lu)",
+-			new_fclus, inode->i_blocks >> (sbi->cluster_bits - 9));
++		fat_fs_panic(sb, "clusters badly computed (%d != %llu)",
++			     new_fclus,
++			     (llu)(inode->i_blocks >> (sbi->cluster_bits - 9)));
+ 		fat_cache_inval_inode(inode);
+ 	}
+ 	inode->i_blocks += nr_cluster << (sbi->cluster_bits - 9);
 _
 
-Patches currently in -mm which might be from bart@jukie.net are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
+linux-next.patch
 
