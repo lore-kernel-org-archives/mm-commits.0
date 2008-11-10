@@ -1,92 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: + linux-ratelimith-fixed-missing-initializer-warning.patch added to -mm tree
-Date: Mon, 10 Nov 2008 10:33:33 -0800
-Message-ID: <200811101833.mAAIXXA1029862@imap1.linux-foundation.org>
+Subject: - intel_menlo-max_state-is-unsigned-invalid-test.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 12:24:40 -0800
+Message-ID: <200811102024.mAAKOeR8020072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57480 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55923 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754695AbYKJSeK (ORCPT
+	by vger.kernel.org with ESMTP id S1751827AbYKJUZW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 13:34:10 -0500
+	Mon, 10 Nov 2008 15:25:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mk@cm4all.com, bart.vanassche@gmail.com
+To: roel.kluin@gmail.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux/ratelimit.h: fixed "missing initializer" warning
-has been added to the -mm tree.  Its filename is
-     linux-ratelimith-fixed-missing-initializer-warning.patch
+     intel_menlo: max_state is unsigned, invalid test
+has been removed from the -mm tree.  Its filename was
+     intel_menlo-max_state-is-unsigned-invalid-test.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux/ratelimit.h: fixed "missing initializer" warning
-From: Max Kellermann <mk@cm4all.com>
+Subject: intel_menlo: max_state is unsigned, invalid test
+From: roel kluin <roel.kluin@gmail.com>
 
-When compiled with -Wmissing-field-initializers (-Wextra), gcc complains
-that there are uninitialized fields in the struct:
+max_state is unsigned, so the test is invalid.
 
- include/linux/ratelimit.h: In function 'ratelimit':
- include/linux/ratelimit.h:23: warning: missing initializer
- include/linux/ratelimit.h:23: warning: (near initialization for 'rs.printed')
-
-Fix this by using C99 initializers.
-
-
-Bart said:
-
-  The current version of the header file include/linux/ratelimit.h
-  triggers false positives when the compiler flag
-  -Wmissing-field-initializers is specified.  The header file
-  include/linux/ratelimit.h is included directly or indirectly by many
-  other header files -- inclusion of this file can't be avoided.  The
-  above patch suppresses these false positives by converting the
-  initializers to C99 style, such that kernel developers who want to check
-  their code through -Wmissing-field-initializers can use this compiler
-  flag.
-
-Signed-off-by: Max Kellermann <mk@cm4all.com>
-Cc: "Bart Van Assche" <bart.vanassche@gmail.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ratelimit.h |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/misc/intel_menlow.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/ratelimit.h~linux-ratelimith-fixed-missing-initializer-warning include/linux/ratelimit.h
---- a/include/linux/ratelimit.h~linux-ratelimith-fixed-missing-initializer-warning
-+++ a/include/linux/ratelimit.h
-@@ -13,8 +13,11 @@ struct ratelimit_state {
- 	unsigned long begin;
- };
+diff -puN drivers/misc/intel_menlow.c~intel_menlo-max_state-is-unsigned-invalid-test drivers/misc/intel_menlow.c
+--- a/drivers/misc/intel_menlow.c~intel_menlo-max_state-is-unsigned-invalid-test
++++ a/drivers/misc/intel_menlow.c
+@@ -121,7 +121,7 @@ static int memory_set_cur_bandwidth(stru
+ 	if (memory_get_int_max_bandwidth(cdev, &max_state))
+ 		return -EFAULT;
  
--#define DEFINE_RATELIMIT_STATE(name, interval, burst)		\
--		struct ratelimit_state name = {interval, burst,}
-+#define DEFINE_RATELIMIT_STATE(name, _interval, _burst) \
-+		struct ratelimit_state name = { \
-+			.interval = _interval, \
-+			.burst = _burst, \
-+		}
+-	if (max_state < 0 || state > max_state)
++	if (max_state == -1 || state > max_state)
+ 		return -EINVAL;
  
- extern int __ratelimit(struct ratelimit_state *rs);
- #endif
+ 	arg_list.count = 1;
 _
 
-Patches currently in -mm which might be from mk@cm4all.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-linux-ratelimith-fixed-missing-initializer-warning.patch
+atmel_lcdfb-change-irq_base-definition-to-allow-error-reporting.patch
+linux-next.patch
+intel_menlo-max_state-is-unsigned-invalid-test.patch
+u14-34f-fix-scsi_dma_map-failure-case.patch
+make-various-things-static.patch
 
