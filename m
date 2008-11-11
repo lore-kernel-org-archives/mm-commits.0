@@ -1,160 +1,254 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-alarm-update-irq-interfaces.patch added to -mm tree
-Date: Mon, 10 Nov 2008 15:45:02 -0800
-Message-ID: <200811102345.mAANj2rv022272@imap1.linux-foundation.org>
+Subject: - rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 16:24:18 -0800
+Message-ID: <200811110024.mAB0OICR009339@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58420 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750989AbYKJXpq (ORCPT
+	by vger.kernel.org with ESMTP id S1753397AbYKKAYm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 18:45:46 -0500
+	Mon, 10 Nov 2008 19:24:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: a.zummo@towertech.it, david-b@pacbell.net
+To: martyn.welch@gefanuc.com, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: add alarm/update irq interfaces
-has been added to the -mm tree.  Its filename is
-     rtc-add-alarm-update-irq-interfaces.patch
+     rtc: improvements to the basic implementation of Epson RX-8581 I2C Real Time Clock
+has been removed from the -mm tree.  Its filename was
+     rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add alarm/update irq interfaces
-From: Alessandro Zummo <a.zummo@towertech.it>
+Subject: rtc: improvements to the basic implementation of Epson RX-8581 I2C Real Time Clock
+From: Martyn Welch <martyn.welch@gefanuc.com>
 
-Add standard interfaces for alarm/update irqs enabling.  Drivers are no
-more required to implement equivalent ioctl code as rtc-dev will provide
-it.
+These improvements resolve the issues raised by Jean Delvare in the Epson
+RX-8581 driver (thank you for your help):
 
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+ * Added linux/module.h include
+ * Removed black line
+ * Removed useless test in rx8581_remove
+ * Us i2c_smbus_* functions rather than raw i2c messaging
+
+Signed-off-by: Martyn Welch <martyn.welch@gefanuc.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: David Brownell <david-b@pacbell.net>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c |   36 ++++++++++++++++++++++++++++++++++++
- drivers/rtc/rtc-dev.c   |   16 ++++++++++++++++
- include/linux/rtc.h     |    4 ++++
- 3 files changed, 56 insertions(+)
+ drivers/rtc/rtc-rx8581.c |  127 ++++++++++++-------------------------
+ 1 file changed, 43 insertions(+), 84 deletions(-)
 
-diff -puN drivers/rtc/interface.c~rtc-add-alarm-update-irq-interfaces drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-add-alarm-update-irq-interfaces
-+++ a/drivers/rtc/interface.c
-@@ -307,6 +307,42 @@ int rtc_set_alarm(struct rtc_device *rtc
+diff -puN drivers/rtc/rtc-rx8581.c~rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update drivers/rtc/rtc-rx8581.c
+--- a/drivers/rtc/rtc-rx8581.c~rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update
++++ a/drivers/rtc/rtc-rx8581.c
+@@ -12,6 +12,7 @@
+  * Copyright 2005-06 Tower Technologies
+  */
+ 
++#include <linux/module.h>
+ #include <linux/i2c.h>
+ #include <linux/bcd.h>
+ #include <linux/rtc.h>
+@@ -59,66 +60,49 @@ static struct i2c_driver rx8581_driver;
+  */
+ static int rx8581_get_datetime(struct i2c_client *client, struct rtc_time *tm)
+ {
+-	unsigned char date[7] = { RX8581_REG_SC };
+-	unsigned char flags = RX8581_REG_FLAG;
+-	int err;
++	unsigned char date[7];
++	int data, err;
+ 
+ 	/* First we ensure that the "update flag" is not set, we read the
+ 	 * time and date then re-read the "update flag". If the update flag
+ 	 * has been set, we know that the time has changed during the read so
+ 	 * we repeat the whole process again.
+ 	 */
+-	/* Read flag register */
+-	struct i2c_msg msgs[] = {
+-		{ client->addr, 0, 1, &flags },		/* setup read ptr */
+-		{ client->addr, I2C_M_RD, 1, &flags },	/* read flags */
+-	};
+-
+-	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __func__);
++	data = i2c_smbus_read_byte_data(client, RX8581_REG_FLAG);
++	if (data < 0) {
++		dev_err(&client->dev, "Unable to read device flags\n");
+ 		return -EIO;
+ 	}
+ 
+ 	do {
+-
+ 		/* If update flag set, clear it */
+-		if (flags & RX8581_FLAG_UF) {
+-			unsigned char data[2] = { RX8581_REG_FLAG,
+-				(flags & ~RX8581_FLAG_UF) };
+-
+-			err = i2c_master_send(client, data, sizeof(data));
+-			if (err != sizeof(data)) {
+-				dev_err(&client->dev,
+-					"%s: err=%d addr=%02x, data=%02x\n",
+-					__func__, err, data[0], data[1]);
++		if (data & RX8581_FLAG_UF) {
++			err = i2c_smbus_write_byte_data(client,
++				RX8581_REG_FLAG, (data & ~RX8581_FLAG_UF));
++			if (err != 0) {
++				dev_err(&client->dev, "Unable to write device "
++					"flags\n");
+ 				return -EIO;
+ 			}
+ 		}
+ 
+ 		/* Now read time and date */
+-		date[0] = RX8581_REG_SC;
+-		msgs[0].buf = date;
+-		msgs[1].buf = date;
+-		msgs[1].len = 7;
+-
+-		if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-			dev_err(&client->dev, "%s: read error\n", __func__);
++		err = i2c_smbus_read_i2c_block_data(client, RX8581_REG_SC,
++			7, date);
++		if (err < 0) {
++			dev_err(&client->dev, "Unable to read date\n");
+ 			return -EIO;
+ 		}
+ 
+ 		/* Check flag register */
+-		flags = RX8581_REG_FLAG;
+-		msgs[0].buf = &flags;
+-		msgs[1].buf = &flags;
+-		msgs[1].len = 1;
+-
+-		if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-			dev_err(&client->dev, "%s: read error\n", __func__);
++		data = i2c_smbus_read_byte_data(client, RX8581_REG_FLAG);
++		if (data < 0) {
++			dev_err(&client->dev, "Unable to read device flags\n");
+ 			return -EIO;
+ 		}
+-	} while (flags & RX8581_FLAG_UF);
++	} while (data & RX8581_FLAG_UF);
+ 
+-	if (flags & RX8581_FLAG_VLF)
++	if (data & RX8581_FLAG_VLF)
+ 		dev_info(&client->dev,
+ 			"low voltage detected, date/time is not reliable.\n");
+ 
+@@ -154,14 +138,8 @@ static int rx8581_get_datetime(struct i2
+ 
+ static int rx8581_set_datetime(struct i2c_client *client, struct rtc_time *tm)
+ {
+-	int i, err;
+-	unsigned char buf[9];
+-	unsigned char ctrl = RX8581_REG_CTRL;
+-	unsigned char data[2];
+-	struct i2c_msg msgs[] = {
+-		{ client->addr, 0, 1, &ctrl },		/* setup read ptr */
+-		{ client->addr, I2C_M_RD, 1, &ctrl },	/* read flags */
+-	};
++	int data, err;
++	unsigned char buf[7];
+ 
+ 	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+@@ -184,55 +162,37 @@ static int rx8581_set_datetime(struct i2
+ 	buf[RX8581_REG_DW] = (0x1 << tm->tm_wday);
+ 
+ 	/* Stop the clock */
+-	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __func__);
++	data = i2c_smbus_read_byte_data(client, RX8581_REG_CTRL);
++	if (data < 0) {
++		dev_err(&client->dev, "Unable to read control register\n");
+ 		return -EIO;
+ 	}
+ 
+-	data[0] = RX8581_REG_CTRL;
+-	data[1] = (ctrl | RX8581_CTRL_STOP);
+-
+-	err = i2c_master_send(client, data, sizeof(data));
+-	if (err != sizeof(data)) {
+-		dev_err(&client->dev,
+-			"%s: err=%d addr=%02x, data=%02x\n",
+-			__func__, err, data[0], data[1]);
++	err = i2c_smbus_write_byte_data(client, RX8581_REG_FLAG,
++		(data | RX8581_CTRL_STOP));
++	if (err < 0) {
++		dev_err(&client->dev, "Unable to write control register\n");
+ 		return -EIO;
+ 	}
+ 
+ 	/* write register's data */
+-	for (i = 0; i < 7; i++) {
+-		data[0] = RX8581_REG_SC + i;
+-		data[1] = buf[RX8581_REG_SC + i];
+-
+-		err = i2c_master_send(client, data, sizeof(data));
+-		if (err != sizeof(data)) {
+-			dev_err(&client->dev,
+-				"%s: err=%d addr=%02x, data=%02x\n",
+-				__func__, err, data[0], data[1]);
+-			return -EIO;
+-		}
+-	};
++	err = i2c_smbus_write_i2c_block_data(client, RX8581_REG_SC, 7, buf);
++	if (err < 0) {
++		dev_err(&client->dev, "Unable to write to date registers\n");
++		return -EIO;
++	}
+ 
+ 	/* Restart the clock */
+-	ctrl = RX8581_REG_CTRL;
+-
+-	msgs[0].buf = &ctrl;
+-	msgs[1].buf = &ctrl;
+-
+-	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __func__);
++	data = i2c_smbus_read_byte_data(client, RX8581_REG_CTRL);
++	if (data < 0) {
++		dev_err(&client->dev, "Unable to read control register\n");
+ 		return -EIO;
+ 	}
+ 
+-	data[0] = RX8581_REG_CTRL;
+-	data[1] = (ctrl & ~(RX8581_CTRL_STOP));
+-
+-	err = i2c_master_send(client, data, sizeof(data));
+-	if (err != sizeof(data)) {
+-		dev_err(&client->dev,
+-			"%s: err=%d addr=%02x, data=%02x\n",
+-			__func__, err, data[0], data[1]);
++	err = i2c_smbus_write_byte_data(client, RX8581_REG_FLAG,
++		(data | ~(RX8581_CTRL_STOP)));
++	if (err != 0) {
++		dev_err(&client->dev, "Unable to write control register\n");
+ 		return -EIO;
+ 	}
+ 
+@@ -281,8 +241,7 @@ static int __devexit rx8581_remove(struc
+ {
+ 	struct rtc_device *rtc = i2c_get_clientdata(client);
+ 
+-	if (rtc)
+-		rtc_device_unregister(rtc);
++	rtc_device_unregister(rtc);
+ 
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(rtc_set_alarm);
- 
-+int rtc_alarm_irq_enable(struct rtc_device *rtc, unsigned int enabled)
-+{
-+	int err = mutex_lock_interruptible(&rtc->ops_lock);
-+	if (err)
-+		return err;
-+
-+	if (!rtc->ops)
-+		err = -ENODEV;
-+	else if (rtc->ops->alarm_irq_enable)
-+		err = -EINVAL;
-+	else
-+		err = rtc->ops->alarm_irq_enable(rtc->dev.parent, enabled);
-+
-+	mutex_unlock(&rtc->ops_lock);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(rtc_alarm_irq_enable);
-+
-+int rtc_update_irq_enable(struct rtc_device *rtc, unsigned int enabled)
-+{
-+	int err = mutex_lock_interruptible(&rtc->ops_lock);
-+	if (err)
-+		return err;
-+
-+	if (!rtc->ops)
-+		err = -ENODEV;
-+	else if (!rtc->ops->update_irq_enable)
-+		err = -EINVAL;
-+	else
-+		err = rtc->ops->update_irq_enable(rtc->dev.parent, enabled);
-+
-+	mutex_unlock(&rtc->ops_lock);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(rtc_update_irq_enable);
-+
- /**
-  * rtc_update_irq - report RTC periodic, alarm, and/or update irqs
-  * @rtc: the rtc device
-diff -puN drivers/rtc/rtc-dev.c~rtc-add-alarm-update-irq-interfaces drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-add-alarm-update-irq-interfaces
-+++ a/drivers/rtc/rtc-dev.c
-@@ -357,6 +357,22 @@ static long rtc_dev_ioctl(struct file *f
- 		err = rtc_irq_set_state(rtc, NULL, 0);
- 		break;
- 
-+	case RTC_AIE_ON:
-+		err = rtc_alarm_irq_enable(rtc, 1);
-+		break;
-+
-+	case RTC_AIE_OFF:
-+		err = rtc_alarm_irq_enable(rtc, 0);
-+		break;
-+
-+	case RTC_UIE_ON:
-+		err = rtc_update_irq_enable(rtc, 1);
-+		break;
-+
-+	case RTC_UIE_OFF:
-+		err = rtc_update_irq_enable(rtc, 0);
-+		break;
-+
- 	case RTC_IRQP_SET:
- 		err = rtc_irq_set_freq(rtc, NULL, arg);
- 		break;
-diff -puN include/linux/rtc.h~rtc-add-alarm-update-irq-interfaces include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-add-alarm-update-irq-interfaces
-+++ a/include/linux/rtc.h
-@@ -145,6 +145,8 @@ struct rtc_class_ops {
- 	int (*irq_set_state)(struct device *, int enabled);
- 	int (*irq_set_freq)(struct device *, int freq);
- 	int (*read_callback)(struct device *, int data);
-+	int (*alarm_irq_enable)(struct device *, unsigned int enabled);
-+	int (*update_irq_enable)(struct device *, unsigned int enabled);
- };
- 
- #define RTC_DEVICE_NAME_SIZE 20
-@@ -216,6 +218,8 @@ extern int rtc_irq_set_state(struct rtc_
- 				struct rtc_task *task, int enabled);
- extern int rtc_irq_set_freq(struct rtc_device *rtc,
- 				struct rtc_task *task, int freq);
-+extern int rtc_update_irq_enable(struct rtc_device *rtc, unsigned int enabled);
-+extern int rtc_alarm_irq_enable(struct rtc_device *rtc, unsigned int enabled);
- 
- typedef struct rtc_task {
- 	void (*func)(void *private_data);
 _
 
-Patches currently in -mm which might be from a.zummo@towertech.it are
+Patches currently in -mm which might be from martyn.welch@gefanuc.com are
 
-rtc-ds1307-smbus-compatibility.patch
-rtc-ds1307-remove-legacy-probe-checks.patch
-add-dallas-ds1390-93-94-rtc-chips.patch
-rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
 rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock.patch
-rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
 rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update.patch
-rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-rtc-add-alarm-update-irq-interfaces.patch
 
