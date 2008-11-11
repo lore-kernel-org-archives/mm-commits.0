@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coda-fix-fs-coda-sysctlc-build-warnings-when-config_sysctl.patch added to -mm tree
-Date: Tue, 11 Nov 2008 14:31:15 -0800
-Message-ID: <200811112231.mABMVFoO018486@imap1.linux-foundation.org>
+Subject: + atmel_spi-work-around-required-for-new-hw-bug-in-at91sam9263-revb-spi-controller.patch added to -mm tree
+Date: Tue, 11 Nov 2008 14:29:33 -0800
+Message-ID: <200811112229.mABMTXDe017656@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751647AbYKKWbw (ORCPT
+	by vger.kernel.org with ESMTP id S1751016AbYKKWf4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Nov 2008 17:31:52 -0500
+	Tue, 11 Nov 2008 17:35:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aciddeath@gmail.com, jaharkes@cs.cmu.edu
+Cc: jcl@develtech.com, david-b@pacbell.net, haavard.skinnemoen@atmel.com
 
 
 The patch titled
-     coda: fix fs/coda/sysctl.c build warnings when !CONFIG_SYSCTL
+     atmel_spi: work-around required for new HW bug in AT91SAM9263 Rev.B SPI controller
 has been added to the -mm tree.  Its filename is
-     coda-fix-fs-coda-sysctlc-build-warnings-when-config_sysctl.patch
+     atmel_spi-work-around-required-for-new-hw-bug-in-at91sam9263-revb-spi-controller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coda: fix fs/coda/sysctl.c build warnings when !CONFIG_SYSCTL
-From: "Richard A. Holden III" <aciddeath@gmail.com>
+Subject: atmel_spi: work-around required for new HW bug in AT91SAM9263 Rev.B SPI controller
+From: Jean-Christophe Lallemand <jcl@develtech.com>
 
-Fix
-fs/coda/sysctl.c:14: warning: 'fs_table_header' defined but not used
-fs/coda/sysctl.c:44: warning: 'fs_table' defined but not used
+We're working with an AT91SAM9263 Rev B in our design and I experienced
+some inconsistency in spi-based touchscreen usage between our board and
+the Atmel evaluation kit we have that runs on a Rev A chip.  The data was
+apparently delayed by 1 byte and got ridiculous data out of the
+touchscreen driver, very strange.  As everything looked normal in the spi,
+touchscreen and dma logs, I contacted the Atmel support and they triggered
+me on a new HW bug that appeared in the Rev B SPI controller.
 
-these are only used when CONFIG_SYSCTL is defined.
+The problem is that the SPI controller on the Rev B needs that the
+software reset is performed two times so that it's performed correctly.
 
-Signed-off-by: Richard A. Holden III <aciddeath@gmail.com>
-Cc: Jan Harkes <jaharkes@cs.cmu.edu>
+Applying the patch below solves the issue on my Rev B board.  I've tested
+it as well on my Rev A evaluation kit and it has apparently no unwanted
+side effect, things continue to work as expected.
+
+Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/sysctl.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/spi/atmel_spi.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/coda/sysctl.c~coda-fix-fs-coda-sysctlc-build-warnings-when-config_sysctl fs/coda/sysctl.c
---- a/fs/coda/sysctl.c~coda-fix-fs-coda-sysctlc-build-warnings-when-config_sysctl
-+++ a/fs/coda/sysctl.c
-@@ -11,7 +11,9 @@
+diff -puN drivers/spi/atmel_spi.c~atmel_spi-work-around-required-for-new-hw-bug-in-at91sam9263-revb-spi-controller drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~atmel_spi-work-around-required-for-new-hw-bug-in-at91sam9263-revb-spi-controller
++++ a/drivers/spi/atmel_spi.c
+@@ -766,6 +766,7 @@ static int __init atmel_spi_probe(struct
+ 	/* Initialize the hardware */
+ 	clk_enable(clk);
+ 	spi_writel(as, CR, SPI_BIT(SWRST));
++	spi_writel(as, CR, SPI_BIT(SWRST)); /* AT91SAM9263 Rev B workaround */
+ 	spi_writel(as, MR, SPI_BIT(MSTR) | SPI_BIT(MODFDIS));
+ 	spi_writel(as, PTCR, SPI_BIT(RXTDIS) | SPI_BIT(TXTDIS));
+ 	spi_writel(as, CR, SPI_BIT(SPIEN));
+@@ -782,6 +783,7 @@ static int __init atmel_spi_probe(struct
  
- #include "coda_int.h"
+ out_reset_hw:
+ 	spi_writel(as, CR, SPI_BIT(SWRST));
++	spi_writel(as, CR, SPI_BIT(SWRST)); /* AT91SAM9263 Rev B workaround */
+ 	clk_disable(clk);
+ 	free_irq(irq, master);
+ out_unmap_regs:
+@@ -805,6 +807,7 @@ static int __exit atmel_spi_remove(struc
+ 	spin_lock_irq(&as->lock);
+ 	as->stopping = 1;
+ 	spi_writel(as, CR, SPI_BIT(SWRST));
++	spi_writel(as, CR, SPI_BIT(SWRST)); /* AT91SAM9263 Rev B workaround */
+ 	spi_readl(as, SR);
+ 	spin_unlock_irq(&as->lock);
  
-+#ifdef CONFIG_SYSCTL
- static struct ctl_table_header *fs_table_header;
-+#endif
- 
- static ctl_table coda_table[] = {
- 	{
-@@ -41,6 +43,7 @@ static ctl_table coda_table[] = {
- 	{}
- };
- 
-+#ifdef CONFIG_SYSCTL
- static ctl_table fs_table[] = {
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
-@@ -50,7 +53,7 @@ static ctl_table fs_table[] = {
- 	},
- 	{}
- };
+_
+
+Patches currently in -mm which might be from jcl@develtech.com are
+
+atmel_spi-work-around-required-for-new-hw-bug-in-at91sam9263-revb-spi-controller.patch
+
