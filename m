@@ -1,254 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update.patch removed from -mm tree
-Date: Mon, 10 Nov 2008 16:24:18 -0800
-Message-ID: <200811110024.mAB0OICR009339@imap1.linux-foundation.org>
+Subject: - rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 16:24:14 -0800
+Message-ID: <200811110024.mAB0OESx009310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48217 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33067 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753397AbYKKAYm (ORCPT
+	by vger.kernel.org with ESMTP id S1753494AbYKKAYm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 10 Nov 2008 19:24:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: martyn.welch@gefanuc.com, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org, martyn.welch@gefanuc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: improvements to the basic implementation of Epson RX-8581 I2C Real Time Clock
+     rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update.patch
+     rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
 
 This patch was dropped because it was folded into rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: improvements to the basic implementation of Epson RX-8581 I2C Real Time Clock
-From: Martyn Welch <martyn.welch@gefanuc.com>
+Subject: rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-These improvements resolve the issues raised by Jean Delvare in the Epson
-RX-8581 driver (thank you for your help):
+- need log2.h for ilog2()
 
- * Added linux/module.h include
- * Removed black line
- * Removed useless test in rx8581_remove
- * Us i2c_smbus_* functions rather than raw i2c messaging
+- remove unneeded initialisation.
 
-Signed-off-by: Martyn Welch <martyn.welch@gefanuc.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: David Brownell <david-b@pacbell.net>
 Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Martyn Welch <martyn.welch@gefanuc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rx8581.c |  127 ++++++++++++-------------------------
- 1 file changed, 43 insertions(+), 84 deletions(-)
+ drivers/rtc/rtc-rx8581.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-rx8581.c~rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update drivers/rtc/rtc-rx8581.c
---- a/drivers/rtc/rtc-rx8581.c~rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update
+diff -puN drivers/rtc/rtc-rx8581.c~rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix drivers/rtc/rtc-rx8581.c
+--- a/drivers/rtc/rtc-rx8581.c~rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix
 +++ a/drivers/rtc/rtc-rx8581.c
-@@ -12,6 +12,7 @@
-  * Copyright 2005-06 Tower Technologies
-  */
- 
-+#include <linux/module.h>
+@@ -15,6 +15,7 @@
  #include <linux/i2c.h>
  #include <linux/bcd.h>
  #include <linux/rtc.h>
-@@ -59,66 +60,49 @@ static struct i2c_driver rx8581_driver;
-  */
- static int rx8581_get_datetime(struct i2c_client *client, struct rtc_time *tm)
++#include <linux/log2.h>
+ 
+ #define DRV_VERSION "0.1"
+ 
+@@ -256,7 +257,7 @@ static const struct rtc_class_ops rx8581
+ static int __devinit rx8581_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *id)
  {
--	unsigned char date[7] = { RX8581_REG_SC };
--	unsigned char flags = RX8581_REG_FLAG;
--	int err;
-+	unsigned char date[7];
-+	int data, err;
+-	struct rtc_device *rtc = NULL;
++	struct rtc_device *rtc;
  
- 	/* First we ensure that the "update flag" is not set, we read the
- 	 * time and date then re-read the "update flag". If the update flag
- 	 * has been set, we know that the time has changed during the read so
- 	 * we repeat the whole process again.
- 	 */
--	/* Read flag register */
--	struct i2c_msg msgs[] = {
--		{ client->addr, 0, 1, &flags },		/* setup read ptr */
--		{ client->addr, I2C_M_RD, 1, &flags },	/* read flags */
--	};
--
--	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
--		dev_err(&client->dev, "%s: read error\n", __func__);
-+	data = i2c_smbus_read_byte_data(client, RX8581_REG_FLAG);
-+	if (data < 0) {
-+		dev_err(&client->dev, "Unable to read device flags\n");
- 		return -EIO;
- 	}
+ 	dev_dbg(&client->dev, "%s\n", __func__);
  
- 	do {
--
- 		/* If update flag set, clear it */
--		if (flags & RX8581_FLAG_UF) {
--			unsigned char data[2] = { RX8581_REG_FLAG,
--				(flags & ~RX8581_FLAG_UF) };
--
--			err = i2c_master_send(client, data, sizeof(data));
--			if (err != sizeof(data)) {
--				dev_err(&client->dev,
--					"%s: err=%d addr=%02x, data=%02x\n",
--					__func__, err, data[0], data[1]);
-+		if (data & RX8581_FLAG_UF) {
-+			err = i2c_smbus_write_byte_data(client,
-+				RX8581_REG_FLAG, (data & ~RX8581_FLAG_UF));
-+			if (err != 0) {
-+				dev_err(&client->dev, "Unable to write device "
-+					"flags\n");
- 				return -EIO;
- 			}
- 		}
- 
- 		/* Now read time and date */
--		date[0] = RX8581_REG_SC;
--		msgs[0].buf = date;
--		msgs[1].buf = date;
--		msgs[1].len = 7;
--
--		if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
--			dev_err(&client->dev, "%s: read error\n", __func__);
-+		err = i2c_smbus_read_i2c_block_data(client, RX8581_REG_SC,
-+			7, date);
-+		if (err < 0) {
-+			dev_err(&client->dev, "Unable to read date\n");
- 			return -EIO;
- 		}
- 
- 		/* Check flag register */
--		flags = RX8581_REG_FLAG;
--		msgs[0].buf = &flags;
--		msgs[1].buf = &flags;
--		msgs[1].len = 1;
--
--		if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
--			dev_err(&client->dev, "%s: read error\n", __func__);
-+		data = i2c_smbus_read_byte_data(client, RX8581_REG_FLAG);
-+		if (data < 0) {
-+			dev_err(&client->dev, "Unable to read device flags\n");
- 			return -EIO;
- 		}
--	} while (flags & RX8581_FLAG_UF);
-+	} while (data & RX8581_FLAG_UF);
- 
--	if (flags & RX8581_FLAG_VLF)
-+	if (data & RX8581_FLAG_VLF)
- 		dev_info(&client->dev,
- 			"low voltage detected, date/time is not reliable.\n");
- 
-@@ -154,14 +138,8 @@ static int rx8581_get_datetime(struct i2
- 
- static int rx8581_set_datetime(struct i2c_client *client, struct rtc_time *tm)
- {
--	int i, err;
--	unsigned char buf[9];
--	unsigned char ctrl = RX8581_REG_CTRL;
--	unsigned char data[2];
--	struct i2c_msg msgs[] = {
--		{ client->addr, 0, 1, &ctrl },		/* setup read ptr */
--		{ client->addr, I2C_M_RD, 1, &ctrl },	/* read flags */
--	};
-+	int data, err;
-+	unsigned char buf[7];
- 
- 	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
- 		"mday=%d, mon=%d, year=%d, wday=%d\n",
-@@ -184,55 +162,37 @@ static int rx8581_set_datetime(struct i2
- 	buf[RX8581_REG_DW] = (0x1 << tm->tm_wday);
- 
- 	/* Stop the clock */
--	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
--		dev_err(&client->dev, "%s: read error\n", __func__);
-+	data = i2c_smbus_read_byte_data(client, RX8581_REG_CTRL);
-+	if (data < 0) {
-+		dev_err(&client->dev, "Unable to read control register\n");
- 		return -EIO;
- 	}
- 
--	data[0] = RX8581_REG_CTRL;
--	data[1] = (ctrl | RX8581_CTRL_STOP);
--
--	err = i2c_master_send(client, data, sizeof(data));
--	if (err != sizeof(data)) {
--		dev_err(&client->dev,
--			"%s: err=%d addr=%02x, data=%02x\n",
--			__func__, err, data[0], data[1]);
-+	err = i2c_smbus_write_byte_data(client, RX8581_REG_FLAG,
-+		(data | RX8581_CTRL_STOP));
-+	if (err < 0) {
-+		dev_err(&client->dev, "Unable to write control register\n");
- 		return -EIO;
- 	}
- 
- 	/* write register's data */
--	for (i = 0; i < 7; i++) {
--		data[0] = RX8581_REG_SC + i;
--		data[1] = buf[RX8581_REG_SC + i];
--
--		err = i2c_master_send(client, data, sizeof(data));
--		if (err != sizeof(data)) {
--			dev_err(&client->dev,
--				"%s: err=%d addr=%02x, data=%02x\n",
--				__func__, err, data[0], data[1]);
--			return -EIO;
--		}
--	};
-+	err = i2c_smbus_write_i2c_block_data(client, RX8581_REG_SC, 7, buf);
-+	if (err < 0) {
-+		dev_err(&client->dev, "Unable to write to date registers\n");
-+		return -EIO;
-+	}
- 
- 	/* Restart the clock */
--	ctrl = RX8581_REG_CTRL;
--
--	msgs[0].buf = &ctrl;
--	msgs[1].buf = &ctrl;
--
--	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
--		dev_err(&client->dev, "%s: read error\n", __func__);
-+	data = i2c_smbus_read_byte_data(client, RX8581_REG_CTRL);
-+	if (data < 0) {
-+		dev_err(&client->dev, "Unable to read control register\n");
- 		return -EIO;
- 	}
- 
--	data[0] = RX8581_REG_CTRL;
--	data[1] = (ctrl & ~(RX8581_CTRL_STOP));
--
--	err = i2c_master_send(client, data, sizeof(data));
--	if (err != sizeof(data)) {
--		dev_err(&client->dev,
--			"%s: err=%d addr=%02x, data=%02x\n",
--			__func__, err, data[0], data[1]);
-+	err = i2c_smbus_write_byte_data(client, RX8581_REG_FLAG,
-+		(data | ~(RX8581_CTRL_STOP)));
-+	if (err != 0) {
-+		dev_err(&client->dev, "Unable to write control register\n");
- 		return -EIO;
- 	}
- 
-@@ -281,8 +241,7 @@ static int __devexit rx8581_remove(struc
- {
- 	struct rtc_device *rtc = i2c_get_clientdata(client);
- 
--	if (rtc)
--		rtc_device_unregister(rtc);
-+	rtc_device_unregister(rtc);
- 
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from martyn.welch@gefanuc.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+cpusets-update-mems-allowed-in-page-allocator-fix.patch
+remove-ratelimt.patch
+doc-add-printk-formatstxt-fix.patch
+kernel-kprobesc-dont-pad-kretprobe_table_locks-on-uniprocessor-builds.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
 rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock.patch
-rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-update.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock-fix.patch
+binfmtsh-include-listh-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+align-avoid-evaluating-its-argument-twice.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+alsa-fix-snd_bug_on-and-friends.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
