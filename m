@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cdc-acmc-fix-recursive-lock-in-acm_start_wb-error-path.patch added to -mm tree
-Date: Mon, 10 Nov 2008 16:41:39 -0800
-Message-ID: <200811110041.mAB0fdlf017898@imap1.linux-foundation.org>
+Subject: + vfs-lseekfd-0-seek_cur-race-condition.patch added to -mm tree
+Date: Mon, 10 Nov 2008 17:08:18 -0800
+Message-ID: <200811110108.mAB18Ih9031100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59931 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750787AbYKKAmZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754531AbYKKBIw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 19:42:25 -0500
+	Mon, 10 Nov 2008 20:08:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: brandon@ifup.org, bphilips@suse.de, dave@awk.cz, oliver@neukum.org, stable@kernel.org, stern@rowland.harvard.edu
+Cc: alain@knaff.lu, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     cdc-acm.c: fix recursive lock in acm_start_wb error path
+     VFS: lseek(fd, 0, SEEK_CUR) race condition
 has been added to the -mm tree.  Its filename is
-     cdc-acmc-fix-recursive-lock-in-acm_start_wb-error-path.patch
+     vfs-lseekfd-0-seek_cur-race-condition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +34,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cdc-acm.c: fix recursive lock in acm_start_wb error path
-From: Brandon Philips <brandon@ifup.org>
+Subject: VFS: lseek(fd, 0, SEEK_CUR) race condition
+From: Alain Knaff <alain@knaff.lu>
 
-Fix an obvious bug in cdc-acm by avoiding a recursive lock on
-acm_start_wb()'s error path.  Should apply towards 2.6.27 stable and
-2.6.28.
+This patch fixes a race condition in lseek.  While it is expected that
+unpredictable behaviour may result while repositioning the offset of a
+file descriptor concurrently with reading/writing to the same file
+descriptor, this should not happen when merely *reading* the file
+descriptor's offset.
 
-=============================================
-[ INFO: possible recursive locking detected ]
-2.6.27-2-pae #109
----------------------------------------------
-python/31449 is trying to acquire lock:
- (&acm->write_lock){++..}, at: [<f89a0348>] acm_start_wb+0x5c/0x7b [cdc_acm]
+Unfortunately, the only portable way in Unix to read a file
+descriptor's offset is lseek(fd, 0, SEEK_CUR); however executing this
+concurrently with read/write may mess up the position, as shown by the
+testcase below:
 
-but task is already holding lock:
- (&acm->write_lock){++..}, at: [<f89a04fb>] acm_tty_write+0xe1/0x167 [cdc_acm]
+#include <sys/types.h>
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <pthread.h>
 
-other info that might help us debug this:
-2 locks held by python/31449:
- #0:  (&tty->atomic_write_lock){--..}, at: [<c0260fae>] tty_write_lock+0x14/0x3b
- #1:  (&acm->write_lock){++..}, at: [<f89a04fb>] acm_tty_write+0xe1/0x167 [cdc_acm]
+void *loop(void *ptr)
+{
+  fprintf(stderr, "Starting seek thread\n");
+  while(1) {
+    if(lseek(0, 0LL, SEEK_CUR) < 0LL)
+      perror("seek");
+  }
+}
 
-stack backtrace:
-Pid: 31449, comm: python Not tainted 2.6.27-2-pae #109
- [<c030f42f>] ? printk+0xf/0x18
- [<c0149f33>] __lock_acquire+0xc7b/0x1316
- [<c014a63e>] lock_acquire+0x70/0x97
- [<f89a0348>] ? acm_start_wb+0x5c/0x7b [cdc_acm]
- [<c0312109>] _spin_lock_irqsave+0x37/0x47
- [<f89a0348>] ? acm_start_wb+0x5c/0x7b [cdc_acm]
- [<f89a0348>] acm_start_wb+0x5c/0x7b [cdc_acm]
- [<f89a055d>] acm_tty_write+0x143/0x167 [cdc_acm]
- [<c0262a98>] write_chan+0x1cd/0x297
- [<c012527e>] ? default_wake_function+0x0/0xd
- [<c026111e>] tty_write+0x149/0x1b9
- [<c02628cb>] ? write_chan+0x0/0x297
- [<c01912c5>] ? rw_verify_area+0x76/0x98
- [<c0260fd5>] ? tty_write+0x0/0x1b9
- [<c01919ba>] vfs_write+0x8c/0x136
- [<c0191afd>] sys_write+0x3b/0x60
- [<c0103beb>] sysenter_do_call+0x12/0x3f
- =======================
+int main(int argc, char **argv) {
+  long long l=0;
+  int r;
+  char buf[4096];
 
-Signed-off-by: Brandon Philips <bphilips@suse.de>
-Cc: Oliver Neukum <oliver@neukum.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: <dave@awk.cz>
-Cc: <stable@kernel.org>
+  pthread_t thread;
+  pthread_create(&thread, 0, loop, 0);
+
+  for(r=0; 1 ; r++) {
+    int n = read(0, buf, 4096);
+    if(n == 0)
+      break;
+    if(n < 4096) {
+      fprintf(stderr, "Short read %d %s\n", n, strerror(errno));
+    }
+    l+= n;
+  }
+  fprintf(stderr, "Read %lld bytes\n", l);
+
+  return 0;
+}
+
+Compile this and run it on a multi-processor machine as
+ ./a.out <bigFile
+
+where bigFile is a 1 Gigabyte file. It should print 1073741824.
+However, on a buggy kernel, it usually produces a bigger number. The
+problem only happens on a multiprocessor machine. This is because an
+lseek(fd, 0, SEEK_CUR) running concurrently with a read() or write()
+will reset the position back to what it used to be when the read()
+started.
+
+This behavior was observed "in the wild" when using udpcast which uses
+lseek to monitor progress of reading/writing the uncompressed data.
+
+The patch below fixes the issue by "special-casing" the lseek(fd, 0,
+SEEK_CUR) pattern.
+
+Apparently, an attempt was already made to fix the issue by the
+following code:
+
+		if (offset != file->f_pos) {
+			file->f_pos = offset;
+			file->f_version = 0;
+		}
+
+However, this doesn't work if file->f_pos was changed (by read() or
+write()) between the time offset was computed, and the time where it
+considers writing it back.
+
+Signed-off-by: Alain Knaff <alain@knaff.lu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/class/cdc-acm.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/read_write.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/usb/class/cdc-acm.c~cdc-acmc-fix-recursive-lock-in-acm_start_wb-error-path drivers/usb/class/cdc-acm.c
---- a/drivers/usb/class/cdc-acm.c~cdc-acmc-fix-recursive-lock-in-acm_start_wb-error-path
-+++ a/drivers/usb/class/cdc-acm.c
-@@ -158,16 +158,12 @@ static int acm_wb_is_avail(struct acm *a
- }
- 
- /*
-- * Finish write.
-+ * Finish write. Caller must hold acm->write_lock
-  */
- static void acm_write_done(struct acm *acm, struct acm_wb *wb)
- {
--	unsigned long flags;
--
--	spin_lock_irqsave(&acm->write_lock, flags);
- 	wb->use = 0;
- 	acm->transmitting--;
--	spin_unlock_irqrestore(&acm->write_lock, flags);
- }
- 
- /*
-@@ -482,6 +478,7 @@ static void acm_write_bulk(struct urb *u
- {
- 	struct acm_wb *wb = urb->context;
- 	struct acm *acm = wb->instance;
-+	unsigned long flags;
- 
- 	if (verbose || urb->status
- 			|| (urb->actual_length != urb->transfer_buffer_length))
-@@ -490,7 +487,9 @@ static void acm_write_bulk(struct urb *u
- 			urb->transfer_buffer_length,
- 			urb->status);
- 
-+	spin_lock_irqsave(&acm->write_lock, flags);
- 	acm_write_done(acm, wb);
-+	spin_unlock_irqrestore(&acm->write_lock, flags);
- 	if (ACM_READY(acm))
- 		schedule_work(&acm->work);
- 	else
+diff -puN fs/read_write.c~vfs-lseekfd-0-seek_cur-race-condition fs/read_write.c
+--- a/fs/read_write.c~vfs-lseekfd-0-seek_cur-race-condition
++++ a/fs/read_write.c
+@@ -105,6 +105,8 @@ loff_t default_llseek(struct file *file,
+ 			offset += i_size_read(file->f_path.dentry->d_inode);
+ 			break;
+ 		case SEEK_CUR:
++			if(offset == 0)
++				return file->f_pos;
+ 			offset += file->f_pos;
+ 	}
+ 	retval = -EINVAL;
 _
 
-Patches currently in -mm which might be from brandon@ifup.org are
+Patches currently in -mm which might be from alain@knaff.lu are
 
-cdc-acmc-fix-recursive-lock-in-acm_start_wb-error-path.patch
+vfs-lseekfd-0-seek_cur-race-condition.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
 
