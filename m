@@ -1,98 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-lseekfd-0-seek_cur-race-condition-fix.patch added to -mm tree
-Date: Mon, 10 Nov 2008 17:08:20 -0800
-Message-ID: <200811110108.mAB18Ko3031103@imap1.linux-foundation.org>
+Subject: - align-avoid-evaluating-its-argument-twice.patch removed from -mm tree
+Date: Mon, 10 Nov 2008 19:44:04 -0800
+Message-ID: <200811110344.mAB3i42b010513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754814AbYKKBIy (ORCPT
+	by vger.kernel.org with ESMTP id S1754934AbYKKDoH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Nov 2008 20:08:54 -0500
+	Mon, 10 Nov 2008 22:44:07 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mAB3i4SC017942
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 10 Nov 2008 19:44:05 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alain@knaff.lu, hch@lst.de, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs-lseekfd-0-seek_cur-race-condition-fix
-has been added to the -mm tree.  Its filename is
-     vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+     ALIGN(): avoid evaluating its argument twice
+has been removed from the -mm tree.  Its filename was
+     align-avoid-evaluating-its-argument-twice.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs-lseekfd-0-seek_cur-race-condition-fix
+Subject: ALIGN(): avoid evaluating its argument twice
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- fix coding-style
-- fix default_llseek() as well
-- add comments
+ALIGN() will misbehave if passed an expression with side-effects.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alain Knaff <alain@knaff.lu>
-Cc: Christoph Hellwig <hch@lst.de>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ include/linux/kernel.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/read_write.c~vfs-lseekfd-0-seek_cur-race-condition-fix fs/read_write.c
---- a/fs/read_write.c~vfs-lseekfd-0-seek_cur-race-condition-fix
-+++ a/fs/read_write.c
-@@ -50,6 +50,14 @@ generic_file_llseek_unlocked(struct file
- 		offset += inode->i_size;
- 		break;
- 	case SEEK_CUR:
-+		/*
-+		 * Here we special-case the lseek(fd, 0, SEEK_CUR)
-+		 * position-querying operation.  Avoid rewriting the "same"
-+		 * f_pos value back to the file because a concurrent read(),
-+		 * write() or lseek() might have altered it
-+		 */
-+		if (offset == 0)
-+			return file->f_pos;
- 		offset += file->f_pos;
- 		break;
- 	}
-@@ -105,8 +113,14 @@ loff_t default_llseek(struct file *file,
- 			offset += i_size_read(file->f_path.dentry->d_inode);
- 			break;
- 		case SEEK_CUR:
--			if(offset == 0)
--				return file->f_pos;
-+			/*
-+			 * See SEEK_CUR description in
-+			 * generic_file_llseek_unlocked()
-+			 */
-+			if (offset == 0) {
-+				retval = file->f_pos;
-+				goto out;
-+			}
- 			offset += file->f_pos;
- 	}
- 	retval = -EINVAL;
-@@ -117,6 +131,7 @@ loff_t default_llseek(struct file *file,
- 		}
- 		retval = offset;
- 	}
-+out:
- 	unlock_kernel();
- 	return retval;
- }
+diff -puN include/linux/kernel.h~align-avoid-evaluating-its-argument-twice include/linux/kernel.h
+--- a/include/linux/kernel.h~align-avoid-evaluating-its-argument-twice
++++ a/include/linux/kernel.h
+@@ -39,7 +39,12 @@ extern const char linux_proc_banner[];
+ #define STACK_MAGIC	0xdeadbeef
+ 
+ #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
+-#define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
++
++#define __ALIGN_MASK(x,mask)	({		\
++	typeof(mask) __mask = mask;		\
++	(((x) + __mask) & ~__mask);		\
++})
++
+ #define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
+ #define IS_ALIGNED(x, a)		(((x) & ((typeof(x))(a) - 1)) == 0)
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
