@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-switch_names-breakage-in-short-to-short-case.patch added to -mm tree
-Date: Tue, 11 Nov 2008 14:14:16 -0800
-Message-ID: <200811112214.mABMEHfc010014@imap1.linux-foundation.org>
+Subject: + hp-wmi-handle-rfkill_register-failure.patch added to -mm tree
+Date: Tue, 11 Nov 2008 14:19:55 -0800
+Message-ID: <200811112219.mABMJtaR012855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41662 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751647AbYKKWO7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752039AbYKKWUA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Nov 2008 17:14:59 -0500
+	Tue, 11 Nov 2008 17:20:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viro@ZenIV.linux.org.uk, adobriyan@gmail.com, mingo@elte.hu, rjw@sisk.pl, stable@kernel.org, vegard.nossum@gmail.comviro@ZenIV.linux.org.uk
+Cc: Larry.Finger@lwfinger.net, mjg59@srcf.ucam.org
 
 
 The patch titled
-     vfs: fix switch_names() breakage in short-to-short case
+     hp-wmi: handle rfkill_register() failure
 has been added to the -mm tree.  Its filename is
-     vfs-fix-switch_names-breakage-in-short-to-short-case.patch
+     hp-wmi-handle-rfkill_register-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,129 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix switch_names() breakage in short-to-short case
-From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: hp-wmi: handle rfkill_register() failure
+From: Larry Finger <Larry.Finger@lwfinger.net>
 
-Vegard sayeth:
+Compilation of the HP WMI hotkeys code results in the following:
 
-When I run readlink on the /proc/*/exe-file for udevd, the kernel
-returns some unitialized data to userspace:
+  CC [M]  drivers/misc/hp-wmi.o
+drivers/misc/hp-wmi.c: In function hp_wmi_bios_setup:
+drivers/misc/hp-wmi.c:431: warning: ignoring return value of rfkill_register,
+	 declared with attribute warn_unused_result
+drivers/misc/hp-wmi.c:441: warning: ignoring return value of rfkill_register,
+	 declared with attribute warn_unused_result
+drivers/misc/hp-wmi.c:450: warning: ignoring return value of rfkill_register,
+	 declared with attribute warn_unused_result
 
-# strace -e trace=readlink readlink /proc/4762/exe
-readlink("/proc/4762/exe", "/sbin/udevd", 1025) = 30
-
-You can see it because the kernel thinks that the string is 30 bytes
-long, but in fact it is only 12 (including the '\0').
-
-If we explicitly clear the buffer before calling readlink, we can also
-see that some garbage has been filled in there, after the string:
-
-# ./readlink /proc/4762/exe
-readlink(/proc/4762/exe) = 30
-2f7362696e2f7564657664000000ffffffad4effffffadffffffdeffffffffffffffff202864656c657465642900000000000000000000000000000
-
-(Output is from following simple program:)
-
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-
-int main(int argc, char *argv[])
-{
-        char buf[1024];
-        int i;
-        ssize_t n;
-
-        memset(buf, 0, sizeof(buf));
-        n = readlink(argv[1], buf, sizeof(buf));
-
-        printf("readlink(%s) = %d\n", argv[1], n);
-
-        for (i = 0; i < sizeof(buf); ++i)
-                printf("%02x", buf[i]);
-        printf("\n");
-
-        return 0;
-}
-
-It was discovered by kmemcheck:
-
-WARNING: kmemcheck: Caught 32-bit read from uninitialized memory (f6a109e4)
-64000000ad4eaddeffffffffffffffff000000000200000000000000c0838ff8
- i i u u u u u u u u u u u u u u u u u u u u u u u u u u u u u u
-         ^
-
-Pid: 21511, comm: readlink Not tainted (2.6.28-rc1 #58) 945P-A
-EIP: 0060:[<c04f988d>] EFLAGS: 00000296 CPU: 0
-EIP is at __d_path+0x8d/0x1c0
-EAX: 0000000e EBX: d7ba0fe7 ECX: 00000001 EDX: f68b0b40
-ESI: f6a109e4 EDI: d7ba0fef EBP: e58c3f28 ESP: c2569c08
- DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-CR0: 8005003b CR2: f6c1d704 CR3: 31fc7000 CR4: 00000650
-DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-DR6: ffff4ff0 DR7: 00000400
- [<c04fa4b0>] d_path+0xb0/0xd0
- [<c052c37c>] proc_pid_readlink+0x6c/0xc0
- [<c04eda34>] sys_readlinkat+0x94/0xa0
- [<c04eda67>] sys_readlink+0x27/0x30
- [<c0422f83>] sysenter_do_call+0x12/0x3f
- [<ffffffff>] 0xffffffff
-
-
-
-
-
-We want ->name.len to match the resulting name on *both* source and target.
-
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: <stable@kernel.org>
+Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/misc/hp-wmi.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN fs/dcache.c~vfs-fix-switch_names-breakage-in-short-to-short-case fs/dcache.c
---- a/fs/dcache.c~vfs-fix-switch_names-breakage-in-short-to-short-case
-+++ a/fs/dcache.c
-@@ -1621,8 +1621,11 @@ static void switch_names(struct dentry *
- 			 */
- 			memcpy(dentry->d_iname, target->d_name.name,
- 					target->d_name.len + 1);
-+			dentry->d_name.len = target->d_name.len;
-+			return;
- 		}
+diff -puN drivers/misc/hp-wmi.c~hp-wmi-handle-rfkill_register-failure drivers/misc/hp-wmi.c
+--- a/drivers/misc/hp-wmi.c~hp-wmi-handle-rfkill_register-failure
++++ a/drivers/misc/hp-wmi.c
+@@ -428,7 +428,9 @@ static int __init hp_wmi_bios_setup(stru
+ 		wifi_rfkill->state = hp_wmi_wifi_state();
+ 		wifi_rfkill->toggle_radio = hp_wmi_wifi_set;
+ 		wifi_rfkill->user_claim_unsupported = 1;
+-		rfkill_register(wifi_rfkill);
++		err = rfkill_register(wifi_rfkill);
++		if (err)
++			goto add_sysfs_error;
  	}
-+	do_switch(dentry->d_name.len, target->d_name.len);
- }
  
- /*
-@@ -1682,7 +1685,6 @@ already_unhashed:
+ 	if (wireless & 0x2) {
+@@ -438,7 +440,8 @@ static int __init hp_wmi_bios_setup(stru
+ 		bluetooth_rfkill->state = hp_wmi_bluetooth_state();
+ 		bluetooth_rfkill->toggle_radio = hp_wmi_bluetooth_set;
+ 		bluetooth_rfkill->user_claim_unsupported = 1;
+-		rfkill_register(bluetooth_rfkill);
++		err = rfkill_register(bluetooth_rfkill);
++			goto register_bluetooth_error;
+ 	}
  
- 	/* Switch the names.. */
- 	switch_names(dentry, target);
--	do_switch(dentry->d_name.len, target->d_name.len);
- 	do_switch(dentry->d_name.hash, target->d_name.hash);
+ 	if (wireless & 0x4) {
+@@ -447,10 +450,16 @@ static int __init hp_wmi_bios_setup(stru
+ 		wwan_rfkill->state = hp_wmi_wwan_state();
+ 		wwan_rfkill->toggle_radio = hp_wmi_wwan_set;
+ 		wwan_rfkill->user_claim_unsupported = 1;
+-		rfkill_register(wwan_rfkill);
++		err = rfkill_register(wwan_rfkill);
++		if (err)
++			goto register_wwan_err;
+ 	}
  
- 	/* ... and switch the parents */
-@@ -1792,7 +1794,6 @@ static void __d_materialise_dentry(struc
- 	struct dentry *dparent, *aparent;
- 
- 	switch_names(dentry, anon);
--	do_switch(dentry->d_name.len, anon->d_name.len);
- 	do_switch(dentry->d_name.hash, anon->d_name.hash);
- 
- 	dparent = dentry->d_parent;
+ 	return 0;
++register_wwan_err:
++	rfkill_unregister(bluetooth_rfkill);
++register_bluetooth_error:
++	rfkill_unregister(wifi_rfkill);
+ add_sysfs_error:
+ 	cleanup_sysfs(device);
+ 	return err;
 _
 
-Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
+Patches currently in -mm which might be from Larry.Finger@lwfinger.net are
 
-vfs-fix-shrink_submounts.patch
 linux-next.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
+hp-wmi-handle-rfkill_register-failure.patch
 
