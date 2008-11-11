@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-kill-fmode_ndelay_now.patch added to -mm tree
-Date: Tue, 11 Nov 2008 14:58:55 -0800
-Message-ID: <200811112258.mABMwtuo032402@imap1.linux-foundation.org>
+Subject: + physmap-fix-memory-leak-on-physmap_flash_remove-by-using-devres.patch added to -mm tree
+Date: Tue, 11 Nov 2008 15:00:35 -0800
+Message-ID: <200811112300.mABN0Z5a000765@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52011 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751825AbYKKW7G (ORCPT
+	by vger.kernel.org with ESMTP id S1751816AbYKKXB0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Nov 2008 17:59:06 -0500
+	Tue, 11 Nov 2008 18:01:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de
+Cc: anemo@mba.ocn.ne.jp, dwmw2@infradead.org
 
 
 The patch titled
-     vfs: kill FMODE_NDELAY_NOW
+     physmap: fix memory leak on physmap_flash_remove by using devres
 has been added to the -mm tree.  Its filename is
-     vfs-kill-fmode_ndelay_now.patch
+     physmap-fix-memory-leak-on-physmap_flash_remove-by-using-devres.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: kill FMODE_NDELAY_NOW
-From: Christoph Hellwig <hch@lst.de>
+Subject: physmap: fix memory leak on physmap_flash_remove by using devres
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Update FMODE_NDELAY before each ioctl call so that we can kill the magic
-FMODE_NDELAY_NOW.  It would be even better to do this directly in setfl(),
-but for that we'd need to have FMODE_NDELAY for all files, not just block
-special files.
+physmap_flash_remove releases only last memory region.  This causes
+memory leak if multiple resources were provided.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+This patch fixes this leakage by using devm_ functions.
+
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/compat_ioctl.c |    8 +++++++-
- drivers/scsi/sd.c    |    2 +-
- drivers/scsi/sr.c    |    2 +-
- fs/block_dev.c       |   10 +++++++++-
- include/linux/fs.h   |    1 -
- 5 files changed, 18 insertions(+), 5 deletions(-)
+ drivers/mtd/maps/physmap.c |   26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-diff -puN block/compat_ioctl.c~vfs-kill-fmode_ndelay_now block/compat_ioctl.c
---- a/block/compat_ioctl.c~vfs-kill-fmode_ndelay_now
-+++ a/block/compat_ioctl.c
-@@ -699,8 +699,14 @@ long compat_blkdev_ioctl(struct file *fi
- 	struct backing_dev_info *bdi;
- 	loff_t size;
+diff -puN drivers/mtd/maps/physmap.c~physmap-fix-memory-leak-on-physmap_flash_remove-by-using-devres drivers/mtd/maps/physmap.c
+--- a/drivers/mtd/maps/physmap.c~physmap-fix-memory-leak-on-physmap_flash_remove-by-using-devres
++++ a/drivers/mtd/maps/physmap.c
+@@ -19,7 +19,7 @@
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/physmap.h>
+ #include <linux/mtd/concat.h>
+-#include <asm/io.h>
++#include <linux/io.h>
  
-+	/*
-+	 * O_NDELAY can be altered using fcntl(.., F_SETFL, ..), so we have
-+	 * to updated it before every ioctl.
-+	 */
- 	if (file->f_flags & O_NDELAY)
--		mode |= FMODE_NDELAY_NOW;
-+		mode |= FMODE_NDELAY;
-+	else
-+		mode &= ~FMODE_NDELAY;
+ #define MAX_RESOURCES		4
  
- 	switch (cmd) {
- 	case HDIO_GETGEO:
-diff -puN drivers/scsi/sd.c~vfs-kill-fmode_ndelay_now drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~vfs-kill-fmode_ndelay_now
-+++ a/drivers/scsi/sd.c
-@@ -757,7 +757,7 @@ static int sd_ioctl(struct block_device 
- 	 * access to the device is prohibited.
- 	 */
- 	error = scsi_nonblockable_ioctl(sdp, cmd, p,
--					(mode & FMODE_NDELAY_NOW) != 0);
-+					(mode & FMODE_NDELAY) != 0);
- 	if (!scsi_block_when_processing_errors(sdp) || !error)
- 		return error;
- 
-diff -puN drivers/scsi/sr.c~vfs-kill-fmode_ndelay_now drivers/scsi/sr.c
---- a/drivers/scsi/sr.c~vfs-kill-fmode_ndelay_now
-+++ a/drivers/scsi/sr.c
-@@ -521,7 +521,7 @@ static int sr_block_ioctl(struct block_d
- 	 * if it doesn't recognise the ioctl
- 	 */
- 	ret = scsi_nonblockable_ioctl(sdev, cmd, argp,
--					(mode & FMODE_NDELAY_NOW) != 0);
-+					(mode & FMODE_NDELAY) != 0);
- 	if (ret != -ENODEV)
- 		return ret;
- 	return scsi_ioctl(sdev, cmd, argp);
-diff -puN fs/block_dev.c~vfs-kill-fmode_ndelay_now fs/block_dev.c
---- a/fs/block_dev.c~vfs-kill-fmode_ndelay_now
-+++ a/fs/block_dev.c
-@@ -1204,8 +1204,16 @@ static long block_ioctl(struct file *fil
- {
- 	struct block_device *bdev = I_BDEV(file->f_mapping->host);
- 	fmode_t mode = file->f_mode;
-+
-+	/*
-+	 * O_NDELAY can be altered using fcntl(.., F_SETFL, ..), so we have
-+	 * to updated it before every ioctl.
-+	 */
- 	if (file->f_flags & O_NDELAY)
--		mode |= FMODE_NDELAY_NOW;
-+		mode |= FMODE_NDELAY;
-+	else
-+		mode &= ~FMODE_NDELAY;
-+
- 	return blkdev_ioctl(bdev, mode, cmd, arg);
+@@ -27,7 +27,6 @@ struct physmap_flash_info {
+ 	struct mtd_info		*mtd[MAX_RESOURCES];
+ 	struct mtd_info		*cmtd;
+ 	struct map_info		map[MAX_RESOURCES];
+-	struct resource		*res;
+ #ifdef CONFIG_MTD_PARTITIONS
+ 	int			nr_parts;
+ 	struct mtd_partition	*parts;
+@@ -70,16 +69,7 @@ static int physmap_flash_remove(struct p
+ #endif
+ 			map_destroy(info->mtd[i]);
+ 		}
+-
+-		if (info->map[i].virt != NULL)
+-			iounmap(info->map[i].virt);
+-	}
+-
+-	if (info->res != NULL) {
+-		release_resource(info->res);
+-		kfree(info->res);
+ 	}
+-
+ 	return 0;
  }
  
-diff -puN include/linux/fs.h~vfs-kill-fmode_ndelay_now include/linux/fs.h
---- a/include/linux/fs.h~vfs-kill-fmode_ndelay_now
-+++ a/include/linux/fs.h
-@@ -70,7 +70,6 @@ struct inodes_stat_t {
- #define FMODE_NDELAY	((__force fmode_t)32)
- #define FMODE_EXCL	((__force fmode_t)64)
- #define FMODE_WRITE_IOCTL	((__force fmode_t)128)
--#define FMODE_NDELAY_NOW	((__force fmode_t)256)
+@@ -101,7 +91,8 @@ static int physmap_flash_probe(struct pl
+ 	if (physmap_data == NULL)
+ 		return -ENODEV;
  
- #define RW_MASK		1
- #define RWA_MASK	2
+-	info = kzalloc(sizeof(struct physmap_flash_info), GFP_KERNEL);
++	info = devm_kzalloc(&dev->dev, sizeof(struct physmap_flash_info),
++			    GFP_KERNEL);
+ 	if (info == NULL) {
+ 		err = -ENOMEM;
+ 		goto err_out;
+@@ -114,10 +105,10 @@ static int physmap_flash_probe(struct pl
+ 		       (unsigned long long)(dev->resource[i].end - dev->resource[i].start + 1),
+ 		       (unsigned long long)dev->resource[i].start);
+ 
+-		info->res = request_mem_region(dev->resource[i].start,
+-					       dev->resource[i].end - dev->resource[i].start + 1,
+-					       dev->dev.bus_id);
+-		if (info->res == NULL) {
++		if (!devm_request_mem_region(&dev->dev,
++			dev->resource[i].start,
++			dev->resource[i].end - dev->resource[i].start + 1,
++			dev->dev.bus_id)) {
+ 			dev_err(&dev->dev, "Could not reserve memory region\n");
+ 			err = -ENOMEM;
+ 			goto err_out;
+@@ -129,7 +120,8 @@ static int physmap_flash_probe(struct pl
+ 		info->map[i].bankwidth = physmap_data->width;
+ 		info->map[i].set_vpp = physmap_data->set_vpp;
+ 
+-		info->map[i].virt = ioremap(info->map[i].phys, info->map[i].size);
++		info->map[i].virt = devm_ioremap(&dev->dev, info->map[i].phys,
++						 info->map[i].size);
+ 		if (info->map[i].virt == NULL) {
+ 			dev_err(&dev->dev, "Failed to ioremap flash region\n");
+ 			err = EIO;
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-x86-remove-init_mm-export-as-planned-for-2626.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-fs-namespacec-drop-code-after-return.patch
-introduce-new-lsm-hooks-where-vfsmount-is-available.patch
-vfs-kill-fmode_ndelay_now.patch
-vfs-document-fmode_-constants.patch
-vfs-lseekfd-0-seek_cur-race-condition.patch
-vfs-lseekfd-0-seek_cur-race-condition-fix.patch
-block-do_mounts-add-device-info-to-mount-message.patch
-filesystem-freeze-add-error-handling-of-write_super_lockfs-unlockfs.patch
-filesystem-freeze-implement-generic-freeze-feature.patch
-filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
+linux-next.patch
+physmap-fix-memory-leak-on-physmap_flash_remove-by-using-devres.patch
 
