@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dlm-trivial-annotation-of-be16-value.patch added to -mm tree
-Date: Wed, 12 Nov 2008 14:28:05 -0800
-Message-ID: <200811122228.mACMS5oI025019@imap1.linux-foundation.org>
+Subject: + mtd-remove-excess-kernel-doc-notation.patch added to -mm tree
+Date: Wed, 12 Nov 2008 14:29:30 -0800
+Message-ID: <200811122229.mACMTUnV025747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58988 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57627 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752771AbYKLW20 (ORCPT
+	by vger.kernel.org with ESMTP id S1752208AbYKLWaD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 17:28:26 -0500
+	Wed, 12 Nov 2008 17:30:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: randy.dunlap@oracle.com, dwmw2@infradead.org
 
 
 The patch titled
-     dlm: trivial annotation of be16 value
+     mtd: remove excess kernel-doc notation
 has been added to the -mm tree.  Its filename is
-     dlm-trivial-annotation-of-be16-value.patch
+     mtd-remove-excess-kernel-doc-notation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dlm: trivial annotation of be16 value
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: mtd: remove excess kernel-doc notation
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-fs/dlm/dir.c:419:14: warning: incorrect type in assignment (different base types)
-fs/dlm/dir.c:419:14:    expected unsigned short [unsigned] [addressable] [assigned] [usertype] be_namelen
-fs/dlm/dir.c:419:14:    got restricted __be16 [usertype] <noident>
+Delete extra kernel-doc notation for struct fields and function
+parameters that don't exist:
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Warning(include/linux/mtd/nand.h:428): Excess struct/union/enum/typedef member 'wq' description in 'nand_chip'
+Warning(include/linux/mtd/nand.h:428): Excess struct/union/enum/typedef member 'datbuf' description in 'nand_chip'
+Warning(include/linux/mtd/nand.h:428): Excess struct/union/enum/typedef member 'oobbuf' description in 'nand_chip'
+Warning(include/linux/mtd/nand.h:428): Excess struct/union/enum/typedef member 'oobdirty' description in 'nand_chip'
+Warning(include/linux/mtd/nand.h:428): Excess struct/union/enum/typedef member 'data_poi' description in 'nand_chip'
+Warning(drivers/mtd/nand/nand_base.c:2527): Excess function parameter 'maxchips' description in 'nand_scan_tail'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/dir.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/mtd/nand/nand_base.c |    1 -
+ include/linux/mtd/nand.h     |    5 -----
+ 2 files changed, 6 deletions(-)
 
-diff -puN fs/dlm/dir.c~dlm-trivial-annotation-of-be16-value fs/dlm/dir.c
---- a/fs/dlm/dir.c~dlm-trivial-annotation-of-be16-value
-+++ a/fs/dlm/dir.c
-@@ -374,7 +374,7 @@ void dlm_copy_master_names(struct dlm_ls
- 	struct list_head *list;
- 	struct dlm_rsb *r;
- 	int offset = 0, dir_nodeid;
--	uint16_t be_namelen;
-+	__be16 be_namelen;
- 
- 	down_read(&ls->ls_root_sem);
- 
-@@ -410,15 +410,15 @@ void dlm_copy_master_names(struct dlm_ls
- 
- 		if (offset + sizeof(uint16_t)*2 + r->res_length > outlen) {
- 			/* Write end-of-block record */
--			be_namelen = 0;
--			memcpy(outbuf + offset, &be_namelen, sizeof(uint16_t));
--			offset += sizeof(uint16_t);
-+			be_namelen = cpu_to_be16(0);
-+			memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
-+			offset += sizeof(__be16);
- 			goto out;
- 		}
- 
- 		be_namelen = cpu_to_be16(r->res_length);
--		memcpy(outbuf + offset, &be_namelen, sizeof(uint16_t));
--		offset += sizeof(uint16_t);
-+		memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
-+		offset += sizeof(__be16);
- 		memcpy(outbuf + offset, r->res_name, r->res_length);
- 		offset += r->res_length;
- 	}
-@@ -430,9 +430,9 @@ void dlm_copy_master_names(struct dlm_ls
- 
- 	if ((list == &ls->ls_root_list) &&
- 	    (offset + sizeof(uint16_t) <= outlen)) {
--		be_namelen = 0xFFFF;
--		memcpy(outbuf + offset, &be_namelen, sizeof(uint16_t));
--		offset += sizeof(uint16_t);
-+		be_namelen = cpu_to_be16(0xFFFF);
-+		memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
-+		offset += sizeof(__be16);
- 	}
- 
-  out:
+diff -puN drivers/mtd/nand/nand_base.c~mtd-remove-excess-kernel-doc-notation drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~mtd-remove-excess-kernel-doc-notation
++++ a/drivers/mtd/nand/nand_base.c
+@@ -2517,7 +2517,6 @@ int nand_scan_ident(struct mtd_info *mtd
+ /**
+  * nand_scan_tail - [NAND Interface] Scan for the NAND device
+  * @mtd:	    MTD device structure
+- * @maxchips:	    Number of chips to scan for
+  *
+  * This is the second phase of the normal nand_scan() function. It
+  * fills out all the uninitialized function pointers with the defaults
+diff -puN include/linux/mtd/nand.h~mtd-remove-excess-kernel-doc-notation include/linux/mtd/nand.h
+--- a/include/linux/mtd/nand.h~mtd-remove-excess-kernel-doc-notation
++++ a/include/linux/mtd/nand.h
+@@ -335,17 +335,12 @@ struct nand_buffers {
+  * @erase_cmd:		[INTERN] erase command write function, selectable due to AND support
+  * @scan_bbt:		[REPLACEABLE] function to scan bad block table
+  * @chip_delay:		[BOARDSPECIFIC] chip dependent delay for transfering data from array to read regs (tR)
+- * @wq:			[INTERN] wait queue to sleep on if a NAND operation is in progress
+  * @state:		[INTERN] the current state of the NAND device
+  * @oob_poi:		poison value buffer
+  * @page_shift:		[INTERN] number of address bits in a page (column address bits)
+  * @phys_erase_shift:	[INTERN] number of address bits in a physical eraseblock
+  * @bbt_erase_shift:	[INTERN] number of address bits in a bbt entry
+  * @chip_shift:		[INTERN] number of address bits in one chip
+- * @datbuf:		[INTERN] internal buffer for one page + oob
+- * @oobbuf:		[INTERN] oob buffer for one eraseblock
+- * @oobdirty:		[INTERN] indicates that oob_buf must be reinitialized
+- * @data_poi:		[INTERN] pointer to a data buffer
+  * @options:		[BOARDSPECIFIC] various chip options. They can partly be set to inform nand_scan about
+  *			special functionality. See the defines for further explanation
+  * @badblockpos:	[INTERN] position of the bad block marker in the oob area
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+doc-add-printk-formatstxt.patch
+doc-update-xip-method-info.patch
 linux-next.patch
-arm-use-the-new-byteorder-headers.patch
-cifs-remove-global_extern-macro.patch
-dlm-trivial-annotation-of-be16-value.patch
-ia64-use-the-new-byteorder-headers.patch
-input-ads7846c-sparse-lock-annotation.patch
-m32r-use-the-new-byteorder-headers.patch
-blackfin-remove-__function__-in-new-serial-driver.patch
-blackfin-use-the-new-byteorder-headers.patch
-parisc-use-the-new-byteorder-headers.patch
-s390-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-wusb-annotate-association-types-withe-proper-endianness.patch
-frv-use-the-new-byteorder-headers.patch
-m68knommu-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-memstick-annotate-endianness-of-attribute-structs.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+audit-remove-excess-kernel-doc.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+mtd-remove-excess-kernel-doc-notation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+fusion-remove-excess-kernel-doc-notation.patch
+block-remove-excess-kernel-doc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+documentation-move-ioctl-numbertxt-to-doc-ioctl.patch
+documentation-move-msi-howtotxt-to-doc-pci.patch
+profile-likely-unlikely-macros.patch
 
