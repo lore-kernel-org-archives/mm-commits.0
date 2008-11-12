@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + crypto-md4c-use-array_size.patch added to -mm tree
-Date: Wed, 12 Nov 2008 15:12:41 -0800
-Message-ID: <200811122312.mACNCfUT014867@imap1.linux-foundation.org>
+Subject: + drivers-isdn-misdn-use-array_size.patch added to -mm tree
+Date: Wed, 12 Nov 2008 15:13:34 -0800
+Message-ID: <200811122313.mACNDYT7015332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751261AbYKLXNv (ORCPT
+	by vger.kernel.org with ESMTP id S1751261AbYKLXOM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 18:13:51 -0500
+	Wed, 12 Nov 2008 18:14:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, herbert@gondor.apana.org.au
+Cc: julia@diku.dk, kkeil@suse.de
 
 
 The patch titled
-     crypto/md4.c: use ARRAY_SIZE
+     drivers/isdn/mISDN: use ARRAY_SIZE
 has been added to the -mm tree.  Its filename is
-     crypto-md4c-use-array_size.patch
+     drivers-isdn-misdn-use-array_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: crypto/md4.c: use ARRAY_SIZE
+Subject: drivers/isdn/mISDN: use ARRAY_SIZE
 From: Julia Lawall <julia@diku.dk>
 
 ARRAY_SIZE is more concise to use when the size of an array is divided by
@@ -59,39 +59,31 @@ T[] E;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/md4.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/isdn/mISDN/dsp_hwec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN crypto/md4.c~crypto-md4c-use-array_size crypto/md4.c
---- a/crypto/md4.c~crypto-md4c-use-array_size
-+++ a/crypto/md4.c
-@@ -148,7 +148,7 @@ static void md4_transform(u32 *hash, u32
- 
- static inline void md4_transform_helper(struct md4_ctx *ctx)
- {
--	le32_to_cpu_array(ctx->block, sizeof(ctx->block) / sizeof(u32));
-+	le32_to_cpu_array(ctx->block, ARRAY_SIZE(ctx->block));
- 	md4_transform(ctx->hash, ctx->block);
- }
- 
-@@ -214,7 +214,7 @@ static void md4_final(struct crypto_tfm 
- 	le32_to_cpu_array(mctx->block, (sizeof(mctx->block) -
- 	                  sizeof(u64)) / sizeof(u32));
- 	md4_transform(mctx->hash, mctx->block);
--	cpu_to_le32_array(mctx->hash, sizeof(mctx->hash) / sizeof(u32));
-+	cpu_to_le32_array(mctx->hash, ARRAY_SIZE(mctx->hash));
- 	memcpy(out, mctx->hash, sizeof(mctx->hash));
- 	memset(mctx, 0, sizeof(*mctx));
- }
+diff -puN drivers/isdn/mISDN/dsp_hwec.c~drivers-isdn-misdn-use-array_size drivers/isdn/mISDN/dsp_hwec.c
+--- a/drivers/isdn/mISDN/dsp_hwec.c~drivers-isdn-misdn-use-array_size
++++ a/drivers/isdn/mISDN/dsp_hwec.c
+@@ -43,7 +43,7 @@ static struct mISDN_dsp_element dsp_hwec
+ 	.free = NULL,
+ 	.process_tx = NULL,
+ 	.process_rx = NULL,
+-	.num_args = sizeof(args) / sizeof(struct mISDN_dsp_element_arg),
++	.num_args = ARRAY_SIZE(args),
+ 	.args = args,
+ };
+ struct mISDN_dsp_element *dsp_hwec = &dsp_hwec_p;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
+drivers-isdn-misdn-use-array_size.patch
 fs-namespacec-drop-code-after-return.patch
 crypto-md4c-use-array_size.patch
 
