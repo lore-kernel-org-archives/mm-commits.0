@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + netdev-smc911x-fix-for-driver-resume.patch added to -mm tree
-Date: Wed, 12 Nov 2008 14:26:04 -0800
-Message-ID: <200811122226.mACMQ4Nt024044@imap1.linux-foundation.org>
+Subject: + arm-fix-kernel-doc-syntax.patch added to -mm tree
+Date: Wed, 12 Nov 2008 14:26:38 -0800
+Message-ID: <200811122226.mACMQcuI024335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55116 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41242 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752968AbYKLW0r (ORCPT
+	by vger.kernel.org with ESMTP id S1752946AbYKLW1B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 17:26:47 -0500
+	Wed, 12 Nov 2008 17:27:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: romit@ti.com, catalin.marinas@arm.com, jeff@garzik.org
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     netdev SMC911x: fix for driver resume
+     arm: fix kernel-doc syntax
 has been added to the -mm tree.  Its filename is
-     netdev-smc911x-fix-for-driver-resume.patch
+     arm-fix-kernel-doc-syntax.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: netdev SMC911x: fix for driver resume
-From: "Dasgupta, Romit" <romit@ti.com>
+Subject: arm: fix kernel-doc syntax
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-I am trying out suspend, resume on an OMAP3 based board.  What I see
-during resume is that the SMC911x driver resume routing gets stuck after
-trying to transmit the packet out of the controller.  Some debug messages
-below:
+Fix kernel-doc notation to use correct syntax.  Even though this should be
+moved to where the function is actually implemented...
 
---> smc911x_drv_resume
-eth0: --> smc911x_reset
-eth0: smc911x_reset timeout waiting for PM restore
-eth0: --> smc911x_enable
-eth0: --> smc911x_phy_configure()
-eth0: --> smc911x_phy_reset()
-eth0: phy caps=0x782d
-eth0: phy advertised caps=0x0de1
-eth0: --> smc911x_phy_check_media
-smc911x_phy_read: phyaddr=0x1, phyreg=0x01, phydata=0x7809
-smc911x_phy_read: phyaddr=0x1, phyreg=0x01, phydata=0x7809
-eth0: link down
-Restarting tasks ... eth0: --> smc911x_hard_start_xmit
-eth0: --> smc911x_hardware_send_pkt
-eth0: --> smc911x_hard_start_xmit
-eth0: --> smc911x_hardware_send_pkt
-eth0: --> smc911x_hard_start_xmit
-eth0: --> smc911x_hardware_send_pkt
-nfs: server 172.24.190.217 not responding, still trying
-nfs: server 172.24.190.217 not responding, still trying
-
-The following change makes it work fine: (The change within
-smc911x_drv_probe function was to get rid of a compilation warning).
-
-Additionally, the SMC9211 data sheet says that when we enter D2 sleep
-state, we need to set the EDPWRDOWN bit in the PHY Mode control/status
-register and clear it when we are back to D0.  This is not done in the
-code as far as I can see.  So does it mean that the PHY is not powered
-down but the controller is?  I have another patch that fixes it.  I will
-send that as well unless I am missing somethi
-
-Signed-off-by: Romit Dasgupta <romit@ti.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc911x.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/arm/mach-pxa/include/mach/reset.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/smc911x.c~netdev-smc911x-fix-for-driver-resume drivers/net/smc911x.c
---- a/drivers/net/smc911x.c~netdev-smc911x-fix-for-driver-resume
-+++ a/drivers/net/smc911x.c
-@@ -2048,7 +2048,9 @@ err_out:
-  */
- static int smc911x_drv_probe(struct platform_device *pdev)
- {
-+#ifdef SMC_DYNAMIC_BUS_CONFIG
- 	struct smc911x_platdata *pd = pdev->dev.platform_data;
-+#endif
- 	struct net_device *ndev;
- 	struct resource *res;
- 	struct smc911x_local *lp;
-@@ -2180,9 +2182,9 @@ static int smc911x_drv_resume(struct pla
+diff -puN arch/arm/mach-pxa/include/mach/reset.h~arm-fix-kernel-doc-syntax arch/arm/mach-pxa/include/mach/reset.h
+--- a/arch/arm/mach-pxa/include/mach/reset.h~arm-fix-kernel-doc-syntax
++++ a/arch/arm/mach-pxa/include/mach/reset.h
+@@ -12,9 +12,8 @@ extern void clear_reset_status(unsigned 
  
- 		if (netif_running(ndev)) {
- 			smc911x_reset(ndev);
--			smc911x_enable(ndev);
- 			if (lp->phy_type != 0)
- 				smc911x_phy_configure(&lp->phy_configure);
-+			smc911x_enable(ndev);
- 			netif_device_attach(ndev);
- 		}
- 	}
+ /**
+  * init_gpio_reset() - register GPIO as reset generator
+- *
+- * @gpio - gpio nr
+- * @output - set gpio as out/low instead of input during normal work
++ * @gpio: gpio nr
++ * @output: set gpio as out/low instead of input during normal work
+  */
+ extern int init_gpio_reset(int gpio, int output);
+ 
 _
 
-Patches currently in -mm which might be from romit@ti.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+origin.patch
+doc-add-printk-formatstxt.patch
+doc-update-xip-method-info.patch
 linux-next.patch
-netdev-smc911x-fix-for-driver-resume.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+audit-remove-excess-kernel-doc.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+fusion-remove-excess-kernel-doc-notation.patch
+block-remove-excess-kernel-doc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+documentation-move-ioctl-numbertxt-to-doc-ioctl.patch
+documentation-move-msi-howtotxt-to-doc-pci.patch
+profile-likely-unlikely-macros.patch
 
