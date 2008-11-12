@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch added to -mm tree
-Date: Wed, 12 Nov 2008 15:09:31 -0800
-Message-ID: <200811122309.mACN9Vf8013271@imap1.linux-foundation.org>
+Subject: + rtc-pxa27x-pxa3xx-driver-fixes-revised.patch added to -mm tree
+Date: Wed, 12 Nov 2008 15:09:36 -0800
+Message-ID: <200811122309.mACN9apW013347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47442 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750953AbYKLXKS (ORCPT
+	by vger.kernel.org with ESMTP id S1753279AbYKLXKU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 18:10:18 -0500
+	Wed, 12 Nov 2008 18:10:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jic23@cam.ac.uk, a.zummo@towertech.it, david-b@pacbell.net
+Cc: a.zummo@towertech.it, david-b@pacbell.net, jic23@cam.ac.uk, robert.jarzmik@free.fr
 
 
 The patch titled
-     rtc: move power of 2 periodic frequency check down into drivers
+     rtc: pxa27x/pxa3xx driver fixes, revised
 has been added to the -mm tree.  Its filename is
-     rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
+     rtc-pxa27x-pxa3xx-driver-fixes-revised.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,166 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: move power of 2 periodic frequency check down into drivers
-From: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: rtc: pxa27x/pxa3xx driver fixes, revised
+From: Alessandro Zummo <a.zummo@towertech.it>
 
-Move the power of 2 check on frequencies down into individual rtc drivers
+Small fixes for the pxa27x/pxa3xx driver
 
-This is to allow for non power of 2 real time clock periodic interrupts
-such as those on the pxa27x to be found in the new pxa27x-rtc driver
+- use platform_driver_probe
+- fixed exit paths
+- fixed probe sequence
+- added missing include
+- using linux/io.h instead of asm/io.h
 
-Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c  |    3 ---
- drivers/rtc/rtc-cmos.c   |    3 +++
- drivers/rtc/rtc-s3c.c    |    3 +++
- drivers/rtc/rtc-sh.c     |    3 +++
- drivers/rtc/rtc-vr41xx.c |    3 +++
- 5 files changed, 12 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-pxa.c |   50 ++++++++++++++++++----------------------
+ 1 file changed, 23 insertions(+), 27 deletions(-)
 
-diff -puN drivers/rtc/interface.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2 drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2
-+++ a/drivers/rtc/interface.c
-@@ -486,9 +486,6 @@ int rtc_irq_set_freq(struct rtc_device *
- 	if (rtc->ops->irq_set_freq == NULL)
- 		return -ENXIO;
+diff -puN drivers/rtc/rtc-pxa.c~rtc-pxa27x-pxa3xx-driver-fixes-revised drivers/rtc/rtc-pxa.c
+--- a/drivers/rtc/rtc-pxa.c~rtc-pxa27x-pxa3xx-driver-fixes-revised
++++ a/drivers/rtc/rtc-pxa.c
+@@ -19,13 +19,13 @@
+  *
+  */
  
--	if (!is_power_of_2(freq))
--		return -EINVAL;
--
- 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
- 	if (rtc->irq_task != NULL && task == NULL)
- 		err = -EBUSY;
-diff -puN drivers/rtc/rtc-cmos.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2 drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -35,6 +35,7 @@
- #include <linux/spinlock.h>
++#include <linux/init.h>
  #include <linux/platform_device.h>
- #include <linux/mod_devicetable.h>
-+#include <linux/log2.h>
- 
- /* this is for "generic access to PC-style RTC" using CMOS_READ/CMOS_WRITE */
- #include <asm-generic/rtc.h>
-@@ -384,6 +385,8 @@ static int cmos_irq_set_freq(struct devi
- 	if (!is_valid_irq(cmos->irq))
- 		return -ENXIO;
- 
-+	if (!is_power_of_2(freq))
-+		return -EINVAL;
- 	/* 0 = no irqs; 1 = 2^15 Hz ... 15 = 2^0 Hz */
- 	f = ffs(freq);
- 	if (f-- > 16)
-diff -puN drivers/rtc/rtc-s3c.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2 drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -94,6 +94,9 @@ static int s3c_rtc_setfreq(struct device
- {
- 	unsigned int tmp;
- 
-+	if (!is_power_of_2(freq))
-+		return -EINVAL;
-+
- 	spin_lock_irq(&s3c_rtc_pie_lock);
- 
- 	tmp = readb(s3c_rtc_base + S3C2410_TICNT) & S3C2410_TICNT_ENABLE;
-diff -puN drivers/rtc/rtc-sh.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2 drivers/rtc/rtc-sh.c
---- a/drivers/rtc/rtc-sh.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2
-+++ a/drivers/rtc/rtc-sh.c
-@@ -24,6 +24,7 @@
+ #include <linux/module.h>
+ #include <linux/rtc.h>
+ #include <linux/seq_file.h>
  #include <linux/interrupt.h>
- #include <linux/spinlock.h>
- #include <linux/io.h>
-+#include <linux/log2.h>
- #include <asm/rtc.h>
+-
+-#include <asm/io.h>
++#include <linux/io.h>
  
- #define DRV_NAME	"sh-rtc"
-@@ -551,6 +552,8 @@ static int sh_rtc_irq_set_state(struct d
+ #define TIMER_FREQ		CLOCK_TICK_RATE
+ #define RTC_DEF_DIVIDER		(32768 - 1)
+@@ -347,17 +347,19 @@ static const struct rtc_class_ops pxa_rt
+ 	.irq_set_freq = pxa_periodic_irq_set_freq,
+ };
  
- static int sh_rtc_irq_set_freq(struct device *dev, int freq)
+-static int __devinit pxa_rtc_probe(struct platform_device *pdev)
++static int __init pxa_rtc_probe(struct platform_device *pdev)
  {
-+	if (!is_power_of_2(freq))
-+		return -EINVAL;
- 	return sh_rtc_ioctl(dev, RTC_IRQP_SET, freq);
+ 	struct device *dev = &pdev->dev;
+ 	struct pxa_rtc *pxa_rtc;
+ 	int ret;
+ 	u32 rttr;
+ 
+-	ret = -ENOMEM;
+ 	pxa_rtc = kzalloc(sizeof(struct pxa_rtc), GFP_KERNEL);
+ 	if (!pxa_rtc)
+-		goto err_alloc;
++		return -ENOMEM;
++
++	spin_lock_init(&pxa_rtc->lock);
++	platform_set_drvdata(pdev, pxa_rtc);
+ 
+ 	ret = -ENXIO;
+ 	pxa_rtc->ress = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -377,20 +379,9 @@ static int __devinit pxa_rtc_probe(struc
+ 		goto err_ress;
+ 	}
+ 
+-	pxa_rtc->rtc = rtc_device_register(pdev->name, &pdev->dev, &pxa_rtc_ops,
+-					   THIS_MODULE);
+-	ret = PTR_ERR(pxa_rtc->rtc);
+-	if (IS_ERR(pxa_rtc->rtc)) {
+-		dev_err(dev, "Failed to register RTC device -> %d\n", ret);
+-		goto err_rtc_reg;
+-	}
+-
+-	spin_lock_init(&pxa_rtc->lock);
+-	platform_set_drvdata(pdev, pxa_rtc);
+-
+ 	ret = -ENOMEM;
+ 	pxa_rtc->base = ioremap(pxa_rtc->ress->start,
+-				pxa_rtc->ress->end - pxa_rtc->ress->start + 1);
++				resource_size(pxa_rtc->ress));
+ 	if (!pxa_rtc->base) {
+ 		dev_err(&pdev->dev, "Unable to map pxa RTC I/O memory\n");
+ 		goto err_map;
+@@ -408,31 +399,37 @@ static int __devinit pxa_rtc_probe(struc
+ 	}
+ 
+ 	rtsr_clear_bits(pxa_rtc, RTSR_PIALE | RTSR_RDALE1 | RTSR_HZE);
++
++	pxa_rtc->rtc = rtc_device_register("pxa-rtc", &pdev->dev, &pxa_rtc_ops,
++					   THIS_MODULE);
++	ret = PTR_ERR(pxa_rtc->rtc);
++	if (IS_ERR(pxa_rtc->rtc)) {
++		dev_err(dev, "Failed to register RTC device -> %d\n", ret);
++		goto err_rtc_reg;
++	}
++
+ 	device_init_wakeup(dev, 1);
+ 
+ 	return 0;
+ 
+-err_map:
+-	platform_set_drvdata(pdev, NULL);
+-	rtc_device_unregister(pxa_rtc->rtc);
+ err_rtc_reg:
++	 iounmap(pxa_rtc->base);
+ err_ress:
++err_map:
+ 	kfree(pxa_rtc);
+-err_alloc:
+ 	return ret;
  }
  
-diff -puN drivers/rtc/rtc-vr41xx.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2 drivers/rtc/rtc-vr41xx.c
---- a/drivers/rtc/rtc-vr41xx.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2
-+++ a/drivers/rtc/rtc-vr41xx.c
-@@ -27,6 +27,7 @@
- #include <linux/rtc.h>
- #include <linux/spinlock.h>
- #include <linux/types.h>
-+#include <linux/log2.h>
- 
- #include <asm/div64.h>
- #include <asm/io.h>
-@@ -210,6 +211,8 @@ static int vr41xx_rtc_irq_set_freq(struc
+-static int __devexit pxa_rtc_remove(struct platform_device *pdev)
++static int __exit pxa_rtc_remove(struct platform_device *pdev)
  {
- 	unsigned long count;
+ 	struct pxa_rtc *pxa_rtc = platform_get_drvdata(pdev);
  
-+	if (!is_power_of_2(freq))
-+		return -EINVAL;
- 	count = RTC_FREQUENCY;
- 	do_div(count, freq);
++	rtc_device_unregister(pxa_rtc->rtc);
++
+ 	spin_lock_irq(&pxa_rtc->lock);
+ 	iounmap(pxa_rtc->base);
+-	pxa_rtc->base = NULL;
+-	platform_set_drvdata(pdev, NULL);
+ 	spin_unlock_irq(&pxa_rtc->lock);
  
+-	rtc_device_unregister(pxa_rtc->rtc);
+ 	kfree(pxa_rtc);
+ 
+ 	return 0;
+@@ -462,7 +459,6 @@ static int pxa_rtc_resume(struct platfor
+ #endif
+ 
+ static struct platform_driver pxa_rtc_driver = {
+-	.probe		= pxa_rtc_probe,
+ 	.remove		= __exit_p(pxa_rtc_remove),
+ 	.suspend	= pxa_rtc_suspend,
+ 	.resume		= pxa_rtc_resume,
+@@ -474,7 +470,7 @@ static struct platform_driver pxa_rtc_dr
+ static int __init pxa_rtc_init(void)
+ {
+ 	if (cpu_is_pxa27x() || cpu_is_pxa3xx())
+-		return platform_driver_register(&pxa_rtc_driver);
++		return platform_driver_probe(&pxa_rtc_driver, pxa_rtc_probe);
+ 
+ 	return -ENODEV;
+ }
 _
 
-Patches currently in -mm which might be from jic23@cam.ac.uk are
+Patches currently in -mm which might be from a.zummo@towertech.it are
 
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock.patch
+add-dallas-ds1390-93-94-rtc-chips.patch
+rtc-ds1307-smbus-compatibility.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
+rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+rtc-add-alarm-update-irq-interfaces-version-2.patch
 rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
 rtc-driver-for-pxa27x-and-pxa3xx-soc.patch
 rtc-pxa27x-pxa3xx-driver-fixes-revised.patch
