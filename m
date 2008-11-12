@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ncpfs-getoptc-cleanup-keneldoc.patch added to -mm tree
-Date: Wed, 12 Nov 2008 14:42:18 -0800
-Message-ID: <200811122242.mACMgI1H032155@imap1.linux-foundation.org>
+Subject: + drivers-staging-usbip-stub_txc-cleanup-kerneldoc.patch added to -mm tree
+Date: Wed, 12 Nov 2008 14:42:16 -0800
+Message-ID: <200811122242.mACMgGkJ032134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37784 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55609 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752746AbYKLWnU (ORCPT
+	by vger.kernel.org with ESMTP id S1752407AbYKLWnM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 17:43:20 -0500
+	Wed, 12 Nov 2008 17:43:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: qhfeng.kernel@gmail.com, VANDROVE@vc.cvut.cz, randy.dunlap@oracle.com
+Cc: qhfeng.kernel@gmail.com, greg@kroah.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     fs/ncpfs/getopt.c: cleanup keneldoc
+     drivers/staging/usbip/stub_tx.c: cleanup kerneldoc
 has been added to the -mm tree.  Its filename is
-     fs-ncpfs-getoptc-cleanup-keneldoc.patch
+     drivers-staging-usbip-stub_txc-cleanup-kerneldoc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ncpfs/getopt.c: cleanup keneldoc
+Subject: drivers/staging/usbip/stub_tx.c: cleanup kerneldoc
 From: Qinghuang Feng <qhfeng.kernel@gmail.com>
 
-There are no argument named @flag in ncp_getopt(), remove it.
+No argument named @regs in stub_complete(), remove it.
 
 Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/getopt.c |    1 -
+ drivers/staging/usbip/stub_tx.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN fs/ncpfs/getopt.c~fs-ncpfs-getoptc-cleanup-keneldoc fs/ncpfs/getopt.c
---- a/fs/ncpfs/getopt.c~fs-ncpfs-getoptc-cleanup-keneldoc
-+++ a/fs/ncpfs/getopt.c
-@@ -16,7 +16,6 @@
-  *	@opts: an array of &struct option entries controlling parser operations
-  *	@optopt: output; will contain the current option
-  *	@optarg: output; will contain the value (if one exists)
-- *	@flag: output; may be NULL; should point to a long for or'ing flags
-  *	@value: output; may be NULL; will be overwritten with the integer value
-  *		of the current argument.
+diff -puN drivers/staging/usbip/stub_tx.c~drivers-staging-usbip-stub_txc-cleanup-kerneldoc drivers/staging/usbip/stub_tx.c
+--- a/drivers/staging/usbip/stub_tx.c~drivers-staging-usbip-stub_txc-cleanup-kerneldoc
++++ a/drivers/staging/usbip/stub_tx.c
+@@ -54,7 +54,6 @@ void stub_enqueue_ret_unlink(struct stub
+ /**
+  * stub_complete - completion handler of a usbip urb
+  * @urb: pointer to the urb completed
+- * @regs:
   *
+  * When a urb has completed, the USB core driver calls this function mostly in
+  * the interrupt context. To return the result of a urb, the completed urb is
 _
 
 Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
