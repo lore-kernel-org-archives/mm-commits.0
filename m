@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + find_extend_vma-fix-result-of-bungled-merging.patch added to -mm tree
-Date: Tue, 11 Nov 2008 16:54:14 -0800
-Message-ID: <200811120054.mAC0sEEh025576@imap1.linux-foundation.org>
+Subject: + memcg-bugfix-for-memory-hotplug.patch added to -mm tree
+Date: Tue, 11 Nov 2008 16:55:38 -0800
+Message-ID: <200811120055.mAC0tcR3026264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36001 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41117 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751530AbYKLAyl (ORCPT
+	by vger.kernel.org with ESMTP id S1751852AbYKLA4C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Nov 2008 19:54:41 -0500
+	Tue, 11 Nov 2008 19:56:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vda.linux@googlemail.com, deller@gmx.de, jer@gentoo.org, jirislaby@gmail.com, jkosina@suse.cz
+Cc: kamezawa.hiroyu@jp.fujitsu.com, pbadari@us.ibm.com
 
 
 The patch titled
-     find_extend_vma(): fix result of bungled merging
+     memcg: bugfix for memory hotplug
 has been added to the -mm tree.  Its filename is
-     find_extend_vma-fix-result-of-bungled-merging.patch
+     memcg-bugfix-for-memory-hotplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: find_extend_vma(): fix result of bungled merging
-From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: memcg: bugfix for memory hotplug
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This test of `prev' got accidentally removed in
-cb8f488c33539f096580e202f5438a809195008f ("mmap.c: deinline a few
-functions")
+The start pfn calculation in page_cgroup's memory hotplug notifier chain
+is wrong.
 
-Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Jeroen Roovers <jer@gentoo.org>
+Tested-by: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_cgroup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~find_extend_vma-fix-result-of-bungled-merging mm/mmap.c
---- a/mm/mmap.c~find_extend_vma-fix-result-of-bungled-merging
-+++ a/mm/mmap.c
-@@ -1704,7 +1704,7 @@ find_extend_vma(struct mm_struct *mm, un
- 	vma = find_vma_prev(mm, addr, &prev);
- 	if (vma && (vma->vm_start <= addr))
- 		return vma;
--	if (expand_stack(prev, addr))
-+	if (!prev || expand_stack(prev, addr))
- 		return NULL;
- 	if (prev->vm_flags & VM_LOCKED) {
- 		if (mlock_vma_pages_range(prev, addr, prev->vm_end) < 0)
+diff -puN mm/page_cgroup.c~memcg-bugfix-for-memory-hotplug mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-bugfix-for-memory-hotplug
++++ a/mm/page_cgroup.c
+@@ -165,7 +165,7 @@ int online_page_cgroup(unsigned long sta
+ 	unsigned long start, end, pfn;
+ 	int fail = 0;
+ 
+-	start = start_pfn & (PAGES_PER_SECTION - 1);
++	start = start_pfn & ~(PAGES_PER_SECTION - 1);
+ 	end = ALIGN(start_pfn + nr_pages, PAGES_PER_SECTION);
+ 
+ 	for (pfn = start; !fail && pfn < end; pfn += PAGES_PER_SECTION) {
+@@ -188,7 +188,7 @@ int offline_page_cgroup(unsigned long st
+ {
+ 	unsigned long start, end, pfn;
+ 
+-	start = start_pfn & (PAGES_PER_SECTION - 1);
++	start = start_pfn & ~(PAGES_PER_SECTION - 1);
+ 	end = ALIGN(start_pfn + nr_pages, PAGES_PER_SECTION);
+ 
+ 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION)
 _
 
-Patches currently in -mm which might be from vda.linux@googlemail.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-find_extend_vma-fix-result-of-bungled-merging.patch
+memcg-bugfix-for-memory-hotplug.patch
+cgroups-make-cgroup-config-a-submenu.patch
+memcg-introduce-charge-commit-cancel-style-of-functions.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-fix-gfp_mask-of-callers-of-charge.patch
+memcg-simple-migration-handling.patch
+memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
+memcg-move-all-acccounts-to-parent-at-rmdir.patch
 
