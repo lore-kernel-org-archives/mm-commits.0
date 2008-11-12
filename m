@@ -1,91 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-applesmc-add-support-for-imac-6.patch added to -mm tree
-Date: Wed, 12 Nov 2008 14:55:22 -0800
-Message-ID: <200811122255.mACMtM4m006261@imap1.linux-foundation.org>
+Subject: - viafb-fix-crash-due-to-4k-stack-overflow.patch removed from -mm tree
+Date: Wed, 12 Nov 2008 14:57:44 -0800
+Message-ID: <200811122257.mACMvi1P007477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42216 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57067 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754184AbYKLWzf (ORCPT
+	by vger.kernel.org with ESMTP id S1751563AbYKLW54 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 17:55:35 -0500
+	Wed, 12 Nov 2008 17:57:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se, caleb.hyde@gmail.com
+To: bonbons@linux-vserver.org, JosephChan@via.com.tw, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: applesmc: Add support for iMac 6
-has been added to the -mm tree.  Its filename is
-     hwmon-applesmc-add-support-for-imac-6.patch
+     viafb: fix crash due to 4k stack overflow
+has been removed from the -mm tree.  Its filename was
+     viafb-fix-crash-due-to-4k-stack-overflow.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: hwmon: applesmc: Add support for iMac 6
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: viafb: fix crash due to 4k stack overflow
+=46rom: Bruno Pr=E9mont <bonbons@linux-vserver.org>
 
-Add temperature sensor support for iMac 6.
+The function viafb_cursor() uses 2 stack-variables of CURSOR_SIZE bits;
+CURSOR_SIZE is defined as (8 * 1024).  Using up twice 1k on stack is to=
+o
+much for 4k-stack (though it works with 8k-stacks).
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Tested-by: Caleb Hyde <caleb.hyde@gmail.com>
+Make those two variables kzalloc'ed to preserve stack space.
+
+Signed-off-by: Bruno Pr=E9mont <bonbons@linux-vserver.org>
+Cc: <JosephChan@via.com.tw>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/video/via/viafbdev.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-imac-6 drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-imac-6
-+++ a/drivers/hwmon/applesmc.c
-@@ -128,6 +128,9 @@ static const char* temperature_sensors_s
- /* Set 13: iMac 8,1 */
- 	{ "TA0P", "TC0D", "TC0H", "TC0P", "TG0D", "TG0H", "TG0P", "TH0P",
- 	  "TL0P", "TO0P", "TW0P", "Tm0P", "Tp0P", NULL },
-+/* Set 14: iMac 6,1 */
-+	{ "TA0P", "TC0D", "TC0H", "TC0P", "TG0D", "TG0H", "TG0P", "TH0P",
-+	  "TO0P", "Tp0P", NULL },
- };
- 
- /* List of keys used to read/write fan speeds */
-@@ -1296,6 +1299,8 @@ static __initdata struct dmi_match_data 
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 12 },
- /* iMac 8: light sensor only, temperature set 13 */
- 	{ .accelerometer = 0, .light = 0, .temperature_set = 13 },
-+/* iMac 6: light sensor only, temperature set 14 */
-+	{ .accelerometer = 0, .light = 0, .temperature_set = 14 },
- };
- 
- /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-@@ -1353,6 +1358,10 @@ static __initdata struct dmi_system_id a
- 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac8") },
- 		&applesmc_dmi_data[13]},
-+	{ applesmc_dmi_match, "Apple iMac 6", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac6") },
-+		&applesmc_dmi_data[14]},
- 	{ applesmc_dmi_match, "Apple iMac 5", {
- 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac5") },
+diff -puN drivers/video/via/viafbdev.c~viafb-fix-crash-due-to-4k-stack-=
+overflow drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-fix-crash-due-to-4k-stack-over=
+flow
++++ a/drivers/video/via/viafbdev.c
+@@ -1052,10 +1052,8 @@ static void viafb_imageblit(struct fb_in
+=20
+ static int viafb_cursor(struct fb_info *info, struct fb_cursor *cursor=
+)
+ {
+-	u8 data[CURSOR_SIZE / 8];
+-	u32 data_bak[CURSOR_SIZE / 32];
+ 	u32 temp, xx, yy, bg_col =3D 0, fg_col =3D 0;
+-	int size, i, j =3D 0;
++	int i, j =3D 0;
+ 	static int hw_cursor;
+ 	struct viafb_par *p_viafb_par;
+=20
+@@ -1178,10 +1176,15 @@ static int viafb_cursor(struct fb_info *
+ 	}
+=20
+ 	if (cursor->set & FB_CUR_SETSHAPE) {
+-		size =3D
++		u8 *data =3D kzalloc(CURSOR_SIZE / 8, GFP_ATOMIC);
++		u32 *data_bak =3D kzalloc(CURSOR_SIZE / 32, GFP_ATOMIC);
++		int size =3D
+ 		    ((viacursor.image.width + 7) >> 3) *
+ 		    viacursor.image.height;
+=20
++		if (data =3D=3D NULL || data_bak =3D=3D NULL)
++			goto out;
++
+ 		if (MAX_CURS =3D=3D 32) {
+ 			for (i =3D 0; i < (CURSOR_SIZE / 32); i++) {
+ 				data_bak[i] =3D 0x0;
+@@ -1231,6 +1234,9 @@ static int viafb_cursor(struct fb_info *
+ 		memcpy(((struct viafb_par *)(info->par))->fbmem_virt +
+ 		       ((struct viafb_par *)(info->par))->cursor_start,
+ 		       data_bak, CURSOR_SIZE);
++out:
++		kfree(data);
++		kfree(data_bak);
+ 	}
+=20
+ 	if (viacursor.enable)
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from bonbons@linux-vserver.org =
+are
 
-hwmon-applesmc-add-support-for-macbook-4.patch
-hwmon-applesmc-add-support-for-imac-6.patch
-linux-next.patch
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+viafb-fix-crash-due-to-4k-stack-overflow.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
