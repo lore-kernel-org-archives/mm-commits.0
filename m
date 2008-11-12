@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + max3100-spi-uart-driver-select-serial_core-fix.patch added to -mm tree
-Date: Wed, 12 Nov 2008 14:52:34 -0800
-Message-ID: <200811122252.mACMqY1L004876@imap1.linux-foundation.org>
+Subject: + net-9p-fix-build-error.patch added to -mm tree
+Date: Wed, 12 Nov 2008 14:54:27 -0800
+Message-ID: <200811122254.mACMsRYL005758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45680 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751502AbYKLWwl (ORCPT
+	by vger.kernel.org with ESMTP id S1753620AbYKLWyp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 17:52:41 -0500
+	Wed, 12 Nov 2008 17:54:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chripell@evolware.org, randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, ericvh@hera.kernel.org, tom@opengridcomputing.com
 
 
 The patch titled
-     max3100-spi-uart-driver-select-serial_core-fix
+     net/9p: fix build error
 has been added to the -mm tree.  Its filename is
-     max3100-spi-uart-driver-select-serial_core-fix.patch
+     net-9p-fix-build-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: max3100-spi-uart-driver-select-serial_core-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: net/9p: fix build error
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-fix surrounding whitespace bustage.
+linux-next:
 
-Cc: Christian Pellegrin <chripell@evolware.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Make 9p's RDMA option depend on INET since it uses Infiniband rdma_*
+functions and that code depends on INET.  Otherwise 9p can try to
+use symbols which don't exist.
+
+ERROR: "rdma_destroy_id" [net/9p/9pnet_rdma.ko] undefined!
+ERROR: "rdma_connect" [net/9p/9pnet_rdma.ko] undefined!
+ERROR: "rdma_create_id" [net/9p/9pnet_rdma.ko] undefined!
+ERROR: "rdma_create_qp" [net/9p/9pnet_rdma.ko] undefined!
+ERROR: "rdma_resolve_route" [net/9p/9pnet_rdma.ko] undefined!
+ERROR: "rdma_disconnect" [net/9p/9pnet_rdma.ko] undefined!
+ERROR: "rdma_resolve_addr" [net/9p/9pnet_rdma.ko] undefined!
+
+I used an if/endif block so that the menu items would remain
+presented together.
+
+Also correct an article adjective.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Eric Van Hensbergen <ericvh@hera.kernel.org>
+Cc: Tom Tucker <tom@opengridcomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/9p/Kconfig |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/Kconfig~max3100-spi-uart-driver-select-serial_core-fix drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~max3100-spi-uart-driver-select-serial_core-fix
-+++ a/drivers/serial/Kconfig
-@@ -509,11 +509,11 @@ config SERIAL_S3C2440
- 	  Serial port support for the Samsung S3C2440 and S3C2442 SoC
+diff -puN net/9p/Kconfig~net-9p-fix-build-error net/9p/Kconfig
+--- a/net/9p/Kconfig~net-9p-fix-build-error
++++ a/net/9p/Kconfig
+@@ -13,22 +13,24 @@ menuconfig NET_9P
  
- config SERIAL_MAX3100
--        tristate "MAX3100 support"
--        depends on SPI
-+	tristate "MAX3100 support"
-+	depends on SPI
- 	select SERIAL_CORE
--        help
--          MAX3100 chip support
-+	help
-+	  MAX3100 chip support
+ 	  If unsure, say N.
  
- config SERIAL_DZ
- 	bool "DECstation DZ serial driver"
++if NET_9P
++
+ config NET_9P_VIRTIO
+-	depends on NET_9P && EXPERIMENTAL && VIRTIO
++	depends on EXPERIMENTAL && VIRTIO
+ 	tristate "9P Virtio Transport (Experimental)"
+ 	help
+ 	  This builds support for a transports between
+ 	  guest partitions and a host partition.
+ 
+ config NET_9P_RDMA
+-	depends on NET_9P && INFINIBAND && EXPERIMENTAL
++	depends on INET && INFINIBAND && EXPERIMENTAL
+ 	tristate "9P RDMA Transport (Experimental)"
+ 	help
+-	  This builds support for a RDMA transport.
++	  This builds support for an RDMA transport.
+ 
+ config NET_9P_DEBUG
+ 	bool "Debug information"
+-	depends on NET_9P
+ 	help
+ 	  Say Y if you want the 9P subsystem to log debug information.
+ 
++endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-cpusets-update-mems-allowed-in-page-allocator.patch
-remove-ratelimt.patch
-kernel-kprobesc-dont-pad-kretprobe_table_locks-on-uniprocessor-builds.patch
-rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
-rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock.patch
-w1-export-w1_read_8-function.patch
-mm-remove-the-might_sleep-from-lock_page.patch
+doc-add-printk-formatstxt.patch
+doc-update-xip-method-info.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
-pci-uninline-pci_ioremap_bar.patch
-pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
-vfs-lseekfd-0-seek_cur-race-condition-fix.patch
-bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-init-properly-placing-noinline-keyword.patch
-binfmtsh-include-listh-fix.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+audit-remove-excess-kernel-doc.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+mtd-remove-excess-kernel-doc-notation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+fusion-remove-excess-kernel-doc-notation.patch
+block-remove-excess-kernel-doc.patch
+drivers-staging-usbip-stub_txc-cleanup-kerneldoc.patch
+net-9p-fix-build-error.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
 max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format-fix.patch
-quota-support-64-bit-quota-format-fix-2.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+drivers-message-i2o-iopc-cleanup-kerneldoc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+documentation-move-ioctl-numbertxt-to-doc-ioctl.patch
+documentation-move-msi-howtotxt-to-doc-pci.patch
 profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
