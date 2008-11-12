@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-alarm-update-irq-interfaces-version-2.patch added to -mm tree
-Date: Wed, 12 Nov 2008 15:02:54 -0800
-Message-ID: <200811122302.mACN2sKF010050@imap1.linux-foundation.org>
+Subject: + rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch added to -mm tree
+Date: Wed, 12 Nov 2008 15:09:31 -0800
+Message-ID: <200811122309.mACN9Vf8013271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51307 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753069AbYKLXDE (ORCPT
+	by vger.kernel.org with ESMTP id S1750953AbYKLXKS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 18:03:04 -0500
+	Wed, 12 Nov 2008 18:10:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.zummo@towertech.it, david-b@pacbell.net
+Cc: jic23@cam.ac.uk, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     rtc: add alarm/update irq interfaces
+     rtc: move power of 2 periodic frequency check down into drivers
 has been added to the -mm tree.  Its filename is
-     rtc-add-alarm-update-irq-interfaces-version-2.patch
+     rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,188 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add alarm/update irq interfaces
-From: Alessandro Zummo <a.zummo@towertech.it>
+Subject: rtc: move power of 2 periodic frequency check down into drivers
+From: Jonathan Cameron <jic23@cam.ac.uk>
 
-Add standard interfaces for alarm/update irqs enabling.  Drivers are no
-more required to implement equivalent ioctl code as rtc-dev will provide
-it.
+Move the power of 2 check on frequencies down into individual rtc drivers
 
-UIE emulation should now be handled correctly.
+This is to allow for non power of 2 real time clock periodic interrupts
+such as those on the pxa27x to be found in the new pxa27x-rtc driver
 
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c |   36 +++++++++++++++++++++++++++++
- drivers/rtc/rtc-dev.c   |   47 +++++++++++++++++++++++++++++---------
- include/linux/rtc.h     |    4 +++
- 3 files changed, 76 insertions(+), 11 deletions(-)
+ drivers/rtc/interface.c  |    3 ---
+ drivers/rtc/rtc-cmos.c   |    3 +++
+ drivers/rtc/rtc-s3c.c    |    3 +++
+ drivers/rtc/rtc-sh.c     |    3 +++
+ drivers/rtc/rtc-vr41xx.c |    3 +++
+ 5 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/interface.c~rtc-add-alarm-update-irq-interfaces-version-2 drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-add-alarm-update-irq-interfaces-version-2
+diff -puN drivers/rtc/interface.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2 drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2
 +++ a/drivers/rtc/interface.c
-@@ -307,6 +307,42 @@ int rtc_set_alarm(struct rtc_device *rtc
- }
- EXPORT_SYMBOL_GPL(rtc_set_alarm);
+@@ -486,9 +486,6 @@ int rtc_irq_set_freq(struct rtc_device *
+ 	if (rtc->ops->irq_set_freq == NULL)
+ 		return -ENXIO;
  
-+int rtc_alarm_irq_enable(struct rtc_device *rtc, unsigned int enabled)
-+{
-+	int err = mutex_lock_interruptible(&rtc->ops_lock);
-+	if (err)
-+		return err;
-+
-+	if (!rtc->ops)
-+		err = -ENODEV;
-+	else if (rtc->ops->alarm_irq_enable)
-+		err = -EINVAL;
-+	else
-+		err = rtc->ops->alarm_irq_enable(rtc->dev.parent, enabled);
-+
-+	mutex_unlock(&rtc->ops_lock);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(rtc_alarm_irq_enable);
-+
-+int rtc_update_irq_enable(struct rtc_device *rtc, unsigned int enabled)
-+{
-+	int err = mutex_lock_interruptible(&rtc->ops_lock);
-+	if (err)
-+		return err;
-+
-+	if (!rtc->ops)
-+		err = -ENODEV;
-+	else if (!rtc->ops->update_irq_enable)
-+		err = -EINVAL;
-+	else
-+		err = rtc->ops->update_irq_enable(rtc->dev.parent, enabled);
-+
-+	mutex_unlock(&rtc->ops_lock);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(rtc_update_irq_enable);
-+
- /**
-  * rtc_update_irq - report RTC periodic, alarm, and/or update irqs
-  * @rtc: the rtc device
-diff -puN drivers/rtc/rtc-dev.c~rtc-add-alarm-update-irq-interfaces-version-2 drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-add-alarm-update-irq-interfaces-version-2
-+++ a/drivers/rtc/rtc-dev.c
-@@ -134,6 +134,16 @@ static int set_uie(struct rtc_device *rt
- 	spin_unlock_irq(&rtc->irq_lock);
- 	return 0;
- }
-+
-+static int
-+rtc_dev_update_irq_enable_emul(struct rtc_device *rtc, unsigned int enabled)
-+{
-+	if (enabled)
-+		set_uie(rtc);
-+	else
-+		clear_uie(rtc);
-+}
-+
- #endif /* CONFIG_RTC_INTF_DEV_UIE_EMUL */
- 
- static ssize_t
-@@ -357,6 +367,26 @@ static long rtc_dev_ioctl(struct file *f
- 		err = rtc_irq_set_state(rtc, NULL, 0);
- 		break;
- 
-+	case RTC_AIE_ON:
-+		mutex_unlock(&rtc->ops_lock);
-+		return rtc_alarm_irq_enable(rtc, 1);
-+		break;
-+
-+	case RTC_AIE_OFF:
-+		mutex_unlock(&rtc->ops_lock);
-+		return rtc_alarm_irq_enable(rtc, 0);
-+		break;
-+
-+	case RTC_UIE_ON:
-+		mutex_unlock(&rtc->ops_lock);
-+		return rtc_update_irq_enable(rtc, 1);
-+		break;
-+
-+	case RTC_UIE_OFF:
-+		mutex_unlock(&rtc->ops_lock);
-+		return rtc_update_irq_enable(rtc, 0);
-+		break;
-+
- 	case RTC_IRQP_SET:
- 		err = rtc_irq_set_freq(rtc, NULL, arg);
- 		break;
-@@ -401,17 +431,6 @@ static long rtc_dev_ioctl(struct file *f
- 			err = -EFAULT;
- 		return err;
- 
--#ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
--	case RTC_UIE_OFF:
--		mutex_unlock(&rtc->ops_lock);
--		clear_uie(rtc);
--		return 0;
+-	if (!is_power_of_2(freq))
+-		return -EINVAL;
 -
--	case RTC_UIE_ON:
--		mutex_unlock(&rtc->ops_lock);
--		err = set_uie(rtc);
--		return err;
--#endif
- 	default:
- 		err = -ENOTTY;
- 		break;
-@@ -440,7 +459,10 @@ static int rtc_dev_release(struct inode 
- 	 * Leave the alarm alone; it may be set to trigger a system wakeup
- 	 * later, or be used by kernel code, and is a one-shot event anyway.
- 	 */
+ 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
+ 	if (rtc->irq_task != NULL && task == NULL)
+ 		err = -EBUSY;
+diff -puN drivers/rtc/rtc-cmos.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2 drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2
++++ a/drivers/rtc/rtc-cmos.c
+@@ -35,6 +35,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/platform_device.h>
+ #include <linux/mod_devicetable.h>
++#include <linux/log2.h>
+ 
+ /* this is for "generic access to PC-style RTC" using CMOS_READ/CMOS_WRITE */
+ #include <asm-generic/rtc.h>
+@@ -384,6 +385,8 @@ static int cmos_irq_set_freq(struct devi
+ 	if (!is_valid_irq(cmos->irq))
+ 		return -ENXIO;
+ 
++	if (!is_power_of_2(freq))
++		return -EINVAL;
+ 	/* 0 = no irqs; 1 = 2^15 Hz ... 15 = 2^0 Hz */
+ 	f = ffs(freq);
+ 	if (f-- > 16)
+diff -puN drivers/rtc/rtc-s3c.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2 drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2
++++ a/drivers/rtc/rtc-s3c.c
+@@ -94,6 +94,9 @@ static int s3c_rtc_setfreq(struct device
+ {
+ 	unsigned int tmp;
+ 
++	if (!is_power_of_2(freq))
++		return -EINVAL;
 +
-+	/* Keep ioctl all drivers are converted */
- 	rtc_dev_ioctl(file, RTC_UIE_OFF, 0);
-+	rtc_update_irq_enable(rtc, 0);
- 	rtc_irq_set_state(rtc, NULL, 0);
+ 	spin_lock_irq(&s3c_rtc_pie_lock);
  
- 	if (rtc->ops->release)
-@@ -478,6 +500,9 @@ void rtc_dev_prepare(struct rtc_device *
- #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
- 	INIT_WORK(&rtc->uie_task, rtc_uie_task);
- 	setup_timer(&rtc->uie_timer, rtc_uie_timer, (unsigned long)rtc);
-+
-+	if (rtc->ops->update_irq_enable == NULL)
-+		rtc->ops->update_irq_enable = rtc_dev_update_irq_enable_emul;
- #endif
+ 	tmp = readb(s3c_rtc_base + S3C2410_TICNT) & S3C2410_TICNT_ENABLE;
+diff -puN drivers/rtc/rtc-sh.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2 drivers/rtc/rtc-sh.c
+--- a/drivers/rtc/rtc-sh.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2
++++ a/drivers/rtc/rtc-sh.c
+@@ -24,6 +24,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/spinlock.h>
+ #include <linux/io.h>
++#include <linux/log2.h>
+ #include <asm/rtc.h>
  
- 	cdev_init(&rtc->char_dev, &rtc_dev_fops);
-diff -puN include/linux/rtc.h~rtc-add-alarm-update-irq-interfaces-version-2 include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-add-alarm-update-irq-interfaces-version-2
-+++ a/include/linux/rtc.h
-@@ -145,6 +145,8 @@ struct rtc_class_ops {
- 	int (*irq_set_state)(struct device *, int enabled);
- 	int (*irq_set_freq)(struct device *, int freq);
- 	int (*read_callback)(struct device *, int data);
-+	int (*alarm_irq_enable)(struct device *, unsigned int enabled);
-+	int (*update_irq_enable)(struct device *, unsigned int enabled);
- };
+ #define DRV_NAME	"sh-rtc"
+@@ -551,6 +552,8 @@ static int sh_rtc_irq_set_state(struct d
  
- #define RTC_DEVICE_NAME_SIZE 20
-@@ -216,6 +218,8 @@ extern int rtc_irq_set_state(struct rtc_
- 				struct rtc_task *task, int enabled);
- extern int rtc_irq_set_freq(struct rtc_device *rtc,
- 				struct rtc_task *task, int freq);
-+extern int rtc_update_irq_enable(struct rtc_device *rtc, unsigned int enabled);
-+extern int rtc_alarm_irq_enable(struct rtc_device *rtc, unsigned int enabled);
+ static int sh_rtc_irq_set_freq(struct device *dev, int freq)
+ {
++	if (!is_power_of_2(freq))
++		return -EINVAL;
+ 	return sh_rtc_ioctl(dev, RTC_IRQP_SET, freq);
+ }
  
- typedef struct rtc_task {
- 	void (*func)(void *private_data);
+diff -puN drivers/rtc/rtc-vr41xx.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2 drivers/rtc/rtc-vr41xx.c
+--- a/drivers/rtc/rtc-vr41xx.c~rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2
++++ a/drivers/rtc/rtc-vr41xx.c
+@@ -27,6 +27,7 @@
+ #include <linux/rtc.h>
+ #include <linux/spinlock.h>
+ #include <linux/types.h>
++#include <linux/log2.h>
+ 
+ #include <asm/div64.h>
+ #include <asm/io.h>
+@@ -210,6 +211,8 @@ static int vr41xx_rtc_irq_set_freq(struc
+ {
+ 	unsigned long count;
+ 
++	if (!is_power_of_2(freq))
++		return -EINVAL;
+ 	count = RTC_FREQUENCY;
+ 	do_div(count, freq);
+ 
 _
 
-Patches currently in -mm which might be from a.zummo@towertech.it are
+Patches currently in -mm which might be from jic23@cam.ac.uk are
 
-rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
-rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock.patch
-add-dallas-ds1390-93-94-rtc-chips.patch
-rtc-ds1307-smbus-compatibility.patch
-rtc-ds1307-remove-legacy-probe-checks.patch
-rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
-rtc-add-alarm-update-irq-interfaces-version-2.patch
+rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
+rtc-driver-for-pxa27x-and-pxa3xx-soc.patch
+rtc-pxa27x-pxa3xx-driver-fixes-revised.patch
 
