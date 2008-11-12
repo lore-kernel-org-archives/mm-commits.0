@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-filename-encryption-mount-option.patch added to -mm tree
-Date: Wed, 12 Nov 2008 11:46:04 -0800
-Message-ID: <200811121946.mACJk4cR008743@imap1.linux-foundation.org>
+Subject: + ecryptfs-replace-%z-with-%z.patch added to -mm tree
+Date: Wed, 12 Nov 2008 11:46:06 -0800
+Message-ID: <200811121946.mACJk6Av008758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39086 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752579AbYKLTqv (ORCPT
+	by vger.kernel.org with ESMTP id S1752766AbYKLTqz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 14:46:51 -0500
+	Wed, 12 Nov 2008 14:46:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mhalcrow@us.ibm.com, dustin.kirkland@gmail.com, sandeen@redhat.com, shaggy@u
 
 
 The patch titled
-     eCryptfs: Filename Encryption: mount option
+     eCryptfs: Replace %Z with %z
 has been added to the -mm tree.  Its filename is
-     ecryptfs-filename-encryption-mount-option.patch
+     ecryptfs-replace-%z-with-%z.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eCryptfs: Filename Encryption: mount option
+Subject: eCryptfs: Replace %Z with %z
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Enable mount-wide filename encryption by providing the Filename Encryption
-Key (FNEK) signature as a mount option.  Note that the ecryptfs-utils
-userspace package versions 61 or later support this option.
+%Z is a gcc-ism. Using %z instead.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Cc: Dustin Kirkland <dustin.kirkland@gmail.com>
@@ -49,212 +47,217 @@ Cc: David Kleikamp <shaggy@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/main.c |  126 +++++++++++++++++++++++++++++++++----------
- 1 file changed, 99 insertions(+), 27 deletions(-)
+ fs/ecryptfs/crypto.c    |    8 ++++----
+ fs/ecryptfs/keystore.c  |   18 +++++++++---------
+ fs/ecryptfs/messaging.c |    4 ++--
+ fs/ecryptfs/miscdev.c   |   18 +++++++++---------
+ 4 files changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN fs/ecryptfs/main.c~ecryptfs-filename-encryption-mount-option fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-filename-encryption-mount-option
-+++ a/fs/ecryptfs/main.c
-@@ -206,7 +206,9 @@ enum { ecryptfs_opt_sig, ecryptfs_opt_ec
-        ecryptfs_opt_cipher, ecryptfs_opt_ecryptfs_cipher,
-        ecryptfs_opt_ecryptfs_key_bytes,
-        ecryptfs_opt_passthrough, ecryptfs_opt_xattr_metadata,
--       ecryptfs_opt_encrypted_view, ecryptfs_opt_err };
-+       ecryptfs_opt_encrypted_view, ecryptfs_opt_fnek_sig,
-+       ecryptfs_opt_fn_cipher, ecryptfs_opt_fn_cipher_key_bytes,
-+       ecryptfs_opt_err };
- 
- static const match_table_t tokens = {
- 	{ecryptfs_opt_sig, "sig=%s"},
-@@ -217,6 +219,9 @@ static const match_table_t tokens = {
- 	{ecryptfs_opt_passthrough, "ecryptfs_passthrough"},
- 	{ecryptfs_opt_xattr_metadata, "ecryptfs_xattr_metadata"},
- 	{ecryptfs_opt_encrypted_view, "ecryptfs_encrypted_view"},
-+	{ecryptfs_opt_fnek_sig, "ecryptfs_fnek_sig=%s"},
-+	{ecryptfs_opt_fn_cipher, "ecryptfs_fn_cipher=%s"},
-+	{ecryptfs_opt_fn_cipher_key_bytes, "ecryptfs_fn_key_bytes=%u"},
- 	{ecryptfs_opt_err, NULL}
- };
- 
-@@ -281,8 +286,11 @@ static int ecryptfs_parse_options(struct
- 	int rc = 0;
- 	int sig_set = 0;
- 	int cipher_name_set = 0;
-+	int fn_cipher_name_set = 0;
- 	int cipher_key_bytes;
- 	int cipher_key_bytes_set = 0;
-+	int fn_cipher_key_bytes;
-+	int fn_cipher_key_bytes_set = 0;
- 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
- 		&ecryptfs_superblock_to_private(sb)->mount_crypt_stat;
- 	substring_t args[MAX_OPT_ARGS];
-@@ -290,7 +298,12 @@ static int ecryptfs_parse_options(struct
- 	char *sig_src;
- 	char *cipher_name_dst;
- 	char *cipher_name_src;
-+	char *fn_cipher_name_dst;
-+	char *fn_cipher_name_src;
-+	char *fnek_dst;
-+	char *fnek_src;
- 	char *cipher_key_bytes_src;
-+	char *fn_cipher_key_bytes_src;
- 
- 	if (!options) {
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-replace-%z-with-%z fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-replace-%z-with-%z
++++ a/fs/ecryptfs/crypto.c
+@@ -1679,7 +1679,7 @@ ecryptfs_encrypt_filename(struct ecryptf
+ 			kmalloc(filename->encrypted_filename_size, GFP_KERNEL);
+ 		if (!filename->encrypted_filename) {
+ 			printk(KERN_ERR "%s: Out of memory whilst attempting "
+-			       "to kmalloc [%Zd] bytes\n", __func__,
++			       "to kmalloc [%zd] bytes\n", __func__,
+ 			       filename->encrypted_filename_size);
+ 			rc = -ENOMEM;
+ 			goto out;
+@@ -1752,7 +1752,7 @@ ecryptfs_process_key_cipher(struct crypt
+ 	*key_tfm = NULL;
+ 	if (*key_size > ECRYPTFS_MAX_KEY_BYTES) {
  		rc = -EINVAL;
-@@ -322,10 +335,7 @@ static int ecryptfs_parse_options(struct
- 				global_default_cipher_name;
- 			strncpy(cipher_name_dst, cipher_name_src,
- 				ECRYPTFS_MAX_CIPHER_NAME_SIZE);
--			ecryptfs_printk(KERN_DEBUG,
--					"The mount_crypt_stat "
--					"global_default_cipher_name set to: "
--					"[%s]\n", cipher_name_dst);
-+			cipher_name_dst[ECRYPTFS_MAX_CIPHER_NAME_SIZE] = '\0';
- 			cipher_name_set = 1;
- 			break;
- 		case ecryptfs_opt_ecryptfs_key_bytes:
-@@ -335,11 +345,6 @@ static int ecryptfs_parse_options(struct
- 						   &cipher_key_bytes_src, 0);
- 			mount_crypt_stat->global_default_cipher_key_size =
- 				cipher_key_bytes;
--			ecryptfs_printk(KERN_DEBUG,
--					"The mount_crypt_stat "
--					"global_default_cipher_key_size "
--					"set to: [%d]\n", mount_crypt_stat->
--					global_default_cipher_key_size);
- 			cipher_key_bytes_set = 1;
- 			break;
- 		case ecryptfs_opt_passthrough:
-@@ -356,11 +361,51 @@ static int ecryptfs_parse_options(struct
- 			mount_crypt_stat->flags |=
- 				ECRYPTFS_ENCRYPTED_VIEW_ENABLED;
- 			break;
-+		case ecryptfs_opt_fnek_sig:
-+			fnek_src = args[0].from;
-+			fnek_dst =
-+				mount_crypt_stat->global_default_fnek_sig;
-+			strncpy(fnek_dst, fnek_src, ECRYPTFS_SIG_SIZE_HEX);
-+			mount_crypt_stat->global_default_fnek_sig[
-+				ECRYPTFS_SIG_SIZE_HEX] = '\0';
-+			rc = ecryptfs_add_global_auth_tok(
-+				mount_crypt_stat,
-+				mount_crypt_stat->global_default_fnek_sig);
-+			if (rc) {
-+				printk(KERN_ERR "Error attempting to register "
-+				       "global fnek sig [%s]; rc = [%d]\n",
-+				       mount_crypt_stat->global_default_fnek_sig,
-+				       rc);
-+				goto out;
-+			}
-+			mount_crypt_stat->flags |=
-+				(ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES
-+				 | ECRYPTFS_GLOBAL_ENCFN_USE_MOUNT_FNEK);
-+			break;
-+		case ecryptfs_opt_fn_cipher:
-+			fn_cipher_name_src = args[0].from;
-+			fn_cipher_name_dst =
-+				mount_crypt_stat->global_default_fn_cipher_name;
-+			strncpy(fn_cipher_name_dst, fn_cipher_name_src,
-+				ECRYPTFS_MAX_CIPHER_NAME_SIZE);
-+			mount_crypt_stat->global_default_fn_cipher_name[
-+				ECRYPTFS_MAX_CIPHER_NAME_SIZE] = '\0';
-+			fn_cipher_name_set = 1;
-+			break;
-+		case ecryptfs_opt_fn_cipher_key_bytes:
-+			fn_cipher_key_bytes_src = args[0].from;
-+			fn_cipher_key_bytes =
-+				(int)simple_strtol(fn_cipher_key_bytes_src,
-+						   &fn_cipher_key_bytes_src, 0);
-+			mount_crypt_stat->global_default_fn_cipher_key_bytes =
-+				fn_cipher_key_bytes;
-+			fn_cipher_key_bytes_set = 1;
-+			break;
- 		case ecryptfs_opt_err:
- 		default:
--			ecryptfs_printk(KERN_WARNING,
--					"eCryptfs: unrecognized option '%s'\n",
--					p);
-+			printk(KERN_WARNING
-+			       "%s: eCryptfs: unrecognized option [%s]\n",
-+			       __func__, p);
+-		printk(KERN_ERR "Requested key size is [%Zd] bytes; maximum "
++		printk(KERN_ERR "Requested key size is [%zd] bytes; maximum "
+ 		      "allowable is [%d]\n", *key_size, ECRYPTFS_MAX_KEY_BYTES);
+ 		goto out;
+ 	}
+@@ -1777,7 +1777,7 @@ ecryptfs_process_key_cipher(struct crypt
+ 	get_random_bytes(dummy_key, *key_size);
+ 	rc = crypto_blkcipher_setkey(*key_tfm, dummy_key, *key_size);
+ 	if (rc) {
+-		printk(KERN_ERR "Error attempting to set key of size [%Zd] for "
++		printk(KERN_ERR "Error attempting to set key of size [%zd] for "
+ 		       "cipher [%s]; rc = [%d]\n", *key_size, cipher_name, rc);
+ 		rc = -EINVAL;
+ 		goto out;
+@@ -2221,7 +2221,7 @@ int ecryptfs_decode_and_decrypt_filename
+ 		decoded_name = kmalloc(decoded_name_size, GFP_KERNEL);
+ 		if (!decoded_name) {
+ 			printk(KERN_ERR "%s: Out of memory whilst attempting "
+-			       "to kmalloc [%Zd] bytes\n", __func__,
++			       "to kmalloc [%zd] bytes\n", __func__,
+ 			       decoded_name_size);
+ 			rc = -ENOMEM;
+ 			goto out;
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-replace-%z-with-%z fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-replace-%z-with-%z
++++ a/fs/ecryptfs/keystore.c
+@@ -358,7 +358,7 @@ parse_tag_67_packet(struct ecryptfs_key_
+ 	/* verify that everything through the encrypted FEK size is present */
+ 	if (message_len < 4) {
+ 		rc = -EIO;
+-		printk(KERN_ERR "%s: message_len is [%Zd]; minimum acceptable "
++		printk(KERN_ERR "%s: message_len is [%zd]; minimum acceptable "
+ 		       "message length is [%d]\n", __func__, message_len, 4);
+ 		goto out;
+ 	}
+@@ -385,13 +385,13 @@ parse_tag_67_packet(struct ecryptfs_key_
+ 	i += data_len;
+ 	if (message_len < (i + key_rec->enc_key_size)) {
+ 		rc = -EIO;
+-		printk(KERN_ERR "%s: message_len [%Zd]; max len is [%Zd]\n",
++		printk(KERN_ERR "%s: message_len [%zd]; max len is [%zd]\n",
+ 		       __func__, message_len, (i + key_rec->enc_key_size));
+ 		goto out;
+ 	}
+ 	if (key_rec->enc_key_size > ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES) {
+ 		rc = -EIO;
+-		printk(KERN_ERR "%s: Encrypted key_size [%Zd] larger than "
++		printk(KERN_ERR "%s: Encrypted key_size [%zd] larger than "
+ 		       "the maximum key size [%d]\n", __func__,
+ 		       key_rec->enc_key_size,
+ 		       ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES);
+@@ -511,7 +511,7 @@ ecryptfs_write_tag_70_packet(char *dest,
+ 	s = kmalloc(sizeof(*s), GFP_KERNEL);
+ 	if (!s) {
+ 		printk(KERN_ERR "%s: Out of memory whilst trying to kmalloc "
+-		       "[%d] bytes of kernel memory\n", __func__, sizeof(*s));
++		       "[%zd] bytes of kernel memory\n", __func__, sizeof(*s));
+ 		goto out;
+ 	}
+ 	s->desc.flags = CRYPTO_TFM_REQ_MAY_SLEEP;
+@@ -566,7 +566,7 @@ ecryptfs_write_tag_70_packet(char *dest,
+ 					    GFP_KERNEL);
+ 	if (!s->block_aligned_filename) {
+ 		printk(KERN_ERR "%s: Out of kernel memory whilst attempting to "
+-		       "kzalloc [%Zd] bytes\n", __func__,
++		       "kzalloc [%zd] bytes\n", __func__,
+ 		       s->block_aligned_filename_size);
+ 		rc = -ENOMEM;
+ 		goto out_unlock;
+@@ -721,7 +721,7 @@ ecryptfs_write_tag_70_packet(char *dest,
+ 		printk(KERN_ERR "%s: Error setting key for crypto context; "
+ 		       "rc = [%d]. s->auth_tok->token.password.session_key_"
+ 		       "encryption_key = [0x%p]; mount_crypt_stat->"
+-		       "global_default_fn_cipher_key_bytes = [%Zd]\n", __func__,
++		       "global_default_fn_cipher_key_bytes = [%zd]\n", __func__,
+ 		       rc,
+ 		       s->auth_tok->token.password.session_key_encryption_key,
+ 		       mount_crypt_stat->global_default_fn_cipher_key_bytes);
+@@ -792,7 +792,7 @@ ecryptfs_parse_tag_70_packet(char **file
+ 	}
+ 	s->desc.flags = CRYPTO_TFM_REQ_MAY_SLEEP;
+ 	if (max_packet_size < (1 + 1 + ECRYPTFS_SIG_SIZE + 1 + 1)) {
+-		printk(KERN_WARNING "%s: max_packet_size is [%Zd]; it must be "
++		printk(KERN_WARNING "%s: max_packet_size is [%zd]; it must be "
+ 		       "at least [%d]\n", __func__, max_packet_size,
+ 			(1 + 1 + ECRYPTFS_SIG_SIZE + 1 + 1));
+ 		rc = -EINVAL;
+@@ -909,7 +909,7 @@ ecryptfs_parse_tag_70_packet(char **file
+ 		printk(KERN_ERR "%s: Error setting key for crypto context; "
+ 		       "rc = [%d]. s->auth_tok->token.password.session_key_"
+ 		       "encryption_key = [0x%p]; mount_crypt_stat->"
+-		       "global_default_fn_cipher_key_bytes = [%Zd]\n", __func__,
++		       "global_default_fn_cipher_key_bytes = [%zd]\n", __func__,
+ 		       rc,
+ 		       s->auth_tok->token.password.session_key_encryption_key,
+ 		       mount_crypt_stat->global_default_fn_cipher_key_bytes);
+@@ -936,7 +936,7 @@ ecryptfs_parse_tag_70_packet(char **file
+ 	s->i++;
+ 	(*filename_size) = (s->block_aligned_filename_size - s->i);
+ 	if (!((*filename_size) > 0 && (*filename_size < PATH_MAX))) {
+-		printk(KERN_WARNING "%s: Filename size is [%Zd], which is "
++		printk(KERN_WARNING "%s: Filename size is [%zd], which is "
+ 		       "invalid\n", __func__, (*filename_size));
+ 		rc = -EINVAL;
+ 		goto out_free_unlock;
+diff -puN fs/ecryptfs/messaging.c~ecryptfs-replace-%z-with-%z fs/ecryptfs/messaging.c
+--- a/fs/ecryptfs/messaging.c~ecryptfs-replace-%z-with-%z
++++ a/fs/ecryptfs/messaging.c
+@@ -193,7 +193,7 @@ ecryptfs_spawn_daemon(struct ecryptfs_da
+ 	(*daemon) = kzalloc(sizeof(**daemon), GFP_KERNEL);
+ 	if (!(*daemon)) {
+ 		rc = -ENOMEM;
+-		printk(KERN_ERR "%s: Failed to allocate [%Zd] bytes of "
++		printk(KERN_ERR "%s: Failed to allocate [%zd] bytes of "
+ 		       "GFP_KERNEL memory\n", __func__, sizeof(**daemon));
+ 		goto out;
+ 	}
+@@ -435,7 +435,7 @@ int ecryptfs_process_response(struct ecr
+ 	msg_ctx->msg = kmalloc(msg_size, GFP_KERNEL);
+ 	if (!msg_ctx->msg) {
+ 		rc = -ENOMEM;
+-		printk(KERN_ERR "%s: Failed to allocate [%Zd] bytes of "
++		printk(KERN_ERR "%s: Failed to allocate [%zd] bytes of "
+ 		       "GFP_KERNEL memory\n", __func__, msg_size);
+ 		goto unlock;
+ 	}
+diff -puN fs/ecryptfs/miscdev.c~ecryptfs-replace-%z-with-%z fs/ecryptfs/miscdev.c
+--- a/fs/ecryptfs/miscdev.c~ecryptfs-replace-%z-with-%z
++++ a/fs/ecryptfs/miscdev.c
+@@ -199,7 +199,7 @@ int ecryptfs_send_miscdev(char *data, si
+ 		if (!msg_ctx->msg) {
+ 			rc = -ENOMEM;
+ 			printk(KERN_ERR "%s: Out of memory whilst attempting "
+-			       "to kmalloc(%Zd, GFP_KERNEL)\n", __func__,
++			       "to kmalloc(%zd, GFP_KERNEL)\n", __func__,
+ 			       (sizeof(*msg_ctx->msg) + data_size));
+ 			goto out_unlock;
  		}
+@@ -322,7 +322,7 @@ check_list:
+ 	if (count < total_length) {
+ 		rc = 0;
+ 		printk(KERN_WARNING "%s: Only given user buffer of "
+-		       "size [%Zd], but we need [%Zd] to read the "
++		       "size [%zd], but we need [%zd] to read the "
+ 		       "pending message\n", __func__, count, total_length);
+ 		goto out_unlock_msg_ctx;
  	}
- 	if (!sig_set) {
-@@ -374,33 +419,60 @@ static int ecryptfs_parse_options(struct
- 		int cipher_name_len = strlen(ECRYPTFS_DEFAULT_CIPHER);
+@@ -376,7 +376,7 @@ static int ecryptfs_miscdev_response(cha
  
- 		BUG_ON(cipher_name_len >= ECRYPTFS_MAX_CIPHER_NAME_SIZE);
--
- 		strcpy(mount_crypt_stat->global_default_cipher_name,
- 		       ECRYPTFS_DEFAULT_CIPHER);
+ 	if ((sizeof(*msg) + msg->data_len) != data_size) {
+ 		printk(KERN_WARNING "%s: (sizeof(*msg) + msg->data_len) = "
+-		       "[%Zd]; data_size = [%Zd]. Invalid packet.\n", __func__,
++		       "[%zd]; data_size = [%zd]. Invalid packet.\n", __func__,
+ 		       (sizeof(*msg) + msg->data_len), data_size);
+ 		rc = -EINVAL;
+ 		goto out;
+@@ -421,7 +421,7 @@ ecryptfs_miscdev_write(struct file *file
+ 	data = kmalloc(count, GFP_KERNEL);
+ 	if (!data) {
+ 		printk(KERN_ERR "%s: Out of memory whilst attempting to "
+-		       "kmalloc([%Zd], GFP_KERNEL)\n", __func__, count);
++		       "kmalloc([%zd], GFP_KERNEL)\n", __func__, count);
+ 		goto out;
  	}
--	if (!cipher_key_bytes_set) {
-+	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)
-+	    && !fn_cipher_name_set)
-+		strcpy(mount_crypt_stat->global_default_fn_cipher_name,
-+		       mount_crypt_stat->global_default_cipher_name);
-+	if (!cipher_key_bytes_set)
- 		mount_crypt_stat->global_default_cipher_key_size = 0;
--	}
-+	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)
-+	    && !fn_cipher_key_bytes_set)
-+		mount_crypt_stat->global_default_fn_cipher_key_bytes =
-+			mount_crypt_stat->global_default_cipher_key_size;
- 	mutex_lock(&key_tfm_list_mutex);
- 	if (!ecryptfs_tfm_exists(mount_crypt_stat->global_default_cipher_name,
--				 NULL))
-+				 NULL)) {
- 		rc = ecryptfs_add_new_key_tfm(
- 			NULL, mount_crypt_stat->global_default_cipher_name,
- 			mount_crypt_stat->global_default_cipher_key_size);
--	mutex_unlock(&key_tfm_list_mutex);
--	if (rc) {
--		printk(KERN_ERR "Error attempting to initialize cipher with "
--		       "name = [%s] and key size = [%td]; rc = [%d]\n",
--		       mount_crypt_stat->global_default_cipher_name,
--		       mount_crypt_stat->global_default_cipher_key_size, rc);
--		rc = -EINVAL;
--		goto out;
-+		if (rc) {
-+			printk(KERN_ERR "Error attempting to initialize "
-+			       "cipher with name = [%s] and key size = [%td]; "
-+			       "rc = [%d]\n",
-+			       mount_crypt_stat->global_default_cipher_name,
-+			       mount_crypt_stat->global_default_cipher_key_size,
-+			       rc);
-+			rc = -EINVAL;
-+			mutex_unlock(&key_tfm_list_mutex);
-+			goto out;
-+		}
- 	}
-+	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)
-+	    && !ecryptfs_tfm_exists(
-+		    mount_crypt_stat->global_default_fn_cipher_name, NULL)) {
-+		rc = ecryptfs_add_new_key_tfm(
-+			NULL, mount_crypt_stat->global_default_fn_cipher_name,
-+			mount_crypt_stat->global_default_fn_cipher_key_bytes);
-+		if (rc) {
-+			printk(KERN_ERR "Error attempting to initialize "
-+			       "cipher with name = [%s] and key size = [%td]; "
-+			       "rc = [%d]\n",
-+			       mount_crypt_stat->global_default_fn_cipher_name,
-+			       mount_crypt_stat->global_default_fn_cipher_key_bytes,
-+			       rc);
-+			rc = -EINVAL;
-+			mutex_unlock(&key_tfm_list_mutex);
-+			goto out;
-+		}
-+	}
-+	mutex_unlock(&key_tfm_list_mutex);
- 	rc = ecryptfs_init_global_auth_toks(mount_crypt_stat);
--	if (rc) {
-+	if (rc)
- 		printk(KERN_WARNING "One or more global auth toks could not "
- 		       "properly register; rc = [%d]\n", rc);
--	}
- out:
- 	return rc;
- }
+ 	rc = copy_from_user(data, buf, count);
+@@ -436,8 +436,8 @@ ecryptfs_miscdev_write(struct file *file
+ 	case ECRYPTFS_MSG_RESPONSE:
+ 		if (count < (1 + 4 + 1 + sizeof(struct ecryptfs_message))) {
+ 			printk(KERN_WARNING "%s: Minimum acceptable packet "
+-			       "size is [%Zd], but amount of data written is "
+-			       "only [%Zd]. Discarding response packet.\n",
++			       "size is [%zd], but amount of data written is "
++			       "only [%zd]. Discarding response packet.\n",
+ 			       __func__,
+ 			       (1 + 4 + 1 + sizeof(struct ecryptfs_message)),
+ 			       count);
+@@ -455,9 +455,9 @@ ecryptfs_miscdev_write(struct file *file
+ 		}
+ 		i += packet_size_length;
+ 		if ((1 + 4 + packet_size_length + packet_size) != count) {
+-			printk(KERN_WARNING "%s: (1 + packet_size_length([%Zd])"
+-			       " + packet_size([%Zd]))([%Zd]) != "
+-			       "count([%Zd]). Invalid packet format.\n",
++			printk(KERN_WARNING "%s: (1 + packet_size_length([%zd])"
++			       " + packet_size([%zd]))([%zd]) != "
++			       "count([%zd]). Invalid packet format.\n",
+ 			       __func__, packet_size_length, packet_size,
+ 			       (1 + packet_size_length + packet_size), count);
+ 			goto out_free;
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
