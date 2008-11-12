@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-message-fusion-use-array_size.patch added to -mm tree
-Date: Wed, 12 Nov 2008 15:34:09 -0800
-Message-ID: <200811122334.mACNYAIo025712@imap1.linux-foundation.org>
+Subject: + drivers-mtd-maps-nettelc-use-array_size.patch added to -mm tree
+Date: Wed, 12 Nov 2008 15:34:49 -0800
+Message-ID: <200811122334.mACNYnMx026062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754677AbYKLXfG (ORCPT
+	by vger.kernel.org with ESMTP id S1755850AbYKLXfR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 18:35:06 -0500
+	Wed, 12 Nov 2008 18:35:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, Eric.Moore@lsil.com
+Cc: julia@diku.dk
 
 
 The patch titled
-     drivers/message/fusion: use ARRAY_SIZE
+     drivers/mtd/maps/nettel.c: use ARRAY_SIZE
 has been added to the -mm tree.  Its filename is
-     drivers-message-fusion-use-array_size.patch
+     drivers-mtd-maps-nettelc-use-array_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/message/fusion: use ARRAY_SIZE
+Subject: drivers/mtd/maps/nettel.c: use ARRAY_SIZE
 From: Julia Lawall <julia@diku.dk>
 
 ARRAY_SIZE is more concise to use when the size of an array is divided by
@@ -56,77 +56,35 @@ T[] E;
 
 - (sizeof(E)/sizeof(E[...]))
 + ARRAY_SIZE(E)
-
-@depends on i using "paren.iso"@
-type T;
-T[] E;
-@@
-
-- (sizeof(E)/sizeof(T))
-+ ARRAY_SIZE(E)
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/mtd/maps/nettel.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/message/fusion/mptbase.c~drivers-message-fusion-use-array_size drivers/message/fusion/mptbase.c
---- a/drivers/message/fusion/mptbase.c~drivers-message-fusion-use-array_size
-+++ a/drivers/message/fusion/mptbase.c
-@@ -4562,7 +4562,7 @@ WaitForDoorbellReply(MPT_ADAPTER *ioc, i
- 			failcnt++;
- 		hword = le16_to_cpu(CHIPREG_READ32(&ioc->chip->Doorbell) & 0x0000FFFF);
- 		/* don't overflow our IOC hs_reply[] buffer! */
--		if (u16cnt < sizeof(ioc->hs_reply) / sizeof(ioc->hs_reply[0]))
-+		if (u16cnt < ARRAY_SIZE(ioc->hs_reply))
- 			hs_reply[u16cnt] = hword;
- 		CHIPREG_WRITE32(&ioc->chip->IntStatus, 0);
- 	}
-@@ -7173,7 +7173,7 @@ union loginfo_type {
+diff -puN drivers/mtd/maps/nettel.c~drivers-mtd-maps-nettelc-use-array_size drivers/mtd/maps/nettel.c
+--- a/drivers/mtd/maps/nettel.c~drivers-mtd-maps-nettelc-use-array_size
++++ a/drivers/mtd/maps/nettel.c
+@@ -362,8 +362,7 @@ static int __init nettel_init(void)
  
- 	sas_loginfo.loginfo = log_info;
- 	if ((sas_loginfo.dw.bus_type != 3 /*SAS*/) &&
--	    (sas_loginfo.dw.originator < sizeof(originator_str)/sizeof(char*)))
-+	    (sas_loginfo.dw.originator < ARRAY_SIZE(originator_str)))
- 		return;
+ 	intel_mtd->owner = THIS_MODULE;
  
- 	originator_desc = originator_str[sas_loginfo.dw.originator];
-@@ -7182,21 +7182,21 @@ union loginfo_type {
+-	num_intel_partitions = sizeof(nettel_intel_partitions) /
+-		sizeof(nettel_intel_partitions[0]);
++	num_intel_partitions = ARRAY_SIZE(nettel_intel_partitions);
  
- 		case 0:  /* IOP */
- 			if (sas_loginfo.dw.code <
--			    sizeof(iop_code_str)/sizeof(char*))
-+			    ARRAY_SIZE(iop_code_str))
- 				code_desc = iop_code_str[sas_loginfo.dw.code];
- 			break;
- 		case 1:  /* PL */
- 			if (sas_loginfo.dw.code <
--			    sizeof(pl_code_str)/sizeof(char*))
-+			    ARRAY_SIZE(pl_code_str))
- 				code_desc = pl_code_str[sas_loginfo.dw.code];
- 			break;
- 		case 2:  /* IR */
- 			if (sas_loginfo.dw.code >=
--			    sizeof(ir_code_str)/sizeof(char*))
-+			    ARRAY_SIZE(ir_code_str))
- 				break;
- 			code_desc = ir_code_str[sas_loginfo.dw.code];
- 			if (sas_loginfo.dw.subcode >=
--			    sizeof(raid_sub_code_str)/sizeof(char*))
-+			    ARRAY_SIZE(raid_sub_code_str))
- 			break;
- 			if (sas_loginfo.dw.code == 0)
- 				sub_code_desc =
+ 	if (intelboot) {
+ 		/*
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
 drivers-media-use-array_size.patch
+drivers-mtd-maps-nettelc-use-array_size.patch
 drivers-isdn-misdn-use-array_size.patch
 drivers-message-fusion-use-array_size.patch
 fs-namespacec-drop-code-after-return.patch
