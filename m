@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wireless-ath9k-rcc-use-array_size.patch added to -mm tree
-Date: Wed, 12 Nov 2008 15:36:38 -0800
-Message-ID: <200811122336.mACNacVS027006@imap1.linux-foundation.org>
+Subject: + lib-fix-sparse-shadowed-variable-warning.patch added to -mm tree
+Date: Wed, 12 Nov 2008 15:57:38 -0800
+Message-ID: <200811122357.mACNvc7M005184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757032AbYKLXh5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751670AbYKLX6G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 18:37:57 -0500
+	Wed, 12 Nov 2008 18:58:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, Sujith.Manoharan@atheros.com, johannes@sipsolutions.net, linville@tuxdriver.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     drivers/net/wireless/ath9k/rc.c: use ARRAY_SIZE
+     lib: fix sparse shadowed variable warning
 has been added to the -mm tree.  Its filename is
-     drivers-net-wireless-ath9k-rcc-use-array_size.patch
+     lib-fix-sparse-shadowed-variable-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/ath9k/rc.c: use ARRAY_SIZE
-From: Julia Lawall <julia@diku.dk>
+Subject: lib: fix sparse shadowed variable warning
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-ARRAY_SIZE is more concise to use when the size of an array is divided by
-the size of its type or the size of its first element.
+pos is always set before being used, no need to declare a
+second one inside the if() block.
 
-The semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
+lib/prio_heap.c:34:7: warning: symbol 'pos' shadows an earlier one
+lib/prio_heap.c:30:6: originally declared here
 
-// <smpl>
-@i@
-@@
-
-#include <linux/kernel.h>
-
-@depends on i using "paren.iso"@
-type T;
-T[] E;
-@@
-
-- (sizeof(E)/sizeof(E[...]))
-+ ARRAY_SIZE(E)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Sujith <Sujith.Manoharan@atheros.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath9k/rc.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ lib/prio_heap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/ath9k/rc.c~drivers-net-wireless-ath9k-rcc-use-array_size drivers/net/wireless/ath9k/rc.c
---- a/drivers/net/wireless/ath9k/rc.c~drivers-net-wireless-ath9k-rcc-use-array_size
-+++ a/drivers/net/wireless/ath9k/rc.c
-@@ -1272,8 +1272,7 @@ static void ath_rc_update_ht(struct ath_
- 				rate_ctrl->state[tx_rate].per = 100;
- 		} else {
- 			/* xretries == 2 */
--			count = sizeof(nretry_to_per_lookup) /
--				sizeof(nretry_to_per_lookup[0]);
-+			count = ARRAY_SIZE(nretry_to_per_lookup);
- 			if (retries >= count)
- 				retries = count - 1;
- 			/* new_PER = 7/8*old_PER + 1/8*(currentPER) */
-@@ -1291,8 +1290,7 @@ static void ath_rc_update_ht(struct ath_
- 	} else {	/* xretries == 0 */
- 		/* Update the PER. */
- 		/* Make sure it doesn't index out of array's bounds. */
--		count = sizeof(nretry_to_per_lookup) /
--			sizeof(nretry_to_per_lookup[0]);
-+		count = ARRAY_SIZE(nretry_to_per_lookup);
- 		if (retries >= count)
- 			retries = count - 1;
- 		if (info_priv->n_bad_frames) {
+diff -puN lib/prio_heap.c~lib-fix-sparse-shadowed-variable-warning lib/prio_heap.c
+--- a/lib/prio_heap.c~lib-fix-sparse-shadowed-variable-warning
++++ a/lib/prio_heap.c
+@@ -31,7 +31,7 @@ void *heap_insert(struct ptr_heap *heap,
+ 
+ 	if (heap->size < heap->max) {
+ 		/* Heap insertion */
+-		int pos = heap->size++;
++		pos = heap->size++;
+ 		while (pos > 0 && heap->gt(p, ptrs[(pos-1)/2])) {
+ 			ptrs[pos] = ptrs[(pos-1)/2];
+ 			pos = (pos-1)/2;
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
+origin.patch
 linux-next.patch
-drivers-media-use-array_size.patch
-drivers-mtd-maps-nettelc-use-array_size.patch
-drivers-isdn-misdn-use-array_size.patch
-drivers-message-fusion-use-array_size.patch
-fs-namespacec-drop-code-after-return.patch
-drivers-net-wireless-ath9k-rcc-use-array_size.patch
-crypto-md4c-use-array_size.patch
+arm-use-the-new-byteorder-headers.patch
+cifs-remove-global_extern-macro.patch
+dlm-trivial-annotation-of-be16-value.patch
+ia64-use-the-new-byteorder-headers.patch
+input-ads7846c-sparse-lock-annotation.patch
+m32r-use-the-new-byteorder-headers.patch
+blackfin-remove-__function__-in-new-serial-driver.patch
+blackfin-use-the-new-byteorder-headers.patch
+parisc-use-the-new-byteorder-headers.patch
+s390-use-the-new-byteorder-headers.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+wusb-annotate-association-types-withe-proper-endianness.patch
+frv-use-the-new-byteorder-headers.patch
+m68knommu-use-the-new-byteorder-headers.patch
+h8300-use-the-new-byteorder-headers.patch
+alpha-use-the-new-byteorder-headers.patch
+lib-fix-sparse-shadowed-variable-warning.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+blackfin-remove-__function__-in-video-driver.patch
+fb-carminefb-trivial-annotation-packing-color-register.patch
+memstick-annotate-endianness-of-attribute-structs.patch
 
