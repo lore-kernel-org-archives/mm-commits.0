@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-get-rid-of-ifdef-config_migration.patch added to -mm tree
-Date: Tue, 11 Nov 2008 15:57:15 -0800
-Message-ID: <200811112357.mABNvFw2029085@imap1.linux-foundation.org>
+Subject: + mm-more-likely-reclaim-madv_sequential-mappings.patch added to -mm tree
+Date: Tue, 11 Nov 2008 16:00:51 -0800
+Message-ID: <200811120000.mAC00pOf030889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56543 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751055AbYKKX52 (ORCPT
+	by vger.kernel.org with ESMTP id S1751458AbYKLABv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Nov 2008 18:57:28 -0500
+	Tue, 11 Nov 2008 19:01:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, cl@linux-foundation.org, mel@csn.ul.ie
+Cc: hannes@cmpxchg.org, hannes@saeurebad.de, kosaki.motohiro@jp.fujitsu.com, npiggin@suse.de, riel@redhat.com
 
 
 The patch titled
-     mm: ccleanup: remove #ifdef CONFIG_MIGRATION
+     mm: more likely reclaim MADV_SEQUENTIAL mappings
 has been added to the -mm tree.  Its filename is
-     cleanup-get-rid-of-ifdef-config_migration.patch
+     mm-more-likely-reclaim-madv_sequential-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: ccleanup: remove #ifdef CONFIG_MIGRATION
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: more likely reclaim MADV_SEQUENTIAL mappings
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-#ifdef in *.c file decrease source readability a bit.  removing is better.
+File pages mapped only in sequentially read mappings are perfect reclaim
+canditates.
 
-This patch doesn't have any functional change.
+This patch makes these mappings behave like weak references, their pages
+will be reclaimed unless they have a strong reference from a normal
+mapping as well.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+It changes the reclaim and the unmap path where they check if the page has
+been referenced.  In both cases, accesses through sequentially read
+mappings will be ignored.
+
+Benchmark results from KOSAKI Motohiro:
+
+    http://marc.info/?l=linux-mm&m=122485301925098&w=2
+
+Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    4 ++++
- mm/mprotect.c           |    6 ++----
- mm/rmap.c               |   10 +++-------
- 3 files changed, 9 insertions(+), 11 deletions(-)
+ mm/memory.c |    3 ++-
+ mm/rmap.c   |   13 +++++++++++--
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/migrate.h~cleanup-get-rid-of-ifdef-config_migration include/linux/migrate.h
---- a/include/linux/migrate.h~cleanup-get-rid-of-ifdef-config_migration
-+++ a/include/linux/migrate.h
-@@ -7,6 +7,8 @@
- typedef struct page *new_page_t(struct page *, unsigned long private, int **);
- 
- #ifdef CONFIG_MIGRATION
-+#define PAGE_MIGRATION 1
-+
- extern int putback_lru_pages(struct list_head *l);
- extern int migrate_page(struct address_space *,
- 			struct page *, struct page *);
-@@ -20,6 +22,8 @@ extern int migrate_vmas(struct mm_struct
- 		const nodemask_t *from, const nodemask_t *to,
- 		unsigned long flags);
- #else
-+#define PAGE_MIGRATION 0
-+
- static inline int putback_lru_pages(struct list_head *l) { return 0; }
- static inline int migrate_pages(struct list_head *l, new_page_t x,
- 		unsigned long private) { return -ENOSYS; }
-diff -puN mm/mprotect.c~cleanup-get-rid-of-ifdef-config_migration mm/mprotect.c
---- a/mm/mprotect.c~cleanup-get-rid-of-ifdef-config_migration
-+++ a/mm/mprotect.c
-@@ -22,6 +22,7 @@
- #include <linux/swap.h>
- #include <linux/swapops.h>
- #include <linux/mmu_notifier.h>
-+#include <linux/migrate.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
- #include <asm/cacheflush.h>
-@@ -59,8 +60,7 @@ static void change_pte_range(struct mm_s
- 				ptent = pte_mkwrite(ptent);
- 
- 			ptep_modify_prot_commit(mm, addr, pte, ptent);
--#ifdef CONFIG_MIGRATION
--		} else if (!pte_file(oldpte)) {
-+		} else if (PAGE_MIGRATION && !pte_file(oldpte)) {
- 			swp_entry_t entry = pte_to_swp_entry(oldpte);
- 
- 			if (is_write_migration_entry(entry)) {
-@@ -72,9 +72,7 @@ static void change_pte_range(struct mm_s
- 				set_pte_at(mm, addr, pte,
- 					swp_entry_to_pte(entry));
+diff -puN mm/memory.c~mm-more-likely-reclaim-madv_sequential-mappings mm/memory.c
+--- a/mm/memory.c~mm-more-likely-reclaim-madv_sequential-mappings
++++ a/mm/memory.c
+@@ -757,7 +757,8 @@ static unsigned long zap_pte_range(struc
+ 			else {
+ 				if (pte_dirty(ptent))
+ 					set_page_dirty(page);
+-				if (pte_young(ptent))
++				if (pte_young(ptent) &&
++				    likely(!VM_SequentialReadHint(vma)))
+ 					mark_page_accessed(page);
+ 				file_rss--;
  			}
--#endif
- 		}
--
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
- 	arch_leave_lazy_mmu_mode();
- 	pte_unmap_unlock(pte - 1, ptl);
-diff -puN mm/rmap.c~cleanup-get-rid-of-ifdef-config_migration mm/rmap.c
---- a/mm/rmap.c~cleanup-get-rid-of-ifdef-config_migration
+diff -puN mm/rmap.c~mm-more-likely-reclaim-madv_sequential-mappings mm/rmap.c
+--- a/mm/rmap.c~mm-more-likely-reclaim-madv_sequential-mappings
 +++ a/mm/rmap.c
-@@ -50,6 +50,7 @@
- #include <linux/kallsyms.h>
- #include <linux/memcontrol.h>
- #include <linux/mmu_notifier.h>
-+#include <linux/migrate.h>
+@@ -360,8 +360,17 @@ static int page_referenced_one(struct pa
+ 		goto out_unmap;
+ 	}
  
- #include <asm/tlbflush.h>
+-	if (ptep_clear_flush_young_notify(vma, address, pte))
+-		referenced++;
++	if (ptep_clear_flush_young_notify(vma, address, pte)) {
++		/*
++		 * Don't treat a reference through a sequentially read
++		 * mapping as such.  If the page has been used in
++		 * another mapping, we will catch it; if this other
++		 * mapping is already gone, the unmap path will have
++		 * set PG_referenced or activated the page.
++		 */
++		if (likely(!VM_SequentialReadHint(vma)))
++			referenced++;
++	}
  
-@@ -818,8 +819,7 @@ static int try_to_unmap_one(struct page 
- 				spin_unlock(&mmlist_lock);
- 			}
- 			dec_mm_counter(mm, anon_rss);
--#ifdef CONFIG_MIGRATION
--		} else {
-+		} else if (PAGE_MIGRATION) {
- 			/*
- 			 * Store the pfn of the page in a special migration
- 			 * pte. do_swap_page() will wait until the migration
-@@ -827,19 +827,15 @@ static int try_to_unmap_one(struct page 
- 			 */
- 			BUG_ON(!migration);
- 			entry = make_migration_entry(page, pte_write(pteval));
--#endif
- 		}
- 		set_pte_at(mm, address, pte, swp_entry_to_pte(entry));
- 		BUG_ON(pte_file(*pte));
--	} else
--#ifdef CONFIG_MIGRATION
--	if (migration) {
-+	} else if (PAGE_MIGRATION && migration) {
- 		/* Establish migration entry for a file page */
- 		swp_entry_t entry;
- 		entry = make_migration_entry(page, pte_write(pteval));
- 		set_pte_at(mm, address, pte, swp_entry_to_pte(entry));
- 	} else
--#endif
- 		dec_mm_counter(mm, file_rss);
- 
- 
+ 	/* Pretend the page is referenced if the task has the
+ 	   swap token and is in the middle of a page fault. */
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-remove-lru_add_drain_all-from-the-munlock-path.patch
-linux-next.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-mm-get-rid-of-pagevec_release_nonlru.patch
-cleanup-get-rid-of-ifdef-config_migration.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
 
