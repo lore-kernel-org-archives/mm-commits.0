@@ -1,65 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - cpusets-update-mems-allowed-in-page-allocator-fix.patch removed from -mm tree
-Date: Wed, 12 Nov 2008 13:15:42 -0800
-Message-ID: <200811122115.mACLFgDg021059@imap1.linux-foundation.org>
+Subject: - doc-add-printk-formatstxt-fix.patch removed from -mm tree
+Date: Wed, 12 Nov 2008 13:16:36 -0800
+Message-ID: <200811122116.mACLGb36021554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53330 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751790AbYKLVQY (ORCPT
+	by vger.kernel.org with ESMTP id S1753211AbYKLVRM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 16:16:24 -0500
+	Wed, 12 Nov 2008 16:17:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux-foundation.org, mel@csn.ul.ie, menage@google.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpusets-update-mems-allowed-in-page-allocator-fix
+     doc-add-printk-formatstxt-fix
 has been removed from the -mm tree.  Its filename was
-     cpusets-update-mems-allowed-in-page-allocator-fix.patch
+     doc-add-printk-formatstxt-fix.patch
 
-This patch was dropped because it was folded into cpusets-update-mems-allowed-in-page-allocator.patch
+This patch was dropped because it was folded into doc-add-printk-formatstxt.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusets-update-mems-allowed-in-page-allocator-fix
+Subject: doc-add-printk-formatstxt-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-explain why...
-
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Paul Menage <menage@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/printk-formats.txt |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~cpusets-update-mems-allowed-in-page-allocator-fix mm/page_alloc.c
---- a/mm/page_alloc.c~cpusets-update-mems-allowed-in-page-allocator-fix
-+++ a/mm/page_alloc.c
-@@ -1561,6 +1561,9 @@ nofail_alloc:
+diff -puN Documentation/printk-formats.txt~doc-add-printk-formatstxt-fix Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~doc-add-printk-formatstxt-fix
++++ a/Documentation/printk-formats.txt
+@@ -32,5 +32,4 @@ Reminder: sizeof() result is of type siz
+ Thank you for your cooperation and attention.
  
- 	/* We now go into synchronous reclaim */
- 	cpuset_memory_pressure_bump();
-+	/*
-+	 * The task's cpuset might have expanded its set of allowable nodes
-+	 */
- 	cpuset_update_task_memory_state();
- 	p->flags |= PF_MEMALLOC;
- 	reclaim_state.reclaimed_slab = 0;
+ 
+-Written by Alexey Dobriyan <adobriyan@gmail.com>
+-Updated by Randy Dunlap <rdunlap@xenotime.net>
++By Randy Dunlap <rdunlap@xenotime.net>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 cpusets-update-mems-allowed-in-page-allocator.patch
-cpusets-update-mems-allowed-in-page-allocator-fix.patch
 remove-ratelimt.patch
+doc-add-printk-formatstxt.patch
 doc-add-printk-formatstxt-fix.patch
 kernel-kprobesc-dont-pad-kretprobe_table_locks-on-uniprocessor-builds.patch
 rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
