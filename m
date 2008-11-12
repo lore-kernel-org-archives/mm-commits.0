@@ -1,194 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: + x86-powernow-k8-ignore-out-of-range-pstatestatus-value.patch added to -mm tree
-Date: Wed, 12 Nov 2008 14:17:00 -0800
-Message-ID: <200811122217.mACMH0Kf019486@imap1.linux-foundation.org>
+Subject: - gpio-adding-new-xilinx-driver-update.patch removed from -mm tree
+Date: Wed, 12 Nov 2008 13:16:18 -0800
+Message-ID: <200811122116.mACLGI4U021387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60723 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57627 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751680AbYKLWRr (ORCPT
+	by vger.kernel.org with ESMTP id S1752002AbYKLWSi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 17:17:47 -0500
+	Wed, 12 Nov 2008 17:18:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: andreas.herrmann3@amd.com, davej@codemonkey.org.uk, mark.langsdorf@amd.com, stable@kernel.org
+To: john.linn@xilinx.com, avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, grant.likely@secretlab.ca, kirans@xilinx.com, paulus@samba.org
 
 
 The patch titled
-     x86: powernow-k8: ignore out-of-range PstateStatus value
-has been added to the -mm tree.  Its filename is
-     x86-powernow-k8-ignore-out-of-range-pstatestatus-value.patch
+     GPIO: Adding new Xilinx driver (update)
+has been removed from the -mm tree.  Its filename was
+     gpio-adding-new-xilinx-driver-update.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into gpio-adding-new-xilinx-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: powernow-k8: ignore out-of-range PstateStatus value
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Subject: GPIO: Adding new Xilinx driver (update)
+From: John Linn <john.linn@xilinx.com>
 
-A workaround for AMD CPU family 11h erratum 311 might cause that the
-P-state Status Register shows a "current P-state" which is larger than the
-"current P-state limit" in P-state Current Limit Register.  For the wrong
-P-state value there is no ACPI _PSS object defined and powernow-k8/cpufreq
-can't determine the proper CPU frequency for that state.
+V2 - Updated based on Anton's comments
+V3 - Cleaned up Kconfig badness in patch generation and added Grant's signoff
 
-As a consequence this can cause a panic during boot (potentially with all
-recent kernel versions -- at least I have reproduced it with various
-2.6.27 kernels and with the current .28 series), as an example:
-
-powernow-k8: Found 1 AMD Turion(tm)X2 Ultra DualCore Mobile ZM-82 processors (2 \
-)
-powernow-k8:    0 : pstate 0 (2200 MHz)
-powernow-k8:    1 : pstate 1 (1100 MHz)
-powernow-k8:    2 : pstate 2 (600 MHz)
-BUG: unable to handle kernel paging request at ffff88086e7528b8
-IP: [<ffffffff80486361>] cpufreq_stats_update+0x4a/0x5f
-PGD 202063 PUD 0
-Oops: 0002 [#1] SMP
-last sysfs file:
-CPU 1
-Modules linked in:
-Pid: 1, comm: swapper Not tainted 2.6.28-rc3-dirty #16
-RIP: 0010:[<ffffffff80486361>]  [<ffffffff80486361>] cpufreq_stats_update+0x4a/0\
-f
-Synaptics claims to have extended capabilities, but I'm not able to read them.<6\
-6
-RAX: 0000000000000000 RBX: 0000000000000001 RCX: ffff88006e7528c0
-RDX: 00000000ffffffff RSI: ffff88006e54af00 RDI: ffffffff808f056c
-RBP: 00000000fffee697 R08: 0000000000000003 R09: ffff88006e73f080
-R10: 0000000000000001 R11: 00000000002191c0 R12: ffff88006fb83c10
-R13: 00000000ffffffff R14: 0000000000000001 R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffff88006fb50740(0000) knlGS:0000000000000000
-Unable to initialize Synaptics hardware.
-CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
-CR2: ffff88086e7528b8 CR3: 0000000000201000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process swapper (pid: 1, threadinfo ffff88006fb82000, task ffff88006fb816d0)
-Stack:
- ffff88006e74da50 0000000000000000 ffff88006e54af00 ffffffff804863c7
- ffff88006e74da50 0000000000000000 00000000ffffffff 0000000000000000
- ffff88006fb83c10 ffffffff8024b46c ffffffff808f0560 ffff88006fb83c10
-Call Trace:
- [<ffffffff804863c7>] ? cpufreq_stat_notifier_trans+0x51/0x83
- [<ffffffff8024b46c>] ? notifier_call_chain+0x29/0x4c
- [<ffffffff8024b561>] ? __srcu_notifier_call_chain+0x46/0x61
- [<ffffffff8048496d>] ? cpufreq_notify_transition+0x93/0xa9
- [<ffffffff8021ab8d>] ? powernowk8_target+0x1e8/0x5f3
- [<ffffffff80486687>] ? cpufreq_governor_performance+0x1b/0x20
- [<ffffffff80484886>] ? __cpufreq_governor+0x71/0xa8
- [<ffffffff80484b21>] ? __cpufreq_set_policy+0x101/0x13e
- [<ffffffff80485bcd>] ? cpufreq_add_dev+0x3f0/0x4cd
- [<ffffffff8048577a>] ? handle_update+0x0/0x8
- [<ffffffff803c2062>] ? sysdev_driver_register+0xb6/0x10d
- [<ffffffff8056592c>] ? powernowk8_init+0x0/0x7e
- [<ffffffff8048604c>] ? cpufreq_register_driver+0x8f/0x140
- [<ffffffff80209056>] ? _stext+0x56/0x14f
- [<ffffffff802c2234>] ? proc_register+0x122/0x17d
- [<ffffffff802c23a0>] ? create_proc_entry+0x73/0x8a
- [<ffffffff8025c259>] ? register_irq_proc+0x92/0xaa
- [<ffffffff8025c2c8>] ? init_irq_proc+0x57/0x69
- [<ffffffff807fc85f>] ? kernel_init+0x116/0x169
- [<ffffffff8020cc79>] ? child_rip+0xa/0x11
- [<ffffffff807fc749>] ? kernel_init+0x0/0x169
- [<ffffffff8020cc6f>] ? child_rip+0x0/0x11
-Code: 05 c5 83 36 00 48 c7 c2 48 5d 86 80 48 8b 04 d8 48 8b 40 08 48 8b 34 02 48\
-
-RIP  [<ffffffff80486361>] cpufreq_stats_update+0x4a/0x5f
- RSP <ffff88006fb83b20>
-CR2: ffff88086e7528b8
----[ end trace 0678bac75e67a2f7 ]---
-Kernel panic - not syncing: Attempted to kill init!
-
-In short, aftereffect of the wrong P-state is that
-cpufreq_stats_update() uses "-1" as index for some array in
-
-cpufreq_stats_update (unsigned int cpu)
-{
-...
-     if (stat->time_in_state)
-                stat->time_in_state[stat->last_index] =
-                        cputime64_add(stat->time_in_state[stat->last_index],
-                                      cputime_sub(cur_time, stat->last_time));
-...
-}
-
-Fortunately, the wrong P-state value is returned only if the core is
-in P-state 0. This fix solves the problem by detecting the
-out-of-range P-state, ignoring it, and using "0" instead.
-
-Cc: <stable@kernel.org>
-Acked-by: Mark Langsdorf <mark.langsdorf@amd.com>
-Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Kiran Sutariya <kirans@xilinx.com>
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: John Linn <john.linn@xilinx.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: <avorontsov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c |   16 +++++++++++++---
- arch/x86/kernel/cpu/cpufreq/powernow-k8.h |    4 +++-
- 2 files changed, 16 insertions(+), 4 deletions(-)
+ drivers/gpio/Kconfig       |    2 
+ drivers/gpio/xilinx_gpio.c |   71 ++++++++++++++++-------------------
+ 2 files changed, 34 insertions(+), 39 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~x86-powernow-k8-ignore-out-of-range-pstatestatus-value arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~x86-powernow-k8-ignore-out-of-range-pstatestatus-value
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -115,9 +115,18 @@ static int query_current_values_with_pen
- 	u32 i = 0;
+diff -puN drivers/gpio/Kconfig~gpio-adding-new-xilinx-driver-update drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-adding-new-xilinx-driver-update
++++ a/drivers/gpio/Kconfig
+@@ -69,7 +69,7 @@ comment "Memory mapped GPIO expanders:"
  
- 	if (cpu_family == CPU_HW_PSTATE) {
--		rdmsr(MSR_PSTATE_STATUS, lo, hi);
--		i = lo & HW_PSTATE_MASK;
--		data->currpstate = i;
-+		if (data->currpstate == INVALID_HW_PSTATE) {
-+			/* read (initial) hw pstate if not yet set */
-+			rdmsr(MSR_PSTATE_STATUS, lo, hi);
-+			i = lo & HW_PSTATE_MASK;
+ config GPIO_XILINX
+ 	bool "Xilinx GPIO support"
+-	depends on OF
++	depends on PPC_OF
+ 	help
+ 	  Say yes here to support the Xilinx FPGA GPIO device
+ 
+diff -puN drivers/gpio/xilinx_gpio.c~gpio-adding-new-xilinx-driver-update drivers/gpio/xilinx_gpio.c
+--- a/drivers/gpio/xilinx_gpio.c~gpio-adding-new-xilinx-driver-update
++++ a/drivers/gpio/xilinx_gpio.c
+@@ -12,6 +12,8 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
+ 
++#include <linux/init.h>
++#include <linux/errno.h>
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_gpio.h>
+@@ -135,16 +137,27 @@ static int xgpio_dir_out(struct gpio_chi
+ }
+ 
+ /**
++ * xgpio_save_regs - Set initial values of GPIO pins
++ * @mm_gc: pointer to memory mapped GPIO chip structure
++ */
++static void xgpio_save_regs(struct of_mm_gpio_chip *mm_gc)
++{
++	struct xgpio_instance *chip =
++	    container_of(mm_gc, struct xgpio_instance, mmchip);
 +
-+			/* a workaround for family 11h erratum 311 might cause
-+			   an "out-of-range Pstate if the core is in Pstate-0 */
-+			if (i >= data->numps)
-+				data->currpstate = 0;
-+			else
-+				data->currpstate = i;
-+		}
- 		return 0;
++	out_be32(mm_gc->regs + XGPIO_DATA_OFFSET, chip->gpio_state);
++	out_be32(mm_gc->regs + XGPIO_TRI_OFFSET, chip->gpio_dir);
++}
++
++/**
+  * xgpio_of_probe - Probe method for the GPIO device.
+- * @of_dev: pointer to OF device structure.
+- * @match:  pointer to the structure used for matching a device.
++ * @np: pointer to device tree node
+  *
+  * This function probes the GPIO device in the device tree. It initializes the
+  * driver data structure. It returns 0, if the driver is bound to the GPIO
+  * device, or a negative value if there is an error.
+  */
+-static int __devinit xgpio_of_probe(struct of_device *ofdev,
+-				    const struct of_device_id *match)
++static int __devinit xgpio_of_probe(struct device_node *np)
+ {
+ 	struct xgpio_instance *chip;
+ 	struct of_gpio_chip *ofchip;
+@@ -157,21 +170,21 @@ static int __devinit xgpio_of_probe(stru
+ 	ofchip = &chip->mmchip.of_gc;
+ 
+ 	/* Update GPIO state shadow register with default value */
+-	tree_info = of_get_property(ofdev->node, "xlnx,dout-default", NULL);
++	tree_info = of_get_property(np, "xlnx,dout-default", NULL);
+ 	if (tree_info)
+ 		chip->gpio_state = *tree_info;
+ 
+ 	/* Update GPIO direction shadow register with default value */
+ 	chip->gpio_dir = 0xFFFFFFFF; /* By default, all pins are inputs */
+-	tree_info = of_get_property(ofdev->node, "xlnx,tri-default", NULL);
++	tree_info = of_get_property(np, "xlnx,tri-default", NULL);
+ 	if (tree_info)
+ 		chip->gpio_dir = *tree_info;
+ 
+ 	/* Check device node and parent device node for device width */
+ 	ofchip->gc.ngpio = 32; /* By default assume full GPIO controller */
+-	tree_info = of_get_property(ofdev->node, "xlnx,gpio-width", NULL);
++	tree_info = of_get_property(np, "xlnx,gpio-width", NULL);
+ 	if (!tree_info)
+-		tree_info = of_get_property(ofdev->node->parent,
++		tree_info = of_get_property(np->parent,
+ 					    "xlnx,gpio-width", NULL);
+ 	if (tree_info)
+ 		ofchip->gc.ngpio = *tree_info;
+@@ -184,51 +197,33 @@ static int __devinit xgpio_of_probe(stru
+ 	ofchip->gc.get = xgpio_get;
+ 	ofchip->gc.set = xgpio_set;
+ 
++	chip->mmchip.save_regs = xgpio_save_regs;
++
+ 	/* Call the OF gpio helper to setup and register the GPIO device */
+-	status = of_mm_gpiochip_add(ofdev->node, &chip->mmchip);
++	status = of_mm_gpiochip_add(np, &chip->mmchip);
+ 	if (status) {
+ 		kfree(chip);
+-		dev_err(&ofdev->dev, "Error in probe function error value %d\n",
+-			status);
++		pr_err("%s: error in probe function with status %d\n",
++		       np->full_name, status);
+ 		return status;
  	}
- 	do {
-@@ -1121,6 +1130,7 @@ static int __cpuinit powernowk8_cpu_init
- 	}
+-
+-	/* Finally, write the initial state to the device */
+-	out_be32(chip->mmchip.regs + XGPIO_DATA_OFFSET, chip->gpio_state);
+-	out_be32(chip->mmchip.regs + XGPIO_TRI_OFFSET, chip->gpio_dir);
+-
+-	dev_info(&ofdev->dev, "registered Xilinx GPIO controller\n");
++	pr_info("XGpio: %s: registered\n", np->full_name);
+ 	return 0;
+ }
  
- 	data->cpu = pol->cpu;
-+	data->currpstate = INVALID_HW_PSTATE;
+-/**
+- * xgpio_of_remove - Remove method for the GPIO device.
+- * @of_dev: pointer to OF device structure.
+- *
+- * This function returns a negative error as we cannot unregister GPIO chips.
+- */
+-static int __devexit xgpio_of_remove(struct of_device *ofdev)
+-{
+-	return -EBUSY;
+-}
+-
+ static struct of_device_id xgpio_of_match[] __devinitdata = {
+ 	{ .compatible = "xlnx,xps-gpio-1.00.a", },
+ 	{ /* end of list */ },
+ };
  
- 	if (powernow_k8_cpu_init_acpi(data)) {
- 		/*
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.h~x86-powernow-k8-ignore-out-of-range-pstatestatus-value arch/x86/kernel/cpu/cpufreq/powernow-k8.h
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.h~x86-powernow-k8-ignore-out-of-range-pstatestatus-value
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.h
-@@ -23,7 +23,9 @@ struct powernow_k8_data {
-         u32 exttype; /* extended interface = 1 */
- 
- 	/* keep track of the current fid / vid or pstate */
--	u32 currvid, currfid, currpstate;
-+	u32 currvid, currfid;
-+	u32 currpstate;
-+#define INVALID_HW_PSTATE 0xff
- 
- 	/* the powernow_table includes all frequency and vid/fid pairings:
- 	 * fid are the lower 8 bits of the index, vid are the upper 8 bits.
-_
-
-Patches currently in -mm which might be from andreas.herrmann3@amd.com are
-
-x86-powernow-k8-ignore-out-of-range-pstatestatus-value.patch
-
+-MODULE_DEVICE_TABLE(of, xgpio_of_match);
+-
+-static struct of_platform_driver xgpio_of_driver = {
+-	.name = "xilinx_gpio",
+-	.match_table = xgpio_of_match,
+-	.probe = xgpio_of_probe,
+-	.remove = __devexit_p(xgpio_of_remove),
+-};
