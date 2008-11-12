@@ -1,180 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-adding-new-xilinx-driver-update.patch removed from -mm tree
-Date: Wed, 12 Nov 2008 13:16:18 -0800
-Message-ID: <200811122116.mACLGI4U021387@imap1.linux-foundation.org>
+Subject: + netdev-smc911x-fix-for-driver-resume-cleanup.patch added to -mm tree
+Date: Wed, 12 Nov 2008 14:26:06 -0800
+Message-ID: <200811122226.mACMQ6Kk024065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752002AbYKLWSi (ORCPT
+	by vger.kernel.org with ESMTP id S1753345AbYKLW0s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 17:18:38 -0500
+	Wed, 12 Nov 2008 17:26:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john.linn@xilinx.com, avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, grant.likely@secretlab.ca, kirans@xilinx.com, paulus@samba.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, catalin.marinas@arm.com, jeff@garzik.org, romit@ti.com
 
 
 The patch titled
-     GPIO: Adding new Xilinx driver (update)
-has been removed from the -mm tree.  Its filename was
-     gpio-adding-new-xilinx-driver-update.patch
+     netdev-smc911x-fix-for-driver-resume-cleanup
+has been added to the -mm tree.  Its filename is
+     netdev-smc911x-fix-for-driver-resume-cleanup.patch
 
-This patch was dropped because it was folded into gpio-adding-new-xilinx-driver.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GPIO: Adding new Xilinx driver (update)
-From: John Linn <john.linn@xilinx.com>
+Subject: netdev-smc911x-fix-for-driver-resume-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-V2 - Updated based on Anton's comments
-V3 - Cleaned up Kconfig badness in patch generation and added Grant's signoff
+Save an ugly ifdef.
 
-Signed-off-by: Kiran Sutariya <kirans@xilinx.com>
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-Signed-off-by: John Linn <john.linn@xilinx.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: <avorontsov@ru.mvista.com>
+Cc: "Dasgupta, Romit" <romit@ti.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Romit Dasgupta <romit@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig       |    2 
- drivers/gpio/xilinx_gpio.c |   71 ++++++++++++++++-------------------
- 2 files changed, 34 insertions(+), 39 deletions(-)
+ drivers/net/smc911x.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-adding-new-xilinx-driver-update drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-adding-new-xilinx-driver-update
-+++ a/drivers/gpio/Kconfig
-@@ -69,7 +69,7 @@ comment "Memory mapped GPIO expanders:"
- 
- config GPIO_XILINX
- 	bool "Xilinx GPIO support"
--	depends on OF
-+	depends on PPC_OF
- 	help
- 	  Say yes here to support the Xilinx FPGA GPIO device
- 
-diff -puN drivers/gpio/xilinx_gpio.c~gpio-adding-new-xilinx-driver-update drivers/gpio/xilinx_gpio.c
---- a/drivers/gpio/xilinx_gpio.c~gpio-adding-new-xilinx-driver-update
-+++ a/drivers/gpio/xilinx_gpio.c
-@@ -12,6 +12,8 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+diff -puN drivers/net/smc911x.c~netdev-smc911x-fix-for-driver-resume-cleanup drivers/net/smc911x.c
+--- a/drivers/net/smc911x.c~netdev-smc911x-fix-for-driver-resume-cleanup
++++ a/drivers/net/smc911x.c
+@@ -2048,9 +2048,6 @@ err_out:
   */
- 
-+#include <linux/init.h>
-+#include <linux/errno.h>
- #include <linux/of_device.h>
- #include <linux/of_platform.h>
- #include <linux/of_gpio.h>
-@@ -135,16 +137,27 @@ static int xgpio_dir_out(struct gpio_chi
- }
- 
- /**
-+ * xgpio_save_regs - Set initial values of GPIO pins
-+ * @mm_gc: pointer to memory mapped GPIO chip structure
-+ */
-+static void xgpio_save_regs(struct of_mm_gpio_chip *mm_gc)
-+{
-+	struct xgpio_instance *chip =
-+	    container_of(mm_gc, struct xgpio_instance, mmchip);
-+
-+	out_be32(mm_gc->regs + XGPIO_DATA_OFFSET, chip->gpio_state);
-+	out_be32(mm_gc->regs + XGPIO_TRI_OFFSET, chip->gpio_dir);
-+}
-+
-+/**
-  * xgpio_of_probe - Probe method for the GPIO device.
-- * @of_dev: pointer to OF device structure.
-- * @match:  pointer to the structure used for matching a device.
-+ * @np: pointer to device tree node
-  *
-  * This function probes the GPIO device in the device tree. It initializes the
-  * driver data structure. It returns 0, if the driver is bound to the GPIO
-  * device, or a negative value if there is an error.
-  */
--static int __devinit xgpio_of_probe(struct of_device *ofdev,
--				    const struct of_device_id *match)
-+static int __devinit xgpio_of_probe(struct device_node *np)
+ static int smc911x_drv_probe(struct platform_device *pdev)
  {
- 	struct xgpio_instance *chip;
- 	struct of_gpio_chip *ofchip;
-@@ -157,21 +170,21 @@ static int __devinit xgpio_of_probe(stru
- 	ofchip = &chip->mmchip.of_gc;
- 
- 	/* Update GPIO state shadow register with default value */
--	tree_info = of_get_property(ofdev->node, "xlnx,dout-default", NULL);
-+	tree_info = of_get_property(np, "xlnx,dout-default", NULL);
- 	if (tree_info)
- 		chip->gpio_state = *tree_info;
- 
- 	/* Update GPIO direction shadow register with default value */
- 	chip->gpio_dir = 0xFFFFFFFF; /* By default, all pins are inputs */
--	tree_info = of_get_property(ofdev->node, "xlnx,tri-default", NULL);
-+	tree_info = of_get_property(np, "xlnx,tri-default", NULL);
- 	if (tree_info)
- 		chip->gpio_dir = *tree_info;
- 
- 	/* Check device node and parent device node for device width */
- 	ofchip->gc.ngpio = 32; /* By default assume full GPIO controller */
--	tree_info = of_get_property(ofdev->node, "xlnx,gpio-width", NULL);
-+	tree_info = of_get_property(np, "xlnx,gpio-width", NULL);
- 	if (!tree_info)
--		tree_info = of_get_property(ofdev->node->parent,
-+		tree_info = of_get_property(np->parent,
- 					    "xlnx,gpio-width", NULL);
- 	if (tree_info)
- 		ofchip->gc.ngpio = *tree_info;
-@@ -184,51 +197,33 @@ static int __devinit xgpio_of_probe(stru
- 	ofchip->gc.get = xgpio_get;
- 	ofchip->gc.set = xgpio_set;
- 
-+	chip->mmchip.save_regs = xgpio_save_regs;
-+
- 	/* Call the OF gpio helper to setup and register the GPIO device */
--	status = of_mm_gpiochip_add(ofdev->node, &chip->mmchip);
-+	status = of_mm_gpiochip_add(np, &chip->mmchip);
- 	if (status) {
- 		kfree(chip);
--		dev_err(&ofdev->dev, "Error in probe function error value %d\n",
--			status);
-+		pr_err("%s: error in probe function with status %d\n",
-+		       np->full_name, status);
- 		return status;
+-#ifdef SMC_DYNAMIC_BUS_CONFIG
+-	struct smc911x_platdata *pd = pdev->dev.platform_data;
+-#endif
+ 	struct net_device *ndev;
+ 	struct resource *res;
+ 	struct smc911x_local *lp;
+@@ -2085,11 +2082,14 @@ static int smc911x_drv_probe(struct plat
+ 	lp = netdev_priv(ndev);
+ 	lp->netdev = ndev;
+ #ifdef SMC_DYNAMIC_BUS_CONFIG
+-	if (!pd) {
+-		ret = -EINVAL;
+-		goto release_both;
++	{
++		struct smc911x_platdata *pd = pdev->dev.platform_data;
++		if (!pd) {
++			ret = -EINVAL;
++			goto release_both;
++		}
++		memcpy(&lp->cfg, pd, sizeof(lp->cfg));
  	}
--
--	/* Finally, write the initial state to the device */
--	out_be32(chip->mmchip.regs + XGPIO_DATA_OFFSET, chip->gpio_state);
--	out_be32(chip->mmchip.regs + XGPIO_TRI_OFFSET, chip->gpio_dir);
--
--	dev_info(&ofdev->dev, "registered Xilinx GPIO controller\n");
-+	pr_info("XGpio: %s: registered\n", np->full_name);
- 	return 0;
- }
+-	memcpy(&lp->cfg, pd, sizeof(lp->cfg));
+ #endif
  
--/**
-- * xgpio_of_remove - Remove method for the GPIO device.
-- * @of_dev: pointer to OF device structure.
-- *
-- * This function returns a negative error as we cannot unregister GPIO chips.
-- */
--static int __devexit xgpio_of_remove(struct of_device *ofdev)
--{
--	return -EBUSY;
--}
--
- static struct of_device_id xgpio_of_match[] __devinitdata = {
- 	{ .compatible = "xlnx,xps-gpio-1.00.a", },
- 	{ /* end of list */ },
- };
- 
--MODULE_DEVICE_TABLE(of, xgpio_of_match);
--
--static struct of_platform_driver xgpio_of_driver = {
--	.name = "xilinx_gpio",
--	.match_table = xgpio_of_match,
--	.probe = xgpio_of_probe,
--	.remove = __devexit_p(xgpio_of_remove),
--};
+ 	addr = ioremap(res->start, SMC911X_IO_EXTENT);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+cpusets-update-mems-allowed-in-page-allocator.patch
+remove-ratelimt.patch
+kernel-kprobesc-dont-pad-kretprobe_table_locks-on-uniprocessor-builds.patch
+rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+rtc-basic-implementation-of-epson-rx-8581-i2c-real-time-clock.patch
+w1-export-w1_read_8-function.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+binfmtsh-include-listh-fix.patch
+spi_gpio-driver-cleanups.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+
