@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lib-fix-sparse-shadowed-variable-warning.patch added to -mm tree
-Date: Wed, 12 Nov 2008 15:57:38 -0800
-Message-ID: <200811122357.mACNvc7M005184@imap1.linux-foundation.org>
+Subject: + lib-radix_treec-make-percpu-variable-static.patch added to -mm tree
+Date: Wed, 12 Nov 2008 15:58:01 -0800
+Message-ID: <200811122358.mACNw16C005349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751670AbYKLX6G (ORCPT
+	by vger.kernel.org with ESMTP id S1752846AbYKLX6b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 18:58:06 -0500
+	Wed, 12 Nov 2008 18:58:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     lib: fix sparse shadowed variable warning
+     lib: radix_tree.c make percpu variable static
 has been added to the -mm tree.  Its filename is
-     lib-fix-sparse-shadowed-variable-warning.patch
+     lib-radix_treec-make-percpu-variable-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: fix sparse shadowed variable warning
+Subject: lib: radix_tree.c make percpu variable static
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-pos is always set before being used, no need to declare a
-second one inside the if() block.
+radix_tree_preloads is unused outside of this file, make it static.
 
-lib/prio_heap.c:34:7: warning: symbol 'pos' shadows an earlier one
-lib/prio_heap.c:30:6: originally declared here
+Noticed by sparse:
+lib/radix-tree.c:84:1: warning: symbol 'per_cpu__radix_tree_preloads' was not declared. Should it be static?
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/prio_heap.c |    2 +-
+ lib/radix-tree.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/prio_heap.c~lib-fix-sparse-shadowed-variable-warning lib/prio_heap.c
---- a/lib/prio_heap.c~lib-fix-sparse-shadowed-variable-warning
-+++ a/lib/prio_heap.c
-@@ -31,7 +31,7 @@ void *heap_insert(struct ptr_heap *heap,
+diff -puN lib/radix-tree.c~lib-radix_treec-make-percpu-variable-static lib/radix-tree.c
+--- a/lib/radix-tree.c~lib-radix_treec-make-percpu-variable-static
++++ a/lib/radix-tree.c
+@@ -81,7 +81,7 @@ struct radix_tree_preload {
+ 	int nr;
+ 	struct radix_tree_node *nodes[RADIX_TREE_MAX_PATH];
+ };
+-DEFINE_PER_CPU(struct radix_tree_preload, radix_tree_preloads) = { 0, };
++static DEFINE_PER_CPU(struct radix_tree_preload, radix_tree_preloads) = { 0, };
  
- 	if (heap->size < heap->max) {
- 		/* Heap insertion */
--		int pos = heap->size++;
-+		pos = heap->size++;
- 		while (pos > 0 && heap->gt(p, ptrs[(pos-1)/2])) {
- 			ptrs[pos] = ptrs[(pos-1)/2];
- 			pos = (pos-1)/2;
+ static inline gfp_t root_gfp_mask(struct radix_tree_root *root)
+ {
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -88,6 +87,7 @@ m68knommu-use-the-new-byteorder-headers.patch
 h8300-use-the-new-byteorder-headers.patch
 alpha-use-the-new-byteorder-headers.patch
 lib-fix-sparse-shadowed-variable-warning.patch
+lib-radix_treec-make-percpu-variable-static.patch
 ibmpex-add-endian-annotation-to-extract_data-helper.patch
 blackfin-remove-__function__-in-video-driver.patch
 fb-carminefb-trivial-annotation-packing-color-register.patch
