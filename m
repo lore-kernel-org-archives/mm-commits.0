@@ -1,618 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:27:27 -0800
-Message-ID: <200811132127.mADLRR7U027960@imap1.linux-foundation.org>
+Subject: - w1-export-w1_read_8-function.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 13:27:36 -0800
+Message-ID: <200811132127.mADLRaEm028011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753190AbYKMV1q (ORCPT
+	by vger.kernel.org with ESMTP id S1753202AbYKMV1y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:27:46 -0500
+	Thu, 13 Nov 2008 16:27:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, david-b@pacbell.net, linux@wolfsonmicro.com, mm-commits@vger.kernel.org
+To: madhu.cr@ti.com, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: rtc-wm8350: add support for WM8350 RTC
+     w1: export w1_read_8 function
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-wm8350-add-support-for-wm8350-rtc.patch
+     w1-export-w1_read_8-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-wm8350: add support for WM8350 RTC
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: w1: export w1_read_8 function
+From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-This adds support for the RTC provided by the Wolfson Microelectronics
-WM8350.
+Export the w1_read_8 function for use of drivers.  The OMAP HDQ
+driver(drivers/w1/masters/omap_hdq.c) uses this function.
 
-This driver was originally written by Graeme Gregory and Liam Girdwood,
-though it has been modified since then to update it to current mainline
-coding standards and for API completeness.
-
-[akpm@linux-foundation.org: s/schedule_timeout_interruptible/schedule_timeout_uninterruptible/ to prevent bogus timeout when signal_pending()]
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Liam Girdwood <linux@wolfsonmicro.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig            |   10 
- drivers/rtc/Makefile           |    1 
- drivers/rtc/rtc-wm8350.c       |  514 +++++++++++++++++++++++++++++++
- include/linux/mfd/wm8350/rtc.h |    2 
- 4 files changed, 527 insertions(+)
+ drivers/w1/w1.h    |    1 +
+ drivers/w1/w1_io.c |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-rtc-wm8350-add-support-for-wm8350-rtc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-rtc-wm8350-add-support-for-wm8350-rtc
-+++ a/drivers/rtc/Kconfig
-@@ -468,6 +468,16 @@ config RTC_DRV_V3020
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-v3020.
+diff -puN drivers/w1/w1.h~w1-export-w1_read_8-function drivers/w1/w1.h
+--- a/drivers/w1/w1.h~w1-export-w1_read_8-function
++++ a/drivers/w1/w1.h
+@@ -206,6 +206,7 @@ void w1_slave_detach(struct w1_slave *sl
  
-+config RTC_DRV_WM8350
-+	tristate "Wolfson Microelectronics WM8350 RTC"
-+	depends on MFD_WM8350
-+	help
-+	  If you say yes here you will get support for the RTC subsystem
-+	  of the Wolfson Microelectronics WM8350.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called "rtc-wm8350".
-+
- comment "on-CPU RTC drivers"
+ u8 w1_triplet(struct w1_master *dev, int bdir);
+ void w1_write_8(struct w1_master *, u8);
++u8 w1_read_8(struct w1_master *);
+ int w1_reset_bus(struct w1_master *);
+ u8 w1_calc_crc8(u8 *, int);
+ void w1_write_block(struct w1_master *, const u8 *, int);
+diff -puN drivers/w1/w1_io.c~w1-export-w1_read_8-function drivers/w1/w1_io.c
+--- a/drivers/w1/w1_io.c~w1-export-w1_read_8-function
++++ a/drivers/w1/w1_io.c
+@@ -217,7 +217,7 @@ u8 w1_triplet(struct w1_master *dev, int
+  * @param dev     the master device
+  * @return        the byte read
+  */
+-static u8 w1_read_8(struct w1_master * dev)
++u8 w1_read_8(struct w1_master *dev)
+ {
+ 	int i;
+ 	u8 res = 0;
+@@ -230,6 +230,7 @@ static u8 w1_read_8(struct w1_master * d
  
- config RTC_DRV_OMAP
-diff -puN drivers/rtc/Makefile~rtc-rtc-wm8350-add-support-for-wm8350-rtc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-rtc-wm8350-add-support-for-wm8350-rtc
-+++ a/drivers/rtc/Makefile
-@@ -66,4 +66,5 @@ obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
- obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl4030.o
- obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
- obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
-+obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm8350.o
- obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
-diff -puN /dev/null drivers/rtc/rtc-wm8350.c
---- /dev/null
-+++ a/drivers/rtc/rtc-wm8350.c
-@@ -0,0 +1,514 @@
-+/*
-+ *	Real Time Clock driver for Wolfson Microelectronics WM8350
-+ *
-+ *	Copyright (C) 2007, 2008 Wolfson Microelectronics PLC.
-+ *
-+ *  Author: Liam Girdwood
-+ *          linux@wolfsonmicro.com
-+ *
-+ *  This program is free software; you can redistribute  it and/or modify it
-+ *  under  the terms of  the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the  License, or (at your
-+ *  option) any later version.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/time.h>
-+#include <linux/rtc.h>
-+#include <linux/bcd.h>
-+#include <linux/interrupt.h>
-+#include <linux/ioctl.h>
-+#include <linux/completion.h>
-+#include <linux/mfd/wm8350/rtc.h>
-+#include <linux/mfd/wm8350/core.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+
-+#define WM8350_SET_ALM_RETRIES	5
-+#define WM8350_SET_TIME_RETRIES	5
-+#define WM8350_GET_TIME_RETRIES	5
-+
-+#define to_wm8350_from_rtc_dev(d) container_of(d, struct wm8350, rtc.pdev.dev)
-+
-+/*
-+ * Read current time and date in RTC
-+ */
-+static int wm8350_rtc_readtime(struct device *dev, struct rtc_time *tm)
-+{
-+	struct wm8350 *wm8350 = dev_get_drvdata(dev);
-+	u16 time1[4], time2[4];
-+	int retries = WM8350_GET_TIME_RETRIES, ret;
-+
-+	/*
-+	 * Read the time twice and compare.
-+	 * If time1 == time2, then time is valid else retry.
-+	 */
-+	do {
-+		ret = wm8350_block_read(wm8350, WM8350_RTC_SECONDS_MINUTES,
-+					4, time1);
-+		if (ret < 0)
-+			return ret;
-+		ret = wm8350_block_read(wm8350, WM8350_RTC_SECONDS_MINUTES,
-+					4, time2);
-+		if (ret < 0)
-+			return ret;
-+
-+		if (memcmp(time1, time2, sizeof(time1)) == 0) {
-+			tm->tm_sec = time1[0] & WM8350_RTC_SECS_MASK;
-+
-+			tm->tm_min = (time1[0] & WM8350_RTC_MINS_MASK)
-+			    >> WM8350_RTC_MINS_SHIFT;
-+
-+			tm->tm_hour = time1[1] & WM8350_RTC_HRS_MASK;
-+
-+			tm->tm_wday = ((time1[1] >> WM8350_RTC_DAY_SHIFT)
-+				       & 0x7) - 1;
-+
-+			tm->tm_mon = ((time1[2] & WM8350_RTC_MTH_MASK)
-+				      >> WM8350_RTC_MTH_SHIFT) - 1;
-+
-+			tm->tm_mday = (time1[2] & WM8350_RTC_DATE_MASK);
-+
-+			tm->tm_year = ((time1[3] & WM8350_RTC_YHUNDREDS_MASK)
-+				       >> WM8350_RTC_YHUNDREDS_SHIFT) * 100;
-+			tm->tm_year += time1[3] & WM8350_RTC_YUNITS_MASK;
-+
-+			tm->tm_yday = rtc_year_days(tm->tm_mday, tm->tm_mon,
-+						    tm->tm_year);
-+			tm->tm_year -= 1900;
-+
-+			dev_dbg(dev, "Read (%d left): %04x %04x %04x %04x\n",
-+				retries,
-+				time1[0], time1[1], time1[2], time1[3]);
-+
-+			return 0;
-+		}
-+	} while (retries--);
-+
-+	dev_err(dev, "timed out reading RTC time\n");
-+	return -EIO;
-+}
-+
-+/*
-+ * Set current time and date in RTC
-+ */
-+static int wm8350_rtc_settime(struct device *dev, struct rtc_time *tm)
-+{
-+	struct wm8350 *wm8350 = dev_get_drvdata(dev);
-+	u16 time[4];
-+	u16 rtc_ctrl;
-+	int ret, retries = WM8350_SET_TIME_RETRIES;
-+
-+	time[0] = tm->tm_sec;
-+	time[0] |= tm->tm_min << WM8350_RTC_MINS_SHIFT;
-+	time[1] = tm->tm_hour;
-+	time[1] |= (tm->tm_wday + 1) << WM8350_RTC_DAY_SHIFT;
-+	time[2] = tm->tm_mday;
-+	time[2] |= (tm->tm_mon + 1) << WM8350_RTC_MTH_SHIFT;
-+	time[3] = ((tm->tm_year + 1900) / 100) << WM8350_RTC_YHUNDREDS_SHIFT;
-+	time[3] |= (tm->tm_year + 1900) % 100;
-+
-+	dev_dbg(dev, "Setting: %04x %04x %04x %04x\n",
-+		time[0], time[1], time[2], time[3]);
-+
-+	/* Set RTC_SET to stop the clock */
-+	ret = wm8350_set_bits(wm8350, WM8350_RTC_TIME_CONTROL, WM8350_RTC_SET);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Wait until confirmation of stopping */
-+	do {
-+		rtc_ctrl = wm8350_reg_read(wm8350, WM8350_RTC_TIME_CONTROL);
-+		schedule_timeout_uninterruptible(msecs_to_jiffies(1));
-+	} while (retries-- && !(rtc_ctrl & WM8350_RTC_STS));
-+
-+	if (!retries) {
-+		dev_err(dev, "timed out on set confirmation\n");
-+		return -EIO;
-+	}
-+
-+	/* Write time to RTC */
-+	ret = wm8350_block_write(wm8350, WM8350_RTC_SECONDS_MINUTES, 4, time);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Clear RTC_SET to start the clock */
-+	ret = wm8350_clear_bits(wm8350, WM8350_RTC_TIME_CONTROL,
-+				WM8350_RTC_SET);
-+	return ret;
-+}
-+
-+/*
-+ * Read alarm time and date in RTC
-+ */
-+static int wm8350_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct wm8350 *wm8350 = dev_get_drvdata(dev);
-+	struct rtc_time *tm = &alrm->time;
-+	u16 time[4];
-+	int ret;
-+
-+	ret = wm8350_block_read(wm8350, WM8350_ALARM_SECONDS_MINUTES, 4, time);
-+	if (ret < 0)
-+		return ret;
-+
-+	tm->tm_sec = time[0] & WM8350_RTC_ALMSECS_MASK;
-+	if (tm->tm_sec == WM8350_RTC_ALMSECS_MASK)
-+		tm->tm_sec = -1;
-+
-+	tm->tm_min = time[0] & WM8350_RTC_ALMMINS_MASK;
-+	if (tm->tm_min == WM8350_RTC_ALMMINS_MASK)
-+		tm->tm_min = -1;
-+	else
-+		tm->tm_min >>= WM8350_RTC_ALMMINS_SHIFT;
-+
-+	tm->tm_hour = time[1] & WM8350_RTC_ALMHRS_MASK;
-+	if (tm->tm_hour == WM8350_RTC_ALMHRS_MASK)
-+		tm->tm_hour = -1;
-+
-+	tm->tm_wday = ((time[1] >> WM8350_RTC_ALMDAY_SHIFT) & 0x7) - 1;
-+	if (tm->tm_wday > 7)
-+		tm->tm_wday = -1;
-+
-+	tm->tm_mon = time[2] & WM8350_RTC_ALMMTH_MASK;
-+	if (tm->tm_mon == WM8350_RTC_ALMMTH_MASK)
-+		tm->tm_mon = -1;
-+	else
-+		tm->tm_mon = (tm->tm_mon >> WM8350_RTC_ALMMTH_SHIFT) - 1;
-+
-+	tm->tm_mday = (time[2] & WM8350_RTC_ALMDATE_MASK);
-+	if (tm->tm_mday == WM8350_RTC_ALMDATE_MASK)
-+		tm->tm_mday = -1;
-+
-+	tm->tm_year = -1;
-+
-+	alrm->enabled = !(time[3] & WM8350_RTC_ALMSTS);
-+
-+	return 0;
-+}
-+
-+static int wm8350_rtc_stop_alarm(struct wm8350 *wm8350)
-+{
-+	int retries = WM8350_SET_ALM_RETRIES;
-+	u16 rtc_ctrl;
-+	int ret;
-+
-+	/* Set RTC_SET to stop the clock */
-+	ret = wm8350_set_bits(wm8350, WM8350_RTC_TIME_CONTROL,
-+			      WM8350_RTC_ALMSET);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Wait until confirmation of stopping */
-+	do {
-+		rtc_ctrl = wm8350_reg_read(wm8350, WM8350_RTC_TIME_CONTROL);
-+		schedule_timeout_uninterruptible(msecs_to_jiffies(1));
-+	} while (retries-- && !(rtc_ctrl & WM8350_RTC_ALMSTS));
-+
-+	if (!(rtc_ctrl & WM8350_RTC_ALMSTS))
-+		return -ETIMEDOUT;
-+
-+	return 0;
-+}
-+
-+static int wm8350_rtc_start_alarm(struct wm8350 *wm8350)
-+{
-+	int ret;
-+	int retries = WM8350_SET_ALM_RETRIES;
-+	u16 rtc_ctrl;
-+
-+	ret = wm8350_clear_bits(wm8350, WM8350_RTC_TIME_CONTROL,
-+				WM8350_RTC_ALMSET);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Wait until confirmation */
-+	do {
-+		rtc_ctrl = wm8350_reg_read(wm8350, WM8350_RTC_TIME_CONTROL);
-+		schedule_timeout_uninterruptible(msecs_to_jiffies(1));
-+	} while (retries-- && rtc_ctrl & WM8350_RTC_ALMSTS);
-+
-+	if (rtc_ctrl & WM8350_RTC_ALMSTS)
-+		return -ETIMEDOUT;
-+
-+	return 0;
-+}
-+
-+static int wm8350_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct wm8350 *wm8350 = dev_get_drvdata(dev);
-+	struct rtc_time *tm = &alrm->time;
-+	u16 time[3];
-+	int ret;
-+
-+	memset(time, 0, sizeof(time));
-+
-+	if (tm->tm_sec != -1)
-+		time[0] |= tm->tm_sec;
-+	else
-+		time[0] |= WM8350_RTC_ALMSECS_MASK;
-+
-+	if (tm->tm_min != -1)
-+		time[0] |= tm->tm_min << WM8350_RTC_ALMMINS_SHIFT;
-+	else
-+		time[0] |= WM8350_RTC_ALMMINS_MASK;
-+
-+	if (tm->tm_hour != -1)
-+		time[1] |= tm->tm_hour;
-+	else
-+		time[1] |= WM8350_RTC_ALMHRS_MASK;
-+
-+	if (tm->tm_wday != -1)
-+		time[1] |= (tm->tm_wday + 1) << WM8350_RTC_ALMDAY_SHIFT;
-+	else
-+		time[1] |= WM8350_RTC_ALMDAY_MASK;
-+
-+	if (tm->tm_mday != -1)
-+		time[2] |= tm->tm_mday;
-+	else
-+		time[2] |= WM8350_RTC_ALMDATE_MASK;
-+
-+	if (tm->tm_mon != -1)
-+		time[2] |= (tm->tm_mon + 1) << WM8350_RTC_ALMMTH_SHIFT;
-+	else
-+		time[2] |= WM8350_RTC_ALMMTH_MASK;
-+
-+	ret = wm8350_rtc_stop_alarm(wm8350);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Write time to RTC */
-+	ret = wm8350_block_write(wm8350, WM8350_ALARM_SECONDS_MINUTES,
-+				 3, time);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (alrm->enabled)
-+		ret = wm8350_rtc_start_alarm(wm8350);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Handle commands from user-space
-+ */
-+static int wm8350_rtc_ioctl(struct device *dev, unsigned int cmd,
-+			    unsigned long arg)
-+{
-+	struct wm8350 *wm8350 = dev_get_drvdata(dev);
-+
-+	switch (cmd) {
-+	case RTC_AIE_OFF:
-+		return wm8350_rtc_stop_alarm(wm8350);
-+	case RTC_AIE_ON:
-+		return wm8350_rtc_start_alarm(wm8350);
-+
-+	case RTC_UIE_OFF:
-+		wm8350_mask_irq(wm8350, WM8350_IRQ_RTC_SEC);
-+		break;
-+	case RTC_UIE_ON:
-+		wm8350_unmask_irq(wm8350, WM8350_IRQ_RTC_SEC);
-+		break;
-+
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+
-+	return 0;
-+}
-+
-+static void wm8350_rtc_alarm_handler(struct wm8350 *wm8350, int irq,
-+				     void *data)
-+{
-+	struct rtc_device *rtc = wm8350->rtc.rtc;
-+	int ret;
-+
-+	rtc_update_irq(rtc, 1, RTC_IRQF | RTC_AF);
-+
-+	/* Make it one shot */
-+	ret = wm8350_set_bits(wm8350, WM8350_RTC_TIME_CONTROL,
-+			      WM8350_RTC_ALMSET);
-+	if (ret != 0) {
-+		dev_err(&(wm8350->rtc.pdev->dev),
-+			"Failed to disable alarm: %d\n", ret);
-+	}
-+}
-+
-+static void wm8350_rtc_update_handler(struct wm8350 *wm8350, int irq,
-+				      void *data)
-+{
-+	struct rtc_device *rtc = wm8350->rtc.rtc;
-+
-+	rtc_update_irq(rtc, 1, RTC_IRQF | RTC_UF);
-+}
-+
-+static const struct rtc_class_ops wm8350_rtc_ops = {
-+	.ioctl = wm8350_rtc_ioctl,
-+	.read_time = wm8350_rtc_readtime,
-+	.set_time = wm8350_rtc_settime,
-+	.read_alarm = wm8350_rtc_readalarm,
-+	.set_alarm = wm8350_rtc_setalarm,
-+};
-+
-+#ifdef CONFIG_PM
-+static int wm8350_rtc_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct wm8350 *wm8350 = dev_get_drvdata(&pdev->dev);
-+	int ret = 0;
-+	u16 reg;
-+
-+	reg = wm8350_reg_read(wm8350, WM8350_RTC_TIME_CONTROL);
-+
-+	if (device_may_wakeup(&wm8350->rtc.pdev->dev) &&
-+	    reg & WM8350_RTC_ALMSTS) {
-+		ret = wm8350_rtc_stop_alarm(wm8350);
-+		if (ret != 0)
-+			dev_err(&pdev->dev, "Failed to stop RTC alarm: %d\n",
-+				ret);
-+	}
-+
-+	return ret;
-+}
-+
-+static int wm8350_rtc_resume(struct platform_device *pdev)
-+{
-+	struct wm8350 *wm8350 = dev_get_drvdata(&pdev->dev);
-+	int ret;
-+
-+	if (wm8350->rtc.alarm_enabled) {
-+		ret = wm8350_rtc_start_alarm(wm8350);
-+		if (ret != 0)
-+			dev_err(&pdev->dev,
-+				"Failed to restart RTC alarm: %d\n", ret);
-+	}
-+
-+	return 0;
-+}
-+
-+#else
-+#define wm8350_rtc_suspend NULL
-+#define wm8350_rtc_resume NULL
-+#endif
-+
-+static int wm8350_rtc_probe(struct platform_device *pdev)
-+{
-+	struct wm8350 *wm8350 = platform_get_drvdata(pdev);
-+	struct wm8350_rtc *wm_rtc = &wm8350->rtc;
-+	int ret = 0;
-+	u16 timectl, power5;
-+
-+	timectl = wm8350_reg_read(wm8350, WM8350_RTC_TIME_CONTROL);
-+	if (timectl & WM8350_RTC_BCD) {
-+		dev_err(&pdev->dev, "RTC BCD mode not supported\n");
-+		return -EINVAL;
-+	}
-+	if (timectl & WM8350_RTC_12HR) {
-+		dev_err(&pdev->dev, "RTC 12 hour mode not supported\n");
-+		return -EINVAL;
-+	}
-+
-+	/* enable the RTC if it's not already enabled */
-+	power5 = wm8350_reg_read(wm8350, WM8350_POWER_MGMT_5);
-+	if (!(power5 &  WM8350_RTC_TICK_ENA)) {
-+		dev_info(wm8350->dev, "Starting RTC\n");
-+
-+		wm8350_reg_unlock(wm8350);
-+
-+		ret = wm8350_set_bits(wm8350, WM8350_POWER_MGMT_5,
-+				      WM8350_RTC_TICK_ENA);
-+		if (ret < 0) {
-+			dev_err(&pdev->dev, "failed to enable RTC: %d\n", ret);
-+			return ret;
-+		}
-+
-+		wm8350_reg_lock(wm8350);
-+	}
-+
-+	if (timectl & WM8350_RTC_STS) {
-+		int retries;
-+
-+		ret = wm8350_clear_bits(wm8350, WM8350_RTC_TIME_CONTROL,
-+					WM8350_RTC_SET);
-+		if (ret < 0) {
-+			dev_err(&pdev->dev, "failed to start: %d\n", ret);
-+			return ret;
-+		}
-+
-+		retries = WM8350_SET_TIME_RETRIES;
-+		do {
-+			timectl = wm8350_reg_read(wm8350,
-+						  WM8350_RTC_TIME_CONTROL);
-+		} while (timectl & WM8350_RTC_STS && retries--);
-+
-+		if (retries == 0) {
-+			dev_err(&pdev->dev, "failed to start: timeout\n");
-+			return -ENODEV;
-+		}
-+	}
-+
-+	device_init_wakeup(&pdev->dev, 1);
-+
-+	wm_rtc->rtc = rtc_device_register("wm8350", &pdev->dev,
-+					  &wm8350_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(wm_rtc->rtc)) {
-+		ret = PTR_ERR(wm_rtc->rtc);
-+		dev_err(&pdev->dev, "failed to register RTC: %d\n", ret);
-+		return ret;
-+	}
-+
-+	wm8350_mask_irq(wm8350, WM8350_IRQ_RTC_SEC);
-+	wm8350_mask_irq(wm8350, WM8350_IRQ_RTC_PER);
-+
-+	wm8350_register_irq(wm8350, WM8350_IRQ_RTC_SEC,
-+			    wm8350_rtc_update_handler, NULL);
-+
-+	wm8350_register_irq(wm8350, WM8350_IRQ_RTC_ALM,
-+			    wm8350_rtc_alarm_handler, NULL);
-+	wm8350_unmask_irq(wm8350, WM8350_IRQ_RTC_ALM);
-+
-+	return 0;
-+}
-+
-+static int __devexit wm8350_rtc_remove(struct platform_device *pdev)
-+{
-+	struct wm8350 *wm8350 = platform_get_drvdata(pdev);
-+	struct wm8350_rtc *wm_rtc = &wm8350->rtc;
-+
-+	wm8350_mask_irq(wm8350, WM8350_IRQ_RTC_SEC);
-+
-+	wm8350_free_irq(wm8350, WM8350_IRQ_RTC_SEC);
-+	wm8350_free_irq(wm8350, WM8350_IRQ_RTC_ALM);
-+
-+	rtc_device_unregister(wm_rtc->rtc);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver wm8350_rtc_driver = {
-+	.probe = wm8350_rtc_probe,
-+	.remove = __devexit_p(wm8350_rtc_remove),
-+	.suspend = wm8350_rtc_suspend,
-+	.resume = wm8350_rtc_resume,
-+	.driver = {
-+		.name = "wm8350-rtc",
-+	},
-+};
-+
-+static int __init wm8350_rtc_init(void)
-+{
-+	return platform_driver_register(&wm8350_rtc_driver);
-+}
-+module_init(wm8350_rtc_init);
-+
-+static void __exit wm8350_rtc_exit(void)
-+{
-+	platform_driver_unregister(&wm8350_rtc_driver);
-+}
-+module_exit(wm8350_rtc_exit);
-+
-+MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
-+MODULE_DESCRIPTION("RTC driver for the WM8350");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:wm8350-rtc");
-diff -puN include/linux/mfd/wm8350/rtc.h~rtc-rtc-wm8350-add-support-for-wm8350-rtc include/linux/mfd/wm8350/rtc.h
---- a/include/linux/mfd/wm8350/rtc.h~rtc-rtc-wm8350-add-support-for-wm8350-rtc
-+++ a/include/linux/mfd/wm8350/rtc.h
-@@ -261,6 +261,8 @@
+ 	return res;
+ }
++EXPORT_SYMBOL_GPL(w1_read_8);
  
- struct wm8350_rtc {
- 	struct platform_device *pdev;
-+	struct rtc_device *rtc;
-+	int alarm_enabled;      /* used over suspend/resume */
- };
- 
- #endif
+ /**
+  * Writes a series of bytes.
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from madhu.cr@ti.com are
 
 origin.patch
-linux-next.patch
-mfd-correct-wm8350-i2c-return-code-usage.patch
-power_supply-add-support-for-wm8350-pmu.patch
 
