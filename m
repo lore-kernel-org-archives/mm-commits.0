@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-correct-sched-rt-grouptxt-pathname-in-init-kconfig.patch added to -mm tree
-Date: Wed, 12 Nov 2008 16:23:55 -0800
-Message-ID: <200811130023.mAD0NtS6018254@imap1.linux-foundation.org>
+Subject: + parisc-fix-smp-build-error.patch added to -mm tree
+Date: Wed, 12 Nov 2008 16:27:33 -0800
+Message-ID: <200811130027.mAD0RX1G020094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52145 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750763AbYKMAYs (ORCPT
+	by vger.kernel.org with ESMTP id S1750927AbYKMA2y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 19:24:48 -0500
+	Wed, 12 Nov 2008 19:28:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adi@drcomp.erfurt.thur.de, mingo@elte.hu
+Cc: cavokz@gmail.com, cavok@dandreoli.com, grundler@parisc-linux.org, kyle@mcmartin.ca, mingo@elte.hu, rusty@rustcorp.com.au
 
 
 The patch titled
-     Kconfig: correct sched-rt-group.txt pathname in init/Kconfig
+     parisc: fix SMP build error
 has been added to the -mm tree.  Its filename is
-     kconfig-correct-sched-rt-grouptxt-pathname-in-init-kconfig.patch
+     parisc-fix-smp-build-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Kconfig: correct sched-rt-group.txt pathname in init/Kconfig
-From: Adrian Knoth <adi@drcomp.erfurt.thur.de>
+Subject: parisc: fix SMP build error
+From: Domenico Andreoli <cavokz@gmail.com>
 
-init/Kconfig directs the user to Documentation/sched-rt-group.txt, but
-the file is actually in Documentation/scheduler/sched-rt-group.txt.
+Remove extern declaration of cpu_present_mask.
 
-This patch corrects the pathname mentioned in init/Kconfig.
+Fixes build error due to new cpumask API
+2d3854a37e8b767a51aba38ed6d22817b0631e33 ("cpumask: introduce new API,
+without changing anything").
 
-Signed-off-by: Adrian Knoth <adi@drcomp.erfurt.thur.de>
+Signed-off-by: Domenico Andreoli <cavok@dandreoli.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/parisc/include/asm/smp.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN init/Kconfig~kconfig-correct-sched-rt-grouptxt-pathname-in-init-kconfig init/Kconfig
---- a/init/Kconfig~kconfig-correct-sched-rt-grouptxt-pathname-in-init-kconfig
-+++ a/init/Kconfig
-@@ -354,7 +354,7 @@ config RT_GROUP_SCHED
- 	  setting below. If enabled, it will also make it impossible to
- 	  schedule realtime tasks for non-root users until you allocate
- 	  realtime bandwidth for them.
--	  See Documentation/sched-rt-group.txt for more information.
-+ 	  See Documentation/scheduler/sched-rt-group.txt for more information.
+diff -puN arch/parisc/include/asm/smp.h~parisc-fix-smp-build-error arch/parisc/include/asm/smp.h
+--- a/arch/parisc/include/asm/smp.h~parisc-fix-smp-build-error
++++ a/arch/parisc/include/asm/smp.h
+@@ -44,8 +44,6 @@ extern void arch_send_call_function_ipi(
+  
+ #define PROC_CHANGE_PENALTY	15		/* Schedule penalty */
  
- choice
- 	depends on GROUP_SCHED
-_
-
-Patches currently in -mm which might be from adi@drcomp.erfurt.thur.de are
-
-kconfig-correct-sched-rt-grouptxt-pathname-in-init-kconfig.patch
-
+-extern unsigned long cpu_present_mask;
