@@ -1,171 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - hibernate-do-not-oops-on-resume-if-image-data-are-incorrect.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:27:55 -0800
-Message-ID: <200811132127.mADLRteC028159@imap1.linux-foundation.org>
+Subject: - hdq-documentation-for-omap-hdq.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 13:27:44 -0800
+Message-ID: <200811132127.mADLRiLS028068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753855AbYKMV2J (ORCPT
+	by vger.kernel.org with ESMTP id S1754882AbYKMV2D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:28:09 -0500
+	Thu, 13 Nov 2008 16:28:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, lenb@kernel.org, pavel@suse.cz, mm-commits@vger.kernel.org
+To: madhu.cr@ti.com, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hibernate: do not oops on resume if image data are incorrect
+     hdq: documentation for OMAP HDQ
 has been removed from the -mm tree.  Its filename was
-     hibernate-do-not-oops-on-resume-if-image-data-are-incorrect.patch
+     hdq-documentation-for-omap-hdq.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hibernate: do not oops on resume if image data are incorrect
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: hdq: documentation for OMAP HDQ
+From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-During resume from hibernation using the userland interface image data are
-being passed from the used space process to the kernel.  These data need
-not be valid, but currently the kernel sometimes oopses if it gets invalid
-image data, which is wrong.  Make the kernel return error codes to the
-user space in such cases.
+Add a brief document about omap2430/3430 HDQ/1-wire driver.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@suse.cz>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/snapshot.c |   43 ++++++++++++++++++++++++++++----------
- 1 file changed, 32 insertions(+), 11 deletions(-)
+ Documentation/w1/masters/omap-hdq |   46 ++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-diff -puN kernel/power/snapshot.c~hibernate-do-not-oops-on-resume-if-image-data-are-incorrect kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~hibernate-do-not-oops-on-resume-if-image-data-are-incorrect
-+++ a/kernel/power/snapshot.c
-@@ -529,6 +529,14 @@ static int memory_bm_test_bit(struct mem
- 	return test_bit(bit, addr);
- }
- 
-+static bool memory_bm_pfn_present(struct memory_bitmap *bm, unsigned long pfn)
-+{
-+	void *addr;
-+	unsigned int bit;
+diff -puN /dev/null Documentation/w1/masters/omap-hdq
+--- /dev/null
++++ a/Documentation/w1/masters/omap-hdq
+@@ -0,0 +1,46 @@
++Kernel driver for omap HDQ/1-wire module.
++========================================
 +
-+	return !memory_bm_find_bit(bm, pfn, &addr, &bit);
-+}
++Supported chips:
++================
++	HDQ/1-wire controller on the TI OMAP 2430/3430 platforms.
 +
- /**
-  *	memory_bm_next_pfn - find the pfn that corresponds to the next set bit
-  *	in the bitmap @bm.  If the pfn cannot be found, BM_END_OF_MAP is
-@@ -1466,9 +1474,7 @@ load_header(struct swsusp_info *info)
-  *	unpack_orig_pfns - for each element of @buf[] (1 page at a time) set
-  *	the corresponding bit in the memory bitmap @bm
-  */
--
--static inline void
--unpack_orig_pfns(unsigned long *buf, struct memory_bitmap *bm)
-+static int unpack_orig_pfns(unsigned long *buf, struct memory_bitmap *bm)
- {
- 	int j;
- 
-@@ -1476,8 +1482,13 @@ unpack_orig_pfns(unsigned long *buf, str
- 		if (unlikely(buf[j] == BM_END_OF_MAP))
- 			break;
- 
--		memory_bm_set_bit(bm, buf[j]);
-+		if (memory_bm_pfn_present(bm, buf[j]))
-+			memory_bm_set_bit(bm, buf[j]);
-+		else
-+			return -EFAULT;
- 	}
++A useful link about HDQ basics:
++===============================
++http://focus.ti.com/lit/an/slua408/slua408.pdf
 +
-+	return 0;
- }
- 
- /* List of "safe" pages that may be used to store data loaded from the suspend
-@@ -1615,7 +1626,7 @@ get_highmem_page_buffer(struct page *pag
- 	pbe = chain_alloc(ca, sizeof(struct highmem_pbe));
- 	if (!pbe) {
- 		swsusp_free();
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 	}
- 	pbe->orig_page = page;
- 	if (safe_highmem_pages > 0) {
-@@ -1684,7 +1695,7 @@ prepare_highmem_image(struct memory_bitm
- static inline void *
- get_highmem_page_buffer(struct page *page, struct chain_allocator *ca)
- {
--	return NULL;
-+	return ERR_PTR(-EINVAL);
- }
- 
- static inline void copy_last_highmem_page(void) {}
-@@ -1795,8 +1806,13 @@ prepare_image(struct memory_bitmap *new_
- static void *get_buffer(struct memory_bitmap *bm, struct chain_allocator *ca)
- {
- 	struct pbe *pbe;
--	struct page *page = pfn_to_page(memory_bm_next_pfn(bm));
-+	struct page *page;
-+	unsigned long pfn = memory_bm_next_pfn(bm);
- 
-+	if (pfn == BM_END_OF_MAP)
-+		return ERR_PTR(-EFAULT);
++Description:
++============
++The HDQ/1-Wire module of TI OMAP2430/3430 platforms implement the hardware
++protocol of the master functions of the Benchmark HDQ and the Dallas
++Semiconductor 1-Wire protocols. These protocols use a single wire for
++communication between the master (HDQ/1-Wire controller) and the slave
++(HDQ/1-Wire external compliant device).
 +
-+	page = pfn_to_page(pfn);
- 	if (PageHighMem(page))
- 		return get_highmem_page_buffer(page, ca);
- 
-@@ -1812,7 +1828,7 @@ static void *get_buffer(struct memory_bi
- 	pbe = chain_alloc(ca, sizeof(struct pbe));
- 	if (!pbe) {
- 		swsusp_free();
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 	}
- 	pbe->orig_address = page_address(page);
- 	pbe->address = safe_pages_list;
-@@ -1875,7 +1891,10 @@ int snapshot_write_next(struct snapshot_
- 				return error;
- 
- 		} else if (handle->prev <= nr_meta_pages) {
--			unpack_orig_pfns(buffer, &copy_bm);
-+			error = unpack_orig_pfns(buffer, &copy_bm);
-+			if (error)
-+				return error;
++A typical application of the HDQ/1-Wire module is the communication with battery
++monitor (gas gauge) integrated circuits.
 +
- 			if (handle->prev == nr_meta_pages) {
- 				error = prepare_image(&orig_bm, &copy_bm);
- 				if (error)
-@@ -1886,12 +1905,14 @@ int snapshot_write_next(struct snapshot_
- 				restore_pblist = NULL;
- 				handle->buffer = get_buffer(&orig_bm, &ca);
- 				handle->sync_read = 0;
--				if (!handle->buffer)
--					return -ENOMEM;
-+				if (IS_ERR(handle->buffer))
-+					return PTR_ERR(handle->buffer);
- 			}
- 		} else {
- 			copy_last_highmem_page();
- 			handle->buffer = get_buffer(&orig_bm, &ca);
-+			if (IS_ERR(handle->buffer))
-+				return PTR_ERR(handle->buffer);
- 			if (handle->buffer != buffer)
- 				handle->sync_read = 0;
- 		}
++The controller supports operation in both HDQ and 1-wire mode. The essential
++difference between the HDQ and 1-wire mode is how the slave device responds to
++initialization pulse.In HDQ mode, the firmware does not require the host to
++create an initialization pulse to the slave.However, the slave can be reset by
++using an initialization pulse (also referred to as a break pulse).The slave
++does not respond with a presence pulse as it does in the 1-Wire protocol.
++
++Remarks:
++========
++The driver (drivers/w1/masters/omap_hdq.c) supports the HDQ mode of the
++controller. In this mode, as we can not read the ID which obeys the W1
++spec(family:id:crc), a module parameter can be passed to the driver which will
++be used to calculate the CRC and pass back an appropriate slave ID to the W1
++core.
++
++By default the master driver and the BQ slave i/f
++driver(drivers/w1/slaves/w1_bq27000.c) sets the ID to 1.
++Please note to load both the modules with a different ID if required, but note
++that the ID used should be same for both master and slave driver loading.
++
++e.g:
++insmod omap_hdq.ko W1_ID=2
++inamod w1_bq27000.ko F_ID=2
++
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from madhu.cr@ti.com are
 
 origin.patch
-linux-next.patch
-e1000e-use-device_set_wakeup_enable.patch
-e1000-use-device_set_wakeup_enable.patch
-igb-use-device_set_wakeup_enable.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
-shrink_slab-handle-bad-shrinkers.patch
 
