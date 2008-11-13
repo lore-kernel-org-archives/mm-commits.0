@@ -1,266 +1,394 @@
 From: akpm@linux-foundation.org
-Subject: - mm-remove-lru_add_drain_all-from-the-munlock-path.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:26:53 -0800
-Message-ID: <200811132126.mADLQr5n027541@imap1.linux-foundation.org>
+Subject: + drivers-char-nvramc-codingstyle-fixes.patch added to -mm tree
+Date: Thu, 13 Nov 2008 14:20:01 -0800
+Message-ID: <200811132220.mADMK1bh021792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46945 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752126AbYKMVgp (ORCPT
+	by vger.kernel.org with ESMTP id S1751374AbYKMWUz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:36:45 -0500
+	Thu, 13 Nov 2008 17:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, cl@linux-foundation.org, heiko.carstens@de.ibm.com, hugh@veritas.com, kamalesh@linux.vnet.ibm.com, nickpiggin@yahoo.com.au, pe
+To: mm-commits@vger.kernel.org
+Cc: wim@iguana.be
 
 
 The patch titled
-     mm: remove lru_add_drain_all() from the munlock path
-has been removed from the -mm tree.  Its filename was
-     mm-remove-lru_add_drain_all-from-the-munlock-path.patch
+     drivers/char/nvram.c: CodingStyle fixes
+has been added to the -mm tree.  Its filename is
+     drivers-char-nvramc-codingstyle-fixes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove lru_add_drain_all() from the munlock path
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: drivers/char/nvram.c: CodingStyle fixes
+From: Wim Van Sebroeck <wim@iguana.be>
 
-lockdep warns about following message at boot time on one of my test machine.
-Then, schedule_on_each_cpu() sholdn't be called when the task have mmap_sem.
+Bring drivers/char/nvram.c in line with the Coding Style.
 
-Actually, lru_add_drain_all() exist to prevent the unevictalble pages stay on reclaimable lru list.
-but currenct unevictable code can rescue unevictable pages although it stay on reclaimable list.
-
-So removing is better.
-
-In addition, this patch add lru_add_drain_all() to sys_mlock() and
-sys_mlockall().  it isn't must.  but it reduce the failure of moving to
-unevictable list.  its failure can rescue in vmscan later.  but reducing
-is better.
-
-Note, if above rescuing happend, the Mlocked and the Unevictable field
-mismatching happend in /proc/meminfo.  but it doesn't cause any real
-trouble.
-
-=======================================================
-[ INFO: possible circular locking dependency detected ]
-2.6.28-rc2-mm1 #2
--------------------------------------------------------
-lvm/1103 is trying to acquire lock:
- (&cpu_hotplug.lock){--..}, at: [<c0130789>] get_online_cpus+0x29/0x50
-
-but task is already holding lock:
- (&mm->mmap_sem){----}, at: [<c01878ae>] sys_mlockall+0x4e/0xb0
-
-which lock already depends on the new lock.
-
-the existing dependency chain (in reverse order) is:
-
--> #3 (&mm->mmap_sem){----}:
-       [<c0153da2>] check_noncircular+0x82/0x110
-       [<c0185e6a>] might_fault+0x4a/0xa0
-       [<c0156161>] validate_chain+0xb11/0x1070
-       [<c0185e6a>] might_fault+0x4a/0xa0
-       [<c0156923>] __lock_acquire+0x263/0xa10
-       [<c015714c>] lock_acquire+0x7c/0xb0			(*) grab mmap_sem
-       [<c0185e6a>] might_fault+0x4a/0xa0
-       [<c0185e9b>] might_fault+0x7b/0xa0
-       [<c0185e6a>] might_fault+0x4a/0xa0
-       [<c0294dd0>] copy_to_user+0x30/0x60
-       [<c01ae3ec>] filldir+0x7c/0xd0
-       [<c01e3a6a>] sysfs_readdir+0x11a/0x1f0			(*) grab sysfs_mutex
-       [<c01ae370>] filldir+0x0/0xd0
-       [<c01ae370>] filldir+0x0/0xd0
-       [<c01ae4c6>] vfs_readdir+0x86/0xa0			(*) grab i_mutex
-       [<c01ae75b>] sys_getdents+0x6b/0xc0
-       [<c010355a>] syscall_call+0x7/0xb
-       [<ffffffff>] 0xffffffff
-
--> #2 (sysfs_mutex){--..}:
-       [<c0153da2>] check_noncircular+0x82/0x110
-       [<c01e3d2c>] sysfs_addrm_start+0x2c/0xc0
-       [<c0156161>] validate_chain+0xb11/0x1070
-       [<c01e3d2c>] sysfs_addrm_start+0x2c/0xc0
-       [<c0156923>] __lock_acquire+0x263/0xa10
-       [<c015714c>] lock_acquire+0x7c/0xb0			(*) grab sysfs_mutex
-       [<c01e3d2c>] sysfs_addrm_start+0x2c/0xc0
-       [<c04f8b55>] mutex_lock_nested+0xa5/0x2f0
-       [<c01e3d2c>] sysfs_addrm_start+0x2c/0xc0
-       [<c01e3d2c>] sysfs_addrm_start+0x2c/0xc0
-       [<c01e3d2c>] sysfs_addrm_start+0x2c/0xc0
-       [<c01e422f>] create_dir+0x3f/0x90
-       [<c01e42a9>] sysfs_create_dir+0x29/0x50
-       [<c04faaf5>] _spin_unlock+0x25/0x40
-       [<c028f21d>] kobject_add_internal+0xcd/0x1a0
-       [<c028f37a>] kobject_set_name_vargs+0x3a/0x50
-       [<c028f41d>] kobject_init_and_add+0x2d/0x40
-       [<c019d4d2>] sysfs_slab_add+0xd2/0x180
-       [<c019d580>] sysfs_add_func+0x0/0x70
-       [<c019d5dc>] sysfs_add_func+0x5c/0x70			(*) grab slub_lock
-       [<c01400f2>] run_workqueue+0x172/0x200
-       [<c014008f>] run_workqueue+0x10f/0x200
-       [<c0140bd0>] worker_thread+0x0/0xf0
-       [<c0140c6c>] worker_thread+0x9c/0xf0
-       [<c0143c80>] autoremove_wake_function+0x0/0x50
-       [<c0140bd0>] worker_thread+0x0/0xf0
-       [<c0143972>] kthread+0x42/0x70
-       [<c0143930>] kthread+0x0/0x70
-       [<c01042db>] kernel_thread_helper+0x7/0x1c
-       [<ffffffff>] 0xffffffff
-
--> #1 (slub_lock){----}:
-       [<c0153d2d>] check_noncircular+0xd/0x110
-       [<c04f650f>] slab_cpuup_callback+0x11f/0x1d0
-       [<c0156161>] validate_chain+0xb11/0x1070
-       [<c04f650f>] slab_cpuup_callback+0x11f/0x1d0
-       [<c015433d>] mark_lock+0x35d/0xd00
-       [<c0156923>] __lock_acquire+0x263/0xa10
-       [<c015714c>] lock_acquire+0x7c/0xb0
-       [<c04f650f>] slab_cpuup_callback+0x11f/0x1d0
-       [<c04f93a3>] down_read+0x43/0x80
-       [<c04f650f>] slab_cpuup_callback+0x11f/0x1d0		(*) grab slub_lock
-       [<c04f650f>] slab_cpuup_callback+0x11f/0x1d0
-       [<c04fd9ac>] notifier_call_chain+0x3c/0x70
-       [<c04f5454>] _cpu_up+0x84/0x110
-       [<c04f552b>] cpu_up+0x4b/0x70				(*) grab cpu_hotplug.lock
-       [<c06d1530>] kernel_init+0x0/0x170
-       [<c06d15e5>] kernel_init+0xb5/0x170
-       [<c06d1530>] kernel_init+0x0/0x170
-       [<c01042db>] kernel_thread_helper+0x7/0x1c
-       [<ffffffff>] 0xffffffff
-
--> #0 (&cpu_hotplug.lock){--..}:
-       [<c0155bff>] validate_chain+0x5af/0x1070
-       [<c040f7e0>] dev_status+0x0/0x50
-       [<c0156923>] __lock_acquire+0x263/0xa10
-       [<c015714c>] lock_acquire+0x7c/0xb0
-       [<c0130789>] get_online_cpus+0x29/0x50
-       [<c04f8b55>] mutex_lock_nested+0xa5/0x2f0
-       [<c0130789>] get_online_cpus+0x29/0x50
-       [<c0130789>] get_online_cpus+0x29/0x50
-       [<c017bc30>] lru_add_drain_per_cpu+0x0/0x10
-       [<c0130789>] get_online_cpus+0x29/0x50			(*) grab cpu_hotplug.lock
-       [<c0140cf2>] schedule_on_each_cpu+0x32/0xe0
-       [<c0187095>] __mlock_vma_pages_range+0x85/0x2c0
-       [<c0156945>] __lock_acquire+0x285/0xa10
-       [<c0188f09>] vma_merge+0xa9/0x1d0
-       [<c0187450>] mlock_fixup+0x180/0x200
-       [<c0187548>] do_mlockall+0x78/0x90			(*) grab mmap_sem
-       [<c01878e1>] sys_mlockall+0x81/0xb0
-       [<c010355a>] syscall_call+0x7/0xb
-       [<ffffffff>] 0xffffffff
-
-other info that might help us debug this:
-
-1 lock held by lvm/1103:
- #0:  (&mm->mmap_sem){----}, at: [<c01878ae>] sys_mlockall+0x4e/0xb0
-
-stack backtrace:
-Pid: 1103, comm: lvm Not tainted 2.6.28-rc2-mm1 #2
-Call Trace:
- [<c01555fc>] print_circular_bug_tail+0x7c/0xd0
- [<c0155bff>] validate_chain+0x5af/0x1070
- [<c040f7e0>] dev_status+0x0/0x50
- [<c0156923>] __lock_acquire+0x263/0xa10
- [<c015714c>] lock_acquire+0x7c/0xb0
- [<c0130789>] get_online_cpus+0x29/0x50
- [<c04f8b55>] mutex_lock_nested+0xa5/0x2f0
- [<c0130789>] get_online_cpus+0x29/0x50
- [<c0130789>] get_online_cpus+0x29/0x50
- [<c017bc30>] lru_add_drain_per_cpu+0x0/0x10
- [<c0130789>] get_online_cpus+0x29/0x50
- [<c0140cf2>] schedule_on_each_cpu+0x32/0xe0
- [<c0187095>] __mlock_vma_pages_range+0x85/0x2c0
- [<c0156945>] __lock_acquire+0x285/0xa10
- [<c0188f09>] vma_merge+0xa9/0x1d0
- [<c0187450>] mlock_fixup+0x180/0x200
- [<c0187548>] do_mlockall+0x78/0x90
- [<c01878e1>] sys_mlockall+0x81/0xb0
- [<c010355a>] syscall_call+0x7/0xb
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Tested-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ drivers/char/nvram.c |  126 ++++++++++++++++-------------------------
+ 1 file changed, 52 insertions(+), 74 deletions(-)
 
-diff -puN mm/mlock.c~mm-remove-lru_add_drain_all-from-the-munlock-path mm/mlock.c
---- a/mm/mlock.c~mm-remove-lru_add_drain_all-from-the-munlock-path
-+++ a/mm/mlock.c
-@@ -66,14 +66,10 @@ void __clear_page_mlock(struct page *pag
- 		putback_lru_page(page);
- 	} else {
- 		/*
--		 * Page not on the LRU yet.  Flush all pagevecs and retry.
-+		 * We lost the race. the page already moved to evictable list.
- 		 */
--		lru_add_drain_all();
--		if (!isolate_lru_page(page))
--			putback_lru_page(page);
--		else if (PageUnevictable(page))
-+		if (PageUnevictable(page))
- 			count_vm_event(UNEVICTABLE_PGSTRANDED);
--
+diff -puN drivers/char/nvram.c~drivers-char-nvramc-codingstyle-fixes drivers/char/nvram.c
+--- a/drivers/char/nvram.c~drivers-char-nvramc-codingstyle-fixes
++++ a/drivers/char/nvram.c
+@@ -46,7 +46,7 @@
+ /* select machine configuration */
+ #if defined(CONFIG_ATARI)
+ #  define MACH ATARI
+-#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)  /* and others?? */
++#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)  /* and ?? */
+ #  define MACH PC
+ #else
+ #  error Cannot build nvram driver for this machine configuration.
+@@ -107,9 +107,9 @@
+ #include <linux/init.h>
+ #include <linux/proc_fs.h>
+ #include <linux/spinlock.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
+ 
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
+ #include <asm/system.h>
+ 
+ static DEFINE_SPINLOCK(nvram_state_lock);
+@@ -123,7 +123,7 @@ static void mach_set_checksum(void);
+ 
+ #ifdef CONFIG_PROC_FS
+ static int mach_proc_infos(unsigned char *contents, char *buffer, int *len,
+-    off_t *begin, off_t offset, int size);
++					off_t *begin, off_t offset, int size);
+ #endif
+ 
+ /*
+@@ -133,18 +133,17 @@ static int mach_proc_infos(unsigned char
+  *
+  * It is worth noting that these functions all access bytes of general
+  * purpose memory in the NVRAM - that is to say, they all add the
+- * NVRAM_FIRST_BYTE offset.  Pass them offsets into NVRAM as if you did not 
++ * NVRAM_FIRST_BYTE offset.  Pass them offsets into NVRAM as if you did not
+  * know about the RTC cruft.
+  */
+ 
+-unsigned char
+-__nvram_read_byte(int i)
++unsigned char __nvram_read_byte(int i)
+ {
+ 	return CMOS_READ(NVRAM_FIRST_BYTE + i);
+ }
++EXPORT_SYMBOL(__nvram_read_byte);
+ 
+-unsigned char
+-nvram_read_byte(int i)
++unsigned char nvram_read_byte(int i)
+ {
+ 	unsigned long flags;
+ 	unsigned char c;
+@@ -154,16 +153,16 @@ nvram_read_byte(int i)
+ 	spin_unlock_irqrestore(&rtc_lock, flags);
+ 	return c;
+ }
++EXPORT_SYMBOL(nvram_read_byte);
+ 
+ /* This races nicely with trying to read with checksum checking (nvram_read) */
+-void
+-__nvram_write_byte(unsigned char c, int i)
++void __nvram_write_byte(unsigned char c, int i)
+ {
+ 	CMOS_WRITE(c, NVRAM_FIRST_BYTE + i);
+ }
++EXPORT_SYMBOL(__nvram_write_byte);
+ 
+-void
+-nvram_write_byte(unsigned char c, int i)
++void nvram_write_byte(unsigned char c, int i)
+ {
+ 	unsigned long flags;
+ 
+@@ -171,15 +170,15 @@ nvram_write_byte(unsigned char c, int i)
+ 	__nvram_write_byte(c, i);
+ 	spin_unlock_irqrestore(&rtc_lock, flags);
+ }
++EXPORT_SYMBOL(nvram_write_byte);
+ 
+-int
+-__nvram_check_checksum(void)
++int __nvram_check_checksum(void)
+ {
+ 	return mach_check_checksum();
+ }
++EXPORT_SYMBOL(__nvram_check_checksum);
+ 
+-int
+-nvram_check_checksum(void)
++int nvram_check_checksum(void)
+ {
+ 	unsigned long flags;
+ 	int rv;
+@@ -189,16 +188,15 @@ nvram_check_checksum(void)
+ 	spin_unlock_irqrestore(&rtc_lock, flags);
+ 	return rv;
+ }
++EXPORT_SYMBOL(nvram_check_checksum);
+ 
+-static void
+-__nvram_set_checksum(void)
++static void __nvram_set_checksum(void)
+ {
+ 	mach_set_checksum();
+ }
+ 
+ #if 0
+-void
+-nvram_set_checksum(void)
++void nvram_set_checksum(void)
+ {
+ 	unsigned long flags;
+ 
+@@ -212,7 +210,7 @@ nvram_set_checksum(void)
+  * The are the file operation function for user access to /dev/nvram
+  */
+ 
+-static loff_t nvram_llseek(struct file *file,loff_t offset, int origin )
++static loff_t nvram_llseek(struct file *file, loff_t offset, int origin)
+ {
+ 	lock_kernel();
+ 	switch (origin) {
+@@ -230,8 +228,8 @@ static loff_t nvram_llseek(struct file *
+ 	return (offset >= 0) ? (file->f_pos = offset) : -EINVAL;
+ }
+ 
+-static ssize_t
+-nvram_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
++static ssize_t nvram_read(struct file *file, char __user *buf,
++						size_t count, loff_t *ppos)
+ {
+ 	unsigned char contents[NVRAM_BYTES];
+ 	unsigned i = *ppos;
+@@ -254,13 +252,13 @@ nvram_read(struct file *file, char __use
+ 
+ 	return tmp - contents;
+ 
+-      checksum_err:
++checksum_err:
+ 	spin_unlock_irq(&rtc_lock);
+ 	return -EIO;
+ }
+ 
+-static ssize_t
+-nvram_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++static ssize_t nvram_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
+ {
+ 	unsigned char contents[NVRAM_BYTES];
+ 	unsigned i = *ppos;
+@@ -287,14 +285,13 @@ nvram_write(struct file *file, const cha
+ 
+ 	return tmp - contents;
+ 
+-      checksum_err:
++checksum_err:
+ 	spin_unlock_irq(&rtc_lock);
+ 	return -EIO;
+ }
+ 
+-static int
+-nvram_ioctl(struct inode *inode, struct file *file,
+-    unsigned int cmd, unsigned long arg)
++static int nvram_ioctl(struct inode *inode, struct file *file,
++					unsigned int cmd, unsigned long arg)
+ {
+ 	int i;
+ 
+@@ -315,7 +312,7 @@ nvram_ioctl(struct inode *inode, struct 
+ 		return 0;
+ 
+ 	case NVRAM_SETCKS:
+-		/* just set checksum, contents unchanged (maybe useful after 
++		/* just set checksum, contents unchanged (maybe useful after
+ 		 * checksum garbaged somehow...) */
+ 		if (!capable(CAP_SYS_ADMIN))
+ 			return -EACCES;
+@@ -330,8 +327,7 @@ nvram_ioctl(struct inode *inode, struct 
  	}
  }
  
-@@ -187,8 +183,6 @@ static long __mlock_vma_pages_range(stru
- 	if (vma->vm_flags & VM_WRITE)
- 		gup_flags |= GUP_FLAGS_WRITE;
- 
--	lru_add_drain_all();	/* push cached pages to LRU */
--
- 	while (nr_pages > 0) {
- 		int i;
- 
-@@ -251,8 +245,6 @@ static long __mlock_vma_pages_range(stru
- 		ret = 0;
- 	}
- 
--	lru_add_drain_all();	/* to update stats */
--
- 	return ret;	/* count entire vma as locked_vm */
+-static int
+-nvram_open(struct inode *inode, struct file *file)
++static int nvram_open(struct inode *inode, struct file *file)
+ {
+ 	lock_kernel();
+ 	spin_lock(&nvram_state_lock);
+@@ -356,8 +352,7 @@ nvram_open(struct inode *inode, struct f
+ 	return 0;
  }
  
-@@ -546,6 +538,8 @@ asmlinkage long sys_mlock(unsigned long 
- 	if (!can_do_mlock())
- 		return -EPERM;
+-static int
+-nvram_release(struct inode *inode, struct file *file)
++static int nvram_release(struct inode *inode, struct file *file)
+ {
+ 	spin_lock(&nvram_state_lock);
  
-+	lru_add_drain_all();	/* flush pagevec */
-+
- 	down_write(&current->mm->mmap_sem);
- 	len = PAGE_ALIGN(len + (start & ~PAGE_MASK));
- 	start &= PAGE_MASK;
-@@ -612,6 +606,8 @@ asmlinkage long sys_mlockall(int flags)
- 	if (!can_do_mlock())
- 		goto out;
+@@ -375,17 +370,15 @@ nvram_release(struct inode *inode, struc
+ }
  
-+	lru_add_drain_all();	/* flush pagevec */
-+
- 	down_write(&current->mm->mmap_sem);
+ #ifndef CONFIG_PROC_FS
+-static int
+-nvram_read_proc(char *buffer, char **start, off_t offset,
+-    int size, int *eof, void *data)
++static int nvram_read_proc(char *buffer, char **start, off_t offset,
++						int size, int *eof, void *data)
+ {
+ 	return 0;
+ }
+ #else
  
- 	lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur;
-_
-
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
-
-origin.patch
-linux-next.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-oom-fix-zone_scan_mutex-name.patch
-mm-get-rid-of-pagevec_release_nonlru.patch
-cleanup-get-rid-of-ifdef-config_migration.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-
+-static int
+-nvram_read_proc(char *buffer, char **start, off_t offset,
+-    int size, int *eof, void *data)
++static int nvram_read_proc(char *buffer, char **start, off_t offset,
++						int size, int *eof, void *data)
+ {
+ 	unsigned char contents[NVRAM_BYTES];
+ 	int i, len = 0;
+@@ -409,14 +402,14 @@ nvram_read_proc(char *buffer, char **sta
+  * this like that... */
+ #define PRINT_PROC(fmt,args...)					\
+ 	do {							\
+-		*len += sprintf(buffer+*len, fmt, ##args);	\
++		*len += sprintf(buffer + *len, fmt, ##args);	\
+ 		if (*begin + *len > offset + size)		\
+ 			return 0;				\
+ 		if (*begin + *len < offset) {			\
+ 			*begin += *len;				\
+ 			*len = 0;				\
+ 		}						\
+-	} while(0)
++	} while (0)
+ 
+ #endif /* CONFIG_PROC_FS */
+ 
+@@ -436,8 +429,7 @@ static struct miscdevice nvram_dev = {
+ 	&nvram_fops
+ };
+ 
+-static int __init
+-nvram_init(void)
++static int __init nvram_init(void)
+ {
+ 	int ret;
+ 
+@@ -459,15 +451,14 @@ nvram_init(void)
+ 	}
+ 	ret = 0;
+ 	printk(KERN_INFO "Non-volatile memory driver v" NVRAM_VERSION "\n");
+-      out:
++out:
+ 	return ret;
+-      outmisc:
++outmisc:
+ 	misc_deregister(&nvram_dev);
+ 	goto out;
+ }
+ 
+-static void __exit
+-nvram_cleanup_module(void)
++static void __exit nvram_cleanup_module(void)
+ {
+ 	remove_proc_entry("driver/nvram", NULL);
+ 	misc_deregister(&nvram_dev);
+@@ -482,8 +473,7 @@ module_exit(nvram_cleanup_module);
+ 
+ #if MACH == PC
+ 
+-static int
+-pc_check_checksum(void)
++static int pc_check_checksum(void)
+ {
+ 	int i;
+ 	unsigned short sum = 0;
+@@ -493,11 +483,10 @@ pc_check_checksum(void)
+ 		sum += __nvram_read_byte(i);
+ 	expect = __nvram_read_byte(PC_CKS_LOC)<<8 |
+ 	    __nvram_read_byte(PC_CKS_LOC+1);
+-	return ((sum & 0xffff) == expect);
++	return (sum & 0xffff) == expect;
+ }
+ 
+-static void
+-pc_set_checksum(void)
++static void pc_set_checksum(void)
+ {
+ 	int i;
+ 	unsigned short sum = 0;
+@@ -522,9 +511,8 @@ static char *gfx_types[] = {
+ 	"monochrome",
+ };
+ 
+-static int
+-pc_proc_infos(unsigned char *nvram, char *buffer, int *len,
+-    off_t *begin, off_t offset, int size)
++static int pc_proc_infos(unsigned char *nvram, char *buffer, int *len,
++					off_t *begin, off_t offset, int size)
+ {
+ 	int checksum;
+ 	int type;
+@@ -590,20 +578,18 @@ pc_proc_infos(unsigned char *nvram, char
+ 
+ #if MACH == ATARI
+ 
+-static int
+-atari_check_checksum(void)
++static int atari_check_checksum(void)
+ {
+ 	int i;
+ 	unsigned char sum = 0;
+ 
+ 	for (i = ATARI_CKS_RANGE_START; i <= ATARI_CKS_RANGE_END; ++i)
+ 		sum += __nvram_read_byte(i);
+-	return (__nvram_read_byte(ATARI_CKS_LOC) == (~sum & 0xff) &&
+-	    __nvram_read_byte(ATARI_CKS_LOC + 1) == (sum & 0xff));
++	return (__nvram_read_byte(ATARI_CKS_LOC) == (~sum & 0xff)) &&
++	    (__nvram_read_byte(ATARI_CKS_LOC + 1) == (sum & 0xff));
+ }
+ 
+-static void
+-atari_set_checksum(void)
++static void atari_set_checksum(void)
+ {
+ 	int i;
+ 	unsigned char sum = 0;
+@@ -654,9 +640,8 @@ static char *colors[] = {
+ 	"2", "4", "16", "256", "65536", "??", "??", "??"
+ };
+ 
+-static int
+-atari_proc_infos(unsigned char *nvram, char *buffer, int *len,
+-    off_t *begin, off_t offset, int size)
++static int atari_proc_infos(unsigned char *nvram, char *buffer, int *len,
++					off_t *begin, off_t offset, int size)
+ {
+ 	int checksum = nvram_check_checksum();
+ 	int i;
+@@ -725,11 +710,4 @@ atari_proc_infos(unsigned char *nvram, c
+ #endif /* MACH == ATARI */
+ 
+ MODULE_LICENSE("GPL");
