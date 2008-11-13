@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-bad-error-test-before-a-dereference.patch added to -mm tree
-Date: Thu, 13 Nov 2008 01:13:31 -0800
-Message-ID: <200811130913.mAD9DVJB020026@imap1.linux-foundation.org>
+Subject: + sysvipc-fix-the-ipc-structures-initialization.patch added to -mm tree
+Date: Thu, 13 Nov 2008 10:09:25 -0800
+Message-ID: <200811131809.mADI9Psc026373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751261AbYKMJNm (ORCPT
+	by vger.kernel.org with ESMTP id S1751653AbYKMSK1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 04:13:42 -0500
+	Thu, 13 Nov 2008 13:10:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: brunel@diku.dk, julia@diku.dk, nicolas.ferre@atmel.com
+Cc: Nadia.Derbey@bull.net, cboulte@gmail.com, manfred@colorfullife.com, stable@kernel.org
 
 
 The patch titled
-     drivers/video: bad error test before a dereference
+     sysvipc: fix the ipc structures initialization
 has been added to the -mm tree.  Its filename is
-     drivers-video-bad-error-test-before-a-dereference.patch
+     sysvipc-fix-the-ipc-structures-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video: bad error test before a dereference
-From: Julien Brunel <brunel@diku.dk>
+Subject: sysvipc: fix the ipc structures initialization
 
-The error test that follows the call to backlight_device_register semms
-not to concern the right variable.
 
-A simplified version of the semantic match that finds this problem is
-as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-// <smpl>
-@def0@
-expression x;
-position p0;
-@@
-x@p0 = backlight_device_register(...)
+A problem was found while reviewing the code after Bugzilla bug
+http://bugzilla.kernel.org/show_bug.cgi?id=11796.
 
-@protected@
-expression def0.x,E;
-position def0.p0;
-position p;
-statement S;
-@@
-x@p0
-... when != x = E
-if (!IS_ERR(x) && ...) {<... x@p ...>} else S
+In ipc_addid(), the newly allocated ipc structure is inserted into the
+ipcs tree (i.e made visible to readers) without locking it.  This is not
+correct since its initialization continues after it has been inserted in
+the tree.
 
-@unprotected@
-expression def0.x;
-identifier fld;
-position def0.p0;
-position p != protected.p;
-@@
-x@p0
-... when != x = E
-* x@p->fld
-// </smpl>
+This patch moves the ipc structure lock initialization + locking before
+the actual insertion.
 
-Signed-off-by: Julien Brunel <brunel@diku.dk>
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Reported-by: Clement Calmels <cboulte@gmail.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: <stable@kernel.org>		[2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/util.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~drivers-video-bad-error-test-before-a-dereference drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~drivers-video-bad-error-test-before-a-dereference
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -132,7 +132,7 @@ static void init_backlight(struct atmel_
+diff -puN ipc/util.c~sysvipc-fix-the-ipc-structures-initialization ipc/util.c
+--- a/ipc/util.c~sysvipc-fix-the-ipc-structures-initialization
++++ a/ipc/util.c
+@@ -266,9 +266,17 @@ int ipc_addid(struct ipc_ids* ids, struc
+ 	if (ids->in_use >= size)
+ 		return -ENOSPC;
  
- 	bl = backlight_device_register("backlight", &sinfo->pdev->dev,
- 			sinfo, &atmel_lcdc_bl_ops);
--	if (IS_ERR(sinfo->backlight)) {
-+	if (IS_ERR(bl)) {
- 		dev_err(&sinfo->pdev->dev, "error %ld on backlight register\n",
- 				PTR_ERR(bl));
- 		return;
++	spin_lock_init(&new->lock);
++	new->deleted = 0;
++	rcu_read_lock();
++	spin_lock(&new->lock);
++
+ 	err = idr_get_new(&ids->ipcs_idr, new, &id);
+-	if (err)
++	if (err) {
++		spin_unlock(&new->lock);
++		rcu_read_unlock();
+ 		return err;
++	}
+ 
+ 	ids->in_use++;
+ 
+@@ -280,10 +288,6 @@ int ipc_addid(struct ipc_ids* ids, struc
+ 		ids->seq = 0;
+ 
+ 	new->id = ipc_buildid(id, new->seq);
+-	spin_lock_init(&new->lock);
+-	new->deleted = 0;
+-	rcu_read_lock();
+-	spin_lock(&new->lock);
+ 	return id;
+ }
+ 
 _
 
-Patches currently in -mm which might be from brunel@diku.dk are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
-drivers-video-bad-error-test-before-a-dereference.patch
+sysvipc-fix-the-ipc-structures-initialization.patch
+ipc-clean-up-ipc-shmc.patch
 
