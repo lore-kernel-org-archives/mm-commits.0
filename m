@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-tweak-failure-printk.patch added to -mm tree
-Date: Wed, 12 Nov 2008 16:18:31 -0800
-Message-ID: <200811130018.mAD0IVqW015618@imap1.linux-foundation.org>
+Subject: + kconfig-correct-sched-rt-grouptxt-pathname-in-init-kconfig.patch added to -mm tree
+Date: Wed, 12 Nov 2008 16:23:55 -0800
+Message-ID: <200811130023.mAD0NtS6018254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751946AbYKMATS (ORCPT
+	by vger.kernel.org with ESMTP id S1750763AbYKMAYs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 19:19:18 -0500
+	Wed, 12 Nov 2008 19:24:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: glommer@redhat.com, npiggin@suse.de
+Cc: adi@drcomp.erfurt.thur.de, mingo@elte.hu
 
 
 The patch titled
-     mm: vmalloc tweak failure printk
+     Kconfig: correct sched-rt-group.txt pathname in init/Kconfig
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-tweak-failure-printk.patch
+     kconfig-correct-sched-rt-grouptxt-pathname-in-init-kconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmalloc tweak failure printk
-From: Glauber Costa <glommer@redhat.com>
+Subject: Kconfig: correct sched-rt-group.txt pathname in init/Kconfig
+From: Adrian Knoth <adi@drcomp.erfurt.thur.de>
 
-If we can't service a vmalloc allocation, show size of the allocation that
-actually failed.  Useful for debugging.
+init/Kconfig directs the user to Documentation/sched-rt-group.txt, but
+the file is actually in Documentation/scheduler/sched-rt-group.txt.
 
-Signed-off-by: Glauber Costa <glommer@redhat.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+This patch corrects the pathname mentioned in init/Kconfig.
+
+Signed-off-by: Adrian Knoth <adi@drcomp.erfurt.thur.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ init/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-tweak-failure-printk mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-tweak-failure-printk
-+++ a/mm/vmalloc.c
-@@ -381,8 +381,9 @@ found:
- 			goto retry;
- 		}
- 		if (printk_ratelimit())
--			printk(KERN_WARNING "vmap allocation failed: "
--				 "use vmalloc=<size> to increase size.\n");
-+			printk(KERN_WARNING
-+				"vmap allocation for size %lu failed: "
-+				"use vmalloc=<size> to increase size.\n", size);
- 		return ERR_PTR(-EBUSY);
- 	}
+diff -puN init/Kconfig~kconfig-correct-sched-rt-grouptxt-pathname-in-init-kconfig init/Kconfig
+--- a/init/Kconfig~kconfig-correct-sched-rt-grouptxt-pathname-in-init-kconfig
++++ a/init/Kconfig
+@@ -354,7 +354,7 @@ config RT_GROUP_SCHED
+ 	  setting below. If enabled, it will also make it impossible to
+ 	  schedule realtime tasks for non-root users until you allocate
+ 	  realtime bandwidth for them.
+-	  See Documentation/sched-rt-group.txt for more information.
++ 	  See Documentation/scheduler/sched-rt-group.txt for more information.
  
+ choice
+ 	depends on GROUP_SCHED
 _
 
-Patches currently in -mm which might be from glommer@redhat.com are
+Patches currently in -mm which might be from adi@drcomp.erfurt.thur.de are
 
-linux-next.patch
-mm-vmalloc-search-restart-fix.patch
-mm-vmalloc-tweak-failure-printk.patch
-mm-vmalloc-improve-vmallocinfo.patch
+kconfig-correct-sched-rt-grouptxt-pathname-in-init-kconfig.patch
 
