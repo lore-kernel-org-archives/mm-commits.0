@@ -1,321 +1,243 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-adding-new-xilinx-driver.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:26:41 -0800
-Message-ID: <200811132126.mADLQfou027448@imap1.linux-foundation.org>
+Subject: - fix-platform-drivers-that-crash-on-suspend-resume.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 13:26:33 -0800
+Message-ID: <200811132126.mADLQXDF027363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37205 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752768AbYKMV37 (ORCPT
+	by vger.kernel.org with ESMTP id S1753497AbYKMVaA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:29:59 -0500
+	Thu, 13 Nov 2008 16:30:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john.linn@xilinx.com, avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, grant.likely@secretlab.ca, kirans@xilinx.com, paulus@samba.org
+To: djwong@us.ibm.com, cminyard@mvista.com, greg@kroah.com, kay.sievers@vrfy.org, khali@linux-fr.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     GPIO: add new Xilinx driver for powerpc
+     Fix platform drivers that crash on suspend/resume
 has been removed from the -mm tree.  Its filename was
-     gpio-adding-new-xilinx-driver.patch
+     fix-platform-drivers-that-crash-on-suspend-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GPIO: add new Xilinx driver for powerpc
-From: John Linn <john.linn@xilinx.com>
+Subject: Fix platform drivers that crash on suspend/resume
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-This driver supports the Xilinx XPS GPIO IP core which has the typical
-GPIO features.
+It turns out that if one registers a struct platform_device, the platform
+device code expects that platform_device.device->driver points to a struct
+driver inside a struct platform_driver.  This is not the case with the
+ipmi-si, ipmi-msghandler and ibmaem drivers, which causes the
+suspend/resume hook functions to jump off into nowhere, causing a crash. 
+Make this assumption hold true for these three drivers.
 
-Signed-off-by: Kiran Sutariya <kirans@xilinx.com>
-Signed-off-by: John Linn <john.linn@xilinx.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: "Grant Likely" <grant.likely@secretlab.ca>
-Cc: <avorontsov@ru.mvista.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Acked-by: Corey Minyard <cminyard@mvista.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig       |    8 +
- drivers/gpio/Makefile      |    1 
- drivers/gpio/xilinx_gpio.c |  235 +++++++++++++++++++++++++++++++++++
- 3 files changed, 244 insertions(+)
+ drivers/char/ipmi/ipmi_msghandler.c |   20 +++++++++++---------
+ drivers/char/ipmi/ipmi_si_intf.c    |   16 +++++++++-------
+ drivers/hwmon/ibmaem.c              |   18 ++++++++++--------
+ 3 files changed, 30 insertions(+), 24 deletions(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-adding-new-xilinx-driver drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-adding-new-xilinx-driver
-+++ a/drivers/gpio/Kconfig
-@@ -65,6 +65,14 @@ config GPIO_SYSFS
- 
- # put expanders in the right section, in alphabetical order
- 
-+comment "Memory mapped GPIO expanders:"
-+
-+config GPIO_XILINX
-+	bool "Xilinx GPIO support"
-+	depends on PPC_OF
-+	help
-+	  Say yes here to support the Xilinx FPGA GPIO device
-+
- comment "I2C GPIO expanders:"
- 
- config GPIO_MAX732X
-diff -puN drivers/gpio/Makefile~gpio-adding-new-xilinx-driver drivers/gpio/Makefile
---- a/drivers/gpio/Makefile~gpio-adding-new-xilinx-driver
-+++ a/drivers/gpio/Makefile
-@@ -10,4 +10,5 @@ obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.
- obj-$(CONFIG_GPIO_PCA953X)	+= pca953x.o
- obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
- obj-$(CONFIG_GPIO_TWL4030)	+= twl4030-gpio.o
-+obj-$(CONFIG_GPIO_XILINX)	+= xilinx_gpio.o
- obj-$(CONFIG_GPIO_BT8XX)	+= bt8xxgpio.o
-diff -puN /dev/null drivers/gpio/xilinx_gpio.c
---- /dev/null
-+++ a/drivers/gpio/xilinx_gpio.c
-@@ -0,0 +1,235 @@
-+/*
-+ * Xilinx gpio driver
-+ *
-+ * Copyright 2008 Xilinx, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+#include <linux/of_device.h>
-+#include <linux/of_platform.h>
-+#include <linux/of_gpio.h>
-+#include <linux/io.h>
-+#include <linux/gpio.h>
-+
-+/* Register Offset Definitions */
-+#define XGPIO_DATA_OFFSET   (0x0)	/* Data register  */
-+#define XGPIO_TRI_OFFSET    (0x4)	/* I/O direction register  */
-+
-+struct xgpio_instance {
-+	struct of_mm_gpio_chip mmchip;
-+	u32 gpio_state;		/* GPIO state shadow register */
-+	u32 gpio_dir;		/* GPIO direction shadow register */
-+	spinlock_t gpio_lock;	/* Lock used for synchronization */
-+};
-+
-+/**
-+ * xgpio_get - Read the specified signal of the GPIO device.
-+ * @gc:     Pointer to gpio_chip device structure.
-+ * @gpio:   GPIO signal number.
-+ *
-+ * This function reads the specified signal of the GPIO device. It returns 0 if
-+ * the signal clear, 1 if signal is set or negative value on error.
-+ */
-+static int xgpio_get(struct gpio_chip *gc, unsigned int gpio)
-+{
-+	struct of_mm_gpio_chip *mm_gc = to_of_mm_gpio_chip(gc);
-+
-+	return (in_be32(mm_gc->regs + XGPIO_DATA_OFFSET) >> gpio) & 1;
-+}
-+
-+/**
-+ * xgpio_set - Write the specified signal of the GPIO device.
-+ * @gc:     Pointer to gpio_chip device structure.
-+ * @gpio:   GPIO signal number.
-+ * @val:    Value to be written to specified signal.
-+ *
-+ * This function writes the specified value in to the specified signal of the
-+ * GPIO device.
-+ */
-+static void xgpio_set(struct gpio_chip *gc, unsigned int gpio, int val)
-+{
-+	unsigned long flags;
-+	struct of_mm_gpio_chip *mm_gc = to_of_mm_gpio_chip(gc);
-+	struct xgpio_instance *chip =
-+	    container_of(mm_gc, struct xgpio_instance, mmchip);
-+
-+	spin_lock_irqsave(&chip->gpio_lock, flags);
-+
-+	/* Write to GPIO signal and set its direction to output */
-+	if (val)
-+		chip->gpio_state |= 1 << gpio;
-+	else
-+		chip->gpio_state &= ~(1 << gpio);
-+	out_be32(mm_gc->regs + XGPIO_DATA_OFFSET, chip->gpio_state);
-+
-+	spin_unlock_irqrestore(&chip->gpio_lock, flags);
-+}
-+
-+/**
-+ * xgpio_dir_in - Set the direction of the specified GPIO signal as input.
-+ * @gc:     Pointer to gpio_chip device structure.
-+ * @gpio:   GPIO signal number.
-+ *
-+ * This function sets the direction of specified GPIO signal as input.
-+ * It returns 0 if direction of GPIO signals is set as input otherwise it
-+ * returns negative error value.
-+ */
-+static int xgpio_dir_in(struct gpio_chip *gc, unsigned int gpio)
-+{
-+	unsigned long flags;
-+	struct of_mm_gpio_chip *mm_gc = to_of_mm_gpio_chip(gc);
-+	struct xgpio_instance *chip =
-+	    container_of(mm_gc, struct xgpio_instance, mmchip);
-+
-+	spin_lock_irqsave(&chip->gpio_lock, flags);
-+
-+	/* Set the GPIO bit in shadow register and set direction as input */
-+	chip->gpio_dir |= (1 << gpio);
-+	out_be32(mm_gc->regs + XGPIO_TRI_OFFSET, chip->gpio_dir);
-+
-+	spin_unlock_irqrestore(&chip->gpio_lock, flags);
-+
-+	return 0;
-+}
-+
-+/**
-+ * xgpio_dir_out - Set the direction of the specified GPIO signal as output.
-+ * @gc:     Pointer to gpio_chip device structure.
-+ * @gpio:   GPIO signal number.
-+ * @val:    Value to be written to specified signal.
-+ *
-+ * This function sets the direction of specified GPIO signal as output. If all
-+ * GPIO signals of GPIO chip is configured as input then it returns
-+ * error otherwise it returns 0.
-+ */
-+static int xgpio_dir_out(struct gpio_chip *gc, unsigned int gpio, int val)
-+{
-+	unsigned long flags;
-+	struct of_mm_gpio_chip *mm_gc = to_of_mm_gpio_chip(gc);
-+	struct xgpio_instance *chip =
-+	    container_of(mm_gc, struct xgpio_instance, mmchip);
-+
-+	spin_lock_irqsave(&chip->gpio_lock, flags);
-+
-+	/* Write state of GPIO signal */
-+	if (val)
-+		chip->gpio_state |= 1 << gpio;
-+	else
-+		chip->gpio_state &= ~(1 << gpio);
-+	out_be32(mm_gc->regs + XGPIO_DATA_OFFSET, chip->gpio_state);
-+
-+	/* Clear the GPIO bit in shadow register and set direction as output */
-+	chip->gpio_dir &= (~(1 << gpio));
-+	out_be32(mm_gc->regs + XGPIO_TRI_OFFSET, chip->gpio_dir);
-+
-+	spin_unlock_irqrestore(&chip->gpio_lock, flags);
-+
-+	return 0;
-+}
-+
-+/**
-+ * xgpio_save_regs - Set initial values of GPIO pins
-+ * @mm_gc: pointer to memory mapped GPIO chip structure
-+ */
-+static void xgpio_save_regs(struct of_mm_gpio_chip *mm_gc)
-+{
-+	struct xgpio_instance *chip =
-+	    container_of(mm_gc, struct xgpio_instance, mmchip);
-+
-+	out_be32(mm_gc->regs + XGPIO_DATA_OFFSET, chip->gpio_state);
-+	out_be32(mm_gc->regs + XGPIO_TRI_OFFSET, chip->gpio_dir);
-+}
-+
-+/**
-+ * xgpio_of_probe - Probe method for the GPIO device.
-+ * @np: pointer to device tree node
-+ *
-+ * This function probes the GPIO device in the device tree. It initializes the
-+ * driver data structure. It returns 0, if the driver is bound to the GPIO
-+ * device, or a negative value if there is an error.
-+ */
-+static int __devinit xgpio_of_probe(struct device_node *np)
-+{
-+	struct xgpio_instance *chip;
-+	struct of_gpio_chip *ofchip;
-+	int status = 0;
-+	const u32 *tree_info;
-+
-+	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
-+	if (!chip)
-+		return -ENOMEM;
-+	ofchip = &chip->mmchip.of_gc;
-+
-+	/* Update GPIO state shadow register with default value */
-+	tree_info = of_get_property(np, "xlnx,dout-default", NULL);
-+	if (tree_info)
-+		chip->gpio_state = *tree_info;
-+
-+	/* Update GPIO direction shadow register with default value */
-+	chip->gpio_dir = 0xFFFFFFFF; /* By default, all pins are inputs */
-+	tree_info = of_get_property(np, "xlnx,tri-default", NULL);
-+	if (tree_info)
-+		chip->gpio_dir = *tree_info;
-+
-+	/* Check device node and parent device node for device width */
-+	ofchip->gc.ngpio = 32; /* By default assume full GPIO controller */
-+	tree_info = of_get_property(np, "xlnx,gpio-width", NULL);
-+	if (!tree_info)
-+		tree_info = of_get_property(np->parent,
-+					    "xlnx,gpio-width", NULL);
-+	if (tree_info)
-+		ofchip->gc.ngpio = *tree_info;
-+
-+	spin_lock_init(&chip->gpio_lock);
-+
-+	ofchip->gpio_cells = 2;
-+	ofchip->gc.direction_input = xgpio_dir_in;
-+	ofchip->gc.direction_output = xgpio_dir_out;
-+	ofchip->gc.get = xgpio_get;
-+	ofchip->gc.set = xgpio_set;
-+
-+	chip->mmchip.save_regs = xgpio_save_regs;
-+
-+	/* Call the OF gpio helper to setup and register the GPIO device */
-+	status = of_mm_gpiochip_add(np, &chip->mmchip);
-+	if (status) {
-+		kfree(chip);
-+		pr_err("%s: error in probe function with status %d\n",
-+		       np->full_name, status);
-+		return status;
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~fix-platform-drivers-that-crash-on-suspend-resume
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -422,9 +422,11 @@ struct ipmi_smi {
+ /**
+  * The driver model view of the IPMI messaging driver.
+  */
+-static struct device_driver ipmidriver = {
+-	.name = "ipmi",
+-	.bus = &platform_bus_type
++static struct platform_driver ipmidriver = {
++	.driver = {
++		.name = "ipmi",
++		.bus = &platform_bus_type
 +	}
-+	pr_info("XGpio: %s: registered\n", np->full_name);
-+	return 0;
-+}
-+
-+static struct of_device_id xgpio_of_match[] __devinitdata = {
-+	{ .compatible = "xlnx,xps-gpio-1.00.a", },
-+	{ /* end of list */ },
-+};
-+
-+static int __init xgpio_init(void)
-+{
-+	struct device_node *np;
-+
-+	for_each_matching_node(np, xgpio_of_match)
-+		xgpio_of_probe(np);
-+
-+	return 0;
-+}
-+
-+/* Make sure we get initialized before anyone else tries to use us */
-+subsys_initcall(xgpio_init);
-+/* No exit call at the moment as we cannot unregister of GPIO chips */
-+
-+MODULE_AUTHOR("Xilinx, Inc.");
-+MODULE_DESCRIPTION("Xilinx GPIO driver");
-+MODULE_LICENSE("GPL");
+ };
+ static DEFINE_MUTEX(ipmidriver_mutex);
+ 
+@@ -2384,9 +2386,9 @@ static int ipmi_bmc_register(ipmi_smi_t 
+ 	 * representing the interfaced BMC already
+ 	 */
+ 	if (bmc->guid_set)
+-		old_bmc = ipmi_find_bmc_guid(&ipmidriver, bmc->guid);
++		old_bmc = ipmi_find_bmc_guid(&ipmidriver.driver, bmc->guid);
+ 	else
+-		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver,
++		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
+ 						    bmc->id.product_id,
+ 						    bmc->id.device_id);
+ 
+@@ -2416,7 +2418,7 @@ static int ipmi_bmc_register(ipmi_smi_t 
+ 		snprintf(name, sizeof(name),
+ 			 "ipmi_bmc.%4.4x", bmc->id.product_id);
+ 
+-		while (ipmi_find_bmc_prod_dev_id(&ipmidriver,
++		while (ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
+ 						 bmc->id.product_id,
+ 						 bmc->id.device_id)) {
+ 			if (!warn_printed) {
+@@ -2446,7 +2448,7 @@ static int ipmi_bmc_register(ipmi_smi_t 
+ 			       " Unable to allocate platform device\n");
+ 			return -ENOMEM;
+ 		}
+-		bmc->dev->dev.driver = &ipmidriver;
++		bmc->dev->dev.driver = &ipmidriver.driver;
+ 		dev_set_drvdata(&bmc->dev->dev, bmc);
+ 		kref_init(&bmc->refcount);
+ 
+@@ -4247,7 +4249,7 @@ static int ipmi_init_msghandler(void)
+ 	if (initialized)
+ 		return 0;
+ 
+-	rv = driver_register(&ipmidriver);
++	rv = driver_register(&ipmidriver.driver);
+ 	if (rv) {
+ 		printk(KERN_ERR PFX "Could not register IPMI driver\n");
+ 		return rv;
+@@ -4308,7 +4310,7 @@ static __exit void cleanup_ipmi(void)
+ 	remove_proc_entry(proc_ipmi_root->name, NULL);
+ #endif /* CONFIG_PROC_FS */
+ 
+-	driver_unregister(&ipmidriver);
++	driver_unregister(&ipmidriver.driver);
+ 
+ 	initialized = 0;
+ 
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~fix-platform-drivers-that-crash-on-suspend-resume
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -114,9 +114,11 @@ static char *si_to_str[] = { "kcs", "smi
+ 
+ #define DEVICE_NAME "ipmi_si"
+ 
+-static struct device_driver ipmi_driver = {
+-	.name = DEVICE_NAME,
+-	.bus = &platform_bus_type
++static struct platform_driver ipmi_driver = {
++	.driver = {
++		.name = DEVICE_NAME,
++		.bus = &platform_bus_type
++	}
+ };
+ 
+ 
+@@ -2868,7 +2870,7 @@ static int try_smi_init(struct smi_info 
+ 			goto out_err;
+ 		}
+ 		new_smi->dev = &new_smi->pdev->dev;
+-		new_smi->dev->driver = &ipmi_driver;
++		new_smi->dev->driver = &ipmi_driver.driver;
+ 
+ 		rv = platform_device_add(new_smi->pdev);
+ 		if (rv) {
+@@ -2983,7 +2985,7 @@ static __devinit int init_ipmi_si(void)
+ 	initialized = 1;
+ 
+ 	/* Register the device drivers. */
+-	rv = driver_register(&ipmi_driver);
++	rv = driver_register(&ipmi_driver.driver);
+ 	if (rv) {
+ 		printk(KERN_ERR
+ 		       "init_ipmi_si: Unable to register driver: %d\n",
+@@ -3052,7 +3054,7 @@ static __devinit int init_ipmi_si(void)
+ #ifdef CONFIG_PPC_OF
+ 		of_unregister_platform_driver(&ipmi_of_platform_driver);
+ #endif
+-		driver_unregister(&ipmi_driver);
++		driver_unregister(&ipmi_driver.driver);
+ 		printk(KERN_WARNING
+ 		       "ipmi_si: Unable to find any System Interface(s)\n");
+ 		return -ENODEV;
+@@ -3151,7 +3153,7 @@ static __exit void cleanup_ipmi_si(void)
+ 		cleanup_one_si(e);
+ 	mutex_unlock(&smi_infos_lock);
+ 
+-	driver_unregister(&ipmi_driver);
++	driver_unregister(&ipmi_driver.driver);
+ }
+ module_exit(cleanup_ipmi_si);
+ 
+diff -puN drivers/hwmon/ibmaem.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/hwmon/ibmaem.c
+--- a/drivers/hwmon/ibmaem.c~fix-platform-drivers-that-crash-on-suspend-resume
++++ a/drivers/hwmon/ibmaem.c
+@@ -88,9 +88,11 @@
+ static DEFINE_IDR(aem_idr);
+ static DEFINE_SPINLOCK(aem_idr_lock);
+ 
+-static struct device_driver aem_driver = {
+-	.name = DRVNAME,
+-	.bus = &platform_bus_type,
++static struct platform_driver aem_driver = {
++	.driver = {
++		.name = DRVNAME,
++		.bus = &platform_bus_type,
++	}
+ };
+ 
+ struct aem_ipmi_data {
+@@ -583,7 +585,7 @@ static int aem_init_aem1_inst(struct aem
+ 	data->pdev = platform_device_alloc(DRVNAME, data->id);
+ 	if (!data->pdev)
+ 		goto dev_err;
+-	data->pdev->dev.driver = &aem_driver;
++	data->pdev->dev.driver = &aem_driver.driver;
+ 
+ 	res = platform_device_add(data->pdev);
+ 	if (res)
+@@ -716,7 +718,7 @@ static int aem_init_aem2_inst(struct aem
+ 	data->pdev = platform_device_alloc(DRVNAME, data->id);
+ 	if (!data->pdev)
+ 		goto dev_err;
+-	data->pdev->dev.driver = &aem_driver;
++	data->pdev->dev.driver = &aem_driver.driver;
+ 
+ 	res = platform_device_add(data->pdev);
+ 	if (res)
+@@ -1085,7 +1087,7 @@ static int __init aem_init(void)
+ {
+ 	int res;
+ 
+-	res = driver_register(&aem_driver);
++	res = driver_register(&aem_driver.driver);
+ 	if (res) {
+ 		printk(KERN_ERR "Can't register aem driver\n");
+ 		return res;
+@@ -1097,7 +1099,7 @@ static int __init aem_init(void)
+ 	return 0;
+ 
+ ipmi_reg_err:
+-	driver_unregister(&aem_driver);
++	driver_unregister(&aem_driver.driver);
+ 	return res;
+ 
+ }
+@@ -1107,7 +1109,7 @@ static void __exit aem_exit(void)
+ 	struct aem_data *p1, *next1;
+ 
+ 	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
+-	driver_unregister(&aem_driver);
++	driver_unregister(&aem_driver.driver);
+ 	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
+ 		aem_delete(p1);
+ }
 _
 
-Patches currently in -mm which might be from john.linn@xilinx.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
 origin.patch
 linux-next.patch
+create-a-div_round_closest-macro-to-do-division-with-rounding.patch
+adt7462-70-73-use-div_round_closest-for-rounded-division.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
 
