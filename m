@@ -1,164 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - freezer_cg-disable-writing-freezerstate-of-root-cgroup.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:26:47 -0800
-Message-ID: <200811132126.mADLQlI8027521@imap1.linux-foundation.org>
+Subject: - doc-add-printk-formatstxt.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 13:27:00 -0800
+Message-ID: <200811132127.mADLR0uM027614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53115 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60867 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752944AbYKMV1a (ORCPT
+	by vger.kernel.org with ESMTP id S1753005AbYKMV1e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:27:30 -0500
+	Thu, 13 Nov 2008 16:27:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, clg@fr.ibm.com, matthltc@us.ibm.com, menage@google.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freezer_cg: disable writing freezer.state of root cgroup
+     DOC: add printk-formats.txt
 has been removed from the -mm tree.  Its filename was
-     freezer_cg-disable-writing-freezerstate-of-root-cgroup.patch
+     doc-add-printk-formatstxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: freezer_cg: disable writing freezer.state of root cgroup
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: DOC: add printk-formats.txt
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-With this change, control file 'freezer.state' doesn't exist in root
-cgroup, making root cgroup unfreezable.
+Add printk-formats.txt so that we don't have to keep fixing the
+same things over and over again.  <wishful thinking>
 
-I think it's reasonable to disallow freeze tasks in the root cgroup.  And
-then we can avoid fork overhead when freezer subsystem is compiled but not
-used.
-
-Also make writing invalid value to freezer.state returns EINVAL rather
-than EIO.  This is more consistent with other cgroup subsystem.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/freezer-subsystem.txt |   21 ++++++++++--------
- kernel/cgroup_freezer.c                     |   11 ++++++++-
- 2 files changed, 22 insertions(+), 10 deletions(-)
+ Documentation/00-INDEX           |    2 +
+ Documentation/printk-formats.txt |   35 +++++++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+)
 
-diff -puN Documentation/cgroups/freezer-subsystem.txt~freezer_cg-disable-writing-freezerstate-of-root-cgroup Documentation/cgroups/freezer-subsystem.txt
---- a/Documentation/cgroups/freezer-subsystem.txt~freezer_cg-disable-writing-freezerstate-of-root-cgroup
-+++ a/Documentation/cgroups/freezer-subsystem.txt
-@@ -1,4 +1,4 @@
--	The cgroup freezer is useful to batch job management system which start
-+The cgroup freezer is useful to batch job management system which start
- and stop sets of tasks in order to schedule the resources of a machine
- according to the desires of a system administrator. This sort of program
- is often used on HPC clusters to schedule access to the cluster as a
-@@ -6,7 +6,7 @@ whole. The cgroup freezer uses cgroups t
- be started/stopped by the batch job management system. It also provides
- a means to start and stop the tasks composing the job.
- 
--	The cgroup freezer will also be useful for checkpointing running groups
-+The cgroup freezer will also be useful for checkpointing running groups
- of tasks. The freezer allows the checkpoint code to obtain a consistent
- image of the tasks by attempting to force the tasks in a cgroup into a
- quiescent state. Once the tasks are quiescent another task can
-@@ -16,7 +16,7 @@ recoverable error occur. This also allow
- migrated between nodes in a cluster by copying the gathered information
- to another node and restarting the tasks there.
- 
--	Sequences of SIGSTOP and SIGCONT are not always sufficient for stopping
-+Sequences of SIGSTOP and SIGCONT are not always sufficient for stopping
- and resuming tasks in userspace. Both of these signals are observable
- from within the tasks we wish to freeze. While SIGSTOP cannot be caught,
- blocked, or ignored it can be seen by waiting or ptracing parent tasks.
-@@ -37,26 +37,29 @@ demonstrate this problem using nested ba
- 
- 	<at this point 16990 exits and causes 16644 to exit too>
- 
--	This happens because bash can observe both signals and choose how it
-+This happens because bash can observe both signals and choose how it
- responds to them.
- 
--	Another example of a program which catches and responds to these
-+Another example of a program which catches and responds to these
- signals is gdb. In fact any program designed to use ptrace is likely to
- have a problem with this method of stopping and resuming tasks.
- 
--	 In contrast, the cgroup freezer uses the kernel freezer code to
-+In contrast, the cgroup freezer uses the kernel freezer code to
- prevent the freeze/unfreeze cycle from becoming visible to the tasks
- being frozen. This allows the bash example above and gdb to run as
- expected.
- 
--	The freezer subsystem in the container filesystem defines a file named
-+The freezer subsystem in the container filesystem defines a file named
- freezer.state. Writing "FROZEN" to the state file will freeze all tasks in the
- cgroup. Subsequently writing "THAWED" will unfreeze the tasks in the cgroup.
- Reading will return the current state.
- 
-+Note freezer.state doesn't exist in root cgroup, which means root cgroup
-+is non-freezable.
+diff -puN Documentation/00-INDEX~doc-add-printk-formatstxt Documentation/00-INDEX
+--- a/Documentation/00-INDEX~doc-add-printk-formatstxt
++++ a/Documentation/00-INDEX
+@@ -290,6 +290,8 @@ powerpc/
+ 	- directory with info on using Linux with the PowerPC.
+ preempt-locking.txt
+ 	- info on locking under a preemptive kernel.
++printk-formats.txt
++	- how to get printk format specifiers right
+ prio_tree.txt
+ 	- info on radix-priority-search-tree use for indexing vmas.
+ ramdisk.txt
+diff -puN /dev/null Documentation/printk-formats.txt
+--- /dev/null
++++ a/Documentation/printk-formats.txt
+@@ -0,0 +1,35 @@
++If variable is of Type,		use printk format specifier:
++---------------------------------------------------------
++		int			%d or %x
++		unsigned int		%u or %x
++		long			%ld or %lx
++		unsigned long		%lu or %lx
++		long long		%lld or %llx
++		unsigned long long	%llu or %llx
++		size_t			%zu or %zx
++		ssize_t			%zd or %zx
 +
- * Examples of usage :
- 
--   # mkdir /containers/freezer
-+   # mkdir /containers
-    # mount -t cgroup -ofreezer freezer  /containers
-    # mkdir /containers/0
-    # echo $some_pid > /containers/0/tasks
-@@ -94,6 +97,6 @@ things happens:
- 		the freezer.state file
- 	2) Userspace retries the freezing operation by writing "FROZEN" to
- 		the freezer.state file (writing "FREEZING" is not legal
--		and returns EIO)
-+		and returns EINVAL)
- 	3) The tasks that blocked the cgroup from entering the "FROZEN"
- 		state disappear from the cgroup's set of tasks.
-diff -puN kernel/cgroup_freezer.c~freezer_cg-disable-writing-freezerstate-of-root-cgroup kernel/cgroup_freezer.c
---- a/kernel/cgroup_freezer.c~freezer_cg-disable-writing-freezerstate-of-root-cgroup
-+++ a/kernel/cgroup_freezer.c
-@@ -192,6 +192,13 @@ static void freezer_fork(struct cgroup_s
- 	 */
- 	freezer = task_freezer(task);
- 
-+	/*
-+	 * The root cgroup is non-freezable, so we can skip the
-+	 * following check.
-+	 */
-+	if (!freezer->css.cgroup->parent)
-+		return;
++Raw pointer value SHOULD be printed with %p.
 +
- 	spin_lock_irq(&freezer->lock);
- 	BUG_ON(freezer->state == CGROUP_FROZEN);
- 
-@@ -335,7 +342,7 @@ static int freezer_write(struct cgroup *
- 	else if (strcmp(buffer, freezer_state_strs[CGROUP_FROZEN]) == 0)
- 		goal_state = CGROUP_FROZEN;
- 	else
--		return -EIO;
-+		return -EINVAL;
- 
- 	if (!cgroup_lock_live_group(cgroup))
- 		return -ENODEV;
-@@ -354,6 +361,8 @@ static struct cftype files[] = {
- 
- static int freezer_populate(struct cgroup_subsys *ss, struct cgroup *cgroup)
- {
-+	if (!cgroup->parent)
-+		return 0;
- 	return cgroup_add_files(cgroup, ss, files, ARRAY_SIZE(files));
- }
- 
++u64 SHOULD be printed with %llu/%llx, (unsigned long long):
++
++	printk("%llu", (unsigned long long)u64_var);
++
++s64 SHOULD be printed with %lld/%llx, (long long):
++
++	printk("%lld", (long long)s64_var);
++
++If <type> is dependent on a config option for its size (e.g., sector_t,
++blkcnt_t, phys_addr_t, resource_size_t) or is architecture-dependent
++for its size (e.g., tcflag_t), use a format specifier of its largest
++possible type and explicitly cast to it.  Example:
++
++	printk("test: sector number/total blocks: %llu/%llu\n",
++		(unsigned long long)sector, (unsigned long long)blockcount);
++
++Reminder: sizeof() result is of type size_t.
++
++Thank you for your cooperation and attention.
++
++
++By Randy Dunlap <rdunlap@xenotime.net>
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+audit-remove-excess-kernel-doc.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+mtd-remove-excess-kernel-doc-notation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+fusion-remove-excess-kernel-doc-notation.patch
+block-remove-excess-kernel-doc.patch
+drivers-staging-usbip-stub_txc-cleanup-kerneldoc.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+drivers-message-i2o-iopc-cleanup-kerneldoc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+documentation-move-ioctl-numbertxt-to-doc-ioctl.patch
+documentation-move-msi-howtotxt-to-doc-pci.patch
+profile-likely-unlikely-macros.patch
 
