@@ -1,75 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - cpusets-update-mems-allowed-in-page-allocator.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:26:39 -0800
-Message-ID: <200811132126.mADLQdDl027433@imap1.linux-foundation.org>
+Subject: - i5000-edac-hold-reference-to-mci-kobject.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 13:26:37 -0800
+Message-ID: <200811132126.mADLQbkm027430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752722AbYKMV1P (ORCPT
+	by vger.kernel.org with ESMTP id S1752463AbYKMV1I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:27:15 -0500
+	Thu, 13 Nov 2008 16:27:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, cl@linux-foundation.org, mel@csn.ul.ie, menage@google.com, mm-commits@vger.kernel.org
+To: djwong@us.ibm.com, norsk5@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpusets: update mems allowed in page allocator
+     i5000-edac: hold reference to mci kobject
 has been removed from the -mm tree.  Its filename was
-     cpusets-update-mems-allowed-in-page-allocator.patch
+     i5000-edac-hold-reference-to-mci-kobject.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusets: update mems allowed in page allocator
-From: David Rientjes <rientjes@google.com>
+Subject: i5000-edac: hold reference to mci kobject
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-If all allowable memory is unreclaimable, it is possible to loop forever
-in the page allocator for ~__GFP_NORETRY allocations.
+It turns out that edac_mc_del_mc will kobject_put the last kref on the mci
+object.  If the timing is just right, that means that the mci object is
+freed before before i5000_remove_one has a chance to free the resources
+associated with it, causing a null pointer exceptions when unloading the
+driver.  Insert a kobject_{get,put} pair so that this doesn't happen.
 
-During this time, it is also possible for a task's cpuset to expand its
-set of allowable nodes so that it now includes free memory.  The cached
-copy of this set, current->mems_allowed, is stale, however, since there
-has not been a subsequent call to cpuset_update_task_memory_state().
-
-The cached copy of the set of allowable nodes is now updated in the page
-allocator's slow path so the additional memory is available to
-get_page_from_freelist().
-
-[akpm@linux-foundation.org: add comment]
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/edac/i5000_edac.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~cpusets-update-mems-allowed-in-page-allocator mm/page_alloc.c
---- a/mm/page_alloc.c~cpusets-update-mems-allowed-in-page-allocator
-+++ a/mm/page_alloc.c
-@@ -1561,6 +1561,10 @@ nofail_alloc:
+diff -puN drivers/edac/i5000_edac.c~i5000-edac-hold-reference-to-mci-kobject drivers/edac/i5000_edac.c
+--- a/drivers/edac/i5000_edac.c~i5000-edac-hold-reference-to-mci-kobject
++++ a/drivers/edac/i5000_edac.c
+@@ -1381,6 +1381,7 @@ static int i5000_probe1(struct pci_dev *
+ 	if (mci == NULL)
+ 		return -ENOMEM;
  
- 	/* We now go into synchronous reclaim */
- 	cpuset_memory_pressure_bump();
-+	/*
-+	 * The task's cpuset might have expanded its set of allowable nodes
-+	 */
-+	cpuset_update_task_memory_state();
- 	p->flags |= PF_MEMALLOC;
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
-_
-
-Patches currently in -mm which might be from rientjes@google.com are
-
-origin.patch
-cpuset-update-top-cpusets-mems-after-adding-a-node.patch
-oom-fix-zone_scan_mutex-name.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
-
++	kobject_get(&mci->edac_mci_kobj);
+ 	debugf0("MC: " __FILE__ ": %s(): mci = %p\n", __func__, mci);
+ 
+ 	mci->dev = &pdev->dev;	/* record ptr  to the generic device */
+@@ -1453,6 +1454,7 @@ fail1:
+ 	i5000_put_devices(mci);
+ 
+ fail0:
++	kobject_put(&mci->edac_mci_kobj);
+ 	edac_mc_free(mci);
+ 	return -ENODEV;
+ }
+@@ -1498,7 +1500,7 @@ static void __devexit i5000_remove_one(s
+ 
+ 	/* retrieve references to resources, and free those resources */
+ 	i5000_put_devices(mci);
