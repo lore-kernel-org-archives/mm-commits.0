@@ -1,243 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - fix-platform-drivers-that-crash-on-suspend-resume.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:26:33 -0800
-Message-ID: <200811132126.mADLQXDF027363@imap1.linux-foundation.org>
+Subject: - remove-ratelimt.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 13:26:58 -0800
+Message-ID: <200811132126.mADLQwPx027611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59355 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47570 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753497AbYKMVaA (ORCPT
+	by vger.kernel.org with ESMTP id S1752060AbYKMVfY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:30:00 -0500
+	Thu, 13 Nov 2008 16:35:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djwong@us.ibm.com, cminyard@mvista.com, greg@kroah.com, kay.sievers@vrfy.org, khali@linux-fr.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hidave.darkstar@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix platform drivers that crash on suspend/resume
+     remove ratelimt()
 has been removed from the -mm tree.  Its filename was
-     fix-platform-drivers-that-crash-on-suspend-resume.patch
+     remove-ratelimt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix platform drivers that crash on suspend/resume
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: remove ratelimt()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-It turns out that if one registers a struct platform_device, the platform
-device code expects that platform_device.device->driver points to a struct
-driver inside a struct platform_driver.  This is not the case with the
-ipmi-si, ipmi-msghandler and ibmaem drivers, which causes the
-suspend/resume hook functions to jump off into nowhere, causing a crash. 
-Make this assumption hold true for these three drivers.
+It mistakenly assumes that a static local in an inlined function is a
+kernel-wide singleton.  It also has no callers, so let's remove it.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Acked-by: Corey Minyard <cminyard@mvista.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
+Cc: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |   20 +++++++++++---------
- drivers/char/ipmi/ipmi_si_intf.c    |   16 +++++++++-------
- drivers/hwmon/ibmaem.c              |   18 ++++++++++--------
- 3 files changed, 30 insertions(+), 24 deletions(-)
+ include/linux/ratelimit.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~fix-platform-drivers-that-crash-on-suspend-resume
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -422,9 +422,11 @@ struct ipmi_smi {
- /**
-  * The driver model view of the IPMI messaging driver.
-  */
--static struct device_driver ipmidriver = {
--	.name = "ipmi",
--	.bus = &platform_bus_type
-+static struct platform_driver ipmidriver = {
-+	.driver = {
-+		.name = "ipmi",
-+		.bus = &platform_bus_type
-+	}
- };
- static DEFINE_MUTEX(ipmidriver_mutex);
+diff -puN include/linux/ratelimit.h~remove-ratelimt include/linux/ratelimit.h
+--- a/include/linux/ratelimit.h~remove-ratelimt
++++ a/include/linux/ratelimit.h
+@@ -17,11 +17,4 @@ struct ratelimit_state {
+ 		struct ratelimit_state name = {interval, burst,}
  
-@@ -2384,9 +2386,9 @@ static int ipmi_bmc_register(ipmi_smi_t 
- 	 * representing the interfaced BMC already
- 	 */
- 	if (bmc->guid_set)
--		old_bmc = ipmi_find_bmc_guid(&ipmidriver, bmc->guid);
-+		old_bmc = ipmi_find_bmc_guid(&ipmidriver.driver, bmc->guid);
- 	else
--		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver,
-+		old_bmc = ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
- 						    bmc->id.product_id,
- 						    bmc->id.device_id);
- 
-@@ -2416,7 +2418,7 @@ static int ipmi_bmc_register(ipmi_smi_t 
- 		snprintf(name, sizeof(name),
- 			 "ipmi_bmc.%4.4x", bmc->id.product_id);
- 
--		while (ipmi_find_bmc_prod_dev_id(&ipmidriver,
-+		while (ipmi_find_bmc_prod_dev_id(&ipmidriver.driver,
- 						 bmc->id.product_id,
- 						 bmc->id.device_id)) {
- 			if (!warn_printed) {
-@@ -2446,7 +2448,7 @@ static int ipmi_bmc_register(ipmi_smi_t 
- 			       " Unable to allocate platform device\n");
- 			return -ENOMEM;
- 		}
--		bmc->dev->dev.driver = &ipmidriver;
-+		bmc->dev->dev.driver = &ipmidriver.driver;
- 		dev_set_drvdata(&bmc->dev->dev, bmc);
- 		kref_init(&bmc->refcount);
- 
-@@ -4247,7 +4249,7 @@ static int ipmi_init_msghandler(void)
- 	if (initialized)
- 		return 0;
- 
--	rv = driver_register(&ipmidriver);
-+	rv = driver_register(&ipmidriver.driver);
- 	if (rv) {
- 		printk(KERN_ERR PFX "Could not register IPMI driver\n");
- 		return rv;
-@@ -4308,7 +4310,7 @@ static __exit void cleanup_ipmi(void)
- 	remove_proc_entry(proc_ipmi_root->name, NULL);
- #endif /* CONFIG_PROC_FS */
- 
--	driver_unregister(&ipmidriver);
-+	driver_unregister(&ipmidriver.driver);
- 
- 	initialized = 0;
- 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~fix-platform-drivers-that-crash-on-suspend-resume
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -114,9 +114,11 @@ static char *si_to_str[] = { "kcs", "smi
- 
- #define DEVICE_NAME "ipmi_si"
- 
--static struct device_driver ipmi_driver = {
--	.name = DEVICE_NAME,
--	.bus = &platform_bus_type
-+static struct platform_driver ipmi_driver = {
-+	.driver = {
-+		.name = DEVICE_NAME,
-+		.bus = &platform_bus_type
-+	}
- };
- 
- 
-@@ -2868,7 +2870,7 @@ static int try_smi_init(struct smi_info 
- 			goto out_err;
- 		}
- 		new_smi->dev = &new_smi->pdev->dev;
--		new_smi->dev->driver = &ipmi_driver;
-+		new_smi->dev->driver = &ipmi_driver.driver;
- 
- 		rv = platform_device_add(new_smi->pdev);
- 		if (rv) {
-@@ -2983,7 +2985,7 @@ static __devinit int init_ipmi_si(void)
- 	initialized = 1;
- 
- 	/* Register the device drivers. */
--	rv = driver_register(&ipmi_driver);
-+	rv = driver_register(&ipmi_driver.driver);
- 	if (rv) {
- 		printk(KERN_ERR
- 		       "init_ipmi_si: Unable to register driver: %d\n",
-@@ -3052,7 +3054,7 @@ static __devinit int init_ipmi_si(void)
- #ifdef CONFIG_PPC_OF
- 		of_unregister_platform_driver(&ipmi_of_platform_driver);
+ extern int __ratelimit(struct ratelimit_state *rs);
+-
+-static inline int ratelimit(void)
+-{
+-	static DEFINE_RATELIMIT_STATE(rs, DEFAULT_RATELIMIT_INTERVAL,
+-					DEFAULT_RATELIMIT_BURST);
+-	return __ratelimit(&rs);
+-}
  #endif
--		driver_unregister(&ipmi_driver);
-+		driver_unregister(&ipmi_driver.driver);
- 		printk(KERN_WARNING
- 		       "ipmi_si: Unable to find any System Interface(s)\n");
- 		return -ENODEV;
-@@ -3151,7 +3153,7 @@ static __exit void cleanup_ipmi_si(void)
- 		cleanup_one_si(e);
- 	mutex_unlock(&smi_infos_lock);
- 
--	driver_unregister(&ipmi_driver);
-+	driver_unregister(&ipmi_driver.driver);
- }
- module_exit(cleanup_ipmi_si);
- 
-diff -puN drivers/hwmon/ibmaem.c~fix-platform-drivers-that-crash-on-suspend-resume drivers/hwmon/ibmaem.c
---- a/drivers/hwmon/ibmaem.c~fix-platform-drivers-that-crash-on-suspend-resume
-+++ a/drivers/hwmon/ibmaem.c
-@@ -88,9 +88,11 @@
- static DEFINE_IDR(aem_idr);
- static DEFINE_SPINLOCK(aem_idr_lock);
- 
--static struct device_driver aem_driver = {
--	.name = DRVNAME,
--	.bus = &platform_bus_type,
-+static struct platform_driver aem_driver = {
-+	.driver = {
-+		.name = DRVNAME,
-+		.bus = &platform_bus_type,
-+	}
- };
- 
- struct aem_ipmi_data {
-@@ -583,7 +585,7 @@ static int aem_init_aem1_inst(struct aem
- 	data->pdev = platform_device_alloc(DRVNAME, data->id);
- 	if (!data->pdev)
- 		goto dev_err;
--	data->pdev->dev.driver = &aem_driver;
-+	data->pdev->dev.driver = &aem_driver.driver;
- 
- 	res = platform_device_add(data->pdev);
- 	if (res)
-@@ -716,7 +718,7 @@ static int aem_init_aem2_inst(struct aem
- 	data->pdev = platform_device_alloc(DRVNAME, data->id);
- 	if (!data->pdev)
- 		goto dev_err;
--	data->pdev->dev.driver = &aem_driver;
-+	data->pdev->dev.driver = &aem_driver.driver;
- 
- 	res = platform_device_add(data->pdev);
- 	if (res)
-@@ -1085,7 +1087,7 @@ static int __init aem_init(void)
- {
- 	int res;
- 
--	res = driver_register(&aem_driver);
-+	res = driver_register(&aem_driver.driver);
- 	if (res) {
- 		printk(KERN_ERR "Can't register aem driver\n");
- 		return res;
-@@ -1097,7 +1099,7 @@ static int __init aem_init(void)
- 	return 0;
- 
- ipmi_reg_err:
--	driver_unregister(&aem_driver);
-+	driver_unregister(&aem_driver.driver);
- 	return res;
- 
- }
-@@ -1107,7 +1109,7 @@ static void __exit aem_exit(void)
- 	struct aem_data *p1, *next1;
- 
- 	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
--	driver_unregister(&aem_driver);
-+	driver_unregister(&aem_driver.driver);
- 	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
- 		aem_delete(p1);
- }
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-create-a-div_round_closest-macro-to-do-division-with-rounding.patch
-adt7462-70-73-use-div_round_closest-for-rounded-division.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
