@@ -1,807 +1,1370 @@
 From: akpm@linux-foundation.org
-Subject: - hdq-driver-for-omap2430-3430.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:27:39 -0800
-Message-ID: <200811132127.mADLRdQU028048@imap1.linux-foundation.org>
+Subject: - add-c2-port-support.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 13:27:46 -0800
+Message-ID: <200811132127.mADLRk8S028105@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753650AbYKMV2D (ORCPT
+	by vger.kernel.org with ESMTP id S1753855AbYKMV15 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:28:03 -0500
+	Thu, 13 Nov 2008 16:27:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: madhu.cr@ti.com, felipe.balbi@nokia.com, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: giometti@linux.it, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hdq driver for OMAP2430/3430
+     Add c2 port support
 has been removed from the -mm tree.  Its filename was
-     hdq-driver-for-omap2430-3430.patch
+     add-c2-port-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hdq driver for OMAP2430/3430
-From: Madhusudhan Chikkature <madhu.cr@ti.com>
+Subject: Add c2 port support
+From: Rodolfo Giometti <giometti@linux.it>
 
-The HDQ/1-Wire module of TI OMAP2430/3430 platforms implement the hardware
-protocol of the master functions of the Benchmark HDQ and the Dallas
-Semiconductor 1-Wire protocols.  These protocols use a single wire for
-communication between the master (HDQ/1-Wire controller) and the slave
-(HDQ/1-Wire external compliant device).
+C2port implements a two wire serial communication protocol (bit
+banging) designed to enable in-system programming, debugging, and
+boundary-scan testing on low pin-count Silicon Labs devices.
 
-This patch provides the HDQ driver to suppport TI OMAP2430/3430 platforms.
+Currently this code supports only flash programming through sysfs
+interface but extensions shoud be easy to add.
 
-Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/Kconfig    |    7 
- drivers/w1/masters/Makefile   |    1 
- drivers/w1/masters/omap_hdq.c |  725 ++++++++++++++++++++++++++++++++
- 3 files changed, 733 insertions(+)
+ Documentation/ABI/testing/sysfs-c2port |   88 ++
+ Documentation/c2port.txt               |   90 ++
+ drivers/misc/Kconfig                   |    2 
+ drivers/misc/Makefile                  |    1 
+ drivers/misc/c2port/Kconfig            |   24 
+ drivers/misc/c2port/Makefile           |    1 
+ drivers/misc/c2port/core.c             | 1002 +++++++++++++++++++++++
+ include/linux/c2port.h                 |   65 +
+ 8 files changed, 1273 insertions(+)
 
-diff -puN drivers/w1/masters/Kconfig~hdq-driver-for-omap2430-3430 drivers/w1/masters/Kconfig
---- a/drivers/w1/masters/Kconfig~hdq-driver-for-omap2430-3430
-+++ a/drivers/w1/masters/Kconfig
-@@ -52,5 +52,12 @@ config W1_MASTER_GPIO
- 	  This support is also available as a module.  If so, the module
- 	  will be called w1-gpio.ko.
- 
-+config HDQ_MASTER_OMAP
-+	tristate "OMAP HDQ driver"
-+	depends on ARCH_OMAP2430 || ARCH_OMAP34XX
-+	help
-+	  Say Y here if you want support for the 1-wire or HDQ Interface
-+	  on an OMAP processor.
-+
- endmenu
- 
-diff -puN drivers/w1/masters/Makefile~hdq-driver-for-omap2430-3430 drivers/w1/masters/Makefile
---- a/drivers/w1/masters/Makefile~hdq-driver-for-omap2430-3430
-+++ a/drivers/w1/masters/Makefile
-@@ -7,3 +7,4 @@ obj-$(CONFIG_W1_MASTER_DS2490)		+= ds249
- obj-$(CONFIG_W1_MASTER_DS2482)		+= ds2482.o
- obj-$(CONFIG_W1_MASTER_DS1WM)		+= ds1wm.o
- obj-$(CONFIG_W1_MASTER_GPIO)		+= w1-gpio.o
-+obj-$(CONFIG_HDQ_MASTER_OMAP)		+= omap_hdq.o
-diff -puN /dev/null drivers/w1/masters/omap_hdq.c
+diff -puN /dev/null Documentation/ABI/testing/sysfs-c2port
 --- /dev/null
-+++ a/drivers/w1/masters/omap_hdq.c
-@@ -0,0 +1,725 @@
++++ a/Documentation/ABI/testing/sysfs-c2port
+@@ -0,0 +1,88 @@
++What:		/sys/class/c2port/
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/ directory will contain files and
++		directories that will provide a unified interface to
++		the C2 port interface.
++
++What:		/sys/class/c2port/c2portX
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/ directory is related to X-th
++		C2 port into the system. Each directory will contain files to
++		manage and control its C2 port.
++
++What:		/sys/class/c2port/c2portX/access
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/access file enable the access
++		to the C2 port from the system. No commands can be sent
++		till this entry is set to 0.
++
++What:		/sys/class/c2port/c2portX/dev_id
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/dev_id file show the device ID
++		of the connected micro.
++
++What:		/sys/class/c2port/c2portX/flash_access
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/flash_access file enable the
++		access to the on-board flash of the connected micro.
++		No commands can be sent till this entry is set to 0.
++
++What:		/sys/class/c2port/c2portX/flash_block_size
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/flash_block_size file show
++		the on-board flash block size of the connected micro.
++
++What:		/sys/class/c2port/c2portX/flash_blocks_num
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/flash_blocks_num file show
++		the on-board flash blocks number of the connected micro.
++
++What:		/sys/class/c2port/c2portX/flash_data
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/flash_data file export
++		the content of the on-board flash of the connected micro.
++
++What:		/sys/class/c2port/c2portX/flash_erase
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/flash_erase file execute
++		the "erase" command on the on-board flash of the connected
++		micro.
++
++What:		/sys/class/c2port/c2portX/flash_erase
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/flash_erase file show the
++		on-board flash size of the connected micro.
++
++What:		/sys/class/c2port/c2portX/reset
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/reset file execute a "reset"
++		command on the connected micro.
++
++What:		/sys/class/c2port/c2portX/rev_id
++Date:		October 2008
++Contact:	Rodolfo Giometti <giometti@linux.it>
++Description:
++		The /sys/class/c2port/c2portX/rev_id file show the revision ID
++		of the connected micro.
+diff -puN /dev/null Documentation/c2port.txt
+--- /dev/null
++++ a/Documentation/c2port.txt
+@@ -0,0 +1,90 @@
++			C2 port support
++			---------------
++
++(C) Copyright 2007 Rodolfo Giometti <giometti@enneenne.com>
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++
++
++Overview
++--------
++
++This driver implements the support for Linux of Silicon Labs (Silabs)
++C2 Interface used for in-system programming of micro controllers.
++
++By using this driver you can reprogram the in-system flash without EC2
++or EC3 debug adapter. This solution is also useful in those systems
++where the micro controller is connected via special GPIOs pins.
++
++References
++----------
++
++The C2 Interface main references are at (http://www.silabs.com)
++Silicon Laboratories site], see:
++
++- AN127: FLASH Programming via the C2 Interface at
++http://www.silabs.com/public/documents/tpub_doc/anote/Microcontrollers/Small_Form_Factor/en/an127.pdf, and
++
++- C2 Specification at
++http://www.silabs.com/public/documents/tpub_doc/spec/Microcontrollers/en/C2spec.pdf,
++
++however it implements a two wire serial communication protocol (bit
++banging) designed to enable in-system programming, debugging, and
++boundary-scan testing on low pin-count Silicon Labs devices. Currently
++this code supports only flash programming but extensions are easy to
++add.
++
++Using the driver
++----------------
++
++Once the driver is loaded you can use sysfs support to get C2port's
++info or read/write in-system flash.
++
++# ls /sys/class/c2port/c2port0/
++access            flash_block_size  flash_erase       rev_id
++dev_id            flash_blocks_num  flash_size        subsystem/
++flash_access      flash_data        reset             uevent
++
++Initially the C2port access is disabled since you hardware may have
++such lines multiplexed with other devices so, to get access to the
++C2port, you need the command:
++
++# echo 1 > /sys/class/c2port/c2port0/access
++
++after that you should read the device ID and revision ID of the
++connected micro controller:
++
++# cat /sys/class/c2port/c2port0/dev_id
++8
++# cat /sys/class/c2port/c2port0/rev_id
++1
++
++However, for security reasons, the in-system flash access in not
++enabled yet, to do so you need the command:
++
++# echo 1 > /sys/class/c2port/c2port0/flash_access
++
++After that you can read the whole flash:
++
++# cat /sys/class/c2port/c2port0/flash_data > image
++
++erase it:
++
++# echo 1 > /sys/class/c2port/c2port0/flash_erase
++
++and write it:
++
++# cat image > /sys/class/c2port/c2port0/flash_data
++
++after writing you have to reset the device to execute the new code:
++
++# echo 1 > /sys/class/c2port/c2port0/reset
+diff -puN drivers/misc/Kconfig~add-c2-port-support drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~add-c2-port-support
++++ a/drivers/misc/Kconfig
+@@ -498,4 +498,6 @@ config SGI_GRU_DEBUG
+ 	This option enables addition debugging code for the SGI GRU driver. If
+ 	you are unsure, say N.
+ 
++source "drivers/misc/c2port/Kconfig"
++
+ endif # MISC_DEVICES
+diff -puN drivers/misc/Makefile~add-c2-port-support drivers/misc/Makefile
+--- a/drivers/misc/Makefile~add-c2-port-support
++++ a/drivers/misc/Makefile
+@@ -32,3 +32,4 @@ obj-$(CONFIG_KGDB_TESTS)	+= kgdbts.o
+ obj-$(CONFIG_SGI_XP)		+= sgi-xp/
+ obj-$(CONFIG_SGI_GRU)		+= sgi-gru/
+ obj-$(CONFIG_HP_ILO)		+= hpilo.o
++obj-$(CONFIG_C2PORT)		+= c2port/
+diff -puN /dev/null drivers/misc/c2port/Kconfig
+--- /dev/null
++++ a/drivers/misc/c2port/Kconfig
+@@ -0,0 +1,24 @@
++#
++# C2 port devices
++#
++
++menuconfig C2PORT
++	tristate "Silicon Labs C2 port support (EXPERIMENTAL)"
++	depends on EXPERIMENTAL
++	default no
++	help
++	  This option enables support for Silicon Labs C2 port used to
++	  program Silicon micro controller chips (and other 8051 compatible).
++
++	  If your board have no such micro controllers you don't need this
++	  interface at all.
++
++	  To compile this driver as a module, choose M here: the module will
++	  be called c2port_core. Note that you also need a client module
++	  usually called c2port-*.
++
++	  If you are not sure, say N here.
++
++if C2PORT
++
++endif # C2PORT
+diff -puN /dev/null drivers/misc/c2port/Makefile
+--- /dev/null
++++ a/drivers/misc/c2port/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_C2PORT)		+= core.o
+diff -puN /dev/null drivers/misc/c2port/core.c
+--- /dev/null
++++ a/drivers/misc/c2port/core.c
+@@ -0,0 +1,1002 @@
 +/*
-+ * drivers/w1/masters/omap_hdq.c
++ *  Silicon Labs C2 port core Linux support
 + *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
++ *  Copyright (c) 2007 Rodolfo Giometti <giometti@linux.it>
++ *  Copyright (c) 2007 Eurotech S.p.A. <info@eurotech.it>
 + *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation
 + */
-+#include <linux/kernel.h>
++
 +#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/errno.h>
 +#include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
++#include <linux/kernel.h>
++#include <linux/ctype.h>
++#include <linux/delay.h>
++#include <linux/idr.h>
 +
-+#include <asm/irq.h>
-+#include <mach/hardware.h>
++#include <linux/c2port.h>
 +
-+#include "../w1.h"
-+#include "../w1_int.h"
++#define DRIVER_NAME             "c2port"
++#define DRIVER_VERSION          "0.51.0"
 +
-+#define	MOD_NAME	"OMAP_HDQ:"
++static DEFINE_SPINLOCK(c2port_idr_lock);
++static DEFINE_IDR(c2port_idr);
 +
-+#define OMAP_HDQ_REVISION			0x00
-+#define OMAP_HDQ_TX_DATA			0x04
-+#define OMAP_HDQ_RX_DATA			0x08
-+#define OMAP_HDQ_CTRL_STATUS			0x0c
-+#define OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK	(1<<6)
-+#define OMAP_HDQ_CTRL_STATUS_CLOCKENABLE	(1<<5)
-+#define OMAP_HDQ_CTRL_STATUS_GO			(1<<4)
-+#define OMAP_HDQ_CTRL_STATUS_INITIALIZATION	(1<<2)
-+#define OMAP_HDQ_CTRL_STATUS_DIR		(1<<1)
-+#define OMAP_HDQ_CTRL_STATUS_MODE		(1<<0)
-+#define OMAP_HDQ_INT_STATUS			0x10
-+#define OMAP_HDQ_INT_STATUS_TXCOMPLETE		(1<<2)
-+#define OMAP_HDQ_INT_STATUS_RXCOMPLETE		(1<<1)
-+#define OMAP_HDQ_INT_STATUS_TIMEOUT		(1<<0)
-+#define OMAP_HDQ_SYSCONFIG			0x14
-+#define OMAP_HDQ_SYSCONFIG_SOFTRESET		(1<<1)
-+#define OMAP_HDQ_SYSCONFIG_AUTOIDLE		(1<<0)
-+#define OMAP_HDQ_SYSSTATUS			0x18
-+#define OMAP_HDQ_SYSSTATUS_RESETDONE		(1<<0)
++/*
++ * Local variables
++ */
 +
-+#define OMAP_HDQ_FLAG_CLEAR			0
-+#define OMAP_HDQ_FLAG_SET			1
-+#define OMAP_HDQ_TIMEOUT			(HZ/5)
++static struct class *c2port_class;
 +
-+#define OMAP_HDQ_MAX_USER			4
++/*
++ * C2 registers & commands defines
++ */
 +
-+static DECLARE_WAIT_QUEUE_HEAD(hdq_wait_queue);
-+static int w1_id;
++/* C2 registers */
++#define C2PORT_DEVICEID		0x00
++#define C2PORT_REVID		0x01
++#define C2PORT_FPCTL		0x02
++#define C2PORT_FPDAT		0xB4
 +
-+struct hdq_data {
-+	struct device		*dev;
-+	void __iomem		*hdq_base;
-+	/* lock status update */
-+	struct  mutex		hdq_mutex;
-+	int			hdq_usecount;
-+	struct	clk		*hdq_ick;
-+	struct	clk		*hdq_fck;
-+	u8			hdq_irqstatus;
-+	/* device lock */
-+	spinlock_t		hdq_spinlock;
-+	/*
-+	 * Used to control the call to omap_hdq_get and omap_hdq_put.
-+	 * HDQ Protocol: Write the CMD|REG_address first, followed by
-+	 * the data wrire or read.
++/* C2 interface commands */
++#define C2PORT_GET_VERSION	0x01
++#define C2PORT_DEVICE_ERASE	0x03
++#define C2PORT_BLOCK_READ	0x06
++#define C2PORT_BLOCK_WRITE	0x07
++#define C2PORT_PAGE_ERASE	0x08
++
++/* C2 status return codes */
++#define C2PORT_INVALID_COMMAND	0x00
++#define C2PORT_COMMAND_FAILED	0x02
++#define C2PORT_COMMAND_OK	0x0d
++
++/*
++ * C2 port low level signal managements
++ */
++
++static void c2port_reset(struct c2port_device *dev)
++{
++	struct c2port_ops *ops = dev->ops;
++
++	/* To reset the device we have to keep clock line low for at least
++	 * 20us.
 +	 */
-+	int			init_trans;
-+};
++	local_irq_disable();
++	ops->c2ck_set(dev, 0);
++	udelay(25);
++	ops->c2ck_set(dev, 1);
++	local_irq_enable();
 +
-+static int __init omap_hdq_probe(struct platform_device *pdev);
-+static int omap_hdq_remove(struct platform_device *pdev);
-+
-+static struct platform_driver omap_hdq_driver = {
-+	.probe =	omap_hdq_probe,
-+	.remove =	omap_hdq_remove,
-+	.driver =	{
-+		.name =	"omap_hdq",
-+	},
-+};
-+
-+static u8 omap_w1_read_byte(void *_hdq);
-+static void omap_w1_write_byte(void *_hdq, u8 byte);
-+static u8 omap_w1_reset_bus(void *_hdq);
-+static void omap_w1_search_bus(void *_hdq, u8 search_type,
-+	w1_slave_found_callback slave_found);
-+
-+
-+static struct w1_bus_master omap_w1_master = {
-+	.read_byte	= omap_w1_read_byte,
-+	.write_byte	= omap_w1_write_byte,
-+	.reset_bus	= omap_w1_reset_bus,
-+	.search		= omap_w1_search_bus,
-+};
-+
-+/* HDQ register I/O routines */
-+static inline u8 hdq_reg_in(struct hdq_data *hdq_data, u32 offset)
-+{
-+	return __raw_readb(hdq_data->hdq_base + offset);
++	udelay(1);
 +}
 +
-+static inline void hdq_reg_out(struct hdq_data *hdq_data, u32 offset, u8 val)
++static void c2port_strobe_ck(struct c2port_device *dev)
 +{
-+	__raw_writeb(val, hdq_data->hdq_base + offset);
-+}
++	struct c2port_ops *ops = dev->ops;
 +
-+static inline u8 hdq_reg_merge(struct hdq_data *hdq_data, u32 offset,
-+			u8 val, u8 mask)
-+{
-+	u8 new_val = (__raw_readb(hdq_data->hdq_base + offset) & ~mask)
-+			| (val & mask);
-+	__raw_writeb(new_val, hdq_data->hdq_base + offset);
++	/* During hi-low-hi transition we disable local IRQs to avoid
++	 * interructions since C2 port specification says that it must be
++	 * shorter than 5us, otherwise the microcontroller may consider
++	 * it as a reset signal!
++	 */
++	local_irq_disable();
++	ops->c2ck_set(dev, 0);
++	udelay(1);
++	ops->c2ck_set(dev, 1);
++	local_irq_enable();
 +
-+	return new_val;
++	udelay(1);
 +}
 +
 +/*
-+ * Wait for one or more bits in flag change.
-+ * HDQ_FLAG_SET: wait until any bit in the flag is set.
-+ * HDQ_FLAG_CLEAR: wait until all bits in the flag are cleared.
-+ * return 0 on success and -ETIMEDOUT in the case of timeout.
++ * C2 port basic functions
 + */
-+static int hdq_wait_for_flag(struct hdq_data *hdq_data, u32 offset,
-+		u8 flag, u8 flag_set, u8 *status)
-+{
-+	int ret = 0;
-+	unsigned long timeout = jiffies + OMAP_HDQ_TIMEOUT;
 +
-+	if (flag_set == OMAP_HDQ_FLAG_CLEAR) {
-+		/* wait for the flag clear */
-+		while (((*status = hdq_reg_in(hdq_data, offset)) & flag)
-+			&& time_before(jiffies, timeout)) {
-+			schedule_timeout_uninterruptible(1);
-+		}
-+		if (*status & flag)
-+			ret = -ETIMEDOUT;
-+	} else if (flag_set == OMAP_HDQ_FLAG_SET) {
-+		/* wait for the flag set */
-+		while (!((*status = hdq_reg_in(hdq_data, offset)) & flag)
-+			&& time_before(jiffies, timeout)) {
-+			schedule_timeout_uninterruptible(1);
-+		}
-+		if (!(*status & flag))
-+			ret = -ETIMEDOUT;
-+	} else
++static void c2port_write_ar(struct c2port_device *dev, u8 addr)
++{
++	struct c2port_ops *ops = dev->ops;
++	int i;
++
++	/* START field */
++	c2port_strobe_ck(dev);
++
++	/* INS field (11b, LSB first) */
++	ops->c2d_dir(dev, 0);
++	ops->c2d_set(dev, 1);
++	c2port_strobe_ck(dev);
++	ops->c2d_set(dev, 1);
++	c2port_strobe_ck(dev);
++
++	/* ADDRESS field */
++	for (i = 0; i < 8; i++) {
++		ops->c2d_set(dev, addr & 0x01);
++		c2port_strobe_ck(dev);
++
++		addr >>= 1;
++	}
++
++	/* STOP field */
++	ops->c2d_dir(dev, 1);
++	c2port_strobe_ck(dev);
++}
++
++static int c2port_read_ar(struct c2port_device *dev, u8 *addr)
++{
++	struct c2port_ops *ops = dev->ops;
++	int i;
++
++	/* START field */
++	c2port_strobe_ck(dev);
++
++	/* INS field (10b, LSB first) */
++	ops->c2d_dir(dev, 0);
++	ops->c2d_set(dev, 0);
++	c2port_strobe_ck(dev);
++	ops->c2d_set(dev, 1);
++	c2port_strobe_ck(dev);
++
++	/* ADDRESS field */
++	ops->c2d_dir(dev, 1);
++	*addr = 0;
++	for (i = 0; i < 8; i++) {
++		*addr >>= 1;	/* shift in 8-bit ADDRESS field LSB first */
++
++		c2port_strobe_ck(dev);
++		if (ops->c2d_get(dev))
++			*addr |= 0x80;
++	}
++
++	/* STOP field */
++	c2port_strobe_ck(dev);
++
++	return 0;
++}
++
++static int c2port_write_dr(struct c2port_device *dev, u8 data)
++{
++	struct c2port_ops *ops = dev->ops;
++	int timeout, i;
++
++	/* START field */
++	c2port_strobe_ck(dev);
++
++	/* INS field (01b, LSB first) */
++	ops->c2d_dir(dev, 0);
++	ops->c2d_set(dev, 1);
++	c2port_strobe_ck(dev);
++	ops->c2d_set(dev, 0);
++	c2port_strobe_ck(dev);
++
++	/* LENGTH field (00b, LSB first -> 1 byte) */
++	ops->c2d_set(dev, 0);
++	c2port_strobe_ck(dev);
++	ops->c2d_set(dev, 0);
++	c2port_strobe_ck(dev);
++
++	/* DATA field */
++	for (i = 0; i < 8; i++) {
++		ops->c2d_set(dev, data & 0x01);
++		c2port_strobe_ck(dev);
++
++		data >>= 1;
++	}
++
++	/* WAIT field */
++	ops->c2d_dir(dev, 1);
++	timeout = 20;
++	do {
++		c2port_strobe_ck(dev);
++		if (ops->c2d_get(dev))
++			break;
++
++		udelay(1);
++	} while (--timeout > 0);
++	if (timeout == 0)
++		return -EIO;
++
++	/* STOP field */
++	c2port_strobe_ck(dev);
++
++	return 0;
++}
++
++static int c2port_read_dr(struct c2port_device *dev, u8 *data)
++{
++	struct c2port_ops *ops = dev->ops;
++	int timeout, i;
++
++	/* START field */
++	c2port_strobe_ck(dev);
++
++	/* INS field (00b, LSB first) */
++	ops->c2d_dir(dev, 0);
++	ops->c2d_set(dev, 0);
++	c2port_strobe_ck(dev);
++	ops->c2d_set(dev, 0);
++	c2port_strobe_ck(dev);
++
++	/* LENGTH field (00b, LSB first -> 1 byte) */
++	ops->c2d_set(dev, 0);
++	c2port_strobe_ck(dev);
++	ops->c2d_set(dev, 0);
++	c2port_strobe_ck(dev);
++
++	/* WAIT field */
++	ops->c2d_dir(dev, 1);
++	timeout = 20;
++	do {
++		c2port_strobe_ck(dev);
++		if (ops->c2d_get(dev))
++			break;
++
++		udelay(1);
++	} while (--timeout > 0);
++	if (timeout == 0)
++		return -EIO;
++
++	/* DATA field */
++	*data = 0;
++	for (i = 0; i < 8; i++) {
++		*data >>= 1;	/* shift in 8-bit DATA field LSB first */
++
++		c2port_strobe_ck(dev);
++		if (ops->c2d_get(dev))
++			*data |= 0x80;
++	}
++
++	/* STOP field */
++	c2port_strobe_ck(dev);
++
++	return 0;
++}
++
++static int c2port_poll_in_busy(struct c2port_device *dev)
++{
++	u8 addr;
++	int ret, timeout = 20;
++
++	do {
++		ret = (c2port_read_ar(dev, &addr));
++		if (ret < 0)
++			return -EIO;
++
++		if (!(addr & 0x02))
++			break;
++
++		udelay(1);
++	} while (--timeout > 0);
++	if (timeout == 0)
++		return -EIO;
++
++	return 0;
++}
++
++static int c2port_poll_out_ready(struct c2port_device *dev)
++{
++	u8 addr;
++	int ret, timeout = 10000; /* erase flash needs long time... */
++
++	do {
++		ret = (c2port_read_ar(dev, &addr));
++		if (ret < 0)
++			return -EIO;
++
++		if (addr & 0x01)
++			break;
++
++		udelay(1);
++	} while (--timeout > 0);
++	if (timeout == 0)
++		return -EIO;
++
++	return 0;
++}
++
++/*
++ * sysfs methods
++ */
++
++static ssize_t c2port_show_name(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%s\n", c2dev->name);
++}
++
++static ssize_t c2port_show_flash_blocks_num(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++	struct c2port_ops *ops = c2dev->ops;
++
++	return sprintf(buf, "%d\n", ops->blocks_num);
++}
++
++static ssize_t c2port_show_flash_block_size(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++	struct c2port_ops *ops = c2dev->ops;
++
++	return sprintf(buf, "%d\n", ops->block_size);
++}
++
++static ssize_t c2port_show_flash_size(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++	struct c2port_ops *ops = c2dev->ops;
++
++	return sprintf(buf, "%d\n", ops->blocks_num * ops->block_size);
++}
++
++static ssize_t c2port_show_access(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%d\n", c2dev->access);
++}
++
++static ssize_t c2port_store_access(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t count)
++{
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++	struct c2port_ops *ops = c2dev->ops;
++	int status, ret;
++
++	ret = sscanf(buf, "%d", &status);
++	if (ret != 1)
 +		return -EINVAL;
 +
-+	return ret;
++	mutex_lock(&c2dev->mutex);
++
++	c2dev->access = !!status;
++
++	/* If access is "on" clock should be HIGH _before_ setting the line
++	 * as output and data line should be set as INPUT anyway */
++	if (c2dev->access)
++		ops->c2ck_set(c2dev, 1);
++	ops->access(c2dev, c2dev->access);
++	if (c2dev->access)
++		ops->c2d_dir(c2dev, 1);
++
++	mutex_unlock(&c2dev->mutex);
++
++	return count;
 +}
 +
-+/* write out a byte and fill *status with HDQ_INT_STATUS */
-+static int hdq_write_byte(struct hdq_data *hdq_data, u8 val, u8 *status)
++static ssize_t c2port_store_reset(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t count)
 +{
-+	int ret;
-+	u8 tmp_status;
-+	unsigned long irqflags;
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
 +
-+	*status = 0;
-+
-+	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
-+	/* clear interrupt flags via a dummy read */
-+	hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-+	/* ISR loads it with new INT_STATUS */
-+	hdq_data->hdq_irqstatus = 0;
-+	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
-+
-+	hdq_reg_out(hdq_data, OMAP_HDQ_TX_DATA, val);
-+
-+	/* set the GO bit */
-+	hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS, OMAP_HDQ_CTRL_STATUS_GO,
-+		OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO);
-+	/* wait for the TXCOMPLETE bit */
-+	ret = wait_event_timeout(hdq_wait_queue,
-+		hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
-+	if (ret == 0) {
-+		dev_dbg(hdq_data->dev, "TX wait elapsed\n");
-+		goto out;
-+	}
-+
-+	*status = hdq_data->hdq_irqstatus;
-+	/* check irqstatus */
-+	if (!(*status & OMAP_HDQ_INT_STATUS_TXCOMPLETE)) {
-+		dev_dbg(hdq_data->dev, "timeout waiting for"
-+			"TXCOMPLETE/RXCOMPLETE, %x", *status);
-+		ret = -ETIMEDOUT;
-+		goto out;
-+	}
-+
-+	/* wait for the GO bit return to zero */
-+	ret = hdq_wait_for_flag(hdq_data, OMAP_HDQ_CTRL_STATUS,
-+			OMAP_HDQ_CTRL_STATUS_GO,
-+			OMAP_HDQ_FLAG_CLEAR, &tmp_status);
-+	if (ret) {
-+		dev_dbg(hdq_data->dev, "timeout waiting GO bit"
-+			"return to zero, %x", tmp_status);
-+	}
-+
-+out:
-+	return ret;
-+}
-+
-+/* HDQ Interrupt service routine */
-+static irqreturn_t hdq_isr(int irq, void *_hdq)
-+{
-+	struct hdq_data *hdq_data = _hdq;
-+	unsigned long irqflags;
-+
-+	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
-+	hdq_data->hdq_irqstatus = hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-+	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
-+	dev_dbg(hdq_data->dev, "hdq_isr: %x", hdq_data->hdq_irqstatus);
-+
-+	if (hdq_data->hdq_irqstatus &
-+		(OMAP_HDQ_INT_STATUS_TXCOMPLETE | OMAP_HDQ_INT_STATUS_RXCOMPLETE
-+		| OMAP_HDQ_INT_STATUS_TIMEOUT)) {
-+		/* wake up sleeping process */
-+		wake_up(&hdq_wait_queue);
-+	}
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/* HDQ Mode: always return success */
-+static u8 omap_w1_reset_bus(void *_hdq)
-+{
-+	return 0;
-+}
-+
-+/* W1 search callback function */
-+static void omap_w1_search_bus(void *_hdq, u8 search_type,
-+	w1_slave_found_callback slave_found)
-+{
-+	u64 module_id, rn_le, cs, id;
-+
-+	if (w1_id)
-+		module_id = w1_id;
-+	else
-+		module_id = 0x1;
-+
-+	rn_le = cpu_to_le64(module_id);
-+	/*
-+	 * HDQ might not obey truly the 1-wire spec.
-+	 * So calculate CRC based on module parameter.
-+	 */
-+	cs = w1_calc_crc8((u8 *)&rn_le, 7);
-+	id = (cs << 56) | module_id;
-+
-+	slave_found(_hdq, id);
-+}
-+
-+static int _omap_hdq_reset(struct hdq_data *hdq_data)
-+{
-+	int ret;
-+	u8 tmp_status;
-+
-+	hdq_reg_out(hdq_data, OMAP_HDQ_SYSCONFIG, OMAP_HDQ_SYSCONFIG_SOFTRESET);
-+	/*
-+	 * Select HDQ mode & enable clocks.
-+	 * It is observed that INT flags can't be cleared via a read and GO/INIT
-+	 * won't return to zero if interrupt is disabled. So we always enable
-+	 * interrupt.
-+	 */
-+	hdq_reg_out(hdq_data, OMAP_HDQ_CTRL_STATUS,
-+		OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
-+		OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
-+
-+	/* wait for reset to complete */
-+	ret = hdq_wait_for_flag(hdq_data, OMAP_HDQ_SYSSTATUS,
-+		OMAP_HDQ_SYSSTATUS_RESETDONE, OMAP_HDQ_FLAG_SET, &tmp_status);
-+	if (ret)
-+		dev_dbg(hdq_data->dev, "timeout waiting HDQ reset, %x",
-+				tmp_status);
-+	else {
-+		hdq_reg_out(hdq_data, OMAP_HDQ_CTRL_STATUS,
-+			OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
-+			OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
-+		hdq_reg_out(hdq_data, OMAP_HDQ_SYSCONFIG,
-+			OMAP_HDQ_SYSCONFIG_AUTOIDLE);
-+	}
-+
-+	return ret;
-+}
-+
-+/* Issue break pulse to the device */
-+static int omap_hdq_break(struct hdq_data *hdq_data)
-+{
-+	int ret = 0;
-+	u8 tmp_status;
-+	unsigned long irqflags;
-+
-+	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+	if (ret < 0) {
-+		dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-+		ret = -EINTR;
-+		goto rtn;
-+	}
-+
-+	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
-+	/* clear interrupt flags via a dummy read */
-+	hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-+	/* ISR loads it with new INT_STATUS */
-+	hdq_data->hdq_irqstatus = 0;
-+	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
-+
-+	/* set the INIT and GO bit */
-+	hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS,
-+		OMAP_HDQ_CTRL_STATUS_INITIALIZATION | OMAP_HDQ_CTRL_STATUS_GO,
-+		OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_INITIALIZATION |
-+		OMAP_HDQ_CTRL_STATUS_GO);
-+
-+	/* wait for the TIMEOUT bit */
-+	ret = wait_event_timeout(hdq_wait_queue,
-+		hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
-+	if (ret == 0) {
-+		dev_dbg(hdq_data->dev, "break wait elapsed\n");
-+		ret = -EINTR;
-+		goto out;
-+	}
-+
-+	tmp_status = hdq_data->hdq_irqstatus;
-+	/* check irqstatus */
-+	if (!(tmp_status & OMAP_HDQ_INT_STATUS_TIMEOUT)) {
-+		dev_dbg(hdq_data->dev, "timeout waiting for TIMEOUT, %x",
-+				tmp_status);
-+		ret = -ETIMEDOUT;
-+		goto out;
-+	}
-+	/*
-+	 * wait for both INIT and GO bits rerurn to zero.
-+	 * zero wait time expected for interrupt mode.
-+	 */
-+	ret = hdq_wait_for_flag(hdq_data, OMAP_HDQ_CTRL_STATUS,
-+			OMAP_HDQ_CTRL_STATUS_INITIALIZATION |
-+			OMAP_HDQ_CTRL_STATUS_GO, OMAP_HDQ_FLAG_CLEAR,
-+			&tmp_status);
-+	if (ret)
-+		dev_dbg(hdq_data->dev, "timeout waiting INIT&GO bits"
-+			"return to zero, %x", tmp_status);
-+
-+out:
-+	mutex_unlock(&hdq_data->hdq_mutex);
-+rtn:
-+	return ret;
-+}
-+
-+static int hdq_read_byte(struct hdq_data *hdq_data, u8 *val)
-+{
-+	int ret = 0;
-+	u8 status;
-+	unsigned long timeout = jiffies + OMAP_HDQ_TIMEOUT;
-+
-+	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+	if (ret < 0) {
-+		ret = -EINTR;
-+		goto rtn;
-+	}
-+
-+	if (!hdq_data->hdq_usecount) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (!(hdq_data->hdq_irqstatus & OMAP_HDQ_INT_STATUS_RXCOMPLETE)) {
-+		hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS,
-+			OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO,
-+			OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO);
-+		/*
-+		 * The RX comes immediately after TX. It
-+		 * triggers another interrupt before we
-+		 * sleep. So we have to wait for RXCOMPLETE bit.
-+		 */
-+		while (!(hdq_data->hdq_irqstatus
-+			& OMAP_HDQ_INT_STATUS_RXCOMPLETE)
-+			&& time_before(jiffies, timeout)) {
-+			schedule_timeout_uninterruptible(1);
-+		}
-+		hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS, 0,
-+			OMAP_HDQ_CTRL_STATUS_DIR);
-+		status = hdq_data->hdq_irqstatus;
-+		/* check irqstatus */
-+		if (!(status & OMAP_HDQ_INT_STATUS_RXCOMPLETE)) {
-+			dev_dbg(hdq_data->dev, "timeout waiting for"
-+				"RXCOMPLETE, %x", status);
-+			ret = -ETIMEDOUT;
-+			goto out;
-+		}
-+	}
-+	/* the data is ready. Read it in! */
-+	*val = hdq_reg_in(hdq_data, OMAP_HDQ_RX_DATA);
-+out:
-+	mutex_unlock(&hdq_data->hdq_mutex);
-+rtn:
-+	return 0;
-+
-+}
-+
-+/* Enable clocks and set the controller to HDQ mode */
-+static int omap_hdq_get(struct hdq_data *hdq_data)
-+{
-+	int ret = 0;
-+
-+	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+	if (ret < 0) {
-+		ret = -EINTR;
-+		goto rtn;
-+	}
-+
-+	if (OMAP_HDQ_MAX_USER == hdq_data->hdq_usecount) {
-+		dev_dbg(hdq_data->dev, "attempt to exceed the max use count");
-+		ret = -EINVAL;
-+		goto out;
-+	} else {
-+		hdq_data->hdq_usecount++;
-+		try_module_get(THIS_MODULE);
-+		if (1 == hdq_data->hdq_usecount) {
-+			if (clk_enable(hdq_data->hdq_ick)) {
-+				dev_dbg(hdq_data->dev, "Can not enable ick\n");
-+				ret = -ENODEV;
-+				goto clk_err;
-+			}
-+			if (clk_enable(hdq_data->hdq_fck)) {
-+				dev_dbg(hdq_data->dev, "Can not enable fck\n");
-+				clk_disable(hdq_data->hdq_ick);
-+				ret = -ENODEV;
-+				goto clk_err;
-+			}
-+
-+			/* make sure HDQ is out of reset */
-+			if (!(hdq_reg_in(hdq_data, OMAP_HDQ_SYSSTATUS) &
-+				OMAP_HDQ_SYSSTATUS_RESETDONE)) {
-+				ret = _omap_hdq_reset(hdq_data);
-+				if (ret)
-+					/* back up the count */
-+					hdq_data->hdq_usecount--;
-+			} else {
-+				/* select HDQ mode & enable clocks */
-+				hdq_reg_out(hdq_data, OMAP_HDQ_CTRL_STATUS,
-+					OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
-+					OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
-+				hdq_reg_out(hdq_data, OMAP_HDQ_SYSCONFIG,
-+					OMAP_HDQ_SYSCONFIG_AUTOIDLE);
-+				hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-+			}
-+		}
-+	}
-+
-+clk_err:
-+	clk_put(hdq_data->hdq_ick);
-+	clk_put(hdq_data->hdq_fck);
-+out:
-+	mutex_unlock(&hdq_data->hdq_mutex);
-+rtn:
-+	return ret;
-+}
-+
-+/* Disable clocks to the module */
-+static int omap_hdq_put(struct hdq_data *hdq_data)
-+{
-+	int ret = 0;
-+
-+	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+	if (ret < 0)
-+		return -EINTR;
-+
-+	if (0 == hdq_data->hdq_usecount) {
-+		dev_dbg(hdq_data->dev, "attempt to decrement use count"
-+			"when it is zero");
-+		ret = -EINVAL;
-+	} else {
-+		hdq_data->hdq_usecount--;
-+		module_put(THIS_MODULE);
-+		if (0 == hdq_data->hdq_usecount) {
-+			clk_disable(hdq_data->hdq_ick);
-+			clk_disable(hdq_data->hdq_fck);
-+		}
-+	}
-+	mutex_unlock(&hdq_data->hdq_mutex);
-+
-+	return ret;
-+}
-+
-+/* Read a byte of data from the device */
-+static u8 omap_w1_read_byte(void *_hdq)
-+{
-+	struct hdq_data *hdq_data = _hdq;
-+	u8 val = 0;
-+	int ret;
-+
-+	ret = hdq_read_byte(hdq_data, &val);
-+	if (ret) {
-+		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+		if (ret < 0) {
-+			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-+			return -EINTR;
-+		}
-+		hdq_data->init_trans = 0;
-+		mutex_unlock(&hdq_data->hdq_mutex);
-+		omap_hdq_put(hdq_data);
-+		return -1;
-+	}
-+
-+	/* Write followed by a read, release the module */
-+	if (hdq_data->init_trans) {
-+		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+		if (ret < 0) {
-+			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-+			return -EINTR;
-+		}
-+		hdq_data->init_trans = 0;
-+		mutex_unlock(&hdq_data->hdq_mutex);
-+		omap_hdq_put(hdq_data);
-+	}
-+
-+	return val;
-+}
-+
-+/* Write a byte of data to the device */
-+static void omap_w1_write_byte(void *_hdq, u8 byte)
-+{
-+	struct hdq_data *hdq_data = _hdq;
-+	int ret;
-+	u8 status;
-+
-+	/* First write to initialize the transfer */
-+	if (hdq_data->init_trans == 0)
-+		omap_hdq_get(hdq_data);
-+
-+	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+	if (ret < 0) {
-+		dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-+		return;
-+	}
-+	hdq_data->init_trans++;
-+	mutex_unlock(&hdq_data->hdq_mutex);
-+
-+	ret = hdq_write_byte(hdq_data, byte, &status);
-+	if (ret == 0) {
-+		dev_dbg(hdq_data->dev, "TX failure:Ctrl status %x\n", status);
-+		return;
-+	}
-+
-+	/* Second write, data transfered. Release the module */
-+	if (hdq_data->init_trans > 1) {
-+		omap_hdq_put(hdq_data);
-+		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+		if (ret < 0) {
-+			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-+			return;
-+		}
-+		hdq_data->init_trans = 0;
-+		mutex_unlock(&hdq_data->hdq_mutex);
-+	}
-+
-+	return;
-+}
-+
-+static int __init omap_hdq_probe(struct platform_device *pdev)
-+{
-+	struct hdq_data *hdq_data;
-+	struct resource *res;
-+	int ret, irq;
-+	u8 rev;
-+
-+	hdq_data = kmalloc(sizeof(*hdq_data), GFP_KERNEL);
-+	if (!hdq_data) {
-+		dev_dbg(&pdev->dev, "unable to allocate memory\n");
-+		ret = -ENOMEM;
-+		goto err_kmalloc;
-+	}
-+
-+	hdq_data->dev = &pdev->dev;
-+	platform_set_drvdata(pdev, hdq_data);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		dev_dbg(&pdev->dev, "unable to get resource\n");
-+		ret = -ENXIO;
-+		goto err_resource;
-+	}
-+
-+	hdq_data->hdq_base = ioremap(res->start, SZ_4K);
-+	if (!hdq_data->hdq_base) {
-+		dev_dbg(&pdev->dev, "ioremap failed\n");
-+		ret = -EINVAL;
-+		goto err_ioremap;
-+	}
-+
-+	/* get interface & functional clock objects */
-+	hdq_data->hdq_ick = clk_get(&pdev->dev, "hdq_ick");
-+	hdq_data->hdq_fck = clk_get(&pdev->dev, "hdq_fck");
-+
-+	if (IS_ERR(hdq_data->hdq_ick) || IS_ERR(hdq_data->hdq_fck)) {
-+		dev_dbg(&pdev->dev, "Can't get HDQ clock objects\n");
-+		if (IS_ERR(hdq_data->hdq_ick)) {
-+			ret = PTR_ERR(hdq_data->hdq_ick);
-+			goto err_clk;
-+		}
-+		if (IS_ERR(hdq_data->hdq_fck)) {
-+			ret = PTR_ERR(hdq_data->hdq_fck);
-+			clk_put(hdq_data->hdq_ick);
-+			goto err_clk;
-+		}
-+	}
-+
-+	hdq_data->hdq_usecount = 0;
-+	mutex_init(&hdq_data->hdq_mutex);
-+
-+	if (clk_enable(hdq_data->hdq_ick)) {
-+		dev_dbg(&pdev->dev, "Can not enable ick\n");
-+		ret = -ENODEV;
-+		goto err_intfclk;
-+	}
-+
-+	if (clk_enable(hdq_data->hdq_fck)) {
-+		dev_dbg(&pdev->dev, "Can not enable fck\n");
-+		ret = -ENODEV;
-+		goto err_fnclk;
-+	}
-+
-+	rev = hdq_reg_in(hdq_data, OMAP_HDQ_REVISION);
-+	dev_info(&pdev->dev, "OMAP HDQ Hardware Rev %c.%c. Driver in %s mode\n",
-+		(rev >> 4) + '0', (rev & 0x0f) + '0', "Interrupt");
-+
-+	spin_lock_init(&hdq_data->hdq_spinlock);
-+
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq	< 0) {
-+		ret = -ENXIO;
-+		goto err_irq;
-+	}
-+
-+	ret = request_irq(irq, hdq_isr, IRQF_DISABLED, "omap_hdq", hdq_data);
-+	if (ret < 0) {
-+		dev_dbg(&pdev->dev, "could not request irq\n");
-+		goto err_irq;
-+	}
-+
-+	omap_hdq_break(hdq_data);
-+
-+	/* don't clock the HDQ until it is needed */
-+	clk_disable(hdq_data->hdq_ick);
-+	clk_disable(hdq_data->hdq_fck);
-+
-+	omap_w1_master.data = hdq_data;
-+
-+	ret = w1_add_master_device(&omap_w1_master);
-+	if (ret) {
-+		dev_dbg(&pdev->dev, "Failure in registering w1 master\n");
-+		goto err_w1;
-+	}
-+
-+	return 0;
-+
-+err_w1:
-+err_irq:
-+	clk_disable(hdq_data->hdq_fck);
-+
-+err_fnclk:
-+	clk_disable(hdq_data->hdq_ick);
-+
-+err_intfclk:
-+	clk_put(hdq_data->hdq_ick);
-+	clk_put(hdq_data->hdq_fck);
-+
-+err_clk:
-+	iounmap(hdq_data->hdq_base);
-+
-+err_ioremap:
-+err_resource:
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(hdq_data);
-+
-+err_kmalloc:
-+	return ret;
-+
-+}
-+
-+static int omap_hdq_remove(struct platform_device *pdev)
-+{
-+	struct hdq_data *hdq_data = platform_get_drvdata(pdev);
-+
-+	mutex_lock(&hdq_data->hdq_mutex);
-+
-+	if (hdq_data->hdq_usecount) {
-+		dev_dbg(&pdev->dev, "removed when use count is not zero\n");
++	/* Check the device access status */
++	if (!c2dev->access)
 +		return -EBUSY;
-+	}
 +
-+	mutex_unlock(&hdq_data->hdq_mutex);
++	mutex_lock(&c2dev->mutex);
 +
-+	/* remove module dependency */
-+	clk_put(hdq_data->hdq_ick);
-+	clk_put(hdq_data->hdq_fck);
-+	free_irq(INT_24XX_HDQ_IRQ, hdq_data);
-+	platform_set_drvdata(pdev, NULL);
-+	iounmap(hdq_data->hdq_base);
-+	kfree(hdq_data);
++	c2port_reset(c2dev);
++	c2dev->flash_access = 0;
++
++	mutex_unlock(&c2dev->mutex);
++
++	return count;
++}
++
++static ssize_t __c2port_show_dev_id(struct c2port_device *dev, char *buf)
++{
++	u8 data;
++	int ret;
++
++	/* Select DEVICEID register for C2 data register accesses */
++	c2port_write_ar(dev, C2PORT_DEVICEID);
++
++	/* Read and return the device ID register */
++	ret = c2port_read_dr(dev, &data);
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "%d\n", data);
++}
++
++static ssize_t c2port_show_dev_id(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++	ssize_t ret;
++
++	/* Check the device access status */
++	if (!c2dev->access)
++		return -EBUSY;
++
++	mutex_lock(&c2dev->mutex);
++	ret = __c2port_show_dev_id(c2dev, buf);
++	mutex_unlock(&c2dev->mutex);
++
++	if (ret < 0)
++		dev_err(dev, "cannot read from %s\n", c2dev->name);
++
++	return ret;
++}
++
++static ssize_t __c2port_show_rev_id(struct c2port_device *dev, char *buf)
++{
++	u8 data;
++	int ret;
++
++	/* Select REVID register for C2 data register accesses */
++	c2port_write_ar(dev, C2PORT_REVID);
++
++	/* Read and return the revision ID register */
++	ret = c2port_read_dr(dev, &data);
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "%d\n", data);
++}
++
++static ssize_t c2port_show_rev_id(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++	ssize_t ret;
++
++	/* Check the device access status */
++	if (!c2dev->access)
++		return -EBUSY;
++
++	mutex_lock(&c2dev->mutex);
++	ret = __c2port_show_rev_id(c2dev, buf);
++	mutex_unlock(&c2dev->mutex);
++
++	if (ret < 0)
++		dev_err(c2dev->dev, "cannot read from %s\n", c2dev->name);
++
++	return ret;
++}
++
++static ssize_t c2port_show_flash_access(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%d\n", c2dev->flash_access);
++}
++
++static ssize_t __c2port_store_flash_access(struct c2port_device *dev,
++						int status)
++{
++	int ret;
++
++	/* Check the device access status */
++	if (!dev->access)
++		return -EBUSY;
++
++	dev->flash_access = !!status;
++
++	/* If flash_access is off we have nothing to do... */
++	if (dev->flash_access == 0)
++		return 0;
++
++	/* Target the C2 flash programming control register for C2 data
++	 * register access */
++	c2port_write_ar(dev, C2PORT_FPCTL);
++
++	/* Write the first keycode to enable C2 Flash programming */
++	ret = c2port_write_dr(dev, 0x02);
++	if (ret < 0)
++		return ret;
++
++	/* Write the second keycode to enable C2 Flash programming */
++	ret = c2port_write_dr(dev, 0x01);
++	if (ret < 0)
++		return ret;
++
++	/* Delay for at least 20ms to ensure the target is ready for
++	 * C2 flash programming */
++	mdelay(25);
 +
 +	return 0;
 +}
 +
-+static int __init
-+omap_hdq_init(void)
++static ssize_t c2port_store_flash_access(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t count)
 +{
-+	return platform_driver_register(&omap_hdq_driver);
-+}
-+module_init(omap_hdq_init);
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++	int status;
++	ssize_t ret;
 +
-+static void __exit
-+omap_hdq_exit(void)
++	ret = sscanf(buf, "%d", &status);
++	if (ret != 1)
++		return -EINVAL;
++
++	mutex_lock(&c2dev->mutex);
++	ret = __c2port_store_flash_access(c2dev, status);
++	mutex_unlock(&c2dev->mutex);
++
++	if (ret < 0) {
++		dev_err(c2dev->dev, "cannot enable %s flash programming\n",
++			c2dev->name);
++		return ret;
++	}
++
++	return count;
++}
++
++static ssize_t __c2port_write_flash_erase(struct c2port_device *dev)
 +{
-+	platform_driver_unregister(&omap_hdq_driver);
++	u8 status;
++	int ret;
++
++	/* Target the C2 flash programming data register for C2 data register
++	 * access.
++	 */
++	c2port_write_ar(dev, C2PORT_FPDAT);
++
++	/* Send device erase command */
++	c2port_write_dr(dev, C2PORT_DEVICE_ERASE);
++
++	/* Wait for input acknowledge */
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Should check status before starting FLASH access sequence */
++
++	/* Wait for status information */
++	ret = c2port_poll_out_ready(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Read flash programming interface status */
++	ret = c2port_read_dr(dev, &status);
++	if (ret < 0)
++		return ret;
++	if (status != C2PORT_COMMAND_OK)
++		return -EBUSY;
++
++	/* Send a three-byte arming sequence to enable the device erase.
++	 * If the sequence is not received correctly, the command will be
++	 * ignored.
++	 * Sequence is: 0xde, 0xad, 0xa5.
++	 */
++	c2port_write_dr(dev, 0xde);
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++	c2port_write_dr(dev, 0xad);
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++	c2port_write_dr(dev, 0xa5);
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++
++	ret = c2port_poll_out_ready(dev);
++	if (ret < 0)
++		return ret;
++
++	return 0;
 +}
-+module_exit(omap_hdq_exit);
 +
-+module_param(w1_id, int, S_IRUSR);
-+MODULE_PARM_DESC(w1_id, "1-wire id for the slave detection");
++static ssize_t c2port_store_flash_erase(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t count)
++{
++	struct c2port_device *c2dev = dev_get_drvdata(dev);
++	int ret;
 +
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_DESCRIPTION("HDQ driver Library");
++	/* Check the device and flash access status */
++	if (!c2dev->access || !c2dev->flash_access)
++		return -EBUSY;
++
++	mutex_lock(&c2dev->mutex);
++	ret = __c2port_write_flash_erase(c2dev);
++	mutex_unlock(&c2dev->mutex);
++
++	if (ret < 0) {
++		dev_err(c2dev->dev, "cannot erase %s flash\n", c2dev->name);
++		return ret;
++	}
++
++	return count;
++}
++
++static ssize_t __c2port_read_flash_data(struct c2port_device *dev,
++				char *buffer, loff_t offset, size_t count)
++{
++	struct c2port_ops *ops = dev->ops;
++	u8 status, nread = 128;
++	int i, ret;
++
++	/* Check for flash end */
++	if (offset >= ops->block_size * ops->blocks_num)
++		return 0;
++
++	if (ops->block_size * ops->blocks_num - offset < nread)
++		nread = ops->block_size * ops->blocks_num - offset;
++	if (count < nread)
++		nread = count;
++	if (nread == 0)
++		return nread;
++
++	/* Target the C2 flash programming data register for C2 data register
++	 * access */
++	c2port_write_ar(dev, C2PORT_FPDAT);
++
++	/* Send flash block read command */
++	c2port_write_dr(dev, C2PORT_BLOCK_READ);
++
++	/* Wait for input acknowledge */
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Should check status before starting FLASH access sequence */
++
++	/* Wait for status information */
++	ret = c2port_poll_out_ready(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Read flash programming interface status */
++	ret = c2port_read_dr(dev, &status);
++	if (ret < 0)
++		return ret;
++	if (status != C2PORT_COMMAND_OK)
++		return -EBUSY;
++
++	/* Send address high byte */
++	c2port_write_dr(dev, offset >> 8);
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Send address low byte */
++	c2port_write_dr(dev, offset & 0x00ff);
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Send address block size */
++	c2port_write_dr(dev, nread);
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Should check status before reading FLASH block */
++
++	/* Wait for status information */
++	ret = c2port_poll_out_ready(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Read flash programming interface status */
++	ret = c2port_read_dr(dev, &status);
++	if (ret < 0)
++		return ret;
++	if (status != C2PORT_COMMAND_OK)
++		return -EBUSY;
++
++	/* Read flash block */
++	for (i = 0; i < nread; i++) {
++		ret = c2port_poll_out_ready(dev);
++		if (ret < 0)
++			return ret;
++
++		ret = c2port_read_dr(dev, buffer+i);
++		if (ret < 0)
++			return ret;
++	}
++
++	return nread;
++}
++
++static ssize_t c2port_read_flash_data(struct kobject *kobj,
++				struct bin_attribute *attr,
++				char *buffer, loff_t offset, size_t count)
++{
++	struct c2port_device *c2dev =
++			dev_get_drvdata(container_of(kobj,
++						struct device, kobj));
++	ssize_t ret;
++
++	/* Check the device and flash access status */
++	if (!c2dev->access || !c2dev->flash_access)
++		return -EBUSY;
++
++	mutex_lock(&c2dev->mutex);
++	ret = __c2port_read_flash_data(c2dev, buffer, offset, count);
++	mutex_unlock(&c2dev->mutex);
++
++	if (ret < 0)
++		dev_err(c2dev->dev, "cannot read %s flash\n", c2dev->name);
++
++	return ret;
++}
++
++static ssize_t __c2port_write_flash_data(struct c2port_device *dev,
++				char *buffer, loff_t offset, size_t count)
++{
++	struct c2port_ops *ops = dev->ops;
++	u8 status, nwrite = 128;
++	int i, ret;
++
++	if (nwrite > count)
++		nwrite = count;
++	if (ops->block_size * ops->blocks_num - offset < nwrite)
++		nwrite = ops->block_size * ops->blocks_num - offset;
++
++	/* Check for flash end */
++	if (offset >= ops->block_size * ops->blocks_num)
++		return -EINVAL;
++
++	/* Target the C2 flash programming data register for C2 data register
++	 * access */
++	c2port_write_ar(dev, C2PORT_FPDAT);
++
++	/* Send flash block write command */
++	c2port_write_dr(dev, C2PORT_BLOCK_WRITE);
++
++	/* Wait for input acknowledge */
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Should check status before starting FLASH access sequence */
++
++	/* Wait for status information */
++	ret = c2port_poll_out_ready(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Read flash programming interface status */
++	ret = c2port_read_dr(dev, &status);
++	if (ret < 0)
++		return ret;
++	if (status != C2PORT_COMMAND_OK)
++		return -EBUSY;
++
++	/* Send address high byte */
++	c2port_write_dr(dev, offset >> 8);
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Send address low byte */
++	c2port_write_dr(dev, offset & 0x00ff);
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Send address block size */
++	c2port_write_dr(dev, nwrite);
++	ret = c2port_poll_in_busy(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Should check status before writing FLASH block */
++
++	/* Wait for status information */
++	ret = c2port_poll_out_ready(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Read flash programming interface status */
++	ret = c2port_read_dr(dev, &status);
++	if (ret < 0)
++		return ret;
++	if (status != C2PORT_COMMAND_OK)
++		return -EBUSY;
++
++	/* Write flash block */
++	for (i = 0; i < nwrite; i++) {
++		ret = c2port_write_dr(dev, *(buffer+i));
++		if (ret < 0)
++			return ret;
++
++		ret = c2port_poll_in_busy(dev);
++		if (ret < 0)
++			return ret;
++
++	}
++
++	/* Wait for last flash write to complete */
++	ret = c2port_poll_out_ready(dev);
++	if (ret < 0)
++		return ret;
++
++	return nwrite;
++}
++
++static ssize_t c2port_write_flash_data(struct kobject *kobj,
++				struct bin_attribute *attr,
++				char *buffer, loff_t offset, size_t count)
++{
++	struct c2port_device *c2dev =
++			dev_get_drvdata(container_of(kobj,
++						struct device, kobj));
++	int ret;
++
++	/* Check the device access status */
++	if (!c2dev->access || !c2dev->flash_access)
++		return -EBUSY;
++
++	mutex_lock(&c2dev->mutex);
++	ret = __c2port_write_flash_data(c2dev, buffer, offset, count);
++	mutex_unlock(&c2dev->mutex);
++
++	if (ret < 0)
++		dev_err(c2dev->dev, "cannot write %s flash\n", c2dev->name);
++
++	return ret;
++}
++
++/*
++ * Class attributes
++ */
++
++static struct device_attribute c2port_attrs[] = {
++	__ATTR(name, 0444, c2port_show_name, NULL),
++	__ATTR(flash_blocks_num, 0444, c2port_show_flash_blocks_num, NULL),
++	__ATTR(flash_block_size, 0444, c2port_show_flash_block_size, NULL),
++	__ATTR(flash_size, 0444, c2port_show_flash_size, NULL),
++	__ATTR(access, 0644, c2port_show_access, c2port_store_access),
++	__ATTR(reset, 0200, NULL, c2port_store_reset),
++	__ATTR(dev_id, 0444, c2port_show_dev_id, NULL),
++	__ATTR(rev_id, 0444, c2port_show_rev_id, NULL),
++
++	__ATTR(flash_access, 0644, c2port_show_flash_access,
++					c2port_store_flash_access),
++	__ATTR(flash_erase, 0200, NULL, c2port_store_flash_erase),
++	__ATTR_NULL,
++};
++
++static struct bin_attribute c2port_bin_attrs = {
++	.attr	= {
++		.name	= "flash_data",
++		.mode	= 0644
++	},
++	.read	= c2port_read_flash_data,
++	.write	= c2port_write_flash_data,
++	/* .size is computed at run-time */
++};
++
++/*
++ * Exported functions
++ */
++
++struct c2port_device *c2port_device_register(char *name,
++					struct c2port_ops *ops, void *devdata)
++{
++	struct c2port_device *c2dev;
++	int id, ret;
++
++	if (unlikely(!ops) || unlikely(!ops->access) || \
++		unlikely(!ops->c2d_dir) || unlikely(!ops->c2ck_set) || \
++		unlikely(!ops->c2d_get) || unlikely(!ops->c2d_set))
++		return ERR_PTR(-EINVAL);
++
++	c2dev = kmalloc(sizeof(struct c2port_device), GFP_KERNEL);
++	if (unlikely(!c2dev))
++		return ERR_PTR(-ENOMEM);
++
++	ret = idr_pre_get(&c2port_idr, GFP_KERNEL);
++	if (!ret) {
++		ret = -ENOMEM;
++		goto error_idr_get_new;
++	}
++
++	spin_lock_irq(&c2port_idr_lock);
++	ret = idr_get_new(&c2port_idr, c2dev, &id);
++	spin_unlock_irq(&c2port_idr_lock);
++
++	if (ret < 0)
++		goto error_idr_get_new;
++	c2dev->id = id;
++
++	c2dev->dev = device_create(c2port_class, NULL, 0, c2dev,
++					"c2port%d", id);
++	if (unlikely(!c2dev->dev)) {
++		ret = -ENOMEM;
++		goto error_device_create;
++	}
++	dev_set_drvdata(c2dev->dev, c2dev);
++
++	strncpy(c2dev->name, name, C2PORT_NAME_LEN);
++	c2dev->ops = ops;
++	mutex_init(&c2dev->mutex);
++
++	/* Create binary file */
++	c2port_bin_attrs.size = ops->blocks_num * ops->block_size;
++	ret = device_create_bin_file(c2dev->dev, &c2port_bin_attrs);
++	if (unlikely(ret))
++		goto error_device_create_bin_file;
++
++	/* By default C2 port access is off */
++	c2dev->access = c2dev->flash_access = 0;
++	ops->access(c2dev, 0);
++
++	dev_info(c2dev->dev, "C2 port %s added\n", name);
++	dev_info(c2dev->dev, "%s flash has %d blocks x %d bytes "
++				"(%d bytes total)\n",
++				name, ops->blocks_num, ops->block_size,
++				ops->blocks_num * ops->block_size);
++
++	return c2dev;
++
++error_device_create_bin_file:
++	device_destroy(c2port_class, 0);
++
++error_device_create:
++	spin_lock_irq(&c2port_idr_lock);
++	idr_remove(&c2port_idr, id);
++	spin_unlock_irq(&c2port_idr_lock);
++
++error_idr_get_new:
++	kfree(c2dev);
++
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL(c2port_device_register);
++
++void c2port_device_unregister(struct c2port_device *c2dev)
++{
++	if (!c2dev)
++		return;
++
++	dev_info(c2dev->dev, "C2 port %s removed\n", c2dev->name);
++
++	device_remove_bin_file(c2dev->dev, &c2port_bin_attrs);
++	spin_lock_irq(&c2port_idr_lock);
++	idr_remove(&c2port_idr, c2dev->id);
++	spin_unlock_irq(&c2port_idr_lock);
++
++	device_destroy(c2port_class, c2dev->id);
++
++	kfree(c2dev);
++}
++EXPORT_SYMBOL(c2port_device_unregister);
++
++/*
++ * Module stuff
++ */
++
++static int __init c2port_init(void)
++{
++	printk(KERN_INFO "Silicon Labs C2 port support v. " DRIVER_VERSION
++		" - (C) 2007 Rodolfo Giometti\n");
++
++	c2port_class = class_create(THIS_MODULE, "c2port");
++	if (!c2port_class) {
++		printk(KERN_ERR "c2port: failed to allocate class\n");
++		return -ENOMEM;
++	}
++	c2port_class->dev_attrs = c2port_attrs;
++
++	return 0;
++}
++
++static void __exit c2port_exit(void)
++{
++	class_destroy(c2port_class);
++}
++
++module_init(c2port_init);
++module_exit(c2port_exit);
++
++MODULE_AUTHOR("Rodolfo Giometti <giometti@linux.it>");
++MODULE_DESCRIPTION("Silicon Labs C2 port support v. " DRIVER_VERSION);
 +MODULE_LICENSE("GPL");
+diff -puN /dev/null include/linux/c2port.h
+--- /dev/null
++++ a/include/linux/c2port.h
+@@ -0,0 +1,65 @@
++/*
++ *  Silicon Labs C2 port Linux support
++ *
++ *  Copyright (c) 2007 Rodolfo Giometti <giometti@linux.it>
++ *  Copyright (c) 2007 Eurotech S.p.A. <info@eurotech.it>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation
++ */
++
++#include <linux/device.h>
++
++#define C2PORT_NAME_LEN			32
++
++/*
++ * C2 port basic structs
++ */
++
++/* Main struct */
++struct c2port_ops;
++struct c2port_device {
++	unsigned int access:1;
++	unsigned int flash_access:1;
++
++	int id;
++	char name[C2PORT_NAME_LEN];
++	struct c2port_ops *ops;
++	struct mutex mutex;		/* prevent races during read/write */
++
++	struct device *dev;
++
++	void *private_data;
++};
++
++/* Basic operations */
++struct c2port_ops {
++	/* Flash layout */
++	unsigned short block_size;	/* flash block size in bytes */
++	unsigned short blocks_num;	/* flash blocks number */
++
++	/* Enable or disable the access to C2 port */
++	void (*access)(struct c2port_device *dev, int status);
++
++	/* Set C2D data line as input/output */
++	void (*c2d_dir)(struct c2port_device *dev, int dir);
++
++	/* Read/write C2D data line */
++	int (*c2d_get)(struct c2port_device *dev);
++	void (*c2d_set)(struct c2port_device *dev, int status);
++
++	/* Write C2CK clock line */
++	void (*c2ck_set)(struct c2port_device *dev, int status);
++};
++
++/*
++ * Exported functions
++ */
++
++#define to_class_dev(obj) container_of((obj), struct class_device, kobj)
++#define to_c2port_device(obj) container_of((obj), struct c2port_device, class)
++
++extern struct c2port_device *c2port_device_register(char *name,
++					struct c2port_ops *ops, void *devdata);
++extern void c2port_device_unregister(struct c2port_device *dev);
 _
 
-Patches currently in -mm which might be from madhu.cr@ti.com are
+Patches currently in -mm which might be from giometti@linux.it are
 
 origin.patch
+linux-next.patch
 
