@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fb-clean-the-penguins-dirty-feet.patch added to -mm tree
-Date: Thu, 13 Nov 2008 14:25:39 -0800
-Message-ID: <200811132225.mADMPdmE024596@imap1.linux-foundation.org>
+Subject: + asix-add-support-for-cables-to-go-usb-ethernet-adapter.patch added to -mm tree
+Date: Thu, 13 Nov 2008 14:32:05 -0800
+Message-ID: <200811132232.mADMW5jo027868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45823 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751268AbYKMW1B (ORCPT
+	by vger.kernel.org with ESMTP id S1752042AbYKMWcp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 17:27:01 -0500
+	Thu, 13 Nov 2008 17:32:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clemens@ladisch.de, geert@linux-m68k.org, krzysztof.h1@poczta.fm, stable@kernel.org
+Cc: jason@lakedaemon.net
 
 
 The patch titled
-     fbdev: clean the penguin's dirty feet
+     asix: add support for Cables-to-Go USB Ethernet adapter
 has been added to the -mm tree.  Its filename is
-     fb-clean-the-penguins-dirty-feet.patch
+     asix-add-support-for-cables-to-go-usb-ethernet-adapter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: clean the penguin's dirty feet
-From: Clemens Ladisch <clemens@ladisch.de>
+Subject: asix: add support for Cables-to-Go USB Ethernet adapter
+From: Jason Cooper <jason@lakedaemon.net>
 
-When booting in a direct color mode, the penguin has dirty feet, i.e.,
-some pixels have the wrong color.  This is caused by
-fb_set_logo_directpalette() which does not initialize the last 32 palette
-entries.
+Add support to drivers/net/usb/asix.c for the Cables-to-Go "USB 2.0 to
+10/100 Ethernet Adapter". USB id 0b95:772a.
 
-Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: <stable@kernel.org>
+Signed-off-by: Jason Cooper <jason@lakedaemon.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/usb/asix.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/video/fbmem.c~fb-clean-the-penguins-dirty-feet drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-clean-the-penguins-dirty-feet
-+++ a/drivers/video/fbmem.c
-@@ -230,7 +230,7 @@ static void fb_set_logo_directpalette(st
- 	greenshift = info->var.green.offset;
- 	blueshift = info->var.blue.offset;
- 
--	for (i = 32; i < logo->clutsize; i++)
-+	for (i = 32; i < 32 + logo->clutsize; i++)
- 		palette[i] = i << redshift | i << greenshift | i << blueshift;
- }
- 
+diff -puN drivers/net/usb/asix.c~asix-add-support-for-cables-to-go-usb-ethernet-adapter drivers/net/usb/asix.c
+--- a/drivers/net/usb/asix.c~asix-add-support-for-cables-to-go-usb-ethernet-adapter
++++ a/drivers/net/usb/asix.c
+@@ -1444,6 +1444,10 @@ static const struct usb_device_id	produc
+ 	// Apple USB Ethernet Adapter
+ 	USB_DEVICE(0x05ac, 0x1402),
+ 	.driver_info = (unsigned long) &ax88772_info,
++}, {
++	// Cables-to-Go USB Ethernet Adapter
++	USB_DEVICE(0x0b95, 0x772a),
++	.driver_info = (unsigned long) &ax88772_info,
+ },
+ 	{ },		// END
+ };
 _
 
-Patches currently in -mm which might be from clemens@ladisch.de are
+Patches currently in -mm which might be from jason@lakedaemon.net are
 
-fb-clean-the-penguins-dirty-feet.patch
+asix-add-support-for-cables-to-go-usb-ethernet-adapter.patch
 
