@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mac80211-fix-notify_mac-function.patch added to -mm tree
-Date: Wed, 12 Nov 2008 16:45:42 -0800
-Message-ID: <200811130045.mAD0jgvR029036@imap1.linux-foundation.org>
+Subject: + drivers-video-bad-error-test-before-a-dereference.patch added to -mm tree
+Date: Thu, 13 Nov 2008 01:13:31 -0800
+Message-ID: <200811130913.mAD9DVJB020026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751261AbYKMAq0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751261AbYKMJNm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Nov 2008 19:46:26 -0500
+	Thu, 13 Nov 2008 04:13:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johannes@sipsolutions.net, linville@tuxdriver.com
+Cc: brunel@diku.dk, julia@diku.dk, nicolas.ferre@atmel.com
 
 
 The patch titled
-     mac80211: fix notify_mac function
+     drivers/video: bad error test before a dereference
 has been added to the -mm tree.  Its filename is
-     mac80211-fix-notify_mac-function.patch
+     drivers-video-bad-error-test-before-a-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: fix notify_mac function
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: drivers/video: bad error test before a dereference
+From: Julien Brunel <brunel@diku.dk>
 
-The ieee80211_notify_mac() function uses ieee80211_sta_req_auth() which in
-turn calls ieee80211_set_disassoc() which calls a few functions that need
-to be able to sleep, so ieee80211_notify_mac() cannot use RCU locking for
-the interface list and must use rtnl locking instead.
+The error test that follows the call to backlight_device_register semms
+not to concern the right variable.
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+A simplified version of the semantic match that finds this problem is
+as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+// <smpl>
+@def0@
+expression x;
+position p0;
+@@
+x@p0 = backlight_device_register(...)
+
+@protected@
+expression def0.x,E;
+position def0.p0;
+position p;
+statement S;
+@@
+x@p0
+... when != x = E
+if (!IS_ERR(x) && ...) {<... x@p ...>} else S
+
+@unprotected@
+expression def0.x;
+identifier fld;
+position def0.p0;
+position p != protected.p;
+@@
+x@p0
+... when != x = E
+* x@p->fld
+// </smpl>
+
+Signed-off-by: Julien Brunel <brunel@diku.dk>
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/mlme.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/atmel_lcdfb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/mac80211/mlme.c~mac80211-fix-notify_mac-function net/mac80211/mlme.c
---- a/net/mac80211/mlme.c~mac80211-fix-notify_mac-function
-+++ a/net/mac80211/mlme.c
-@@ -2570,14 +2570,14 @@ void ieee80211_notify_mac(struct ieee802
+diff -puN drivers/video/atmel_lcdfb.c~drivers-video-bad-error-test-before-a-dereference drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~drivers-video-bad-error-test-before-a-dereference
++++ a/drivers/video/atmel_lcdfb.c
+@@ -132,7 +132,7 @@ static void init_backlight(struct atmel_
  
- 	switch (notif_type) {
- 	case IEEE80211_NOTIFY_RE_ASSOC:
--		rcu_read_lock();
--		list_for_each_entry_rcu(sdata, &local->interfaces, list) {
-+		rtnl_lock();
-+		list_for_each_entry(sdata, &local->interfaces, list) {
- 			if (sdata->vif.type != NL80211_IFTYPE_STATION)
- 				continue;
- 
- 			ieee80211_sta_req_auth(sdata, &sdata->u.sta);
- 		}
--		rcu_read_unlock();
-+		rtnl_unlock();
- 		break;
- 	}
- }
+ 	bl = backlight_device_register("backlight", &sinfo->pdev->dev,
+ 			sinfo, &atmel_lcdc_bl_ops);
+-	if (IS_ERR(sinfo->backlight)) {
++	if (IS_ERR(bl)) {
+ 		dev_err(&sinfo->pdev->dev, "error %ld on backlight register\n",
+ 				PTR_ERR(bl));
+ 		return;
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from brunel@diku.dk are
 
-linux-next.patch
-drivers-net-wireless-ath9k-rcc-use-array_size.patch
-mac80211-fix-notify_mac-function.patch
+drivers-video-bad-error-test-before-a-dereference.patch
 
