@@ -1,67 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-fix-shrink_submounts.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:26:56 -0800
-Message-ID: <200811132126.mADLQudI027580@imap1.linux-foundation.org>
+Subject: - cpusets-update-mems-allowed-in-page-allocator.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 13:26:39 -0800
+Message-ID: <200811132126.mADLQdDl027433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55079 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752089AbYKMV1D (ORCPT
+	by vger.kernel.org with ESMTP id S1752722AbYKMV1P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:27:03 -0500
+	Thu, 13 Nov 2008 16:27:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, adobriyan@gmail.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: rientjes@google.com, cl@linux-foundation.org, mel@csn.ul.ie, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: fix shrink_submounts
+     cpusets: update mems allowed in page allocator
 has been removed from the -mm tree.  Its filename was
-     vfs-fix-shrink_submounts.patch
+     cpusets-update-mems-allowed-in-page-allocator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix shrink_submounts
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: cpusets: update mems allowed in page allocator
+From: David Rientjes <rientjes@google.com>
 
-In the last refactoring of shrink_submounts a variable was not completely
-renamed.  So finish the renaming of mnt to m now.
+If all allowable memory is unreclaimable, it is possible to loop forever
+in the page allocator for ~__GFP_NORETRY allocations.
 
-Without this if you attempt to mount an nfs mount that has both automatic
-nfs sub mounts on it, and has normal mounts on it.  The unmount will
-succeed when it should not.
+During this time, it is also possible for a task's cpuset to expand its
+set of allowable nodes so that it now includes free memory.  The cached
+copy of this set, current->mems_allowed, is stale, however, since there
+has not been a subsequent call to cpuset_update_task_memory_state().
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk
+The cached copy of the set of allowable nodes is now updated in the page
+allocator's slow path so the additional memory is available to
+get_page_from_freelist().
+
+[akpm@linux-foundation.org: add comment]
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/namespace.c~vfs-fix-shrink_submounts fs/namespace.c
---- a/fs/namespace.c~vfs-fix-shrink_submounts
-+++ a/fs/namespace.c
-@@ -1815,8 +1815,8 @@ static void shrink_submounts(struct vfsm
- 		while (!list_empty(&graveyard)) {
- 			m = list_first_entry(&graveyard, struct vfsmount,
- 						mnt_expire);
--			touch_mnt_namespace(mnt->mnt_ns);
--			umount_tree(mnt, 1, umounts);
-+			touch_mnt_namespace(m->mnt_ns);
-+			umount_tree(m, 1, umounts);
- 		}
- 	}
- }
+diff -puN mm/page_alloc.c~cpusets-update-mems-allowed-in-page-allocator mm/page_alloc.c
+--- a/mm/page_alloc.c~cpusets-update-mems-allowed-in-page-allocator
++++ a/mm/page_alloc.c
+@@ -1561,6 +1561,10 @@ nofail_alloc:
+ 
+ 	/* We now go into synchronous reclaim */
+ 	cpuset_memory_pressure_bump();
++	/*
++	 * The task's cpuset might have expanded its set of allowable nodes
++	 */
++	cpuset_update_task_memory_state();
+ 	p->flags |= PF_MEMALLOC;
+ 	reclaim_state.reclaimed_slab = 0;
+ 	p->reclaim_state = &reclaim_state;
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-linux-next.patch
-vmcore-remove-saved_max_pfn-check.patch
+cpuset-update-top-cpusets-mems-after-adding-a-node.patch
+oom-fix-zone_scan_mutex-name.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
 
