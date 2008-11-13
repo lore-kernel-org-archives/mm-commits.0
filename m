@@ -1,106 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - netdev-smc911x-fix-for-driver-resume.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:28:21 -0800
-Message-ID: <200811132128.mADLSLVJ028425@imap1.linux-foundation.org>
+Subject: - driver-core-use-ret-variable-in-unregister_dynamic_debug_module.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 13:27:57 -0800
+Message-ID: <200811132127.mADLRvOS028226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753394AbYKMV2j (ORCPT
+	by vger.kernel.org with ESMTP id S1752601AbYKMV2g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:28:39 -0500
+	Thu, 13 Nov 2008 16:28:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: romit@ti.com, catalin.marinas@arm.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: johfel@users.sourceforge.net, greg@kroah.com, jbaron@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netdev SMC911x: fix for driver resume
+     driver core: use 'ret' variable in unregister_dynamic_debug_module
 has been removed from the -mm tree.  Its filename was
-     netdev-smc911x-fix-for-driver-resume.patch
+     driver-core-use-ret-variable-in-unregister_dynamic_debug_module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: netdev SMC911x: fix for driver resume
-From: "Dasgupta, Romit" <romit@ti.com>
+Subject: driver core: use 'ret' variable in unregister_dynamic_debug_module
+From: Johann Felix Soden <johfel@users.sourceforge.net>
 
-I am trying out suspend, resume on an OMAP3 based board.  What I see
-during resume is that the SMC911x driver resume routing gets stuck after
-trying to transmit the packet out of the controller.  Some debug messages
-below:
+The 'ret' variable is assigned, but not used in the return statement.  Fix
+this.
 
---> smc911x_drv_resume
-eth0: --> smc911x_reset
-eth0: smc911x_reset timeout waiting for PM restore
-eth0: --> smc911x_enable
-eth0: --> smc911x_phy_configure()
-eth0: --> smc911x_phy_reset()
-eth0: phy caps=0x782d
-eth0: phy advertised caps=0x0de1
-eth0: --> smc911x_phy_check_media
-smc911x_phy_read: phyaddr=0x1, phyreg=0x01, phydata=0x7809
-smc911x_phy_read: phyaddr=0x1, phyreg=0x01, phydata=0x7809
-eth0: link down
-Restarting tasks ... eth0: --> smc911x_hard_start_xmit
-eth0: --> smc911x_hardware_send_pkt
-eth0: --> smc911x_hard_start_xmit
-eth0: --> smc911x_hardware_send_pkt
-eth0: --> smc911x_hard_start_xmit
-eth0: --> smc911x_hardware_send_pkt
-nfs: server 172.24.190.217 not responding, still trying
-nfs: server 172.24.190.217 not responding, still trying
-
-The following change makes it work fine: (The change within
-smc911x_drv_probe function was to get rid of a compilation warning).
-
-Additionally, the SMC9211 data sheet says that when we enter D2 sleep
-state, we need to set the EDPWRDOWN bit in the PHY Mode control/status
-register and clear it when we are back to D0.  This is not done in the
-code as far as I can see.  So does it mean that the PHY is not powered
-down but the controller is?  I have another patch that fixes it.  I will
-send that as well unless I am missing somethi
-
-Signed-off-by: Romit Dasgupta <romit@ti.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Johann Felix Soden <johfel@users.sourceforge.net>
+Acked-by: Jason Baron <jbaron@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc911x.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ lib/dynamic_printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/smc911x.c~netdev-smc911x-fix-for-driver-resume drivers/net/smc911x.c
---- a/drivers/net/smc911x.c~netdev-smc911x-fix-for-driver-resume
-+++ a/drivers/net/smc911x.c
-@@ -2048,7 +2048,9 @@ err_out:
-  */
- static int smc911x_drv_probe(struct platform_device *pdev)
- {
-+#ifdef SMC_DYNAMIC_BUS_CONFIG
- 	struct smc911x_platdata *pd = pdev->dev.platform_data;
-+#endif
- 	struct net_device *ndev;
- 	struct resource *res;
- 	struct smc911x_local *lp;
-@@ -2180,9 +2182,9 @@ static int smc911x_drv_resume(struct pla
+diff -puN lib/dynamic_printk.c~driver-core-use-ret-variable-in-unregister_dynamic_debug_module lib/dynamic_printk.c
+--- a/lib/dynamic_printk.c~driver-core-use-ret-variable-in-unregister_dynamic_debug_module
++++ a/lib/dynamic_printk.c
+@@ -135,7 +135,7 @@ int unregister_dynamic_debug_module(char
+ 	nr_entries--;
+ out:
+ 	up(&debug_list_mutex);
+-	return 0;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(unregister_dynamic_debug_module);
  
- 		if (netif_running(ndev)) {
- 			smc911x_reset(ndev);
--			smc911x_enable(ndev);
- 			if (lp->phy_type != 0)
- 				smc911x_phy_configure(&lp->phy_configure);
-+			smc911x_enable(ndev);
- 			netif_device_attach(ndev);
- 		}
- 	}
 _
 
-Patches currently in -mm which might be from romit@ti.com are
+Patches currently in -mm which might be from johfel@users.sourceforge.net are
 
-origin.patch
 linux-next.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
 
