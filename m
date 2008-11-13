@@ -1,2163 +1,988 @@
 From: akpm@linux-foundation.org
-Subject: - adt7462-new-hwmon-driver.patch removed from -mm tree
-Date: Thu, 13 Nov 2008 13:27:23 -0800
-Message-ID: <200811132127.mADLRNxJ027890@imap1.linux-foundation.org>
+Subject: - lis3lv02dx-accelerometer-driver.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 13:27:19 -0800
+Message-ID: <200811132127.mADLRJVM027872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753005AbYKMV1j (ORCPT
+	by vger.kernel.org with ESMTP id S1752989AbYKMV1e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 16:27:39 -0500
+	Thu, 13 Nov 2008 16:27:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djwong@us.ibm.com, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: pavel@suse.cz, burman.yan@gmail.com, eric.piel@tremplin-utc.net, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     adt7462: new hwmon driver
+     LIS3LV02Dx Accelerometer driver
 has been removed from the -mm tree.  Its filename was
-     adt7462-new-hwmon-driver.patch
+     lis3lv02dx-accelerometer-driver.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: adt7462: new hwmon driver
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: LIS3LV02Dx Accelerometer driver
+=46rom: Pavel Machek <pavel@suse.cz>
 
-New driver to play with.  As Jean mentioned a couple of years ago, this
-chip is a beast with odd combinations of 8 fans, 4 temperatures, and
-13 voltage sensors.  This driver has been tested on an IntelliStation
-Z30.
+This adds a driver to the accelerometer sensor found in several HP lapt=
+ops
+(under the commercial names of "HP Mobile Data Protection System 3D" an=
+d
+"HP 3D driveguard").  It tries to have more or less the same interfaces=
+ as
+the hdaps and other accelerometer drivers: in sysfs and as a joystick.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+This driver was first written by Yan Burman.  Eric Piel has updated it =
+and
+slimed it up (including the removal of an interface to access to the
+free-fall feature of the sensor because it is not reliable enough for
+now).  Pavel Machek removed few more features and switched locking from
+semaphore to mutex.
+
+Several people have contributed to the database of the axes.
+
+[eric.piel@tremplin-utc.net: LIS3LV02D: Conform to the new ACPI API]
+Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
+Signed-off-by: Yan Burman <burman.yan@gmail.com>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/hwmon/adt7462 |   67 +
- drivers/hwmon/Kconfig       |   10 
- drivers/hwmon/Makefile      |    1 
- drivers/hwmon/adt7462.c     | 2002 ++++++++++++++++++++++++++++++++++
- 4 files changed, 2080 insertions(+)
+ Documentation/hwmon/lis3lv02d |   49 ++
+ MAINTAINERS                   |    5=20
+ drivers/hwmon/Kconfig         |   19 +
+ drivers/hwmon/Makefile        |    1=20
+ drivers/hwmon/lis3lv02d.c     |  582 ++++++++++++++++++++++++++++++++
+ drivers/hwmon/lis3lv02d.h     |  149 ++++++++
+ 6 files changed, 805 insertions(+)
 
-diff -puN /dev/null Documentation/hwmon/adt7462
+diff -puN /dev/null Documentation/hwmon/lis3lv02d
 --- /dev/null
-+++ a/Documentation/hwmon/adt7462
-@@ -0,0 +1,67 @@
-+Kernel driver adt7462
-+======================
++++ a/Documentation/hwmon/lis3lv02d
+@@ -0,0 +1,49 @@
++Kernel driver lis3lv02d
++=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 +
 +Supported chips:
-+  * Analog Devices ADT7462
-+    Prefix: 'adt7462'
-+    Addresses scanned: I2C 0x58, 0x5C
-+    Datasheet: Publicly available at the Analog Devices website
 +
-+Author: Darrick J. Wong
++  * STMicroelectronics LIS3LV02DL and LIS3LV02DQ
++
++Author:
++        Yan Burman <burman.yan@gmail.com>
++	Eric Piel <eric.piel@tremplin-utc.net>
++
 +
 +Description
 +-----------
 +
-+This driver implements support for the Analog Devices ADT7462 chip family.
++This driver provides support for the accelerometer found in various HP=
+ laptops
++sporting the feature officially called "HP Mobile Data Protection Syst=
+em 3D" or
++"HP 3D DriveGuard". It detect automatically laptops with this sensor. =
+Known models
++(for now the HP 2133, nc6420, nc2510, nc8510, nc84x0, nw9440 and nx942=
+0) will
++have their axis automatically oriented on standard way (eg: you can di=
+rectly
++play neverball).  The accelerometer data is readable via
++/sys/devices/platform/lis3lv02d.
 +
-+This chip is a bit of a beast.  It has 8 counters for measuring fan speed.  It
-+can also measure 13 voltages or 4 temperatures, or various combinations of the
-+two.  See the chip documentation for more details about the exact set of
-+configurations.  This driver does not allow one to configure the chip; that is
-+left to the system designer.
++Sysfs attributes under /sys/devices/platform/lis3lv02d/:
++position - 3D position that the accelerometer reports. Format: "(x,y,z=
+)"
++calibrate - read: values (x, y, z) that are used as the base for input=
+ class device operation.
++            write: forces the base to be recalibrated with the current=
+ position.
++rate - reports the sampling rate of the accelerometer device in HZ
 +
-+A sophisticated control system for the PWM outputs is designed into the ADT7462
-+that allows fan speed to be adjusted automatically based on any of the three
-+temperature sensors. Each PWM output is individually adjustable and
-+programmable. Once configured, the ADT7462 will adjust the PWM outputs in
-+response to the measured temperatures without further host intervention.  This
-+feature can also be disabled for manual control of the PWM's.
++This driver also provides an absolute input class device, allowing
++the laptop to act as a pinball machine-esque joystick.
 +
-+Each of the measured inputs (voltage, temperature, fan speed) has
-+corresponding high/low limit values. The ADT7462 will signal an ALARM if
-+any measured value exceeds either limit.
-+
-+The ADT7462 samples all inputs continuously. The driver will not read
-+the registers more often than once every other second. Further,
-+configuration data is only read once per minute.
-+
-+Special Features
++Axes orientation
 +----------------
 +
-+The ADT7462 have a 10-bit ADC and can therefore measure temperatures
-+with 0.25 degC resolution.
++For better compatibility between the various laptops. The values repor=
+ted by
++the accelerometer are converted into a "standard" organisation of the =
+axes
++(aka "can play neverball out of the box"):
++ * When the laptop is horizontal the position reported is about 0 for =
+X and Y
++and a positive value for Z
++ * If the left side is elevated, X increases (becomes positive)
++ * If the front side (where the touchpad is) is elevated, Y decreases =
+(becomes negative)
++ * If the laptop is put upside-down, Z becomes negative
 +
-+The Analog Devices datasheet is very detailed and describes a procedure for
-+determining an optimal configuration for the automatic PWM control.
++If your laptop model is not recognized (cf "dmesg"), you can send an e=
+mail to the
++authors to add it to the database.  When reporting a new laptop, pleas=
+e include
++the output of "dmidecode" plus the value of /sys/devices/platform/lis3=
+lv02d/position
++in these four cases.
 +
-+The driver will report sensor labels when it is able to determine that
-+information from the configuration registers.
+diff -puN MAINTAINERS~lis3lv02dx-accelerometer-driver MAINTAINERS
+--- a/MAINTAINERS~lis3lv02dx-accelerometer-driver
++++ a/MAINTAINERS
+@@ -2703,6 +2703,11 @@ P:	Arnaldo Carvalho de Melo
+ M:	acme@ghostprotocols.net
+ S:	Maintained
+=20
++LIS3LV02D ACCELEROMETER DRIVER
++P:	Eric Piel
++M:	eric.piel@tremplin-utc.net
++S:	Maintained
 +
-+Configuration Notes
-+-------------------
-+
-+Besides standard interfaces driver adds the following:
-+
-+* PWM Control
-+
-+* pwm#_auto_point1_pwm and temp#_auto_point1_temp and
-+* pwm#_auto_point2_pwm and temp#_auto_point2_temp -
-+
-+point1: Set the pwm speed at a lower temperature bound.
-+point2: Set the pwm speed at a higher temperature bound.
-+
-+The ADT7462 will scale the pwm between the lower and higher pwm speed when
-+the temperature is between the two temperature boundaries.  PWM values range
-+from 0 (off) to 255 (full speed).  Fan speed will be set to maximum when the
-+temperature sensor associated with the PWM control exceeds temp#_max.
-+
-diff -puN drivers/hwmon/Kconfig~adt7462-new-hwmon-driver drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig~adt7462-new-hwmon-driver
+ LM83 HARDWARE MONITOR DRIVER
+ P:	Jean Delvare
+ M:	khali@linux-fr.org
+diff -puN drivers/hwmon/Kconfig~lis3lv02dx-accelerometer-driver drivers=
+/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig~lis3lv02dx-accelerometer-driver
 +++ a/drivers/hwmon/Kconfig
-@@ -159,6 +159,16 @@ config SENSORS_ADM9240
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called adm9240.
- 
-+config SENSORS_ADT7462
-+	tristate "Analog Devices ADT7462"
-+	depends on I2C && EXPERIMENTAL
+@@ -825,6 +825,25 @@ config SENSORS_HDAPS
+ 	  Say Y here if you have an applicable laptop and want to experience
+ 	  the awesome power of hdaps.
+=20
++config SENSORS_LIS3LV02D
++	tristate "STMicroeletronics LIS3LV02Dx three-axis digital acceleromet=
+er"
++	depends on ACPI && INPUT
++	default n
 +	help
-+	  If you say yes here you get support for the Analog Devices
-+	  ADT7462 temperature monitoring chips.
++	  This driver provides support for the LIS3LV02Dx accelerometer. In
++	  particular, it can be found in a number of HP laptops, which have t=
+he
++	  "Mobile Data Protection System 3D" or "3D DriveGuard" feature. On s=
+uch
++	  systems the driver should load automatically (via ACPI). The
++	  accelerometer might also be found in other systems, connected via S=
+PI
++	  or I2C.  The accelerometer data is readable via
++	  /sys/devices/platform/lis3lv02d.
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called adt7462.
++	  This driver also provides an absolute input class device, allowing
++	  the laptop to act as a pinball machine-esque joystick.
 +
- config SENSORS_ADT7470
- 	tristate "Analog Devices ADT7470"
- 	depends on I2C && EXPERIMENTAL
-diff -puN drivers/hwmon/Makefile~adt7462-new-hwmon-driver drivers/hwmon/Makefile
---- a/drivers/hwmon/Makefile~adt7462-new-hwmon-driver
++	  This driver can also be built as a module.  If so, the module
++	  will be called lis3lv02d.
++
+ config SENSORS_APPLESMC
+ 	tristate "Apple SMC (Motion sensor, light sensor, keyboard backlight)=
+"
+ 	depends on INPUT && X86
+diff -puN drivers/hwmon/Makefile~lis3lv02dx-accelerometer-driver driver=
+s/hwmon/Makefile
+--- a/drivers/hwmon/Makefile~lis3lv02dx-accelerometer-driver
 +++ a/drivers/hwmon/Makefile
-@@ -25,6 +25,7 @@ obj-$(CONFIG_SENSORS_ADM1029)	+= adm1029
- obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031.o
- obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
- obj-$(CONFIG_SENSORS_ADS7828)	+= ads7828.o
-+obj-$(CONFIG_SENSORS_ADT7462)	+= adt7462.o
- obj-$(CONFIG_SENSORS_ADT7470)	+= adt7470.o
- obj-$(CONFIG_SENSORS_ADT7473)	+= adt7473.o
- obj-$(CONFIG_SENSORS_APPLESMC)	+= applesmc.o
-diff -puN /dev/null drivers/hwmon/adt7462.c
+@@ -48,6 +48,7 @@ obj-$(CONFIG_SENSORS_IBMAEM)	+=3D ibmaem.o
+ obj-$(CONFIG_SENSORS_IBMPEX)	+=3D ibmpex.o
+ obj-$(CONFIG_SENSORS_IT87)	+=3D it87.o
+ obj-$(CONFIG_SENSORS_K8TEMP)	+=3D k8temp.o
++obj-$(CONFIG_SENSORS_LIS3LV02D) +=3D lis3lv02d.o
+ obj-$(CONFIG_SENSORS_LM63)	+=3D lm63.o
+ obj-$(CONFIG_SENSORS_LM70)	+=3D lm70.o
+ obj-$(CONFIG_SENSORS_LM75)	+=3D lm75.o
+diff -puN /dev/null drivers/hwmon/lis3lv02d.c
 --- /dev/null
-+++ a/drivers/hwmon/adt7462.c
-@@ -0,0 +1,2002 @@
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -0,0 +1,582 @@
 +/*
-+ * A hwmon driver for the Analog Devices ADT7462
-+ * Copyright (C) 2008 IBM
++ *  lis3lv02d.c - ST LIS3LV02DL accelerometer driver
 + *
-+ * Author: Darrick J. Wong <djwong@us.ibm.com>
++ *  Copyright (C) 2007-2008 Yan Burman
++ *  Copyright (C) 2008 Eric Piel
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ *  This program is free software; you can redistribute it and/or modi=
+fy
++ *  it under the terms of the GNU General Public License as published =
+by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
 + *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
 + *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-13=
+07  USA
 + */
 +
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/dmi.h>
 +#include <linux/module.h>
-+#include <linux/jiffies.h>
-+#include <linux/i2c.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
++#include <linux/types.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/input.h>
++#include <linux/kthread.h>
++#include <linux/semaphore.h>
 +#include <linux/delay.h>
-+#include <linux/log2.h>
++#include <linux/wait.h>
++#include <linux/poll.h>
++#include <linux/freezer.h>
++#include <linux/version.h>
++#include <linux/uaccess.h>
++#include <acpi/acpi_drivers.h>
++#include <asm/atomic.h>
++#include "lis3lv02d.h"
 +
-+/* Addresses to scan */
-+static const unsigned short normal_i2c[] = { 0x58, 0x5C, I2C_CLIENT_END };
++#define DRIVER_NAME     "lis3lv02d"
++#define ACPI_MDPS_CLASS "accelerometer"
 +
-+/* Insmod parameters */
-+I2C_CLIENT_INSMOD_1(adt7462);
++/* joystick device poll interval in milliseconds */
++#define MDPS_POLL_INTERVAL 50
++/*
++ * The sensor can also generate interrupts (DRDY) but it's pretty poin=
+tless
++ * because their are generated even if the data do not change. So it's=
+ better
++ * to keep the interrupt for the free-fall event. The values are updat=
+ed at
++ * 40Hz (at the lowest frequency), but as it can be pretty time consum=
+ing on
++ * some low processor, we poll the sensor only at 20Hz... enough for t=
+he
++ * joystick.
++ */
 +
-+/* ADT7462 registers */
-+#define ADT7462_REG_DEVICE			0x3D
-+#define ADT7462_REG_VENDOR			0x3E
-+#define ADT7462_REG_REVISION			0x3F
++/* Maximum value our axis may get for the input device (signed 12 bits=
+) */
++#define MDPS_MAX_VAL 2048
 +
-+#define ADT7462_REG_MIN_TEMP_BASE_ADDR		0x44
-+#define ADT7462_REG_MIN_TEMP_MAX_ADDR		0x47
-+#define ADT7462_REG_MAX_TEMP_BASE_ADDR		0x48
-+#define ADT7462_REG_MAX_TEMP_MAX_ADDR		0x4B
-+#define ADT7462_REG_TEMP_BASE_ADDR		0x88
-+#define ADT7462_REG_TEMP_MAX_ADDR		0x8F
++struct axis_conversion {
++	s8	x;
++	s8	y;
++	s8	z;
++};
 +
-+#define ADT7462_REG_FAN_BASE_ADDR		0x98
-+#define ADT7462_REG_FAN_MAX_ADDR		0x9F
-+#define ADT7462_REG_FAN2_BASE_ADDR		0xA2
-+#define ADT7462_REG_FAN2_MAX_ADDR		0xA9
-+#define ADT7462_REG_FAN_ENABLE			0x07
-+#define ADT7462_REG_FAN_MIN_BASE_ADDR		0x78
-+#define ADT7462_REG_FAN_MIN_MAX_ADDR		0x7F
++struct acpi_lis3lv02d {
++	struct acpi_device	*device;   /* The ACPI device */
++	struct input_dev	*idev;     /* input device */
++	struct task_struct	*kthread;  /* kthread for input */
++	struct mutex            lock;
++	struct platform_device	*pdev;     /* platform device */
++	atomic_t		count;     /* interrupt count after last read */
++	int			xcalib;    /* calibrated null value for x */
++	int			ycalib;    /* calibrated null value for y */
++	int			zcalib;    /* calibrated null value for z */
++	unsigned char		is_on;     /* whether the device is on or off */
++	unsigned char		usage;     /* usage counter */
++	struct axis_conversion	ac;        /* hw -> logical axis */
++};
 +
-+#define ADT7462_REG_CFG2			0x02
-+#define		ADT7462_FSPD_MASK		0x20
++static struct acpi_lis3lv02d adev;
 +
-+#define ADT7462_REG_PWM_BASE_ADDR		0xAA
-+#define ADT7462_REG_PWM_MAX_ADDR		0xAD
-+#define	ADT7462_REG_PWM_MIN_BASE_ADDR		0x28
-+#define ADT7462_REG_PWM_MIN_MAX_ADDR		0x2B
-+#define ADT7462_REG_PWM_MAX			0x2C
-+#define ADT7462_REG_PWM_TEMP_MIN_BASE_ADDR	0x5C
-+#define ADT7462_REG_PWM_TEMP_MIN_MAX_ADDR	0x5F
-+#define ADT7462_REG_PWM_TEMP_RANGE_BASE_ADDR	0x60
-+#define ADT7462_REG_PWM_TEMP_RANGE_MAX_ADDR	0x63
-+#define 	ADT7462_PWM_HYST_MASK		0x0F
-+#define 	ADT7462_PWM_RANGE_MASK		0xF0
-+#define		ADT7462_PWM_RANGE_SHIFT		4
-+#define ADT7462_REG_PWM_CFG_BASE_ADDR		0x21
-+#define ADT7462_REG_PWM_CFG_MAX_ADDR		0x24
-+#define		ADT7462_PWM_CHANNEL_MASK	0xE0
-+#define		ADT7462_PWM_CHANNEL_SHIFT	5
++static int lis3lv02d_remove_fs(void);
++static int lis3lv02d_add_fs(struct acpi_device *device);
 +
-+#define ADT7462_REG_PIN_CFG_BASE_ADDR		0x10
-+#define ADT7462_REG_PIN_CFG_MAX_ADDR		0x13
-+#define		ADT7462_PIN7_INPUT		0x01	/* cfg0 */
-+#define		ADT7462_DIODE3_INPUT		0x20
-+#define		ADT7462_DIODE1_INPUT		0x40
-+#define		ADT7462_VID_INPUT		0x80
-+#define		ADT7462_PIN22_INPUT		0x04	/* cfg1 */
-+#define		ADT7462_PIN21_INPUT		0x08
-+#define		ADT7462_PIN19_INPUT		0x10
-+#define		ADT7462_PIN15_INPUT		0x20
-+#define		ADT7462_PIN13_INPUT		0x40
-+#define		ADT7462_PIN8_INPUT		0x80
-+#define 	ADT7462_PIN23_MASK		0x03
-+#define		ADT7462_PIN23_SHIFT		0
-+#define		ADT7462_PIN26_MASK		0x0C	/* cfg2 */
-+#define		ADT7462_PIN26_SHIFT		2
-+#define		ADT7462_PIN25_MASK		0x30
-+#define		ADT7462_PIN25_SHIFT		4
-+#define		ADT7462_PIN24_MASK		0xC0
-+#define		ADT7462_PIN24_SHIFT		6
-+#define		ADT7462_PIN26_VOLT_INPUT	0x08
-+#define		ADT7462_PIN25_VOLT_INPUT	0x20
-+#define		ADT7462_PIN28_SHIFT		6	/* cfg3 */
-+#define		ADT7462_PIN28_VOLT		0x5
++/* For automatic insertion of the module */
++static struct acpi_device_id lis3lv02d_device_ids[] =3D {
++	{"HPQ0004", 0}, /* HP Mobile Data Protection System PNP */
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, lis3lv02d_device_ids);
 +
-+#define ADT7462_REG_ALARM1			0xB8
-+#define 	ADT7462_LT_ALARM		0x02
-+#define		ADT7462_R1T_ALARM		0x04
-+#define		ADT7462_R2T_ALARM		0x08
-+#define		ADT7462_R3T_ALARM		0x10
-+#define ADT7462_REG_ALARM2			0xBB
-+#define		ADT7462_V0_ALARM		0x01
-+#define		ADT7462_V1_ALARM		0x02
-+#define		ADT7462_V2_ALARM		0x04
-+#define		ADT7462_V3_ALARM		0x08
-+#define		ADT7462_V4_ALARM		0x10
-+#define		ADT7462_V5_ALARM		0x20
-+#define		ADT7462_V6_ALARM		0x40
-+#define		ADT7462_V7_ALARM		0x80
-+#define ADT7462_REG_ALARM3			0xBC
-+#define		ADT7462_V8_ALARM		0x08
-+#define		ADT7462_V9_ALARM		0x10
-+#define		ADT7462_V10_ALARM		0x20
-+#define		ADT7462_V11_ALARM		0x40
-+#define		ADT7462_V12_ALARM		0x80
-+#define ADT7462_REG_ALARM4			0xBD
-+#define		ADT7462_F0_ALARM		0x01
-+#define		ADT7462_F1_ALARM		0x02
-+#define		ADT7462_F2_ALARM		0x04
-+#define		ADT7462_F3_ALARM		0x08
-+#define		ADT7462_F4_ALARM		0x10
-+#define		ADT7462_F5_ALARM		0x20
-+#define		ADT7462_F6_ALARM		0x40
-+#define		ADT7462_F7_ALARM		0x80
-+#define ADT7462_ALARM1				0x0000
-+#define ADT7462_ALARM2				0x0100
-+#define ADT7462_ALARM3				0x0200
-+#define ADT7462_ALARM4				0x0300
-+#define ADT7462_ALARM_REG_SHIFT			8
-+#define ADT7462_ALARM_FLAG_MASK			0x0F
++/**
++ * lis3lv02d_acpi_init - ACPI _INI method: initialize the device.
++ * @handle: the handle of the device
++ *
++ * Returns AE_OK on success.
++ */
++static inline acpi_status lis3lv02d_acpi_init(acpi_handle handle)
++{
++	return acpi_evaluate_object(handle, METHOD_NAME__INI, NULL, NULL);
++}
 +
-+#define ADT7462_TEMP_COUNT		4
-+#define ADT7462_TEMP_REG(x)		(ADT7462_REG_TEMP_BASE_ADDR + (x * 2))
-+#define ADT7462_TEMP_MIN_REG(x) 	(ADT7462_REG_MIN_TEMP_BASE_ADDR + (x))
-+#define ADT7462_TEMP_MAX_REG(x) 	(ADT7462_REG_MAX_TEMP_BASE_ADDR + (x))
-+#define TEMP_FRAC_OFFSET		6
++/**
++ * lis3lv02d_acpi_read - ACPI ALRD method: read a register
++ * @handle: the handle of the device
++ * @reg:    the register to read
++ * @ret:    result of the operation
++ *
++ * Returns AE_OK on success.
++ */
++static acpi_status lis3lv02d_acpi_read(acpi_handle handle, int reg, u8=
+ *ret)
++{
++	union acpi_object arg0 =3D { ACPI_TYPE_INTEGER };
++	struct acpi_object_list args =3D { 1, &arg0 };
++	unsigned long long lret;
++	acpi_status status;
 +
-+#define ADT7462_FAN_COUNT		8
-+#define ADT7462_REG_FAN_MIN(x)		(ADT7462_REG_FAN_MIN_BASE_ADDR + (x))
++	arg0.integer.value =3D reg;
 +
-+#define ADT7462_PWM_COUNT		4
-+#define ADT7462_REG_PWM(x)		(ADT7462_REG_PWM_BASE_ADDR + (x))
-+#define ADT7462_REG_PWM_MIN(x)		(ADT7462_REG_PWM_MIN_BASE_ADDR + (x))
-+#define ADT7462_REG_PWM_TMIN(x)		\
-+	(ADT7462_REG_PWM_TEMP_MIN_BASE_ADDR + (x))
-+#define ADT7462_REG_PWM_TRANGE(x)	\
-+	(ADT7462_REG_PWM_TEMP_RANGE_BASE_ADDR + (x))
++	status =3D acpi_evaluate_integer(handle, "ALRD", &args, &lret);
++	*ret =3D lret;
++	return status;
++}
 +
-+#define ADT7462_PIN_CFG_REG_COUNT	4
-+#define ADT7462_REG_PIN_CFG(x)		(ADT7462_REG_PIN_CFG_BASE_ADDR + (x))
-+#define ADT7462_REG_PWM_CFG(x)		(ADT7462_REG_PWM_CFG_BASE_ADDR + (x))
++/**
++ * lis3lv02d_acpi_write - ACPI ALWR method: write to a register
++ * @handle: the handle of the device
++ * @reg:    the register to write to
++ * @val:    the value to write
++ *
++ * Returns AE_OK on success.
++ */
++static acpi_status lis3lv02d_acpi_write(acpi_handle handle, int reg, u=
+8 val)
++{
++	unsigned long long ret; /* Not used when writting */
++	union acpi_object in_obj[2];
++	struct acpi_object_list args =3D { 2, in_obj };
 +
-+#define ADT7462_ALARM_REG_COUNT		4
++	in_obj[0].type          =3D ACPI_TYPE_INTEGER;
++	in_obj[0].integer.value =3D reg;
++	in_obj[1].type          =3D ACPI_TYPE_INTEGER;
++	in_obj[1].integer.value =3D val;
++
++	return acpi_evaluate_integer(handle, "ALWR", &args, &ret);
++}
++
++static s16 lis3lv02d_read_16(acpi_handle handle, int reg)
++{
++	u8 lo, hi;
++
++	lis3lv02d_acpi_read(handle, reg, &lo);
++	lis3lv02d_acpi_read(handle, reg + 1, &hi);
++	/* In "12 bit right justified" mode, bit 6, bit 7, bit 8 =3D bit 5 */
++	return (s16)((hi << 8) | lo);
++}
++
++/**
++ * lis3lv02d_get_axis - For the given axis, give the value converted
++ * @axis:      1,2,3 - can also be negative
++ * @hw_values: raw values returned by the hardware
++ *
++ * Returns the converted value.
++ */
++static inline int lis3lv02d_get_axis(s8 axis, int hw_values[3])
++{
++	if (axis > 0)
++		return hw_values[axis - 1];
++	else
++		return -hw_values[-axis - 1];
++}
++
++/**
++ * lis3lv02d_get_xyz - Get X, Y and Z axis values from the acceleromet=
+er
++ * @handle: the handle to the device
++ * @x:      where to store the X axis value
++ * @y:      where to store the Y axis value
++ * @z:      where to store the Z axis value
++ *
++ * Note that 40Hz input device can eat up about 10% CPU at 800MHZ
++ */
++static void lis3lv02d_get_xyz(acpi_handle handle, int *x, int *y, int =
+*z)
++{
++	int position[3];
++
++	position[0] =3D lis3lv02d_read_16(handle, OUTX_L);
++	position[1] =3D lis3lv02d_read_16(handle, OUTY_L);
++	position[2] =3D lis3lv02d_read_16(handle, OUTZ_L);
++
++	*x =3D lis3lv02d_get_axis(adev.ac.x, position);
++	*y =3D lis3lv02d_get_axis(adev.ac.y, position);
++	*z =3D lis3lv02d_get_axis(adev.ac.z, position);
++}
++
++static inline void lis3lv02d_poweroff(acpi_handle handle)
++{
++	adev.is_on =3D 0;
++	/* disable X,Y,Z axis and power down */
++	lis3lv02d_acpi_write(handle, CTRL_REG1, 0x00);
++}
++
++static void lis3lv02d_poweron(acpi_handle handle)
++{
++	u8 val;
++
++	adev.is_on =3D 1;
++	lis3lv02d_acpi_init(handle);
++	lis3lv02d_acpi_write(handle, FF_WU_CFG, 0);
++	/*
++	 * BDU: LSB and MSB values are not updated until both have been read.
++	 *      So the value read will always be correct.
++	 * IEN: Interrupt for free-fall and DD, not for data-ready.
++	 */
++	lis3lv02d_acpi_read(handle, CTRL_REG2, &val);
++	val |=3D CTRL2_BDU | CTRL2_IEN;
++	lis3lv02d_acpi_write(handle, CTRL_REG2, val);
++}
++
++#ifdef CONFIG_PM
++static int lis3lv02d_suspend(struct acpi_device *device, pm_message_t =
+state)
++{
++	/* make sure the device is off when we suspend */
++	lis3lv02d_poweroff(device->handle);
++	return 0;
++}
++
++static int lis3lv02d_resume(struct acpi_device *device)
++{
++	/* put back the device in the right state (ACPI might turn it on) */
++	mutex_lock(&adev.lock);
++	if (adev.usage > 0)
++		lis3lv02d_poweron(device->handle);
++	else
++		lis3lv02d_poweroff(device->handle);
++	mutex_unlock(&adev.lock);
++	return 0;
++}
++#else
++#define lis3lv02d_suspend NULL
++#define lis3lv02d_resume NULL
++#endif
++
 +
 +/*
-+ * The chip can measure 13 different voltage sources:
-+ *
-+ * 1. +12V1 (pin 7)
-+ * 2. Vccp1/+2.5V/+1.8V/+1.5V (pin 23)
-+ * 3. +12V3 (pin 22)
-+ * 4. +5V (pin 21)
-+ * 5. +1.25V/+0.9V (pin 19)
-+ * 6. +2.5V/+1.8V (pin 15)
-+ * 7. +3.3v (pin 13)
-+ * 8. +12V2 (pin 8)
-+ * 9. Vbatt/FSB_Vtt (pin 26)
-+ * A. +3.3V/+1.2V1 (pin 25)
-+ * B. Vccp2/+2.5V/+1.8V/+1.5V (pin 24)
-+ * C. +1.5V ICH (only if BOTH pin 28/29 are set to +1.5V)
-+ * D. +1.5V 3GPIO (only if BOTH pin 28/29 are set to +1.5V)
-+ *
-+ * Each of these 13 has a factor to convert raw to voltage.  Even better,
-+ * the pins can be connected to other sensors (tach/gpio/hot/etc), which
-+ * makes the bookkeeping tricky.
-+ *
-+ * Some, but not all, of these voltages have low/high limits.
++ * To be called before starting to use the device. It makes sure that =
+the
++ * device will always be on until a call to lis3lv02d_decrease_use(). =
+Not to be
++ * used from interrupt context.
 + */
-+#define ADT7462_VOLT_COUNT	12
-+
-+#define ADT7462_VENDOR		0x41
-+#define ADT7462_DEVICE		0x62
-+/* datasheet only mentions a revision 4 */
-+#define ADT7462_REVISION	0x04
-+
-+/* How often do we reread sensors values? (In jiffies) */
-+#define SENSOR_REFRESH_INTERVAL	(2 * HZ)
-+
-+/* How often do we reread sensor limit values? (In jiffies) */
-+#define LIMIT_REFRESH_INTERVAL	(60 * HZ)
-+
-+/* datasheet says to divide this number by the fan reading to get fan rpm */
-+#define FAN_PERIOD_TO_RPM(x)	((90000 * 60) / (x))
-+#define FAN_RPM_TO_PERIOD	FAN_PERIOD_TO_RPM
-+#define FAN_PERIOD_INVALID	65535
-+#define FAN_DATA_VALID(x)	((x) && (x) != FAN_PERIOD_INVALID)
-+
-+#define MASK_AND_SHIFT(value, prefix)	\
-+	(((value) & prefix##_MASK) >> prefix##_SHIFT)
-+
-+#define ROUND_DIV(x, divisor)  (((x) + ((divisor) / 2)) / (divisor))
-+
-+struct adt7462_data {
-+	struct device		*hwmon_dev;
-+	struct attribute_group	attrs;
-+	struct mutex		lock;
-+	char			sensors_valid;
-+	char			limits_valid;
-+	unsigned long		sensors_last_updated;	/* In jiffies */
-+	unsigned long		limits_last_updated;	/* In jiffies */
-+
-+	u8			temp[ADT7462_TEMP_COUNT];
-+				/* bits 6-7 are quarter pieces of temp */
-+	u8			temp_frac[ADT7462_TEMP_COUNT];
-+	u8			temp_min[ADT7462_TEMP_COUNT];
-+	u8			temp_max[ADT7462_TEMP_COUNT];
-+	u16			fan[ADT7462_FAN_COUNT];
-+	u8			fan_enabled;
-+	u8			fan_min[ADT7462_FAN_COUNT];
-+	u8			cfg2;
-+	u8			pwm[ADT7462_PWM_COUNT];
-+	u8			pin_cfg[ADT7462_PIN_CFG_REG_COUNT];
-+	u8			voltages[ADT7462_VOLT_COUNT];
-+	u8			volt_max[ADT7462_VOLT_COUNT];
-+	u8			volt_min[ADT7462_VOLT_COUNT];
-+	u8			pwm_min[ADT7462_PWM_COUNT];
-+	u8			pwm_tmin[ADT7462_PWM_COUNT];
-+	u8			pwm_trange[ADT7462_PWM_COUNT];
-+	u8			pwm_max;	/* only one per chip */
-+	u8			pwm_cfg[ADT7462_PWM_COUNT];
-+	u8			alarms[ADT7462_ALARM_REG_COUNT];
-+};
-+
-+static int adt7462_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id);
-+static int adt7462_detect(struct i2c_client *client, int kind,
-+			  struct i2c_board_info *info);
-+static int adt7462_remove(struct i2c_client *client);
-+
-+static const struct i2c_device_id adt7462_id[] = {
-+	{ "adt7462", adt7462 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, adt7462_id);
-+
-+static struct i2c_driver adt7462_driver = {
-+	.class		= I2C_CLASS_HWMON,
-+	.driver = {
-+		.name	= "adt7462",
-+	},
-+	.probe		= adt7462_probe,
-+	.remove		= adt7462_remove,
-+	.id_table	= adt7462_id,
-+	.detect		= adt7462_detect,
-+	.address_data	= &addr_data,
-+};
++static void lis3lv02d_increase_use(struct acpi_lis3lv02d *dev)
++{
++	mutex_lock(&dev->lock);
++	dev->usage++;
++	if (dev->usage =3D=3D 1) {
++		if (!dev->is_on)
++			lis3lv02d_poweron(dev->device->handle);
++	}
++	mutex_unlock(&dev->lock);
++}
 +
 +/*
-+ * 16-bit registers on the ADT7462 are low-byte first.  The data sheet says
-+ * that the low byte must be read before the high byte.
++ * To be called whenever a usage of the device is stopped.
++ * It will make sure to turn off the device when there is not usage.
 + */
-+static inline int adt7462_read_word_data(struct i2c_client *client, u8 reg)
++static void lis3lv02d_decrease_use(struct acpi_lis3lv02d *dev)
 +{
-+	u16 foo;
-+	foo = i2c_smbus_read_byte_data(client, reg);
-+	foo |= ((u16)i2c_smbus_read_byte_data(client, reg + 1) << 8);
-+	return foo;
++	mutex_lock(&dev->lock);
++	dev->usage--;
++	if (dev->usage =3D=3D 0)
++		lis3lv02d_poweroff(dev->device->handle);
++	mutex_unlock(&dev->lock);
 +}
 +
-+/* For some reason these registers are not contiguous. */
-+static int ADT7462_REG_FAN(int fan)
++/**
++ * lis3lv02d_joystick_kthread - Kthread polling function
++ * @data: unused - here to conform to threadfn prototype
++ */
++static int lis3lv02d_joystick_kthread(void *data)
 +{
-+	if (fan < 4)
-+		return ADT7462_REG_FAN_BASE_ADDR + (2 * fan);
-+	return ADT7462_REG_FAN2_BASE_ADDR + (2 * (fan - 4));
-+}
++	int x, y, z;
 +
-+/* Voltage registers are scattered everywhere */
-+static int ADT7462_REG_VOLT_MAX(struct adt7462_data *data, int which)
-+{
-+	switch (which) {
-+	case 0:
-+		if (!(data->pin_cfg[0] & ADT7462_PIN7_INPUT))
-+			return 0x7C;
-+		break;
-+	case 1:
-+		return 0x69;
-+	case 2:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN22_INPUT))
-+			return 0x7F;
-+		break;
-+	case 3:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN21_INPUT))
-+			return 0x7E;
-+		break;
-+	case 4:
-+		if (!(data->pin_cfg[0] & ADT7462_DIODE3_INPUT))
-+			return 0x4B;
-+		break;
-+	case 5:
-+		if (!(data->pin_cfg[0] & ADT7462_DIODE1_INPUT))
-+			return 0x49;
-+		break;
-+	case 6:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN13_INPUT))
-+			return 0x68;
-+		break;
-+	case 7:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN8_INPUT))
-+			return 0x7D;
-+		break;
-+	case 8:
-+		if (!(data->pin_cfg[2] & ADT7462_PIN26_VOLT_INPUT))
-+			return 0x6C;
-+		break;
-+	case 9:
-+		if (!(data->pin_cfg[2] & ADT7462_PIN25_VOLT_INPUT))
-+			return 0x6B;
-+		break;
-+	case 10:
-+		return 0x6A;
-+	case 11:
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT ==
-+					ADT7462_PIN28_VOLT &&
-+		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
-+			return 0x50;
-+		break;
-+	case 12:
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT ==
-+					ADT7462_PIN28_VOLT &&
-+		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
-+			return 0x4C;
-+		break;
++	while (!kthread_should_stop()) {
++		lis3lv02d_get_xyz(adev.device->handle, &x, &y, &z);
++		input_report_abs(adev.idev, ABS_X, x - adev.xcalib);
++		input_report_abs(adev.idev, ABS_Y, y - adev.ycalib);
++		input_report_abs(adev.idev, ABS_Z, z - adev.zcalib);
++
++		input_sync(adev.idev);
++
++		try_to_freeze();
++		msleep_interruptible(MDPS_POLL_INTERVAL);
 +	}
-+	return -ENODEV;
-+}
-+
-+static int ADT7462_REG_VOLT_MIN(struct adt7462_data *data, int which)
-+{
-+	switch (which) {
-+	case 0:
-+		if (!(data->pin_cfg[0] & ADT7462_PIN7_INPUT))
-+			return 0x6D;
-+		break;
-+	case 1:
-+		return 0x72;
-+	case 2:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN22_INPUT))
-+			return 0x6F;
-+		break;
-+	case 3:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN21_INPUT))
-+			return 0x71;
-+		break;
-+	case 4:
-+		if (!(data->pin_cfg[0] & ADT7462_DIODE3_INPUT))
-+			return 0x47;
-+		break;
-+	case 5:
-+		if (!(data->pin_cfg[0] & ADT7462_DIODE1_INPUT))
-+			return 0x45;
-+		break;
-+	case 6:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN13_INPUT))
-+			return 0x70;
-+		break;
-+	case 7:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN8_INPUT))
-+			return 0x6E;
-+		break;
-+	case 8:
-+		if (!(data->pin_cfg[2] & ADT7462_PIN26_VOLT_INPUT))
-+			return 0x75;
-+		break;
-+	case 9:
-+		if (!(data->pin_cfg[2] & ADT7462_PIN25_VOLT_INPUT))
-+			return 0x74;
-+		break;
-+	case 10:
-+		return 0x73;
-+	case 11:
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT ==
-+					ADT7462_PIN28_VOLT &&
-+		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
-+			return 0x76;
-+		break;
-+	case 12:
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT ==
-+					ADT7462_PIN28_VOLT &&
-+		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
-+			return 0x77;
-+		break;
-+	}
-+	return -ENODEV;
-+}
-+
-+static int ADT7462_REG_VOLT(struct adt7462_data *data, int which)
-+{
-+	switch (which) {
-+	case 0:
-+		if (!(data->pin_cfg[0] & ADT7462_PIN7_INPUT))
-+			return 0xA3;
-+		break;
-+	case 1:
-+		return 0x90;
-+	case 2:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN22_INPUT))
-+			return 0xA9;
-+		break;
-+	case 3:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN21_INPUT))
-+			return 0xA7;
-+		break;
-+	case 4:
-+		if (!(data->pin_cfg[0] & ADT7462_DIODE3_INPUT))
-+			return 0x8F;
-+		break;
-+	case 5:
-+		if (!(data->pin_cfg[0] & ADT7462_DIODE1_INPUT))
-+			return 0x8B;
-+		break;
-+	case 6:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN13_INPUT))
-+			return 0x96;
-+		break;
-+	case 7:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN8_INPUT))
-+			return 0xA5;
-+		break;
-+	case 8:
-+		if (!(data->pin_cfg[2] & ADT7462_PIN26_VOLT_INPUT))
-+			return 0x93;
-+		break;
-+	case 9:
-+		if (!(data->pin_cfg[2] & ADT7462_PIN25_VOLT_INPUT))
-+			return 0x92;
-+		break;
-+	case 10:
-+		return 0x91;
-+	case 11:
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT ==
-+					ADT7462_PIN28_VOLT &&
-+		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
-+			return 0x94;
-+		break;
-+	case 12:
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT ==
-+					ADT7462_PIN28_VOLT &&
-+		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
-+			return 0x95;
-+		break;
-+	}
-+	return -ENODEV;
-+}
-+
-+/* Provide labels for sysfs */
-+static const char *voltage_label(struct adt7462_data *data, int which)
-+{
-+	switch (which) {
-+	case 0:
-+		if (!(data->pin_cfg[0] & ADT7462_PIN7_INPUT))
-+			return "+12V1";
-+		break;
-+	case 1:
-+		switch (MASK_AND_SHIFT(data->pin_cfg[1], ADT7462_PIN23)) {
-+		case 0:
-+			return "Vccp1";
-+		case 1:
-+			return "+2.5V";
-+		case 2:
-+			return "+1.8V";
-+		case 3:
-+			return "+1.5V";
-+		}
-+	case 2:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN22_INPUT))
-+			return "+12V3";
-+		break;
-+	case 3:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN21_INPUT))
-+			return "+5V";
-+		break;
-+	case 4:
-+		if (!(data->pin_cfg[0] & ADT7462_DIODE3_INPUT)) {
-+			if (data->pin_cfg[1] & ADT7462_PIN19_INPUT)
-+				return "+0.9V";
-+			return "+1.25V";
-+		}
-+		break;
-+	case 5:
-+		if (!(data->pin_cfg[0] & ADT7462_DIODE1_INPUT)) {
-+			if (data->pin_cfg[1] & ADT7462_PIN19_INPUT)
-+				return "+1.8V";
-+			return "+2.5V";
-+		}
-+		break;
-+	case 6:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN13_INPUT))
-+			return "+3.3V";
-+		break;
-+	case 7:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN8_INPUT))
-+			return "+12V2";
-+		break;
-+	case 8:
-+		switch (MASK_AND_SHIFT(data->pin_cfg[2], ADT7462_PIN26)) {
-+		case 0:
-+			return "Vbatt";
-+		case 1:
-+			return "FSB_Vtt";
-+		}
-+		break;
-+	case 9:
-+		switch (MASK_AND_SHIFT(data->pin_cfg[2], ADT7462_PIN25)) {
-+		case 0:
-+			return "+3.3V";
-+		case 1:
-+			return "+1.2V1";
-+		}
-+		break;
-+	case 10:
-+		switch (MASK_AND_SHIFT(data->pin_cfg[2], ADT7462_PIN24)) {
-+		case 0:
-+			return "Vccp2";
-+		case 1:
-+			return "+2.5V";
-+		case 2:
-+			return "+1.8V";
-+		case 3:
-+			return "+1.5";
-+		}
-+	case 11:
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT ==
-+					ADT7462_PIN28_VOLT &&
-+		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
-+			return "+1.5V ICH";
-+		break;
-+	case 12:
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT ==
-+					ADT7462_PIN28_VOLT &&
-+		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
-+			return "+1.5V 3GPIO";
-+		break;
-+	}
-+	return "N/A";
-+}
-+
-+/* Multipliers are actually in uV, not mV. */
-+static int voltage_multiplier(struct adt7462_data *data, int which)
-+{
-+	switch (which) {
-+	case 0:
-+		if (!(data->pin_cfg[0] & ADT7462_PIN7_INPUT))
-+			return 62500;
-+		break;
-+	case 1:
-+		switch (MASK_AND_SHIFT(data->pin_cfg[1], ADT7462_PIN23)) {
-+		case 0:
-+			if (data->pin_cfg[0] & ADT7462_VID_INPUT)
-+				return 12500;
-+			return 6250;
-+		case 1:
-+			return 13000;
-+		case 2:
-+			return 9400;
-+		case 3:
-+			return 7800;
-+		}
-+	case 2:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN22_INPUT))
-+			return 62500;
-+		break;
-+	case 3:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN21_INPUT))
-+			return 26000;
-+		break;
-+	case 4:
-+		if (!(data->pin_cfg[0] & ADT7462_DIODE3_INPUT)) {
-+			if (data->pin_cfg[1] & ADT7462_PIN19_INPUT)
-+				return 4690;
-+			return 6500;
-+		}
-+		break;
-+	case 5:
-+		if (!(data->pin_cfg[0] & ADT7462_DIODE1_INPUT)) {
-+			if (data->pin_cfg[1] & ADT7462_PIN15_INPUT)
-+				return 9400;
-+			return 13000;
-+		}
-+		break;
-+	case 6:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN13_INPUT))
-+			return 17200;
-+		break;
-+	case 7:
-+		if (!(data->pin_cfg[1] & ADT7462_PIN8_INPUT))
-+			return 62500;
-+		break;
-+	case 8:
-+		switch (MASK_AND_SHIFT(data->pin_cfg[2], ADT7462_PIN26)) {
-+		case 0:
-+			return 15600;
-+		case 1:
-+			return 6250;
-+		}
-+		break;
-+	case 9:
-+		switch (MASK_AND_SHIFT(data->pin_cfg[2], ADT7462_PIN25)) {
-+		case 0:
-+			return 17200;
-+		case 1:
-+			return 6250;
-+		}
-+		break;
-+	case 10:
-+		switch (MASK_AND_SHIFT(data->pin_cfg[2], ADT7462_PIN24)) {
-+		case 0:
-+			return 6250;
-+		case 1:
-+			return 13000;
-+		case 2:
-+			return 9400;
-+		case 3:
-+			return 7800;
-+		}
-+	case 11:
-+	case 12:
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT ==
-+					ADT7462_PIN28_VOLT &&
-+		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
-+			return 7800;
-+	}
-+	return 0;
-+}
-+
-+static int temp_enabled(struct adt7462_data *data, int which)
-+{
-+	switch (which) {
-+	case 0:
-+	case 2:
-+		return 1;
-+	case 1:
-+		if (data->pin_cfg[0] & ADT7462_DIODE1_INPUT)
-+			return 1;
-+		break;
-+	case 3:
-+		if (data->pin_cfg[0] & ADT7462_DIODE3_INPUT)
-+			return 1;
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const char *temp_label(struct adt7462_data *data, int which)
-+{
-+	switch (which) {
-+	case 0:
-+		return "local";
-+	case 1:
-+		if (data->pin_cfg[0] & ADT7462_DIODE1_INPUT)
-+			return "remote1";
-+		break;
-+	case 2:
-+		return "remote2";
-+	case 3:
-+		if (data->pin_cfg[0] & ADT7462_DIODE3_INPUT)
-+			return "remote3";
-+		break;
-+	}
-+	return "N/A";
-+}
-+
-+/* Map Trange register values to mC */
-+#define NUM_TRANGE_VALUES	16
-+static const int trange_values[NUM_TRANGE_VALUES] = {
-+	2000,
-+	2500,
-+	3300,
-+	4000,
-+	5000,
-+	6700,
-+	8000,
-+	10000,
-+	13300,
-+	16000,
-+	20000,
-+	26700,
-+	32000,
-+	40000,
-+	53300,
-+	80000
-+};
-+
-+static int find_trange_value(int trange)
-+{
-+	int i;
-+
-+	for (i = 0; i < NUM_TRANGE_VALUES; i++)
-+		if (trange_values[i] == trange)
-+			return i;
-+
-+	return -ENODEV;
-+}
-+
-+static struct adt7462_data *adt7462_update_device(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	unsigned long local_jiffies = jiffies;
-+	int i;
-+
-+	mutex_lock(&data->lock);
-+	if (time_before(local_jiffies, data->sensors_last_updated +
-+		SENSOR_REFRESH_INTERVAL)
-+		&& data->sensors_valid)
-+		goto no_sensor_update;
-+
-+	for (i = 0; i < ADT7462_TEMP_COUNT; i++) {
-+		/*
-+		 * Reading the fractional register locks the integral
-+		 * register until both have been read.
-+		 */
-+		data->temp_frac[i] = i2c_smbus_read_byte_data(client,
-+						ADT7462_TEMP_REG(i));
-+		data->temp[i] = i2c_smbus_read_byte_data(client,
-+						ADT7462_TEMP_REG(i) + 1);
-+	}
-+
-+	for (i = 0; i < ADT7462_FAN_COUNT; i++)
-+		data->fan[i] = adt7462_read_word_data(client,
-+						ADT7462_REG_FAN(i));
-+
-+	data->fan_enabled = i2c_smbus_read_byte_data(client,
-+					ADT7462_REG_FAN_ENABLE);
-+
-+	for (i = 0; i < ADT7462_PWM_COUNT; i++)
-+		data->pwm[i] = i2c_smbus_read_byte_data(client,
-+						ADT7462_REG_PWM(i));
-+
-+	for (i = 0; i < ADT7462_PIN_CFG_REG_COUNT; i++)
-+		data->pin_cfg[i] = i2c_smbus_read_byte_data(client,
-+				ADT7462_REG_PIN_CFG(i));
-+
-+	for (i = 0; i < ADT7462_VOLT_COUNT; i++) {
-+		int reg = ADT7462_REG_VOLT(data, i);
-+		if (!reg)
-+			data->voltages[i] = 0;
-+		else
-+			data->voltages[i] = i2c_smbus_read_byte_data(client,
-+								     reg);
-+	}
-+
-+	data->alarms[0] = i2c_smbus_read_byte_data(client, ADT7462_REG_ALARM1);
-+	data->alarms[1] = i2c_smbus_read_byte_data(client, ADT7462_REG_ALARM2);
-+	data->alarms[2] = i2c_smbus_read_byte_data(client, ADT7462_REG_ALARM3);
-+	data->alarms[3] = i2c_smbus_read_byte_data(client, ADT7462_REG_ALARM4);
-+
-+	data->sensors_last_updated = local_jiffies;
-+	data->sensors_valid = 1;
-+
-+no_sensor_update:
-+	if (time_before(local_jiffies, data->limits_last_updated +
-+		LIMIT_REFRESH_INTERVAL)
-+		&& data->limits_valid)
-+		goto out;
-+
-+	for (i = 0; i < ADT7462_TEMP_COUNT; i++) {
-+		data->temp_min[i] = i2c_smbus_read_byte_data(client,
-+						ADT7462_TEMP_MIN_REG(i));
-+		data->temp_max[i] = i2c_smbus_read_byte_data(client,
-+						ADT7462_TEMP_MAX_REG(i));
-+	}
-+
-+	for (i = 0; i < ADT7462_FAN_COUNT; i++)
-+		data->fan_min[i] = i2c_smbus_read_byte_data(client,
-+						ADT7462_REG_FAN_MIN(i));
-+
-+	for (i = 0; i < ADT7462_VOLT_COUNT; i++) {
-+		int reg = ADT7462_REG_VOLT_MAX(data, i);
-+		data->volt_max[i] =
-+			(reg ? i2c_smbus_read_byte_data(client, reg) : 0);
-+
-+		reg = ADT7462_REG_VOLT_MIN(data, i);
-+		data->volt_min[i] =
-+			(reg ? i2c_smbus_read_byte_data(client, reg) : 0);
-+	}
-+
-+	for (i = 0; i < ADT7462_PWM_COUNT; i++) {
-+		data->pwm_min[i] = i2c_smbus_read_byte_data(client,
-+						ADT7462_REG_PWM_MIN(i));
-+		data->pwm_tmin[i] = i2c_smbus_read_byte_data(client,
-+						ADT7462_REG_PWM_TMIN(i));
-+		data->pwm_trange[i] = i2c_smbus_read_byte_data(client,
-+						ADT7462_REG_PWM_TRANGE(i));
-+		data->pwm_cfg[i] = i2c_smbus_read_byte_data(client,
-+						ADT7462_REG_PWM_CFG(i));
-+	}
-+
-+	data->pwm_max = i2c_smbus_read_byte_data(client, ADT7462_REG_PWM_MAX);
-+
-+	data->cfg2 = i2c_smbus_read_byte_data(client, ADT7462_REG_CFG2);
-+
-+	data->limits_last_updated = local_jiffies;
-+	data->limits_valid = 1;
-+
-+out:
-+	mutex_unlock(&data->lock);
-+	return data;
-+}
-+
-+static ssize_t show_temp_min(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+
-+	if (!temp_enabled(data, attr->index))
-+		return sprintf(buf, "0\n");
-+
-+	return sprintf(buf, "%d\n", 1000 * (data->temp_min[attr->index] - 64));
-+}
-+
-+static ssize_t set_temp_min(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    const char *buf,
-+			    size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp) || !temp_enabled(data, attr->index))
-+		return -EINVAL;
-+
-+	temp = ROUND_DIV(temp, 1000) + 64;
-+	temp = SENSORS_LIMIT(temp, 0, 255);
-+
-+	mutex_lock(&data->lock);
-+	data->temp_min[attr->index] = temp;
-+	i2c_smbus_write_byte_data(client, ADT7462_TEMP_MIN_REG(attr->index),
-+				  temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_temp_max(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+
-+	if (!temp_enabled(data, attr->index))
-+		return sprintf(buf, "0\n");
-+
-+	return sprintf(buf, "%d\n", 1000 * (data->temp_max[attr->index] - 64));
-+}
-+
-+static ssize_t set_temp_max(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    const char *buf,
-+			    size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp) || !temp_enabled(data, attr->index))
-+		return -EINVAL;
-+
-+	temp = ROUND_DIV(temp, 1000) + 64;
-+	temp = SENSORS_LIMIT(temp, 0, 255);
-+
-+	mutex_lock(&data->lock);
-+	data->temp_max[attr->index] = temp;
-+	i2c_smbus_write_byte_data(client, ADT7462_TEMP_MAX_REG(attr->index),
-+				  temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
-+			 char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	u8 frac = data->temp_frac[attr->index] >> TEMP_FRAC_OFFSET;
-+
-+	if (!temp_enabled(data, attr->index))
-+		return sprintf(buf, "0\n");
-+
-+	return sprintf(buf, "%d\n", 1000 * (data->temp[attr->index] - 64) +
-+				     250 * frac);
-+}
-+
-+static ssize_t show_temp_label(struct device *dev,
-+			       struct device_attribute *devattr,
-+			       char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+
-+	return sprintf(buf, "%s\n", temp_label(data, attr->index));
-+}
-+
-+static ssize_t show_volt_max(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	int x = voltage_multiplier(data, attr->index);
-+
-+	x *= data->volt_max[attr->index];
-+	x /= 1000; /* convert from uV to mV */
-+
-+	return sprintf(buf, "%d\n", x);
-+}
-+
-+static ssize_t set_volt_max(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    const char *buf,
-+			    size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	int x = voltage_multiplier(data, attr->index);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp) || !x)
-+		return -EINVAL;
-+
-+	temp *= 1000; /* convert mV to uV */
-+	temp = ROUND_DIV(temp, x);
-+	temp = SENSORS_LIMIT(temp, 0, 255);
-+
-+	mutex_lock(&data->lock);
-+	data->volt_max[attr->index] = temp;
-+	i2c_smbus_write_byte_data(client,
-+				  ADT7462_REG_VOLT_MAX(data, attr->index),
-+				  temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_volt_min(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	int x = voltage_multiplier(data, attr->index);
-+
-+	x *= data->volt_min[attr->index];
-+	x /= 1000; /* convert from uV to mV */
-+
-+	return sprintf(buf, "%d\n", x);
-+}
-+
-+static ssize_t set_volt_min(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    const char *buf,
-+			    size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	int x = voltage_multiplier(data, attr->index);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp) || !x)
-+		return -EINVAL;
-+
-+	temp *= 1000; /* convert mV to uV */
-+	temp = ROUND_DIV(temp, x);
-+	temp = SENSORS_LIMIT(temp, 0, 255);
-+
-+	mutex_lock(&data->lock);
-+	data->volt_min[attr->index] = temp;
-+	i2c_smbus_write_byte_data(client,
-+				  ADT7462_REG_VOLT_MIN(data, attr->index),
-+				  temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_voltage(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	int x = voltage_multiplier(data, attr->index);
-+
-+	x *= data->voltages[attr->index];
-+	x /= 1000; /* convert from uV to mV */
-+
-+	return sprintf(buf, "%d\n", x);
-+}
-+
-+static ssize_t show_voltage_label(struct device *dev,
-+				  struct device_attribute *devattr,
-+				  char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+
-+	return sprintf(buf, "%s\n", voltage_label(data, attr->index));
-+}
-+
-+static ssize_t show_alarm(struct device *dev,
-+			  struct device_attribute *devattr,
-+			  char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	int reg = attr->index >> ADT7462_ALARM_REG_SHIFT;
-+	int mask = attr->index & ADT7462_ALARM_FLAG_MASK;
-+
-+	if (data->alarms[reg] & mask)
-+		return sprintf(buf, "1\n");
-+	else
-+		return sprintf(buf, "0\n");
-+}
-+
-+static int fan_enabled(struct adt7462_data *data, int fan)
-+{
-+	return data->fan_enabled & (1 << fan);
-+}
-+
-+static ssize_t show_fan_min(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	u16 temp;
-+
-+	/* Only the MSB of the min fan period is stored... */
-+	temp = data->fan_min[attr->index];
-+	temp <<= 8;
-+
-+	if (!fan_enabled(data, attr->index) ||
-+	    !FAN_DATA_VALID(temp))
-+		return sprintf(buf, "0\n");
-+
-+	return sprintf(buf, "%d\n", FAN_PERIOD_TO_RPM(temp));
-+}
-+
-+static ssize_t set_fan_min(struct device *dev,
-+			   struct device_attribute *devattr,
-+			   const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp) || !temp ||
-+	    !fan_enabled(data, attr->index))
-+		return -EINVAL;
-+
-+	temp = FAN_RPM_TO_PERIOD(temp);
-+	temp >>= 8;
-+	temp = SENSORS_LIMIT(temp, 1, 255);
-+
-+	mutex_lock(&data->lock);
-+	data->fan_min[attr->index] = temp;
-+	i2c_smbus_write_byte_data(client, ADT7462_REG_FAN_MIN(attr->index),
-+				  temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_fan(struct device *dev, struct device_attribute *devattr,
-+			char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+
-+	if (!fan_enabled(data, attr->index) ||
-+	    !FAN_DATA_VALID(data->fan[attr->index]))
-+		return sprintf(buf, "0\n");
-+
-+	return sprintf(buf, "%d\n",
-+		       FAN_PERIOD_TO_RPM(data->fan[attr->index]));
-+}
-+
-+static ssize_t show_force_pwm_max(struct device *dev,
-+				  struct device_attribute *devattr,
-+				  char *buf)
-+{
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	return sprintf(buf, "%d\n", (data->cfg2 & ADT7462_FSPD_MASK ? 1 : 0));
-+}
-+
-+static ssize_t set_force_pwm_max(struct device *dev,
-+				 struct device_attribute *devattr,
-+				 const char *buf,
-+				 size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+	u8 reg;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	mutex_lock(&data->lock);
-+	reg = i2c_smbus_read_byte_data(client, ADT7462_REG_CFG2);
-+	if (temp)
-+		reg |= ADT7462_FSPD_MASK;
-+	else
-+		reg &= ~ADT7462_FSPD_MASK;
-+	data->cfg2 = reg;
-+	i2c_smbus_write_byte_data(client, ADT7462_REG_CFG2, reg);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr,
-+			char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	return sprintf(buf, "%d\n", data->pwm[attr->index]);
-+}
-+
-+static ssize_t set_pwm(struct device *dev, struct device_attribute *devattr,
-+			const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = SENSORS_LIMIT(temp, 0, 255);
-+
-+	mutex_lock(&data->lock);
-+	data->pwm[attr->index] = temp;
-+	i2c_smbus_write_byte_data(client, ADT7462_REG_PWM(attr->index), temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_pwm_max(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    char *buf)
-+{
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	return sprintf(buf, "%d\n", data->pwm_max);
-+}
-+
-+static ssize_t set_pwm_max(struct device *dev,
-+			   struct device_attribute *devattr,
-+			   const char *buf,
-+			   size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = SENSORS_LIMIT(temp, 0, 255);
-+
-+	mutex_lock(&data->lock);
-+	data->pwm_max = temp;
-+	i2c_smbus_write_byte_data(client, ADT7462_REG_PWM_MAX, temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_pwm_min(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	return sprintf(buf, "%d\n", data->pwm_min[attr->index]);
-+}
-+
-+static ssize_t set_pwm_min(struct device *dev,
-+			   struct device_attribute *devattr,
-+			   const char *buf,
-+			   size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = SENSORS_LIMIT(temp, 0, 255);
-+
-+	mutex_lock(&data->lock);
-+	data->pwm_min[attr->index] = temp;
-+	i2c_smbus_write_byte_data(client, ADT7462_REG_PWM_MIN(attr->index),
-+				  temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_pwm_hyst(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	return sprintf(buf, "%d\n", 1000 *
-+		      (data->pwm_trange[attr->index] & ADT7462_PWM_HYST_MASK));
-+}
-+
-+static ssize_t set_pwm_hyst(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    const char *buf,
-+			    size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = ROUND_DIV(temp, 1000);
-+	temp = SENSORS_LIMIT(temp, 0, 15);
-+
-+	/* package things up */
-+	temp &= ADT7462_PWM_HYST_MASK;
-+	temp |= data->pwm_trange[attr->index] & ADT7462_PWM_RANGE_MASK;
-+
-+	mutex_lock(&data->lock);
-+	data->pwm_trange[attr->index] = temp;
-+	i2c_smbus_write_byte_data(client, ADT7462_REG_PWM_TRANGE(attr->index),
-+				  temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_pwm_tmax(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+
-+	/* tmax = tmin + trange */
-+	int trange = trange_values[data->pwm_trange[attr->index] >>
-+				   ADT7462_PWM_RANGE_SHIFT];
-+	int tmin = (data->pwm_tmin[attr->index] - 64) * 1000;
-+
-+	return sprintf(buf, "%d\n", tmin + trange);
-+}
-+
-+static ssize_t set_pwm_tmax(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    const char *buf,
-+			    size_t count)
-+{
-+	int temp;
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	int tmin, trange_value;
-+	long trange;
-+
-+	if (strict_strtol(buf, 10, &trange))
-+		return -EINVAL;
-+
-+	/* trange = tmax - tmin */
-+	tmin = (data->pwm_tmin[attr->index] - 64) * 1000;
-+	trange_value = find_trange_value(trange - tmin);
-+
-+	if (trange_value < 0)
-+		return -EINVAL;
-+
-+	temp = trange_value << ADT7462_PWM_RANGE_SHIFT;
-+	temp |= data->pwm_trange[attr->index] & ADT7462_PWM_HYST_MASK;
-+
-+	mutex_lock(&data->lock);
-+	data->pwm_trange[attr->index] = temp;
-+	i2c_smbus_write_byte_data(client, ADT7462_REG_PWM_TRANGE(attr->index),
-+				  temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_pwm_tmin(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	return sprintf(buf, "%d\n", 1000 * (data->pwm_tmin[attr->index] - 64));
-+}
-+
-+static ssize_t set_pwm_tmin(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    const char *buf,
-+			    size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = ROUND_DIV(temp, 1000) + 64;
-+	temp = SENSORS_LIMIT(temp, 0, 255);
-+
-+	mutex_lock(&data->lock);
-+	data->pwm_tmin[attr->index] = temp;
-+	i2c_smbus_write_byte_data(client, ADT7462_REG_PWM_TMIN(attr->index),
-+				  temp);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_pwm_auto(struct device *dev,
-+			     struct device_attribute *devattr,
-+			     char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	int cfg = data->pwm_cfg[attr->index] >> ADT7462_PWM_CHANNEL_SHIFT;
-+
-+	switch (cfg) {
-+	case 4: /* off */
-+		return sprintf(buf, "0\n");
-+	case 7: /* manual */
-+		return sprintf(buf, "1\n");
-+	default: /* automatic */
-+		return sprintf(buf, "2\n");
-+	}
-+}
-+
-+static void set_pwm_channel(struct i2c_client *client,
-+			    struct adt7462_data *data,
-+			    int which,
-+			    int value)
-+{
-+	int temp = data->pwm_cfg[which] & ~ADT7462_PWM_CHANNEL_MASK;
-+	temp |= value << ADT7462_PWM_CHANNEL_SHIFT;
-+
-+	mutex_lock(&data->lock);
-+	data->pwm_cfg[which] = temp;
-+	i2c_smbus_write_byte_data(client, ADT7462_REG_PWM_CFG(which), temp);
-+	mutex_unlock(&data->lock);
-+}
-+
-+static ssize_t set_pwm_auto(struct device *dev,
-+			    struct device_attribute *devattr,
-+			    const char *buf,
-+			    size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	switch (temp) {
-+	case 0: /* off */
-+		set_pwm_channel(client, data, attr->index, 4);
-+		return count;
-+	case 1: /* manual */
-+		set_pwm_channel(client, data, attr->index, 7);
-+		return count;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static ssize_t show_pwm_auto_temp(struct device *dev,
-+				  struct device_attribute *devattr,
-+				  char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adt7462_data *data = adt7462_update_device(dev);
-+	int channel = data->pwm_cfg[attr->index] >> ADT7462_PWM_CHANNEL_SHIFT;
-+
-+	switch (channel) {
-+	case 0: /* temp[1234] only */
-+	case 1:
-+	case 2:
-+	case 3:
-+		return sprintf(buf, "%d\n", (1 << channel));
-+	case 5: /* temp1 & temp4  */
-+		return sprintf(buf, "9\n");
-+	case 6:
-+		return sprintf(buf, "15\n");
-+	default:
-+		return sprintf(buf, "0\n");
-+	}
-+}
-+
-+static int cvt_auto_temp(int input)
-+{
-+	if (input == 0xF)
-+		return 6;
-+	if (input == 0x9)
-+		return 5;
-+	if (input < 1 || !is_power_of_2(input))
-+		return -EINVAL;
-+	return ilog2(input);
-+}
-+
-+static ssize_t set_pwm_auto_temp(struct device *dev,
-+				 struct device_attribute *devattr,
-+				 const char *buf,
-+				 size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7462_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = cvt_auto_temp(temp);
-+	if (temp < 0)
-+		return temp;
-+
-+	set_pwm_channel(client, data, attr->index, temp);
-+
-+	return count;
-+}
-+
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
-+		    set_temp_max, 0);
-+static SENSOR_DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp_max,
-+		    set_temp_max, 1);
-+static SENSOR_DEVICE_ATTR(temp3_max, S_IWUSR | S_IRUGO, show_temp_max,
-+		    set_temp_max, 2);
-+static SENSOR_DEVICE_ATTR(temp4_max, S_IWUSR | S_IRUGO, show_temp_max,
-+		    set_temp_max, 3);
-+
-+static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp_min,
-+		    set_temp_min, 0);
-+static SENSOR_DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_temp_min,
-+		    set_temp_min, 1);
-+static SENSOR_DEVICE_ATTR(temp3_min, S_IWUSR | S_IRUGO, show_temp_min,
-+		    set_temp_min, 2);
-+static SENSOR_DEVICE_ATTR(temp4_min, S_IWUSR | S_IRUGO, show_temp_min,
-+		    set_temp_min, 3);
-+
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, show_temp, NULL, 3);
-+
-+static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_temp_label, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO, show_temp_label, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp3_label, S_IRUGO, show_temp_label, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp4_label, S_IRUGO, show_temp_label, NULL, 3);
-+
-+static SENSOR_DEVICE_ATTR(temp1_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM1 | ADT7462_LT_ALARM);
-+static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM1 | ADT7462_R1T_ALARM);
-+static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM1 | ADT7462_R2T_ALARM);
-+static SENSOR_DEVICE_ATTR(temp4_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM1 | ADT7462_R3T_ALARM);
-+
-+static SENSOR_DEVICE_ATTR(in1_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 0);
-+static SENSOR_DEVICE_ATTR(in2_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 1);
-+static SENSOR_DEVICE_ATTR(in3_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 2);
-+static SENSOR_DEVICE_ATTR(in4_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 3);
-+static SENSOR_DEVICE_ATTR(in5_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 4);
-+static SENSOR_DEVICE_ATTR(in6_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 5);
-+static SENSOR_DEVICE_ATTR(in7_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 6);
-+static SENSOR_DEVICE_ATTR(in8_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 7);
-+static SENSOR_DEVICE_ATTR(in9_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 8);
-+static SENSOR_DEVICE_ATTR(in10_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 9);
-+static SENSOR_DEVICE_ATTR(in11_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 10);
-+static SENSOR_DEVICE_ATTR(in12_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 11);
-+static SENSOR_DEVICE_ATTR(in13_max, S_IWUSR | S_IRUGO, show_volt_max,
-+		    set_volt_max, 12);
-+
-+static SENSOR_DEVICE_ATTR(in1_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 0);
-+static SENSOR_DEVICE_ATTR(in2_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 1);
-+static SENSOR_DEVICE_ATTR(in3_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 2);
-+static SENSOR_DEVICE_ATTR(in4_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 3);
-+static SENSOR_DEVICE_ATTR(in5_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 4);
-+static SENSOR_DEVICE_ATTR(in6_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 5);
-+static SENSOR_DEVICE_ATTR(in7_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 6);
-+static SENSOR_DEVICE_ATTR(in8_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 7);
-+static SENSOR_DEVICE_ATTR(in9_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 8);
-+static SENSOR_DEVICE_ATTR(in10_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 9);
-+static SENSOR_DEVICE_ATTR(in11_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 10);
-+static SENSOR_DEVICE_ATTR(in12_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 11);
-+static SENSOR_DEVICE_ATTR(in13_min, S_IWUSR | S_IRUGO, show_volt_min,
-+		    set_volt_min, 12);
-+
-+static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_voltage, NULL, 0);
-+static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_voltage, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_voltage, NULL, 2);
-+static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_voltage, NULL, 3);
-+static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_voltage, NULL, 4);
-+static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_voltage, NULL, 5);
-+static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, show_voltage, NULL, 6);
-+static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, show_voltage, NULL, 7);
-+static SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, show_voltage, NULL, 8);
-+static SENSOR_DEVICE_ATTR(in10_input, S_IRUGO, show_voltage, NULL, 9);
-+static SENSOR_DEVICE_ATTR(in11_input, S_IRUGO, show_voltage, NULL, 10);
-+static SENSOR_DEVICE_ATTR(in12_input, S_IRUGO, show_voltage, NULL, 11);
-+static SENSOR_DEVICE_ATTR(in13_input, S_IRUGO, show_voltage, NULL, 12);
-+
-+static SENSOR_DEVICE_ATTR(in1_label, S_IRUGO, show_voltage_label, NULL, 0);
-+static SENSOR_DEVICE_ATTR(in2_label, S_IRUGO, show_voltage_label, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in3_label, S_IRUGO, show_voltage_label, NULL, 2);
-+static SENSOR_DEVICE_ATTR(in4_label, S_IRUGO, show_voltage_label, NULL, 3);
-+static SENSOR_DEVICE_ATTR(in5_label, S_IRUGO, show_voltage_label, NULL, 4);
-+static SENSOR_DEVICE_ATTR(in6_label, S_IRUGO, show_voltage_label, NULL, 5);
-+static SENSOR_DEVICE_ATTR(in7_label, S_IRUGO, show_voltage_label, NULL, 6);
-+static SENSOR_DEVICE_ATTR(in8_label, S_IRUGO, show_voltage_label, NULL, 7);
-+static SENSOR_DEVICE_ATTR(in9_label, S_IRUGO, show_voltage_label, NULL, 8);
-+static SENSOR_DEVICE_ATTR(in10_label, S_IRUGO, show_voltage_label, NULL, 9);
-+static SENSOR_DEVICE_ATTR(in11_label, S_IRUGO, show_voltage_label, NULL, 10);
-+static SENSOR_DEVICE_ATTR(in12_label, S_IRUGO, show_voltage_label, NULL, 11);
-+static SENSOR_DEVICE_ATTR(in13_label, S_IRUGO, show_voltage_label, NULL, 12);
-+
-+static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM2 | ADT7462_V0_ALARM);
-+static SENSOR_DEVICE_ATTR(in2_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM2 | ADT7462_V7_ALARM);
-+static SENSOR_DEVICE_ATTR(in3_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM2 | ADT7462_V2_ALARM);
-+static SENSOR_DEVICE_ATTR(in4_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM2 | ADT7462_V6_ALARM);
-+static SENSOR_DEVICE_ATTR(in5_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM2 | ADT7462_V5_ALARM);
-+static SENSOR_DEVICE_ATTR(in6_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM2 | ADT7462_V4_ALARM);
-+static SENSOR_DEVICE_ATTR(in7_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM2 | ADT7462_V3_ALARM);
-+static SENSOR_DEVICE_ATTR(in8_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM2 | ADT7462_V1_ALARM);
-+static SENSOR_DEVICE_ATTR(in9_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM3 | ADT7462_V10_ALARM);
-+static SENSOR_DEVICE_ATTR(in10_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM3 | ADT7462_V9_ALARM);
-+static SENSOR_DEVICE_ATTR(in11_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM3 | ADT7462_V8_ALARM);
-+static SENSOR_DEVICE_ATTR(in12_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM3 | ADT7462_V11_ALARM);
-+static SENSOR_DEVICE_ATTR(in13_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM3 | ADT7462_V12_ALARM);
-+
-+static SENSOR_DEVICE_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    set_fan_min, 0);
-+static SENSOR_DEVICE_ATTR(fan2_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    set_fan_min, 1);
-+static SENSOR_DEVICE_ATTR(fan3_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    set_fan_min, 2);
-+static SENSOR_DEVICE_ATTR(fan4_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    set_fan_min, 3);
-+static SENSOR_DEVICE_ATTR(fan5_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    set_fan_min, 4);
-+static SENSOR_DEVICE_ATTR(fan6_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    set_fan_min, 5);
-+static SENSOR_DEVICE_ATTR(fan7_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    set_fan_min, 6);
-+static SENSOR_DEVICE_ATTR(fan8_min, S_IWUSR | S_IRUGO, show_fan_min,
-+		    set_fan_min, 7);
-+
-+static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0);
-+static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1);
-+static SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2);
-+static SENSOR_DEVICE_ATTR(fan4_input, S_IRUGO, show_fan, NULL, 3);
-+static SENSOR_DEVICE_ATTR(fan5_input, S_IRUGO, show_fan, NULL, 4);
-+static SENSOR_DEVICE_ATTR(fan6_input, S_IRUGO, show_fan, NULL, 5);
-+static SENSOR_DEVICE_ATTR(fan7_input, S_IRUGO, show_fan, NULL, 6);
-+static SENSOR_DEVICE_ATTR(fan8_input, S_IRUGO, show_fan, NULL, 7);
-+
-+static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM4 | ADT7462_F0_ALARM);
-+static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM4 | ADT7462_F1_ALARM);
-+static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM4 | ADT7462_F2_ALARM);
-+static SENSOR_DEVICE_ATTR(fan4_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM4 | ADT7462_F3_ALARM);
-+static SENSOR_DEVICE_ATTR(fan5_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM4 | ADT7462_F4_ALARM);
-+static SENSOR_DEVICE_ATTR(fan6_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM4 | ADT7462_F5_ALARM);
-+static SENSOR_DEVICE_ATTR(fan7_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM4 | ADT7462_F6_ALARM);
-+static SENSOR_DEVICE_ATTR(fan8_alarm, S_IRUGO, show_alarm, NULL,
-+			  ADT7462_ALARM4 | ADT7462_F7_ALARM);
-+
-+static SENSOR_DEVICE_ATTR(force_pwm_max, S_IWUSR | S_IRUGO,
-+		    show_force_pwm_max, set_force_pwm_max, 0);
-+
-+static SENSOR_DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 0);
-+static SENSOR_DEVICE_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 1);
-+static SENSOR_DEVICE_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 2);
-+static SENSOR_DEVICE_ATTR(pwm4, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 3);
-+
-+static SENSOR_DEVICE_ATTR(pwm1_auto_point1_pwm, S_IWUSR | S_IRUGO,
-+		    show_pwm_min, set_pwm_min, 0);
-+static SENSOR_DEVICE_ATTR(pwm2_auto_point1_pwm, S_IWUSR | S_IRUGO,
-+		    show_pwm_min, set_pwm_min, 1);
-+static SENSOR_DEVICE_ATTR(pwm3_auto_point1_pwm, S_IWUSR | S_IRUGO,
-+		    show_pwm_min, set_pwm_min, 2);
-+static SENSOR_DEVICE_ATTR(pwm4_auto_point1_pwm, S_IWUSR | S_IRUGO,
-+		    show_pwm_min, set_pwm_min, 3);
-+
-+static SENSOR_DEVICE_ATTR(pwm1_auto_point2_pwm, S_IWUSR | S_IRUGO,
-+		    show_pwm_max, set_pwm_max, 0);
-+static SENSOR_DEVICE_ATTR(pwm2_auto_point2_pwm, S_IWUSR | S_IRUGO,
-+		    show_pwm_max, set_pwm_max, 1);
-+static SENSOR_DEVICE_ATTR(pwm3_auto_point2_pwm, S_IWUSR | S_IRUGO,
-+		    show_pwm_max, set_pwm_max, 2);
-+static SENSOR_DEVICE_ATTR(pwm4_auto_point2_pwm, S_IWUSR | S_IRUGO,
-+		    show_pwm_max, set_pwm_max, 3);
-+
-+static SENSOR_DEVICE_ATTR(temp1_auto_point1_hyst, S_IWUSR | S_IRUGO,
-+		    show_pwm_hyst, set_pwm_hyst, 0);
-+static SENSOR_DEVICE_ATTR(temp2_auto_point1_hyst, S_IWUSR | S_IRUGO,
-+		    show_pwm_hyst, set_pwm_hyst, 1);
-+static SENSOR_DEVICE_ATTR(temp3_auto_point1_hyst, S_IWUSR | S_IRUGO,
-+		    show_pwm_hyst, set_pwm_hyst, 2);
-+static SENSOR_DEVICE_ATTR(temp4_auto_point1_hyst, S_IWUSR | S_IRUGO,
-+		    show_pwm_hyst, set_pwm_hyst, 3);
-+
-+static SENSOR_DEVICE_ATTR(temp1_auto_point2_hyst, S_IWUSR | S_IRUGO,
-+		    show_pwm_hyst, set_pwm_hyst, 0);
-+static SENSOR_DEVICE_ATTR(temp2_auto_point2_hyst, S_IWUSR | S_IRUGO,
-+		    show_pwm_hyst, set_pwm_hyst, 1);
-+static SENSOR_DEVICE_ATTR(temp3_auto_point2_hyst, S_IWUSR | S_IRUGO,
-+		    show_pwm_hyst, set_pwm_hyst, 2);
-+static SENSOR_DEVICE_ATTR(temp4_auto_point2_hyst, S_IWUSR | S_IRUGO,
-+		    show_pwm_hyst, set_pwm_hyst, 3);
-+
-+static SENSOR_DEVICE_ATTR(temp1_auto_point1_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_tmin, set_pwm_tmin, 0);
-+static SENSOR_DEVICE_ATTR(temp2_auto_point1_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_tmin, set_pwm_tmin, 1);
-+static SENSOR_DEVICE_ATTR(temp3_auto_point1_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_tmin, set_pwm_tmin, 2);
-+static SENSOR_DEVICE_ATTR(temp4_auto_point1_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_tmin, set_pwm_tmin, 3);
-+
-+static SENSOR_DEVICE_ATTR(temp1_auto_point2_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_tmax, set_pwm_tmax, 0);
-+static SENSOR_DEVICE_ATTR(temp2_auto_point2_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_tmax, set_pwm_tmax, 1);
-+static SENSOR_DEVICE_ATTR(temp3_auto_point2_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_tmax, set_pwm_tmax, 2);
-+static SENSOR_DEVICE_ATTR(temp4_auto_point2_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_tmax, set_pwm_tmax, 3);
-+
-+static SENSOR_DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO, show_pwm_auto,
-+		    set_pwm_auto, 0);
-+static SENSOR_DEVICE_ATTR(pwm2_enable, S_IWUSR | S_IRUGO, show_pwm_auto,
-+		    set_pwm_auto, 1);
-+static SENSOR_DEVICE_ATTR(pwm3_enable, S_IWUSR | S_IRUGO, show_pwm_auto,
-+		    set_pwm_auto, 2);
-+static SENSOR_DEVICE_ATTR(pwm4_enable, S_IWUSR | S_IRUGO, show_pwm_auto,
-+		    set_pwm_auto, 3);
-+
-+static SENSOR_DEVICE_ATTR(pwm1_auto_channels_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_auto_temp, set_pwm_auto_temp, 0);
-+static SENSOR_DEVICE_ATTR(pwm2_auto_channels_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_auto_temp, set_pwm_auto_temp, 1);
-+static SENSOR_DEVICE_ATTR(pwm3_auto_channels_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_auto_temp, set_pwm_auto_temp, 2);
-+static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IWUSR | S_IRUGO,
-+		    show_pwm_auto_temp, set_pwm_auto_temp, 3);
-+
-+static struct attribute *adt7462_attr[] =
-+{
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp2_max.dev_attr.attr,
-+	&sensor_dev_attr_temp3_max.dev_attr.attr,
-+	&sensor_dev_attr_temp4_max.dev_attr.attr,
-+
-+	&sensor_dev_attr_temp1_min.dev_attr.attr,
-+	&sensor_dev_attr_temp2_min.dev_attr.attr,
-+	&sensor_dev_attr_temp3_min.dev_attr.attr,
-+	&sensor_dev_attr_temp4_min.dev_attr.attr,
-+
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp3_input.dev_attr.attr,
-+	&sensor_dev_attr_temp4_input.dev_attr.attr,
-+
-+	&sensor_dev_attr_temp1_label.dev_attr.attr,
-+	&sensor_dev_attr_temp2_label.dev_attr.attr,
-+	&sensor_dev_attr_temp3_label.dev_attr.attr,
-+	&sensor_dev_attr_temp4_label.dev_attr.attr,
-+
-+	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp4_alarm.dev_attr.attr,
-+
-+	&sensor_dev_attr_in1_max.dev_attr.attr,
-+	&sensor_dev_attr_in2_max.dev_attr.attr,
-+	&sensor_dev_attr_in3_max.dev_attr.attr,
-+	&sensor_dev_attr_in4_max.dev_attr.attr,
-+	&sensor_dev_attr_in5_max.dev_attr.attr,
-+	&sensor_dev_attr_in6_max.dev_attr.attr,
-+	&sensor_dev_attr_in7_max.dev_attr.attr,
-+	&sensor_dev_attr_in8_max.dev_attr.attr,
-+	&sensor_dev_attr_in9_max.dev_attr.attr,
-+	&sensor_dev_attr_in10_max.dev_attr.attr,
-+	&sensor_dev_attr_in11_max.dev_attr.attr,
-+	&sensor_dev_attr_in12_max.dev_attr.attr,
-+	&sensor_dev_attr_in13_max.dev_attr.attr,
-+
-+	&sensor_dev_attr_in1_min.dev_attr.attr,
-+	&sensor_dev_attr_in2_min.dev_attr.attr,
-+	&sensor_dev_attr_in3_min.dev_attr.attr,
-+	&sensor_dev_attr_in4_min.dev_attr.attr,
-+	&sensor_dev_attr_in5_min.dev_attr.attr,
-+	&sensor_dev_attr_in6_min.dev_attr.attr,
-+	&sensor_dev_attr_in7_min.dev_attr.attr,
-+	&sensor_dev_attr_in8_min.dev_attr.attr,
-+	&sensor_dev_attr_in9_min.dev_attr.attr,
-+	&sensor_dev_attr_in10_min.dev_attr.attr,
-+	&sensor_dev_attr_in11_min.dev_attr.attr,
-+	&sensor_dev_attr_in12_min.dev_attr.attr,
-+	&sensor_dev_attr_in13_min.dev_attr.attr,
-+
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in4_input.dev_attr.attr,
-+	&sensor_dev_attr_in5_input.dev_attr.attr,
-+	&sensor_dev_attr_in6_input.dev_attr.attr,
-+	&sensor_dev_attr_in7_input.dev_attr.attr,
-+	&sensor_dev_attr_in8_input.dev_attr.attr,
-+	&sensor_dev_attr_in9_input.dev_attr.attr,
-+	&sensor_dev_attr_in10_input.dev_attr.attr,
-+	&sensor_dev_attr_in11_input.dev_attr.attr,
-+	&sensor_dev_attr_in12_input.dev_attr.attr,
-+	&sensor_dev_attr_in13_input.dev_attr.attr,
-+
-+	&sensor_dev_attr_in1_label.dev_attr.attr,
-+	&sensor_dev_attr_in2_label.dev_attr.attr,
-+	&sensor_dev_attr_in3_label.dev_attr.attr,
-+	&sensor_dev_attr_in4_label.dev_attr.attr,
-+	&sensor_dev_attr_in5_label.dev_attr.attr,
-+	&sensor_dev_attr_in6_label.dev_attr.attr,
-+	&sensor_dev_attr_in7_label.dev_attr.attr,
-+	&sensor_dev_attr_in8_label.dev_attr.attr,
-+	&sensor_dev_attr_in9_label.dev_attr.attr,
-+	&sensor_dev_attr_in10_label.dev_attr.attr,
-+	&sensor_dev_attr_in11_label.dev_attr.attr,
-+	&sensor_dev_attr_in12_label.dev_attr.attr,
-+	&sensor_dev_attr_in13_label.dev_attr.attr,
-+
-+	&sensor_dev_attr_in1_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in2_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in3_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in4_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in5_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in6_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in7_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in8_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in9_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in10_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in11_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in12_alarm.dev_attr.attr,
-+	&sensor_dev_attr_in13_alarm.dev_attr.attr,
-+
-+	&sensor_dev_attr_fan1_min.dev_attr.attr,
-+	&sensor_dev_attr_fan2_min.dev_attr.attr,
-+	&sensor_dev_attr_fan3_min.dev_attr.attr,
-+	&sensor_dev_attr_fan4_min.dev_attr.attr,
-+	&sensor_dev_attr_fan5_min.dev_attr.attr,
-+	&sensor_dev_attr_fan6_min.dev_attr.attr,
-+	&sensor_dev_attr_fan7_min.dev_attr.attr,
-+	&sensor_dev_attr_fan8_min.dev_attr.attr,
-+
-+	&sensor_dev_attr_fan1_input.dev_attr.attr,
-+	&sensor_dev_attr_fan2_input.dev_attr.attr,
-+	&sensor_dev_attr_fan3_input.dev_attr.attr,
-+	&sensor_dev_attr_fan4_input.dev_attr.attr,
-+	&sensor_dev_attr_fan5_input.dev_attr.attr,
-+	&sensor_dev_attr_fan6_input.dev_attr.attr,
-+	&sensor_dev_attr_fan7_input.dev_attr.attr,
-+	&sensor_dev_attr_fan8_input.dev_attr.attr,
-+
-+	&sensor_dev_attr_fan1_alarm.dev_attr.attr,
-+	&sensor_dev_attr_fan2_alarm.dev_attr.attr,
-+	&sensor_dev_attr_fan3_alarm.dev_attr.attr,
-+	&sensor_dev_attr_fan4_alarm.dev_attr.attr,
-+	&sensor_dev_attr_fan5_alarm.dev_attr.attr,
-+	&sensor_dev_attr_fan6_alarm.dev_attr.attr,
-+	&sensor_dev_attr_fan7_alarm.dev_attr.attr,
-+	&sensor_dev_attr_fan8_alarm.dev_attr.attr,
-+
-+	&sensor_dev_attr_force_pwm_max.dev_attr.attr,
-+	&sensor_dev_attr_pwm1.dev_attr.attr,
-+	&sensor_dev_attr_pwm2.dev_attr.attr,
-+	&sensor_dev_attr_pwm3.dev_attr.attr,
-+	&sensor_dev_attr_pwm4.dev_attr.attr,
-+
-+	&sensor_dev_attr_pwm1_auto_point1_pwm.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_auto_point1_pwm.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_auto_point1_pwm.dev_attr.attr,
-+	&sensor_dev_attr_pwm4_auto_point1_pwm.dev_attr.attr,
-+
-+	&sensor_dev_attr_pwm1_auto_point2_pwm.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_auto_point2_pwm.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_auto_point2_pwm.dev_attr.attr,
-+	&sensor_dev_attr_pwm4_auto_point2_pwm.dev_attr.attr,
-+
-+	&sensor_dev_attr_temp1_auto_point1_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp2_auto_point1_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp3_auto_point1_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp4_auto_point1_hyst.dev_attr.attr,
-+
-+	&sensor_dev_attr_temp1_auto_point2_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp2_auto_point2_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp3_auto_point2_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp4_auto_point2_hyst.dev_attr.attr,
-+
-+	&sensor_dev_attr_temp1_auto_point1_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp2_auto_point1_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp3_auto_point1_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp4_auto_point1_temp.dev_attr.attr,
-+
-+	&sensor_dev_attr_temp1_auto_point2_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp2_auto_point2_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp3_auto_point2_temp.dev_attr.attr,
-+	&sensor_dev_attr_temp4_auto_point2_temp.dev_attr.attr,
-+
-+	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_enable.dev_attr.attr,
-+	&sensor_dev_attr_pwm4_enable.dev_attr.attr,
-+
-+	&sensor_dev_attr_pwm1_auto_channels_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_auto_channels_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_auto_channels_temp.dev_attr.attr,
-+	&sensor_dev_attr_pwm4_auto_channels_temp.dev_attr.attr,
-+	NULL
-+};
-+
-+/* Return 0 if detection is successful, -ENODEV otherwise */
-+static int adt7462_detect(struct i2c_client *client, int kind,
-+			  struct i2c_board_info *info)
-+{
-+	struct i2c_adapter *adapter = client->adapter;
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-+		return -ENODEV;
-+
-+	if (kind <= 0) {
-+		int vendor, device, revision;
-+
-+		vendor = i2c_smbus_read_byte_data(client, ADT7462_REG_VENDOR);
-+		if (vendor != ADT7462_VENDOR)
-+			return -ENODEV;
-+
-+		device = i2c_smbus_read_byte_data(client, ADT7462_REG_DEVICE);
-+		if (device != ADT7462_DEVICE)
-+			return -ENODEV;
-+
-+		revision = i2c_smbus_read_byte_data(client,
-+						    ADT7462_REG_REVISION);
-+		if (revision != ADT7462_REVISION)
-+			return -ENODEV;
-+	} else
-+		dev_dbg(&adapter->dev, "detection forced\n");
-+
-+	strlcpy(info->type, "adt7462", I2C_NAME_SIZE);
 +
 +	return 0;
 +}
 +
-+static int adt7462_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
++static int lis3lv02d_joystick_open(struct input_dev *input)
 +{
-+	struct adt7462_data *data;
++	lis3lv02d_increase_use(&adev);
++	adev.kthread =3D kthread_run(lis3lv02d_joystick_kthread, NULL, "klis3=
+lv02d");
++	if (IS_ERR(adev.kthread)) {
++		lis3lv02d_decrease_use(&adev);
++		return PTR_ERR(adev.kthread);
++	}
++
++	return 0;
++}
++
++static void lis3lv02d_joystick_close(struct input_dev *input)
++{
++	kthread_stop(adev.kthread);
++	lis3lv02d_decrease_use(&adev);
++}
++
++
++static inline void lis3lv02d_calibrate_joystick(void)
++{
++	lis3lv02d_get_xyz(adev.device->handle, &adev.xcalib, &adev.ycalib, &a=
+dev.zcalib);
++}
++
++static int lis3lv02d_joystick_enable(void)
++{
 +	int err;
 +
-+	data = kzalloc(sizeof(struct adt7462_data), GFP_KERNEL);
-+	if (!data) {
-+		err = -ENOMEM;
-+		goto exit;
++	if (adev.idev)
++		return -EINVAL;
++
++	adev.idev =3D input_allocate_device();
++	if (!adev.idev)
++		return -ENOMEM;
++
++	lis3lv02d_calibrate_joystick();
++
++	adev.idev->name       =3D "ST LIS3LV02DL Accelerometer";
++	adev.idev->phys       =3D DRIVER_NAME "/input0";
++	adev.idev->id.bustype =3D BUS_HOST;
++	adev.idev->id.vendor  =3D 0;
++	adev.idev->dev.parent =3D &adev.pdev->dev;
++	adev.idev->open       =3D lis3lv02d_joystick_open;
++	adev.idev->close      =3D lis3lv02d_joystick_close;
++
++	set_bit(EV_ABS, adev.idev->evbit);
++	input_set_abs_params(adev.idev, ABS_X, -MDPS_MAX_VAL, MDPS_MAX_VAL, 3=
+, 3);
++	input_set_abs_params(adev.idev, ABS_Y, -MDPS_MAX_VAL, MDPS_MAX_VAL, 3=
+, 3);
++	input_set_abs_params(adev.idev, ABS_Z, -MDPS_MAX_VAL, MDPS_MAX_VAL, 3=
+, 3);
++
++	err =3D input_register_device(adev.idev);
++	if (err) {
++		input_free_device(adev.idev);
++		adev.idev =3D NULL;
 +	}
 +
-+	i2c_set_clientdata(client, data);
-+	mutex_init(&data->lock);
-+
-+	dev_info(&client->dev, "%s chip found\n", client->name);
-+
-+	/* Register sysfs hooks */
-+	data->attrs.attrs = adt7462_attr;
-+	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
-+	if (err)
-+		goto exit_free;
-+
-+	data->hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->hwmon_dev)) {
-+		err = PTR_ERR(data->hwmon_dev);
-+		goto exit_remove;
-+	}
-+
-+	return 0;
-+
-+exit_remove:
-+	sysfs_remove_group(&client->dev.kobj, &data->attrs);
-+exit_free:
-+	kfree(data);
-+exit:
 +	return err;
 +}
 +
-+static int adt7462_remove(struct i2c_client *client)
++static void lis3lv02d_joystick_disable(void)
 +{
-+	struct adt7462_data *data = i2c_get_clientdata(client);
++	if (!adev.idev)
++		return;
 +
-+	hwmon_device_unregister(data->hwmon_dev);
-+	sysfs_remove_group(&client->dev.kobj, &data->attrs);
-+	kfree(data);
++	input_unregister_device(adev.idev);
++	adev.idev =3D NULL;
++}
++
++
++/*
++ * Initialise the accelerometer and the various subsystems.
++ * Should be rather independant of the bus system.
++ */
++static int lis3lv02d_init_device(struct acpi_lis3lv02d *dev)
++{
++	mutex_init(&dev->lock);
++	lis3lv02d_add_fs(dev->device);
++	lis3lv02d_increase_use(dev);
++
++	if (lis3lv02d_joystick_enable())
++		printk(KERN_ERR DRIVER_NAME ": joystick initialization failed\n");
++
++	lis3lv02d_decrease_use(dev);
 +	return 0;
 +}
 +
-+static int __init adt7462_init(void)
++static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
 +{
-+	return i2c_add_driver(&adt7462_driver);
++	adev.ac =3D *((struct axis_conversion *)dmi->driver_data);
++	printk(KERN_INFO DRIVER_NAME ": hardware type %s found.\n", dmi->iden=
+t);
++
++	return 1;
 +}
 +
-+static void __exit adt7462_exit(void)
++/* Represents, for each axis seen by userspace, the corresponding hw a=
+xis (+1).
++ * If the value is negative, the opposite of the hw value is used. */
++static struct axis_conversion lis3lv02d_axis_normal =3D {1, 2, 3};
++static struct axis_conversion lis3lv02d_axis_y_inverted =3D {1, -2, 3}=
+;
++static struct axis_conversion lis3lv02d_axis_x_inverted =3D {-1, 2, 3}=
+;
++static struct axis_conversion lis3lv02d_axis_z_inverted =3D {1, 2, -3}=
+;
++static struct axis_conversion lis3lv02d_axis_xy_rotated_left =3D {-2, =
+1, 3};
++static struct axis_conversion lis3lv02d_axis_xy_swap_inverted =3D {-2,=
+ -1, 3};
++
++#define AXIS_DMI_MATCH(_ident, _name, _axis) {		\
++	.ident =3D _ident,				\
++	.callback =3D lis3lv02d_dmi_matched,		\
++	.matches =3D {					\
++		DMI_MATCH(DMI_PRODUCT_NAME, _name)	\
++	},						\
++	.driver_data =3D &lis3lv02d_axis_##_axis		\
++}
++static struct dmi_system_id lis3lv02d_dmi_ids[] =3D {
++	/* product names are truncated to match all kinds of a same model */
++	AXIS_DMI_MATCH("NC64x0", "HP Compaq nc64", x_inverted),
++	AXIS_DMI_MATCH("NC84x0", "HP Compaq nc84", z_inverted),
++	AXIS_DMI_MATCH("NX9420", "HP Compaq nx9420", x_inverted),
++	AXIS_DMI_MATCH("NW9440", "HP Compaq nw9440", x_inverted),
++	AXIS_DMI_MATCH("NC2510", "HP Compaq 2510", y_inverted),
++	AXIS_DMI_MATCH("NC8510", "HP Compaq 8510", xy_swap_inverted),
++	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
++	{ NULL, }
++/* Laptop models without axis info (yet):
++ * "NC651xx" "HP Compaq 651"
++ * "NC671xx" "HP Compaq 671"
++ * "NC6910" "HP Compaq 6910"
++ * HP Compaq 8710x Notebook PC / Mobile Workstation
++ * "NC2400" "HP Compaq nc2400"
++ * "NX74x0" "HP Compaq nx74"
++ * "NX6325" "HP Compaq nx6325"
++ * "NC4400" "HP Compaq nc4400"
++ */
++};
++
++static int lis3lv02d_add(struct acpi_device *device)
 +{
-+	i2c_del_driver(&adt7462_driver);
++	u8 val;
++
++	if (!device)
++		return -EINVAL;
++
++	adev.device =3D device;
++	strcpy(acpi_device_name(device), DRIVER_NAME);
++	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
++	device->driver_data =3D &adev;
++
++	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &val);
++	if ((val !=3D LIS3LV02DL_ID) && (val !=3D LIS302DL_ID)) {
++		printk(KERN_ERR DRIVER_NAME
++				": Accelerometer chip not LIS3LV02D{L,Q}\n");
++	}
++
++	/* If possible use a "standard" axes order */
++	if (dmi_check_system(lis3lv02d_dmi_ids) =3D=3D 0) {
++		printk(KERN_INFO DRIVER_NAME ": laptop model unknown, "
++				 "using default axes configuration\n");
++		adev.ac =3D lis3lv02d_axis_normal;
++	}
++
++	return lis3lv02d_init_device(&adev);
 +}
 +
-+MODULE_AUTHOR("Darrick J. Wong <djwong@us.ibm.com>");
-+MODULE_DESCRIPTION("ADT7462 driver");
++static int lis3lv02d_remove(struct acpi_device *device, int type)
++{
++	if (!device)
++		return -EINVAL;
++
++	lis3lv02d_joystick_disable();
++	lis3lv02d_poweroff(device->handle);
++
++	return lis3lv02d_remove_fs();
++}
++
++
++/* Sysfs stuff */
++static ssize_t lis3lv02d_position_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	int x, y, z;
++
++	lis3lv02d_increase_use(&adev);
++	lis3lv02d_get_xyz(adev.device->handle, &x, &y, &z);
++	lis3lv02d_decrease_use(&adev);
++	return sprintf(buf, "(%d,%d,%d)\n", x, y, z);
++}
++
++static ssize_t lis3lv02d_calibrate_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "(%d,%d,%d)\n", adev.xcalib, adev.ycalib, adev.zc=
+alib);
++}
++
++static ssize_t lis3lv02d_calibrate_store(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t count)
++{
++	lis3lv02d_increase_use(&adev);
++	lis3lv02d_calibrate_joystick();
++	lis3lv02d_decrease_use(&adev);
++	return count;
++}
++
++/* conversion btw sampling rate and the register values */
++static int lis3lv02dl_df_val[4] =3D {40, 160, 640, 2560};
++static ssize_t lis3lv02d_rate_show(struct device *dev,
++			struct device_attribute *attr, char *buf)
++{
++	u8 ctrl;
++	int val;
++
++	lis3lv02d_increase_use(&adev);
++	lis3lv02d_acpi_read(adev.device->handle, CTRL_REG1, &ctrl);
++	lis3lv02d_decrease_use(&adev);
++	val =3D (ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4;
++	return sprintf(buf, "%d\n", lis3lv02dl_df_val[val]);
++}
++
++static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
++static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_sho=
+w,
++	lis3lv02d_calibrate_store);
++static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
++
++static struct attribute *lis3lv02d_attributes[] =3D {
++	&dev_attr_position.attr,
++	&dev_attr_calibrate.attr,
++	&dev_attr_rate.attr,
++	NULL
++};
++
++static struct attribute_group lis3lv02d_attribute_group =3D {
++	.attrs =3D lis3lv02d_attributes
++};
++
++static int lis3lv02d_add_fs(struct acpi_device *device)
++{
++	adev.pdev =3D platform_device_register_simple(DRIVER_NAME, -1, NULL, =
+0);
++	if (IS_ERR(adev.pdev))
++		return PTR_ERR(adev.pdev);
++
++	return sysfs_create_group(&adev.pdev->dev.kobj, &lis3lv02d_attribute_=
+group);
++}
++
++static int lis3lv02d_remove_fs(void)
++{
++	sysfs_remove_group(&adev.pdev->dev.kobj, &lis3lv02d_attribute_group);
++	platform_device_unregister(adev.pdev);
++	return 0;
++}
++
++/* For the HP MDPS aka 3D Driveguard */
++static struct acpi_driver lis3lv02d_driver =3D {
++	.name  =3D DRIVER_NAME,
++	.class =3D ACPI_MDPS_CLASS,
++	.ids   =3D lis3lv02d_device_ids,
++	.ops =3D {
++		.add     =3D lis3lv02d_add,
++		.remove  =3D lis3lv02d_remove,
++		.suspend =3D lis3lv02d_suspend,
++		.resume  =3D lis3lv02d_resume,
++	}
++};
++
++static int __init lis3lv02d_init_module(void)
++{
++	int ret;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	ret =3D acpi_bus_register_driver(&lis3lv02d_driver);
++	if (ret < 0)
++		return ret;
++
++	printk(KERN_INFO DRIVER_NAME " driver loaded.\n");
++
++	return 0;
++}
++
++static void __exit lis3lv02d_exit_module(void)
++{
++	acpi_bus_unregister_driver(&lis3lv02d_driver);
++}
++
++MODULE_DESCRIPTION("ST LIS3LV02Dx three-axis digital accelerometer dri=
+ver");
++MODULE_AUTHOR("Yan Burman and Eric Piel");
 +MODULE_LICENSE("GPL");
 +
-+module_init(adt7462_init);
-+module_exit(adt7462_exit);
++module_init(lis3lv02d_init_module);
++module_exit(lis3lv02d_exit_module);
+diff -puN /dev/null drivers/hwmon/lis3lv02d.h
+--- /dev/null
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -0,0 +1,149 @@
++/*
++ *  lis3lv02d.h - ST LIS3LV02DL accelerometer driver
++ *
++ *  Copyright (C) 2007-2008 Yan Burman
++ *  Copyright (C) 2008 Eric Piel
++ *
++ *  This program is free software; you can redistribute it and/or modi=
+fy
++ *  it under the terms of the GNU General Public License as published =
+by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-13=
+07  USA
++ */
++
++/*
++ * The actual chip is STMicroelectronics LIS3LV02DL or LIS3LV02DQ that=
+ seems to
++ * be connected via SPI. There exists also several similar chips (such=
+ as LIS302DL or
++ * LIS3L02DQ) but not in the HP laptops and they have slightly differe=
+nt registers.
++ * They can also be connected via I=C3=82=CB=9BC.
++ */
++
++#define LIS3LV02DL_ID	0x3A /* Also the LIS3LV02DQ */
++#define LIS302DL_ID	0x3B /* Also the LIS202DL! */
++
++enum lis3lv02d_reg {
++	WHO_AM_I	=3D 0x0F,
++	OFFSET_X	=3D 0x16,
++	OFFSET_Y	=3D 0x17,
++	OFFSET_Z	=3D 0x18,
++	GAIN_X		=3D 0x19,
++	GAIN_Y		=3D 0x1A,
++	GAIN_Z		=3D 0x1B,
++	CTRL_REG1	=3D 0x20,
++	CTRL_REG2	=3D 0x21,
++	CTRL_REG3	=3D 0x22,
++	HP_FILTER_RESET	=3D 0x23,
++	STATUS_REG	=3D 0x27,
++	OUTX_L		=3D 0x28,
++	OUTX_H		=3D 0x29,
++	OUTY_L		=3D 0x2A,
++	OUTY_H		=3D 0x2B,
++	OUTZ_L		=3D 0x2C,
++	OUTZ_H		=3D 0x2D,
++	FF_WU_CFG	=3D 0x30,
++	FF_WU_SRC	=3D 0x31,
++	FF_WU_ACK	=3D 0x32,
++	FF_WU_THS_L	=3D 0x34,
++	FF_WU_THS_H	=3D 0x35,
++	FF_WU_DURATION	=3D 0x36,
++	DD_CFG		=3D 0x38,
++	DD_SRC		=3D 0x39,
++	DD_ACK		=3D 0x3A,
++	DD_THSI_L	=3D 0x3C,
++	DD_THSI_H	=3D 0x3D,
++	DD_THSE_L	=3D 0x3E,
++	DD_THSE_H	=3D 0x3F,
++};
++
++enum lis3lv02d_ctrl1 {
++	CTRL1_Xen	=3D 0x01,
++	CTRL1_Yen	=3D 0x02,
++	CTRL1_Zen	=3D 0x04,
++	CTRL1_ST	=3D 0x08,
++	CTRL1_DF0	=3D 0x10,
++	CTRL1_DF1	=3D 0x20,
++	CTRL1_PD0	=3D 0x40,
++	CTRL1_PD1	=3D 0x80,
++};
++enum lis3lv02d_ctrl2 {
++	CTRL2_DAS	=3D 0x01,
++	CTRL2_SIM	=3D 0x02,
++	CTRL2_DRDY	=3D 0x04,
++	CTRL2_IEN	=3D 0x08,
++	CTRL2_BOOT	=3D 0x10,
++	CTRL2_BLE	=3D 0x20,
++	CTRL2_BDU	=3D 0x40, /* Block Data Update */
++	CTRL2_FS	=3D 0x80, /* Full Scale selection */
++};
++
++
++enum lis3lv02d_ctrl3 {
++	CTRL3_CFS0	=3D 0x01,
++	CTRL3_CFS1	=3D 0x02,
++	CTRL3_FDS	=3D 0x10,
++	CTRL3_HPFF	=3D 0x20,
++	CTRL3_HPDD	=3D 0x40,
++	CTRL3_ECK	=3D 0x80,
++};
++
++enum lis3lv02d_status_reg {
++	STATUS_XDA	=3D 0x01,
++	STATUS_YDA	=3D 0x02,
++	STATUS_ZDA	=3D 0x04,
++	STATUS_XYZDA	=3D 0x08,
++	STATUS_XOR	=3D 0x10,
++	STATUS_YOR	=3D 0x20,
++	STATUS_ZOR	=3D 0x40,
++	STATUS_XYZOR	=3D 0x80,
++};
++
++enum lis3lv02d_ff_wu_cfg {
++	FF_WU_CFG_XLIE	=3D 0x01,
++	FF_WU_CFG_XHIE	=3D 0x02,
++	FF_WU_CFG_YLIE	=3D 0x04,
++	FF_WU_CFG_YHIE	=3D 0x08,
++	FF_WU_CFG_ZLIE	=3D 0x10,
++	FF_WU_CFG_ZHIE	=3D 0x20,
++	FF_WU_CFG_LIR	=3D 0x40,
++	FF_WU_CFG_AOI	=3D 0x80,
++};
++
++enum lis3lv02d_ff_wu_src {
++	FF_WU_SRC_XL	=3D 0x01,
++	FF_WU_SRC_XH	=3D 0x02,
++	FF_WU_SRC_YL	=3D 0x04,
++	FF_WU_SRC_YH	=3D 0x08,
++	FF_WU_SRC_ZL	=3D 0x10,
++	FF_WU_SRC_ZH	=3D 0x20,
++	FF_WU_SRC_IA	=3D 0x40,
++};
++
++enum lis3lv02d_dd_cfg {
++	DD_CFG_XLIE	=3D 0x01,
++	DD_CFG_XHIE	=3D 0x02,
++	DD_CFG_YLIE	=3D 0x04,
++	DD_CFG_YHIE	=3D 0x08,
++	DD_CFG_ZLIE	=3D 0x10,
++	DD_CFG_ZHIE	=3D 0x20,
++	DD_CFG_LIR	=3D 0x40,
++	DD_CFG_IEND	=3D 0x80,
++};
++
++enum lis3lv02d_dd_src {
++	DD_SRC_XL	=3D 0x01,
++	DD_SRC_XH	=3D 0x02,
++	DD_SRC_YL	=3D 0x04,
++	DD_SRC_YH	=3D 0x08,
++	DD_SRC_ZL	=3D 0x10,
++	DD_SRC_ZH	=3D 0x20,
++	DD_SRC_IA	=3D 0x40,
++};
++
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from pavel@suse.cz are
 
 origin.patch
 linux-next.patch
-create-a-div_round_closest-macro-to-do-division-with-rounding.patch
-adt7462-70-73-use-div_round_closest-for-rounded-division.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
