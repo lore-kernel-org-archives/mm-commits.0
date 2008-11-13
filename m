@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-allocator-off-by-one.patch added to -mm tree
-Date: Wed, 12 Nov 2008 16:15:56 -0800
-Message-ID: <200811130015.mAD0Fuoa014284@imap1.linux-foundation.org>
+Subject: + mm-vmalloc-failure-flush-fix.patch added to -mm tree
+Date: Wed, 12 Nov 2008 16:15:58 -0800
+Message-ID: <200811130015.mAD0FwH4014329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41393 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54406 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750924AbYKMAQf (ORCPT
+	by vger.kernel.org with ESMTP id S1751005AbYKMAQf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 12 Nov 2008 19:16:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     mm: vmalloc allocator off by one
+     mm: vmalloc failure flush fix
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-allocator-off-by-one.patch
+     mm-vmalloc-failure-flush-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmalloc allocator off by one
+Subject: mm: vmalloc failure flush fix
 From: Nick Piggin <npiggin@suse.de>
 
-Fix off by one bug in the KVA allocator that can leave gaps in the address
-space.
+An initial vmalloc failure should start off a synchronous flush of lazy
+areas, in case someone is in progress flushing them already, which could
+cause us to return an allocation failure even if there is plenty of KVA
+free.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-allocator-off-by-one mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-allocator-off-by-one
+diff -puN mm/vmalloc.c~mm-vmalloc-failure-flush-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-failure-flush-fix
 +++ a/mm/vmalloc.c
-@@ -362,7 +362,7 @@ retry:
- 				goto found;
- 		}
+@@ -522,13 +522,24 @@ static void __purge_vmap_area_lazy(unsig
+ }
  
--		while (addr + size >= first->va_start && addr + size <= vend) {
-+		while (addr + size > first->va_start && addr + size <= vend) {
- 			addr = ALIGN(first->va_end + PAGE_SIZE, align);
+ /*
++ * Kick off a purge of the outstanding lazy areas. Don't bother if somebody
++ * is already purging.
++ */
++static void try_purge_vmap_area_lazy(void)
++{
++	unsigned long start = ULONG_MAX, end = 0;
++
++	__purge_vmap_area_lazy(&start, &end, 0, 0);
++}
++
++/*
+  * Kick off a purge of the outstanding lazy areas.
+  */
+ static void purge_vmap_area_lazy(void)
+ {
+ 	unsigned long start = ULONG_MAX, end = 0;
  
- 			n = rb_next(&first->rb_node);
+-	__purge_vmap_area_lazy(&start, &end, 0, 0);
++	__purge_vmap_area_lazy(&start, &end, 1, 0);
+ }
+ 
+ /*
+@@ -539,7 +550,7 @@ static void free_unmap_vmap_area(struct 
+ 	va->flags |= VM_LAZY_FREE;
+ 	atomic_add((va->va_end - va->va_start) >> PAGE_SHIFT, &vmap_lazy_nr);
+ 	if (unlikely(atomic_read(&vmap_lazy_nr) > lazy_max_pages()))
+-		purge_vmap_area_lazy();
++		try_purge_vmap_area_lazy();
+ }
+ 
+ static struct vmap_area *find_vmap_area(unsigned long addr)
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
