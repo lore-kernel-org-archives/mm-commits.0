@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-firmware-memmapc-fix-sparse-warnings.patch added to -mm tree
-Date: Thu, 13 Nov 2008 14:34:57 -0800
-Message-ID: <200811132234.mADMYv9D029362@imap1.linux-foundation.org>
+Subject: - drivers-firmware-memmapc-fix-sparse-warnings.patch removed from -mm tree
+Date: Thu, 13 Nov 2008 14:38:59 -0800
+Message-ID: <200811132238.mADMcxKm031332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46412 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751869AbYKMWfA (ORCPT
+	by vger.kernel.org with ESMTP id S1751681AbYKMWjC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 17:35:00 -0500
+	Thu, 13 Nov 2008 17:39:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: patrickdepinguin@gmail.com
+To: patrickdepinguin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      drivers/firmware/memmap.c: fix sparse warnings
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      drivers-firmware-memmapc-fix-sparse-warnings.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
