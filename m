@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-might-lose-modem-status-change.patch added to -mm tree
-Date: Fri, 14 Nov 2008 13:27:29 -0800
-Message-ID: <200811142127.mAELRT3W027635@imap1.linux-foundation.org>
+Subject: + add-pr_prefix-to-pr_xyz-macros.patch added to -mm tree
+Date: Fri, 14 Nov 2008 13:32:20 -0800
+Message-ID: <200811142132.mAELWKlu030058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54412 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753679AbYKNV3V (ORCPT
+	by vger.kernel.org with ESMTP id S1755405AbYKNVcq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 16:29:21 -0500
+	Fri, 14 Nov 2008 16:32:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, hskinnemoen@atmel.com, linux@bohmer.net, marc.pignat@hevs.ch
+Cc: schwidefsky@de.ibm.com, greg@kroah.com
 
 
 The patch titled
-     atmel_serial might lose modem status change
+     Add PR_PREFIX to pr_xyz() macros
 has been added to the -mm tree.  Its filename is
-     atmel_serial-might-lose-modem-status-change.patch
+     add-pr_prefix-to-pr_xyz-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial might lose modem status change
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: Add PR_PREFIX to pr_xyz() macros
+From: Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-I found a problem of handling of modem status of atmel_serial driver.
+A common reason for device drivers to implement their own printk macros is
+the lack of a printk prefix with the standard pr_xyz macros.  Introduce a
+pr_fmt macro that is applied for every pr_xyz macro to the format string. 
+The most common use of the pr_fmt macro would be to add the name of the
+device driver to all pr_xyz messages in a source file.
 
-With the commit 1ecc26 ("atmel_serial: split the interrupt handler"),
-handling of modem status signal was splitted into two parts.  The
-atmel_tasklet_func() compares new status with irq_status_prev, but
-irq_status_prev is not correct if signal status was changed while the port
-is closed.
-
-Here is a sequence to cause problem:
-
-1. Remote side sets CTS (and DSR).
-2. Local side close the port.
-3. Local side clears RTS and DTR.
-4. Remote side clears CTS and DSR.
-5. Local side reopen the port.  hw_stopped becomes 1.
-6. Local side sets RTS and DTR.
-7. Remote side sets CTS and DSR.
-
-Then CTS change interrupt can be received, but since CTS bit in
-irq_status_prev and new status is same, uart_handle_cts_change() will not
-be called (so hw_stopped will not be cleared, i.e.  cannot send any data).
-
-I suppose irq_status_prev should be initialized at somewhere in open
-sequence.
-
-Acked-by: Remy Bohmer <linux@bohmer.net>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Marc Pignat <marc.pignat@hevs.ch>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/kernel.h |   42 +++++++++++++++++++++------------------
+ 1 file changed, 23 insertions(+), 19 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change
-+++ a/drivers/serial/atmel_serial.c
-@@ -877,6 +877,9 @@ static int atmel_startup(struct uart_por
- 		}
- 	}
+diff -puN include/linux/kernel.h~add-pr_prefix-to-pr_xyz-macros include/linux/kernel.h
+--- a/include/linux/kernel.h~add-pr_prefix-to-pr_xyz-macros
++++ a/include/linux/kernel.h
+@@ -335,32 +335,36 @@ static inline char *pack_hex_byte(char *
+ 	return buf;
+ }
  
-+	/* Save current CSR for comparison in atmel_tasklet_func() */
-+	atmel_port->irq_status_prev = UART_GET_CSR(port);
+-#define pr_emerg(fmt, arg...) \
+-	printk(KERN_EMERG fmt, ##arg)
+-#define pr_alert(fmt, arg...) \
+-	printk(KERN_ALERT fmt, ##arg)
+-#define pr_crit(fmt, arg...) \
+-	printk(KERN_CRIT fmt, ##arg)
+-#define pr_err(fmt, arg...) \
+-	printk(KERN_ERR fmt, ##arg)
+-#define pr_warning(fmt, arg...) \
+-	printk(KERN_WARNING fmt, ##arg)
+-#define pr_notice(fmt, arg...) \
+-	printk(KERN_NOTICE fmt, ##arg)
+-#define pr_info(fmt, arg...) \
+-	printk(KERN_INFO fmt, ##arg)
++#ifndef pr_fmt
++#define pr_fmt(fmt) fmt
++#endif
 +
- 	/*
- 	 * Finally, enable the serial port
- 	 */
++#define pr_emerg(fmt, ...) \
++        printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_alert(fmt, ...) \
++        printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_crit(fmt, ...) \
++        printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_err(fmt, ...) \
++        printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_warning(fmt, ...) \
++        printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_notice(fmt, ...) \
++        printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_info(fmt, ...) \
++        printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+ 
+ /* If you are writing a driver, please use dev_dbg instead */
+ #if defined(CONFIG_DYNAMIC_PRINTK_DEBUG)
+ #define pr_debug(fmt, ...) do { \
+-	dynamic_pr_debug(fmt, ##__VA_ARGS__); \
++	dynamic_pr_debug(pr_fmt(fmt), ##__VA_ARGS__); \
+ 	} while (0)
+ #elif defined(DEBUG)
+-#define pr_debug(fmt, arg...) \
+-	printk(KERN_DEBUG fmt, ##arg)
++#define pr_debug(fmt, ...) \
++	printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+ #else
+-#define pr_debug(fmt, arg...) \
+-	({ if (0) printk(KERN_DEBUG fmt, ##arg); 0; })
++#define pr_debug(fmt, ...) \
++	({ if (0) printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__); 0; })
+ #endif
+ 
+ /*
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from schwidefsky@de.ibm.com are
 
 linux-next.patch
-physmap-make-map_info-customizable.patch
-physmap-fix-leak-of-memory-returned-by-parse_mtd_partitions.patch
-physmap-fix-memory-leak-on-physmap_flash_remove-by-using-devres.patch
-atmel_serial-might-lose-modem-status-change.patch
+s390-use-the-new-byteorder-headers.patch
+add-pr_prefix-to-pr_xyz-macros.patch
+kprobes-add-kprobe_insn_mutex-and-cleanup-arch_remove_kprobe.patch
+documentation-update-s390-header-file-paths.patch
 
