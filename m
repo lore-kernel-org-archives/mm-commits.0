@@ -1,76 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + misc-c2port-needs-linux-schedh.patch added to -mm tree
-Date: Fri, 14 Nov 2008 00:09:23 -0800
-Message-ID: <200811140809.mAE89NTB021847@imap1.linux-foundation.org>
+Subject: - drivers-staging-usbip-stub_txc-cleanup-kerneldoc.patch removed from -mm tree
+Date: Fri, 14 Nov 2008 11:23:03 -0800
+Message-ID: <200811141923.mAEJN3vS031052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37102 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751206AbYKNIJ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751674AbYKNTXK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 03:09:57 -0500
+	Fri, 14 Nov 2008 14:23:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org
+To: qhfeng.kernel@gmail.com, greg@kroah.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     misc: C2port needs <linux/sched.h>
-has been added to the -mm tree.  Its filename is
-     misc-c2port-needs-linux-schedh.patch
+     drivers/staging/usbip/stub_tx.c: cleanup kerneldoc
+has been removed from the -mm tree.  Its filename was
+     drivers-staging-usbip-stub_txc-cleanup-kerneldoc.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc: C2port needs <linux/sched.h>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: drivers/staging/usbip/stub_tx.c: cleanup kerneldoc
+From: Qinghuang Feng <qhfeng.kernel@gmail.com>
 
-m68k allmodconfig:
+No argument named @regs in stub_complete(), remove it.
 
-| drivers/misc/c2port/core.c: In function 'c2port_reset':
-| drivers/misc/c2port/core.c:73: error: dereferencing pointer to incomplete type
-| drivers/misc/c2port/core.c: In function 'c2port_strobe_ck':
-| drivers/misc/c2port/core.c:91: error: dereferencing pointer to incomplete type
-
-Include <linux/sched.h> to fix it, as m68k's local_irq_enable() needs to know
-about struct task_struct.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/c2port/core.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/staging/usbip/stub_tx.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/misc/c2port/core.c~misc-c2port-needs-linux-schedh drivers/misc/c2port/core.c
---- a/drivers/misc/c2port/core.c~misc-c2port-needs-linux-schedh
-+++ a/drivers/misc/c2port/core.c
-@@ -18,6 +18,7 @@
- #include <linux/ctype.h>
- #include <linux/delay.h>
- #include <linux/idr.h>
-+#include <linux/sched.h>
- 
- #include <linux/c2port.h>
- 
+diff -puN drivers/staging/usbip/stub_tx.c~drivers-staging-usbip-stub_txc-cleanup-kerneldoc drivers/staging/usbip/stub_tx.c
+--- a/drivers/staging/usbip/stub_tx.c~drivers-staging-usbip-stub_txc-cleanup-kerneldoc
++++ a/drivers/staging/usbip/stub_tx.c
+@@ -54,7 +54,6 @@ void stub_enqueue_ret_unlink(struct stub
+ /**
+  * stub_complete - completion handler of a usbip urb
+  * @urb: pointer to the urb completed
+- * @regs:
+  *
+  * When a urb has completed, the USB core driver calls this function mostly in
+  * the interrupt context. To return the result of a urb, the completed urb is
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
 
-fb-clean-the-penguins-dirty-feet.patch
-misc-c2port-needs-linux-schedh.patch
+origin.patch
 linux-next.patch
-fbdev-fix-typo-in-drivers-video-modedbc.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+drivers-message-i2o-iopc-cleanup-kerneldoc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
 
