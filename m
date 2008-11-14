@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-bfin-async-flash-use-parse_mtd.patch added to -mm tree
-Date: Fri, 14 Nov 2008 13:41:31 -0800
-Message-ID: <200811142141.mAELfVKJ002374@imap1.linux-foundation.org>
+Subject: + mtd-physmap-use-parse_mtd.patch added to -mm tree
+Date: Fri, 14 Nov 2008 13:41:29 -0800
+Message-ID: <200811142141.mAELfT3r002371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54340 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756916AbYKNVlh (ORCPT
+	by vger.kernel.org with ESMTP id S1756865AbYKNVle (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 16:41:37 -0500
+	Fri, 14 Nov 2008 16:41:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: vapier@gentoo.org, anemo@mba.ocn.ne.jp, dwmw2@infradead.org
 
 
 The patch titled
-     mtd/bfin-async-flash: use parse_mtd()
+     mtd/physmap: use parse_mtd()
 has been added to the -mm tree.  Its filename is
-     mtd-bfin-async-flash-use-parse_mtd.patch
+     mtd-physmap-use-parse_mtd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/bfin-async-flash: use parse_mtd()
+Subject: mtd/physmap: use parse_mtd()
 From: Mike Frysinger <vapier@gentoo.org>
 
 Call parse_mtd() to handle partition/device registration rather than doing
@@ -46,54 +46,38 @@ Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/bfin-async-flash.c |   28 ++------------------------
- 1 file changed, 3 insertions(+), 25 deletions(-)
+ drivers/mtd/maps/physmap.c |   23 ++---------------------
+ 1 file changed, 2 insertions(+), 21 deletions(-)
 
-diff -puN drivers/mtd/maps/bfin-async-flash.c~mtd-bfin-async-flash-use-parse_mtd drivers/mtd/maps/bfin-async-flash.c
---- a/drivers/mtd/maps/bfin-async-flash.c~mtd-bfin-async-flash-use-parse_mtd
-+++ a/drivers/mtd/maps/bfin-async-flash.c
-@@ -120,13 +120,8 @@ static void bfin_copy_to(struct map_info
- 	switch_back(state);
+diff -puN drivers/mtd/maps/physmap.c~mtd-physmap-use-parse_mtd drivers/mtd/maps/physmap.c
+--- a/drivers/mtd/maps/physmap.c~mtd-physmap-use-parse_mtd
++++ a/drivers/mtd/maps/physmap.c
+@@ -79,9 +79,6 @@ static int physmap_flash_remove(struct p
  }
  
+ static const char *rom_probe_types[] = { "cfi_probe", "jedec_probe", "map_rom", NULL };
 -#ifdef CONFIG_MTD_PARTITIONS
 -static const char *part_probe_types[] = { "cmdlinepart", "RedBoot", NULL };
 -#endif
--
- static int __devinit bfin_flash_probe(struct platform_device *pdev)
- {
--	int ret;
- 	struct physmap_flash_data *pdata = pdev->dev.platform_data;
- 	struct resource *memory = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	struct resource *flash_ambctl = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-@@ -150,6 +145,8 @@ static int __devinit bfin_flash_probe(st
- 	state->flash_ambctl0  = flash_ambctl->start;
- 	state->flash_ambctl1  = flash_ambctl->end;
  
-+	platform_set_drvdata(pdev, state);
-+
- 	if (gpio_request(state->enet_flash_pin, DRIVER_NAME)) {
- 		pr_devinit(KERN_ERR DRIVER_NAME ": Failed to request gpio %d\n", state->enet_flash_pin);
- 		return -EBUSY;
-@@ -161,26 +158,7 @@ static int __devinit bfin_flash_probe(st
- 	if (!state->mtd)
- 		return -ENXIO;
+ static int physmap_flash_probe(struct platform_device *dev)
+ {
+@@ -171,24 +168,8 @@ static int physmap_flash_probe(struct pl
+ 	if (err)
+ 		goto err_out;
  
 -#ifdef CONFIG_MTD_PARTITIONS
--	ret = parse_mtd_partitions(state->mtd, part_probe_types, &pdata->parts, 0);
--	if (ret > 0) {
--		pr_devinit(KERN_NOTICE DRIVER_NAME ": Using commandline partition definition\n");
--		add_mtd_partitions(state->mtd, pdata->parts, ret);
--
--	} else if (pdata->nr_parts) {
--		pr_devinit(KERN_NOTICE DRIVER_NAME ": Using board partition definition\n");
--		add_mtd_partitions(state->mtd, pdata->parts, pdata->nr_parts);
--
--	} else
--#endif
--	{
--		pr_devinit(KERN_NOTICE DRIVER_NAME ": no partition info available, registering whole flash at once\n");
--		add_mtd_device(state->mtd);
+-	err = parse_mtd_partitions(info->cmtd, part_probe_types, &parts, 0);
+-	if (err > 0) {
+-		add_mtd_partitions(info->cmtd, parts, err);
+-		kfree(parts);
+-		return 0;
 -	}
 -
--	platform_set_drvdata(pdev, state);
+-	if (physmap_data->nr_parts) {
+-		printk(KERN_NOTICE "Using physmap partition information\n");
+-		add_mtd_partitions(info->cmtd, physmap_data->parts,
+-				   physmap_data->nr_parts);
+-		return 0;
+-	}
+-#endif
