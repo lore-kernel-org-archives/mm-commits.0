@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-remove-called_from-argument-fix.patch added to -mm tree
-Date: Thu, 13 Nov 2008 16:28:56 -0800
-Message-ID: <200811140028.mAE0SuE5021519@imap1.linux-foundation.org>
+Subject: + kprobes-support-probing-module-__exit-function-fix.patch added to -mm tree
+Date: Thu, 13 Nov 2008 16:28:52 -0800
+Message-ID: <200811140028.mAE0SqZI021447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57385 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754516AbYKNA3l (ORCPT
+	by vger.kernel.org with ESMTP id S1753400AbYKNA3w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 19:29:41 -0500
+	Thu, 13 Nov 2008 19:29:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, mhiramat@redhat.com
+Cc: akpm@linux-foundation.org, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, mhiramat@redhat.com
 
 
 The patch titled
-     kprobes-remove-called_from-argument-fix
+     kprobes-support-probing-module-__exit-function-fix
 has been added to the -mm tree.  Its filename is
-     kprobes-remove-called_from-argument-fix.patch
+     kprobes-support-probing-module-__exit-function-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes-remove-called_from-argument-fix
-From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Subject: kprobes-support-probing-module-__exit-function-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-You also need the following to get this to compile, don't you?
-
-Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Acked-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Masami Hiramatsu <mhiramat@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/kprobes.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kprobes.c~kprobes-remove-called_from-argument-fix kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-remove-called_from-argument-fix
-+++ a/kernel/kprobes.c
-@@ -666,8 +666,6 @@ int __kprobes register_kprobe(struct kpr
- 	 */
- 	probed_mod = __module_text_address((unsigned long) p->addr);
- 	if (probed_mod) {
--		struct module *calling_mod;
--		calling_mod = __module_text_address(called_from);
- 		/*
- 		 * We must hold a refcount of the probed module while updating
- 		 * its code to prohibit unexpected unloading.
+diff -puN include/linux/kprobes.h~kprobes-support-probing-module-__exit-function-fix include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-support-probing-module-__exit-function-fix
++++ a/include/linux/kprobes.h
+@@ -101,7 +101,7 @@ struct kprobe {
+ 	/* copy of the original instruction */
+ 	struct arch_specific_insn ainsn;
+ 
+-	/* Indicates various status flags */
++	/* Indicates various status flags.  Protected by kprobe_mutex. */
+ 	u32 flags;
+ };
+ 
 _
 
-Patches currently in -mm which might be from ananth@in.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
-kprobes-indirectly-call-kprobe_target.patch
-kprobes-add-tests-for-register_kprobes.patch
-module-add-within_module_core-and-within_module_init.patch
-kprobes-add-kprobe_insn_mutex-and-cleanup-arch_remove_kprobe.patch
-kprobes-add-__kprobes-to-kprobe-internal-functions.patch
-kprobes-support-probing-module-__exit-function.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
 kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-remove-called_from-argument.patch
-kprobes-remove-called_from-argument-fix.patch
-module-add-module_state_live-notify.patch
-kprobes-support-probing-module-__init-function.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
