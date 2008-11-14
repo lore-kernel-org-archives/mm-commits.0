@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + led-simplify-led_trigger_register_simple.patch added to -mm tree
-Date: Fri, 14 Nov 2008 15:03:27 -0800
-Message-ID: <200811142303.mAEN3Rur010736@imap1.linux-foundation.org>
+Subject: + memcg-add-force_empty-again-in-reasonable-style.patch added to -mm tree
+Date: Fri, 14 Nov 2008 15:04:57 -0800
+Message-ID: <200811142304.mAEN4vUX011501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756456AbYKNXDw (ORCPT
+	by vger.kernel.org with ESMTP id S1754324AbYKNXFO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 18:03:52 -0500
+	Fri, 14 Nov 2008 18:05:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: felipe.balbi@nokia.com, cbou@mail.ru, drzeus@drzeus.cx, dwmw2@infradead.org, greg@kroah.com, rpurdie@linux.intel.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     leds: simplify led_trigger_register_simple
+     memcg: add force_empty again in reasonable style
 has been added to the -mm tree.  Its filename is
-     led-simplify-led_trigger_register_simple.patch
+     memcg-add-force_empty-again-in-reasonable-style.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,246 +34,188 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: simplify led_trigger_register_simple
-From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: memcg: add force_empty again in reasonable style
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-We can make led_trigger_register_simple by returning a struct led_trigger
-*, instead of passing a struct led_trigger ** as a parameter and changing
-it inside the function.
+After memcg-move-all-accounts-to-parent-at-rmdir.patch, there is no leak
+of memory usage and force_empty is removed.  force_empty allows users to
+leak account.
 
-Cc: Anton Vorontsov <cbou@mail.ru>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
-Cc: Richard Purdie <rpurdie@linux.intel.com>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+This patch adds "force_empty" again, in reasonable style.
+
+memory.force_empty file works when
+
+  #echo 0 (or some) > memory.force_empty
+  and have following function.
+
+  1. only works when there are no task in this cgroup.
+  2. free all page under this cgroup as much as possible.
+  3. page which cannot be freed will be moved up to parent. (locked pages etc.)
+  4. Then, memcg will be empty after echo returns.
+
+This is much better behavior than old "force_empty" which just forget
+all accounts. This patch also check signal_pending() and above "echo"
+can be stopped by "Ctrl-C".
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/led-triggers.c         |   25 ++++++++++--------
- drivers/leds/ledtrig-ide-disk.c     |    6 +++-
- drivers/mmc/core/host.c             |    4 ++
- drivers/mtd/nand/nand_base.c        |    5 ++-
- drivers/power/power_supply_leds.c   |   36 ++++++++++++++++++++------
- drivers/staging/at76_usb/at76_usb.c |    6 +++-
- include/linux/leds.h                |    5 +--
- 7 files changed, 63 insertions(+), 24 deletions(-)
+ Documentation/controllers/memory.txt |   27 ++++++++++++++++---
+ mm/memcontrol.c                      |   34 ++++++++++++++++++++++---
+ 2 files changed, 53 insertions(+), 8 deletions(-)
 
-diff -puN drivers/leds/led-triggers.c~led-simplify-led_trigger_register_simple drivers/leds/led-triggers.c
---- a/drivers/leds/led-triggers.c~led-simplify-led_trigger_register_simple
-+++ a/drivers/leds/led-triggers.c
-@@ -13,6 +13,7 @@
+diff -puN Documentation/controllers/memory.txt~memcg-add-force_empty-again-in-reasonable-style Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memcg-add-force_empty-again-in-reasonable-style
++++ a/Documentation/controllers/memory.txt
+@@ -237,11 +237,30 @@ reclaimed.
+ A cgroup can be removed by rmdir, but as discussed in sections 4.1 and 4.2, a
+ cgroup might have some charge associated with it, even though all
+ tasks have migrated away from it.
+-Such charges are moved to its parent as much as possible and freed if parent
+-is full. Both of RSS and CACHES are moved to parent.
+-If both of them are busy, rmdir() returns -EBUSY.
++Such charges are freed(at default) or moved to its parent. When moved,
++both of RSS and CACHES are moved to parent.
++If both of them are busy, rmdir() returns -EBUSY. See 5.1 Also.
  
- #include <linux/module.h>
- #include <linux/kernel.h>
-+#include <linux/err.h>
- #include <linux/init.h>
- #include <linux/list.h>
- #include <linux/spinlock.h>
-@@ -222,24 +223,28 @@ void led_trigger_event(struct led_trigge
- }
- EXPORT_SYMBOL_GPL(led_trigger_event);
- 
--void led_trigger_register_simple(const char *name, struct led_trigger **tp)
-+struct led_trigger *led_trigger_register_simple(const char *name)
- {
- 	struct led_trigger *trigger;
- 	int err;
- 
- 	trigger = kzalloc(sizeof(struct led_trigger), GFP_KERNEL);
--
--	if (trigger) {
--		trigger->name = name;
--		err = led_trigger_register(trigger);
--		if (err < 0)
--			printk(KERN_WARNING "LED trigger %s failed to register"
--				" (%d)\n", name, err);
--	} else
-+	if (!trigger) {
- 		printk(KERN_WARNING "LED trigger %s failed to register"
- 			" (no memory)\n", name);
-+		return ERR_PTR(-ENOMEM);
-+	}
+-5. TODO
++5. Misc. interfaces.
 +
-+	trigger->name = name;
-+	err = led_trigger_register(trigger);
-+	if (err < 0) {
-+		printk(KERN_WARNING "LED trigger %s failed to register"
-+				" (%d)\n", name, err);
-+		kfree(trigger);
-+		return ERR_PTR(err);
-+	}
- 
--	*tp = trigger;
-+	return trigger;
- }
- EXPORT_SYMBOL_GPL(led_trigger_register_simple);
- 
-diff -puN drivers/leds/ledtrig-ide-disk.c~led-simplify-led_trigger_register_simple drivers/leds/ledtrig-ide-disk.c
---- a/drivers/leds/ledtrig-ide-disk.c~led-simplify-led_trigger_register_simple
-+++ a/drivers/leds/ledtrig-ide-disk.c
-@@ -14,6 +14,7 @@
- #include <linux/module.h>
- #include <linux/jiffies.h>
- #include <linux/kernel.h>
-+#include <linux/err.h>
- #include <linux/init.h>
- #include <linux/timer.h>
- #include <linux/leds.h>
-@@ -46,7 +47,10 @@ static void ledtrig_ide_timerfunc(unsign
- 
- static int __init ledtrig_ide_init(void)
- {
--	led_trigger_register_simple("ide-disk", &ledtrig_ide);
-+	ledtrig_ide = led_trigger_register_simple("ide-disk");
-+	if (IS_ERR(ledtrig_ide))
-+		return PTR_ERR(ledtrig_ide);
++5.1 force_empty
++  memory.force_empty interface is provided to make cgroup's memory usage empty.
++  You can use this interface only when the cgroup has no tasks.
++  When writing anything to this
 +
- 	return 0;
- }
- 
-diff -puN drivers/mmc/core/host.c~led-simplify-led_trigger_register_simple drivers/mmc/core/host.c
---- a/drivers/mmc/core/host.c~led-simplify-led_trigger_register_simple
-+++ a/drivers/mmc/core/host.c
-@@ -120,7 +120,9 @@ int mmc_add_host(struct mmc_host *host)
- 	WARN_ON((host->caps & MMC_CAP_SDIO_IRQ) &&
- 		!host->ops->enable_sdio_irq);
- 
--	led_trigger_register_simple(dev_name(&host->class_dev), &host->led);
-+	host->led = led_trigger_register_simple(dev_name(&host->class_dev));
-+	if (IS_ERR(host->led))
-+		return PTR_ERR(host->led);
- 
- 	err = device_add(&host->class_dev);
- 	if (err)
-diff -puN drivers/mtd/nand/nand_base.c~led-simplify-led_trigger_register_simple drivers/mtd/nand/nand_base.c
---- a/drivers/mtd/nand/nand_base.c~led-simplify-led_trigger_register_simple
-+++ a/drivers/mtd/nand/nand_base.c
-@@ -2781,7 +2781,10 @@ EXPORT_SYMBOL_GPL(nand_release);
- 
- static int __init nand_base_init(void)
- {
--	led_trigger_register_simple("nand-disk", &nand_led_trigger);
-+	nand_led_trigger = led_trigger_register_simple("nand-disk");
-+	if (IS_ERR(nand_led_trigger))
-+		return PTR_ERR(nand_led_trigger);
++  # echo 0 > memory.force_empty
 +
- 	return 0;
- }
++  Almost all pages tracked by this memcg will be unmapped and freed. Some of
++  pages cannot be freed because it's locked or in-use. Such pages are moved
++  to parent and this cgroup will be empty. But this may return -EBUSY in
++  some too busy case.
++
++  Typical usage of this interface is calling this before rmdir().
++  Because rmdir() moves all pages to parent, some out-of-use page caches can be
++  moved to the parent. If you want to avoid that, force_empty will be useful.
++
++
++6. TODO
  
-diff -puN drivers/power/power_supply_leds.c~led-simplify-led_trigger_register_simple drivers/power/power_supply_leds.c
---- a/drivers/power/power_supply_leds.c~led-simplify-led_trigger_register_simple
-+++ a/drivers/power/power_supply_leds.c
-@@ -11,6 +11,7 @@
+ 1. Add support for accounting huge pages (as a separate controller)
+ 2. Make per-cgroup scanner reclaim not-shared pages first
+diff -puN mm/memcontrol.c~memcg-add-force_empty-again-in-reasonable-style mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-force_empty-again-in-reasonable-style
++++ a/mm/memcontrol.c
+@@ -1062,7 +1062,7 @@ static int mem_cgroup_force_empty_list(s
+  * make mem_cgroup's charge to be 0 if there is no task.
+  * This enables deleting this mem_cgroup.
   */
+-static int mem_cgroup_force_empty(struct mem_cgroup *mem)
++static int mem_cgroup_force_empty(struct mem_cgroup *mem, bool free_all)
+ {
+ 	int ret;
+ 	int node, zid, shrink;
+@@ -1071,12 +1071,17 @@ static int mem_cgroup_force_empty(struct
+ 	css_get(&mem->css);
  
- #include <linux/kernel.h>
-+#include <linux/err.h>
- #include <linux/power_supply.h>
- 
- #include "power_supply.h"
-@@ -63,15 +64,32 @@ static int power_supply_create_bat_trigg
- 	if (!psy->full_trig_name)
- 		goto full_failed;
- 
--	led_trigger_register_simple(psy->charging_full_trig_name,
--				    &psy->charging_full_trig);
--	led_trigger_register_simple(psy->charging_trig_name,
--				    &psy->charging_trig);
--	led_trigger_register_simple(psy->full_trig_name,
--				    &psy->full_trig);
-+	psy->charging_full_trig = led_trigger_register_simple(
-+			psy->charging_full_trig_name);
-+	if (IS_ERR(psy->charging_full_trig)) {
-+		rc = PTR_ERR(psy->charging_full_trig);
-+		goto full_failed;
-+	}
+ 	shrink = 0;
++	/* should free all ? */
++	if (free_all)
++		goto try_to_free;
+ move_account:
+ 	while (mem->res.usage > 0) {
+ 		ret = -EBUSY;
+ 		if (atomic_read(&mem->css.cgroup->count) > 0)
+ 			goto out;
+-
++		ret = -EINTR;
++		if (signal_pending(current))
++			goto out;
+ 		/* This is for making all *used* pages to be on LRU. */
+ 		lru_add_drain_all();
+ 		ret = 0;
+@@ -1111,14 +1116,24 @@ try_to_free:
+ 		ret = -EBUSY;
+ 		goto out;
+ 	}
++	/* we call try-to-free pages for make this cgroup empty */
++	lru_add_drain_all();
+ 	/* try to free all pages in this cgroup */
+ 	shrink = 1;
+ 	while (nr_retries && mem->res.usage > 0) {
+ 		int progress;
 +
-+	psy->charging_trig = led_trigger_register_simple(
-+			psy->charging_trig_name);
-+	if (IS_ERR(psy->charging_trig)) {
-+		rc = PTR_ERR(psy->charging_full_trig);
-+		goto charging_trig_failed;
-+	}
-+
-+	psy->full_trig = led_trigger_register_simple(psy->full_trig_name);
-+	if (IS_ERR(psy->full_trig)) {
-+		rc = PTR_ERR(psy->charging_full_trig);
-+		goto full_trig_failed;
-+	}
++		if (signal_pending(current)) {
++			ret = -EINTR;
++			goto out;
++		}
+ 		progress = try_to_free_mem_cgroup_pages(mem,
+ 						  GFP_HIGHUSER_MOVABLE);
+-		if (!progress)
++		if (!progress) {
+ 			nr_retries--;
++			/* maybe some writeback is necessary */
++			congestion_wait(WRITE, HZ/10);
++		}
  
- 	goto success;
- 
-+full_trig_failed:
-+	led_trigger_unregister_simple(psy->charging_trig);
-+charging_trig_failed:
-+	led_trigger_unregister_simple(psy->charging_full_trig);
- full_failed:
- 	kfree(psy->charging_trig_name);
- charging_failed:
-@@ -117,7 +135,11 @@ static int power_supply_create_gen_trigg
- 	if (!psy->online_trig_name)
- 		goto online_failed;
- 
--	led_trigger_register_simple(psy->online_trig_name, &psy->online_trig);
-+	psy->online_trig = led_trigger_register_simple(psy->online_trig_name);
-+	if (IS_ERR(psy->online_trig)) {
-+		rc = PTR_ERR(psy->online_trig);
-+		goto online_failed;
-+	}
- 
- 	goto success;
- 
-diff -puN drivers/staging/at76_usb/at76_usb.c~led-simplify-led_trigger_register_simple drivers/staging/at76_usb/at76_usb.c
---- a/drivers/staging/at76_usb/at76_usb.c~led-simplify-led_trigger_register_simple
-+++ a/drivers/staging/at76_usb/at76_usb.c
-@@ -29,6 +29,7 @@
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
-+#include <linux/err.h>
- #include <linux/errno.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-@@ -2724,7 +2725,10 @@ static int __init at76_mod_init(void)
- 		printk(KERN_ERR DRIVER_NAME
- 		       ": usb_register failed (status %d)\n", result);
- 
--	led_trigger_register_simple("at76_usb-tx", &ledtrig_tx);
-+	ledtrig_tx = led_trigger_register_simple("at76_usb-tx");
-+	if (IS_ERR(ledtrig_tx))
-+		result = PTR_ERR(ledtrig_tx);
-+
- 	return result;
+ 	}
+ 	/* try move_account...there may be some *locked* pages. */
+@@ -1128,6 +1143,12 @@ try_to_free:
+ 	goto out;
  }
  
-diff -puN include/linux/leds.h~led-simplify-led_trigger_register_simple include/linux/leds.h
---- a/include/linux/leds.h~led-simplify-led_trigger_register_simple
-+++ a/include/linux/leds.h
-@@ -94,8 +94,7 @@ extern void led_trigger_unregister(struc
- /* Registration functions for simple triggers */
- #define DEFINE_LED_TRIGGER(x)		static struct led_trigger *x;
- #define DEFINE_LED_TRIGGER_GLOBAL(x)	struct led_trigger *x;
--extern void led_trigger_register_simple(const char *name,
--				struct led_trigger **trigger);
-+extern struct led_trigger *led_trigger_register_simple(const char *name);
- extern void led_trigger_unregister_simple(struct led_trigger *trigger);
- extern void led_trigger_event(struct led_trigger *trigger,
- 				enum led_brightness event);
-@@ -105,7 +104,7 @@ extern void led_trigger_event(struct led
- /* Triggers aren't active - null macros */
- #define DEFINE_LED_TRIGGER(x)
- #define DEFINE_LED_TRIGGER_GLOBAL(x)
--#define led_trigger_register_simple(x, y) do {} while(0)
-+#define led_trigger_register_simple(x) NULL
- #define led_trigger_unregister_simple(x) do {} while(0)
- #define led_trigger_event(x, y) do {} while(0)
++int mem_cgroup_force_empty_write(struct cgroup *cont, unsigned int event)
++{
++	return mem_cgroup_force_empty(mem_cgroup_from_cont(cont), true);
++}
++
++
+ static u64 mem_cgroup_read(struct cgroup *cont, struct cftype *cft)
+ {
+ 	return res_counter_read_u64(&mem_cgroup_from_cont(cont)->res,
+@@ -1225,6 +1246,7 @@ static int mem_control_stat_show(struct 
+ 	return 0;
+ }
  
++
+ static struct cftype mem_cgroup_files[] = {
+ 	{
+ 		.name = "usage_in_bytes",
+@@ -1253,6 +1275,10 @@ static struct cftype mem_cgroup_files[] 
+ 		.name = "stat",
+ 		.read_map = mem_control_stat_show,
+ 	},
++	{
++		.name = "force_empty",
++		.trigger = mem_cgroup_force_empty_write,
++	},
+ };
+ 
+ static int alloc_mem_cgroup_per_zone_info(struct mem_cgroup *mem, int node)
+@@ -1348,7 +1374,7 @@ static void mem_cgroup_pre_destroy(struc
+ 					struct cgroup *cont)
+ {
+ 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
+-	mem_cgroup_force_empty(mem);
++	mem_cgroup_force_empty(mem, false);
+ }
+ 
+ static void mem_cgroup_destroy(struct cgroup_subsys *ss,
 _
 
-Patches currently in -mm which might be from felipe.balbi@nokia.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-led-simplify-led_trigger_register_simple.patch
+cgroup-fix-potential-deadlock-in-pre_destroy-v2.patch
+cgroups-make-cgroup-config-a-submenu.patch
+memcg-introduce-charge-commit-cancel-style-of-functions.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-fix-gfp_mask-of-callers-of-charge.patch
+memcg-simple-migration-handling.patch
+memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
+memcg-move-all-acccounts-to-parent-at-rmdir.patch
+memcg-add-force_empty-again-in-reasonable-style.patch
 
