@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sparc64-wire-up-accept4.patch added to -mm tree
-Date: Thu, 13 Nov 2008 16:32:24 -0800
-Message-ID: <200811140032.mAE0WOuT023315@imap1.linux-foundation.org>
+Subject: + kprobes-support-probing-module-__init-function.patch added to -mm tree
+Date: Thu, 13 Nov 2008 16:29:00 -0800
+Message-ID: <200811140029.mAE0T0Bw021537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40010 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59094 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752347AbYKNAcl (ORCPT
+	by vger.kernel.org with ESMTP id S1751345AbYKNAfY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 19:32:41 -0500
+	Thu, 13 Nov 2008 19:35:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, drepper@redhat.com, mtk.manpages@gmail.com
+Cc: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com
 
 
 The patch titled
-     sparc64: wire up accept4()
+     kprobes: support probing module __init function
 has been added to the -mm tree.  Its filename is
-     sparc64-wire-up-accept4.patch
+     kprobes-support-probing-module-__init-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc64: wire up accept4()
-From: David Miller <davem@davemloft.net>
+Subject: kprobes: support probing module __init function
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-This adds the sparc syscall hookups.
+Allow kprobes to probe module __init routines.  When __init functions are
+freed, kprobes which probe those functions are set to "Gone" flag.  These
+"Gone" probes are disarmed from the code and never be enabled.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/unistd_32.h |    3 ++-
- arch/sparc/include/asm/unistd_64.h |    3 ++-
- arch/sparc/kernel/systbls.S        |    2 +-
- arch/sparc64/kernel/sys32.S        |   13 ++++++++++++-
- arch/sparc64/kernel/systbls.S      |    4 ++--
- 5 files changed, 19 insertions(+), 6 deletions(-)
+ kernel/kprobes.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
-diff -puN arch/sparc/include/asm/unistd_32.h~sparc64-wire-up-accept4 arch/sparc/include/asm/unistd_32.h
---- a/arch/sparc/include/asm/unistd_32.h~sparc64-wire-up-accept4
-+++ a/arch/sparc/include/asm/unistd_32.h
-@@ -338,8 +338,9 @@
- #define __NR_dup3		320
- #define __NR_pipe2		321
- #define __NR_inotify_init1	322
-+#define __NR_accept4		323
+diff -puN kernel/kprobes.c~kprobes-support-probing-module-__init-function kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-support-probing-module-__init-function
++++ a/kernel/kprobes.c
+@@ -674,6 +674,16 @@ int __kprobes register_kprobe(struct kpr
+ 			preempt_enable();
+ 			return -EINVAL;
+ 		}
++		/*
++		 * If the module freed .init.text, we couldn't insert
++		 * kprobes in there.
++		 */
++		if (within_module_init((unsigned long)p->addr, probed_mod) &&
++		    probed_mod->state != MODULE_STATE_COMING) {
++			module_put(probed_mod);
++			preempt_enable();
++			return -EINVAL;
++		}
+ 	}
+ 	preempt_enable();
  
--#define NR_SYSCALLS		323
-+#define NR_SYSCALLS		324
+@@ -1070,19 +1080,24 @@ static int __kprobes kprobes_module_call
+ 	struct hlist_node *node;
+ 	struct kprobe *p;
+ 	unsigned int i;
++	int checkcore = (val == MODULE_STATE_GOING);
  
- /* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
-  * it never had the plain ones and there is no value to adding those
-diff -puN arch/sparc/include/asm/unistd_64.h~sparc64-wire-up-accept4 arch/sparc/include/asm/unistd_64.h
---- a/arch/sparc/include/asm/unistd_64.h~sparc64-wire-up-accept4
-+++ a/arch/sparc/include/asm/unistd_64.h
-@@ -340,8 +340,9 @@
- #define __NR_dup3		320
- #define __NR_pipe2		321
- #define __NR_inotify_init1	322
-+#define __NR_accept4		323
+-	if (val != MODULE_STATE_GOING)
++	if (val != MODULE_STATE_GOING && val != MODULE_STATE_LIVE)
+ 		return NOTIFY_DONE;
  
--#define NR_SYSCALLS		323
-+#define NR_SYSCALLS		324
- 
- #ifdef __KERNEL__
- #define __ARCH_WANT_IPC_PARSE_VERSION
-diff -puN arch/sparc/kernel/systbls.S~sparc64-wire-up-accept4 arch/sparc/kernel/systbls.S
---- a/arch/sparc/kernel/systbls.S~sparc64-wire-up-accept4
-+++ a/arch/sparc/kernel/systbls.S
-@@ -81,4 +81,4 @@ sys_call_table:
- /*305*/	.long sys_set_mempolicy, sys_kexec_load, sys_move_pages, sys_getcpu, sys_epoll_pwait
- /*310*/	.long sys_utimensat, sys_signalfd, sys_timerfd_create, sys_eventfd, sys_fallocate
- /*315*/	.long sys_timerfd_settime, sys_timerfd_gettime, sys_signalfd4, sys_eventfd2, sys_epoll_create1
--/*320*/	.long sys_dup3, sys_pipe2, sys_inotify_init1
-+/*320*/	.long sys_dup3, sys_pipe2, sys_inotify_init1, sys_accept4
-diff -puN arch/sparc64/kernel/sys32.S~sparc64-wire-up-accept4 arch/sparc64/kernel/sys32.S
---- a/arch/sparc64/kernel/sys32.S~sparc64-wire-up-accept4
-+++ a/arch/sparc64/kernel/sys32.S
-@@ -150,7 +150,7 @@ sys32_mmap2:
- sys32_socketcall:	/* %o0=call, %o1=args */
- 	cmp		%o0, 1
- 	bl,pn		%xcc, do_einval
--	 cmp		%o0, 17
-+	 cmp		%o0, 18
- 	bg,pn		%xcc, do_einval
- 	 sub		%o0, 1, %o0
- 	sllx		%o0, 5, %o0
-@@ -319,6 +319,15 @@ do_sys_recvmsg: /* compat_sys_recvmsg(in
- 	nop
- 	nop
- 	nop
-+do_sys_accept4: /* sys_accept4(int, struct sockaddr *, int *, int) */
-+63:	ldswa		[%o1 + 0x0] %asi, %o0
-+	sethi		%hi(sys_accept4), %g1
-+64:	lduwa		[%o1 + 0x8] %asi, %o2
-+65:	ldswa		[%o1 + 0xc] %asi, %o3
-+	jmpl		%g1 + %lo(sys_accept4), %g0
-+66:	 lduwa		[%o1 + 0x4] %asi, %o1
-+	nop
-+	nop
- 
- 	.section	__ex_table,"a"
- 	.align		4
-@@ -353,4 +362,6 @@ do_sys_recvmsg: /* compat_sys_recvmsg(in
- 	.word		57b, __retl_efault, 58b, __retl_efault
- 	.word		59b, __retl_efault, 60b, __retl_efault
- 	.word		61b, __retl_efault, 62b, __retl_efault
-+	.word		63b, __retl_efault, 64b, __retl_efault
-+	.word		65b, __retl_efault, 66b, __retl_efault
- 	.previous
-diff -puN arch/sparc64/kernel/systbls.S~sparc64-wire-up-accept4 arch/sparc64/kernel/systbls.S
---- a/arch/sparc64/kernel/systbls.S~sparc64-wire-up-accept4
-+++ a/arch/sparc64/kernel/systbls.S
-@@ -82,7 +82,7 @@ sys_call_table32:
- 	.word compat_sys_set_mempolicy, compat_sys_kexec_load, compat_sys_move_pages, sys_getcpu, compat_sys_epoll_pwait
- /*310*/	.word compat_sys_utimensat, compat_sys_signalfd, sys_timerfd_create, sys_eventfd, compat_sys_fallocate
- 	.word compat_sys_timerfd_settime, compat_sys_timerfd_gettime, compat_sys_signalfd4, sys_eventfd2, sys_epoll_create1
--/*320*/	.word sys_dup3, sys_pipe2, sys_inotify_init1
-+/*320*/	.word sys_dup3, sys_pipe2, sys_inotify_init1, sys_accept4
- 
- #endif /* CONFIG_COMPAT */
- 
-@@ -156,4 +156,4 @@ sys_call_table:
- 	.word sys_set_mempolicy, sys_kexec_load, sys_move_pages, sys_getcpu, sys_epoll_pwait
- /*310*/	.word sys_utimensat, sys_signalfd, sys_timerfd_create, sys_eventfd, sys_fallocate
- 	.word sys_timerfd_settime, sys_timerfd_gettime, sys_signalfd4, sys_eventfd2, sys_epoll_create1
--/*320*/	.word sys_dup3, sys_pipe2, sys_inotify_init1
-+/*320*/	.word sys_dup3, sys_pipe2, sys_inotify_init1, sys_accept4
+ 	/*
+-	 * module .text section will be freed. We need to
+-	 * disable kprobes which have been inserted in the section.
++	 * When MODULE_STATE_GOING was notified, both of module .text and
++	 * .init.text sections would be freed. When MODULE_STATE_LIVE was
++	 * notified, only .init.text section would be freed. We need to
++	 * disable kprobes which have been inserted in the sections.
+ 	 */
+ 	mutex_lock(&kprobe_mutex);
+ 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
+ 		head = &kprobe_table[i];
+ 		hlist_for_each_entry_rcu(p, node, head, hlist)
+-			if (within_module_core((unsigned long)p->addr, mod)) {
++			if (within_module_init((unsigned long)p->addr, mod) ||
++			    (checkcore &&
++			     within_module_core((unsigned long)p->addr, mod))) {
+ 				/*
+ 				 * The vaddr this probe is installed will soon
+ 				 * be vfreed buy not synced to disk. Hence,
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
 origin.patch
-sparc64-wire-up-accept4.patch
-linux-next.patch
-net-tipc-bcasth-use-array_size.patch
+kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
 kprobes-indirectly-call-kprobe_target.patch
 kprobes-add-tests-for-register_kprobes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+module-add-within_module_core-and-within_module_init.patch
+kprobes-add-kprobe_insn_mutex-and-cleanup-arch_remove_kprobe.patch
+kprobes-add-__kprobes-to-kprobe-internal-functions.patch
+kprobes-support-probing-module-__exit-function.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-remove-called_from-argument.patch
+kprobes-remove-called_from-argument-fix.patch
+module-add-module_state_live-notify.patch
+kprobes-support-probing-module-__init-function.patch
 
