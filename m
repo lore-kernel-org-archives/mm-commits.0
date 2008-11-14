@@ -1,89 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-bfin-async-flash-use-parse_mtd.patch removed from -mm tree
-Date: Fri, 14 Nov 2008 14:25:40 -0800
-Message-ID: <200811142225.mAEMPeVw024266@imap1.linux-foundation.org>
+Subject: - mtd-unify-mtd-partition-device-registration-fix.patch removed from -mm tree
+Date: Fri, 14 Nov 2008 14:25:35 -0800
+Message-ID: <200811142225.mAEMPZ61024192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34455 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34551 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755528AbYKNWZp (ORCPT
+	by vger.kernel.org with ESMTP id S1754268AbYKNWZk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 17:25:45 -0500
+	Fri, 14 Nov 2008 17:25:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, anemo@mba.ocn.ne.jp, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, anemo@mba.ocn.ne.jp, dwmw2@infradead.org, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd/bfin-async-flash: use parse_mtd()
+     mtd-unify-mtd-partition-device-registration-fix
 has been removed from the -mm tree.  Its filename was
-     mtd-bfin-async-flash-use-parse_mtd.patch
+     mtd-unify-mtd-partition-device-registration-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/bfin-async-flash: use parse_mtd()
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: mtd-unify-mtd-partition-device-registration-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Call parse_mtd() to handle partition/device registration rather than doing
-it all ourself.
+          text    data     bss     dec     hex filename
+before:   2488      88     132    2708     a94 drivers/mtd/mtdcore.o
+after:    2456     100     132    2688     a80 drivers/mtd/mtdcore.o
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/bfin-async-flash.c |   28 ++------------------------
- 1 file changed, 3 insertions(+), 25 deletions(-)
+ drivers/mtd/mtdcore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/maps/bfin-async-flash.c~mtd-bfin-async-flash-use-parse_mtd drivers/mtd/maps/bfin-async-flash.c
---- a/drivers/mtd/maps/bfin-async-flash.c~mtd-bfin-async-flash-use-parse_mtd
-+++ a/drivers/mtd/maps/bfin-async-flash.c
-@@ -120,13 +120,8 @@ static void bfin_copy_to(struct map_info
- 	switch_back(state);
- }
- 
--#ifdef CONFIG_MTD_PARTITIONS
--static const char *part_probe_types[] = { "cmdlinepart", "RedBoot", NULL };
--#endif
--
- static int __devinit bfin_flash_probe(struct platform_device *pdev)
+diff -puN drivers/mtd/mtdcore.c~mtd-unify-mtd-partition-device-registration-fix drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~mtd-unify-mtd-partition-device-registration-fix
++++ a/drivers/mtd/mtdcore.c
+@@ -306,7 +306,7 @@ int parse_mtd(struct mtd_info *mtd, cons
+               struct mtd_partition *parts, int nr_parts)
  {
--	int ret;
- 	struct physmap_flash_data *pdata = pdev->dev.platform_data;
- 	struct resource *memory = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	struct resource *flash_ambctl = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-@@ -150,6 +145,8 @@ static int __devinit bfin_flash_probe(st
- 	state->flash_ambctl0  = flash_ambctl->start;
- 	state->flash_ambctl1  = flash_ambctl->end;
- 
-+	platform_set_drvdata(pdev, state);
-+
- 	if (gpio_request(state->enet_flash_pin, DRIVER_NAME)) {
- 		pr_devinit(KERN_ERR DRIVER_NAME ": Failed to request gpio %d\n", state->enet_flash_pin);
- 		return -EBUSY;
-@@ -161,26 +158,7 @@ static int __devinit bfin_flash_probe(st
- 	if (!state->mtd)
- 		return -ENXIO;
- 
--#ifdef CONFIG_MTD_PARTITIONS
--	ret = parse_mtd_partitions(state->mtd, part_probe_types, &pdata->parts, 0);
--	if (ret > 0) {
--		pr_devinit(KERN_NOTICE DRIVER_NAME ": Using commandline partition definition\n");
--		add_mtd_partitions(state->mtd, pdata->parts, ret);
--
--	} else if (pdata->nr_parts) {
--		pr_devinit(KERN_NOTICE DRIVER_NAME ": Using board partition definition\n");
--		add_mtd_partitions(state->mtd, pdata->parts, pdata->nr_parts);
--
--	} else
--#endif
--	{
--		pr_devinit(KERN_NOTICE DRIVER_NAME ": no partition info available, registering whole flash at once\n");
--		add_mtd_device(state->mtd);
--	}
--
--	platform_set_drvdata(pdev, state);
+ #ifdef CONFIG_MTD_PARTITIONS
+-	const char *default_part_probe_types[] = {
++	static const char *default_part_probe_types[] = {
+ 		"cmdlinepart",
+ 		"RedBoot",
+ 		NULL
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+mtd-unify-mtd-partition-device-registration-fix.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+
