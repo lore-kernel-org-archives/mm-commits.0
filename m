@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-unify-mtd-partition-device-registration.patch removed from -mm tree
-Date: Fri, 14 Nov 2008 14:25:32 -0800
-Message-ID: <200811142225.mAEMPWaw024177@imap1.linux-foundation.org>
+Subject: - mtd-physmap-use-parse_mtd.patch removed from -mm tree
+Date: Fri, 14 Nov 2008 14:25:38 -0800
+Message-ID: <200811142225.mAEMPcrF024195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45719 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754110AbYKNWZj (ORCPT
+	by vger.kernel.org with ESMTP id S1755368AbYKNWZn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 17:25:39 -0500
+	Fri, 14 Nov 2008 17:25:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vapier@gentoo.org, anemo@mba.ocn.ne.jp, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: unify mtd partition/device registration
+     mtd/physmap: use parse_mtd()
 has been removed from the -mm tree.  Its filename was
-     mtd-unify-mtd-partition-device-registration.patch
+     mtd-physmap-use-parse_mtd.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: unify mtd partition/device registration
+Subject: mtd/physmap: use parse_mtd()
 From: Mike Frysinger <vapier@gentoo.org>
 
-Rather than having every map/mtd driver doing the same sequence of
-registering partitions and/or devices, implement common parse_mtd().
+Call parse_mtd() to handle partition/device registration rather than doing
+it all ourself.
 
 Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
@@ -36,82 +36,38 @@ Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdcore.c   |   37 +++++++++++++++++++++++++++++++++++++
- include/linux/mtd/mtd.h |    3 +++
- 2 files changed, 40 insertions(+)
+ drivers/mtd/maps/physmap.c |   23 ++---------------------
+ 1 file changed, 2 insertions(+), 21 deletions(-)
 
-diff -puN drivers/mtd/mtdcore.c~mtd-unify-mtd-partition-device-registration drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~mtd-unify-mtd-partition-device-registration
-+++ a/drivers/mtd/mtdcore.c
-@@ -292,6 +292,43 @@ void put_mtd_device(struct mtd_info *mtd
- 	module_put(mtd->owner);
+diff -puN drivers/mtd/maps/physmap.c~mtd-physmap-use-parse_mtd drivers/mtd/maps/physmap.c
+--- a/drivers/mtd/maps/physmap.c~mtd-physmap-use-parse_mtd
++++ a/drivers/mtd/maps/physmap.c
+@@ -79,9 +79,6 @@ static int physmap_flash_remove(struct p
  }
  
-+#include <linux/mtd/partitions.h>
-+
-+/**
-+ *	parse_mtd - add partitions / devices
-+ *
-+ *	If partitioning support is enabled, attempt to call parse_mtd_partitions()
-+ *	and add_mtd_partitions() with all available parsers.  Otherwise just add
-+ *	the MTD device.
-+ */
-+
-+int parse_mtd(struct mtd_info *mtd, const char **probe_types,
-+              struct mtd_partition *parts, int nr_parts)
-+{
-+#ifdef CONFIG_MTD_PARTITIONS
-+	const char *default_part_probe_types[] = {
-+		"cmdlinepart",
-+		"RedBoot",
-+		NULL
-+	};
-+	int ret;
-+
-+	if (!probe_types)
-+		probe_types = default_part_probe_types;
-+
-+	ret = parse_mtd_partitions(mtd, probe_types, &parts, 0);
-+	if (ret > 0) {
-+		ret = add_mtd_partitions(mtd, parts, ret);
-+		kfree(parts);
-+		return ret;
-+	} else if (nr_parts)
-+		return add_mtd_partitions(mtd, parts, nr_parts);
-+#endif
-+
-+	return add_mtd_device(mtd);
-+}
-+EXPORT_SYMBOL(parse_mtd);
-+
- /* default_mtd_writev - default mtd writev method for MTD devices that
-  *			don't implement their own
-  */
-diff -puN include/linux/mtd/mtd.h~mtd-unify-mtd-partition-device-registration include/linux/mtd/mtd.h
---- a/include/linux/mtd/mtd.h~mtd-unify-mtd-partition-device-registration
-+++ a/include/linux/mtd/mtd.h
-@@ -232,6 +232,9 @@ extern struct mtd_info *get_mtd_device_n
+ static const char *rom_probe_types[] = { "cfi_probe", "jedec_probe", "map_rom", NULL };
+-#ifdef CONFIG_MTD_PARTITIONS
+-static const char *part_probe_types[] = { "cmdlinepart", "RedBoot", NULL };
+-#endif
  
- extern void put_mtd_device(struct mtd_info *mtd);
+ static int physmap_flash_probe(struct platform_device *dev)
+ {
+@@ -171,24 +168,8 @@ static int physmap_flash_probe(struct pl
+ 	if (err)
+ 		goto err_out;
  
-+struct mtd_partition;
-+int parse_mtd(struct mtd_info *mtd, const char **probe_types,
-+              struct mtd_partition *parts, int nr_parts);
- 
- struct mtd_notifier {
- 	void (*add)(struct mtd_info *mtd);
-_
-
-Patches currently in -mm which might be from vapier@gentoo.org are
-
-origin.patch
-linux-next.patch
-linux-timexh-cleanup-for-userspace.patch
-m25p80-fix-detection-of-spi-parts.patch
-m25p80-fix-detection-of-m25p16-flashes.patch
-mtd-unify-mtd-partition-device-registration.patch
-mtd-unify-mtd-partition-device-registration-fix.patch
-mtd-physmap-use-parse_mtd.patch
-mtd-bfin-async-flash-use-parse_mtd.patch
-linux-serialh-touchup-for-userspace.patch
-
+-#ifdef CONFIG_MTD_PARTITIONS
+-	err = parse_mtd_partitions(info->cmtd, part_probe_types, &parts, 0);
+-	if (err > 0) {
+-		add_mtd_partitions(info->cmtd, parts, err);
+-		kfree(parts);
+-		return 0;
+-	}
+-
+-	if (physmap_data->nr_parts) {
+-		printk(KERN_NOTICE "Using physmap partition information\n");
+-		add_mtd_partitions(info->cmtd, physmap_data->parts,
+-				   physmap_data->nr_parts);
+-		return 0;
+-	}
+-#endif
