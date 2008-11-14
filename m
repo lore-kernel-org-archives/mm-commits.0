@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-fix-leak-of-uninitialized-data-to-userspace-2.patch added to -mm tree
-Date: Thu, 13 Nov 2008 16:36:14 -0800
-Message-ID: <200811140036.mAE0aERF025149@imap1.linux-foundation.org>
+Subject: + documentation-kernel-parameterstxt-add-min_addr-fix-max_addr.patch added to -mm tree
+Date: Thu, 13 Nov 2008 16:37:15 -0800
+Message-ID: <200811140037.mAE0bF8U025704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49826 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751420AbYKNAgX (ORCPT
+	by vger.kernel.org with ESMTP id S1751717AbYKNAh0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 19:36:23 -0500
+	Thu, 13 Nov 2008 19:37:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vegard.nossum@gmail.com, airlied@linux.ie, sitsofe@yahoo.com, vegardno@thuin.ifi.uio.no
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     drm: fix leak of uninitialized data to userspace
+     Documentation/kernel-parameters.txt: add min_addr, fix max_addr
 has been added to the -mm tree.  Its filename is
-     drm-fix-leak-of-uninitialized-data-to-userspace-2.patch
+     documentation-kernel-parameterstxt-add-min_addr-fix-max_addr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: fix leak of uninitialized data to userspace
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: Documentation/kernel-parameters.txt: add min_addr, fix max_addr
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-On Fri, Oct 10, 2008 at 10:54 AM, Sitsofe Wheeler <sitsofe@yahoo.com> wrote:
->
-> [  175.375036] WARNING: kmemcheck: Caught 32-bit read from uninitialized memory (f65d2294)
-> [  175.375049] 7063693a303030303a30303a30322e3000a76c080800000000a76c080e000000
-> [  175.375096]  i i i i i i i i i i i i i i i i i u u u u u u u u u u u u u u u
-> [  175.375137]                                          ^
-> [  175.375142]
-> [  175.375148] Pid: 2288, comm: Xorg Not tainted (2.6.27-tipskw-00069-g37cb0b7-dirty #81) 900
-> [  175.375155] EIP: 0060:[<c020d283>] EFLAGS: 00003246 CPU: 0
-> [  175.375169] EIP is at __copy_to_user_ll+0x43/0x60
-> [  175.375174] EAX: 00000000 EBX: 00000028 ECX: 00000005 EDX: f65d2280
-> [  175.375180] ESI: f65d2294 EDI: 086cb6b4 EBP: f631bef4 ESP: c055bd68
-> [  175.375186]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-> [  175.375191] CR0: 8005003b CR2: f67c1c44 CR3: 36368000 CR4: 000006c0
-> [  175.375197] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-> [  175.375202] DR6: ffff4ff0 DR7: 00000400
-> [  175.375206]  [<c020d6f3>] copy_to_user+0x43/0x60
-> [  175.375214]  [<c028df28>] drm_getunique+0x38/0x50
-> [  175.375224]  [<c028d329>] drm_ioctl+0x1b9/0x2f0
-> [  175.375231]  [<c0188a07>] vfs_ioctl+0x67/0x70
-> [  175.375239]  [<c0188a6c>] do_vfs_ioctl+0x5c/0x270
-> [  175.375246]  [<c0188cbe>] sys_ioctl+0x3e/0x60
-> [  175.375253]  [<c010336d>] sysenter_do_call+0x12/0x35
-> [  175.375261]  [<ffffffff>] 0xffffffff
+Add "min_addr" documentation.
+For "max_addr", add nn before [KMG] since a number is needed and this
+is consistent with other uses of [KMG].
 
-The hexdump decodes to:
-
-vegardno@thuin ~ $ ./a.out 7063693a303030303a30303a30322e3000a76c080800000000a76c080e000000
-pci:0000:00:02.0<0><167>l<8><8><0><0><0><0><167>l<8><14><0><0><0>
-
-...so drm_getunique() is trying to copy some uninitialized data to
-userspace. The ECX register contains the number of words that are
-left to copy -- so there are 5 * 4 = 20 bytes left. The offset of the
-first uninitialized byte (counting from the start of the string) is
-also 20 (i.e. 0xf65d2294&((1 << 5)-1) == 20). So somebody tried to
-copy 40 bytes when the string was only 19 long.
-
-In drm_set_busid() we have this code:
-
-        dev->unique_len = 40;
-        dev->unique = drm_alloc(dev->unique_len + 1, DRM_MEM_DRIVER);
-	...
-        len = snprintf(dev->unique, dev->unique_len, "pci:%04x:%02x:%02x.%d",
-
-...so it seems that dev->unique is never updated to reflect the
-actual length of the string. The remaining bytes (20 in this case)
-are random uninitialized bytes that are copied into userspace.
-
-This patch fixes the problem by setting dev->unique_len after the
-snprintf().
-
-Reported-by: Sitsofe Wheeler <sitsofe@yahoo.com>
-Signed-off-by: Vegard Nossum <vegardno@thuin.ifi.uio.no>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_ioctl.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Documentation/kernel-parameters.txt |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_ioctl.c~drm-fix-leak-of-uninitialized-data-to-userspace-2 drivers/gpu/drm/drm_ioctl.c
---- a/drivers/gpu/drm/drm_ioctl.c~drm-fix-leak-of-uninitialized-data-to-userspace-2
-+++ a/drivers/gpu/drm/drm_ioctl.c
-@@ -133,7 +133,7 @@ static int drm_set_busid(struct drm_devi
- 		return 0;
+diff -puN Documentation/kernel-parameters.txt~documentation-kernel-parameterstxt-add-min_addr-fix-max_addr Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~documentation-kernel-parameterstxt-add-min_addr-fix-max_addr
++++ a/Documentation/kernel-parameters.txt
+@@ -1218,8 +1218,8 @@ and is between 256 and 4096 characters. 
+ 			it is equivalent to "nosmp", which also disables
+ 			the IO APIC.
  
- 	dev->unique_len = 40;
--	dev->unique = drm_alloc(dev->unique_len + 1, DRM_MEM_DRIVER);
-+	dev->unique = drm_alloc(dev->unique_len, DRM_MEM_DRIVER);
- 	if (dev->unique == NULL)
- 		return -ENOMEM;
+-	max_addr=[KMG]	[KNL,BOOT,ia64] All physical memory greater than or
+-			equal to this physical address is ignored.
++	max_addr=nn[KMG]	[KNL,BOOT,ia64] All physical memory greater than
++			or equal to this physical address is ignored.
  
-@@ -142,8 +142,10 @@ static int drm_set_busid(struct drm_devi
- 		       PCI_SLOT(dev->pdev->devfn),
- 		       PCI_FUNC(dev->pdev->devfn));
+ 	max_luns=	[SCSI] Maximum number of LUNs to probe.
+ 			Should be between 1 and 2^32-1.
+@@ -1319,6 +1319,9 @@ and is between 256 and 4096 characters. 
  
--	if (len > dev->unique_len)
-+	if (len >= dev->unique_len)
- 		DRM_ERROR("Unique buffer overflowed\n");
-+	else
-+		dev->unique_len = len;
+ 	mga=		[HW,DRM]
  
- 	dev->devname =
- 	    drm_alloc(strlen(dev->driver->pci_driver.name) + dev->unique_len +
++	min_addr=nn[KMG]	[KNL,BOOT,ia64] All physical memory below this
++			physical address is ignored.
++
+ 	mminit_loglevel=
+ 			[KNL] When CONFIG_DEBUG_MEMORY_INIT is set, this
+ 			parameter allows control of the logging verbosity for
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+origin.patch
 linux-next.patch
-drm-fix-leak-of-uninitialized-data-to-userspace-2.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+audit-remove-excess-kernel-doc.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+mtd-remove-excess-kernel-doc-notation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+fusion-remove-excess-kernel-doc-notation.patch
+block-remove-excess-kernel-doc.patch
+drivers-staging-usbip-stub_txc-cleanup-kerneldoc.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+drivers-message-i2o-iopc-cleanup-kerneldoc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+documentation-move-ioctl-numbertxt-to-doc-ioctl.patch
+documentation-move-msi-howtotxt-to-doc-pci.patch
+profile-likely-unlikely-macros.patch
+documentation-kernel-parameterstxt-add-min_addr-fix-max_addr.patch
 
