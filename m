@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 14 Nov 2008 13:33:01 -0800
-Message-ID: <200811142133.mAELX1Me030385@imap1.linux-foundation.org>
+Subject: + mtd-unify-mtd-partition-device-registration-fix.patch added to -mm tree
+Date: Fri, 14 Nov 2008 13:41:27 -0800
+Message-ID: <200811142141.mAELfSm0002352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39681 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752041AbYKNVdY (ORCPT
+	by vger.kernel.org with ESMTP id S1755588AbYKNVle (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 16:33:24 -0500
+	Fri, 14 Nov 2008 16:41:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, anemo@mba.ocn.ne.jp, dwmw2@infradead.org, vapier@gentoo.org
 
 
 The patch titled
-     add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes
+     mtd-unify-mtd-partition-device-registration-fix
 has been added to the -mm tree.  Its filename is
-     add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+     mtd-unify-mtd-partition-device-registration-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes
+Subject: mtd-unify-mtd-partition-device-registration-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#43: FILE: include/linux/kernel.h:343:
-+        printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)$
+          text    data     bss     dec     hex filename
+before:   2488      88     132    2708     a94 drivers/mtd/mtdcore.o
+after:    2456     100     132    2688     a80 drivers/mtd/mtdcore.o
 
-ERROR: code indent should use tabs where possible
-#45: FILE: include/linux/kernel.h:345:
-+        printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#47: FILE: include/linux/kernel.h:347:
-+        printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#49: FILE: include/linux/kernel.h:349:
-+        printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#51: FILE: include/linux/kernel.h:351:
-+        printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#53: FILE: include/linux/kernel.h:353:
-+        printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#55: FILE: include/linux/kernel.h:355:
-+        printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)$
-
-total: 7 errors, 0 warnings, 55 lines checked
-
-./patches/add-pr_prefix-to-pr_xyz-macros.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/mtd/mtdcore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes include/linux/kernel.h
---- a/include/linux/kernel.h~add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes
-+++ a/include/linux/kernel.h
-@@ -340,19 +340,19 @@ static inline char *pack_hex_byte(char *
- #endif
- 
- #define pr_emerg(fmt, ...) \
--        printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_alert(fmt, ...) \
--        printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_crit(fmt, ...) \
--        printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_err(fmt, ...) \
--        printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_warning(fmt, ...) \
--        printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_notice(fmt, ...) \
--        printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_info(fmt, ...) \
--        printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
- 
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(CONFIG_DYNAMIC_PRINTK_DEBUG)
+diff -puN drivers/mtd/mtdcore.c~mtd-unify-mtd-partition-device-registration-fix drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~mtd-unify-mtd-partition-device-registration-fix
++++ a/drivers/mtd/mtdcore.c
+@@ -306,7 +306,7 @@ int parse_mtd(struct mtd_info *mtd, cons
+               struct mtd_partition *parts, int nr_parts)
+ {
+ #ifdef CONFIG_MTD_PARTITIONS
+-	const char *default_part_probe_types[] = {
++	static const char *default_part_probe_types[] = {
+ 		"cmdlinepart",
+ 		"RedBoot",
+ 		NULL
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +75,7 @@ tick-schedc-suppress-needless-timer-reprogramming.patch
 linux-timexh-cleanup-for-userspace.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+mtd-unify-mtd-partition-device-registration-fix.patch
 pci-uninline-pci_ioremap_bar.patch
 pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
 vfs-lseekfd-0-seek_cur-race-condition-fix.patch
