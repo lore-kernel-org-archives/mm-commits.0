@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-fix-potential-deadlock-in-pre_destroy-v2.patch added to -mm tree
-Date: Thu, 13 Nov 2008 16:56:20 -0800
-Message-ID: <200811140056.mAE0uKVZ002581@imap1.linux-foundation.org>
+Subject: + gpiolib-extend-gpio-label-column-width-in-debugfs-file.patch added to -mm tree
+Date: Thu, 13 Nov 2008 17:02:50 -0800
+Message-ID: <200811140102.mAE12ora005916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751129AbYKNA5E (ORCPT
+	by vger.kernel.org with ESMTP id S1754071AbYKNBD1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Nov 2008 19:57:04 -0500
+	Thu, 13 Nov 2008 20:03:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
+Cc: jarkko.nikula@nokia.com, david-b@pacbell.net, stable@kernel.org
 
 
 The patch titled
-     cgroup: fix potential deadlock in pre_destroy
+     gpiolib: extend gpio label column width in debugfs file
 has been added to the -mm tree.  Its filename is
-     cgroup-fix-potential-deadlock-in-pre_destroy-v2.patch
+     gpiolib-extend-gpio-label-column-width-in-debugfs-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: fix potential deadlock in pre_destroy
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: gpiolib: extend gpio label column width in debugfs file
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-As Balbir pointed out, memcg's pre_destroy handler has potential deadlock.
+There are already various drivers having bigger label than 12 bytes.  Most
+of them fit well under 20 bytes but make column width exact so that
+oversized labels don't mess up output alignment.
 
-It has following lock sequence.
-
-	cgroup_mutex (cgroup_rmdir)
-	    -> pre_destroy -> mem_cgroup_pre_destroy-> force_empty
-		-> cpu_hotplug.lock. (lru_add_drain_all->
-				      schedule_work->
-                                      get_online_cpus)
-
-But, cpuset has following.
-	cpu_hotplug.lock (call notifier)
-		-> cgroup_mutex. (within notifier)
-
-Then, this lock sequence should be fixed.
-
-Considering how pre_destroy works, it's not necessary to holding
-cgroup_mutex() while calling it.
-
-As a side effect, we don't have to wait at this mutex while memcg's
-force_empty works.(it can be long when there are tons of pages.)
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: <stable@kernel.org>		[2.6.26.x, 2.6.26.x, 2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/gpio/gpiolib.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroup-fix-potential-deadlock-in-pre_destroy-v2 kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-fix-potential-deadlock-in-pre_destroy-v2
-+++ a/kernel/cgroup.c
-@@ -2472,10 +2472,7 @@ static int cgroup_rmdir(struct inode *un
- 		mutex_unlock(&cgroup_mutex);
- 		return -EBUSY;
- 	}
--
--	parent = cgrp->parent;
--	root = cgrp->root;
--	sb = root->sb;
-+	mutex_unlock(&cgroup_mutex);
+diff -puN drivers/gpio/gpiolib.c~gpiolib-extend-gpio-label-column-width-in-debugfs-file drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-extend-gpio-label-column-width-in-debugfs-file
++++ a/drivers/gpio/gpiolib.c
+@@ -1134,7 +1134,7 @@ static void gpiolib_dbg_show(struct seq_
+ 			continue;
  
- 	/*
- 	 * Call pre_destroy handlers of subsys. Notify subsystems
-@@ -2483,7 +2480,14 @@ static int cgroup_rmdir(struct inode *un
- 	 */
- 	cgroup_call_pre_destroy(cgrp);
- 
--	if (cgroup_has_css_refs(cgrp)) {
-+	mutex_lock(&cgroup_mutex);
-+	parent = cgrp->parent;
-+	root = cgrp->root;
-+	sb = root->sb;
-+
-+	if (atomic_read(&cgrp->count)
-+	    || !list_empty(&cgrp->children)
-+	    || cgroup_has_css_refs(cgrp)) {
- 		mutex_unlock(&cgroup_mutex);
- 		return -EBUSY;
- 	}
+ 		is_out = test_bit(FLAG_IS_OUT, &gdesc->flags);
+-		seq_printf(s, " gpio-%-3d (%-12s) %s %s",
++		seq_printf(s, " gpio-%-3d (%-20.20s) %s %s",
+ 			gpio, gdesc->label,
+ 			is_out ? "out" : "in ",
+ 			chip->get
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from jarkko.nikula@nokia.com are
 
-origin.patch
-cgroup-fix-potential-deadlock-in-pre_destroy-v2.patch
-cgroups-make-cgroup-config-a-submenu.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-fix-gfp_mask-of-callers-of-charge.patch
-memcg-simple-migration-handling.patch
-memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
+gpiolib-extend-gpio-label-column-width-in-debugfs-file.patch
 
