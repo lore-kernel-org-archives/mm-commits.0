@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dont-unlink-an-active-swapfile.patch added to -mm tree
-Date: Fri, 14 Nov 2008 16:41:30 -0800
-Message-ID: <200811150041.mAF0fUEp026567@imap1.linux-foundation.org>
+Subject: + mm-remove-unevictables-show_page_path.patch added to -mm tree
+Date: Fri, 14 Nov 2008 16:55:05 -0800
+Message-ID: <200811150055.mAF0t51W000864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49672 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751176AbYKOAm5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751705AbYKOAz2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 19:42:57 -0500
+	Fri, 14 Nov 2008 19:55:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, 7eggert@gmx.de, davidn@davidnewall.com, hch@infradead.org, peter@cordes.ca, peterz@infradead.org, w@1wt.eu
+Cc: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, hugh@veritas.com, riel@redhat.com
 
 
 The patch titled
-     don't unlink an active swapfile
+     mm: remove unevictable's show_page_path
 has been added to the -mm tree.  Its filename is
-     dont-unlink-an-active-swapfile.patch
+     mm-remove-unevictables-show_page_path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: don't unlink an active swapfile
-From: Hugh Dickins <hugh@veritas.com>
+Subject: mm: remove unevictable's show_page_path
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Peter Cordes is sorry that he rm'ed his swapfiles while they were in use,
-he then had no pathname to swapoff.  It's a curious little oversight, but
-not one worth a lot of hackery.  Kudos to Willy Tarreau for turning this
-around from a discussion of synthetic pathnames to how to prevent unlink.
-Mimic immutable: prohibit unlinking an active swapfile in may_delete()
-(and don't worry my little head over the tiny race window).
+Hugh Dickins reported show_page_path() is buggy and unsafe.  because
 
+ - lack dput() against d_find_alias()
+ - don't concern vma->vm_mm->owner == NULL
+ - lack lock_page()
+
+it was only for debugging, so rather than trying to fix it, just remove it
+now.
+
+Reported-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Willy Tarreau <w@1wt.eu>
-Acked-by: Christoph Hellwig <hch@infradead.org>
-Cc: Peter Cordes <peter@cordes.ca>
-Cc: Bodo Eggert <7eggert@gmx.de>
-Cc: David Newall <davidn@davidnewall.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   35 -----------------------------------
+ 1 file changed, 35 deletions(-)
 
-diff -puN fs/namei.c~dont-unlink-an-active-swapfile fs/namei.c
---- a/fs/namei.c~dont-unlink-an-active-swapfile
-+++ a/fs/namei.c
-@@ -1380,7 +1380,7 @@ static int may_delete(struct inode *dir,
- 	if (IS_APPEND(dir))
- 		return -EPERM;
- 	if (check_sticky(dir, victim->d_inode)||IS_APPEND(victim->d_inode)||
--	    IS_IMMUTABLE(victim->d_inode))
-+	    IS_IMMUTABLE(victim->d_inode) || IS_SWAPFILE(victim->d_inode))
- 		return -EPERM;
- 	if (isdir) {
- 		if (!S_ISDIR(victim->d_inode->i_mode))
-_
-
-Patches currently in -mm which might be from hugh@veritas.com are
-
-origin.patch
-linux-next.patch
-sprint_symbol-use-less-stack.patch
-migration-fix-writepage-error.patch
-vmscan-let-gfp_nofs-go-to-swap-again.patch
-dont-unlink-an-active-swapfile.patch
-mm-implement-remap_pfn_range-with-apply_to_page_range.patch
-mm-apply_to_range-call-pte-function-with-lazy-updates.patch
-mm-remap_pfn_range-restore-missing-flush.patch
-prio_tree-debugging-patch.patch
-
+diff -puN mm/vmscan.c~mm-remove-unevictables-show_page_path mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-unevictables-show_page_path
++++ a/mm/vmscan.c
+@@ -2421,39 +2421,6 @@ int page_evictable(struct page *page, st
+ 	return 1;
+ }
+ 
+-static void show_page_path(struct page *page)
+-{
+-	char buf[256];
+-	if (page_is_file_cache(page)) {
+-		struct address_space *mapping = page->mapping;
+-		struct dentry *dentry;
+-		pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
+-
+-		spin_lock(&mapping->i_mmap_lock);
+-		dentry = d_find_alias(mapping->host);
+-		printk(KERN_INFO "rescued: %s %lu\n",
+-		       dentry_path(dentry, buf, 256), pgoff);
+-		spin_unlock(&mapping->i_mmap_lock);
+-	} else {
+-#if defined(CONFIG_MM_OWNER) && defined(CONFIG_MMU)
+-		struct anon_vma *anon_vma;
+-		struct vm_area_struct *vma;
+-
+-		anon_vma = page_lock_anon_vma(page);
+-		if (!anon_vma)
+-			return;
+-
+-		list_for_each_entry(vma, &anon_vma->head, anon_vma_node) {
+-			printk(KERN_INFO "rescued: anon %s\n",
+-			       vma->vm_mm->owner->comm);
+-			break;
+-		}
+-		page_unlock_anon_vma(anon_vma);
+-#endif
+-	}
+-}
+-
+-
+ /**
+  * check_move_unevictable_page - check page for evictability and move to appropriate zone lru list
+  * @page: page to check evictability and move to appropriate lru list
+@@ -2474,8 +2441,6 @@ retry:
+ 	if (page_evictable(page, NULL)) {
+ 		enum lru_list l = LRU_INACTIVE_ANON + page_is_file_cache(page);
+ 
+-		show_page_path(page);
