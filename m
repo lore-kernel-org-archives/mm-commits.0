@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + migration-fix-writepage-error.patch added to -mm tree
-Date: Fri, 14 Nov 2008 16:41:26 -0800
-Message-ID: <200811150041.mAF0fQiL026561@imap1.linux-foundation.org>
+Subject: + vmscan-let-gfp_nofs-go-to-swap-again.patch added to -mm tree
+Date: Fri, 14 Nov 2008 16:41:28 -0800
+Message-ID: <200811150041.mAF0fSb9026564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42549 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751233AbYKOAle (ORCPT
+	by vger.kernel.org with ESMTP id S1751492AbYKOAlr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 19:41:34 -0500
+	Fri, 14 Nov 2008 19:41:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: hugh@veritas.com, riel@redhat.com
 
 
 The patch titled
-     migration: fix writepage error
+     vmscan: let GFP_NOFS go to swap again
 has been added to the -mm tree.  Its filename is
-     migration-fix-writepage-error.patch
+     vmscan-let-gfp_nofs-go-to-swap-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: migration: fix writepage error
+Subject: vmscan: let GFP_NOFS go to swap again
 From: Hugh Dickins <hugh@veritas.com>
 
-Page migration's writeout() has got understandably confused by the nasty
-AOP_WRITEPAGE_ACTIVATE case: as in normal success, a writepage() error has
-unlocked the page, so writeout() then needs to relock it.
+In the past, GFP_NOFS (but of course not GFP_NOIO) was allowed to reclaim
+by writing to swap.  That got partially broken in 2.6.23, when may_enter_fs
+initialization was moved up before the allocation of swap, so its
+PageSwapCache test was failing the first time around,
+
+Fix it by setting may_enter_fs when add_to_swap() succeeds with
+__GFP_IO.  In fact, check __GFP_IO before calling add_to_swap():
+allocating swap we're not ready to use just increases disk seeking.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/vmscan.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/migrate.c~migration-fix-writepage-error mm/migrate.c
---- a/mm/migrate.c~migration-fix-writepage-error
-+++ a/mm/migrate.c
-@@ -522,15 +522,12 @@ static int writeout(struct address_space
- 	remove_migration_ptes(page, page);
+diff -puN mm/vmscan.c~vmscan-let-gfp_nofs-go-to-swap-again mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-let-gfp_nofs-go-to-swap-again
++++ a/mm/vmscan.c
+@@ -672,6 +672,8 @@ static unsigned long shrink_page_list(st
+ 		 * Try to allocate it some swap space here.
+ 		 */
+ 		if (PageAnon(page) && !PageSwapCache(page)) {
++			if (!(sc->gfp_mask & __GFP_IO))
++				goto keep_locked;
+ 			switch (try_to_munlock(page)) {
+ 			case SWAP_FAIL:		/* shouldn't happen */
+ 			case SWAP_AGAIN:
+@@ -683,6 +685,7 @@ static unsigned long shrink_page_list(st
+ 			}
+ 			if (!add_to_swap(page, GFP_ATOMIC))
+ 				goto activate_locked;
++			may_enter_fs = 1;
+ 		}
+ #endif /* CONFIG_SWAP */
  
- 	rc = mapping->a_ops->writepage(page, &wbc);
--	if (rc < 0)
--		/* I/O Error writing */
--		return -EIO;
- 
- 	if (rc != AOP_WRITEPAGE_ACTIVATE)
- 		/* unlocked. Relock */
- 		lock_page(page);
- 
--	return -EAGAIN;
-+	return (rc < 0) ? -EIO : -EAGAIN;
- }
- 
- /*
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
