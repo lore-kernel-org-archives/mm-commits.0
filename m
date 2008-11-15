@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-scatterlistc-fix-kunmap-argument-in-sg_miter_stop.patch added to -mm tree
-Date: Sat, 15 Nov 2008 12:50:47 -0800
-Message-ID: <200811152050.mAFKolVo007571@imap1.linux-foundation.org>
+Subject: + pxa2xx_spi-bugfix-full-duplex-dma-data-corruption.patch added to -mm tree
+Date: Sat, 15 Nov 2008 14:45:25 -0800
+Message-ID: <200811152245.mAFMjPCs032718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37643 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54043 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751575AbYKOUvG (ORCPT
+	by vger.kernel.org with ESMTP id S1751420AbYKOWps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Nov 2008 15:51:06 -0500
+	Sat, 15 Nov 2008 17:45:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@infradead.org, arjan@linux.intel.com, hugh@veritas.com, stable@kernel.org, tj@kernel.org
+Cc: nforrester@whoi.edu, dbrownell@users.sourceforge.net, merrij3@rpi.edu, stable@kernel.org, vernoninhand@gmail.com
 
 
 The patch titled
-     lib/scatterlist.c: fix kunmap() argument in sg_miter_stop()
+     pxa2xx_spi: bugfix full duplex dma data corruption
 has been added to the -mm tree.  Its filename is
-     lib-scatterlistc-fix-kunmap-argument-in-sg_miter_stop.patch
+     pxa2xx_spi-bugfix-full-duplex-dma-data-corruption.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/scatterlist.c: fix kunmap() argument in sg_miter_stop()
-From: Arjan van de Ven <arjan@infradead.org>
+Subject: pxa2xx_spi: bugfix full duplex dma data corruption
+From: Ned Forrester <nforrester@whoi.edu>
 
-kunmap() takes as argument the struct page that orginally got kmap()'d,
-however the sg_miter_stop() function passed it the kernel virtual address
-instead, resulting in weird stuff.
+Fixes a data corruption bug in pxa2xx_spi.c when operating in full duplex
+mode with DMA and using buffers that overlap.
 
-Somehow I ended up fixing this bug by accident while looking for a bug in
-the same area.
+SPI transmit and receive buffers are allowed to be the same or to overlap.
+ However, this driver fails if such overlap is attempted in DMA mode
+because it maps the rx and tx buffers in the wrong order.  By mapping
+DMA_FROM_DEVICE (read) before DMA_TO_DEVICE (write), it invalidates the
+cache before flushing it, thus discarding data which should have been
+transmitted.
 
-Reported-by: kerneloops.org
-Cc: Tejun Heo <tj@kernel.org>
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+The patch corrects the order of mapping.  This bug exists in all versions
+of pxa2xx_spi.c; similar bugs are in the drivers for two other SPI
+controllers (au1500, imx).
+
+A version of this patch has been tested on kernel 2.6.20 using
+verification of loopback data with: random transfer length, random
+bits-per-word, random positive offsets (both larger and smaller than
+transfer length) between the start of the rx and tx buffers, and varying
+clock rates.
+
+Signed-off-by: Ned Forrester <nforrester@whoi.edu>
+Cc: Vernon Sauder <vernoninhand@gmail.com>
+Cc: J. Scott Merritt <merrij3@rpi.edu>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: <stable@kernel.org>		[2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/pxa2xx_spi.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN lib/scatterlist.c~lib-scatterlistc-fix-kunmap-argument-in-sg_miter_stop lib/scatterlist.c
---- a/lib/scatterlist.c~lib-scatterlistc-fix-kunmap-argument-in-sg_miter_stop
-+++ a/lib/scatterlist.c
-@@ -395,7 +395,7 @@ void sg_miter_stop(struct sg_mapping_ite
- 			WARN_ON(!irqs_disabled());
- 			kunmap_atomic(miter->addr, KM_BIO_SRC_IRQ);
- 		} else
--			kunmap(miter->addr);
-+			kunmap(miter->page);
+diff -puN drivers/spi/pxa2xx_spi.c~pxa2xx_spi-bugfix-full-duplex-dma-data-corruption drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~pxa2xx_spi-bugfix-full-duplex-dma-data-corruption
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -352,21 +352,21 @@ static int map_dma_buffers(struct driver
+ 	} else
+ 		drv_data->tx_map_len = drv_data->len;
  
- 		miter->page = NULL;
- 		miter->addr = NULL;
+-	/* Stream map the rx buffer */
+-	drv_data->rx_dma = dma_map_single(dev, drv_data->rx,
+-						drv_data->rx_map_len,
+-						DMA_FROM_DEVICE);
+-	if (dma_mapping_error(dev, drv_data->rx_dma))
+-		return 0;
+-
+-	/* Stream map the tx buffer */
++	/* Stream map the tx buffer. Always do DMA_TO_DEVICE first
++	 * so we flush the cache *before* invalidating it, in case
++	 * the tx and rx buffers overlap.
++	 */
+ 	drv_data->tx_dma = dma_map_single(dev, drv_data->tx,
+-						drv_data->tx_map_len,
+-						DMA_TO_DEVICE);
++					drv_data->tx_map_len, DMA_TO_DEVICE);
++	if (dma_mapping_error(dev, drv_data->tx_dma))
++		return 0;
+ 
+-	if (dma_mapping_error(dev, drv_data->tx_dma)) {
+-		dma_unmap_single(dev, drv_data->rx_dma,
++	/* Stream map the rx buffer */
++	drv_data->rx_dma = dma_map_single(dev, drv_data->rx,
+ 					drv_data->rx_map_len, DMA_FROM_DEVICE);
++	if (dma_mapping_error(dev, drv_data->rx_dma)) {
++		dma_unmap_single(dev, drv_data->tx_dma,
++					drv_data->tx_map_len, DMA_TO_DEVICE);
+ 		return 0;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from arjan@infradead.org are
+Patches currently in -mm which might be from nforrester@whoi.edu are
 
-lib-scatterlistc-fix-kunmap-argument-in-sg_miter_stop.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-jbd-improve-fsync-batching.patch
-jbd-improve-fsync-batching-update.patch
+pxa2xx_spi-bugfix-full-duplex-dma-data-corruption.patch
 
