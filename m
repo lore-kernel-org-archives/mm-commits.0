@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + v4l-s2255drv-fix-firmware-test-on-big-endian.patch added to -mm tree
-Date: Fri, 14 Nov 2008 17:10:14 -0800
-Message-ID: <200811150110.mAF1AEBA008390@imap1.linux-foundation.org>
+Subject: + mm-dont-mark_page_accessed-in-shmem_fault.patch added to -mm tree
+Date: Fri, 14 Nov 2008 17:11:08 -0800
+Message-ID: <200811150111.mAF1B88I008853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751040AbYKOBKU (ORCPT
+	by vger.kernel.org with ESMTP id S1751259AbYKOBLY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 20:10:20 -0500
+	Fri, 14 Nov 2008 20:11:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dean@sensoray.com, hverkuil@xs4all.nl, mchehab@infradead.org
+Cc: hugh@veritas.com, hannes@saeurebad.de, npiggin@suse.de
 
 
 The patch titled
-     v4l: s2255drv fix firmware test on big-endian
+     mm: don't mark_page_accessed in shmem_fault
 has been added to the -mm tree.  Its filename is
-     v4l-s2255drv-fix-firmware-test-on-big-endian.patch
+     mm-dont-mark_page_accessed-in-shmem_fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: v4l: s2255drv fix firmware test on big-endian
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: mm: don't mark_page_accessed in shmem_fault
+From: Hugh Dickins <hugh@veritas.com>
 
-Noticed by sparse:
-drivers/media/video/s2255drv.c:2531:6: warning: restricted __le32 degrades to integer
+Following "mm: don't mark_page_accessed in fault path", which now
+places a mark_page_accessed() in zap_pte_range(), we should remove
+the mark_page_accessed() from shmem_fault().
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Dean Anderson <dean@sensoray.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Johannes Weiner <hannes@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/s2255drv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/media/video/s2255drv.c~v4l-s2255drv-fix-firmware-test-on-big-endian drivers/media/video/s2255drv.c
---- a/drivers/media/video/s2255drv.c~v4l-s2255drv-fix-firmware-test-on-big-endian
-+++ a/drivers/media/video/s2255drv.c
-@@ -192,7 +192,7 @@ struct s2255_dmaqueue {
- #define S2255_FW_FAILED		3
- #define S2255_FW_DISCONNECTING  4
+diff -puN mm/shmem.c~mm-dont-mark_page_accessed-in-shmem_fault mm/shmem.c
+--- a/mm/shmem.c~mm-dont-mark_page_accessed-in-shmem_fault
++++ a/mm/shmem.c
+@@ -1444,7 +1444,6 @@ static int shmem_fault(struct vm_area_st
+ 	if (error)
+ 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
  
--#define S2255_FW_MARKER         0x22552f2f
-+#define S2255_FW_MARKER		cpu_to_le32(0x22552f2f)
- /* 2255 read states */
- #define S2255_READ_IDLE         0
- #define S2255_READ_FRAME        1
+-	mark_page_accessed(vmf->page);
+ 	return ret | VM_FAULT_LOCKED;
+ }
+ 
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
 linux-next.patch
-arm-use-the-new-byteorder-headers.patch
-cifs-remove-global_extern-macro.patch
-dvb-cinergyt2-annotate-struct-endiannes-remove-unused-variable-add-static.patch
-v4l-s2255drv-fix-firmware-test-on-big-endian.patch
-dlm-trivial-annotation-of-be16-value.patch
-ia64-use-the-new-byteorder-headers.patch
-input-ads7846c-sparse-lock-annotation.patch
-m32r-use-the-new-byteorder-headers.patch
-blackfin-remove-__function__-in-new-serial-driver.patch
-blackfin-use-the-new-byteorder-headers.patch
-parisc-use-the-new-byteorder-headers.patch
-s390-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-frv-use-the-new-byteorder-headers.patch
-m68knommu-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-memstick-annotate-endianness-of-attribute-structs.patch
+sprint_symbol-use-less-stack.patch
+migration-fix-writepage-error.patch
+vmscan-let-gfp_nofs-go-to-swap-again.patch
+dont-unlink-an-active-swapfile.patch
+mm-remove-unevictables-show_page_path.patch
+mm-dont-mark_page_accessed-in-shmem_fault.patch
+mm-implement-remap_pfn_range-with-apply_to_page_range.patch
+mm-apply_to_range-call-pte-function-with-lazy-updates.patch
+mm-remap_pfn_range-restore-missing-flush.patch
+memcg-handle-swap-caches.patch
+memcg-memswap-controller-core.patch
+prio_tree-debugging-patch.patch
 
