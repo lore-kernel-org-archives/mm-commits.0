@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch added to -mm tree
-Date: Fri, 14 Nov 2008 17:06:25 -0800
-Message-ID: <200811150106.mAF16PZH006529@imap1.linux-foundation.org>
+Subject: + memcg-add-mem_cgroup_disabled.patch added to -mm tree
+Date: Fri, 14 Nov 2008 17:06:46 -0800
+Message-ID: <200811150106.mAF16kkq006705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55218 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751126AbYKOBGl (ORCPT
+	by vger.kernel.org with ESMTP id S1752041AbYKOBHD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 20:06:41 -0500
+	Fri, 14 Nov 2008 20:07:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jblunck@suse.de, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, xemul@openvz.org
+Cc: taka@valinux.co.jp, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, xemul@openvz.org
 
 
 The patch titled
-     memcg: reduce size of mem_cgroup by using nr_cpu_ids
+     memcg: add mem_cgroup_disabled()
 has been added to the -mm tree.  Its filename is
-     memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
+     memcg-add-mem_cgroup_disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: reduce size of mem_cgroup by using nr_cpu_ids
-From: Jan Blunck <jblunck@suse.de>
+Subject: memcg: add mem_cgroup_disabled()
+From: Hirokazu Takahashi <taka@valinux.co.jp>
 
-As Jan Blunck <jblunck@suse.de> pointed out, allocating per-cpu stat for
-memcg to the size of NR_CPUS is not good.
+We check mem_cgroup is disabled or not by checking
+mem_cgroup_subsys.disabled.  I think it has more references than expected,
+now.
 
-This patch changes mem_cgroup's cpustat allocation not based on NR_CPUS
-but based on nr_cpu_ids.
+replacing
+   if (mem_cgroup_subsys.disabled)
+with
+   if (mem_cgroup_disabled())
 
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+give us good look, I think.
+
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -51,100 +55,194 @@ Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ include/linux/memcontrol.h |   13 +++++++++++++
+ mm/memcontrol.c            |   28 ++++++++++++++--------------
+ mm/page_cgroup.c           |    4 ++--
+ 3 files changed, 29 insertions(+), 16 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids
-+++ a/mm/memcontrol.c
-@@ -60,7 +60,7 @@ struct mem_cgroup_stat_cpu {
- } ____cacheline_aligned_in_smp;
- 
- struct mem_cgroup_stat {
--	struct mem_cgroup_stat_cpu cpustat[NR_CPUS];
-+	struct mem_cgroup_stat_cpu cpustat[0];
- };
- 
- /*
-@@ -129,11 +129,10 @@ struct mem_cgroup {
- 
- 	int	prev_priority;	/* for recording reclaim priority */
- 	/*
--	 * statistics.
-+	 * statistics. This must be placed at the end of memcg.
- 	 */
- 	struct mem_cgroup_stat stat;
- };
--static struct mem_cgroup init_mem_cgroup;
- 
- enum charge_type {
- 	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
-@@ -1292,23 +1291,30 @@ static void free_mem_cgroup_per_zone_inf
- 	kfree(mem->info.nodeinfo[node]);
- }
- 
-+static int mem_cgroup_size(void)
+diff -puN include/linux/memcontrol.h~memcg-add-mem_cgroup_disabled include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-mem_cgroup_disabled
++++ a/include/linux/memcontrol.h
+@@ -87,6 +87,14 @@ extern long mem_cgroup_calc_reclaim(stru
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ extern int do_swap_account;
+ #endif
++
++static inline bool mem_cgroup_disabled(void)
 +{
-+	int cpustat_size = nr_cpu_ids * sizeof(struct mem_cgroup_stat_cpu);
-+	return sizeof(struct mem_cgroup) + cpustat_size;
++	if (mem_cgroup_subsys.disabled)
++		return true;
++	return false;
 +}
 +
- static struct mem_cgroup *mem_cgroup_alloc(void)
+ #else /* CONFIG_CGROUP_MEM_RES_CTLR */
+ struct mem_cgroup;
+ 
+@@ -214,6 +222,11 @@ static inline long mem_cgroup_calc_recla
  {
- 	struct mem_cgroup *mem;
-+	int size = mem_cgroup_size();
- 
--	if (sizeof(*mem) < PAGE_SIZE)
--		mem = kmalloc(sizeof(*mem), GFP_KERNEL);
-+	if (size < PAGE_SIZE)
-+		mem = kmalloc(size, GFP_KERNEL);
- 	else
--		mem = vmalloc(sizeof(*mem));
-+		mem = vmalloc(size);
- 
- 	if (mem)
--		memset(mem, 0, sizeof(*mem));
-+		memset(mem, 0, size);
- 	return mem;
+ 	return 0;
  }
++
++static inline bool mem_cgroup_disabled(void)
++{
++	return true;
++}
+ #endif /* CONFIG_CGROUP_MEM_CONT */
  
- static void mem_cgroup_free(struct mem_cgroup *mem)
+ #endif /* _LINUX_MEMCONTROL_H */
+diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_disabled mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-mem_cgroup_disabled
++++ a/mm/memcontrol.c
+@@ -278,7 +278,7 @@ void mem_cgroup_del_lru_list(struct page
+ 	struct mem_cgroup *mem;
+ 	struct mem_cgroup_per_zone *mz;
+ 
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return;
+ 	pc = lookup_page_cgroup(page);
+ 	/* can happen while we handle swapcache. */
+@@ -301,7 +301,7 @@ void mem_cgroup_rotate_lru_list(struct p
+ 	struct mem_cgroup_per_zone *mz;
+ 	struct page_cgroup *pc;
+ 
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_diabled())
+ 		return;
+ 
+ 	pc = lookup_page_cgroup(page);
+@@ -318,7 +318,7 @@ void mem_cgroup_add_lru_list(struct page
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup_per_zone *mz;
+ 
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return;
+ 	pc = lookup_page_cgroup(page);
+ 	/* barrier to sync with "charge" */
+@@ -343,7 +343,7 @@ static void mem_cgroup_lru_fixup(struct 
+ void mem_cgroup_move_lists(struct page *page,
+ 			   enum lru_list from, enum lru_list to)
  {
--	if (sizeof(*mem) < PAGE_SIZE)
-+	if (mem_cgroup_size() < PAGE_SIZE)
- 		kfree(mem);
- 	else
- 		vfree(mem);
-@@ -1321,13 +1327,9 @@ mem_cgroup_create(struct cgroup_subsys *
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return;
+ 	mem_cgroup_del_lru_list(page, from);
+ 	mem_cgroup_add_lru_list(page, to);
+@@ -730,7 +730,7 @@ static int mem_cgroup_charge_common(stru
+ int mem_cgroup_newpage_charge(struct page *page,
+ 			      struct mm_struct *mm, gfp_t gfp_mask)
+ {
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return 0;
+ 	if (PageCompound(page))
+ 		return 0;
+@@ -752,7 +752,7 @@ int mem_cgroup_newpage_charge(struct pag
+ int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
+ 				gfp_t gfp_mask)
+ {
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return 0;
+ 	if (PageCompound(page))
+ 		return 0;
+@@ -798,7 +798,7 @@ int mem_cgroup_try_charge_swapin(struct 
  	struct mem_cgroup *mem;
- 	int node;
+ 	swp_entry_t     ent;
  
--	if (unlikely((cont->parent) == NULL)) {
--		mem = &init_mem_cgroup;
--	} else {
--		mem = mem_cgroup_alloc();
--		if (!mem)
--			return ERR_PTR(-ENOMEM);
--	}
-+	mem = mem_cgroup_alloc();
-+	if (!mem)
-+		return ERR_PTR(-ENOMEM);
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return 0;
  
- 	res_counter_init(&mem->res);
+ 	if (!do_swap_account)
+@@ -824,7 +824,7 @@ int mem_cgroup_cache_charge_swapin(struc
+ {
+ 	int ret = 0;
  
-@@ -1339,8 +1341,7 @@ mem_cgroup_create(struct cgroup_subsys *
- free_out:
- 	for_each_node_state(node, N_POSSIBLE)
- 		free_mem_cgroup_per_zone_info(mem, node);
--	if (cont->parent != NULL)
--		mem_cgroup_free(mem);
-+	mem_cgroup_free(mem);
- 	return ERR_PTR(-ENOMEM);
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return 0;
+ 	if (unlikely(!mm))
+ 		mm = &init_mm;
+@@ -871,7 +871,7 @@ void mem_cgroup_commit_charge_swapin(str
+ {
+ 	struct page_cgroup *pc;
+ 
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return;
+ 	if (!ptr)
+ 		return;
+@@ -900,7 +900,7 @@ void mem_cgroup_commit_charge_swapin(str
+ 
+ void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *mem)
+ {
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return;
+ 	if (!mem)
+ 		return;
+@@ -921,7 +921,7 @@ __mem_cgroup_uncharge_common(struct page
+ 	struct mem_cgroup *mem = NULL;
+ 	struct mem_cgroup_per_zone *mz;
+ 
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return NULL;
+ 
+ 	if (PageSwapCache(page))
+@@ -1040,7 +1040,7 @@ int mem_cgroup_prepare_migration(struct 
+ 	struct mem_cgroup *mem = NULL;
+ 	int ret = 0;
+ 
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return 0;
+ 
+ 	pc = lookup_page_cgroup(page);
+@@ -1122,7 +1122,7 @@ int mem_cgroup_shrink_usage(struct mm_st
+ 	int progress = 0;
+ 	int retry = MEM_CGROUP_RECLAIM_RETRIES;
+ 
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return 0;
+ 	if (!mm)
+ 		return 0;
+@@ -1675,7 +1675,7 @@ static void mem_cgroup_put(struct mem_cg
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ static void __init enable_swap_cgroup(void)
+ {
+-	if (!mem_cgroup_subsys.disabled && really_do_swap_account)
++	if (!mem_cgroup_disabled() && really_do_swap_account)
+ 		do_swap_account = 1;
  }
+ #else
+diff -puN mm/page_cgroup.c~memcg-add-mem_cgroup_disabled mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-add-mem_cgroup_disabled
++++ a/mm/page_cgroup.c
+@@ -72,7 +72,7 @@ void __init page_cgroup_init(void)
  
+ 	int nid, fail;
+ 
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return;
+ 
+ 	for_each_online_node(nid)  {
+@@ -244,7 +244,7 @@ void __init page_cgroup_init(void)
+ 	unsigned long pfn;
+ 	int fail = 0;
+ 
+-	if (mem_cgroup_subsys.disabled)
++	if (mem_cgroup_disabled())
+ 		return;
+ 
+ 	for (pfn = 0; !fail && pfn < max_pfn; pfn += PAGES_PER_SECTION) {
 _
 
-Patches currently in -mm which might be from jblunck@suse.de are
+Patches currently in -mm which might be from taka@valinux.co.jp are
 
-memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
+memcg-add-mem_cgroup_disabled.patch
 
