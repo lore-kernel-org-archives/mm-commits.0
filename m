@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-synchronized-lru.patch added to -mm tree
-Date: Fri, 14 Nov 2008 17:06:44 -0800
-Message-ID: <200811150106.mAF16ird006702@imap1.linux-foundation.org>
+Subject: + memcg-memswap-controller-core.patch added to -mm tree
+Date: Fri, 14 Nov 2008 17:06:40 -0800
+Message-ID: <200811150106.mAF16fFW006635@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43562 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751906AbYKOBHC (ORCPT
+	by vger.kernel.org with ESMTP id S1751839AbYKOBHC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 14 Nov 2008 20:07:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, xemul@openvz.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, lizf@cn.fujitsu.com, xemul@openvz.org
 
 
 The patch titled
-     memcg: synchronized LRU
+     memcg: mem+swap controller core
 has been added to the -mm tree.  Its filename is
-     memcg-synchronized-lru.patch
+     memcg-memswap-controller-core.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,903 +34,989 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: synchronized LRU
+Subject: memcg: mem+swap controller core
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-A big patch for changing memcg's LRU semantics.
+This patch implements per cgroup limit for usage of memory+swap.  However
+there are SwapCache, double counting of swap-cache and swap-entry is
+avoided.
 
-Now,
-  - page_cgroup is linked to mem_cgroup's its own LRU (per zone).
+Mem+Swap controller works as following.
+  - memory usage is limited by memory.limit_in_bytes.
+  - memory + swap usage is limited by memory.memsw_limit_in_bytes.
 
-  - LRU of page_cgroup is not synchronous with global LRU.
+This has following benefits.
+  - A user can limit total resource usage of mem+swap.
 
-  - page and page_cgroup is one-to-one and statically allocated.
+    Without this, because memory resource controller doesn't take care of
+    usage of swap, a process can exhaust all the swap (by memory leak.)
+    We can avoid this case.
 
-  - To find page_cgroup is on what LRU, you have to check pc->mem_cgroup as
-    - lru = page_cgroup_zoneinfo(pc, nid_of_pc, zid_of_pc);
+    And Swap is shared resource but it cannot be reclaimed (goes back to memory)
+    until it's used. This characteristic can be trouble when the memory
+    is divided into some parts by cpuset or memcg.
+    Assume group A and group B.
+    After some application executes, the system can be..
 
-  - SwapCache is handled.
+    Group A -- very large free memory space but occupy 99% of swap.
+    Group B -- under memory shortage but cannot use swap...it's nearly full.
 
-And, when we handle LRU list of page_cgroup, we do following.
+    Ability to set appropriate swap limit for each group is required.
 
-	pc = lookup_page_cgroup(page);
-	lock_page_cgroup(pc); .....................(1)
-	mz = page_cgroup_zoneinfo(pc);
-	spin_lock(&mz->lru_lock);
-	.....add to LRU
-	spin_unlock(&mz->lru_lock);
-	unlock_page_cgroup(pc);
+Maybe someone wonder "why not swap but mem+swap ?"
 
-But (1) is spin_lock and we have to be afraid of dead-lock with zone->lru_lock.
-So, trylock() is used at (1), now. Without (1), we can't trust "mz" is correct.
+  - The global LRU(kswapd) can swap out arbitrary pages. Swap-out means
+    to move account from memory to swap...there is no change in usage of
+    mem+swap.
 
-This is a trial to remove this dirty nesting of locks.
-This patch changes mz->lru_lock to be zone->lru_lock.
-Then, above sequence will be written as
+    In other words, when we want to limit the usage of swap without affecting
+    global LRU, mem+swap limit is better than just limiting swap.
 
-        spin_lock(&zone->lru_lock); # in vmscan.c or swap.c via global LRU
-	mem_cgroup_add/remove/etc_lru() {
-		pc = lookup_page_cgroup(page);
-		mz = page_cgroup_zoneinfo(pc);
-		if (PageCgroupUsed(pc)) {
-			....add to LRU
-		}
-        spin_lock(&zone->lru_lock); # in vmscan.c or swap.c via global LRU
+Accounting target information is stored in swap_cgroup which is
+per swap entry record.
 
-This is much simpler.
-(*) We're safe even if we don't take lock_page_cgroup(pc). Because..
-    1. When pc->mem_cgroup can be modified.
-       - at charge.
-       - at account_move().
-    2. at charge
-       the PCG_USED bit is not set before pc->mem_cgroup is fixed.
-    3. at account_move()
-       the page is isolated and not on LRU.
+Charge is done as following.
+  map
+    - charge  page and memsw.
 
-Pros.
-  - easy for maintenance.
-  - memcg can make use of laziness of pagevec.
-  - we don't have to duplicated LRU/Active/Unevictable bit in page_cgroup.
-  - LRU status of memcg will be synchronized with global LRU's one.
-  - # of locks are reduced.
-  - account_move() is simplified very much.
-Cons.
-  - may increase cost of LRU rotation.
-    (no impact if memcg is not configured.)
+  unmap
+    - uncharge page/memsw if not SwapCache.
+
+  swap-out (__delete_from_swap_cache)
+    - uncharge page
+    - record mem_cgroup information to swap_cgroup.
+
+  swap-in (do_swap_page)
+    - charged as page and memsw.
+      record in swap_cgroup is cleared.
+      memsw accounting is decremented.
+
+  swap-free (swap_free())
+    - if swap entry is freed, memsw is uncharged by PAGE_SIZE.
+
+There are people work under never-swap environments and consider swap as
+something bad. For such people, this mem+swap controller extension is just an
+overhead.  This overhead is avoided by config or boot option.
+(see Kconfig. detail is not in this patch.)
+
+TODO:
+ - maybe more optimization can be don in swap-in path. (but not very safe.)
+   But we just do simple accounting at this stage.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c                 |    1 
- include/linux/memcontrol.h  |   29 ++-
- include/linux/mm_inline.h   |    3 
- include/linux/page_cgroup.h |   17 -
- mm/memcontrol.c             |  323 ++++++++++++++--------------------
- mm/page_cgroup.c            |    1 
- mm/swap.c                   |    1 
- mm/vmscan.c                 |    9 
- 8 files changed, 178 insertions(+), 206 deletions(-)
+ Documentation/controllers/memory.txt |   29 +
+ include/linux/memcontrol.h           |   11 
+ include/linux/swap.h                 |   14 
+ mm/memcontrol.c                      |  372 ++++++++++++++++++++++---
+ mm/memory.c                          |    3 
+ mm/swap_state.c                      |    5 
+ mm/swapfile.c                        |   11 
+ mm/vmscan.c                          |    6 
+ 8 files changed, 403 insertions(+), 48 deletions(-)
 
-diff -puN fs/splice.c~memcg-synchronized-lru fs/splice.c
---- a/fs/splice.c~memcg-synchronized-lru
-+++ a/fs/splice.c
-@@ -21,6 +21,7 @@
- #include <linux/file.h>
- #include <linux/pagemap.h>
- #include <linux/splice.h>
-+#include <linux/memcontrol.h>
- #include <linux/mm_inline.h>
- #include <linux/swap.h>
- #include <linux/writeback.h>
-diff -puN include/linux/memcontrol.h~memcg-synchronized-lru include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-synchronized-lru
-+++ a/include/linux/memcontrol.h
-@@ -40,7 +40,12 @@ extern void mem_cgroup_cancel_charge_swa
+diff -puN Documentation/controllers/memory.txt~memcg-memswap-controller-core Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memcg-memswap-controller-core
++++ a/Documentation/controllers/memory.txt
+@@ -137,12 +137,32 @@ behind this approach is that a cgroup th
+ page will eventually get charged for it (once it is uncharged from
+ the cgroup that brought it in -- this will happen on memory pressure).
  
- extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
- 					gfp_t gfp_mask);
--extern void mem_cgroup_move_lists(struct page *page, enum lru_list lru);
-+extern void mem_cgroup_add_lru_list(struct page *page, enum lru_list lru);
-+extern void mem_cgroup_del_lru_list(struct page *page, enum lru_list lru);
-+extern void mem_cgroup_rotate_lru_list(struct page *page, enum lru_list lru);
-+extern void mem_cgroup_del_lru(struct page *page);
-+extern void mem_cgroup_move_lists(struct page *page,
-+				  enum lru_list from, enum lru_list to);
- extern void mem_cgroup_uncharge_page(struct page *page);
- extern void mem_cgroup_uncharge_cache_page(struct page *page);
- extern int mem_cgroup_shrink_usage(struct mm_struct *mm, gfp_t gfp_mask);
-@@ -131,7 +136,27 @@ static inline int mem_cgroup_shrink_usag
+-Exception: When you do swapoff and make swapped-out pages of shmem(tmpfs) to
++Exception: If CONFIG_CGROUP_CGROUP_MEM_RES_CTLR_SWAP is not used..
++When you do swapoff and make swapped-out pages of shmem(tmpfs) to
+ be backed into memory in force, charges for pages are accounted against the
+ caller of swapoff rather than the users of shmem.
+ 
+ 
+-2.4 Reclaim
++2.4 Swap Extension (CONFIG_CGROUP_MEM_RES_CTLR_SWAP)
++Swap Extension allows you to record charge for swap. A swapped-in page is
++charged back to original page allocator if possible.
++
++When swap is accounted, following files are added.
++ - memory.memsw.usage_in_bytes.
++ - memory.memsw.limit_in_bytes.
++
++usage of mem+swap is limited by memsw.limit_in_bytes.
++
++Note: why 'mem+swap' rather than swap.
++The global LRU(kswapd) can swap out arbitrary pages. Swap-out means
++to move account from memory to swap...there is no change in usage of
++mem+swap.
++
++In other words, when we want to limit the usage of swap without affecting
++global LRU, mem+swap limit is better than just limiting swap from OS point
++of view.
++
++2.5 Reclaim
+ 
+ Each cgroup maintains a per cgroup LRU that consists of an active
+ and inactive list. When a cgroup goes over its limit, we first try
+@@ -246,6 +266,11 @@ Such charges are freed(at default) or mo
+ both of RSS and CACHES are moved to parent.
+ If both of them are busy, rmdir() returns -EBUSY. See 5.1 Also.
+ 
++Charges recorded in swap information is not updated at removal of cgroup.
++Recorded information is discarded and a cgroup which uses swap (swapcache)
++will be charged as a new owner of it.
++
++
+ 5. Misc. interfaces.
+ 
+ 5.1 force_empty
+diff -puN include/linux/memcontrol.h~memcg-memswap-controller-core include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-memswap-controller-core
++++ a/include/linux/memcontrol.h
+@@ -32,6 +32,8 @@ extern int mem_cgroup_newpage_charge(str
+ /* for swap handling */
+ extern int mem_cgroup_try_charge(struct mm_struct *mm,
+ 		gfp_t gfp_mask, struct mem_cgroup **ptr);
++extern int mem_cgroup_try_charge_swapin(struct mm_struct *mm,
++		struct page *page, gfp_t mask, struct mem_cgroup **ptr);
+ extern void mem_cgroup_commit_charge_swapin(struct page *page,
+ 					struct mem_cgroup *ptr);
+ extern void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *ptr);
+@@ -80,7 +82,6 @@ extern long mem_cgroup_calc_reclaim(stru
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ extern int do_swap_account;
+ #endif
+-
+ #else /* CONFIG_CGROUP_MEM_RES_CTLR */
+ struct mem_cgroup;
+ 
+@@ -97,7 +98,13 @@ static inline int mem_cgroup_cache_charg
+ }
+ 
+ static inline int mem_cgroup_try_charge(struct mm_struct *mm,
+-				gfp_t gfp_mask, struct mem_cgroup **ptr)
++			gfp_t gfp_mask, struct mem_cgroup **ptr)
++{
++	return 0;
++}
++
++static inline int mem_cgroup_try_charge_swapin(struct mm_struct *mm,
++		struct page *page, gfp_t gfp_mask, struct mem_cgroup **ptr)
+ {
  	return 0;
  }
- 
--static inline void mem_cgroup_move_lists(struct page *page, bool active)
-+static inline void mem_cgroup_add_lru_list(struct page *page, int lru)
-+{
-+}
-+
-+static inline void mem_cgroup_del_lru_list(struct page *page, int lru)
-+{
-+	return ;
-+}
-+
-+static inline void mem_cgroup_rotate_lru_list(struct page *page, int lru)
-+{
-+	return ;
-+}
-+
-+static inline void mem_cgroup_del_lru(struct page *page)
-+{
-+	return ;
-+}
-+
+diff -puN include/linux/swap.h~memcg-memswap-controller-core include/linux/swap.h
+--- a/include/linux/swap.h~memcg-memswap-controller-core
++++ a/include/linux/swap.h
+@@ -213,7 +213,7 @@ static inline void lru_cache_add_active_
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
+-							gfp_t gfp_mask);
++						gfp_t gfp_mask, bool noswap);
+ extern int __isolate_lru_page(struct page *page, int mode, int file);
+ extern unsigned long shrink_all_memory(unsigned long nr_pages);
+ extern int vm_swappiness;
+@@ -338,7 +338,7 @@ static inline void disable_swap_token(vo
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ extern int mem_cgroup_cache_charge_swapin(struct page *page,
+ 				struct mm_struct *mm, gfp_t mask, bool locked);
+-extern void mem_cgroup_uncharge_swapcache(struct page *page);
++extern void mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent);
+ #else
+ static inline
+ int mem_cgroup_cache_charge_swapin(struct page *page,
+@@ -346,7 +346,15 @@ int mem_cgroup_cache_charge_swapin(struc
+ {
+ 	return 0;
+ }
+-static inline void mem_cgroup_uncharge_swapcache(struct page *page)
 +static inline void
-+mem_cgroup_move_lists(struct page *page, enum lru_list from, enum lru_list to)
++mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent)
++{
++}
++#endif
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
++extern void mem_cgroup_uncharge_swap(swp_entry_t ent);
++#else
++static inline void mem_cgroup_uncharge_swap(swp_entry_t ent)
  {
  }
- 
-diff -puN include/linux/mm_inline.h~memcg-synchronized-lru include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~memcg-synchronized-lru
-+++ a/include/linux/mm_inline.h
-@@ -28,6 +28,7 @@ add_page_to_lru_list(struct zone *zone, 
- {
- 	list_add(&page->lru, &zone->lru[l].list);
- 	__inc_zone_state(zone, NR_LRU_BASE + l);
-+	mem_cgroup_add_lru_list(page, l);
- }
- 
- static inline void
-@@ -35,6 +36,7 @@ del_page_from_lru_list(struct zone *zone
- {
- 	list_del(&page->lru);
- 	__dec_zone_state(zone, NR_LRU_BASE + l);
-+	mem_cgroup_del_lru_list(page, l);
- }
- 
- static inline void
-@@ -54,6 +56,7 @@ del_page_from_lru(struct zone *zone, str
- 		l += page_is_file_cache(page);
- 	}
- 	__dec_zone_state(zone, NR_LRU_BASE + l);
-+	mem_cgroup_del_lru_list(page, l);
- }
- 
- /**
-diff -puN include/linux/page_cgroup.h~memcg-synchronized-lru include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~memcg-synchronized-lru
-+++ a/include/linux/page_cgroup.h
-@@ -26,10 +26,6 @@ enum {
- 	PCG_LOCK,  /* page cgroup is locked */
- 	PCG_CACHE, /* charged as cache */
- 	PCG_USED, /* this object is in use. */
--	/* flags for LRU placement */
--	PCG_ACTIVE, /* page is active in this cgroup */
--	PCG_FILE, /* page is file system backed */
--	PCG_UNEVICTABLE, /* page is unevictableable */
- };
- 
- #define TESTPCGFLAG(uname, lname)			\
-@@ -50,19 +46,6 @@ TESTPCGFLAG(Cache, CACHE)
- TESTPCGFLAG(Used, USED)
- CLEARPCGFLAG(Used, USED)
- 
--/* LRU management flags (from global-lru definition) */
--TESTPCGFLAG(File, FILE)
--SETPCGFLAG(File, FILE)
--CLEARPCGFLAG(File, FILE)
--
--TESTPCGFLAG(Active, ACTIVE)
--SETPCGFLAG(Active, ACTIVE)
--CLEARPCGFLAG(Active, ACTIVE)
--
--TESTPCGFLAG(Unevictable, UNEVICTABLE)
--SETPCGFLAG(Unevictable, UNEVICTABLE)
--CLEARPCGFLAG(Unevictable, UNEVICTABLE)
--
- static inline int page_cgroup_nid(struct page_cgroup *pc)
- {
- 	return page_to_nid(pc->page);
-diff -puN mm/memcontrol.c~memcg-synchronized-lru mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-synchronized-lru
+ #endif
+diff -puN mm/memcontrol.c~memcg-memswap-controller-core mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-memswap-controller-core
 +++ a/mm/memcontrol.c
-@@ -35,6 +35,7 @@
- #include <linux/vmalloc.h>
- #include <linux/mm_inline.h>
- #include <linux/page_cgroup.h>
-+#include "internal.h"
- 
- #include <asm/uaccess.h>
- 
-@@ -99,7 +100,6 @@ struct mem_cgroup_per_zone {
- 	/*
- 	 * spin_lock to protect the per cgroup LRU
+@@ -132,12 +132,18 @@ struct mem_cgroup {
  	 */
--	spinlock_t		lru_lock;
- 	struct list_head	lists[NR_LRU_LISTS];
- 	unsigned long		count[NR_LRU_LISTS];
- };
-@@ -162,14 +162,12 @@ enum charge_type {
- /* only for here (for easy reading.) */
- #define PCGF_CACHE	(1UL << PCG_CACHE)
- #define PCGF_USED	(1UL << PCG_USED)
--#define PCGF_ACTIVE	(1UL << PCG_ACTIVE)
- #define PCGF_LOCK	(1UL << PCG_LOCK)
--#define PCGF_FILE	(1UL << PCG_FILE)
- static const unsigned long
- pcg_default_flags[NR_CHARGE_TYPE] = {
--	PCGF_CACHE | PCGF_FILE | PCGF_USED | PCGF_LOCK, /* File Cache */
--	PCGF_ACTIVE | PCGF_USED | PCGF_LOCK, /* Anon */
--	PCGF_ACTIVE | PCGF_CACHE | PCGF_USED | PCGF_LOCK, /* Shmem */
-+	PCGF_CACHE | PCGF_USED | PCGF_LOCK, /* File Cache */
-+	PCGF_USED | PCGF_LOCK, /* Anon */
-+	PCGF_CACHE | PCGF_USED | PCGF_LOCK, /* Shmem */
+ 	struct res_counter res;
+ 	/*
++	 * the counter to account for mem+swap usage.
++	 */
++	struct res_counter memsw;
++	/*
+ 	 * Per cgroup active and inactive list, similar to the
+ 	 * per zone LRU lists.
+ 	 */
+ 	struct mem_cgroup_lru_info info;
+ 
+ 	int	prev_priority;	/* for recording reclaim priority */
++	int		obsolete;
++	atomic_t	refcnt;
+ 	/*
+ 	 * statistics. This must be placed at the end of memcg.
+ 	 */
+@@ -167,6 +173,17 @@ pcg_default_flags[NR_CHARGE_TYPE] = {
  	0, /* FORCE */
  };
  
-@@ -184,9 +182,6 @@ pcg_default_flags[NR_CHARGE_TYPE] = {
- static void mem_cgroup_get(struct mem_cgroup *mem);
- static void mem_cgroup_put(struct mem_cgroup *mem);
- 
--/*
-- * Always modified under lru lock. Then, not necessary to preempt_disable()
-- */
- static void mem_cgroup_charge_statistics(struct mem_cgroup *mem,
- 					 struct page_cgroup *pc,
- 					 bool charge)
-@@ -194,10 +189,9 @@ static void mem_cgroup_charge_statistics
- 	int val = (charge)? 1 : -1;
- 	struct mem_cgroup_stat *stat = &mem->stat;
- 	struct mem_cgroup_stat_cpu *cpustat;
-+	int cpu = get_cpu();
- 
--	VM_BUG_ON(!irqs_disabled());
--
--	cpustat = &stat->cpustat[smp_processor_id()];
-+	cpustat = &stat->cpustat[cpu];
- 	if (PageCgroupCache(pc))
- 		__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_CACHE, val);
- 	else
-@@ -209,6 +203,7 @@ static void mem_cgroup_charge_statistics
- 	else
- 		__mem_cgroup_stat_add_safe(cpustat,
- 				MEM_CGROUP_STAT_PGPGOUT_COUNT, 1);
-+	put_cpu();
- }
- 
- static struct mem_cgroup_per_zone *
-@@ -263,80 +258,95 @@ struct mem_cgroup *mem_cgroup_from_task(
- 				struct mem_cgroup, css);
- }
- 
--static void __mem_cgroup_remove_list(struct mem_cgroup_per_zone *mz,
--			struct page_cgroup *pc)
--{
--	int lru = LRU_BASE;
-+/*
-+ * Following LRU functions are allowed to be used without PCG_LOCK.
-+ * Operations are called by routine of global LRU independently from memcg.
-+ * What we have to take care of here is validness of pc->mem_cgroup.
-+ *
-+ * Changes to pc->mem_cgroup happens when
-+ * 1. charge
-+ * 2. moving account
-+ * In typical case, "charge" is done before add-to-lru. Exception is SwapCache.
-+ * It is added to LRU before charge.
-+ * If PCG_USED bit is not set, page_cgroup is not added to this private LRU.
-+ * When moving account, the page is not on LRU. It's isolated.
-+ */
- 
--	if (PageCgroupUnevictable(pc))
--		lru = LRU_UNEVICTABLE;
--	else {
--		if (PageCgroupActive(pc))
--			lru += LRU_ACTIVE;
--		if (PageCgroupFile(pc))
--			lru += LRU_FILE;
--	}
-+void mem_cgroup_del_lru_list(struct page *page, enum lru_list lru)
-+{
-+	struct page_cgroup *pc;
-+	struct mem_cgroup *mem;
-+	struct mem_cgroup_per_zone *mz;
- 
-+	if (mem_cgroup_subsys.disabled)
-+		return;
-+	pc = lookup_page_cgroup(page);
-+	/* can happen while we handle swapcache. */
-+	if (list_empty(&pc->lru))
-+		return;
-+	mz = page_cgroup_zoneinfo(pc);
-+	mem = pc->mem_cgroup;
- 	MEM_CGROUP_ZSTAT(mz, lru) -= 1;
--
--	mem_cgroup_charge_statistics(pc->mem_cgroup, pc, false);
--	list_del(&pc->lru);
-+	list_del_init(&pc->lru);
-+	return;
- }
- 
--static void __mem_cgroup_add_list(struct mem_cgroup_per_zone *mz,
--				struct page_cgroup *pc, bool hot)
-+void mem_cgroup_del_lru(struct page *page)
- {
--	int lru = LRU_BASE;
-+	mem_cgroup_del_lru_list(page, page_lru(page));
-+}
- 
--	if (PageCgroupUnevictable(pc))
--		lru = LRU_UNEVICTABLE;
--	else {
--		if (PageCgroupActive(pc))
--			lru += LRU_ACTIVE;
--		if (PageCgroupFile(pc))
--			lru += LRU_FILE;
--	}
-+void mem_cgroup_rotate_lru_list(struct page *page, enum lru_list lru)
-+{
-+	struct mem_cgroup_per_zone *mz;
-+	struct page_cgroup *pc;
- 
--	MEM_CGROUP_ZSTAT(mz, lru) += 1;
--	if (hot)
--		list_add(&pc->lru, &mz->lists[lru]);
--	else
--		list_add_tail(&pc->lru, &mz->lists[lru]);
-+	if (mem_cgroup_subsys.disabled)
-+		return;
- 
--	mem_cgroup_charge_statistics(pc->mem_cgroup, pc, true);
-+	pc = lookup_page_cgroup(page);
-+	smp_rmb();
-+	/* unused page is not rotated. */
-+	if (!PageCgroupUsed(pc))
-+		return;
-+	mz = page_cgroup_zoneinfo(pc);
-+	list_move(&pc->lru, &mz->lists[lru]);
- }
- 
--static void __mem_cgroup_move_lists(struct page_cgroup *pc, enum lru_list lru)
-+void mem_cgroup_add_lru_list(struct page *page, enum lru_list lru)
- {
--	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
--	int active    = PageCgroupActive(pc);
--	int file      = PageCgroupFile(pc);
--	int unevictable = PageCgroupUnevictable(pc);
--	enum lru_list from = unevictable ? LRU_UNEVICTABLE :
--				(LRU_FILE * !!file + !!active);
-+	struct page_cgroup *pc;
-+	struct mem_cgroup_per_zone *mz;
- 
--	if (lru == from)
-+	if (mem_cgroup_subsys.disabled)
-+		return;
-+	pc = lookup_page_cgroup(page);
-+	/* barrier to sync with "charge" */
-+	smp_rmb();
-+	if (!PageCgroupUsed(pc))
- 		return;
- 
--	MEM_CGROUP_ZSTAT(mz, from) -= 1;
--	/*
--	 * However this is done under mz->lru_lock, another flags, which
--	 * are not related to LRU, will be modified from out-of-lock.
--	 * We have to use atomic set/clear flags.
--	 */
--	if (is_unevictable_lru(lru)) {
--		ClearPageCgroupActive(pc);
--		SetPageCgroupUnevictable(pc);
--	} else {
--		if (is_active_lru(lru))
--			SetPageCgroupActive(pc);
--		else
--			ClearPageCgroupActive(pc);
--		ClearPageCgroupUnevictable(pc);
--	}
--
-+	mz = page_cgroup_zoneinfo(pc);
- 	MEM_CGROUP_ZSTAT(mz, lru) += 1;
--	list_move(&pc->lru, &mz->lists[lru]);
-+	list_add(&pc->lru, &mz->lists[lru]);
-+}
-+/*
-+ * To add swapcache into LRU. Be careful to all this function.
-+ * zone->lru_lock shouldn't be held and irq must not be disabled.
-+ */
-+static void mem_cgroup_lru_fixup(struct page *page)
-+{
-+	if (!isolate_lru_page(page))
-+		putback_lru_page(page);
-+}
 +
-+void mem_cgroup_move_lists(struct page *page,
-+			   enum lru_list from, enum lru_list to)
-+{
-+	if (mem_cgroup_subsys.disabled)
-+		return;
-+	mem_cgroup_del_lru_list(page, from);
-+	mem_cgroup_add_lru_list(page, to);
- }
- 
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
-@@ -350,37 +360,6 @@ int task_in_mem_cgroup(struct task_struc
- }
- 
++/* for encoding cft->private value on file */
++#define _MEM			(0)
++#define _MEMSWAP		(1)
++#define MEMFILE_PRIVATE(x, val)	(((x) << 16) | (val))
++#define MEMFILE_TYPE(val)	(((val) >> 16) & 0xffff)
++#define MEMFILE_ATTR(val)	((val) & 0xffff)
++
++static void mem_cgroup_get(struct mem_cgroup *mem);
++static void mem_cgroup_put(struct mem_cgroup *mem);
++
  /*
-- * This routine assumes that the appropriate zone's lru lock is already held
-- */
--void mem_cgroup_move_lists(struct page *page, enum lru_list lru)
--{
--	struct page_cgroup *pc;
--	struct mem_cgroup_per_zone *mz;
--	unsigned long flags;
--
--	if (mem_cgroup_subsys.disabled)
--		return;
--
--	/*
--	 * We cannot lock_page_cgroup while holding zone's lru_lock,
--	 * because other holders of lock_page_cgroup can be interrupted
--	 * with an attempt to rotate_reclaimable_page.  But we cannot
--	 * safely get to page_cgroup without it, so just try_lock it:
--	 * mem_cgroup_isolate_pages allows for page left on wrong list.
--	 */
--	pc = lookup_page_cgroup(page);
--	if (!trylock_page_cgroup(pc))
--		return;
--	if (pc && PageCgroupUsed(pc)) {
--		mz = page_cgroup_zoneinfo(pc);
--		spin_lock_irqsave(&mz->lru_lock, flags);
--		__mem_cgroup_move_lists(pc, lru);
--		spin_unlock_irqrestore(&mz->lru_lock, flags);
--	}
--	unlock_page_cgroup(pc);
--}
--
--/*
-  * Calculate mapped_ratio under memory controller. This will be used in
-  * vmscan.c for deteremining we have to reclaim mapped pages.
+  * Always modified under lru lock. Then, not necessary to preempt_disable()
   */
-@@ -459,40 +438,24 @@ unsigned long mem_cgroup_isolate_pages(u
- 	mz = mem_cgroup_zoneinfo(mem_cont, nid, zid);
- 	src = &mz->lists[lru];
- 
--	spin_lock(&mz->lru_lock);
- 	scan = 0;
- 	list_for_each_entry_safe_reverse(pc, tmp, src, lru) {
- 		if (scan >= nr_to_scan)
- 			break;
-+
-+		page = pc->page;
- 		if (unlikely(!PageCgroupUsed(pc)))
- 			continue;
--		page = pc->page;
--
- 		if (unlikely(!PageLRU(page)))
- 			continue;
- 
--		/*
--		 * TODO: play better with lumpy reclaim, grabbing anything.
--		 */
--		if (PageUnevictable(page) ||
--		    (PageActive(page) && !active) ||
--		    (!PageActive(page) && active)) {
--			__mem_cgroup_move_lists(pc, page_lru(page));
--			continue;
--		}
--
- 		scan++;
--		list_move(&pc->lru, &pc_list);
--
- 		if (__isolate_lru_page(page, mode, file) == 0) {
- 			list_move(&page->lru, dst);
- 			nr_taken++;
- 		}
+@@ -485,7 +502,8 @@ unsigned long mem_cgroup_isolate_pages(u
+  * oom-killer can be invoked.
+  */
+ static int __mem_cgroup_try_charge(struct mm_struct *mm,
+-			gfp_t gfp_mask, struct mem_cgroup **memcg, bool oom)
++			gfp_t gfp_mask, struct mem_cgroup **memcg,
++			bool oom)
+ {
+ 	struct mem_cgroup *mem;
+ 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
+@@ -513,12 +531,25 @@ static int __mem_cgroup_try_charge(struc
+ 		css_get(&mem->css);
  	}
  
--	list_splice(&pc_list, src);
--	spin_unlock(&mz->lru_lock);
 -
- 	*scanned = scan;
- 	return nr_taken;
- }
-@@ -607,9 +570,6 @@ static void __mem_cgroup_commit_charge(s
- 				     struct page_cgroup *pc,
- 				     enum charge_type ctype)
- {
--	struct mem_cgroup_per_zone *mz;
--	unsigned long flags;
--
- 	/* try_charge() can return NULL to *memcg, taking care of it. */
- 	if (!mem)
- 		return;
-@@ -624,17 +584,11 @@ static void __mem_cgroup_commit_charge(s
+-	while (unlikely(res_counter_charge(&mem->res, PAGE_SIZE))) {
++	while (1) {
++		int ret;
++		bool noswap = false;
++
++		ret = res_counter_charge(&mem->res, PAGE_SIZE);
++		if (likely(!ret)) {
++			if (!do_swap_account)
++				break;
++			ret = res_counter_charge(&mem->memsw, PAGE_SIZE);
++			if (likely(!ret))
++				break;
++			/* mem+swap counter fails */
++			res_counter_uncharge(&mem->res, PAGE_SIZE);
++			noswap = true;
++		}
+ 		if (!(gfp_mask & __GFP_WAIT))
+ 			goto nomem;
+ 
+-		if (try_to_free_mem_cgroup_pages(mem, gfp_mask))
++		if (try_to_free_mem_cgroup_pages(mem, gfp_mask, noswap))
+ 			continue;
+ 
+ 		/*
+@@ -527,8 +558,13 @@ static int __mem_cgroup_try_charge(struc
+ 		 * moved to swap cache or just unmapped from the cgroup.
+ 		 * Check the limit again to see if the reclaim reduced the
+ 		 * current usage of the cgroup before giving up
++		 *
+ 		 */
+-		if (res_counter_check_under_limit(&mem->res))
++		if (!do_swap_account &&
++			res_counter_check_under_limit(&mem->res))
++			continue;
++		if (do_swap_account &&
++			res_counter_check_under_limit(&mem->memsw))
+ 			continue;
+ 
+ 		if (!nr_retries--) {
+@@ -582,6 +618,8 @@ static void __mem_cgroup_commit_charge(s
+ 	if (unlikely(PageCgroupUsed(pc))) {
+ 		unlock_page_cgroup(pc);
+ 		res_counter_uncharge(&mem->res, PAGE_SIZE);
++		if (do_swap_account)
++			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
+ 		css_put(&mem->css);
  		return;
  	}
- 	pc->mem_cgroup = mem;
--	/*
--	 * If a page is accounted as a page cache, insert to inactive list.
--	 * If anon, insert to active list.
--	 */
-+	smp_wmb();
- 	pc->flags = pcg_default_flags[ctype];
- 
--	mz = page_cgroup_zoneinfo(pc);
-+	mem_cgroup_charge_statistics(mem, pc, true);
- 
--	spin_lock_irqsave(&mz->lru_lock, flags);
--	__mem_cgroup_add_list(mz, pc, true);
--	spin_unlock_irqrestore(&mz->lru_lock, flags);
- 	unlock_page_cgroup(pc);
- }
- 
-@@ -645,8 +599,7 @@ static void __mem_cgroup_commit_charge(s
-  * @to:	mem_cgroup which the page is moved to. @from != @to.
-  *
-  * The caller must confirm following.
-- * 1. disable irq.
-- * 2. lru_lock of old mem_cgroup(@from) should be held.
-+ * - page is not on LRU (isolate_page() is useful.)
-  *
-  * returns 0 at success,
-  * returns -EBUSY when lock is busy or "pc" is unstable.
-@@ -662,15 +615,14 @@ static int mem_cgroup_move_account(struc
- 	int nid, zid;
- 	int ret = -EBUSY;
- 
--	VM_BUG_ON(!irqs_disabled());
- 	VM_BUG_ON(from == to);
-+	VM_BUG_ON(PageLRU(pc->page));
- 
- 	nid = page_cgroup_nid(pc);
- 	zid = page_cgroup_zid(pc);
- 	from_mz =  mem_cgroup_zoneinfo(from, nid, zid);
- 	to_mz =  mem_cgroup_zoneinfo(to, nid, zid);
- 
--
- 	if (!trylock_page_cgroup(pc))
- 		return ret;
- 
-@@ -680,18 +632,15 @@ static int mem_cgroup_move_account(struc
- 	if (pc->mem_cgroup != from)
- 		goto out;
- 
--	if (spin_trylock(&to_mz->lru_lock)) {
--		__mem_cgroup_remove_list(from_mz, pc);
--		css_put(&from->css);
--		res_counter_uncharge(&from->res, PAGE_SIZE);
--		if (do_swap_account)
--			res_counter_uncharge(&from->memsw, PAGE_SIZE);
--		pc->mem_cgroup = to;
--		css_get(&to->css);
--		__mem_cgroup_add_list(to_mz, pc, false);
--		ret = 0;
--		spin_unlock(&to_mz->lru_lock);
--	}
-+	css_put(&from->css);
-+	res_counter_uncharge(&from->res, PAGE_SIZE);
-+	mem_cgroup_charge_statistics(from, pc, false);
-+	if (do_swap_account)
-+		res_counter_uncharge(&from->memsw, PAGE_SIZE);
-+	pc->mem_cgroup = to;
-+	mem_cgroup_charge_statistics(to, pc, true);
-+	css_get(&to->css);
-+	ret = 0;
- out:
- 	unlock_page_cgroup(pc);
- 	return ret;
-@@ -705,39 +654,47 @@ static int mem_cgroup_move_parent(struct
- 				  struct mem_cgroup *child,
- 				  gfp_t gfp_mask)
- {
-+	struct page *page = pc->page;
- 	struct cgroup *cg = child->css.cgroup;
- 	struct cgroup *pcg = cg->parent;
- 	struct mem_cgroup *parent;
--	struct mem_cgroup_per_zone *mz;
--	unsigned long flags;
- 	int ret;
- 
- 	/* Is ROOT ? */
- 	if (!pcg)
- 		return -EINVAL;
- 
-+
- 	parent = mem_cgroup_from_cont(pcg);
- 
-+
- 	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false);
- 	if (ret)
- 		return ret;
- 
--	mz = mem_cgroup_zoneinfo(child,
--			page_cgroup_nid(pc), page_cgroup_zid(pc));
-+	if (!get_page_unless_zero(page))
-+		return -EBUSY;
-+
-+	ret = isolate_lru_page(page);
-+
-+	if (ret)
-+		goto cancel;
- 
--	spin_lock_irqsave(&mz->lru_lock, flags);
- 	ret = mem_cgroup_move_account(pc, child, parent);
--	spin_unlock_irqrestore(&mz->lru_lock, flags);
- 
--	/* drop extra refcnt */
-+	/* drop extra refcnt by try_charge() (move_account increment one) */
+@@ -646,6 +684,8 @@ static int mem_cgroup_move_account(struc
+ 		__mem_cgroup_remove_list(from_mz, pc);
+ 		css_put(&from->css);
+ 		res_counter_uncharge(&from->res, PAGE_SIZE);
++		if (do_swap_account)
++			res_counter_uncharge(&from->memsw, PAGE_SIZE);
+ 		pc->mem_cgroup = to;
+ 		css_get(&to->css);
+ 		__mem_cgroup_add_list(to_mz, pc, false);
+@@ -692,8 +732,11 @@ static int mem_cgroup_move_parent(struct
+ 	/* drop extra refcnt */
  	css_put(&parent->css);
--	/* uncharge if move fails */
--	if (ret) {
--		res_counter_uncharge(&parent->res, PAGE_SIZE);
--		if (do_swap_account)
--			res_counter_uncharge(&parent->memsw, PAGE_SIZE);
-+	putback_lru_page(page);
-+	if (!ret) {
-+		put_page(page);
-+		return 0;
- 	}
--
-+	/* uncharge if move fails */
-+cancel:
-+	res_counter_uncharge(&parent->res, PAGE_SIZE);
-+	if (do_swap_account)
-+		res_counter_uncharge(&parent->memsw, PAGE_SIZE);
-+	put_page(page);
+ 	/* uncharge if move fails */
+-	if (ret)
++	if (ret) {
+ 		res_counter_uncharge(&parent->res, PAGE_SIZE);
++		if (do_swap_account)
++			res_counter_uncharge(&parent->memsw, PAGE_SIZE);
++	}
+ 
  	return ret;
  }
+@@ -791,7 +834,34 @@ int mem_cgroup_cache_charge(struct page 
+ 				MEM_CGROUP_CHARGE_TYPE_SHMEM, NULL);
+ }
  
-@@ -903,6 +860,8 @@ int mem_cgroup_cache_charge_swapin(struc
++int mem_cgroup_try_charge_swapin(struct mm_struct *mm,
++				 struct page *page,
++				 gfp_t mask, struct mem_cgroup **ptr)
++{
++	struct mem_cgroup *mem;
++	swp_entry_t     ent;
++
++	if (mem_cgroup_subsys.disabled)
++		return 0;
++
++	if (!do_swap_account)
++		goto charge_cur_mm;
++
++	ent.val = page_private(page);
++
++	mem = lookup_swap_cgroup(ent);
++	if (!mem || mem->obsolete)
++		goto charge_cur_mm;
++	*ptr = mem;
++	return __mem_cgroup_try_charge(NULL, mask, ptr, true);
++charge_cur_mm:
++	if (unlikely(!mm))
++		mm = &init_mm;
++	return __mem_cgroup_try_charge(mm, mask, ptr, true);
++}
++
+ #ifdef CONFIG_SWAP
++
+ int mem_cgroup_cache_charge_swapin(struct page *page,
+ 			struct mm_struct *mm, gfp_t mask, bool locked)
+ {
+@@ -808,8 +878,28 @@ int mem_cgroup_cache_charge_swapin(struc
+ 	 * we reach here.
+ 	 */
+ 	if (PageSwapCache(page)) {
++		struct mem_cgroup *mem = NULL;
++		swp_entry_t ent;
++
++		ent.val = page_private(page);
++		if (do_swap_account) {
++			mem = lookup_swap_cgroup(ent);
++			if (mem && mem->obsolete)
++				mem = NULL;
++			if (mem)
++				mm = NULL;
++		}
+ 		ret = mem_cgroup_charge_common(page, mm, mask,
+-				MEM_CGROUP_CHARGE_TYPE_SHMEM, NULL);
++				MEM_CGROUP_CHARGE_TYPE_SHMEM, mem);
++
++		if (!ret && do_swap_account) {
++			/* avoid double counting */
++			mem = swap_cgroup_record(ent, NULL);
++			if (mem) {
++				res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++				mem_cgroup_put(mem);
++			}
++		}
  	}
  	if (!locked)
  		unlock_page(page);
-+	/* add this page(page_cgroup) to the LRU we want. */
-+	mem_cgroup_lru_fixup(page);
- 
- 	return ret;
- }
-@@ -935,6 +894,8 @@ void mem_cgroup_commit_charge_swapin(str
- 		}
- 
- 	}
-+	/* add this page(page_cgroup) to the LRU we want. */
-+	mem_cgroup_lru_fixup(page);
+@@ -828,6 +918,23 @@ void mem_cgroup_commit_charge_swapin(str
+ 		return;
+ 	pc = lookup_page_cgroup(page);
+ 	__mem_cgroup_commit_charge(ptr, pc, MEM_CGROUP_CHARGE_TYPE_MAPPED);
++	/*
++	 * Now swap is on-memory. This means this page may be
++	 * counted both as mem and swap....double count.
++	 * Fix it by uncharging from memsw. This SwapCache is stable
++	 * because we're still under lock_page().
++	 */
++	if (do_swap_account) {
++		swp_entry_t ent = {.val = page_private(page)};
++		struct mem_cgroup *memcg;
++		memcg = swap_cgroup_record(ent, NULL);
++		if (memcg) {
++			/* If memcg is obsolete, memcg can be != ptr */
++			res_counter_uncharge(&memcg->memsw, PAGE_SIZE);
++			mem_cgroup_put(memcg);
++		}
++
++	}
  }
  
  void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *mem)
-@@ -959,7 +920,6 @@ __mem_cgroup_uncharge_common(struct page
+@@ -837,6 +944,8 @@ void mem_cgroup_cancel_charge_swapin(str
+ 	if (!mem)
+ 		return;
+ 	res_counter_uncharge(&mem->res, PAGE_SIZE);
++	if (do_swap_account)
++		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
+ 	css_put(&mem->css);
+ }
+ 
+@@ -844,29 +953,31 @@ void mem_cgroup_cancel_charge_swapin(str
+ /*
+  * uncharge if !page_mapped(page)
+  */
+-static void
++static struct mem_cgroup *
+ __mem_cgroup_uncharge_common(struct page *page, enum charge_type ctype)
+ {
  	struct page_cgroup *pc;
- 	struct mem_cgroup *mem = NULL;
+-	struct mem_cgroup *mem;
++	struct mem_cgroup *mem = NULL;
  	struct mem_cgroup_per_zone *mz;
--	unsigned long flags;
+ 	unsigned long flags;
  
  	if (mem_cgroup_subsys.disabled)
- 		return NULL;
-@@ -1001,12 +961,10 @@ __mem_cgroup_uncharge_common(struct page
- 	if (do_swap_account && (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
- 		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
+-		return;
++		return NULL;
  
-+	mem_cgroup_charge_statistics(mem, pc, false);
+ 	if (PageSwapCache(page))
+-		return;
++		return NULL;
+ 
+ 	/*
+ 	 * Check if our page_cgroup is valid
+ 	 */
+ 	pc = lookup_page_cgroup(page);
+ 	if (unlikely(!pc || !PageCgroupUsed(pc)))
+-		return;
++		return NULL;
+ 
+ 	lock_page_cgroup(pc);
+ 
++	mem = pc->mem_cgroup;
++
+ 	if (!PageCgroupUsed(pc))
+ 		goto unlock_out;
+ 
+@@ -886,8 +997,11 @@ __mem_cgroup_uncharge_common(struct page
+ 		break;
+ 	}
+ 
++	res_counter_uncharge(&mem->res, PAGE_SIZE);
++	if (do_swap_account && (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
++		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++
  	ClearPageCgroupUsed(pc);
+-	mem = pc->mem_cgroup;
  
  	mz = page_cgroup_zoneinfo(pc);
--	spin_lock_irqsave(&mz->lru_lock, flags);
--	__mem_cgroup_remove_list(mz, pc);
--	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+@@ -895,14 +1009,13 @@ __mem_cgroup_uncharge_common(struct page
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
  	unlock_page_cgroup(pc);
  
+-	res_counter_uncharge(&mem->res, PAGE_SIZE);
  	css_put(&mem->css);
-@@ -1260,21 +1218,22 @@ int mem_cgroup_resize_memsw_limit(struct
+ 
+-	return;
++	return mem;
+ 
+ unlock_out:
+ 	unlock_page_cgroup(pc);
+-	return;
++	return NULL;
+ }
+ 
+ void mem_cgroup_uncharge_page(struct page *page)
+@@ -922,11 +1035,43 @@ void mem_cgroup_uncharge_cache_page(stru
+ 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_CACHE);
+ }
+ 
+-void mem_cgroup_uncharge_swapcache(struct page *page)
++/*
++ * called from __delete_from_swap_cache() and drop "page" account.
++ * memcg information is recorded to swap_cgroup of "ent"
++ */
++void mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent)
+ {
+-	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_SWAPOUT);
++	struct mem_cgroup *memcg;
++
++	memcg = __mem_cgroup_uncharge_common(page,
++					MEM_CGROUP_CHARGE_TYPE_SWAPOUT);
++	/* record memcg information */
++	if (do_swap_account && memcg) {
++		swap_cgroup_record(ent, memcg);
++		mem_cgroup_get(memcg);
++	}
+ }
+ 
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
++/*
++ * called from swap_entry_free(). remove record in swap_cgroup and
++ * uncharge "memsw" account.
++ */
++void mem_cgroup_uncharge_swap(swp_entry_t ent)
++{
++	struct mem_cgroup *memcg;
++
++	if (!do_swap_account)
++		return;
++
++	memcg = swap_cgroup_record(ent, NULL);
++	if (memcg) {
++		res_counter_uncharge(&memcg->memsw, PAGE_SIZE);
++		mem_cgroup_put(memcg);
++	}
++}
++#endif
++
+ /*
+  * Before starting migration, account PAGE_SIZE to mem_cgroup that the old
+  * page belongs to.
+@@ -1034,7 +1179,7 @@ int mem_cgroup_shrink_usage(struct mm_st
+ 	rcu_read_unlock();
+ 
+ 	do {
+-		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask);
++		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask, true);
+ 		progress += res_counter_check_under_limit(&mem->res);
+ 	} while (!progress && --retry);
+ 
+@@ -1051,6 +1196,11 @@ int mem_cgroup_resize_limit(struct mem_c
+ 	int progress;
+ 	int ret = 0;
+ 
++	if (do_swap_account) {
++		if (val > memcg->memsw.limit)
++			return -EINVAL;
++	}
++
+ 	while (res_counter_set_limit(&memcg->res, val)) {
+ 		if (signal_pending(current)) {
+ 			ret = -EINTR;
+@@ -1061,13 +1211,55 @@ int mem_cgroup_resize_limit(struct mem_c
+ 			break;
+ 		}
+ 		progress = try_to_free_mem_cgroup_pages(memcg,
+-				GFP_HIGHUSER_MOVABLE);
++				GFP_HIGHUSER_MOVABLE, false);
+ 		if (!progress)
+ 			retry_count--;
+ 	}
  	return ret;
  }
  
--
++int mem_cgroup_resize_memsw_limit(struct mem_cgroup *memcg,
++				unsigned long long val)
++{
++	int retry_count = MEM_CGROUP_RECLAIM_RETRIES;
++	unsigned long flags;
++	u64 memlimit, oldusage, curusage;
++	int ret;
++
++	if (!do_swap_account)
++		return -EINVAL;
++
++	while (retry_count) {
++		if (signal_pending(current)) {
++			ret = -EINTR;
++			break;
++		}
++		/*
++		 * Rather than hide all in some function, I do this in
++		 * open coded manner. You see what this really does.
++		 * We have to guarantee mem->res.limit < mem->memsw.limit.
++		 */
++		spin_lock_irqsave(&memcg->res.lock, flags);
++		memlimit = memcg->res.limit;
++		if (memlimit > val) {
++			spin_unlock_irqrestore(&memcg->res.lock, flags);
++			ret = -EINVAL;
++			break;
++		}
++		ret = res_counter_set_limit(&memcg->memsw, val);
++		oldusage = memcg->memsw.usage;
++		spin_unlock_irqrestore(&memcg->res.lock, flags);
++
++		if (!ret)
++			break;
++		try_to_free_mem_cgroup_pages(memcg, GFP_HIGHUSER_MOVABLE, true);
++		curusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
++		if (curusage >= oldusage)
++			retry_count--;
++	}
++	return ret;
++}
++
+ 
  /*
   * This routine traverse page_cgroup in given list and drop them all.
-  * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
-  */
- static int mem_cgroup_force_empty_list(struct mem_cgroup *mem,
--			    struct mem_cgroup_per_zone *mz,
--			    enum lru_list lru)
-+				int node, int zid, enum lru_list lru)
+@@ -1191,7 +1383,7 @@ try_to_free:
+ 			goto out;
+ 		}
+ 		progress = try_to_free_mem_cgroup_pages(mem,
+-						  GFP_HIGHUSER_MOVABLE);
++						  GFP_HIGHUSER_MOVABLE, false);
+ 		if (!progress) {
+ 			nr_retries--;
+ 			/* maybe some writeback is necessary */
+@@ -1214,8 +1406,25 @@ int mem_cgroup_force_empty_write(struct 
+ 
+ static u64 mem_cgroup_read(struct cgroup *cont, struct cftype *cft)
  {
-+	struct zone *zone;
-+	struct mem_cgroup_per_zone *mz;
- 	struct page_cgroup *pc, *busy;
--	unsigned long flags;
--	unsigned long loop;
-+	unsigned long flags, loop;
- 	struct list_head *list;
- 	int ret = 0;
- 
-+	zone = &NODE_DATA(node)->node_zones[zid];
-+	mz = mem_cgroup_zoneinfo(mem, node, zid);
- 	list = &mz->lists[lru];
- 
- 	loop = MEM_CGROUP_ZSTAT(mz, lru);
-@@ -1283,19 +1242,19 @@ static int mem_cgroup_force_empty_list(s
- 	busy = NULL;
- 	while (loop--) {
- 		ret = 0;
--		spin_lock_irqsave(&mz->lru_lock, flags);
-+		spin_lock_irqsave(&zone->lru_lock, flags);
- 		if (list_empty(list)) {
--			spin_unlock_irqrestore(&mz->lru_lock, flags);
-+			spin_unlock_irqrestore(&zone->lru_lock, flags);
- 			break;
- 		}
- 		pc = list_entry(list->prev, struct page_cgroup, lru);
- 		if (busy == pc) {
- 			list_move(&pc->lru, list);
- 			busy = 0;
--			spin_unlock_irqrestore(&mz->lru_lock, flags);
-+			spin_unlock_irqrestore(&zone->lru_lock, flags);
- 			continue;
- 		}
--		spin_unlock_irqrestore(&mz->lru_lock, flags);
-+		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 
- 		ret = mem_cgroup_move_parent(pc, mem, GFP_HIGHUSER_MOVABLE);
- 		if (ret == -ENOMEM)
-@@ -1308,6 +1267,7 @@ static int mem_cgroup_force_empty_list(s
- 		} else
- 			busy = NULL;
- 	}
+-	return res_counter_read_u64(&mem_cgroup_from_cont(cont)->res,
+-				    cft->private);
++	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
++	u64 val = 0;
++	int type, name;
 +
- 	if (!ret && !list_empty(list))
- 		return -EBUSY;
- 	return ret;
-@@ -1342,12 +1302,10 @@ move_account:
- 		ret = 0;
- 		for_each_node_state(node, N_POSSIBLE) {
- 			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
--				struct mem_cgroup_per_zone *mz;
- 				enum lru_list l;
--				mz = mem_cgroup_zoneinfo(mem, node, zid);
- 				for_each_lru(l) {
- 					ret = mem_cgroup_force_empty_list(mem,
--								  mz, l);
-+							node, zid, l);
- 					if (ret)
- 						break;
- 				}
-@@ -1391,6 +1349,7 @@ try_to_free:
- 		}
++	type = MEMFILE_TYPE(cft->private);
++	name = MEMFILE_ATTR(cft->private);
++	switch (type) {
++	case _MEM:
++		val = res_counter_read_u64(&mem->res, name);
++		break;
++	case _MEMSWAP:
++		if (do_swap_account)
++			val = res_counter_read_u64(&mem->memsw, name);
++		break;
++	default:
++		BUG();
++		break;
++	}
++	return val;
+ }
+ /*
+  * The user of this function is...
+@@ -1225,15 +1434,22 @@ static int mem_cgroup_write(struct cgrou
+ 			    const char *buffer)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
++	int type, name;
+ 	unsigned long long val;
+ 	int ret;
  
+-	switch (cft->private) {
++	type = MEMFILE_TYPE(cft->private);
++	name = MEMFILE_ATTR(cft->private);
++	switch (name) {
+ 	case RES_LIMIT:
+ 		/* This function does all necessary parse...reuse it */
+ 		ret = res_counter_memparse_write_strategy(buffer, &val);
+-		if (!ret)
++		if (ret)
++			break;
++		if (type == _MEM)
+ 			ret = mem_cgroup_resize_limit(memcg, val);
++		else
++			ret = mem_cgroup_resize_memsw_limit(memcg, val);
+ 		break;
+ 	default:
+ 		ret = -EINVAL; /* should be BUG() ? */
+@@ -1245,14 +1461,23 @@ static int mem_cgroup_write(struct cgrou
+ static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
+ {
+ 	struct mem_cgroup *mem;
++	int type, name;
+ 
+ 	mem = mem_cgroup_from_cont(cont);
+-	switch (event) {
++	type = MEMFILE_TYPE(event);
++	name = MEMFILE_ATTR(event);
++	switch (name) {
+ 	case RES_MAX_USAGE:
+-		res_counter_reset_max(&mem->res);
++		if (type == _MEM)
++			res_counter_reset_max(&mem->res);
++		else
++			res_counter_reset_max(&mem->memsw);
+ 		break;
+ 	case RES_FAILCNT:
+-		res_counter_reset_failcnt(&mem->res);
++		if (type == _MEM)
++			res_counter_reset_failcnt(&mem->res);
++		else
++			res_counter_reset_failcnt(&mem->memsw);
+ 		break;
  	}
-+	lru_add_drain();
- 	/* try move_account...there may be some *locked* pages. */
- 	if (mem->res.usage)
- 		goto move_account;
-@@ -1635,7 +1594,6 @@ static int alloc_mem_cgroup_per_zone_inf
+ 	return 0;
+@@ -1313,24 +1538,24 @@ static int mem_control_stat_show(struct 
+ static struct cftype mem_cgroup_files[] = {
+ 	{
+ 		.name = "usage_in_bytes",
+-		.private = RES_USAGE,
++		.private = MEMFILE_PRIVATE(_MEM, RES_USAGE),
+ 		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
+ 		.name = "max_usage_in_bytes",
+-		.private = RES_MAX_USAGE,
++		.private = MEMFILE_PRIVATE(_MEM, RES_MAX_USAGE),
+ 		.trigger = mem_cgroup_reset,
+ 		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
+ 		.name = "limit_in_bytes",
+-		.private = RES_LIMIT,
++		.private = MEMFILE_PRIVATE(_MEM, RES_LIMIT),
+ 		.write_string = mem_cgroup_write,
+ 		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
+ 		.name = "failcnt",
+-		.private = RES_FAILCNT,
++		.private = MEMFILE_PRIVATE(_MEM, RES_FAILCNT),
+ 		.trigger = mem_cgroup_reset,
+ 		.read_u64 = mem_cgroup_read,
+ 	},
+@@ -1344,6 +1569,47 @@ static struct cftype mem_cgroup_files[] 
+ 	},
+ };
  
- 	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
- 		mz = &pn->zoneinfo[zone];
--		spin_lock_init(&mz->lru_lock);
- 		for_each_lru(l)
- 			INIT_LIST_HEAD(&mz->lists[l]);
- 	}
-@@ -1684,8 +1642,15 @@ static struct mem_cgroup *mem_cgroup_all
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
++static struct cftype memsw_cgroup_files[] = {
++	{
++		.name = "memsw.usage_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
++		.read_u64 = mem_cgroup_read,
++	},
++	{
++		.name = "memsw.max_usage_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
++		.trigger = mem_cgroup_reset,
++		.read_u64 = mem_cgroup_read,
++	},
++	{
++		.name = "memsw.limit_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
++		.write_string = mem_cgroup_write,
++		.read_u64 = mem_cgroup_read,
++	},
++	{
++		.name = "memsw.failcnt",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
++		.trigger = mem_cgroup_reset,
++		.read_u64 = mem_cgroup_read,
++	},
++};
++
++static int register_memsw_files(struct cgroup *cont, struct cgroup_subsys *ss)
++{
++	if (!do_swap_account)
++		return 0;
++	return cgroup_add_files(cont, ss, memsw_cgroup_files,
++				ARRAY_SIZE(memsw_cgroup_files));
++};
++#else
++static int register_memsw_files(struct cgroup *cont, struct cgroup_subsys *ss)
++{
++	return 0;
++}
++#endif
++
+ static int alloc_mem_cgroup_per_zone_info(struct mem_cgroup *mem, int node)
+ {
+ 	struct mem_cgroup_per_node *pn;
+@@ -1402,14 +1668,44 @@ static struct mem_cgroup *mem_cgroup_all
+ 	return mem;
+ }
  
++/*
++ * At destroying mem_cgroup, references from swap_cgroup can remain.
++ * (scanning all at force_empty is too costly...)
++ *
++ * Instead of clearing all references at force_empty, we remember
++ * the number of reference from swap_cgroup and free mem_cgroup when
++ * it goes down to 0.
++ *
++ * When mem_cgroup is destroyed, mem->obsolete will be set to 0 and
++ * entry which points to this memcg will be ignore at swapin.
++ *
++ * Removal of cgroup itself succeeds regardless of refs from swap.
++ */
++
  static void mem_cgroup_free(struct mem_cgroup *mem)
  {
-+	int node;
-+
- 	if (atomic_read(&mem->refcnt) > 0)
- 		return;
-+
-+
-+	for_each_node_state(node, N_POSSIBLE)
-+		free_mem_cgroup_per_zone_info(mem, node);
-+
++	if (atomic_read(&mem->refcnt) > 0)
++		return;
  	if (mem_cgroup_size() < PAGE_SIZE)
  		kfree(mem);
  	else
-@@ -1758,12 +1723,6 @@ static void mem_cgroup_pre_destroy(struc
- static void mem_cgroup_destroy(struct cgroup_subsys *ss,
+ 		vfree(mem);
+ }
+ 
++static void mem_cgroup_get(struct mem_cgroup *mem)
++{
++	atomic_inc(&mem->refcnt);
++}
++
++static void mem_cgroup_put(struct mem_cgroup *mem)
++{
++	if (atomic_dec_and_test(&mem->refcnt)) {
++		if (!mem->obsolete)
++			return;
++		mem_cgroup_free(mem);
++	}
++}
++
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ static void __init enable_swap_cgroup(void)
+@@ -1434,6 +1730,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	res_counter_init(&mem->res);
++	res_counter_init(&mem->memsw);
+ 
+ 	for_each_node_state(node, N_POSSIBLE)
+ 		if (alloc_mem_cgroup_per_zone_info(mem, node))
+@@ -1454,6 +1751,7 @@ static void mem_cgroup_pre_destroy(struc
+ 					struct cgroup *cont)
+ {
+ 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
++	mem->obsolete = 1;
+ 	mem_cgroup_force_empty(mem, false);
+ }
+ 
+@@ -1472,8 +1770,14 @@ static void mem_cgroup_destroy(struct cg
+ static int mem_cgroup_populate(struct cgroup_subsys *ss,
  				struct cgroup *cont)
  {
--	int node;
--	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
--
--	for_each_node_state(node, N_POSSIBLE)
--		free_mem_cgroup_per_zone_info(mem, node);
--
- 	mem_cgroup_free(mem_cgroup_from_cont(cont));
- }
- 
-diff -puN mm/page_cgroup.c~memcg-synchronized-lru mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-synchronized-lru
-+++ a/mm/page_cgroup.c
-@@ -17,6 +17,7 @@ __init_page_cgroup(struct page_cgroup *p
- 	pc->flags = 0;
- 	pc->mem_cgroup = NULL;
- 	pc->page = pfn_to_page(pfn);
-+	INIT_LIST_HEAD(&pc->lru);
- }
- static unsigned long total_usage;
- 
-diff -puN mm/swap.c~memcg-synchronized-lru mm/swap.c
---- a/mm/swap.c~memcg-synchronized-lru
-+++ a/mm/swap.c
-@@ -168,7 +168,6 @@ void activate_page(struct page *page)
- 		lru += LRU_ACTIVE;
- 		add_page_to_lru_list(zone, page, lru);
- 		__count_vm_event(PGACTIVATE);
--		mem_cgroup_move_lists(page, lru);
- 
- 		zone->recent_rotated[!!file]++;
- 		zone->recent_scanned[!!file]++;
-diff -puN mm/vmscan.c~memcg-synchronized-lru mm/vmscan.c
---- a/mm/vmscan.c~memcg-synchronized-lru
-+++ a/mm/vmscan.c
-@@ -558,7 +558,6 @@ redo:
- 		lru = LRU_UNEVICTABLE;
- 		add_page_to_unevictable_list(page);
- 	}
--	mem_cgroup_move_lists(page, lru);
- 
- 	/*
- 	 * page's status can change while we move it among lru. If an evictable
-@@ -593,7 +592,6 @@ void putback_lru_page(struct page *page)
- 
- 	lru = !!TestClearPageActive(page) + page_is_file_cache(page);
- 	lru_cache_add_lru(page, lru);
--	mem_cgroup_move_lists(page, lru);
- 	put_page(page);
- }
- #endif /* CONFIG_UNEVICTABLE_LRU */
-@@ -868,6 +866,7 @@ int __isolate_lru_page(struct page *page
- 		return ret;
- 
- 	ret = -EBUSY;
+-	return cgroup_add_files(cont, ss, mem_cgroup_files,
+-					ARRAY_SIZE(mem_cgroup_files));
++	int ret;
 +
- 	if (likely(get_page_unless_zero(page))) {
- 		/*
- 		 * Be careful not to clear PageLRU until after we're
-@@ -876,6 +875,7 @@ int __isolate_lru_page(struct page *page
- 		 */
- 		ClearPageLRU(page);
- 		ret = 0;
-+		mem_cgroup_del_lru(page);
++	ret = cgroup_add_files(cont, ss, mem_cgroup_files,
++				ARRAY_SIZE(mem_cgroup_files));
++
++	if (!ret)
++		ret = register_memsw_files(cont, ss);
++	return ret;
+ }
+ 
+ static void mem_cgroup_move_task(struct cgroup_subsys *ss,
+diff -puN mm/memory.c~memcg-memswap-controller-core mm/memory.c
+--- a/mm/memory.c~memcg-memswap-controller-core
++++ a/mm/memory.c
+@@ -2281,7 +2281,8 @@ static int do_swap_page(struct mm_struct
+ 	lock_page(page);
+ 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
+ 
+-	if (mem_cgroup_try_charge(mm, GFP_HIGHUSER_MOVABLE, &ptr) == -ENOMEM) {
++	if (mem_cgroup_try_charge_swapin(mm, page,
++				GFP_HIGHUSER_MOVABLE, &ptr) == -ENOMEM) {
+ 		ret = VM_FAULT_OOM;
+ 		unlock_page(page);
+ 		goto out;
+diff -puN mm/swap_state.c~memcg-memswap-controller-core mm/swap_state.c
+--- a/mm/swap_state.c~memcg-memswap-controller-core
++++ a/mm/swap_state.c
+@@ -17,6 +17,7 @@
+ #include <linux/backing-dev.h>
+ #include <linux/pagevec.h>
+ #include <linux/migrate.h>
++#include <linux/page_cgroup.h>
+ 
+ #include <asm/pgtable.h>
+ 
+@@ -108,6 +109,8 @@ int add_to_swap_cache(struct page *page,
+  */
+ void __delete_from_swap_cache(struct page *page)
+ {
++	swp_entry_t ent = {.val = page_private(page)};
++
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(!PageSwapCache(page));
+ 	BUG_ON(PageWriteback(page));
+@@ -119,7 +122,7 @@ void __delete_from_swap_cache(struct pag
+ 	total_swapcache_pages--;
+ 	__dec_zone_page_state(page, NR_FILE_PAGES);
+ 	INC_CACHE_INFO(del_total);
+-	mem_cgroup_uncharge_swapcache(page);
++	mem_cgroup_uncharge_swapcache(page, ent);
+ }
+ 
+ /**
+diff -puN mm/swapfile.c~memcg-memswap-controller-core mm/swapfile.c
+--- a/mm/swapfile.c~memcg-memswap-controller-core
++++ a/mm/swapfile.c
+@@ -271,8 +271,9 @@ out:
+ 	return NULL;
+ }	
+ 
+-static int swap_entry_free(struct swap_info_struct *p, unsigned long offset)
++static int swap_entry_free(struct swap_info_struct *p, swp_entry_t ent)
+ {
++	unsigned long offset = swp_offset(ent);
+ 	int count = p->swap_map[offset];
+ 
+ 	if (count < SWAP_MAP_MAX) {
+@@ -287,6 +288,7 @@ static int swap_entry_free(struct swap_i
+ 				swap_list.next = p - swap_info;
+ 			nr_swap_pages++;
+ 			p->inuse_pages--;
++			mem_cgroup_uncharge_swap(ent);
+ 		}
  	}
+ 	return count;
+@@ -302,7 +304,7 @@ void swap_free(swp_entry_t entry)
  
- 	return ret;
-@@ -1189,7 +1189,6 @@ static unsigned long shrink_inactive_lis
- 			SetPageLRU(page);
- 			lru = page_lru(page);
- 			add_page_to_lru_list(zone, page, lru);
--			mem_cgroup_move_lists(page, lru);
- 			if (PageActive(page) && scan_global_lru(sc)) {
- 				int file = !!page_is_file_cache(page);
- 				zone->recent_rotated[file]++;
-@@ -1322,7 +1321,7 @@ static void shrink_active_list(unsigned 
- 		ClearPageActive(page);
- 
- 		list_move(&page->lru, &zone->lru[lru].list);
--		mem_cgroup_move_lists(page, lru);
-+		mem_cgroup_add_lru_list(page, lru);
- 		pgmoved++;
- 		if (!pagevec_add(&pvec, page)) {
- 			__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
-@@ -2447,6 +2446,7 @@ retry:
- 
- 		__dec_zone_state(zone, NR_UNEVICTABLE);
- 		list_move(&page->lru, &zone->lru[l].list);
-+		mem_cgroup_move_lists(page, LRU_UNEVICTABLE, l);
- 		__inc_zone_state(zone, NR_INACTIVE_ANON + l);
- 		__count_vm_event(UNEVICTABLE_PGRESCUED);
- 	} else {
-@@ -2455,6 +2455,7 @@ retry:
- 		 */
- 		SetPageUnevictable(page);
- 		list_move(&page->lru, &zone->lru[LRU_UNEVICTABLE].list);
-+		mem_cgroup_rotate_lru_list(page, LRU_UNEVICTABLE);
- 		if (page_evictable(page, NULL))
- 			goto retry;
+ 	p = swap_info_get(entry);
+ 	if (p) {
+-		swap_entry_free(p, swp_offset(entry));
++		swap_entry_free(p, entry);
+ 		spin_unlock(&swap_lock);
  	}
+ }
+@@ -421,7 +423,7 @@ void free_swap_and_cache(swp_entry_t ent
+ 
+ 	p = swap_info_get(entry);
+ 	if (p) {
+-		if (swap_entry_free(p, swp_offset(entry)) == 1) {
++		if (swap_entry_free(p, entry) == 1) {
+ 			page = find_get_page(&swapper_space, entry.val);
+ 			if (page && !trylock_page(page)) {
+ 				page_cache_release(page);
+@@ -536,7 +538,8 @@ static int unuse_pte(struct vm_area_stru
+ 	pte_t *pte;
+ 	int ret = 1;
+ 
+-	if (mem_cgroup_try_charge(vma->vm_mm, GFP_HIGHUSER_MOVABLE, &ptr))
++	if (mem_cgroup_try_charge_swapin(vma->vm_mm, page,
++					GFP_HIGHUSER_MOVABLE, &ptr))
+ 		ret = -ENOMEM;
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+diff -puN mm/vmscan.c~memcg-memswap-controller-core mm/vmscan.c
+--- a/mm/vmscan.c~memcg-memswap-controller-core
++++ a/mm/vmscan.c
+@@ -1714,7 +1714,8 @@ unsigned long try_to_free_pages(struct z
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ 
+ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
+-						gfp_t gfp_mask)
++						gfp_t gfp_mask,
++					   bool noswap)
+ {
+ 	struct scan_control sc = {
+ 		.may_writepage = !laptop_mode,
+@@ -1727,6 +1728,9 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	};
+ 	struct zonelist *zonelist;
+ 
++	if (noswap)
++		sc.may_swap = 0;
++
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+ 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+ 	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
