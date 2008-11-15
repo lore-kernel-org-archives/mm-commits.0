@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-mem_cgroup_disabled-fix.patch added to -mm tree
-Date: Fri, 14 Nov 2008 20:41:41 -0800
-Message-ID: <200811150441.mAF4ffjg014928@imap1.linux-foundation.org>
+Subject: + quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix.patch added to -mm tree
+Date: Fri, 14 Nov 2008 20:44:21 -0800
+Message-ID: <200811150444.mAF4iL9G016255@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43200 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752055AbYKOEl7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752055AbYKOEoq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 23:41:59 -0500
+	Fri, 14 Nov 2008 23:44:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, xemul@openvz.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, cmm@us.ibm.com, hch@lst.de, jack@ucw.cz
 
 
 The patch titled
-     memcg-add-mem_cgroup_disabled-fix
+     quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix
 has been added to the -mm tree.  Its filename is
-     memcg-add-mem_cgroup_disabled-fix.patch
+     quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-add-mem_cgroup_disabled-fix
+Subject: quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-A fix for memcg-add-mem_cgroup_disabled-fix.patch
+fs/dquot.c:1391: error: redefinition of '__kcrctab_dquot_reserve_space'
+fs/dquot.c:1352: error: previous definition of '__kcrctab_dquot_reserve_space' was here
+fs/dquot.c:1391: error: redefinition of '__kstrtab_dquot_reserve_space'
+fs/dquot.c:1352: error: previous definition of '__kstrtab_dquot_reserve_space' was here
+fs/dquot.c:1391: error: redefinition of '__ksymtab_dquot_reserve_space'
+fs/dquot.c:1352: error: previous definition of '__ksymtab_dquot_reserve_space' was here
+fs/dquot.c:2101: error: redefinition of '__kcrctab_vfs_dq_quota_on_remount'
+fs/dquot.c:1974: error: previous definition of '__kcrctab_vfs_dq_quota_on_remount' was here
+fs/dquot.c:2101: error: redefinition of '__kstrtab_vfs_dq_quota_on_remount'
+fs/dquot.c:1974: error: previous definition of '__kstrtab_vfs_dq_quota_on_remount' was here
+fs/dquot.c:2101: error: redefinition of '__ksymtab_vfs_dq_quota_on_remount'
+fs/dquot.c:1974: error: previous definition of '__ksymtab_vfs_dq_quota_on_remount' was here
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- mm/memcontrol.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/dquot.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-add-mem_cgroup_disabled-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-mem_cgroup_disabled-fix
-+++ a/include/linux/memcontrol.h
-@@ -19,7 +19,7 @@
+diff -puN fs/dquot.c~quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix fs/dquot.c
+--- a/fs/dquot.c~quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix
++++ a/fs/dquot.c
+@@ -1388,7 +1388,7 @@ int dquot_claim_space(struct inode *inod
+ 	inode_add_bytes(inode, number);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(dquot_reserve_space);
++EXPORT_SYMBOL(dquot_claim_space);
  
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
--
-+#include <linux/cgroup.h>
- struct mem_cgroup;
- struct page_cgroup;
- struct page;
-diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_disabled-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-mem_cgroup_disabled-fix
-+++ a/mm/memcontrol.c
-@@ -301,7 +301,7 @@ void mem_cgroup_rotate_lru_list(struct p
- 	struct mem_cgroup_per_zone *mz;
- 	struct page_cgroup *pc;
+ /*
+  * Release reserved quota space
+@@ -1971,7 +1971,7 @@ static int vfs_quota_on_remount(struct s
  
--	if (mem_cgroup_diabled())
-+	if (mem_cgroup_disabled())
- 		return;
+ 	return ret;
+ }
+-EXPORT_SYMBOL(vfs_dq_quota_on_remount);
++EXPORT_SYMBOL(vfs_quota_on_remount);
  
- 	pc = lookup_page_cgroup(page);
+ int vfs_quota_on_path(struct super_block *sb, int type, int format_id,
+ 		      struct path *path)
+@@ -2277,6 +2277,7 @@ out:
+ 	mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
+ 	return err;
+ }
++EXPORT_SYMBOL(vfs_set_dqinfo);
+ 
+ struct quotactl_ops vfs_quotactl_ops = {
+ 	.quota_on	= vfs_quota_on,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -81,6 +95,7 @@ Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 origin.patch
 cgroup-fix-potential-deadlock-in-pre_destroy-v2.patch
 migration-fix-writepage-error.patch
+quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix.patch
 cgroups-make-cgroup-config-a-submenu.patch
 memcg-introduce-charge-commit-cancel-style-of-functions.patch
 memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
