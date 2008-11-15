@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usbmon-binary-format-reader-loses-synchronization.patch added to -mm tree
-Date: Fri, 14 Nov 2008 15:26:26 -0800
-Message-ID: <200811142326.mAENQQ20022260@imap1.linux-foundation.org>
+Subject: + mm-apply_to_range-call-pte-function-with-lazy-updates.patch added to -mm tree
+Date: Fri, 14 Nov 2008 16:25:56 -0800
+Message-ID: <200811150025.mAF0Pu1p018914@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754135AbYKNX0b (ORCPT
+	by vger.kernel.org with ESMTP id S1751126AbYKOA0g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Nov 2008 18:26:31 -0500
+	Fri, 14 Nov 2008 19:26:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: inguin@gmx.de
+Cc: jeremy@goop.org, hannes@cmpxchg.org, hugh@veritas.com, jeremy.fitzhardinge@citrix.com, nickpiggin@yahoo.com.au, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     usbmon binary format reader loses synchronization
+     mm/apply_to_range: call pte function with lazy updates
 has been added to the -mm tree.  Its filename is
-     usbmon-binary-format-reader-loses-synchronization.patch
+     mm-apply_to_range-call-pte-function-with-lazy-updates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usbmon binary format reader loses synchronization
-From: Ingo van Lil <inguin@gmx.de>
+Subject: mm/apply_to_range: call pte function with lazy updates
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-There's a bug in the usbmon binary reader: When using read() to fetch the
-packets and a packet's data is partially read the next read call will once
-again return up to len_cap bytes of data.  The b_read counter is not
-regarded when determining the remaining chunk size.
+Make the pte-level function in apply_to_range be called in lazy mmu mode,
+so that any pagetable modifications can be batched.
 
-When dumping USB data with "cat /dev/usbmon0 > usbmon.trace" while reading
-from a USB storage device and analyzing the dump file afterwards it will
-get out of sync after a couple of packets.
-
-Signed-off-by: Ingo van Lil <inguin@gmx.de>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/mon/mon_bin.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/memory.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/usb/mon/mon_bin.c~usbmon-binary-format-reader-loses-synchronization drivers/usb/mon/mon_bin.c
---- a/drivers/usb/mon/mon_bin.c~usbmon-binary-format-reader-loses-synchronization
-+++ a/drivers/usb/mon/mon_bin.c
-@@ -687,7 +687,10 @@ static ssize_t mon_bin_read(struct file 
- 	}
+diff -puN mm/memory.c~mm-apply_to_range-call-pte-function-with-lazy-updates mm/memory.c
+--- a/mm/memory.c~mm-apply_to_range-call-pte-function-with-lazy-updates
++++ a/mm/memory.c
+@@ -1564,6 +1564,8 @@ static int apply_to_pte_range(struct mm_
  
- 	if (rp->b_read >= sizeof(struct mon_bin_hdr)) {
--		step_len = min(nbytes, (size_t)ep->len_cap);
-+		step_len = ep->len_cap;
-+		step_len -= rp->b_read - sizeof(struct mon_bin_hdr);
-+		if (step_len > nbytes)
-+			step_len = nbytes;
- 		offset = rp->b_out + PKT_SIZE;
- 		offset += rp->b_read - sizeof(struct mon_bin_hdr);
- 		if (offset >= rp->b_size)
+ 	BUG_ON(pmd_huge(*pmd));
+ 
++	arch_enter_lazy_mmu_mode();
++
+ 	token = pmd_pgtable(*pmd);
+ 
+ 	do {
+@@ -1572,6 +1574,8 @@ static int apply_to_pte_range(struct mm_
+ 			break;
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+ 
++	arch_leave_lazy_mmu_mode();
++
+ 	if (mm != &init_mm)
+ 		pte_unmap_unlock(pte-1, ptl);
+ 	return err;
 _
 
-Patches currently in -mm which might be from inguin@gmx.de are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-usbmon-binary-format-reader-loses-synchronization.patch
+linux-next.patch
+mm-implement-remap_pfn_range-with-apply_to_page_range.patch
+mm-apply_to_range-call-pte-function-with-lazy-updates.patch
+mm-remap_pfn_range-restore-missing-flush.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
 
