@@ -1,95 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - igb-use-device_set_wakeup_enable.patch removed from -mm tree
-Date: Mon, 17 Nov 2008 13:27:27 -0800
-Message-ID: <200811172127.mAHLRR8d024248@imap1.linux-foundation.org>
+Subject: - usb-serial-console-setup-initialise-tty-kref.patch removed from -mm tree
+Date: Mon, 17 Nov 2008 13:27:36 -0800
+Message-ID: <200811172127.mAHLRaeY024339@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38832 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752097AbYKQV2B (ORCPT
+	by vger.kernel.org with ESMTP id S1751617AbYKQV2Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Nov 2008 16:28:01 -0500
+	Mon, 17 Nov 2008 16:28:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, mm-commits@vger.kernel.org
+To: kexin.hao@windriver.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     igb: use device_set_wakeup_enable
+     usb serial console setup: initialise tty kref
 has been removed from the -mm tree.  Its filename was
-     igb-use-device_set_wakeup_enable.patch
+     usb-serial-console-setup-initialise-tty-kref.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: igb: use device_set_wakeup_enable
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: usb serial console setup: initialise tty kref
+From: Kevin Hao <kexin.hao@windriver.com>
 
-Since dev->power.should_wakeup bit is used by the PCI core to decide
-whether the device should wake up the system from sleep states, set/unset
-this bit whenever WOL is enabled/disabled using igb_set_wol(). 
-Accordingly, use device_can_wakeup() for checking if wake-up is supported
-by the device.
+We alloc a fake tty in usb serial console setup function.  we should init
+the tty's kref otherwise we will face WARN_ON after following invoke of
+tty_port_tty_set --> tty_kref_get.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Kevin Hao <kexin.hao@windriver.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/igb/igb_ethtool.c |    8 ++++++--
- drivers/net/igb/igb_main.c    |    1 +
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/usb/serial/console.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/igb/igb_ethtool.c~igb-use-device_set_wakeup_enable drivers/net/igb/igb_ethtool.c
---- a/drivers/net/igb/igb_ethtool.c~igb-use-device_set_wakeup_enable
-+++ a/drivers/net/igb/igb_ethtool.c
-@@ -1776,7 +1776,8 @@ static void igb_get_wol(struct net_devic
- 
- 	/* this function will set ->supported = 0 and return 1 if wol is not
- 	 * supported by this hardware */
--	if (igb_wol_exclusion(adapter, wol))
-+	if (igb_wol_exclusion(adapter, wol) ||
-+	    !device_can_wakeup(&adapter->pdev->dev))
- 		return;
- 
- 	/* apply any specific unsupported masks here */
-@@ -1805,7 +1806,8 @@ static int igb_set_wol(struct net_device
- 	if (wol->wolopts & (WAKE_PHY | WAKE_ARP | WAKE_MAGICSECURE))
- 		return -EOPNOTSUPP;
- 
--	if (igb_wol_exclusion(adapter, wol))
-+	if (igb_wol_exclusion(adapter, wol) ||
-+	    !device_can_wakeup(&adapter->pdev->dev))
- 		return wol->wolopts ? -EOPNOTSUPP : 0;
- 
- 	switch (hw->device_id) {
-@@ -1825,6 +1827,8 @@ static int igb_set_wol(struct net_device
- 	if (wol->wolopts & WAKE_MAGIC)
- 		adapter->wol |= E1000_WUFC_MAG;
- 
-+	device_set_wakeup_enable(&adapter->pdev->dev, adapter->wol);
-+
- 	return 0;
- }
- 
-diff -puN drivers/net/igb/igb_main.c~igb-use-device_set_wakeup_enable drivers/net/igb/igb_main.c
---- a/drivers/net/igb/igb_main.c~igb-use-device_set_wakeup_enable
-+++ a/drivers/net/igb/igb_main.c
-@@ -1244,6 +1244,7 @@ static int __devinit igb_probe(struct pc
- 
- 	/* initialize the wol settings based on the eeprom settings */
- 	adapter->wol = adapter->eeprom_wol;
-+	device_set_wakeup_enable(&adapter->pdev->dev, adapter->wol);
- 
- 	/* reset the hardware with the new settings */
- 	igb_reset(adapter);
+diff -puN drivers/usb/serial/console.c~usb-serial-console-setup-initialise-tty-kref drivers/usb/serial/console.c
+--- a/drivers/usb/serial/console.c~usb-serial-console-setup-initialise-tty-kref
++++ a/drivers/usb/serial/console.c
+@@ -135,6 +135,7 @@ static int usb_console_setup(struct cons
+ 				err("no more memory");
+ 				goto reset_open_count;
+ 			}
++			kref_init(&tty->kref);
+ 			termios = kzalloc(sizeof(*termios), GFP_KERNEL);
+ 			if (!termios) {
+ 				retval = -ENOMEM;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from kexin.hao@windriver.com are
 
-origin.patch
 linux-next.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
-shrink_slab-handle-bad-shrinkers.patch
+usb-serial-console-add-device-function-fix.patch
 
