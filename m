@@ -1,117 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - dlm-trivial-annotation-of-be16-value.patch removed from -mm tree
-Date: Mon, 17 Nov 2008 13:27:21 -0800
-Message-ID: <200811172127.mAHLRL9Q024206@imap1.linux-foundation.org>
+Subject: - misc-c2port-needs-linux-schedh.patch removed from -mm tree
+Date: Mon, 17 Nov 2008 13:27:18 -0800
+Message-ID: <200811172127.mAHLRIlf024203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33816 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751867AbYKQV1w (ORCPT
+	by vger.kernel.org with ESMTP id S1752073AbYKQV2A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Nov 2008 16:27:52 -0500
+	Mon, 17 Nov 2008 16:28:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dlm: trivial annotation of be16 value
+     misc: C2port needs <linux/sched.h>
 has been removed from the -mm tree.  Its filename was
-     dlm-trivial-annotation-of-be16-value.patch
+     misc-c2port-needs-linux-schedh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dlm: trivial annotation of be16 value
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: misc: C2port needs <linux/sched.h>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-fs/dlm/dir.c:419:14: warning: incorrect type in assignment (different base types)
-fs/dlm/dir.c:419:14:    expected unsigned short [unsigned] [addressable] [assigned] [usertype] be_namelen
-fs/dlm/dir.c:419:14:    got restricted __be16 [usertype] <noident>
+m68k allmodconfig:
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+| drivers/misc/c2port/core.c: In function 'c2port_reset':
+| drivers/misc/c2port/core.c:73: error: dereferencing pointer to incomplete type
+| drivers/misc/c2port/core.c: In function 'c2port_strobe_ck':
+| drivers/misc/c2port/core.c:91: error: dereferencing pointer to incomplete type
+
+Include <linux/sched.h> to fix it, as m68k's local_irq_enable() needs to know
+about struct task_struct.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/dir.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/misc/c2port/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/dlm/dir.c~dlm-trivial-annotation-of-be16-value fs/dlm/dir.c
---- a/fs/dlm/dir.c~dlm-trivial-annotation-of-be16-value
-+++ a/fs/dlm/dir.c
-@@ -374,7 +374,7 @@ void dlm_copy_master_names(struct dlm_ls
- 	struct list_head *list;
- 	struct dlm_rsb *r;
- 	int offset = 0, dir_nodeid;
--	uint16_t be_namelen;
-+	__be16 be_namelen;
+diff -puN drivers/misc/c2port/core.c~misc-c2port-needs-linux-schedh drivers/misc/c2port/core.c
+--- a/drivers/misc/c2port/core.c~misc-c2port-needs-linux-schedh
++++ a/drivers/misc/c2port/core.c
+@@ -18,6 +18,7 @@
+ #include <linux/ctype.h>
+ #include <linux/delay.h>
+ #include <linux/idr.h>
++#include <linux/sched.h>
  
- 	down_read(&ls->ls_root_sem);
+ #include <linux/c2port.h>
  
-@@ -410,15 +410,15 @@ void dlm_copy_master_names(struct dlm_ls
- 
- 		if (offset + sizeof(uint16_t)*2 + r->res_length > outlen) {
- 			/* Write end-of-block record */
--			be_namelen = 0;
--			memcpy(outbuf + offset, &be_namelen, sizeof(uint16_t));
--			offset += sizeof(uint16_t);
-+			be_namelen = cpu_to_be16(0);
-+			memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
-+			offset += sizeof(__be16);
- 			goto out;
- 		}
- 
- 		be_namelen = cpu_to_be16(r->res_length);
--		memcpy(outbuf + offset, &be_namelen, sizeof(uint16_t));
--		offset += sizeof(uint16_t);
-+		memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
-+		offset += sizeof(__be16);
- 		memcpy(outbuf + offset, r->res_name, r->res_length);
- 		offset += r->res_length;
- 	}
-@@ -430,9 +430,9 @@ void dlm_copy_master_names(struct dlm_ls
- 
- 	if ((list == &ls->ls_root_list) &&
- 	    (offset + sizeof(uint16_t) <= outlen)) {
--		be_namelen = 0xFFFF;
--		memcpy(outbuf + offset, &be_namelen, sizeof(uint16_t));
--		offset += sizeof(uint16_t);
-+		be_namelen = cpu_to_be16(0xFFFF);
-+		memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
-+		offset += sizeof(__be16);
- 	}
- 
-  out:
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
+fb-clean-the-penguins-dirty-feet.patch
 linux-next.patch
-arm-use-the-new-byteorder-headers.patch
-dvb-cinergyt2-annotate-struct-endiannes-remove-unused-variable-add-static.patch
-v4l-s2255drv-fix-firmware-test-on-big-endian.patch
-ia64-use-the-new-byteorder-headers.patch
-input-ads7846c-sparse-lock-annotation.patch
-m32r-use-the-new-byteorder-headers.patch
-blackfin-remove-__function__-in-new-serial-driver.patch
-blackfin-use-the-new-byteorder-headers.patch
-parisc-use-the-new-byteorder-headers.patch
-s390-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-frv-use-the-new-byteorder-headers.patch
-m68knommu-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-memstick-annotate-endianness-of-attribute-structs.patch
+fbdev-fix-typo-in-drivers-video-modedbc.patch
 
