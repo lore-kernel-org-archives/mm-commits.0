@@ -1,90 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-swap-cgroup-for-remembering-usage-fix-3.patch added to -mm tree
-Date: Mon, 17 Nov 2008 10:14:44 -0800
-Message-ID: <200811171814.mAHIEinN021194@imap1.linux-foundation.org>
+Subject: - e1000e-use-device_set_wakeup_enable.patch removed from -mm tree
+Date: Mon, 17 Nov 2008 13:27:23 -0800
+Message-ID: <200811172127.mAHLRNPg024221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754573AbYKQSO6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752005AbYKQV15 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Nov 2008 13:14:58 -0500
+	Mon, 17 Nov 2008 16:27:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hugh@veritas.com, lizf@cn.fujitsu.com, xemul@openvz.org
+To: rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix argument for kunmap_atomic
-has been added to the -mm tree.  Its filename is
-     memcg-swap-cgroup-for-remembering-usage-fix-3.patch
+     e1000e: use device_set_wakeup_enable
+has been removed from the -mm tree.  Its filename was
+     e1000e-use-device_set_wakeup_enable.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix argument for kunmap_atomic
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: e1000e: use device_set_wakeup_enable
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-kunmap_atomic() should take kmapped address as argument.
+Since dev->power.should_wakeup bit is used by the PCI core to decide
+whether the device should wake up the system from sleep states, set/unset
+this bit whenever WOL is enabled/disabled using e1000_set_wol(). 
+Accordingly, use device_can_wakeup() for checking if wake-up is supported
+by the device.
 
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/e1000e/ethtool.c |    8 ++++++--
+ drivers/net/e1000e/netdev.c  |    1 +
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_cgroup.c~memcg-swap-cgroup-for-remembering-usage-fix-3 mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-swap-cgroup-for-remembering-usage-fix-3
-+++ a/mm/page_cgroup.c
-@@ -350,7 +350,7 @@ struct mem_cgroup *swap_cgroup_record(sw
- 	sc += pos;
- 	old = sc->val;
- 	sc->val = mem;
--	kunmap_atomic(mappage, KM_USER0);
-+	kunmap_atomic((void *)sc, KM_USER0);
- 	spin_unlock_irqrestore(&ctrl->lock, flags);
- 	return old;
+diff -puN drivers/net/e1000e/ethtool.c~e1000e-use-device_set_wakeup_enable drivers/net/e1000e/ethtool.c
+--- a/drivers/net/e1000e/ethtool.c~e1000e-use-device_set_wakeup_enable
++++ a/drivers/net/e1000e/ethtool.c
+@@ -1713,7 +1713,8 @@ static void e1000_get_wol(struct net_dev
+ 	wol->supported = 0;
+ 	wol->wolopts = 0;
+ 
+-	if (!(adapter->flags & FLAG_HAS_WOL))
++	if (!(adapter->flags & FLAG_HAS_WOL) ||
++	    !device_can_wakeup(&adapter->pdev->dev))
+ 		return;
+ 
+ 	wol->supported = WAKE_UCAST | WAKE_MCAST |
+@@ -1751,7 +1752,8 @@ static int e1000_set_wol(struct net_devi
+ 	if (wol->wolopts & WAKE_MAGICSECURE)
+ 		return -EOPNOTSUPP;
+ 
+-	if (!(adapter->flags & FLAG_HAS_WOL))
++	if (!(adapter->flags & FLAG_HAS_WOL) ||
++	    !device_can_wakeup(&adapter->pdev->dev))
+ 		return wol->wolopts ? -EOPNOTSUPP : 0;
+ 
+ 	/* these settings will always override what we currently have */
+@@ -1770,6 +1772,8 @@ static int e1000_set_wol(struct net_devi
+ 	if (wol->wolopts & WAKE_ARP)
+ 		adapter->wol |= E1000_WUFC_ARP;
+ 
++	device_set_wakeup_enable(&adapter->pdev->dev, adapter->wol);
++
+ 	return 0;
  }
-@@ -384,7 +384,7 @@ struct mem_cgroup *lookup_swap_cgroup(sw
- 	sc = kmap_atomic(mappage, KM_USER0);
- 	sc += pos;
- 	ret = sc->val;
--	kunmap_atomic(mappage, KM_USER0);
-+	kunmap_atomic((void *)sc, KM_USER0);
- 	spin_unlock_irqrestore(&ctrl->lock, flags);
- 	return ret;
- }
+ 
+diff -puN drivers/net/e1000e/netdev.c~e1000e-use-device_set_wakeup_enable drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-use-device_set_wakeup_enable
++++ a/drivers/net/e1000e/netdev.c
+@@ -4963,6 +4963,7 @@ static int __devinit e1000_probe(struct 
+ 
+ 	/* initialize the wol settings based on the eeprom settings */
+ 	adapter->wol = adapter->eeprom_wol;
++	device_set_wakeup_enable(&adapter->pdev->dev, adapter->wol);
+ 
+ 	/* reset the hardware with the new settings */
+ 	e1000e_reset(adapter);
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-cgroup-fix-potential-deadlock-in-pre_destroy-v2.patch
-cgroups-make-cgroup-config-a-submenu.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-fix-gfp_mask-of-callers-of-charge.patch
-memcg-simple-migration-handling.patch
-memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
-memcg-handle-swap-caches.patch
-memcg-memswap-controller-kconfig.patch
-memcg-swap-cgroup-for-remembering-usage-fix-3.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+origin.patch
+linux-next.patch
+vfs-fix-switch_names-breakage-in-short-to-short-case.patch
+shrink_slab-handle-bad-shrinkers.patch
 
