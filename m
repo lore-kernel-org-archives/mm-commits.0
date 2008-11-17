@@ -1,95 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - e1000-use-device_set_wakeup_enable.patch removed from -mm tree
-Date: Mon, 17 Nov 2008 13:27:25 -0800
-Message-ID: <200811172127.mAHLRP7P024227@imap1.linux-foundation.org>
+Subject: - dlm-trivial-annotation-of-be16-value.patch removed from -mm tree
+Date: Mon, 17 Nov 2008 13:27:21 -0800
+Message-ID: <200811172127.mAHLRL9Q024206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752029AbYKQV2A (ORCPT
+	by vger.kernel.org with ESMTP id S1751867AbYKQV1w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Nov 2008 16:28:00 -0500
+	Mon, 17 Nov 2008 16:27:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e1000: use device_set_wakeup_enable
+     dlm: trivial annotation of be16 value
 has been removed from the -mm tree.  Its filename was
-     e1000-use-device_set_wakeup_enable.patch
+     dlm-trivial-annotation-of-be16-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000: use device_set_wakeup_enable
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: dlm: trivial annotation of be16 value
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Since dev->power.should_wakeup bit is used by the PCI core to decide
-whether the device should wake up the system from sleep states, set/unset
-this bit whenever WOL is enabled/disabled using e1000_set_wol(). 
-Accordingly, use device_can_wakeup() for checking if wake-up is supported
-by the device.
+fs/dlm/dir.c:419:14: warning: incorrect type in assignment (different base types)
+fs/dlm/dir.c:419:14:    expected unsigned short [unsigned] [addressable] [assigned] [usertype] be_namelen
+fs/dlm/dir.c:419:14:    got restricted __be16 [usertype] <noident>
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000_ethtool.c |    8 ++++++--
- drivers/net/e1000/e1000_main.c    |    1 +
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ fs/dlm/dir.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/e1000/e1000_ethtool.c~e1000-use-device_set_wakeup_enable drivers/net/e1000/e1000_ethtool.c
---- a/drivers/net/e1000/e1000_ethtool.c~e1000-use-device_set_wakeup_enable
-+++ a/drivers/net/e1000/e1000_ethtool.c
-@@ -1774,7 +1774,8 @@ static void e1000_get_wol(struct net_dev
+diff -puN fs/dlm/dir.c~dlm-trivial-annotation-of-be16-value fs/dlm/dir.c
+--- a/fs/dlm/dir.c~dlm-trivial-annotation-of-be16-value
++++ a/fs/dlm/dir.c
+@@ -374,7 +374,7 @@ void dlm_copy_master_names(struct dlm_ls
+ 	struct list_head *list;
+ 	struct dlm_rsb *r;
+ 	int offset = 0, dir_nodeid;
+-	uint16_t be_namelen;
++	__be16 be_namelen;
  
- 	/* this function will set ->supported = 0 and return 1 if wol is not
- 	 * supported by this hardware */
--	if (e1000_wol_exclusion(adapter, wol))
-+	if (e1000_wol_exclusion(adapter, wol) ||
-+	    !device_can_wakeup(&adapter->pdev->dev))
- 		return;
+ 	down_read(&ls->ls_root_sem);
  
- 	/* apply any specific unsupported masks here */
-@@ -1811,7 +1812,8 @@ static int e1000_set_wol(struct net_devi
- 	if (wol->wolopts & (WAKE_PHY | WAKE_ARP | WAKE_MAGICSECURE))
- 		return -EOPNOTSUPP;
+@@ -410,15 +410,15 @@ void dlm_copy_master_names(struct dlm_ls
  
--	if (e1000_wol_exclusion(adapter, wol))
-+	if (e1000_wol_exclusion(adapter, wol) ||
-+	    !device_can_wakeup(&adapter->pdev->dev))
- 		return wol->wolopts ? -EOPNOTSUPP : 0;
+ 		if (offset + sizeof(uint16_t)*2 + r->res_length > outlen) {
+ 			/* Write end-of-block record */
+-			be_namelen = 0;
+-			memcpy(outbuf + offset, &be_namelen, sizeof(uint16_t));
+-			offset += sizeof(uint16_t);
++			be_namelen = cpu_to_be16(0);
++			memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
++			offset += sizeof(__be16);
+ 			goto out;
+ 		}
  
- 	switch (hw->device_id) {
-@@ -1838,6 +1840,8 @@ static int e1000_set_wol(struct net_devi
- 	if (wol->wolopts & WAKE_MAGIC)
- 		adapter->wol |= E1000_WUFC_MAG;
+ 		be_namelen = cpu_to_be16(r->res_length);
+-		memcpy(outbuf + offset, &be_namelen, sizeof(uint16_t));
+-		offset += sizeof(uint16_t);
++		memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
++		offset += sizeof(__be16);
+ 		memcpy(outbuf + offset, r->res_name, r->res_length);
+ 		offset += r->res_length;
+ 	}
+@@ -430,9 +430,9 @@ void dlm_copy_master_names(struct dlm_ls
  
-+	device_set_wakeup_enable(&adapter->pdev->dev, adapter->wol);
-+
- 	return 0;
- }
+ 	if ((list == &ls->ls_root_list) &&
+ 	    (offset + sizeof(uint16_t) <= outlen)) {
+-		be_namelen = 0xFFFF;
+-		memcpy(outbuf + offset, &be_namelen, sizeof(uint16_t));
+-		offset += sizeof(uint16_t);
++		be_namelen = cpu_to_be16(0xFFFF);
++		memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
++		offset += sizeof(__be16);
+ 	}
  
-diff -puN drivers/net/e1000/e1000_main.c~e1000-use-device_set_wakeup_enable drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~e1000-use-device_set_wakeup_enable
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -1175,6 +1175,7 @@ static int __devinit e1000_probe(struct 
- 
- 	/* initialize the wol settings based on the eeprom settings */
- 	adapter->wol = adapter->eeprom_wol;
-+	device_set_wakeup_enable(&adapter->pdev->dev, adapter->wol);
- 
- 	/* print bus type/speed/width info */
- 	DPRINTK(PROBE, INFO, "(PCI%s:%s:%s) ",
+  out:
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-origin.patch
 linux-next.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
-shrink_slab-handle-bad-shrinkers.patch
+arm-use-the-new-byteorder-headers.patch
+dvb-cinergyt2-annotate-struct-endiannes-remove-unused-variable-add-static.patch
+v4l-s2255drv-fix-firmware-test-on-big-endian.patch
+ia64-use-the-new-byteorder-headers.patch
+input-ads7846c-sparse-lock-annotation.patch
+m32r-use-the-new-byteorder-headers.patch
+blackfin-remove-__function__-in-new-serial-driver.patch
+blackfin-use-the-new-byteorder-headers.patch
+parisc-use-the-new-byteorder-headers.patch
+s390-use-the-new-byteorder-headers.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+frv-use-the-new-byteorder-headers.patch
+m68knommu-use-the-new-byteorder-headers.patch
+h8300-use-the-new-byteorder-headers.patch
+alpha-use-the-new-byteorder-headers.patch
+lib-fix-sparse-shadowed-variable-warning.patch
+lib-radix_treec-make-percpu-variable-static.patch
+lib-proportionsc-trivial-sparse-lock-annotation.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+blackfin-remove-__function__-in-video-driver.patch
+fb-carminefb-trivial-annotation-packing-color-register.patch
+memstick-annotate-endianness-of-attribute-structs.patch
 
