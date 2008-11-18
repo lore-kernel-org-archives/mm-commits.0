@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi_imx-full-duplex-dma-corruption-bugfix.patch added to -mm tree
-Date: Tue, 18 Nov 2008 14:14:16 -0800
-Message-ID: <200811182214.mAIMEGLA018290@imap1.linux-foundation.org>
+Subject: + hpwdt-set-the-mapped-bios-address-space-as-executable.patch added to -mm tree
+Date: Tue, 18 Nov 2008 14:30:23 -0800
+Message-ID: <200811182230.mAIMUN6H026790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42557 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60087 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751542AbYKRWO5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753497AbYKRWbD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Nov 2008 17:14:57 -0500
+	Tue, 18 Nov 2008 17:31:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.paterniani@swapp-eng.it, dbrownell@users.sourceforge.net
+Cc: bwalle@suse.de, Thomas.Mingarelli@hp.com, alan@redhat.com, hpa@zytor.com, mingo@elte.hu, stable@kernel.org, wim@iguana.be
 
 
 The patch titled
-     spi_imx: full duplex dma corruption bugfix
+     hpwdt: set the mapped BIOS address space as executable
 has been added to the -mm tree.  Its filename is
-     spi_imx-full-duplex-dma-corruption-bugfix.patch
+     hpwdt-set-the-mapped-bios-address-space-as-executable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_imx: full duplex dma corruption bugfix
-From: Andrea Paterniani <a.paterniani@swapp-eng.it>
+Subject: hpwdt: set the mapped BIOS address space as executable
+From: Bernhard Walle <bwalle@suse.de>
 
-Fix unsafe order in dma mapping operation: always flush data from the
-cache *BEFORE* invalidating it, to allow full duplex transfers where the
-same buffer may be used for both writes and reads.
+The address provided by the SMBIOS/DMI CRU information is mapped via
+ioremap() in the virtual address space.  However, since the address is
+executed (i.e.  call'd), we need to set that pages as executable.
 
-Signed-off-by: Andrea Paterniani <a.paterniani@swapp-eng.it>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Without that, I get following oops on a HP ProLiant DL385 G2
+machine with BIOS from 05/29/2008 when I trigger crashdump:
+
+    BUG: unable to handle kernel paging request at ffffc20011090c00
+    IP: [<ffffc20011090c00>] 0xffffc20011090c00
+    PGD 12f813067 PUD 7fe6a067 PMD 7effe067 PTE 80000000fffd3173
+    Oops: 0011 [1] SMP
+    last sysfs file: /sys/devices/system/cpu/cpu3/cache/index2/shared_cpu_map
+    CPU 1
+    Modules linked in: autofs4 ipv6 af_packet cpufreq_conservative cpufreq_userspace
+     cpufreq_powersave powernow_k8 fuse loop dm_mod rtc_cmos ipmi_si sg rtc_core i2c
+    _piix4 ipmi_msghandler bnx2 sr_mod container button i2c_core hpilo joydev pcspkr
+     rtc_lib shpchp hpwdt cdrom pci_hotplug usbhid hid ff_memless ohci_hcd ehci_hcd
+    uhci_hcd usbcore edd ext3 mbcache jbd fan ide_pci_generic serverworks ide_core p
+    ata_serverworks pata_acpi cciss ata_generic libata scsi_mod dock thermal process
+    or thermal_sys hwmon
+    Supported: Yes
+    Pid: 0, comm: swapper Not tainted 2.6.27.5-HEAD_20081111100657-default #1
+    RIP: 0010:[<ffffc20011090c00>]  [<ffffc20011090c00>] 0xffffc20011090c00
+    RSP: 0018:ffff88012f6f9e68  EFLAGS: 00010046
+    RAX: 0000000000000d02 RBX: 0000000000000000 RCX: 0000000000000000
+    RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+    RBP: ffff88012f6f9e98 R08: 666666666666660a R09: ffffffffa1006fc0
+    R10: 0000000000000000 R11: ffff88012f6f3ea8 R12: ffffc20011090c00
+    R13: ffff88012f6f9ee8 R14: 000000000000000e R15: 0000000000000000
+    FS:  00007ff70b29a6f0(0000) GS:ffff88012f6512c0(0000) knlGS:0000000000000000
+    CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+    CR2: ffffc20011090c00 CR3: 0000000000201000 CR4: 00000000000006e0
+    DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+    DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+    Process swapper (pid: 0, threadinfo ffff88012f6f2000, task ffff88007fa8a1c0)
+    Stack:  ffffffffa0f8502b 0000000000000002 ffffffff80738d50 0000000000000000
+     0000000000000046 0000000000000046 00000000fffffffe ffffffffa0f852ec
+     0000000000000000 ffffffff804ad9a6 0000000000000000 0000000000000000
+    Call Trace:
+    Inexact backtrace:
+
+     <NMI>  [<ffffffffa0f8502b>] ? asminline_call+0x2b/0x55 [hpwdt]
+     [<ffffffffa0f852ec>] hpwdt_pretimeout+0x3c/0xa0 [hpwdt]
+     [<ffffffff804ad9a6>] ? notifier_call_chain+0x29/0x4c
+     [<ffffffff802587e4>] ? notify_die+0x2d/0x32
+     [<ffffffff804abbdc>] ? default_do_nmi+0x53/0x1d9
+     [<ffffffff804abd90>] ? do_nmi+0x2e/0x43
+     [<ffffffff804ab552>] ? nmi+0xa2/0xd0
+     [<ffffffff80221ef9>] ? native_safe_halt+0x2/0x3
+     <<EOE>>  [<ffffffff8021345d>] ? default_idle+0x38/0x54
+     [<ffffffff8021359a>] ? c1e_idle+0x118/0x11c
+     [<ffffffff8020b3b5>] ? cpu_idle+0xa9/0xf1
+
+    Code: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff <55> 50 e8 00 00 00 00 58 48 2d 07 10 40 00 48 8b e8 58 e9 68 02
+    RIP  [<ffffc20011090c00>] 0xffffc20011090c00
+     RSP <ffff88012f6f9e68>
+    CR2: ffffc20011090c00
+    Kernel panic - not syncing: Fatal exception
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Mingarelli <Thomas.Mingarelli@hp.com>
+Cc: Alan Cox <alan@redhat.com>
+Cc: <stable@kernel.org>		[2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_imx.c |   45 +++++++++++++++++++---------------------
- 1 file changed, 22 insertions(+), 23 deletions(-)
+ drivers/watchdog/hpwdt.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/spi/spi_imx.c~spi_imx-full-duplex-dma-corruption-bugfix drivers/spi/spi_imx.c
---- a/drivers/spi/spi_imx.c~spi_imx-full-duplex-dma-corruption-bugfix
-+++ a/drivers/spi/spi_imx.c
-@@ -506,20 +506,6 @@ static int map_dma_buffers(struct driver
- 	if (!IS_DMA_ALIGNED(drv_data->rx) || !IS_DMA_ALIGNED(drv_data->tx))
- 		return -1;
+diff -puN drivers/watchdog/hpwdt.c~hpwdt-set-the-mapped-bios-address-space-as-executable drivers/watchdog/hpwdt.c
+--- a/drivers/watchdog/hpwdt.c~hpwdt-set-the-mapped-bios-address-space-as-executable
++++ a/drivers/watchdog/hpwdt.c
+@@ -40,6 +40,7 @@
+ #include <linux/bootmem.h>
+ #include <linux/slab.h>
+ #include <asm/desc.h>
++#include <asm/cacheflush.h>
  
--	/* NULL rx means write-only transfer and no map needed
--	   since rx DMA will not be used */
--	if (drv_data->rx) {
--		buf = drv_data->rx;
--		drv_data->rx_dma = dma_map_single(
--					dev,
--					buf,
--					drv_data->len,
--					DMA_FROM_DEVICE);
--		if (dma_mapping_error(dev, drv_data->rx_dma))
--			return -1;
--		drv_data->rx_dma_needs_unmap = 1;
--	}
--
- 	if (drv_data->tx == NULL) {
- 		/* Read only message --> use drv_data->dummy_dma_buf for dummy
- 		   writes to achive reads */
-@@ -533,18 +519,31 @@ static int map_dma_buffers(struct driver
- 					buf,
- 					drv_data->tx_map_len,
- 					DMA_TO_DEVICE);
--	if (dma_mapping_error(dev, drv_data->tx_dma)) {
--		if (drv_data->rx_dma) {
--			dma_unmap_single(dev,
--					drv_data->rx_dma,
--					drv_data->len,
--					DMA_FROM_DEVICE);
--			drv_data->rx_dma_needs_unmap = 0;
--		}
-+	if (dma_mapping_error(dev, drv_data->tx_dma))
- 		return -1;
--	}
- 	drv_data->tx_dma_needs_unmap = 1;
- 
-+	/* NULL rx means write-only transfer and no map needed
-+	 * since rx DMA will not be used */
-+	if (drv_data->rx) {
-+		buf = drv_data->rx;
-+		drv_data->rx_dma = dma_map_single(dev,
-+						buf,
-+						drv_data->len,
-+						DMA_FROM_DEVICE);
-+		if (dma_mapping_error(dev, drv_data->rx_dma)) {
-+			if (drv_data->tx_dma) {
-+				dma_unmap_single(dev,
-+						drv_data->tx_dma,
-+						drv_data->tx_map_len,
-+						DMA_TO_DEVICE);
-+				drv_data->tx_dma_needs_unmap = 0;
-+			}
-+			return -1;
-+		}
-+		drv_data->rx_dma_needs_unmap = 1;
-+	}
-+
- 	return 0;
+ #define PCI_BIOS32_SD_VALUE		0x5F32335F	/* "_32_" */
+ #define CRU_BIOS_SIGNATURE_VALUE	0x55524324
+@@ -394,6 +395,8 @@ static void __devinit dmi_find_cru(const
+ 				smbios_cru64_ptr->double_offset;
+ 			cru_rom_addr = ioremap(cru_physical_address,
+ 				smbios_cru64_ptr->double_length);
++			set_memory_x((unsigned long)cru_rom_addr & PAGE_MASK,
++				smbios_cru64_ptr->double_length >> PAGE_SHIFT);
+ 		}
+ 	}
  }
- 
 _
 
-Patches currently in -mm which might be from a.paterniani@swapp-eng.it are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-spi_imx-full-duplex-dma-corruption-bugfix.patch
+linux-next.patch
+hpwdt-set-the-mapped-bios-address-space-as-executable.patch
 
