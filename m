@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 18 Nov 2008 15:32:04 -0800
-Message-ID: <200811182332.mAINW43E026445@imap1.linux-foundation.org>
+Subject: + block-remove-kblockd_flush_work.patch added to -mm tree
+Date: Tue, 18 Nov 2008 15:33:00 -0800
+Message-ID: <200811182333.mAINX0Bl026873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47461 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752273AbYKRXcb (ORCPT
+	by vger.kernel.org with ESMTP id S1751926AbYKRXdG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Nov 2008 18:32:31 -0500
+	Tue, 18 Nov 2008 18:33:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: crquan@gmail.com, jens.axboe@oracle.com
 
 
 The patch titled
-     memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes
+     block: remove kblockd_flush_work()
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+     block-remove-kblockd_flush_work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: block: remove kblockd_flush_work()
+From: Cheng Renquan <crquan@gmail.com>
 
-WARNING: braces {} are not necessary for single statement blocks
-#180: FILE: mm/memcontrol.c:608:
-+		if (res_counter_check_under_limit(&root_mem->res)) {
-+			return 0;
-+		}
+After many improvements on kblockd_flush_work, it is now identical to
+cancel_work_sync, so a direct call to cancel_work_sync is suggested.
 
-total: 0 errors, 1 warnings, 200 lines checked
+The only difference is that cancel_work_sync is a GPL symbol,
+so no non-GPL modules anymore.
 
-./patches/memory-cgroup-hierarchical-reclaim-v4.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Signed-off-by: Cheng Renquan <crquan@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ block/as-iosched.c     |    2 +-
+ block/blk-core.c       |    8 +-------
+ block/cfq-iosched.c    |    2 +-
+ include/linux/blkdev.h |    1 -
+ 4 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes
-+++ a/mm/memcontrol.c
-@@ -605,9 +605,8 @@ static int mem_cgroup_hierarchical_recla
- 			continue;
- 		}
- 		ret = try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap);
--		if (res_counter_check_under_limit(&root_mem->res)) {
-+		if (res_counter_check_under_limit(&root_mem->res))
- 			return 0;
--		}
- 		cgroup_lock();
- 		next_mem = mem_cgroup_get_next_node(next_mem, root_mem);
- 		cgroup_unlock();
+diff -puN block/as-iosched.c~block-remove-kblockd_flush_work block/as-iosched.c
+--- a/block/as-iosched.c~block-remove-kblockd_flush_work
++++ a/block/as-iosched.c
+@@ -1344,7 +1344,7 @@ static void as_exit_queue(elevator_t *e)
+ 	struct as_data *ad = e->elevator_data;
+ 
+ 	del_timer_sync(&ad->antic_timer);
+-	kblockd_flush_work(&ad->antic_work);
++	cancel_work_sync(&ad->antic_work);
+ 
+ 	BUG_ON(!list_empty(&ad->fifo_list[REQ_SYNC]));
+ 	BUG_ON(!list_empty(&ad->fifo_list[REQ_ASYNC]));
+diff -puN block/blk-core.c~block-remove-kblockd_flush_work block/blk-core.c
+--- a/block/blk-core.c~block-remove-kblockd_flush_work
++++ a/block/blk-core.c
+@@ -391,7 +391,7 @@ EXPORT_SYMBOL(blk_stop_queue);
+ void blk_sync_queue(struct request_queue *q)
+ {
+ 	del_timer_sync(&q->unplug_timer);
+-	kblockd_flush_work(&q->unplug_work);
++	cancel_work_sync(&q->unplug_work);
+ }
+ EXPORT_SYMBOL(blk_sync_queue);
+ 
+@@ -2108,12 +2108,6 @@ int kblockd_schedule_work(struct request
+ }
+ EXPORT_SYMBOL(kblockd_schedule_work);
+ 
+-void kblockd_flush_work(struct work_struct *work)
+-{
+-	cancel_work_sync(work);
+-}
+-EXPORT_SYMBOL(kblockd_flush_work);
+-
+ int __init blk_dev_init(void)
+ {
+ 	kblockd_workqueue = create_workqueue("kblockd");
+diff -puN block/cfq-iosched.c~block-remove-kblockd_flush_work block/cfq-iosched.c
+--- a/block/cfq-iosched.c~block-remove-kblockd_flush_work
++++ a/block/cfq-iosched.c
+@@ -2160,7 +2160,7 @@ out_cont:
+ static void cfq_shutdown_timer_wq(struct cfq_data *cfqd)
+ {
+ 	del_timer_sync(&cfqd->idle_slice_timer);
+-	kblockd_flush_work(&cfqd->unplug_work);
++	cancel_work_sync(&cfqd->unplug_work);
+ }
+ 
+ static void cfq_put_async_queues(struct cfq_data *cfqd)
+diff -puN include/linux/blkdev.h~block-remove-kblockd_flush_work include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-remove-kblockd_flush_work
++++ a/include/linux/blkdev.h
+@@ -978,7 +978,6 @@ static inline void put_dev_sector(Sector
+ 
+ struct work_struct;
+ int kblockd_schedule_work(struct request_queue *q, struct work_struct *work);
+-void kblockd_flush_work(struct work_struct *work);
+ 
+ #define MODULE_ALIAS_BLOCKDEV(major,minor) \
+ 	MODULE_ALIAS("block-major-" __stringify(major) "-" __stringify(minor))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from crquan@gmail.com are
 
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
-pci-uninline-pci_ioremap_bar.patch
-pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
-vfs-lseekfd-0-seek_cur-race-condition-fix.patch
-bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-usb-serial-console-add-device-function-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format-fix.patch
-quota-support-64-bit-quota-format-fix-2.patch
-quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-swap-cgroup-for-remembering-usage-fix.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+block-remove-kblockd_flush_work.patch
+fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch
+md-need-another-print_sb-for-mdp_superblock_1.patch
 
