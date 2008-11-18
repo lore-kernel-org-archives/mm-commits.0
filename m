@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-trace-tracec-introduce-missing-kfree.patch added to -mm tree
-Date: Tue, 18 Nov 2008 14:42:47 -0800
-Message-ID: <200811182242.mAIMgl7H000778@imap1.linux-foundation.org>
+Subject: + drivers-video-backlight-da903xc-introduce-missing-kfree.patch added to -mm tree
+Date: Tue, 18 Nov 2008 14:53:51 -0800
+Message-ID: <200811182253.mAIMrpxk006578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752901AbYKRWn1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750945AbYKRWyB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Nov 2008 17:43:27 -0500
+	Tue, 18 Nov 2008 17:54:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, mingo@elte.hu, rostedt@goodmis.org
+Cc: julia@diku.dk, eric.miao@marvell.com, mike@compulab.co.il, rpurdie@linux.intel.com
 
 
 The patch titled
-     kernel/trace/trace.c: introduce missing kfree()
+     drivers/video/backlight/da903x.c: introduce missing kfree
 has been added to the -mm tree.  Its filename is
-     kernel-trace-tracec-introduce-missing-kfree.patch
+     drivers-video-backlight-da903xc-introduce-missing-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/trace/trace.c: introduce missing kfree()
+Subject: drivers/video/backlight/da903x.c: introduce missing kfree
 From: Julia Lawall <julia@diku.dk>
 
 Error handling code following a kzalloc should free the allocated data.
@@ -78,25 +78,26 @@ print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mike Rapoport <mike@compulab.co.il>
+Cc: Richard Purdie <rpurdie@linux.intel.com>
+Cc: Eric Miao <eric.miao@marvell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace.c |    1 +
+ drivers/video/backlight/da903x.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/trace/trace.c~kernel-trace-tracec-introduce-missing-kfree kernel/trace/trace.c
---- a/kernel/trace/trace.c~kernel-trace-tracec-introduce-missing-kfree
-+++ a/kernel/trace/trace.c
-@@ -2139,6 +2139,7 @@ __tracing_open(struct inode *inode, stru
- 			ring_buffer_read_finish(iter->buffer_iter[cpu]);
+diff -puN drivers/video/backlight/da903x.c~drivers-video-backlight-da903xc-introduce-missing-kfree drivers/video/backlight/da903x.c
+--- a/drivers/video/backlight/da903x.c~drivers-video-backlight-da903xc-introduce-missing-kfree
++++ a/drivers/video/backlight/da903x.c
+@@ -119,6 +119,7 @@ static int da903x_backlight_probe(struct
+ 	default:
+ 		dev_err(&pdev->dev, "invalid backlight device ID(%d)\n",
+ 				pdev->id);
++		kfree(data);
+ 		return -EINVAL;
  	}
- 	mutex_unlock(&trace_types_lock);
-+	kfree(iter);
  
- 	return ERR_PTR(-ENOMEM);
- }
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
@@ -110,5 +111,6 @@ drivers-isdn-misdn-use-array_size.patch
 drivers-message-fusion-use-array_size.patch
 fs-namespacec-drop-code-after-return.patch
 drivers-net-wireless-ath9k-rcc-use-array_size.patch
+drivers-video-backlight-da903xc-introduce-missing-kfree.patch
 kernel-trace-tracec-introduce-missing-kfree.patch
 
