@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-resource-counters-for-hierarchy-v4.patch added to -mm tree
-Date: Tue, 18 Nov 2008 15:30:54 -0800
-Message-ID: <200811182330.mAINUtM7025772@imap1.linux-foundation.org>
+Subject: + memory-cgroup-hierarchical-reclaim-v4.patch added to -mm tree
+Date: Tue, 18 Nov 2008 15:31:34 -0800
+Message-ID: <200811182331.mAINVYhi026130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751926AbYKRXbK (ORCPT
+	by vger.kernel.org with ESMTP id S1751926AbYKRXbt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Nov 2008 18:31:10 -0500
+	Tue, 18 Nov 2008 18:31:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fuj
 
 
 The patch titled
-     memcg: memory cgroup resource counters for hierarchy
+     memcg: memory cgroup hierarchical reclaim
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-resource-counters-for-hierarchy-v4.patch
+     memory-cgroup-hierarchical-reclaim-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,23 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: memory cgroup resource counters for hierarchy
+Subject: memcg: memory cgroup hierarchical reclaim
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Add support for building hierarchies in resource counters.  Cgroups allows
-us to build a deep hierarchy, but we currently don't link the resource
-counters belonging to the memory controller control groups, in the same
-fashion as the corresponding cgroup entries in the cgroup hierarchy.  This
-patch provides the infrastructure for resource counters that have the same
-hiearchy as their cgroup counter parts.
-
-These set of patches are based on the resource counter hiearchy patches
-posted by Pavel Emelianov.
-
-NOTE: Building hiearchies is expensive, deeper hierarchies imply charging
-the all the way up to the root.  It is known that hiearchies are
-expensive, so the user needs to be careful and aware of the trade-offs
-before creating very deep ones.
+This patch introduces hierarchical reclaim.  When an ancestor goes over
+its limit, the charging routine points to the parent that is above its
+limit.  The reclaim process then starts from the last scanned child of the
+ancestor and reclaims until the ancestor goes below its limit.
 
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
@@ -63,175 +53,217 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |    8 ++++--
- kernel/res_counter.c        |   42 +++++++++++++++++++++++++++-------
- mm/memcontrol.c             |   20 ++++++++++------
- 3 files changed, 53 insertions(+), 17 deletions(-)
+ mm/memcontrol.c |  170 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 167 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/res_counter.h~memory-cgroup-resource-counters-for-hierarchy-v4 include/linux/res_counter.h
---- a/include/linux/res_counter.h~memory-cgroup-resource-counters-for-hierarchy-v4
-+++ a/include/linux/res_counter.h
-@@ -43,6 +43,10 @@ struct res_counter {
- 	 * the routines below consider this to be IRQ-safe
- 	 */
- 	spinlock_t lock;
-+	/*
-+	 * Parent counter, used for hierarchial resource accounting
-+	 */
-+	struct res_counter *parent;
- };
- 
- /**
-@@ -87,7 +91,7 @@ enum {
-  * helpers for accounting
-  */
- 
--void res_counter_init(struct res_counter *counter);
-+void res_counter_init(struct res_counter *counter, struct res_counter *parent);
- 
- /*
-  * charge - try to consume more resource.
-@@ -103,7 +107,7 @@ void res_counter_init(struct res_counter
- int __must_check res_counter_charge_locked(struct res_counter *counter,
- 		unsigned long val);
- int __must_check res_counter_charge(struct res_counter *counter,
--		unsigned long val);
-+		unsigned long val, struct res_counter **limit_fail_at);
- 
- /*
-  * uncharge - tell that some portion of the resource is released
-diff -puN kernel/res_counter.c~memory-cgroup-resource-counters-for-hierarchy-v4 kernel/res_counter.c
---- a/kernel/res_counter.c~memory-cgroup-resource-counters-for-hierarchy-v4
-+++ a/kernel/res_counter.c
-@@ -15,10 +15,11 @@
- #include <linux/uaccess.h>
- #include <linux/mm.h>
- 
--void res_counter_init(struct res_counter *counter)
-+void res_counter_init(struct res_counter *counter, struct res_counter *parent)
- {
- 	spin_lock_init(&counter->lock);
- 	counter->limit = (unsigned long long)LLONG_MAX;
-+	counter->parent = parent;
- }
- 
- int res_counter_charge_locked(struct res_counter *counter, unsigned long val)
-@@ -34,14 +35,34 @@ int res_counter_charge_locked(struct res
- 	return 0;
- }
- 
--int res_counter_charge(struct res_counter *counter, unsigned long val)
-+int res_counter_charge(struct res_counter *counter, unsigned long val,
-+			struct res_counter **limit_fail_at)
- {
- 	int ret;
- 	unsigned long flags;
-+	struct res_counter *c, *u;
- 
--	spin_lock_irqsave(&counter->lock, flags);
--	ret = res_counter_charge_locked(counter, val);
--	spin_unlock_irqrestore(&counter->lock, flags);
-+	*limit_fail_at = NULL;
-+	local_irq_save(flags);
-+	for (c = counter; c != NULL; c = c->parent) {
-+		spin_lock(&c->lock);
-+		ret = res_counter_charge_locked(c, val);
-+		spin_unlock(&c->lock);
-+		if (ret < 0) {
-+			*limit_fail_at = c;
-+			goto undo;
-+		}
-+	}
-+	ret = 0;
-+	goto done;
-+undo:
-+	for (u = counter; u != c; u = u->parent) {
-+		spin_lock(&u->lock);
-+		res_counter_uncharge_locked(u, val);
-+		spin_unlock(&u->lock);
-+	}
-+done:
-+	local_irq_restore(flags);
- 	return ret;
- }
- 
-@@ -56,10 +77,15 @@ void res_counter_uncharge_locked(struct 
- void res_counter_uncharge(struct res_counter *counter, unsigned long val)
- {
- 	unsigned long flags;
-+	struct res_counter *c;
- 
--	spin_lock_irqsave(&counter->lock, flags);
--	res_counter_uncharge_locked(counter, val);
--	spin_unlock_irqrestore(&counter->lock, flags);
-+	local_irq_save(flags);
-+	for (c = counter; c != NULL; c = c->parent) {
-+		spin_lock(&c->lock);
-+		res_counter_uncharge_locked(c, val);
-+		spin_unlock(&c->lock);
-+	}
-+	local_irq_restore(flags);
- }
- 
- 
-diff -puN mm/memcontrol.c~memory-cgroup-resource-counters-for-hierarchy-v4 mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-resource-counters-for-hierarchy-v4
+diff -puN mm/memcontrol.c~memory-cgroup-hierarchical-reclaim-v4 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-hierarchical-reclaim-v4
 +++ a/mm/memcontrol.c
-@@ -471,6 +471,7 @@ static int __mem_cgroup_try_charge(struc
- {
- 	struct mem_cgroup *mem;
- 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
-+	struct res_counter *fail_res;
- 	/*
- 	 * We always charge the cgroup the mm_struct belongs to.
- 	 * The mm_struct's mem_cgroup changes on task migration if the
-@@ -499,11 +500,12 @@ static int __mem_cgroup_try_charge(struc
- 		int ret;
- 		bool noswap = false;
+@@ -143,6 +143,13 @@ struct mem_cgroup {
+ 	struct mem_cgroup_lru_info info;
  
--		ret = res_counter_charge(&mem->res, PAGE_SIZE);
-+		ret = res_counter_charge(&mem->res, PAGE_SIZE, &fail_res);
- 		if (likely(!ret)) {
- 			if (!do_swap_account)
- 				break;
--			ret = res_counter_charge(&mem->memsw, PAGE_SIZE);
-+			ret = res_counter_charge(&mem->memsw, PAGE_SIZE,
-+							&fail_res);
- 			if (likely(!ret))
- 				break;
- 			/* mem+swap counter fails */
-@@ -1699,22 +1701,26 @@ static void __init enable_swap_cgroup(vo
- static struct cgroup_subsys_state *
- mem_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
+ 	int	prev_priority;	/* for recording reclaim priority */
++
++	/*
++	 * While reclaiming in a hiearchy, we cache the last child we
++	 * reclaimed from. Protected by cgroup_lock()
++	 */
++	struct mem_cgroup *last_scanned_child;
++
+ 	int		obsolete;
+ 	atomic_t	refcnt;
+ 	/*
+@@ -461,6 +468,153 @@ unsigned long mem_cgroup_isolate_pages(u
+ 	return nr_taken;
+ }
+ 
++static struct mem_cgroup *
++mem_cgroup_from_res_counter(struct res_counter *counter)
++{
++	return container_of(counter, struct mem_cgroup, res);
++}
++
++/*
++ * This routine finds the DFS walk successor. This routine should be
++ * called with cgroup_mutex held
++ */
++static struct mem_cgroup *
++mem_cgroup_get_next_node(struct mem_cgroup *curr, struct mem_cgroup *root_mem)
++{
++	struct cgroup *cgroup, *curr_cgroup, *root_cgroup;
++
++	curr_cgroup = curr->css.cgroup;
++	root_cgroup = root_mem->css.cgroup;
++
++	if (!list_empty(&curr_cgroup->children)) {
++		/*
++		 * Walk down to children
++		 */
++		mem_cgroup_put(curr);
++		cgroup = list_entry(curr_cgroup->children.next,
++						struct cgroup, sibling);
++		curr = mem_cgroup_from_cont(cgroup);
++		mem_cgroup_get(curr);
++		goto done;
++	}
++
++visit_parent:
++	if (curr_cgroup == root_cgroup) {
++		mem_cgroup_put(curr);
++		curr = root_mem;
++		mem_cgroup_get(curr);
++		goto done;
++	}
++
++	/*
++	 * Goto next sibling
++	 */
++	if (curr_cgroup->sibling.next != &curr_cgroup->parent->children) {
++		mem_cgroup_put(curr);
++		cgroup = list_entry(curr_cgroup->sibling.next, struct cgroup,
++						sibling);
++		curr = mem_cgroup_from_cont(cgroup);
++		mem_cgroup_get(curr);
++		goto done;
++	}
++
++	/*
++	 * Go up to next parent and next parent's sibling if need be
++	 */
++	curr_cgroup = curr_cgroup->parent;
++	goto visit_parent;
++
++done:
++	root_mem->last_scanned_child = curr;
++	return curr;
++}
++
++/*
++ * Visit the first child (need not be the first child as per the ordering
++ * of the cgroup list, since we track last_scanned_child) of @mem and use
++ * that to reclaim free pages from.
++ */
++static struct mem_cgroup *
++mem_cgroup_get_first_node(struct mem_cgroup *root_mem)
++{
++	struct cgroup *cgroup;
++	struct mem_cgroup *ret;
++	bool obsolete = (root_mem->last_scanned_child &&
++				root_mem->last_scanned_child->obsolete);
++
++	/*
++	 * Scan all children under the mem_cgroup mem
++	 */
++	cgroup_lock();
++	if (list_empty(&root_mem->css.cgroup->children)) {
++		ret = root_mem;
++		goto done;
++	}
++
++	if (!root_mem->last_scanned_child || obsolete) {
++
++		if (obsolete)
++			mem_cgroup_put(root_mem->last_scanned_child);
++
++		cgroup = list_first_entry(&root_mem->css.cgroup->children,
++				struct cgroup, sibling);
++		ret = mem_cgroup_from_cont(cgroup);
++		mem_cgroup_get(ret);
++	} else
++		ret = mem_cgroup_get_next_node(root_mem->last_scanned_child,
++						root_mem);
++
++done:
++	root_mem->last_scanned_child = ret;
++	cgroup_unlock();
++	return ret;
++}
++
++/*
++ * Dance down the hierarchy if needed to reclaim memory. We remember the
++ * last child we reclaimed from, so that we don't end up penalizing
++ * one child extensively based on its position in the children list.
++ *
++ * root_mem is the original ancestor that we've been reclaim from.
++ */
++static int mem_cgroup_hierarchical_reclaim(struct mem_cgroup *root_mem,
++						gfp_t gfp_mask, bool noswap)
++{
++	struct mem_cgroup *next_mem;
++	int ret = 0;
++
++	/*
++	 * Reclaim unconditionally and don't check for return value.
++	 * We need to reclaim in the current group and down the tree.
++	 * One might think about checking for children before reclaiming,
++	 * but there might be left over accounting, even after children
++	 * have left.
++	 */
++	ret = try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap);
++	if (res_counter_check_under_limit(&root_mem->res))
++		return 0;
++
++	next_mem = mem_cgroup_get_first_node(root_mem);
++
++	while (next_mem != root_mem) {
++		if (next_mem->obsolete) {
++			mem_cgroup_put(next_mem);
++			cgroup_lock();
++			next_mem = mem_cgroup_get_first_node(root_mem);
++			cgroup_unlock();
++			continue;
++		}
++		ret = try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap);
++		if (res_counter_check_under_limit(&root_mem->res)) {
++			return 0;
++		}
++		cgroup_lock();
++		next_mem = mem_cgroup_get_next_node(next_mem, root_mem);
++		cgroup_unlock();
++	}
++	return ret;
++}
++
+ /*
+  * Unlike exported interface, "oom" parameter is added. if oom==true,
+  * oom-killer can be invoked.
+@@ -469,7 +623,7 @@ static int __mem_cgroup_try_charge(struc
+ 			gfp_t gfp_mask, struct mem_cgroup **memcg,
+ 			bool oom)
  {
 -	struct mem_cgroup *mem;
-+	struct mem_cgroup *mem, *parent;
- 	int node;
++	struct mem_cgroup *mem, *mem_over_limit;
+ 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
+ 	struct res_counter *fail_res;
+ 	/*
+@@ -515,8 +669,16 @@ static int __mem_cgroup_try_charge(struc
+ 		if (!(gfp_mask & __GFP_WAIT))
+ 			goto nomem;
  
- 	mem = mem_cgroup_alloc();
- 	if (!mem)
- 		return ERR_PTR(-ENOMEM);
- 
--	res_counter_init(&mem->res);
--	res_counter_init(&mem->memsw);
--
- 	for_each_node_state(node, N_POSSIBLE)
- 		if (alloc_mem_cgroup_per_zone_info(mem, node))
- 			goto free_out;
- 	/* root ? */
--	if (cont->parent == NULL)
-+	if (cont->parent == NULL) {
- 		enable_swap_cgroup();
-+		parent = NULL;
-+	} else
-+		parent = mem_cgroup_from_cont(cont->parent);
+-		if (try_to_free_mem_cgroup_pages(mem, gfp_mask, noswap))
+-			continue;
++		/*
++		 * Is one of our ancestors over their limit?
++		 */
++		if (fail_res)
++			mem_over_limit = mem_cgroup_from_res_counter(fail_res);
++		else
++			mem_over_limit = mem;
 +
-+ 	res_counter_init(&mem->res, parent ? &parent->res : NULL);
-+	res_counter_init(&mem->memsw, parent ? &parent->memsw : NULL);
-+
++		ret = mem_cgroup_hierarchical_reclaim(mem_over_limit, gfp_mask,
++							noswap);
  
+ 		/*
+ 		 * try_to_free_mem_cgroup_pages() might not give us a full
+@@ -1722,6 +1884,8 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	res_counter_init(&mem->memsw, parent ? &parent->memsw : NULL);
+ 
+ 
++	mem->last_scanned_child = NULL;
++
  	return &mem->css;
  free_out:
+ 	for_each_node_state(node, N_POSSIBLE)
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
@@ -242,6 +274,7 @@ memcg-swap-cgroup-for-remembering-usage-fix-2.patch
 memcg-swap-cgroup-for-remembering-usage-fix-3.patch
 memory-cgroup-hierarchy-documentation-v4.patch
 memory-cgroup-resource-counters-for-hierarchy-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
 memory-cgroup-hierarchical-reclaim-v4.patch
 memory-cgroup-hierarchy-feature-selector-v4.patch
 
