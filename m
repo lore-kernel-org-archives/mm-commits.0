@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + genhd-register-the-block_ext_major-blockdev.patch added to -mm tree
-Date: Tue, 18 Nov 2008 14:02:37 -0800
-Message-ID: <200811182202.mAIM2bsS012327@imap1.linux-foundation.org>
+Subject: + x96-quirk-for-reboot-stalls-on-a-dell-optiplex-330.patch added to -mm tree
+Date: Tue, 18 Nov 2008 14:04:00 -0800
+Message-ID: <200811182204.mAIM40sP013015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751094AbYKRWDK (ORCPT
+	by vger.kernel.org with ESMTP id S1750868AbYKRWEX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Nov 2008 17:03:10 -0500
+	Tue, 18 Nov 2008 17:04:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yanmin_zhang@linux.intel.com, jens.axboe@oracle.com, rjw@sisk.pl, tj@kernel.org, yanmin.zhang@linux.intel.com
+Cc: leann.ogasawara@canonical.com, mingo@elte.hu, steve.conklin@canonical.com, tglx@linutronix.de
 
 
 The patch titled
-     genhd: register the BLOCK_EXT_MAJOR blockdev
+     x96: quirk for reboot stalls on a Dell Optiplex 330
 has been added to the -mm tree.  Its filename is
-     genhd-register-the-block_ext_major-blockdev.patch
+     x96-quirk-for-reboot-stalls-on-a-dell-optiplex-330.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: genhd: register the BLOCK_EXT_MAJOR blockdev
-From: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Subject: x96: quirk for reboot stalls on a Dell Optiplex 330
+From: Leann Ogasawara <leann.ogasawara@canonical.com>
 
-We run into system boot failure with kernel 2.6.28-rc.  We found it on a
-couple of machines, including T61 notebook, nehalem machine, and another
-HPC NX6325 notebook.  All the machines use FedoraCore 8 or FedoraCore 9. 
-With kernel prior to 2.6.28-rc, system boot doesn't fail.
+Dell Optiplex 330 appears to hang on reboot. This is resolved by adding
+a quirk to set bios reboot.
 
-I debug it and locate the root cause.  See
-http://bugzilla.kernel.org/show_bug.cgi?id=11899
-https://bugzilla.redhat.com/show_bug.cgi?id=471517
-
-As a matter of fact, there are 2 bugs.
-
-1) root=/dev/sda1, system boot randomly fails.  Mostly, boot for 5
-   times and fails once.  nash has a bug.  Some of its functions misuse
-   return value 0.  Sometimes, 0 means timeout and no uevent available. 
-   Sometimes, 0 means nash gets an uevent, but the uevent isn't
-   block-related (for exmaple, usb).  If by coincidence, kernel tells nash
-   that uevents are available, but kernel also set timeout, nash might
-   stops collecting other uevents in queue if current uevent isn't
-   block-related.
-
-   I work out a patch for nash to fix it. 
-   http://bugzilla.kernel.org/attachment.cgi?id=18858
-
-2) root=LABEL=/, system always can't boot.  initrd init reports
-   switchroot fails.  Here is an executation branch of nash when booting:
-
-    (1) nash read /sys/block/sda/dev; Assume major is 8 (on my desktop)
-
-    (2) nash query /proc/devices with the major number; It found line  "8 sd";
-
-    (3) nash use 'sd' to search its own probe table to find device
-        (DISK) type for the device and add it to its own list;
-
-    (4) Later on, it probes all devices in its list to get
-        filesystem labels; scsi register "8 sd" always.
-
-When major is 259, nash fails to find the device(DISK) type.  I enables
-CONFIG_DEBUG_BLOCK_EXT_DEVT=y when compiling kernel, so 259 is picked up
-for device /dev/sda1, which causes nash to fail to find device (DISK)
-type.  To fixing issue 2), I create a patch for nash and another patch for
-kernel.
-
-http://bugzilla.kernel.org/attachment.cgi?id=18859
-http://bugzilla.kernel.org/attachment.cgi?id=18837
-
-This patch registers blkext, a new block device in proc/devices.
-
-With 2 patches on nash and 1 patch on kernel, I boot my machines for
-dozens of times without failure.
-
-Signed-off-by Zhang Yanmin <yanmin.zhang@linux.intel.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Leann Ogasawara <leann.ogasawara@canonical.com>
+Signed-off-by: Steve Conklin <steve.conklin@canonical.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/reboot.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN block/genhd.c~genhd-register-the-block_ext_major-blockdev block/genhd.c
---- a/block/genhd.c~genhd-register-the-block_ext_major-blockdev
-+++ a/block/genhd.c
-@@ -1028,6 +1028,7 @@ static int __init proc_genhd_init(void)
- {
- 	proc_create("diskstats", 0, NULL, &proc_diskstats_operations);
- 	proc_create("partitions", 0, NULL, &proc_partitions_operations);
-+	register_blkdev(BLOCK_EXT_MAJOR, "blkext");
- 	return 0;
- }
- module_init(proc_genhd_init);
+diff -puN arch/x86/kernel/reboot.c~x96-quirk-for-reboot-stalls-on-a-dell-optiplex-330 arch/x86/kernel/reboot.c
+--- a/arch/x86/kernel/reboot.c~x96-quirk-for-reboot-stalls-on-a-dell-optiplex-330
++++ a/arch/x86/kernel/reboot.c
+@@ -174,6 +174,15 @@ static struct dmi_system_id __initdata r
+ 			DMI_MATCH(DMI_BOARD_NAME, "0KW626"),
+ 		},
+ 	},
++	{   /* Handle problems with rebooting on Dell Optiplex 330 with 0KP561 */
++		.callback = set_bios_reboot,
++		.ident = "Dell OptiPlex 330",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 330"),
++			DMI_MATCH(DMI_BOARD_NAME, "0KP561"),
++		},
++	},
+ 	{	/* Handle problems with rebooting on Dell 2400's */
+ 		.callback = set_bios_reboot,
+ 		.ident = "Dell PowerEdge 2400",
 _
 
-Patches currently in -mm which might be from yanmin_zhang@linux.intel.com are
+Patches currently in -mm which might be from leann.ogasawara@canonical.com are
 
-genhd-register-the-block_ext_major-blockdev.patch
+x96-quirk-for-reboot-stalls-on-a-dell-optiplex-330.patch
 
