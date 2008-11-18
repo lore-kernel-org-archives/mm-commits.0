@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-physmap-make-physmap-compat-explicit.patch added to -mm tree
-Date: Tue, 18 Nov 2008 14:56:38 -0800
-Message-ID: <200811182256.mAIMuchs007950@imap1.linux-foundation.org>
+Subject: + ecryptfs-allocate-up-to-two-scatterlists-for-crypto-ops-on-keys.patch added to -mm tree
+Date: Tue, 18 Nov 2008 14:59:01 -0800
+Message-ID: <200811182259.mAIMx1Z4009245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750945AbYKRW5T (ORCPT
+	by vger.kernel.org with ESMTP id S1750945AbYKRXAA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Nov 2008 17:57:19 -0500
+	Tue, 18 Nov 2008 18:00:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, Bryan.Wu@analog.com, dwmw2@infradead.org
+Cc: mhalcrow@us.ibm.com, leon.woestenberg@gmail.com, pjssilva@ime.usp.br, stable@kernel.org, tim.gardner@canonical.com
 
 
 The patch titled
-     mtd/physmap: make physmap compat explicit
+     eCryptfs: Allocate up to two scatterlists for crypto ops on keys
 has been added to the -mm tree.  Its filename is
-     mtd-physmap-make-physmap-compat-explicit.patch
+     ecryptfs-allocate-up-to-two-scatterlists-for-crypto-ops-on-keys.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,111 +34,145 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/physmap: make physmap compat explicit
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: eCryptfs: Allocate up to two scatterlists for crypto ops on keys
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-The current method for always showing physmap compat address, size, and
-width is a bit confusing.  If length is set to 0, then the address and
-width are still shown but silently unused.  The physmap code itself
-already has logic which sets compat based on length, so just pull that out
-and into the Kconfig to make everything clear.
+I have received some reports of out-of-memory errors on some older AMD
+architectures.  These errors are what I would expect to see if
+crypt_stat->key were split between two separate pages.  eCryptfs should
+not assume that any of the memory sent through virt_to_scatterlist() is
+all contained in a single page, and so this patch allocates two
+scatterlist structs instead of one when processing keys.  I have received
+confirmation from one person affected by this bug that this patch resolves
+the issue for him, and so I am submitting it for inclusion in a future
+stable release.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Bryan Wu <Bryan.Wu@analog.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Note that virt_to_scatterlist() runs sg_init_table() on the scatterlist
+structs passed to it, so the calls to sg_init_table() in
+decrypt_passphrase_encrypted_session_key() are redundant.
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Reported-by: Paulo J. S. Silva <pjssilva@ime.usp.br>
+Cc: "Leon Woestenberg" <leon.woestenberg@gmail.com>
+Cc: Tim Gardner <tim.gardner@canonical.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/Kconfig   |   17 ++++++++++++++---
- drivers/mtd/maps/physmap.c |   16 ++++------------
- 2 files changed, 18 insertions(+), 15 deletions(-)
+ fs/ecryptfs/keystore.c |   31 ++++++++++++++-----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
-diff -puN drivers/mtd/maps/Kconfig~mtd-physmap-make-physmap-compat-explicit drivers/mtd/maps/Kconfig
---- a/drivers/mtd/maps/Kconfig~mtd-physmap-make-physmap-compat-explicit
-+++ a/drivers/mtd/maps/Kconfig
-@@ -23,9 +23,20 @@ config MTD_PHYSMAP
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called physmap.
- 
-+config MTD_PHYSMAP_COMPAT
-+	bool "Physmap compat support"
-+	depends on MTD_PHYSMAP
-+	default n
-+	help
-+	  Setup a simple mapping via the Kconfig options.  Normally the
-+	  physmap configuration options are done via your board's
-+	  resource file.
-+
-+	  If unsure, say N here.
-+
- config MTD_PHYSMAP_START
- 	hex "Physical start address of flash mapping"
--	depends on MTD_PHYSMAP
-+	depends on MTD_PHYSMAP_COMPAT
- 	default "0x8000000"
- 	help
- 	  This is the physical memory location at which the flash chips
-@@ -37,7 +48,7 @@ config MTD_PHYSMAP_START
- 
- config MTD_PHYSMAP_LEN
- 	hex "Physical length of flash mapping"
--	depends on MTD_PHYSMAP
-+	depends on MTD_PHYSMAP_COMPAT
- 	default "0"
- 	help
- 	  This is the total length of the mapping of the flash chips on
-@@ -51,7 +62,7 @@ config MTD_PHYSMAP_LEN
- 
- config MTD_PHYSMAP_BANKWIDTH
- 	int "Bank width in octets"
--	depends on MTD_PHYSMAP
-+	depends on MTD_PHYSMAP_COMPAT
- 	default "2"
- 	help
- 	  This is the total width of the data bus of the flash devices
-diff -puN drivers/mtd/maps/physmap.c~mtd-physmap-make-physmap-compat-explicit drivers/mtd/maps/physmap.c
---- a/drivers/mtd/maps/physmap.c~mtd-physmap-make-physmap-compat-explicit
-+++ a/drivers/mtd/maps/physmap.c
-@@ -261,14 +261,7 @@ static struct platform_driver physmap_fl
- };
- 
- 
--#ifdef CONFIG_MTD_PHYSMAP_LEN
--#if CONFIG_MTD_PHYSMAP_LEN != 0
--#warning using PHYSMAP compat code
--#define PHYSMAP_COMPAT
--#endif
--#endif
--
--#ifdef PHYSMAP_COMPAT
-+#ifdef CONFIG_MTD_PHYSMAP_COMPAT
- static struct physmap_flash_data physmap_flash_data = {
- 	.width		= CONFIG_MTD_PHYSMAP_BANKWIDTH,
- };
-@@ -312,7 +305,7 @@ static int __init physmap_init(void)
- 	int err;
- 
- 	err = platform_driver_register(&physmap_flash_driver);
--#ifdef PHYSMAP_COMPAT
-+#ifdef CONFIG_MTD_PHYSMAP_COMPAT
- 	if (err == 0)
- 		platform_device_register(&physmap_flash);
- #endif
-@@ -322,7 +315,7 @@ static int __init physmap_init(void)
- 
- static void __exit physmap_exit(void)
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-allocate-up-to-two-scatterlists-for-crypto-ops-on-keys fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-allocate-up-to-two-scatterlists-for-crypto-ops-on-keys
++++ a/fs/ecryptfs/keystore.c
+@@ -1037,17 +1037,14 @@ static int
+ decrypt_passphrase_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
+ 					 struct ecryptfs_crypt_stat *crypt_stat)
  {
--#ifdef PHYSMAP_COMPAT
-+#ifdef CONFIG_MTD_PHYSMAP_COMPAT
- 	platform_device_unregister(&physmap_flash);
- #endif
- 	platform_driver_unregister(&physmap_flash_driver);
-@@ -336,8 +329,7 @@ MODULE_AUTHOR("David Woodhouse <dwmw2@in
- MODULE_DESCRIPTION("Generic configurable MTD map driver");
+-	struct scatterlist dst_sg;
+-	struct scatterlist src_sg;
++	struct scatterlist dst_sg[2];
++	struct scatterlist src_sg[2];
+ 	struct mutex *tfm_mutex;
+ 	struct blkcipher_desc desc = {
+ 		.flags = CRYPTO_TFM_REQ_MAY_SLEEP
+ 	};
+ 	int rc = 0;
  
- /* legacy platform drivers can't hotplug or coldplg */
--#ifndef PHYSMAP_COMPAT
-+#ifndef CONFIG_MTD_PHYSMAP_COMPAT
- /* work with hotplug and coldplug */
- MODULE_ALIAS("platform:physmap-flash");
- #endif
+-	sg_init_table(&dst_sg, 1);
+-	sg_init_table(&src_sg, 1);
+-
+ 	if (unlikely(ecryptfs_verbosity > 0)) {
+ 		ecryptfs_printk(
+ 			KERN_DEBUG, "Session key encryption key (size [%d]):\n",
+@@ -1066,8 +1063,8 @@ decrypt_passphrase_encrypted_session_key
+ 	}
+ 	rc = virt_to_scatterlist(auth_tok->session_key.encrypted_key,
+ 				 auth_tok->session_key.encrypted_key_size,
+-				 &src_sg, 1);
+-	if (rc != 1) {
++				 src_sg, 2);
++	if (rc < 1 || rc > 2) {
+ 		printk(KERN_ERR "Internal error whilst attempting to convert "
+ 			"auth_tok->session_key.encrypted_key to scatterlist; "
+ 			"expected rc = 1; got rc = [%d]. "
+@@ -1079,8 +1076,8 @@ decrypt_passphrase_encrypted_session_key
+ 		auth_tok->session_key.encrypted_key_size;
+ 	rc = virt_to_scatterlist(auth_tok->session_key.decrypted_key,
+ 				 auth_tok->session_key.decrypted_key_size,
+-				 &dst_sg, 1);
+-	if (rc != 1) {
++				 dst_sg, 2);
++	if (rc < 1 || rc > 2) {
+ 		printk(KERN_ERR "Internal error whilst attempting to convert "
+ 			"auth_tok->session_key.decrypted_key to scatterlist; "
+ 			"expected rc = 1; got rc = [%d]\n", rc);
+@@ -1096,7 +1093,7 @@ decrypt_passphrase_encrypted_session_key
+ 		rc = -EINVAL;
+ 		goto out;
+ 	}
+-	rc = crypto_blkcipher_decrypt(&desc, &dst_sg, &src_sg,
++	rc = crypto_blkcipher_decrypt(&desc, dst_sg, src_sg,
+ 				      auth_tok->session_key.encrypted_key_size);
+ 	mutex_unlock(tfm_mutex);
+ 	if (unlikely(rc)) {
+@@ -1539,8 +1536,8 @@ write_tag_3_packet(char *dest, size_t *r
+ 	size_t i;
+ 	size_t encrypted_session_key_valid = 0;
+ 	char session_key_encryption_key[ECRYPTFS_MAX_KEY_BYTES];
+-	struct scatterlist dst_sg;
+-	struct scatterlist src_sg;
++	struct scatterlist dst_sg[2];
++	struct scatterlist src_sg[2];
+ 	struct mutex *tfm_mutex = NULL;
+ 	u8 cipher_code;
+ 	size_t packet_size_length;
+@@ -1619,8 +1616,8 @@ write_tag_3_packet(char *dest, size_t *r
+ 		ecryptfs_dump_hex(session_key_encryption_key, 16);
+ 	}
+ 	rc = virt_to_scatterlist(crypt_stat->key, key_rec->enc_key_size,
+-				 &src_sg, 1);
+-	if (rc != 1) {
++				 src_sg, 2);
++	if (rc < 1 || rc > 2) {
+ 		ecryptfs_printk(KERN_ERR, "Error generating scatterlist "
+ 				"for crypt_stat session key; expected rc = 1; "
+ 				"got rc = [%d]. key_rec->enc_key_size = [%d]\n",
+@@ -1629,8 +1626,8 @@ write_tag_3_packet(char *dest, size_t *r
+ 		goto out;
+ 	}
+ 	rc = virt_to_scatterlist(key_rec->enc_key, key_rec->enc_key_size,
+-				 &dst_sg, 1);
+-	if (rc != 1) {
++				 dst_sg, 2);
++	if (rc < 1 || rc > 2) {
+ 		ecryptfs_printk(KERN_ERR, "Error generating scatterlist "
+ 				"for crypt_stat encrypted session key; "
+ 				"expected rc = 1; got rc = [%d]. "
+@@ -1651,7 +1648,7 @@ write_tag_3_packet(char *dest, size_t *r
+ 	rc = 0;
+ 	ecryptfs_printk(KERN_DEBUG, "Encrypting [%d] bytes of the key\n",
+ 			crypt_stat->key_size);
+-	rc = crypto_blkcipher_encrypt(&desc, &dst_sg, &src_sg,
++	rc = crypto_blkcipher_encrypt(&desc, dst_sg, src_sg,
+ 				      (*key_rec).enc_key_size);
+ 	mutex_unlock(tfm_mutex);
+ 	if (rc) {
+_
+
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+
+ecryptfs-allocate-up-to-two-scatterlists-for-crypto-ops-on-keys.patch
+linux-next.patch
+ecryptfs-filename-encryption-tag-70-packets.patch
+ecryptfs-filename-encryption-header-updates.patch
+ecryptfs-filename-encryption-encoding-and-encryption-functions.patch
+ecryptfs-filename-encryption-filldir-lookup-and-readlink.patch
+ecryptfs-filename-encryption-mount-option.patch
+ecryptfs-replace-%z-with-%z.patch
+ecryptfs-fix-data-types-int-size_t.patch
+ecryptfs-kerneldoc-for-ecryptfs_parse_tag_70_packet.patch
+ecryptfs-clean-up-ecryptfs_decode_from_filename.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+notify_change-callers-must-hold-i_mutex.patch
+
