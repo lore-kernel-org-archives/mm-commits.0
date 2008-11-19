@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-profilec-fix-section-mismatch-warning-fix.patch added to -mm tree
-Date: Tue, 18 Nov 2008 22:20:10 -0800
-Message-ID: <200811190620.mAJ6KA8n010096@imap1.linux-foundation.org>
+Subject: + kernel-profilec-fix-section-mismatch-warning.patch added to -mm tree
+Date: Tue, 18 Nov 2008 22:20:08 -0800
+Message-ID: <200811190620.mAJ6K8rT010075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751245AbYKSGUx (ORCPT
+	by vger.kernel.org with ESMTP id S1750747AbYKSGUr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 01:20:53 -0500
+	Wed, 19 Nov 2008 01:20:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, rakib.mullick@gmail.com
+Cc: rakib.mullick@gmail.com, mingo@elte.hu
 
 
 The patch titled
-     kernel-profilec-fix-section-mismatch-warning-fix
+     From: "Rakib Mullick" <rakib.mullick@gmail.com>
 has been added to the -mm tree.  Its filename is
-     kernel-profilec-fix-section-mismatch-warning-fix.patch
+     kernel-profilec-fix-section-mismatch-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-profilec-fix-section-mismatch-warning-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: From: "Rakib Mullick" <rakib.mullick@gmail.com>
 
-No point in inlining this.
 
-Cc: Rakib Mullick <rakib.mullick@gmail.com>
+Impact: Fix section mismatch warning in kernel/profile.c
+
+Here, profile_nop function has been called from a non-init function
+create_hash_tables(void). Which generetes a section mismatch warning.
+Previously, create_hash_tables(void) was a init function. So, removing
+__init from create_hash_tables(void) requires profile_nop to be
+non-init. This patch makes profile_nop function inline and fixes the
+following warning:
+
+WARNING: vmlinux.o(.text+0x6ebb6): Section mismatch in reference from
+the function create_hash_tables() to the function
+.init.text:profile_nop()
+The function create_hash_tables() references
+the function __init profile_nop().
+This is often because create_hash_tables lacks a __init
+annotation or the annotation of profile_nop is wrong.
+
+Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -47,82 +62,24 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/profile.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/profile.c~kernel-profilec-fix-section-mismatch-warning-fix kernel/profile.c
---- a/kernel/profile.c~kernel-profilec-fix-section-mismatch-warning-fix
+diff -puN kernel/profile.c~kernel-profilec-fix-section-mismatch-warning kernel/profile.c
+--- a/kernel/profile.c~kernel-profilec-fix-section-mismatch-warning
 +++ a/kernel/profile.c
 @@ -544,7 +544,7 @@ static const struct file_operations proc
  };
  
  #ifdef CONFIG_SMP
--static inline void profile_nop(void *unused)
-+static void profile_nop(void *unused)
+-static void __init profile_nop(void *unused)
++static inline void profile_nop(void *unused)
  {
  }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rakib.mullick@gmail.com are
 
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
-pci-uninline-pci_ioremap_bar.patch
-pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
-vfs-lseekfd-0-seek_cur-race-condition-fix.patch
-bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
+kernel-profilec-fix-section-mismatch-warning.patch
 kernel-profilec-fix-section-mismatch-warning-fix.patch
-usb-serial-console-add-device-function-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
 init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format-fix.patch
-quota-support-64-bit-quota-format-fix-2.patch
-quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-swap-cgroup-for-remembering-usage-fix.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
