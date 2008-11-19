@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds3234-fixes-v2.patch added to -mm tree
-Date: Wed, 19 Nov 2008 00:07:05 -0800
-Message-ID: <200811190807.mAJ875a9000621@imap1.linux-foundation.org>
+Subject: + w1-add-1-wire-master-driver-for-imx27-imx31.patch added to -mm tree
+Date: Wed, 19 Nov 2008 00:20:05 -0800
+Message-ID: <200811190820.mAJ8K5I3007429@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45172 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751733AbYKSIHR (ORCPT
+	by vger.kernel.org with ESMTP id S1753470AbYKSIUk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 03:07:17 -0500
+	Wed, 19 Nov 2008 03:20:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.zummo@towertech.it, david-b@pacbell.net, denzzzhome@yahoo.com
+Cc: s.hauer@pengutronix.de, l.fu@pengutronix.de, rmk@arm.linux.org.uk, zbr@ioremap.net
 
 
 The patch titled
-     rtc: rtc-ds3234 fixes
+     w1: add 1-wire master driver for i.MX27 / i.MX31
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds3234-fixes-v2.patch
+     w1-add-1-wire-master-driver-for-imx27-imx31.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,308 +34,275 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-ds3234 fixes
-From: Alessandro Zummo <a.zummo@towertech.it>
+Subject: w1: add 1-wire master driver for i.MX27 / i.MX31
+From: Sascha Hauer <s.hauer@pengutronix.de>
 
-- no changelogs in code
-- no banners
-- use local buffers
-- fix probe sequence
-- do not init .driver.bus
+This patch adds support for the 1-wire master interface for i.MX27 and
+i.MX31.
 
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Dennis Aberilla <denzzzhome@yahoo.com>
-Acked-by: David Brownell <david-b@pacbell.net>
+Signed-off-by: Luotao Fu <l.fu@pengutronix.de>
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds3234.c |  170 +++++++------------------------------
- 1 file changed, 35 insertions(+), 135 deletions(-)
+ drivers/w1/masters/Kconfig  |    6 
+ drivers/w1/masters/Makefile |    2 
+ drivers/w1/masters/mxc_w1.c |  215 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 223 insertions(+)
 
-diff -puN drivers/rtc/rtc-ds3234.c~rtc-rtc-ds3234-fixes-v2 drivers/rtc/rtc-ds3234.c
---- a/drivers/rtc/rtc-ds3234.c~rtc-rtc-ds3234-fixes-v2
-+++ a/drivers/rtc/rtc-ds3234.c
-@@ -1,4 +1,4 @@
--/* drivers/rtc/rtc-ds3234.c
-+/* rtc-ds3234.c
-  *
-  * Driver for Dallas Semiconductor (DS3234) SPI RTC with Integrated Crystal
-  * and SRAM.
-@@ -9,13 +9,10 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  *
-- * Changelog:
-- *
-- * 07-May-2008: Dennis Aberilla <denzzzhome@yahoo.com>
-- *		- Created based on the max6902 code. Only implements the
-- *		  date/time keeping functions; no SRAM yet.
-  */
+diff -puN drivers/w1/masters/Kconfig~w1-add-1-wire-master-driver-for-imx27-imx31 drivers/w1/masters/Kconfig
+--- a/drivers/w1/masters/Kconfig~w1-add-1-wire-master-driver-for-imx27-imx31
++++ a/drivers/w1/masters/Kconfig
+@@ -34,6 +34,12 @@ config W1_MASTER_DS2482
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ds2482.
  
-+#include <linux/init.h>
++config W1_MASTER_MXC
++	tristate "Freescale MXC 1-wire busmaster"
++	depends on W1 && ARCH_MXC
++	help
++	  Say Y here to enable MXC 1-wire host
++
+ config W1_MASTER_DS1WM
+ 	tristate "Maxim DS1WM 1-wire busmaster"
+ 	depends on W1 && ARM
+diff -puN drivers/w1/masters/Makefile~w1-add-1-wire-master-driver-for-imx27-imx31 drivers/w1/masters/Makefile
+--- a/drivers/w1/masters/Makefile~w1-add-1-wire-master-driver-for-imx27-imx31
++++ a/drivers/w1/masters/Makefile
+@@ -5,6 +5,8 @@
+ obj-$(CONFIG_W1_MASTER_MATROX)		+= matrox_w1.o
+ obj-$(CONFIG_W1_MASTER_DS2490)		+= ds2490.o
+ obj-$(CONFIG_W1_MASTER_DS2482)		+= ds2482.o
++obj-$(CONFIG_W1_MASTER_MXC)		+= mxc_w1.o
++
+ obj-$(CONFIG_W1_MASTER_DS1WM)		+= ds1wm.o
+ obj-$(CONFIG_W1_MASTER_GPIO)		+= w1-gpio.o
+ obj-$(CONFIG_HDQ_MASTER_OMAP)		+= omap_hdq.o
+diff -puN /dev/null drivers/w1/masters/mxc_w1.c
+--- /dev/null
++++ a/drivers/w1/masters/mxc_w1.c
+@@ -0,0 +1,215 @@
++/*
++ * Copyright 2005-2008 Freescale Semiconductor, Inc. All Rights Reserved.
++ * Copyright 2008 Luotao Fu, kernel@pengutronix.de
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
++ *
++ */
++
 +#include <linux/module.h>
- #include <linux/device.h>
- #include <linux/platform_device.h>
- #include <linux/rtc.h>
-@@ -34,16 +31,7 @@
- #define DS3234_REG_CONTROL	0x0E
- #define DS3234_REG_CONT_STAT	0x0F
- 
--#undef DS3234_DEBUG
--
--struct ds3234 {
--	struct rtc_device *rtc;
--	u8 buf[8]; /* Burst read: addr + 7 regs */
--	u8 tx_buf[2];
--	u8 rx_buf[2];
--};
--
--static void ds3234_set_reg(struct device *dev, unsigned char address,
-+static int ds3234_set_reg(struct device *dev, unsigned char address,
- 				unsigned char data)
- {
- 	struct spi_device *spi = to_spi_device(dev);
-@@ -53,107 +41,45 @@ static void ds3234_set_reg(struct device
- 	buf[0] = address | 0x80;
- 	buf[1] = data;
- 
--	spi_write(spi, buf, 2);
-+	return spi_write_then_read(spi, buf, 2, NULL, 0);
- }
- 
- static int ds3234_get_reg(struct device *dev, unsigned char address,
- 				unsigned char *data)
- {
- 	struct spi_device *spi = to_spi_device(dev);
--	struct ds3234 *chip = dev_get_drvdata(dev);
--	struct spi_message message;
--	struct spi_transfer xfer;
--	int status;
--
--	if (!data)
--		return -EINVAL;
--
--	/* Build our spi message */
--	spi_message_init(&message);
--	memset(&xfer, 0, sizeof(xfer));
--
--	/* Address + dummy tx byte */
--	xfer.len = 2;
--	xfer.tx_buf = chip->tx_buf;
--	xfer.rx_buf = chip->rx_buf;
--
--	chip->tx_buf[0] = address;
--	chip->tx_buf[1] = 0xff;
--
--	spi_message_add_tail(&xfer, &message);
--
--	/* do the i/o */
--	status = spi_sync(spi, &message);
--	if (status == 0)
--		status = message.status;
--	else
--		return status;
- 
--	*data = chip->rx_buf[1];
-+	*data = address & 0x7f;
- 
--	return status;
-+	return spi_write_then_read(spi, data, 1, data, 1);
- }
- 
--static int ds3234_get_datetime(struct device *dev, struct rtc_time *dt)
-+static int ds3234_read_time(struct device *dev, struct rtc_time *dt)
- {
-+	int err;
-+	unsigned char buf[8];
- 	struct spi_device *spi = to_spi_device(dev);
--	struct ds3234 *chip = dev_get_drvdata(dev);
--	struct spi_message message;
--	struct spi_transfer xfer;
--	int status;
--
--	/* build the message */
--	spi_message_init(&message);
--	memset(&xfer, 0, sizeof(xfer));
--	xfer.len = 1 + 7;	/* Addr + 7 registers */
--	xfer.tx_buf = chip->buf;
--	xfer.rx_buf = chip->buf;
--	chip->buf[0] = 0x00;	/* Start address */
--	spi_message_add_tail(&xfer, &message);
--
--	/* do the i/o */
--	status = spi_sync(spi, &message);
--	if (status == 0)
--		status = message.status;
--	else
--		return status;
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/io.h>
 +
-+	buf[0] = 0x00; /* Start address */
++#include "../w1.h"
++#include "../w1_int.h"
++#include "../w1_log.h"
 +
-+	err = spi_write_then_read(spi, buf, 1, buf, 8);
-+	if (err != 0)
-+		return err;
- 
- 	/* Seconds, Minutes, Hours, Day, Date, Month, Year */
--	dt->tm_sec	= bcd2bin(chip->buf[1]);
--	dt->tm_min	= bcd2bin(chip->buf[2]);
--	dt->tm_hour	= bcd2bin(chip->buf[3] & 0x3f);
--	dt->tm_wday	= bcd2bin(chip->buf[4]) - 1; /* 0 = Sun */
--	dt->tm_mday	= bcd2bin(chip->buf[5]);
--	dt->tm_mon	= bcd2bin(chip->buf[6] & 0x1f) - 1; /* 0 = Jan */
--	dt->tm_year 	= bcd2bin(chip->buf[7] & 0xff) + 100; /* Assume 20YY */
--
--#ifdef DS3234_DEBUG
--	dev_dbg(dev, "\n%s : Read RTC values\n", __func__);
--	dev_dbg(dev, "tm_hour: %i\n", dt->tm_hour);
--	dev_dbg(dev, "tm_min : %i\n", dt->tm_min);
--	dev_dbg(dev, "tm_sec : %i\n", dt->tm_sec);
--	dev_dbg(dev, "tm_wday: %i\n", dt->tm_wday);
--	dev_dbg(dev, "tm_mday: %i\n", dt->tm_mday);
--	dev_dbg(dev, "tm_mon : %i\n", dt->tm_mon);
--	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
--#endif
-+	dt->tm_sec	= bcd2bin(buf[0]);
-+	dt->tm_min	= bcd2bin(buf[1]);
-+	dt->tm_hour	= bcd2bin(buf[2] & 0x3f);
-+	dt->tm_wday	= bcd2bin(buf[3]) - 1; /* 0 = Sun */
-+	dt->tm_mday	= bcd2bin(buf[4]);
-+	dt->tm_mon	= bcd2bin(buf[5] & 0x1f) - 1; /* 0 = Jan */
-+	dt->tm_year 	= bcd2bin(buf[6] & 0xff) + 100; /* Assume 20YY */
- 
--	return 0;
-+	return rtc_valid_tm(dt);
- }
- 
--static int ds3234_set_datetime(struct device *dev, struct rtc_time *dt)
-+static int ds3234_set_time(struct device *dev, struct rtc_time *dt)
- {
--#ifdef DS3234_DEBUG
--	dev_dbg(dev, "\n%s : Setting RTC values\n", __func__);
--	dev_dbg(dev, "tm_sec : %i\n", dt->tm_sec);
--	dev_dbg(dev, "tm_min : %i\n", dt->tm_min);
--	dev_dbg(dev, "tm_hour: %i\n", dt->tm_hour);
--	dev_dbg(dev, "tm_wday: %i\n", dt->tm_wday);
--	dev_dbg(dev, "tm_mday: %i\n", dt->tm_mday);
--	dev_dbg(dev, "tm_mon : %i\n", dt->tm_mon);
--	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
--#endif
--
- 	ds3234_set_reg(dev, DS3234_REG_SECONDS, bin2bcd(dt->tm_sec));
- 	ds3234_set_reg(dev, DS3234_REG_MINUTES, bin2bcd(dt->tm_min));
- 	ds3234_set_reg(dev, DS3234_REG_HOURS, bin2bcd(dt->tm_hour) & 0x3f);
-@@ -174,16 +100,6 @@ static int ds3234_set_datetime(struct de
- 	return 0;
- }
- 
--static int ds3234_read_time(struct device *dev, struct rtc_time *tm)
--{
--	return ds3234_get_datetime(dev, tm);
--}
--
--static int ds3234_set_time(struct device *dev, struct rtc_time *tm)
--{
--	return ds3234_set_datetime(dev, tm);
--}
--
- static const struct rtc_class_ops ds3234_rtc_ops = {
- 	.read_time	= ds3234_read_time,
- 	.set_time	= ds3234_set_time,
-@@ -193,31 +109,15 @@ static int __devinit ds3234_probe(struct
- {
- 	struct rtc_device *rtc;
- 	unsigned char tmp;
--	struct ds3234 *chip;
- 	int res;
- 
--	rtc = rtc_device_register("ds3234",
--				&spi->dev, &ds3234_rtc_ops, THIS_MODULE);
--	if (IS_ERR(rtc))
--		return PTR_ERR(rtc);
--
- 	spi->mode = SPI_MODE_3;
- 	spi->bits_per_word = 8;
- 	spi_setup(spi);
- 
--	chip = kzalloc(sizeof(struct ds3234), GFP_KERNEL);
--	if (!chip) {
--		rtc_device_unregister(rtc);
--		return -ENOMEM;
--	}
--	chip->rtc = rtc;
--	dev_set_drvdata(&spi->dev, chip);
--
- 	res = ds3234_get_reg(&spi->dev, DS3234_REG_SECONDS, &tmp);
--	if (res) {
--		rtc_device_unregister(rtc);
-+	if (res != 0)
- 		return res;
--	}
- 
- 	/* Control settings
- 	 *
-@@ -246,26 +146,27 @@ static int __devinit ds3234_probe(struct
- 	ds3234_get_reg(&spi->dev, DS3234_REG_CONT_STAT, &tmp);
- 	dev_info(&spi->dev, "Ctrl/Stat Reg: 0x%02x\n", tmp);
- 
-+	rtc = rtc_device_register("ds3234",
-+				&spi->dev, &ds3234_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
++/* According to the mx27 Datasheet the reset procedure should take up to about
++ * 1350us. We set the timeout to 500*100us = 50ms for sure */
++#define MXC_W1_RESET_TIMEOUT 500
 +
-+	dev_set_drvdata(&spi->dev, rtc);
++/*
++ * MXC W1 Register offsets
++ */
++#define MXC_W1_CONTROL          0x00
++#define MXC_W1_TIME_DIVIDER     0x02
++#define MXC_W1_RESET            0x04
++#define MXC_W1_COMMAND          0x06
++#define MXC_W1_TXRX             0x08
++#define MXC_W1_INTERRUPT        0x0A
++#define MXC_W1_INTERRUPT_EN     0x0C
 +
- 	return 0;
- }
- 
- static int __devexit ds3234_remove(struct spi_device *spi)
- {
--	struct ds3234 *chip = platform_get_drvdata(spi);
--	struct rtc_device *rtc = chip->rtc;
--
--	if (rtc)
--		rtc_device_unregister(rtc);
--
--	kfree(chip);
-+	struct rtc_device *rtc = platform_get_drvdata(spi);
- 
-+	rtc_device_unregister(rtc);
- 	return 0;
- }
- 
- static struct spi_driver ds3234_driver = {
- 	.driver = {
- 		.name	 = "ds3234",
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe	 = ds3234_probe,
-@@ -274,7 +175,6 @@ static struct spi_driver ds3234_driver =
- 
- static __init int ds3234_init(void)
- {
--	printk(KERN_INFO "DS3234 SPI RTC Driver\n");
- 	return spi_register_driver(&ds3234_driver);
- }
- module_init(ds3234_init);
++struct mxc_w1_device {
++	void __iomem *regs;
++	unsigned int clkdiv;
++	struct clk *clk;
++	struct w1_bus_master *bus_master;
++};
++
++/*
++ * this is the low level routine to
++ * reset the device on the One Wire interface
++ * on the hardware
++ */
++static u8 mxc_w1_ds2_reset_bus(void *data)
++{
++	u8 reg_val, rc = 1;
++	unsigned int timeout_cnt = 0;
++
++	struct mxc_w1_device *dev = (struct mxc_w1_device *)data;
++
++	__raw_writeb(0x80, (dev->regs + MXC_W1_CONTROL));
++
++	while (1) {
++		reg_val = __raw_readb(dev->regs + MXC_W1_CONTROL);
++
++		if (((reg_val >> 7) & 0x1) == 0 ||
++		    timeout_cnt > MXC_W1_RESET_TIMEOUT) {
++			rc = 0;
++			break;
++		} else
++			timeout_cnt++;
++
++		udelay(100);
++	}
++	return (reg_val >> 7) & 0x1;
++}
++
++/*
++ * this is the low level routine to read/write a bit on the One Wire
++ * interface on the hardware. It does write 0 if parameter bit is set
++ * to 0, otherwise a write 1/read.
++ */
++static u8 mxc_w1_ds2_touch_bit(void *data, u8 bit)
++{
++	unsigned int timeout_cnt = 400;
++
++	struct mxc_w1_device *mdev = (struct mxc_w1_device *)data;
++	void __iomem *ctrl_addr = mdev->regs + MXC_W1_CONTROL;
++
++	__raw_writeb((1 << (5 - bit)), ctrl_addr);
++
++	while (timeout_cnt--) {
++		if (!((__raw_readb(ctrl_addr) >> (5 - bit)) & 0x1))
++			break;
++
++		udelay(1);
++	}
++
++	return ((__raw_readb(ctrl_addr)) >> 3) & 0x1;
++}
++
++static int __devinit mxc_w1_probe(struct platform_device *pdev)
++{
++	struct mxc_w1_device *mdev;
++	struct resource *res;
++	int err = 0;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++
++	mdev = kzalloc(sizeof(struct mxc_w1_device) +
++		      sizeof(struct w1_bus_master), GFP_KERNEL);
++
++	if (!mdev)
++		return -ENOMEM;
++
++	mdev->clk = clk_get(&pdev->dev, "owire_clk");
++	if (!mdev->clk) {
++		err = -ENODEV;
++		goto failed_clk;
++	}
++
++	mdev->bus_master = (struct w1_bus_master *)(mdev + 1);
++	mdev->clkdiv = (clk_get_rate(mdev->clk) / 1000000) - 1;
++
++	res = request_mem_region(res->start, resource_size(res),
++				"mxc_w1");
++	if (!res) {
++		err = -EBUSY;
++		goto failed_req;
++	}
++
++	mdev->regs = ioremap(res->start, resource_size(res));
++	if (!mdev->regs) {
++		printk(KERN_ERR"Cannot map frame buffer registers\n");
++		goto failed_ioremap;
++	}
++
++	clk_enable(mdev->clk);
++	__raw_writeb(mdev->clkdiv, mdev->regs + MXC_W1_TIME_DIVIDER);
++
++	mdev->bus_master->data = mdev;
++	mdev->bus_master->reset_bus = &mxc_w1_ds2_reset_bus;
++	mdev->bus_master->touch_bit = &mxc_w1_ds2_touch_bit;
++
++	err = w1_add_master_device(mdev->bus_master);
++
++	if (err)
++		goto failed_add;
++
++	platform_set_drvdata(pdev, mdev);
++	return 0;
++
++failed_add:
++	iounmap(mdev->regs);
++failed_ioremap:
++	release_mem_region(res->start, resource_size(res));
++failed_req:
++	clk_put(mdev->clk);
++failed_clk:
++	kfree(mdev);
++	return err;
++}
++
++/*
++ * disassociate the w1 device from the driver
++ */
++static int mxc_w1_remove(struct platform_device *pdev)
++{
++	struct mxc_w1_device *mdev = platform_get_drvdata(pdev);
++	struct resource *res;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
++	w1_remove_master_device(mdev->bus_master);
++
++	iounmap(mdev->regs);
++	release_mem_region(res->start, resource_size(res));
++	clk_disable(mdev->clk);
++	clk_put(mdev->clk);
++
++	platform_set_drvdata(pdev, NULL);
++
++	return 0;
++}
++
++static struct platform_driver mxc_w1_driver = {
++	.driver = {
++		   .name = "mxc_w1",
++		   },
++	.probe = mxc_w1_probe,
++	.remove = mxc_w1_remove,
++};
++
++static int __init mxc_w1_init(void)
++{
++	return platform_driver_register(&mxc_w1_driver);
++}
++
++static void mxc_w1_exit(void)
++{
++	platform_driver_unregister(&mxc_w1_driver);
++}
++
++module_init(mxc_w1_init);
++module_exit(mxc_w1_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Freescale Semiconductors Inc");
++MODULE_DESCRIPTION("Driver for One-Wire on MXC");
 _
 
-Patches currently in -mm which might be from a.zummo@towertech.it are
+Patches currently in -mm which might be from s.hauer@pengutronix.de are
 
-genrtc-disable-genrtc-on-blackfin-systems.patch
-rtc-ds1307-smbus-compatibility.patch
-rtc-ds1307-remove-legacy-probe-checks.patch
-rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
-rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
-rtc-driver-for-pxa27x-and-pxa3xx-soc.patch
-rtc-pxa27x-pxa3xx-driver-fixes-revised.patch
-rtc-add-alarm-update-irq-interfaces-version-2.patch
-rtc-add-alarm-update-irq-interfaces-version-3.patch
-rtc-rtc-ds1390-probe-sequence-and-misc-fixes.patch
-rtc-kconfig-cleanup.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-rtc-rtc-max6902-fixes-v3.patch
-rtc-rtc-ds3234-fixes-v2.patch
+w1-add-1-wire-master-driver-for-imx27-imx31.patch
+add-1-wire-master-driver-for-imx27-imx31-fix.patch
 
