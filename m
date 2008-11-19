@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + samples-mark-static__init__exit-for-initexit-functions.patch added to -mm tree
-Date: Tue, 18 Nov 2008 16:15:38 -0800
-Message-ID: <200811190015.mAJ0Fckf016556@imap1.linux-foundation.org>
+Subject: + udf-reduce-stack-usage-of-udf_load_pvoldesc.patch added to -mm tree
+Date: Tue, 18 Nov 2008 16:18:13 -0800
+Message-ID: <200811190018.mAJ0IDUN017907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38819 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750844AbYKSAQY (ORCPT
+	by vger.kernel.org with ESMTP id S1750844AbYKSASs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Nov 2008 19:16:24 -0500
+	Tue, 18 Nov 2008 19:18:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: qhfeng.kernel@gmail.com, gregkh@suse.de, mathieu.desnoyers@polymtl.ca
+Cc: marcin.slusarz@gmail.com, jack@suse.cz
 
 
 The patch titled
-     samples: mark {static|__init|__exit} for {init|exit} functions
+     udf: reduce stack usage of udf_load_pvoldesc
 has been added to the -mm tree.  Its filename is
-     samples-mark-static__init__exit-for-initexit-functions.patch
+     udf-reduce-stack-usage-of-udf_load_pvoldesc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,182 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: samples: mark {static|__init|__exit} for {init|exit} functions
-From: Qinghuang Feng <qhfeng.kernel@gmail.com>
+Subject: udf: reduce stack usage of udf_load_pvoldesc
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-None of these (init|exit) functions is called from other functions which
-is outside the kernel module mechanism or kernel itself, so mark them as
-{static|__init|__exit}.
+Allocate strings with kmalloc.
 
-Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Checkstack output:
+Before: udf_process_sequence:      712
+After:  udf_process_sequence:      200
+
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/firmware_class/firmware_sample_driver.c |    2 +-
- samples/kobject/kobject-example.c               |    4 ++--
- samples/kobject/kset-example.c                  |    4 ++--
- samples/markers/marker-example.c                |    4 ++--
- samples/tracepoints/tracepoint-probe-sample.c   |    4 ++--
- samples/tracepoints/tracepoint-probe-sample2.c  |    4 ++--
- samples/tracepoints/tracepoint-sample.c         |    4 ++--
- 7 files changed, 13 insertions(+), 13 deletions(-)
+ fs/udf/super.c |   36 +++++++++++++++++++++++++-----------
+ 1 file changed, 25 insertions(+), 11 deletions(-)
 
-diff -puN samples/firmware_class/firmware_sample_driver.c~samples-mark-static__init__exit-for-initexit-functions samples/firmware_class/firmware_sample_driver.c
---- a/samples/firmware_class/firmware_sample_driver.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/firmware_class/firmware_sample_driver.c
-@@ -100,7 +100,7 @@ static void sample_probe_async(void)
- 		       " request_firmware_nowait failed\n");
+diff -puN fs/udf/super.c~udf-reduce-stack-usage-of-udf_load_pvoldesc fs/udf/super.c
+--- a/fs/udf/super.c~udf-reduce-stack-usage-of-udf_load_pvoldesc
++++ a/fs/udf/super.c
+@@ -902,14 +902,23 @@ static int udf_find_fileset(struct super
+ static int udf_load_pvoldesc(struct super_block *sb, sector_t block)
+ {
+ 	struct primaryVolDesc *pvoldesc;
+-	struct ustr instr;
+-	struct ustr outstr;
++	struct ustr *instr, *outstr;
+ 	struct buffer_head *bh;
+ 	uint16_t ident;
++	int ret = 1;
++
++	instr = kmalloc(sizeof(struct ustr), GFP_NOFS);
++	if (!instr)
++		return 1;
++
++	outstr = kmalloc(sizeof(struct ustr), GFP_NOFS);
++	if (!outstr)
++		goto out1;
+ 
+ 	bh = udf_read_tagged(sb, block, block, &ident);
+ 	if (!bh)
+-		return 1;
++		goto out2;
++
+ 	BUG_ON(ident != TAG_IDENT_PVD);
+ 
+ 	pvoldesc = (struct primaryVolDesc *)bh->b_data;
+@@ -925,20 +934,25 @@ static int udf_load_pvoldesc(struct supe
+ #endif
+ 	}
+ 
+-	if (!udf_build_ustr(&instr, pvoldesc->volIdent, 32))
+-		if (udf_CS0toUTF8(&outstr, &instr)) {
+-			strncpy(UDF_SB(sb)->s_volume_ident, outstr.u_name,
+-				outstr.u_len > 31 ? 31 : outstr.u_len);
++	if (!udf_build_ustr(instr, pvoldesc->volIdent, 32))
++		if (udf_CS0toUTF8(outstr, instr)) {
++			strncpy(UDF_SB(sb)->s_volume_ident, outstr->u_name,
++				outstr->u_len > 31 ? 31 : outstr->u_len);
+ 			udf_debug("volIdent[] = '%s'\n",
+ 					UDF_SB(sb)->s_volume_ident);
+ 		}
+ 
+-	if (!udf_build_ustr(&instr, pvoldesc->volSetIdent, 128))
+-		if (udf_CS0toUTF8(&outstr, &instr))
+-			udf_debug("volSetIdent[] = '%s'\n", outstr.u_name);
++	if (!udf_build_ustr(instr, pvoldesc->volSetIdent, 128))
++		if (udf_CS0toUTF8(outstr, instr))
++			udf_debug("volSetIdent[] = '%s'\n", outstr->u_name);
+ 
+ 	brelse(bh);
+-	return 0;
++	ret = 0;
++out2:
++	kfree(outstr);
++out1:
++	kfree(instr);
++	return ret;
  }
  
--static int sample_init(void)
-+static int __init sample_init(void)
- {
- 	device_initialize(&ghost_device);
- 	/* since there is no real hardware insertion I just call the
-diff -puN samples/kobject/kobject-example.c~samples-mark-static__init__exit-for-initexit-functions samples/kobject/kobject-example.c
---- a/samples/kobject/kobject-example.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/kobject/kobject-example.c
-@@ -101,7 +101,7 @@ static struct attribute_group attr_group
- 
- static struct kobject *example_kobj;
- 
--static int example_init(void)
-+static int __init example_init(void)
- {
- 	int retval;
- 
-@@ -126,7 +126,7 @@ static int example_init(void)
- 	return retval;
- }
- 
--static void example_exit(void)
-+static void __exit example_exit(void)
- {
- 	kobject_put(example_kobj);
- }
-diff -puN samples/kobject/kset-example.c~samples-mark-static__init__exit-for-initexit-functions samples/kobject/kset-example.c
---- a/samples/kobject/kset-example.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/kobject/kset-example.c
-@@ -229,7 +229,7 @@ static void destroy_foo_obj(struct foo_o
- 	kobject_put(&foo->kobj);
- }
- 
--static int example_init(void)
-+static int __init example_init(void)
- {
- 	/*
- 	 * Create a kset with the name of "kset_example",
-@@ -264,7 +264,7 @@ foo_error:
- 	return -EINVAL;
- }
- 
--static void example_exit(void)
-+static void __exit example_exit(void)
- {
- 	destroy_foo_obj(baz_obj);
- 	destroy_foo_obj(bar_obj);
-diff -puN samples/markers/marker-example.c~samples-mark-static__init__exit-for-initexit-functions samples/markers/marker-example.c
---- a/samples/markers/marker-example.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/markers/marker-example.c
-@@ -30,7 +30,7 @@ static struct file_operations mark_ops =
- 	.open = my_open,
- };
- 
--static int example_init(void)
-+static int __init example_init(void)
- {
- 	printk(KERN_ALERT "example init\n");
- 	pentry_example = proc_create("marker-example", 0444, NULL, &mark_ops);
-@@ -39,7 +39,7 @@ static int example_init(void)
- 	return 0;
- }
- 
--static void example_exit(void)
-+static void __exit example_exit(void)
- {
- 	printk(KERN_ALERT "example exit\n");
- 	remove_proc_entry("marker-example", NULL);
-diff -puN samples/tracepoints/tracepoint-probe-sample.c~samples-mark-static__init__exit-for-initexit-functions samples/tracepoints/tracepoint-probe-sample.c
---- a/samples/tracepoints/tracepoint-probe-sample.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/tracepoints/tracepoint-probe-sample.c
-@@ -28,7 +28,7 @@ static void probe_subsys_eventb(void)
- 	printk(KERN_INFO "Event B is encountered\n");
- }
- 
--int __init tp_sample_trace_init(void)
-+static int __init tp_sample_trace_init(void)
- {
- 	int ret;
- 
-@@ -42,7 +42,7 @@ int __init tp_sample_trace_init(void)
- 
- module_init(tp_sample_trace_init);
- 
--void __exit tp_sample_trace_exit(void)
-+static void __exit tp_sample_trace_exit(void)
- {
- 	unregister_trace_subsys_eventb(probe_subsys_eventb);
- 	unregister_trace_subsys_event(probe_subsys_event);
-diff -puN samples/tracepoints/tracepoint-probe-sample2.c~samples-mark-static__init__exit-for-initexit-functions samples/tracepoints/tracepoint-probe-sample2.c
---- a/samples/tracepoints/tracepoint-probe-sample2.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/tracepoints/tracepoint-probe-sample2.c
-@@ -18,7 +18,7 @@ static void probe_subsys_event(struct in
- 		inode->i_ino);
- }
- 
--int __init tp_sample_trace_init(void)
-+static int __init tp_sample_trace_init(void)
- {
- 	int ret;
- 
-@@ -30,7 +30,7 @@ int __init tp_sample_trace_init(void)
- 
- module_init(tp_sample_trace_init);
- 
--void __exit tp_sample_trace_exit(void)
-+static void __exit tp_sample_trace_exit(void)
- {
- 	unregister_trace_subsys_event(probe_subsys_event);
- }
-diff -puN samples/tracepoints/tracepoint-sample.c~samples-mark-static__init__exit-for-initexit-functions samples/tracepoints/tracepoint-sample.c
---- a/samples/tracepoints/tracepoint-sample.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/tracepoints/tracepoint-sample.c
-@@ -29,7 +29,7 @@ static struct file_operations mark_ops =
- 	.open = my_open,
- };
- 
--static int example_init(void)
-+static int __init example_init(void)
- {
- 	printk(KERN_ALERT "example init\n");
- 	pentry_example = proc_create("tracepoint-example", 0444, NULL,
-@@ -39,7 +39,7 @@ static int example_init(void)
- 	return 0;
- }
- 
--static void example_exit(void)
-+static void __exit example_exit(void)
- {
- 	printk(KERN_ALERT "example exit\n");
- 	remove_proc_entry("tracepoint-example", NULL);
+ static int udf_load_metadata_files(struct super_block *sb, int partition)
 _
 
-Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
-linux-next.patch
-drivers-ata-pata_radisysc-cleanup-kernel-doc.patch
-drivers-ata-libata-corec-cleanup-kernel-doc.patch
-drivers-ata-pata_oldpiixc-cleanup-kernel-doc.patch
-drivers-ata-pata_pdc2027xc-cleanup-kernel-doc.patch
-drivers-ata-pata_legacyc-cleanup-kernel-doc.patch
-drivers-ata-pata_sisc-cleanup-kernel-doc.patch
-drivers-ata-pata_c-the-rest-remove-redundant-comments.patch
-samples-mark-static__init__exit-for-initexit-functions.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-drivers-message-i2o-iopc-cleanup-kerneldoc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-ext2-fix-ext2_splice_branch-comments.patch
+udf-reduce-stack-usage-of-udf_load_pvoldesc.patch
+udf-reduce-stack-usage-of-udf_get_filename.patch
 
