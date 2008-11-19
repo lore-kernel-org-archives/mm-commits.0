@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1-omap-fix-omap-ldp-boot-crash.patch added to -mm tree
-Date: Wed, 19 Nov 2008 11:25:00 -0800
-Message-ID: <200811191925.mAJJP0C9028872@imap1.linux-foundation.org>
+Subject: + unaligned-introduce-common-header-fix.patch added to -mm tree
+Date: Wed, 19 Nov 2008 11:26:25 -0800
+Message-ID: <200811191926.mAJJQPVH029639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753632AbYKSTZi (ORCPT
+	by vger.kernel.org with ESMTP id S1751223AbYKST07 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 14:25:38 -0500
+	Wed, 19 Nov 2008 14:26:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stanley.miao@windriver.com, zbr@ioremap.net
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     W1 OMAP: Fix OMAP LDP boot crash
+     unaligned: fix return type for get_unaligned_le64/be64
 has been added to the -mm tree.  Its filename is
-     w1-omap-fix-omap-ldp-boot-crash.patch
+     unaligned-introduce-common-header-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1 OMAP: Fix OMAP LDP boot crash
-From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: unaligned: fix return type for get_unaligned_le64/be64
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-OMAP LDP boot crash.  This is because w1 subsystem changed the search
-interface, so update omap_hdq's search interface to follow the change.
+With my apologies, compiler didn't warn about the truncation.
 
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
-Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/omap_hdq.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/asm-generic/unaligned.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/masters/omap_hdq.c~w1-omap-fix-omap-ldp-boot-crash drivers/w1/masters/omap_hdq.c
---- a/drivers/w1/masters/omap_hdq.c~w1-omap-fix-omap-ldp-boot-crash
-+++ a/drivers/w1/masters/omap_hdq.c
-@@ -86,8 +86,8 @@ static struct platform_driver omap_hdq_d
- static u8 omap_w1_read_byte(void *_hdq);
- static void omap_w1_write_byte(void *_hdq, u8 byte);
- static u8 omap_w1_reset_bus(void *_hdq);
--static void omap_w1_search_bus(void *_hdq, u8 search_type,
--	w1_slave_found_callback slave_found);
-+static void omap_w1_search_bus(void *_hdq, struct w1_master *master_dev,
-+		u8 search_type,	w1_slave_found_callback slave_found);
- 
- 
- static struct w1_bus_master omap_w1_master = {
-@@ -231,8 +231,8 @@ static u8 omap_w1_reset_bus(void *_hdq)
+diff -puN include/asm-generic/unaligned.h~unaligned-introduce-common-header-fix include/asm-generic/unaligned.h
+--- a/include/asm-generic/unaligned.h~unaligned-introduce-common-header-fix
++++ a/include/asm-generic/unaligned.h
+@@ -120,7 +120,7 @@ static inline u32 get_unaligned_le32(con
+ #endif
  }
  
- /* W1 search callback function */
--static void omap_w1_search_bus(void *_hdq, u8 search_type,
--	w1_slave_found_callback slave_found)
-+static void omap_w1_search_bus(void *_hdq, struct w1_master *master_dev,
-+		u8 search_type, w1_slave_found_callback slave_found)
+-static inline u16 get_unaligned_le64(const void *p)
++static inline u64 get_unaligned_le64(const void *p)
  {
- 	u64 module_id, rn_le, cs, id;
- 
-@@ -249,7 +249,7 @@ static void omap_w1_search_bus(void *_hd
- 	cs = w1_calc_crc8((u8 *)&rn_le, 7);
- 	id = (cs << 56) | module_id;
- 
--	slave_found(_hdq, id);
-+	slave_found(master_dev, id);
+ #ifdef __LITTLE_ENDIAN
+ 	return ((const struct __una_u64 *)p)->x;
+@@ -147,7 +147,7 @@ static inline u32 get_unaligned_be32(con
+ #endif
  }
  
- static int _omap_hdq_reset(struct hdq_data *hdq_data)
+-static inline u16 get_unaligned_be64(const void *p)
++static inline u64 get_unaligned_be64(const void *p)
+ {
+ #ifdef __BIG_ENDIAN
+ 	return ((const struct __una_u64 *)p)->x;
 _
 
-Patches currently in -mm which might be from stanley.miao@windriver.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-w1-omap-fix-omap-ldp-boot-crash.patch
+linux-next.patch
+arm-use-the-new-byteorder-headers.patch
+dvb-cinergyt2-annotate-struct-endiannes-remove-unused-variable-add-static.patch
+v4l-s2255drv-fix-firmware-test-on-big-endian.patch
+ia64-use-the-new-byteorder-headers.patch
+input-ads7846c-sparse-lock-annotation.patch
+m32r-use-the-new-byteorder-headers.patch
+blackfin-remove-__function__-in-new-serial-driver.patch
+blackfin-use-the-new-byteorder-headers.patch
+parisc-use-the-new-byteorder-headers.patch
+s390-use-the-new-byteorder-headers.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+frv-use-the-new-byteorder-headers.patch
+m68knommu-use-the-new-byteorder-headers.patch
+h8300-use-the-new-byteorder-headers.patch
+alpha-use-the-new-byteorder-headers.patch
+lib-fix-sparse-shadowed-variable-warning.patch
+lib-radix_treec-make-percpu-variable-static.patch
+lib-proportionsc-trivial-sparse-lock-annotation.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+blackfin-remove-__function__-in-video-driver.patch
+fb-carminefb-trivial-annotation-packing-color-register.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+unaligned-introduce-common-header.patch
+unaligned-introduce-common-header-fix.patch
+unaligned-convert-arches-where-unaligned-access-is-ok.patch
+unaligned-use-generic-implementation-on-packed-struct-arches.patch
+unaligned-remove-packed-struct-and-unaligned-access_ok-headers.patch
+unaligned-pack-the-struct-not-the-struct-members.patch
+unaligned-move-arm-m32r-h8300-to-the-asm-generic-version.patch
+unaligned-remove-last-bits-of-the-unaligned-access-helpers.patch
 
