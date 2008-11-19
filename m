@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + unaligned-introduce-common-header.patch added to -mm tree
-Date: Tue, 18 Nov 2008 22:14:54 -0800
-Message-ID: <200811190614.mAJ6EsXA007330__21813.1220703528$1227075550$gmane$org@imap1.linux-foundation.org>
+Subject: + kernel-profilec-fix-section-mismatch-warning-fix.patch added to -mm tree
+Date: Tue, 18 Nov 2008 22:20:10 -0800
+Message-ID: <200811190620.mAJ6KA8n010096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752589AbYKSGRa (ORCPT
+	by vger.kernel.org with ESMTP id S1751245AbYKSGUx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 01:17:30 -0500
+	Wed, 19 Nov 2008 01:20:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, benh@kernel.crashing.org, bryan.wu@analog.com, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, grundler@parisc-linux.org, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, kyle@mcmartin.ca, lethal@linux-sh.org, linux-arch@vger.kernel.org, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, rmk@arm.linux.org.uk, rth@twiddle.net, schwidefsky@de.ibm.com, takata@linux-m32r.org, tglx@linutronix.de, tony.luck@intel.com, ysato@users.sourceforge.jp, zankel@tensilica.com, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, rakib.mullick@gmail.com
 
 
 The patch titled
-     unaligned: introduce common header
+     kernel-profilec-fix-section-mismatch-warning-fix
 has been added to the -mm tree.  Its filename is
-     unaligned-introduce-common-header.patch
+     kernel-profilec-fix-section-mismatch-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,412 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unaligned: introduce common header
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: kernel-profilec-fix-section-mismatch-warning-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-There are two common cases in the kernel, one where unaligned access is OK
-for an arch and one where the arch uses a packed-struct for the native
-endianness and opencoded C byteshifting for the other endianness. 
-Consolidate these two implementations in asm-generic/unaligned.h
+No point in inlining this.
 
-Arches that require no special handling of unaligned access can define
-_UNALIGNED_ACCESS_OK in their asm/unaligned.h before including the generic
-version.
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Rakib Mullick <rakib.mullick@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Zankel <zankel@tensilica.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/unaligned.h |  323 ++++++++++++++++++++++++++++++
- 1 file changed, 323 insertions(+)
+ kernel/profile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN /dev/null include/asm-generic/unaligned.h
---- /dev/null
-+++ a/include/asm-generic/unaligned.h
-@@ -0,0 +1,323 @@
-+#ifndef _ASM_GENERIC_UNALIGNED_H
-+#define _ASM_GENERIC_UNALIGNED_H
-+
-+#include <linux/types.h>
-+#include <asm/byteorder.h>
-+
-+#ifdef _UNALIGNED_ACCESS_OK
-+
-+static inline u16 get_unaligned_le16(const void *p)
-+{
-+	return le16_to_cpup(p);
-+}
-+
-+static inline u32 get_unaligned_le32(const void *p)
-+{
-+	return le32_to_cpup(p);
-+}
-+
-+static inline u64 get_unaligned_le64(const void *p)
-+{
-+	return le64_to_cpup(p);
-+}
-+
-+static inline u16 get_unaligned_be16(const void *p)
-+{
-+	return be16_to_cpup(p);
-+}
-+
-+static inline u32 get_unaligned_be32(const void *p)
-+{
-+	return be32_to_cpup(p);
-+}
-+
-+static inline u64 get_unaligned_be64(const void *p)
-+{
-+	return be64_to_cpup(p);
-+}
-+
-+static inline void put_unaligned_le16(u16 val, void *p)
-+{
-+	*(__le16 *)p = cpu_to_le16(val);
-+}
-+
-+static inline void put_unaligned_le32(u32 val, void *p)
-+{
-+	*(__le32 *)p = cpu_to_le32(val);
-+}
-+
-+static inline void put_unaligned_le64(u64 val, void *p)
-+{
-+	*(__le64 *)p = cpu_to_le64(val);
-+}
-+
-+static inline void put_unaligned_be16(u16 val, void *p)
-+{
-+	*(__be16 *)p = cpu_to_be16(val);
-+}
-+
-+static inline void put_unaligned_be32(u32 val, void *p)
-+{
-+	*(__be32 *)p = cpu_to_be32(val);
-+}
-+
-+static inline void put_unaligned_be64(u64 val, void *p)
-+{
-+	*(__be64 *)p = cpu_to_be64(val);
-+}
-+
-+#else /* _UNALIGNED_ACCESS_OK */
-+
-+struct __una_u16 { u16 x __attribute__((packed)); };
-+struct __una_u32 { u32 x __attribute__((packed)); };
-+struct __una_u64 { u64 x __attribute__((packed)); };
-+
-+static inline u16 __get_le16_noalign(const u8 *p)
-+{
-+	return p[0] | p[1] << 8;
-+}
-+
-+static inline u32 __get_le32_noalign(const u8 *p)
-+{
-+	return p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
-+}
-+
-+static inline u64 __get_le64_noalign(const u8 *p)
-+{
-+	return ((u64)__get_le32_noalign(p + 4) << 32) | __get_le32_noalign(p);
-+}
-+
-+static inline u16 __get_be16_noalign(const u8 *p)
-+{
-+	return p[0] << 8 | p[1];
-+}
-+
-+static inline u32 __get_be32_noalign(const u8 *p)
-+{
-+	return p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3];
-+}
-+
-+static inline u64 __get_be64_noalign(const u8 *p)
-+{
-+	return ((u64)__get_be32_noalign(p) << 32) | __get_be32_noalign(p + 4);
-+}
-+
-+static inline u16 get_unaligned_le16(const void *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return ((const struct __una_u16 *)p)->x;
-+#else
-+	return __get_le16_noalign(p);
-+#endif
-+}
-+
-+static inline u32 get_unaligned_le32(const void *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return ((const struct __una_u32 *)p)->x;
-+#else
-+	return __get_le32_noalign(p);
-+#endif
-+}
-+
-+static inline u16 get_unaligned_le64(const void *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return ((const struct __una_u64 *)p)->x;
-+#else
-+	return __get_le64_noalign(p);
-+#endif
-+}
-+
-+static inline u16 get_unaligned_be16(const void *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	return ((const struct __una_u16 *)p)->x;
-+#else
-+	return __get_be16_noalign(p);
-+#endif
-+}
-+
-+static inline u32 get_unaligned_be32(const void *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	return ((const struct __una_u32 *)p)->x;
-+#else
-+	return __get_be32_noalign(p);
-+#endif
-+}
-+
-+static inline u16 get_unaligned_be64(const void *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	return ((const struct __una_u64 *)p)->x;
-+#else
-+	return __get_be64_noalign(p);
-+#endif
-+}
-+
-+static inline void __put_le16_noalign(u8 *p, u16 val)
-+{
-+	*p++ = val;
-+	*p++ = val >> 8;
-+}
-+
-+static inline void __put_le32_noalign(u8 *p, u32 val)
-+{
-+	__put_le16_noalign(p + 2, val >> 16);
-+	__put_le16_noalign(p, val);
-+}
-+
-+static inline void __put_le64_noalign(u8 *p, u64 val)
-+{
-+	__put_le32_noalign(p + 4, val >> 32);
-+	__put_le32_noalign(p, val);
-+}
-+
-+static inline void __put_be16_noalign(u8 *p, u16 val)
-+{
-+	*p++ = val >> 8;
-+	*p++ = val;
-+}
-+
-+static inline void __put_be32_noalign(u8 *p, u32 val)
-+{
-+	__put_be16_noalign(p, val >> 16);
-+	__put_be16_noalign(p + 2, val);
-+}
-+
-+static inline void __put_be64_noalign(u8 *p, u64 val)
-+{
-+	__put_be32_noalign(p, val >> 32);
-+	__put_be32_noalign(p + 4, val);
-+}
-+
-+static inline void put_unaligned_le16(u16 val, void *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	((struct __una_u16 *)p)->x = val;
-+#else
-+	__put_le16_noalign(p, val);
-+#endif
-+}
-+
-+static inline void put_unaligned_le32(u32 val, void *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	((struct __una_u32 *)p)->x = val;
-+#else
-+	__put_le32_noalign(p, val);
-+#endif
-+}
-+
-+static inline void put_unaligned_le64(u64 val, void *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	((struct __una_u64 *)p)->x = val;
-+#else
-+	__put_le64_noalign(p, val);
-+#endif
-+}
-+
-+static inline void put_unaligned_be16(u16 val, void *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	((struct __una_u16 *)p)->x = val;
-+#else
-+	__put_be16_noalign(p, val);
-+#endif
-+}
-+
-+static inline void put_unaligned_be32(u32 val, void *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	((struct __una_u32 *)p)->x = val;
-+#else
-+	__put_be32_noalign(p, val);
-+#endif
-+}
-+
-+static inline void put_unaligned_be64(u64 val, void *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	((struct __una_u64 *)p)->x = val;
-+#else
-+	__put_be64_noalign(p, val);
-+#endif
-+}
-+
-+#endif /* _UNALIGNED_ACCESS_OK */
-+
-+/*
-+ * Cause a link-time error if we try an unaligned access other than
-+ * 1,2,4 or 8 bytes long
-+ */
-+extern void __bad_unaligned_access_size(void);
-+
-+#define __get_unaligned_le(ptr) ((__force typeof(*(ptr)))({			\
-+	__builtin_choose_expr(sizeof(*(ptr)) == 1, *(ptr),			\
-+	__builtin_choose_expr(sizeof(*(ptr)) == 2, get_unaligned_le16((ptr)),	\
-+	__builtin_choose_expr(sizeof(*(ptr)) == 4, get_unaligned_le32((ptr)),	\
-+	__builtin_choose_expr(sizeof(*(ptr)) == 8, get_unaligned_le64((ptr)),	\
-+	__bad_unaligned_access_size()))));					\
-+	}))
-+
-+#define __get_unaligned_be(ptr) ((__force typeof(*(ptr)))({			\
-+	__builtin_choose_expr(sizeof(*(ptr)) == 1, *(ptr),			\
-+	__builtin_choose_expr(sizeof(*(ptr)) == 2, get_unaligned_be16((ptr)),	\
-+	__builtin_choose_expr(sizeof(*(ptr)) == 4, get_unaligned_be32((ptr)),	\
-+	__builtin_choose_expr(sizeof(*(ptr)) == 8, get_unaligned_be64((ptr)),	\
-+	__bad_unaligned_access_size()))));					\
-+	}))
-+
-+#define __put_unaligned_le(val, ptr) ({					\
-+	void *__gu_p = (ptr);						\
-+	switch (sizeof(*(ptr))) {					\
-+	case 1:								\
-+		*(u8 *)__gu_p = (__force u8)(val);			\
-+		break;							\
-+	case 2:								\
-+		put_unaligned_le16((__force u16)(val), __gu_p);		\
-+		break;							\
-+	case 4:								\
-+		put_unaligned_le32((__force u32)(val), __gu_p);		\
-+		break;							\
-+	case 8:								\
-+		put_unaligned_le64((__force u64)(val), __gu_p);		\
-+		break;							\
-+	default:							\
-+		__bad_unaligned_access_size();				\
-+		break;							\
-+	}								\
-+	(void)0; })
-+
-+#define __put_unaligned_be(val, ptr) ({					\
-+	void *__gu_p = (ptr);						\
-+	switch (sizeof(*(ptr))) {					\
-+	case 1:								\
-+		*(u8 *)__gu_p = (__force u8)(val);			\
-+		break;							\
-+	case 2:								\
-+		put_unaligned_be16((__force u16)(val), __gu_p);		\
-+		break;							\
-+	case 4:								\
-+		put_unaligned_be32((__force u32)(val), __gu_p);		\
-+		break;							\
-+	case 8:								\
-+		put_unaligned_be64((__force u64)(val), __gu_p);		\
-+		break;							\
-+	default:							\
-+		__bad_unaligned_access_size();				\
-+		break;							\
-+	}								\
-+	(void)0; })
-+
-+#ifdef __LITTLE_ENDIAN
-+# define get_unaligned __get_unaligned_le
-+# define put_unaligned __put_unaligned_le
-+#else
-+# define get_unaligned __get_unaligned_be
-+# define put_unaligned __put_unaligned_be
-+#endif
-+
-+#endif /* _ASM_GENERIC_UNALIGNED_H */
+diff -puN kernel/profile.c~kernel-profilec-fix-section-mismatch-warning-fix kernel/profile.c
+--- a/kernel/profile.c~kernel-profilec-fix-section-mismatch-warning-fix
++++ a/kernel/profile.c
+@@ -544,7 +544,7 @@ static const struct file_operations proc
+ };
+ 
+ #ifdef CONFIG_SMP
+-static inline void profile_nop(void *unused)
++static void profile_nop(void *unused)
+ {
+ }
+ 
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-arm-use-the-new-byteorder-headers.patch
-dvb-cinergyt2-annotate-struct-endiannes-remove-unused-variable-add-static.patch
-v4l-s2255drv-fix-firmware-test-on-big-endian.patch
-ia64-use-the-new-byteorder-headers.patch
-input-ads7846c-sparse-lock-annotation.patch
-m32r-use-the-new-byteorder-headers.patch
-blackfin-remove-__function__-in-new-serial-driver.patch
-blackfin-use-the-new-byteorder-headers.patch
-parisc-use-the-new-byteorder-headers.patch
-s390-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-frv-use-the-new-byteorder-headers.patch
-m68knommu-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-unaligned-introduce-common-header.patch
-unaligned-convert-arches-where-unaligned-access-is-ok.patch
-unaligned-use-generic-implementation-on-packed-struct-arches.patch
-unaligned-remove-packed-struct-and-unaligned-access_ok-headers.patch
-unaligned-pack-the-struct-not-the-struct-members.patch
-unaligned-move-arm-m32r-h8300-to-the-asm-generic-version.patch
-unaligned-remove-last-bits-of-the-unaligned-access-helpers.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+kernel-profilec-fix-section-mismatch-warning-fix.patch
+usb-serial-console-add-device-function-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-swap-cgroup-for-remembering-usage-fix.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
