@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parport-driver-disable-pc-style-parport-on-blackfin-systems.patch added to -mm tree
-Date: Tue, 18 Nov 2008 22:36:17 -0800
-Message-ID: <200811190636.mAJ6aHJE018404@imap1.linux-foundation.org>
+Subject: + kprobes-support-probing-module-__exit-function-fix-2.patch added to -mm tree
+Date: Tue, 18 Nov 2008 23:41:57 -0800
+Message-ID: <200811190741.mAJ7fvK5019964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751360AbYKSGg4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752704AbYKSHm0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 01:36:56 -0500
+	Wed, 19 Nov 2008 02:42:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier.adi@gmail.com, cooloney@kernel.org
+Cc: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com
 
 
 The patch titled
-     parport driver: disable pc-style parport on Blackfin systems
+     bugfix: pass aggr_kprobe to arch_remove_kprobe
 has been added to the -mm tree.  Its filename is
-     parport-driver-disable-pc-style-parport-on-blackfin-systems.patch
+     kprobes-support-probing-module-__exit-function-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport driver: disable pc-style parport on Blackfin systems
-From: Mike Frysinger <vapier.adi@gmail.com>
+Subject: bugfix: pass aggr_kprobe to arch_remove_kprobe
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
+akpm@linux-foundation.org wrote:
+> The patch titled
+>      kprobes: support probing module __exit function
+> has been added to the -mm tree.  Its filename is
+>      kprobes-support-probing-module-__exit-function.patch
+
+Call arch_remove_kprobe() with aggr_kprobe instead of user specific kprobe,
+because the user specific kprobe on the gone or reused aggr_kprobe may have
+invalid arch_specific_insn.
+
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kprobes.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/parport/Kconfig~parport-driver-disable-pc-style-parport-on-blackfin-systems drivers/parport/Kconfig
---- a/drivers/parport/Kconfig~parport-driver-disable-pc-style-parport-on-blackfin-systems
-+++ a/drivers/parport/Kconfig
-@@ -36,7 +36,7 @@ if PARPORT
- config PARPORT_PC
- 	tristate "PC-style hardware"
- 	depends on (!SPARC64 || PCI) && !SPARC32 && !M32R && !FRV && \
--		(!M68K || ISA) && !MN10300 && !AVR32
-+		(!M68K || ISA) && !MN10300 && !AVR32 && !BLACKFIN
- 	---help---
- 	  You should say Y here if you have a PC-style parallel port. All
- 	  IBM PC compatible computers and some Alphas have PC-style
+diff -puN kernel/kprobes.c~kprobes-support-probing-module-__exit-function-fix-2 kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-support-probing-module-__exit-function-fix-2
++++ a/kernel/kprobes.c
+@@ -762,14 +762,14 @@ static void __kprobes __unregister_kprob
+ {
+ 	struct kprobe *old_p;
+ 
+-	if (list_empty(&p->list) || list_is_singular(&p->list)) {
+-		if (!list_empty(&p->list)) {
+-			/* "p" is the last child of an aggr_kprobe */
+-			old_p = list_entry(p->list.next, struct kprobe, list);
+-			list_del(&p->list);
+-			kfree(old_p);
+-		}
++	if (list_empty(&p->list))
+ 		arch_remove_kprobe(p);
++	else if (list_is_singular(&p->list)) {
++		/* "p" is the last child of an aggr_kprobe */
++		old_p = list_entry(p->list.next, struct kprobe, list);
++		list_del(&p->list);
++		arch_remove_kprobe(old_p);
++		kfree(old_p);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
-physmap-fix-leak-of-memory-returned-by-parse_mtd_partitions.patch
-pcmcia-blackfin-fix-bug-add-missing-to-module-macro.patch
-genrtc-disable-genrtc-on-blackfin-systems.patch
-parport-driver-disable-pc-style-parport-on-blackfin-systems.patch
+kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
+kprobes-indirectly-call-kprobe_target.patch
+kprobes-add-tests-for-register_kprobes.patch
+module-add-within_module_core-and-within_module_init.patch
+kprobes-add-kprobe_insn_mutex-and-cleanup-arch_remove_kprobe.patch
+kprobes-add-__kprobes-to-kprobe-internal-functions.patch
+kprobes-support-probing-module-__exit-function.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+kprobes-remove-called_from-argument.patch
+kprobes-remove-called_from-argument-fix.patch
+module-add-module_state_live-notify.patch
+kprobes-support-probing-module-__init-function.patch
 
