@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-support-probing-module-__exit-function-fix-2.patch added to -mm tree
-Date: Tue, 18 Nov 2008 23:41:57 -0800
-Message-ID: <200811190741.mAJ7fvK5019964@imap1.linux-foundation.org>
+Subject: + memcg-swap-cgroup-for-remembering-usage-fix-4.patch added to -mm tree
+Date: Tue, 18 Nov 2008 23:44:27 -0800
+Message-ID: <200811190744.mAJ7iRVn021314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35983 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752704AbYKSHm0 (ORCPT
+	by vger.kernel.org with ESMTP id S1750747AbYKSHol (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 02:42:26 -0500
+	Wed, 19 Nov 2008 02:44:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com
+Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp, xemul@openvz.org
 
 
 The patch titled
-     bugfix: pass aggr_kprobe to arch_remove_kprobe
+     memcg: avoid using buggy kmap at swap_cgroup
 has been added to the -mm tree.  Its filename is
-     kprobes-support-probing-module-__exit-function-fix-2.patch
+     memcg-swap-cgroup-for-remembering-usage-fix-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bugfix: pass aggr_kprobe to arch_remove_kprobe
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: memcg: avoid using buggy kmap at swap_cgroup
+From: Hugh Dickins <hugh@veritas.com>
 
-akpm@linux-foundation.org wrote:
-> The patch titled
->      kprobes: support probing module __exit function
-> has been added to the -mm tree.  Its filename is
->      kprobes-support-probing-module-__exit-function.patch
+swap_cgroup's kmap logic conflicts shmem's kmap logic.
+avoid to use HIGHMEM for now and revisit this later.
 
-Call arch_remove_kprobe() with aggr_kprobe instead of user specific kprobe,
-because the user specific kprobe on the gone or reused aggr_kprobe may have
-invalid arch_specific_insn.
-
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Hugh Dickins <hugh@veritas.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/page_cgroup.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-support-probing-module-__exit-function-fix-2 kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-support-probing-module-__exit-function-fix-2
-+++ a/kernel/kprobes.c
-@@ -762,14 +762,14 @@ static void __kprobes __unregister_kprob
- {
- 	struct kprobe *old_p;
+diff -puN mm/page_cgroup.c~memcg-swap-cgroup-for-remembering-usage-fix-4 mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-swap-cgroup-for-remembering-usage-fix-4
++++ a/mm/page_cgroup.c
+@@ -305,7 +305,7 @@ static int swap_cgroup_prepare(int type)
+ 	ctrl = &swap_cgroup_ctrl[type];
  
--	if (list_empty(&p->list) || list_is_singular(&p->list)) {
--		if (!list_empty(&p->list)) {
--			/* "p" is the last child of an aggr_kprobe */
--			old_p = list_entry(p->list.next, struct kprobe, list);
--			list_del(&p->list);
--			kfree(old_p);
--		}
-+	if (list_empty(&p->list))
- 		arch_remove_kprobe(p);
-+	else if (list_is_singular(&p->list)) {
-+		/* "p" is the last child of an aggr_kprobe */
-+		old_p = list_entry(p->list.next, struct kprobe, list);
-+		list_del(&p->list);
-+		arch_remove_kprobe(old_p);
-+		kfree(old_p);
- 	}
+ 	for (idx = 0; idx < ctrl->length; idx++) {
+-		page = alloc_page(GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO);
++		page = alloc_page(GFP_KERNEL | __GFP_ZERO);
+ 		if (!page)
+ 			goto not_enough_page;
+ 		ctrl->map[idx] = page;
+@@ -346,11 +346,10 @@ struct mem_cgroup *swap_cgroup_record(sw
+ 
+ 	mappage = ctrl->map[idx];
+ 	spin_lock_irqsave(&ctrl->lock, flags);
+-	sc = kmap_atomic(mappage, KM_USER0);
++	sc = page_address(mappage);
+ 	sc += pos;
+ 	old = sc->val;
+ 	sc->val = mem;
+-	kunmap_atomic((void *)sc, KM_USER0);
+ 	spin_unlock_irqrestore(&ctrl->lock, flags);
+ 	return old;
  }
+@@ -381,10 +380,9 @@ struct mem_cgroup *lookup_swap_cgroup(sw
+ 	mappage = ctrl->map[idx];
  
+ 	spin_lock_irqsave(&ctrl->lock, flags);
+-	sc = kmap_atomic(mappage, KM_USER0);
++	sc = page_address(mappage);
+ 	sc += pos;
+ 	ret = sc->val;
+-	kunmap_atomic((void *)sc, KM_USER0);
+ 	spin_unlock_irqrestore(&ctrl->lock, flags);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
-kprobes-indirectly-call-kprobe_target.patch
-kprobes-add-tests-for-register_kprobes.patch
-module-add-within_module_core-and-within_module_init.patch
-kprobes-add-kprobe_insn_mutex-and-cleanup-arch_remove_kprobe.patch
-kprobes-add-__kprobes-to-kprobe-internal-functions.patch
-kprobes-support-probing-module-__exit-function.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-kprobes-remove-called_from-argument.patch
-kprobes-remove-called_from-argument-fix.patch
-module-add-module_state_live-notify.patch
-kprobes-support-probing-module-__init-function.patch
+lib-scatterlistc-fix-kunmap-argument-in-sg_miter_stop.patch
+sprint_symbol-use-less-stack.patch
+migration-fix-writepage-error.patch
+vmscan-let-gfp_nofs-go-to-swap-again.patch
+dont-unlink-an-active-swapfile.patch
+linux-next.patch
+mm-dont-mark_page_accessed-in-shmem_fault.patch
+mm-apply_to_range-call-pte-function-with-lazy-updates.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
+memcg-swap-cgroup-for-remembering-usage-fix-2.patch
+memcg-swap-cgroup-for-remembering-usage-fix-3.patch
+memcg-swap-cgroup-for-remembering-usage-fix-4.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+prio_tree-debugging-patch.patch
 
