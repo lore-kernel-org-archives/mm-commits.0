@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume.patch added to -mm tree
-Date: Tue, 18 Nov 2008 21:31:14 -0800
-Message-ID: <200811190531.mAJ5VE0s017249@imap1.linux-foundation.org>
+Subject: + vmscan-evict-streaming-io-first.patch added to -mm tree
+Date: Tue, 18 Nov 2008 21:32:20 -0800
+Message-ID: <200811190532.mAJ5WK92017899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45903 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47118 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750707AbYKSFcM (ORCPT
+	by vger.kernel.org with ESMTP id S1750747AbYKSFcj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 00:32:12 -0500
+	Wed, 19 Nov 2008 00:32:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, lenb@kernel.org, me@bobcopeland.com, tino.keitel@gmx.de
+Cc: riel@redhat.com, gene.heskett@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     acpi suspend: blacklist boxes that require us to set SCI_EN directly on resume
+     vmscan: evict streaming IO first
 has been added to the -mm tree.  Its filename is
-     acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume.patch
+     vmscan-evict-streaming-io-first.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi suspend: blacklist boxes that require us to set SCI_EN directly on resume
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: vmscan: evict streaming IO first
+From: Rik van Riel <riel@redhat.com>
 
-Some Apple boxes evidently require us to set SCI_EN on resume directly,
-because if we don't do that, they hung somewhere in the resume code path. 
-Moreover, on these boxes it is not sufficient to use acpi_enable() to turn
-ACPI on during resume.  All of this is against the ACPI specification
-which states that (1) the BIOS is supposed to return from the S3 sleep
-state with ACPI enabled (SCI_EN set) and (2) the SCI_EN bit is owned by
-the hardware and we are not supposed to change it.
+Count the insertion of new pages in the statistics used to drive the
+pageout scanning code.  This should help the kernel quickly evict
+streaming file IO.
 
-For this reason, blacklist the affected systems so that the SCI_EN bit is
-set during resume on them.
+We count on the fact that new file pages start on the inactive file LRU
+and new anonymous pages start on the active anon list.  This means
+streaming file IO will increment the recent scanned file statistic, while
+leaving the recent rotated file statistic alone, driving pageout scanning
+to the file LRUs.
 
-[NOTE: Unconditional setting SCI_EN for all system on resume doesn't
- work, because it makes some other systems crash (that's to be
- expected).  Also, it is not entirely clear right now if all of the
- Apple boxes require this workaround.]
+Pageout activity does its own list manipulation.
 
-This patch fixes the recent regression tracked as
-http://bugzilla.kernel.org/show_bug.cgi?id=12038
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Tested-by: Tino Keitel <tino.keitel@gmx.de>
-Tested-by: Bob Copeland <me@bobcopeland.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Gene Heskett <gene.heskett@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/main.c |   40 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
+ mm/swap.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/sleep/main.c~acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume drivers/acpi/sleep/main.c
---- a/drivers/acpi/sleep/main.c~acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume
-+++ a/drivers/acpi/sleep/main.c
-@@ -104,6 +104,18 @@ void __init acpi_s4_no_nvs(void)
- 	s4_no_nvs = true;
- }
+diff -puN mm/swap.c~vmscan-evict-streaming-io-first mm/swap.c
+--- a/mm/swap.c~vmscan-evict-streaming-io-first
++++ a/mm/swap.c
+@@ -445,6 +445,7 @@ void ____pagevec_lru_add(struct pagevec 
+ 	for (i = 0; i < pagevec_count(pvec); i++) {
+ 		struct page *page = pvec->pages[i];
+ 		struct zone *pagezone = page_zone(page);
++		int file;
  
-+/*
-+ * According to the ACPI specification the BIOS should make sure that ACPI is
-+ * enabled and SCI_EN bit is set on wake-up from S1 - S3 sleep states.  Still,
-+ * some BIOSes don't do that and therefore we use acpi_enable() to enable ACPI
-+ * on such systems during resume.  Unfortunately that doesn't help in
-+ * particularly pathological cases in which SCI_EN has to be set directly on
-+ * resume, although the specification states very clearly that this flag is
-+ * owned by the hardware.  The set_sci_en_on_resume variable will be set in such
-+ * cases.
-+ */
-+static bool set_sci_en_on_resume;
-+
- /**
-  *	acpi_pm_disable_gpes - Disable the GPEs.
-  */
-@@ -249,7 +261,11 @@ static int acpi_suspend_enter(suspend_st
+ 		if (pagezone != zone) {
+ 			if (zone)
+@@ -456,8 +457,12 @@ void ____pagevec_lru_add(struct pagevec 
+ 		VM_BUG_ON(PageUnevictable(page));
+ 		VM_BUG_ON(PageLRU(page));
+ 		SetPageLRU(page);
+-		if (is_active_lru(lru))
++		file = is_file_lru(lru);
++		zone->recent_scanned[file]++;
++		if (is_active_lru(lru)) {
+ 			SetPageActive(page);
++			zone->recent_rotated[file]++;
++		}
+ 		add_page_to_lru_list(zone, page, lru);
  	}
- 
- 	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
--	acpi_enable();
-+	if (set_sci_en_on_resume)
-+		acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1);
-+	else
-+		acpi_enable();
-+
- 	/* Reprogram control registers and execute _BFS */
- 	acpi_leave_sleep_state_prep(acpi_state);
- 
-@@ -337,6 +353,12 @@ static int __init init_old_suspend_order
- 	return 0;
- }
- 
-+static int __init init_set_sci_en_on_resume(const struct dmi_system_id *d)
-+{
-+	set_sci_en_on_resume = true;
-+	return 0;
-+}
-+
- static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 	{
- 	.callback = init_old_suspend_ordering,
-@@ -354,6 +376,22 @@ static struct dmi_system_id __initdata a
- 		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
- 		},
- 	},
-+	{
-+	.callback = init_set_sci_en_on_resume,
-+	.ident = "Apple MacBook 1,1",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "MacBook1,1"),
-+		},
-+	},
-+	{
-+	.callback = init_set_sci_en_on_resume,
-+	.ident = "Apple MacMini 1,1",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
-+		},
-+	},
- 	{},
- };
- #endif /* CONFIG_SUSPEND */
+ 	if (zone)
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from riel@redhat.com are
 
-origin.patch
+vmscan-let-gfp_nofs-go-to-swap-again.patch
+vmscan-fix-get_scan_ratio-comment.patch
 linux-next.patch
-acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
-shrink_slab-handle-bad-shrinkers.patch
+vmscan-evict-streaming-io-first.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
 
