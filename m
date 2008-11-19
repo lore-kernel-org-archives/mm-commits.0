@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-extract-ikconfig-remove-bashisms.patch added to -mm tree
-Date: Wed, 19 Nov 2008 11:22:35 -0800
-Message-ID: <200811191922.mAJJMZRv027599@imap1.linux-foundation.org>
+Subject: + w1-omap-fix-omap-ldp-boot-crash.patch added to -mm tree
+Date: Wed, 19 Nov 2008 11:25:00 -0800
+Message-ID: <200811191925.mAJJP0C9028872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36561 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752506AbYKSTX3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753632AbYKSTZi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 14:23:29 -0500
+	Wed, 19 Nov 2008 14:25:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: werner@openmoko.org, randy.dunlap@oracle.com, sam@ravnborg.org
+Cc: stanley.miao@windriver.com, zbr@ioremap.net
 
 
 The patch titled
-     scripts/extract-ikconfig: remove bashisms
+     W1 OMAP: Fix OMAP LDP boot crash
 has been added to the -mm tree.  Its filename is
-     scripts-extract-ikconfig-remove-bashisms.patch
+     w1-omap-fix-omap-ldp-boot-crash.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/extract-ikconfig: remove bashisms
-From: Werner Almesberger <werner@openmoko.org>
+Subject: W1 OMAP: Fix OMAP LDP boot crash
+From: "Stanley.Miao" <stanley.miao@windriver.com>
 
-scripts/extract-ikconfig contains a lot of gratuituous bashisms, which
-make it fail if /bin/sh isn't bash.  This patch replaces them with regular
-Bourne shell constructs.
+OMAP LDP boot crash.  This is because w1 subsystem changed the search
+interface, so update omap_hdq's search interface to follow the change.
 
-Signed-off-by: Werner Almesberger <werner@openmoko.org>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/extract-ikconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/w1/masters/omap_hdq.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN scripts/extract-ikconfig~scripts-extract-ikconfig-remove-bashisms scripts/extract-ikconfig
---- a/scripts/extract-ikconfig~scripts-extract-ikconfig-remove-bashisms
-+++ a/scripts/extract-ikconfig
-@@ -8,8 +8,8 @@ test -e $binoffset || cc -o $binoffset .
+diff -puN drivers/w1/masters/omap_hdq.c~w1-omap-fix-omap-ldp-boot-crash drivers/w1/masters/omap_hdq.c
+--- a/drivers/w1/masters/omap_hdq.c~w1-omap-fix-omap-ldp-boot-crash
++++ a/drivers/w1/masters/omap_hdq.c
+@@ -86,8 +86,8 @@ static struct platform_driver omap_hdq_d
+ static u8 omap_w1_read_byte(void *_hdq);
+ static void omap_w1_write_byte(void *_hdq, u8 byte);
+ static u8 omap_w1_reset_bus(void *_hdq);
+-static void omap_w1_search_bus(void *_hdq, u8 search_type,
+-	w1_slave_found_callback slave_found);
++static void omap_w1_search_bus(void *_hdq, struct w1_master *master_dev,
++		u8 search_type,	w1_slave_found_callback slave_found);
  
- IKCFG_ST="0x49 0x4b 0x43 0x46 0x47 0x5f 0x53 0x54"
- IKCFG_ED="0x49 0x4b 0x43 0x46 0x47 0x5f 0x45 0x44"
--function dump_config {
--    typeset file="$1"
-+dump_config() {
-+    file="$1"
  
-     start=`$binoffset $file $IKCFG_ST 2>/dev/null`
-     [ "$?" != "0" ] && start="-1"
-@@ -18,8 +18,8 @@ function dump_config {
-     fi
-     end=`$binoffset $file $IKCFG_ED 2>/dev/null`
+ static struct w1_bus_master omap_w1_master = {
+@@ -231,8 +231,8 @@ static u8 omap_w1_reset_bus(void *_hdq)
+ }
  
--    let start="$start + 8"
--    let size="$end - $start"
-+    start=`expr $start + 8`
-+    size=`expr $end - $start`
+ /* W1 search callback function */
+-static void omap_w1_search_bus(void *_hdq, u8 search_type,
+-	w1_slave_found_callback slave_found)
++static void omap_w1_search_bus(void *_hdq, struct w1_master *master_dev,
++		u8 search_type, w1_slave_found_callback slave_found)
+ {
+ 	u64 module_id, rn_le, cs, id;
  
-     dd if="$file" ibs=1 skip="$start" count="$size" 2>/dev/null | zcat
+@@ -249,7 +249,7 @@ static void omap_w1_search_bus(void *_hd
+ 	cs = w1_calc_crc8((u8 *)&rn_le, 7);
+ 	id = (cs << 56) | module_id;
  
+-	slave_found(_hdq, id);
++	slave_found(master_dev, id);
+ }
+ 
+ static int _omap_hdq_reset(struct hdq_data *hdq_data)
 _
 
-Patches currently in -mm which might be from werner@openmoko.org are
+Patches currently in -mm which might be from stanley.miao@windriver.com are
 
-scripts-extract-ikconfig-remove-bashisms.patch
+w1-omap-fix-omap-ldp-boot-crash.patch
 
