@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + unaligned-pack-the-struct-not-the-struct-members.patch added to -mm tree
-Date: Tue, 18 Nov 2008 22:15:10 -0800
-Message-ID: <200811190615.mAJ6FAGr007473@imap1.linux-foundation.org>
+Subject: + unaligned-move-arm-m32r-h8300-to-the-asm-generic-version.patch added to -mm tree
+Date: Tue, 18 Nov 2008 22:15:12 -0800
+Message-ID: <200811190615.mAJ6FCIo007522__18492.8072886125$1227075486$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55682 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49271 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752388AbYKSGQN (ORCPT
+	by vger.kernel.org with ESMTP id S1751095AbYKSGQI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 01:16:13 -0500
+	Wed, 19 Nov 2008 01:16:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, linux-arch@vger.kernel.org
+Cc: harvey.harrison@gmail.com, linux-arch@vger.kernel.org, rmk@arm.linux.org.uk, takata@linux-m32r.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     unaligned: pack the struct, not the struct members
+     unaligned: move ARM, M32R, H8300 to the asm-generic version
 has been added to the -mm tree.  Its filename is
-     unaligned-pack-the-struct-not-the-struct-members.patch
+     unaligned-move-arm-m32r-h8300-to-the-asm-generic-version.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unaligned: pack the struct, not the struct members
+Subject: unaligned: move ARM, M32R, H8300 to the asm-generic version
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-This is safe for the arches that currently use this as gcc says that
-defining a struct as packed is equivalent to putting packed on each struct
-member.
-
-The reason this is needed is that there are some arches that define
-structs to be aligned to something greater than a byte...so even if the
-first member of the struct is marked as packed, gcc will still treat it as
-having the default stuct alignment which will allow it to choose
-_builtin_memcpy...  see the comments in the memmove-using arches.  This
-also turned out to be the issue with ARM (needs confirmation) because
-_some_ ARM compilers have this alignment set to 4 bytes.
-
-If the struct _itself_ is marked as packed, the compiler cannot assume
-this default alignment and _must_ do the bytewise access in whatever way
-the arch does it.  By making this change, the last 3 arches could move to
-the new asm-generic version and the bits in linux/unaligned/ can be
-removed.
-
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/unaligned.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/include/asm/unaligned.h   |   15 +--------------
+ arch/h8300/include/asm/unaligned.h |    7 +------
+ include/asm-m32r/unaligned.h       |   14 +-------------
+ 3 files changed, 3 insertions(+), 33 deletions(-)
 
-diff -puN include/asm-generic/unaligned.h~unaligned-pack-the-struct-not-the-struct-members include/asm-generic/unaligned.h
---- a/include/asm-generic/unaligned.h~unaligned-pack-the-struct-not-the-struct-members
-+++ a/include/asm-generic/unaligned.h
-@@ -68,9 +68,9 @@ static inline void put_unaligned_be64(u6
+diff -puN arch/arm/include/asm/unaligned.h~unaligned-move-arm-m32r-h8300-to-the-asm-generic-version arch/arm/include/asm/unaligned.h
+--- a/arch/arm/include/asm/unaligned.h~unaligned-move-arm-m32r-h8300-to-the-asm-generic-version
++++ a/arch/arm/include/asm/unaligned.h
+@@ -1,19 +1,6 @@
+ #ifndef _ASM_ARM_UNALIGNED_H
+ #define _ASM_ARM_UNALIGNED_H
  
- #else /* _UNALIGNED_ACCESS_OK */
+-#include <linux/unaligned/le_byteshift.h>
+-#include <linux/unaligned/be_byteshift.h>
+-#include <linux/unaligned/generic.h>
+-
+-/*
+- * Select endianness
+- */
+-#ifndef __ARMEB__
+-#define get_unaligned	__get_unaligned_le
+-#define put_unaligned	__put_unaligned_le
+-#else
+-#define get_unaligned	__get_unaligned_be
+-#define put_unaligned	__put_unaligned_be
+-#endif
++#include <asm-generic/unaligned.h>
  
--struct __una_u16 { u16 x __attribute__((packed)); };
--struct __una_u32 { u32 x __attribute__((packed)); };
--struct __una_u64 { u64 x __attribute__((packed)); };
-+struct __una_u16 { u16 x; } __attribute__((packed));
-+struct __una_u32 { u32 x; } __attribute__((packed));
-+struct __una_u64 { u64 x; } __attribute__((packed));
+ #endif /* _ASM_ARM_UNALIGNED_H */
+diff -puN arch/h8300/include/asm/unaligned.h~unaligned-move-arm-m32r-h8300-to-the-asm-generic-version arch/h8300/include/asm/unaligned.h
+--- a/arch/h8300/include/asm/unaligned.h~unaligned-move-arm-m32r-h8300-to-the-asm-generic-version
++++ a/arch/h8300/include/asm/unaligned.h
+@@ -1,11 +1,6 @@
+ #ifndef _ASM_H8300_UNALIGNED_H
+ #define _ASM_H8300_UNALIGNED_H
  
- static inline u16 __get_le16_noalign(const u8 *p)
- {
+-#include <linux/unaligned/be_memmove.h>
+-#include <linux/unaligned/le_byteshift.h>
+-#include <linux/unaligned/generic.h>
+-
+-#define get_unaligned	__get_unaligned_be
+-#define put_unaligned	__put_unaligned_be
++#include <asm-generic/unaligned.h>
+ 
+ #endif /* _ASM_H8300_UNALIGNED_H */
+diff -puN include/asm-m32r/unaligned.h~unaligned-move-arm-m32r-h8300-to-the-asm-generic-version include/asm-m32r/unaligned.h
+--- a/include/asm-m32r/unaligned.h~unaligned-move-arm-m32r-h8300-to-the-asm-generic-version
++++ a/include/asm-m32r/unaligned.h
+@@ -1,18 +1,6 @@
+ #ifndef _ASM_M32R_UNALIGNED_H
+ #define _ASM_M32R_UNALIGNED_H
+ 
+-#if defined(__LITTLE_ENDIAN__)
+-# include <linux/unaligned/le_memmove.h>
+-# include <linux/unaligned/be_byteshift.h>
+-# include <linux/unaligned/generic.h>
+-# define get_unaligned	__get_unaligned_le
+-# define put_unaligned	__put_unaligned_le
+-#else
+-# include <linux/unaligned/be_memmove.h>
+-# include <linux/unaligned/le_byteshift.h>
+-# include <linux/unaligned/generic.h>
+-# define get_unaligned	__get_unaligned_be
+-# define put_unaligned	__put_unaligned_be
+-#endif
++#include <asm-generic/unaligned.h>
+ 
+ #endif /* _ASM_M32R_UNALIGNED_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
