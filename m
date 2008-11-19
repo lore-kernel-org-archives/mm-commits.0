@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_spi-clean-up-spiv1-quirk-handling.patch added to -mm tree
-Date: Tue, 18 Nov 2008 21:18:43 -0800
-Message-ID: <200811190518.mAJ5Ih1p010806@imap1.linux-foundation.org>
+Subject: + fs-introduce-bgl_lock_ptr.patch added to -mm tree
+Date: Tue, 18 Nov 2008 21:28:00 -0800
+Message-ID: <200811190528.mAJ5S0v3015636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58728 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750822AbYKSFTE (ORCPT
+	by vger.kernel.org with ESMTP id S1750707AbYKSF2i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 00:19:04 -0500
+	Wed, 19 Nov 2008 00:28:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haavard.skinnemoen@atmel.com, dbrownell@users.sourceforge.net
+Cc: penberg@cs.helsinki.fi, adilger@sun.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     atmel_spi: clean up SPIv1 quirk handling
+     fs: introduce bgl_lock_ptr()
 has been added to the -mm tree.  Its filename is
-     atmel_spi-clean-up-spiv1-quirk-handling.patch
+     fs-introduce-bgl_lock_ptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_spi: clean up SPIv1 quirk handling
-From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: fs: introduce bgl_lock_ptr()
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Currently, we have a flag called "new_1" which is basically equivalent
-to cpu_is_at91rm9200(). The latter is also called directly a few places.
+As suggested by Andreas Dilger, introduce a bgl_lock_ptr() helper in
+<linux/blockgroup_lock.h> and add separate sb_bgl_lock() helpers to filesystem
+specific header files to break the hidden dependency to struct
+ext[234]_sb_info. Also, while at it, convert the macros to static inlines to
+try make up for all the times I broke Andrew Morton's tree.
 
-Clean up this mess by introducing a atmel_spi_v2() function for
-determining the controller version, and move all version dependent code
-over to use it. This allows us to remove the new_1 flag.
-
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Andreas Dilger <adilger@sun.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |   40 ++++++++++++++++++++------------------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ fs/ext4/ext4_sb.h               |    6 ++++++
+ include/linux/blockgroup_lock.h |    7 +++++--
+ include/linux/ext2_fs_sb.h      |    6 ++++++
+ include/linux/ext3_fs_sb.h      |    6 ++++++
+ 4 files changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-clean-up-spiv1-quirk-handling drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-clean-up-spiv1-quirk-handling
-+++ a/drivers/spi/atmel_spi.c
-@@ -30,13 +30,6 @@
-  * The core SPI transfer engine just talks to a register bank to set up
-  * DMA transfers; transfer queue progress is driven by IRQs.  The clock
-  * framework provides the base clock, subdivided for each spi_device.
-- *
-- * Newer controllers, marked with "new_1" flag, have:
-- *  - CR.LASTXFER
-- *  - SPI_MR.DIV32 may become FDIV or must-be-zero (here: always zero)
-- *  - SPI_SR.TXEMPTY, SPI_SR.NSSR (and corresponding irqs)
-- *  - SPI_CSRx.CSAAT
-- *  - SPI_CSRx.SBCR allows faster clocking
-  */
- struct atmel_spi {
- 	spinlock_t		lock;
-@@ -45,7 +38,6 @@ struct atmel_spi {
- 	int			irq;
- 	struct clk		*clk;
- 	struct platform_device	*pdev;
--	unsigned		new_1:1;
- 	struct spi_device	*stay;
+diff -puN fs/ext4/ext4_sb.h~fs-introduce-bgl_lock_ptr fs/ext4/ext4_sb.h
+--- a/fs/ext4/ext4_sb.h~fs-introduce-bgl_lock_ptr
++++ a/fs/ext4/ext4_sb.h
+@@ -146,4 +146,10 @@ struct ext4_sb_info {
+ 	struct flex_groups *s_flex_groups;
+ };
  
- 	u8			stopping;
-@@ -63,6 +55,23 @@ struct atmel_spi {
- #define INVALID_DMA_ADDRESS	0xffffffff
- 
- /*
-+ * Version 2 of the SPI controller has
-+ *  - CR.LASTXFER
-+ *  - SPI_MR.DIV32 may become FDIV or must-be-zero (here: always zero)
-+ *  - SPI_SR.TXEMPTY, SPI_SR.NSSR (and corresponding irqs)
-+ *  - SPI_CSRx.CSAAT
-+ *  - SPI_CSRx.SBCR allows faster clocking
-+ *
-+ * We can determine the controller version by reading the VERSION
-+ * register, but I haven't checked that it exists on all chips, and
-+ * this is cheaper anyway.
-+ */
-+static bool atmel_spi_is_v2(void)
++static inline spinlock_t *
++sb_bgl_lock(struct ext4_sb_info *sbi, unsigned int block_group)
 +{
-+	return !cpu_is_at91rm9200();
++	return bgl_lock_ptr(&sbi->s_blockgroup_lock, block_group);
 +}
 +
-+/*
-  * Earlier SPI controllers (e.g. on at91rm9200) have a design bug whereby
-  * they assume that spi slave device state will not change on deselect, so
-  * that automagic deselection is OK.  ("NPCSx rises if no data is to be
-@@ -105,7 +114,7 @@ static void cs_activate(struct atmel_spi
- 			gpio, active ? " (high)" : "",
- 			mr);
+ #endif	/* _EXT4_SB */
+diff -puN include/linux/blockgroup_lock.h~fs-introduce-bgl_lock_ptr include/linux/blockgroup_lock.h
+--- a/include/linux/blockgroup_lock.h~fs-introduce-bgl_lock_ptr
++++ a/include/linux/blockgroup_lock.h
+@@ -53,7 +53,10 @@ static inline void bgl_lock_init(struct 
+  * The accessor is a macro so we can embed a blockgroup_lock into different
+  * superblock types
+  */
+-#define sb_bgl_lock(sb, block_group) \
+-	(&(sb)->s_blockgroup_lock.locks[(block_group) & (NR_BG_LOCKS-1)].lock)
++static inline spinlock_t *
++bgl_lock_ptr(struct blockgroup_lock *bgl, unsigned int block_group)
++{
++	return &bgl->locks[(block_group) & (NR_BG_LOCKS-1)].lock;
++}
  
--	if (!(cpu_is_at91rm9200() && spi->chip_select == 0))
-+	if (atmel_spi_is_v2() || spi->chip_select != 0)
- 		gpio_set_value(gpio, active);
- 	spi_writel(as, MR, mr);
- }
-@@ -129,7 +138,7 @@ static void cs_deactivate(struct atmel_s
- 			gpio, active ? " (low)" : "",
- 			mr);
+ #endif
+diff -puN include/linux/ext2_fs_sb.h~fs-introduce-bgl_lock_ptr include/linux/ext2_fs_sb.h
+--- a/include/linux/ext2_fs_sb.h~fs-introduce-bgl_lock_ptr
++++ a/include/linux/ext2_fs_sb.h
+@@ -108,4 +108,10 @@ struct ext2_sb_info {
+ 	struct ext2_reserve_window_node s_rsv_window_head;
+ };
  
--	if (!(cpu_is_at91rm9200() && spi->chip_select == 0))
-+	if (atmel_spi_is_v2() || spi->chip_select != 0)
- 		gpio_set_value(gpio, !active);
- }
++static inline spinlock_t *
++sb_bgl_lock(struct ext2_sb_info *sbi, unsigned int block_group)
++{
++	return bgl_lock_ptr(&sbi->s_blockgroup_lock, block_group);
++}
++
+ #endif	/* _LINUX_EXT2_FS_SB */
+diff -puN include/linux/ext3_fs_sb.h~fs-introduce-bgl_lock_ptr include/linux/ext3_fs_sb.h
+--- a/include/linux/ext3_fs_sb.h~fs-introduce-bgl_lock_ptr
++++ a/include/linux/ext3_fs_sb.h
+@@ -83,4 +83,10 @@ struct ext3_sb_info {
+ #endif
+ };
  
-@@ -536,19 +545,16 @@ static int atmel_spi_setup(struct spi_de
- 	}
- 
- 	/* see notes above re chipselect */
--	if (cpu_is_at91rm9200()
-+	if (!atmel_spi_is_v2()
- 			&& spi->chip_select == 0
- 			&& (spi->mode & SPI_CS_HIGH)) {
- 		dev_dbg(&spi->dev, "setup: can't be active-high\n");
- 		return -EINVAL;
- 	}
- 
--	/*
--	 * Pre-new_1 chips start out at half the peripheral
--	 * bus speed.
--	 */
-+	/* v1 chips start out at half the peripheral bus speed. */
- 	bus_hz = clk_get_rate(as->clk);
--	if (!as->new_1)
-+	if (!atmel_spi_is_v2())
- 		bus_hz /= 2;
- 
- 	if (spi->max_speed_hz) {
-@@ -755,8 +761,6 @@ static int __init atmel_spi_probe(struct
- 		goto out_free_buffer;
- 	as->irq = irq;
- 	as->clk = clk;
--	if (!cpu_is_at91rm9200())
--		as->new_1 = 1;
- 
- 	ret = request_irq(irq, atmel_spi_interrupt, 0,
- 			pdev->dev.bus_id, master);
++static inline spinlock_t *
++sb_bgl_lock(struct ext3_sb_info *sbi, unsigned int block_group)
++{
++	return bgl_lock_ptr(&sbi->s_blockgroup_lock, block_group);
++}
++
+ #endif	/* _LINUX_EXT3_FS_SB */
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
+fs-introduce-bgl_lock_ptr.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
-atmel_spi-clean-up-spiv1-quirk-handling.patch
+ext4-allocate-s_blockgroup_lock-separately.patch
+ext2-allocate-s_blockgroup_lock-separately.patch
+ext3-allocate-s_blockgroup_lock-separately.patch
+slab-leaks3-default-y.patch
 
