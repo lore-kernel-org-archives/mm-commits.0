@@ -1,75 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-profilec-fix-section-mismatch-warning.patch removed from -mm tree
-Date: Wed, 19 Nov 2008 12:48:07 -0800
-Message-ID: <200811192048.mAJKm7K0007250@imap1.linux-foundation.org>
+Subject: - usb-fix-sb700-usb-subsystem-hang-bug.patch removed from -mm tree
+Date: Wed, 19 Nov 2008 12:48:04 -0800
+Message-ID: <200811192048.mAJKm42d007244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56255 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753129AbYKSUsM (ORCPT
+	by vger.kernel.org with ESMTP id S1753134AbYKSUsN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 15:48:12 -0500
+	Wed, 19 Nov 2008 15:48:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rakib.mullick@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: andiry.xu@amd.com, libin.yang@amd.com, volker.armin.hemmann@tu-clausthal.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: "Rakib Mullick" <rakib.mullick@gmail.com>
+     usb: fix SB700 usb subsystem hang bug
 has been removed from the -mm tree.  Its filename was
-     kernel-profilec-fix-section-mismatch-warning.patch
+     usb-fix-sb700-usb-subsystem-hang-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: "Rakib Mullick" <rakib.mullick@gmail.com>
+Subject: usb: fix SB700 usb subsystem hang bug
+From: Andiry Xu <andiry.xu@amd.com>
 
+This patch is required for AMD SB700 south bridge revision A12 and A13 to
+avoid USB subsystem hang symptom.  The USB subsystem hang symptom is
+observed when the system has multiple USB devices connected to it.  In
+some cases a USB hub may be required to observe this symptom.
 
-Impact: Fix section mismatch warning in kernel/profile.c
+This patch works around the problem by correcting the internal register
+setting that will help by changing the behavior of the internal logic to
+avoid the USB subsystem hang issue.  The change in the behavior of the
+logic does not impact the normal operation of the USB subsystem.
 
-Here, profile_nop function has been called from a non-init function
-create_hash_tables(void). Which generetes a section mismatch warning.
-Previously, create_hash_tables(void) was a init function. So, removing
-__init from create_hash_tables(void) requires profile_nop to be
-non-init. This patch makes profile_nop function inline and fixes the
-following warning:
-
-WARNING: vmlinux.o(.text+0x6ebb6): Section mismatch in reference from
-the function create_hash_tables() to the function
-.init.text:profile_nop()
-The function create_hash_tables() references
-the function __init profile_nop().
-This is often because create_hash_tables lacks a __init
-annotation or the annotation of profile_nop is wrong.
-
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Andiry Xu <andiry.xu@amd.com>
+Signed-off-by: Libin Yang <libin.yang@amd.com>
+Reported-by: Volker Armin Hemmann <volker.armin.hemmann@tu-clausthal.de>
+Tested-by: Volker Armin Hemmann <volker.armin.hemmann@tu-clausthal.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/profile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/host/ehci-pci.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN kernel/profile.c~kernel-profilec-fix-section-mismatch-warning kernel/profile.c
---- a/kernel/profile.c~kernel-profilec-fix-section-mismatch-warning
-+++ a/kernel/profile.c
-@@ -544,7 +544,7 @@ static const struct file_operations proc
- };
- 
- #ifdef CONFIG_SMP
--static void __init profile_nop(void *unused)
-+static inline void profile_nop(void *unused)
+diff -puN drivers/usb/host/ehci-pci.c~usb-fix-sb700-usb-subsystem-hang-bug drivers/usb/host/ehci-pci.c
+--- a/drivers/usb/host/ehci-pci.c~usb-fix-sb700-usb-subsystem-hang-bug
++++ a/drivers/usb/host/ehci-pci.c
+@@ -66,6 +66,8 @@ static int ehci_pci_setup(struct usb_hcd
  {
- }
+ 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
+ 	struct pci_dev		*pdev = to_pci_dev(hcd->self.controller);
++	struct pci_dev		*p_smbus;
++	u8			rev;
+ 	u32			temp;
+ 	int			retval;
  
+@@ -166,6 +168,25 @@ static int ehci_pci_setup(struct usb_hcd
+ 			pci_write_config_byte(pdev, 0x4b, tmp | 0x20);
+ 		}
+ 		break;
++	case PCI_VENDOR_ID_ATI:
++		/* SB700 old version has a bug in EHCI controller,
++		 * which causes usb devices lose response in some cases.
++		 */
++		if (pdev->device == 0x4396) {
++			p_smbus = pci_get_device(PCI_VENDOR_ID_ATI,
++						 PCI_DEVICE_ID_ATI_SBX00_SMBUS,
++						 NULL);
++			if (!p_smbus)
++				break;
++			rev = p_smbus->revision;
++			if ((rev == 0x3a) || (rev == 0x3b)) {
++				u8 tmp;
++				pci_read_config_byte(pdev, 0x53, &tmp);
++				pci_write_config_byte(pdev, 0x53, tmp | (1<<3));
++			}
++			pci_dev_put(p_smbus);
++		}
++		break;
+ 	}
+ 
+ 	ehci_reset(ehci);
 _
 
-Patches currently in -mm which might be from rakib.mullick@gmail.com are
+Patches currently in -mm which might be from andiry.xu@amd.com are
 
-origin.patch
 linux-next.patch
-kernel-profilec-fix-section-mismatch-warning-fix.patch
-init-properly-placing-noinline-keyword.patch
 
