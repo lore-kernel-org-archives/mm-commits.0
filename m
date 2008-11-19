@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-da903x-section-fix.patch added to -mm tree
-Date: Tue, 18 Nov 2008 21:18:12 -0800
-Message-ID: <200811190518.mAJ5ICwq010562@imap1.linux-foundation.org>
+Subject: + atmel_spi-clean-up-spiv1-quirk-handling.patch added to -mm tree
+Date: Tue, 18 Nov 2008 21:18:43 -0800
+Message-ID: <200811190518.mAJ5Ih1p010806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41576 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750707AbYKSFS0 (ORCPT
+	by vger.kernel.org with ESMTP id S1750822AbYKSFTE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 00:18:26 -0500
+	Wed, 19 Nov 2008 00:19:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, eric.miao@marvell.com, sameo@openedhand.com
+Cc: haavard.skinnemoen@atmel.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     mfd da903x: section fix
+     atmel_spi: clean up SPIv1 quirk handling
 has been added to the -mm tree.  Its filename is
-     mfd-da903x-section-fix.patch
+     atmel_spi-clean-up-spiv1-quirk-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mfd da903x: section fix
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: atmel_spi: clean up SPIv1 quirk handling
+From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 
-This fixes the following section warning:
+Currently, we have a flag called "new_1" which is basically equivalent
+to cpu_is_at91rm9200(). The latter is also called directly a few places.
 
-  WARNING: vmlinux.o(.devinit.text+0x3d36): Section mismatch in reference from the function
-  da903x_add_subdevs() to the function .devexit.text:da903x_remove_subdevs()
-  The function __devinit da903x_add_subdevs() references
-  a function __devexit da903x_remove_subdevs().
-  This is often seen when error handling in the init function
-  uses functionality in the exit path.
-  The fix is often to remove the __devexit annotation of
-  da903x_remove_subdevs() so it may be used outside an exit section.
+Clean up this mess by introducing a atmel_spi_v2() function for
+determining the controller version, and move all version dependent code
+over to use it. This allows us to remove the new_1 flag.
 
-It might be nice to have an "init and exit" section annotation for such
-cases; in this case the waste is only about 40 bytes (x86 test build).
-
+Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Eric Miao <eric.miao@marvell.com>
-Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/da903x.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/spi/atmel_spi.c |   40 ++++++++++++++++++++------------------
+ 1 file changed, 22 insertions(+), 18 deletions(-)
 
-diff -puN drivers/mfd/da903x.c~mfd-da903x-section-fix drivers/mfd/da903x.c
---- a/drivers/mfd/da903x.c~mfd-da903x-section-fix
-+++ a/drivers/mfd/da903x.c
-@@ -435,13 +435,13 @@ static const struct i2c_device_id da903x
- };
- MODULE_DEVICE_TABLE(i2c, da903x_id_table);
+diff -puN drivers/spi/atmel_spi.c~atmel_spi-clean-up-spiv1-quirk-handling drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~atmel_spi-clean-up-spiv1-quirk-handling
++++ a/drivers/spi/atmel_spi.c
+@@ -30,13 +30,6 @@
+  * The core SPI transfer engine just talks to a register bank to set up
+  * DMA transfers; transfer queue progress is driven by IRQs.  The clock
+  * framework provides the base clock, subdivided for each spi_device.
+- *
+- * Newer controllers, marked with "new_1" flag, have:
+- *  - CR.LASTXFER
+- *  - SPI_MR.DIV32 may become FDIV or must-be-zero (here: always zero)
+- *  - SPI_SR.TXEMPTY, SPI_SR.NSSR (and corresponding irqs)
+- *  - SPI_CSRx.CSAAT
+- *  - SPI_CSRx.SBCR allows faster clocking
+  */
+ struct atmel_spi {
+ 	spinlock_t		lock;
+@@ -45,7 +38,6 @@ struct atmel_spi {
+ 	int			irq;
+ 	struct clk		*clk;
+ 	struct platform_device	*pdev;
+-	unsigned		new_1:1;
+ 	struct spi_device	*stay;
  
--static int __devexit __remove_subdev(struct device *dev, void *unused)
-+static int __remove_subdev(struct device *dev, void *unused)
- {
- 	platform_device_unregister(to_platform_device(dev));
- 	return 0;
+ 	u8			stopping;
+@@ -63,6 +55,23 @@ struct atmel_spi {
+ #define INVALID_DMA_ADDRESS	0xffffffff
+ 
+ /*
++ * Version 2 of the SPI controller has
++ *  - CR.LASTXFER
++ *  - SPI_MR.DIV32 may become FDIV or must-be-zero (here: always zero)
++ *  - SPI_SR.TXEMPTY, SPI_SR.NSSR (and corresponding irqs)
++ *  - SPI_CSRx.CSAAT
++ *  - SPI_CSRx.SBCR allows faster clocking
++ *
++ * We can determine the controller version by reading the VERSION
++ * register, but I haven't checked that it exists on all chips, and
++ * this is cheaper anyway.
++ */
++static bool atmel_spi_is_v2(void)
++{
++	return !cpu_is_at91rm9200();
++}
++
++/*
+  * Earlier SPI controllers (e.g. on at91rm9200) have a design bug whereby
+  * they assume that spi slave device state will not change on deselect, so
+  * that automagic deselection is OK.  ("NPCSx rises if no data is to be
+@@ -105,7 +114,7 @@ static void cs_activate(struct atmel_spi
+ 			gpio, active ? " (high)" : "",
+ 			mr);
+ 
+-	if (!(cpu_is_at91rm9200() && spi->chip_select == 0))
++	if (atmel_spi_is_v2() || spi->chip_select != 0)
+ 		gpio_set_value(gpio, active);
+ 	spi_writel(as, MR, mr);
+ }
+@@ -129,7 +138,7 @@ static void cs_deactivate(struct atmel_s
+ 			gpio, active ? " (low)" : "",
+ 			mr);
+ 
+-	if (!(cpu_is_at91rm9200() && spi->chip_select == 0))
++	if (atmel_spi_is_v2() || spi->chip_select != 0)
+ 		gpio_set_value(gpio, !active);
  }
  
--static int __devexit da903x_remove_subdevs(struct da903x_chip *chip)
-+static int da903x_remove_subdevs(struct da903x_chip *chip)
- {
- 	return device_for_each_child(chip->dev, NULL, __remove_subdev);
- }
+@@ -536,19 +545,16 @@ static int atmel_spi_setup(struct spi_de
+ 	}
+ 
+ 	/* see notes above re chipselect */
+-	if (cpu_is_at91rm9200()
++	if (!atmel_spi_is_v2()
+ 			&& spi->chip_select == 0
+ 			&& (spi->mode & SPI_CS_HIGH)) {
+ 		dev_dbg(&spi->dev, "setup: can't be active-high\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	/*
+-	 * Pre-new_1 chips start out at half the peripheral
+-	 * bus speed.
+-	 */
++	/* v1 chips start out at half the peripheral bus speed. */
+ 	bus_hz = clk_get_rate(as->clk);
+-	if (!as->new_1)
++	if (!atmel_spi_is_v2())
+ 		bus_hz /= 2;
+ 
+ 	if (spi->max_speed_hz) {
+@@ -755,8 +761,6 @@ static int __init atmel_spi_probe(struct
+ 		goto out_free_buffer;
+ 	as->irq = irq;
+ 	as->clk = clk;
+-	if (!cpu_is_at91rm9200())
+-		as->new_1 = 1;
+ 
+ 	ret = request_irq(irq, atmel_spi_interrupt, 0,
+ 			pdev->dev.bus_id, master);
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
 
-pxa2xx_spi-bugfix-full-duplex-dma-data-corruption.patch
-spi_imx-full-duplex-dma-corruption-bugfix.patch
 linux-next.patch
-acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
-genirq-warn-when-irqf_disabled-may-be-ignored.patch
-genirq-record-irq_level-in-irq_desc.patch
-mtd-m25p80-chip-erase-=-block-erase-=-sector-erase.patch
-spi_gpio-driver.patch
-spi_gpio-driver-cleanups.patch
-mfd-da903x-section-fix.patch
-rtc-ds1307-remove-legacy-probe-checks.patch
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
-twl4030-gpio-cleanup-debounce.patch
+atmel_spi-clean-up-spiv1-quirk-handling.patch
 
