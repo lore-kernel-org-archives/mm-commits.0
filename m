@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-swap-cgroup-for-remembering-usage-fix-4.patch added to -mm tree
-Date: Tue, 18 Nov 2008 23:44:27 -0800
-Message-ID: <200811190744.mAJ7iRVn021314@imap1.linux-foundation.org>
+Subject: + signals-simplify-sig_ignored-pathes.patch added to -mm tree
+Date: Tue, 18 Nov 2008 23:47:59 -0800
+Message-ID: <200811190747.mAJ7lxI7023243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35983 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42458 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750747AbYKSHol (ORCPT
+	by vger.kernel.org with ESMTP id S1751052AbYKSHsM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 02:44:41 -0500
+	Wed, 19 Nov 2008 02:48:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp, xemul@openvz.org
+Cc: oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     memcg: avoid using buggy kmap at swap_cgroup
+     signals: simplify sig_ignored() pathes
 has been added to the -mm tree.  Its filename is
-     memcg-swap-cgroup-for-remembering-usage-fix-4.patch
+     signals-simplify-sig_ignored-pathes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: avoid using buggy kmap at swap_cgroup
-From: Hugh Dickins <hugh@veritas.com>
+Subject: signals: simplify sig_ignored() pathes
+From: Oleg Nesterov <oleg@redhat.com>
 
-swap_cgroup's kmap logic conflicts shmem's kmap logic.
-avoid to use HIGHMEM for now and revisit this later.
+The code which checks for ignored signals is a bit overcomplicated because
+tracehook_consider_ignored_signal() wants the "handler" arg.  Can't we
+kill it?  It is not used even with utrace, and even if it will be used
+later it is OK to read ->sighand again in the slow path.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Hugh Dickins <hugh@veritas.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ include/linux/tracehook.h |    5 +----
+ kernel/signal.c           |   35 ++++++++++++-----------------------
+ 2 files changed, 13 insertions(+), 27 deletions(-)
 
-diff -puN mm/page_cgroup.c~memcg-swap-cgroup-for-remembering-usage-fix-4 mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-swap-cgroup-for-remembering-usage-fix-4
-+++ a/mm/page_cgroup.c
-@@ -305,7 +305,7 @@ static int swap_cgroup_prepare(int type)
- 	ctrl = &swap_cgroup_ctrl[type];
- 
- 	for (idx = 0; idx < ctrl->length; idx++) {
--		page = alloc_page(GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO);
-+		page = alloc_page(GFP_KERNEL | __GFP_ZERO);
- 		if (!page)
- 			goto not_enough_page;
- 		ctrl->map[idx] = page;
-@@ -346,11 +346,10 @@ struct mem_cgroup *swap_cgroup_record(sw
- 
- 	mappage = ctrl->map[idx];
- 	spin_lock_irqsave(&ctrl->lock, flags);
--	sc = kmap_atomic(mappage, KM_USER0);
-+	sc = page_address(mappage);
- 	sc += pos;
- 	old = sc->val;
- 	sc->val = mem;
--	kunmap_atomic((void *)sc, KM_USER0);
- 	spin_unlock_irqrestore(&ctrl->lock, flags);
- 	return old;
+diff -puN include/linux/tracehook.h~signals-simplify-sig_ignored-pathes include/linux/tracehook.h
+--- a/include/linux/tracehook.h~signals-simplify-sig_ignored-pathes
++++ a/include/linux/tracehook.h
+@@ -388,17 +388,14 @@ static inline void tracehook_signal_hand
+  * tracehook_consider_ignored_signal - suppress short-circuit of ignored signal
+  * @task:		task receiving the signal
+  * @sig:		signal number being sent
+- * @handler:		%SIG_IGN or %SIG_DFL
+  *
+  * Return zero iff tracing doesn't care to examine this ignored signal,
+  * so it can short-circuit normal delivery and never even get queued.
+- * Either @handler is %SIG_DFL and @sig's default is ignore, or it's %SIG_IGN.
+  *
+  * Called with @task->sighand->siglock held.
+  */
+ static inline int tracehook_consider_ignored_signal(struct task_struct *task,
+-						    int sig,
+-						    void __user *handler)
++						    int sig)
+ {
+ 	return (task_ptrace(task) & PT_PTRACED) != 0;
  }
-@@ -381,10 +380,9 @@ struct mem_cgroup *lookup_swap_cgroup(sw
- 	mappage = ctrl->map[idx];
+diff -puN kernel/signal.c~signals-simplify-sig_ignored-pathes kernel/signal.c
+--- a/kernel/signal.c~signals-simplify-sig_ignored-pathes
++++ a/kernel/signal.c
+@@ -41,44 +41,33 @@
  
- 	spin_lock_irqsave(&ctrl->lock, flags);
--	sc = kmap_atomic(mappage, KM_USER0);
-+	sc = page_address(mappage);
- 	sc += pos;
- 	ret = sc->val;
--	kunmap_atomic((void *)sc, KM_USER0);
- 	spin_unlock_irqrestore(&ctrl->lock, flags);
- 	return ret;
+ static struct kmem_cache *sigqueue_cachep;
+ 
+-static void __user *sig_handler(struct task_struct *t, int sig)
++static int sig_task_ignored(struct task_struct *t, int sig)
+ {
+ 	void __user *h = t->sighand->action[sig - 1].sa.sa_handler;
+ 
+-	/* drop SIGKILL early to not confuse wait_xxx_killable/etc */
+-	if (unlikely(t->signal->flags & SIGNAL_UNKILLABLE) && h == SIG_DFL)
+-		h = SIG_IGN;
+-
+-	return h;
+-}
+-
+-static int sig_handler_ignored(void __user *handler, int sig)
+-{
+-	/* Is it explicitly or implicitly ignored? */
+-	return handler == SIG_IGN ||
+-		(handler == SIG_DFL && sig_kernel_ignore(sig));
++	if (h == SIG_DFL) {
++		/* init drops SIGKILL early to not confuse xxx_killable/etc */
++		return sig_kernel_ignore(sig) ||
++			unlikely(t->signal->flags & SIGNAL_UNKILLABLE);
++	}
++	return h == SIG_IGN;
  }
+ 
+ static int sig_ignored(struct task_struct *t, int sig)
+ {
+-	void __user *handler;
+-
+ 	/*
+ 	 * Blocked signals are never ignored, since the
+ 	 * signal handler may change by the time it is
+ 	 * unblocked.
+ 	 */
+-	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
+-		return 0;
+-
+-	handler = sig_handler(t, sig);
+-	if (!sig_handler_ignored(handler, sig))
++	if (sigismember(&t->blocked, sig) ||
++	    sigismember(&t->real_blocked, sig) ||
++	    !sig_task_ignored(t, sig))
+ 		return 0;
+-
+ 	/*
+ 	 * Tracers may want to know about even ignored signals.
+ 	 */
+-	return !tracehook_consider_ignored_signal(t, sig, handler);
++	return !tracehook_consider_ignored_signal(t, sig);
+ }
+ 
+ /*
+@@ -2356,7 +2345,7 @@ int do_sigaction(int sig, struct k_sigac
+ 		 *   (for example, SIGCHLD), shall cause the pending signal to
+ 		 *   be discarded, whether or not it is blocked"
+ 		 */
+-		if (sig_handler_ignored(sig_handler(t, sig), sig)) {
++		if (sig_task_ignored(t, sig)) {
+ 			sigemptyset(&mask);
+ 			sigaddset(&mask, sig);
+ 			rm_from_queue_full(&mask, &t->signal->shared_pending);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-lib-scatterlistc-fix-kunmap-argument-in-sg_miter_stop.patch
-sprint_symbol-use-less-stack.patch
-migration-fix-writepage-error.patch
-vmscan-let-gfp_nofs-go-to-swap-again.patch
-dont-unlink-an-active-swapfile.patch
-linux-next.patch
-mm-dont-mark_page_accessed-in-shmem_fault.patch
-mm-apply_to_range-call-pte-function-with-lazy-updates.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-swap-cgroup-for-remembering-usage-fix-2.patch
-memcg-swap-cgroup-for-remembering-usage-fix-3.patch
-memcg-swap-cgroup-for-remembering-usage-fix-4.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-prio_tree-debugging-patch.patch
+forkc-cleanup-for-copy_sighand.patch
+signals-protect-sbin-init-from-unwanted-signals-more.patch
+signals-simplify-sig_ignored-pathes.patch
+workqueues-kill-cpu_singlethread_map-use-get_cpu_mask-instead.patch
 
