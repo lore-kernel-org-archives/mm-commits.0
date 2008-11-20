@@ -1,90 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-bad-error-test-before-a-dereference.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:42:06 -0800
-Message-ID: <200811202042.mAKKg6wV006732@imap1.linux-foundation.org>
+Subject: - hwmon-applesmc-add-support-for-imac-6.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:42:02 -0800
+Message-ID: <200811202042.mAKKg3je006726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55845 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753756AbYKTUmo (ORCPT
+	by vger.kernel.org with ESMTP id S1751827AbYKTUmk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:42:44 -0500
+	Thu, 20 Nov 2008 15:42:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brunel@diku.dk, julia@diku.dk, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: rydberg@euromail.se, caleb.hyde@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video: bad error test before a dereference
+     hwmon: applesmc: Add support for iMac 6
 has been removed from the -mm tree.  Its filename was
-     drivers-video-bad-error-test-before-a-dereference.patch
+     hwmon-applesmc-add-support-for-imac-6.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video: bad error test before a dereference
-From: Julien Brunel <brunel@diku.dk>
+Subject: hwmon: applesmc: Add support for iMac 6
+From: Henrik Rydberg <rydberg@euromail.se>
 
-The error test that follows the call to backlight_device_register semms
-not to concern the right variable.
+Add temperature sensor support for iMac 6.
 
-A simplified version of the semantic match that finds this problem is
-as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-// <smpl>
-@def0@
-expression x;
-position p0;
-@@
-x@p0 = backlight_device_register(...)
-
-@protected@
-expression def0.x,E;
-position def0.p0;
-position p;
-statement S;
-@@
-x@p0
-... when != x = E
-if (!IS_ERR(x) && ...) {<... x@p ...>} else S
-
-@unprotected@
-expression def0.x;
-identifier fld;
-position def0.p0;
-position p != protected.p;
-@@
-x@p0
-... when != x = E
-* x@p->fld
-// </smpl>
-
-Signed-off-by: Julien Brunel <brunel@diku.dk>
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Tested-by: Caleb Hyde <caleb.hyde@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hwmon/applesmc.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/video/atmel_lcdfb.c~drivers-video-bad-error-test-before-a-dereference drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~drivers-video-bad-error-test-before-a-dereference
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -132,7 +132,7 @@ static void init_backlight(struct atmel_
+diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-imac-6 drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-imac-6
++++ a/drivers/hwmon/applesmc.c
+@@ -128,6 +128,9 @@ static const char* temperature_sensors_s
+ /* Set 13: iMac 8,1 */
+ 	{ "TA0P", "TC0D", "TC0H", "TC0P", "TG0D", "TG0H", "TG0P", "TH0P",
+ 	  "TL0P", "TO0P", "TW0P", "Tm0P", "Tp0P", NULL },
++/* Set 14: iMac 6,1 */
++	{ "TA0P", "TC0D", "TC0H", "TC0P", "TG0D", "TG0H", "TG0P", "TH0P",
++	  "TO0P", "Tp0P", NULL },
+ };
  
- 	bl = backlight_device_register("backlight", &sinfo->pdev->dev,
- 			sinfo, &atmel_lcdc_bl_ops);
--	if (IS_ERR(sinfo->backlight)) {
-+	if (IS_ERR(bl)) {
- 		dev_err(&sinfo->pdev->dev, "error %ld on backlight register\n",
- 				PTR_ERR(bl));
- 		return;
+ /* List of keys used to read/write fan speeds */
+@@ -1296,6 +1299,8 @@ static __initdata struct dmi_match_data 
+ 	{ .accelerometer = 1, .light = 1, .temperature_set = 12 },
+ /* iMac 8: light sensor only, temperature set 13 */
+ 	{ .accelerometer = 0, .light = 0, .temperature_set = 13 },
++/* iMac 6: light sensor only, temperature set 14 */
++	{ .accelerometer = 0, .light = 0, .temperature_set = 14 },
+ };
+ 
+ /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
+@@ -1353,6 +1358,10 @@ static __initdata struct dmi_system_id a
+ 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac8") },
+ 		&applesmc_dmi_data[13]},
++	{ applesmc_dmi_match, "Apple iMac 6", {
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac6") },
++		&applesmc_dmi_data[14]},
+ 	{ applesmc_dmi_match, "Apple iMac 5", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac5") },
 _
 
-Patches currently in -mm which might be from brunel@diku.dk are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
 origin.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
 
