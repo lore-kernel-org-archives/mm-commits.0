@@ -1,138 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - cpuset-update-top-cpusets-mems-after-adding-a-node.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:42:53 -0800
-Message-ID: <200811202042.mAKKgrj9007181@imap1.linux-foundation.org>
+Subject: - gpiolib-extend-gpio-label-column-width-in-debugfs-file.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:42:26 -0800
+Message-ID: <200811202042.mAKKgQqr006913@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755260AbYKTUna (ORCPT
+	by vger.kernel.org with ESMTP id S1755123AbYKTUnP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:43:30 -0500
+	Thu, 20 Nov 2008 15:43:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miaox@cn.fujitsu.com, menage@google.com, rientjes@google.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: jarkko.nikula@nokia.com, david-b@pacbell.net, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset: update top cpuset's mems after adding a node
+     gpiolib: extend gpio label column width in debugfs file
 has been removed from the -mm tree.  Its filename was
-     cpuset-update-top-cpusets-mems-after-adding-a-node.patch
+     gpiolib-extend-gpio-label-column-width-in-debugfs-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: update top cpuset's mems after adding a node
-From: Miao Xie <miaox@cn.fujitsu.com>
+Subject: gpiolib: extend gpio label column width in debugfs file
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-After adding a node into the machine, top cpuset's mems isn't updated.
+There are already various drivers having bigger label than 12 bytes.  Most
+of them fit well under 20 bytes but make column width exact so that
+oversized labels don't mess up output alignment.
 
-By reviewing the code, we found that the update function
-
-  cpuset_track_online_nodes()
-
-was invoked after node_states[N_ONLINE] changes.  It is wrong because
-N_ONLINE just means node has pgdat, and if node has/added memory, we use
-N_HIGH_MEMORY.  So, We should invoke the update function after
-node_states[N_HIGH_MEMORY] changes, just like its commit says.
-
-This patch fixes it.  And we use notifier of memory hotplug instead of
-direct calling of cpuset_track_online_nodes().
-
-Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
-Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Paul Menage <menage@google.com
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+Acked-by: David Brownell <david-b@pacbell.net>
+Cc: <stable@kernel.org>		[2.6.26.x, 2.6.26.x, 2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h |    4 ----
- kernel/cpuset.c        |   19 ++++++++++++++++---
- mm/memory_hotplug.c    |    3 ---
- 3 files changed, 16 insertions(+), 10 deletions(-)
+ drivers/gpio/gpiolib.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cpuset.h~cpuset-update-top-cpusets-mems-after-adding-a-node include/linux/cpuset.h
---- a/include/linux/cpuset.h~cpuset-update-top-cpusets-mems-after-adding-a-node
-+++ a/include/linux/cpuset.h
-@@ -74,8 +74,6 @@ static inline int cpuset_do_slab_mem_spr
- 	return current->flags & PF_SPREAD_SLAB;
- }
+diff -puN drivers/gpio/gpiolib.c~gpiolib-extend-gpio-label-column-width-in-debugfs-file drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-extend-gpio-label-column-width-in-debugfs-file
++++ a/drivers/gpio/gpiolib.c
+@@ -1134,7 +1134,7 @@ static void gpiolib_dbg_show(struct seq_
+ 			continue;
  
--extern void cpuset_track_online_nodes(void);
--
- extern int current_cpuset_is_being_rebound(void);
- 
- extern void rebuild_sched_domains(void);
-@@ -151,8 +149,6 @@ static inline int cpuset_do_slab_mem_spr
- 	return 0;
- }
- 
--static inline void cpuset_track_online_nodes(void) {}
--
- static inline int current_cpuset_is_being_rebound(void)
- {
- 	return 0;
-diff -puN kernel/cpuset.c~cpuset-update-top-cpusets-mems-after-adding-a-node kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-update-top-cpusets-mems-after-adding-a-node
-+++ a/kernel/cpuset.c
-@@ -36,6 +36,7 @@
- #include <linux/list.h>
- #include <linux/mempolicy.h>
- #include <linux/mm.h>
-+#include <linux/memory.h>
- #include <linux/module.h>
- #include <linux/mount.h>
- #include <linux/namei.h>
-@@ -2015,12 +2016,23 @@ static int cpuset_track_online_cpus(stru
-  * Call this routine anytime after node_states[N_HIGH_MEMORY] changes.
-  * See also the previous routine cpuset_track_online_cpus().
-  */
--void cpuset_track_online_nodes(void)
-+static int cpuset_track_online_nodes(struct notifier_block *self,
-+				unsigned long action, void *arg)
- {
- 	cgroup_lock();
--	top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
--	scan_for_empty_cpusets(&top_cpuset);
-+	switch (action) {
-+	case MEM_ONLINE:
-+		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
-+		break;
-+	case MEM_OFFLINE:
-+		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
-+		scan_for_empty_cpusets(&top_cpuset);
-+		break;
-+	default:
-+		break;
-+	}
- 	cgroup_unlock();
-+	return NOTIFY_OK;
- }
- #endif
- 
-@@ -2036,6 +2048,7 @@ void __init cpuset_init_smp(void)
- 	top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
- 
- 	hotcpu_notifier(cpuset_track_online_cpus, 0);
-+	hotplug_memory_notifier(cpuset_track_online_nodes, 10);
- }
- 
- /**
-diff -puN mm/memory_hotplug.c~cpuset-update-top-cpusets-mems-after-adding-a-node mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~cpuset-update-top-cpusets-mems-after-adding-a-node
-+++ a/mm/memory_hotplug.c
-@@ -22,7 +22,6 @@
- #include <linux/highmem.h>
- #include <linux/vmalloc.h>
- #include <linux/ioport.h>
--#include <linux/cpuset.h>
- #include <linux/delay.h>
- #include <linux/migrate.h>
- #include <linux/page-isolation.h>
-@@ -498,8 +497,6 @@ int add_memory(int nid, u64 start, u64 s
- 	/* we online node here. we can't roll back from here. */
- 	node_set_online(nid);
- 
--	cpuset_track_online_nodes();
+ 		is_out = test_bit(FLAG_IS_OUT, &gdesc->flags);
+-		seq_printf(s, " gpio-%-3d (%-12s) %s %s",
++		seq_printf(s, " gpio-%-3d (%-20.20s) %s %s",
+ 			gpio, gdesc->label,
+ 			is_out ? "out" : "in ",
+ 			chip->get
+_
+
+Patches currently in -mm which might be from jarkko.nikula@nokia.com are
+
+origin.patch
+linux-next.patch
+
