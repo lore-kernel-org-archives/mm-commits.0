@@ -1,64 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-fix-get_scan_ratio-comment.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:43:20 -0800
-Message-ID: <200811202043.mAKKhKKK007454@imap1.linux-foundation.org>
+Subject: - tmiofb-fix-compilation-with-accel-disabled.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:42:31 -0800
+Message-ID: <200811202042.mAKKgVCA006997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755271AbYKTUsV (ORCPT
+	by vger.kernel.org with ESMTP id S1755437AbYKTUsp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:48:21 -0500
+	Thu, 20 Nov 2008 15:48:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: dbaryshkov@gmail.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: fix get_scan_ratio() comment
+     tmiofb: fix compilation with ACCEL disabled
 has been removed from the -mm tree.  Its filename was
-     vmscan-fix-get_scan_ratio-comment.patch
+     tmiofb-fix-compilation-with-accel-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: fix get_scan_ratio() comment
-From: Rik van Riel <riel@redhat.com>
+Subject: tmiofb: fix compilation with ACCEL disabled
+From: Dmitry Baryshkov <dbaryshkov@gmail.com>
 
-Fix the old comment on the scan ratio calculations.
+Restore support for compiling tmiofb with acceleration disabled.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/tmiofb.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-fix-get_scan_ratio-comment mm/vmscan.c
---- a/mm/vmscan.c~vmscan-fix-get_scan_ratio-comment
-+++ a/mm/vmscan.c
-@@ -1389,9 +1389,9 @@ static void get_scan_ratio(struct zone *
- 	file_prio = 200 - sc->swappiness;
+diff -puN drivers/video/tmiofb.c~tmiofb-fix-compilation-with-accel-disabled drivers/video/tmiofb.c
+--- a/drivers/video/tmiofb.c~tmiofb-fix-compilation-with-accel-disabled
++++ a/drivers/video/tmiofb.c
+@@ -222,6 +222,9 @@ static irqreturn_t tmiofb_irq(int irq, v
+ 	unsigned int bbisc = tmio_ioread16(par->lcr + LCR_BBISC);
  
+ 
++	tmio_iowrite16(bbisc, par->lcr + LCR_BBISC);
++
++#ifdef CONFIG_FB_TMIO_ACCELL
  	/*
--	 *                  anon       recent_rotated[0]
--	 * %anon = 100 * ----------- / ----------------- * IO cost
--	 *               anon + file      rotate_sum
-+	 * The amount of pressure on anon vs file pages is inversely
-+	 * proportional to the fraction of recently scanned pages on
-+	 * each list that were recently referenced and in active use.
+ 	 * We were in polling mode and now we got correct irq.
+ 	 * Switch back to IRQ-based sync of command FIFO
+@@ -231,9 +234,6 @@ static irqreturn_t tmiofb_irq(int irq, v
+ 		par->use_polling = false;
+ 	}
+ 
+-	tmio_iowrite16(bbisc, par->lcr + LCR_BBISC);
+-
+-#ifdef CONFIG_FB_TMIO_ACCELL
+ 	if (bbisc & 1)
+ 		wake_up(&par->wait_acc);
+ #endif
+@@ -938,7 +938,9 @@ static void tmiofb_dump_regs(struct plat
+ static int tmiofb_suspend(struct platform_device *dev, pm_message_t state)
+ {
+ 	struct fb_info *info = platform_get_drvdata(dev);
++#ifdef CONFIG_FB_TMIO_ACCELL
+ 	struct tmiofb_par *par = info->par;
++#endif
+ 	struct mfd_cell *cell = dev->dev.platform_data;
+ 	int retval = 0;
+ 
+@@ -950,12 +952,14 @@ static int tmiofb_suspend(struct platfor
+ 		info->fbops->fb_sync(info);
+ 
+ 
++#ifdef CONFIG_FB_TMIO_ACCELL
+ 	/*
+ 	 * The fb should be usable even if interrupts are disabled (and they are
+ 	 * during suspend/resume). Switch temporary to forced polling.
  	 */
- 	ap = (anon_prio + 1) * (zone->recent_scanned[0] + 1);
- 	ap /= zone->recent_rotated[0] + 1;
+ 	printk(KERN_INFO "tmiofb: switching to polling\n");
+ 	par->use_polling = true;
++#endif
+ 	tmiofb_hw_stop(dev);
+ 
+ 	if (cell->suspend)
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from dbaryshkov@gmail.com are
 
 origin.patch
-linux-next.patch
-vmscan-evict-streaming-io-first.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
 
