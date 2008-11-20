@@ -1,115 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - udf-reduce-stack-usage-of-udf_load_pvoldesc.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:43:53 -0800
-Message-ID: <200811202043.mAKKhrTq007760@imap1.linux-foundation.org>
+Subject: - spi_imx-full-duplex-dma-corruption-bugfix.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:42:46 -0800
+Message-ID: <200811202042.mAKKgkwo007094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755440AbYKTUtM (ORCPT
+	by vger.kernel.org with ESMTP id S1755191AbYKTUtt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:49:12 -0500
+	Thu, 20 Nov 2008 15:49:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: a.paterniani@swapp-eng.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     udf: reduce stack usage of udf_load_pvoldesc
+     spi_imx: full duplex dma corruption bugfix
 has been removed from the -mm tree.  Its filename was
-     udf-reduce-stack-usage-of-udf_load_pvoldesc.patch
+     spi_imx-full-duplex-dma-corruption-bugfix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: reduce stack usage of udf_load_pvoldesc
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: spi_imx: full duplex dma corruption bugfix
+From: Andrea Paterniani <a.paterniani@swapp-eng.it>
 
-Allocate strings with kmalloc.
+Fix unsafe order in dma mapping operation: always flush data from the
+cache *BEFORE* invalidating it, to allow full duplex transfers where the
+same buffer may be used for both writes and reads.
 
-Checkstack output:
-Before: udf_process_sequence:      712
-After:  udf_process_sequence:      200
-
-(akpm: use GFP_KERNEL?)
-
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
+Signed-off-by: Andrea Paterniani <a.paterniani@swapp-eng.it>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/super.c |   36 +++++++++++++++++++++++++-----------
- 1 file changed, 25 insertions(+), 11 deletions(-)
+ drivers/spi/spi_imx.c |   45 +++++++++++++++++++---------------------
+ 1 file changed, 22 insertions(+), 23 deletions(-)
 
-diff -puN fs/udf/super.c~udf-reduce-stack-usage-of-udf_load_pvoldesc fs/udf/super.c
---- a/fs/udf/super.c~udf-reduce-stack-usage-of-udf_load_pvoldesc
-+++ a/fs/udf/super.c
-@@ -902,14 +902,23 @@ static int udf_find_fileset(struct super
- static int udf_load_pvoldesc(struct super_block *sb, sector_t block)
- {
- 	struct primaryVolDesc *pvoldesc;
--	struct ustr instr;
--	struct ustr outstr;
-+	struct ustr *instr, *outstr;
- 	struct buffer_head *bh;
- 	uint16_t ident;
-+	int ret = 1;
+diff -puN drivers/spi/spi_imx.c~spi_imx-full-duplex-dma-corruption-bugfix drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi_imx-full-duplex-dma-corruption-bugfix
++++ a/drivers/spi/spi_imx.c
+@@ -506,20 +506,6 @@ static int map_dma_buffers(struct driver
+ 	if (!IS_DMA_ALIGNED(drv_data->rx) || !IS_DMA_ALIGNED(drv_data->tx))
+ 		return -1;
+ 
+-	/* NULL rx means write-only transfer and no map needed
+-	   since rx DMA will not be used */
+-	if (drv_data->rx) {
+-		buf = drv_data->rx;
+-		drv_data->rx_dma = dma_map_single(
+-					dev,
+-					buf,
+-					drv_data->len,
+-					DMA_FROM_DEVICE);
+-		if (dma_mapping_error(dev, drv_data->rx_dma))
+-			return -1;
+-		drv_data->rx_dma_needs_unmap = 1;
+-	}
+-
+ 	if (drv_data->tx == NULL) {
+ 		/* Read only message --> use drv_data->dummy_dma_buf for dummy
+ 		   writes to achive reads */
+@@ -533,18 +519,31 @@ static int map_dma_buffers(struct driver
+ 					buf,
+ 					drv_data->tx_map_len,
+ 					DMA_TO_DEVICE);
+-	if (dma_mapping_error(dev, drv_data->tx_dma)) {
+-		if (drv_data->rx_dma) {
+-			dma_unmap_single(dev,
+-					drv_data->rx_dma,
+-					drv_data->len,
+-					DMA_FROM_DEVICE);
+-			drv_data->rx_dma_needs_unmap = 0;
+-		}
++	if (dma_mapping_error(dev, drv_data->tx_dma))
+ 		return -1;
+-	}
+ 	drv_data->tx_dma_needs_unmap = 1;
+ 
++	/* NULL rx means write-only transfer and no map needed
++	 * since rx DMA will not be used */
++	if (drv_data->rx) {
++		buf = drv_data->rx;
++		drv_data->rx_dma = dma_map_single(dev,
++						buf,
++						drv_data->len,
++						DMA_FROM_DEVICE);
++		if (dma_mapping_error(dev, drv_data->rx_dma)) {
++			if (drv_data->tx_dma) {
++				dma_unmap_single(dev,
++						drv_data->tx_dma,
++						drv_data->tx_map_len,
++						DMA_TO_DEVICE);
++				drv_data->tx_dma_needs_unmap = 0;
++			}
++			return -1;
++		}
++		drv_data->rx_dma_needs_unmap = 1;
++	}
 +
-+	instr = kmalloc(sizeof(struct ustr), GFP_NOFS);
-+	if (!instr)
-+		return 1;
-+
-+	outstr = kmalloc(sizeof(struct ustr), GFP_NOFS);
-+	if (!outstr)
-+		goto out1;
- 
- 	bh = udf_read_tagged(sb, block, block, &ident);
- 	if (!bh)
--		return 1;
-+		goto out2;
-+
- 	BUG_ON(ident != TAG_IDENT_PVD);
- 
- 	pvoldesc = (struct primaryVolDesc *)bh->b_data;
-@@ -925,20 +934,25 @@ static int udf_load_pvoldesc(struct supe
- #endif
- 	}
- 
--	if (!udf_build_ustr(&instr, pvoldesc->volIdent, 32))
--		if (udf_CS0toUTF8(&outstr, &instr)) {
--			strncpy(UDF_SB(sb)->s_volume_ident, outstr.u_name,
--				outstr.u_len > 31 ? 31 : outstr.u_len);
-+	if (!udf_build_ustr(instr, pvoldesc->volIdent, 32))
-+		if (udf_CS0toUTF8(outstr, instr)) {
-+			strncpy(UDF_SB(sb)->s_volume_ident, outstr->u_name,
-+				outstr->u_len > 31 ? 31 : outstr->u_len);
- 			udf_debug("volIdent[] = '%s'\n",
- 					UDF_SB(sb)->s_volume_ident);
- 		}
- 
--	if (!udf_build_ustr(&instr, pvoldesc->volSetIdent, 128))
--		if (udf_CS0toUTF8(&outstr, &instr))
--			udf_debug("volSetIdent[] = '%s'\n", outstr.u_name);
-+	if (!udf_build_ustr(instr, pvoldesc->volSetIdent, 128))
-+		if (udf_CS0toUTF8(outstr, instr))
-+			udf_debug("volSetIdent[] = '%s'\n", outstr->u_name);
- 
- 	brelse(bh);
--	return 0;
-+	ret = 0;
-+out2:
-+	kfree(outstr);
-+out1:
-+	kfree(instr);
-+	return ret;
+ 	return 0;
  }
  
- static int udf_load_metadata_files(struct super_block *sb, int partition)
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from a.paterniani@swapp-eng.it are
 
-linux-next.patch
+origin.patch
 
