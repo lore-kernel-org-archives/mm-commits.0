@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-add-might_sleep_if.patch added to -mm tree
-Date: Thu, 20 Nov 2008 13:40:03 -0800
-Message-ID: <200811202140.mAKLe3aE004698@imap1.linux-foundation.org>
+Subject: + leds-fix-cobalt-raq-led-dependency.patch added to -mm tree
+Date: Thu, 20 Nov 2008 13:40:48 -0800
+Message-ID: <200811202140.mAKLemnt005102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755425AbYKTVkM (ORCPT
+	by vger.kernel.org with ESMTP id S1755317AbYKTVlA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 16:40:12 -0500
+	Thu, 20 Nov 2008 16:41:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hirofumi@mail.parknet.co.jp, cl@linux-foundation.org, penberg@cs.helsinki.fi
+Cc: yoichi_yuasa@tripeaks.co.jp, rpurdie@rpsys.net
 
 
 The patch titled
-     slub: add might_sleep_if()
+     leds: fix Cobalt Raq LED dependency
 has been added to the -mm tree.  Its filename is
-     slub-add-might_sleep_if.patch
+     leds-fix-cobalt-raq-led-dependency.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slub: add might_sleep_if()
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: leds: fix Cobalt Raq LED dependency
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-Currently SLUB doesn't warn about __GFP_WAIT. Add it into slab_alloc().
+Cobalt Raq LEDs require LEDS_CLASS=y.
 
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/leds/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-add-might_sleep_if mm/slub.c
---- a/mm/slub.c~slub-add-might_sleep_if
-+++ a/mm/slub.c
-@@ -1616,6 +1616,7 @@ static __always_inline void *slab_alloc(
- 	unsigned long flags;
- 	unsigned int objsize;
+diff -puN drivers/leds/Kconfig~leds-fix-cobalt-raq-led-dependency drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-fix-cobalt-raq-led-dependency
++++ a/drivers/leds/Kconfig
+@@ -83,7 +83,7 @@ config LEDS_COBALT_QUBE
  
-+	might_sleep_if(gfpflags & __GFP_WAIT);
- 	local_irq_save(flags);
- 	c = get_cpu_slab(s, smp_processor_id());
- 	objsize = c->objsize;
+ config LEDS_COBALT_RAQ
+ 	bool "LED Support for the Cobalt Raq series"
+-	depends on LEDS_CLASS && MIPS_COBALT
++	depends on LEDS_CLASS=y && MIPS_COBALT
+ 	select LEDS_TRIGGERS
+ 	help
+ 	  This option enables support for the Cobalt Raq series LEDs.
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
-linux-next.patch
-slub-add-might_sleep_if.patch
+leds-fix-cobalt-raq-led-dependency.patch
 
