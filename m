@@ -1,220 +1,566 @@
 From: akpm@linux-foundation.org
-Subject: - md-need-another-print_sb-for-mdp_superblock_1.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:43:59 -0800
-Message-ID: <200811202043.mAKKhxg4007794@imap1.linux-foundation.org>
+Subject: - reintroduce-accept4.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:42:18 -0800
+Message-ID: <200811202042.mAKKgIDw006843__49819.3354149864$1227213977$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48260 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755556AbYKTUoc (ORCPT
+	by vger.kernel.org with ESMTP id S1755424AbYKTUoF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:44:32 -0500
+	Thu, 20 Nov 2008 15:44:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: crquan@gmail.com, dan.j.williams@gmail.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: drepper@redhat.com, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, mtk.manpages@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: need another print_sb for mdp_superblock_1
+     reintroduce accept4
 has been removed from the -mm tree.  Its filename was
-     md-need-another-print_sb-for-mdp_superblock_1.patch
+     reintroduce-accept4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: need another print_sb for mdp_superblock_1
-From: Cheng Renquan <crquan@gmail.com>
+Subject: reintroduce accept4
+From: Ulrich Drepper <drepper@redhat.com>
 
-md_print_devices is called in two code path: MD_BUG(...), and md_ioctl
-with PRINT_RAID_DEBUG.  it will dump out all in use md devices
-information;
+Introduce a new accept4() system call.  The addition of this system call
+matches analogous changes in 2.6.27 (dup3(), evenfd2(), signalfd4(),
+inotify_init1(), epoll_create1(), pipe2()) which added new system calls
+that differed from analogous traditional system calls in adding a flags
+argument that can be used to access additional functionality.
 
-However, it wrongly processed two types of superblock in one:
+The accept4() system call is exactly the same as accept(), except that
+it adds a flags bit-mask argument.  Two flags are initially implemented.
+(Most of the new system calls in 2.6.27 also had both of these flags.)
 
-The header file <linux/raid/md_p.h> has defined two types of superblock,
-struct mdp_superblock_s (typedefed with mdp_super_t) according to md with
-metadata 0.90, and struct mdp_superblock_1 according to md with metadata
-1.0 and later,
+SOCK_CLOEXEC causes the close-on-exec (FD_CLOEXEC) flag to be enabled
+for the new file descriptor returned by accept4().  This is a useful
+security feature to avoid leaking information in a multithreaded
+program where one thread is doing an accept() at the same time as
+another thread is doing a fork() plus exec().  More details here:
+http://udrepper.livejournal.com/20407.html "Secure File Descriptor Handling",
+Ulrich Drepper).
 
-These two types of superblock are very different,
+The other flag is SOCK_NONBLOCK, which causes the O_NONBLOCK flag
+to be enabled on the new open file description created by accept4().
+(This flag is merely a convenience, saving the use of additional calls
+fcntl(F_GETFL) and fcntl (F_SETFL) to achieve the same result.
 
-The md_print_devices code processed them both in mdp_super_t, that would
-lead to wrong informaton dump like:
+Here's a test program.  Works on x86-32.  Should work on x86-64, but
+I (mtk) don't have a system to hand to test with.
 
-	[ 6742.345877]
-	[ 6742.345887] md:	**********************************
-	[ 6742.345890] md:	* <COMPLETE RAID STATE PRINTOUT> *
-	[ 6742.345892] md:	**********************************
-	[ 6742.345896] md1: <ram7><ram6><ram5><ram4>
-	[ 6742.345907] md: rdev ram7, SZ:00065472 F:0 S:1 DN:3
-	[ 6742.345909] md: rdev superblock:
-	[ 6742.345914] md:  SB: (V:0.90.0) ID:<42ef13c7.598c059a.5f9f1645.801e9ee6> CT:4919856d
-	[ 6742.345918] md:     L5 S00065472 ND:4 RD:4 md1 LO:2 CS:65536
-	[ 6742.345922] md:     UT:4919856d ST:1 AD:4 WD:4 FD:0 SD:0 CSUM:b7992907 E:00000001
-	[ 6742.345924]      D  0:  DISK<N:0,(1,8),R:0,S:6>
-	[ 6742.345930]      D  1:  DISK<N:1,(1,10),R:1,S:6>
-	[ 6742.345933]      D  2:  DISK<N:2,(1,12),R:2,S:6>
-	[ 6742.345937]      D  3:  DISK<N:3,(1,14),R:3,S:6>
-	[ 6742.345942] md:     THIS:  DISK<N:3,(1,14),R:3,S:6>
-	...
-	[ 6742.346058] md0: <ram3><ram2><ram1><ram0>
-	[ 6742.346067] md: rdev ram3, SZ:00065472 F:0 S:1 DN:3
-	[ 6742.346070] md: rdev superblock:
-	[ 6742.346073] md:  SB: (V:1.0.0) ID:<369aad81.00000000.00000000.00000000> CT:9a322a9c
-	[ 6742.346077] md:     L-1507699579 S976570180 ND:48 RD:0 md0 LO:65536 CS:196610
-	[ 6742.346081] md:     UT:00000018 ST:0 AD:131048 WD:0 FD:8 SD:0 CSUM:00000000 E:00000000
-	[ 6742.346084]      D  0:  DISK<N:-1,(-1,-1),R:-1,S:-1>
-	[ 6742.346089]      D  1:  DISK<N:-1,(-1,-1),R:-1,S:-1>
-	[ 6742.346092]      D  2:  DISK<N:-1,(-1,-1),R:-1,S:-1>
-	[ 6742.346096]      D  3:  DISK<N:-1,(-1,-1),R:-1,S:-1>
-	[ 6742.346102] md:     THIS:  DISK<N:0,(0,0),R:0,S:0>
-	...
-	[ 6742.346219] md:	**********************************
-	[ 6742.346221]
+It tests accept4() with each of the four possible combinations of
+SOCK_CLOEXEC and SOCK_NONBLOCK set/clear in 'flags', and verifies
+that the appropriate flags are set on the file descriptor/open file
+description returned by accept4().
 
-Here md1 is metadata 0.90.0, and md0 is metadata 1.2
+I tested Ulrich's patch in this thread by applying against 2.6.28-rc2,
+and it passes according to my test program.
 
-After some more code to distinguish these two types of superblock, in this patch,
+/* test_accept4.c
 
-it will generate dump information like:
+  Copyright (C) 2008, Linux Foundation, written by Michael Kerrisk
+       <mtk.manpages@gmail.com>
 
-	[ 7906.755790]
-	[ 7906.755799] md:	**********************************
-	[ 7906.755802] md:	* <COMPLETE RAID STATE PRINTOUT> *
-	[ 7906.755804] md:	**********************************
-	[ 7906.755808] md1: <ram7><ram6><ram5><ram4>
-	[ 7906.755819] md: rdev ram7, SZ:00065472 F:0 S:1 DN:3
-	[ 7906.755821] md: rdev superblock (MJ:0):
-	[ 7906.755826] md:  SB: (V:0.90.0) ID:<3fca7a0d.a612bfed.5f9f1645.801e9ee6> CT:491989f3
-	[ 7906.755830] md:     L5 S00065472 ND:4 RD:4 md1 LO:2 CS:65536
-	[ 7906.755834] md:     UT:491989f3 ST:1 AD:4 WD:4 FD:0 SD:0 CSUM:00fb52ad E:00000001
-	[ 7906.755836]      D  0:  DISK<N:0,(1,8),R:0,S:6>
-	[ 7906.755842]      D  1:  DISK<N:1,(1,10),R:1,S:6>
-	[ 7906.755845]      D  2:  DISK<N:2,(1,12),R:2,S:6>
-	[ 7906.755849]      D  3:  DISK<N:3,(1,14),R:3,S:6>
-	[ 7906.755855] md:     THIS:  DISK<N:3,(1,14),R:3,S:6>
-	...
-	[ 7906.755972] md0: <ram3><ram2><ram1><ram0>
-	[ 7906.755981] md: rdev ram3, SZ:00065472 F:0 S:1 DN:3
-	[ 7906.755984] md: rdev superblock (MJ:1):
-	[ 7906.755989] md:  SB: (V:1) (F:0) Array-ID:<5fbcf158:55aa:5fbe:9a79:1e939880dcbd>
-	[ 7906.755990] md:    Name: "DG5:0" CT:1226410480
-	[ 7906.755998] md:       L5 SZ130944 RD:4 LO:2 CS:128 DO:24 DS:131048 SO:8 RO:0
-	[ 7906.755999] md:     Dev:00000003 UUID: 9194d744:87f7:a448:85f2:7497b84ce30a
-	[ 7906.756001] md:       (F:0) UT:1226410480 Events:0 ResyncOffset:-1 CSUM:0dbcd829
-	[ 7906.756003] md:         (MaxDev:384)
-	...
-	[ 7906.756113] md:	**********************************
-	[ 7906.756116]
+  Licensed under the GNU GPLv2 or later.
+*/
+#define _GNU_SOURCE
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
 
-this md0 (metadata 1.2) information dumping is exactly according to struct
-mdp_superblock_1.
+#define PORT_NUM 33333
 
-Signed-off-by: Cheng Renquan <crquan@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Dan Williams <dan.j.williams@gmail.com>
+#define die(msg) do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+/**********************************************************************/
+
+/* The following is what we need until glibc gets a wrapper for
+  accept4() */
+
+/* Flags for socket(), socketpair(), accept4() */
+#ifndef SOCK_CLOEXEC
+#define SOCK_CLOEXEC    O_CLOEXEC
+#endif
+#ifndef SOCK_NONBLOCK
+#define SOCK_NONBLOCK   O_NONBLOCK
+#endif
+
+#ifdef __x86_64__
+#define SYS_accept4 288
+#elif __i386__
+#define USE_SOCKETCALL 1
+#define SYS_ACCEPT4 18
+#else
+#error "Sorry -- don't know the syscall # on this architecture"
+#endif
+
+static int
+accept4(int fd, struct sockaddr *sockaddr, socklen_t *addrlen, int flags)
+{
+   printf("Calling accept4(): flags = %x", flags);
+   if (flags != 0) {
+       printf(" (");
+       if (flags & SOCK_CLOEXEC)
+           printf("SOCK_CLOEXEC");
+       if ((flags & SOCK_CLOEXEC) && (flags & SOCK_NONBLOCK))
+           printf(" ");
+       if (flags & SOCK_NONBLOCK)
+           printf("SOCK_NONBLOCK");
+       printf(")");
+   }
+   printf("\n");
+
+#if USE_SOCKETCALL
+   long args[6];
+
+   args[0] = fd;
+   args[1] = (long) sockaddr;
+   args[2] = (long) addrlen;
+   args[3] = flags;
+
+   return syscall(SYS_socketcall, SYS_ACCEPT4, args);
+#else
+   return syscall(SYS_accept4, fd, sockaddr, addrlen, flags);
+#endif
+}
+
+/**********************************************************************/
+
+
+static int
+do_test(int lfd, struct sockaddr_in *conn_addr,
+       int closeonexec_flag, int nonblock_flag)
+{
+   int connfd, acceptfd;
+   int fdf, flf, fdf_pass, flf_pass;
+   struct sockaddr_in claddr;
+   socklen_t addrlen;
+
+   printf("=======================================\n");
+
+   connfd = socket(AF_INET, SOCK_STREAM, 0);
+   if (connfd == -1)
+       die("socket");
+   if (connect(connfd, (struct sockaddr *) conn_addr,
+               sizeof(struct sockaddr_in)) == -1)
+       die("connect");
+
+   addrlen = sizeof(struct sockaddr_in);
+   acceptfd = accept4(lfd, (struct sockaddr *) &claddr, &addrlen,
+                      closeonexec_flag | nonblock_flag);
+   if (acceptfd == -1) {
+       perror("accept4()");
+       close(connfd);
+       return 0;
+   }
+
+   fdf = fcntl(acceptfd, F_GETFD);
+   if (fdf == -1)
+       die("fcntl:F_GETFD");
+   fdf_pass = ((fdf & FD_CLOEXEC) != 0) ==
+              ((closeonexec_flag & SOCK_CLOEXEC) != 0);
+   printf("Close-on-exec flag is %sset (%s); ",
+           (fdf & FD_CLOEXEC) ? "" : "not ",
+           fdf_pass ? "OK" : "failed");
+
+   flf = fcntl(acceptfd, F_GETFL);
+   if (flf == -1)
+       die("fcntl:F_GETFD");
+   flf_pass = ((flf & O_NONBLOCK) != 0) ==
+              ((nonblock_flag & SOCK_NONBLOCK) !=0);
+   printf("nonblock flag is %sset (%s)\n",
+           (flf & O_NONBLOCK) ? "" : "not ",
+           flf_pass ? "OK" : "failed");
+
+   close(acceptfd);
+   close(connfd);
+
+   printf("Test result: %s\n", (fdf_pass && flf_pass) ? "PASS" : "FAIL");
+   return fdf_pass && flf_pass;
+}
+
+
+static int
+create_listening_socket(int port_num)
+{
+   struct sockaddr_in svaddr;
+   int lfd;
+   int optval;
+
+   memset(&svaddr, 0, sizeof(struct sockaddr_in));
+   svaddr.sin_family = AF_INET;
+   svaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+   svaddr.sin_port = htons(port_num);
+
+   lfd = socket(AF_INET, SOCK_STREAM, 0);
+   if (lfd == -1)
+       die("socket");
+
+   optval = 1;
+   if (setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, &optval,
+                  sizeof(optval)) == -1)
+       die("setsockopt");
+
+   if (bind(lfd, (struct sockaddr *) &svaddr,
+            sizeof(struct sockaddr_in)) == -1)
+       die("bind");
+
+   if (listen(lfd, 5) == -1)
+       die("listen");
+
+   return lfd;
+}
+
+
+int
+main(int argc, char *argv[])
+{
+   struct sockaddr_in conn_addr;
+   int lfd;
+   int port_num;
+   int passed;
+
+   passed = 1;
+
+   port_num = (argc > 1) ? atoi(argv[1]) : PORT_NUM;
+
+   memset(&conn_addr, 0, sizeof(struct sockaddr_in));
+   conn_addr.sin_family = AF_INET;
+   conn_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+   conn_addr.sin_port = htons(port_num);
+
+   lfd = create_listening_socket(port_num);
+
+   if (!do_test(lfd, &conn_addr, 0, 0))
+       passed = 0;
+   if (!do_test(lfd, &conn_addr, SOCK_CLOEXEC, 0))
+       passed = 0;
+   if (!do_test(lfd, &conn_addr, 0, SOCK_NONBLOCK))
+       passed = 0;
+   if (!do_test(lfd, &conn_addr, SOCK_CLOEXEC, SOCK_NONBLOCK))
+       passed = 0;
+
+   close(lfd);
+
+   exit(passed ? EXIT_SUCCESS : EXIT_FAILURE);
+}
+
+[mtk.manpages@gmail.com: rewrote changelog, updated test program]
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Tested-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: <linux-api@vger.kernel.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |   55 +++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 50 insertions(+), 5 deletions(-)
+ arch/x86/include/asm/unistd_64.h |    4 -
+ include/linux/net.h              |    6 --
+ include/linux/syscalls.h         |    3 -
+ kernel/sys_ni.c                  |    2 
+ net/compat.c                     |   50 +-----------------
+ net/socket.c                     |   80 +++--------------------------
+ 6 files changed, 21 insertions(+), 124 deletions(-)
 
-diff -puN drivers/md/md.c~md-need-another-print_sb-for-mdp_superblock_1 drivers/md/md.c
---- a/drivers/md/md.c~md-need-another-print_sb-for-mdp_superblock_1
-+++ a/drivers/md/md.c
-@@ -1593,7 +1593,7 @@ static void print_desc(mdp_disk_t *desc)
- 		desc->major,desc->minor,desc->raid_disk,desc->state);
+diff -puN arch/x86/include/asm/unistd_64.h~reintroduce-accept4 arch/x86/include/asm/unistd_64.h
+--- a/arch/x86/include/asm/unistd_64.h~reintroduce-accept4
++++ a/arch/x86/include/asm/unistd_64.h
+@@ -639,8 +639,8 @@ __SYSCALL(__NR_fallocate, sys_fallocate)
+ __SYSCALL(__NR_timerfd_settime, sys_timerfd_settime)
+ #define __NR_timerfd_gettime			287
+ __SYSCALL(__NR_timerfd_gettime, sys_timerfd_gettime)
+-#define __NR_paccept				288
+-__SYSCALL(__NR_paccept, sys_paccept)
++#define __NR_accept4				288
++__SYSCALL(__NR_accept4, sys_accept4)
+ #define __NR_signalfd4				289
+ __SYSCALL(__NR_signalfd4, sys_signalfd4)
+ #define __NR_eventfd2				290
+diff -puN include/linux/net.h~reintroduce-accept4 include/linux/net.h
+--- a/include/linux/net.h~reintroduce-accept4
++++ a/include/linux/net.h
+@@ -40,7 +40,7 @@
+ #define SYS_GETSOCKOPT	15		/* sys_getsockopt(2)		*/
+ #define SYS_SENDMSG	16		/* sys_sendmsg(2)		*/
+ #define SYS_RECVMSG	17		/* sys_recvmsg(2)		*/
+-#define SYS_PACCEPT	18		/* sys_paccept(2)		*/
++#define SYS_ACCEPT4	18		/* sys_accept4(2)		*/
+ 
+ typedef enum {
+ 	SS_FREE = 0,			/* not allocated		*/
+@@ -100,7 +100,7 @@ enum sock_type {
+  * remaining bits are used as flags. */
+ #define SOCK_TYPE_MASK 0xf
+ 
+-/* Flags for socket, socketpair, paccept */
++/* Flags for socket, socketpair, accept4 */
+ #define SOCK_CLOEXEC	O_CLOEXEC
+ #ifndef SOCK_NONBLOCK
+ #define SOCK_NONBLOCK	O_NONBLOCK
+@@ -223,8 +223,6 @@ extern int 	     sock_map_fd(struct sock
+ extern struct socket *sockfd_lookup(int fd, int *err);
+ #define		     sockfd_put(sock) fput(sock->file)
+ extern int	     net_ratelimit(void);
+-extern long	     do_accept(int fd, struct sockaddr __user *upeer_sockaddr,
+-			       int __user *upeer_addrlen, int flags);
+ 
+ #define net_random()		random32()
+ #define net_srandom(seed)	srandom32((__force u32)seed)
+diff -puN include/linux/syscalls.h~reintroduce-accept4 include/linux/syscalls.h
+--- a/include/linux/syscalls.h~reintroduce-accept4
++++ a/include/linux/syscalls.h
+@@ -410,8 +410,7 @@ asmlinkage long sys_getsockopt(int fd, i
+ asmlinkage long sys_bind(int, struct sockaddr __user *, int);
+ asmlinkage long sys_connect(int, struct sockaddr __user *, int);
+ asmlinkage long sys_accept(int, struct sockaddr __user *, int __user *);
+-asmlinkage long sys_paccept(int, struct sockaddr __user *, int __user *,
+-			    const __user sigset_t *, size_t, int);
++asmlinkage long sys_accept4(int, struct sockaddr __user *, int __user *, int);
+ asmlinkage long sys_getsockname(int, struct sockaddr __user *, int __user *);
+ asmlinkage long sys_getpeername(int, struct sockaddr __user *, int __user *);
+ asmlinkage long sys_send(int, void __user *, size_t, unsigned);
+diff -puN kernel/sys_ni.c~reintroduce-accept4 kernel/sys_ni.c
+--- a/kernel/sys_ni.c~reintroduce-accept4
++++ a/kernel/sys_ni.c
+@@ -31,7 +31,7 @@ cond_syscall(sys_socketpair);
+ cond_syscall(sys_bind);
+ cond_syscall(sys_listen);
+ cond_syscall(sys_accept);
+-cond_syscall(sys_paccept);
++cond_syscall(sys_accept4);
+ cond_syscall(sys_connect);
+ cond_syscall(sys_getsockname);
+ cond_syscall(sys_getpeername);
+diff -puN net/compat.c~reintroduce-accept4 net/compat.c
+--- a/net/compat.c~reintroduce-accept4
++++ a/net/compat.c
+@@ -725,7 +725,7 @@ EXPORT_SYMBOL(compat_mc_getsockopt);
+ static unsigned char nas[19]={AL(0),AL(3),AL(3),AL(3),AL(2),AL(3),
+ 				AL(3),AL(3),AL(4),AL(4),AL(4),AL(6),
+ 				AL(6),AL(2),AL(5),AL(5),AL(3),AL(3),
+-				AL(6)};
++				AL(4)};
+ #undef AL
+ 
+ asmlinkage long compat_sys_sendmsg(int fd, struct compat_msghdr __user *msg, unsigned flags)
+@@ -738,52 +738,13 @@ asmlinkage long compat_sys_recvmsg(int f
+ 	return sys_recvmsg(fd, (struct msghdr __user *)msg, flags | MSG_CMSG_COMPAT);
  }
  
--static void print_sb(mdp_super_t *sb)
-+static void print_sb_90(mdp_super_t *sb)
+-asmlinkage long compat_sys_paccept(int fd, struct sockaddr __user *upeer_sockaddr,
+-				   int __user *upeer_addrlen,
+-				   const compat_sigset_t __user *sigmask,
+-				   compat_size_t sigsetsize, int flags)
+-{
+-	compat_sigset_t ss32;
+-	sigset_t ksigmask, sigsaved;
+-	int ret;
+-
+-	if (sigmask) {
+-		if (sigsetsize != sizeof(compat_sigset_t))
+-			return -EINVAL;
+-		if (copy_from_user(&ss32, sigmask, sizeof(ss32)))
+-			return -EFAULT;
+-		sigset_from_compat(&ksigmask, &ss32);
+-
+-		sigdelsetmask(&ksigmask, sigmask(SIGKILL)|sigmask(SIGSTOP));
+-		sigprocmask(SIG_SETMASK, &ksigmask, &sigsaved);
+-	}
+-
+-	ret = do_accept(fd, upeer_sockaddr, upeer_addrlen, flags);
+-
+-	if (ret == -ERESTARTNOHAND) {
+-		/*
+-		 * Don't restore the signal mask yet. Let do_signal() deliver
+-		 * the signal on the way back to userspace, before the signal
+-		 * mask is restored.
+-		 */
+-		if (sigmask) {
+-			memcpy(&current->saved_sigmask, &sigsaved,
+-			       sizeof(sigsaved));
+-			set_restore_sigmask();
+-		}
+-	} else if (sigmask)
+-		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
+-
+-	return ret;
+-}
+-
+ asmlinkage long compat_sys_socketcall(int call, u32 __user *args)
  {
- 	int i;
+ 	int ret;
+ 	u32 a[6];
+ 	u32 a0, a1;
  
-@@ -1624,10 +1624,48 @@ static void print_sb(mdp_super_t *sb)
- 	}
- 	printk(KERN_INFO "md:     THIS: ");
- 	print_desc(&sb->this_disk);
-+}
-+
-+static void print_sb_1(struct mdp_superblock_1 *sb)
-+{
-+	__u8 *uuid;
+-	if (call < SYS_SOCKET || call > SYS_PACCEPT)
++	if (call < SYS_SOCKET || call > SYS_ACCEPT4)
+ 		return -EINVAL;
+ 	if (copy_from_user(a, args, nas[call]))
+ 		return -EFAULT;
+@@ -804,7 +765,7 @@ asmlinkage long compat_sys_socketcall(in
+ 		ret = sys_listen(a0, a1);
+ 		break;
+ 	case SYS_ACCEPT:
+-		ret = do_accept(a0, compat_ptr(a1), compat_ptr(a[2]), 0);
++		ret = sys_accept4(a0, compat_ptr(a1), compat_ptr(a[2]), 0);
+ 		break;
+ 	case SYS_GETSOCKNAME:
+ 		ret = sys_getsockname(a0, compat_ptr(a1), compat_ptr(a[2]));
+@@ -844,9 +805,8 @@ asmlinkage long compat_sys_socketcall(in
+ 	case SYS_RECVMSG:
+ 		ret = compat_sys_recvmsg(a0, compat_ptr(a1), a[2]);
+ 		break;
+-	case SYS_PACCEPT:
+-		ret = compat_sys_paccept(a0, compat_ptr(a1), compat_ptr(a[2]),
+-					 compat_ptr(a[3]), a[4], a[5]);
++	case SYS_ACCEPT4:
++		ret = sys_accept4(a0, compat_ptr(a1), compat_ptr(a[2]), a[3]);
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+diff -puN net/socket.c~reintroduce-accept4 net/socket.c
+--- a/net/socket.c~reintroduce-accept4
++++ a/net/socket.c
+@@ -1426,8 +1426,8 @@ asmlinkage long sys_listen(int fd, int b
+  *	clean when we restucture accept also.
+  */
  
-+	uuid = sb->set_uuid;
-+	printk(KERN_INFO "md:  SB: (V:%d) (F:%x) Array-ID:<%02x%02x%02x%02x"
-+			":%02x%02x:%02x%02x:%02x%02x:%02x%02x%02x%02x%02x%02x>\n"
-+	       KERN_INFO "md:    Name: \"%s\" CT:%Lu\n",
-+		sb->major_version, sb->feature_map,
-+		uuid[0], uuid[1], uuid[2], uuid[3],
-+		uuid[4], uuid[5], uuid[6], uuid[7],
-+		uuid[8], uuid[9], uuid[10], uuid[11],
-+		uuid[12], uuid[13], uuid[14], uuid[15],
-+		sb->set_name,
-+		sb->ctime & 0xffffffffffLL);
-+
-+	uuid = sb->device_uuid;
-+	printk(KERN_INFO "md:       L%d SZ%Ld RD:%d LO:%d CS:%d DO:%Ld DS:%Ld SO:%Ld"
-+			" RO:%Ld\n"
-+	       KERN_INFO "md:     Dev:%08x UUID: %02x%02x%02x%02x:%02x%02x:%02x%02x:%02x%02x"
-+			":%02x%02x%02x%02x%02x%02x\n"
-+	       KERN_INFO "md:       (F:%d) UT:%Lu Events:%Ld ResyncOffset:%Ld CSUM:%08x\n"
-+	       KERN_INFO "md:         (MaxDev:%d) \n",
-+		sb->level, sb->size, sb->raid_disks,
-+		sb->layout, sb->chunksize,
-+		sb->data_offset, sb->data_size,
-+		sb->super_offset, sb->recovery_offset,
-+		sb->dev_number,
-+		uuid[0], uuid[1], uuid[2], uuid[3],
-+		uuid[4], uuid[5], uuid[6], uuid[7],
-+		uuid[8], uuid[9], uuid[10], uuid[11],
-+		uuid[12], uuid[13], uuid[14], uuid[15],
-+		sb->devflags,
-+		sb->utime, sb->events,
-+		sb->resync_offset,
-+		sb->sb_csum, sb->max_dev
-+		);
- }
- 
--static void print_rdev(mdk_rdev_t *rdev)
-+static void print_rdev(mdk_rdev_t *rdev, int major_version)
+-long do_accept(int fd, struct sockaddr __user *upeer_sockaddr,
+-	       int __user *upeer_addrlen, int flags)
++asmlinkage long sys_accept4(int fd, struct sockaddr __user *upeer_sockaddr,
++			    int __user *upeer_addrlen, int flags)
  {
- 	char b[BDEVNAME_SIZE];
- 	printk(KERN_INFO "md: rdev %s, SZ:%08llu F:%d S:%d DN:%u\n",
-@@ -1635,8 +1673,15 @@ static void print_rdev(mdk_rdev_t *rdev)
- 	        test_bit(Faulty, &rdev->flags), test_bit(In_sync, &rdev->flags),
- 	        rdev->desc_nr);
- 	if (rdev->sb_loaded) {
--		printk(KERN_INFO "md: rdev superblock:\n");
--		print_sb((mdp_super_t*)page_address(rdev->sb_page));
-+		printk(KERN_INFO "md: rdev superblock (MJ:%d):\n", major_version);
-+		switch (major_version) {
-+		case 0:
-+			print_sb_90((mdp_super_t*)page_address(rdev->sb_page));
-+			break;
-+		case 1:
-+			print_sb_1((struct mdp_superblock_1 *)page_address(rdev->sb_page));
-+			break;
-+		}
- 	} else
- 		printk(KERN_INFO "md: no rdev superblock!\n");
+ 	struct socket *sock, *newsock;
+ 	struct file *newfile;
+@@ -1510,66 +1510,10 @@ out_fd:
+ 	goto out_put;
  }
-@@ -1663,7 +1708,7 @@ static void md_print_devices(void)
- 		printk("\n");
  
- 		rdev_for_each(rdev, tmp2, mddev)
--			print_rdev(rdev);
-+			print_rdev(rdev, mddev->major_version);
- 	}
- 	printk("md:	**********************************\n");
- 	printk("\n");
+-#if 0
+-#ifdef HAVE_SET_RESTORE_SIGMASK
+-asmlinkage long sys_paccept(int fd, struct sockaddr __user *upeer_sockaddr,
+-			    int __user *upeer_addrlen,
+-			    const sigset_t __user *sigmask,
+-			    size_t sigsetsize, int flags)
+-{
+-	sigset_t ksigmask, sigsaved;
+-	int ret;
+-
+-	if (sigmask) {
+-		/* XXX: Don't preclude handling different sized sigset_t's.  */
+-		if (sigsetsize != sizeof(sigset_t))
+-			return -EINVAL;
+-		if (copy_from_user(&ksigmask, sigmask, sizeof(ksigmask)))
+-			return -EFAULT;
+-
+-		sigdelsetmask(&ksigmask, sigmask(SIGKILL)|sigmask(SIGSTOP));
+-		sigprocmask(SIG_SETMASK, &ksigmask, &sigsaved);
+-        }
+-
+-	ret = do_accept(fd, upeer_sockaddr, upeer_addrlen, flags);
+-
+-	if (ret < 0 && signal_pending(current)) {
+-		/*
+-		 * Don't restore the signal mask yet. Let do_signal() deliver
+-		 * the signal on the way back to userspace, before the signal
+-		 * mask is restored.
+-		 */
+-		if (sigmask) {
+-			memcpy(&current->saved_sigmask, &sigsaved,
+-			       sizeof(sigsaved));
+-			set_restore_sigmask();
+-		}
+-	} else if (sigmask)
+-		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
+-
+-	return ret;
+-}
+-#else
+-asmlinkage long sys_paccept(int fd, struct sockaddr __user *upeer_sockaddr,
+-			    int __user *upeer_addrlen,
+-			    const sigset_t __user *sigmask,
+-			    size_t sigsetsize, int flags)
+-{
+-	/* The platform does not support restoring the signal mask in the
+-	 * return path.  So we do not allow using paccept() with a signal
+-	 * mask.  */
+-	if (sigmask)
+-		return -EINVAL;
+-
+-	return do_accept(fd, upeer_sockaddr, upeer_addrlen, flags);
+-}
+-#endif
+-#endif
+-
+ asmlinkage long sys_accept(int fd, struct sockaddr __user *upeer_sockaddr,
+ 			   int __user *upeer_addrlen)
+ {
+-	return do_accept(fd, upeer_sockaddr, upeer_addrlen, 0);
++	return sys_accept4(fd, upeer_sockaddr, upeer_addrlen, 0);
+ }
+ 
+ /*
+@@ -2096,7 +2040,7 @@ static const unsigned char nargs[19]={
+ 	AL(0),AL(3),AL(3),AL(3),AL(2),AL(3),
+ 	AL(3),AL(3),AL(4),AL(4),AL(4),AL(6),
+ 	AL(6),AL(2),AL(5),AL(5),AL(3),AL(3),
+-	AL(6)
++	AL(4)
+ };
+ 
+ #undef AL
+@@ -2115,7 +2059,7 @@ asmlinkage long sys_socketcall(int call,
+ 	unsigned long a0, a1;
+ 	int err;
+ 
+-	if (call < 1 || call > SYS_PACCEPT)
++	if (call < 1 || call > SYS_ACCEPT4)
+ 		return -EINVAL;
+ 
+ 	/* copy_from_user should be SMP safe. */
+@@ -2143,9 +2087,8 @@ asmlinkage long sys_socketcall(int call,
+ 		err = sys_listen(a0, a1);
+ 		break;
+ 	case SYS_ACCEPT:
+-		err =
+-		    do_accept(a0, (struct sockaddr __user *)a1,
+-			      (int __user *)a[2], 0);
++		err = sys_accept4(a0, (struct sockaddr __user *)a1,
++				  (int __user *)a[2], 0);
+ 		break;
+ 	case SYS_GETSOCKNAME:
+ 		err =
+@@ -2192,12 +2135,9 @@ asmlinkage long sys_socketcall(int call,
+ 	case SYS_RECVMSG:
+ 		err = sys_recvmsg(a0, (struct msghdr __user *)a1, a[2]);
+ 		break;
+-	case SYS_PACCEPT:
+-		err =
+-		    sys_paccept(a0, (struct sockaddr __user *)a1,
+-			        (int __user *)a[2],
+-				(const sigset_t __user *) a[3],
+-				a[4], a[5]);
++	case SYS_ACCEPT4:
++		err = sys_accept4(a0, (struct sockaddr __user *)a1,
++				  (int __user *)a[2], a[3]);
+ 		break;
+ 	default:
+ 		err = -EINVAL;
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from drepper@redhat.com are
 
-linux-next.patch
-block-remove-kblockd_flush_work.patch
-fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch
+origin.patch
+inotify-fix-type-errors-in-interfaces.patch
+elf-implement-at_random-for-glibc-prng-seeding.patch
 
