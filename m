@@ -1,79 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch added to -mm tree
-Date: Wed, 19 Nov 2008 23:54:57 -0800
-Message-ID: <200811200754.mAK7svJI028415@imap1.linux-foundation.org>
+Subject: - drivers-video-bad-error-test-before-a-dereference.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:42:06 -0800
+Message-ID: <200811202042.mAKKg6wV006732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55845 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753149AbYKTHzH (ORCPT
+	by vger.kernel.org with ESMTP id S1753756AbYKTUmo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 02:55:07 -0500
+	Thu, 20 Nov 2008 15:42:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, lizf@cn.fujitsu.com, menage@google.com
+To: brunel@diku.dk, julia@diku.dk, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: task lock current before dereferencing cpuset
-has been added to the -mm tree.  Its filename is
-     oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
+     drivers/video: bad error test before a dereference
+has been removed from the -mm tree.  Its filename was
+     drivers-video-bad-error-test-before-a-dereference.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: task lock current before dereferencing cpuset
-From: David Rientjes <rientjes@google.com>
+Subject: drivers/video: bad error test before a dereference
+From: Julien Brunel <brunel@diku.dk>
 
-As the comment in cpuset_print_task_mems_allowed() indicates, it's
-necessary to take task_lock() on current before dereferencing its cpuset.
+The error test that follows the call to backlight_device_register semms
+not to concern the right variable.
 
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+A simplified version of the semantic match that finds this problem is
+as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+// <smpl>
+@def0@
+expression x;
+position p0;
+@@
+x@p0 = backlight_device_register(...)
+
+@protected@
+expression def0.x,E;
+position def0.p0;
+position p;
+statement S;
+@@
+x@p0
+... when != x = E
+if (!IS_ERR(x) && ...) {<... x@p ...>} else S
+
+@unprotected@
+expression def0.x;
+identifier fld;
+position def0.p0;
+position p != protected.p;
+@@
+x@p0
+... when != x = E
+* x@p->fld
+// </smpl>
+
+Signed-off-by: Julien Brunel <brunel@diku.dk>
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/atmel_lcdfb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-print-triggering-tasks-cpuset-and-mems-allowed-fix mm/oom_kill.c
---- a/mm/oom_kill.c~oom-print-triggering-tasks-cpuset-and-mems-allowed-fix
-+++ a/mm/oom_kill.c
-@@ -392,7 +392,9 @@ static int oom_kill_process(struct task_
- 		printk(KERN_WARNING "%s invoked oom-killer: "
- 			"gfp_mask=0x%x, order=%d, oomkilladj=%d\n",
- 			current->comm, gfp_mask, order, current->oomkilladj);
-+		task_lock(current);
- 		cpuset_print_task_mems_allowed(current);
-+		task_unlock(current);
- 		dump_stack();
- 		show_mem();
- 		if (sysctl_oom_dump_tasks)
+diff -puN drivers/video/atmel_lcdfb.c~drivers-video-bad-error-test-before-a-dereference drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~drivers-video-bad-error-test-before-a-dereference
++++ a/drivers/video/atmel_lcdfb.c
+@@ -132,7 +132,7 @@ static void init_backlight(struct atmel_
+ 
+ 	bl = backlight_device_register("backlight", &sinfo->pdev->dev,
+ 			sinfo, &atmel_lcdc_bl_ops);
+-	if (IS_ERR(sinfo->backlight)) {
++	if (IS_ERR(bl)) {
+ 		dev_err(&sinfo->pdev->dev, "error %ld on backlight register\n",
+ 				PTR_ERR(bl));
+ 		return;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from brunel@diku.dk are
 
-cpuset-update-top-cpusets-mems-after-adding-a-node.patch
-oom-fix-zone_scan_mutex-name.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
+origin.patch
 
