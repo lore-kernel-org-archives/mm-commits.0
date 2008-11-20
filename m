@@ -1,80 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - w1-omap-fix-omap-ldp-boot-crash.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:43:32 -0800
-Message-ID: <200811202043.mAKKhWsR007571@imap1.linux-foundation.org>
+Subject: - cciss-fix-debug-printk-formats.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:43:36 -0800
+Message-ID: <200811202043.mAKKha4X007579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38298 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755436AbYKTUoJ (ORCPT
+	by vger.kernel.org with ESMTP id S1755436AbYKTUoO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:44:09 -0500
+	Thu, 20 Nov 2008 15:44:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stanley.miao@windriver.com, zbr@ioremap.net, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mike.miller@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     W1 OMAP: Fix OMAP LDP boot crash
+     cciss: fix DEBUG printk formats
 has been removed from the -mm tree.  Its filename was
-     w1-omap-fix-omap-ldp-boot-crash.patch
+     cciss-fix-debug-printk-formats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1 OMAP: Fix OMAP LDP boot crash
-From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: cciss: fix DEBUG printk formats
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-OMAP LDP boot crash.  This is because w1 subsystem changed the search
-interface, so update omap_hdq's search interface to follow the change.
+Fix printk format warnings when CCISS_DEBUG is defined.
 
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
-Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
+drivers/block/cciss.c:2856: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
+drivers/block/cciss.c:3205: warning: format '%x' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
+drivers/block/cciss.c:3236: warning: format '%x' expects type 'unsigned int', but argument 2 has type '__u64'
+drivers/block/cciss.c:3246: warning: format '%x' expects type 'unsigned int', but argument 2 has type '__u64'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/omap_hdq.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/block/cciss.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/w1/masters/omap_hdq.c~w1-omap-fix-omap-ldp-boot-crash drivers/w1/masters/omap_hdq.c
---- a/drivers/w1/masters/omap_hdq.c~w1-omap-fix-omap-ldp-boot-crash
-+++ a/drivers/w1/masters/omap_hdq.c
-@@ -86,8 +86,8 @@ static struct platform_driver omap_hdq_d
- static u8 omap_w1_read_byte(void *_hdq);
- static void omap_w1_write_byte(void *_hdq, u8 byte);
- static u8 omap_w1_reset_bus(void *_hdq);
--static void omap_w1_search_bus(void *_hdq, u8 search_type,
--	w1_slave_found_callback slave_found);
-+static void omap_w1_search_bus(void *_hdq, struct w1_master *master_dev,
-+		u8 search_type,	w1_slave_found_callback slave_found);
+diff -puN drivers/block/cciss.c~cciss-fix-debug-printk-formats drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-debug-printk-formats
++++ a/drivers/block/cciss.c
+@@ -2847,7 +2847,7 @@ static void do_cciss_request(struct requ
+ 		h->maxSG = seg;
  
+ #ifdef CCISS_DEBUG
+-	printk(KERN_DEBUG "cciss: Submitting %d sectors in %d segments\n",
++	printk(KERN_DEBUG "cciss: Submitting %lu sectors in %d segments\n",
+ 	       creq->nr_sectors, seg);
+ #endif				/* CCISS_DEBUG */
  
- static struct w1_bus_master omap_w1_master = {
-@@ -231,8 +231,8 @@ static u8 omap_w1_reset_bus(void *_hdq)
- }
+@@ -3197,7 +3197,7 @@ static int __devinit cciss_pci_init(ctlr
  
- /* W1 search callback function */
--static void omap_w1_search_bus(void *_hdq, u8 search_type,
--	w1_slave_found_callback slave_found)
-+static void omap_w1_search_bus(void *_hdq, struct w1_master *master_dev,
-+		u8 search_type, w1_slave_found_callback slave_found)
- {
- 	u64 module_id, rn_le, cs, id;
+ 	c->paddr = pci_resource_start(pdev, 0);	/* addressing mode bits already removed */
+ #ifdef CCISS_DEBUG
+-	printk("address 0 = %x\n", c->paddr);
++	printk("address 0 = %lx\n", c->paddr);
+ #endif				/* CCISS_DEBUG */
+ 	c->vaddr = remap_pci_mem(c->paddr, 0x250);
  
-@@ -249,7 +249,7 @@ static void omap_w1_search_bus(void *_hd
- 	cs = w1_calc_crc8((u8 *)&rn_le, 7);
- 	id = (cs << 56) | module_id;
+@@ -3224,7 +3224,8 @@ static int __devinit cciss_pci_init(ctlr
+ #endif				/* CCISS_DEBUG */
+ 	cfg_base_addr_index = find_PCI_BAR_index(pdev, cfg_base_addr);
+ #ifdef CCISS_DEBUG
+-	printk("cfg base address index = %x\n", cfg_base_addr_index);
++	printk("cfg base address index = %llx\n",
++		(unsigned long long)cfg_base_addr_index);
+ #endif				/* CCISS_DEBUG */
+ 	if (cfg_base_addr_index == -1) {
+ 		printk(KERN_WARNING "cciss: Cannot find cfg_base_addr_index\n");
+@@ -3234,7 +3235,7 @@ static int __devinit cciss_pci_init(ctlr
  
--	slave_found(_hdq, id);
-+	slave_found(master_dev, id);
- }
- 
- static int _omap_hdq_reset(struct hdq_data *hdq_data)
+ 	cfg_offset = readl(c->vaddr + SA5_CTMEM_OFFSET);
+ #ifdef CCISS_DEBUG
+-	printk("cfg offset = %x\n", cfg_offset);
++	printk("cfg offset = %llx\n", (unsigned long long)cfg_offset);
+ #endif				/* CCISS_DEBUG */
+ 	c->cfgtable = remap_pci_mem(pci_resource_start(pdev,
+ 						       cfg_base_addr_index) +
 _
 
-Patches currently in -mm which might be from stanley.miao@windriver.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+linux-next.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+audit-remove-excess-kernel-doc.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+scripts-extract-ikconfig-remove-bashisms.patch
+drivers-ata-pata_radisysc-cleanup-kernel-doc.patch
+drivers-ata-libata-corec-cleanup-kernel-doc.patch
+drivers-ata-pata_oldpiixc-cleanup-kernel-doc.patch
+drivers-ata-pata_pdc2027xc-cleanup-kernel-doc.patch
+drivers-ata-pata_legacyc-cleanup-kernel-doc.patch
+drivers-ata-pata_sisc-cleanup-kernel-doc.patch
+drivers-ata-pata_c-the-rest-remove-redundant-comments.patch
+mtd-remove-excess-kernel-doc-notation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+fusion-remove-excess-kernel-doc-notation.patch
+block-remove-excess-kernel-doc.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+drivers-message-i2o-iopc-cleanup-kerneldoc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+profile-likely-unlikely-macros.patch
 
