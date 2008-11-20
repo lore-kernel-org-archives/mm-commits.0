@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-fix-lazy-unmapping-cache-aliasing-fix.patch added to -mm tree
-Date: Wed, 19 Nov 2008 18:28:57 -0800
-Message-ID: <200811200228.mAK2Svxr022353@imap1.linux-foundation.org>
+Subject: + oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch added to -mm tree
+Date: Wed, 19 Nov 2008 23:54:57 -0800
+Message-ID: <200811200754.mAK7svJI028415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56024 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751570AbYKTC3P (ORCPT
+	by vger.kernel.org with ESMTP id S1753149AbYKTHzH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Nov 2008 21:29:15 -0500
+	Thu, 20 Nov 2008 02:55:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, radford@blackbean.org, rmk@arm.linux.org.uk
+Cc: rientjes@google.com, lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     mm: vmalloc fix lazy unmapping cache aliasing (fix)
+     oom: task lock current before dereferencing cpuset
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-fix-lazy-unmapping-cache-aliasing-fix.patch
+     oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmalloc fix lazy unmapping cache aliasing (fix)
-From: Nick Piggin <npiggin@suse.de>
+Subject: oom: task lock current before dereferencing cpuset
+From: David Rientjes <rientjes@google.com>
 
-Russell King wrote:
-> One minor nit - this looks like we're flushing the cache after the
-> range has been marked as needing the mapping torn down.  Can the
-> mapping be torn down before the cache is flushed?
->
-> The reason I ask is that with VIPT caches, the mapping has to be
-> present so the hardware knows the physical tag to be flushed, so if
-> the mapping has been torn down, we'll get an exception.  _If_ and
-> only if we convert flush_cache_vunmap() to be less heavy weight
-> than its current flush_cache_all().
->
-> IOW, shouldn't flush_cache_vunmap() be towards the start of vb_free() ?
+As the comment in cpuset_print_task_mems_allowed() indicates, it's
+necessary to take task_lock() on current before dereferencing its cpuset.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Jim Radford <radford@blackbean.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-fix-lazy-unmapping-cache-aliasing-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-fix-lazy-unmapping-cache-aliasing-fix
-+++ a/mm/vmalloc.c
-@@ -805,6 +805,9 @@ static void vb_free(const void *addr, un
- 
- 	BUG_ON(size & ~PAGE_MASK);
- 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
-+
-+	flush_cache_vunmap((unsigned long)addr, (unsigned long)addr + size);
-+
- 	order = get_order(size);
- 
- 	offset = (unsigned long)addr & (VMAP_BLOCK_SIZE - 1);
-@@ -829,8 +832,6 @@ static void vb_free(const void *addr, un
- 		free_vmap_block(vb);
- 	} else
- 		spin_unlock(&vb->lock);
--
--	flush_cache_vunmap((unsigned long)addr, (unsigned long)addr + size);
- }
- 
- /**
+diff -puN mm/oom_kill.c~oom-print-triggering-tasks-cpuset-and-mems-allowed-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-print-triggering-tasks-cpuset-and-mems-allowed-fix
++++ a/mm/oom_kill.c
+@@ -392,7 +392,9 @@ static int oom_kill_process(struct task_
+ 		printk(KERN_WARNING "%s invoked oom-killer: "
+ 			"gfp_mask=0x%x, order=%d, oomkilladj=%d\n",
+ 			current->comm, gfp_mask, order, current->oomkilladj);
++		task_lock(current);
+ 		cpuset_print_task_mems_allowed(current);
++		task_unlock(current);
+ 		dump_stack();
+ 		show_mem();
+ 		if (sysctl_oom_dump_tasks)
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-vmalloc-allocator-off-by-one.patch
-mm-vmalloc-failure-flush-fix.patch
-mm-vmalloc-search-restart-fix.patch
-mm-vmalloc-fix-lazy-unmapping-cache-aliasing.patch
-mm-vmalloc-fix-lazy-unmapping-cache-aliasing-fix.patch
-linux-next.patch
-mm-dont-mark_page_accessed-in-fault-path.patch
-mm-dont-mark_page_accessed-in-shmem_fault.patch
-mm-invoke-oom-killer-from-page-fault.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-cyclic-fix.patch
-mm-write_cache_pages-cyclic-fix-fix.patch
-mm-write_cache_pages-early-loop-termination.patch
-mm-write_cache_pages-writepage-error-fix.patch
-mm-write_cache_pages-integrity-fix.patch
-mm-write_cache_pages-cleanups.patch
-mm-write_cache_pages-optimise-page-cleaning.patch
-mm-write_cache_pages-terminate-quickly.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-mm-do_sync_mapping_range-integrity-fix.patch
-mm-get-rid-of-pagevec_release_nonlru.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-vmalloc-tweak-failure-printk.patch
-mm-vmalloc-improve-vmallocinfo.patch
-mm-vmalloc-use-mutex-for-purge.patch
-mm-vmalloc-make-lazy-unmapping-configurable.patch
-reiser4.patch
+cpuset-update-top-cpusets-mems-after-adding-a-node.patch
+oom-fix-zone_scan_mutex-name.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
 
