@@ -1,93 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - tmiofb-fix-compilation-with-accel-disabled.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:42:31 -0800
-Message-ID: <200811202042.mAKKgVCA006997@imap1.linux-foundation.org>
+Subject: - udf-reduce-stack-usage-of-udf_load_pvoldesc.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:43:53 -0800
+Message-ID: <200811202043.mAKKhrTq007760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755437AbYKTUsp (ORCPT
+	by vger.kernel.org with ESMTP id S1755440AbYKTUtM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:48:45 -0500
+	Thu, 20 Nov 2008 15:49:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbaryshkov@gmail.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmiofb: fix compilation with ACCEL disabled
+     udf: reduce stack usage of udf_load_pvoldesc
 has been removed from the -mm tree.  Its filename was
-     tmiofb-fix-compilation-with-accel-disabled.patch
+     udf-reduce-stack-usage-of-udf_load_pvoldesc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmiofb: fix compilation with ACCEL disabled
-From: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Subject: udf: reduce stack usage of udf_load_pvoldesc
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Restore support for compiling tmiofb with acceleration disabled.
+Allocate strings with kmalloc.
 
-Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Checkstack output:
+Before: udf_process_sequence:      712
+After:  udf_process_sequence:      200
+
+(akpm: use GFP_KERNEL?)
+
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tmiofb.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ fs/udf/super.c |   36 +++++++++++++++++++++++++-----------
+ 1 file changed, 25 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/tmiofb.c~tmiofb-fix-compilation-with-accel-disabled drivers/video/tmiofb.c
---- a/drivers/video/tmiofb.c~tmiofb-fix-compilation-with-accel-disabled
-+++ a/drivers/video/tmiofb.c
-@@ -222,6 +222,9 @@ static irqreturn_t tmiofb_irq(int irq, v
- 	unsigned int bbisc = tmio_ioread16(par->lcr + LCR_BBISC);
- 
- 
-+	tmio_iowrite16(bbisc, par->lcr + LCR_BBISC);
+diff -puN fs/udf/super.c~udf-reduce-stack-usage-of-udf_load_pvoldesc fs/udf/super.c
+--- a/fs/udf/super.c~udf-reduce-stack-usage-of-udf_load_pvoldesc
++++ a/fs/udf/super.c
+@@ -902,14 +902,23 @@ static int udf_find_fileset(struct super
+ static int udf_load_pvoldesc(struct super_block *sb, sector_t block)
+ {
+ 	struct primaryVolDesc *pvoldesc;
+-	struct ustr instr;
+-	struct ustr outstr;
++	struct ustr *instr, *outstr;
+ 	struct buffer_head *bh;
+ 	uint16_t ident;
++	int ret = 1;
 +
-+#ifdef CONFIG_FB_TMIO_ACCELL
- 	/*
- 	 * We were in polling mode and now we got correct irq.
- 	 * Switch back to IRQ-based sync of command FIFO
-@@ -231,9 +234,6 @@ static irqreturn_t tmiofb_irq(int irq, v
- 		par->use_polling = false;
++	instr = kmalloc(sizeof(struct ustr), GFP_NOFS);
++	if (!instr)
++		return 1;
++
++	outstr = kmalloc(sizeof(struct ustr), GFP_NOFS);
++	if (!outstr)
++		goto out1;
+ 
+ 	bh = udf_read_tagged(sb, block, block, &ident);
+ 	if (!bh)
+-		return 1;
++		goto out2;
++
+ 	BUG_ON(ident != TAG_IDENT_PVD);
+ 
+ 	pvoldesc = (struct primaryVolDesc *)bh->b_data;
+@@ -925,20 +934,25 @@ static int udf_load_pvoldesc(struct supe
+ #endif
  	}
  
--	tmio_iowrite16(bbisc, par->lcr + LCR_BBISC);
--
--#ifdef CONFIG_FB_TMIO_ACCELL
- 	if (bbisc & 1)
- 		wake_up(&par->wait_acc);
- #endif
-@@ -938,7 +938,9 @@ static void tmiofb_dump_regs(struct plat
- static int tmiofb_suspend(struct platform_device *dev, pm_message_t state)
- {
- 	struct fb_info *info = platform_get_drvdata(dev);
-+#ifdef CONFIG_FB_TMIO_ACCELL
- 	struct tmiofb_par *par = info->par;
-+#endif
- 	struct mfd_cell *cell = dev->dev.platform_data;
- 	int retval = 0;
+-	if (!udf_build_ustr(&instr, pvoldesc->volIdent, 32))
+-		if (udf_CS0toUTF8(&outstr, &instr)) {
+-			strncpy(UDF_SB(sb)->s_volume_ident, outstr.u_name,
+-				outstr.u_len > 31 ? 31 : outstr.u_len);
++	if (!udf_build_ustr(instr, pvoldesc->volIdent, 32))
++		if (udf_CS0toUTF8(outstr, instr)) {
++			strncpy(UDF_SB(sb)->s_volume_ident, outstr->u_name,
++				outstr->u_len > 31 ? 31 : outstr->u_len);
+ 			udf_debug("volIdent[] = '%s'\n",
+ 					UDF_SB(sb)->s_volume_ident);
+ 		}
  
-@@ -950,12 +952,14 @@ static int tmiofb_suspend(struct platfor
- 		info->fbops->fb_sync(info);
+-	if (!udf_build_ustr(&instr, pvoldesc->volSetIdent, 128))
+-		if (udf_CS0toUTF8(&outstr, &instr))
+-			udf_debug("volSetIdent[] = '%s'\n", outstr.u_name);
++	if (!udf_build_ustr(instr, pvoldesc->volSetIdent, 128))
++		if (udf_CS0toUTF8(outstr, instr))
++			udf_debug("volSetIdent[] = '%s'\n", outstr->u_name);
  
+ 	brelse(bh);
+-	return 0;
++	ret = 0;
++out2:
++	kfree(outstr);
++out1:
++	kfree(instr);
++	return ret;
+ }
  
-+#ifdef CONFIG_FB_TMIO_ACCELL
- 	/*
- 	 * The fb should be usable even if interrupts are disabled (and they are
- 	 * during suspend/resume). Switch temporary to forced polling.
- 	 */
- 	printk(KERN_INFO "tmiofb: switching to polling\n");
- 	par->use_polling = true;
-+#endif
- 	tmiofb_hw_stop(dev);
- 
- 	if (cell->suspend)
+ static int udf_load_metadata_files(struct super_block *sb, int partition)
 _
 
-Patches currently in -mm which might be from dbaryshkov@gmail.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
-origin.patch
+linux-next.patch
 
