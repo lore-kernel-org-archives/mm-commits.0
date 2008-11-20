@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-hierarchy-feature-selector-v4-fix.patch added to -mm tree
-Date: Thu, 20 Nov 2008 13:45:51 -0800
-Message-ID: <200811202145.mAKLjpPL007690@imap1.linux-foundation.org>
+Subject: + gendisk-disk-node_id-is-used-uninitialised.patch added to -mm tree
+Date: Thu, 20 Nov 2008 13:52:26 -0800
+Message-ID: <200811202152.mAKLqQHb011151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755468AbYKTVqF (ORCPT
+	by vger.kernel.org with ESMTP id S1755561AbYKTVwh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 16:46:05 -0500
+	Thu, 20 Nov 2008 16:52:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: crquan@gmail.com, jens.axboe@oracle.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Memory cgroup fix hierarchy selector
+     gendisk: disk->node_id is used uninitialised
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+     gendisk-disk-node_id-is-used-uninitialised.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Memory cgroup fix hierarchy selector
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: gendisk: disk->node_id is used uninitialised
+From: Cheng Renquan <crquan@gmail.com>
 
-Andrew and Li reviewed and found that we need to check for val being 1 or
-0 for the root container as well.  use_hierarchy's type is changed to
-bool.  We still continue to use the ease of write_X64 for writing to it
-and then check if the values are sane.
+disk->node_id will be used when allocating in disk_expand_part_tbl(), so
+we should set it beforehand.
 
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Cheng Renquan <crquan@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ block/genhd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-hierarchy-feature-selector-v4-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-hierarchy-feature-selector-v4-fix
-+++ a/mm/memcontrol.c
-@@ -152,7 +152,7 @@ struct mem_cgroup {
- 	/*
- 	 * Should the accounting and control be hierarchical, per subtree?
- 	 */
--	unsigned long use_hierarchy;
-+	bool use_hierarchy;
- 
- 	int		obsolete;
- 	atomic_t	refcnt;
-@@ -1567,8 +1567,8 @@ static int mem_cgroup_hierarchy_write(st
- 	 * For the root cgroup, parent_mem is NULL, we allow value to be
- 	 * set if there are no children.
- 	 */
--	if (!parent_mem || (!parent_mem->use_hierarchy &&
--				(val == 1 || val == 0))) {
-+	if ((!parent_mem || !parent_mem->use_hierarchy) &&
-+				(val == 1 || val == 0)) {
- 		if (list_empty(&cont->children))
- 			mem->use_hierarchy = val;
- 		else
+diff -puN block/genhd.c~gendisk-disk-node_id-is-used-uninitialised block/genhd.c
+--- a/block/genhd.c~gendisk-disk-node_id-is-used-uninitialised
++++ a/block/genhd.c
+@@ -1102,6 +1102,7 @@ struct gendisk *alloc_disk_node(int mino
+ 			kfree(disk);
+ 			return NULL;
+ 		}
++		disk->node_id = node_id;
+ 		if (disk_expand_part_tbl(disk, 0)) {
+ 			free_part_stats(&disk->part0);
+ 			kfree(disk);
+@@ -1116,7 +1117,6 @@ struct gendisk *alloc_disk_node(int mino
+ 		device_initialize(disk_to_dev(disk));
+ 		INIT_WORK(&disk->async_notify,
+ 			media_change_notify_thread);
+-		disk->node_id = node_id;
+ 	}
+ 	return disk;
+ }
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from crquan@gmail.com are
 
-origin.patch
+gendisk-disk-node_id-is-used-uninitialised.patch
 linux-next.patch
-memcg-swap-cgroup-for-remembering-usage-fix-2.patch
-memcg-swap-cgroup-for-remembering-usage-fix-3.patch
-memcg-swap-cgroup-for-remembering-usage-fix-4.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+block-remove-kblockd_flush_work.patch
+fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch
 
