@@ -1,91 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - sysvipc-fix-the-ipc-structures-initialization.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:42:09 -0800
-Message-ID: <200811202042.mAKKg9WT006773@imap1.linux-foundation.org>
+Subject: - cpuset-update-top-cpusets-mems-after-adding-a-node.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:42:53 -0800
+Message-ID: <200811202042.mAKKgrj9007181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53302 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42764 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755207AbYKTUnU (ORCPT
+	by vger.kernel.org with ESMTP id S1755260AbYKTUna (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:43:20 -0500
+	Thu, 20 Nov 2008 15:43:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Nadia.Derbey@bull.net, cboulte@gmail.com, manfred@colorfullife.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: miaox@cn.fujitsu.com, menage@google.com, rientjes@google.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysvipc: fix the ipc structures initialization
+     cpuset: update top cpuset's mems after adding a node
 has been removed from the -mm tree.  Its filename was
-     sysvipc-fix-the-ipc-structures-initialization.patch
+     cpuset-update-top-cpusets-mems-after-adding-a-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysvipc: fix the ipc structures initialization
-From: Nadia Derbey <Nadia.Derbey@bull.net>
+Subject: cpuset: update top cpuset's mems after adding a node
+From: Miao Xie <miaox@cn.fujitsu.com>
 
-A problem was found while reviewing the code after Bugzilla bug
-http://bugzilla.kernel.org/show_bug.cgi?id=11796.
+After adding a node into the machine, top cpuset's mems isn't updated.
 
-In ipc_addid(), the newly allocated ipc structure is inserted into the
-ipcs tree (i.e made visible to readers) without locking it.  This is not
-correct since its initialization continues after it has been inserted in
-the tree.
+By reviewing the code, we found that the update function
 
-This patch moves the ipc structure lock initialization + locking before
-the actual insertion.
+  cpuset_track_online_nodes()
 
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Reported-by: Clement Calmels <cboulte@gmail.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: <stable@kernel.org>		[2.6.27.x]
+was invoked after node_states[N_ONLINE] changes.  It is wrong because
+N_ONLINE just means node has pgdat, and if node has/added memory, we use
+N_HIGH_MEMORY.  So, We should invoke the update function after
+node_states[N_HIGH_MEMORY] changes, just like its commit says.
+
+This patch fixes it.  And we use notifier of memory hotplug instead of
+direct calling of cpuset_track_online_nodes().
+
+Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Paul Menage <menage@google.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ include/linux/cpuset.h |    4 ----
+ kernel/cpuset.c        |   19 ++++++++++++++++---
+ mm/memory_hotplug.c    |    3 ---
+ 3 files changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN ipc/util.c~sysvipc-fix-the-ipc-structures-initialization ipc/util.c
---- a/ipc/util.c~sysvipc-fix-the-ipc-structures-initialization
-+++ a/ipc/util.c
-@@ -266,9 +266,17 @@ int ipc_addid(struct ipc_ids* ids, struc
- 	if (ids->in_use >= size)
- 		return -ENOSPC;
- 
-+	spin_lock_init(&new->lock);
-+	new->deleted = 0;
-+	rcu_read_lock();
-+	spin_lock(&new->lock);
-+
- 	err = idr_get_new(&ids->ipcs_idr, new, &id);
--	if (err)
-+	if (err) {
-+		spin_unlock(&new->lock);
-+		rcu_read_unlock();
- 		return err;
-+	}
- 
- 	ids->in_use++;
- 
-@@ -280,10 +288,6 @@ int ipc_addid(struct ipc_ids* ids, struc
- 		ids->seq = 0;
- 
- 	new->id = ipc_buildid(id, new->seq);
--	spin_lock_init(&new->lock);
--	new->deleted = 0;
--	rcu_read_lock();
--	spin_lock(&new->lock);
- 	return id;
+diff -puN include/linux/cpuset.h~cpuset-update-top-cpusets-mems-after-adding-a-node include/linux/cpuset.h
+--- a/include/linux/cpuset.h~cpuset-update-top-cpusets-mems-after-adding-a-node
++++ a/include/linux/cpuset.h
+@@ -74,8 +74,6 @@ static inline int cpuset_do_slab_mem_spr
+ 	return current->flags & PF_SPREAD_SLAB;
  }
  
-_
-
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
-
-origin.patch
-ipc-clean-up-ipc-shmc.patch
-ipc-ipc_sysctlc-move-the-definition-of-ipc_auto_callback.patch
-
+-extern void cpuset_track_online_nodes(void);
+-
+ extern int current_cpuset_is_being_rebound(void);
+ 
+ extern void rebuild_sched_domains(void);
+@@ -151,8 +149,6 @@ static inline int cpuset_do_slab_mem_spr
+ 	return 0;
+ }
+ 
+-static inline void cpuset_track_online_nodes(void) {}
+-
+ static inline int current_cpuset_is_being_rebound(void)
+ {
+ 	return 0;
+diff -puN kernel/cpuset.c~cpuset-update-top-cpusets-mems-after-adding-a-node kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-update-top-cpusets-mems-after-adding-a-node
++++ a/kernel/cpuset.c
+@@ -36,6 +36,7 @@
+ #include <linux/list.h>
+ #include <linux/mempolicy.h>
+ #include <linux/mm.h>
++#include <linux/memory.h>
+ #include <linux/module.h>
+ #include <linux/mount.h>
+ #include <linux/namei.h>
+@@ -2015,12 +2016,23 @@ static int cpuset_track_online_cpus(stru
+  * Call this routine anytime after node_states[N_HIGH_MEMORY] changes.
+  * See also the previous routine cpuset_track_online_cpus().
+  */
+-void cpuset_track_online_nodes(void)
++static int cpuset_track_online_nodes(struct notifier_block *self,
++				unsigned long action, void *arg)
+ {
+ 	cgroup_lock();
+-	top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
+-	scan_for_empty_cpusets(&top_cpuset);
++	switch (action) {
++	case MEM_ONLINE:
++		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
++		break;
++	case MEM_OFFLINE:
++		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
++		scan_for_empty_cpusets(&top_cpuset);
++		break;
++	default:
++		break;
++	}
+ 	cgroup_unlock();
++	return NOTIFY_OK;
+ }
+ #endif
+ 
+@@ -2036,6 +2048,7 @@ void __init cpuset_init_smp(void)
+ 	top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
+ 
+ 	hotcpu_notifier(cpuset_track_online_cpus, 0);
++	hotplug_memory_notifier(cpuset_track_online_nodes, 10);
+ }
+ 
+ /**
+diff -puN mm/memory_hotplug.c~cpuset-update-top-cpusets-mems-after-adding-a-node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~cpuset-update-top-cpusets-mems-after-adding-a-node
++++ a/mm/memory_hotplug.c
+@@ -22,7 +22,6 @@
+ #include <linux/highmem.h>
+ #include <linux/vmalloc.h>
+ #include <linux/ioport.h>
+-#include <linux/cpuset.h>
+ #include <linux/delay.h>
+ #include <linux/migrate.h>
+ #include <linux/page-isolation.h>
+@@ -498,8 +497,6 @@ int add_memory(int nid, u64 start, u64 s
+ 	/* we online node here. we can't roll back from here. */
+ 	node_set_online(nid);
+ 
+-	cpuset_track_online_nodes();
