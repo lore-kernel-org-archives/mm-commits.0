@@ -1,105 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-backlight-da903xc-introduce-missing-kfree.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:43:13 -0800
-Message-ID: <200811202043.mAKKhDYi007385@imap1.linux-foundation.org>
+Subject: - mm-vmalloc-search-restart-fix.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:42:59 -0800
+Message-ID: <200811202042.mAKKgxv7007230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43893 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48346 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755406AbYKTUnw (ORCPT
+	by vger.kernel.org with ESMTP id S1755479AbYKTUo1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:43:52 -0500
+	Thu, 20 Nov 2008 15:44:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, eric.miao@marvell.com, mike@compulab.co.il, rpurdie@linux.intel.com, mm-commits@vger.kernel.org
+To: glommer@redhat.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/backlight/da903x.c: introduce missing kfree
+     mm: vmalloc search restart fix
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-da903xc-introduce-missing-kfree.patch
+     mm-vmalloc-search-restart-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/da903x.c: introduce missing kfree
-From: Julia Lawall <julia@diku.dk>
+Subject: mm: vmalloc search restart fix
+From: Glauber Costa <glommer@redhat.com>
 
-Error handling code following a kzalloc should free the allocated data.
+Current vmalloc restart search for a free area in case we can't find one. 
+The reason is there are areas which are lazily freed, and could be
+possibly freed now.  However, current implementation start searching the
+tree from the last failing address, which is pretty much by definition at
+the end of address space.  So, we fail.
 
-The semantic match that finds the problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
+The proposal of this patch is to restart the search from the beginning of
+the requested vstart address.  This fixes the regression in running KVM
+virtual machines for me, described in http://lkml.org/lkml/2008/10/28/349,
+caused by commit db64fe02258f1507e13fe5212a989922323685ce.
 
-// <smpl>
-@r exists@
-local idexpression x;
-statement S;
-expression E;
-identifier f,l;
-position p1,p2;
-expression *ptr != NULL;
-@@
-
-(
-if ((x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...)) == NULL) S
-|
-x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
-...
-if (x == NULL) S
-)
-<... when != x
-     when != if (...) { <+...x...+> }
-x->f = E
-...>
-(
- return \(0\|<+...x...+>\|ptr\);
-|
- return@p2 ...;
-)
-
-@script:python@
-p1 << r.p1;
-p2 << r.p2;
-@@
-
-print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Mike Rapoport <mike@compulab.co.il>
-Cc: Richard Purdie <rpurdie@linux.intel.com>
-Cc: Eric Miao <eric.miao@marvell.com>
+Signed-off-by: Glauber Costa <glommer@redhat.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/da903x.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/da903x.c~drivers-video-backlight-da903xc-introduce-missing-kfree drivers/video/backlight/da903x.c
---- a/drivers/video/backlight/da903x.c~drivers-video-backlight-da903xc-introduce-missing-kfree
-+++ a/drivers/video/backlight/da903x.c
-@@ -119,6 +119,7 @@ static int da903x_backlight_probe(struct
- 	default:
- 		dev_err(&pdev->dev, "invalid backlight device ID(%d)\n",
- 				pdev->id);
-+		kfree(data);
- 		return -EINVAL;
- 	}
+diff -puN mm/vmalloc.c~mm-vmalloc-search-restart-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-search-restart-fix
++++ a/mm/vmalloc.c
+@@ -324,14 +324,14 @@ static struct vmap_area *alloc_vmap_area
  
-_
-
-Patches currently in -mm which might be from julia@diku.dk are
-
-origin.patch
-linux-next.patch
-drivers-media-use-array_size.patch
-drivers-mtd-maps-nettelc-use-array_size.patch
-net-tipc-bcasth-use-array_size.patch
-drivers-isdn-misdn-use-array_size.patch
-drivers-message-fusion-use-array_size.patch
-fs-namespacec-drop-code-after-return.patch
-drivers-net-wireless-ath9k-rcc-use-array_size.patch
-kernel-trace-tracec-introduce-missing-kfree.patch
-
+ 	BUG_ON(size & ~PAGE_MASK);
+ 
+-	addr = ALIGN(vstart, align);
