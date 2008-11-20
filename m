@@ -1,103 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: - pxa2xx_spi-bugfix-full-duplex-dma-data-corruption.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:42:36 -0800
-Message-ID: <200811202042.mAKKga9I007005@imap1.linux-foundation.org>
+Subject: - viafb-fix-releasing-of-proc-viafb-subtree.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:42:39 -0800
+Message-ID: <200811202042.mAKKgdwg007052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755226AbYKTUn0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755178AbYKTUnR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:43:26 -0500
+	Thu, 20 Nov 2008 15:43:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nforrester@whoi.edu, dbrownell@users.sourceforge.net, merrij3@rpi.edu, stable@kernel.org, vernoninhand@gmail.com, mm-commits@vger.kernel.org
+To: bonbons@linux-vserver.org, JosephChan@via.com.tw, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pxa2xx_spi: bugfix full duplex dma data corruption
+     viafb: fix releasing of /proc/viafb/ subtree
 has been removed from the -mm tree.  Its filename was
-     pxa2xx_spi-bugfix-full-duplex-dma-data-corruption.patch
+     viafb-fix-releasing-of-proc-viafb-subtree.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: pxa2xx_spi: bugfix full duplex dma data corruption
-From: Ned Forrester <nforrester@whoi.edu>
+Subject: viafb: fix releasing of /proc/viafb/ subtree
+=46rom: Bruno Pr=E9mont <bonbons@linux-vserver.org>
 
-Fixes a data corruption bug in pxa2xx_spi.c when operating in full duplex
-mode with DMA and using buffers that overlap.
+When unloading viafb module it does not remove it's /proc/viafb/ subtre=
+e
+which causes multiple viafb directories to appear below proc when
+mobprobing viafb and also lets kernel WARN() on duplicate proc entries:
 
-SPI transmit and receive buffers are allowed to be the same or to overlap.
- However, this driver fails if such overlap is attempted in DMA mode
-because it maps the rx and tx buffers in the wrong order.  By mapping
-DMA_FROM_DEVICE (read) before DMA_TO_DEVICE (write), it invalidates the
-cache before flushing it, thus discarding data which should have been
-transmitted.
+[  145.458387] WARNING: at /usr/src/linux-2.6.28-rc3-git6/fs/proc/gener=
+ic.c:551 proc_register+0xe6/0x160()
+[  145.458945] proc_dir_entry '/proc/viafb' already registered
+[  145.459278] Modules linked in: viafb(+) i2c_algo_bit cfbcopyarea cfb=
+imgblt cfbfillrect snd_hda_intel snd_pcm snd_timer snd soundcore snd_pa=
+ge_alloc sg via_agp agpgart [last unloaded: drm]
+[  145.460647] Pid: 1904, comm: modprobe Tainted: G        W  2.6.28-rc=
+3-git6 #4
+[  145.461064] Call Trace:
+[  145.461248]  [<c01066f1>] ? dump_stack+0x1/0x80
+[  145.461533]  [<c01228a3>] warn_slowpath+0x63/0x80
+[  145.461851]  [<c0253ec9>] ? idr_get_empty_slot+0xe9/0x250
+[  145.462186]  [<c0254120>] ? ida_get_new_above+0xf0/0x150
+[  145.462528]  [<c019fb86>] proc_register+0xe6/0x160
+[  145.462827]  [<c019fdc6>] proc_mkdir_mode+0x36/0x50
+[  145.463135]  [<c019fdef>] proc_mkdir+0xf/0x20
+[  145.463457]  [<f807173c>] viafb_init+0x73c/0xc86 [viafb]
+[  145.463823]  [<f8071000>] ? viafb_init+0x0/0xc86 [viafb]
+[  145.464147]  [<c010111d>] do_one_initcall+0x2d/0x160
+[  145.464460]  [<c01a6543>] ? sysfs_add_file+0x13/0x20
+[  145.464786]  [<c015f031>] ? vfree+0x21/0x30
+[  145.465049]  [<c01433b5>] ? load_module+0x1215/0x1500
+[  145.465381]  [<c014e455>] ? __alloc_pages_internal+0x95/0x400
+[  145.465755]  [<c0143723>] sys_init_module+0x83/0x1a0
+[  145.466065]  [<c016ceed>] ? sys_read+0x3d/0x70
+[  145.466354]  [<c0103bc1>] sysenter_do_call+0x12/0x25
+[  145.466653] ---[ end trace c84b37826e16748c ]---
 
-The patch corrects the order of mapping.  This bug exists in all versions
-of pxa2xx_spi.c; similar bugs are in the drivers for two other SPI
-controllers (au1500, imx).
-
-A version of this patch has been tested on kernel 2.6.20 using
-verification of loopback data with: random transfer length, random
-bits-per-word, random positive offsets (both larger and smaller than
-transfer length) between the start of the rx and tx buffers, and varying
-clock rates.
-
-Signed-off-by: Ned Forrester <nforrester@whoi.edu>
-Cc: Vernon Sauder <vernoninhand@gmail.com>
-Cc: J. Scott Merritt <merrij3@rpi.edu>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: <stable@kernel.org>		[2.6.27.x]
+Signed-off-by: Bruno Pr=E9mont <bonbons@linux-vserver.org>
+Cc: <JosephChan@via.com.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/pxa2xx_spi.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/video/via/viafbdev.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/spi/pxa2xx_spi.c~pxa2xx_spi-bugfix-full-duplex-dma-data-corruption drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~pxa2xx_spi-bugfix-full-duplex-dma-data-corruption
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -352,21 +352,21 @@ static int map_dma_buffers(struct driver
- 	} else
- 		drv_data->tx_map_len = drv_data->len;
- 
--	/* Stream map the rx buffer */
--	drv_data->rx_dma = dma_map_single(dev, drv_data->rx,
--						drv_data->rx_map_len,
--						DMA_FROM_DEVICE);
--	if (dma_mapping_error(dev, drv_data->rx_dma))
--		return 0;
--
--	/* Stream map the tx buffer */
-+	/* Stream map the tx buffer. Always do DMA_TO_DEVICE first
-+	 * so we flush the cache *before* invalidating it, in case
-+	 * the tx and rx buffers overlap.
-+	 */
- 	drv_data->tx_dma = dma_map_single(dev, drv_data->tx,
--						drv_data->tx_map_len,
--						DMA_TO_DEVICE);
-+					drv_data->tx_map_len, DMA_TO_DEVICE);
-+	if (dma_mapping_error(dev, drv_data->tx_dma))
-+		return 0;
- 
--	if (dma_mapping_error(dev, drv_data->tx_dma)) {
--		dma_unmap_single(dev, drv_data->rx_dma,
-+	/* Stream map the rx buffer */
-+	drv_data->rx_dma = dma_map_single(dev, drv_data->rx,
- 					drv_data->rx_map_len, DMA_FROM_DEVICE);
-+	if (dma_mapping_error(dev, drv_data->rx_dma)) {
-+		dma_unmap_single(dev, drv_data->tx_dma,
-+					drv_data->tx_map_len, DMA_TO_DEVICE);
- 		return 0;
- 	}
- 
+diff -puN drivers/video/via/viafbdev.c~viafb-fix-releasing-of-proc-viaf=
+b-subtree drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-fix-releasing-of-proc-viafb-su=
+btree
++++ a/drivers/video/via/viafbdev.c
+@@ -2036,30 +2036,30 @@ static int viafb_vt1636_proc_write(struc
+ 	return count;
+ }
+=20
+-static void viafb_init_proc(struct proc_dir_entry *viafb_entry)
++static void viafb_init_proc(struct proc_dir_entry **viafb_entry)
+ {
+ 	struct proc_dir_entry *entry;
+-	viafb_entry =3D proc_mkdir("viafb", NULL);
++	*viafb_entry =3D proc_mkdir("viafb", NULL);
+ 	if (viafb_entry) {
+-		entry =3D create_proc_entry("dvp0", 0, viafb_entry);
++		entry =3D create_proc_entry("dvp0", 0, *viafb_entry);
+ 		if (entry) {
+ 			entry->owner =3D THIS_MODULE;
+ 			entry->read_proc =3D viafb_dvp0_proc_read;
+ 			entry->write_proc =3D viafb_dvp0_proc_write;
+ 		}
+-		entry =3D create_proc_entry("dvp1", 0, viafb_entry);
++		entry =3D create_proc_entry("dvp1", 0, *viafb_entry);
+ 		if (entry) {
+ 			entry->owner =3D THIS_MODULE;
+ 			entry->read_proc =3D viafb_dvp1_proc_read;
+ 			entry->write_proc =3D viafb_dvp1_proc_write;
+ 		}
+-		entry =3D create_proc_entry("dfph", 0, viafb_entry);
++		entry =3D create_proc_entry("dfph", 0, *viafb_entry);
+ 		if (entry) {
+ 			entry->owner =3D THIS_MODULE;
+ 			entry->read_proc =3D viafb_dfph_proc_read;
+ 			entry->write_proc =3D viafb_dfph_proc_write;
+ 		}
+-		entry =3D create_proc_entry("dfpl", 0, viafb_entry);
++		entry =3D create_proc_entry("dfpl", 0, *viafb_entry);
+ 		if (entry) {
+ 			entry->owner =3D THIS_MODULE;
+ 			entry->read_proc =3D viafb_dfpl_proc_read;
+@@ -2068,7 +2068,7 @@ static void viafb_init_proc(struct proc_
+ 		if (VT1636_LVDS =3D=3D viaparinfo->chip_info->lvds_chip_info.
+ 			lvds_chip_name || VT1636_LVDS =3D=3D
+ 		    viaparinfo->chip_info->lvds_chip_info2.lvds_chip_name) {
+-			entry =3D create_proc_entry("vt1636", 0, viafb_entry);
++			entry =3D create_proc_entry("vt1636", 0, *viafb_entry);
+ 			if (entry) {
+ 				entry->owner =3D THIS_MODULE;
+ 				entry->read_proc =3D viafb_vt1636_proc_read;
+@@ -2087,6 +2087,7 @@ static void viafb_remove_proc(struct pro
+ 	remove_proc_entry("dfpl", viafb_entry);
+ 	remove_proc_entry("vt1636", viafb_entry);
+ 	remove_proc_entry("vt1625", viafb_entry);
++	remove_proc_entry("viafb", NULL);
+ }
+=20
+ static int __devinit via_pci_probe(void)
+@@ -2348,7 +2349,7 @@ static int __devinit via_pci_probe(void)
+ 		  viafbinfo->node, viafbinfo->fix.id, default_var.xres,
+ 		  default_var.yres, default_var.bits_per_pixel);
+=20
+-	viafb_init_proc(viaparinfo->proc_entry);
++	viafb_init_proc(&viaparinfo->proc_entry);
+ 	viafb_init_dac(IGA2);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from nforrester@whoi.edu are
+Patches currently in -mm which might be from bonbons@linux-vserver.org =
+are
 
 origin.patch
+viafb-fix-crashes-due-to-4k-stack-overflow.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
