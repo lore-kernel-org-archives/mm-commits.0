@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-apitxt-fix-description-of-pci_map_sg-dma_map_sg-scatterlists-handling.patch added to -mm tree
-Date: Thu, 20 Nov 2008 13:32:28 -0800
-Message-ID: <200811202132.mAKLWSoR000673@imap1.linux-foundation.org>
+Subject: + slub-add-might_sleep_if.patch added to -mm tree
+Date: Thu, 20 Nov 2008 13:40:03 -0800
+Message-ID: <200811202140.mAKLe3aE004698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52174 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757455AbYKTVcl (ORCPT
+	by vger.kernel.org with ESMTP id S1755425AbYKTVkM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 16:32:41 -0500
+	Thu, 20 Nov 2008 16:40:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, htejun@gmail.com, jens.axboe@oracle.com
+Cc: hirofumi@mail.parknet.co.jp, cl@linux-foundation.org, penberg@cs.helsinki.fi
 
 
 The patch titled
-     DMA-API.txt: fix description of pci_map_sg/dma_map_sg scatterlists handling
+     slub: add might_sleep_if()
 has been added to the -mm tree.  Its filename is
-     dma-apitxt-fix-description-of-pci_map_sg-dma_map_sg-scatterlists-handling.patch
+     slub-add-might_sleep_if.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: DMA-API.txt: fix description of pci_map_sg/dma_map_sg scatterlists handling
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: slub: add might_sleep_if()
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-- pci_map_sg/dma_map_sg are used with a scatter gather list that doesn't
-  come from the block layer (e.g.  some network drivers do).
+Currently SLUB doesn't warn about __GFP_WAIT. Add it into slab_alloc().
 
-- how IOMMUs merge adjacent elements of the scatter/gather list is
-  independent of how the block layer determines sees elements.
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API.txt |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/slub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/DMA-API.txt~dma-apitxt-fix-description-of-pci_map_sg-dma_map_sg-scatterlists-handling Documentation/DMA-API.txt
---- a/Documentation/DMA-API.txt~dma-apitxt-fix-description-of-pci_map_sg-dma_map_sg-scatterlists-handling
-+++ a/Documentation/DMA-API.txt
-@@ -316,12 +316,10 @@ reduce current DMA mapping usage or dela
- 	pci_map_sg(struct pci_dev *hwdev, struct scatterlist *sg,
- 		int nents, int direction)
+diff -puN mm/slub.c~slub-add-might_sleep_if mm/slub.c
+--- a/mm/slub.c~slub-add-might_sleep_if
++++ a/mm/slub.c
+@@ -1616,6 +1616,7 @@ static __always_inline void *slab_alloc(
+ 	unsigned long flags;
+ 	unsigned int objsize;
  
--Maps a scatter gather list from the block layer.
++	might_sleep_if(gfpflags & __GFP_WAIT);
+ 	local_irq_save(flags);
+ 	c = get_cpu_slab(s, smp_processor_id());
+ 	objsize = c->objsize;
+_
+
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+
+linux-next.patch
+slub-add-might_sleep_if.patch
+
