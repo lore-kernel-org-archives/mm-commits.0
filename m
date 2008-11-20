@@ -1,156 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - viafb-fix-releasing-of-proc-viafb-subtree.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:42:39 -0800
-Message-ID: <200811202042.mAKKgdwg007052@imap1.linux-foundation.org>
+Subject: - ecryptfs-allocate-up-to-two-scatterlists-for-crypto-ops-on-keys.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:42:49 -0800
+Message-ID: <200811202042.mAKKgnnY007144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48598 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755178AbYKTUnR (ORCPT
+	by vger.kernel.org with ESMTP id S1755323AbYKTUnl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:43:17 -0500
+	Thu, 20 Nov 2008 15:43:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bonbons@linux-vserver.org, JosephChan@via.com.tw, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, leon.woestenberg@gmail.com, pjssilva@ime.usp.br, stable@kernel.org, tim.gardner@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: fix releasing of /proc/viafb/ subtree
+     eCryptfs: Allocate up to two scatterlists for crypto ops on keys
 has been removed from the -mm tree.  Its filename was
-     viafb-fix-releasing-of-proc-viafb-subtree.patch
+     ecryptfs-allocate-up-to-two-scatterlists-for-crypto-ops-on-keys.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: fix releasing of /proc/viafb/ subtree
-=46rom: Bruno Pr=E9mont <bonbons@linux-vserver.org>
+Subject: eCryptfs: Allocate up to two scatterlists for crypto ops on keys
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-When unloading viafb module it does not remove it's /proc/viafb/ subtre=
-e
-which causes multiple viafb directories to appear below proc when
-mobprobing viafb and also lets kernel WARN() on duplicate proc entries:
+I have received some reports of out-of-memory errors on some older AMD
+architectures.  These errors are what I would expect to see if
+crypt_stat->key were split between two separate pages.  eCryptfs should
+not assume that any of the memory sent through virt_to_scatterlist() is
+all contained in a single page, and so this patch allocates two
+scatterlist structs instead of one when processing keys.  I have received
+confirmation from one person affected by this bug that this patch resolves
+the issue for him, and so I am submitting it for inclusion in a future
+stable release.
 
-[  145.458387] WARNING: at /usr/src/linux-2.6.28-rc3-git6/fs/proc/gener=
-ic.c:551 proc_register+0xe6/0x160()
-[  145.458945] proc_dir_entry '/proc/viafb' already registered
-[  145.459278] Modules linked in: viafb(+) i2c_algo_bit cfbcopyarea cfb=
-imgblt cfbfillrect snd_hda_intel snd_pcm snd_timer snd soundcore snd_pa=
-ge_alloc sg via_agp agpgart [last unloaded: drm]
-[  145.460647] Pid: 1904, comm: modprobe Tainted: G        W  2.6.28-rc=
-3-git6 #4
-[  145.461064] Call Trace:
-[  145.461248]  [<c01066f1>] ? dump_stack+0x1/0x80
-[  145.461533]  [<c01228a3>] warn_slowpath+0x63/0x80
-[  145.461851]  [<c0253ec9>] ? idr_get_empty_slot+0xe9/0x250
-[  145.462186]  [<c0254120>] ? ida_get_new_above+0xf0/0x150
-[  145.462528]  [<c019fb86>] proc_register+0xe6/0x160
-[  145.462827]  [<c019fdc6>] proc_mkdir_mode+0x36/0x50
-[  145.463135]  [<c019fdef>] proc_mkdir+0xf/0x20
-[  145.463457]  [<f807173c>] viafb_init+0x73c/0xc86 [viafb]
-[  145.463823]  [<f8071000>] ? viafb_init+0x0/0xc86 [viafb]
-[  145.464147]  [<c010111d>] do_one_initcall+0x2d/0x160
-[  145.464460]  [<c01a6543>] ? sysfs_add_file+0x13/0x20
-[  145.464786]  [<c015f031>] ? vfree+0x21/0x30
-[  145.465049]  [<c01433b5>] ? load_module+0x1215/0x1500
-[  145.465381]  [<c014e455>] ? __alloc_pages_internal+0x95/0x400
-[  145.465755]  [<c0143723>] sys_init_module+0x83/0x1a0
-[  145.466065]  [<c016ceed>] ? sys_read+0x3d/0x70
-[  145.466354]  [<c0103bc1>] sysenter_do_call+0x12/0x25
-[  145.466653] ---[ end trace c84b37826e16748c ]---
+Note that virt_to_scatterlist() runs sg_init_table() on the scatterlist
+structs passed to it, so the calls to sg_init_table() in
+decrypt_passphrase_encrypted_session_key() are redundant.
 
-Signed-off-by: Bruno Pr=E9mont <bonbons@linux-vserver.org>
-Cc: <JosephChan@via.com.tw>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Reported-by: Paulo J. S. Silva <pjssilva@ime.usp.br>
+Cc: "Leon Woestenberg" <leon.woestenberg@gmail.com>
+Cc: Tim Gardner <tim.gardner@canonical.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ fs/ecryptfs/keystore.c |   31 ++++++++++++++-----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-fix-releasing-of-proc-viaf=
-b-subtree drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-fix-releasing-of-proc-viafb-su=
-btree
-+++ a/drivers/video/via/viafbdev.c
-@@ -2036,30 +2036,30 @@ static int viafb_vt1636_proc_write(struc
- 	return count;
- }
-=20
--static void viafb_init_proc(struct proc_dir_entry *viafb_entry)
-+static void viafb_init_proc(struct proc_dir_entry **viafb_entry)
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-allocate-up-to-two-scatterlists-for-crypto-ops-on-keys fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-allocate-up-to-two-scatterlists-for-crypto-ops-on-keys
++++ a/fs/ecryptfs/keystore.c
+@@ -1037,17 +1037,14 @@ static int
+ decrypt_passphrase_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
+ 					 struct ecryptfs_crypt_stat *crypt_stat)
  {
- 	struct proc_dir_entry *entry;
--	viafb_entry =3D proc_mkdir("viafb", NULL);
-+	*viafb_entry =3D proc_mkdir("viafb", NULL);
- 	if (viafb_entry) {
--		entry =3D create_proc_entry("dvp0", 0, viafb_entry);
-+		entry =3D create_proc_entry("dvp0", 0, *viafb_entry);
- 		if (entry) {
- 			entry->owner =3D THIS_MODULE;
- 			entry->read_proc =3D viafb_dvp0_proc_read;
- 			entry->write_proc =3D viafb_dvp0_proc_write;
- 		}
--		entry =3D create_proc_entry("dvp1", 0, viafb_entry);
-+		entry =3D create_proc_entry("dvp1", 0, *viafb_entry);
- 		if (entry) {
- 			entry->owner =3D THIS_MODULE;
- 			entry->read_proc =3D viafb_dvp1_proc_read;
- 			entry->write_proc =3D viafb_dvp1_proc_write;
- 		}
--		entry =3D create_proc_entry("dfph", 0, viafb_entry);
-+		entry =3D create_proc_entry("dfph", 0, *viafb_entry);
- 		if (entry) {
- 			entry->owner =3D THIS_MODULE;
- 			entry->read_proc =3D viafb_dfph_proc_read;
- 			entry->write_proc =3D viafb_dfph_proc_write;
- 		}
--		entry =3D create_proc_entry("dfpl", 0, viafb_entry);
-+		entry =3D create_proc_entry("dfpl", 0, *viafb_entry);
- 		if (entry) {
- 			entry->owner =3D THIS_MODULE;
- 			entry->read_proc =3D viafb_dfpl_proc_read;
-@@ -2068,7 +2068,7 @@ static void viafb_init_proc(struct proc_
- 		if (VT1636_LVDS =3D=3D viaparinfo->chip_info->lvds_chip_info.
- 			lvds_chip_name || VT1636_LVDS =3D=3D
- 		    viaparinfo->chip_info->lvds_chip_info2.lvds_chip_name) {
--			entry =3D create_proc_entry("vt1636", 0, viafb_entry);
-+			entry =3D create_proc_entry("vt1636", 0, *viafb_entry);
- 			if (entry) {
- 				entry->owner =3D THIS_MODULE;
- 				entry->read_proc =3D viafb_vt1636_proc_read;
-@@ -2087,6 +2087,7 @@ static void viafb_remove_proc(struct pro
- 	remove_proc_entry("dfpl", viafb_entry);
- 	remove_proc_entry("vt1636", viafb_entry);
- 	remove_proc_entry("vt1625", viafb_entry);
-+	remove_proc_entry("viafb", NULL);
- }
-=20
- static int __devinit via_pci_probe(void)
-@@ -2348,7 +2349,7 @@ static int __devinit via_pci_probe(void)
- 		  viafbinfo->node, viafbinfo->fix.id, default_var.xres,
- 		  default_var.yres, default_var.bits_per_pixel);
-=20
--	viafb_init_proc(viaparinfo->proc_entry);
-+	viafb_init_proc(&viaparinfo->proc_entry);
- 	viafb_init_dac(IGA2);
- 	return 0;
- }
+-	struct scatterlist dst_sg;
+-	struct scatterlist src_sg;
++	struct scatterlist dst_sg[2];
++	struct scatterlist src_sg[2];
+ 	struct mutex *tfm_mutex;
+ 	struct blkcipher_desc desc = {
+ 		.flags = CRYPTO_TFM_REQ_MAY_SLEEP
+ 	};
+ 	int rc = 0;
+ 
+-	sg_init_table(&dst_sg, 1);
+-	sg_init_table(&src_sg, 1);
+-
+ 	if (unlikely(ecryptfs_verbosity > 0)) {
+ 		ecryptfs_printk(
+ 			KERN_DEBUG, "Session key encryption key (size [%d]):\n",
+@@ -1066,8 +1063,8 @@ decrypt_passphrase_encrypted_session_key
+ 	}
+ 	rc = virt_to_scatterlist(auth_tok->session_key.encrypted_key,
+ 				 auth_tok->session_key.encrypted_key_size,
+-				 &src_sg, 1);
+-	if (rc != 1) {
++				 src_sg, 2);
++	if (rc < 1 || rc > 2) {
+ 		printk(KERN_ERR "Internal error whilst attempting to convert "
+ 			"auth_tok->session_key.encrypted_key to scatterlist; "
+ 			"expected rc = 1; got rc = [%d]. "
+@@ -1079,8 +1076,8 @@ decrypt_passphrase_encrypted_session_key
+ 		auth_tok->session_key.encrypted_key_size;
+ 	rc = virt_to_scatterlist(auth_tok->session_key.decrypted_key,
+ 				 auth_tok->session_key.decrypted_key_size,
+-				 &dst_sg, 1);
+-	if (rc != 1) {
++				 dst_sg, 2);
++	if (rc < 1 || rc > 2) {
+ 		printk(KERN_ERR "Internal error whilst attempting to convert "
+ 			"auth_tok->session_key.decrypted_key to scatterlist; "
+ 			"expected rc = 1; got rc = [%d]\n", rc);
+@@ -1096,7 +1093,7 @@ decrypt_passphrase_encrypted_session_key
+ 		rc = -EINVAL;
+ 		goto out;
+ 	}
+-	rc = crypto_blkcipher_decrypt(&desc, &dst_sg, &src_sg,
++	rc = crypto_blkcipher_decrypt(&desc, dst_sg, src_sg,
+ 				      auth_tok->session_key.encrypted_key_size);
+ 	mutex_unlock(tfm_mutex);
+ 	if (unlikely(rc)) {
+@@ -1539,8 +1536,8 @@ write_tag_3_packet(char *dest, size_t *r
+ 	size_t i;
+ 	size_t encrypted_session_key_valid = 0;
+ 	char session_key_encryption_key[ECRYPTFS_MAX_KEY_BYTES];
+-	struct scatterlist dst_sg;
+-	struct scatterlist src_sg;
++	struct scatterlist dst_sg[2];
++	struct scatterlist src_sg[2];
+ 	struct mutex *tfm_mutex = NULL;
+ 	u8 cipher_code;
+ 	size_t packet_size_length;
+@@ -1619,8 +1616,8 @@ write_tag_3_packet(char *dest, size_t *r
+ 		ecryptfs_dump_hex(session_key_encryption_key, 16);
+ 	}
+ 	rc = virt_to_scatterlist(crypt_stat->key, key_rec->enc_key_size,
+-				 &src_sg, 1);
+-	if (rc != 1) {
++				 src_sg, 2);
++	if (rc < 1 || rc > 2) {
+ 		ecryptfs_printk(KERN_ERR, "Error generating scatterlist "
+ 				"for crypt_stat session key; expected rc = 1; "
+ 				"got rc = [%d]. key_rec->enc_key_size = [%d]\n",
+@@ -1629,8 +1626,8 @@ write_tag_3_packet(char *dest, size_t *r
+ 		goto out;
+ 	}
+ 	rc = virt_to_scatterlist(key_rec->enc_key, key_rec->enc_key_size,
+-				 &dst_sg, 1);
+-	if (rc != 1) {
++				 dst_sg, 2);
++	if (rc < 1 || rc > 2) {
+ 		ecryptfs_printk(KERN_ERR, "Error generating scatterlist "
+ 				"for crypt_stat encrypted session key; "
+ 				"expected rc = 1; got rc = [%d]. "
+@@ -1651,7 +1648,7 @@ write_tag_3_packet(char *dest, size_t *r
+ 	rc = 0;
+ 	ecryptfs_printk(KERN_DEBUG, "Encrypting [%d] bytes of the key\n",
+ 			crypt_stat->key_size);
+-	rc = crypto_blkcipher_encrypt(&desc, &dst_sg, &src_sg,
++	rc = crypto_blkcipher_encrypt(&desc, dst_sg, src_sg,
+ 				      (*key_rec).enc_key_size);
+ 	mutex_unlock(tfm_mutex);
+ 	if (rc) {
 _
 
-Patches currently in -mm which might be from bonbons@linux-vserver.org =
-are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-viafb-fix-crashes-due-to-4k-stack-overflow.patch
+linux-next.patch
+ecryptfs-filename-encryption-tag-70-packets.patch
+ecryptfs-filename-encryption-header-updates.patch
+ecryptfs-filename-encryption-encoding-and-encryption-functions.patch
+ecryptfs-filename-encryption-filldir-lookup-and-readlink.patch
+ecryptfs-filename-encryption-mount-option.patch
+ecryptfs-replace-%z-with-%z.patch
+ecryptfs-fix-data-types-int-size_t.patch
+ecryptfs-kerneldoc-for-ecryptfs_parse_tag_70_packet.patch
+ecryptfs-clean-up-ecryptfs_decode_from_filename.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+notify_change-callers-must-hold-i_mutex.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
