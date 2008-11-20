@@ -1,112 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - spi_imx-full-duplex-dma-corruption-bugfix.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:42:46 -0800
-Message-ID: <200811202042.mAKKgkwo007094@imap1.linux-foundation.org>
+Subject: - kernel-ksysfsc-fix-dependence-on-config_net.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:43:43 -0800
+Message-ID: <200811202043.mAKKhhvQ007668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54526 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755191AbYKTUtt (ORCPT
+	by vger.kernel.org with ESMTP id S1755209AbYKTUuG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:49:49 -0500
+	Thu, 20 Nov 2008 15:50:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.paterniani@swapp-eng.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: tom.leiming@gmail.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_imx: full duplex dma corruption bugfix
+     kernel/ksysfs.c:fix dependence on CONFIG_NET
 has been removed from the -mm tree.  Its filename was
-     spi_imx-full-duplex-dma-corruption-bugfix.patch
+     kernel-ksysfsc-fix-dependence-on-config_net.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_imx: full duplex dma corruption bugfix
-From: Andrea Paterniani <a.paterniani@swapp-eng.it>
+Subject: kernel/ksysfs.c:fix dependence on CONFIG_NET
+From: Ming Lei <tom.leiming@gmail.com>
 
-Fix unsafe order in dma mapping operation: always flush data from the
-cache *BEFORE* invalidating it, to allow full duplex transfers where the
-same buffer may be used for both writes and reads.
+Access to uevent_seqnum and uevent_helper does not need to depend on
+CONFIG_NET, so remove it.
 
-Signed-off-by: Andrea Paterniani <a.paterniani@swapp-eng.it>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_imx.c |   45 +++++++++++++++++++---------------------
- 1 file changed, 22 insertions(+), 23 deletions(-)
+ kernel/ksysfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/spi_imx.c~spi_imx-full-duplex-dma-corruption-bugfix drivers/spi/spi_imx.c
---- a/drivers/spi/spi_imx.c~spi_imx-full-duplex-dma-corruption-bugfix
-+++ a/drivers/spi/spi_imx.c
-@@ -506,20 +506,6 @@ static int map_dma_buffers(struct driver
- 	if (!IS_DMA_ALIGNED(drv_data->rx) || !IS_DMA_ALIGNED(drv_data->tx))
- 		return -1;
+diff -puN kernel/ksysfs.c~kernel-ksysfsc-fix-dependence-on-config_net kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kernel-ksysfsc-fix-dependence-on-config_net
++++ a/kernel/ksysfs.c
+@@ -24,7 +24,7 @@ static struct kobj_attribute _name##_att
+ static struct kobj_attribute _name##_attr = \
+ 	__ATTR(_name, 0644, _name##_show, _name##_store)
  
--	/* NULL rx means write-only transfer and no map needed
--	   since rx DMA will not be used */
--	if (drv_data->rx) {
--		buf = drv_data->rx;
--		drv_data->rx_dma = dma_map_single(
--					dev,
--					buf,
--					drv_data->len,
--					DMA_FROM_DEVICE);
--		if (dma_mapping_error(dev, drv_data->rx_dma))
--			return -1;
--		drv_data->rx_dma_needs_unmap = 1;
--	}
--
- 	if (drv_data->tx == NULL) {
- 		/* Read only message --> use drv_data->dummy_dma_buf for dummy
- 		   writes to achive reads */
-@@ -533,18 +519,31 @@ static int map_dma_buffers(struct driver
- 					buf,
- 					drv_data->tx_map_len,
- 					DMA_TO_DEVICE);
--	if (dma_mapping_error(dev, drv_data->tx_dma)) {
--		if (drv_data->rx_dma) {
--			dma_unmap_single(dev,
--					drv_data->rx_dma,
--					drv_data->len,
--					DMA_FROM_DEVICE);
--			drv_data->rx_dma_needs_unmap = 0;
--		}
-+	if (dma_mapping_error(dev, drv_data->tx_dma))
- 		return -1;
--	}
- 	drv_data->tx_dma_needs_unmap = 1;
+-#if defined(CONFIG_HOTPLUG) && defined(CONFIG_NET)
++#if defined(CONFIG_HOTPLUG)
+ /* current uevent sequence number */
+ static ssize_t uevent_seqnum_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf)
+@@ -137,7 +137,7 @@ struct kobject *kernel_kobj;
+ EXPORT_SYMBOL_GPL(kernel_kobj);
  
-+	/* NULL rx means write-only transfer and no map needed
-+	 * since rx DMA will not be used */
-+	if (drv_data->rx) {
-+		buf = drv_data->rx;
-+		drv_data->rx_dma = dma_map_single(dev,
-+						buf,
-+						drv_data->len,
-+						DMA_FROM_DEVICE);
-+		if (dma_mapping_error(dev, drv_data->rx_dma)) {
-+			if (drv_data->tx_dma) {
-+				dma_unmap_single(dev,
-+						drv_data->tx_dma,
-+						drv_data->tx_map_len,
-+						DMA_TO_DEVICE);
-+				drv_data->tx_dma_needs_unmap = 0;
-+			}
-+			return -1;
-+		}
-+		drv_data->rx_dma_needs_unmap = 1;
-+	}
-+
- 	return 0;
- }
- 
+ static struct attribute * kernel_attrs[] = {
+-#if defined(CONFIG_HOTPLUG) && defined(CONFIG_NET)
++#if defined(CONFIG_HOTPLUG)
+ 	&uevent_seqnum_attr.attr,
+ 	&uevent_helper_attr.attr,
+ #endif
 _
 
-Patches currently in -mm which might be from a.paterniani@swapp-eng.it are
+Patches currently in -mm which might be from tom.leiming@gmail.com are
 
-origin.patch
+linux-next.patch
 
