@@ -1,72 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - cirrusfb-remove-unused-variables.patch removed from -mm tree
-Date: Thu, 20 Nov 2008 12:43:22 -0800
-Message-ID: <200811202043.mAKKhMBK007479@imap1.linux-foundation.org>
+Subject: - w1-omap-fix-omap-ldp-boot-crash.patch removed from -mm tree
+Date: Thu, 20 Nov 2008 12:43:32 -0800
+Message-ID: <200811202043.mAKKhWsR007571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54376 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755412AbYKTUoA (ORCPT
+	by vger.kernel.org with ESMTP id S1755436AbYKTUoJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 15:44:00 -0500
+	Thu, 20 Nov 2008 15:44:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vlada.peric@gmail.com, krzysztof.h1@wp.pl, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: stanley.miao@windriver.com, zbr@ioremap.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: remove unused variables
+     W1 OMAP: Fix OMAP LDP boot crash
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-remove-unused-variables.patch
+     w1-omap-fix-omap-ldp-boot-crash.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: remove unused variables
-=46rom: "Vlada Peric" <vlada.peric@gmail.com>
+Subject: W1 OMAP: Fix OMAP LDP boot crash
+From: "Stanley.Miao" <stanley.miao@windriver.com>
 
-After commit a1d35a7a (cirrusfb: use modedb and add mode_option
-parameter), these variables are no longer used, so remove them to fix
-compilation warning.
+OMAP LDP boot crash.  This is because w1 subsystem changed the search
+interface, so update omap_hdq's search interface to follow the change.
 
-Signed-off-by: Vlada Peri=E6 <vlada.peric@gmail.com>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/w1/masters/omap_hdq.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-remove-unused-variables dri=
-vers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-remove-unused-variables
-+++ a/drivers/video/cirrusfb.c
-@@ -2462,8 +2462,7 @@ static int __init cirrusfb_init(void)
-=20
- #ifndef MODULE
- static int __init cirrusfb_setup(char *options) {
--	char *this_opt, s[32];
--	int i;
-+	char *this_opt;
-=20
- 	DPRINTK("ENTER\n");
-=20
+diff -puN drivers/w1/masters/omap_hdq.c~w1-omap-fix-omap-ldp-boot-crash drivers/w1/masters/omap_hdq.c
+--- a/drivers/w1/masters/omap_hdq.c~w1-omap-fix-omap-ldp-boot-crash
++++ a/drivers/w1/masters/omap_hdq.c
+@@ -86,8 +86,8 @@ static struct platform_driver omap_hdq_d
+ static u8 omap_w1_read_byte(void *_hdq);
+ static void omap_w1_write_byte(void *_hdq, u8 byte);
+ static u8 omap_w1_reset_bus(void *_hdq);
+-static void omap_w1_search_bus(void *_hdq, u8 search_type,
+-	w1_slave_found_callback slave_found);
++static void omap_w1_search_bus(void *_hdq, struct w1_master *master_dev,
++		u8 search_type,	w1_slave_found_callback slave_found);
+ 
+ 
+ static struct w1_bus_master omap_w1_master = {
+@@ -231,8 +231,8 @@ static u8 omap_w1_reset_bus(void *_hdq)
+ }
+ 
+ /* W1 search callback function */
+-static void omap_w1_search_bus(void *_hdq, u8 search_type,
+-	w1_slave_found_callback slave_found)
++static void omap_w1_search_bus(void *_hdq, struct w1_master *master_dev,
++		u8 search_type, w1_slave_found_callback slave_found)
+ {
+ 	u64 module_id, rn_le, cs, id;
+ 
+@@ -249,7 +249,7 @@ static void omap_w1_search_bus(void *_hd
+ 	cs = w1_calc_crc8((u8 *)&rn_le, 7);
+ 	id = (cs << 56) | module_id;
+ 
+-	slave_found(_hdq, id);
++	slave_found(master_dev, id);
+ }
+ 
+ static int _omap_hdq_reset(struct hdq_data *hdq_data)
 _
 
-Patches currently in -mm which might be from vlada.peric@gmail.com are
+Patches currently in -mm which might be from stanley.miao@windriver.com are
 
 origin.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
