@@ -1,122 +1,394 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-swap-cgroup-for-remembering-usage-fix.patch removed from -mm tree
-Date: Fri, 21 Nov 2008 15:15:53 -0800
-Message-ID: <200811212315.mALNFrSj017852@imap1.linux-foundation.org>
+Subject: - memcg-swap-cgroup-for-remembering-usage.patch removed from -mm tree
+Date: Fri, 21 Nov 2008 15:15:49 -0800
+Message-ID: <200811212315.mALNFnnl017845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753804AbYKUXQI (ORCPT
+	by vger.kernel.org with ESMTP id S1752818AbYKUXQD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 18:16:08 -0500
+	Fri, 21 Nov 2008 18:16:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-swap-cgroup-for-remembering-usage-fix
+     memcg: swap cgroup for remembering usage
 has been removed from the -mm tree.  Its filename was
-     memcg-swap-cgroup-for-remembering-usage-fix.patch
+     memcg-swap-cgroup-for-remembering-usage.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-swap-cgroup-for-remembering-usage-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: swap cgroup for remembering usage
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+For accounting swap, we need a record per swap entry, at least.
+
+This patch adds following function.
+  - swap_cgroup_swapon() .... called from swapon
+  - swap_cgroup_swapoff() ... called at the end of swapoff.
+
+  - swap_cgroup_record() .... record information of swap entry.
+  - swap_cgroup_lookup() .... lookup information of swap entry.
+
+This patch just implements "how to record information".  No actual method
+for limit the usage of swap.  These routine uses flat table to record and
+lookup.  "wise" lookup system like radix-tree requires requires memory
+allocation at new records but swap-out is usually called under memory
+shortage (or memcg hits limit.) So, I used static allocation.  (maybe
+dynamic allocation is not very hard but it adds additional memory
+allocation in memory shortage path.)
+
+Note1: In this, we use pointer to record information and this means
+      8bytes per swap entry. I think we can reduce this when we
+      create "id of cgroup" in the range of 0-65535 or 0-255.
+
+Note2: array of swap_cgroup is allocated from HIGHMEM. maybe good for x86-32.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/page_cgroup.h |   35 +++++
+ mm/page_cgroup.c            |  201 ++++++++++++++++++++++++++++++++++
+ mm/swapfile.c               |    8 +
+ 3 files changed, 244 insertions(+)
 
-diff -puN mm/page_cgroup.c~memcg-swap-cgroup-for-remembering-usage-fix mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-swap-cgroup-for-remembering-usage-fix
+diff -puN include/linux/page_cgroup.h~memcg-swap-cgroup-for-remembering-usage include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-swap-cgroup-for-remembering-usage
++++ a/include/linux/page_cgroup.h
+@@ -105,4 +105,39 @@ static inline void page_cgroup_init(void
+ }
+ 
+ #endif
++
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
++#include <linux/swap.h>
++extern struct mem_cgroup *
++swap_cgroup_record(swp_entry_t ent, struct mem_cgroup *mem);
++extern struct mem_cgroup *lookup_swap_cgroup(swp_entry_t ent);
++extern int swap_cgroup_swapon(int type, unsigned long max_pages);
++extern void swap_cgroup_swapoff(int type);
++#else
++#include <linux/swap.h>
++
++static inline
++struct mem_cgroup *swap_cgroup_record(swp_entry_t ent, struct mem_cgroup *mem)
++{
++	return NULL;
++}
++
++static inline
++struct mem_cgroup *lookup_swap_cgroup(swp_entry_t ent)
++{
++	return NULL;
++}
++
++static inline int
++swap_cgroup_swapon(int type, unsigned long max_pages)
++{
++	return 0;
++}
++
++static inline void swap_cgroup_swapoff(int type)
++{
++	return;
++}
++
++#endif
+ #endif
+diff -puN mm/page_cgroup.c~memcg-swap-cgroup-for-remembering-usage mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-swap-cgroup-for-remembering-usage
 +++ a/mm/page_cgroup.c
-@@ -272,7 +272,7 @@ void __init pgdat_page_cgroup_init(struc
+@@ -8,6 +8,8 @@
+ #include <linux/memory.h>
+ #include <linux/vmalloc.h>
+ #include <linux/cgroup.h>
++#include <linux/swapops.h>
++#include <linux/highmem.h>
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ static void __meminit
+ __init_page_cgroup(struct page_cgroup *pc, unsigned long pfn)
+@@ -266,3 +268,202 @@ void __init pgdat_page_cgroup_init(struc
+ }
  
--DEFINE_MUTEX(swap_cgroup_mutex);
-+static DEFINE_MUTEX(swap_cgroup_mutex);
- struct swap_cgroup_ctrl {
- 	spinlock_t lock;
- 	struct page **map;
+ #endif
++
++
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
++
++DEFINE_MUTEX(swap_cgroup_mutex);
++struct swap_cgroup_ctrl {
++	spinlock_t lock;
++	struct page **map;
++	unsigned long length;
++};
++
++struct swap_cgroup_ctrl swap_cgroup_ctrl[MAX_SWAPFILES];
++
++/*
++ * This 8bytes seems big..maybe we can reduce this when we can use "id" for
++ * cgroup rather than pointer.
++ */
++struct swap_cgroup {
++	struct mem_cgroup	*val;
++};
++#define SC_PER_PAGE	(PAGE_SIZE/sizeof(struct swap_cgroup))
++#define SC_POS_MASK	(SC_PER_PAGE - 1)
++
++/*
++ * allocate buffer for swap_cgroup.
++ */
++static int swap_cgroup_prepare(int type)
++{
++	struct page *page;
++	struct swap_cgroup_ctrl *ctrl;
++	unsigned long idx, max;
++
++	if (!do_swap_account)
++		return 0;
++	ctrl = &swap_cgroup_ctrl[type];
++
++	for (idx = 0; idx < ctrl->length; idx++) {
++		page = alloc_page(GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO);
++		if (!page)
++			goto not_enough_page;
++		ctrl->map[idx] = page;
++	}
++	return 0;
++not_enough_page:
++	max = idx;
++	for (idx = 0; idx < max; idx++)
++		__free_page(ctrl->map[idx]);
++
++	return -ENOMEM;
++}
++
++/**
++ * swap_cgroup_record - record mem_cgroup for this swp_entry.
++ * @ent: swap entry to be recorded into
++ * @mem: mem_cgroup to be recorded
++ *
++ * Returns old value at success, NULL at failure.
++ * (Of course, old value can be NULL.)
++ */
++struct mem_cgroup *swap_cgroup_record(swp_entry_t ent, struct mem_cgroup *mem)
++{
++	unsigned long flags;
++	int type = swp_type(ent);
++	unsigned long offset = swp_offset(ent);
++	unsigned long idx = offset / SC_PER_PAGE;
++	unsigned long pos = offset & SC_POS_MASK;
++	struct swap_cgroup_ctrl *ctrl;
++	struct page *mappage;
++	struct swap_cgroup *sc;
++	struct mem_cgroup *old;
++
++	if (!do_swap_account)
++		return NULL;
++
++	ctrl = &swap_cgroup_ctrl[type];
++
++	mappage = ctrl->map[idx];
++	spin_lock_irqsave(&ctrl->lock, flags);
++	sc = kmap_atomic(mappage, KM_USER0);
++	sc += pos;
++	old = sc->val;
++	sc->val = mem;
++	kunmap_atomic(mappage, KM_USER0);
++	spin_unlock_irqrestore(&ctrl->lock, flags);
++	return old;
++}
++
++/**
++ * lookup_swap_cgroup - lookup mem_cgroup tied to swap entry
++ * @ent: swap entry to be looked up.
++ *
++ * Returns pointer to mem_cgroup at success. NULL at failure.
++ */
++struct mem_cgroup *lookup_swap_cgroup(swp_entry_t ent)
++{
++	int type = swp_type(ent);
++	unsigned long flags;
++	unsigned long offset = swp_offset(ent);
++	unsigned long idx = offset / SC_PER_PAGE;
++	unsigned long pos = offset & SC_POS_MASK;
++	struct swap_cgroup_ctrl *ctrl;
++	struct page *mappage;
++	struct swap_cgroup *sc;
++	struct mem_cgroup *ret;
++
++	if (!do_swap_account)
++		return NULL;
++
++	ctrl = &swap_cgroup_ctrl[type];
++
++	mappage = ctrl->map[idx];
++
++	spin_lock_irqsave(&ctrl->lock, flags);
++	sc = kmap_atomic(mappage, KM_USER0);
++	sc += pos;
++	ret = sc->val;
++	kunmap_atomic(mappage, KM_USER0);
++	spin_unlock_irqrestore(&ctrl->lock, flags);
++	return ret;
++}
++
++int swap_cgroup_swapon(int type, unsigned long max_pages)
++{
++	void *array;
++	unsigned long array_size;
++	unsigned long length;
++	struct swap_cgroup_ctrl *ctrl;
++
++	if (!do_swap_account)
++		return 0;
++
++	length = ((max_pages/SC_PER_PAGE) + 1);
++	array_size = length * sizeof(void *);
++
++	array = vmalloc(array_size);
++	if (!array)
++		goto nomem;
++
++	memset(array, 0, array_size);
++	ctrl = &swap_cgroup_ctrl[type];
++	mutex_lock(&swap_cgroup_mutex);
++	ctrl->length = length;
++	ctrl->map = array;
++	if (swap_cgroup_prepare(type)) {
++		/* memory shortage */
++		ctrl->map = NULL;
++		ctrl->length = 0;
++		vfree(array);
++		mutex_unlock(&swap_cgroup_mutex);
++		goto nomem;
++	}
++	mutex_unlock(&swap_cgroup_mutex);
++
++	printk(KERN_INFO
++		"swap_cgroup: uses %ld bytes vmalloc and %ld bytes buffres\n",
++		array_size, length * PAGE_SIZE);
++	printk(KERN_INFO
++	"swap_cgroup can be disabled by noswapaccount boot option.\n");
++
++	return 0;
++nomem:
++	printk(KERN_INFO "couldn't allocate enough memory for swap_cgroup.\n");
++	printk(KERN_INFO
++		"swap_cgroup can be disabled by noswapaccount boot option\n");
++	return -ENOMEM;
++}
++
++void swap_cgroup_swapoff(int type)
++{
++	int i;
++	struct swap_cgroup_ctrl *ctrl;
++
++	if (!do_swap_account)
++		return;
++
++	mutex_lock(&swap_cgroup_mutex);
++	ctrl = &swap_cgroup_ctrl[type];
++	if (ctrl->map) {
++		for (i = 0; i < ctrl->length; i++) {
++			struct page *page = ctrl->map[i];
++			if (page)
++				__free_page(page);
++		}
++		vfree(ctrl->map);
++		ctrl->map = NULL;
++		ctrl->length = 0;
++	}
++	mutex_unlock(&swap_cgroup_mutex);
++}
++
++static int __init swap_cgroup_init(void)
++{
++	int i;
++	for (i = 0; i < MAX_SWAPFILES; i++)
++		spin_lock_init(&swap_cgroup_ctrl[i].lock);
++	return 0;
++}
++late_initcall(swap_cgroup_init);
++#endif
+diff -puN mm/swapfile.c~memcg-swap-cgroup-for-remembering-usage mm/swapfile.c
+--- a/mm/swapfile.c~memcg-swap-cgroup-for-remembering-usage
++++ a/mm/swapfile.c
+@@ -32,6 +32,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/tlbflush.h>
+ #include <linux/swapops.h>
++#include <linux/page_cgroup.h>
+ 
+ static DEFINE_SPINLOCK(swap_lock);
+ static unsigned int nr_swapfiles;
+@@ -1345,6 +1346,9 @@ asmlinkage long sys_swapoff(const char _
+ 	spin_unlock(&swap_lock);
+ 	mutex_unlock(&swapon_mutex);
+ 	vfree(swap_map);
++	/* Destroy swap account informatin */
++	swap_cgroup_swapoff(type);
++
+ 	inode = mapping->host;
+ 	if (S_ISBLK(inode->i_mode)) {
+ 		struct block_device *bdev = I_BDEV(inode);
+@@ -1669,6 +1673,10 @@ asmlinkage long sys_swapon(const char __
+ 		nr_good_pages = swap_header->info.last_page -
+ 				swap_header->info.nr_badpages -
+ 				1 /* header page */;
++
++		if (!error)
++			error = swap_cgroup_swapon(type, maxpages);
++
+ 		if (error)
+ 			goto bad_swap;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
-pci-uninline-pci_ioremap_bar.patch
-pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
-vfs-lseekfd-0-seek_cur-race-condition-fix.patch
-bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-kernel-profilec-fix-section-mismatch-warning-fix.patch
-usb-serial-console-add-device-function-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format-fix.patch
-quota-support-64-bit-quota-format-fix-2.patch
-quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+memcg-memory-hotplug-fix-for-notifier-callback.patch
+vmscan-evict-streaming-io-first.patch
+quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix.patch
+cgroups-make-cgroup-config-a-submenu.patch
+cgroups-documentation-updates.patch
+cgroups-remove-some-redundant-null-checks.patch
+ns_cgroup-remove-unused-spinlock.patch
+memcg-fix-a-typo-in-kconfig.patch
+memcg-introduce-charge-commit-cancel-style-of-functions.patch
 memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-fix-gfp_mask-of-callers-of-charge.patch
+memcg-simple-migration-handling.patch
+memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
+memcg-move-all-acccounts-to-parent-at-rmdir.patch
+memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
+memcg-new-force_empty-to-free-pages-under-group.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
+memcg-memswap-controller-kconfig.patch
+memcg-swap-cgroup-for-remembering-usage.patch
 memcg-swap-cgroup-for-remembering-usage-fix.patch
+memcg-swap-cgroup-for-remembering-usage-fix-4.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-synchronized-lru.patch
+memcg-add-mem_cgroup_disabled.patch
+memcg-add-mem_cgroup_disabled-fix.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
 memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
 memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-w1-add-1-wire-master-driver-for-imx27-imx31-fix.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
+memory-cgroup-hierarchy-feature-selector-v4-fix.patch
 
