@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2008-11-20-17-03 uploaded
-Date: Thu, 20 Nov 2008 17:04:14 -0800
-Message-ID: <200811210104.mAL14EmL023581@imap1.linux-foundation.org>
+Subject: mmotm 2008-11-21-01-50 uploaded
+Date: Fri, 21 Nov 2008 01:53:21 -0800
+Message-ID: <200811210953.mAL9rLrP012218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752927AbYKUBER (ORCPT
+	by vger.kernel.org with ESMTP id S1752799AbYKUJxY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Nov 2008 20:04:17 -0500
+	Fri, 21 Nov 2008 04:53:24 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mAL14EKi020985
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mAL9rL0d019216
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2008 17:04:15 -0800
+	for <mm-commits@vger.kernel.org>; Fri, 21 Nov 2008 01:53:22 -0800
 Received: from localhost.localdomain (localhost [127.0.0.1])
-	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id mAL14EmL023581
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2008 17:04:14 -0800
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id mAL9rLrP012218
+	for <mm-commits@vger.kernel.org>; Fri, 21 Nov 2008 01:53:21 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The mm-of-the-moment snapshot 2008-11-20-17-03 has been uploaded to
+The mm-of-the-moment snapshot 2008-11-21-01-50 has been uploaded to
 
    http://userweb.kernel.org/~akpm/mmotm/
 
@@ -29,6 +29,7 @@ It contains the following patches against 2.6.28-rc5:
 origin.patch
 mm-vmalloc-fix-lazy-unmapping-cache-aliasing.patch
 gendisk-disk-node_id-is-used-uninitialised.patch
+memcg-memory-hotplug-fix-for-notifier-callback.patch
 fs-introduce-bgl_lock_ptr.patch
 viafb-fix-crashes-due-to-4k-stack-overflow.patch
 mm-remove-the-might_sleep-from-lock_page.patch
@@ -36,7 +37,6 @@ repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
 next-remove-localversion.patch
 acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
-acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch
 acpiphp-identify-more-removable-slots.patch
 mm-only-enforce-acpi-resource-conflict-checks.patch
 x86-remove-init_mm-export-as-planned-for-2626.patch
@@ -170,6 +170,7 @@ bdi-register-sysfs-bdi-device-only-once-per-queue.patch
 bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume.patch
+acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch
 bluetooth-dell-wireless-365-requires-reset-quirk.patch
 x86-powernow-k8-ignore-out-of-range-pstatestatus-value.patch
 ansi_cprng-zero-out-key-data-on-exit.patch
@@ -378,7 +379,6 @@ memcg-fix-gfp_mask-of-callers-of-charge.patch
 memcg-simple-migration-handling.patch
 memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
 memcg-move-all-acccounts-to-parent-at-rmdir.patch
-memcg-memory-hotplug-fix-for-notifier-callback.patch
 memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
 memcg-new-force_empty-to-free-pages-under-group.patch
 memcg-handle-swap-caches.patch
