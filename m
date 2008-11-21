@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch added to -mm tree
-Date: Fri, 21 Nov 2008 15:40:29 -0800
-Message-ID: <200811212340.mALNeTq5031004@imap1.linux-foundation.org>
+Subject: + cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch added to -mm tree
+Date: Fri, 21 Nov 2008 15:41:28 -0800
+Message-ID: <200811212341.mALNfS1b031498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57846 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753113AbYKUXky (ORCPT
+	by vger.kernel.org with ESMTP id S1752266AbYKUXlo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 18:40:54 -0500
+	Fri, 21 Nov 2008 18:41:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, men
 
 
 The patch titled
-     memcontrol: rcu_read_lock() to protect mm_match_cgroup()
+     cgroups: call find_css_set() safely in cgroup_attach_task()
 has been added to the -mm tree.  Its filename is
-     memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
+     cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcontrol: rcu_read_lock() to protect mm_match_cgroup()
+Subject: cgroups: call find_css_set() safely in cgroup_attach_task()
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-mm_match_cgroup() calls cgroup_subsys_state().
+In cgroup_attach_task(), tsk maybe exit when we call find_css_set().  and
+find_css_set() will access to invalid css_set.
 
-We must use rcu_read_lock() to protect cgroup_subsys_state().
+This patch increases the count before get_css_set(), and decreases it
+after find_css_set().
+
+NOTE:
+
+css_set's refcount is also taskcount, after this patch applied, taskcount
+may be off-by-one WHEN cgroup_lock() is not held.  but I reviewed other
+code which use taskcount, they are still correct.  No regression found by
+reviewing and simply testing.
+
+So I do not use two counters in css_set.  (one counter for taskcount, the
+other for refcount.  like struct mm_struct) If this fix cause regression,
+we will use two counters in css_set.
 
 Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ kernel/cgroup.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcontrol-rcu_read_lock-to-protect-mm_match_cgroup include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcontrol-rcu_read_lock-to-protect-mm_match_cgroup
-+++ a/include/linux/memcontrol.h
-@@ -61,8 +61,15 @@ int task_in_mem_cgroup(struct task_struc
+diff -puN kernel/cgroup.c~cgroups-call-find_css_set-safely-in-cgroup_attach_task kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-call-find_css_set-safely-in-cgroup_attach_task
++++ a/kernel/cgroup.c
+@@ -1214,7 +1214,7 @@ int cgroup_attach_task(struct cgroup *cg
+ 	int retval = 0;
+ 	struct cgroup_subsys *ss;
+ 	struct cgroup *oldcgrp;
+-	struct css_set *cg = tsk->cgroups;
++	struct css_set *cg;
+ 	struct css_set *newcg;
+ 	struct cgroupfs_root *root = cgrp->root;
+ 	int subsys_id;
+@@ -1234,11 +1234,16 @@ int cgroup_attach_task(struct cgroup *cg
+ 		}
+ 	}
  
- extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
++	task_lock(tsk);
++	cg = tsk->cgroups;
++	get_css_set(cg);
++	task_unlock(tsk);
+ 	/*
+ 	 * Locate or allocate a new css_set for this task,
+ 	 * based on its final set of cgroups
+ 	 */
+ 	newcg = find_css_set(cg, cgrp);
++	put_css_set(cg);
+ 	if (!newcg)
+ 		return -ENOMEM;
  
--#define mm_match_cgroup(mm, cgroup)	\
--	((cgroup) == mem_cgroup_from_task((mm)->owner))
-+static inline
-+int mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *cgroup)
-+{
-+	struct mem_cgroup *mem;
-+	rcu_read_lock();
-+	mem = mem_cgroup_from_task((mm)->owner);
-+	rcu_read_unlock();
-+	return cgroup == mem;
-+}
- 
- extern int
- mem_cgroup_prepare_migration(struct page *page, struct mem_cgroup **ptr);
 _
 
 Patches currently in -mm which might be from laijs@cn.fujitsu.com are
