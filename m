@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add_active_or_unevictable-into-rmap.patch added to -mm tree
-Date: Fri, 21 Nov 2008 12:11:59 -0800
-Message-ID: <200811212012.mALKBxKe017721@imap1.linux-foundation.org>
+Subject: + do_wait-wakeup-optimization.patch added to -mm tree
+Date: Fri, 21 Nov 2008 12:15:22 -0800
+Message-ID: <200811212015.mALKFMs4019558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35917 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752955AbYKUUM7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752843AbYKUUQG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 15:12:59 -0500
+	Fri, 21 Nov 2008 15:16:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, Lee.Schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, riel@redhat.com
+Cc: roland@redhat.com, mingo@elte.hu, oleg@redhat.com, rnalumasu@gmail.com
 
 
 The patch titled
-     mm: add_active_or_unevictable into rmap
+     do_wait() wakeup optimization
 has been added to the -mm tree.  Its filename is
-     mm-add_active_or_unevictable-into-rmap.patch
+     do_wait-wakeup-optimization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,159 +34,181 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add_active_or_unevictable into rmap
-From: Hugh Dickins <hugh@veritas.com>
+Subject: do_wait() wakeup optimization
+From: Roland McGrath <roland@redhat.com>
 
-lru_cache_add_active_or_unevictable() and page_add_new_anon_rmap() always
-appear together.  Save some symbol table space and some jumping around by
-removing lru_cache_add_active_or_unevictable(), folding its code into
-page_add_new_anon_rmap(): like how we add file pages to lru just after
-adding them to page cache.
+Ratan Nalumasu reported that in a process with many threads doing
+unnecessary wakeups.  Every waiting thread in the process wakes up to loop
+through the children and see that the only ones it cares about are still
+not ready.
 
-Remove the nearby "TODO: is this safe?" comments (yes, it is safe), and
-change page_add_new_anon_rmap()'s address BUG_ON to VM_BUG_ON as
-originally intended.
+Change do_wait() to use init_waitqueue_func_entry with a custom wake
+function.  This skips the wakeup for a do_wait() call that is not
+interested in the child that's doing wake_up on wait_chldexit.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Ratan Nalumasu <rnalumasu@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 --
- mm/memory.c          |    6 ------
- mm/rmap.c            |    7 ++++++-
- mm/swap.c            |   19 -------------------
- 4 files changed, 6 insertions(+), 28 deletions(-)
+ kernel/exit.c |   90 +++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 78 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/swap.h~mm-add_active_or_unevictable-into-rmap include/linux/swap.h
---- a/include/linux/swap.h~mm-add_active_or_unevictable-into-rmap
-+++ a/include/linux/swap.h
-@@ -174,8 +174,6 @@ extern unsigned int nr_free_pagecache_pa
- /* linux/mm/swap.c */
- extern void __lru_cache_add(struct page *, enum lru_list lru);
- extern void lru_cache_add_lru(struct page *, enum lru_list lru);
--extern void lru_cache_add_active_or_unevictable(struct page *,
--					struct vm_area_struct *);
- extern void activate_page(struct page *);
- extern void mark_page_accessed(struct page *);
- extern void lru_add_drain(void);
-diff -puN mm/memory.c~mm-add_active_or_unevictable-into-rmap mm/memory.c
---- a/mm/memory.c~mm-add_active_or_unevictable-into-rmap
-+++ a/mm/memory.c
-@@ -1920,10 +1920,7 @@ gotten:
- 		 */
- 		ptep_clear_flush_notify(vma, address, page_table);
- 		SetPageSwapBacked(new_page);
--		lru_cache_add_active_or_unevictable(new_page, vma);
- 		page_add_new_anon_rmap(new_page, vma, address);
--
--//TODO:  is this safe?  do_anonymous_page() does it this way.
- 		set_pte_at(mm, address, page_table, entry);
- 		update_mmu_cache(vma, address, entry);
- 		if (old_page) {
-@@ -2419,7 +2416,6 @@ static int do_anonymous_page(struct mm_s
- 		goto release;
- 	inc_mm_counter(mm, anon_rss);
- 	SetPageSwapBacked(page);
--	lru_cache_add_active_or_unevictable(page, vma);
- 	page_add_new_anon_rmap(page, vma, address);
- 	set_pte_at(mm, address, page_table, entry);
+diff -puN kernel/exit.c~do_wait-wakeup-optimization kernel/exit.c
+--- a/kernel/exit.c~do_wait-wakeup-optimization
++++ a/kernel/exit.c
+@@ -1195,10 +1195,8 @@ static struct pid *task_pid_type(struct 
+ }
  
-@@ -2568,7 +2564,6 @@ static int __do_fault(struct mm_struct *
- 		if (anon) {
- 			inc_mm_counter(mm, anon_rss);
- 			SetPageSwapBacked(page);
--			lru_cache_add_active_or_unevictable(page, vma);
- 			page_add_new_anon_rmap(page, vma, address);
- 		} else {
- 			inc_mm_counter(mm, file_rss);
-@@ -2578,7 +2573,6 @@ static int __do_fault(struct mm_struct *
- 				get_page(dirty_page);
- 			}
- 		}
--//TODO:  is this safe?  do_anonymous_page() does it this way.
- 		set_pte_at(mm, address, page_table, entry);
- 
- 		/* no need to invalidate: a not-present page won't be cached */
-diff -puN mm/rmap.c~mm-add_active_or_unevictable-into-rmap mm/rmap.c
---- a/mm/rmap.c~mm-add_active_or_unevictable-into-rmap
-+++ a/mm/rmap.c
-@@ -47,6 +47,7 @@
- #include <linux/rmap.h>
- #include <linux/rcupdate.h>
- #include <linux/module.h>
-+#include <linux/mm_inline.h>
- #include <linux/kallsyms.h>
- #include <linux/memcontrol.h>
- #include <linux/mmu_notifier.h>
-@@ -671,9 +672,13 @@ void page_add_anon_rmap(struct page *pag
- void page_add_new_anon_rmap(struct page *page,
- 	struct vm_area_struct *vma, unsigned long address)
+ static int eligible_child(enum pid_type type, struct pid *pid, int options,
+-			  struct task_struct *p)
++			  struct task_struct *p, int exit_signal)
  {
--	BUG_ON(address < vma->vm_start || address >= vma->vm_end);
-+	VM_BUG_ON(address < vma->vm_start || address >= vma->vm_end);
- 	atomic_set(&page->_mapcount, 0); /* elevate count by 1 (starts at -1) */
- 	__page_set_anon_rmap(page, vma, address);
-+	if (page_evictable(page, vma))
-+		lru_cache_add_lru(page, LRU_ACTIVE + page_is_file_cache(page));
-+	else
-+		add_page_to_unevictable_list(page);
- }
- 
- /**
-diff -puN mm/swap.c~mm-add_active_or_unevictable-into-rmap mm/swap.c
---- a/mm/swap.c~mm-add_active_or_unevictable-into-rmap
-+++ a/mm/swap.c
-@@ -246,25 +246,6 @@ void add_page_to_unevictable_list(struct
- 	spin_unlock_irq(&zone->lru_lock);
- }
- 
--/**
-- * lru_cache_add_active_or_unevictable
-- * @page:  the page to be added to LRU
-- * @vma:   vma in which page is mapped for determining reclaimability
-- *
-- * place @page on active or unevictable LRU list, depending on
-- * page_evictable().  Note that if the page is not evictable,
-- * it goes directly back onto it's zone's unevictable list.  It does
-- * NOT use a per cpu pagevec.
-- */
--void lru_cache_add_active_or_unevictable(struct page *page,
--					struct vm_area_struct *vma)
--{
--	if (page_evictable(page, vma))
--		lru_cache_add_lru(page, LRU_ACTIVE + page_is_file_cache(page));
--	else
--		add_page_to_unevictable_list(page);
--}
+-	int err;
 -
- /*
-  * Drain pages out of the cpu's pagevecs.
-  * Either "cpu" is the current CPU, and preemption has already been
+ 	if (type < PIDTYPE_MAX) {
+ 		if (task_pid_type(p, type) != pid)
+ 			return 0;
+@@ -1209,14 +1207,10 @@ static int eligible_child(enum pid_type 
+ 	 * set; otherwise, wait for non-clone children *only*.  (Note:
+ 	 * A "clone" child here is one that reports to its parent
+ 	 * using a signal other than SIGCHLD.) */
+-	if (((p->exit_signal != SIGCHLD) ^ ((options & __WCLONE) != 0))
++	if (((exit_signal != SIGCHLD) ^ ((options & __WCLONE) != 0))
+ 	    && !(options & __WALL))
+ 		return 0;
+ 
+-	err = security_task_wait(p);
+-	if (err)
+-		return err;
+-
+ 	return 1;
+ }
+ 
+@@ -1563,10 +1557,11 @@ static int wait_consider_task(struct tas
+ 			      struct siginfo __user *infop,
+ 			      int __user *stat_addr, struct rusage __user *ru)
+ {
+-	int ret = eligible_child(type, pid, options, p);
++	int ret = eligible_child(type, pid, options, p, p->exit_signal);
+ 	if (!ret)
+ 		return ret;
+ 
++	ret = security_task_wait(p);
+ 	if (unlikely(ret < 0)) {
+ 		/*
+ 		 * If we have not yet seen any eligible child,
+@@ -1665,17 +1660,88 @@ static int ptrace_do_wait(struct task_st
+ 	return 0;
+ }
+ 
++/*
++ * This sits on the stack of a thread that is blocked in do_wait().
++ * @wq.private holds the task_struct pointer of that thread.
++ */
++struct do_wait_queue_entry {
++	wait_queue_t wq;
++	struct pid *pid;
++	enum pid_type type;
++	int options;
++};
++
++/*
++ * Here current (@task) is a thread calling do_notify_parent().
++ * Return zero to optimize out the wake-up of a parent thread in
++ * do_wait() that doesn't care about this child.  An extra wake-up
++ * is permissible, but missing one is not.
++ */
++static int needs_wakeup(struct task_struct *task, struct do_wait_queue_entry *w)
++{
++	if ((w->options & __WNOTHREAD) && task->parent != w->wq.private)
++		return 0;
++
++	if (eligible_child(w->type, w->pid, w->options,
++			   task, task->exit_signal))
++		return 1;
++
++	if (thread_group_leader(task)) {
++		/*
++		 * In a group leader, do_notify_parent() may have
++		 * just reset task->exit_signal because SIGCHLD was
++		 * ignored, but that doesn't prevent the wakeup.
++		 */
++		if (!task_detached(task) ||
++		    !eligible_child(w->type, w->pid, w->options,
++				    task, SIGCHLD))
++			return 0;
++	} else {
++		/*
++		 * In a non-leader, this might be the release_task()
++		 * case, where it's the leader rather than task
++		 * whose parent is being woken.
++		 */
++		if (!eligible_child(w->type, w->pid, w->options,
++				    task->group_leader,
++				    task_detached(task->group_leader) ?
++				    SIGCHLD : task->group_leader->exit_signal))
++			return 0;
++	}
++
++	return 1;
++}
++
++static int do_wait_wake_function(wait_queue_t *curr, unsigned mode, int sync,
++				 void *key)
++{
++	struct task_struct *task = current;
++	struct do_wait_queue_entry *w =
++		container_of(curr, struct do_wait_queue_entry, wq);
++
++	if (!needs_wakeup(task, w))
++		return 0;
++
++	return default_wake_function(curr, mode, sync, key);
++}
++
+ static long do_wait(enum pid_type type, struct pid *pid, int options,
+ 		    struct siginfo __user *infop, int __user *stat_addr,
+ 		    struct rusage __user *ru)
+ {
+-	DECLARE_WAITQUEUE(wait, current);
++	struct do_wait_queue_entry wait;
+ 	struct task_struct *tsk;
+ 	int retval;
+ 
+ 	trace_sched_process_wait(pid);
+ 
+-	add_wait_queue(&current->signal->wait_chldexit,&wait);
++	init_waitqueue_func_entry(&wait.wq, do_wait_wake_function);
++	wait.wq.private = current;
++	wait.type = type;
++	wait.pid = pid;
++	wait.options = options;
++
++	add_wait_queue(&current->signal->wait_chldexit, &wait.wq);
+ repeat:
+ 	/*
+ 	 * If there is nothing that can match our critiera just get out.
+@@ -1722,7 +1788,7 @@ repeat:
+ 
+ end:
+ 	current->state = TASK_RUNNING;
+-	remove_wait_queue(&current->signal->wait_chldexit,&wait);
++	remove_wait_queue(&current->signal->wait_chldexit, &wait.wq);
+ 	if (infop) {
+ 		if (retval > 0)
+ 			retval = 0;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
-origin.patch
-linux-next.patch
-mm-dont-mark_page_accessed-in-shmem_fault.patch
-mm-apply_to_range-call-pte-function-with-lazy-updates.patch
-mm-remove-cgroup_mm_owner_callbacks.patch
-mm-remove-aop_writepage_activate.patch
-mm-remove-gfp_highuser_pagecache.patch
-mm-add-setclearpageswapcache-stubs.patch
-mm-replace-some-bug_ons-by-vm_bug_ons.patch
-mm-add_active_or_unevictable-into-rmap.patch
-mm-make-page_lock_anon_vma-static.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-swap-cgroup-for-remembering-usage-fix-2.patch
-memcg-swap-cgroup-for-remembering-usage-fix-3.patch
-memcg-swap-cgroup-for-remembering-usage-fix-4.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-prio_tree-debugging-patch.patch
+posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
+posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
+forkc-cleanup-for-copy_sighand.patch
+do_wait-wakeup-optimization.patch
+signals-protect-sbin-init-from-unwanted-signals-more.patch
+signals-simplify-sig_ignored-pathes.patch
 
