@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch added to -mm tree
-Date: Fri, 21 Nov 2008 15:41:28 -0800
-Message-ID: <200811212341.mALNfS1b031498@imap1.linux-foundation.org>
+Subject: + devcgroup-use-list_for_each_entry_rcu.patch added to -mm tree
+Date: Fri, 21 Nov 2008 15:41:47 -0800
+Message-ID: <200811212341.mALNfllY031611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45836 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752266AbYKUXlo (ORCPT
+	by vger.kernel.org with ESMTP id S1752974AbYKUXmF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 18:41:44 -0500
+	Fri, 21 Nov 2008 18:42:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, men
 
 
 The patch titled
-     cgroups: call find_css_set() safely in cgroup_attach_task()
+     devcgroup: use list_for_each_entry_rcu()
 has been added to the -mm tree.  Its filename is
-     cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
+     devcgroup-use-list_for_each_entry_rcu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,25 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: call find_css_set() safely in cgroup_attach_task()
+Subject: devcgroup: use list_for_each_entry_rcu()
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-In cgroup_attach_task(), tsk maybe exit when we call find_css_set().  and
-find_css_set() will access to invalid css_set.
-
-This patch increases the count before get_css_set(), and decreases it
-after find_css_set().
-
-NOTE:
-
-css_set's refcount is also taskcount, after this patch applied, taskcount
-may be off-by-one WHEN cgroup_lock() is not held.  but I reviewed other
-code which use taskcount, they are still correct.  No regression found by
-reviewing and simply testing.
-
-So I do not use two counters in css_set.  (one counter for taskcount, the
-other for refcount.  like struct mm_struct) If this fix cause regression,
-we will use two counters in css_set.
+We should use list_for_each_entry_rcu in RCU read site.
 
 Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -62,38 +47,21 @@ Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ security/device_cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroups-call-find_css_set-safely-in-cgroup_attach_task kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-call-find_css_set-safely-in-cgroup_attach_task
-+++ a/kernel/cgroup.c
-@@ -1214,7 +1214,7 @@ int cgroup_attach_task(struct cgroup *cg
- 	int retval = 0;
- 	struct cgroup_subsys *ss;
- 	struct cgroup *oldcgrp;
--	struct css_set *cg = tsk->cgroups;
-+	struct css_set *cg;
- 	struct css_set *newcg;
- 	struct cgroupfs_root *root = cgrp->root;
- 	int subsys_id;
-@@ -1234,11 +1234,16 @@ int cgroup_attach_task(struct cgroup *cg
- 		}
- 	}
+diff -puN security/device_cgroup.c~devcgroup-use-list_for_each_entry_rcu security/device_cgroup.c
+--- a/security/device_cgroup.c~devcgroup-use-list_for_each_entry_rcu
++++ a/security/device_cgroup.c
+@@ -517,7 +517,7 @@ int devcgroup_inode_mknod(int mode, dev_
  
-+	task_lock(tsk);
-+	cg = tsk->cgroups;
-+	get_css_set(cg);
-+	task_unlock(tsk);
- 	/*
- 	 * Locate or allocate a new css_set for this task,
- 	 * based on its final set of cgroups
- 	 */
- 	newcg = find_css_set(cg, cgrp);
-+	put_css_set(cg);
- 	if (!newcg)
- 		return -ENOMEM;
+ 	dev_cgroup = task_devcgroup(current);
  
+-	list_for_each_entry(wh, &dev_cgroup->whitelist, list) {
++	list_for_each_entry_rcu(wh, &dev_cgroup->whitelist, list) {
+ 		if (wh->type & DEV_ALL)
+ 			goto acc_check;
+ 		if ((wh->type & DEV_BLOCK) && !S_ISBLK(mode))
 _
 
 Patches currently in -mm which might be from laijs@cn.fujitsu.com are
