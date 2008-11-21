@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + ns_cgroup-remove-unused-spinlock.patch added to -mm tree
-Date: Fri, 21 Nov 2008 15:12:47 -0800
-Message-ID: <200811212312.mALNClF4016227@imap1.linux-foundation.org>
+Subject: + memcg-fix-a-typo-in-kconfig.patch added to -mm tree
+Date: Fri, 21 Nov 2008 15:12:50 -0800
+Message-ID: <200811212312.mALNCo6C016230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51524 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52839 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753335AbYKUXNO (ORCPT
+	by vger.kernel.org with ESMTP id S1753804AbYKUXNO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 21 Nov 2008 18:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mena
 
 
 The patch titled
-     ns_cgroup: remove unused spinlock
+     memcg: fix a typo in Kconfig
 has been added to the -mm tree.  Its filename is
-     ns_cgroup-remove-unused-spinlock.patch
+     memcg-fix-a-typo-in-kconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ns_cgroup: remove unused spinlock
+Subject: memcg: fix a typo in Kconfig
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-I happened to find the spinlock in struct ns_cgroup is never used.
+s/contoller/controller/
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-of-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ns_cgroup.c |    2 --
- 1 file changed, 2 deletions(-)
+ init/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/ns_cgroup.c~ns_cgroup-remove-unused-spinlock kernel/ns_cgroup.c
---- a/kernel/ns_cgroup.c~ns_cgroup-remove-unused-spinlock
-+++ a/kernel/ns_cgroup.c
-@@ -13,7 +13,6 @@
+diff -puN init/Kconfig~memcg-fix-a-typo-in-kconfig init/Kconfig
+--- a/init/Kconfig~memcg-fix-a-typo-in-kconfig
++++ a/init/Kconfig
+@@ -420,7 +420,7 @@ config CGROUP_MEM_RES_CTLR
+ 	  sure you need the memory resource controller. Even when you enable
+ 	  this, you can set "cgroup_disable=memory" at your boot option to
+ 	  disable memory resource controller and you can avoid overheads.
+-	  (and lose benefits of memory resource contoller)
++	  (and lose benefits of memory resource controller)
  
- struct ns_cgroup {
- 	struct cgroup_subsys_state css;
--	spinlock_t lock;
- };
- 
- struct cgroup_subsys ns_subsys;
-@@ -84,7 +83,6 @@ static struct cgroup_subsys_state *ns_cr
- 	ns_cgroup = kzalloc(sizeof(*ns_cgroup), GFP_KERNEL);
- 	if (!ns_cgroup)
- 		return ERR_PTR(-ENOMEM);
--	spin_lock_init(&ns_cgroup->lock);
- 	return &ns_cgroup->css;
- }
- 
+ 	  This config option also selects MM_OWNER config option, which
+ 	  could in turn add some fork/exit overhead.
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
