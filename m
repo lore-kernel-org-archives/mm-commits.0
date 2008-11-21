@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-documentation-updates.patch added to -mm tree
-Date: Fri, 21 Nov 2008 15:12:41 -0800
-Message-ID: <200811212312.mALNCfZS016139@imap1.linux-foundation.org>
+Subject: + ns_cgroup-remove-unused-spinlock.patch added to -mm tree
+Date: Fri, 21 Nov 2008 15:12:47 -0800
+Message-ID: <200811212312.mALNClF4016227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753386AbYKUXNC (ORCPT
+	by vger.kernel.org with ESMTP id S1753335AbYKUXNO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 18:13:02 -0500
+	Fri, 21 Nov 2008 18:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mena
 
 
 The patch titled
-     cgroups: documentation updates
+     ns_cgroup: remove unused spinlock
 has been added to the -mm tree.  Its filename is
-     cgroups-documentation-updates.patch
+     ns_cgroup-remove-unused-spinlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: documentation updates
+Subject: ns_cgroup: remove unused spinlock
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-- remove 'releasable' since it has been moved to the debug subsys.
-- update lock requirements of subsys callbacks.
+I happened to find the spinlock in struct ns_cgroup is never used.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -48,61 +47,28 @@ Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ kernel/ns_cgroup.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroups-documentation-updates Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroups-documentation-updates
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -227,7 +227,6 @@ Each cgroup is represented by a director
- containing the following files describing that cgroup:
+diff -puN kernel/ns_cgroup.c~ns_cgroup-remove-unused-spinlock kernel/ns_cgroup.c
+--- a/kernel/ns_cgroup.c~ns_cgroup-remove-unused-spinlock
++++ a/kernel/ns_cgroup.c
+@@ -13,7 +13,6 @@
  
-  - tasks: list of tasks (by pid) attached to that cgroup
-- - releasable flag: cgroup currently removeable?
-  - notify_on_release flag: run the release agent on exit?
-  - release_agent: the path to use for release notifications (this file
-    exists in the top cgroup only)
-@@ -360,7 +359,7 @@ Now you want to do something with this c
+ struct ns_cgroup {
+ 	struct cgroup_subsys_state css;
+-	spinlock_t lock;
+ };
  
- In this directory you can find several files:
- # ls
--notify_on_release releasable tasks
-+notify_on_release tasks
- (plus whatever files added by the attached subsystems)
+ struct cgroup_subsys ns_subsys;
+@@ -84,7 +83,6 @@ static struct cgroup_subsys_state *ns_cr
+ 	ns_cgroup = kzalloc(sizeof(*ns_cgroup), GFP_KERNEL);
+ 	if (!ns_cgroup)
+ 		return ERR_PTR(-ENOMEM);
+-	spin_lock_init(&ns_cgroup->lock);
+ 	return &ns_cgroup->css;
+ }
  
- Now attach your shell to this cgroup:
-@@ -479,7 +478,6 @@ newly-created cgroup if an error occurs 
- create() method has been called for the new cgroup).
- 
- void pre_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp);
--(cgroup_mutex held by caller)
- 
- Called before checking the reference count on each subsystem. This may
- be useful for subsystems which have some extra references even if
-@@ -498,6 +496,7 @@ remain valid while the caller holds cgro
- 
- void attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
- 	    struct cgroup *old_cgrp, struct task_struct *task)
-+(cgroup_mutex held by caller)
- 
- Called after the task has been attached to the cgroup, to allow any
- post-attachment activity that requires memory allocations or blocking.
-@@ -511,6 +510,7 @@ void exit(struct cgroup_subsys *ss, stru
- Called during task exit.
- 
- int populate(struct cgroup_subsys *ss, struct cgroup *cgrp)
-+(cgroup_mutex held by caller)
- 
- Called after creation of a cgroup to allow a subsystem to populate
- the cgroup directory with file entries.  The subsystem should make
-@@ -520,6 +520,7 @@ method can return an error code, the err
- always handled well.
- 
- void post_clone(struct cgroup_subsys *ss, struct cgroup *cgrp)
-+(cgroup_mutex held by caller)
- 
- Called at the end of cgroup_clone() to do any paramater
- initialization which might be required before a task could attach.  For
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
