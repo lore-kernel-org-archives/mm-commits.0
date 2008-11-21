@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch added to -mm tree
-Date: Fri, 21 Nov 2008 15:37:26 -0800
-Message-ID: <200811212337.mALNbQ6u029314@imap1.linux-foundation.org>
+Subject: + cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch added to -mm tree
+Date: Fri, 21 Nov 2008 15:37:18 -0800
+Message-ID: <200811212337.mALNbIJo029287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752881AbYKUXhm (ORCPT
+	by vger.kernel.org with ESMTP id S1753568AbYKUXhn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 18:37:42 -0500
+	Fri, 21 Nov 2008 18:37:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, men
 
 
 The patch titled
-     cgroups: use task_lock() for access tsk->cgroups safe in cgroup_clone()
+     cgroups: add lock for child->cgroups in cgroup_post_fork()
 has been added to the -mm tree.  Its filename is
-     cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
+     cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: use task_lock() for access tsk->cgroups safe in cgroup_clone()
+Subject: cgroups: add lock for child->cgroups in cgroup_post_fork()
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-Use task_lock() protect tsk->cgroups and get_css_set(tsk->cgroups).
+When cgroup_post_fork() is called, child is seen by find_task_by_vpid(),
+so child->cgroups maybe be changed, It'll incorrect.
+
+child->cgroups<old>'s refcnt is decreased
+child->cgroups<new>'s refcnt is increased
+but child->cg_list is added to child->cgroups<old>'s list.
 
 Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+Reviewed-by: Paul Menage <menage@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -50,25 +55,20 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/cgroup.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN kernel/cgroup.c~cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone
+diff -puN kernel/cgroup.c~cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork
 +++ a/kernel/cgroup.c
-@@ -2906,6 +2906,7 @@ int cgroup_clone(struct task_struct *tsk
- 		mutex_unlock(&cgroup_mutex);
- 		return 0;
+@@ -2792,8 +2792,10 @@ void cgroup_post_fork(struct task_struct
+ {
+ 	if (use_task_css_set_links) {
+ 		write_lock(&css_set_lock);
++		task_lock(child);
+ 		if (list_empty(&child->cg_list))
+ 			list_add(&child->cg_list, &child->cgroups->tasks);
++		task_unlock(child);
+ 		write_unlock(&css_set_lock);
  	}
-+	task_lock(tsk);
- 	cg = tsk->cgroups;
- 	parent = task_cgroup(tsk, subsys->subsys_id);
- 
-@@ -2914,6 +2915,7 @@ int cgroup_clone(struct task_struct *tsk
- 
- 	/* Keep the cgroup alive */
- 	get_css_set(cg);
-+	task_unlock(tsk);
- 	mutex_unlock(&cgroup_mutex);
- 
- 	/* Now do the VFS work to create a cgroup */
+ }
 _
 
 Patches currently in -mm which might be from laijs@cn.fujitsu.com are
