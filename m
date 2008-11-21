@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-cgroup_mm_owner_callbacks.patch added to -mm tree
-Date: Fri, 21 Nov 2008 12:11:44 -0800
-Message-ID: <200811212011.mALKBjgT017553@imap1.linux-foundation.org>
+Subject: + mm-add-setclearpageswapcache-stubs.patch added to -mm tree
+Date: Fri, 21 Nov 2008 12:11:54 -0800
+Message-ID: <200811212011.mALKBskF017644@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752580AbYKUUMB (ORCPT
+	by vger.kernel.org with ESMTP id S1752888AbYKUUMD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 15:12:01 -0500
+	Fri, 21 Nov 2008 15:12:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, balbir@in.ibm.com, menage@google.com
+Cc: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     mm: remove cgroup_mm_owner_callbacks
+     mm: add Set,ClearPageSwapCache stubs
 has been added to the -mm tree.  Its filename is
-     mm-remove-cgroup_mm_owner_callbacks.patch
+     mm-add-setclearpageswapcache-stubs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,169 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove cgroup_mm_owner_callbacks
+Subject: mm: add Set,ClearPageSwapCache stubs
 From: Hugh Dickins <hugh@veritas.com>
 
-cgroup_mm_owner_callbacks() was brought in to support the memrlimit
-controller, but sneaked into mainline ahead of it.  That controller has
-now been shelved, and the mm_owner_changed() args were inadequate for it
-anyway (they needed an mm pointer instead of a task pointer).
-
-Remove the dead code, and restore mm_update_next_owner() locking to how it
-was before: taking mmap_sem there does nothing for memcontrol.c, now the
-only user of mm->owner.
+If we add NOOP stubs for SetPageSwapCache() and ClearPageSwapCache(), then
+we can remove the #ifdef CONFIG_SWAPs from mm/migrate.c.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   14 +-------------
- kernel/cgroup.c        |   33 ---------------------------------
- kernel/exit.c          |   16 ++++++----------
- 3 files changed, 7 insertions(+), 56 deletions(-)
+ include/linux/page-flags.h |    1 +
+ mm/migrate.c               |    4 ----
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/cgroup.h~mm-remove-cgroup_mm_owner_callbacks include/linux/cgroup.h
---- a/include/linux/cgroup.h~mm-remove-cgroup_mm_owner_callbacks
-+++ a/include/linux/cgroup.h
-@@ -329,13 +329,7 @@ struct cgroup_subsys {
- 			struct cgroup *cgrp);
- 	void (*post_clone)(struct cgroup_subsys *ss, struct cgroup *cgrp);
- 	void (*bind)(struct cgroup_subsys *ss, struct cgroup *root);
--	/*
--	 * This routine is called with the task_lock of mm->owner held
--	 */
--	void (*mm_owner_changed)(struct cgroup_subsys *ss,
--					struct cgroup *old,
--					struct cgroup *new,
--					struct task_struct *p);
-+
- 	int subsys_id;
- 	int active;
- 	int disabled;
-@@ -400,9 +394,6 @@ void cgroup_iter_end(struct cgroup *cgrp
- int cgroup_scan_tasks(struct cgroup_scanner *scan);
- int cgroup_attach_task(struct cgroup *, struct task_struct *);
+diff -puN include/linux/page-flags.h~mm-add-setclearpageswapcache-stubs include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-add-setclearpageswapcache-stubs
++++ a/include/linux/page-flags.h
+@@ -230,6 +230,7 @@ PAGEFLAG_FALSE(HighMem)
+ PAGEFLAG(SwapCache, swapcache)
+ #else
+ PAGEFLAG_FALSE(SwapCache)
++	SETPAGEFLAG_NOOP(SwapCache) CLEARPAGEFLAG_NOOP(SwapCache)
+ #endif
  
--void cgroup_mm_owner_callbacks(struct task_struct *old,
--			       struct task_struct *new);
--
- #else /* !CONFIG_CGROUPS */
- 
- static inline int cgroup_init_early(void) { return 0; }
-@@ -420,9 +411,6 @@ static inline int cgroupstats_build(stru
- 	return -EINVAL;
- }
- 
--static inline void cgroup_mm_owner_callbacks(struct task_struct *old,
--					     struct task_struct *new) {}
--
- #endif /* !CONFIG_CGROUPS */
- 
- #endif /* _LINUX_CGROUP_H */
-diff -puN kernel/cgroup.c~mm-remove-cgroup_mm_owner_callbacks kernel/cgroup.c
---- a/kernel/cgroup.c~mm-remove-cgroup_mm_owner_callbacks
-+++ a/kernel/cgroup.c
-@@ -116,7 +116,6 @@ static int root_count;
-  * be called.
-  */
- static int need_forkexit_callback __read_mostly;
--static int need_mm_owner_callback __read_mostly;
- 
- /* convenient tests for these bits */
- inline int cgroup_is_removed(const struct cgroup *cgrp)
-@@ -2539,7 +2538,6 @@ static void __init cgroup_init_subsys(st
- 	init_css_set.subsys[ss->subsys_id] = dummytop->subsys[ss->subsys_id];
- 
- 	need_forkexit_callback |= ss->fork || ss->exit;
--	need_mm_owner_callback |= !!ss->mm_owner_changed;
- 
- 	/* At system boot, before all subsystems have been
- 	 * registered, no tasks have been forked, so we don't
-@@ -2789,37 +2787,6 @@ void cgroup_fork_callbacks(struct task_s
- 	}
- }
- 
--#ifdef CONFIG_MM_OWNER
--/**
-- * cgroup_mm_owner_callbacks - run callbacks when the mm->owner changes
-- * @p: the new owner
-- *
-- * Called on every change to mm->owner. mm_init_owner() does not
-- * invoke this routine, since it assigns the mm->owner the first time
-- * and does not change it.
-- *
-- * The callbacks are invoked with mmap_sem held in read mode.
-- */
--void cgroup_mm_owner_callbacks(struct task_struct *old, struct task_struct *new)
--{
--	struct cgroup *oldcgrp, *newcgrp = NULL;
--
--	if (need_mm_owner_callback) {
--		int i;
--		for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
--			struct cgroup_subsys *ss = subsys[i];
--			oldcgrp = task_cgroup(old, ss->subsys_id);
--			if (new)
--				newcgrp = task_cgroup(new, ss->subsys_id);
--			if (oldcgrp == newcgrp)
--				continue;
--			if (ss->mm_owner_changed)
--				ss->mm_owner_changed(ss, oldcgrp, newcgrp, new);
--		}
--	}
--}
--#endif /* CONFIG_MM_OWNER */
--
- /**
-  * cgroup_post_fork - called on a new task after adding it to the task list
-  * @child: the task in question
-diff -puN kernel/exit.c~mm-remove-cgroup_mm_owner_callbacks kernel/exit.c
---- a/kernel/exit.c~mm-remove-cgroup_mm_owner_callbacks
-+++ a/kernel/exit.c
-@@ -638,35 +638,31 @@ retry:
- 	/*
- 	 * We found no owner yet mm_users > 1: this implies that we are
- 	 * most likely racing with swapoff (try_to_unuse()) or /proc or
--	 * ptrace or page migration (get_task_mm()).  Mark owner as NULL,
--	 * so that subsystems can understand the callback and take action.
-+	 * ptrace or page migration (get_task_mm()).  Mark owner as NULL.
+ #ifdef CONFIG_UNEVICTABLE_LRU
+diff -puN mm/migrate.c~mm-add-setclearpageswapcache-stubs mm/migrate.c
+--- a/mm/migrate.c~mm-add-setclearpageswapcache-stubs
++++ a/mm/migrate.c
+@@ -300,12 +300,10 @@ static int migrate_page_move_mapping(str
+ 	 * Now we know that no one else is looking at the page.
  	 */
--	down_write(&mm->mmap_sem);
--	cgroup_mm_owner_callbacks(mm->owner, NULL);
- 	mm->owner = NULL;
--	up_write(&mm->mmap_sem);
- 	return;
- 
- assign_new_owner:
- 	BUG_ON(c == p);
- 	get_task_struct(c);
--	read_unlock(&tasklist_lock);
--	down_write(&mm->mmap_sem);
- 	/*
- 	 * The task_lock protects c->mm from changing.
- 	 * We always want mm->owner->mm == mm
- 	 */
- 	task_lock(c);
-+	/*
-+	 * Delay read_unlock() till we have the task_lock()
-+	 * to ensure that c does not slip away underneath us
-+	 */
-+	read_unlock(&tasklist_lock);
- 	if (c->mm != mm) {
- 		task_unlock(c);
--		up_write(&mm->mmap_sem);
- 		put_task_struct(c);
- 		goto retry;
+ 	get_page(newpage);	/* add cache reference */
+-#ifdef CONFIG_SWAP
+ 	if (PageSwapCache(page)) {
+ 		SetPageSwapCache(newpage);
+ 		set_page_private(newpage, page_private(page));
  	}
--	cgroup_mm_owner_callbacks(mm->owner, c);
- 	mm->owner = c;
- 	task_unlock(c);
--	up_write(&mm->mmap_sem);
- 	put_task_struct(c);
- }
- #endif /* CONFIG_MM_OWNER */
+-#endif
+ 
+ 	radix_tree_replace_slot(pslot, newpage);
+ 
+@@ -373,9 +371,7 @@ static void migrate_page_copy(struct pag
+ 
+ 	mlock_migrate_page(newpage, page);
+ 
+-#ifdef CONFIG_SWAP
+ 	ClearPageSwapCache(page);
+-#endif
+ 	ClearPagePrivate(page);
+ 	set_page_private(page, 0);
+ 	/* page->mapping contains a flag for PageAnon() */
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
