@@ -1,214 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: + do_wait-wakeup-optimization.patch added to -mm tree
-Date: Fri, 21 Nov 2008 12:15:22 -0800
-Message-ID: <200811212015.mALKFMs4019558@imap1.linux-foundation.org>
+Subject: - rtc-add-alarm-update-irq-interfaces-version-3.patch removed from -mm tree
+Date: Fri, 21 Nov 2008 12:25:01 -0800
+Message-ID: <200811212025.mALKP1FS024694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752843AbYKUUQG (ORCPT
+	by vger.kernel.org with ESMTP id S1753921AbYKUUZo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 15:16:06 -0500
+	Fri, 21 Nov 2008 15:25:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, mingo@elte.hu, oleg@redhat.com, rnalumasu@gmail.com
+To: a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do_wait() wakeup optimization
-has been added to the -mm tree.  Its filename is
-     do_wait-wakeup-optimization.patch
+     rtc: add alarm/update irq interfaces, version 3
+has been removed from the -mm tree.  Its filename was
+     rtc-add-alarm-update-irq-interfaces-version-3.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into rtc-add-alarm-update-irq-interfaces-version-2.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_wait() wakeup optimization
-From: Roland McGrath <roland@redhat.com>
+Subject: rtc: add alarm/update irq interfaces, version 3
+From: Alessandro Zummo <a.zummo@towertech.it>
 
-Ratan Nalumasu reported that in a process with many threads doing
-unnecessary wakeups.  Every waiting thread in the process wakes up to loop
-through the children and see that the only ones it cares about are still
-not ready.
+This patch adds standard interfaces for alarm/update irqs enabling. 
+Drivers are no more required to implement equivalent ioctl code as rtc-dev
+will provide it.
 
-Change do_wait() to use init_waitqueue_func_entry with a custom wake
-function.  This skips the wakeup for a do_wait() call that is not
-interested in the child that's doing wake_up on wait_chldexit.
+UIE emulation should now be handled correctly.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Ratan Nalumasu <rnalumasu@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   90 +++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 78 insertions(+), 12 deletions(-)
+ drivers/rtc/interface.c |    4 ++++
+ drivers/rtc/rtc-dev.c   |   16 +++++++---------
+ include/linux/rtc.h     |    2 ++
+ 3 files changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN kernel/exit.c~do_wait-wakeup-optimization kernel/exit.c
---- a/kernel/exit.c~do_wait-wakeup-optimization
-+++ a/kernel/exit.c
-@@ -1195,10 +1195,8 @@ static struct pid *task_pid_type(struct 
+diff -puN drivers/rtc/interface.c~rtc-add-alarm-update-irq-interfaces-version-3 drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-add-alarm-update-irq-interfaces-version-3
++++ a/drivers/rtc/interface.c
+@@ -334,7 +334,11 @@ int rtc_update_irq_enable(struct rtc_dev
+ 	if (!rtc->ops)
+ 		err = -ENODEV;
+ 	else if (!rtc->ops->update_irq_enable)
++#ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
++		err = rtc_dev_update_irq_enable_emul(rtc, enabled);
++#else
+ 		err = -EINVAL;
++#endif
+ 	else
+ 		err = rtc->ops->update_irq_enable(rtc->dev.parent, enabled);
+ 
+diff -puN drivers/rtc/rtc-dev.c~rtc-add-alarm-update-irq-interfaces-version-3 drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~rtc-add-alarm-update-irq-interfaces-version-3
++++ a/drivers/rtc/rtc-dev.c
+@@ -92,7 +92,7 @@ static void rtc_uie_timer(unsigned long 
+ 	spin_unlock_irqrestore(&rtc->irq_lock, flags);
  }
  
- static int eligible_child(enum pid_type type, struct pid *pid, int options,
--			  struct task_struct *p)
-+			  struct task_struct *p, int exit_signal)
+-static void clear_uie(struct rtc_device *rtc)
++static int clear_uie(struct rtc_device *rtc)
  {
--	int err;
--
- 	if (type < PIDTYPE_MAX) {
- 		if (task_pid_type(p, type) != pid)
- 			return 0;
-@@ -1209,14 +1207,10 @@ static int eligible_child(enum pid_type 
- 	 * set; otherwise, wait for non-clone children *only*.  (Note:
- 	 * A "clone" child here is one that reports to its parent
- 	 * using a signal other than SIGCHLD.) */
--	if (((p->exit_signal != SIGCHLD) ^ ((options & __WCLONE) != 0))
-+	if (((exit_signal != SIGCHLD) ^ ((options & __WCLONE) != 0))
- 	    && !(options & __WALL))
- 		return 0;
- 
--	err = security_task_wait(p);
--	if (err)
--		return err;
--
- 	return 1;
+ 	spin_lock_irq(&rtc->irq_lock);
+ 	if (rtc->irq_active) {
+@@ -111,6 +111,7 @@ static void clear_uie(struct rtc_device 
+ 		rtc->irq_active = 0;
+ 	}
+ 	spin_unlock_irq(&rtc->irq_lock);
++	return 0;
  }
  
-@@ -1563,10 +1557,11 @@ static int wait_consider_task(struct tas
- 			      struct siginfo __user *infop,
- 			      int __user *stat_addr, struct rusage __user *ru)
- {
--	int ret = eligible_child(type, pid, options, p);
-+	int ret = eligible_child(type, pid, options, p, p->exit_signal);
- 	if (!ret)
- 		return ret;
- 
-+	ret = security_task_wait(p);
- 	if (unlikely(ret < 0)) {
- 		/*
- 		 * If we have not yet seen any eligible child,
-@@ -1665,17 +1660,88 @@ static int ptrace_do_wait(struct task_st
+ static int set_uie(struct rtc_device *rtc)
+@@ -135,14 +136,14 @@ static int set_uie(struct rtc_device *rt
  	return 0;
  }
  
-+/*
-+ * This sits on the stack of a thread that is blocked in do_wait().
-+ * @wq.private holds the task_struct pointer of that thread.
-+ */
-+struct do_wait_queue_entry {
-+	wait_queue_t wq;
-+	struct pid *pid;
-+	enum pid_type type;
-+	int options;
-+};
-+
-+/*
-+ * Here current (@task) is a thread calling do_notify_parent().
-+ * Return zero to optimize out the wake-up of a parent thread in
-+ * do_wait() that doesn't care about this child.  An extra wake-up
-+ * is permissible, but missing one is not.
-+ */
-+static int needs_wakeup(struct task_struct *task, struct do_wait_queue_entry *w)
-+{
-+	if ((w->options & __WNOTHREAD) && task->parent != w->wq.private)
-+		return 0;
-+
-+	if (eligible_child(w->type, w->pid, w->options,
-+			   task, task->exit_signal))
-+		return 1;
-+
-+	if (thread_group_leader(task)) {
-+		/*
-+		 * In a group leader, do_notify_parent() may have
-+		 * just reset task->exit_signal because SIGCHLD was
-+		 * ignored, but that doesn't prevent the wakeup.
-+		 */
-+		if (!task_detached(task) ||
-+		    !eligible_child(w->type, w->pid, w->options,
-+				    task, SIGCHLD))
-+			return 0;
-+	} else {
-+		/*
-+		 * In a non-leader, this might be the release_task()
-+		 * case, where it's the leader rather than task
-+		 * whose parent is being woken.
-+		 */
-+		if (!eligible_child(w->type, w->pid, w->options,
-+				    task->group_leader,
-+				    task_detached(task->group_leader) ?
-+				    SIGCHLD : task->group_leader->exit_signal))
-+			return 0;
-+	}
-+
-+	return 1;
-+}
-+
-+static int do_wait_wake_function(wait_queue_t *curr, unsigned mode, int sync,
-+				 void *key)
-+{
-+	struct task_struct *task = current;
-+	struct do_wait_queue_entry *w =
-+		container_of(curr, struct do_wait_queue_entry, wq);
-+
-+	if (!needs_wakeup(task, w))
-+		return 0;
-+
-+	return default_wake_function(curr, mode, sync, key);
-+}
-+
- static long do_wait(enum pid_type type, struct pid *pid, int options,
- 		    struct siginfo __user *infop, int __user *stat_addr,
- 		    struct rusage __user *ru)
+-static int
+-rtc_dev_update_irq_enable_emul(struct rtc_device *rtc, unsigned int enabled)
++int rtc_dev_update_irq_enable_emul(struct rtc_device *rtc, unsigned int enabled)
  {
--	DECLARE_WAITQUEUE(wait, current);
-+	struct do_wait_queue_entry wait;
- 	struct task_struct *tsk;
- 	int retval;
+ 	if (enabled)
+-		set_uie(rtc);
++		return set_uie(rtc);
+ 	else
+-		clear_uie(rtc);
++		return clear_uie(rtc);
+ }
++EXPORT_SYMBOL(rtc_dev_update_irq_enable_emul);
  
- 	trace_sched_process_wait(pid);
+ #endif /* CONFIG_RTC_INTF_DEV_UIE_EMUL */
  
--	add_wait_queue(&current->signal->wait_chldexit,&wait);
-+	init_waitqueue_func_entry(&wait.wq, do_wait_wake_function);
-+	wait.wq.private = current;
-+	wait.type = type;
-+	wait.pid = pid;
-+	wait.options = options;
-+
-+	add_wait_queue(&current->signal->wait_chldexit, &wait.wq);
- repeat:
- 	/*
- 	 * If there is nothing that can match our critiera just get out.
-@@ -1722,7 +1788,7 @@ repeat:
+@@ -460,7 +461,7 @@ static int rtc_dev_release(struct inode 
+ 	 * later, or be used by kernel code, and is a one-shot event anyway.
+ 	 */
  
- end:
- 	current->state = TASK_RUNNING;
--	remove_wait_queue(&current->signal->wait_chldexit,&wait);
-+	remove_wait_queue(&current->signal->wait_chldexit, &wait.wq);
- 	if (infop) {
- 		if (retval > 0)
- 			retval = 0;
+-	/* Keep ioctl all drivers are converted */
++	/* Keep ioctl until all drivers are converted */
+ 	rtc_dev_ioctl(file, RTC_UIE_OFF, 0);
+ 	rtc_update_irq_enable(rtc, 0);
+ 	rtc_irq_set_state(rtc, NULL, 0);
+@@ -500,9 +501,6 @@ void rtc_dev_prepare(struct rtc_device *
+ #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
+ 	INIT_WORK(&rtc->uie_task, rtc_uie_task);
+ 	setup_timer(&rtc->uie_timer, rtc_uie_timer, (unsigned long)rtc);
+-
+-	if (rtc->ops->update_irq_enable == NULL)
+-		rtc->ops->update_irq_enable = rtc_dev_update_irq_enable_emul;
+ #endif
+ 
+ 	cdev_init(&rtc->char_dev, &rtc_dev_fops);
+diff -puN include/linux/rtc.h~rtc-add-alarm-update-irq-interfaces-version-3 include/linux/rtc.h
+--- a/include/linux/rtc.h~rtc-add-alarm-update-irq-interfaces-version-3
++++ a/include/linux/rtc.h
+@@ -220,6 +220,8 @@ extern int rtc_irq_set_freq(struct rtc_d
+ 				struct rtc_task *task, int freq);
+ extern int rtc_update_irq_enable(struct rtc_device *rtc, unsigned int enabled);
+ extern int rtc_alarm_irq_enable(struct rtc_device *rtc, unsigned int enabled);
++extern int rtc_dev_update_irq_enable_emul(struct rtc_device *rtc,
++						unsigned int enabled);
+ 
+ typedef struct rtc_task {
+ 	void (*func)(void *private_data);
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from a.zummo@towertech.it are
 
-posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
-posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
-posix-timers-simplify-de_thread-exit_itimers-path.patch
-forkc-cleanup-for-copy_sighand.patch
-do_wait-wakeup-optimization.patch
-signals-protect-sbin-init-from-unwanted-signals-more.patch
-signals-simplify-sig_ignored-pathes.patch
+origin.patch
+genrtc-disable-genrtc-on-blackfin-systems.patch
+rtc-ds1307-smbus-compatibility.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
+rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
+rtc-driver-for-pxa27x-and-pxa3xx-soc.patch
+rtc-pxa27x-pxa3xx-driver-fixes-revised.patch
+rtc-add-alarm-update-irq-interfaces-version-2.patch
+rtc-add-alarm-update-irq-interfaces-version-3.patch
+rtc-add-alarm-update-irq-interfaces-version-5.patch
+rtc-rtc-ds1390-probe-sequence-and-misc-fixes.patch
+rtc-kconfig-cleanup.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+rtc-rtc-max6902-fixes-v3.patch
+rtc-rtc-ds3234-fixes-v2.patch
 
