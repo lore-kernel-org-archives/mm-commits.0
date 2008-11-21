@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch added to -mm tree
-Date: Fri, 21 Nov 2008 15:37:18 -0800
-Message-ID: <200811212337.mALNbIJo029287@imap1.linux-foundation.org>
+Subject: + cgroups-fix-cgroup_iter_next-bug.patch added to -mm tree
+Date: Fri, 21 Nov 2008 15:37:21 -0800
+Message-ID: <200811212337.mALNbLds029304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753568AbYKUXhn (ORCPT
+	by vger.kernel.org with ESMTP id S1753034AbYKUXhs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 18:37:43 -0500
+	Fri, 21 Nov 2008 18:37:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, men
 
 
 The patch titled
-     cgroups: add lock for child->cgroups in cgroup_post_fork()
+     cgroups: fix cgroup_iter_next() bug
 has been added to the -mm tree.  Its filename is
-     cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
+     cgroups-fix-cgroup_iter_next-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: add lock for child->cgroups in cgroup_post_fork()
+Subject: cgroups: fix cgroup_iter_next() bug
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-When cgroup_post_fork() is called, child is seen by find_task_by_vpid(),
-so child->cgroups maybe be changed, It'll incorrect.
+Ee access res->cgroups without the task_lock(), so res->cgroups may be
+changed.  it's unreliable, and "if (l == &res->cgroups->tasks)" may be
+false forever.
 
-child->cgroups<old>'s refcnt is decreased
-child->cgroups<new>'s refcnt is increased
-but child->cg_list is added to child->cgroups<old>'s list.
+We don't need add any lock for fixing this bug.  we just access to struct
+css_set by struct cg_cgroup_link, not by struct task_struct.
+
+Since we hold css_set_lock, struct cg_cgroup_link is reliable.
 
 Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 Reviewed-by: Paul Menage <menage@google.com>
@@ -52,23 +54,30 @@ Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/cgroup.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork
+diff -puN kernel/cgroup.c~cgroups-fix-cgroup_iter_next-bug kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-fix-cgroup_iter_next-bug
 +++ a/kernel/cgroup.c
-@@ -2792,8 +2792,10 @@ void cgroup_post_fork(struct task_struct
+@@ -1808,6 +1808,7 @@ struct task_struct *cgroup_iter_next(str
  {
- 	if (use_task_css_set_links) {
- 		write_lock(&css_set_lock);
-+		task_lock(child);
- 		if (list_empty(&child->cg_list))
- 			list_add(&child->cg_list, &child->cgroups->tasks);
-+		task_unlock(child);
- 		write_unlock(&css_set_lock);
- 	}
- }
+ 	struct task_struct *res;
+ 	struct list_head *l = it->task;
++	struct cg_cgroup_link *link;
+ 
+ 	/* If the iterator cg is NULL, we have no tasks */
+ 	if (!it->cg_link)
+@@ -1815,7 +1816,8 @@ struct task_struct *cgroup_iter_next(str
+ 	res = list_entry(l, struct task_struct, cg_list);
+ 	/* Advance iterator to find next entry */
+ 	l = l->next;
+-	if (l == &res->cgroups->tasks) {
++	link = list_entry(it->cg_link, struct cg_cgroup_link, cgrp_link_list);
++	if (l == &link->cg->tasks) {
+ 		/* We reached the end of this task list - move on to
+ 		 * the next cg_cgroup_link */
+ 		cgroup_advance_iter(cgrp, it);
 _
 
 Patches currently in -mm which might be from laijs@cn.fujitsu.com are
