@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-page_lock_anon_vma-static.patch added to -mm tree
-Date: Fri, 21 Nov 2008 12:12:02 -0800
-Message-ID: <200811212012.mALKC2kc017746@imap1.linux-foundation.org>
+Subject: + mm-replace-some-bug_ons-by-vm_bug_ons.patch added to -mm tree
+Date: Fri, 21 Nov 2008 12:11:56 -0800
+Message-ID: <200811212011.mALKBvMf017652@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36628 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752955AbYKUUML (ORCPT
+	by vger.kernel.org with ESMTP id S1753837AbYKUUMI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 15:12:11 -0500
+	Fri, 21 Nov 2008 15:12:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com
+Cc: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     mm: make page_lock_anon_vma() static
+     mm: replace some BUG_ONs by VM_BUG_ONs
 has been added to the -mm tree.  Its filename is
-     mm-make-page_lock_anon_vma-static.patch
+     mm-replace-some-bug_ons-by-vm_bug_ons.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make page_lock_anon_vma() static
+Subject: mm: replace some BUG_ONs by VM_BUG_ONs
 From: Hugh Dickins <hugh@veritas.com>
 
-page_lock_anon_vma() and page_unlock_anon_vma() were made available to
-show_page_path() in vmscan.c; but now that has been removed, make them
-static in rmap.c again, they're better kept private if possible.
+The swap code is over-provisioned with BUG_ONs on assorted page flags,
+mostly dating back to 2.3.  They're good documentation, and guard against
+developer error, but a waste of space on most systems: change them to
+VM_BUG_ONs, conditional on CONFIG_DEBUG_VM.  Just delete the PagePrivate
+ones: they're later, from 2.5.69, but even less interesting now.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    3 ---
- mm/rmap.c            |    4 ++--
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ mm/page_io.c    |    4 ++--
+ mm/swap_state.c |   19 +++++++++----------
+ mm/swapfile.c   |    8 +++-----
+ 3 files changed, 14 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-make-page_lock_anon_vma-static include/linux/rmap.h
---- a/include/linux/rmap.h~mm-make-page_lock_anon_vma-static
-+++ a/include/linux/rmap.h
-@@ -63,9 +63,6 @@ void anon_vma_unlink(struct vm_area_stru
- void anon_vma_link(struct vm_area_struct *);
- void __anon_vma_link(struct vm_area_struct *);
+diff -puN mm/page_io.c~mm-replace-some-bug_ons-by-vm_bug_ons mm/page_io.c
+--- a/mm/page_io.c~mm-replace-some-bug_ons-by-vm_bug_ons
++++ a/mm/page_io.c
+@@ -125,8 +125,8 @@ int swap_readpage(struct file *file, str
+ 	struct bio *bio;
+ 	int ret = 0;
  
--extern struct anon_vma *page_lock_anon_vma(struct page *page);
--extern void page_unlock_anon_vma(struct anon_vma *anon_vma);
--
- /*
-  * rmap interfaces called when adding or removing pte of page
-  */
-diff -puN mm/rmap.c~mm-make-page_lock_anon_vma-static mm/rmap.c
---- a/mm/rmap.c~mm-make-page_lock_anon_vma-static
-+++ a/mm/rmap.c
-@@ -193,7 +193,7 @@ void __init anon_vma_init(void)
-  * Getting a lock on a stable anon_vma from a page off the LRU is
-  * tricky: page_lock_anon_vma rely on RCU to guard against the races.
-  */
--struct anon_vma *page_lock_anon_vma(struct page *page)
-+static struct anon_vma *page_lock_anon_vma(struct page *page)
+-	BUG_ON(!PageLocked(page));
+-	BUG_ON(PageUptodate(page));
++	VM_BUG_ON(!PageLocked(page));
++	VM_BUG_ON(PageUptodate(page));
+ 	bio = get_swap_bio(GFP_KERNEL, page_private(page), page,
+ 				end_swap_bio_read);
+ 	if (bio == NULL) {
+diff -puN mm/swap_state.c~mm-replace-some-bug_ons-by-vm_bug_ons mm/swap_state.c
+--- a/mm/swap_state.c~mm-replace-some-bug_ons-by-vm_bug_ons
++++ a/mm/swap_state.c
+@@ -72,10 +72,10 @@ int add_to_swap_cache(struct page *page,
  {
- 	struct anon_vma *anon_vma;
- 	unsigned long anon_mapping;
-@@ -213,7 +213,7 @@ out:
- 	return NULL;
- }
+ 	int error;
  
--void page_unlock_anon_vma(struct anon_vma *anon_vma)
-+static void page_unlock_anon_vma(struct anon_vma *anon_vma)
+-	BUG_ON(!PageLocked(page));
+-	BUG_ON(PageSwapCache(page));
+-	BUG_ON(PagePrivate(page));
+-	BUG_ON(!PageSwapBacked(page));
++	VM_BUG_ON(!PageLocked(page));
++	VM_BUG_ON(PageSwapCache(page));
++	VM_BUG_ON(!PageSwapBacked(page));
++
+ 	error = radix_tree_preload(gfp_mask);
+ 	if (!error) {
+ 		page_cache_get(page);
+@@ -108,10 +108,9 @@ int add_to_swap_cache(struct page *page,
+  */
+ void __delete_from_swap_cache(struct page *page)
  {
- 	spin_unlock(&anon_vma->lock);
- 	rcu_read_unlock();
+-	BUG_ON(!PageLocked(page));
+-	BUG_ON(!PageSwapCache(page));
+-	BUG_ON(PageWriteback(page));
+-	BUG_ON(PagePrivate(page));
++	VM_BUG_ON(!PageLocked(page));
++	VM_BUG_ON(!PageSwapCache(page));
++	VM_BUG_ON(PageWriteback(page));
+ 
+ 	radix_tree_delete(&swapper_space.page_tree, page_private(page));
+ 	set_page_private(page, 0);
+@@ -134,8 +133,8 @@ int add_to_swap(struct page * page, gfp_
+ 	swp_entry_t entry;
+ 	int err;
+ 
+-	BUG_ON(!PageLocked(page));
+-	BUG_ON(!PageUptodate(page));
++	VM_BUG_ON(!PageLocked(page));
++	VM_BUG_ON(!PageUptodate(page));
+ 
+ 	for (;;) {
+ 		entry = get_swap_page();
+diff -puN mm/swapfile.c~mm-replace-some-bug_ons-by-vm_bug_ons mm/swapfile.c
+--- a/mm/swapfile.c~mm-replace-some-bug_ons-by-vm_bug_ons
++++ a/mm/swapfile.c
+@@ -333,7 +333,7 @@ int can_share_swap_page(struct page *pag
+ {
+ 	int count;
+ 
+-	BUG_ON(!PageLocked(page));
++	VM_BUG_ON(!PageLocked(page));
+ 	count = page_mapcount(page);
+ 	if (count <= 1 && PageSwapCache(page))
+ 		count += page_swapcount(page);
+@@ -350,8 +350,7 @@ static int remove_exclusive_swap_page_co
+ 	struct swap_info_struct * p;
+ 	swp_entry_t entry;
+ 
+-	BUG_ON(PagePrivate(page));
+-	BUG_ON(!PageLocked(page));
++	VM_BUG_ON(!PageLocked(page));
+ 
+ 	if (!PageSwapCache(page))
+ 		return 0;
+@@ -432,7 +431,6 @@ void free_swap_and_cache(swp_entry_t ent
+ 	if (page) {
+ 		int one_user;
+ 
+-		BUG_ON(PagePrivate(page));
+ 		one_user = (page_count(page) == 2);
+ 		/* Only cache user (+us), or swap space full? Free it! */
+ 		/* Also recheck PageSwapCache after page is locked (above) */
+@@ -1209,7 +1207,7 @@ int page_queue_congested(struct page *pa
+ {
+ 	struct backing_dev_info *bdi;
+ 
+-	BUG_ON(!PageLocked(page));	/* It pins the swap_info_struct */
++	VM_BUG_ON(!PageLocked(page));	/* It pins the swap_info_struct */
+ 
+ 	if (PageSwapCache(page)) {
+ 		swp_entry_t entry = { .val = page_private(page) };
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
