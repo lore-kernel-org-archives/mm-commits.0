@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-remove-some-redundant-null-checks.patch added to -mm tree
-Date: Fri, 21 Nov 2008 15:12:44 -0800
-Message-ID: <200811212312.mALNCixH016146@imap1.linux-foundation.org>
+Subject: + cgroups-documentation-updates.patch added to -mm tree
+Date: Fri, 21 Nov 2008 15:12:41 -0800
+Message-ID: <200811212312.mALNCfZS016139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36591 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752361AbYKUXNA (ORCPT
+	by vger.kernel.org with ESMTP id S1753386AbYKUXNC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 18:13:00 -0500
+	Fri, 21 Nov 2008 18:13:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mena
 
 
 The patch titled
-     cgroups: remove some redundant NULL checks
+     cgroups: documentation updates
 has been added to the -mm tree.  Its filename is
-     cgroups-remove-some-redundant-null-checks.patch
+     cgroups-documentation-updates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,21 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: remove some redundant NULL checks
+Subject: cgroups: documentation updates
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-- In cgroup_clone(), if vfs_mkdir() returns successfully,
-  dentry->d_fsdata will be the pointer to the newly created
-  cgroup and won't be NULL.
-
-- a cgroup file's dentry->d_fsdata won't be NULL, guaranteed
-  by cgroup_add_file().
-
-- When walking through the subsystems of a cgroup_fs (using
-  for_each_subsys), cgrp->subsys[ss->subsys_id] won't be NULL,
-  guaranteed by cgroup_create().
-
-(Also remove 2 unused variables in cgroup_rmdir().
+- remove 'releasable' since it has been moved to the debug subsys.
+- update lock requirements of subsys callbacks.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -58,105 +48,61 @@ Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   29 +++++++----------------------
- 1 file changed, 7 insertions(+), 22 deletions(-)
+ Documentation/cgroups/cgroups.txt |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-remove-some-redundant-null-checks kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-remove-some-redundant-null-checks
-+++ a/kernel/cgroup.c
-@@ -587,7 +587,7 @@ static void cgroup_call_pre_destroy(stru
- {
- 	struct cgroup_subsys *ss;
- 	for_each_subsys(cgrp->root, ss)
--		if (ss->pre_destroy && cgrp->subsys[ss->subsys_id])
-+		if (ss->pre_destroy)
- 			ss->pre_destroy(ss, cgrp);
- 	return;
- }
-@@ -611,10 +611,8 @@ static void cgroup_diput(struct dentry *
- 		/*
- 		 * Release the subsystem state objects.
- 		 */
--		for_each_subsys(cgrp->root, ss) {
--			if (cgrp->subsys[ss->subsys_id])
--				ss->destroy(ss, cgrp);
--		}
-+		for_each_subsys(cgrp->root, ss)
-+			ss->destroy(ss, cgrp);
+diff -puN Documentation/cgroups/cgroups.txt~cgroups-documentation-updates Documentation/cgroups/cgroups.txt
+--- a/Documentation/cgroups/cgroups.txt~cgroups-documentation-updates
++++ a/Documentation/cgroups/cgroups.txt
+@@ -227,7 +227,6 @@ Each cgroup is represented by a director
+ containing the following files describing that cgroup:
  
- 		cgrp->root->number_of_cgroups--;
- 		mutex_unlock(&cgroup_mutex);
-@@ -1445,7 +1443,7 @@ static ssize_t cgroup_file_write(struct 
- 	struct cftype *cft = __d_cft(file->f_dentry);
- 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
+  - tasks: list of tasks (by pid) attached to that cgroup
+- - releasable flag: cgroup currently removeable?
+  - notify_on_release flag: run the release agent on exit?
+  - release_agent: the path to use for release notifications (this file
+    exists in the top cgroup only)
+@@ -360,7 +359,7 @@ Now you want to do something with this c
  
--	if (!cft || cgroup_is_removed(cgrp))
-+	if (cgroup_is_removed(cgrp))
- 		return -ENODEV;
- 	if (cft->write)
- 		return cft->write(cgrp, cft, file, buf, nbytes, ppos);
-@@ -1490,7 +1488,7 @@ static ssize_t cgroup_file_read(struct f
- 	struct cftype *cft = __d_cft(file->f_dentry);
- 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
+ In this directory you can find several files:
+ # ls
+-notify_on_release releasable tasks
++notify_on_release tasks
+ (plus whatever files added by the attached subsystems)
  
--	if (!cft || cgroup_is_removed(cgrp))
-+	if (cgroup_is_removed(cgrp))
- 		return -ENODEV;
+ Now attach your shell to this cgroup:
+@@ -479,7 +478,6 @@ newly-created cgroup if an error occurs 
+ create() method has been called for the new cgroup).
  
- 	if (cft->read)
-@@ -1554,10 +1552,8 @@ static int cgroup_file_open(struct inode
- 	err = generic_file_open(inode, file);
- 	if (err)
- 		return err;
--
- 	cft = __d_cft(file->f_dentry);
--	if (!cft)
--		return -ENODEV;
-+
- 	if (cft->read_map || cft->read_seq_string) {
- 		struct cgroup_seqfile_state *state =
- 			kzalloc(sizeof(*state), GFP_USER);
-@@ -2463,8 +2459,6 @@ static int cgroup_rmdir(struct inode *un
- 	struct cgroup *cgrp = dentry->d_fsdata;
- 	struct dentry *d;
- 	struct cgroup *parent;
--	struct super_block *sb;
--	struct cgroupfs_root *root;
+ void pre_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp);
+-(cgroup_mutex held by caller)
  
- 	/* the vfs holds both inode->i_mutex already */
+ Called before checking the reference count on each subsystem. This may
+ be useful for subsystems which have some extra references even if
+@@ -498,6 +496,7 @@ remain valid while the caller holds cgro
  
-@@ -2487,8 +2481,6 @@ static int cgroup_rmdir(struct inode *un
+ void attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
+ 	    struct cgroup *old_cgrp, struct task_struct *task)
++(cgroup_mutex held by caller)
  
- 	mutex_lock(&cgroup_mutex);
- 	parent = cgrp->parent;
--	root = cgrp->root;
--	sb = root->sb;
+ Called after the task has been attached to the cgroup, to allow any
+ post-attachment activity that requires memory allocations or blocking.
+@@ -511,6 +510,7 @@ void exit(struct cgroup_subsys *ss, stru
+ Called during task exit.
  
- 	if (atomic_read(&cgrp->count)
- 	    || !list_empty(&cgrp->children)
-@@ -2936,7 +2928,7 @@ int cgroup_clone(struct task_struct *tsk
- 	}
+ int populate(struct cgroup_subsys *ss, struct cgroup *cgrp)
++(cgroup_mutex held by caller)
  
- 	/* Create the cgroup directory, which also creates the cgroup */
--	ret = vfs_mkdir(inode, dentry, S_IFDIR | 0755);
-+	ret = vfs_mkdir(inode, dentry, 0755);
- 	child = __d_cgrp(dentry);
- 	dput(dentry);
- 	if (ret) {
-@@ -2946,13 +2938,6 @@ int cgroup_clone(struct task_struct *tsk
- 		goto out_release;
- 	}
+ Called after creation of a cgroup to allow a subsystem to populate
+ the cgroup directory with file entries.  The subsystem should make
+@@ -520,6 +520,7 @@ method can return an error code, the err
+ always handled well.
  
--	if (!child) {
--		printk(KERN_INFO
--		       "Couldn't find new cgroup %s\n", nodename);
--		ret = -ENOMEM;
--		goto out_release;
--	}
--
- 	/* The cgroup now exists. Retake cgroup_mutex and check
- 	 * that we're still in the same state that we thought we
- 	 * were. */
+ void post_clone(struct cgroup_subsys *ss, struct cgroup *cgrp)
++(cgroup_mutex held by caller)
+ 
+ Called at the end of cgroup_clone() to do any paramater
+ initialization which might be required before a task could attach.  For
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
