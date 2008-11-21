@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mips-make-bug-__noreturn.patch added to -mm tree
-Date: Fri, 21 Nov 2008 15:01:04 -0800
-Message-ID: <200811212301.mALN14qD009984@imap1.linux-foundation.org>
+Subject: + acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch added to -mm tree
+Date: Fri, 21 Nov 2008 15:08:43 -0800
+Message-ID: <200811212308.mALN8hN8014000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753379AbYKUXBo (ORCPT
+	by vger.kernel.org with ESMTP id S1757201AbYKUXIx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 18:01:44 -0500
+	Fri, 21 Nov 2008 18:08:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ddaney@caviumnetworks.com, ralf@linux-mips.org
+Cc: youquan.song@intel.com, lenb@kernel.org, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     mips: make BUG() __noreturn
+     acpi: check _PSS invalidation when BIOS report _PSS with 0x80000000
 has been added to the -mm tree.  Its filename is
-     mips-make-bug-__noreturn.patch
+     acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: make BUG() __noreturn
-From: David Daney <ddaney@caviumnetworks.com>
+Subject: acpi: check _PSS invalidation when BIOS report _PSS with 0x80000000
+From: youquan_song@linux.intel.com
 
-Often we do things like put BUG() in the default clause of a case
-statement.  Since it was not declared __noreturn, this could sometimes
-lead to bogus compiler warnings that variables were used uninitialized.
+When cpu frequencey scaling is disabled, some BIOSes report _PSS with all
+0x80000000.  If the kernel treats this case as valid, the kernel will boot
+crash when load cpufreq govenors.
 
-There is a small problem in that we have to put a magic while(1); loop to
-fool GCC into really thinking it is noreturn.  This makes the new BUG()
-function 3 instructions long instead of just 1, but I think it is worth it
-as it is now unnecessary to do extra work to silence the 'used
-uninitialized' warnings.
+So in order to cover more buggy BIOSs, the patch just check _PSS core
+frequency invalidation.
 
-I also re-wrote BUG_ON so that if it is given a constant condition, it
-just does BUG() instead of loading a constant value in to a register and
-testing it.
-
-Signed-off-by: David Daney <ddaney@caviumnetworks.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Youquan, Song <youquan.song@intel.com>
+Signed-off-by: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/bug.h |   29 ++++++++++++++++++++---------
- 1 file changed, 20 insertions(+), 9 deletions(-)
+ drivers/acpi/processor_perflib.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN arch/mips/include/asm/bug.h~mips-make-bug-__noreturn arch/mips/include/asm/bug.h
---- a/arch/mips/include/asm/bug.h~mips-make-bug-__noreturn
-+++ a/arch/mips/include/asm/bug.h
-@@ -7,20 +7,31 @@
+diff -puN drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000 drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000
++++ a/drivers/acpi/processor_perflib.c
+@@ -50,6 +50,7 @@
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
++#define ACPI_PROCESSOR_PSS_INVALID	0x80000000
+ ACPI_MODULE_NAME("processor_perflib");
  
- #include <asm/break.h>
- 
--#define BUG()								\
--do {									\
--	__asm__ __volatile__("break %0" : : "i" (BRK_BUG));		\
--} while (0)
-+static inline void __noreturn BUG(void)
-+{
-+	__asm__ __volatile__("break %0" : : "i" (BRK_BUG));
-+	/* Fool GCC into thinking the function doesn't return. */
-+	while (1)
-+		;
-+}
- 
- #define HAVE_ARCH_BUG
- 
- #if (_MIPS_ISA > _MIPS_ISA_MIPS1)
- 
--#define BUG_ON(condition)						\
--do {									\
--	__asm__ __volatile__("tne $0, %0, %1"				\
--			     : : "r" (condition), "i" (BRK_BUG));	\
--} while (0)
-+static inline void  __BUG_ON(unsigned long condition)
-+{
-+	if (__builtin_constant_p(condition)) {
-+		if (condition)
-+			BUG();
-+		else
-+			return;
-+	}
-+	__asm__ __volatile__("tne $0, %0, %1"
-+			     : : "r" (condition), "i" (BRK_BUG));
-+}
+ static DEFINE_MUTEX(performance_mutex);
+@@ -324,6 +325,14 @@ static int acpi_processor_get_performanc
+ 			kfree(pr->performance->states);
+ 			goto end;
+ 		}
 +
-+#define BUG_ON(C) __BUG_ON((unsigned long)(C))
++		if (px->core_frequency == ACPI_PROCESSOR_PSS_INVALID) {
++			printk(KERN_ERR PREFIX
++				    "P-states disabled in the BIOS\n");
++			result = -EFAULT;
++			kfree(pr->performance->states);
++			goto end;
++		}
+ 	}
  
- #define HAVE_ARCH_BUG_ON
- 
+       end:
 _
 
-Patches currently in -mm which might be from ddaney@caviumnetworks.com are
+Patches currently in -mm which might be from youquan.song@intel.com are
 
-mips-make-bug-__noreturn.patch
+acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch
 
