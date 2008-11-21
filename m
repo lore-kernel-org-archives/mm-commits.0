@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + loop-add-ioctl-to-resize-a-loop-device.patch added to -mm tree
-Date: Fri, 21 Nov 2008 12:40:51 -0800
-Message-ID: <200811212040.mALKep8u000660__28818.9820167192$1227300171$gmane$org@imap1.linux-foundation.org>
+Subject: + mips-implement-save_stack_trace_tsk.patch added to -mm tree
+Date: Fri, 21 Nov 2008 12:41:50 -0800
+Message-ID: <200811212041.mALKforH001138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43278 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48748 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751926AbYKUUl0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752623AbYKUUmB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 15:41:26 -0500
+	Fri, 21 Nov 2008 15:42:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hooanon05@yahoo.co.jp, akinobu.mita@gmail.com, hch@lst.de, jens.axboe@oracle.com, kzak@redhat.com, linux-api@vger.kernel.org, tomas@slax.org, util-linux-ng@vger.kernel.org, viro@zeniv.linux.org.uk
+Cc: adobriyan@gmail.com, ralf@linux-mips.org
 
 
 The patch titled
-     loop: add ioctl to resize a loop device
+     mips: implement save_stack_trace_tsk()
 has been added to the -mm tree.  Its filename is
-     loop-add-ioctl-to-resize-a-loop-device.patch
+     mips-implement-save_stack_trace_tsk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,290 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: loop: add ioctl to resize a loop device
-From: J. R. Okajima <hooanon05@yahoo.co.jp>
+Subject: mips: implement save_stack_trace_tsk()
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Add the ability to 'resize' the loop device on the fly.
+fs/built-in.o(.text.proc_pid_stack+0xc8): In function `proc_pid_stack':
+: undefined reference to `save_stack_trace_tsk'
 
-One practical application is a loop file with XFS filesystem, already
-mounted: You can easily enlarge the file (append some bytes) and then call
-ioctl(fd, LOOP_SET_CAPACITY, new); The loop driver will learn about the
-new size and you can use xfs_growfs later on, which will allow you to use
-full capacity of the loop file without the need to unmount.
+Partially revert ab1b6f03a10ba1f5638188ab06bf46e33ac3a160 aka "simplify
+the stacktrace code" for /proc/*/stack et al.
 
-Test app:
-
-----------------------------------------------------------------------
-/*
- * Copyright (C) 2005-2008 Junjiro Okajima
- *
- * This program, aufs is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
-
-/*
- * $Id: logrow.c,v 1.1 2008/11/17 01:59:40 sfjro Exp $
- */
-
-#include <linux/fs.h>
-#include <linux/loop.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#define _GNU_SOURCE
-#include <getopt.h>
-
-char *me;
-
-void usage(FILE *f)
-{
-	fprintf(f, "%s [options] loop_dev [backend_file]\n"
-		"-s, --set new_size_in_bytes\n"
-		"\twhen backend_file is given, "
-		"it will be expanded too while keeping the original contents\n",
-		me);
-}
-
-struct option opts[] = {
-	{
-		.name		= "set",
-		.has_arg	= 1,
-		.flag		= NULL,
-		.val		= 's'
-	},
-	{
-		.name		= "help",
-		.has_arg	= 0,
-		.flag		= NULL,
-		.val		= 'h'
-	}
-};
-
-void err_size(char *name, __u64 old)
-{
-	fprintf(stderr, "size must be larger than current %s (%llu)\n",
-		name, old);
-}
-
-int main(int argc, char *argv[])
-{
-	int fd, err, c, i, bfd;
-	ssize_t ssz;
-	size_t sz;
-	__u64 old, new, append;
-	char a[BUFSIZ];
-	struct stat st;
-	FILE *out;
-	char *backend, *dev;
-
-	err = EINVAL;
-	out = stderr;
-	me = argv[0];
-	new = 0;
-	while ((c = getopt_long(argc, argv, "s:h", opts, &i)) != -1) {
-		switch (c) {
-		case 's':
-			errno = 0;
-			new = strtoull(optarg, NULL, 0);
-			if (errno) {
-				err = errno;
-				perror(argv[i]);
-				goto out;
-			}
-			break;
-
-		case 'h':
-			err = 0;
-			out = stdout;
-			goto err;
-
-		default:
-			perror(argv[i]);
-			goto err;
-		}
-	}
-
-	if (optind < argc)
-		dev = argv[optind++];
-	else
-		goto err;
-
-	fd = open(dev, O_RDONLY);
-	if (fd < 0) {
-		err = errno;
-		perror(dev);
-		goto out;
-	}
-
-	err = ioctl(fd, BLKGETSIZE64, &old);
-	if (err) {
-		err = errno;
-		perror("ioctl BLKGETSIZE64");
-		goto out;
-	}
-
-	if (!new) {
-		printf("%llu\n", old);
-		goto out;
-	}
-
-	if (new < old) {
-		err = EINVAL;
-		err_size(dev, old);
-		goto out;
-	}
-
-	if (optind < argc) {
-		backend = argv[optind++];
-		bfd = open(backend, O_WRONLY|O_APPEND);
-		if (bfd < 0) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-		err = fstat(bfd, &st);
-		if (err) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-		if (new < st.st_size) {
-			err = EINVAL;
-			err_size(backend, st.st_size);
-			goto out;
-		}
-		append = new - st.st_size;
-		sz = sizeof(a);
-		while (append > 0) {
-			if (append < sz)
-				sz = append;
-			ssz = write(bfd, a, sz);
-			if (ssz != sz) {
-				err = errno;
-				perror(backend);
-				goto out;
-			}
-			append -= sz;
-		}
-		err = fsync(bfd);
-		if (err) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-	}
-
-	err = ioctl(fd, LOOP_SET_CAPACITY, new);
-	if (err) {
-		err = errno;
-		perror("ioctl LOOP_SET_CAPACITY");
-	}
-	goto out;
-
- err:
-	usage(out);
- out:
-	return err;
-}
-
-Signed-off-by: J. R. Okajima <hooanon05@yahoo.co.jp>
-Signed-off-by: Tomas Matejicek <tomas@slax.org>
-Cc: <util-linux-ng@vger.kernel.org>
-Cc: Karel Zak <kzak@redhat.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: <linux-api@vger.kernel.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   26 ++++++++++++++++++++++++++
- include/linux/loop.h |    1 +
- 2 files changed, 27 insertions(+)
+ arch/mips/kernel/stacktrace.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device drivers/block/loop.c
---- a/drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device
-+++ a/drivers/block/loop.c
-@@ -1139,6 +1139,28 @@ loop_get_status64(struct loop_device *lo
- 	return err;
+diff -puN arch/mips/kernel/stacktrace.c~mips-implement-save_stack_trace_tsk arch/mips/kernel/stacktrace.c
+--- a/arch/mips/kernel/stacktrace.c~mips-implement-save_stack_trace_tsk
++++ a/arch/mips/kernel/stacktrace.c
+@@ -32,7 +32,8 @@ static void save_raw_context_stack(struc
+ 	}
  }
  
-+static int loop_set_capacity(struct loop_device *lo, struct block_device *bdev)
-+{
-+	int err;
-+	sector_t sec;
-+	loff_t sz;
-+
-+	err = -ENXIO;
-+	if (unlikely(lo->lo_state != Lo_bound))
-+		goto out;
-+	err = figure_loop_size(lo);
-+	if (unlikely(err))
-+		goto out;
-+	sec = get_capacity(lo->lo_disk);
-+	sz = sec << 9;
-+	mutex_lock(&bdev->bd_mutex);
-+	bd_set_size(bdev, sz);
-+	mutex_unlock(&bdev->bd_mutex);
-+
-+ out:
-+	return err;
-+}
-+
- static int lo_ioctl(struct block_device *bdev, fmode_t mode,
- 	unsigned int cmd, unsigned long arg)
+-static void save_context_stack(struct stack_trace *trace, struct pt_regs *regs)
++static void save_context_stack(struct stack_trace *trace,
++	struct task_struct *tsk, struct pt_regs *regs)
  {
-@@ -1168,6 +1190,9 @@ static int lo_ioctl(struct block_device 
- 	case LOOP_GET_STATUS64:
- 		err = loop_get_status64(lo, (struct loop_info64 __user *) arg);
- 		break;
-+	case LOOP_SET_CAPACITY:
-+		err = loop_set_capacity(lo, bdev);
-+		break;
- 	default:
- 		err = lo->ioctl ? lo->ioctl(lo, cmd, arg) : -EINVAL;
- 	}
-@@ -1313,6 +1338,7 @@ static int lo_compat_ioctl(struct block_
- 			lo, (struct compat_loop_info __user *) arg);
- 		mutex_unlock(&lo->lo_ctl_mutex);
- 		break;
-+	case LOOP_SET_CAPACITY:
- 	case LOOP_CLR_FD:
- 	case LOOP_GET_STATUS64:
- 	case LOOP_SET_STATUS64:
-diff -puN include/linux/loop.h~loop-add-ioctl-to-resize-a-loop-device include/linux/loop.h
---- a/include/linux/loop.h~loop-add-ioctl-to-resize-a-loop-device
-+++ a/include/linux/loop.h
-@@ -160,5 +160,6 @@ int loop_unregister_transfer(int number)
- #define LOOP_SET_STATUS64	0x4C04
- #define LOOP_GET_STATUS64	0x4C05
- #define LOOP_CHANGE_FD		0x4C06
-+#define LOOP_SET_CAPACITY	0x4C07
+ 	unsigned long sp = regs->regs[29];
+ #ifdef CONFIG_KALLSYMS
+@@ -41,7 +42,7 @@ static void save_context_stack(struct st
  
- #endif
+ 	if (raw_show_trace || !__kernel_text_address(pc)) {
+ 		unsigned long stack_page =
+-			(unsigned long)task_stack_page(current);
++			(unsigned long)task_stack_page(tsk);
+ 		if (stack_page && sp >= stack_page &&
+ 		    sp <= stack_page + THREAD_SIZE - 32)
+ 			save_raw_context_stack(trace, sp);
+@@ -54,7 +55,7 @@ static void save_context_stack(struct st
+ 			trace->entries[trace->nr_entries++] = pc;
+ 		if (trace->nr_entries >= trace->max_entries)
+ 			break;
+-		pc = unwind_stack(current, &sp, pc, &ra);
++		pc = unwind_stack(tsk, &sp, pc, &ra);
+ 	} while (pc);
+ #else
+ 	save_raw_context_stack(trace, sp);
+@@ -66,12 +67,23 @@ static void save_context_stack(struct st
+  */
+ void save_stack_trace(struct stack_trace *trace)
+ {
++	save_stack_trace_tsk(current, trace);
++}
++EXPORT_SYMBOL_GPL(save_stack_trace);
++
++void save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)
++{
+ 	struct pt_regs dummyregs;
+ 	struct pt_regs *regs = &dummyregs;
+ 
+ 	WARN_ON(trace->nr_entries || !trace->max_entries);
+ 
+-	prepare_frametrace(regs);
+-	save_context_stack(trace, regs);
++	if (tsk != current) {
++		regs->regs[29] = tsk->thread.reg29;
++		regs->regs[31] = 0;
++		regs->cp0_epc = tsk->thread.reg31;
++	} else
++		prepare_frametrace(regs);
++	save_context_stack(trace, tsk, regs);
+ }
+-EXPORT_SYMBOL_GPL(save_stack_trace);
++EXPORT_SYMBOL_GPL(save_stack_trace_tsk);
 _
 
-Patches currently in -mm which might be from hooanon05@yahoo.co.jp are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-nfsd-fix-vm-overcommit-crash-fix-2.patch
-loop-add-ioctl-to-resize-a-loop-device.patch
+origin.patch
+linux-next.patch
+tags-skip-in-filenames.patch
+kconfig-add-module_name-shortcut.patch
+tags-link-from-config_x-to-config-x-as-well.patch
+mips-implement-save_stack_trace_tsk.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+vfs-fix-switch_names-breakage-in-short-to-short-case.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+remove-remaining-unwinder-code.patch
+ipc-ipc_sysctlc-move-the-definition-of-ipc_auto_callback.patch
+profile-likely-unlikely-macros.patch
 
