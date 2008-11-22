@@ -1,136 +1,756 @@
 From: akpm@linux-foundation.org
-Subject: + i2o-remove-extraneous-kernel-doc.patch added to -mm tree
-Date: Fri, 21 Nov 2008 16:38:19 -0800
-Message-ID: <200811220038.mAM0cJ6e029091@imap1.linux-foundation.org>
+Subject: - hp-accelerometer-split-chip-handling-from-hp-acpi-interface.patch removed from -mm tree
+Date: Fri, 21 Nov 2008 16:58:16 -0800
+Message-ID: <200811220058.mAM0wGqD007405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58615 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753669AbYKVAiZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755472AbYKVA6i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 19:38:25 -0500
+	Fri, 21 Nov 2008 19:58:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+To: pavel@suse.cz, eric.piel@tremplin-utc.net, hmh@hmh.eng.br, rpurdie@rpsys.net, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2o: remove extraneous kernel-doc
-has been added to the -mm tree.  Its filename is
-     i2o-remove-extraneous-kernel-doc.patch
+     HP accelerometer: split chip handling from HP ACPI interface
+has been removed from the -mm tree.  Its filename was
+     hp-accelerometer-split-chip-handling-from-hp-acpi-interface.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2o: remove extraneous kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: HP accelerometer: split chip handling from HP ACPI interface
+From: Pavel Machek <pavel@suse.cz>
 
-Remove excess kernel-doc function parameter notation from i2o/.
+This patch splits handling between chip-specific lis3lv02d and HP/ACPI
+specific hp_accel.c.
 
-Warning(drivers/message/i2o/iop.c:64): Excess function parameter 'msg' description in 'i2o_msg_get_wait'
-Warning(drivers/message/i2o/device.c:62): Excess function parameter 'drv' description in 'i2o_device_claim'
-Warning(drivers/message/i2o/device.c:95): Excess function parameter 'drv' description in 'i2o_device_claim_release'
-Warning(drivers/message/i2o/driver.c:186): Excess function parameter 'msg' description in 'i2o_driver_dispatch'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/device.c |    2 --
- drivers/message/i2o/driver.c |    1 -
- drivers/message/i2o/iop.c    |    1 -
- 3 files changed, 4 deletions(-)
+ drivers/hwmon/Makefile    |    2 
+ drivers/hwmon/hp_accel.c  |  301 ++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/lis3lv02d.c |  246 +----------------------------
+ drivers/hwmon/lis3lv02d.h |   33 +++
+ 4 files changed, 346 insertions(+), 236 deletions(-)
 
-diff -puN drivers/message/i2o/device.c~i2o-remove-extraneous-kernel-doc drivers/message/i2o/device.c
---- a/drivers/message/i2o/device.c~i2o-remove-extraneous-kernel-doc
-+++ a/drivers/message/i2o/device.c
-@@ -52,7 +52,6 @@ static inline int i2o_device_issue_claim
- /**
-  *	i2o_device_claim - claim a device for use by an OSM
-  *	@dev: I2O device to claim
-- *	@drv: I2O driver which wants to claim the device
+diff -puN drivers/hwmon/Makefile~hp-accelerometer-split-chip-handling-from-hp-acpi-interface drivers/hwmon/Makefile
+--- a/drivers/hwmon/Makefile~hp-accelerometer-split-chip-handling-from-hp-acpi-interface
++++ a/drivers/hwmon/Makefile
+@@ -49,7 +49,7 @@ obj-$(CONFIG_SENSORS_IBMAEM)	+= ibmaem.o
+ obj-$(CONFIG_SENSORS_IBMPEX)	+= ibmpex.o
+ obj-$(CONFIG_SENSORS_IT87)	+= it87.o
+ obj-$(CONFIG_SENSORS_K8TEMP)	+= k8temp.o
+-obj-$(CONFIG_SENSORS_LIS3LV02D) += lis3lv02d.o
++obj-$(CONFIG_SENSORS_LIS3LV02D) += lis3lv02d.o hp_accel.o
+ obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
+ obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
+ obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
+diff -puN /dev/null drivers/hwmon/hp_accel.c
+--- /dev/null
++++ a/drivers/hwmon/hp_accel.c
+@@ -0,0 +1,301 @@
++/*
++ *  hp_accel.c - Interface between LIS3LV02DL driver and HP ACPI BIOS
++ *
++ *  Copyright (C) 2007-2008 Yan Burman
++ *  Copyright (C) 2008 Eric Piel
++ *  Copyright (C) 2008 Pavel Machek
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/dmi.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/input.h>
++#include <linux/kthread.h>
++#include <linux/semaphore.h>
++#include <linux/delay.h>
++#include <linux/wait.h>
++#include <linux/poll.h>
++#include <linux/freezer.h>
++#include <linux/version.h>
++#include <linux/uaccess.h>
++#include <linux/leds.h>
++#include <acpi/acpi_drivers.h>
++#include <asm/atomic.h>
++#include "lis3lv02d.h"
++
++#define DRIVER_NAME     "lis3lv02d"
++#define ACPI_MDPS_CLASS "accelerometer"
++
++
++/* For automatic insertion of the module */
++static struct acpi_device_id lis3lv02d_device_ids[] = {
++	{"HPQ0004", 0}, /* HP Mobile Data Protection System PNP */
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, lis3lv02d_device_ids);
++
++
++/**
++ * lis3lv02d_acpi_init - ACPI _INI method: initialize the device.
++ * @handle: the handle of the device
++ *
++ * Returns AE_OK on success.
++ */
++acpi_status lis3lv02d_acpi_init(acpi_handle handle)
++{
++	return acpi_evaluate_object(handle, METHOD_NAME__INI, NULL, NULL);
++}
++
++/**
++ * lis3lv02d_acpi_read - ACPI ALRD method: read a register
++ * @handle: the handle of the device
++ * @reg:    the register to read
++ * @ret:    result of the operation
++ *
++ * Returns AE_OK on success.
++ */
++acpi_status lis3lv02d_acpi_read(acpi_handle handle, int reg, u8 *ret)
++{
++	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
++	struct acpi_object_list args = { 1, &arg0 };
++	unsigned long long lret;
++	acpi_status status;
++
++	arg0.integer.value = reg;
++
++	status = acpi_evaluate_integer(handle, "ALRD", &args, &lret);
++	*ret = lret;
++	return status;
++}
++
++/**
++ * lis3lv02d_acpi_write - ACPI ALWR method: write to a register
++ * @handle: the handle of the device
++ * @reg:    the register to write to
++ * @val:    the value to write
++ *
++ * Returns AE_OK on success.
++ */
++acpi_status lis3lv02d_acpi_write(acpi_handle handle, int reg, u8 val)
++{
++	unsigned long long ret; /* Not used when writting */
++	union acpi_object in_obj[2];
++	struct acpi_object_list args = { 2, in_obj };
++
++	in_obj[0].type          = ACPI_TYPE_INTEGER;
++	in_obj[0].integer.value = reg;
++	in_obj[1].type          = ACPI_TYPE_INTEGER;
++	in_obj[1].integer.value = val;
++
++	return acpi_evaluate_integer(handle, "ALWR", &args, &ret);
++}
++
++static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
++{
++	adev.ac = *((struct axis_conversion *)dmi->driver_data);
++	printk(KERN_INFO DRIVER_NAME ": hardware type %s found.\n", dmi->ident);
++
++	return 1;
++}
++
++/* Represents, for each axis seen by userspace, the corresponding hw axis (+1).
++ * If the value is negative, the opposite of the hw value is used. */
++static struct axis_conversion lis3lv02d_axis_normal = {1, 2, 3};
++static struct axis_conversion lis3lv02d_axis_y_inverted = {1, -2, 3};
++static struct axis_conversion lis3lv02d_axis_x_inverted = {-1, 2, 3};
++static struct axis_conversion lis3lv02d_axis_z_inverted = {1, 2, -3};
++static struct axis_conversion lis3lv02d_axis_xy_rotated_left = {-2, 1, 3};
++static struct axis_conversion lis3lv02d_axis_xy_swap_inverted = {-2, -1, 3};
++
++#define AXIS_DMI_MATCH(_ident, _name, _axis) {		\
++	.ident = _ident,				\
++	.callback = lis3lv02d_dmi_matched,		\
++	.matches = {					\
++		DMI_MATCH(DMI_PRODUCT_NAME, _name)	\
++	},						\
++	.driver_data = &lis3lv02d_axis_##_axis		\
++}
++static struct dmi_system_id lis3lv02d_dmi_ids[] = {
++	/* product names are truncated to match all kinds of a same model */
++	AXIS_DMI_MATCH("NC64x0", "HP Compaq nc64", x_inverted),
++	AXIS_DMI_MATCH("NC84x0", "HP Compaq nc84", z_inverted),
++	AXIS_DMI_MATCH("NX9420", "HP Compaq nx9420", x_inverted),
++	AXIS_DMI_MATCH("NW9440", "HP Compaq nw9440", x_inverted),
++	AXIS_DMI_MATCH("NC2510", "HP Compaq 2510", y_inverted),
++	AXIS_DMI_MATCH("NC8510", "HP Compaq 8510", xy_swap_inverted),
++	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
++	{ NULL, }
++/* Laptop models without axis info (yet):
++ * "NC651xx" "HP Compaq 651"
++ * "NC671xx" "HP Compaq 671"
++ * "NC6910" "HP Compaq 6910"
++ * HP Compaq 8710x Notebook PC / Mobile Workstation
++ * "NC2400" "HP Compaq nc2400"
++ * "NX74x0" "HP Compaq nx74"
++ * "NX6325" "HP Compaq nx6325"
++ * "NC4400" "HP Compaq nc4400"
++ */
++};
++
++
++static acpi_status hpled_acpi_write(acpi_handle handle, int reg)
++{
++	unsigned long long ret; /* Not used when writing */
++	union acpi_object in_obj[1];
++	struct acpi_object_list args = { 1, in_obj };
++
++	in_obj[0].type          = ACPI_TYPE_INTEGER;
++	in_obj[0].integer.value = reg;
++
++	return acpi_evaluate_integer(handle, "ALED", &args, &ret);
++}
++
++static void hpled_set(struct led_classdev *led_cdev,
++			       enum led_brightness value)
++{
++	hpled_acpi_write(adev.device->handle, !!value);
++}
++
++static struct led_classdev hpled_led = {
++	.name			= "hp:red:hddprotection",
++	.default_trigger	= "heartbeat",
++	.brightness_set		= hpled_set,
++};
++
++static int lis3lv02d_add(struct acpi_device *device)
++{
++	u8 val;
++	int ret;
++
++	if (!device)
++		return -EINVAL;
++
++	adev.device = device;
++	strcpy(acpi_device_name(device), DRIVER_NAME);
++	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
++	device->driver_data = &adev;
++
++	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &val);
++	if ((val != LIS3LV02DL_ID) && (val != LIS302DL_ID)) {
++		printk(KERN_ERR DRIVER_NAME
++				": Accelerometer chip not LIS3LV02D{L,Q}\n");
++	}
++
++	/* If possible use a "standard" axes order */
++	if (dmi_check_system(lis3lv02d_dmi_ids) == 0) {
++		printk(KERN_INFO DRIVER_NAME ": laptop model unknown, "
++				 "using default axes configuration\n");
++		adev.ac = lis3lv02d_axis_normal;
++	}
++
++	ret = led_classdev_register(NULL, &hpled_led);
++	if (ret)
++		return ret;
++
++	ret = lis3lv02d_init_device(&adev);
++	if (ret) {
++		led_classdev_unregister(&hpled_led);
++		return ret;
++	}
++
++	return ret;
++}
++
++static int lis3lv02d_remove(struct acpi_device *device, int type)
++{
++	if (!device)
++		return -EINVAL;
++
++	lis3lv02d_joystick_disable();
++	lis3lv02d_poweroff(device->handle);
++
++	led_classdev_unregister(&hpled_led);
++
++	return lis3lv02d_remove_fs();
++}
++
++
++#ifdef CONFIG_PM
++static int lis3lv02d_suspend(struct acpi_device *device, pm_message_t state)
++{
++	/* make sure the device is off when we suspend */
++	lis3lv02d_poweroff(device->handle);
++	led_classdev_suspend(&hpled_led);
++	return 0;
++}
++
++static int lis3lv02d_resume(struct acpi_device *device)
++{
++	/* put back the device in the right state (ACPI might turn it on) */
++	mutex_lock(&adev.lock);
++	if (adev.usage > 0)
++		lis3lv02d_poweron(device->handle);
++	else
++		lis3lv02d_poweroff(device->handle);
++	mutex_unlock(&adev.lock);
++	led_classdev_resume(&hpled_led);
++	return 0;
++}
++#else
++#define lis3lv02d_suspend NULL
++#define lis3lv02d_resume NULL
++#endif
++
++/* For the HP MDPS aka 3D Driveguard */
++static struct acpi_driver lis3lv02d_driver = {
++	.name  = DRIVER_NAME,
++	.class = ACPI_MDPS_CLASS,
++	.ids   = lis3lv02d_device_ids,
++	.ops = {
++		.add     = lis3lv02d_add,
++		.remove  = lis3lv02d_remove,
++		.suspend = lis3lv02d_suspend,
++		.resume  = lis3lv02d_resume,
++	}
++};
++
++static int __init lis3lv02d_init_module(void)
++{
++	int ret;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	ret = acpi_bus_register_driver(&lis3lv02d_driver);
++	if (ret < 0)
++		return ret;
++
++	printk(KERN_INFO DRIVER_NAME " driver loaded.\n");
++
++	return 0;
++}
++
++static void __exit lis3lv02d_exit_module(void)
++{
++	acpi_bus_unregister_driver(&lis3lv02d_driver);
++}
++
++MODULE_DESCRIPTION("Glue between LIS3LV02Dx and HP ACPI BIOS");
++MODULE_AUTHOR("Yan Burman, Eric Piel, Pavel Machek");
++MODULE_LICENSE("GPL");
++
++module_init(lis3lv02d_init_module);
++module_exit(lis3lv02d_exit_module);
+diff -puN drivers/hwmon/lis3lv02d.c~hp-accelerometer-split-chip-handling-from-hp-acpi-interface drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~hp-accelerometer-split-chip-handling-from-hp-acpi-interface
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -3,6 +3,7 @@
   *
-  *	Do the leg work to assign a device to a given OSM. If the claim succeeds,
-  *	the owner is the primary. If the attempt fails a negative errno code
-@@ -80,7 +79,6 @@ int i2o_device_claim(struct i2o_device *
- /**
-  *	i2o_device_claim_release - release a device that the OSM is using
-  *	@dev: device to release
-- *	@drv: driver which claimed the device
+  *  Copyright (C) 2007-2008 Yan Burman
+  *  Copyright (C) 2008 Eric Piel
++ *  Copyright (C) 2008 Pavel Machek
   *
-  *	Drop a claim by an OSM on a given I2O device.
-  *
-diff -puN drivers/message/i2o/driver.c~i2o-remove-extraneous-kernel-doc drivers/message/i2o/driver.c
---- a/drivers/message/i2o/driver.c~i2o-remove-extraneous-kernel-doc
-+++ a/drivers/message/i2o/driver.c
-@@ -173,7 +173,6 @@ void i2o_driver_unregister(struct i2o_dr
-  *	i2o_driver_dispatch - dispatch an I2O reply message
-  *	@c: I2O controller of the message
-  *	@m: I2O message number
-- *	@msg: I2O message to be delivered
-  *
-  *	The reply is delivered to the driver from which the original message
-  *	was. This function is only called from interrupt context.
-diff -puN drivers/message/i2o/iop.c~i2o-remove-extraneous-kernel-doc drivers/message/i2o/iop.c
---- a/drivers/message/i2o/iop.c~i2o-remove-extraneous-kernel-doc
-+++ a/drivers/message/i2o/iop.c
-@@ -49,7 +49,6 @@ static int i2o_hrt_get(struct i2o_contro
- /**
-  *	i2o_msg_get_wait - obtain an I2O message from the IOP
-  *	@c: I2O controller
-- *	@msg: pointer to a I2O message pointer
-  *	@wait: how long to wait until timeout
-  *
-  *	This function waits up to wait seconds for a message slot to be
+  *  This program is free software; you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License as published by
+@@ -41,6 +42,7 @@
+ #define DRIVER_NAME     "lis3lv02d"
+ #define ACPI_MDPS_CLASS "accelerometer"
+ 
++
+ /* joystick device poll interval in milliseconds */
+ #define MDPS_POLL_INTERVAL 50
+ /*
+@@ -55,94 +57,12 @@
+ /* Maximum value our axis may get for the input device (signed 12 bits) */
+ #define MDPS_MAX_VAL 2048
+ 
+-struct axis_conversion {
+-	s8	x;
+-	s8	y;
+-	s8	z;
+-};
+ 
+-struct acpi_lis3lv02d {
+-	struct acpi_device	*device;   /* The ACPI device */
+-	struct input_dev	*idev;     /* input device */
+-	struct task_struct	*kthread;  /* kthread for input */
+-	struct mutex            lock;
+-	struct platform_device	*pdev;     /* platform device */
+-	atomic_t		count;     /* interrupt count after last read */
+-	int			xcalib;    /* calibrated null value for x */
+-	int			ycalib;    /* calibrated null value for y */
+-	int			zcalib;    /* calibrated null value for z */
+-	unsigned char		is_on;     /* whether the device is on or off */
+-	unsigned char		usage;     /* usage counter */
+-	struct axis_conversion	ac;        /* hw -> logical axis */
+-};
+ 
+-static struct acpi_lis3lv02d adev;
++struct acpi_lis3lv02d adev;
+ 
+-static int lis3lv02d_remove_fs(void);
+ static int lis3lv02d_add_fs(struct acpi_device *device);
+ 
+-/* For automatic insertion of the module */
+-static struct acpi_device_id lis3lv02d_device_ids[] = {
+-	{"HPQ0004", 0}, /* HP Mobile Data Protection System PNP */
+-	{"", 0},
+-};
+-MODULE_DEVICE_TABLE(acpi, lis3lv02d_device_ids);
+-
+-/**
+- * lis3lv02d_acpi_init - ACPI _INI method: initialize the device.
+- * @handle: the handle of the device
+- *
+- * Returns AE_OK on success.
+- */
+-static inline acpi_status lis3lv02d_acpi_init(acpi_handle handle)
+-{
+-	return acpi_evaluate_object(handle, METHOD_NAME__INI, NULL, NULL);
+-}
+-
+-/**
+- * lis3lv02d_acpi_read - ACPI ALRD method: read a register
+- * @handle: the handle of the device
+- * @reg:    the register to read
+- * @ret:    result of the operation
+- *
+- * Returns AE_OK on success.
+- */
+-static acpi_status lis3lv02d_acpi_read(acpi_handle handle, int reg, u8 *ret)
+-{
+-	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+-	struct acpi_object_list args = { 1, &arg0 };
+-	unsigned long long lret;
+-	acpi_status status;
+-
+-	arg0.integer.value = reg;
+-
+-	status = acpi_evaluate_integer(handle, "ALRD", &args, &lret);
+-	*ret = lret;
+-	return status;
+-}
+-
+-/**
+- * lis3lv02d_acpi_write - ACPI ALWR method: write to a register
+- * @handle: the handle of the device
+- * @reg:    the register to write to
+- * @val:    the value to write
+- *
+- * Returns AE_OK on success.
+- */
+-static acpi_status lis3lv02d_acpi_write(acpi_handle handle, int reg, u8 val)
+-{
+-	unsigned long long ret; /* Not used when writting */
+-	union acpi_object in_obj[2];
+-	struct acpi_object_list args = { 2, in_obj };
+-
+-	in_obj[0].type          = ACPI_TYPE_INTEGER;
+-	in_obj[0].integer.value = reg;
+-	in_obj[1].type          = ACPI_TYPE_INTEGER;
+-	in_obj[1].integer.value = val;
+-
+-	return acpi_evaluate_integer(handle, "ALWR", &args, &ret);
+-}
+-
+ static s16 lis3lv02d_read_16(acpi_handle handle, int reg)
+ {
+ 	u8 lo, hi;
+@@ -190,14 +110,14 @@ static void lis3lv02d_get_xyz(acpi_handl
+ 	*z = lis3lv02d_get_axis(adev.ac.z, position);
+ }
+ 
+-static inline void lis3lv02d_poweroff(acpi_handle handle)
++void lis3lv02d_poweroff(acpi_handle handle)
+ {
+ 	adev.is_on = 0;
+ 	/* disable X,Y,Z axis and power down */
+ 	lis3lv02d_acpi_write(handle, CTRL_REG1, 0x00);
+ }
+ 
+-static void lis3lv02d_poweron(acpi_handle handle)
++void lis3lv02d_poweron(acpi_handle handle)
+ {
+ 	u8 val;
+ 
+@@ -214,30 +134,6 @@ static void lis3lv02d_poweron(acpi_handl
+ 	lis3lv02d_acpi_write(handle, CTRL_REG2, val);
+ }
+ 
+-#ifdef CONFIG_PM
+-static int lis3lv02d_suspend(struct acpi_device *device, pm_message_t state)
+-{
+-	/* make sure the device is off when we suspend */
+-	lis3lv02d_poweroff(device->handle);
+-	return 0;
+-}
+-
+-static int lis3lv02d_resume(struct acpi_device *device)
+-{
+-	/* put back the device in the right state (ACPI might turn it on) */
+-	mutex_lock(&adev.lock);
+-	if (adev.usage > 0)
+-		lis3lv02d_poweron(device->handle);
+-	else
+-		lis3lv02d_poweroff(device->handle);
+-	mutex_unlock(&adev.lock);
+-	return 0;
+-}
+-#else
+-#define lis3lv02d_suspend NULL
+-#define lis3lv02d_resume NULL
+-#endif
+-
+ 
+ /*
+  * To be called before starting to use the device. It makes sure that the
+@@ -315,7 +211,7 @@ static inline void lis3lv02d_calibrate_j
+ 	lis3lv02d_get_xyz(adev.device->handle, &adev.xcalib, &adev.ycalib, &adev.zcalib);
+ }
+ 
+-static int lis3lv02d_joystick_enable(void)
++int lis3lv02d_joystick_enable(void)
+ {
+ 	int err;
+ 
+@@ -350,7 +246,7 @@ static int lis3lv02d_joystick_enable(voi
+ 	return err;
+ }
+ 
+-static void lis3lv02d_joystick_disable(void)
++void lis3lv02d_joystick_disable(void)
+ {
+ 	if (!adev.idev)
+ 		return;
+@@ -360,11 +256,12 @@ static void lis3lv02d_joystick_disable(v
+ }
+ 
+ 
++
+ /*
+  * Initialise the accelerometer and the various subsystems.
+  * Should be rather independant of the bus system.
+  */
+-static int lis3lv02d_init_device(struct acpi_lis3lv02d *dev)
++int lis3lv02d_init_device(struct acpi_lis3lv02d *dev)
+ {
+ 	mutex_init(&dev->lock);
+ 	lis3lv02d_add_fs(dev->device);
+@@ -377,91 +274,6 @@ static int lis3lv02d_init_device(struct 
+ 	return 0;
+ }
+ 
+-static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
+-{
+-	adev.ac = *((struct axis_conversion *)dmi->driver_data);
+-	printk(KERN_INFO DRIVER_NAME ": hardware type %s found.\n", dmi->ident);
+-
+-	return 1;
+-}
+-
+-/* Represents, for each axis seen by userspace, the corresponding hw axis (+1).
+- * If the value is negative, the opposite of the hw value is used. */
+-static struct axis_conversion lis3lv02d_axis_normal = {1, 2, 3};
+-static struct axis_conversion lis3lv02d_axis_y_inverted = {1, -2, 3};
+-static struct axis_conversion lis3lv02d_axis_x_inverted = {-1, 2, 3};
+-static struct axis_conversion lis3lv02d_axis_z_inverted = {1, 2, -3};
+-static struct axis_conversion lis3lv02d_axis_xy_rotated_left = {-2, 1, 3};
+-static struct axis_conversion lis3lv02d_axis_xy_swap_inverted = {-2, -1, 3};
+-
+-#define AXIS_DMI_MATCH(_ident, _name, _axis) {		\
+-	.ident = _ident,				\
+-	.callback = lis3lv02d_dmi_matched,		\
+-	.matches = {					\
+-		DMI_MATCH(DMI_PRODUCT_NAME, _name)	\
+-	},						\
+-	.driver_data = &lis3lv02d_axis_##_axis		\
+-}
+-static struct dmi_system_id lis3lv02d_dmi_ids[] = {
+-	/* product names are truncated to match all kinds of a same model */
+-	AXIS_DMI_MATCH("NC64x0", "HP Compaq nc64", x_inverted),
+-	AXIS_DMI_MATCH("NC84x0", "HP Compaq nc84", z_inverted),
+-	AXIS_DMI_MATCH("NX9420", "HP Compaq nx9420", x_inverted),
+-	AXIS_DMI_MATCH("NW9440", "HP Compaq nw9440", x_inverted),
+-	AXIS_DMI_MATCH("NC2510", "HP Compaq 2510", y_inverted),
+-	AXIS_DMI_MATCH("NC8510", "HP Compaq 8510", xy_swap_inverted),
+-	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
+-	{ NULL, }
+-/* Laptop models without axis info (yet):
+- * "NC651xx" "HP Compaq 651"
+- * "NC671xx" "HP Compaq 671"
+- * "NC6910" "HP Compaq 6910"
+- * HP Compaq 8710x Notebook PC / Mobile Workstation
+- * "NC2400" "HP Compaq nc2400"
+- * "NX74x0" "HP Compaq nx74"
+- * "NX6325" "HP Compaq nx6325"
+- * "NC4400" "HP Compaq nc4400"
+- */
+-};
+-
+-static int lis3lv02d_add(struct acpi_device *device)
+-{
+-	u8 val;
+-
+-	if (!device)
+-		return -EINVAL;
+-
+-	adev.device = device;
+-	strcpy(acpi_device_name(device), DRIVER_NAME);
+-	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
+-	device->driver_data = &adev;
+-
+-	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &val);
+-	if ((val != LIS3LV02DL_ID) && (val != LIS302DL_ID)) {
+-		printk(KERN_ERR DRIVER_NAME
+-				": Accelerometer chip not LIS3LV02D{L,Q}\n");
+-	}
+-
+-	/* If possible use a "standard" axes order */
+-	if (dmi_check_system(lis3lv02d_dmi_ids) == 0) {
+-		printk(KERN_INFO DRIVER_NAME ": laptop model unknown, "
+-				 "using default axes configuration\n");
+-		adev.ac = lis3lv02d_axis_normal;
+-	}
+-
+-	return lis3lv02d_init_device(&adev);
+-}
+-
+-static int lis3lv02d_remove(struct acpi_device *device, int type)
+-{
+-	if (!device)
+-		return -EINVAL;
+-
+-	lis3lv02d_joystick_disable();
+-	lis3lv02d_poweroff(device->handle);
+-
+-	return lis3lv02d_remove_fs();
+-}
+ 
+ 
+ /* Sysfs stuff */
+@@ -523,6 +335,7 @@ static struct attribute_group lis3lv02d_
+ 	.attrs = lis3lv02d_attributes
+ };
+ 
++
+ static int lis3lv02d_add_fs(struct acpi_device *device)
+ {
+ 	adev.pdev = platform_device_register_simple(DRIVER_NAME, -1, NULL, 0);
+@@ -532,50 +345,13 @@ static int lis3lv02d_add_fs(struct acpi_
+ 	return sysfs_create_group(&adev.pdev->dev.kobj, &lis3lv02d_attribute_group);
+ }
+ 
+-static int lis3lv02d_remove_fs(void)
++int lis3lv02d_remove_fs(void)
+ {
+ 	sysfs_remove_group(&adev.pdev->dev.kobj, &lis3lv02d_attribute_group);
+ 	platform_device_unregister(adev.pdev);
+ 	return 0;
+ }
+ 
+-/* For the HP MDPS aka 3D Driveguard */
+-static struct acpi_driver lis3lv02d_driver = {
+-	.name  = DRIVER_NAME,
+-	.class = ACPI_MDPS_CLASS,
+-	.ids   = lis3lv02d_device_ids,
+-	.ops = {
+-		.add     = lis3lv02d_add,
+-		.remove  = lis3lv02d_remove,
+-		.suspend = lis3lv02d_suspend,
+-		.resume  = lis3lv02d_resume,
+-	}
+-};
+-
+-static int __init lis3lv02d_init_module(void)
+-{
+-	int ret;
+-
+-	if (acpi_disabled)
+-		return -ENODEV;
+-
+-	ret = acpi_bus_register_driver(&lis3lv02d_driver);
+-	if (ret < 0)
+-		return ret;
+-
+-	printk(KERN_INFO DRIVER_NAME " driver loaded.\n");
+-
+-	return 0;
+-}
+-
+-static void __exit lis3lv02d_exit_module(void)
+-{
+-	acpi_bus_unregister_driver(&lis3lv02d_driver);
+-}
+-
+ MODULE_DESCRIPTION("ST LIS3LV02Dx three-axis digital accelerometer driver");
+ MODULE_AUTHOR("Yan Burman and Eric Piel");
+ MODULE_LICENSE("GPL");
+-
+-module_init(lis3lv02d_init_module);
+-module_exit(lis3lv02d_exit_module);
+diff -puN drivers/hwmon/lis3lv02d.h~hp-accelerometer-split-chip-handling-from-hp-acpi-interface drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~hp-accelerometer-split-chip-handling-from-hp-acpi-interface
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -147,3 +147,36 @@ enum lis3lv02d_dd_src {
+ 	DD_SRC_IA	= 0x40,
+ };
+ 
++acpi_status lis3lv02d_acpi_init(acpi_handle handle);
++acpi_status lis3lv02d_acpi_read(acpi_handle handle, int reg, u8 *ret);
++acpi_status lis3lv02d_acpi_write(acpi_handle handle, int reg, u8 val);
++
++struct axis_conversion {
++	s8	x;
++	s8	y;
++	s8	z;
++};
++
++struct acpi_lis3lv02d {
++	struct acpi_device	*device;   /* The ACPI device */
++	struct input_dev	*idev;     /* input device */
++	struct task_struct	*kthread;  /* kthread for input */
++	struct mutex            lock;
++	struct platform_device	*pdev;     /* platform device */
++	atomic_t		count;     /* interrupt count after last read */
++	int			xcalib;    /* calibrated null value for x */
++	int			ycalib;    /* calibrated null value for y */
++	int			zcalib;    /* calibrated null value for z */
++	unsigned char		is_on;     /* whether the device is on or off */
++	unsigned char		usage;     /* usage counter */
++	struct axis_conversion	ac;        /* hw -> logical axis */
++};
++
++int lis3lv02d_init_device(struct acpi_lis3lv02d *dev);
++int lis3lv02d_joystick_enable(void);
++void lis3lv02d_joystick_disable(void);
++void lis3lv02d_poweroff(acpi_handle handle);
++void lis3lv02d_poweron(acpi_handle handle);
++int lis3lv02d_remove_fs(void);
++
++extern struct acpi_lis3lv02d adev;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from pavel@suse.cz are
 
-origin.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-arm-fix-kernel-doc-syntax.patch
-audit-remove-excess-kernel-doc.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-scripts-extract-ikconfig-remove-bashisms.patch
-drivers-ata-pata_radisysc-cleanup-kernel-doc.patch
-drivers-ata-libata-corec-cleanup-kernel-doc.patch
-drivers-ata-pata_oldpiixc-cleanup-kernel-doc.patch
-drivers-ata-pata_pdc2027xc-cleanup-kernel-doc.patch
-drivers-ata-pata_legacyc-cleanup-kernel-doc.patch
-drivers-ata-pata_sisc-cleanup-kernel-doc.patch
-drivers-ata-pata_c-the-rest-remove-redundant-comments.patch
-mtd-remove-excess-kernel-doc-notation.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-gdth-fix-section-mismatch-warnings.patch
-esp-fix-section-mismatch-warning.patch
-fusion-remove-excess-kernel-doc-notation.patch
-block-remove-excess-kernel-doc.patch
-net-hp-plus-fix-link-errors.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-max3100-spi-uart-driver-select-serial_core.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-i2o-remove-extraneous-kernel-doc.patch
-drivers-message-i2o-iopc-cleanup-kerneldoc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-kmod-fix-varargs-kernel-doc.patch
-docs-document-how-to-write-varargs-in-kernel-doc.patch
-rapidio-remove-excess-kernel-doc-notation.patch
-documentation-update-header-file-paths.patch
-documentation-update-s390-header-file-paths.patch
-profile-likely-unlikely-macros.patch
+hp-accelerometer-split-chip-handling-from-hp-acpi-interface.patch
 
