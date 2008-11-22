@@ -1,756 +1,554 @@
 From: akpm@linux-foundation.org
-Subject: - hp-accelerometer-split-chip-handling-from-hp-acpi-interface.patch removed from -mm tree
-Date: Fri, 21 Nov 2008 16:58:16 -0800
-Message-ID: <200811220058.mAM0wGqD007405@imap1.linux-foundation.org>
+Subject: mmotm 2008-11-21-17-07 uploaded
+Date: Fri, 21 Nov 2008 17:07:21 -0800
+Message-ID: <200811220107.mAM17LUx012210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58615 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755472AbYKVA6i (ORCPT
+	by vger.kernel.org with ESMTP id S1753446AbYKVBHY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 19:58:38 -0500
+	Fri, 21 Nov 2008 20:07:24 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mAM17Lc7014787
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 21 Nov 2008 17:07:22 -0800
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id mAM17LUx012210
+	for <mm-commits@vger.kernel.org>; Fri, 21 Nov 2008 17:07:21 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@suse.cz, eric.piel@tremplin-utc.net, hmh@hmh.eng.br, rpurdie@rpsys.net, trenn@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2008-11-21-17-07 has been uploaded to
 
-The patch titled
-     HP accelerometer: split chip handling from HP ACPI interface
-has been removed from the -mm tree.  Its filename was
-     hp-accelerometer-split-chip-handling-from-hp-acpi-interface.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-This patch was dropped because it had testing failures
+It contains the following patches against 2.6.28-rc5:
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: HP accelerometer: split chip handling from HP ACPI interface
-From: Pavel Machek <pavel@suse.cz>
-
-This patch splits handling between chip-specific lis3lv02d and HP/ACPI
-specific hp_accel.c.
-
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/hwmon/Makefile    |    2 
- drivers/hwmon/hp_accel.c  |  301 ++++++++++++++++++++++++++++++++++++
- drivers/hwmon/lis3lv02d.c |  246 +----------------------------
- drivers/hwmon/lis3lv02d.h |   33 +++
- 4 files changed, 346 insertions(+), 236 deletions(-)
-
-diff -puN drivers/hwmon/Makefile~hp-accelerometer-split-chip-handling-from-hp-acpi-interface drivers/hwmon/Makefile
---- a/drivers/hwmon/Makefile~hp-accelerometer-split-chip-handling-from-hp-acpi-interface
-+++ a/drivers/hwmon/Makefile
-@@ -49,7 +49,7 @@ obj-$(CONFIG_SENSORS_IBMAEM)	+= ibmaem.o
- obj-$(CONFIG_SENSORS_IBMPEX)	+= ibmpex.o
- obj-$(CONFIG_SENSORS_IT87)	+= it87.o
- obj-$(CONFIG_SENSORS_K8TEMP)	+= k8temp.o
--obj-$(CONFIG_SENSORS_LIS3LV02D) += lis3lv02d.o
-+obj-$(CONFIG_SENSORS_LIS3LV02D) += lis3lv02d.o hp_accel.o
- obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
- obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
- obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
-diff -puN /dev/null drivers/hwmon/hp_accel.c
---- /dev/null
-+++ a/drivers/hwmon/hp_accel.c
-@@ -0,0 +1,301 @@
-+/*
-+ *  hp_accel.c - Interface between LIS3LV02DL driver and HP ACPI BIOS
-+ *
-+ *  Copyright (C) 2007-2008 Yan Burman
-+ *  Copyright (C) 2008 Eric Piel
-+ *  Copyright (C) 2008 Pavel Machek
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/dmi.h>
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/input.h>
-+#include <linux/kthread.h>
-+#include <linux/semaphore.h>
-+#include <linux/delay.h>
-+#include <linux/wait.h>
-+#include <linux/poll.h>
-+#include <linux/freezer.h>
-+#include <linux/version.h>
-+#include <linux/uaccess.h>
-+#include <linux/leds.h>
-+#include <acpi/acpi_drivers.h>
-+#include <asm/atomic.h>
-+#include "lis3lv02d.h"
-+
-+#define DRIVER_NAME     "lis3lv02d"
-+#define ACPI_MDPS_CLASS "accelerometer"
-+
-+
-+/* For automatic insertion of the module */
-+static struct acpi_device_id lis3lv02d_device_ids[] = {
-+	{"HPQ0004", 0}, /* HP Mobile Data Protection System PNP */
-+	{"", 0},
-+};
-+MODULE_DEVICE_TABLE(acpi, lis3lv02d_device_ids);
-+
-+
-+/**
-+ * lis3lv02d_acpi_init - ACPI _INI method: initialize the device.
-+ * @handle: the handle of the device
-+ *
-+ * Returns AE_OK on success.
-+ */
-+acpi_status lis3lv02d_acpi_init(acpi_handle handle)
-+{
-+	return acpi_evaluate_object(handle, METHOD_NAME__INI, NULL, NULL);
-+}
-+
-+/**
-+ * lis3lv02d_acpi_read - ACPI ALRD method: read a register
-+ * @handle: the handle of the device
-+ * @reg:    the register to read
-+ * @ret:    result of the operation
-+ *
-+ * Returns AE_OK on success.
-+ */
-+acpi_status lis3lv02d_acpi_read(acpi_handle handle, int reg, u8 *ret)
-+{
-+	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
-+	struct acpi_object_list args = { 1, &arg0 };
-+	unsigned long long lret;
-+	acpi_status status;
-+
-+	arg0.integer.value = reg;
-+
-+	status = acpi_evaluate_integer(handle, "ALRD", &args, &lret);
-+	*ret = lret;
-+	return status;
-+}
-+
-+/**
-+ * lis3lv02d_acpi_write - ACPI ALWR method: write to a register
-+ * @handle: the handle of the device
-+ * @reg:    the register to write to
-+ * @val:    the value to write
-+ *
-+ * Returns AE_OK on success.
-+ */
-+acpi_status lis3lv02d_acpi_write(acpi_handle handle, int reg, u8 val)
-+{
-+	unsigned long long ret; /* Not used when writting */
-+	union acpi_object in_obj[2];
-+	struct acpi_object_list args = { 2, in_obj };
-+
-+	in_obj[0].type          = ACPI_TYPE_INTEGER;
-+	in_obj[0].integer.value = reg;
-+	in_obj[1].type          = ACPI_TYPE_INTEGER;
-+	in_obj[1].integer.value = val;
-+
-+	return acpi_evaluate_integer(handle, "ALWR", &args, &ret);
-+}
-+
-+static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
-+{
-+	adev.ac = *((struct axis_conversion *)dmi->driver_data);
-+	printk(KERN_INFO DRIVER_NAME ": hardware type %s found.\n", dmi->ident);
-+
-+	return 1;
-+}
-+
-+/* Represents, for each axis seen by userspace, the corresponding hw axis (+1).
-+ * If the value is negative, the opposite of the hw value is used. */
-+static struct axis_conversion lis3lv02d_axis_normal = {1, 2, 3};
-+static struct axis_conversion lis3lv02d_axis_y_inverted = {1, -2, 3};
-+static struct axis_conversion lis3lv02d_axis_x_inverted = {-1, 2, 3};
-+static struct axis_conversion lis3lv02d_axis_z_inverted = {1, 2, -3};
-+static struct axis_conversion lis3lv02d_axis_xy_rotated_left = {-2, 1, 3};
-+static struct axis_conversion lis3lv02d_axis_xy_swap_inverted = {-2, -1, 3};
-+
-+#define AXIS_DMI_MATCH(_ident, _name, _axis) {		\
-+	.ident = _ident,				\
-+	.callback = lis3lv02d_dmi_matched,		\
-+	.matches = {					\
-+		DMI_MATCH(DMI_PRODUCT_NAME, _name)	\
-+	},						\
-+	.driver_data = &lis3lv02d_axis_##_axis		\
-+}
-+static struct dmi_system_id lis3lv02d_dmi_ids[] = {
-+	/* product names are truncated to match all kinds of a same model */
-+	AXIS_DMI_MATCH("NC64x0", "HP Compaq nc64", x_inverted),
-+	AXIS_DMI_MATCH("NC84x0", "HP Compaq nc84", z_inverted),
-+	AXIS_DMI_MATCH("NX9420", "HP Compaq nx9420", x_inverted),
-+	AXIS_DMI_MATCH("NW9440", "HP Compaq nw9440", x_inverted),
-+	AXIS_DMI_MATCH("NC2510", "HP Compaq 2510", y_inverted),
-+	AXIS_DMI_MATCH("NC8510", "HP Compaq 8510", xy_swap_inverted),
-+	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
-+	{ NULL, }
-+/* Laptop models without axis info (yet):
-+ * "NC651xx" "HP Compaq 651"
-+ * "NC671xx" "HP Compaq 671"
-+ * "NC6910" "HP Compaq 6910"
-+ * HP Compaq 8710x Notebook PC / Mobile Workstation
-+ * "NC2400" "HP Compaq nc2400"
-+ * "NX74x0" "HP Compaq nx74"
-+ * "NX6325" "HP Compaq nx6325"
-+ * "NC4400" "HP Compaq nc4400"
-+ */
-+};
-+
-+
-+static acpi_status hpled_acpi_write(acpi_handle handle, int reg)
-+{
-+	unsigned long long ret; /* Not used when writing */
-+	union acpi_object in_obj[1];
-+	struct acpi_object_list args = { 1, in_obj };
-+
-+	in_obj[0].type          = ACPI_TYPE_INTEGER;
-+	in_obj[0].integer.value = reg;
-+
-+	return acpi_evaluate_integer(handle, "ALED", &args, &ret);
-+}
-+
-+static void hpled_set(struct led_classdev *led_cdev,
-+			       enum led_brightness value)
-+{
-+	hpled_acpi_write(adev.device->handle, !!value);
-+}
-+
-+static struct led_classdev hpled_led = {
-+	.name			= "hp:red:hddprotection",
-+	.default_trigger	= "heartbeat",
-+	.brightness_set		= hpled_set,
-+};
-+
-+static int lis3lv02d_add(struct acpi_device *device)
-+{
-+	u8 val;
-+	int ret;
-+
-+	if (!device)
-+		return -EINVAL;
-+
-+	adev.device = device;
-+	strcpy(acpi_device_name(device), DRIVER_NAME);
-+	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
-+	device->driver_data = &adev;
-+
-+	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &val);
-+	if ((val != LIS3LV02DL_ID) && (val != LIS302DL_ID)) {
-+		printk(KERN_ERR DRIVER_NAME
-+				": Accelerometer chip not LIS3LV02D{L,Q}\n");
-+	}
-+
-+	/* If possible use a "standard" axes order */
-+	if (dmi_check_system(lis3lv02d_dmi_ids) == 0) {
-+		printk(KERN_INFO DRIVER_NAME ": laptop model unknown, "
-+				 "using default axes configuration\n");
-+		adev.ac = lis3lv02d_axis_normal;
-+	}
-+
-+	ret = led_classdev_register(NULL, &hpled_led);
-+	if (ret)
-+		return ret;
-+
-+	ret = lis3lv02d_init_device(&adev);
-+	if (ret) {
-+		led_classdev_unregister(&hpled_led);
-+		return ret;
-+	}
-+
-+	return ret;
-+}
-+
-+static int lis3lv02d_remove(struct acpi_device *device, int type)
-+{
-+	if (!device)
-+		return -EINVAL;
-+
-+	lis3lv02d_joystick_disable();
-+	lis3lv02d_poweroff(device->handle);
-+
-+	led_classdev_unregister(&hpled_led);
-+
-+	return lis3lv02d_remove_fs();
-+}
-+
-+
-+#ifdef CONFIG_PM
-+static int lis3lv02d_suspend(struct acpi_device *device, pm_message_t state)
-+{
-+	/* make sure the device is off when we suspend */
-+	lis3lv02d_poweroff(device->handle);
-+	led_classdev_suspend(&hpled_led);
-+	return 0;
-+}
-+
-+static int lis3lv02d_resume(struct acpi_device *device)
-+{
-+	/* put back the device in the right state (ACPI might turn it on) */
-+	mutex_lock(&adev.lock);
-+	if (adev.usage > 0)
-+		lis3lv02d_poweron(device->handle);
-+	else
-+		lis3lv02d_poweroff(device->handle);
-+	mutex_unlock(&adev.lock);
-+	led_classdev_resume(&hpled_led);
-+	return 0;
-+}
-+#else
-+#define lis3lv02d_suspend NULL
-+#define lis3lv02d_resume NULL
-+#endif
-+
-+/* For the HP MDPS aka 3D Driveguard */
-+static struct acpi_driver lis3lv02d_driver = {
-+	.name  = DRIVER_NAME,
-+	.class = ACPI_MDPS_CLASS,
-+	.ids   = lis3lv02d_device_ids,
-+	.ops = {
-+		.add     = lis3lv02d_add,
-+		.remove  = lis3lv02d_remove,
-+		.suspend = lis3lv02d_suspend,
-+		.resume  = lis3lv02d_resume,
-+	}
-+};
-+
-+static int __init lis3lv02d_init_module(void)
-+{
-+	int ret;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	ret = acpi_bus_register_driver(&lis3lv02d_driver);
-+	if (ret < 0)
-+		return ret;
-+
-+	printk(KERN_INFO DRIVER_NAME " driver loaded.\n");
-+
-+	return 0;
-+}
-+
-+static void __exit lis3lv02d_exit_module(void)
-+{
-+	acpi_bus_unregister_driver(&lis3lv02d_driver);
-+}
-+
-+MODULE_DESCRIPTION("Glue between LIS3LV02Dx and HP ACPI BIOS");
-+MODULE_AUTHOR("Yan Burman, Eric Piel, Pavel Machek");
-+MODULE_LICENSE("GPL");
-+
-+module_init(lis3lv02d_init_module);
-+module_exit(lis3lv02d_exit_module);
-diff -puN drivers/hwmon/lis3lv02d.c~hp-accelerometer-split-chip-handling-from-hp-acpi-interface drivers/hwmon/lis3lv02d.c
---- a/drivers/hwmon/lis3lv02d.c~hp-accelerometer-split-chip-handling-from-hp-acpi-interface
-+++ a/drivers/hwmon/lis3lv02d.c
-@@ -3,6 +3,7 @@
-  *
-  *  Copyright (C) 2007-2008 Yan Burman
-  *  Copyright (C) 2008 Eric Piel
-+ *  Copyright (C) 2008 Pavel Machek
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-@@ -41,6 +42,7 @@
- #define DRIVER_NAME     "lis3lv02d"
- #define ACPI_MDPS_CLASS "accelerometer"
- 
-+
- /* joystick device poll interval in milliseconds */
- #define MDPS_POLL_INTERVAL 50
- /*
-@@ -55,94 +57,12 @@
- /* Maximum value our axis may get for the input device (signed 12 bits) */
- #define MDPS_MAX_VAL 2048
- 
--struct axis_conversion {
--	s8	x;
--	s8	y;
--	s8	z;
--};
- 
--struct acpi_lis3lv02d {
--	struct acpi_device	*device;   /* The ACPI device */
--	struct input_dev	*idev;     /* input device */
--	struct task_struct	*kthread;  /* kthread for input */
--	struct mutex            lock;
--	struct platform_device	*pdev;     /* platform device */
--	atomic_t		count;     /* interrupt count after last read */
--	int			xcalib;    /* calibrated null value for x */
--	int			ycalib;    /* calibrated null value for y */
--	int			zcalib;    /* calibrated null value for z */
--	unsigned char		is_on;     /* whether the device is on or off */
--	unsigned char		usage;     /* usage counter */
--	struct axis_conversion	ac;        /* hw -> logical axis */
--};
- 
--static struct acpi_lis3lv02d adev;
-+struct acpi_lis3lv02d adev;
- 
--static int lis3lv02d_remove_fs(void);
- static int lis3lv02d_add_fs(struct acpi_device *device);
- 
--/* For automatic insertion of the module */
--static struct acpi_device_id lis3lv02d_device_ids[] = {
--	{"HPQ0004", 0}, /* HP Mobile Data Protection System PNP */
--	{"", 0},
--};
--MODULE_DEVICE_TABLE(acpi, lis3lv02d_device_ids);
--
--/**
-- * lis3lv02d_acpi_init - ACPI _INI method: initialize the device.
-- * @handle: the handle of the device
-- *
-- * Returns AE_OK on success.
-- */
--static inline acpi_status lis3lv02d_acpi_init(acpi_handle handle)
--{
--	return acpi_evaluate_object(handle, METHOD_NAME__INI, NULL, NULL);
--}
--
--/**
-- * lis3lv02d_acpi_read - ACPI ALRD method: read a register
-- * @handle: the handle of the device
-- * @reg:    the register to read
-- * @ret:    result of the operation
-- *
-- * Returns AE_OK on success.
-- */
--static acpi_status lis3lv02d_acpi_read(acpi_handle handle, int reg, u8 *ret)
--{
--	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
--	struct acpi_object_list args = { 1, &arg0 };
--	unsigned long long lret;
--	acpi_status status;
--
--	arg0.integer.value = reg;
--
--	status = acpi_evaluate_integer(handle, "ALRD", &args, &lret);
--	*ret = lret;
--	return status;
--}
--
--/**
-- * lis3lv02d_acpi_write - ACPI ALWR method: write to a register
-- * @handle: the handle of the device
-- * @reg:    the register to write to
-- * @val:    the value to write
-- *
-- * Returns AE_OK on success.
-- */
--static acpi_status lis3lv02d_acpi_write(acpi_handle handle, int reg, u8 val)
--{
--	unsigned long long ret; /* Not used when writting */
--	union acpi_object in_obj[2];
--	struct acpi_object_list args = { 2, in_obj };
--
--	in_obj[0].type          = ACPI_TYPE_INTEGER;
--	in_obj[0].integer.value = reg;
--	in_obj[1].type          = ACPI_TYPE_INTEGER;
--	in_obj[1].integer.value = val;
--
--	return acpi_evaluate_integer(handle, "ALWR", &args, &ret);
--}
--
- static s16 lis3lv02d_read_16(acpi_handle handle, int reg)
- {
- 	u8 lo, hi;
-@@ -190,14 +110,14 @@ static void lis3lv02d_get_xyz(acpi_handl
- 	*z = lis3lv02d_get_axis(adev.ac.z, position);
- }
- 
--static inline void lis3lv02d_poweroff(acpi_handle handle)
-+void lis3lv02d_poweroff(acpi_handle handle)
- {
- 	adev.is_on = 0;
- 	/* disable X,Y,Z axis and power down */
- 	lis3lv02d_acpi_write(handle, CTRL_REG1, 0x00);
- }
- 
--static void lis3lv02d_poweron(acpi_handle handle)
-+void lis3lv02d_poweron(acpi_handle handle)
- {
- 	u8 val;
- 
-@@ -214,30 +134,6 @@ static void lis3lv02d_poweron(acpi_handl
- 	lis3lv02d_acpi_write(handle, CTRL_REG2, val);
- }
- 
--#ifdef CONFIG_PM
--static int lis3lv02d_suspend(struct acpi_device *device, pm_message_t state)
--{
--	/* make sure the device is off when we suspend */
--	lis3lv02d_poweroff(device->handle);
--	return 0;
--}
--
--static int lis3lv02d_resume(struct acpi_device *device)
--{
--	/* put back the device in the right state (ACPI might turn it on) */
--	mutex_lock(&adev.lock);
--	if (adev.usage > 0)
--		lis3lv02d_poweron(device->handle);
--	else
--		lis3lv02d_poweroff(device->handle);
--	mutex_unlock(&adev.lock);
--	return 0;
--}
--#else
--#define lis3lv02d_suspend NULL
--#define lis3lv02d_resume NULL
--#endif
--
- 
- /*
-  * To be called before starting to use the device. It makes sure that the
-@@ -315,7 +211,7 @@ static inline void lis3lv02d_calibrate_j
- 	lis3lv02d_get_xyz(adev.device->handle, &adev.xcalib, &adev.ycalib, &adev.zcalib);
- }
- 
--static int lis3lv02d_joystick_enable(void)
-+int lis3lv02d_joystick_enable(void)
- {
- 	int err;
- 
-@@ -350,7 +246,7 @@ static int lis3lv02d_joystick_enable(voi
- 	return err;
- }
- 
--static void lis3lv02d_joystick_disable(void)
-+void lis3lv02d_joystick_disable(void)
- {
- 	if (!adev.idev)
- 		return;
-@@ -360,11 +256,12 @@ static void lis3lv02d_joystick_disable(v
- }
- 
- 
-+
- /*
-  * Initialise the accelerometer and the various subsystems.
-  * Should be rather independant of the bus system.
-  */
--static int lis3lv02d_init_device(struct acpi_lis3lv02d *dev)
-+int lis3lv02d_init_device(struct acpi_lis3lv02d *dev)
- {
- 	mutex_init(&dev->lock);
- 	lis3lv02d_add_fs(dev->device);
-@@ -377,91 +274,6 @@ static int lis3lv02d_init_device(struct 
- 	return 0;
- }
- 
--static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
--{
--	adev.ac = *((struct axis_conversion *)dmi->driver_data);
--	printk(KERN_INFO DRIVER_NAME ": hardware type %s found.\n", dmi->ident);
--
--	return 1;
--}
--
--/* Represents, for each axis seen by userspace, the corresponding hw axis (+1).
-- * If the value is negative, the opposite of the hw value is used. */
--static struct axis_conversion lis3lv02d_axis_normal = {1, 2, 3};
--static struct axis_conversion lis3lv02d_axis_y_inverted = {1, -2, 3};
--static struct axis_conversion lis3lv02d_axis_x_inverted = {-1, 2, 3};
--static struct axis_conversion lis3lv02d_axis_z_inverted = {1, 2, -3};
--static struct axis_conversion lis3lv02d_axis_xy_rotated_left = {-2, 1, 3};
--static struct axis_conversion lis3lv02d_axis_xy_swap_inverted = {-2, -1, 3};
--
--#define AXIS_DMI_MATCH(_ident, _name, _axis) {		\
--	.ident = _ident,				\
--	.callback = lis3lv02d_dmi_matched,		\
--	.matches = {					\
--		DMI_MATCH(DMI_PRODUCT_NAME, _name)	\
--	},						\
--	.driver_data = &lis3lv02d_axis_##_axis		\
--}
--static struct dmi_system_id lis3lv02d_dmi_ids[] = {
--	/* product names are truncated to match all kinds of a same model */
--	AXIS_DMI_MATCH("NC64x0", "HP Compaq nc64", x_inverted),
--	AXIS_DMI_MATCH("NC84x0", "HP Compaq nc84", z_inverted),
--	AXIS_DMI_MATCH("NX9420", "HP Compaq nx9420", x_inverted),
--	AXIS_DMI_MATCH("NW9440", "HP Compaq nw9440", x_inverted),
--	AXIS_DMI_MATCH("NC2510", "HP Compaq 2510", y_inverted),
--	AXIS_DMI_MATCH("NC8510", "HP Compaq 8510", xy_swap_inverted),
--	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
--	{ NULL, }
--/* Laptop models without axis info (yet):
-- * "NC651xx" "HP Compaq 651"
-- * "NC671xx" "HP Compaq 671"
-- * "NC6910" "HP Compaq 6910"
-- * HP Compaq 8710x Notebook PC / Mobile Workstation
-- * "NC2400" "HP Compaq nc2400"
-- * "NX74x0" "HP Compaq nx74"
-- * "NX6325" "HP Compaq nx6325"
-- * "NC4400" "HP Compaq nc4400"
-- */
--};
--
--static int lis3lv02d_add(struct acpi_device *device)
--{
--	u8 val;
--
--	if (!device)
--		return -EINVAL;
--
--	adev.device = device;
--	strcpy(acpi_device_name(device), DRIVER_NAME);
--	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
--	device->driver_data = &adev;
--
--	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &val);
--	if ((val != LIS3LV02DL_ID) && (val != LIS302DL_ID)) {
--		printk(KERN_ERR DRIVER_NAME
--				": Accelerometer chip not LIS3LV02D{L,Q}\n");
--	}
--
--	/* If possible use a "standard" axes order */
--	if (dmi_check_system(lis3lv02d_dmi_ids) == 0) {
--		printk(KERN_INFO DRIVER_NAME ": laptop model unknown, "
--				 "using default axes configuration\n");
--		adev.ac = lis3lv02d_axis_normal;
--	}
--
--	return lis3lv02d_init_device(&adev);
--}
--
--static int lis3lv02d_remove(struct acpi_device *device, int type)
--{
--	if (!device)
--		return -EINVAL;
--
--	lis3lv02d_joystick_disable();
--	lis3lv02d_poweroff(device->handle);
--
--	return lis3lv02d_remove_fs();
--}
- 
- 
- /* Sysfs stuff */
-@@ -523,6 +335,7 @@ static struct attribute_group lis3lv02d_
- 	.attrs = lis3lv02d_attributes
- };
- 
-+
- static int lis3lv02d_add_fs(struct acpi_device *device)
- {
- 	adev.pdev = platform_device_register_simple(DRIVER_NAME, -1, NULL, 0);
-@@ -532,50 +345,13 @@ static int lis3lv02d_add_fs(struct acpi_
- 	return sysfs_create_group(&adev.pdev->dev.kobj, &lis3lv02d_attribute_group);
- }
- 
--static int lis3lv02d_remove_fs(void)
-+int lis3lv02d_remove_fs(void)
- {
- 	sysfs_remove_group(&adev.pdev->dev.kobj, &lis3lv02d_attribute_group);
- 	platform_device_unregister(adev.pdev);
- 	return 0;
- }
- 
--/* For the HP MDPS aka 3D Driveguard */
--static struct acpi_driver lis3lv02d_driver = {
--	.name  = DRIVER_NAME,
--	.class = ACPI_MDPS_CLASS,
--	.ids   = lis3lv02d_device_ids,
--	.ops = {
--		.add     = lis3lv02d_add,
--		.remove  = lis3lv02d_remove,
--		.suspend = lis3lv02d_suspend,
--		.resume  = lis3lv02d_resume,
--	}
--};
--
--static int __init lis3lv02d_init_module(void)
--{
--	int ret;
--
--	if (acpi_disabled)
--		return -ENODEV;
--
--	ret = acpi_bus_register_driver(&lis3lv02d_driver);
--	if (ret < 0)
--		return ret;
--
--	printk(KERN_INFO DRIVER_NAME " driver loaded.\n");
--
--	return 0;
--}
--
--static void __exit lis3lv02d_exit_module(void)
--{
--	acpi_bus_unregister_driver(&lis3lv02d_driver);
--}
--
- MODULE_DESCRIPTION("ST LIS3LV02Dx three-axis digital accelerometer driver");
- MODULE_AUTHOR("Yan Burman and Eric Piel");
- MODULE_LICENSE("GPL");
--
--module_init(lis3lv02d_init_module);
--module_exit(lis3lv02d_exit_module);
-diff -puN drivers/hwmon/lis3lv02d.h~hp-accelerometer-split-chip-handling-from-hp-acpi-interface drivers/hwmon/lis3lv02d.h
---- a/drivers/hwmon/lis3lv02d.h~hp-accelerometer-split-chip-handling-from-hp-acpi-interface
-+++ a/drivers/hwmon/lis3lv02d.h
-@@ -147,3 +147,36 @@ enum lis3lv02d_dd_src {
- 	DD_SRC_IA	= 0x40,
- };
- 
-+acpi_status lis3lv02d_acpi_init(acpi_handle handle);
-+acpi_status lis3lv02d_acpi_read(acpi_handle handle, int reg, u8 *ret);
-+acpi_status lis3lv02d_acpi_write(acpi_handle handle, int reg, u8 val);
-+
-+struct axis_conversion {
-+	s8	x;
-+	s8	y;
-+	s8	z;
-+};
-+
-+struct acpi_lis3lv02d {
-+	struct acpi_device	*device;   /* The ACPI device */
-+	struct input_dev	*idev;     /* input device */
-+	struct task_struct	*kthread;  /* kthread for input */
-+	struct mutex            lock;
-+	struct platform_device	*pdev;     /* platform device */
-+	atomic_t		count;     /* interrupt count after last read */
-+	int			xcalib;    /* calibrated null value for x */
-+	int			ycalib;    /* calibrated null value for y */
-+	int			zcalib;    /* calibrated null value for z */
-+	unsigned char		is_on;     /* whether the device is on or off */
-+	unsigned char		usage;     /* usage counter */
-+	struct axis_conversion	ac;        /* hw -> logical axis */
-+};
-+
-+int lis3lv02d_init_device(struct acpi_lis3lv02d *dev);
-+int lis3lv02d_joystick_enable(void);
-+void lis3lv02d_joystick_disable(void);
-+void lis3lv02d_poweroff(acpi_handle handle);
-+void lis3lv02d_poweron(acpi_handle handle);
-+int lis3lv02d_remove_fs(void);
-+
-+extern struct acpi_lis3lv02d adev;
-_
-
-Patches currently in -mm which might be from pavel@suse.cz are
-
+origin.patch
+mm-vmalloc-fix-lazy-unmapping-cache-aliasing.patch
+gendisk-disk-node_id-is-used-uninitialised.patch
+memcg-memory-hotplug-fix-for-notifier-callback.patch
+parport_serial-fix-array-overflow.patch
+hwmon-applesmc-make-applesmc-load-automatically-on-startup.patch
+spi-documentation-__initdata-on-struct.patch
+spi-avoid-spidev-crash-when-device-is-removed.patch
+spi-mpc52xx_psc_spi-chipselect-bugfix.patch
+epoll-introduce-resource-usage-limits.patch
+epoll-introduce-resource-usage-limits-fix.patch
+fs-introduce-bgl_lock_ptr.patch
+viafb-fix-crashes-due-to-4k-stack-overflow.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
-hp-accelerometer-split-chip-handling-from-hp-acpi-interface.patch
-
+next-remove-localversion.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
+acpiphp-identify-more-removable-slots.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+x86-remove-init_mm-export-as-planned-for-2626.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+x86-use-bios-reboot-on-toshiba-portege-4000.patch
+apm-remove-config_apm_real_mode_power_off-in-favor-of-kernel-parameter.patch
+x86-attempt-rebooting-via-port-cf9-if-it-seems-to-be-available.patch
+kgdb-fix-kernel-doc-error.patch
+agp-follow-lspci-device-vendor-style.patch
+intel-agp-avoid-oops-for-g33-on-1mb-stolen-case.patch
+arm-use-the-new-byteorder-headers.patch
+arm-fix-kernel-doc-syntax.patch
+mx2-add-w1-device-resources.patch
+mx31-add-w1-platform_device-and-resources.patch
+mx2-pcm038-add-1-wire-master-support.patch
+pcm037-add-1wire-support.patch
+audit-remove-excess-kernel-doc.patch
+cpu-freq-documentation-add-blackfin-to-list-of-supported-processors.patch
+pcmcia-pccard-deadlock-fix.patch
+drivers-media-use-array_size.patch
+dvb-cinergyt2-annotate-struct-endiannes-remove-unused-variable-add-static.patch
+v4l-s2255drv-fix-firmware-test-on-big-endian.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+clocksource-acpi_pmc-put-acpi_pm_read_slow-under-config_pci.patch
+posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
+posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
+ia64-use-the-new-byteorder-headers.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver-fix.patch
+input-ads7846c-sparse-lock-annotation.patch
+serio_raw-add-support-for-translated-serio_i8042xl-ports.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+i8042-add-blue-fb5601-to-noloop-execption-table.patch
+input-ad7879-touchscreen-driver.patch
+input-ad7879-touchscreen-driver-cleanup.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+input-mouse-alpsc-handle-touchpoints-buttons-correctly.patch
+input-synaptics-only-report-double-triple-tap-if-supported-by-the-device.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+scripts-package-allow-custom-options-to-rpm.patch
+tags-skip-in-filenames.patch
+kconfig-add-module_name-shortcut.patch
+scripts-improve-the-decodecode-script.patch
+tags-link-from-config_x-to-config-x-as-well.patch
+scripts-extract-ikconfig-remove-bashisms.patch
+leds-add-wm8350-led-driver.patch
+leds-add-wm8350-led-driver-fix.patch
+leds-fix-cobalt-raq-led-dependency.patch
+leds-pca9532-fix-memory-leak-and-properly-handle-errors.patch
+leds-move-i2c-handling-work-to-a-workqueque.patch
+drivers-ata-pata_radisysc-cleanup-kernel-doc.patch
+drivers-ata-libata-corec-cleanup-kernel-doc.patch
+drivers-ata-pata_oldpiixc-cleanup-kernel-doc.patch
+drivers-ata-pata_pdc2027xc-cleanup-kernel-doc.patch
+drivers-ata-pata_legacyc-cleanup-kernel-doc.patch
+drivers-ata-pata_sisc-cleanup-kernel-doc.patch
+drivers-ata-pata_c-the-rest-remove-redundant-comments.patch
+m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+m32r-use-the-new-byteorder-headers.patch
+mips-implement-save_stack_trace_tsk.patch
+mips-make-bug-__noreturn.patch
+mmc_block-print-better-data-error-message-after-timeout.patch
+mmc_block-ensure-all-sectors-that-do-not-have-errors-are-read.patch
+physmap-make-map_info-customizable.patch
+mtd-remove-excess-kernel-doc-notation.patch
+drivers-mtd-maps-nettelc-use-array_size.patch
+physmap-fix-leak-of-memory-returned-by-parse_mtd_partitions.patch
+mtd-physmap-make-physmap-compat-explicit.patch
+net-tipc-bcasth-use-array_size.patch
+misdn-indentation-braces-disagree-add-braces.patch
+misdn-one-handmade-array_size-converted.patch
+misdn-indentation-and-braces-disagree-add-braces.patch
+drivers-isdn-misdn-use-array_size.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+3x59x-fix-pci-resource-management.patch
+backlight-value-of-ili9320_rgb_if2-register-should-not-be-hardcoded.patch
+gpio_free-might-sleep-blackfin-architecture.patch
+blackfin-remove-__function__-in-new-serial-driver.patch
+blackfin-use-the-new-byteorder-headers.patch
+ext4-allocate-s_blockgroup_lock-separately.patch
+lockd-convert-reclaimer-thread-to-kthread-interface.patch
+lockd-convert-reclaimer-thread-to-kthread-interface-update.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+parisc-use-the-new-byteorder-headers.patch
+piix3-warn-softer-about-enabling-passive-release.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+s390-use-the-new-byteorder-headers.patch
+genirq-warn-when-irqf_disabled-may-be-ignored.patch
+genirq-record-irq_level-in-irq_desc.patch
+if-0-ses_match_host.patch
+scsi-replace-__inline-with-inline.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+scsi-fix-bad-use-of-udelay-in-atp870uc.patch
+fusion-remove-excess-kernel-doc-notation.patch
+drivers-message-fusion-use-array_size.patch
+block-remove-excess-kernel-doc.patch
+block-remove-kblockd_flush_work.patch
+usb-add-nikon-d300-camera-to-unusual_devs.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+include-linux-fsh-put-declarations-in-__kernel__.patch
+fs-namespacec-drop-code-after-return.patch
+introduce-new-lsm-hooks-where-vfsmount-is-available.patch
+fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch
+kill-suid-bit-only-for-regular-files.patch
+vfs-kill-fmode_ndelay_now.patch
+vfs-document-fmode_-constants.patch
+vfs-correct-wrong-function-name-of-d_put-in-kernel-document-and-source-comment.patch
+pika-warp-appliance-watchdog-timer.patch
+drivers-net-wireless-ath9k-rcc-use-array_size.patch
+kernel-modulec-compare-symbol-values-when-marking-symbols-as-exported-in-proc-kallsyms.patch
+slub-add-might_sleep_if.patch
+mm.patch
+dma-apitxt-fix-description-of-pci_map_sg-dma_map_sg-scatterlists-handling.patch
+vfs-lseekfd-0-seek_cur-race-condition.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+parisc-fix-kernel-crash-when-unwinding-a-userspace-process-v2.patch
+lib-idrc-fix-rcu-related-race-with-idr_find.patch
+vmscan-evict-streaming-io-first.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume.patch
+acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch
+acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch
+bluetooth-dell-wireless-365-requires-reset-quirk.patch
+x86-powernow-k8-ignore-out-of-range-pstatestatus-value.patch
+ansi_cprng-zero-out-key-data-on-exit.patch
+drm-fix-leak-of-uninitialized-data-to-userspace-2.patch
+b1isa-fix-b1isa_exit-to-really-remove-registered-capi-controllers.patch
+m25p80-fix-detection-of-spi-parts.patch
+m25p80-fix-detection-of-m25p16-flashes.patch
+jffs2-force-the-jffs2-gc-daemon-to-behave-a-bit-better.patch
+physmap-fix-memory-leak-on-physmap_flash_remove-by-using-devres.patch
+mtd-m25p80-chip-erase-=-block-erase-=-sector-erase.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+net-hp-plus-fix-link-errors.patch
+pcmcia-blackfin-fix-bug-add-missing-to-module-macro.patch
+kernel-trace-tracec-introduce-missing-kfree.patch
+kernel-profilec-fix-section-mismatch-warning-fix.patch
+trace-add-missing-mutex_unlock.patch
+aacraid-disable-dell-percraid-quirk-on-adaptec-2200s-and-2120s.patch
+nfsd-fix-vm-overcommit-crash-fix-2.patch
+linux-serialh-touchup-for-userspace.patch
+drivers-char-tty_ioc-avoid-panic-when-no-console-is-configured.patch
+usb-serial-console-add-device-function-fix.patch
+fix-block-dev-compat-ioctl-handling.patch
+vfs-fix-switch_names-breakage-in-short-to-short-case.patch
+x96-quirk-for-reboot-stalls-on-a-dell-optiplex-330.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+mm-dont-mark_page_accessed-in-fault-path.patch
+mm-dont-mark_page_accessed-in-shmem_fault.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
+mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
+mm-invoke-oom-killer-from-page-fault.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+oom-fix-zone_scan_mutex-name.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
+do_mpage_readpage-dont-submit-lots-of-small-bios-on-boundary.patch
+mm-write_cache_pages-cyclic-fix.patch
+mm-write_cache_pages-cyclic-fix-fix.patch
+mm-write_cache_pages-early-loop-termination.patch
+mm-write_cache_pages-writepage-error-fix.patch
+mm-write_cache_pages-integrity-fix.patch
+mm-write_cache_pages-cleanups.patch
+mm-write_cache_pages-optimise-page-cleaning.patch
+mm-write_cache_pages-terminate-quickly.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+mm-do_sync_mapping_range-integrity-fix.patch
+mm-show-node-to-memory-section-relationship-with-symlinks-in-sysfs.patch
+mm-show-node-to-memory-section-relationship-with-symlinks-in-sysfs-v3.patch
+mm-print-out-memmap-number-only-it-is-not-zero.patch
+mm-get-rid-of-pagevec_release_nonlru.patch
+cleanup-get-rid-of-ifdef-config_migration.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-vmalloc-tweak-failure-printk.patch
+mm-vmalloc-improve-vmallocinfo.patch
+mm-vmalloc-use-mutex-for-purge.patch
+mm-vmalloc-make-lazy-unmapping-configurable.patch
+mm-apply_to_range-call-pte-function-with-lazy-updates.patch
+do_mpage_readpage-remove-useless-clear_buffer_mapped-call.patch
+mm-remove-cgroup_mm_owner_callbacks.patch
+mm-remove-aop_writepage_activate.patch
+mm-remove-gfp_highuser_pagecache.patch
+mm-add-setclearpageswapcache-stubs.patch
+mm-replace-some-bug_ons-by-vm_bug_ons.patch
+mm-add_active_or_unevictable-into-rmap.patch
+mm-make-page_lock_anon_vma-static.patch
+frv-use-the-new-byteorder-headers.patch
+m68knommu-use-the-new-byteorder-headers.patch
+m68knommu-set-no_dma.patch
+h8300-use-the-new-byteorder-headers.patch
+alpha-use-generic-percpu-support.patch
+alpha-use-the-new-byteorder-headers.patch
+init-properly-placing-noinline-keyword.patch
+atomic_t-unify-all-arch-definitions.patch
+pci-use-pci_ioremap_bar-in-drivers-misc.patch
+check-fops_get-return-value.patch
+oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console.patch
+block-do_mounts-add-device-info-to-mount-message.patch
+gen_init_cpio-expand-shell-variables-in-file-names.patch
+fs-execc-__bprm_mm_init-clean-up-error-handling.patch
+remove-remaining-unwinder-code.patch
+forkc-cleanup-for-copy_sighand.patch
+linux-ratelimith-fixed-missing-initializer-warning.patch
+hp-wmi-handle-rfkill_register-failure.patch
+lib-fix-sparse-shadowed-variable-warning.patch
+lib-radix_treec-make-percpu-variable-static.patch
+lib-proportionsc-trivial-sparse-lock-annotation.patch
+create-a-div_round_closest-macro-to-do-division-with-rounding.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+bitmap-test-for-constant-as-well-as-small-size-for-inline-versions.patch
+samples-mark-static__init__exit-for-initexit-functions.patch
+do_wait-wakeup-optimization.patch
+autodetect_raid-add-missing-__init-marking.patch
+poll-allow-f_op-poll-to-sleep-take-2.patch
+poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes.patch
+init-mainc-use-ktime-accessor-function-in-initcall_debug-code.patch
+inotify-fix-type-errors-in-interfaces.patch
+checkpatch-add-checks-for-in_atomic.patch
+checkpatch-comment-detection-may-miss-an-implied-comment-on-the-last-hunk.patch
+checkpatch-widen-implied-comment-detection-to-allow-multiple-stars.patch
+checkpatch-structure-member-assignments-are-not-complex.patch
+checkpatch-__weak-is-an-official-attribute.patch
+checkpatch-detect-multiple-bitfield-declarations.patch
+checkpatch-comment-ends-inside-strings-is-most-likely-not-an-open-comment.patch
+checkpatch-dissallow-spaces-between-stars-in-pointer-types.patch
+checkpatch-version-025.patch
+adt7462-70-73-use-div_round_closest-for-rounded-division.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+binfmtsh-include-listh.patch
+binfmtsh-include-listh-fix.patch
+fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+atmel_serial-might-lose-modem-status-change.patch
+serial-add-support-for-the-cell-network-processor-nwp-device.patch
+max3100-spi-uart-driver.patch
+max3100-spi-uart-driver-fix.patch
+max3100-spi-uart-driver-select-serial_core.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver.patch
+spi_gpio-driver-cleanups.patch
+atmel_spi-clean-up-spiv1-quirk-handling.patch
+mfd-da903x-section-fix.patch
+kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
+kprobes-indirectly-call-kprobe_target.patch
+kprobes-add-tests-for-register_kprobes.patch
+module-add-within_module_core-and-within_module_init.patch
+kprobes-add-kprobe_insn_mutex-and-cleanup-arch_remove_kprobe.patch
+kprobes-add-__kprobes-to-kprobe-internal-functions.patch
+kprobes-support-probing-module-__exit-function.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+kprobes-support-probing-module-__exit-function-fix-3.patch
+kprobes-remove-called_from-argument.patch
+kprobes-remove-called_from-argument-fix.patch
+module-add-module_state_live-notify.patch
+kprobes-support-probing-module-__init-function.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+ecryptfs-filename-encryption-tag-70-packets.patch
+ecryptfs-filename-encryption-header-updates.patch
+ecryptfs-filename-encryption-encoding-and-encryption-functions.patch
+ecryptfs-filename-encryption-filldir-lookup-and-readlink.patch
+ecryptfs-filename-encryption-mount-option.patch
+ecryptfs-replace-%z-with-%z.patch
+ecryptfs-fix-data-types-int-size_t.patch
+ecryptfs-kerneldoc-for-ecryptfs_parse_tag_70_packet.patch
+ecryptfs-clean-up-ecryptfs_decode_from_filename.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+autofs4-improve-parameter-usage.patch
+autofs4-fix-var-shadowed-by-local-delaration.patch
+autofs4-make-autofs-type-usage-explicit.patch
+autofs4-fix-string-validation-check-order.patch
+genrtc-disable-genrtc-on-blackfin-systems.patch
+rtc-ds1307-smbus-compatibility.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
+rtc-remove-the-bkl.patch
+rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
+rtc-driver-for-pxa27x-and-pxa3xx-soc.patch
+rtc-pxa27x-pxa3xx-driver-fixes-revised.patch
+rtc-add-alarm-update-irq-interfaces-version-5.patch
+rtc-rtc-ds1390-probe-sequence-and-misc-fixes.patch
+rtc-kconfig-cleanup.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+rtc-rtc-max6902-fixes-v3.patch
+rtc-rtc-ds3234-fixes-v2.patch
+rtc-use-set_mmss-when-set_time-is-not-available.patch
+twl4030-gpio-cleanup-debounce.patch
+pci-use-pci_ioremap_bar-in-drivers-video.patch
+fbdev-fix-typo-in-drivers-video-modedbc.patch
+blackfin-remove-__function__-in-video-driver.patch
+fb-carminefb-trivial-annotation-packing-color-register.patch
+intelfb-support-i854.patch
+ext2-fix-ext2_splice_branch-comments.patch
+ext2-allocate-s_blockgroup_lock-separately.patch
+jbd-improve-fsync-batching.patch
+jbd-improve-fsync-batching-update.patch
+ext3-allocate-s_blockgroup_lock-separately.patch
+coda-fix-fs-coda-sysctlc-build-warnings-when-config_sysctl.patch
+hfsplus-identify-journal-info-block-in-volume-header.patch
+hfsplus-fix-journal-detection.patch
+ufs-sector_t-cannot-be-negative.patch
+quota-add-callbacks-for-allocating-and-destroying-dquot-structures.patch
+quota-increase-size-of-variables-for-limits-and-inode-usage.patch
+quota-remove-bogus-optimization-in-check_idq-and-check_bdq.patch
+quota-make-_suspended-just-a-flag.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+ext3-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
+ext4-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
+reiserfs-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
+quota-remove-compatibility-function-sb_any_quota_enabled.patch
+quota-introduce-dquot_quota_sys_file-flag.patch
+quota-move-quotaio_vh-from-include-linux-to-fs.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-split-off-quota-tree-handling-into-a-separate-file.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+quota-add-reservation-support-for-delayed-block-allocation.patch
+quota-add-quota-claim-and-release-reserved-quota-blocks-operations.patch
+ext4-quota-handling-for-delayed-allocation.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables.patch
+quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+cgroups-make-cgroup-config-a-submenu.patch
+cgroups-documentation-updates.patch
+cgroups-remove-some-redundant-null-checks.patch
+ns_cgroup-remove-unused-spinlock.patch
+memcg-fix-a-typo-in-kconfig.patch
+cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
+cgroups-fix-cgroup_iter_next-bug.patch
+cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
+cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
+cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
+devcgroup-use-list_for_each_entry_rcu.patch
+memcg-introduce-charge-commit-cancel-style-of-functions.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-fix-gfp_mask-of-callers-of-charge.patch
+memcg-simple-migration-handling.patch
+memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
+memcg-move-all-acccounts-to-parent-at-rmdir.patch
+memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
+memcg-new-force_empty-to-free-pages-under-group.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
+memcg-memswap-controller-kconfig.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-synchronized-lru.patch
+memcg-add-mem_cgroup_disabled.patch
+memcg-add-mem_cgroup_disabled-fix.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
+memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
+memcg-avoid-unnecessary-system-wide-oom-killer.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+memcg-fix-reclaim-result-checks.patch
+cpuset-rcu_read_lock-to-protect-task_cs.patch
+workqueues-kill-cpu_singlethread_map-use-get_cpu_mask-instead.patch
+ipc-clean-up-ipc-shmc.patch
+ipc-do-not-goto-to-the-next-line.patch
+ipc-ipc_sysctlc-move-the-definition-of-ipc_auto_callback.patch
+elf-implement-at_random-for-glibc-prng-seeding.patch
+make-firmware-dsp56k-bootstrapasm-buildable-on-a56.patch
+consolemap-indentation-braces-disagree-reindent.patch
+drivers-char-nvramc-codingstyle-fixes.patch
+nvram-convert-print_proc-to-seq_file.patch
+relay-reset-consumed.patch
+trace-code-and-documentation.patch
+trace-code-and-documentation-merging-documentation-tracetxt-with-documentation-filesystems-relaytxt.patch
+trace-sample.patch
+pci-use-pci_ioremap_bar-in-drivers-edac.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-fix-mpc85xx-and-add-mpc8536-mpc8560.patch
+loop-add-ioctl-to-resize-a-loop-device.patch
+bfs-add-some-basic-sanity-checks.patch
+bfs-check-that-filesystem-fits-on-the-blockdevice.patch
+tpm-clean-up-tpm_nsc-driver-for-platform_device-suspend-resume-compliance.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+w1-add-1-wire-master-driver-for-imx27-imx31.patch
+w1-add-1-wire-master-driver-for-imx27-imx31-update.patch
+vmcore-remove-saved_max_pfn-check.patch
+unaligned-introduce-common-header.patch
+unaligned-introduce-common-header-fix.patch
+unaligned-introduce-common-header-fix-2.patch
+unaligned-convert-arches-where-unaligned-access-is-ok.patch
+unaligned-use-generic-implementation-on-packed-struct-arches.patch
+unaligned-remove-packed-struct-and-unaligned-access_ok-headers.patch
+unaligned-pack-the-struct-not-the-struct-members.patch
+unaligned-move-arm-m32r-h8300-to-the-asm-generic-version.patch
+unaligned-remove-last-bits-of-the-unaligned-access-helpers.patch
+filesystem-freeze-add-error-handling-of-write_super_lockfs-unlockfs.patch
+filesystem-freeze-implement-generic-freeze-feature.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
+make-various-things-static.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-fix-handling-enospc-cryptcompress.patch
+reiser4-fix-handling-enospc-unix_file.patch
+reiser4-fix-kill_hook_internal.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-compile-warning-cleanups.patch
+reiser4-use-wake_up_process-instead-of-wake_up-when-possible.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+releasing-resources-with-children.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+mm-debug-dump-pageframes-on-bad_page.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
