@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-atmel_spi-update-chipselect-handling.patch added to -mm tree
-Date: Sat, 22 Nov 2008 13:14:30 -0800
-Message-ID: <200811222114.mAMLEUdZ023548@imap1.linux-foundation.org>
+Subject: + spi-fix-spi_s3c24xx_gpio-num_chipselect.patch added to -mm tree
+Date: Sat, 22 Nov 2008 13:15:48 -0800
+Message-ID: <200811222115.mAMLFmj8024177@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34609 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751751AbYKVVOk (ORCPT
+	by vger.kernel.org with ESMTP id S1752664AbYKVVQc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Nov 2008 16:14:40 -0500
+	Sat, 22 Nov 2008 16:16:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haavard.skinnemoen@atmel.com, dbrownell@users.sourceforge.net
+Cc: ben-linux@fluff.org, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     spi: atmel_spi update chipselect handling
+     spi: fix spi_s3c24xx_gpio num_chipselect
 has been added to the -mm tree.  Its filename is
-     spi-atmel_spi-update-chipselect-handling.patch
+     spi-fix-spi_s3c24xx_gpio-num_chipselect.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,213 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: atmel_spi update chipselect handling
-From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: spi: fix spi_s3c24xx_gpio num_chipselect
+From: Ben Dooks <ben-linux@fluff.org>
 
-This solves several issues:
-  * It fixes the wrong idle clock polarity issue in a cleaner and less
-    expensive way.
-  * It handles the AT32AP7000 errata "SPI Chip Select 0 BITS field
-    overrides other Chip Selects". Other chips, e.g. AT91SAM9261, have
-    similar issues.
+The spi master driver must have num_chipselect set to allow the bus to
+initialise.  Pass this through the platform data.
 
-Currently, the AT91RM9200 code path is left alone. But it might be
-interesting to try the same technique on RM9200 using a different CSR
-register.
-
-[dbrownell@users.sourceforge.net: restore debug message for activation]
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |   93 +++++++++++++++++++++++++++-----------
- 1 file changed, 67 insertions(+), 26 deletions(-)
+ arch/arm/mach-s3c2410/include/mach/spi-gpio.h |    1 +
+ drivers/spi/spi_s3c24xx_gpio.c                |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/spi/atmel_spi.c~spi-atmel_spi-update-chipselect-handling drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~spi-atmel_spi-update-chipselect-handling
-+++ a/drivers/spi/atmel_spi.c
-@@ -51,6 +51,12 @@ struct atmel_spi {
- 	dma_addr_t		buffer_dma;
- };
+diff -puN arch/arm/mach-s3c2410/include/mach/spi-gpio.h~spi-fix-spi_s3c24xx_gpio-num_chipselect arch/arm/mach-s3c2410/include/mach/spi-gpio.h
+--- a/arch/arm/mach-s3c2410/include/mach/spi-gpio.h~spi-fix-spi_s3c24xx_gpio-num_chipselect
++++ a/arch/arm/mach-s3c2410/include/mach/spi-gpio.h
+@@ -18,6 +18,7 @@ struct s3c2410_spigpio_info {
+ 	unsigned long		 pin_mosi;
+ 	unsigned long		 pin_miso;
  
-+/* Controller-specific per-slave state */
-+struct atmel_spi_device {
-+	unsigned int		npcs_pin;
-+	u32			csr;
-+};
-+
- #define BUFFER_SIZE		PAGE_SIZE
- #define INVALID_DMA_ADDRESS	0xffffffff
++	int			 num_chipselect;
+ 	int			 bus_num;
  
-@@ -89,39 +95,58 @@ static bool atmel_spi_is_v2(void)
-  * Master on Chip Select 0.")  No workaround exists for that ... so for
-  * nCS0 on that chip, we (a) don't use the GPIO, (b) can't support CS_HIGH,
-  * and (c) will trigger that first erratum in some cases.
-+ *
-+ * TODO: Test if the atmel_spi_is_v2() branch below works on
-+ * AT91RM9200 if we use some other register than CSR0. However, don't
-+ * do this unconditionally since AP7000 has an errata where the BITS
-+ * field in CSR0 overrides all other CSRs.
-  */
+ 	void (*chip_select)(struct s3c2410_spigpio_info *spi, int cs);
+diff -puN drivers/spi/spi_s3c24xx_gpio.c~spi-fix-spi_s3c24xx_gpio-num_chipselect drivers/spi/spi_s3c24xx_gpio.c
+--- a/drivers/spi/spi_s3c24xx_gpio.c~spi-fix-spi_s3c24xx_gpio-num_chipselect
++++ a/drivers/spi/spi_s3c24xx_gpio.c
+@@ -118,6 +118,7 @@ static int s3c2410_spigpio_probe(struct 
+ 	/* setup spi bitbang adaptor */
+ 	sp->bitbang.master = spi_master_get(master);
+ 	sp->bitbang.master->bus_num = info->bus_num;
++	sp->bitbang.master->num_chipselect = info->num_chipselect;
+ 	sp->bitbang.chipselect = s3c2410_spigpio_chipselect;
  
- static void cs_activate(struct atmel_spi *as, struct spi_device *spi)
- {
--	unsigned gpio = (unsigned) spi->controller_data;
-+	struct atmel_spi_device *asd = spi->controller_state;
- 	unsigned active = spi->mode & SPI_CS_HIGH;
- 	u32 mr;
--	int i;
--	u32 csr;
--	u32 cpol = (spi->mode & SPI_CPOL) ? SPI_BIT(CPOL) : 0;
--
--	/* Make sure clock polarity is correct */
--	for (i = 0; i < spi->master->num_chipselect; i++) {
--		csr = spi_readl(as, CSR0 + 4 * i);
--		if ((csr ^ cpol) & SPI_BIT(CPOL))
--			spi_writel(as, CSR0 + 4 * i, csr ^ SPI_BIT(CPOL));
--	}
- 
--	mr = spi_readl(as, MR);
--	mr = SPI_BFINS(PCS, ~(1 << spi->chip_select), mr);
-+	if (atmel_spi_is_v2()) {
-+		/*
-+		 * Always use CSR0. This ensures that the clock
-+		 * switches to the correct idle polarity before we
-+		 * toggle the CS.
-+		 */
-+		spi_writel(as, CSR0, asd->csr);
-+		spi_writel(as, MR, SPI_BF(PCS, 0x0e) | SPI_BIT(MODFDIS)
-+				| SPI_BIT(MSTR));
-+		mr = spi_readl(as, MR);
-+		gpio_set_value(asd->npcs_pin, active);
-+	} else {
-+		u32 cpol = (spi->mode & SPI_CPOL) ? SPI_BIT(CPOL) : 0;
-+		int i;
-+		u32 csr;
-+
-+		/* Make sure clock polarity is correct */
-+		for (i = 0; i < spi->master->num_chipselect; i++) {
-+			csr = spi_readl(as, CSR0 + 4 * i);
-+			if ((csr ^ cpol) & SPI_BIT(CPOL))
-+				spi_writel(as, CSR0 + 4 * i,
-+						csr ^ SPI_BIT(CPOL));
-+		}
-+
-+		mr = spi_readl(as, MR);
-+		mr = SPI_BFINS(PCS, ~(1 << spi->chip_select), mr);
-+		if (spi->chip_select != 0)
-+			gpio_set_value(asd->npcs_pin, active);
-+		spi_writel(as, MR, mr);
-+	}
- 
- 	dev_dbg(&spi->dev, "activate %u%s, mr %08x\n",
--			gpio, active ? " (high)" : "",
-+			asd->npcs_pin, active ? " (high)" : "",
- 			mr);
--
--	if (atmel_spi_is_v2() || spi->chip_select != 0)
--		gpio_set_value(gpio, active);
--	spi_writel(as, MR, mr);
- }
- 
- static void cs_deactivate(struct atmel_spi *as, struct spi_device *spi)
- {
--	unsigned gpio = (unsigned) spi->controller_data;
-+	struct atmel_spi_device *asd = spi->controller_state;
- 	unsigned active = spi->mode & SPI_CS_HIGH;
- 	u32 mr;
- 
-@@ -135,11 +160,11 @@ static void cs_deactivate(struct atmel_s
- 	}
- 
- 	dev_dbg(&spi->dev, "DEactivate %u%s, mr %08x\n",
--			gpio, active ? " (low)" : "",
-+			asd->npcs_pin, active ? " (low)" : "",
- 			mr);
- 
- 	if (atmel_spi_is_v2() || spi->chip_select != 0)
--		gpio_set_value(gpio, !active);
-+		gpio_set_value(asd->npcs_pin, !active);
- }
- 
- static inline int atmel_spi_xfer_is_last(struct spi_message *msg,
-@@ -511,6 +536,7 @@ atmel_spi_interrupt(int irq, void *dev_i
- static int atmel_spi_setup(struct spi_device *spi)
- {
- 	struct atmel_spi	*as;
-+	struct atmel_spi_device	*asd;
- 	u32			scbr, csr;
- 	unsigned int		bits = spi->bits_per_word;
- 	unsigned long		bus_hz;
-@@ -595,11 +621,20 @@ static int atmel_spi_setup(struct spi_de
- 
- 	/* chipselect must have been muxed as GPIO (e.g. in board setup) */
- 	npcs_pin = (unsigned int)spi->controller_data;
--	if (!spi->controller_state) {
-+	asd = spi->controller_state;
-+	if (!asd) {
-+		asd = kzalloc(sizeof(struct atmel_spi_device), GFP_KERNEL);
-+		if (!asd)
-+			return -ENOMEM;
-+
- 		ret = gpio_request(npcs_pin, spi->dev.bus_id);
--		if (ret)
-+		if (ret) {
-+			kfree(asd);
- 			return ret;
--		spi->controller_state = (void *)npcs_pin;
-+		}
-+
-+		asd->npcs_pin = npcs_pin;
-+		spi->controller_state = asd;
- 		gpio_direction_output(npcs_pin, !(spi->mode & SPI_CS_HIGH));
- 	} else {
- 		unsigned long		flags;
-@@ -611,11 +646,14 @@ static int atmel_spi_setup(struct spi_de
- 		spin_unlock_irqrestore(&as->lock, flags);
- 	}
- 
-+	asd->csr = csr;
-+
- 	dev_dbg(&spi->dev,
- 		"setup: %lu Hz bpw %u mode 0x%x -> csr%d %08x\n",
- 		bus_hz / scbr, bits, spi->mode, spi->chip_select, csr);
- 
--	spi_writel(as, CSR0 + 4 * spi->chip_select, csr);
-+	if (!atmel_spi_is_v2())
-+		spi_writel(as, CSR0 + 4 * spi->chip_select, csr);
- 
- 	return 0;
- }
-@@ -690,10 +728,11 @@ static int atmel_spi_transfer(struct spi
- static void atmel_spi_cleanup(struct spi_device *spi)
- {
- 	struct atmel_spi	*as = spi_master_get_devdata(spi->master);
-+	struct atmel_spi_device	*asd = spi->controller_state;
- 	unsigned		gpio = (unsigned) spi->controller_data;
- 	unsigned long		flags;
- 
--	if (!spi->controller_state)
-+	if (!asd)
- 		return;
- 
- 	spin_lock_irqsave(&as->lock, flags);
-@@ -703,7 +742,9 @@ static void atmel_spi_cleanup(struct spi
- 	}
- 	spin_unlock_irqrestore(&as->lock, flags);
- 
-+	spi->controller_state = NULL;
- 	gpio_free(gpio);
-+	kfree(asd);
- }
- 
- /*-------------------------------------------------------------------------*/
+ 	sp->bitbang.txrx_word[SPI_MODE_0] = s3c2410_spigpio_txrx_mode0;
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
-linux-next.patch
-atmel_spi-clean-up-spiv1-quirk-handling.patch
-spi-atmel_spi-update-chipselect-handling.patch
+origin.patch
+backlight-value-of-ili9320_rgb_if2-register-should-not-be-hardcoded.patch
+spi-fix-spi_s3c24xx_gpio-device-handle-lookup.patch
+spi-fix-spi_s3c24xx_gpio-num_chipselect.patch
+spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio.patch
 
