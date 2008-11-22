@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-au1550_spi-full-duplex-dma-fix.patch added to -mm tree
-Date: Sat, 22 Nov 2008 13:13:28 -0800
-Message-ID: <200811222113.mAMLDSF2022949@imap1.linux-foundation.org>
+Subject: + spi-fix-spi_imx-probe-oopsing.patch added to -mm tree
+Date: Sat, 22 Nov 2008 13:13:26 -0800
+Message-ID: <200811222113.mAMLDQfO022889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50875 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751751AbYKVVNi (ORCPT
+	by vger.kernel.org with ESMTP id S1752866AbYKVVNx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Nov 2008 16:13:38 -0500
+	Sat, 22 Nov 2008 16:13:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jan.nikitenko@gmail.com, dbrownell@users.sourceforge.net
+Cc: julien.boibessot@free.fr, dbrownell@users.sourceforge.net, julien.boibessot@armadeus.com, s.hauer@pengutronix.de
 
 
 The patch titled
-     spi: au1550_spi full duplex dma fix
+     spi: fix spi_imx probe oopsing
 has been added to the -mm tree.  Its filename is
-     spi-au1550_spi-full-duplex-dma-fix.patch
+     spi-fix-spi_imx-probe-oopsing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: au1550_spi full duplex dma fix
-From: Jan Nikitenko <jan.nikitenko@gmail.com>
+Subject: spi: fix spi_imx probe oopsing
+From: Julien Boibessot <julien.boibessot@free.fr>
 
-Fix unsafe order in dma mapping operation: always flush data from the
-cache *BEFORE* invalidating it, to allow full duplex transfers where the
-same buffer may be used for both writes and reads.  Tested with mmc-spi.
+Corrects spi_imx driver oops during initialization/probing: can't use
+drv_data before it's allocated.
 
-Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
+Signed-off-by: Julien Boibessot <julien.boibessot@armadeus.com>
+Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/au1550_spi.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ drivers/spi/spi_imx.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN drivers/spi/au1550_spi.c~spi-au1550_spi-full-duplex-dma-fix drivers/spi/au1550_spi.c
---- a/drivers/spi/au1550_spi.c~spi-au1550_spi-full-duplex-dma-fix
-+++ a/drivers/spi/au1550_spi.c
-@@ -369,10 +369,23 @@ static int au1550_spi_dma_txrxb(struct s
- 	dma_rx_addr = t->rx_dma;
+diff -puN drivers/spi/spi_imx.c~spi-fix-spi_imx-probe-oopsing drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi-fix-spi_imx-probe-oopsing
++++ a/drivers/spi/spi_imx.c
+@@ -1456,7 +1456,7 @@ static int __init spi_imx_probe(struct p
+ 	struct device *dev = &pdev->dev;
+ 	struct spi_imx_master *platform_info;
+ 	struct spi_master *master;
+-	struct driver_data *drv_data = NULL;
++	struct driver_data *drv_data;
+ 	struct resource *res;
+ 	int irq, status = 0;
  
- 	/*
--	 * check if buffers are already dma mapped, map them otherwise
-+	 * check if buffers are already dma mapped, map them otherwise:
-+	 * - first map the TX buffer, so cache data gets written to memory
-+	 * - then map the RX buffer, so that cache entries (with
-+	 *   soon-to-be-stale data) get removed
- 	 * use rx buffer in place of tx if tx buffer was not provided
- 	 * use temp rx buffer (preallocated or realloc to fit) for rx dma
- 	 */
-+	if (t->tx_buf) {
-+		if (t->tx_dma == 0) {	/* if DMA_ADDR_INVALID, map it */
-+			dma_tx_addr = dma_map_single(hw->dev,
-+					(void *)t->tx_buf,
-+					t->len, DMA_TO_DEVICE);
-+			if (dma_mapping_error(hw->dev, dma_tx_addr))
-+				dev_err(hw->dev, "tx dma map error\n");
-+		}
-+	}
-+
- 	if (t->rx_buf) {
- 		if (t->rx_dma == 0) {	/* if DMA_ADDR_INVALID, map it */
- 			dma_rx_addr = dma_map_single(hw->dev,
-@@ -396,15 +409,8 @@ static int au1550_spi_dma_txrxb(struct s
- 		dma_sync_single_for_device(hw->dev, dma_rx_addr,
- 			t->len, DMA_FROM_DEVICE);
+@@ -1467,14 +1467,6 @@ static int __init spi_imx_probe(struct p
+ 		goto err_no_pdata;
  	}
--	if (t->tx_buf) {
--		if (t->tx_dma == 0) {	/* if DMA_ADDR_INVALID, map it */
--			dma_tx_addr = dma_map_single(hw->dev,
--					(void *)t->tx_buf,
--					t->len, DMA_TO_DEVICE);
--			if (dma_mapping_error(hw->dev, dma_tx_addr))
--				dev_err(hw->dev, "tx dma map error\n");
--		}
--	} else {
+ 
+-	drv_data->clk = clk_get(&pdev->dev, "perclk2");
+-	if (IS_ERR(drv_data->clk)) {
+-		dev_err(&pdev->dev, "probe - cannot get get\n");
+-		status = PTR_ERR(drv_data->clk);
+-		goto err_no_clk;
+-	}
+-	clk_enable(drv_data->clk);
+-
+ 	/* Allocate master with space for drv_data */
+ 	master = spi_alloc_master(dev, sizeof(struct driver_data));
+ 	if (!master) {
+@@ -1495,6 +1487,14 @@ static int __init spi_imx_probe(struct p
+ 
+ 	drv_data->dummy_dma_buf = SPI_DUMMY_u32;
+ 
++	drv_data->clk = clk_get(&pdev->dev, "perclk2");
++	if (IS_ERR(drv_data->clk)) {
++		dev_err(&pdev->dev, "probe - cannot get clock\n");
++		status = PTR_ERR(drv_data->clk);
++		goto err_no_clk;
++	}
++	clk_enable(drv_data->clk);
 +
-+	if (!t->tx_buf) {
- 		dma_sync_single_for_device(hw->dev, dma_rx_addr,
- 				t->len, DMA_BIDIRECTIONAL);
- 		hw->tx = hw->rx;
-_
-
-Patches currently in -mm which might be from jan.nikitenko@gmail.com are
-
-spi-au1550_spi-full-duplex-dma-fix.patch
-
+ 	/* Find and map resources */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+@@ -1630,12 +1630,13 @@ err_no_iomap:
+ 	kfree(drv_data->ioarea);
+ 
+ err_no_iores:
+-	spi_master_put(master);
