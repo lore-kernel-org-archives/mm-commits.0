@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch added to -mm tree
-Date: Fri, 21 Nov 2008 16:09:56 -0800
-Message-ID: <200811220025.mAM0PLNJ022263@imap1.linux-foundation.org>
+Subject: + epoll-introduce-resource-usage-limits-fix.patch added to -mm tree
+Date: Fri, 21 Nov 2008 16:21:05 -0800
+Message-ID: <200811220036.mAM0aS5b028132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34699 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756873AbYKVA0U (ORCPT
+	by vger.kernel.org with ESMTP id S1754199AbYKVAgo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 19:26:20 -0500
+	Fri, 21 Nov 2008 19:36:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, jblunck@suse.de, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, nickpiggin@yahoo.com.au, nishimura@mxp.nes.nec.co.jp, pbadari@us.ibm.com, taka@valinux.co.jp
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, gorcunov@gmail.com, mtk.manpages@gmail.com, stable@kernel.org, vegardno@ifi.uio.no
 
 
 The patch titled
-     memcg-avoid-unnecessary-system-wide-oom-killer-fix
+     epoll-introduce-resource-usage-limits-fix
 has been added to the -mm tree.  Its filename is
-     memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+     epoll-introduce-resource-usage-limits-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-avoid-unnecessary-system-wide-oom-killer-fix
+Subject: epoll-introduce-resource-usage-limits-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Hirokazu Takahashi <taka@valinux.co.jp>
-Cc: Jan Blunck <jblunck@suse.de>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+current->user is about to disappear.  Use the correct interface.
+
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: <stable@kernel.org>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Vegard Nossum <vegardno@ifi.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/eventpoll.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcg-avoid-unnecessary-system-wide-oom-killer-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-avoid-unnecessary-system-wide-oom-killer-fix
-+++ a/include/linux/memcontrol.h
-@@ -236,7 +236,8 @@ static inline bool mem_cgroup_disabled(v
- {
- 	return true;
- }
--static inline bool mem_cgroup_oom_called(struct task_struct *task);
-+
-+static inline bool mem_cgroup_oom_called(struct task_struct *task)
- {
- 	return false;
- }
+diff -puN fs/eventpoll.c~epoll-introduce-resource-usage-limits-fix fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-introduce-resource-usage-limits-fix
++++ a/fs/eventpoll.c
+@@ -584,7 +584,7 @@ static int ep_alloc(struct eventpoll **p
+ 	struct user_struct *user;
+ 	struct eventpoll *ep;
+ 
+-	user = get_uid(current->user);
++	user = get_current_user();
+ 	error = -EMFILE;
+ 	if (unlikely(atomic_read(&user->epoll_devs) >=
+ 			max_user_instances))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+epoll-introduce-resource-usage-limits-fix.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 next-remove-localversion.patch
