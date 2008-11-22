@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-introduce-resource-usage-limits-fix.patch added to -mm tree
-Date: Fri, 21 Nov 2008 16:21:05 -0800
-Message-ID: <200811220036.mAM0aS5b028132@imap1.linux-foundation.org>
+Subject: + i2o-remove-extraneous-kernel-doc.patch added to -mm tree
+Date: Fri, 21 Nov 2008 16:38:19 -0800
+Message-ID: <200811220038.mAM0cJ6e029091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34699 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37650 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754199AbYKVAgo (ORCPT
+	by vger.kernel.org with ESMTP id S1753669AbYKVAiZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Nov 2008 19:36:44 -0500
+	Fri, 21 Nov 2008 19:38:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, gorcunov@gmail.com, mtk.manpages@gmail.com, stable@kernel.org, vegardno@ifi.uio.no
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     epoll-introduce-resource-usage-limits-fix
+     i2o: remove extraneous kernel-doc
 has been added to the -mm tree.  Its filename is
-     epoll-introduce-resource-usage-limits-fix.patch
+     i2o-remove-extraneous-kernel-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll-introduce-resource-usage-limits-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i2o: remove extraneous kernel-doc
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-current->user is about to disappear.  Use the correct interface.
+Remove excess kernel-doc function parameter notation from i2o/.
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: <stable@kernel.org>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Vegard Nossum <vegardno@ifi.uio.no>
+Warning(drivers/message/i2o/iop.c:64): Excess function parameter 'msg' description in 'i2o_msg_get_wait'
+Warning(drivers/message/i2o/device.c:62): Excess function parameter 'drv' description in 'i2o_device_claim'
+Warning(drivers/message/i2o/device.c:95): Excess function parameter 'drv' description in 'i2o_device_claim_release'
+Warning(drivers/message/i2o/driver.c:186): Excess function parameter 'msg' description in 'i2o_driver_dispatch'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/message/i2o/device.c |    2 --
+ drivers/message/i2o/driver.c |    1 -
+ drivers/message/i2o/iop.c    |    1 -
+ 3 files changed, 4 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-introduce-resource-usage-limits-fix fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-introduce-resource-usage-limits-fix
-+++ a/fs/eventpoll.c
-@@ -584,7 +584,7 @@ static int ep_alloc(struct eventpoll **p
- 	struct user_struct *user;
- 	struct eventpoll *ep;
- 
--	user = get_uid(current->user);
-+	user = get_current_user();
- 	error = -EMFILE;
- 	if (unlikely(atomic_read(&user->epoll_devs) >=
- 			max_user_instances))
+diff -puN drivers/message/i2o/device.c~i2o-remove-extraneous-kernel-doc drivers/message/i2o/device.c
+--- a/drivers/message/i2o/device.c~i2o-remove-extraneous-kernel-doc
++++ a/drivers/message/i2o/device.c
+@@ -52,7 +52,6 @@ static inline int i2o_device_issue_claim
+ /**
+  *	i2o_device_claim - claim a device for use by an OSM
+  *	@dev: I2O device to claim
+- *	@drv: I2O driver which wants to claim the device
+  *
+  *	Do the leg work to assign a device to a given OSM. If the claim succeeds,
+  *	the owner is the primary. If the attempt fails a negative errno code
+@@ -80,7 +79,6 @@ int i2o_device_claim(struct i2o_device *
+ /**
+  *	i2o_device_claim_release - release a device that the OSM is using
+  *	@dev: device to release
+- *	@drv: driver which claimed the device
+  *
+  *	Drop a claim by an OSM on a given I2O device.
+  *
+diff -puN drivers/message/i2o/driver.c~i2o-remove-extraneous-kernel-doc drivers/message/i2o/driver.c
+--- a/drivers/message/i2o/driver.c~i2o-remove-extraneous-kernel-doc
++++ a/drivers/message/i2o/driver.c
+@@ -173,7 +173,6 @@ void i2o_driver_unregister(struct i2o_dr
+  *	i2o_driver_dispatch - dispatch an I2O reply message
+  *	@c: I2O controller of the message
+  *	@m: I2O message number
+- *	@msg: I2O message to be delivered
+  *
+  *	The reply is delivered to the driver from which the original message
+  *	was. This function is only called from interrupt context.
+diff -puN drivers/message/i2o/iop.c~i2o-remove-extraneous-kernel-doc drivers/message/i2o/iop.c
+--- a/drivers/message/i2o/iop.c~i2o-remove-extraneous-kernel-doc
++++ a/drivers/message/i2o/iop.c
+@@ -49,7 +49,6 @@ static int i2o_hrt_get(struct i2o_contro
+ /**
+  *	i2o_msg_get_wait - obtain an I2O message from the IOP
+  *	@c: I2O controller
+- *	@msg: pointer to a I2O message pointer
+  *	@wait: how long to wait until timeout
+  *
+  *	This function waits up to wait seconds for a message slot to be
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-epoll-introduce-resource-usage-limits-fix.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
-pci-uninline-pci_ioremap_bar.patch
-pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
-vfs-lseekfd-0-seek_cur-race-condition-fix.patch
-bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-kernel-profilec-fix-section-mismatch-warning-fix.patch
-usb-serial-console-add-device-function-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes.patch
-binfmtsh-include-listh-fix.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+audit-remove-excess-kernel-doc.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+scripts-extract-ikconfig-remove-bashisms.patch
+drivers-ata-pata_radisysc-cleanup-kernel-doc.patch
+drivers-ata-libata-corec-cleanup-kernel-doc.patch
+drivers-ata-pata_oldpiixc-cleanup-kernel-doc.patch
+drivers-ata-pata_pdc2027xc-cleanup-kernel-doc.patch
+drivers-ata-pata_legacyc-cleanup-kernel-doc.patch
+drivers-ata-pata_sisc-cleanup-kernel-doc.patch
+drivers-ata-pata_c-the-rest-remove-redundant-comments.patch
+mtd-remove-excess-kernel-doc-notation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+fusion-remove-excess-kernel-doc-notation.patch
+block-remove-excess-kernel-doc.patch
+net-hp-plus-fix-link-errors.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
 max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format-fix.patch
-quota-support-64-bit-quota-format-fix-2.patch
-quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-message-i2o-iopc-cleanup-kerneldoc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
 profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
