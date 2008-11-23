@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio.patch added to -mm tree
-Date: Sat, 22 Nov 2008 13:15:50 -0800
-Message-ID: <200811222115.mAMLFoh4024226@imap1.linux-foundation.org>
+Subject: + radeonfb-fix-problem-with-color-expansion-alignment.patch added to -mm tree
+Date: Sat, 22 Nov 2008 17:39:54 -0800
+Message-ID: <200811230139.mAN1dscn001077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752118AbYKVVQc (ORCPT
+	by vger.kernel.org with ESMTP id S1754565AbYKWBkb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Nov 2008 16:16:32 -0500
+	Sat, 22 Nov 2008 20:40:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org, dbrownell@users.sourceforge.net
+Cc: benh@kernel.crashing.org, cloos@jhcloos.com, davem@davemloft.net, krzysztof.h1@poczta.fm, rjw@sisk.pl
 
 
 The patch titled
-     spi: use generic gpio calls in spi_s3c24xx_gpio
+     radeonfb: fix problem with color expansion & alignment
 has been added to the -mm tree.  Its filename is
-     spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio.patch
+     radeonfb-fix-problem-with-color-expansion-alignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,137 +34,124 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: use generic gpio calls in spi_s3c24xx_gpio
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: radeonfb: fix problem with color expansion & alignment
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Change the spi_s3c2410 driver to use the generic gpio calls that are now
-available.
+The engine on some radeon variants locks up if color expansion is called
+for non aligned source data.  This patch enables a feature of the core
+fbdev to request aligned input pixmaps and uses the HW clipping engine to
+clip the output to the requested size
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11875
+
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: James Cloos <cloos@jhcloos.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-s3c2410/include/mach/spi.h |    2 -
- drivers/spi/spi_s3c24xx.c                |   38 ++++++++++++++++-----
- 2 files changed, 30 insertions(+), 10 deletions(-)
+ drivers/video/aty/radeon_accel.c |   21 ++++++++++++---------
+ drivers/video/aty/radeon_base.c  |   18 ++++++++++++++++++
+ 2 files changed, 30 insertions(+), 9 deletions(-)
 
-diff -puN arch/arm/mach-s3c2410/include/mach/spi.h~spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio arch/arm/mach-s3c2410/include/mach/spi.h
---- a/arch/arm/mach-s3c2410/include/mach/spi.h~spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio
-+++ a/arch/arm/mach-s3c2410/include/mach/spi.h
-@@ -14,7 +14,7 @@
- #define __ASM_ARCH_SPI_H __FILE__
- 
- struct s3c2410_spi_info {
--	unsigned long		 pin_cs;	/* simple gpio cs */
-+	int			 pin_cs;	/* simple gpio cs */
- 	unsigned int		 num_cs;	/* total chipselects */
- 	int			 bus_num;       /* bus number to use. */
- 
-diff -puN drivers/spi/spi_s3c24xx.c~spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -19,6 +19,7 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/platform_device.h>
-+#include <linux/gpio.h>
- 
- #include <linux/spi/spi.h>
- #include <linux/spi/spi_bitbang.h>
-@@ -27,7 +28,6 @@
- #include <asm/dma.h>
- #include <mach/hardware.h>
- 
--#include <mach/regs-gpio.h>
- #include <asm/plat-s3c24xx/regs-spi.h>
- #include <mach/spi.h>
- 
-@@ -66,7 +66,7 @@ static inline struct s3c24xx_spi *to_hw(
- 
- static void s3c24xx_spi_gpiocs(struct s3c2410_spi_info *spi, int cs, int pol)
+diff -puN drivers/video/aty/radeon_accel.c~radeonfb-fix-problem-with-color-expansion-alignment drivers/video/aty/radeon_accel.c
+--- a/drivers/video/aty/radeon_accel.c~radeonfb-fix-problem-with-color-expansion-alignment
++++ a/drivers/video/aty/radeon_accel.c
+@@ -174,12 +174,12 @@ static void radeonfb_prim_imageblit(stru
+ 				    const struct fb_image *image,
+ 				    u32 fg, u32 bg)
  {
--	s3c2410_gpio_setpin(spi->pin_cs, pol);
-+	gpio_set_value(spi->pin_cs, pol);
- }
+-	unsigned int src_bytes, dwords;
++	unsigned int dwords;
+ 	u32 *bits;
  
- static void s3c24xx_spi_chipsel(struct spi_device *spi, int value)
-@@ -248,8 +248,13 @@ static void s3c24xx_spi_initialsetup(str
- 	writeb(SPPIN_DEFAULT, hw->regs + S3C2410_SPPIN);
- 	writeb(SPCON_DEFAULT, hw->regs + S3C2410_SPCON);
+ 	radeonfb_set_creg(rinfo, DP_GUI_MASTER_CNTL, &rinfo->dp_gui_mc_cache,
+ 			  rinfo->dp_gui_mc_base |
+-			  GMC_BRUSH_NONE |
++			  GMC_BRUSH_NONE | GMC_DST_CLIP_LEAVE |
+ 			  GMC_SRC_DATATYPE_MONO_FG_BG |
+ 			  ROP3_S |
+ 			  GMC_BYTE_ORDER_MSB_TO_LSB |
+@@ -189,9 +189,6 @@ static void radeonfb_prim_imageblit(stru
+ 	radeonfb_set_creg(rinfo, DP_SRC_FRGD_CLR, &rinfo->dp_src_fg_cache, fg);
+ 	radeonfb_set_creg(rinfo, DP_SRC_BKGD_CLR, &rinfo->dp_src_bg_cache, bg);
  
--	if (hw->pdata && hw->pdata->gpio_setup)
--		hw->pdata->gpio_setup(hw->pdata, 1);
-+	if (hw->pdata) {
-+		if (hw->set_cs == s3c24xx_spi_gpiocs)
-+			gpio_direction_output(hw->pdata->pin_cs, 1);
-+
-+		if (hw->pdata->gpio_setup)
-+			hw->pdata->gpio_setup(hw->pdata, 1);
-+	}
- }
- 
- static int __init s3c24xx_spi_probe(struct platform_device *pdev)
-@@ -343,18 +348,27 @@ static int __init s3c24xx_spi_probe(stru
- 		goto err_no_clk;
- 	}
- 
--	s3c24xx_spi_initialsetup(hw);
+-	radeon_fifo_wait(rinfo, 1);
+-	OUTREG(DST_Y_X, (image->dy << 16) | image->dx);
 -
- 	/* setup any gpio we can */
+ 	/* Ensure the dst cache is flushed and the engine idle before
+ 	 * issuing the operation.
+ 	 *
+@@ -205,13 +202,19 @@ static void radeonfb_prim_imageblit(stru
  
- 	if (!pdata->set_cs) {
--		hw->set_cs = s3c24xx_spi_gpiocs;
-+		if (pdata->pin_cs < 0) {
-+			dev_err(&pdev->dev, "No chipselect pin\n");
-+			goto err_register;
-+		}
+ 	/* X here pads width to a multiple of 32 and uses the clipper to
+ 	 * adjust the result. Is that really necessary ? Things seem to
+-	 * work ok for me without that and the doco doesn't seem to imply
++	 * work ok for me without that and the doco doesn't seem to imply]
+ 	 * there is such a restriction.
+ 	 */
+-	OUTREG(DST_WIDTH_HEIGHT, (image->width << 16) | image->height);
++	radeon_fifo_wait(rinfo, 4);
++	OUTREG(SC_TOP_LEFT, (image->dy << 16) | image->dx);
++	OUTREG(SC_BOTTOM_RIGHT, ((image->dy + image->height) << 16) |
++	       (image->dx + image->width));
++	OUTREG(DST_Y_X, (image->dy << 16) | image->dx);
 +
-+		err = gpio_request(pdata->pin_cs, dev_name(&pdev->dev));
-+		if (err) {
-+			dev_err(&pdev->dev, "Failed to get gpio for cs\n");
-+			goto err_register;
-+		}
++	OUTREG(DST_HEIGHT_WIDTH, (image->height << 16) | ((image->width + 31) & ~31));
  
--		s3c2410_gpio_setpin(pdata->pin_cs, 1);
--		s3c2410_gpio_cfgpin(pdata->pin_cs, S3C2410_GPIO_OUTPUT);
-+		hw->set_cs = s3c24xx_spi_gpiocs;
-+		gpio_direction_output(pdata->pin_cs, 1);
- 	} else
- 		hw->set_cs = pdata->set_cs;
+-	src_bytes = (((image->width * image->depth) + 7) / 8) * image->height;
+-	dwords = (src_bytes + 3) / 4;
++	dwords = (image->width + 31) >> 5;
++	dwords *= image->height;
+ 	bits = (u32*)(image->data);
  
-+	s3c24xx_spi_initialsetup(hw);
+ 	while(dwords >= 8) {
+diff -puN drivers/video/aty/radeon_base.c~radeonfb-fix-problem-with-color-expansion-alignment drivers/video/aty/radeon_base.c
+--- a/drivers/video/aty/radeon_base.c~radeonfb-fix-problem-with-color-expansion-alignment
++++ a/drivers/video/aty/radeon_base.c
+@@ -1875,6 +1875,7 @@ static int __devinit radeon_set_fbinfo (
+ 	info->fbops = &radeonfb_ops;
+ 	info->screen_base = rinfo->fb_base;
+ 	info->screen_size = rinfo->mapped_vram;
 +
- 	/* register our spi controller */
+ 	/* Fill fix common fields */
+ 	strlcpy(info->fix.id, rinfo->name, sizeof(info->fix.id));
+         info->fix.smem_start = rinfo->fb_base_phys;
+@@ -1889,8 +1890,25 @@ static int __devinit radeon_set_fbinfo (
+         info->fix.mmio_len = RADEON_REGSIZE;
+ 	info->fix.accel = FB_ACCEL_ATI_RADEON;
  
- 	err = spi_bitbang_start(&hw->bitbang);
-@@ -366,6 +380,9 @@ static int __init s3c24xx_spi_probe(stru
- 	return 0;
++	/* Allocate colormap */
+ 	fb_alloc_cmap(&info->cmap, 256, 0);
  
-  err_register:
-+	if (hw->set_cs == s3c24xx_spi_gpiocs)
-+		gpio_free(pdata->pin_cs);
++	/* Setup pixmap used for acceleration */
++#define PIXMAP_SIZE	(2048 * 4)
 +
- 	clk_disable(hw->clk);
- 	clk_put(hw->clk);
- 
-@@ -401,6 +418,9 @@ static int __exit s3c24xx_spi_remove(str
- 	free_irq(hw->irq, hw);
- 	iounmap(hw->regs);
- 
-+	if (hw->set_cs == s3c24xx_spi_gpiocs)
-+		gpio_free(hw->pdata->pin_cs);
++	info->pixmap.addr = kmalloc(PIXMAP_SIZE, GFP_KERNEL);
++	if (!info->pixmap.addr) {
++		printk(KERN_ERR "radeonfb: Failed to allocate pixmap !\n");
++		noaccel = 1;
++		goto bail;
++	}
++	info->pixmap.size = PIXMAP_SIZE;
++	info->pixmap.flags = FB_PIXMAP_SYSTEM;
++	info->pixmap.scan_align = 4;
++	info->pixmap.buf_align = 4;
++	info->pixmap.access_align = 32;
 +
- 	release_resource(hw->ioarea);
- 	kfree(hw->ioarea);
++bail:
+ 	if (noaccel)
+ 		info->flags |= FBINFO_HWACCEL_DISABLED;
  
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-origin.patch
-backlight-value-of-ili9320_rgb_if2-register-should-not-be-hardcoded.patch
-spi-fix-spi_s3c24xx_gpio-device-handle-lookup.patch
-spi-fix-spi_s3c24xx_gpio-num_chipselect.patch
-spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio.patch
+radeonfb-fix-problem-with-color-expansion-alignment.patch
+linux-next.patch
+kprobes-add-kprobe_insn_mutex-and-cleanup-arch_remove_kprobe.patch
+unaligned-introduce-common-header.patch
+unaligned-convert-arches-where-unaligned-access-is-ok.patch
 
