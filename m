@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + softirq-introduce-statistics-for-softirq.patch added to -mm tree
-Date: Mon, 24 Nov 2008 14:04:18 -0800
-Message-ID: <200811242204.mAOM4Ihe012955@imap1.linux-foundation.org>
+Subject: + proc-export-statistics-for-softirq-to-proc.patch added to -mm tree
+Date: Mon, 24 Nov 2008 14:04:22 -0800
+Message-ID: <200811242204.mAOM4Nk7013042@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48712 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751644AbYKXWEo (ORCPT
+	by vger.kernel.org with ESMTP id S1751885AbYKXWE6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Nov 2008 17:04:44 -0500
+	Mon, 24 Nov 2008 17:04:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kobayashi.kk@ncos.nec.co.jp, adobriyan@gmail.com, dada1@cosmosbay.com, h-shi
 
 
 The patch titled
-     softirq: introduce statistics for softirq
+     proc: export statistics for softirq to /proc
 has been added to the -mm tree.  Its filename is
-     softirq-introduce-statistics-for-softirq.patch
+     proc-export-statistics-for-softirq-to-proc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: softirq: introduce statistics for softirq
+Subject: proc: export statistics for softirq to /proc
 From: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
 
-Statistics for softirq doesn't exist.
-It will be helpful like statistics for interrupts.
-This patch introduces counting the number of softirq,
-which will be exported in /proc/softirqs.
+Export statistics for softirq in /proc/softirqs and /proc/stat.
 
-When softirq handler consumes much CPU time,
-/proc/stat is like the following.
+1. /proc/softirqs
+Implement /proc/softirqs which shows the number of softirq
+for each CPU like /proc/interrupts.
 
-$ while :; do  cat /proc/stat | head -n1 ; sleep 10 ; done
-cpu  88 0 408 739665 583 28 2 0 0
-cpu  450 0 1090 740970 594 28 1294 0 0
-                              ^^^^
-                             softirq
-
-In such a situation,
-/proc/softirqs shows us which softirq handler is invoked.
-We can see the increase rate of softirqs.
-
-<before>
-$ cat /proc/softirqs
-                CPU0       CPU1       CPU2       CPU3
-HI                 0          0          0          0
-TIMER         462850     462805     462782     462718
-NET_TX             0          0          0        365
-NET_RX          2472          2          2         40
-BLOCK              0          0        381       1164
-TASKLET            0          0          0        224
-SCHED         462654     462689     462698     462427
-RCU             3046       2423       3367       3173
-
-<after>
-$ cat /proc/softirqs
-                CPU0       CPU1       CPU2       CPU3
-HI                 0          0          0          0
-TIMER         463361     465077     465056     464991
-NET_TX            53          0          1        365
-NET_RX          3757          2          2         40
-BLOCK              0          0        398       1170
-TASKLET            0          0          0        224
-SCHED         463074     464318     464612     463330
-RCU             3505       2948       3947       3673
-
-When CPU TIME of softirq is high,
-the rates of increase is the following.
-  TIMER  : 220/sec     : CPU1-3
-  NET_TX : 5/sec       : CPU0
-  NET_RX : 120/sec     : CPU0
-  SCHED  : 40-200/sec  : all CPU
-  RCU    : 45-58/sec   : all CPU
-
-The rates of increase in an idle mode is the following.
-  TIMER  : 250/sec
-  SCHED  : 250/sec
-  RCU    : 2/sec
-
-It seems many softirqs for receiving packets and rcu are invoked.
-This gives us help for checking system.
+2. /proc/stat
+Add the "softirq" line to /proc/stat.
+This line shows the number of softirq for all cpu.
+The first column is the total of all softirqs and
+each subsequent column is the total for particular softirq.
 
 Signed-off-by: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
 Reviewed-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
@@ -103,56 +57,123 @@ Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel_stat.h |   12 ++++++++++++
- kernel/softirq.c            |    1 +
- 2 files changed, 13 insertions(+)
+ fs/proc/Makefile   |    1 
+ fs/proc/softirqs.c |   57 +++++++++++++++++++++++++++++++++++++++++++
+ fs/proc/stat.c     |   17 ++++++++++++
+ 3 files changed, 75 insertions(+)
 
-diff -puN include/linux/kernel_stat.h~softirq-introduce-statistics-for-softirq include/linux/kernel_stat.h
---- a/include/linux/kernel_stat.h~softirq-introduce-statistics-for-softirq
-+++ a/include/linux/kernel_stat.h
-@@ -5,6 +5,7 @@
- #include <linux/threads.h>
- #include <linux/percpu.h>
- #include <linux/cpumask.h>
-+#include <linux/interrupt.h>
- #include <asm/irq.h>
- #include <asm/cputime.h>
+diff -puN fs/proc/Makefile~proc-export-statistics-for-softirq-to-proc fs/proc/Makefile
+--- a/fs/proc/Makefile~proc-export-statistics-for-softirq-to-proc
++++ a/fs/proc/Makefile
+@@ -19,6 +19,7 @@ proc-y	+= meminfo.o
+ proc-y	+= stat.o
+ proc-y	+= uptime.o
+ proc-y	+= version.o
++proc-y	+= softirqs.o
+ proc-$(CONFIG_PROC_SYSCTL)	+= proc_sysctl.o
+ proc-$(CONFIG_NET)		+= proc_net.o
+ proc-$(CONFIG_PROC_KCORE)	+= kcore.o
+diff -puN /dev/null fs/proc/softirqs.c
+--- /dev/null
++++ a/fs/proc/softirqs.c
+@@ -0,0 +1,57 @@
++#include <linux/init.h>
++#include <linux/kernel_stat.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
++
++static const char *desc_array[] = {
++	"HI",
++	"TIMER",
++	"NET_TX",
++	"NET_RX",
++	"BLOCK",
++	"TASKLET",
++	"SCHED",
++#ifdef CONFIG_HIGH_RES_TIMERS
++	"HRTIMER",
++#endif
++	"RCU"};
++
++/*
++ * /proc/softirqs  ... display the number of softirqs
++ */
++static int show_softirqs(struct seq_file *p, void *v)
++{
++	int i, j;
++
++	seq_printf(p, "                ");
++	for_each_possible_cpu(i)
++		seq_printf(p, "CPU%-8d", i);
++	seq_printf(p, "\n");
++
++	for (i = 0; i < NR_SOFTIRQS; i++) {
++		seq_printf(p, "%-9s", desc_array[i]);
++		for_each_possible_cpu(j)
++			seq_printf(p, " %10u", kstat_softirqs_cpu(i, j));
++		seq_printf(p, "\n");
++	}
++	return 0;
++}
++
++static int softirqs_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, show_softirqs, NULL);
++}
++
++static const struct file_operations proc_softirqs_operations = {
++	.open		= softirqs_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int __init proc_softirqs_init(void)
++{
++	proc_create("softirqs", 0, NULL, &proc_softirqs_operations);
++	return 0;
++}
++module_init(proc_softirqs_init);
+diff -puN fs/proc/stat.c~proc-export-statistics-for-softirq-to-proc fs/proc/stat.c
+--- a/fs/proc/stat.c~proc-export-statistics-for-softirq-to-proc
++++ a/fs/proc/stat.c
+@@ -25,6 +25,7 @@ static int show_stat(struct seq_file *p,
+ 	cputime64_t user, nice, system, idle, iowait, irq, softirq, steal;
+ 	cputime64_t guest;
+ 	u64 sum = 0;
++	u64 sum_softirq = 0;
+ 	struct timespec boottime;
+ 	unsigned int per_irq_sum;
  
-@@ -29,6 +30,7 @@ struct cpu_usage_stat {
- struct kernel_stat {
- 	struct cpu_usage_stat	cpustat;
- 	unsigned int irqs[NR_IRQS];
-+	unsigned int softirqs[NR_SOFTIRQS];
- };
+@@ -49,6 +50,10 @@ static int show_stat(struct seq_file *p,
+ 			sum += kstat_irqs_cpu(j, i);
  
- DECLARE_PER_CPU(struct kernel_stat, kstat);
-@@ -52,6 +54,16 @@ static inline unsigned int kstat_irqs_cp
-        return kstat_cpu(cpu).irqs[irq];
+ 		sum += arch_irq_stat_cpu(i);
++
++		for (j = 0; j < NR_SOFTIRQS; j++)
++			sum_softirq += kstat_softirqs_cpu(j, i);
++
+ 	}
+ 	sum += arch_irq_stat();
+ 
+@@ -111,6 +116,18 @@ static int show_stat(struct seq_file *p,
+ 		nr_running(),
+ 		nr_iowait());
+ 
++	seq_printf(p, "softirq %llu", (unsigned long long)sum_softirq);
++
++	for (i = 0; i < NR_SOFTIRQS; i++) {
++		per_irq_sum = 0;
++
++		for_each_possible_cpu(j)
++			per_irq_sum += kstat_softirqs_cpu(i, j);
++
++		seq_printf(p, " %u", per_irq_sum);
++	}
++	seq_printf(p, "\n");
++
+ 	return 0;
  }
- 
-+static inline void kstat_incr_softirqs_this_cpu(unsigned int irq)
-+{
-+	kstat_this_cpu.softirqs[irq]++;
-+}
-+
-+static inline unsigned int kstat_softirqs_cpu(unsigned int irq, int cpu)
-+{
-+       return kstat_cpu(cpu).softirqs[irq];
-+}
-+
- /*
-  * Number of interrupts per specific IRQ source, since bootup
-  */
-diff -puN kernel/softirq.c~softirq-introduce-statistics-for-softirq kernel/softirq.c
---- a/kernel/softirq.c~softirq-introduce-statistics-for-softirq
-+++ a/kernel/softirq.c
-@@ -208,6 +208,7 @@ restart:
- 	do {
- 		if (pending & 1) {
- 			int prev_count = preempt_count();
-+			kstat_incr_softirqs_this_cpu(h - softirq_vec);
- 
- 			h->action(h);
  
 _
 
