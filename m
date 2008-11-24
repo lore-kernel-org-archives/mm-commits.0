@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + block-dont-take-lock-while-changing-ra_pages.patch added to -mm tree
-Date: Mon, 24 Nov 2008 15:20:17 -0800
-Message-ID: <200811242320.mAONKHCO020932@imap1.linux-foundation.org>
+Subject: + arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch added to -mm tree
+Date: Mon, 24 Nov 2008 15:22:13 -0800
+Message-ID: <200811242322.mAONME0k021901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53066 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754261AbYKXXUx (ORCPT
+	by vger.kernel.org with ESMTP id S1753518AbYKXXWt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Nov 2008 18:20:53 -0500
+	Mon, 24 Nov 2008 18:22:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, jens.axboe@oracle.com, wfg@linux.intel.com
+Cc: julia@diku.dk, hskinnemoen@atmel.com
 
 
 The patch titled
-     block: don't take lock while changing ra_pages
+     arch/avr32: eliminate NULL test and memset after alloc_bootmem
 has been added to the -mm tree.  Its filename is
-     block-dont-take-lock-while-changing-ra_pages.patch
+     arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: don't take lock while changing ra_pages
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: arch/avr32: eliminate NULL test and memset after alloc_bootmem
+From: Julia Lawall <julia@diku.dk>
 
-There's no need to take queue_lock or kernel_lock when modifying
-bdi->ra_pages.  So remove them.  Also remove out of date comment for
-queue_max_sectors_store().
+As noted by Akinobu Mita in patch b1fceac2b9e04d278316b2faddf276015fc06e3b,
+alloc_bootmem and related functions never return NULL and always return a
+zeroed region of memory.  Thus a NULL test or memset after calls to these
+functions is unnecessary.
 
-Signed-off-by: Wu Fengguang <wfg@linux.intel.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+This was fixed using the following semantic patch.
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+expression E;
+statement S;
+@@
+
+E = \(alloc_bootmem\|alloc_bootmem_low\|alloc_bootmem_pages\|alloc_bootmem_low_pages\|alloc_bootmem_node\|alloc_bootmem_low_pages_node\|alloc_bootmem_pages_node\)(...)
+... when != E
+(
+- BUG_ON (E == NULL);
+|
+- if (E == NULL) S
+)
+
+@@
+expression E,E1;
+@@
+
+E = \(alloc_bootmem\|alloc_bootmem_low\|alloc_bootmem_pages\|alloc_bootmem_low_pages\|alloc_bootmem_node\|alloc_bootmem_low_pages_node\|alloc_bootmem_pages_node\)(...)
+... when != E
+- memset(E,0,E1);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-sysfs.c    |    7 +------
- block/compat_ioctl.c |    2 --
- block/ioctl.c        |    2 --
- 3 files changed, 1 insertion(+), 10 deletions(-)
+ arch/avr32/mm/init.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN block/blk-sysfs.c~block-dont-take-lock-while-changing-ra_pages block/blk-sysfs.c
---- a/block/blk-sysfs.c~block-dont-take-lock-while-changing-ra_pages
-+++ a/block/blk-sysfs.c
-@@ -88,9 +88,7 @@ queue_ra_store(struct request_queue *q, 
- 	unsigned long ra_kb;
- 	ssize_t ret = queue_var_store(&ra_kb, page, count);
+diff -puN arch/avr32/mm/init.c~arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem arch/avr32/mm/init.c
+--- a/arch/avr32/mm/init.c~arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem
++++ a/arch/avr32/mm/init.c
+@@ -97,7 +97,6 @@ void __init paging_init(void)
  
--	spin_lock_irq(q->queue_lock);
- 	q->backing_dev_info.ra_pages = ra_kb >> (PAGE_CACHE_SHIFT - 10);
--	spin_unlock_irq(q->queue_lock);
+ 	mem_map = NODE_DATA(0)->node_mem_map;
  
- 	return ret;
+-	memset(zero_page, 0, PAGE_SIZE);
+ 	empty_zero_page = virt_to_page(zero_page);
+ 	flush_dcache_page(empty_zero_page);
  }
-@@ -117,10 +115,7 @@ queue_max_sectors_store(struct request_q
- 
- 	if (max_sectors_kb > max_hw_sectors_kb || max_sectors_kb < page_kb)
- 		return -EINVAL;
--	/*
--	 * Take the queue lock to update the readahead and max_sectors
--	 * values synchronously:
--	 */
-+
- 	spin_lock_irq(q->queue_lock);
- 	q->max_sectors = max_sectors_kb << 1;
- 	spin_unlock_irq(q->queue_lock);
-diff -puN block/compat_ioctl.c~block-dont-take-lock-while-changing-ra_pages block/compat_ioctl.c
---- a/block/compat_ioctl.c~block-dont-take-lock-while-changing-ra_pages
-+++ a/block/compat_ioctl.c
-@@ -745,9 +745,7 @@ long compat_blkdev_ioctl(struct file *fi
- 		bdi = blk_get_backing_dev_info(bdev);
- 		if (bdi == NULL)
- 			return -ENOTTY;
--		lock_kernel();
- 		bdi->ra_pages = (arg * 512) / PAGE_CACHE_SIZE;
--		unlock_kernel();
- 		return 0;
- 	case BLKGETSIZE:
- 		size = bdev->bd_inode->i_size;
-diff -puN block/ioctl.c~block-dont-take-lock-while-changing-ra_pages block/ioctl.c
---- a/block/ioctl.c~block-dont-take-lock-while-changing-ra_pages
-+++ a/block/ioctl.c
-@@ -323,9 +323,7 @@ int blkdev_ioctl(struct block_device *bd
- 		bdi = blk_get_backing_dev_info(bdev);
- 		if (bdi == NULL)
- 			return -ENOTTY;
--		lock_kernel();
- 		bdi->ra_pages = (arg * 512) / PAGE_CACHE_SIZE;
--		unlock_kernel();
- 		return 0;
- 	case BLKBSZSET:
- 		/* set the logical block size */
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
-block-dont-take-lock-while-changing-ra_pages.patch
+drivers-char-agp-add-missing-pci_dev_get.patch
+drivers-mtd-maps-nettelc-use-array_size.patch
+net-tipc-bcasth-use-array_size.patch
+drivers-isdn-misdn-use-array_size.patch
+drivers-pci-hotplug-add-missing-pci_dev_get.patch
+drivers-message-fusion-use-array_size.patch
+fs-namespacec-drop-code-after-return.patch
+arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+arch-ia64-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+arch-powerpc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
 
