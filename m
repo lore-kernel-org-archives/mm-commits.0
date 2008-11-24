@@ -1,67 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-introduce-resource-usage-limits-update-refix.patch added to -mm tree
-Date: Mon, 24 Nov 2008 14:23:32 -0800
-Message-ID: <200811242223.mAOMNWuC023166@imap1.linux-foundation.org>
+Subject: - poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 24 Nov 2008 14:34:56 -0800
+Message-ID: <200811242234.mAOMYuBo029219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41752 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751410AbYKXWXq (ORCPT
+	by vger.kernel.org with ESMTP id S1752248AbYKXWfF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Nov 2008 17:23:46 -0500
+	Mon, 24 Nov 2008 17:35:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, gorcunov@gmail.com, mtk.manpages@gmail.com, stable@kernel.org, vegardno@ifi.uio.no
+To: akpm@linux-foundation.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll-introduce-resource-usage-limits-update-refix
-has been added to the -mm tree.  Its filename is
-     epoll-introduce-resource-usage-limits-update-refix.patch
+     poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll-introduce-resource-usage-limits-update-refix
+Subject: poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-gargh.
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+#151: FILE: fs/select.c:216:
++EXPORT_SYMBOL(poll_schedule_timeout);
 
-Cc: <stable@kernel.org>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Vegard Nossum <vegardno@ifi.uio.no>
+ERROR: "foo * bar" should be "foo *bar"
+#205: FILE: include/linux/poll.h:60:
++	struct task_struct * polling_task;
+
+total: 1 errors, 1 warnings, 161 lines checked
+
+./patches/poll-allow-f_op-poll-to-sleep-take-2.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/select.c          |    1 -
+ include/linux/poll.h |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-introduce-resource-usage-limits-update-refix fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-introduce-resource-usage-limits-update-refix
-+++ a/fs/eventpoll.c
-@@ -580,7 +580,7 @@ static int ep_alloc(struct eventpoll **p
- 	struct user_struct *user;
- 	struct eventpoll *ep;
+diff -puN fs/select.c~poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes fs/select.c
+--- a/fs/select.c~poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes
++++ a/fs/select.c
+@@ -212,7 +212,6 @@ int poll_schedule_timeout(struct poll_wq
  
--	user = get_uid(current->user);
-+	user = get_current_user();
- 	error = -EMFILE;
- 	if (unlikely(atomic_read(&user->epoll_devs) >=
- 			max_user_instances))
+ 	return rc;
+ }
+-
+ EXPORT_SYMBOL(poll_schedule_timeout);
+ 
+ /**
+diff -puN include/linux/poll.h~poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes include/linux/poll.h
+--- a/include/linux/poll.h~poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes
++++ a/include/linux/poll.h
+@@ -56,8 +56,8 @@ struct poll_table_entry {
+  */
+ struct poll_wqueues {
+ 	poll_table pt;
+-	struct poll_table_page * table;
+-	struct task_struct * polling_task;
++	struct poll_table_page *table;
++	struct task_struct *polling_task;
+ 	int triggered;
+ 	int error;
+ 	int inline_index;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
