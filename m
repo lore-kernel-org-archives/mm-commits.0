@@ -1,124 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - usb-serial-console-add-device-function-fix.patch removed from -mm tree
-Date: Mon, 24 Nov 2008 11:27:31 -0800
-Message-ID: <200811241927.mAOJRVkb026657@imap1.linux-foundation.org>
+Subject: - drivers-media-use-array_size.patch removed from -mm tree
+Date: Mon, 24 Nov 2008 11:29:30 -0800
+Message-ID: <200811241929.mAOJTUaO027741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48865 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751553AbYKXT2Q (ORCPT
+	by vger.kernel.org with ESMTP id S1752165AbYKXTaJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Nov 2008 14:28:16 -0500
+	Mon, 24 Nov 2008 14:30:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, kexin.hao@windriver.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: julia@diku.dk, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     "usb serial console: add device function" fix
+     drivers/media: use ARRAY_SIZE
 has been removed from the -mm tree.  Its filename was
-     usb-serial-console-add-device-function-fix.patch
+     drivers-media-use-array_size.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: "usb serial console: add device function" fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/media: use ARRAY_SIZE
+From: Julia Lawall <julia@diku.dk>
 
-Remove unneeded cast.
 
-Cc: <stable@kernel.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kevin Hao <kexin.hao@windriver.com>
+ARRAY_SIZE is more concise to use when the size of an array is divided by
+the size of its type or the size of its first element.
+
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@i@
+@@
+
+#include <linux/kernel.h>
+
+@depends on i using "paren.iso"@
+type T;
+T[] E;
+@@
+
+- (sizeof(E)/sizeof(E[...]))
++ ARRAY_SIZE(E)
+
+@depends on i using "paren.iso"@
+type T;
+T[] E;
+@@
+
+- (sizeof(E)/sizeof(T))
++ ARRAY_SIZE(E)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/console.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/common/tuners/mxl5005s.c        |    6 +++---
+ drivers/media/video/gspca/gspca.c             |    2 +-
+ drivers/media/video/gspca/mars.c              |    2 +-
+ drivers/media/video/gspca/spca500.c           |    4 ++--
+ drivers/media/video/saa7134/saa7134-tvaudio.c |    2 +-
+ 5 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/serial/console.c~usb-serial-console-add-device-function-fix drivers/usb/serial/console.c
---- a/drivers/usb/serial/console.c~usb-serial-console-add-device-function-fix
-+++ a/drivers/usb/serial/console.c
-@@ -243,7 +243,7 @@ static void usb_console_write(struct con
+diff -puN drivers/media/common/tuners/mxl5005s.c~drivers-media-use-array_size drivers/media/common/tuners/mxl5005s.c
+--- a/drivers/media/common/tuners/mxl5005s.c~drivers-media-use-array_size
++++ a/drivers/media/common/tuners/mxl5005s.c
+@@ -3598,7 +3598,7 @@ static u16 MXL_GetInitRegister(struct dv
+ 		76, 77, 91, 134, 135, 137, 147,
+ 		156, 166, 167, 168, 25 };
  
- static struct tty_driver *usb_console_device(struct console *co, int *index)
- {
--	struct tty_driver **p = (struct tty_driver **)co->data;
-+	struct tty_driver **p = co->data;
+-	*count = sizeof(RegAddr) / sizeof(u8);
++	*count = ARRAY_SIZE(RegAddr);
  
- 	if (!*p)
- 		return NULL;
+ 	status += MXL_BlockInit(fe);
+ 
+@@ -3630,7 +3630,7 @@ static u16 MXL_GetCHRegister(struct dvb_
+ 	*/
+ #endif
+ 
+-	*count = sizeof(RegAddr) / sizeof(u8);
++	*count = ARRAY_SIZE(RegAddr);
+ 
+ 	for (i = 0 ; i < *count; i++) {
+ 		RegNum[i] = RegAddr[i];
+@@ -3648,7 +3648,7 @@ static u16 MXL_GetCHRegister_ZeroIF(stru
+ 
+ 	u8 RegAddr[] = {43, 136};
+ 
+-	*count = sizeof(RegAddr) / sizeof(u8);
++	*count = ARRAY_SIZE(RegAddr);
+ 
+ 	for (i = 0; i < *count; i++) {
+ 		RegNum[i] = RegAddr[i];
+diff -puN drivers/media/video/gspca/gspca.c~drivers-media-use-array_size drivers/media/video/gspca/gspca.c
+--- a/drivers/media/video/gspca/gspca.c~drivers-media-use-array_size
++++ a/drivers/media/video/gspca/gspca.c
+@@ -737,7 +737,7 @@ static int vidioc_enum_fmt_vid_cap(struc
+ 			if (fmtdesc->index == index)
+ 				break;		/* new format */
+ 			index++;
+-			if (index >= sizeof fmt_tb / sizeof fmt_tb[0])
++			if (index >= ARRAY_SIZE(fmt_tb))
+ 				return -EINVAL;
+ 		}
+ 	}
+diff -puN drivers/media/video/gspca/mars.c~drivers-media-use-array_size drivers/media/video/gspca/mars.c
+--- a/drivers/media/video/gspca/mars.c~drivers-media-use-array_size
++++ a/drivers/media/video/gspca/mars.c
+@@ -123,7 +123,7 @@ static int sd_config(struct gspca_dev *g
+ 	cam = &gspca_dev->cam;
+ 	cam->epaddr = 0x01;
+ 	cam->cam_mode = vga_mode;
+-	cam->nmodes = sizeof vga_mode / sizeof vga_mode[0];
++	cam->nmodes = ARRAY_SIZE(vga_mode);
+ 	sd->qindex = 1;			/* set the quantization table */
+ 	return 0;
+ }
+diff -puN drivers/media/video/gspca/spca500.c~drivers-media-use-array_size drivers/media/video/gspca/spca500.c
+--- a/drivers/media/video/gspca/spca500.c~drivers-media-use-array_size
++++ a/drivers/media/video/gspca/spca500.c
+@@ -633,10 +633,10 @@ static int sd_config(struct gspca_dev *g
+ 	sd->subtype = id->driver_info;
+ 	if (sd->subtype != LogitechClickSmart310) {
+ 		cam->cam_mode = vga_mode;
+-		cam->nmodes = sizeof vga_mode / sizeof vga_mode[0];
++		cam->nmodes = ARRAY_SIZE(vga_mode);
+ 	} else {
+ 		cam->cam_mode = sif_mode;
+-		cam->nmodes = sizeof sif_mode / sizeof sif_mode[0];
++		cam->nmodes = ARRAY_SIZE(sif_mode);
+ 	}
+ 	sd->qindex = 5;
+ 	sd->brightness = BRIGHTNESS_DEF;
+diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~drivers-media-use-array_size drivers/media/video/saa7134/saa7134-tvaudio.c
+--- a/drivers/media/video/saa7134/saa7134-tvaudio.c~drivers-media-use-array_size
++++ a/drivers/media/video/saa7134/saa7134-tvaudio.c
+@@ -159,7 +159,7 @@ static struct saa7134_tvaudio tvaudio[] 
+ 		.mode          = TVAUDIO_FM_MONO,
+ 	}
+ };
+-#define TVAUDIO (sizeof(tvaudio)/sizeof(struct saa7134_tvaudio))
++#define TVAUDIO ARRAY_SIZE(tvaudio)
+ 
+ /* ------------------------------------------------------------------ */
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
-epoll-introduce-resource-usage-limits-fix.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
-pci-uninline-pci_ioremap_bar.patch
-pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
-vfs-lseekfd-0-seek_cur-race-condition-fix.patch
-bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-kernel-profilec-fix-section-mismatch-warning-fix.patch
-usb-serial-console-add-device-function-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format-fix.patch
-quota-support-64-bit-quota-format-fix-2.patch
-quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-broke.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+drivers-mtd-maps-nettelc-use-array_size.patch
+net-tipc-bcasth-use-array_size.patch
+drivers-isdn-misdn-use-array_size.patch
+drivers-message-fusion-use-array_size.patch
+fs-namespacec-drop-code-after-return.patch
 
