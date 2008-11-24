@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch added to -mm tree
-Date: Mon, 24 Nov 2008 15:22:19 -0800
-Message-ID: <200811242322.mAONMKBG021992@imap1.linux-foundation.org>
+Subject: + arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem.patch added to -mm tree
+Date: Mon, 24 Nov 2008 15:22:11 -0800
+Message-ID: <200811242322.mAONMCi0021898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42033 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753432AbYKXXWw (ORCPT
+	by vger.kernel.org with ESMTP id S1753544AbYKXXW4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Nov 2008 18:22:52 -0500
+	Mon, 24 Nov 2008 18:22:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk
+Cc: julia@diku.dk, rmk@arm.linux.org.uk
 
 
 The patch titled
-     mm/page_alloc.c: eliminate NULL test and memset after alloc_bootmem
+     arch/arm: eliminate NULL test and memset after alloc_bootmem
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+     arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c: eliminate NULL test and memset after alloc_bootmem
+Subject: arch/arm: eliminate NULL test and memset after alloc_bootmem
 From: Julia Lawall <julia@diku.dk>
 
 As noted by Akinobu Mita in patch b1fceac2b9e04d278316b2faddf276015fc06e3b,
@@ -69,27 +69,37 @@ E = \(alloc_bootmem\|alloc_bootmem_low\|alloc_bootmem_pages\|alloc_bootmem_low_p
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/arm/mm/mmu.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem
-+++ a/mm/page_alloc.c
-@@ -3396,10 +3396,8 @@ static void __init setup_usemap(struct p
- {
- 	unsigned long usemapsize = usemap_size(zonesize);
- 	zone->pageblock_flags = NULL;
--	if (usemapsize) {
-+	if (usemapsize)
- 		zone->pageblock_flags = alloc_bootmem_node(pgdat, usemapsize);
--		memset(zone->pageblock_flags, 0, usemapsize);
--	}
+diff -puN arch/arm/mm/mmu.c~arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem arch/arm/mm/mmu.c
+--- a/arch/arm/mm/mmu.c~arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem
++++ a/arch/arm/mm/mmu.c
+@@ -826,7 +826,6 @@ static void __init devicemaps_init(struc
+ 	 * Allocate the vector page early.
+ 	 */
+ 	vectors = alloc_bootmem_low_pages(PAGE_SIZE);
+-	BUG_ON(!vectors);
+ 
+ 	for (addr = VMALLOC_END; addr; addr += PGDIR_SIZE)
+ 		pmd_clear(pmd_off_k(addr));
+@@ -911,10 +910,10 @@ void __init paging_init(struct machine_d
+ 	top_pmd = pmd_off_k(0xffff0000);
+ 
+ 	/*
+-	 * allocate the zero page.  Note that we count on this going ok.
++	 * allocate the zero page.  Note that this always succeeds and
++	 * returns a zeroed result.
+ 	 */
+ 	zero_page = alloc_bootmem_low_pages(PAGE_SIZE);
+-	memset(zero_page, 0, PAGE_SIZE);
+ 	empty_zero_page = virt_to_page(zero_page);
+ 	flush_dcache_page(empty_zero_page);
  }
- #else
- static void inline setup_usemap(struct pglist_data *pgdat,
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
