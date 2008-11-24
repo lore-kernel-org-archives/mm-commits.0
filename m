@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ntfs-dont-fool-kernel-doc.patch added to -mm tree
-Date: Mon, 24 Nov 2008 13:25:29 -0800
-Message-ID: <200811242125.mAOLPTnh024637@imap1.linux-foundation.org>
+Subject: + ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 24 Nov 2008 13:26:07 -0800
+Message-ID: <200811242126.mAOLQ7Ow024975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752362AbYKXVZo (ORCPT
+	by vger.kernel.org with ESMTP id S1752453AbYKXV0Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Nov 2008 16:25:44 -0500
+	Mon, 24 Nov 2008 16:26:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, aia21@cantab.net
+Cc: akpm@linux-foundation.org, aia21@cantab.net, randy.dunlap@oracle.com
 
 
 The patch titled
-     ntfs: don't fool kernel-doc
+     ntfs-dont-fool-kernel-doc-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     ntfs-dont-fool-kernel-doc.patch
+     ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntfs: don't fool kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ntfs-dont-fool-kernel-doc-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel-doc handles macros now (it has for quite some time), so change the
-ntfs_debug() macro's kernel-doc to be just before the macro instead of
-before a phony function prototype.
+WARNING: space prohibited between function name and open parenthesis '('
+#23: FILE: fs/ntfs/debug.h:33:
++extern void __ntfs_debug (const char *file, int line, const char *function,
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+total: 0 errors, 1 warnings, 20 lines checked
+
+./patches/ntfs-dont-fool-kernel-doc.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Anton Altaparmakov <aia21@cantab.net>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/debug.h |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ fs/ntfs/debug.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ntfs/debug.h~ntfs-dont-fool-kernel-doc fs/ntfs/debug.h
---- a/fs/ntfs/debug.h~ntfs-dont-fool-kernel-doc
+diff -puN fs/ntfs/debug.h~ntfs-dont-fool-kernel-doc-checkpatch-fixes fs/ntfs/debug.h
+--- a/fs/ntfs/debug.h~ntfs-dont-fool-kernel-doc-checkpatch-fixes
 +++ a/fs/ntfs/debug.h
-@@ -30,7 +30,8 @@
+@@ -30,7 +30,7 @@
  
  extern int debug_msgs;
  
--#if 0 /* Fool kernel-doc since it doesn't do macros yet */
-+extern void __ntfs_debug (const char *file, int line, const char *function,
-+	const char *format, ...) __attribute__ ((format (printf, 4, 5)));
+-extern void __ntfs_debug (const char *file, int line, const char *function,
++extern void __ntfs_debug(const char *file, int line, const char *function,
+ 	const char *format, ...) __attribute__ ((format (printf, 4, 5)));
  /**
   * ntfs_debug - write a debug level message to syslog
-  * @f:		a printf format string containing the message
-@@ -39,11 +40,6 @@ extern int debug_msgs;
-  * ntfs_debug() writes a DEBUG level message to the syslog but only if the
-  * driver was compiled with -DDEBUG. Otherwise, the call turns into a NOP.
-  */
--static void ntfs_debug(const char *f, ...);
--#endif
--
--extern void __ntfs_debug (const char *file, int line, const char *function,
--	const char *format, ...) __attribute__ ((format (printf, 4, 5)));
- #define ntfs_debug(f, a...)						\
- 	__ntfs_debug(__FILE__, __LINE__, __func__, f, ##a)
- 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+epoll-introduce-resource-usage-limits-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-arm-fix-kernel-doc-syntax.patch
-audit-remove-excess-kernel-doc.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-scripts-extract-ikconfig-remove-bashisms.patch
-drivers-ata-pata_radisysc-cleanup-kernel-doc.patch
-drivers-ata-libata-corec-cleanup-kernel-doc.patch
-drivers-ata-pata_oldpiixc-cleanup-kernel-doc.patch
-drivers-ata-pata_pdc2027xc-cleanup-kernel-doc.patch
-drivers-ata-pata_legacyc-cleanup-kernel-doc.patch
-drivers-ata-pata_sisc-cleanup-kernel-doc.patch
-drivers-ata-pata_c-the-rest-remove-redundant-comments.patch
-mtd-remove-excess-kernel-doc-notation.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-gdth-fix-section-mismatch-warnings.patch
-esp-fix-section-mismatch-warning.patch
-fusion-remove-excess-kernel-doc-notation.patch
-block-remove-excess-kernel-doc.patch
-kernel-doc-handle-varargs-cleanly.patch
-ntfs-dont-fool-kernel-doc.patch
-irqh-fix-missing-extra-kernel-doc.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-max3100-spi-uart-driver-select-serial_core.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+kernel-profilec-fix-section-mismatch-warning-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes.patch
+binfmtsh-include-listh-fix.patch
 max3100-spi-uart-driver-select-serial_core-fix.patch
-i2o-remove-extraneous-kernel-doc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-kmod-fix-varargs-kernel-doc.patch
-docs-document-how-to-write-varargs-in-kernel-doc.patch
-rapidio-remove-excess-kernel-doc-notation.patch
-documentation-update-header-file-paths.patch
-documentation-update-s390-header-file-paths.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
