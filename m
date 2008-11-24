@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch added to -mm tree
-Date: Mon, 24 Nov 2008 13:43:53 -0800
-Message-ID: <200811242143.mAOLhr7Z001857@imap1.linux-foundation.org>
+Subject: + ath5k-fix-security-issue-in-debugfs-part-of-ath5k.patch added to -mm tree
+Date: Mon, 24 Nov 2008 13:45:26 -0800
+Message-ID: <200811242145.mAOLjQfu002702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751904AbYKXVon (ORCPT
+	by vger.kernel.org with ESMTP id S1752491AbYKXVqG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Nov 2008 16:44:43 -0500
+	Mon, 24 Nov 2008 16:46:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: d-nishimura@mtf.biglobe.ne.jp, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: crquan@gmail.com, jeromepoulin@gmail.com, jirislaby@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     memcg: fix for hierarchical reclaim
+     ath5k: fix Security issue in DebugFS part of ath5k
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
+     ath5k-fix-security-issue-in-debugfs-part-of-ath5k.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,72 +29,83 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: memcg: fix for hierarchical reclaim
-From: Daisuke Nishimura <d-nishimura@mtf.biglobe.ne.jp>
+Subject: ath5k: fix Security issue in DebugFS part of ath5k
+=46rom: Cheng Renquan <crquan@gmail.com>
 
-mem_cgroup_from_res_counter should handle both mem->res and mem->memsw. 
-This bug leads to NULL pointer dereference BUG at mem_cgroup_calc_reclaim.
+http://bugzilla.kernel.org/show_bug.cgi?id=3D12076
 
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Tested-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Remove any write access to groups and others, only keep write permissio=
+n
+to its owner, usually only root user.
+
+Reported-by: J=E9r=F4me Poulin <jeromepoulin@gmail.com>
+Signed-off-by: Cheng Renquan <crquan@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ drivers/net/wireless/ath5k/debug.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim
-+++ a/mm/memcontrol.c
-@@ -468,11 +468,8 @@ unsigned long mem_cgroup_isolate_pages(u
- 	return nr_taken;
+diff -puN drivers/net/wireless/ath5k/debug.c~ath5k-fix-security-issue-i=
+n-debugfs-part-of-ath5k drivers/net/wireless/ath5k/debug.c
+--- a/drivers/net/wireless/ath5k/debug.c~ath5k-fix-security-issue-in-de=
+bugfs-part-of-ath5k
++++ a/drivers/net/wireless/ath5k/debug.c
+@@ -417,19 +417,19 @@ ath5k_debug_init_device(struct ath5k_sof
+ 	sc->debug.debugfs_phydir =3D debugfs_create_dir(wiphy_name(sc->hw->wi=
+phy),
+ 				ath5k_global_debugfs);
+=20
+-	sc->debug.debugfs_debug =3D debugfs_create_file("debug", 0666,
++	sc->debug.debugfs_debug =3D debugfs_create_file("debug", S_IWUSR | S_=
+IRUGO,
+ 				sc->debug.debugfs_phydir, sc, &fops_debug);
+=20
+-	sc->debug.debugfs_registers =3D debugfs_create_file("registers", 0444=
+,
++	sc->debug.debugfs_registers =3D debugfs_create_file("registers", S_IR=
+UGO,
+ 				sc->debug.debugfs_phydir, sc, &fops_registers);
+=20
+-	sc->debug.debugfs_tsf =3D debugfs_create_file("tsf", 0666,
++	sc->debug.debugfs_tsf =3D debugfs_create_file("tsf", S_IWUSR | S_IRUG=
+O,
+ 				sc->debug.debugfs_phydir, sc, &fops_tsf);
+=20
+-	sc->debug.debugfs_beacon =3D debugfs_create_file("beacon", 0666,
++	sc->debug.debugfs_beacon =3D debugfs_create_file("beacon", S_IWUSR | =
+S_IRUGO,
+ 				sc->debug.debugfs_phydir, sc, &fops_beacon);
+=20
+-	sc->debug.debugfs_reset =3D debugfs_create_file("reset", 0222,
++	sc->debug.debugfs_reset =3D debugfs_create_file("reset", S_IWUSR,
+ 				sc->debug.debugfs_phydir, sc, &fops_reset);
  }
- 
--static struct mem_cgroup *
--mem_cgroup_from_res_counter(struct res_counter *counter)
--{
--	return container_of(counter, struct mem_cgroup, res);
--}
-+#define mem_cgroup_from_res_counter(counter, member)	\
-+	container_of(counter, struct mem_cgroup, member)
- 
- /*
-  * This routine finds the DFS walk successor. This routine should be
-@@ -664,18 +661,16 @@ static int __mem_cgroup_try_charge(struc
- 			/* mem+swap counter fails */
- 			res_counter_uncharge(&mem->res, PAGE_SIZE);
- 			noswap = true;
--		}
-+			mem_over_limit = mem_cgroup_from_res_counter(fail_res,
-+									memsw);
-+		} else
-+			/* mem counter fails */
-+			mem_over_limit = mem_cgroup_from_res_counter(fail_res,
-+									res);
-+
- 		if (!(gfp_mask & __GFP_WAIT))
- 			goto nomem;
- 
--		/*
--		 * Is one of our ancestors over their limit?
--		 */
--		if (fail_res)
--			mem_over_limit = mem_cgroup_from_res_counter(fail_res);
--		else
--			mem_over_limit = mem;
+=20
+_
+
+Patches currently in -mm which might be from crquan@gmail.com are
+
+linux-next.patch
+block-remove-kblockd_flush_work.patch
+fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization=
+=2Epatch
+ath5k-fix-security-issue-in-debugfs-part-of-ath5k.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
