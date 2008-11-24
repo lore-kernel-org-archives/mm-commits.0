@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ath5k-fix-security-issue-in-debugfs-part-of-ath5k.patch added to -mm tree
-Date: Mon, 24 Nov 2008 13:45:26 -0800
-Message-ID: <200811242145.mAOLjQfu002702@imap1.linux-foundation.org>
+Subject: + cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch added to -mm tree
+Date: Mon, 24 Nov 2008 13:59:45 -0800
+Message-ID: <200811242159.mAOLxj33010540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752491AbYKXVqG (ORCPT
+	by vger.kernel.org with ESMTP id S1752285AbYKXWAd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Nov 2008 16:46:06 -0500
+	Mon, 24 Nov 2008 17:00:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: crquan@gmail.com, jeromepoulin@gmail.com, jirislaby@gmail.com, linville@tuxdriver.com
+Cc: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org
 
 
 The patch titled
-     ath5k: fix Security issue in DebugFS part of ath5k
+     cgroups: remove rcu_read_lock() in cgroupstats_build()
 has been added to the -mm tree.  Its filename is
-     ath5k-fix-security-issue-in-debugfs-part-of-ath5k.patch
+     cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,83 +26,69 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ath5k: fix Security issue in DebugFS part of ath5k
-=46rom: Cheng Renquan <crquan@gmail.com>
+Subject: cgroups: remove rcu_read_lock() in cgroupstats_build()
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=3D12076
+cgroup_iter_* do not need rcu_read_lock().
 
-Remove any write access to groups and others, only keep write permissio=
-n
-to its owner, usually only root user.
+In cgroup_enable_task_cg_lists(), do_each_thread() and while_each_thread()
+are protected by RCU, it's OK, for write_lock(&css_set_lock) implies
+rcu_read_lock() in non-RT kernel.
 
-Reported-by: J=E9r=F4me Poulin <jeromepoulin@gmail.com>
-Signed-off-by: Cheng Renquan <crquan@gmail.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+If we need explicit rcu_read_lock(), we should add rcu_read_lock() in
+cgroup_enable_task_cg_lists(), not cgroup_iter_*.
+
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/debug.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/cgroup.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/debug.c~ath5k-fix-security-issue-i=
-n-debugfs-part-of-ath5k drivers/net/wireless/ath5k/debug.c
---- a/drivers/net/wireless/ath5k/debug.c~ath5k-fix-security-issue-in-de=
-bugfs-part-of-ath5k
-+++ a/drivers/net/wireless/ath5k/debug.c
-@@ -417,19 +417,19 @@ ath5k_debug_init_device(struct ath5k_sof
- 	sc->debug.debugfs_phydir =3D debugfs_create_dir(wiphy_name(sc->hw->wi=
-phy),
- 				ath5k_global_debugfs);
-=20
--	sc->debug.debugfs_debug =3D debugfs_create_file("debug", 0666,
-+	sc->debug.debugfs_debug =3D debugfs_create_file("debug", S_IWUSR | S_=
-IRUGO,
- 				sc->debug.debugfs_phydir, sc, &fops_debug);
-=20
--	sc->debug.debugfs_registers =3D debugfs_create_file("registers", 0444=
-,
-+	sc->debug.debugfs_registers =3D debugfs_create_file("registers", S_IR=
-UGO,
- 				sc->debug.debugfs_phydir, sc, &fops_registers);
-=20
--	sc->debug.debugfs_tsf =3D debugfs_create_file("tsf", 0666,
-+	sc->debug.debugfs_tsf =3D debugfs_create_file("tsf", S_IWUSR | S_IRUG=
-O,
- 				sc->debug.debugfs_phydir, sc, &fops_tsf);
-=20
--	sc->debug.debugfs_beacon =3D debugfs_create_file("beacon", 0666,
-+	sc->debug.debugfs_beacon =3D debugfs_create_file("beacon", S_IWUSR | =
-S_IRUGO,
- 				sc->debug.debugfs_phydir, sc, &fops_beacon);
-=20
--	sc->debug.debugfs_reset =3D debugfs_create_file("reset", 0222,
-+	sc->debug.debugfs_reset =3D debugfs_create_file("reset", S_IWUSR,
- 				sc->debug.debugfs_phydir, sc, &fops_reset);
+diff -puN kernel/cgroup.c~cgroups-remove-rcu_read_lock-in-cgroupstats_build kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-remove-rcu_read_lock-in-cgroupstats_build
++++ a/kernel/cgroup.c
+@@ -2055,7 +2055,6 @@ int cgroupstats_build(struct cgroupstats
+ 
+ 	ret = 0;
+ 	cgrp = dentry->d_fsdata;
+-	rcu_read_lock();
+ 
+ 	cgroup_iter_start(cgrp, &it);
+ 	while ((tsk = cgroup_iter_next(cgrp, &it))) {
+@@ -2080,7 +2079,6 @@ int cgroupstats_build(struct cgroupstats
+ 	}
+ 	cgroup_iter_end(cgrp, &it);
+ 
+-	rcu_read_unlock();
+ err:
+ 	return ret;
  }
-=20
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
 linux-next.patch
-block-remove-kblockd_flush_work.patch
-fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization=
-=2Epatch
-ath5k-fix-security-issue-in-debugfs-part-of-ath5k.patch
+kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
+cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
+cgroups-fix-cgroup_iter_next-bug.patch
+cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
+cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
+cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
+cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
+devcgroup-use-list_for_each_entry_rcu.patch
+memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
+cpuset-rcu_read_lock-to-protect-task_cs.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
