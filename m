@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch added to -mm tree
-Date: Mon, 24 Nov 2008 13:59:45 -0800
-Message-ID: <200811242159.mAOLxj33010540@imap1.linux-foundation.org>
+Subject: + proc-update-document-for-proc-softirqs-and-proc-stat.patch added to -mm tree
+Date: Mon, 24 Nov 2008 14:04:24 -0800
+Message-ID: <200811242204.mAOM4PXa013045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37064 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752285AbYKXWAd (ORCPT
+	by vger.kernel.org with ESMTP id S1752057AbYKXWEq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Nov 2008 17:00:33 -0500
+	Mon, 24 Nov 2008 17:04:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org
+Cc: kobayashi.kk@ncos.nec.co.jp, adobriyan@gmail.com, dada1@cosmosbay.com, h-shimamoto@ct.jp.nec.com, mingo@elte.hu
 
 
 The patch titled
-     cgroups: remove rcu_read_lock() in cgroupstats_build()
+     proc: update document for /proc/softirqs and /proc/stat
 has been added to the -mm tree.  Its filename is
-     cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
+     proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: remove rcu_read_lock() in cgroupstats_build()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: proc: update document for /proc/softirqs and /proc/stat
+From: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
 
-cgroup_iter_* do not need rcu_read_lock().
+/proc/softirqs and /proc/stat have been changed.
+This patch updates proc.txt for these usage.
 
-In cgroup_enable_task_cg_lists(), do_each_thread() and while_each_thread()
-are protected by RCU, it's OK, for write_lock(&css_set_lock) implies
-rcu_read_lock() in non-RT kernel.
-
-If we need explicit rcu_read_lock(), we should add rcu_read_lock() in
-cgroup_enable_task_cg_lists(), not cgroup_iter_*.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
+Reviewed-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 --
- 1 file changed, 2 deletions(-)
+ Documentation/filesystems/proc.txt |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN kernel/cgroup.c~cgroups-remove-rcu_read_lock-in-cgroupstats_build kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-remove-rcu_read_lock-in-cgroupstats_build
-+++ a/kernel/cgroup.c
-@@ -2055,7 +2055,6 @@ int cgroupstats_build(struct cgroupstats
+diff -puN Documentation/filesystems/proc.txt~proc-update-document-for-proc-softirqs-and-proc-stat Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~proc-update-document-for-proc-softirqs-and-proc-stat
++++ a/Documentation/filesystems/proc.txt
+@@ -290,6 +290,7 @@ Table 1-4: Kernel info in /proc
+  rtc         Real time clock                                   
+  scsi        SCSI info (see text)                              
+  slabinfo    Slab pool info                                    
++ softirqs    softirq usage
+  stat        Overall statistics                                
+  swaps       Swap space utilization                            
+  sys         See chapter 2                                     
+@@ -604,6 +605,24 @@ on the kind of area :
+ 0xffffffffa0017000-0xffffffffa0022000   45056 sys_init_module+0xc27/0x1d00 ...
+    pages=10 vmalloc N0=10
  
- 	ret = 0;
- 	cgrp = dentry->d_fsdata;
--	rcu_read_lock();
++..............................................................................
++
++softirqs:
++
++Provides counts of softirq handlers serviced since boot time, for each cpu.
++
++> cat /proc/softirqs
++                CPU0       CPU1       CPU2       CPU3
++HI                 0          0          0          0
++TIMER          27166      27120      27097      27034
++NET_TX             0          0          0         17
++NET_RX            42          0          0         39
++BLOCK              0          0        107       1121
++TASKLET            0          0          0        290
++SCHED          27035      26983      26971      26746
++RCU             1678       1769       2178       2250
++
++
+ 1.3 IDE devices in /proc/ide
+ ----------------------------
  
- 	cgroup_iter_start(cgrp, &it);
- 	while ((tsk = cgroup_iter_next(cgrp, &it))) {
-@@ -2080,7 +2079,6 @@ int cgroupstats_build(struct cgroupstats
- 	}
- 	cgroup_iter_end(cgrp, &it);
+@@ -890,6 +909,7 @@ since the system first booted.  For a qu
+   processes 2915
+   procs_running 1
+   procs_blocked 0
++  softirq 183433 0 21755 12 39 1137 231 21459 2263
  
--	rcu_read_unlock();
- err:
- 	return ret;
- }
+ The very first  "cpu" line aggregates the  numbers in all  of the other "cpuN"
+ lines.  These numbers identify the amount of time the CPU has spent performing
+@@ -925,6 +945,11 @@ CPUs.
+ The   "procs_blocked" line gives  the  number of  processes currently blocked,
+ waiting for I/O to complete.
+ 
++The "softirq" line gives counts of softirqs serviced since boot time, for each
++of the possible system softirqs. The first column is the total of all
++softirqs serviced; each subsequent column is the total for that particular
++softirq.
++
+ 
+ 1.9 Ext4 file system parameters
+ ------------------------------
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from kobayashi.kk@ncos.nec.co.jp are
 
-linux-next.patch
-kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
-cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
-cgroups-fix-cgroup_iter_next-bug.patch
-cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
-cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
-cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
-cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
-devcgroup-use-list_for_each_entry_rcu.patch
-memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
-cpuset-rcu_read_lock-to-protect-task_cs.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
