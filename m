@@ -1,157 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: + radeonfb-fix-problem-with-color-expansion-alignment.patch added to -mm tree
-Date: Sat, 22 Nov 2008 17:39:54 -0800
-Message-ID: <200811230139.mAN1dscn001077@imap1.linux-foundation.org>
+Subject: - usb-serial-console-add-device-function-fix.patch removed from -mm tree
+Date: Mon, 24 Nov 2008 11:27:31 -0800
+Message-ID: <200811241927.mAOJRVkb026657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48865 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754565AbYKWBkb (ORCPT
+	by vger.kernel.org with ESMTP id S1751553AbYKXT2Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Nov 2008 20:40:31 -0500
+	Mon, 24 Nov 2008 14:28:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, cloos@jhcloos.com, davem@davemloft.net, krzysztof.h1@poczta.fm, rjw@sisk.pl
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, kexin.hao@windriver.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     radeonfb: fix problem with color expansion & alignment
-has been added to the -mm tree.  Its filename is
-     radeonfb-fix-problem-with-color-expansion-alignment.patch
+     "usb serial console: add device function" fix
+has been removed from the -mm tree.  Its filename was
+     usb-serial-console-add-device-function-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radeonfb: fix problem with color expansion & alignment
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: "usb serial console: add device function" fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The engine on some radeon variants locks up if color expansion is called
-for non aligned source data.  This patch enables a feature of the core
-fbdev to request aligned input pixmaps and uses the HW clipping engine to
-clip the output to the requested size
+Remove unneeded cast.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11875
-
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: James Cloos <cloos@jhcloos.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: <stable@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kevin Hao <kexin.hao@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/radeon_accel.c |   21 ++++++++++++---------
- drivers/video/aty/radeon_base.c  |   18 ++++++++++++++++++
- 2 files changed, 30 insertions(+), 9 deletions(-)
+ drivers/usb/serial/console.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/aty/radeon_accel.c~radeonfb-fix-problem-with-color-expansion-alignment drivers/video/aty/radeon_accel.c
---- a/drivers/video/aty/radeon_accel.c~radeonfb-fix-problem-with-color-expansion-alignment
-+++ a/drivers/video/aty/radeon_accel.c
-@@ -174,12 +174,12 @@ static void radeonfb_prim_imageblit(stru
- 				    const struct fb_image *image,
- 				    u32 fg, u32 bg)
+diff -puN drivers/usb/serial/console.c~usb-serial-console-add-device-function-fix drivers/usb/serial/console.c
+--- a/drivers/usb/serial/console.c~usb-serial-console-add-device-function-fix
++++ a/drivers/usb/serial/console.c
+@@ -243,7 +243,7 @@ static void usb_console_write(struct con
+ 
+ static struct tty_driver *usb_console_device(struct console *co, int *index)
  {
--	unsigned int src_bytes, dwords;
-+	unsigned int dwords;
- 	u32 *bits;
+-	struct tty_driver **p = (struct tty_driver **)co->data;
++	struct tty_driver **p = co->data;
  
- 	radeonfb_set_creg(rinfo, DP_GUI_MASTER_CNTL, &rinfo->dp_gui_mc_cache,
- 			  rinfo->dp_gui_mc_base |
--			  GMC_BRUSH_NONE |
-+			  GMC_BRUSH_NONE | GMC_DST_CLIP_LEAVE |
- 			  GMC_SRC_DATATYPE_MONO_FG_BG |
- 			  ROP3_S |
- 			  GMC_BYTE_ORDER_MSB_TO_LSB |
-@@ -189,9 +189,6 @@ static void radeonfb_prim_imageblit(stru
- 	radeonfb_set_creg(rinfo, DP_SRC_FRGD_CLR, &rinfo->dp_src_fg_cache, fg);
- 	radeonfb_set_creg(rinfo, DP_SRC_BKGD_CLR, &rinfo->dp_src_bg_cache, bg);
- 
--	radeon_fifo_wait(rinfo, 1);
--	OUTREG(DST_Y_X, (image->dy << 16) | image->dx);
--
- 	/* Ensure the dst cache is flushed and the engine idle before
- 	 * issuing the operation.
- 	 *
-@@ -205,13 +202,19 @@ static void radeonfb_prim_imageblit(stru
- 
- 	/* X here pads width to a multiple of 32 and uses the clipper to
- 	 * adjust the result. Is that really necessary ? Things seem to
--	 * work ok for me without that and the doco doesn't seem to imply
-+	 * work ok for me without that and the doco doesn't seem to imply]
- 	 * there is such a restriction.
- 	 */
--	OUTREG(DST_WIDTH_HEIGHT, (image->width << 16) | image->height);
-+	radeon_fifo_wait(rinfo, 4);
-+	OUTREG(SC_TOP_LEFT, (image->dy << 16) | image->dx);
-+	OUTREG(SC_BOTTOM_RIGHT, ((image->dy + image->height) << 16) |
-+	       (image->dx + image->width));
-+	OUTREG(DST_Y_X, (image->dy << 16) | image->dx);
-+
-+	OUTREG(DST_HEIGHT_WIDTH, (image->height << 16) | ((image->width + 31) & ~31));
- 
--	src_bytes = (((image->width * image->depth) + 7) / 8) * image->height;
--	dwords = (src_bytes + 3) / 4;
-+	dwords = (image->width + 31) >> 5;
-+	dwords *= image->height;
- 	bits = (u32*)(image->data);
- 
- 	while(dwords >= 8) {
-diff -puN drivers/video/aty/radeon_base.c~radeonfb-fix-problem-with-color-expansion-alignment drivers/video/aty/radeon_base.c
---- a/drivers/video/aty/radeon_base.c~radeonfb-fix-problem-with-color-expansion-alignment
-+++ a/drivers/video/aty/radeon_base.c
-@@ -1875,6 +1875,7 @@ static int __devinit radeon_set_fbinfo (
- 	info->fbops = &radeonfb_ops;
- 	info->screen_base = rinfo->fb_base;
- 	info->screen_size = rinfo->mapped_vram;
-+
- 	/* Fill fix common fields */
- 	strlcpy(info->fix.id, rinfo->name, sizeof(info->fix.id));
-         info->fix.smem_start = rinfo->fb_base_phys;
-@@ -1889,8 +1890,25 @@ static int __devinit radeon_set_fbinfo (
-         info->fix.mmio_len = RADEON_REGSIZE;
- 	info->fix.accel = FB_ACCEL_ATI_RADEON;
- 
-+	/* Allocate colormap */
- 	fb_alloc_cmap(&info->cmap, 256, 0);
- 
-+	/* Setup pixmap used for acceleration */
-+#define PIXMAP_SIZE	(2048 * 4)
-+
-+	info->pixmap.addr = kmalloc(PIXMAP_SIZE, GFP_KERNEL);
-+	if (!info->pixmap.addr) {
-+		printk(KERN_ERR "radeonfb: Failed to allocate pixmap !\n");
-+		noaccel = 1;
-+		goto bail;
-+	}
-+	info->pixmap.size = PIXMAP_SIZE;
-+	info->pixmap.flags = FB_PIXMAP_SYSTEM;
-+	info->pixmap.scan_align = 4;
-+	info->pixmap.buf_align = 4;
-+	info->pixmap.access_align = 32;
-+
-+bail:
- 	if (noaccel)
- 		info->flags |= FBINFO_HWACCEL_DISABLED;
- 
+ 	if (!*p)
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-radeonfb-fix-problem-with-color-expansion-alignment.patch
+epoll-introduce-resource-usage-limits-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-kprobes-add-kprobe_insn_mutex-and-cleanup-arch_remove_kprobe.patch
-unaligned-introduce-common-header.patch
-unaligned-convert-arches-where-unaligned-access-is-ok.patch
+next-remove-localversion.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+kernel-profilec-fix-section-mismatch-warning-fix.patch
+usb-serial-console-add-device-function-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take-2-checkpatch-fixes.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
