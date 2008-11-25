@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-optimize-get_scan_ratio-for-no-swap.patch added to -mm tree
-Date: Tue, 25 Nov 2008 14:15:59 -0800
-Message-ID: <200811252216.mAPMG0Ju005929@imap1.linux-foundation.org>
+Subject: + mm-add-add_to_swap-stub.patch added to -mm tree
+Date: Tue, 25 Nov 2008 14:15:57 -0800
+Message-ID: <200811252215.mAPMFw5J005926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752163AbYKYWQW (ORCPT
+	by vger.kernel.org with ESMTP id S1751379AbYKYWVW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 17:16:22 -0500
+	Tue, 25 Nov 2008 17:21:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, holt@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermer
 
 
 The patch titled
-     mm: optimize get_scan_ratio for no swap
+     mm: add add_to_swap stub
 has been added to the -mm tree.  Its filename is
-     mm-optimize-get_scan_ratio-for-no-swap.patch
+     mm-add-add_to_swap-stub.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: optimize get_scan_ratio for no swap
+Subject: mm: add add_to_swap stub
 From: Hugh Dickins <hugh@veritas.com>
 
-Rik suggests a simplified get_scan_ratio() for !CONFIG_SWAP.  Yes, the gcc
-optimizer gives us that, when nr_swap_pages is #defined as 0L.  Move usual
-declaration to swapfile.c: it never belonged in page_alloc.c.
+If we add a failing stub for add_to_swap(), then we can remove the #ifdef
+CONFIG_SWAP from mm/vmscan.c.
+
+This was intended as a source cleanup, but looking more closely, it turns
+out that the !CONFIG_SWAP case was going to keep_locked for an anonymous
+page, whereas now it goes to the more suitable activate_locked, like the
+CONFIG_SWAP nr_swap_pages 0 case.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
@@ -50,92 +54,44 @@ Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    5 +++--
- mm/page_alloc.c      |    1 -
- mm/swapfile.c        |    1 +
- mm/vmscan.c          |   12 ++++++------
- 4 files changed, 10 insertions(+), 9 deletions(-)
+ include/linux/swap.h |    5 +++++
+ mm/vmscan.c          |    2 --
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/swap.h~mm-optimize-get_scan_ratio-for-no-swap include/linux/swap.h
---- a/include/linux/swap.h~mm-optimize-get_scan_ratio-for-no-swap
+diff -puN include/linux/swap.h~mm-add-add_to_swap-stub include/linux/swap.h
+--- a/include/linux/swap.h~mm-add-add_to_swap-stub
 +++ a/include/linux/swap.h
-@@ -163,7 +163,6 @@ struct swap_list_t {
- /* linux/mm/page_alloc.c */
- extern unsigned long totalram_pages;
- extern unsigned long totalreserve_pages;
--extern long nr_swap_pages;
- extern unsigned int nr_free_buffer_pages(void);
- extern unsigned int nr_free_pagecache_pages(void);
+@@ -374,6 +374,11 @@ static inline struct page *lookup_swap_c
+ 	return NULL;
+ }
  
-@@ -294,6 +293,7 @@ extern struct page *swapin_readahead(swp
- 			struct vm_area_struct *vma, unsigned long addr);
- 
- /* linux/mm/swapfile.c */
-+extern long nr_swap_pages;
- extern long total_swap_pages;
- extern void si_swapinfo(struct sysinfo *);
- extern swp_entry_t get_swap_page(void);
-@@ -334,7 +334,8 @@ static inline void disable_swap_token(vo
- 
- #else /* CONFIG_SWAP */
- 
--#define total_swap_pages			0
-+#define nr_swap_pages				0L
-+#define total_swap_pages			0L
- #define total_swapcache_pages			0UL
- 
- #define si_swapinfo(val) \
-diff -puN mm/page_alloc.c~mm-optimize-get_scan_ratio-for-no-swap mm/page_alloc.c
---- a/mm/page_alloc.c~mm-optimize-get_scan_ratio-for-no-swap
-+++ a/mm/page_alloc.c
-@@ -69,7 +69,6 @@ EXPORT_SYMBOL(node_states);
- 
- unsigned long totalram_pages __read_mostly;
- unsigned long totalreserve_pages __read_mostly;
--long nr_swap_pages;
- int percpu_pagelist_fraction;
- 
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
-diff -puN mm/swapfile.c~mm-optimize-get_scan_ratio-for-no-swap mm/swapfile.c
---- a/mm/swapfile.c~mm-optimize-get_scan_ratio-for-no-swap
-+++ a/mm/swapfile.c
-@@ -35,6 +35,7 @@
- 
- static DEFINE_SPINLOCK(swap_lock);
- static unsigned int nr_swapfiles;
-+long nr_swap_pages;
- long total_swap_pages;
- static int swap_overflow;
- static int least_priority;
-diff -puN mm/vmscan.c~mm-optimize-get_scan_ratio-for-no-swap mm/vmscan.c
---- a/mm/vmscan.c~mm-optimize-get_scan_ratio-for-no-swap
-+++ a/mm/vmscan.c
-@@ -1374,12 +1374,6 @@ static void get_scan_ratio(struct zone *
- 	unsigned long anon_prio, file_prio;
- 	unsigned long ap, fp;
- 
--	anon  = zone_page_state(zone, NR_ACTIVE_ANON) +
--		zone_page_state(zone, NR_INACTIVE_ANON);
--	file  = zone_page_state(zone, NR_ACTIVE_FILE) +
--		zone_page_state(zone, NR_INACTIVE_FILE);
--	free  = zone_page_state(zone, NR_FREE_PAGES);
--
- 	/* If we have no swap space, do not bother scanning anon pages. */
- 	if (nr_swap_pages <= 0) {
- 		percent[0] = 0;
-@@ -1387,6 +1381,12 @@ static void get_scan_ratio(struct zone *
- 		return;
- 	}
- 
-+	anon  = zone_page_state(zone, NR_ACTIVE_ANON) +
-+		zone_page_state(zone, NR_INACTIVE_ANON);
-+	file  = zone_page_state(zone, NR_ACTIVE_FILE) +
-+		zone_page_state(zone, NR_INACTIVE_FILE);
-+	free  = zone_page_state(zone, NR_FREE_PAGES);
++static inline int add_to_swap(struct page *page)
++{
++	return 0;
++}
 +
- 	/* If we have very few page cache pages, force-scan anon pages. */
- 	if (unlikely(file + free <= zone->pages_high)) {
- 		percent[0] = 100;
+ static inline int add_to_swap_cache(struct page *page, swp_entry_t entry,
+ 							gfp_t gfp_mask)
+ {
+diff -puN mm/vmscan.c~mm-add-add_to_swap-stub mm/vmscan.c
+--- a/mm/vmscan.c~mm-add-add_to_swap-stub
++++ a/mm/vmscan.c
+@@ -665,7 +665,6 @@ static unsigned long shrink_page_list(st
+ 					referenced && page_mapping_inuse(page))
+ 			goto activate_locked;
+ 
+-#ifdef CONFIG_SWAP
+ 		/*
+ 		 * Anonymous process memory has backing store?
+ 		 * Try to allocate it some swap space here.
+@@ -677,7 +676,6 @@ static unsigned long shrink_page_list(st
+ 				goto activate_locked;
+ 			may_enter_fs = 1;
+ 		}
+-#endif /* CONFIG_SWAP */
+ 
+ 		mapping = page_mapping(page);
+ 
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
