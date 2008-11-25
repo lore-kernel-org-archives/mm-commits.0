@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-memswap-controller-core-swapcache-fixes.patch added to -mm tree
-Date: Tue, 25 Nov 2008 14:22:19 -0800
-Message-ID: <200811252222.mAPMMJBK009279@imap1.linux-foundation.org>
+Subject: + mm-remove-gfp_mask-from-add_to_swap.patch added to -mm tree
+Date: Tue, 25 Nov 2008 14:15:55 -0800
+Message-ID: <200811252215.mAPMFuF8005887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47135 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49374 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751443AbYKYWWm (ORCPT
+	by vger.kernel.org with ESMTP id S1751585AbYKYW0T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 17:22:42 -0500
+	Tue, 25 Nov 2008 17:26:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp, xemul@openvz.org
+Cc: hugh@veritas.com, holt@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au, riel@redhat.com
 
 
 The patch titled
-     memcg: memswap controller core swapcache fixes
+     mm: remove gfp_mask from add_to_swap
 has been added to the -mm tree.  Its filename is
-     memcg-memswap-controller-core-swapcache-fixes.patch
+     mm-remove-gfp_mask-from-add_to_swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: memswap controller core swapcache fixes
+Subject: mm: remove gfp_mask from add_to_swap
 From: Hugh Dickins <hugh@veritas.com>
 
-Two SwapCache bug fixes to mmotm's memcg-memswap-controller-core.patch:
+Remove gfp_mask argument from add_to_swap(): it's misleading because its
+only caller, shrink_page_list(), is not atomic at that point; and in due
+course (implementing discard) we'll sometimes want to allocate some memory
+with GFP_NOIO (as is used in swap_writepage) when allocating swap.
 
-One bug is independent of my current changes: there is no guarantee that
-the page passed to mem_cgroup_try_charge_swapin() is still in SwapCache.
-
-The other bug is a consequence of my changes, but the fix is okay without
-them: mem_cgroup_commit_charge_swapin() expects swp_entry in
-page->private, but now reuse_swap_page() (formerly can_share_swap_page())
-might already have done delete_from_swap_cache(): move
-commit_charge_swapin() earlier.
+No change to the gfp_mask passed down to add_to_swap_cache(): still use
+__GFP_HIGH without __GFP_WAIT (with nomemalloc and nowarn as before):
+though it's not obvious if that's the best combination to ask for here.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++++++
- mm/memory.c     |   15 +++++++++++++--
- 2 files changed, 21 insertions(+), 2 deletions(-)
+ include/linux/swap.h |    2 +-
+ mm/swap_state.c      |    4 ++--
+ mm/vmscan.c          |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-memswap-controller-core-swapcache-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-memswap-controller-core-swapcache-fixes
-+++ a/mm/memcontrol.c
-@@ -848,6 +848,14 @@ int mem_cgroup_try_charge_swapin(struct 
- 	if (!do_swap_account)
- 		goto charge_cur_mm;
+diff -puN include/linux/swap.h~mm-remove-gfp_mask-from-add_to_swap include/linux/swap.h
+--- a/include/linux/swap.h~mm-remove-gfp_mask-from-add_to_swap
++++ a/include/linux/swap.h
+@@ -281,7 +281,7 @@ extern void end_swap_bio_read(struct bio
+ extern struct address_space swapper_space;
+ #define total_swapcache_pages  swapper_space.nrpages
+ extern void show_swap_cache_info(void);
+-extern int add_to_swap(struct page *, gfp_t);
++extern int add_to_swap(struct page *);
+ extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
+ extern void __delete_from_swap_cache(struct page *);
+ extern void delete_from_swap_cache(struct page *);
+diff -puN mm/swap_state.c~mm-remove-gfp_mask-from-add_to_swap mm/swap_state.c
+--- a/mm/swap_state.c~mm-remove-gfp_mask-from-add_to_swap
++++ a/mm/swap_state.c
+@@ -128,7 +128,7 @@ void __delete_from_swap_cache(struct pag
+  * Allocate swap space for the page and add the page to the
+  * swap cache.  Caller needs to hold the page lock. 
+  */
+-int add_to_swap(struct page * page, gfp_t gfp_mask)
++int add_to_swap(struct page *page)
+ {
+ 	swp_entry_t entry;
+ 	int err;
+@@ -153,7 +153,7 @@ int add_to_swap(struct page * page, gfp_
+ 		 * Add it to the swap cache and mark it dirty
+ 		 */
+ 		err = add_to_swap_cache(page, entry,
+-				gfp_mask|__GFP_NOMEMALLOC|__GFP_NOWARN);
++				__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN);
  
-+	/*
-+	 * A racing thread's fault, or swapoff, may have already updated
-+	 * the pte, and even removed page from swap cache: return success
-+	 * to go on to do_swap_page()'s pte_same() test, which should fail.
-+	 */
-+	if (!PageSwapCache(page))
-+		return 0;
-+
- 	ent.val = page_private(page);
- 
- 	mem = lookup_swap_cgroup(ent);
-diff -puN mm/memory.c~memcg-memswap-controller-core-swapcache-fixes mm/memory.c
---- a/mm/memory.c~memcg-memswap-controller-core-swapcache-fixes
-+++ a/mm/memory.c
-@@ -2361,8 +2361,20 @@ static int do_swap_page(struct mm_struct
- 		goto out_nomap;
- 	}
- 
--	/* The page isn't present yet, go ahead with the fault. */
-+	/*
-+	 * The page isn't present yet, go ahead with the fault.
-+	 *
-+	 * Be careful about the sequence of operations here.
-+	 * To get its accounting right, reuse_swap_page() must be called
-+	 * while the page is counted on swap but not yet in mapcount i.e.
-+	 * before page_add_anon_rmap() and swap_free(); try_to_free_swap()
-+	 * must be called after the swap_free(), or it will never succeed.
-+	 * And mem_cgroup_commit_charge_swapin(), which uses the swp_entry
-+	 * in page->private, must be called before reuse_swap_page(),
-+	 * which may delete_from_swap_cache().
-+	 */
- 
-+	mem_cgroup_commit_charge_swapin(page, ptr);
- 	inc_mm_counter(mm, anon_rss);
- 	pte = mk_pte(page, vma->vm_page_prot);
- 	if (write_access && reuse_swap_page(page)) {
-@@ -2373,7 +2385,6 @@ static int do_swap_page(struct mm_struct
- 	flush_icache_page(vma, page);
- 	set_pte_at(mm, address, page_table, pte);
- 	page_add_anon_rmap(page, vma, address);
--	mem_cgroup_commit_charge_swapin(page, ptr);
- 
- 	swap_free(entry);
- 	if (vm_swap_full() || (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
+ 		switch (err) {
+ 		case 0:				/* Success */
+diff -puN mm/vmscan.c~mm-remove-gfp_mask-from-add_to_swap mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-gfp_mask-from-add_to_swap
++++ a/mm/vmscan.c
+@@ -673,7 +673,7 @@ static unsigned long shrink_page_list(st
+ 		if (PageAnon(page) && !PageSwapCache(page)) {
+ 			if (!(sc->gfp_mask & __GFP_IO))
+ 				goto keep_locked;
+-			if (!add_to_swap(page, GFP_ATOMIC))
++			if (!add_to_swap(page))
+ 				goto activate_locked;
+ 			may_enter_fs = 1;
+ 		}
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
