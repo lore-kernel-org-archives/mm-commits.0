@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-misannotation-in-i2c-pmcmspc.patch added to -mm tree
-Date: Tue, 25 Nov 2008 14:54:06 -0800
-Message-ID: <200811252254.mAPMs6rB026243@imap1.linux-foundation.org>
+Subject: + block-aoe-switch-to-the-new-endian-helpers.patch added to -mm tree
+Date: Tue, 25 Nov 2008 14:57:00 -0800
+Message-ID: <200811252257.mAPMv0UR027806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39556 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752240AbYKYWyf (ORCPT
+	by vger.kernel.org with ESMTP id S1753251AbYKYW5H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 17:54:35 -0500
+	Tue, 25 Nov 2008 17:57:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: harvey.harrison@gmail.com, ecashin@coraid.com, jens.axboe@oracle.com
 
 
 The patch titled
-     i2c: misannotation in i2c-pmcmsp.c
+     block: aoe switch to the new endian helpers
 has been added to the -mm tree.  Its filename is
-     i2c-misannotation-in-i2c-pmcmspc.patch
+     block-aoe-switch-to-the-new-endian-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,149 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: misannotation in i2c-pmcmsp.c
+Subject: block: aoe switch to the new endian helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-tmp is used as host-endian and is loaded from a be64, fix the cast and the
-endian accessor used.
+Add the necesary casts now that the unaligned helpers are typesafe and
+switch to load_* where possible as it is more efficient.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: "Ed L. Cashin" <ecashin@coraid.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-pmcmsp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/aoe/aoecmd.c |   30 +++++++++++++++---------------
+ drivers/block/aoe/aoenet.c |    4 ++--
+ 2 files changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-pmcmsp.c~i2c-misannotation-in-i2c-pmcmspc drivers/i2c/busses/i2c-pmcmsp.c
---- a/drivers/i2c/busses/i2c-pmcmsp.c~i2c-misannotation-in-i2c-pmcmspc
-+++ a/drivers/i2c/busses/i2c-pmcmsp.c
-@@ -486,7 +486,7 @@ static enum pmcmsptwi_xfer_result pmcmsp
+diff -puN drivers/block/aoe/aoecmd.c~block-aoe-switch-to-the-new-endian-helpers drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~block-aoe-switch-to-the-new-endian-helpers
++++ a/drivers/block/aoe/aoecmd.c
+@@ -642,16 +642,16 @@ ataid_complete(struct aoedev *d, struct 
+ 	u16 n;
  
- 	if (cmd->type == MSP_TWI_CMD_WRITE ||
- 	    cmd->type == MSP_TWI_CMD_WRITE_READ) {
--		__be64 tmp = cpu_to_be64p((u64 *)cmd->write_data);
-+		u64 tmp = be64_to_cpup((__be64 *)cmd->write_data);
- 		tmp >>= (MSP_MAX_BYTES_PER_RW - cmd->write_len) * 8;
- 		dev_dbg(&pmcmsptwi_adapter.dev, "Writing 0x%016llx\n", tmp);
- 		pmcmsptwi_writel(tmp & 0x00000000ffffffffLL,
+ 	/* word 83: command set supported */
+-	n = get_unaligned_le16(&id[83 << 1]);
++	n = load_le16_noalign((__le16 *)&id[83 << 1]);
+ 
+ 	/* word 86: command set/feature enabled */
+-	n |= get_unaligned_le16(&id[86 << 1]);
++	n |= load_le16_noalign((__le16 *)&id[86 << 1]);
+ 
+ 	if (n & (1<<10)) {	/* bit 10: LBA 48 */
+ 		d->flags |= DEVFL_EXT;
+ 
+ 		/* word 100: number lba48 sectors */
+-		ssize = get_unaligned_le64(&id[100 << 1]);
++		ssize = load_le16_noalign((__le16 *)&id[100 << 1]);
+ 
+ 		/* set as in ide-disk.c:init_idedisk_capacity */
+ 		d->geo.cylinders = ssize;
+@@ -662,12 +662,12 @@ ataid_complete(struct aoedev *d, struct 
+ 		d->flags &= ~DEVFL_EXT;
+ 
+ 		/* number lba28 sectors */
+-		ssize = get_unaligned_le32(&id[60 << 1]);
++		ssize = load_le32_noalign((__le32 *)&id[60 << 1]);
+ 
+ 		/* NOTE: obsolete in ATA 6 */
+-		d->geo.cylinders = get_unaligned_le16(&id[54 << 1]);
+-		d->geo.heads = get_unaligned_le16(&id[55 << 1]);
+-		d->geo.sectors = get_unaligned_le16(&id[56 << 1]);
++		d->geo.cylinders = load_le16_noalign((__le16 *)&id[54 << 1]);
++		d->geo.heads = load_le16_noalign((__le16 *)&id[55 << 1]);
++		d->geo.sectors = load_le16_noalign((__le16 *)&id[56 << 1]);
+ 	}
+ 
+ 	if (d->ssize != ssize)
+@@ -760,7 +760,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 	u16 aoemajor;
+ 
+ 	hin = (struct aoe_hdr *) skb_mac_header(skb);
+-	aoemajor = get_unaligned_be16(&hin->major);
++	aoemajor = load_be16_noalign(&hin->major);
+ 	d = aoedev_by_aoeaddr(aoemajor, hin->minor);
+ 	if (d == NULL) {
+ 		snprintf(ebuf, sizeof ebuf, "aoecmd_ata_rsp: ata response "
+@@ -772,7 +772,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 
+ 	spin_lock_irqsave(&d->lock, flags);
+ 
+-	n = get_unaligned_be32(&hin->tag);
++	n = load_be32_noalign(&hin->tag);
+ 	t = gettgt(d, hin->src);
+ 	if (t == NULL) {
+ 		printk(KERN_INFO "aoe: can't find target e%ld.%d:%012llx\n",
+@@ -787,9 +787,9 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 		snprintf(ebuf, sizeof ebuf,
+ 			"%15s e%d.%d    tag=%08x@%08lx\n",
+ 			"unexpected rsp",
+-			get_unaligned_be16(&hin->major),
++			load_be16_noalign(&hin->major),
+ 			hin->minor,
+-			get_unaligned_be32(&hin->tag),
++			load_be32_noalign(&hin->tag),
+ 			jiffies);
+ 		aoechr_error(ebuf);
+ 		return;
+@@ -854,7 +854,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 			printk(KERN_INFO
+ 				"aoe: unrecognized ata command %2.2Xh for %d.%d\n",
+ 				ahout->cmdstat,
+-				get_unaligned_be16(&hin->major),
++				load_be16_noalign(&hin->major),
+ 				hin->minor);
+ 		}
+ 	}
+@@ -982,7 +982,7 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
+ 	 * Enough people have their dip switches set backwards to
+ 	 * warrant a loud message for this special case.
+ 	 */
+-	aoemajor = get_unaligned_be16(&h->major);
++	aoemajor = load_be16_noalign(&h->major);
+ 	if (aoemajor == 0xfff) {
+ 		printk(KERN_ERR "aoe: Warning: shelf address is all ones.  "
+ 			"Check shelf dip switches.\n");
+@@ -996,7 +996,7 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
+ 		return;
+ 	}
+ 
+-	n = be16_to_cpu(ch->bufcnt);
++	n = load_be16(&ch->bufcnt);
+ 	if (n > aoe_maxout)	/* keep it reasonable */
+ 		n = aoe_maxout;
+ 
+@@ -1049,7 +1049,7 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
+ 		spin_unlock_irqrestore(&d->lock, flags);
+ 		return;
+ 	}
+-	d->fw_ver = be16_to_cpu(ch->fwver);
++	d->fw_ver = load_be16(&ch->fwver);
+ 
+ 	sl = aoecmd_ata_id(d);
+ 
+diff -puN drivers/block/aoe/aoenet.c~block-aoe-switch-to-the-new-endian-helpers drivers/block/aoe/aoenet.c
+--- a/drivers/block/aoe/aoenet.c~block-aoe-switch-to-the-new-endian-helpers
++++ a/drivers/block/aoe/aoenet.c
+@@ -127,7 +127,7 @@ aoenet_rcv(struct sk_buff *skb, struct n
+ 	skb_push(skb, ETH_HLEN);	/* (1) */
+ 
+ 	h = (struct aoe_hdr *) skb_mac_header(skb);
+-	n = get_unaligned_be32(&h->tag);
++	n = load_be32_noalign(&h->tag);
+ 	if ((h->verfl & AOEFL_RSP) == 0 || (n & 1<<31))
+ 		goto exit;
+ 
+@@ -139,7 +139,7 @@ aoenet_rcv(struct sk_buff *skb, struct n
+ 			printk(KERN_ERR
+ 				"%s%d.%d@%s; ecode=%d '%s'\n",
+ 				"aoe: error packet from ",
+-				get_unaligned_be16(&h->major),
++				load_be16_noalign(&h->major),
+ 				h->minor, skb->dev->name,
+ 				h->err, aoe_errlist[n]);
+ 		goto exit;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -98,4 +216,6 @@ unaligned-remove-packed-struct-and-unaligned-access_ok-headers.patch
 unaligned-pack-the-struct-not-the-struct-members.patch
 unaligned-move-arm-m32r-h8300-to-the-asm-generic-version.patch
 unaligned-remove-last-bits-of-the-unaligned-access-helpers.patch
+kernel-add-common-endian-load-store-api.patch
+block-aoe-switch-to-the-new-endian-helpers.patch
 
