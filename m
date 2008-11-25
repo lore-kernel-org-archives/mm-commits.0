@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-get_user_pages-interruptible.patch added to -mm tree
-Date: Tue, 25 Nov 2008 15:44:11 -0800
-Message-ID: <200811252344.mAPNiBUO020429@imap1.linux-foundation.org>
+Subject: + mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix.patch added to -mm tree
+Date: Tue, 25 Nov 2008 15:45:43 -0800
+Message-ID: <200811252345.mAPNjhUU021223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46096 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39834 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753048AbYKYXov (ORCPT
+	by vger.kernel.org with ESMTP id S1751344AbYKYXq2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 18:44:51 -0500
+	Tue, 25 Nov 2008 18:46:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghan@google.com, hugh@veritas.com, matthew@wil.cx, menage@google.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi, rientjes@google.com
+Cc: rientjes@google.com, cl@linux-foundation.org, david@fromorbit.com, peterz@infradead.org, righi.andrea@gmail.com
 
 
 The patch titled
-     mm: make get_user_pages interruptible
+     mm: add dirty_background_bytes and dirty_bytes sysctls fix
 has been added to the -mm tree.  Its filename is
-     make-get_user_pages-interruptible.patch
+     mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make get_user_pages interruptible
-From: Ying Han <yinghan@google.com>
+Subject: mm: add dirty_background_bytes and dirty_bytes sysctls fix
+From: David Rientjes <rientjes@google.com>
 
-The initial implementation of checking TIF_MEMDIE covers the cases of OOM
-killing.  If the process has been OOM killed, the TIF_MEMDIE is set and it
-return immediately.  This patch includes:
-
-1.  add the case that the SIGKILL is sent by user processes.  The
-   process can try to get_user_pages() unlimited memory even if a user
-   process has sent a SIGKILL to it(maybe a monitor find the process
-   exceed its memory limit and try to kill it).  In the old
-   implementation, the SIGKILL won't be handled until the get_user_pages()
-   returns.
-
-2.  change the return value to be ERESTARTSYS.  It makes no sense to
-   return ENOMEM if the get_user_pages returned by getting a SIGKILL
-   signal.  Considering the general convention for a system call
-   interrupted by a signal is ERESTARTNOSYS, so the current return value
-   is consistant to that.
-
-Signed-off-by: Paul Menage <menage@google.com>
-Signed-off-by:Ying Han <yinghan@google.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 +
- kernel/signal.c       |    2 +-
- mm/memory.c           |   10 +++++-----
- 3 files changed, 7 insertions(+), 6 deletions(-)
+ kernel/sysctl.c     |    9 +++------
+ mm/page-writeback.c |    4 ++--
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/sched.h~make-get_user_pages-interruptible include/linux/sched.h
---- a/include/linux/sched.h~make-get_user_pages-interruptible
-+++ a/include/linux/sched.h
-@@ -1750,6 +1750,7 @@ extern void wake_up_new_task(struct task
- extern void sched_fork(struct task_struct *p, int clone_flags);
- extern void sched_dead(struct task_struct *p);
+diff -puN kernel/sysctl.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix
++++ a/kernel/sysctl.c
+@@ -88,10 +88,6 @@ extern int rcutorture_runnable;
+ #endif /* #ifdef CONFIG_RCU_TORTURE_TEST */
  
-+extern int sigkill_pending(struct task_struct *tsk);
- extern void proc_caches_init(void);
- extern void flush_signals(struct task_struct *);
- extern void ignore_signals(struct task_struct *);
-diff -puN kernel/signal.c~make-get_user_pages-interruptible kernel/signal.c
---- a/kernel/signal.c~make-get_user_pages-interruptible
-+++ a/kernel/signal.c
-@@ -1516,7 +1516,7 @@ static inline int may_ptrace_stop(void)
-  * Return nonzero if there is a SIGKILL that should be waking us up.
-  * Called with the siglock held.
-  */
--static int sigkill_pending(struct task_struct *tsk)
-+int sigkill_pending(struct task_struct *tsk)
- {
- 	return	sigismember(&tsk->pending.signal, SIGKILL) ||
- 		sigismember(&tsk->signal->shared_pending.signal, SIGKILL);
-diff -puN mm/memory.c~make-get_user_pages-interruptible mm/memory.c
---- a/mm/memory.c~make-get_user_pages-interruptible
-+++ a/mm/memory.c
-@@ -1219,12 +1219,12 @@ int __get_user_pages(struct task_struct 
- 			struct page *page;
+ /* Constants used for minimum and  maximum */
+-#if defined(CONFIG_HIGHMEM) || defined(CONFIG_DETECT_SOFTLOCKUP)
+-static int one = 1;
+-#endif
+-
+ #ifdef CONFIG_DETECT_SOFTLOCKUP
+ static int sixty = 60;
+ static int neg_one = -1;
+@@ -102,6 +98,7 @@ static int two = 2;
+ #endif
  
- 			/*
--			 * If tsk is ooming, cut off its access to large memory
--			 * allocations. It has a pending SIGKILL, but it can't
--			 * be processed until returning to user space.
-+			 * If we have a pending SIGKILL, don't keep
-+			 * allocating memory.
- 			 */
--			if (unlikely(test_tsk_thread_flag(tsk, TIF_MEMDIE)))
--				return i ? i : -ENOMEM;
-+			if (unlikely(sigkill_pending(current) ||
-+					sigkill_pending(tsk)))
-+				return i ? i : -ERESTARTSYS;
+ static int zero;
++static int one = 1;
+ static int one_hundred = 100;
  
- 			if (write)
- 				foll_flags |= FOLL_WRITE;
+ /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
+@@ -956,7 +953,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &dirty_background_bytes_handler,
+ 		.strategy	= &sysctl_intvec,
+-		.extra1		= &zero,
++		.extra1		= &one,
+ 	},
+ 	{
+ 		.ctl_name	= VM_DIRTY_RATIO,
+@@ -977,7 +974,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &dirty_bytes_handler,
+ 		.strategy	= &sysctl_intvec,
+-		.extra1		= &zero,
++		.extra1		= &one,
+ 	},
+ 	{
+ 		.procname	= "dirty_writeback_centisecs",
+diff -puN mm/page-writeback.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix
++++ a/mm/page-writeback.c
+@@ -435,7 +435,7 @@ get_dirty_limits(unsigned long *pbackgro
+ 	struct task_struct *tsk;
+ 
+ 	if (vm_dirty_bytes)
+-		dirty = (vm_dirty_bytes + PAGE_SIZE) / PAGE_SIZE;
++		dirty = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE);
+ 	else {
+ 		int dirty_ratio;
+ 
+@@ -446,7 +446,7 @@ get_dirty_limits(unsigned long *pbackgro
+ 	}
+ 
+ 	if (dirty_background_bytes)
+-		background = (dirty_background_bytes + PAGE_SIZE) / PAGE_SIZE;
++		background = DIV_ROUND_UP(dirty_background_bytes, PAGE_SIZE);
+ 	else
+ 		background = (dirty_background_ratio * available_memory) / 100;
+ 
 _
 
-Patches currently in -mm which might be from yinghan@google.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
+oom-fix-zone_scan_mutex-name.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
+mm-change-dirty-limit-type-specifiers-to-unsigned-long.patch
+mm-add-dirty_background_bytes-and-dirty_bytes-sysctls.patch
+mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix.patch
 make-get_user_pages-interruptible.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
+memory-cgroup-hierarchy-feature-selector-v4-fix.patch
 
