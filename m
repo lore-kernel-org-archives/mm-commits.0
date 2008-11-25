@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-init_section_page_cgroup-static.patch added to -mm tree
-Date: Tue, 25 Nov 2008 15:56:00 -0800
-Message-ID: <200811252356.mAPNu0Rj026685@imap1.linux-foundation.org>
+Subject: + mm-make-vread-and-vwrite-declaration.patch added to -mm tree
+Date: Tue, 25 Nov 2008 15:56:12 -0800
+Message-ID: <200811252356.mAPNuC3U026794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751443AbYKYX4E (ORCPT
+	by vger.kernel.org with ESMTP id S1752258AbYKYX4Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 18:56:04 -0500
+	Tue, 25 Nov 2008 18:56:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     mm: make init_section_page_cgroup() static
+     mm: make vread() and vwrite() declaration
 has been added to the -mm tree.  Its filename is
-     mm-make-init_section_page_cgroup-static.patch
+     mm-make-vread-and-vwrite-declaration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make init_section_page_cgroup() static
+Subject: mm: make vread() and vwrite() declaration
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Sparse output following warning.
+Sparse output following warnings.
 
-mm/page_cgroup.c:100:15: warning: symbol 'init_section_page_cgroup' was
-not declared.  Should it be static?
+mm/vmalloc.c:1436:6: warning: symbol 'vread' was not declared. Should it be static?
+mm/vmalloc.c:1474:6: warning: symbol 'vwrite' was not declared. Should it be static?
 
-cleanup here.
+However, it is used by /dev/kmem. fixed here.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/mem.c      |    3 ---
+ include/linux/vmalloc.h |    4 ++++
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_cgroup.c~mm-make-init_section_page_cgroup-static mm/page_cgroup.c
---- a/mm/page_cgroup.c~mm-make-init_section_page_cgroup-static
-+++ a/mm/page_cgroup.c
-@@ -97,7 +97,7 @@ struct page_cgroup *lookup_page_cgroup(s
- 	return section->page_cgroup + pfn;
+diff -puN drivers/char/mem.c~mm-make-vread-and-vwrite-declaration drivers/char/mem.c
+--- a/drivers/char/mem.c~mm-make-vread-and-vwrite-declaration
++++ a/drivers/char/mem.c
+@@ -425,9 +425,6 @@ static ssize_t read_oldmem(struct file *
  }
+ #endif
  
--int __meminit init_section_page_cgroup(unsigned long pfn)
-+static int __meminit init_section_page_cgroup(unsigned long pfn)
- {
- 	struct mem_section *section;
- 	struct page_cgroup *base, *pc;
+-extern long vread(char *buf, char *addr, unsigned long count);
+-extern long vwrite(char *buf, char *addr, unsigned long count);
+-
+ #ifdef CONFIG_DEVKMEM
+ /*
+  * This function reads the *virtual* memory as seen by the kernel.
+diff -puN include/linux/vmalloc.h~mm-make-vread-and-vwrite-declaration include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~mm-make-vread-and-vwrite-declaration
++++ a/include/linux/vmalloc.h
+@@ -97,6 +97,10 @@ extern void unmap_kernel_range(unsigned 
+ extern struct vm_struct *alloc_vm_area(size_t size);
+ extern void free_vm_area(struct vm_struct *area);
+ 
++/* for /dev/kmem */
++extern long vread(char *buf, char *addr, unsigned long count);
++extern long vwrite(char *buf, char *addr, unsigned long count);
++
+ /*
+  *	Internals.  Dont't use..
+  */
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
