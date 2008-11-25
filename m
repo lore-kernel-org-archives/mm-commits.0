@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pps-linuxpps-clients-support.patch added to -mm tree
-Date: Tue, 25 Nov 2008 14:35:43 -0800
-Message-ID: <200811252235.mAPMZh9Q016377@imap1.linux-foundation.org>
+Subject: + pps-documentation-programs-and-examples.patch added to -mm tree
+Date: Tue, 25 Nov 2008 14:35:41 -0800
+Message-ID: <200811252235.mAPMZfhb016372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752119AbYKYWhO (ORCPT
+	by vger.kernel.org with ESMTP id S1752022AbYKYWhL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 17:37:14 -0500
+	Tue, 25 Nov 2008 17:37:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: giometti@linux.it, alan@lxorguk.ukuu.org.uk, davej@redhat.com, dwmw2@infrade
 
 
 The patch titled
-     PPS: LinuxPPS clients support
+     PPS: documentation programs and examples
 has been added to the -mm tree.  Its filename is
-     pps-linuxpps-clients-support.patch
+     pps-documentation-programs-and-examples.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PPS: LinuxPPS clients support
+Subject: PPS: documentation programs and examples
 From: Rodolfo Giometti <giometti@linux.it>
 
-Each PPS source can be registered/deregistered into the system by using
-special modules called "clients".  They simply define the PPS sources'
-attributes and implement the time signal registartion mechanism.
+Here some utilities and examples about the PPS API and the LinuxPPS
+support.
 
-This patch adds a special directory for such clients and adds a dummy
-client that can be useful to test system integrity on real systems.
+* ppsldisc.c shows how to manage PPS line discipline;
+
+* ppstest.c implements an useful testing program, while
+
+* ppsfind tries to help the user into finding a specific PPS source by
+  using its name or path.
 
 Signed-off-by: Rodolfo Giometti <giometti@linux.it>
 Cc: David Woodhouse <dwmw2@infradead.org>
@@ -59,196 +62,270 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/Kconfig          |    2 
- drivers/pps/Makefile         |    1 
- drivers/pps/clients/Kconfig  |   18 ++++
- drivers/pps/clients/Makefile |    9 ++
- drivers/pps/clients/ktimer.c |  124 +++++++++++++++++++++++++++++++++
- 5 files changed, 154 insertions(+)
+ Documentation/pps/Makefile   |   28 ++++++
+ Documentation/pps/ppsfind    |   17 +++
+ Documentation/pps/ppsldisc.c |   46 ++++++++++
+ Documentation/pps/ppstest.c  |  151 +++++++++++++++++++++++++++++++++
+ 4 files changed, 242 insertions(+)
 
-diff -puN drivers/pps/Kconfig~pps-linuxpps-clients-support drivers/pps/Kconfig
---- a/drivers/pps/Kconfig~pps-linuxpps-clients-support
-+++ a/drivers/pps/Kconfig
-@@ -30,4 +30,6 @@ config PPS_DEBUG
- 	  messages to the system log.  Select this if you are having a
- 	  problem with PPS support and want to see more of what is going on.
- 
-+source drivers/pps/clients/Kconfig
-+
- endmenu
-diff -puN drivers/pps/Makefile~pps-linuxpps-clients-support drivers/pps/Makefile
---- a/drivers/pps/Makefile~pps-linuxpps-clients-support
-+++ a/drivers/pps/Makefile
-@@ -4,5 +4,6 @@
- 
- pps_core-y			:= pps.o kapi.o sysfs.o
- obj-$(CONFIG_PPS)		:= pps_core.o
-+obj-y				+= clients/
- 
- ccflags-$(CONFIG_PPS_DEBUG) := -DDEBUG
-diff -puN /dev/null drivers/pps/clients/Kconfig
+diff -puN /dev/null Documentation/pps/Makefile
 --- /dev/null
-+++ a/drivers/pps/clients/Kconfig
-@@ -0,0 +1,18 @@
-+#
-+# PPS clients configuration
-+#
++++ a/Documentation/pps/Makefile
+@@ -0,0 +1,28 @@
++TARGETS = ppstest ppsldisc
 +
-+if PPS
++CFLAGS += -Wall -O2 -D_GNU_SOURCE
++CFLAGS += -I .
++CFLAGS += -ggdb
++CFLAGS += -D__N_PPS=$(shell awk '/N_PPS/ {print $$3}' ../../include/linux/tty.h)
 +
-+comment "PPS clients support"
++# -- Actions section --
 +
-+config PPS_CLIENT_KTIMER
-+	tristate "Kernel timer client (Testing client, use for debug)"
-+	help
-+	  If you say yes here you get support for a PPS debugging client
-+	  which uses a kernel timer to generate the PPS signal.
++.PHONY : all depend dep
 +
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called ktimer.ko.
++all : .depend $(TARGETS)
 +
++.depend depend dep :
++	$(CC) $(CFLAGS) -M $(TARGETS:=.c) > .depend
++
++ifeq (.depend,$(wildcard .depend))
++include .depend
 +endif
-diff -puN /dev/null drivers/pps/clients/Makefile
++
++
++# -- Clean section --
++
++.PHONY : clean
++
++clean :
++	rm -f *.o *~ core .depend
++	rm -f ${TARGETS}
+diff -puN /dev/null Documentation/pps/ppsfind
 --- /dev/null
-+++ a/drivers/pps/clients/Makefile
-@@ -0,0 +1,9 @@
-+#
-+# Makefile for PPS clients.
-+#
++++ a/Documentation/pps/ppsfind
+@@ -0,0 +1,17 @@
++#!/bin/sh
 +
-+obj-$(CONFIG_PPS_CLIENT_KTIMER)	+= ktimer.o
++SYS="/sys/class/pps/"
 +
-+ifeq ($(CONFIG_PPS_DEBUG),y)
-+EXTRA_CFLAGS += -DDEBUG
-+endif
-diff -puN /dev/null drivers/pps/clients/ktimer.c
++if [ $# -lt 1 ] ; then
++	echo "usage: ppsfind <name>" >&2
++	exit 1
++fi
++
++for d in $(ls $SYS) ; do
++	if grep $1 $SYS/$d/name >& /dev/null || \
++	   grep $1 $SYS/$d/path >& /dev/null ; then
++		echo "$d: name=$(cat $SYS/$d/name) path=$(cat $SYS/$d/path)"
++	fi
++done
++
++exit 0
+diff -puN /dev/null Documentation/pps/ppsldisc.c
 --- /dev/null
-+++ a/drivers/pps/clients/ktimer.c
-@@ -0,0 +1,124 @@
-+/*
-+ * ktimer.c -- kernel timer test client
-+ *
-+ *
-+ * Copyright (C) 2005-2006   Rodolfo Giometti <giometti@linux.it>
-+ *
-+ *   This program is free software; you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *   GNU General Public License for more details.
-+ *
-+ *   You should have received a copy of the GNU General Public License
-+ *   along with this program; if not, write to the Free Software
-+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
++++ a/Documentation/pps/ppsldisc.c
+@@ -0,0 +1,46 @@
++#include <stdio.h>
++#include <unistd.h>
++#include <stdlib.h>
++#include <errno.h>
++#include <sys/ioctl.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <string.h>
 +
++#ifndef N_PPS
++#define N_PPS __N_PPS
++#endif
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/time.h>
-+#include <linux/timer.h>
-+
-+#include <linux/pps.h>
-+
-+/*
-+ * Global variables
-+ */
-+
-+static int source;
-+static struct timer_list ktimer;
-+
-+/*
-+ * The kernel timer
-+ */
-+
-+static void pps_ktimer_event(unsigned long ptr)
++void usage(char *name)
 +{
-+	struct timespec __ts;
-+	struct pps_ktime ts;
++	fprintf(stderr, "usage: %s <ttyS>\n", name);
 +
-+	/* First of all we get the time stamp... */
-+	getnstimeofday(&__ts);
-+
-+	pr_info("PPS event at %lu\n", jiffies);
-+
-+	/* ... and translate it to PPS time data struct */
-+	ts.sec = __ts.tv_sec;
-+	ts.nsec = __ts.tv_nsec;
-+
-+	pps_event(source, &ts, PPS_CAPTUREASSERT, NULL);
-+
-+	mod_timer(&ktimer, jiffies + HZ);
++	exit(EXIT_FAILURE);
 +}
 +
-+/*
-+ * The echo function
-+ */
-+
-+static void pps_ktimer_echo(int source, int event, void *data)
++int main(int argc, char *argv[])
 +{
-+	pr_info("echo %s %s for source %d\n",
-+		event & PPS_CAPTUREASSERT ? "assert" : "",
-+		event & PPS_CAPTURECLEAR ? "clear" : "",
-+		source);
-+}
-+
-+/*
-+ * The PPS info struct
-+ */
-+
-+static struct pps_source_info pps_ktimer_info = {
-+	.name		= "ktimer",
-+	.path		= "",
-+	.mode		= PPS_CAPTUREASSERT | PPS_OFFSETASSERT | \
-+			  PPS_ECHOASSERT | \
-+			  PPS_CANWAIT | PPS_TSFMT_TSPEC,
-+	.echo 		= pps_ktimer_echo,
-+	.owner		= THIS_MODULE,
-+};
-+
-+/*
-+ * Module staff
-+ */
-+
-+static void __exit pps_ktimer_exit(void)
-+{
-+	del_timer_sync(&ktimer);
-+	pps_unregister_source(source);
-+
-+	pr_info("ktimer PPS source unregistered\n");
-+}
-+
-+static int __init pps_ktimer_init(void)
-+{
++	int fd;
++	int ldisc = N_PPS;
 +	int ret;
 +
-+	ret = pps_register_source(&pps_ktimer_info,
-+				PPS_CAPTUREASSERT | PPS_OFFSETASSERT);
++	if (argc < 2)
++		usage(argv[0]);
++
++	fd = open(argv[1], O_RDWR);
++	if (fd < 0) {
++		perror("open");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = ioctl(fd, TIOCSETD, &ldisc);
 +	if (ret < 0) {
-+		printk(KERN_ERR "cannot register ktimer source\n");
++		perror("ioctl(TIOCSETD)");
++		exit(EXIT_FAILURE);
++	}
++
++	pause();
++
++	return 0;
++}
+diff -puN /dev/null Documentation/pps/ppstest.c
+--- /dev/null
++++ a/Documentation/pps/ppstest.c
+@@ -0,0 +1,151 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <errno.h>
++#include <string.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++
++#include <timepps.h>
++
++int find_source(char *path, pps_handle_t *handle, int *avail_mode)
++{
++	pps_params_t params;
++	int ret;
++
++	printf("trying PPS source \"%s\"\n", path);
++
++	/* Try to find the source by using the supplied "path" name */
++	ret = open(path, O_RDWR);
++	if (ret < 0) {
++		fprintf(stderr, "unable to open device \"%s\" (%m)\n", path);
 +		return ret;
 +	}
-+	source = ret;
 +
-+	setup_timer(&ktimer, pps_ktimer_event, 0);
-+	mod_timer(&ktimer, jiffies + HZ);
++	/* Open the PPS source (and check the file descriptor) */
++	ret = time_pps_create(ret, handle);
++	if (ret < 0) {
++		fprintf(stderr, "cannot create a PPS source from device "
++				"\"%s\" (%m)\n", path);
++		return -1;
++	}
++	printf("found PPS source \"%s\"\n", path);
 +
-+	pr_info("ktimer PPS source registered at %d\n", source);
++	/* Find out what features are supported */
++	ret = time_pps_getcap(*handle, avail_mode);
++	if (ret < 0) {
++		fprintf(stderr, "cannot get capabilities (%m)\n");
++		return -1;
++	}
++	if ((*avail_mode & PPS_CAPTUREASSERT) == 0) {
++		fprintf(stderr, "cannot CAPTUREASSERT\n");
++		return -1;
++	}
++	if ((*avail_mode & PPS_OFFSETASSERT) == 0) {
++		fprintf(stderr, "cannot OFFSETASSERT\n");
++		return -1;
++	}
 +
-+	return  0;
++	/* Capture assert timestamps, and compensate for a 675 nsec
++	 * propagation delay */
++	ret = time_pps_getparams(*handle, &params);
++	if (ret < 0) {
++		fprintf(stderr, "cannot get parameters (%m)\n");
++		return -1;
++	}
++	params.assert_offset.tv_sec = 0;
++	params.assert_offset.tv_nsec = 675;
++	params.mode |= PPS_CAPTUREASSERT | PPS_OFFSETASSERT;
++	ret = time_pps_setparams(*handle, &params);
++	if (ret < 0) {
++		fprintf(stderr, "cannot set parameters (%m)\n");
++		return -1;
++	}
++
++	return 0;
 +}
 +
-+module_init(pps_ktimer_init);
-+module_exit(pps_ktimer_exit);
++int fetch_source(int i, pps_handle_t *handle, int *avail_mode)
++{
++	struct timespec timeout;
++	pps_info_t infobuf;
++	int ret;
 +
-+MODULE_AUTHOR("Rodolfo Giometti <giometti@linux.it>");
-+MODULE_DESCRIPTION("dummy PPS source by using a kernel timer (just for debug)");
-+MODULE_LICENSE("GPL");
++	/* create a zero-valued timeout */
++	timeout.tv_sec = 3;
++	timeout.tv_nsec = 0;
++
++retry:
++	if (*avail_mode & PPS_CANWAIT) /* waits for the next event */
++		ret = time_pps_fetch(*handle, PPS_TSFMT_TSPEC, &infobuf,
++				   &timeout);
++	else {
++		sleep(1);
++		ret = time_pps_fetch(*handle, PPS_TSFMT_TSPEC, &infobuf,
++				   &timeout);
++	}
++	if (ret < 0) {
++		if (ret == -EINTR) {
++			fprintf(stderr, "time_pps_fetch() got a signal!\n");
++			goto retry;
++		}
++
++		fprintf(stderr, "time_pps_fetch() error %d (%m)\n", ret);
++		return -1;
++	}
++
++	printf("source %d - "
++	       "assert %ld.%09ld, sequence: %ld - "
++	       "clear  %ld.%09ld, sequence: %ld\n",
++	       i,
++	       infobuf.assert_timestamp.tv_sec,
++	       infobuf.assert_timestamp.tv_nsec,
++	       infobuf.assert_sequence,
++	       infobuf.clear_timestamp.tv_sec,
++	       infobuf.clear_timestamp.tv_nsec, infobuf.clear_sequence);
++
++	return 0;
++}
++
++void usage(char *name)
++{
++	fprintf(stderr, "usage: %s <ppsdev> [<ppsdev> ...]\n", name);
++	exit(EXIT_FAILURE);
++}
++
++int main(int argc, char *argv[])
++{
++	int num;
++	pps_handle_t handle[4];
++	int avail_mode[4];
++	int i = 0;
++	int ret;
++
++	/* Check the command line */
++	if (argc < 2)
++		usage(argv[0]);
++
++	for (i = 1; i < argc && i <= 4; i++) {
++		ret = find_source(argv[i], &handle[i - 1], &avail_mode[i - 1]);
++		if (ret < 0)
++			exit(EXIT_FAILURE);
++	}
++
++	num = i - 1;
++	printf("ok, found %d source(s), now start fetching data...\n", num);
++
++	/* loop, printing the most recent timestamp every second or so */
++	while (1) {
++		for (i = 0; i < num; i++) {
++			ret = fetch_source(i, &handle[i], &avail_mode[i]);
++			if (ret < 0 && errno != ETIMEDOUT)
++				exit(EXIT_FAILURE);
++		}
++	}
++
++	for (; i >= 0; i--)
++		time_pps_destroy(handle[i]);
++
++	return 0;
++}
 _
 
 Patches currently in -mm which might be from giometti@linux.it are
