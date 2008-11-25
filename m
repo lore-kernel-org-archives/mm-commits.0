@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-scan_all_zones_unevictable_pages-static.patch added to -mm tree
-Date: Tue, 25 Nov 2008 15:56:06 -0800
-Message-ID: <200811252356.mAPNu6wF026785@imap1.linux-foundation.org>
+Subject: + mm-make-scan_zone_unevictable_pages-static.patch added to -mm tree
+Date: Tue, 25 Nov 2008 15:56:08 -0800
+Message-ID: <200811252356.mAPNu8Ch026788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41934 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752234AbYKYX4K (ORCPT
+	by vger.kernel.org with ESMTP id S1752222AbYKYX4M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 18:56:10 -0500
+	Tue, 25 Nov 2008 18:56:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     mm: make scan_all_zones_unevictable_pages() static
+     mm: make scan_zone_unevictable_pages() static
 has been added to the -mm tree.  Its filename is
-     mm-make-scan_all_zones_unevictable_pages-static.patch
+     mm-make-scan_zone_unevictable_pages-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make scan_all_zones_unevictable_pages() static
+Subject: mm: make scan_zone_unevictable_pages() static
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-sparse output following warning.
+sparse output following warning
 
-	mm/vmscan.c:2549:6: warning: symbol 'scan_all_zones_unevictable_pages' was not declared. Should it be static?
+	mm/vmscan.c:2507:6: warning: symbol 'scan_zone_unevictable_pages' was not declared. Should it be static?
 
 cleanup here.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/vmscan.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-make-scan_all_zones_unevictable_pages-static mm/vmscan.c
---- a/mm/vmscan.c~mm-make-scan_all_zones_unevictable_pages-static
+diff -puN mm/vmscan.c~mm-make-scan_zone_unevictable_pages-static mm/vmscan.c
+--- a/mm/vmscan.c~mm-make-scan_zone_unevictable_pages-static
 +++ a/mm/vmscan.c
-@@ -2554,7 +2554,7 @@ void scan_zone_unevictable_pages(struct 
-  * that has possibly/probably made some previously unevictable pages
-  * evictable.
+@@ -2512,7 +2512,7 @@ void scan_mapping_unevictable_pages(stru
+  * back onto @zone's unevictable list.
   */
--void scan_all_zones_unevictable_pages(void)
-+static void scan_all_zones_unevictable_pages(void)
+ #define SCAN_UNEVICTABLE_BATCH_SIZE 16UL /* arbitrary lock hold batch size */
+-void scan_zone_unevictable_pages(struct zone *zone)
++static void scan_zone_unevictable_pages(struct zone *zone)
  {
- 	struct zone *zone;
- 
+ 	struct list_head *l_unevictable = &zone->lru[LRU_UNEVICTABLE].list;
+ 	unsigned long scan;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
