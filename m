@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch added to -mm tree
-Date: Tue, 25 Nov 2008 15:54:36 -0800
-Message-ID: <200811252354.mAPNsaQO025991@imap1.linux-foundation.org>
+Subject: + mm-make-maddr-__iomem.patch added to -mm tree
+Date: Tue, 25 Nov 2008 15:56:02 -0800
+Message-ID: <200811252356.mAPNu2vE026696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753115AbYKYXy6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751528AbYKYX4H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 18:54:58 -0500
+	Tue, 25 Nov 2008 18:56:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com
+Cc: kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     memcg: reclaim shouldn't change zone->recent_rotated statistics
+     mm: make maddr __iomem
 has been added to the -mm tree.  Its filename is
-     memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
+     mm-make-maddr-__iomem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: reclaim shouldn't change zone->recent_rotated statistics
+Subject: mm: make maddr __iomem
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-memcg reclaim shouldn't change zone->recent_rotated statistics.  If
-memcgroup reclaim changes zone statistics, global reclaim can get a bit
-confused.
+sparse output following warnings.
+
+mm/memory.c:2936:8: warning: incorrect type in assignment (different address spaces)
+mm/memory.c:2936:8:    expected void *maddr
+mm/memory.c:2936:8:    got void [noderef] <asn:2>
+
+cleanup here.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics mm/vmscan.c
---- a/mm/vmscan.c~memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics
-+++ a/mm/vmscan.c
-@@ -1292,7 +1292,8 @@ static void shrink_active_list(unsigned 
- 	 * This helps balance scan pressure between file and anonymous
- 	 * pages in get_scan_ratio.
- 	 */
--	zone->recent_rotated[!!file] += pgmoved;
-+	if (scan_global_lru(sc))
-+		zone->recent_rotated[!!file] += pgmoved;
+diff -puN mm/memory.c~mm-make-maddr-__iomem mm/memory.c
+--- a/mm/memory.c~mm-make-maddr-__iomem
++++ a/mm/memory.c
+@@ -2935,7 +2935,7 @@ int generic_access_phys(struct vm_area_s
+ {
+ 	resource_size_t phys_addr;
+ 	unsigned long prot = 0;
+-	void *maddr;
++	void __iomem *maddr;
+ 	int offset = addr & (PAGE_SIZE-1);
  
- 	/*
- 	 * Move the pages to the [file or anon] inactive list.
+ 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -78,4 +78,11 @@ cleanup-get-rid-of-ifdef-config_migration.patch
 mm-more-likely-reclaim-madv_sequential-mappings.patch
 mm-make-page_lock_anon_vma-static.patch
 memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
+mm-make-init_section_page_cgroup-static.patch
+mm-make-maddr-__iomem.patch
+mm-make-mem_cgroup_resize_limit-static.patch
+mm-make-scan_all_zones_unevictable_pages-static.patch
+mm-make-scan_zone_unevictable_pages-static.patch
+mm-make-setup_per_zone_inactive_ratio-static.patch
+mm-make-vread-and-vwrite-declaration.patch
 
