@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-mem_cgroup_resize_limit-static.patch added to -mm tree
-Date: Tue, 25 Nov 2008 15:56:04 -0800
-Message-ID: <200811252356.mAPNu4Vj026726@imap1.linux-foundation.org>
+Subject: + mm-make-scan_all_zones_unevictable_pages-static.patch added to -mm tree
+Date: Tue, 25 Nov 2008 15:56:06 -0800
+Message-ID: <200811252356.mAPNu6wF026785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41934 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752159AbYKYX4I (ORCPT
+	by vger.kernel.org with ESMTP id S1752234AbYKYX4K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 18:56:08 -0500
+	Tue, 25 Nov 2008 18:56:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     mm: make mem_cgroup_resize_limit() static
+     mm: make scan_all_zones_unevictable_pages() static
 has been added to the -mm tree.  Its filename is
-     mm-make-mem_cgroup_resize_limit-static.patch
+     mm-make-scan_all_zones_unevictable_pages-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make mem_cgroup_resize_limit() static
+Subject: mm: make scan_all_zones_unevictable_pages() static
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Sparse output following warnings.
+sparse output following warning.
 
-mm/memcontrol.c:782:5: warning: symbol 'mem_cgroup_resize_limit' was not
-declared.  Should it be static?
+	mm/vmscan.c:2549:6: warning: symbol 'scan_all_zones_unevictable_pages' was not declared. Should it be static?
 
 cleanup here.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-make-mem_cgroup_resize_limit-static mm/memcontrol.c
---- a/mm/memcontrol.c~mm-make-mem_cgroup_resize_limit-static
-+++ a/mm/memcontrol.c
-@@ -779,7 +779,8 @@ int mem_cgroup_shrink_usage(struct mm_st
- 	return 0;
- }
- 
--int mem_cgroup_resize_limit(struct mem_cgroup *memcg, unsigned long long val)
-+static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
-+				   unsigned long long val)
+diff -puN mm/vmscan.c~mm-make-scan_all_zones_unevictable_pages-static mm/vmscan.c
+--- a/mm/vmscan.c~mm-make-scan_all_zones_unevictable_pages-static
++++ a/mm/vmscan.c
+@@ -2554,7 +2554,7 @@ void scan_zone_unevictable_pages(struct 
+  * that has possibly/probably made some previously unevictable pages
+  * evictable.
+  */
+-void scan_all_zones_unevictable_pages(void)
++static void scan_all_zones_unevictable_pages(void)
  {
+ 	struct zone *zone;
  
- 	int retry_count = MEM_CGROUP_RECLAIM_RETRIES;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
