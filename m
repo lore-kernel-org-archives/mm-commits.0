@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-maddr-__iomem.patch added to -mm tree
-Date: Tue, 25 Nov 2008 15:56:02 -0800
-Message-ID: <200811252356.mAPNu2vE026696@imap1.linux-foundation.org>
+Subject: + mm-make-mem_cgroup_resize_limit-static.patch added to -mm tree
+Date: Tue, 25 Nov 2008 15:56:04 -0800
+Message-ID: <200811252356.mAPNu4Vj026726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751528AbYKYX4H (ORCPT
+	by vger.kernel.org with ESMTP id S1752159AbYKYX4I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 18:56:07 -0500
+	Tue, 25 Nov 2008 18:56:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     mm: make maddr __iomem
+     mm: make mem_cgroup_resize_limit() static
 has been added to the -mm tree.  Its filename is
-     mm-make-maddr-__iomem.patch
+     mm-make-mem_cgroup_resize_limit-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make maddr __iomem
+Subject: mm: make mem_cgroup_resize_limit() static
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-sparse output following warnings.
+Sparse output following warnings.
 
-mm/memory.c:2936:8: warning: incorrect type in assignment (different address spaces)
-mm/memory.c:2936:8:    expected void *maddr
-mm/memory.c:2936:8:    got void [noderef] <asn:2>
+mm/memcontrol.c:782:5: warning: symbol 'mem_cgroup_resize_limit' was not
+declared.  Should it be static?
 
 cleanup here.
 
@@ -49,21 +48,22 @@ Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-make-maddr-__iomem mm/memory.c
---- a/mm/memory.c~mm-make-maddr-__iomem
-+++ a/mm/memory.c
-@@ -2935,7 +2935,7 @@ int generic_access_phys(struct vm_area_s
- {
- 	resource_size_t phys_addr;
- 	unsigned long prot = 0;
--	void *maddr;
-+	void __iomem *maddr;
- 	int offset = addr & (PAGE_SIZE-1);
+diff -puN mm/memcontrol.c~mm-make-mem_cgroup_resize_limit-static mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-make-mem_cgroup_resize_limit-static
++++ a/mm/memcontrol.c
+@@ -779,7 +779,8 @@ int mem_cgroup_shrink_usage(struct mm_st
+ 	return 0;
+ }
  
- 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
+-int mem_cgroup_resize_limit(struct mem_cgroup *memcg, unsigned long long val)
++static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
++				   unsigned long long val)
+ {
+ 
+ 	int retry_count = MEM_CGROUP_RECLAIM_RETRIES;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
