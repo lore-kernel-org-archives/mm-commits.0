@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-gfp_mask-from-add_to_swap.patch added to -mm tree
-Date: Tue, 25 Nov 2008 14:15:55 -0800
-Message-ID: <200811252215.mAPMFuF8005887@imap1.linux-foundation.org>
+Subject: + serial-add-support-for-the-cell-network-processor-nwp-device-update.patch added to -mm tree
+Date: Tue, 25 Nov 2008 14:26:06 -0800
+Message-ID: <200811252226.mAPMQ6pa011267@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49374 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751585AbYKYW0T (ORCPT
+	by vger.kernel.org with ESMTP id S1750812AbYKYW0f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 17:26:19 -0500
+	Tue, 25 Nov 2008 17:26:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, holt@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au, riel@redhat.com
+Cc: ben@codiert.org, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, david@gibson.dropbear.id.au, jwboyer@linux.vnet.ibm.com
 
 
 The patch titled
-     mm: remove gfp_mask from add_to_swap
+     serial-add-support-for-the-cell-network-processor-nwp-device update
 has been added to the -mm tree.  Its filename is
-     mm-remove-gfp_mask-from-add_to_swap.patch
+     serial-add-support-for-the-cell-network-processor-nwp-device-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,273 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove gfp_mask from add_to_swap
-From: Hugh Dickins <hugh@veritas.com>
+Subject: serial-add-support-for-the-cell-network-processor-nwp-device update
+From: Benjamin Krill <ben@codiert.org>
 
-Remove gfp_mask argument from add_to_swap(): it's misleading because its
-only caller, shrink_page_list(), is not atomic at that point; and in due
-course (implementing discard) we'll sometimes want to allocate some memory
-with GFP_NOIO (as is used in swap_writepage) when allocating swap.
-
-No change to the gfp_mask passed down to add_to_swap_cache(): still use
-__GFP_HIGH without __GFP_WAIT (with nomemalloc and nowarn as before):
-though it's not obvious if that's the best combination to ask for here.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Robin Holt <holt@sgi.com>
+Signed-off-by: Benjamin Krill <ben@codiert.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
- mm/swap_state.c      |    4 ++--
- mm/vmscan.c          |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/serial/Kconfig     |   10 +++-
+ drivers/serial/nwpserial.c |   80 ++++++++++++++++++++++++-----------
+ drivers/serial/of_serial.c |    3 -
+ 3 files changed, 68 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/swap.h~mm-remove-gfp_mask-from-add_to_swap include/linux/swap.h
---- a/include/linux/swap.h~mm-remove-gfp_mask-from-add_to_swap
-+++ a/include/linux/swap.h
-@@ -281,7 +281,7 @@ extern void end_swap_bio_read(struct bio
- extern struct address_space swapper_space;
- #define total_swapcache_pages  swapper_space.nrpages
- extern void show_swap_cache_info(void);
--extern int add_to_swap(struct page *, gfp_t);
-+extern int add_to_swap(struct page *);
- extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
- extern void __delete_from_swap_cache(struct page *);
- extern void delete_from_swap_cache(struct page *);
-diff -puN mm/swap_state.c~mm-remove-gfp_mask-from-add_to_swap mm/swap_state.c
---- a/mm/swap_state.c~mm-remove-gfp_mask-from-add_to_swap
-+++ a/mm/swap_state.c
-@@ -128,7 +128,7 @@ void __delete_from_swap_cache(struct pag
-  * Allocate swap space for the page and add the page to the
-  * swap cache.  Caller needs to hold the page lock. 
-  */
--int add_to_swap(struct page * page, gfp_t gfp_mask)
-+int add_to_swap(struct page *page)
- {
- 	swp_entry_t entry;
- 	int err;
-@@ -153,7 +153,7 @@ int add_to_swap(struct page * page, gfp_
- 		 * Add it to the swap cache and mark it dirty
- 		 */
- 		err = add_to_swap_cache(page, entry,
--				gfp_mask|__GFP_NOMEMALLOC|__GFP_NOWARN);
-+				__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN);
+diff -puN drivers/serial/Kconfig~serial-add-support-for-the-cell-network-processor-nwp-device-update drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~serial-add-support-for-the-cell-network-processor-nwp-device-update
++++ a/drivers/serial/Kconfig
+@@ -1311,7 +1311,15 @@ config SERIAL_OF_PLATFORM_NWPSERIAL
+ 	select SERIAL_CORE_CONSOLE
+ 	select SERIAL_CORE
+ 	help
+-	  This driver supports the nwp serial port.
++	  This driver supports the cell network processor nwp serial
++	  device.
++
++config SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE
++	bool "Console on NWP serial port"
++	depends on SERIAL_OF_PLATFORM_NWPSERIAL=y
++	select SERIAL_CORE_CONSOLE
++	help
++	  Support for Console on the NWP serial ports.
  
- 		switch (err) {
- 		case 0:				/* Success */
-diff -puN mm/vmscan.c~mm-remove-gfp_mask-from-add_to_swap mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-gfp_mask-from-add_to_swap
-+++ a/mm/vmscan.c
-@@ -673,7 +673,7 @@ static unsigned long shrink_page_list(st
- 		if (PageAnon(page) && !PageSwapCache(page)) {
- 			if (!(sc->gfp_mask & __GFP_IO))
- 				goto keep_locked;
--			if (!add_to_swap(page, GFP_ATOMIC))
-+			if (!add_to_swap(page))
- 				goto activate_locked;
- 			may_enter_fs = 1;
+ config SERIAL_QE
+ 	tristate "Freescale QUICC Engine serial port support"
+diff -puN drivers/serial/nwpserial.c~serial-add-support-for-the-cell-network-processor-nwp-device-update drivers/serial/nwpserial.c
+--- a/drivers/serial/nwpserial.c~serial-add-support-for-the-cell-network-processor-nwp-device-update
++++ a/drivers/serial/nwpserial.c
+@@ -9,6 +9,7 @@
+  *  2 of the License, or (at your option) any later version.
+  *
+  */
++#include <linux/init.h>
+ #include <linux/console.h>
+ #include <linux/serial.h>
+ #include <linux/serial_reg.h>
+@@ -37,12 +38,27 @@ struct nwpserial_port {
+ static DEFINE_MUTEX(nwpserial_mutex);
+ static struct nwpserial_port nwpserial_ports[NWPSERIAL_NR];
+ 
++static void wait_for_bits(struct nwpserial_port *up, int bits)
++{
++	unsigned int status, tmout = 10000;
++
++	/* Wait up to 10ms for the character(s) to be sent. */
++	do {
++		status = dcr_read(up->dcr_host, UART_LSR);
++
++		if (--tmout == 0)
++			break;
++		udelay(1);
++	} while ((status & bits) != bits);
++}
++
++#ifdef CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE
+ static void nwpserial_console_putchar(struct uart_port *port, int c)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
++	up = container_of(port, struct nwpserial_port, port);
+ 	/* check if tx buffer is full */
+-	while ((dcr_read(up->dcr_host, UART_LSR) & UART_LSR_THRE) == 0)
+-		cpu_relax();
++	wait_for_bits(up, UART_LSR_THRE);
+ 	dcr_write(up->dcr_host, UART_TX, c);
+ 	up->port.icount.tx++;
+ }
+@@ -85,8 +101,12 @@ static struct console nwpserial_console 
+ 	.index		= -1,
+ 	.data		= &nwpserial_reg,
+ };
++#define NWPSERIAL_CONSOLE	(&nwpserial_console)
++#else
++#define NWPSERIAL_CONSOLE	NULL
++#endif /* CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE */
+ 
+-/*******************************************************************************/
++/**************************************************************************/
+ 
+ static int nwpserial_request_port(struct uart_port *port)
+ {
+@@ -105,7 +125,7 @@ static void nwpserial_config_port(struct
+ 
+ static irqreturn_t nwpserial_interrupt(int irq, void *dev_id)
+ {
+-	struct nwpserial_port *up = dev_id;//container_of(dev_id, struct nwpserial_port, port);
++	struct nwpserial_port *up = dev_id;
+ 	struct tty_struct *tty = up->port.info->port.tty;
+ 	irqreturn_t ret;
+ 	unsigned int iir;
+@@ -137,16 +157,18 @@ out:
+ 
+ static int nwpserial_startup(struct uart_port *port)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
+ 	int err;
+ 
++	up = container_of(port, struct nwpserial_port, port);
++
+ 	/* disable flow control by default */
+ 	up->mcr = dcr_read(up->dcr_host, UART_MCR) & ~UART_MCR_AFE;
+ 	dcr_write(up->dcr_host, UART_MCR, up->mcr);
+ 
+ 	/* register interrupt handler */
+ 	err = request_irq(up->port.irq, nwpserial_interrupt,
+-	                        IRQF_SHARED, "nwpserial", up);
++			IRQF_SHARED, "nwpserial", up);
+ 	if (err) {
+ 		free_irq(up->port.irq, port);
+ 		return err;
+@@ -164,7 +186,8 @@ static int nwpserial_startup(struct uart
+ 
+ static void nwpserial_shutdown(struct uart_port *port)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
++	up = container_of(port, struct nwpserial_port, port);
+ 
+ 	/* disable receiving */
+ 	up->port.ignore_status_mask |= NWPSERIAL_STATUS_RXVALID;
+@@ -177,7 +200,8 @@ static void nwpserial_shutdown(struct ua
+ 	free_irq(up->port.irq, port);
+ }
+ 
+-static int nwpserial_verify_port(struct uart_port *port, struct serial_struct *ser)
++static int nwpserial_verify_port(struct uart_port *port,
++			struct serial_struct *ser)
+ {
+ 	return -EINVAL;
+ }
+@@ -187,17 +211,23 @@ static const char *nwpserial_type(struct
+ 	return port->type == PORT_NWPSERIAL ? "nwpserial" : NULL;
+ }
+ 
+-static void nwpserial_set_termios(struct uart_port *port, struct ktermios *termios,
+-                                struct ktermios *old)
++static void nwpserial_set_termios(struct uart_port *port,
++			struct ktermios *termios, struct ktermios *old)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
++	up = container_of(port, struct nwpserial_port, port);
+ 
+-	up->port.read_status_mask = NWPSERIAL_STATUS_RXVALID | NWPSERIAL_STATUS_TXFULL;
++	up->port.read_status_mask = NWPSERIAL_STATUS_RXVALID
++				| NWPSERIAL_STATUS_TXFULL;
+ 
+ 	up->port.ignore_status_mask = 0;
+ 	/* ignore all characters if CREAD is not set */
+ 	if ((termios->c_cflag & CREAD) == 0)
+ 		up->port.ignore_status_mask |= NWPSERIAL_STATUS_RXVALID;
++
++	/* Copy back the old hardware settings */
++	if (old)
++		tty_termios_copy_hw(termios, old);
+ }
+ 
+ static void nwpserial_break_ctl(struct uart_port *port, int ctl)
+@@ -212,7 +242,8 @@ static void nwpserial_enable_ms(struct u
+ 
+ static void nwpserial_stop_rx(struct uart_port *port)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
++	up = container_of(port, struct nwpserial_port, port);
+ 	/* don't forward any more data (like !CREAD) */
+ 	up->port.ignore_status_mask = NWPSERIAL_STATUS_RXVALID;
+ }
+@@ -220,16 +251,17 @@ static void nwpserial_stop_rx(struct uar
+ static void nwpserial_putchar(struct nwpserial_port *up, unsigned char c)
+ {
+ 	/* check if tx buffer is full */
+-	while ((dcr_read(up->dcr_host, UART_LSR) & UART_LSR_THRE) == 0)
+-		cpu_relax();
++	wait_for_bits(up, UART_LSR_THRE);
+ 	dcr_write(up->dcr_host, UART_TX, c);
+ 	up->port.icount.tx++;
+ }
+ 
+ static void nwpserial_start_tx(struct uart_port *port)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
+-	struct circ_buf *xmit  = &up->port.info->xmit;
++	struct nwpserial_port *up;
++	struct circ_buf *xmit;
++	up = container_of(port, struct nwpserial_port, port);
++	xmit  = &up->port.info->xmit;
+ 
+ 	if (port->x_char) {
+ 		nwpserial_putchar(up, up->port.x_char);
+@@ -259,9 +291,10 @@ static void nwpserial_stop_tx(struct uar
+ 
+ static unsigned int nwpserial_tx_empty(struct uart_port *port)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
+ 	unsigned long flags;
+ 	int ret;
++	up = container_of(port, struct nwpserial_port, port);
+ 
+ 	spin_lock_irqsave(&up->port.lock, flags);
+ 	ret = dcr_read(up->dcr_host, UART_LSR);
+@@ -296,11 +329,10 @@ static struct uart_driver nwpserial_reg 
+ 	.major       = TTY_MAJOR,
+ 	.minor       = 68,
+ 	.nr          = NWPSERIAL_NR,
+-	.cons        = &nwpserial_console,
++	.cons        = NWPSERIAL_CONSOLE,
+ };
+ 
+-int
+-nwpserial_register_port(struct uart_port *port)
++int nwpserial_register_port(struct uart_port *port)
+ {
+ 	struct nwpserial_port *up = NULL;
+ 	int ret = -1;
+@@ -368,7 +400,7 @@ nwpserial_register_port(struct uart_port
+ 
+ 		up->dcr_host = dcr_map(dn, dcr_base, dcr_len);
+ 		if (!DCR_MAP_OK(up->dcr_host)) {
+-			printk("Cannot map DCR resources for NWPSERIAL");
++			printk(KERN_ERR "Cannot map DCR resources for NWPSERIAL");
+ 			goto out;
  		}
+ 	}
+@@ -396,6 +428,7 @@ void nwpserial_unregister_port(int line)
+ }
+ EXPORT_SYMBOL(nwpserial_unregister_port);
+ 
++#ifdef CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE
+ static int __init nwpserial_console_init(void)
+ {
+ 	struct nwpserial_port *up = NULL;
+@@ -441,3 +474,4 @@ static int __init nwpserial_console_init
+ 	return 0;
+ }
+ console_initcall(nwpserial_console_init);
++#endif /* CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE */
+diff -puN drivers/serial/of_serial.c~serial-add-support-for-the-cell-network-processor-nwp-device-update drivers/serial/of_serial.c
+--- a/drivers/serial/of_serial.c~serial-add-support-for-the-cell-network-processor-nwp-device-update
++++ a/drivers/serial/of_serial.c
+@@ -164,7 +164,8 @@ static struct of_device_id __devinitdata
+ 	{ .type = "serial", .compatible = "ns16550",  .data = (void *)PORT_16550, },
+ 	{ .type = "serial", .compatible = "ns16750",  .data = (void *)PORT_16750, },
+ #ifdef CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL
+-	{ .type = "serial", .compatible = "ibm,qpace-nwpserial",  .data = (void *)PORT_NWPSERIAL, },
++	{ .type = "serial", .compatible = "ibm,qpace-nwp-serial",
++					.data = (void *)PORT_NWPSERIAL, },
+ #endif
+ 	{ .type = "serial",			      .data = (void *)PORT_UNKNOWN, },
+ 	{ /* end of list */ },
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from ben@codiert.org are
 
-linux-next.patch
-mm-dont-mark_page_accessed-in-shmem_fault.patch
-mm-apply_to_range-call-pte-function-with-lazy-updates.patch
-mm-remove-cgroup_mm_owner_callbacks.patch
-mm-remove-aop_writepage_activate.patch
-mm-remove-gfp_highuser_pagecache.patch
-mm-add-setclearpageswapcache-stubs.patch
-mm-replace-some-bug_ons-by-vm_bug_ons.patch
-mm-add_active_or_unevictable-into-rmap.patch
-mm-make-page_lock_anon_vma-static.patch
-mm-further-cleanup-page_add_new_anon_rmap.patch
-mm-gup-persist-for-write-permission.patch
-mm-wp-lock-page-before-deciding-cow.patch
-mm-reuse_swap_page-replaces-can_share_swap_page.patch
-mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
-mm-try_to_unuse-check-removing-right-swap.patch
-mm-remove-try_to_munlock-from-vmscan.patch
-mm-remove-gfp_mask-from-add_to_swap.patch
-mm-add-add_to_swap-stub.patch
-mm-optimize-get_scan_ratio-for-no-swap.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-prio_tree-debugging-patch.patch
+serial-add-support-for-the-cell-network-processor-nwp-device.patch
+serial-add-support-for-the-cell-network-processor-nwp-device-update.patch
 
