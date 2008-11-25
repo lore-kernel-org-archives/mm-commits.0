@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-wp-lock-page-before-deciding-cow.patch added to -mm tree
-Date: Tue, 25 Nov 2008 14:15:42 -0800
-Message-ID: <200811252215.mAPMFhAf005740@imap1.linux-foundation.org>
+Subject: + mm-reuse_swap_page-replaces-can_share_swap_page.patch added to -mm tree
+Date: Tue, 25 Nov 2008 14:15:44 -0800
+Message-ID: <200811252215.mAPMFjmU005752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58038 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40472 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751334AbYKYWPz (ORCPT
+	by vger.kernel.org with ESMTP id S1751154AbYKYWQH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 17:15:55 -0500
+	Tue, 25 Nov 2008 17:16:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, holt@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermer
 
 
 The patch titled
-     mm: wp lock page before deciding cow
+     mm: reuse_swap_page replaces can_share_swap_page
 has been added to the -mm tree.  Its filename is
-     mm-wp-lock-page-before-deciding-cow.patch
+     mm-reuse_swap_page-replaces-can_share_swap_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: wp lock page before deciding cow
+Subject: mm: reuse_swap_page replaces can_share_swap_page
 From: Hugh Dickins <hugh@veritas.com>
 
-An application may rely on get_user_pages() to give it pages writable from
-userspace and shared with a driver, GUP breaking COW if necessary.  It may
-mprotect() the pages' writability, off and on, from time to time.
+A good place to free up old swap is where do_wp_page(), or do_swap_page(),
+is about to redirty the page: the data on disk is then stale and won't be
+read again; and if we do decide to write the page out later, using the
+previous swap location makes an unnecessary disk seek very likely.
 
-Normally this works fine (so long as the app does not fork); but just
-occasionally, under memory pressure, a readonly pte in a newly writable
-area is COWed unnecessarily, breaking the link with the driver: because
-do_wp_page() does trylock_page, and falls back to COW whenever that fails.
+So give can_share_swap_page() the side-effect of delete_from_swap_cache()
+when it safely can.  And can_share_swap_page() was always a misleading
+name, the more so if it has a side-effect: rename it reuse_swap_page().
 
-For reliable behaviour in the unshared case, when the trylock_page fails,
-now unlock pagetable, lock page and relock pagetable, before deciding
-whether Copy-On-Write is really necessary.
+Irrelevant cleanup nearby: remove swap_token_default_timeout definition
+from swap.h: it's used nowhere.
 
-Reported-by: Zhou Yingchao
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ include/linux/swap.h |    6 ++----
+ mm/memory.c          |    4 ++--
+ mm/swapfile.c        |   15 +++++++++++----
+ 3 files changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN mm/memory.c~mm-wp-lock-page-before-deciding-cow mm/memory.c
---- a/mm/memory.c~mm-wp-lock-page-before-deciding-cow
+diff -puN include/linux/swap.h~mm-reuse_swap_page-replaces-can_share_swap_page include/linux/swap.h
+--- a/include/linux/swap.h~mm-reuse_swap_page-replaces-can_share_swap_page
++++ a/include/linux/swap.h
+@@ -307,7 +307,7 @@ extern unsigned int count_swap_pages(int
+ extern sector_t map_swap_page(struct swap_info_struct *, pgoff_t);
+ extern sector_t swapdev_block(int, pgoff_t);
+ extern struct swap_info_struct *get_swap_info_struct(unsigned);
+-extern int can_share_swap_page(struct page *);
++extern int reuse_swap_page(struct page *);
+ extern int remove_exclusive_swap_page(struct page *);
+ extern int remove_exclusive_swap_page_ref(struct page *);
+ struct backing_dev_info;
+@@ -375,8 +375,6 @@ static inline struct page *lookup_swap_c
+ 	return NULL;
+ }
+ 
+-#define can_share_swap_page(p)			(page_mapcount(p) == 1)
+-
+ static inline int add_to_swap_cache(struct page *page, swp_entry_t entry,
+ 							gfp_t gfp_mask)
+ {
+@@ -391,7 +389,7 @@ static inline void delete_from_swap_cach
+ {
+ }
+ 
+-#define swap_token_default_timeout		0
++#define reuse_swap_page(page)	(page_mapcount(page) == 1)
+ 
+ static inline int remove_exclusive_swap_page(struct page *p)
+ {
+diff -puN mm/memory.c~mm-reuse_swap_page-replaces-can_share_swap_page mm/memory.c
+--- a/mm/memory.c~mm-reuse_swap_page-replaces-can_share_swap_page
 +++ a/mm/memory.c
-@@ -1819,10 +1819,21 @@ static int do_wp_page(struct mm_struct *
- 	 * not dirty accountable.
- 	 */
- 	if (PageAnon(old_page)) {
--		if (trylock_page(old_page)) {
--			reuse = can_share_swap_page(old_page);
--			unlock_page(old_page);
-+		if (!trylock_page(old_page)) {
-+			page_cache_get(old_page);
-+			pte_unmap_unlock(page_table, ptl);
-+			lock_page(old_page);
-+			page_table = pte_offset_map_lock(mm, pmd, address,
-+							 &ptl);
-+			if (!pte_same(*page_table, orig_pte)) {
-+				unlock_page(old_page);
-+				page_cache_release(old_page);
-+				goto unlock;
-+			}
-+			page_cache_release(old_page);
+@@ -1832,7 +1832,7 @@ static int do_wp_page(struct mm_struct *
+ 			}
+ 			page_cache_release(old_page);
  		}
-+		reuse = can_share_swap_page(old_page);
-+		unlock_page(old_page);
+-		reuse = can_share_swap_page(old_page);
++		reuse = reuse_swap_page(old_page);
+ 		unlock_page(old_page);
  	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
  					(VM_WRITE|VM_SHARED))) {
- 		/*
+@@ -2363,7 +2363,7 @@ static int do_swap_page(struct mm_struct
+ 
+ 	inc_mm_counter(mm, anon_rss);
+ 	pte = mk_pte(page, vma->vm_page_prot);
+-	if (write_access && can_share_swap_page(page)) {
++	if (write_access && reuse_swap_page(page)) {
+ 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
+ 		write_access = 0;
+ 	}
+diff -puN mm/swapfile.c~mm-reuse_swap_page-replaces-can_share_swap_page mm/swapfile.c
+--- a/mm/swapfile.c~mm-reuse_swap_page-replaces-can_share_swap_page
++++ a/mm/swapfile.c
+@@ -326,17 +326,24 @@ static inline int page_swapcount(struct 
+ }
+ 
+ /*
+- * We can use this swap cache entry directly
+- * if there are no other references to it.
++ * We can write to an anon page without COW if there are no other references
++ * to it.  And as a side-effect, free up its swap: because the old content
++ * on disk will never be read, and seeking back there to write new content
++ * later would only waste time away from clustering.
+  */
+-int can_share_swap_page(struct page *page)
++int reuse_swap_page(struct page *page)
+ {
+ 	int count;
+ 
+ 	VM_BUG_ON(!PageLocked(page));
+ 	count = page_mapcount(page);
+-	if (count <= 1 && PageSwapCache(page))
++	if (count <= 1 && PageSwapCache(page)) {
+ 		count += page_swapcount(page);
++		if (count == 1 && !PageWriteback(page)) {
++			delete_from_swap_cache(page);
++			SetPageDirty(page);
++		}
++	}
+ 	return count == 1;
+ }
+ 
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
