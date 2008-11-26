@@ -1,222 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - pps-low-level-irq-timestamps-recording.patch removed from -mm tree
-Date: Tue, 25 Nov 2008 17:04:21 -0800
-Message-ID: <200811260104.mAQ14LZN030653@imap1.linux-foundation.org>
+Subject: + adt7470-fix-pwm-at-a-certain-level-during-temperature-sensor-scan.patch added to -mm tree
+Date: Tue, 25 Nov 2008 17:07:11 -0800
+Message-ID: <200811260107.mAQ17CiX032127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36838 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42457 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752301AbYKZBHq (ORCPT
+	by vger.kernel.org with ESMTP id S1751868AbYKZBHz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 20:07:46 -0500
+	Tue, 25 Nov 2008 20:07:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: giometti@linux.it, alan@lxorguk.ukuu.org.uk, davej@redhat.com, dwmw2@infradead.org, greg@kroah.com, hpa@zytor.com, kay.sievers@vrfy.org, mingo@elte.hu, mtk.manpages@googlemail.comra
+To: mm-commits@vger.kernel.org
+Cc: djwong@us.ibm.com, khali@linux-fr.org
 
 
 The patch titled
-     PPS: low level IRQ timestamps recording
-has been removed from the -mm tree.  Its filename was
-     pps-low-level-irq-timestamps-recording.patch
+     adt7470: fix pwm at a certain level during temperature sensor scan
+has been added to the -mm tree.  Its filename is
+     adt7470-fix-pwm-at-a-certain-level-during-temperature-sensor-scan.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PPS: low level IRQ timestamps recording
-From: Rodolfo Giometti <giometti@linux.it>
+Subject: adt7470: fix pwm at a certain level during temperature sensor scan
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-Add low level IRQ timestamps recording for x86 (32 and 64 bits) platforms
-and enable UART clients in order to use it.
+In the small window that it takes to read the temperature sensors, the pwm
+outputs momentarily drop to 0.  This causes a noticeable hiccup in fan
+speed, which is slightly annoying.  The solution is to manually program
+the pwm output with whatever the automatic value is and then shift the
+fans to manual control while reading temperatures.  Once that is done, put
+the fans back to whatever mode of control was there before.
 
-This improves PPS precision. :)
-
-Signed-off-by: Rodolfo Giometti <giometti@linux.it>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/irq_32.c    |   16 ++++++++++++++++
- arch/x86/kernel/irq_64.c    |   21 +++++++++++++++++++--
- drivers/pps/Kconfig         |   12 ++++++++++++
- include/linux/pps.h         |    1 +
- include/linux/serial_core.h |    7 ++++++-
- 5 files changed, 54 insertions(+), 3 deletions(-)
+ drivers/hwmon/adt7470.c |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/irq_32.c~pps-low-level-irq-timestamps-recording arch/x86/kernel/irq_32.c
---- a/arch/x86/kernel/irq_32.c~pps-low-level-irq-timestamps-recording
-+++ a/arch/x86/kernel/irq_32.c
-@@ -15,6 +15,7 @@
- #include <linux/notifier.h>
- #include <linux/cpu.h>
- #include <linux/delay.h>
-+#include <linux/pps.h>
+diff -puN drivers/hwmon/adt7470.c~adt7470-fix-pwm-at-a-certain-level-during-temperature-sensor-scan drivers/hwmon/adt7470.c
+--- a/drivers/hwmon/adt7470.c~adt7470-fix-pwm-at-a-certain-level-during-temperature-sensor-scan
++++ a/drivers/hwmon/adt7470.c
+@@ -74,6 +74,7 @@ I2C_CLIENT_INSMOD_1(adt7470);
+ #define ADT7470_REG_PWM12_CFG			0x68
+ #define		ADT7470_PWM2_AUTO_MASK		0x40
+ #define		ADT7470_PWM1_AUTO_MASK		0x80
++#define		ADT7470_PWM_AUTO_MASK		0xC0
+ #define ADT7470_REG_PWM34_CFG			0x69
+ #define		ADT7470_PWM3_AUTO_MASK		0x40
+ #define		ADT7470_PWM4_AUTO_MASK		0x80
+@@ -223,7 +224,7 @@ static struct adt7470_data *adt7470_upda
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adt7470_data *data = i2c_get_clientdata(client);
+ 	unsigned long local_jiffies = jiffies;
+-	u8 cfg;
++	u8 cfg, pwm[4], pwm_cfg[2];
+ 	int i;
  
- #include <asm/apic.h>
- #include <asm/uaccess.h>
-@@ -25,6 +26,11 @@ EXPORT_PER_CPU_SYMBOL(irq_stat);
- DEFINE_PER_CPU(struct pt_regs *, irq_regs);
- EXPORT_PER_CPU_SYMBOL(irq_regs);
+ 	mutex_lock(&data->lock);
+@@ -232,6 +233,24 @@ static struct adt7470_data *adt7470_upda
+ 		&& data->sensors_valid)
+ 		goto no_sensor_update;
  
-+#ifdef CONFIG_PPS_IRQ_EVENTS
-+struct timespec pps_irq_ts[NR_IRQS];
-+EXPORT_SYMBOL(pps_irq_ts);
-+#endif
++	/* save pwm[1-4] config register */
++	pwm_cfg[0] = i2c_smbus_read_byte_data(client, ADT7470_REG_PWM_CFG(0));
++	pwm_cfg[1] = i2c_smbus_read_byte_data(client, ADT7470_REG_PWM_CFG(2));
 +
- #ifdef CONFIG_DEBUG_STACKOVERFLOW
- /* Debugging check for stack overflow: is there less than 1KB free? */
- static int check_stack_overflow(void)
-@@ -204,7 +210,12 @@ unsigned int do_IRQ(struct pt_regs *regs
- 	unsigned vector = ~regs->orig_ax;
- 	struct irq_desc *desc;
- 	unsigned irq;
-+#ifdef CONFIG_PPS_IRQ_EVENTS
-+	struct timespec ts;
- 
-+	/* Get IRQ timestamps as soon as possible for the PPS layer */
-+	getnstimeofday(&ts);
-+#endif
- 
- 	old_regs = set_irq_regs(regs);
- 	irq_enter();
-@@ -219,6 +230,11 @@ unsigned int do_IRQ(struct pt_regs *regs
- 		BUG();
- 	}
- 
-+#ifdef CONFIG_PPS_IRQ_EVENTS
-+	/* Then, after sanity check, store the IRQ timestamp */
-+	pps_irq_ts[irq] = ts;
-+#endif
++	/* set manual pwm to whatever it is set to now */
++	for (i = 0; i < ADT7470_FAN_COUNT; i++)
++		pwm[i] = i2c_smbus_read_byte_data(client, ADT7470_REG_PWM(i));
 +
- 	if (!execute_on_irq_stack(overflow, desc, irq)) {
- 		if (unlikely(overflow))
- 			print_stack_overflow();
-diff -puN arch/x86/kernel/irq_64.c~pps-low-level-irq-timestamps-recording arch/x86/kernel/irq_64.c
---- a/arch/x86/kernel/irq_64.c~pps-low-level-irq-timestamps-recording
-+++ a/arch/x86/kernel/irq_64.c
-@@ -17,6 +17,12 @@
- #include <asm/io_apic.h>
- #include <asm/idle.h>
- #include <asm/smp.h>
-+#include <linux/pps.h>
++	/* put pwm in manual mode */
++	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(0),
++		pwm_cfg[0] & ~(ADT7470_PWM_AUTO_MASK));
++	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(2),
++		pwm_cfg[1] & ~(ADT7470_PWM_AUTO_MASK));
 +
-+#ifdef CONFIG_PPS_IRQ_EVENTS
-+struct timespec pps_irq_ts[NR_IRQS];
-+EXPORT_SYMBOL(pps_irq_ts);
-+#endif
- 
- /*
-  * Probabilistic stack overflow check:
-@@ -49,6 +55,12 @@ asmlinkage unsigned int do_IRQ(struct pt
- {
- 	struct pt_regs *old_regs = set_irq_regs(regs);
- 	struct irq_desc *desc;
-+#ifdef CONFIG_PPS_IRQ_EVENTS
-+	struct timespec ts;
++	/* write pwm control to whatever it was */
++	for (i = 0; i < ADT7470_FAN_COUNT; i++)
++		i2c_smbus_write_byte_data(client, ADT7470_REG_PWM(i), pwm[i]);
 +
-+	/* Get IRQ timestamps as soon as possible for the PPS layer */
-+	getnstimeofday(&ts);
-+#endif
+ 	/* start reading temperature sensors */
+ 	cfg = i2c_smbus_read_byte_data(client, ADT7470_REG_CFG);
+ 	cfg |= 0x80;
+@@ -249,6 +268,10 @@ static struct adt7470_data *adt7470_upda
+ 	cfg &= ~0x80;
+ 	i2c_smbus_write_byte_data(client, ADT7470_REG_CFG, cfg);
  
- 	/* high bit used in ret_from_ code  */
- 	unsigned vector = ~regs->orig_ax;
-@@ -61,9 +73,14 @@ asmlinkage unsigned int do_IRQ(struct pt
- 	stack_overflow_check(regs);
- 
- 	desc = irq_to_desc(irq);
--	if (likely(desc))
-+	if (likely(desc)) {
-+#ifdef CONFIG_PPS_IRQ_EVENTS
-+		/* Then, after sanity check, store the IRQ timestamp */
-+		pps_irq_ts[irq] = ts;
-+#endif
++	/* restore pwm[1-4] config registers */
++	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(0), pwm_cfg[0]);
++	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(2), pwm_cfg[1]);
 +
- 		generic_handle_irq_desc(irq, desc);
--	else {
-+	} else {
- 		if (!disable_apic)
- 			ack_APIC_irq();
- 
-diff -puN drivers/pps/Kconfig~pps-low-level-irq-timestamps-recording drivers/pps/Kconfig
---- a/drivers/pps/Kconfig~pps-low-level-irq-timestamps-recording
-+++ a/drivers/pps/Kconfig
-@@ -22,6 +22,18 @@ config PPS
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called pps_core.ko.
- 
-+config PPS_IRQ_EVENTS
-+	bool "Use low level IRQ timestamps"
-+	depends on PPS && (X86_32 || X86_64)
-+	default yes
-+	help
-+	  Say Y here if you wish using low level IRQ timestamps to register
-+	  PPS events.
-+
-+	  This should improve PPS resolution but it delays echo functions
-+	  call. Note also that this function is not implemented on all
-+	  platforms and PPS clients!
-+
- config PPS_DEBUG
- 	bool "PPS debugging messages"
- 	depends on PPS
-diff -puN include/linux/pps.h~pps-low-level-irq-timestamps-recording include/linux/pps.h
---- a/include/linux/pps.h~pps-low-level-irq-timestamps-recording
-+++ a/include/linux/pps.h
-@@ -181,6 +181,7 @@ struct pps_device {
- 
- extern spinlock_t pps_idr_lock;
- extern struct idr pps_idr;
-+extern struct timespec pps_irq_ts[];
- 
- extern struct device_attribute pps_attrs[];
- 
-diff -puN include/linux/serial_core.h~pps-low-level-irq-timestamps-recording include/linux/serial_core.h
---- a/include/linux/serial_core.h~pps-low-level-irq-timestamps-recording
-+++ a/include/linux/serial_core.h
-@@ -174,6 +174,7 @@
- #include <linux/tty.h>
- #include <linux/mutex.h>
- #include <linux/sysrq.h>
-+#include <linux/pps.h>
- 
- struct uart_port;
- struct uart_info;
-@@ -501,7 +502,11 @@ uart_handle_dcd_change(struct uart_port 
- 	struct timespec ts;
- 
- 	if (ld && ld->ops->dcd_change)
-+#ifdef CONFIG_PPS_IRQ_EVENTS
-+		ts = pps_irq_ts[port->irq];
-+#else
- 		getnstimeofday(&ts);
-+#endif
- 
- 	port->icount.dcd++;
- #ifdef CONFIG_HARD_PPS
-@@ -517,7 +522,7 @@ uart_handle_dcd_change(struct uart_port 
- 	}
- 
- 	if (ld && ld->ops->dcd_change)
--		ld->ops->dcd_change(port, status, &ts);
-+		ld->ops->dcd_change(info->port.tty, status, &ts);
- 	if (ld)
- 		tty_ldisc_deref(ld);
- }
+ 	for (i = 0; i < ADT7470_TEMP_COUNT; i++)
+ 		data->temp[i] = i2c_smbus_read_byte_data(client,
+ 						ADT7470_TEMP_REG(i));
 _
 
-Patches currently in -mm which might be from giometti@linux.it are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
 linux-next.patch
-pps-low-level-irq-timestamps-recording.patch
+create-a-div_round_closest-macro-to-do-division-with-rounding.patch
+adt7462-70-73-use-div_round_closest-for-rounded-division.patch
+adt7470-fix-pwm-at-a-certain-level-during-temperature-sensor-scan.patch
+adt7470-observe-the-number-of-temperature-sensors-to-shorten-update-time.patch
+adt7470-make-automatic-fan-control-really-work.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
 
