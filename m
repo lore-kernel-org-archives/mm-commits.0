@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + add-missing-taint-comment.patch added to -mm tree
-Date: Tue, 25 Nov 2008 16:11:28 -0800
-Message-ID: <200811260011.mAQ0BSve002484@imap1.linux-foundation.org>
+Date: Tue, 25 Nov 2008 16:11:47 -0800
+Message-ID: <200811260011.mAQ0Blff002652@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752348AbYKZALb (ORCPT
+	by vger.kernel.org with ESMTP id S1752150AbYKZAMR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 19:11:31 -0500
+	Tue, 25 Nov 2008 19:12:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,7 +16,7 @@ Cc: arjan@linux.intel.com
 
 
 The patch titled
-     From: Arjan van de Ven <arjan@linux.intel.com>
+     taint: add missing comment
 has been added to the -mm tree.  Its filename is
      add-missing-taint-comment.patch
 
@@ -34,20 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: taint: add missing comment
 From: Arjan van de Ven <arjan@linux.intel.com>
 
-From c89de9be4c5e775bb1dd5a3aea393eccd4524eb3 Mon Sep 17 00:00:00 2001
-Date: Tue, 25 Nov 2008 08:18:49 -0800
-Subject: [PATCH] Add missing taint comment
-
-the description for 'D' was missing in the comment...
-(causing me a minute of WTF followed by looking at more of the code)
+The description for 'D' was missing in the comment...  (causing me a
+minute of WTF followed by looking at more of the code)
 
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
----
-
-index b01f578..d1ac662 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
