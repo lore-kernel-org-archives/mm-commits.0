@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + swapfile-swapon-use-discard-trim.patch added to -mm tree
-Date: Tue, 25 Nov 2008 17:23:34 -0800
-Message-ID: <200811260123.mAQ1NYv2008591@imap1.linux-foundation.org>
+Subject: + swapfile-swap-allocation-cycle-if-nonrot.patch added to -mm tree
+Date: Tue, 25 Nov 2008 17:24:02 -0800
+Message-ID: <200811260124.mAQ1O3bZ008822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42550 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48243 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753192AbYKZBY1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753032AbYKZBY2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 20:24:27 -0500
+	Tue, 25 Nov 2008 20:24:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, James.Bottomley@HansenPartnership.com, djshin90@gmail.com,
 
 
 The patch titled
-     swapfile: swapon use discard (trim)
+     swapfile: swap allocation cycle if nonrot
 has been added to the -mm tree.  Its filename is
-     swapfile-swapon-use-discard-trim.patch
+     swapfile-swap-allocation-cycle-if-nonrot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swapfile: swapon use discard (trim)
+Subject: swapfile: swap allocation cycle if nonrot
 From: Hugh Dickins <hugh@veritas.com>
 
-When adding swap, all the old data on swap can be forgotten: sys_swapon()
-discard all but the header page of the swap partition (or every extent but
-the header of the swap file), to give a solidstate swap device the
-opportunity to optimize its wear-levelling.
+Though attempting to find free clusters (Andrea), swap allocation has
+always restarted its searches from the beginning of the swap area (sct),
+to reduce seek times between swap pages, by not scattering them all over
+the partition.
 
-If that succeeds, note SWP_DISCARDABLE for later use, and report it with a
-"D" at the right end of the kernel's "Adding ...  swap" message.  Perhaps
-something should be shown in /proc/swaps (swapon -s), but we have to be
-more cautious before making any addition to that format.
+But on a solidstate swap device, seeks are cheap, and block remapping to
+level the wear may be limited by zones: in that case it's better to cycle
+around the whole partition.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -60,85 +59,108 @@ Cc: Tejun Heo <teheo@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 +
- mm/swapfile.c        |   39 +++++++++++++++++++++++++++++++++++++--
- 2 files changed, 38 insertions(+), 2 deletions(-)
+ mm/swapfile.c |   50 ++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 46 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/swap.h~swapfile-swapon-use-discard-trim include/linux/swap.h
---- a/include/linux/swap.h~swapfile-swapon-use-discard-trim
-+++ a/include/linux/swap.h
-@@ -120,6 +120,7 @@ struct swap_extent {
- enum {
- 	SWP_USED	= (1 << 0),	/* is slot in swap_info[] used? */
- 	SWP_WRITEOK	= (1 << 1),	/* ok to write to this swap?	*/
-+	SWP_DISCARDABLE = (1 << 2),	/* blkdev supports discard */
- 					/* add others here before... */
- 	SWP_SCANNING	= (1 << 8),	/* refcount in scan_swap_map */
- };
-diff -puN mm/swapfile.c~swapfile-swapon-use-discard-trim mm/swapfile.c
---- a/mm/swapfile.c~swapfile-swapon-use-discard-trim
+diff -puN mm/swapfile.c~swapfile-swap-allocation-cycle-if-nonrot mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-swap-allocation-cycle-if-nonrot
 +++ a/mm/swapfile.c
-@@ -84,6 +84,37 @@ void swap_unplug_io_fn(struct backing_de
- 	up_read(&swap_unplug_sem);
- }
+@@ -169,6 +169,7 @@ static int wait_for_discard(void *word)
+ static inline unsigned long scan_swap_map(struct swap_info_struct *si)
+ {
+ 	unsigned long offset;
++	unsigned long scan_base;
+ 	unsigned long last_in_cluster = 0;
+ 	int latency_ration = LATENCY_LIMIT;
+ 	int found_free_cluster = 0;
+@@ -181,10 +182,11 @@ static inline unsigned long scan_swap_ma
+ 	 * all over the entire swap partition, so that we reduce
+ 	 * overall disk seek times between swap pages.  -- sct
+ 	 * But we do now try to find an empty cluster.  -Andrea
++	 * And we let swap pages go all over an SSD partition.  Hugh
+ 	 */
  
-+/*
-+ * swapon tell device that all the old swap contents can be discarded,
-+ * to allow the swap device to optimize its wear-levelling.
-+ */
-+static int discard_swap(struct swap_info_struct *si)
-+{
-+	struct swap_extent *se;
-+	int err = 0;
+ 	si->flags += SWP_SCANNING;
+-	offset = si->cluster_next;
++	scan_base = offset = si->cluster_next;
+ 
+ 	if (unlikely(!si->cluster_nr--)) {
+ 		if (si->pages - si->inuse_pages < SWAPFILE_CLUSTER) {
+@@ -206,7 +208,16 @@ static inline unsigned long scan_swap_ma
+ 		}
+ 		spin_unlock(&swap_lock);
+ 
+-		offset = si->lowest_bit;
++		/*
++		 * If seek is expensive, start searching for new cluster from
++		 * start of partition, to minimize the span of allocated swap.
++		 * But if seek is cheap, search from our current position, so
++		 * that swap is allocated from all over the partition: if the
++		 * Flash Translation Layer only remaps within limited zones,
++		 * we don't want to wear out the first zone too quickly.
++		 */
++		if (!(si->flags & SWP_SOLIDSTATE))
++			scan_base = offset = si->lowest_bit;
+ 		last_in_cluster = offset + SWAPFILE_CLUSTER - 1;
+ 
+ 		/* Locate the first empty (unaligned) cluster */
+@@ -228,6 +239,27 @@ static inline unsigned long scan_swap_ma
+ 		}
+ 
+ 		offset = si->lowest_bit;
++		last_in_cluster = offset + SWAPFILE_CLUSTER - 1;
 +
-+	list_for_each_entry(se, &si->extent_list, list) {
-+		sector_t start_block = se->start_block << (PAGE_SHIFT - 9);
-+		pgoff_t nr_blocks = se->nr_pages << (PAGE_SHIFT - 9);
-+
-+		if (se->start_page == 0) {
-+			/* Do not discard the swap header page! */
-+			start_block += 1 << (PAGE_SHIFT - 9);
-+			nr_blocks -= 1 << (PAGE_SHIFT - 9);
-+			if (!nr_blocks)
-+				continue;
++		/* Locate the first empty (unaligned) cluster */
++		for (; last_in_cluster < scan_base; offset++) {
++			if (si->swap_map[offset])
++				last_in_cluster = offset + SWAPFILE_CLUSTER;
++			else if (offset == last_in_cluster) {
++				spin_lock(&swap_lock);
++				offset -= SWAPFILE_CLUSTER - 1;
++				si->cluster_next = offset;
++				si->cluster_nr = SWAPFILE_CLUSTER - 1;
++				found_free_cluster = 1;
++				goto checks;
++			}
++			if (unlikely(--latency_ration < 0)) {
++				cond_resched();
++				latency_ration = LATENCY_LIMIT;
++			}
 +		}
 +
-+		err = blkdev_issue_discard(si->bdev, start_block,
-+						nr_blocks, GFP_KERNEL);
-+		if (err)
-+			break;
-+
-+		cond_resched();
-+	}
-+	return err;		/* That will often be -EOPNOTSUPP */
-+}
-+
- #define SWAPFILE_CLUSTER	256
- #define LATENCY_LIMIT		256
++		offset = scan_base;
+ 		spin_lock(&swap_lock);
+ 		si->cluster_nr = SWAPFILE_CLUSTER - 1;
+ 		si->lowest_alloc = 0;
+@@ -239,7 +271,7 @@ checks:
+ 	if (!si->highest_bit)
+ 		goto no_page;
+ 	if (offset > si->highest_bit)
+-		offset = si->lowest_bit;
++		scan_base = offset = si->lowest_bit;
+ 	if (si->swap_map[offset])
+ 		goto scan;
  
-@@ -1649,6 +1680,9 @@ asmlinkage long sys_swapon(const char __
- 		goto bad_swap;
+@@ -323,8 +355,18 @@ scan:
+ 			latency_ration = LATENCY_LIMIT;
+ 		}
  	}
- 
-+	if (discard_swap(p) == 0)
-+		p->flags |= SWP_DISCARDABLE;
-+
- 	mutex_lock(&swapon_mutex);
++	offset = si->lowest_bit;
++	while (++offset < scan_base) {
++		if (!si->swap_map[offset]) {
++			spin_lock(&swap_lock);
++			goto checks;
++		}
++		if (unlikely(--latency_ration < 0)) {
++			cond_resched();
++			latency_ration = LATENCY_LIMIT;
++		}
++	}
  	spin_lock(&swap_lock);
- 	if (swap_flags & SWAP_FLAG_PREFER)
-@@ -1662,9 +1696,10 @@ asmlinkage long sys_swapon(const char __
- 	total_swap_pages += nr_good_pages;
+-	goto checks;
  
- 	printk(KERN_INFO "Adding %uk swap on %s.  "
--			"Priority:%d extents:%d across:%lluk\n",
-+			"Priority:%d extents:%d across:%lluk%s\n",
- 		nr_good_pages<<(PAGE_SHIFT-10), name, p->prio,
--		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10));
-+		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
-+		(p->flags & SWP_DISCARDABLE) ? " D" : "");
- 
- 	/* insert swap space into swap_list: */
- 	prev = -1;
+ no_page:
+ 	si->flags -= SWP_SCANNING;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
