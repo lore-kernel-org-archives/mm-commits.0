@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + adt7470-make-automatic-fan-control-really-work.patch added to -mm tree
-Date: Tue, 25 Nov 2008 17:07:17 -0800
-Message-ID: <200811260107.mAQ17Ihj032156@imap1.linux-foundation.org>
+Subject: + random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on.patch added to -mm tree
+Date: Tue, 25 Nov 2008 17:10:02 -0800
+Message-ID: <200811260110.mAQ1A2HS001243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33799 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56503 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752369AbYKZBH6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751193AbYKZBLP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 20:07:58 -0500
+	Tue, 25 Nov 2008 20:11:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: djwong@us.ibm.com, khali@linux-fr.org
+Cc: arjan@infradead.org, arjan@linux.intel.com, mpm@selenic.com, tytso@mit.edu
 
 
 The patch titled
-     adt7470: make automatic fan control really work
+     random: add a way to get some random bits into the entropy pools early on
 has been added to the -mm tree.  Its filename is
-     adt7470-make-automatic-fan-control-really-work.patch
+     random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,337 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adt7470: make automatic fan control really work
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: random: add a way to get some random bits into the entropy pools early on
+From: Arjan van de Ven <arjan@infradead.org>
 
-It turns out that the adt7470's automatic fan control algorithm only works
-when the temperature sensors get updated.  This in turn happens only when
-someone tells the chip to read its temperature sensors.  Regrettably, this
-means that we have to drive the chip periodically.
+Currently the entropy pool gets seeded on the module_init() level, but
+there is at least one consumer of random bits which wants random data at
+an earluier time: the oops ID that is printed as part of the oops.  As a
+result of this, kerneloops.org is seeing a lot of oopses that all share
+the same 'random' number; which used to get filed away as "duplicate".
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+This patch adds a function to the random driver so that various pieces of
+the kernel can add random bits (but not entropy!) to the pool, to avoid
+this duplicate ID problem.
+
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/hwmon/adt7470 |   19 +---
- drivers/hwmon/adt7470.c     |  156 +++++++++++++++++++++++++++++-----
- 2 files changed, 142 insertions(+), 33 deletions(-)
+ arch/x86/kernel/apic.c |    7 +++++++
+ drivers/char/random.c  |   29 +++++++++++++++++++++++++++++
+ include/linux/random.h |    3 +++
+ kernel/panic.c         |    1 +
+ 4 files changed, 40 insertions(+)
 
-diff -puN Documentation/hwmon/adt7470~adt7470-make-automatic-fan-control-really-work Documentation/hwmon/adt7470
---- a/Documentation/hwmon/adt7470~adt7470-make-automatic-fan-control-really-work
-+++ a/Documentation/hwmon/adt7470
-@@ -31,15 +31,11 @@ Each of the measured inputs (temperature
- limit values. The ADT7470 will signal an ALARM if any measured value exceeds
- either limit.
+diff -puN arch/x86/kernel/apic.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on arch/x86/kernel/apic.c
+--- a/arch/x86/kernel/apic.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on
++++ a/arch/x86/kernel/apic.c
+@@ -30,6 +30,7 @@
+ #include <linux/module.h>
+ #include <linux/dmi.h>
+ #include <linux/dmar.h>
++#include <linux/random.h>
  
--The ADT7470 DOES NOT sample all inputs continuously.  A single pin on the
--ADT7470 is connected to a multitude of thermal diodes, but the chip must be
--instructed explicitly to read the multitude of diodes.  If you want to use
--automatic fan control mode, you must manually read any of the temperature
--sensors or the fan control algorithm will not run.  The chip WILL NOT DO THIS
--AUTOMATICALLY; this must be done from userspace.  This may be a bug in the chip
--design, given that many other AD chips take care of this.  The driver will not
--read the registers more often than once every 5 seconds.  Further,
--configuration data is only read once per minute.
-+The ADT7470 samples all inputs continuously.  A kernel thread is started up for
-+the purpose of periodically querying the temperature sensors, thus allowing the
-+automatic fan pwm control to set the fan speed.  The driver will not read the
-+registers more often than once every 5 seconds.  Further, configuration data is
-+only read once per minute.
+ #include <asm/atomic.h>
+ #include <asm/smp.h>
+@@ -687,6 +688,12 @@ static int __init calibrate_APIC_clock(v
+ 	} else
+ 		local_irq_enable();
  
- Special Features
- ----------------
-@@ -72,5 +68,6 @@ pwm#_auto_point2_temp.
- Notes
- -----
- 
--As stated above, the temperature inputs must be read periodically from
--userspace in order for the automatic pwm algorithm to run.
-+The temperature inputs no longer need to be read periodically from userspace in
-+order for the automatic pwm algorithm to run.  This was the case for earlier
-+versions of the driver.
-diff -puN drivers/hwmon/adt7470.c~adt7470-make-automatic-fan-control-really-work drivers/hwmon/adt7470.c
---- a/drivers/hwmon/adt7470.c~adt7470-make-automatic-fan-control-really-work
-+++ a/drivers/hwmon/adt7470.c
-@@ -28,6 +28,7 @@
- #include <linux/mutex.h>
- #include <linux/delay.h>
- #include <linux/log2.h>
-+#include <linux/kthread.h>
- 
- /* Addresses to scan */
- static const unsigned short normal_i2c[] = { 0x2C, 0x2E, 0x2F, I2C_CLIENT_END };
-@@ -132,6 +133,9 @@ I2C_CLIENT_INSMOD_1(adt7470);
- /* Wait at least 200ms per sensor for 10 sensors */
- #define TEMP_COLLECTION_TIME	2000
- 
-+/* auto update thing won't fire more than every 2s */
-+#define AUTO_UPDATE_INTERVAL	2000
-+
- /* datasheet says to divide this number by the fan reading to get fan rpm */
- #define FAN_PERIOD_TO_RPM(x)	((90000 * 60) / (x))
- #define FAN_RPM_TO_PERIOD	FAN_PERIOD_TO_RPM
-@@ -148,6 +152,7 @@ struct adt7470_data {
- 	unsigned long		limits_last_updated;	/* In jiffies */
- 
- 	int			num_temp_sensors;	/* -1 = probe */
-+	int			temperatures_probed;
- 
- 	s8			temp[ADT7470_TEMP_COUNT];
- 	s8			temp_min[ADT7470_TEMP_COUNT];
-@@ -164,6 +169,10 @@ struct adt7470_data {
- 	u8			pwm_min[ADT7470_PWM_COUNT];
- 	s8			pwm_tmin[ADT7470_PWM_COUNT];
- 	u8			pwm_auto_temp[ADT7470_PWM_COUNT];
-+
-+	struct task_struct	*auto_update;
-+	struct completion	auto_update_stop;
-+	unsigned int		auto_update_interval;
- };
- 
- static int adt7470_probe(struct i2c_client *client,
-@@ -221,19 +230,13 @@ static void adt7470_init_client(struct i
- 	}
- }
- 
--static struct adt7470_data *adt7470_update_device(struct device *dev)
-+/* Probe for temperature sensors.  Assumes lock is held */
-+static int adt7470_read_temperatures(struct i2c_client *client,
-+				     struct adt7470_data *data)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct adt7470_data *data = i2c_get_clientdata(client);
--	unsigned long local_jiffies = jiffies;
--	u8 cfg, pwm[4], pwm_cfg[2];
-+	unsigned long res;
- 	int i;
--
--	mutex_lock(&data->lock);
--	if (time_before(local_jiffies, data->sensors_last_updated +
--		SENSOR_REFRESH_INTERVAL)
--		&& data->sensors_valid)
--		goto no_sensor_update;
-+	u8 cfg, pwm[4], pwm_cfg[2];
- 
- 	/* save pwm[1-4] config register */
- 	pwm_cfg[0] = i2c_smbus_read_byte_data(client, ADT7470_REG_PWM_CFG(0));
-@@ -259,9 +262,9 @@ static struct adt7470_data *adt7470_upda
- 	i2c_smbus_write_byte_data(client, ADT7470_REG_CFG, cfg);
- 
- 	/* Delay is 200ms * number of temp sensors. */
--	msleep((data->num_temp_sensors >= 0 ?
--		data->num_temp_sensors * 200 :
--		TEMP_COLLECTION_TIME));
-+	res = msleep_interruptible((data->num_temp_sensors >= 0 ?
-+				    data->num_temp_sensors * 200 :
-+				    TEMP_COLLECTION_TIME));
- 
- 	/* done reading temperature sensors */
- 	cfg = i2c_smbus_read_byte_data(client, ADT7470_REG_CFG);
-@@ -272,15 +275,81 @@ static struct adt7470_data *adt7470_upda
- 	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(0), pwm_cfg[0]);
- 	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(2), pwm_cfg[1]);
- 
--	for (i = 0; i < ADT7470_TEMP_COUNT; i++)
-+	if (res) {
-+		printk(KERN_ERR "ha ha, interrupted");
-+		return -EAGAIN;
-+	}
-+
-+	/* Only count fans if we have to */
-+	if (data->num_temp_sensors >= 0)
-+		return 0;
-+
-+	for (i = 0; i < ADT7470_TEMP_COUNT; i++) {
- 		data->temp[i] = i2c_smbus_read_byte_data(client,
- 						ADT7470_TEMP_REG(i));
-+		if (data->temp[i])
-+			data->num_temp_sensors = i + 1;
-+	}
-+	data->temperatures_probed = 1;
-+	return 0;
-+}
-+
-+static int adt7470_update_thread(void *p)
-+{
-+	struct i2c_client *client = p;
-+	struct adt7470_data *data = i2c_get_clientdata(client);
-+
-+	while (!kthread_should_stop()) {
-+		mutex_lock(&data->lock);
-+		adt7470_read_temperatures(client, data);
-+		mutex_unlock(&data->lock);
-+		if (kthread_should_stop())
-+			break;
-+		msleep_interruptible(data->auto_update_interval);
-+	}
-+
-+	complete_all(&data->auto_update_stop);
-+	return 0;
-+}
-+
-+static struct adt7470_data *adt7470_update_device(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7470_data *data = i2c_get_clientdata(client);
-+	unsigned long local_jiffies = jiffies;
-+	u8 cfg;
-+	int i;
-+	int need_sensors = 1;
-+	int need_limits = 1;
-+
 +	/*
-+	 * Figure out if we need to update the shadow registers.
-+	 * Lockless means that we may occasionally report out of
-+	 * date data.
++	 * by now we have enough time spent that there is some value in
++	 * pushing the timestamp to the random pools for early kernel use.
 +	 */
-+	if (time_before(local_jiffies, data->sensors_last_updated +
-+			SENSOR_REFRESH_INTERVAL) &&
-+	    data->sensors_valid)
-+		need_sensors = 0;
++	seed_random_pools();
 +
-+	if (time_before(local_jiffies, data->limits_last_updated +
-+			LIMIT_REFRESH_INTERVAL) &&
-+	    data->limits_valid)
-+		need_limits = 0;
-+
-+	if (!need_sensors && !need_limits)
-+		return data;
-+
-+	mutex_lock(&data->lock);
-+	if (!need_sensors)
-+		goto no_sensor_update;
- 
--	/* Figure out the number of temp sensors */
--	if (data->num_temp_sensors < 0)
-+	if (!data->temperatures_probed)
-+		adt7470_read_temperatures(client, data);
-+	else
- 		for (i = 0; i < ADT7470_TEMP_COUNT; i++)
--			if (data->temp[i])
--				data->num_temp_sensors = i + 1;
-+			data->temp[i] = i2c_smbus_read_byte_data(client,
-+						ADT7470_TEMP_REG(i));
- 
- 	for (i = 0; i < ADT7470_FAN_COUNT; i++)
- 		data->fan[i] = adt7470_read_word_data(client,
-@@ -329,9 +398,7 @@ static struct adt7470_data *adt7470_upda
- 	data->sensors_valid = 1;
- 
- no_sensor_update:
--	if (time_before(local_jiffies, data->limits_last_updated +
--		LIMIT_REFRESH_INTERVAL)
--		&& data->limits_valid)
-+	if (!need_limits)
- 		goto out;
- 
- 	for (i = 0; i < ADT7470_TEMP_COUNT; i++) {
-@@ -365,6 +432,35 @@ out:
- 	return data;
+ 	if (levt->features & CLOCK_EVT_FEAT_DUMMY) {
+ 		pr_warning("APIC timer disabled due to verification failure.\n");
+ 			return -1;
+diff -puN drivers/char/random.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on drivers/char/random.c
+--- a/drivers/char/random.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on
++++ a/drivers/char/random.c
+@@ -929,6 +929,35 @@ static int rand_initialize(void)
  }
+ module_init(rand_initialize);
  
-+static ssize_t show_auto_update_interval(struct device *dev,
-+					 struct device_attribute *devattr,
-+					 char *buf)
++/*
++ * seed_std_data - seed pool with system timing data
++ *
++ * @r: pool to initialize
++ *
++ * This function mixes some system data into the pool to prepare it for use.
++ * This function can be called really early during boot to at least get some
++ * randomness from the system if random numbers are needed early, for example
++ * as part of the early oops printing.
++ *
++ * No entropy is credited for this seeding.
++ */
++static void seed_std_data(struct entropy_store *r)
 +{
-+	struct adt7470_data *data = adt7470_update_device(dev);
-+	return sprintf(buf, "%d\n", data->auto_update_interval);
++	ktime_t now;
++	unsigned long flags;
++
++	now = ktime_get_real();
++	mix_pool_bytes(r, &now, sizeof(now));
 +}
 +
-+static ssize_t set_auto_update_interval(struct device *dev,
-+					struct device_attribute *devattr,
-+					const char *buf,
-+					size_t count)
++int seed_random_pools(void)
 +{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7470_data *data = i2c_get_clientdata(client);
-+	long temp;
-+
-+	if (strict_strtol(buf, 10, &temp))
-+		return -EINVAL;
-+
-+	temp = SENSORS_LIMIT(temp, 0, 60000);
-+
-+	mutex_lock(&data->lock);
-+	data->auto_update_interval = temp;
-+	mutex_unlock(&data->lock);
-+
-+	return count;
++	seed_std_data(&input_pool);
++	seed_std_data(&blocking_pool);
++	seed_std_data(&nonblocking_pool);
++	return 0;
 +}
 +
- static ssize_t show_num_temp_sensors(struct device *dev,
- 				     struct device_attribute *devattr,
- 				     char *buf)
-@@ -389,6 +485,8 @@ static ssize_t set_num_temp_sensors(stru
- 
- 	mutex_lock(&data->lock);
- 	data->num_temp_sensors = temp;
-+	if (temp < 0)
-+		data->temperatures_probed = 0;
- 	mutex_unlock(&data->lock);
- 
- 	return count;
-@@ -862,6 +960,8 @@ static ssize_t show_alarm(struct device 
- static DEVICE_ATTR(alarm_mask, S_IRUGO, show_alarm_mask, NULL);
- static DEVICE_ATTR(num_temp_sensors, S_IWUSR | S_IRUGO, show_num_temp_sensors,
- 		   set_num_temp_sensors);
-+static DEVICE_ATTR(auto_update_interval, S_IWUSR | S_IRUGO,
-+		   show_auto_update_interval, set_auto_update_interval);
- 
- static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
- 		    set_temp_max, 0);
-@@ -1035,6 +1135,7 @@ static struct attribute *adt7470_attr[] 
+ void rand_initialize_irq(int irq)
  {
- 	&dev_attr_alarm_mask.attr,
- 	&dev_attr_num_temp_sensors.attr,
-+	&dev_attr_auto_update_interval.attr,
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
- 	&sensor_dev_attr_temp2_max.dev_attr.attr,
- 	&sensor_dev_attr_temp3_max.dev_attr.attr,
-@@ -1168,6 +1269,7 @@ static int adt7470_probe(struct i2c_clie
- 	}
+ 	struct timer_rand_state *state;
+diff -puN include/linux/random.h~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on include/linux/random.h
+--- a/include/linux/random.h~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on
++++ a/include/linux/random.h
+@@ -72,6 +72,9 @@ unsigned long randomize_range(unsigned l
+ u32 random32(void);
+ void srandom32(u32 seed);
  
- 	data->num_temp_sensors = -1;
-+	data->auto_update_interval = AUTO_UPDATE_INTERVAL;
- 
- 	i2c_set_clientdata(client, data);
- 	mutex_init(&data->lock);
-@@ -1188,8 +1290,16 @@ static int adt7470_probe(struct i2c_clie
- 		goto exit_remove;
- 	}
- 
-+	init_completion(&data->auto_update_stop);
-+	data->auto_update = kthread_run(adt7470_update_thread, client,
-+					dev_name(data->hwmon_dev));
-+	if (IS_ERR(data->auto_update))
-+		goto exit_unregister;
++int seed_random_pools(void);
 +
- 	return 0;
++
+ #endif /* __KERNEL___ */
  
-+exit_unregister:
-+	hwmon_device_unregister(data->hwmon_dev);
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
- exit_free:
-@@ -1202,6 +1312,8 @@ static int adt7470_remove(struct i2c_cli
+ #endif /* _LINUX_RANDOM_H */
+diff -puN kernel/panic.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on kernel/panic.c
+--- a/kernel/panic.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on
++++ a/kernel/panic.c
+@@ -299,6 +299,7 @@ static u64 oops_id;
+ 
+ static int init_oops_id(void)
  {
- 	struct adt7470_data *data = i2c_get_clientdata(client);
- 
-+	kthread_stop(data->auto_update);
-+	wait_for_completion(&data->auto_update_stop);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
- 	kfree(data);
++	seed_random_pools();
+ 	if (!oops_id)
+ 		get_random_bytes(&oops_id, sizeof(oops_id));
+ 	else
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from arjan@infradead.org are
 
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-create-a-div_round_closest-macro-to-do-division-with-rounding.patch
-adt7462-70-73-use-div_round_closest-for-rounded-division.patch
-adt7470-fix-pwm-at-a-certain-level-during-temperature-sensor-scan.patch
-adt7470-observe-the-number-of-temperature-sensors-to-shorten-update-time.patch
-adt7470-make-automatic-fan-control-really-work.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
+vfs-expand-some-comments-d_path-seq_path.patch
+scripts-script-from-kerneloopsorg-to-pretty-print-oops-dumps.patch
+jbd-improve-fsync-batching.patch
+jbd-improve-fsync-batching-update.patch
+random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on.patch
 
