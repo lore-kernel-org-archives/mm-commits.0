@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hysdn-fix-writing-outside-the-field-on-64-bits.patch added to -mm tree
-Date: Wed, 26 Nov 2008 13:53:00 -0800
-Message-ID: <200811262153.mAQLr0U9013818@imap1.linux-foundation.org>
+Subject: + 8250-dont-clobber-spinlocks.patch added to -mm tree
+Date: Wed, 26 Nov 2008 14:49:45 -0800
+Message-ID: <200811262249.mAQMnjcD011640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60933 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750911AbYKZVxl (ORCPT
+	by vger.kernel.org with ESMTP id S1752068AbYKZWuR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 16:53:41 -0500
+	Wed, 26 Nov 2008 17:50:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pterjan@mandriva.com, kkeil@suse.de
+Cc: ddaney@caviumnetworks.com, tpaoletti@caviumnetworks.com
 
 
 The patch titled
-     hysdn: fix writing outside the field on 64 bits
+     8250: don't clobber spinlocks
 has been added to the -mm tree.  Its filename is
-     hysdn-fix-writing-outside-the-field-on-64-bits.patch
+     8250-dont-clobber-spinlocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hysdn: fix writing outside the field on 64 bits
-From: Pascal Terjan <pterjan@mandriva.com>
+Subject: 8250: don't clobber spinlocks
+From: David Daney <ddaney@caviumnetworks.com>
 
-ifa_local is assumed to be unsigned long which lead to writing the address
-at dev->dev_addr-2 instead of +2
+In serial8250_isa_init_ports(), the port's lock is initialized.  We should
+not overwrite it.  In early_serial_setup(), only copy in the fields we
+need.  Since the early console code only uses a subset of the fields,
+these are sufficient.
 
-noticed thanks to gcc:
-
-drivers/isdn/hysdn/hysdn_net.c: In function `net_open':
-drivers/isdn/hysdn/hysdn_net.c:91: warning: array subscript is below array bounds
-
-Signed-off-by: Pascal Terjan <pterjan@mandriva.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: David Daney <ddaney@caviumnetworks.com>
+Signed-off-by: Tomaso Paoletti <tpaoletti@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/hysdn_net.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/serial/8250.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/isdn/hysdn/hysdn_net.c~hysdn-fix-writing-outside-the-field-on-64-bits drivers/isdn/hysdn/hysdn_net.c
---- a/drivers/isdn/hysdn/hysdn_net.c~hysdn-fix-writing-outside-the-field-on-64-bits
-+++ a/drivers/isdn/hysdn/hysdn_net.c
-@@ -83,12 +83,12 @@ net_open(struct net_device *dev)
+diff -puN drivers/serial/8250.c~8250-dont-clobber-spinlocks drivers/serial/8250.c
+--- a/drivers/serial/8250.c~8250-dont-clobber-spinlocks
++++ a/drivers/serial/8250.c
+@@ -2752,12 +2752,23 @@ static struct uart_driver serial8250_reg
+  */
+ int __init early_serial_setup(struct uart_port *port)
+ {
++	struct uart_port *p;
++
+ 	if (port->line >= ARRAY_SIZE(serial8250_ports))
+ 		return -ENODEV;
  
- 	/* Fill in the MAC-level header (if not already set) */
- 	if (!card->mac_addr[0]) {
--		for (i = 0; i < ETH_ALEN - sizeof(unsigned long); i++)
-+		for (i = 0; i < ETH_ALEN; i++)
- 			dev->dev_addr[i] = 0xfc;
- 		if ((in_dev = dev->ip_ptr) != NULL) {
- 			struct in_ifaddr *ifa = in_dev->ifa_list;
- 			if (ifa != NULL)
--				memcpy(dev->dev_addr + (ETH_ALEN - sizeof(unsigned long)), &ifa->ifa_local, sizeof(unsigned long));
-+				memcpy(dev->dev_addr + (ETH_ALEN - sizeof(ifa->ifa_local)), &ifa->ifa_local, sizeof(ifa->ifa_local));
- 		}
- 	} else
- 		memcpy(dev->dev_addr, card->mac_addr, ETH_ALEN);
+ 	serial8250_isa_init_ports();
+-	serial8250_ports[port->line].port	= *port;
+-	serial8250_ports[port->line].port.ops	= &serial8250_pops;
++	p = &serial8250_ports[port->line].port;
++	p->iobase       = port->iobase;
++	p->membase      = port->membase;
++	p->irq          = port->irq;
++	p->uartclk      = port->uartclk;
++	p->fifosize     = port->fifosize;
++	p->regshift     = port->regshift;
++	p->iotype       = port->iotype;
++	p->flags        = port->flags;
++	p->mapbase      = port->mapbase;
++	p->private_data = port->private_data;
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from pterjan@mandriva.com are
+Patches currently in -mm which might be from ddaney@caviumnetworks.com are
 
-hysdn-fix-writing-outside-the-field-on-64-bits.patch
+mips-make-bug-__noreturn.patch
+8250-dont-clobber-spinlocks.patch
+8250-serial-driver-changes-to-support-future-cavium-octeon-serial-patches.patch
+serial-allow-port-type-to-be-specified-when-calling-serial8250_register_port.patch
+8250-allow-port-type-to-specify-bugs-that-are-not-probed-for.patch
+serial-uart-driver-changes-for-cavium-octeon.patch
 
