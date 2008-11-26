@@ -1,62 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ata-pata_oldpiixc-cleanup-kernel-doc.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:46:02 -0800
-Message-ID: <200811262046.mAQKk2LR010587@imap1.linux-foundation.org>
+Subject: - x86-powernow-k8-ignore-out-of-range-pstatestatus-value.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:46:26 -0800
+Message-ID: <200811262046.mAQKkQTi010797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35674 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752770AbYKZUq4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752752AbYKZUrO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:46:56 -0500
+	Wed, 26 Nov 2008 15:47:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qhfeng.kernel@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: andreas.herrmann3@amd.com, davej@codemonkey.org.uk, mark.langsdorf@amd.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/ata/pata_oldpiix.c: cleanup kernel-doc
+     x86: powernow-k8: ignore out-of-range PstateStatus value
 has been removed from the -mm tree.  Its filename was
-     drivers-ata-pata_oldpiixc-cleanup-kernel-doc.patch
+     x86-powernow-k8-ignore-out-of-range-pstatestatus-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ata/pata_oldpiix.c: cleanup kernel-doc
-From: Qinghuang Feng <qhfeng.kernel@gmail.com>
+Subject: x86: powernow-k8: ignore out-of-range PstateStatus value
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
 
-No argument named @isich in oldpiix_set_dmamode, remove it.
+A workaround for AMD CPU family 11h erratum 311 might cause that the
+P-state Status Register shows a "current P-state" which is larger than the
+"current P-state limit" in P-state Current Limit Register.  For the wrong
+P-state value there is no ACPI _PSS object defined and powernow-k8/cpufreq
+can't determine the proper CPU frequency for that state.
 
-Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+As a consequence this can cause a panic during boot (potentially with all
+recent kernel versions -- at least I have reproduced it with various
+2.6.27 kernels and with the current .28 series), as an example:
+
+powernow-k8: Found 1 AMD Turion(tm)X2 Ultra DualCore Mobile ZM-82 processors (2 \
+)
+powernow-k8:    0 : pstate 0 (2200 MHz)
+powernow-k8:    1 : pstate 1 (1100 MHz)
+powernow-k8:    2 : pstate 2 (600 MHz)
+BUG: unable to handle kernel paging request at ffff88086e7528b8
+IP: [<ffffffff80486361>] cpufreq_stats_update+0x4a/0x5f
+PGD 202063 PUD 0
+Oops: 0002 [#1] SMP
+last sysfs file:
+CPU 1
+Modules linked in:
+Pid: 1, comm: swapper Not tainted 2.6.28-rc3-dirty #16
+RIP: 0010:[<ffffffff80486361>]  [<ffffffff80486361>] cpufreq_stats_update+0x4a/0\
+f
+Synaptics claims to have extended capabilities, but I'm not able to read them.<6\
+6
+RAX: 0000000000000000 RBX: 0000000000000001 RCX: ffff88006e7528c0
+RDX: 00000000ffffffff RSI: ffff88006e54af00 RDI: ffffffff808f056c
+RBP: 00000000fffee697 R08: 0000000000000003 R09: ffff88006e73f080
+R10: 0000000000000001 R11: 00000000002191c0 R12: ffff88006fb83c10
+R13: 00000000ffffffff R14: 0000000000000001 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff88006fb50740(0000) knlGS:0000000000000000
+Unable to initialize Synaptics hardware.
+CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+CR2: ffff88086e7528b8 CR3: 0000000000201000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process swapper (pid: 1, threadinfo ffff88006fb82000, task ffff88006fb816d0)
+Stack:
+ ffff88006e74da50 0000000000000000 ffff88006e54af00 ffffffff804863c7
+ ffff88006e74da50 0000000000000000 00000000ffffffff 0000000000000000
+ ffff88006fb83c10 ffffffff8024b46c ffffffff808f0560 ffff88006fb83c10
+Call Trace:
+ [<ffffffff804863c7>] ? cpufreq_stat_notifier_trans+0x51/0x83
+ [<ffffffff8024b46c>] ? notifier_call_chain+0x29/0x4c
+ [<ffffffff8024b561>] ? __srcu_notifier_call_chain+0x46/0x61
+ [<ffffffff8048496d>] ? cpufreq_notify_transition+0x93/0xa9
+ [<ffffffff8021ab8d>] ? powernowk8_target+0x1e8/0x5f3
+ [<ffffffff80486687>] ? cpufreq_governor_performance+0x1b/0x20
+ [<ffffffff80484886>] ? __cpufreq_governor+0x71/0xa8
+ [<ffffffff80484b21>] ? __cpufreq_set_policy+0x101/0x13e
+ [<ffffffff80485bcd>] ? cpufreq_add_dev+0x3f0/0x4cd
+ [<ffffffff8048577a>] ? handle_update+0x0/0x8
+ [<ffffffff803c2062>] ? sysdev_driver_register+0xb6/0x10d
+ [<ffffffff8056592c>] ? powernowk8_init+0x0/0x7e
+ [<ffffffff8048604c>] ? cpufreq_register_driver+0x8f/0x140
+ [<ffffffff80209056>] ? _stext+0x56/0x14f
+ [<ffffffff802c2234>] ? proc_register+0x122/0x17d
+ [<ffffffff802c23a0>] ? create_proc_entry+0x73/0x8a
+ [<ffffffff8025c259>] ? register_irq_proc+0x92/0xaa
+ [<ffffffff8025c2c8>] ? init_irq_proc+0x57/0x69
+ [<ffffffff807fc85f>] ? kernel_init+0x116/0x169
+ [<ffffffff8020cc79>] ? child_rip+0xa/0x11
+ [<ffffffff807fc749>] ? kernel_init+0x0/0x169
+ [<ffffffff8020cc6f>] ? child_rip+0x0/0x11
+Code: 05 c5 83 36 00 48 c7 c2 48 5d 86 80 48 8b 04 d8 48 8b 40 08 48 8b 34 02 48\
+
+RIP  [<ffffffff80486361>] cpufreq_stats_update+0x4a/0x5f
+ RSP <ffff88006fb83b20>
+CR2: ffff88086e7528b8
+---[ end trace 0678bac75e67a2f7 ]---
+Kernel panic - not syncing: Attempted to kill init!
+
+In short, aftereffect of the wrong P-state is that
+cpufreq_stats_update() uses "-1" as index for some array in
+
+cpufreq_stats_update (unsigned int cpu)
+{
+...
+     if (stat->time_in_state)
+                stat->time_in_state[stat->last_index] =
+                        cputime64_add(stat->time_in_state[stat->last_index],
+                                      cputime_sub(cur_time, stat->last_time));
+...
+}
+
+Fortunately, the wrong P-state value is returned only if the core is
+in P-state 0. This fix solves the problem by detecting the
+out-of-range P-state, ignoring it, and using "0" instead.
+
+Cc: <stable@kernel.org>
+Acked-by: Mark Langsdorf <mark.langsdorf@amd.com>
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_oldpiix.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.c |   16 +++++++++++++---
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.h |    4 +++-
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/pata_oldpiix.c~drivers-ata-pata_oldpiixc-cleanup-kernel-doc drivers/ata/pata_oldpiix.c
---- a/drivers/ata/pata_oldpiix.c~drivers-ata-pata_oldpiixc-cleanup-kernel-doc
-+++ a/drivers/ata/pata_oldpiix.c
-@@ -116,7 +116,6 @@ static void oldpiix_set_piomode (struct 
-  *	oldpiix_set_dmamode - Initialize host controller PATA DMA timings
-  *	@ap: Port whose timings we are configuring
-  *	@adev: Device to program
-- *	@isich: True if the device is an ICH and has IOCFG registers
-  *
-  *	Set MWDMA mode for device, in host controller PCI config space.
-  *
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~x86-powernow-k8-ignore-out-of-range-pstatestatus-value arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~x86-powernow-k8-ignore-out-of-range-pstatestatus-value
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+@@ -115,9 +115,18 @@ static int query_current_values_with_pen
+ 	u32 i = 0;
+ 
+ 	if (cpu_family == CPU_HW_PSTATE) {
+-		rdmsr(MSR_PSTATE_STATUS, lo, hi);
+-		i = lo & HW_PSTATE_MASK;
+-		data->currpstate = i;
++		if (data->currpstate == INVALID_HW_PSTATE) {
++			/* read (initial) hw pstate if not yet set */
++			rdmsr(MSR_PSTATE_STATUS, lo, hi);
++			i = lo & HW_PSTATE_MASK;
++
++			/* a workaround for family 11h erratum 311 might cause
++			   an "out-of-range Pstate if the core is in Pstate-0 */
++			if (i >= data->numps)
++				data->currpstate = 0;
++			else
++				data->currpstate = i;
++		}
+ 		return 0;
+ 	}
+ 	do {
+@@ -1121,6 +1130,7 @@ static int __cpuinit powernowk8_cpu_init
+ 	}
+ 
+ 	data->cpu = pol->cpu;
++	data->currpstate = INVALID_HW_PSTATE;
+ 
+ 	if (powernow_k8_cpu_init_acpi(data)) {
+ 		/*
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.h~x86-powernow-k8-ignore-out-of-range-pstatestatus-value arch/x86/kernel/cpu/cpufreq/powernow-k8.h
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.h~x86-powernow-k8-ignore-out-of-range-pstatestatus-value
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.h
+@@ -23,7 +23,9 @@ struct powernow_k8_data {
+         u32 exttype; /* extended interface = 1 */
+ 
+ 	/* keep track of the current fid / vid or pstate */
+-	u32 currvid, currfid, currpstate;
++	u32 currvid, currfid;
++	u32 currpstate;
++#define INVALID_HW_PSTATE 0xff
+ 
+ 	/* the powernow_table includes all frequency and vid/fid pairings:
+ 	 * fid are the lower 8 bits of the index, vid are the upper 8 bits.
 _
 
-Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
+Patches currently in -mm which might be from andreas.herrmann3@amd.com are
 
 linux-next.patch
-samples-mark-static__init__exit-for-initexit-functions.patch
-fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-ext2-fix-ext2_splice_branch-comments.patch
 
