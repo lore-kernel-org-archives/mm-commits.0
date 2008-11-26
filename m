@@ -1,51 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:27:27 -0800
-Message-ID: <200811262027.mAQKRRfD000498@imap1.linux-foundation.org>
+Subject: - quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:27:29 -0800
+Message-ID: <200811262027.mAQKRT4c000511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48801 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752655AbYKZUgZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752727AbYKZUg6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:36:25 -0500
+	Wed, 26 Nov 2008 15:36:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jack@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota-move-quotaio_vh-from-include-linux-to-fs-fix
+     quota: more headers_check hackarounds
 has been removed from the -mm tree.  Its filename was
-     quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+     quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-move-quotaio_vh-from-include-linux-to-fs-fix
+Subject: quota: more headers_check hackarounds
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jan Kara <jack@suse.cz>
+/usr/src/devel/usr/include/linux/dqblk_v2.h:8: included file 'linux/dqblk_qtree.h' is not exported
+
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/Kbuild |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/Kbuild~quota-move-quotaio_vh-from-include-linux-to-fs-fix include/linux/Kbuild
---- a/include/linux/Kbuild~quota-move-quotaio_vh-from-include-linux-to-fs-fix
+diff -puN include/linux/Kbuild~quota-more-headers_check-hackarounds include/linux/Kbuild
+--- a/include/linux/Kbuild~quota-more-headers_check-hackarounds
 +++ a/include/linux/Kbuild
-@@ -134,8 +134,6 @@ header-y += posix_types.h
- header-y += ppdev.h
- header-y += prctl.h
- header-y += qnxtypes.h
--header-y += quotaio_v1.h
--header-y += quotaio_v2.h
- header-y += radeonfb.h
- header-y += raw.h
- header-y += resource.h
+@@ -56,9 +56,6 @@ header-y += dlm_device.h
+ header-y += dlm_netlink.h
+ header-y += dm-ioctl.h
+ header-y += dn.h
+-header-y += dqblk_v1.h
+-header-y += dqblk_v2.h
+-header-y += dqblk_xfs.h
+ header-y += efs_fs_sb.h
+ header-y += elf-fdpic.h
+ header-y += elf-em.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +81,6 @@ spi_gpio-driver-cleanups.patch
 kprobes-support-probing-module-__exit-function-fix.patch
 kprobes-support-probing-module-__exit-function-fix-2.patch
 rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
 quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
 quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
 quota-support-64-bit-quota-format-fix.patch
