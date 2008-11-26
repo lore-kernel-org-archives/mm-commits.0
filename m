@@ -1,295 +1,277 @@
 From: akpm@linux-foundation.org
-Subject: - poll-allow-f_op-poll-to-sleep-take-4.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 15:11:57 -0800
-Message-ID: <200811262311.mAQNBvkx023419@imap1.linux-foundation.org>
+Subject: + pps-userland-header-file-for-pps-api.patch added to -mm tree
+Date: Wed, 26 Nov 2008 15:53:03 -0800
+Message-ID: <200811262353.mAQNr3ev012922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60654 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52495 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752076AbYKZXNC (ORCPT
+	by vger.kernel.org with ESMTP id S1752082AbYKZXyM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 18:13:02 -0500
+	Wed, 26 Nov 2008 18:54:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: htejun@gmail.com, davidel@xmailserver.org, ericvh@gmail.com, flar@allandria.com, hch@infradead.org, mchehab@infradead.org, mingo@elte.hu, mszeredi@suse.cz, rminnich@sandia.gov, roland
+To: mm-commits@vger.kernel.org
+Cc: giometti@linux.it, alan@lxorguk.ukuu.org.uk, davej@redhat.com, dwmw2@infradead.org, greg@kroah.com, hpa@zytor.com, kay.sievers@vrfy.org, mingo@elte.hu, mtk.manpages@gmail.com, randy.dunlap@oracle.com, sam@ravnborg.org, zippel@linux-m68k.org
 
 
 The patch titled
-     poll: allow f_op->poll to sleep
-has been removed from the -mm tree.  Its filename was
-     poll-allow-f_op-poll-to-sleep-take-4.patch
+     PPS: userland header file for PPS API
+has been added to the -mm tree.  Its filename is
+     pps-userland-header-file-for-pps-api.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: poll: allow f_op->poll to sleep
-From: Tejun Heo <htejun@gmail.com>
+Subject: PPS: userland header file for PPS API
+From: Rodolfo Giometti <giometti@linux.it>
 
-f_op->poll is the only vfs operation which is not allowed to sleep.  It's
-because poll and select implementation used task state to synchronize
-against wake ups, which doesn't have to be the case anymore as wait/wake
-interface can now use custom wake up functions.  The non-sleep restriction
-can be a bit tricky because ->poll is not called from an atomic context
-and the result of accidentally sleeping in ->poll only shows up as
-temporary busy looping when the timing is right or rather wrong.
+This patch adds into the PPS's documentation directory a possible
+implementation of the PPS API (RFC 2783) by using the LinuxPPS's char
+devices.
 
-This patch converts poll/select to use custom wake up function and use
-separate triggered variable to synchronize against wake up events.  The
-only added overhead is an extra function call during wake up and
-negligible.
+This file is not just an example but it can be used into real systems.  :)
 
-This patch removes the one non-sleep exception from vfs locking rules and
-is beneficial to userland filesystem implementations like FUSE, 9p or
-peculiar fs like spufs as it's very difficult for those to implement
-non-sleeping poll method.
-
-While at it, make the following cosmetic changes to make poll.h and
-select.c checkpatch friendly.
-
-* s/type * symbol/type *symbol/		   : three places in poll.h
-* remove blank line before EXPORT_SYMBOL() : two places in select.c
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Christoph Hellwig <hch@infradead.org>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Brad Boyer <flar@allandria.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/Locking |    2 
- drivers/media/video/v4l1-compat.c |    4 -
- fs/select.c                       |   58 +++++++++++++++++++++-------
- include/linux/poll.h              |   15 +++++--
- 4 files changed, 58 insertions(+), 21 deletions(-)
+ Documentation/pps/timepps.h |  195 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 195 insertions(+)
 
-diff -puN Documentation/filesystems/Locking~poll-allow-f_op-poll-to-sleep-take-4 Documentation/filesystems/Locking
---- a/Documentation/filesystems/Locking~poll-allow-f_op-poll-to-sleep-take-4
-+++ a/Documentation/filesystems/Locking
-@@ -394,7 +394,7 @@ prototypes:
- };
- 
- locking rules:
--	All except ->poll() may block.
-+	All may block.
- 			BKL
- llseek:			no	(see below)
- read:			no
-diff -puN drivers/media/video/v4l1-compat.c~poll-allow-f_op-poll-to-sleep-take-4 drivers/media/video/v4l1-compat.c
---- a/drivers/media/video/v4l1-compat.c~poll-allow-f_op-poll-to-sleep-take-4
-+++ a/drivers/media/video/v4l1-compat.c
-@@ -203,7 +203,6 @@ static int poll_one(struct file *file, s
- 	table = &pwq->pt;
- 	for (;;) {
- 		int mask;
--		set_current_state(TASK_INTERRUPTIBLE);
- 		mask = file->f_op->poll(file, table);
- 		if (mask & POLLIN)
- 			break;
-@@ -212,9 +211,8 @@ static int poll_one(struct file *file, s
- 			retval = -ERESTARTSYS;
- 			break;
- 		}
--		schedule();
-+		poll_schedule(pwq, TASK_INTERRUPTIBLE);
- 	}
--	set_current_state(TASK_RUNNING);
- 	poll_freewait(pwq);
- 	return retval;
- }
-diff -puN fs/select.c~poll-allow-f_op-poll-to-sleep-take-4 fs/select.c
---- a/fs/select.c~poll-allow-f_op-poll-to-sleep-take-4
-+++ a/fs/select.c
-@@ -109,11 +109,11 @@ static void __pollwait(struct file *filp
- void poll_initwait(struct poll_wqueues *pwq)
- {
- 	init_poll_funcptr(&pwq->pt, __pollwait);
-+	pwq->polling_task = current;
- 	pwq->error = 0;
- 	pwq->table = NULL;
- 	pwq->inline_index = 0;
- }
--
- EXPORT_SYMBOL(poll_initwait);
- 
- static void free_poll_entry(struct poll_table_entry *entry)
-@@ -142,12 +142,10 @@ void poll_freewait(struct poll_wqueues *
- 		free_page((unsigned long) old);
- 	}
- }
--
- EXPORT_SYMBOL(poll_freewait);
- 
--static struct poll_table_entry *poll_get_entry(poll_table *_p)
-+static struct poll_table_entry *poll_get_entry(struct poll_wqueues *p)
- {
--	struct poll_wqueues *p = container_of(_p, struct poll_wqueues, pt);
- 	struct poll_table_page *table = p->table;
- 
- 	if (p->inline_index < N_INLINE_POLL_ENTRIES)
-@@ -159,7 +157,6 @@ static struct poll_table_entry *poll_get
- 		new_table = (struct poll_table_page *) __get_free_page(GFP_KERNEL);
- 		if (!new_table) {
- 			p->error = -ENOMEM;
--			__set_current_state(TASK_RUNNING);
- 			return NULL;
- 		}
- 		new_table->entry = new_table->entries;
-@@ -171,20 +168,57 @@ static struct poll_table_entry *poll_get
- 	return table->entry++;
- }
- 
-+static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
+diff -puN /dev/null Documentation/pps/timepps.h
+--- /dev/null
++++ a/Documentation/pps/timepps.h
+@@ -0,0 +1,195 @@
++/*
++ * timepps.h -- PPS API main header
++ *
++ * Copyright (C) 2005-2007   Rodolfo Giometti <giometti@linux.it>
++ *
++ *   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; either version 2 of the License, or
++ *   (at your option) any later version.
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   You should have received a copy of the GNU General Public License
++ *   along with this program; if not, write to the Free Software
++ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef _SYS_TIMEPPS_H_
++#define _SYS_TIMEPPS_H_
++
++#include <sys/syscall.h>
++#include <unistd.h>
++#include <errno.h>
++#include <linux/pps.h>
++
++#define LINUXPPS	1		/* signal we are using LinuxPPS */
++
++/*
++ * New data structures
++ */
++
++struct ntp_fp {
++	unsigned int integral;
++	unsigned int fractional;
++};
++
++union pps_timeu {
++	struct timespec tspec;
++	struct ntp_fp ntpfp;
++	unsigned long longpad[3];
++};
++
++struct pps_info {
++	unsigned long assert_sequence;	/* seq. num. of assert event */
++	unsigned long clear_sequence;	/* seq. num. of clear event */
++	union pps_timeu assert_tu;	/* time of assert event */
++	union pps_timeu clear_tu;	/* time of clear event */
++	int current_mode;		/* current mode bits */
++};
++
++struct pps_params {
++	int api_version;		/* API version # */
++	int mode;			/* mode bits */
++	union pps_timeu assert_off_tu;	/* offset compensation for assert */
++	union pps_timeu clear_off_tu;	/* offset compensation for clear */
++};
++
++typedef int pps_handle_t;		/* represents a PPS source */
++typedef unsigned long pps_seq_t;	/* sequence number */
++typedef struct ntp_fp ntp_fp_t;		/* NTP-compatible time stamp */
++typedef union pps_timeu pps_timeu_t;	/* generic data type for time stamps */
++typedef struct pps_info pps_info_t;
++typedef struct pps_params pps_params_t;
++
++#define assert_timestamp        assert_tu.tspec
++#define clear_timestamp         clear_tu.tspec
++
++#define assert_timestamp_ntpfp  assert_tu.ntpfp
++#define clear_timestamp_ntpfp   clear_tu.ntpfp
++
++#define assert_offset		assert_off_tu.tspec
++#define clear_offset		clear_off_tu.tspec
++
++#define assert_offset_ntpfp     assert_off_tu.ntpfp
++#define clear_offset_ntpfp      clear_off_tu.ntpfp
++
++/*
++ * The PPS API
++ */
++
++static __inline int time_pps_create(int source, pps_handle_t *handle)
 +{
-+	struct poll_wqueues *pwq = wait->private;
-+	DECLARE_WAITQUEUE(dummy_wait, pwq->polling_task);
++	int ret;
 +
-+	set_mb(pwq->triggered, 1);
++	if (!handle) {
++		errno = EINVAL;
++		return -1;
++	}
 +
-+	/*
-+	 * Perform the default wake up operation using a dummy
-+	 * waitqueue.
-+	 *
-+	 * TODO: This is hacky but there currently is no interface to
-+	 * pass in @sync.  @sync is scheduled to be removed and once
-+	 * that happens, wake_up_process() can be used directly.
++	/* First we check if current device is a PPS valid PPS one...
 +	 */
-+	return default_wake_function(&dummy_wait, mode, sync, key);
++	ret = ioctl(source, PPS_CHECK);
++	if (ret) {
++		errno = EOPNOTSUPP;
++		return -1;
++	}
++
++	/* ... then since in LinuxPPS there are no differences between a
++	 * "PPS source" and a "PPS handle", we simply return the same value.
++	 */
++	*handle = source;
++
++	return 0;
 +}
 +
- /* Add a new entry */
- static void __pollwait(struct file *filp, wait_queue_head_t *wait_address,
- 				poll_table *p)
- {
--	struct poll_table_entry *entry = poll_get_entry(p);
-+	struct poll_wqueues *pwq = container_of(p, struct poll_wqueues, pt);
-+	struct poll_table_entry *entry = poll_get_entry(pwq);
- 	if (!entry)
- 		return;
- 	get_file(filp);
- 	entry->filp = filp;
- 	entry->wait_address = wait_address;
--	init_waitqueue_entry(&entry->wait, current);
-+	init_waitqueue_func_entry(&entry->wait, pollwake);
-+	entry->wait.private = pwq;
- 	add_wait_queue(wait_address, &entry->wait);
- }
- 
-+int poll_schedule_timeout(struct poll_wqueues *pwq, int state,
-+			  ktime_t *expires, unsigned long slack)
++static __inline int time_pps_destroy(pps_handle_t handle)
 +{
-+	int rc = -EINTR;
-+
-+	set_current_state(state);
-+	if (!pwq->triggered)
-+		rc = schedule_hrtimeout_range(expires, slack, HRTIMER_MODE_ABS);
-+	__set_current_state(TASK_RUNNING);
-+
-+	/* clear triggered for the next iteration */
-+	pwq->triggered = 0;
-+
-+	return rc;
++	return close(handle);
 +}
-+EXPORT_SYMBOL(poll_schedule_timeout);
 +
- /**
-  * poll_select_set_timeout - helper function to setup the timeout value
-  * @to:		pointer to timespec variable for the final timeout
-@@ -340,8 +374,6 @@ int do_select(int n, fd_set_bits *fds, s
- 	for (;;) {
- 		unsigned long *rinp, *routp, *rexp, *inp, *outp, *exp;
- 
--		set_current_state(TASK_INTERRUPTIBLE);
--
- 		inp = fds->in; outp = fds->out; exp = fds->ex;
- 		rinp = fds->res_in; routp = fds->res_out; rexp = fds->res_ex;
- 
-@@ -411,10 +443,10 @@ int do_select(int n, fd_set_bits *fds, s
- 			to = &expire;
- 		}
- 
--		if (!schedule_hrtimeout_range(to, slack, HRTIMER_MODE_ABS))
-+		if (!poll_schedule_timeout(&table, TASK_INTERRUPTIBLE,
-+					   to, slack))
- 			timed_out = 1;
- 	}
--	__set_current_state(TASK_RUNNING);
- 
- 	poll_freewait(&table);
- 
-@@ -666,7 +698,6 @@ static int do_poll(unsigned int nfds,  s
- 	for (;;) {
- 		struct poll_list *walk;
- 
--		set_current_state(TASK_INTERRUPTIBLE);
- 		for (walk = list; walk != NULL; walk = walk->next) {
- 			struct pollfd * pfd, * pfd_end;
- 
-@@ -709,10 +740,9 @@ static int do_poll(unsigned int nfds,  s
- 			to = &expire;
- 		}
- 
--		if (!schedule_hrtimeout_range(to, slack, HRTIMER_MODE_ABS))
-+		if (!poll_schedule_timeout(wait, TASK_INTERRUPTIBLE, to, slack))
- 			timed_out = 1;
- 	}
--	__set_current_state(TASK_RUNNING);
- 	return count;
- }
- 
-diff -puN include/linux/poll.h~poll-allow-f_op-poll-to-sleep-take-4 include/linux/poll.h
---- a/include/linux/poll.h~poll-allow-f_op-poll-to-sleep-take-4
-+++ a/include/linux/poll.h
-@@ -46,9 +46,9 @@ static inline void init_poll_funcptr(pol
- }
- 
- struct poll_table_entry {
--	struct file * filp;
-+	struct file *filp;
- 	wait_queue_t wait;
--	wait_queue_head_t * wait_address;
-+	wait_queue_head_t *wait_address;
- };
- 
- /*
-@@ -56,7 +56,9 @@ struct poll_table_entry {
-  */
- struct poll_wqueues {
- 	poll_table pt;
--	struct poll_table_page * table;
-+	struct poll_table_page *table;
-+	struct task_struct *polling_task;
-+	int triggered;
- 	int error;
- 	int inline_index;
- 	struct poll_table_entry inline_entries[N_INLINE_POLL_ENTRIES];
-@@ -64,6 +66,13 @@ struct poll_wqueues {
- 
- extern void poll_initwait(struct poll_wqueues *pwq);
- extern void poll_freewait(struct poll_wqueues *pwq);
-+extern int poll_schedule_timeout(struct poll_wqueues *pwq, int state,
-+				 ktime_t *expires, unsigned long slack);
-+
-+static inline int poll_schedule(struct poll_wqueues *pwq, int state)
++static __inline int time_pps_getparams(pps_handle_t handle,
++					pps_params_t *ppsparams)
 +{
-+	return poll_schedule_timeout(pwq, state, NULL, 0);
++	int ret;
++	struct pps_kparams __ppsparams;
++
++	ret = ioctl(handle, PPS_GETPARAMS, &__ppsparams);
++
++	ppsparams->api_version = __ppsparams.api_version;
++	ppsparams->mode = __ppsparams.mode;
++	ppsparams->assert_off_tu.tspec.tv_sec = __ppsparams.assert_off_tu.sec;
++	ppsparams->assert_off_tu.tspec.tv_nsec = __ppsparams.assert_off_tu.nsec;
++	ppsparams->clear_off_tu.tspec.tv_sec = __ppsparams.clear_off_tu.sec;
++	ppsparams->clear_off_tu.tspec.tv_nsec = __ppsparams.clear_off_tu.nsec;
++
++	return ret;
 +}
- 
- /*
-  * Scaleable version of the fd_set.
++
++static __inline int time_pps_setparams(pps_handle_t handle,
++					const pps_params_t *ppsparams)
++{
++	struct pps_kparams __ppsparams;
++
++	__ppsparams.api_version = ppsparams->api_version;
++	__ppsparams.mode = ppsparams->mode;
++	__ppsparams.assert_off_tu.sec = ppsparams->assert_off_tu.tspec.tv_sec;
++	__ppsparams.assert_off_tu.nsec = ppsparams->assert_off_tu.tspec.tv_nsec;
++	__ppsparams.clear_off_tu.sec = ppsparams->clear_off_tu.tspec.tv_sec;
++	__ppsparams.clear_off_tu.nsec = ppsparams->clear_off_tu.tspec.tv_nsec;
++
++	return ioctl(handle, PPS_SETPARAMS, &__ppsparams);
++}
++
++/* Get capabilities for handle */
++static __inline int time_pps_getcap(pps_handle_t handle, int *mode)
++{
++	return ioctl(handle, PPS_GETCAP, mode);
++}
++
++static __inline int time_pps_fetch(pps_handle_t handle, const int tsformat,
++					pps_info_t *ppsinfobuf,
++					const struct timespec *timeout)
++{
++	struct pps_fdata __fdata;
++	int ret;
++
++	/* Sanity checks */
++	if (tsformat != PPS_TSFMT_TSPEC) {
++		errno = EINVAL;
++		return -1;
++	}
++
++	if (timeout) {
++		__fdata.timeout.sec = timeout->tv_sec;
++		__fdata.timeout.nsec = timeout->tv_nsec;
++		__fdata.timeout.flags = ~PPS_TIME_INVALID;
++	} else
++		__fdata.timeout.flags = PPS_TIME_INVALID;
++
++	ret = ioctl(handle, PPS_FETCH, &__fdata);
++
++	ppsinfobuf->assert_sequence = __fdata.info.assert_sequence;
++	ppsinfobuf->clear_sequence = __fdata.info.clear_sequence;
++	ppsinfobuf->assert_tu.tspec.tv_sec = __fdata.info.assert_tu.sec;
++	ppsinfobuf->assert_tu.tspec.tv_nsec = __fdata.info.assert_tu.nsec;
++	ppsinfobuf->clear_tu.tspec.tv_sec = __fdata.info.clear_tu.sec;
++	ppsinfobuf->clear_tu.tspec.tv_nsec = __fdata.info.clear_tu.nsec;
++	ppsinfobuf->current_mode = __fdata.info.current_mode;
++
++	return ret;
++}
++
++static __inline int time_pps_kcbind(pps_handle_t handle,
++					const int kernel_consumer,
++					const int edge, const int tsformat)
++{
++	/* LinuxPPS doesn't implement kernel consumer feature */
++	errno = EOPNOTSUPP;
++	return -1;
++}
++
++#endif				/* _SYS_TIMEPPS_H_ */
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from giometti@linux.it are
 
-piix3-warn-softer-about-enabling-passive-release.patch
-dma-apitxt-fix-description-of-pci_map_sg-dma_map_sg-scatterlists-handling.patch
-poll-allow-f_op-poll-to-sleep-take-4.patch
+linux-next.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
+pps-serial-clients-support.patch
+pps-parallel-port-clients-support.patch
+pps-low-level-irq-timestamps-recording.patch
 
