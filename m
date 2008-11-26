@@ -1,37 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - quota-support-64-bit-quota-format-fix.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:27:40 -0800
-Message-ID: <200811262027.mAQKRefv000696@imap1.linux-foundation.org>
+Subject: - quota-support-64-bit-quota-format-fix-2.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:27:42 -0800
+Message-ID: <200811262027.mAQKRg4Q000703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45014 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752442AbYKZU2O (ORCPT
+	by vger.kernel.org with ESMTP id S1752596AbYKZU2Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:28:14 -0500
+	Wed, 26 Nov 2008 15:28:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, andrew.perepechko@sun.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota-support-64-bit-quota-format-fix
+     quota-support-64-bit-quota-format-fix-2
 has been removed from the -mm tree.  Its filename was
-     quota-support-64-bit-quota-format-fix.patch
+     quota-support-64-bit-quota-format-fix-2.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-support-64-bit-quota-format-fix
+Subject: quota-support-64-bit-quota-format-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
-
-i386:
-
-fs/quota_v2.c: In function 'v2_read_file_info':
-fs/quota_v2.c:119: warning: integer constant is too large for 'long' type
-fs/quota_v2.c:120: warning: integer constant is too large for 'long' type
 
 Cc: Andrew Perepechko <andrew.perepechko@sun.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -41,17 +35,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  fs/quota_v2.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/quota_v2.c~quota-support-64-bit-quota-format-fix fs/quota_v2.c
---- a/fs/quota_v2.c~quota-support-64-bit-quota-format-fix
+diff -puN fs/quota_v2.c~quota-support-64-bit-quota-format-fix-2 fs/quota_v2.c
+--- a/fs/quota_v2.c~quota-support-64-bit-quota-format-fix-2
 +++ a/fs/quota_v2.c
 @@ -116,8 +116,8 @@ static int v2_read_file_info(struct supe
  		info->dqi_maxblimit = 0xffffffff;
  		info->dqi_maxilimit = 0xffffffff;
  	} else {
--		info->dqi_maxblimit = 0x7fffffffffffffff;
--		info->dqi_maxilimit = 0x7fffffffffffffff;
-+		info->dqi_maxblimit = 0x7fffffffffffffffUL;
-+		info->dqi_maxilimit = 0x7fffffffffffffffUL;
+-		info->dqi_maxblimit = 0x7fffffffffffffffUL;
+-		info->dqi_maxilimit = 0x7fffffffffffffffUL;
++		info->dqi_maxblimit = 0x7fffffffffffffffULL;
++		info->dqi_maxilimit = 0x7fffffffffffffffULL;
  	}
  	info->dqi_bgrace = le32_to_cpu(dinfo.dqi_bgrace);
  	info->dqi_igrace = le32_to_cpu(dinfo.dqi_igrace);
@@ -87,7 +81,6 @@ spi_gpio-driver-cleanups.patch
 kprobes-support-probing-module-__exit-function-fix.patch
 kprobes-support-probing-module-__exit-function-fix-2.patch
 rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-quota-support-64-bit-quota-format-fix.patch
 quota-support-64-bit-quota-format-fix-2.patch
 quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
 memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
