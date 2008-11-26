@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on.patch added to -mm tree
-Date: Tue, 25 Nov 2008 17:10:02 -0800
-Message-ID: <200811260110.mAQ1A2HS001243@imap1.linux-foundation.org>
+Subject: + swapfile-remove-surplus-whitespace.patch added to -mm tree
+Date: Tue, 25 Nov 2008 17:23:27 -0800
+Message-ID: <200811260123.mAQ1NRgx008495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56503 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40215 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751193AbYKZBLP (ORCPT
+	by vger.kernel.org with ESMTP id S1753011AbYKZBX7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 20:11:15 -0500
+	Tue, 25 Nov 2008 20:23:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@infradead.org, arjan@linux.intel.com, mpm@selenic.com, tytso@mit.edu
+Cc: hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     random: add a way to get some random bits into the entropy pools early on
+     swapfile: remove surplus whitespace
 has been added to the -mm tree.  Its filename is
-     random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on.patch
+     swapfile-remove-surplus-whitespace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: add a way to get some random bits into the entropy pools early on
-From: Arjan van de Ven <arjan@infradead.org>
+Subject: swapfile: remove surplus whitespace
+From: Hugh Dickins <hugh@veritas.com>
 
-Currently the entropy pool gets seeded on the module_init() level, but
-there is at least one consumer of random bits which wants random data at
-an earluier time: the oops ID that is printed as part of the oops.  As a
-result of this, kerneloops.org is seeing a lot of oopses that all share
-the same 'random' number; which used to get filed away as "duplicate".
+Remove trailing whitespace from swapfile.c, and odd swap_show() alignment.
 
-This patch adds a function to the random driver so that various pieces of
-the kernel can add random bits (but not entropy!) to the pool, to avoid
-this duplicate ID problem.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apic.c |    7 +++++++
- drivers/char/random.c  |   29 +++++++++++++++++++++++++++++
- include/linux/random.h |    3 +++
- kernel/panic.c         |    1 +
- 4 files changed, 40 insertions(+)
+ mm/swapfile.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/kernel/apic.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on arch/x86/kernel/apic.c
---- a/arch/x86/kernel/apic.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on
-+++ a/arch/x86/kernel/apic.c
-@@ -30,6 +30,7 @@
- #include <linux/module.h>
- #include <linux/dmi.h>
- #include <linux/dmar.h>
-+#include <linux/random.h>
+diff -puN mm/swapfile.c~swapfile-remove-surplus-whitespace mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-remove-surplus-whitespace
++++ a/mm/swapfile.c
+@@ -92,7 +92,7 @@ static inline unsigned long scan_swap_ma
+ 	unsigned long offset, last_in_cluster;
+ 	int latency_ration = LATENCY_LIMIT;
  
- #include <asm/atomic.h>
- #include <asm/smp.h>
-@@ -687,6 +688,12 @@ static int __init calibrate_APIC_clock(v
- 	} else
- 		local_irq_enable();
- 
+-	/* 
 +	/*
-+	 * by now we have enough time spent that there is some value in
-+	 * pushing the timestamp to the random pools for early kernel use.
-+	 */
-+	seed_random_pools();
+ 	 * We try to cluster swap pages by allocating them sequentially
+ 	 * in swap.  Once we've allocated SWAPFILE_CLUSTER pages this
+ 	 * way, however, we resort to first-free allocation, starting
+@@ -269,7 +269,7 @@ bad_nofile:
+ 	printk(KERN_ERR "swap_free: %s%08lx\n", Bad_file, entry.val);
+ out:
+ 	return NULL;
+-}	
++}
+ 
+ static int swap_entry_free(struct swap_info_struct *p, unsigned long offset)
+ {
+@@ -736,10 +736,10 @@ static int try_to_unuse(unsigned int typ
+ 			break;
+ 		}
+ 
+-		/* 
++		/*
+ 		 * Get a page for the entry, using the existing swap
+ 		 * cache page if there is one.  Otherwise, get a clean
+-		 * page and read the swap into it. 
++		 * page and read the swap into it.
+ 		 */
+ 		swap_map = &si->swap_map[i];
+ 		entry = swp_entry(type, i);
+@@ -1202,7 +1202,7 @@ asmlinkage long sys_swapoff(const char _
+ 	char * pathname;
+ 	int i, type, prev;
+ 	int err;
+-	
 +
- 	if (levt->features & CLOCK_EVT_FEAT_DUMMY) {
- 		pr_warning("APIC timer disabled due to verification failure.\n");
- 			return -1;
-diff -puN drivers/char/random.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on drivers/char/random.c
---- a/drivers/char/random.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on
-+++ a/drivers/char/random.c
-@@ -929,6 +929,35 @@ static int rand_initialize(void)
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+@@ -1395,12 +1395,12 @@ static int swap_show(struct seq_file *sw
+ 	file = ptr->swap_file;
+ 	len = seq_path(swap, &file->f_path, " \t\n\\");
+ 	seq_printf(swap, "%*s%s\t%u\t%u\t%d\n",
+-		       len < 40 ? 40 - len : 1, " ",
+-		       S_ISBLK(file->f_path.dentry->d_inode->i_mode) ?
++			len < 40 ? 40 - len : 1, " ",
++			S_ISBLK(file->f_path.dentry->d_inode->i_mode) ?
+ 				"partition" : "file\t",
+-		       ptr->pages << (PAGE_SHIFT - 10),
+-		       ptr->inuse_pages << (PAGE_SHIFT - 10),
+-		       ptr->prio);
++			ptr->pages << (PAGE_SHIFT - 10),
++			ptr->inuse_pages << (PAGE_SHIFT - 10),
++			ptr->prio);
+ 	return 0;
  }
- module_init(rand_initialize);
  
-+/*
-+ * seed_std_data - seed pool with system timing data
-+ *
-+ * @r: pool to initialize
-+ *
-+ * This function mixes some system data into the pool to prepare it for use.
-+ * This function can be called really early during boot to at least get some
-+ * randomness from the system if random numbers are needed early, for example
-+ * as part of the early oops printing.
-+ *
-+ * No entropy is credited for this seeding.
-+ */
-+static void seed_std_data(struct entropy_store *r)
-+{
-+	ktime_t now;
-+	unsigned long flags;
+@@ -1556,7 +1556,7 @@ asmlinkage long sys_swapon(const char __
+ 		error = -EINVAL;
+ 		goto bad_swap;
+ 	}
+-	
 +
-+	now = ktime_get_real();
-+	mix_pool_bytes(r, &now, sizeof(now));
-+}
-+
-+int seed_random_pools(void)
-+{
-+	seed_std_data(&input_pool);
-+	seed_std_data(&blocking_pool);
-+	seed_std_data(&nonblocking_pool);
-+	return 0;
-+}
-+
- void rand_initialize_irq(int irq)
- {
- 	struct timer_rand_state *state;
-diff -puN include/linux/random.h~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on include/linux/random.h
---- a/include/linux/random.h~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on
-+++ a/include/linux/random.h
-@@ -72,6 +72,9 @@ unsigned long randomize_range(unsigned l
- u32 random32(void);
- void srandom32(u32 seed);
- 
-+int seed_random_pools(void);
-+
-+
- #endif /* __KERNEL___ */
- 
- #endif /* _LINUX_RANDOM_H */
-diff -puN kernel/panic.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on kernel/panic.c
---- a/kernel/panic.c~random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on
-+++ a/kernel/panic.c
-@@ -299,6 +299,7 @@ static u64 oops_id;
- 
- static int init_oops_id(void)
- {
-+	seed_random_pools();
- 	if (!oops_id)
- 		get_random_bytes(&oops_id, sizeof(oops_id));
- 	else
+ 	switch (swap_header_version) {
+ 	case 1:
+ 		printk(KERN_ERR "version 0 swap is no longer supported. "
 _
 
-Patches currently in -mm which might be from arjan@infradead.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-vfs-expand-some-comments-d_path-seq_path.patch
-scripts-script-from-kerneloopsorg-to-pretty-print-oops-dumps.patch
-jbd-improve-fsync-batching.patch
-jbd-improve-fsync-batching-update.patch
-random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on.patch
+mm-dont-mark_page_accessed-in-shmem_fault.patch
+mm-apply_to_range-call-pte-function-with-lazy-updates.patch
+mm-remove-cgroup_mm_owner_callbacks.patch
+mm-remove-aop_writepage_activate.patch
+mm-remove-gfp_highuser_pagecache.patch
+mm-add-setclearpageswapcache-stubs.patch
+mm-replace-some-bug_ons-by-vm_bug_ons.patch
+mm-add_active_or_unevictable-into-rmap.patch
+mm-make-page_lock_anon_vma-static.patch
+mm-further-cleanup-page_add_new_anon_rmap.patch
+mm-gup-persist-for-write-permission.patch
+mm-wp-lock-page-before-deciding-cow.patch
+mm-reuse_swap_page-replaces-can_share_swap_page.patch
+mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
+mm-try_to_unuse-check-removing-right-swap.patch
+mm-remove-try_to_munlock-from-vmscan.patch
+mm-remove-gfp_mask-from-add_to_swap.patch
+mm-add-add_to_swap-stub.patch
+mm-optimize-get_scan_ratio-for-no-swap.patch
+make-get_user_pages-interruptible.patch
+make-get_user_pages-interruptible-update.patch
+swapfile-swapon-needs-larger-size-type.patch
+swapfile-remove-swp_active-mask.patch
+swapfile-remove-surplus-whitespace.patch
+swapfile-remove-v0-swap-space-message.patch
+swapfile-rearrange-scan-and-swap_info.patch
+swapfile-swapon-use-discard-trim.patch
+swapfile-swap-allocation-use-discard.patch
+swapfile-swapon-randomize-if-nonrot.patch
+swapfile-swap-allocation-cycle-if-nonrot.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+prio_tree-debugging-patch.patch
 
