@@ -1,37 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - pps-userland-header-file-for-pps-api.patch removed from -mm tree
-Date: Tue, 25 Nov 2008 17:04:04 -0800
-Message-ID: <200811260104.mAQ144wS030483@imap1.linux-foundation.org>
+Subject: - ldisc-n_tty-export-all-n_tty-ldisc-methods.patch removed from -mm tree
+Date: Tue, 25 Nov 2008 17:04:14 -0800
+Message-ID: <200811260104.mAQ14E5o030577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48001 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54650 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753721AbYKZBF7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752366AbYKZBGl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 20:05:59 -0500
+	Tue, 25 Nov 2008 20:06:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: giometti@linux.it, alan@lxorguk.ukuu.org.uk, davej@redhat.com, dwmw2@infradead.org, greg@kroah.com, hpa@zytor.com, kay.sievers@vrfy.org, mingo@elte.hu, mtk.manpages@googlemail.comra
 
 
 The patch titled
-     PPS: userland header file for PPS API
+     ldisc n_tty: export all N_TTY ldisc methods
 has been removed from the -mm tree.  Its filename was
-     pps-userland-header-file-for-pps-api.patch
+     ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PPS: userland header file for PPS API
+Subject: ldisc n_tty: export all N_TTY ldisc methods
 From: Rodolfo Giometti <giometti@linux.it>
-
-This patch adds into the PPS's documentation directory a possible
-implementation of the PPS API (RFC 2783) by using the LinuxPPS's char
-devices.
-
-This file is not just an example but it can be used into real systems.  :)
 
 Signed-off-by: Rodolfo Giometti <giometti@linux.it>
 Cc: David Woodhouse <dwmw2@infradead.org>
@@ -48,217 +42,232 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/pps/timepps.h |  195 ++++++++++++++++++++++++++++++++++
- 1 file changed, 195 insertions(+)
+ drivers/char/n_tty.c |   32 +++++++++++++++++++++-----------
+ include/linux/tty.h  |   16 ++++++++++++++++
+ 2 files changed, 37 insertions(+), 11 deletions(-)
 
-diff -puN /dev/null Documentation/pps/timepps.h
---- /dev/null
-+++ a/Documentation/pps/timepps.h
-@@ -0,0 +1,195 @@
-+/*
-+ * timepps.h -- PPS API main header
-+ *
-+ * Copyright (C) 2005-2007   Rodolfo Giometti <giometti@linux.it>
-+ *
-+ *   This program is free software; you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *   GNU General Public License for more details.
-+ *
-+ *   You should have received a copy of the GNU General Public License
-+ *   along with this program; if not, write to the Free Software
-+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
+diff -puN drivers/char/n_tty.c~ldisc-n_tty-export-all-n_tty-ldisc-methods drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~ldisc-n_tty-export-all-n_tty-ldisc-methods
++++ a/drivers/char/n_tty.c
+@@ -43,10 +43,10 @@
+ #include <linux/mm.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
+-#include <linux/poll.h>
+ #include <linux/bitops.h>
+ #include <linux/audit.h>
+ #include <linux/file.h>
++#include <linux/module.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/system.h>
+@@ -194,7 +194,7 @@ static void reset_buffer_flags(struct tt
+  *	Locking: ctrl_lock, read_lock.
+  */
+ 
+-static void n_tty_flush_buffer(struct tty_struct *tty)
++void n_tty_flush_buffer(struct tty_struct *tty)
+ {
+ 	unsigned long flags;
+ 	/* clear everything and unthrottle the driver */
+@@ -210,6 +210,7 @@ static void n_tty_flush_buffer(struct tt
+ 	}
+ 	spin_unlock_irqrestore(&tty->ctrl_lock, flags);
+ }
++EXPORT_SYMBOL_GPL(n_tty_flush_buffer);
+ 
+ /**
+  *	n_tty_chars_in_buffer	-	report available bytes
+@@ -221,7 +222,7 @@ static void n_tty_flush_buffer(struct tt
+  *	Locking: read_lock
+  */
+ 
+-static ssize_t n_tty_chars_in_buffer(struct tty_struct *tty)
++ssize_t n_tty_chars_in_buffer(struct tty_struct *tty)
+ {
+ 	unsigned long flags;
+ 	ssize_t n = 0;
+@@ -237,6 +238,7 @@ static ssize_t n_tty_chars_in_buffer(str
+ 	spin_unlock_irqrestore(&tty->read_lock, flags);
+ 	return n;
+ }
++EXPORT_SYMBOL_GPL(n_tty_chars_in_buffer);
+ 
+ /**
+  *	is_utf8_continuation	-	utf8 multibyte check
+@@ -921,13 +923,14 @@ handle_newline:
+  *	IO must be woken up
+  */
+ 
+-static void n_tty_write_wakeup(struct tty_struct *tty)
++void n_tty_write_wakeup(struct tty_struct *tty)
+ {
+ 	if (tty->fasync) {
+ 		set_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
+ 		kill_fasync(&tty->fasync, SIGIO, POLL_OUT);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(n_tty_write_wakeup);
+ 
+ /**
+  *	n_tty_receive_buf	-	data receive
+@@ -942,7 +945,7 @@ static void n_tty_write_wakeup(struct tt
+  *	calls one at a time and in order (or using flush_to_ldisc)
+  */
+ 
+-static void n_tty_receive_buf(struct tty_struct *tty, const unsigned char *cp,
++void n_tty_receive_buf(struct tty_struct *tty, const unsigned char *cp,
+ 			      char *fp, int count)
+ {
+ 	const unsigned char *p;
+@@ -1016,6 +1019,7 @@ static void n_tty_receive_buf(struct tty
+ 	if (tty->receive_room < TTY_THRESHOLD_THROTTLE)
+ 		tty_throttle(tty);
+ }
++EXPORT_SYMBOL_GPL(n_tty_receive_buf);
+ 
+ int is_ignored(int sig)
+ {
+@@ -1037,7 +1041,7 @@ int is_ignored(int sig)
+  *	Locking: Caller holds tty->termios_mutex
+  */
+ 
+-static void n_tty_set_termios(struct tty_struct *tty, struct ktermios *old)
++void n_tty_set_termios(struct tty_struct *tty, struct ktermios *old)
+ {
+ 	int canon_change = 1;
+ 	BUG_ON(!tty);
+@@ -1116,6 +1120,7 @@ static void n_tty_set_termios(struct tty
+ 	wake_up_interruptible(&tty->write_wait);
+ 	wake_up_interruptible(&tty->read_wait);
+ }
++EXPORT_SYMBOL_GPL(n_tty_set_termios);
+ 
+ /**
+  *	n_tty_close		-	close the ldisc for this tty
+@@ -1127,7 +1132,7 @@ static void n_tty_set_termios(struct tty
+  *	ldisc methods are in progress.
+  */
+ 
+-static void n_tty_close(struct tty_struct *tty)
++void n_tty_close(struct tty_struct *tty)
+ {
+ 	n_tty_flush_buffer(tty);
+ 	if (tty->read_buf) {
+@@ -1135,6 +1140,7 @@ static void n_tty_close(struct tty_struc
+ 		tty->read_buf = NULL;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(n_tty_close);
+ 
+ /**
+  *	n_tty_open		-	open an ldisc
+@@ -1146,7 +1152,7 @@ static void n_tty_close(struct tty_struc
+  *	until a close.
+  */
+ 
+-static int n_tty_open(struct tty_struct *tty)
++int n_tty_open(struct tty_struct *tty)
+ {
+ 	if (!tty)
+ 		return -EINVAL;
+@@ -1165,6 +1171,7 @@ static int n_tty_open(struct tty_struct 
+ 	tty->closing = 0;
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(n_tty_open);
+ 
+ static inline int input_available_p(struct tty_struct *tty, int amt)
+ {
+@@ -1279,7 +1286,7 @@ static int job_control(struct tty_struct
+  *	This code must be sure never to sleep through a hangup.
+  */
+ 
+-static ssize_t n_tty_read(struct tty_struct *tty, struct file *file,
++ssize_t n_tty_read(struct tty_struct *tty, struct file *file,
+ 			 unsigned char __user *buf, size_t nr)
+ {
+ 	unsigned char __user *b = buf;
+@@ -1479,6 +1486,7 @@ do_it_again:
+ 	n_tty_set_room(tty);
+ 	return retval;
+ }
++EXPORT_SYMBOL_GPL(n_tty_read);
+ 
+ /**
+  *	n_tty_write		-	write function for tty
+@@ -1495,7 +1503,7 @@ do_it_again:
+  *	This code must be sure never to sleep through a hangup.
+  */
+ 
+-static ssize_t n_tty_write(struct tty_struct *tty, struct file *file,
++ssize_t n_tty_write(struct tty_struct *tty, struct file *file,
+ 			  const unsigned char *buf, size_t nr)
+ {
+ 	const unsigned char *b = buf;
+@@ -1567,6 +1575,7 @@ break_out:
+ 	remove_wait_queue(&tty->write_wait, &wait);
+ 	return (b - buf) ? b - buf : retval;
+ }
++EXPORT_SYMBOL_GPL(n_tty_write);
+ 
+ /**
+  *	n_tty_poll		-	poll method for N_TTY
+@@ -1582,7 +1591,7 @@ break_out:
+  *	Called without the kernel lock held - fine
+  */
+ 
+-static unsigned int n_tty_poll(struct tty_struct *tty, struct file *file,
++unsigned int n_tty_poll(struct tty_struct *tty, struct file *file,
+ 							poll_table *wait)
+ {
+ 	unsigned int mask = 0;
+@@ -1609,6 +1618,7 @@ static unsigned int n_tty_poll(struct tt
+ 		mask |= POLLOUT | POLLWRNORM;
+ 	return mask;
+ }
++EXPORT_SYMBOL_GPL(n_tty_poll);
+ 
+ static unsigned long inq_canon(struct tty_struct *tty)
+ {
+diff -puN include/linux/tty.h~ldisc-n_tty-export-all-n_tty-ldisc-methods include/linux/tty.h
+--- a/include/linux/tty.h~ldisc-n_tty-export-all-n_tty-ldisc-methods
++++ a/include/linux/tty.h
+@@ -13,6 +13,7 @@
+ #include <linux/tty_driver.h>
+ #include <linux/tty_ldisc.h>
+ #include <linux/mutex.h>
++#include <linux/poll.h>
+ 
+ #include <asm/system.h>
+ 
+@@ -432,6 +433,21 @@ extern void tty_ldisc_begin(void);
+ /* This last one is just for the tty layer internals and shouldn't be used elsewhere */
+ extern void tty_ldisc_enable(struct tty_struct *tty);
+ 
++extern void n_tty_flush_buffer(struct tty_struct *tty);
++extern ssize_t n_tty_chars_in_buffer(struct tty_struct *tty);
++extern void n_tty_write_wakeup(struct tty_struct *tty);
++extern void n_tty_receive_buf(struct tty_struct *tty, const unsigned char *cp,
++			char *fp, int count);
++extern void n_tty_set_termios(struct tty_struct *tty, struct ktermios *old);
++extern void n_tty_close(struct tty_struct *tty);
++extern int n_tty_open(struct tty_struct *tty);
++extern ssize_t n_tty_read(struct tty_struct *tty, struct file *file,
++			unsigned char __user *buf, size_t nr);
++extern ssize_t n_tty_write(struct tty_struct *tty, struct file *file,
++			const unsigned char *buf, size_t nr);
++extern unsigned int n_tty_poll(struct tty_struct *tty, struct file *file,
++			poll_table *wait);
 +
-+#ifndef _SYS_TIMEPPS_H_
-+#define _SYS_TIMEPPS_H_
-+
-+#include <sys/syscall.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <linux/pps.h>
-+
-+#define LINUXPPS	1		/* signal we are using LinuxPPS */
-+
-+/*
-+ * New data structures
-+ */
-+
-+struct ntp_fp {
-+	unsigned int integral;
-+	unsigned int fractional;
-+};
-+
-+union pps_timeu {
-+	struct timespec tspec;
-+	struct ntp_fp ntpfp;
-+	unsigned long longpad[3];
-+};
-+
-+struct pps_info {
-+	unsigned long assert_sequence;	/* seq. num. of assert event */
-+	unsigned long clear_sequence;	/* seq. num. of clear event */
-+	union pps_timeu assert_tu;	/* time of assert event */
-+	union pps_timeu clear_tu;	/* time of clear event */
-+	int current_mode;		/* current mode bits */
-+};
-+
-+struct pps_params {
-+	int api_version;		/* API version # */
-+	int mode;			/* mode bits */
-+	union pps_timeu assert_off_tu;	/* offset compensation for assert */
-+	union pps_timeu clear_off_tu;	/* offset compensation for clear */
-+};
-+
-+typedef int pps_handle_t;		/* represents a PPS source */
-+typedef unsigned long pps_seq_t;	/* sequence number */
-+typedef struct ntp_fp ntp_fp_t;		/* NTP-compatible time stamp */
-+typedef union pps_timeu pps_timeu_t;	/* generic data type for time stamps */
-+typedef struct pps_info pps_info_t;
-+typedef struct pps_params pps_params_t;
-+
-+#define assert_timestamp        assert_tu.tspec
-+#define clear_timestamp         clear_tu.tspec
-+
-+#define assert_timestamp_ntpfp  assert_tu.ntpfp
-+#define clear_timestamp_ntpfp   clear_tu.ntpfp
-+
-+#define assert_offset		assert_off_tu.tspec
-+#define clear_offset		clear_off_tu.tspec
-+
-+#define assert_offset_ntpfp     assert_off_tu.ntpfp
-+#define clear_offset_ntpfp      clear_off_tu.ntpfp
-+
-+/*
-+ * The PPS API
-+ */
-+
-+static __inline int time_pps_create(int source, pps_handle_t *handle)
-+{
-+	int ret;
-+
-+	if (!handle) {
-+		errno = EINVAL;
-+		return -1;
-+	}
-+
-+	/* First we check if current device is a PPS valid PPS one...
-+	 */
-+	ret = ioctl(source, PPS_CHECK);
-+	if (ret) {
-+		errno = EOPNOTSUPP;
-+		return -1;
-+	}
-+
-+	/* ... then since in LinuxPPS there are no differences between a
-+	 * "PPS source" and a "PPS handle", we simply return the same value.
-+	 */
-+	*handle = source;
-+
-+	return 0;
-+}
-+
-+static __inline int time_pps_destroy(pps_handle_t handle)
-+{
-+	return close(handle);
-+}
-+
-+static __inline int time_pps_getparams(pps_handle_t handle,
-+					pps_params_t *ppsparams)
-+{
-+	int ret;
-+	struct pps_kparams __ppsparams;
-+
-+	ret = ioctl(handle, PPS_GETPARAMS, &__ppsparams);
-+
-+	ppsparams->api_version = __ppsparams.api_version;
-+	ppsparams->mode = __ppsparams.mode;
-+	ppsparams->assert_off_tu.tspec.tv_sec = __ppsparams.assert_off_tu.sec;
-+	ppsparams->assert_off_tu.tspec.tv_nsec = __ppsparams.assert_off_tu.nsec;
-+	ppsparams->clear_off_tu.tspec.tv_sec = __ppsparams.clear_off_tu.sec;
-+	ppsparams->clear_off_tu.tspec.tv_nsec = __ppsparams.clear_off_tu.nsec;
-+
-+	return ret;
-+}
-+
-+static __inline int time_pps_setparams(pps_handle_t handle,
-+					const pps_params_t *ppsparams)
-+{
-+	struct pps_kparams __ppsparams;
-+
-+	__ppsparams.api_version = ppsparams->api_version;
-+	__ppsparams.mode = ppsparams->mode;
-+	__ppsparams.assert_off_tu.sec = ppsparams->assert_off_tu.tspec.tv_sec;
-+	__ppsparams.assert_off_tu.nsec = ppsparams->assert_off_tu.tspec.tv_nsec;
-+	__ppsparams.clear_off_tu.sec = ppsparams->clear_off_tu.tspec.tv_sec;
-+	__ppsparams.clear_off_tu.nsec = ppsparams->clear_off_tu.tspec.tv_nsec;
-+
-+	return ioctl(handle, PPS_SETPARAMS, &__ppsparams);
-+}
-+
-+/* Get capabilities for handle */
-+static __inline int time_pps_getcap(pps_handle_t handle, int *mode)
-+{
-+	return ioctl(handle, PPS_GETCAP, mode);
-+}
-+
-+static __inline int time_pps_fetch(pps_handle_t handle, const int tsformat,
-+					pps_info_t *ppsinfobuf,
-+					const struct timespec *timeout)
-+{
-+	struct pps_fdata __fdata;
-+	int ret;
-+
-+	/* Sanity checks */
-+	if (tsformat != PPS_TSFMT_TSPEC) {
-+		errno = EINVAL;
-+		return -1;
-+	}
-+
-+	if (timeout) {
-+		__fdata.timeout.sec = timeout->tv_sec;
-+		__fdata.timeout.nsec = timeout->tv_nsec;
-+		__fdata.timeout.flags = ~PPS_TIME_INVALID;
-+	} else
-+		__fdata.timeout.flags = PPS_TIME_INVALID;
-+
-+	ret = ioctl(handle, PPS_FETCH, &__fdata);
-+
-+	ppsinfobuf->assert_sequence = __fdata.info.assert_sequence;
-+	ppsinfobuf->clear_sequence = __fdata.info.clear_sequence;
-+	ppsinfobuf->assert_tu.tspec.tv_sec = __fdata.info.assert_tu.sec;
-+	ppsinfobuf->assert_tu.tspec.tv_nsec = __fdata.info.assert_tu.nsec;
-+	ppsinfobuf->clear_tu.tspec.tv_sec = __fdata.info.clear_tu.sec;
-+	ppsinfobuf->clear_tu.tspec.tv_nsec = __fdata.info.clear_tu.nsec;
-+	ppsinfobuf->current_mode = __fdata.info.current_mode;
-+
-+	return ret;
-+}
-+
-+static __inline int time_pps_kcbind(pps_handle_t handle,
-+					const int kernel_consumer,
-+					const int edge, const int tsformat)
-+{
-+	/* LinuxPPS doesn't implement kernel consumer feature */
-+	errno = EOPNOTSUPP;
-+	return -1;
-+}
-+
-+#endif				/* _SYS_TIMEPPS_H_ */
+ 
+ /* n_tty.c */
+ extern struct tty_ldisc_ops tty_ldisc_N_TTY;
 _
 
 Patches currently in -mm which might be from giometti@linux.it are
 
 linux-next.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
 ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
 pps-serial-clients-support.patch
 pps-parallel-port-clients-support.patch
