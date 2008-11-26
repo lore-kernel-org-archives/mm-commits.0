@@ -1,100 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-modulec-compare-symbol-values-when-marking-symbols-as-exported-in-proc-kallsyms.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:46:19 -0800
-Message-ID: <200811262046.mAQKkJKA010703@imap1.linux-foundation.org>
+Subject: - parisc-fix-kernel-crash-when-unwinding-a-userspace-process-v2.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:46:22 -0800
+Message-ID: <200811262046.mAQKkMQW010794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752807AbYKZUrS (ORCPT
+	by vger.kernel.org with ESMTP id S1752729AbYKZUrz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:47:18 -0500
+	Wed, 26 Nov 2008 15:47:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tabbott@MIT.EDU, rusty@rustcorp.com.autabbott@MIT.EDU, mm-commits@vger.kernel.org
+To: deller@gmx.de, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx, randolph@tausq.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/module.c: compare symbol values when marking symbols as exported in /proc/kallsyms.
+     parisc: fix kernel crash when unwinding a userspace process
 has been removed from the -mm tree.  Its filename was
-     kernel-modulec-compare-symbol-values-when-marking-symbols-as-exported-in-proc-kallsyms.patch
+     parisc-fix-kernel-crash-when-unwinding-a-userspace-process-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/module.c: compare symbol values when marking symbols as exported in /proc/kallsyms.
-From: Tim Abbott <tabbott@MIT.EDU>
+Subject: parisc: fix kernel crash when unwinding a userspace process
+From: Helge Deller <deller@gmx.de>
 
-When there are two symbols in a module with the same name, one of which is
-exported, both will be marked as exported in /proc/kallsyms.  There aren't
-any instances of this in the current kernel, but it is easy to construct a
-simple module with two compilation units that exhibits the problem.
+Any user on existing parisc 32- and 64bit-kernels can easily crash
+the kernel and as such enforce a DSO.
+A simple testcase is available here:
+        http://gsyprf10.external.hp.com/~deller/crash.tgz
 
-$ objdump -j .text -t testmod.ko | grep foo
-00000000 l     F .text	00000032 foo
-00000080 g     F .text	00000001 foo
-$ sudo insmod testmod.ko
-$ grep "T foo" /proc/kallsyms
-c28e8000 T foo	[testmod]
-c28e8080 T foo	[testmod]
+The problem is introduced by the fact, that the handle_interruption()
+crash handler calls the show_regs() function, which in turn tries to
+unwind the stack by calling parisc_show_stack().  Since the stack contains
+userspace addresses, a try to unwind the stack is dangerous and useless
+and leads to the crash.
 
-Fix this by comparing the symbol values once we've found the exported
-symbol table entry matching the symbol name.  Tested using Ksplice:
+The fix is trivial: For userspace processes
+a) avoid to unwind the stack, and
+b) avoid to resolve userspace addresses to kernel symbol names.
 
-$ ksplice-create --patch=this_commit.patch --id=bar .
-$ sudo ksplice-apply ksplice-bar.tar.gz
-Done!
-$ grep "T foo" /proc/kallsyms
-c28e8080 T foo	[testmod]
+While touching this code, I converted print_symbol() to %pS
+printk formats and made parisc_show_stack() static.
 
-Signed-off-by: Tim Abbott <tabbott@mit.edu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+An initial patch for this was written by Kyle McMartin back in August:
+http://marc.info/?l=linux-parisc&m=121805168830283&w=2
+
+Compile and run-tested with a 64bit parisc kernel.
+
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x, 2.6.27.x, earlier...]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ arch/parisc/kernel/traps.c |   41 +++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 21 deletions(-)
 
-diff -puN kernel/module.c~kernel-modulec-compare-symbol-values-when-marking-symbols-as-exported-in-proc-kallsyms kernel/module.c
---- a/kernel/module.c~kernel-modulec-compare-symbol-values-when-marking-symbols-as-exported-in-proc-kallsyms
-+++ a/kernel/module.c
-@@ -1726,15 +1726,15 @@ static const struct kernel_symbol *looku
- 	return NULL;
- }
+diff -puN arch/parisc/kernel/traps.c~parisc-fix-kernel-crash-when-unwinding-a-userspace-process-v2 arch/parisc/kernel/traps.c
+--- a/arch/parisc/kernel/traps.c~parisc-fix-kernel-crash-when-unwinding-a-userspace-process-v2
++++ a/arch/parisc/kernel/traps.c
+@@ -24,7 +24,6 @@
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/console.h>
+-#include <linux/kallsyms.h>
+ #include <linux/bug.h>
  
--static int is_exported(const char *name, const struct module *mod)
-+static int is_exported(const char *name, unsigned long value,
-+		       const struct module *mod)
+ #include <asm/assembly.h>
+@@ -51,7 +50,7 @@
+ DEFINE_SPINLOCK(pa_dbit_lock);
+ #endif
+ 
+-void parisc_show_stack(struct task_struct *t, unsigned long *sp,
++static void parisc_show_stack(struct task_struct *task, unsigned long *sp,
+ 	struct pt_regs *regs);
+ 
+ static int printbinary(char *buf, unsigned long x, int nbits)
+@@ -121,18 +120,19 @@ static void print_fr(char *level, struct
+ 
+ void show_regs(struct pt_regs *regs)
  {
--	if (!mod && lookup_symbol(name, __start___ksymtab, __stop___ksymtab))
--		return 1;
-+	const struct kernel_symbol *ks;
-+	if (!mod)
-+		ks = lookup_symbol(name, __start___ksymtab, __stop___ksymtab);
- 	else
--		if (mod && lookup_symbol(name, mod->syms, mod->syms + mod->num_syms))
--			return 1;
--		else
--			return 0;
-+		ks = lookup_symbol(name, mod->syms, mod->syms + mod->num_syms);
-+	return ks != NULL && ks->value == value;
+-	int i;
++	int i, user;
+ 	char *level;
+ 	unsigned long cr30, cr31;
+ 
+-	level = user_mode(regs) ? KERN_DEBUG : KERN_CRIT;
++	user = user_mode(regs);
++	level = user ? KERN_DEBUG : KERN_CRIT;
+ 
+ 	print_gr(level, regs);
+ 
+ 	for (i = 0; i < 8; i += 4)
+ 		PRINTREGS(level, regs->sr, "sr", RFMT, i);
+ 
+-	if (user_mode(regs))
++	if (user)
+ 		print_fr(level, regs);
+ 
+ 	cr30 = mfctl(30);
+@@ -145,14 +145,18 @@ void show_regs(struct pt_regs *regs)
+ 	printk("%s CPU: %8d   CR30: " RFMT " CR31: " RFMT "\n",
+ 	       level, current_thread_info()->cpu, cr30, cr31);
+ 	printk("%s ORIG_R28: " RFMT "\n", level, regs->orig_r28);
+-	printk(level);
+-	print_symbol(" IAOQ[0]: %s\n", regs->iaoq[0]);
+-	printk(level);
+-	print_symbol(" IAOQ[1]: %s\n", regs->iaoq[1]);
+-	printk(level);
+-	print_symbol(" RP(r2): %s\n", regs->gr[2]);
+ 
+-	parisc_show_stack(current, NULL, regs);
++	if (user) {
++		printk("%s IAOQ[0]: " RFMT "\n", level, regs->iaoq[0]);
++		printk("%s IAOQ[1]: " RFMT "\n", level, regs->iaoq[1]);
++		printk("%s RP(r2): " RFMT "\n", level, regs->gr[2]);
++	} else {
++		printk("%s IAOQ[0]: %pS\n", level, (void *) regs->iaoq[0]);
++		printk("%s IAOQ[1]: %pS\n", level, (void *) regs->iaoq[1]);
++		printk("%s RP(r2): %pS\n", level, (void *) regs->gr[2]);
++
++		parisc_show_stack(current, NULL, regs);
++	}
  }
  
- /* As per nm */
-@@ -2514,7 +2514,7 @@ int module_get_kallsym(unsigned int symn
- 			strlcpy(name, mod->strtab + mod->symtab[symnum].st_name,
- 				KSYM_NAME_LEN);
- 			strlcpy(module_name, mod->name, MODULE_NAME_LEN);
--			*exported = is_exported(name, mod);
-+			*exported = is_exported(name, *value, mod);
- 			preempt_enable();
- 			return 0;
+ 
+@@ -173,20 +177,15 @@ static void do_show_stack(struct unwind_
+ 			break;
+ 
+ 		if (__kernel_text_address(info->ip)) {
+-			printk("%s [<" RFMT ">] ", (i&0x3)==1 ? KERN_CRIT : "", info->ip);
+-#ifdef CONFIG_KALLSYMS
+-			print_symbol("%s\n", info->ip);
+-#else
+-			if ((i & 0x03) == 0)
+-				printk("\n");
+-#endif
++			printk(KERN_CRIT " [<" RFMT ">] %pS\n",
++				info->ip, (void *) info->ip);
+ 			i++;
  		}
+ 	}
+-	printk("\n");
++	printk(KERN_CRIT "\n");
+ }
+ 
+-void parisc_show_stack(struct task_struct *task, unsigned long *sp,
++static void parisc_show_stack(struct task_struct *task, unsigned long *sp,
+ 	struct pt_regs *regs)
+ {
+ 	struct unwind_frame_info info;
 _
 
-Patches currently in -mm which might be from tabbott@MIT.EDU are
+Patches currently in -mm which might be from deller@gmx.de are
 
 linux-next.patch
+parisc-maintainers-updates.patch
 
