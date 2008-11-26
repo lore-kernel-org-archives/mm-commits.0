@@ -1,61 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - init-mainc-use-ktime-accessor-function-in-initcall_debug-code.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:46:38 -0800
-Message-ID: <200811262046.mAQKkcuW010896@imap1.linux-foundation.org>
+Subject: + hugetlb-fix-sparse-warnings.patch added to -mm tree
+Date: Wed, 26 Nov 2008 13:03:40 -0800
+Message-ID: <200811262103.mAQL3ehQ019903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752943AbYKZU5O (ORCPT
+	by vger.kernel.org with ESMTP id S1752227AbYKZVDo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:57:14 -0500
+	Wed, 26 Nov 2008 16:03:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: will.newton@gmail.com, mingo@elte.hu, tglx@linutronix.de, tim.bird@am.sony.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hannes@hanneseder.net, nacc@us.ibm.com
 
 
 The patch titled
-     init/main.c: use ktime accessor function in initcall_debug code.
-has been removed from the -mm tree.  Its filename was
-     init-mainc-use-ktime-accessor-function-in-initcall_debug-code.patch
+     hugetlb: fix sparse warnings
+has been added to the -mm tree.  Its filename is
+     hugetlb-fix-sparse-warnings.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init/main.c: use ktime accessor function in initcall_debug code.
-From: "Will Newton" <will.newton@gmail.com>
+Subject: hugetlb: fix sparse warnings
+From: "Hannes Eder" <hannes@hanneseder.net>
 
-The initcall_debug code access the tv64 member of ktime.  This won't work
-correctly for large deltas on platforms that don't use the scalar ktime
-implementation.
+Fix the following sparse warnings:
 
-Signed-off-by: Will Newton <will.newton@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Tim Bird <tim.bird@am.sony.com>
+  mm/hugetlb.c:375:3: warning: returning void-valued expression
+  mm/hugetlb.c:408:3: warning: returning void-valued expression
+
+Signed-off-by: Hannes Eder <hannes@hanneseder.net>
+Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN init/main.c~init-mainc-use-ktime-accessor-function-in-initcall_debug-code init/main.c
---- a/init/main.c~init-mainc-use-ktime-accessor-function-in-initcall_debug-code
-+++ a/init/main.c
-@@ -726,7 +726,7 @@ int do_one_initcall(initcall_t fn)
- 	if (initcall_debug) {
- 		it.rettime = ktime_get();
- 		delta = ktime_sub(it.rettime, it.calltime);
--		it.duration = (unsigned long long) delta.tv64 >> 10;
-+		it.duration = (unsigned long long) ktime_to_ns(delta) >> 10;
- 		printk("initcall %pF returned %d after %Ld usecs\n", fn,
- 			it.result, it.duration);
- 		trace_boot(&it, fn);
+diff -puN mm/hugetlb.c~hugetlb-fix-sparse-warnings mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-sparse-warnings
++++ a/mm/hugetlb.c
+@@ -400,8 +400,10 @@ static void clear_huge_page(struct page 
+ {
+ 	int i;
+ 
+-	if (unlikely(sz > MAX_ORDER_NR_PAGES))
+-		return clear_gigantic_page(page, addr, sz);
++	if (unlikely(sz > MAX_ORDER_NR_PAGES)) {
++		clear_gigantic_page(page, addr, sz);
++		return;
++	}
+ 
+ 	might_sleep();
+ 	for (i = 0; i < sz/PAGE_SIZE; i++) {
+@@ -433,8 +435,10 @@ static void copy_huge_page(struct page *
+ 	int i;
+ 	struct hstate *h = hstate_vma(vma);
+ 
+-	if (unlikely(pages_per_huge_page(h) > MAX_ORDER_NR_PAGES))
+-		return copy_gigantic_page(dst, src, addr, vma);
++	if (unlikely(pages_per_huge_page(h) > MAX_ORDER_NR_PAGES)) {
++		copy_gigantic_page(dst, src, addr, vma);
++		return;
++	}
+ 
+ 	might_sleep();
+ 	for (i = 0; i < pages_per_huge_page(h); i++) {
 _
 
-Patches currently in -mm which might be from will.newton@gmail.com are
+Patches currently in -mm which might be from hannes@hanneseder.net are
 
 linux-next.patch
+hugetlb-fix-sparse-warnings.patch
 
