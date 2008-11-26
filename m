@@ -1,219 +1,332 @@
 From: akpm@linux-foundation.org
-Subject: - quota-convert-union-in-mem_dqinfo-to-a-pointer.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:27:33 -0800
-Message-ID: <200811262027.mAQKRXg7000609@imap1.linux-foundation.org>
+Subject: - quota-move-quotaio_vh-from-include-linux-to-fs.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:27:25 -0800
+Message-ID: <200811262027.mAQKRPjY000495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58209 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40630 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752472AbYKZUiP (ORCPT
+	by vger.kernel.org with ESMTP id S1754081AbYKZUic (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:38:15 -0500
+	Wed, 26 Nov 2008 15:38:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota: convert union in mem_dqinfo to a pointer
+     quota: move quotaio_v[12].h from include/linux/ to fs/
 has been removed from the -mm tree.  Its filename was
-     quota-convert-union-in-mem_dqinfo-to-a-pointer.patch
+     quota-move-quotaio_vh-from-include-linux-to-fs.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: convert union in mem_dqinfo to a pointer
+Subject: quota: move quotaio_v[12].h from include/linux/ to fs/
 From: Jan Kara <jack@suse.cz>
 
-Coming quota support for OCFS2 is going to need quite a bit of additional
-per-sb quota information.  Moreover having fs.h include all the types
-needed for this structure would be a pain in the a**.  So remove the union
-from mem_dqinfo and add a private pointer for filesystem's use.
+Since these include files are used only by implementation of quota
+formats, there's no need to have them in include/linux/.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/quota_v2.c            |   53 +++++++++++++++++++++++--------------
- include/linux/dqblk_v1.h |    4 --
- include/linux/dqblk_v2.h |    4 --
- include/linux/quota.h    |    5 ---
- 4 files changed, 35 insertions(+), 31 deletions(-)
+ fs/quota_v1.c              |    3 -
+ fs/quota_v2.c              |    7 +--
+ fs/quotaio_v1.h            |   33 ++++++++++++++
+ fs/quotaio_v2.h            |   79 +++++++++++++++++++++++++++++++++++
+ include/linux/quotaio_v1.h |   33 --------------
+ include/linux/quotaio_v2.h |   79 -----------------------------------
+ 6 files changed, 118 insertions(+), 116 deletions(-)
 
-diff -puN fs/quota_v2.c~quota-convert-union-in-mem_dqinfo-to-a-pointer fs/quota_v2.c
---- a/fs/quota_v2.c~quota-convert-union-in-mem_dqinfo-to-a-pointer
+diff -puN fs/quota_v1.c~quota-move-quotaio_vh-from-include-linux-to-fs fs/quota_v1.c
+--- a/fs/quota_v1.c~quota-move-quotaio_vh-from-include-linux-to-fs
++++ a/fs/quota_v1.c
+@@ -3,13 +3,14 @@
+ #include <linux/quota.h>
+ #include <linux/quotaops.h>
+ #include <linux/dqblk_v1.h>
+-#include <linux/quotaio_v1.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ 
+ #include <asm/byteorder.h>
+ 
++#include "quotaio_v1.h"
++
+ MODULE_AUTHOR("Jan Kara");
+ MODULE_DESCRIPTION("Old quota format support");
+ MODULE_LICENSE("GPL");
+diff -puN fs/quota_v2.c~quota-move-quotaio_vh-from-include-linux-to-fs fs/quota_v2.c
+--- a/fs/quota_v2.c~quota-move-quotaio_vh-from-include-linux-to-fs
 +++ a/fs/quota_v2.c
-@@ -71,6 +71,7 @@ static int v2_read_file_info(struct supe
- {
- 	struct v2_disk_dqinfo dinfo;
- 	struct mem_dqinfo *info = sb_dqinfo(sb, type);
-+	struct qtree_mem_dqinfo *qinfo;
- 	ssize_t size;
+@@ -6,7 +6,6 @@
+ #include <linux/fs.h>
+ #include <linux/mount.h>
+ #include <linux/dqblk_v2.h>
+-#include <linux/quotaio_v2.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+@@ -15,6 +14,8 @@
  
- 	size = sb->s_op->quota_read(sb, type, (char *)&dinfo,
-@@ -80,22 +81,29 @@ static int v2_read_file_info(struct supe
- 			sb->s_id);
- 		return -1;
- 	}
-+	info->dqi_priv = kmalloc(sizeof(struct qtree_mem_dqinfo), GFP_NOFS);
-+	if (!info->dqi_priv) {
-+		printk(KERN_WARNING "Not enough memory for quota information"
-+				    "structure.\n");
-+		return -1;
-+	}
-+	qinfo = info->dqi_priv;
- 	/* limits are stored as unsigned 32-bit data */
- 	info->dqi_maxblimit = 0xffffffff;
- 	info->dqi_maxilimit = 0xffffffff;
- 	info->dqi_bgrace = le32_to_cpu(dinfo.dqi_bgrace);
- 	info->dqi_igrace = le32_to_cpu(dinfo.dqi_igrace);
- 	info->dqi_flags = le32_to_cpu(dinfo.dqi_flags);
--	info->u.v2_i.i.dqi_sb = sb;
--	info->u.v2_i.i.dqi_type = type;
--	info->u.v2_i.i.dqi_blocks = le32_to_cpu(dinfo.dqi_blocks);
--	info->u.v2_i.i.dqi_free_blk = le32_to_cpu(dinfo.dqi_free_blk);
--	info->u.v2_i.i.dqi_free_entry = le32_to_cpu(dinfo.dqi_free_entry);
--	info->u.v2_i.i.dqi_blocksize_bits = V2_DQBLKSIZE_BITS;
--	info->u.v2_i.i.dqi_usable_bs = 1 << V2_DQBLKSIZE_BITS;
--	info->u.v2_i.i.dqi_qtree_depth = qtree_depth(&info->u.v2_i.i);
--	info->u.v2_i.i.dqi_entry_size = sizeof(struct v2_disk_dqblk);
--	info->u.v2_i.i.dqi_ops = &v2_qtree_ops;
-+	qinfo->dqi_sb = sb;
-+	qinfo->dqi_type = type;
-+	qinfo->dqi_blocks = le32_to_cpu(dinfo.dqi_blocks);
-+	qinfo->dqi_free_blk = le32_to_cpu(dinfo.dqi_free_blk);
-+	qinfo->dqi_free_entry = le32_to_cpu(dinfo.dqi_free_entry);
-+	qinfo->dqi_blocksize_bits = V2_DQBLKSIZE_BITS;
-+	qinfo->dqi_usable_bs = 1 << V2_DQBLKSIZE_BITS;
-+	qinfo->dqi_qtree_depth = qtree_depth(qinfo);
-+	qinfo->dqi_entry_size = sizeof(struct v2_disk_dqblk);
-+	qinfo->dqi_ops = &v2_qtree_ops;
- 	return 0;
- }
+ #include <asm/byteorder.h>
  
-@@ -104,6 +112,7 @@ static int v2_write_file_info(struct sup
- {
- 	struct v2_disk_dqinfo dinfo;
- 	struct mem_dqinfo *info = sb_dqinfo(sb, type);
-+	struct qtree_mem_dqinfo *qinfo = info->dqi_priv;
- 	ssize_t size;
- 
- 	spin_lock(&dq_data_lock);
-@@ -112,9 +121,9 @@ static int v2_write_file_info(struct sup
- 	dinfo.dqi_igrace = cpu_to_le32(info->dqi_igrace);
- 	dinfo.dqi_flags = cpu_to_le32(info->dqi_flags & DQF_MASK);
- 	spin_unlock(&dq_data_lock);
--	dinfo.dqi_blocks = cpu_to_le32(info->u.v2_i.i.dqi_blocks);
--	dinfo.dqi_free_blk = cpu_to_le32(info->u.v2_i.i.dqi_free_blk);
--	dinfo.dqi_free_entry = cpu_to_le32(info->u.v2_i.i.dqi_free_entry);
-+	dinfo.dqi_blocks = cpu_to_le32(qinfo->dqi_blocks);
-+	dinfo.dqi_free_blk = cpu_to_le32(qinfo->dqi_free_blk);
-+	dinfo.dqi_free_entry = cpu_to_le32(qinfo->dqi_free_entry);
- 	size = sb->s_op->quota_write(sb, type, (char *)&dinfo,
- 	       sizeof(struct v2_disk_dqinfo), V2_DQINFOOFF);
- 	if (size != sizeof(struct v2_disk_dqinfo)) {
-@@ -150,7 +159,7 @@ static void v2_mem2diskdqb(void *dp, str
- 	struct v2_disk_dqblk *d = dp;
- 	struct mem_dqblk *m = &dquot->dq_dqb;
- 	struct qtree_mem_dqinfo *info =
--			&sb_dqinfo(dquot->dq_sb, dquot->dq_type)->u.v2_i.i;
-+			sb_dqinfo(dquot->dq_sb, dquot->dq_type)->dqi_priv;
- 
- 	d->dqb_ihardlimit = cpu_to_le32(m->dqb_ihardlimit);
++#include "quotaio_v2.h"
++
+ MODULE_AUTHOR("Jan Kara");
+ MODULE_DESCRIPTION("Quota format v2 support");
+ MODULE_LICENSE("GPL");
+@@ -129,8 +130,8 @@ static void mem2diskdqb(struct v2_disk_d
  	d->dqb_isoftlimit = cpu_to_le32(m->dqb_isoftlimit);
-@@ -169,7 +178,7 @@ static int v2_is_id(void *dp, struct dqu
- {
- 	struct v2_disk_dqblk *d = dp;
- 	struct qtree_mem_dqinfo *info =
--			&sb_dqinfo(dquot->dq_sb, dquot->dq_type)->u.v2_i.i;
-+			sb_dqinfo(dquot->dq_sb, dquot->dq_type)->dqi_priv;
- 
- 	if (qtree_entry_unused(info, dp))
- 		return 0;
-@@ -178,24 +187,30 @@ static int v2_is_id(void *dp, struct dqu
- 
- static int v2_read_dquot(struct dquot *dquot)
- {
--	return qtree_read_dquot(&sb_dqinfo(dquot->dq_sb, dquot->dq_type)->u.v2_i.i, dquot);
-+	return qtree_read_dquot(sb_dqinfo(dquot->dq_sb, dquot->dq_type)->dqi_priv, dquot);
- }
- 
- static int v2_write_dquot(struct dquot *dquot)
- {
--	return qtree_write_dquot(&sb_dqinfo(dquot->dq_sb, dquot->dq_type)->u.v2_i.i, dquot);
-+	return qtree_write_dquot(sb_dqinfo(dquot->dq_sb, dquot->dq_type)->dqi_priv, dquot);
- }
- 
- static int v2_release_dquot(struct dquot *dquot)
- {
--	return qtree_release_dquot(&sb_dqinfo(dquot->dq_sb, dquot->dq_type)->u.v2_i.i, dquot);
-+	return qtree_release_dquot(sb_dqinfo(dquot->dq_sb, dquot->dq_type)->dqi_priv, dquot);
+ 	d->dqb_curinodes = cpu_to_le32(m->dqb_curinodes);
+ 	d->dqb_itime = cpu_to_le64(m->dqb_itime);
+-	d->dqb_bhardlimit = cpu_to_le32(v2_qbtos(m->dqb_bhardlimit));
+-	d->dqb_bsoftlimit = cpu_to_le32(v2_qbtos(m->dqb_bsoftlimit));
++	d->dqb_bhardlimit = cpu_to_le32(v2_stoqb(m->dqb_bhardlimit));
++	d->dqb_bsoftlimit = cpu_to_le32(v2_stoqb(m->dqb_bsoftlimit));
+ 	d->dqb_curspace = cpu_to_le64(m->dqb_curspace);
+ 	d->dqb_btime = cpu_to_le64(m->dqb_btime);
+ 	d->dqb_id = cpu_to_le32(id);
+diff -puN /dev/null fs/quotaio_v1.h
+--- /dev/null
++++ a/fs/quotaio_v1.h
+@@ -0,0 +1,33 @@
++#ifndef _LINUX_QUOTAIO_V1_H
++#define _LINUX_QUOTAIO_V1_H
++
++#include <linux/types.h>
++
++/*
++ * The following constants define the amount of time given a user
++ * before the soft limits are treated as hard limits (usually resulting
++ * in an allocation failure). The timer is started when the user crosses
++ * their soft limit, it is reset when they go below their soft limit.
++ */
++#define MAX_IQ_TIME  604800	/* (7*24*60*60) 1 week */
++#define MAX_DQ_TIME  604800	/* (7*24*60*60) 1 week */
++
++/*
++ * The following structure defines the format of the disk quota file
++ * (as it appears on disk) - the file is an array of these structures
++ * indexed by user or group number.
++ */
++struct v1_disk_dqblk {
++	__u32 dqb_bhardlimit;	/* absolute limit on disk blks alloc */
++	__u32 dqb_bsoftlimit;	/* preferred limit on disk blks */
++	__u32 dqb_curblocks;	/* current block count */
++	__u32 dqb_ihardlimit;	/* absolute limit on allocated inodes */
++	__u32 dqb_isoftlimit;	/* preferred inode limit */
++	__u32 dqb_curinodes;	/* current # allocated inodes */
++	time_t dqb_btime;	/* time limit for excessive disk use */
++	time_t dqb_itime;	/* time limit for excessive inode use */
++};
++
++#define v1_dqoff(UID)      ((loff_t)((UID) * sizeof (struct v1_disk_dqblk)))
++
++#endif	/* _LINUX_QUOTAIO_V1_H */
+diff -puN /dev/null fs/quotaio_v2.h
+--- /dev/null
++++ a/fs/quotaio_v2.h
+@@ -0,0 +1,79 @@
++/*
++ *	Definitions of structures for vfsv0 quota format
++ */
++
++#ifndef _LINUX_QUOTAIO_V2_H
++#define _LINUX_QUOTAIO_V2_H
++
++#include <linux/types.h>
++#include <linux/quota.h>
++
++/*
++ * Definitions of magics and versions of current quota files
++ */
++#define V2_INITQMAGICS {\
++	0xd9c01f11,	/* USRQUOTA */\
++	0xd9c01927	/* GRPQUOTA */\
 +}
 +
-+static int v2_free_file_info(struct super_block *sb, int type)
-+{
-+	kfree(sb_dqinfo(sb, type)->dqi_priv);
-+	return 0;
- }
- 
- static struct quota_format_ops v2_format_ops = {
- 	.check_quota_file	= v2_check_quota_file,
- 	.read_file_info		= v2_read_file_info,
- 	.write_file_info	= v2_write_file_info,
--	.free_file_info		= NULL,
-+	.free_file_info		= v2_free_file_info,
- 	.read_dqblk		= v2_read_dquot,
- 	.commit_dqblk		= v2_write_dquot,
- 	.release_dqblk		= v2_release_dquot,
-diff -puN include/linux/dqblk_v1.h~quota-convert-union-in-mem_dqinfo-to-a-pointer include/linux/dqblk_v1.h
---- a/include/linux/dqblk_v1.h~quota-convert-union-in-mem_dqinfo-to-a-pointer
-+++ a/include/linux/dqblk_v1.h
-@@ -17,8 +17,4 @@
- #define V1_DEL_ALLOC 0
- #define V1_DEL_REWRITE 2
- 
--/* Special information about quotafile */
--struct v1_mem_dqinfo {
++#define V2_INITQVERSIONS {\
++	0,		/* USRQUOTA */\
++	0		/* GRPQUOTA */\
++}
++
++/*
++ * The following structure defines the format of the disk quota file
++ * (as it appears on disk) - the file is a radix tree whose leaves point
++ * to blocks of these structures.
++ */
++struct v2_disk_dqblk {
++	__le32 dqb_id;		/* id this quota applies to */
++	__le32 dqb_ihardlimit;	/* absolute limit on allocated inodes */
++	__le32 dqb_isoftlimit;	/* preferred inode limit */
++	__le32 dqb_curinodes;	/* current # allocated inodes */
++	__le32 dqb_bhardlimit;	/* absolute limit on disk space (in QUOTABLOCK_SIZE) */
++	__le32 dqb_bsoftlimit;	/* preferred limit on disk space (in QUOTABLOCK_SIZE) */
++	__le64 dqb_curspace;	/* current space occupied (in bytes) */
++	__le64 dqb_btime;	/* time limit for excessive disk use */
++	__le64 dqb_itime;	/* time limit for excessive inode use */
++};
++
++/*
++ * Here are header structures as written on disk and their in-memory copies
++ */
++/* First generic header */
++struct v2_disk_dqheader {
++	__le32 dqh_magic;	/* Magic number identifying file */
++	__le32 dqh_version;	/* File version */
++};
++
++/* Header with type and version specific information */
++struct v2_disk_dqinfo {
++	__le32 dqi_bgrace;	/* Time before block soft limit becomes hard limit */
++	__le32 dqi_igrace;	/* Time before inode soft limit becomes hard limit */
++	__le32 dqi_flags;	/* Flags for quotafile (DQF_*) */
++	__le32 dqi_blocks;	/* Number of blocks in file */
++	__le32 dqi_free_blk;	/* Number of first free block in the list */
++	__le32 dqi_free_entry;	/* Number of block with at least one free entry */
++};
++
++/*
++ *  Structure of header of block with quota structures. It is padded to 16 bytes so
++ *  there will be space for exactly 21 quota-entries in a block
++ */
++struct v2_disk_dqdbheader {
++	__le32 dqdh_next_free;	/* Number of next block with free entry */
++	__le32 dqdh_prev_free;	/* Number of previous block with free entry */
++	__le16 dqdh_entries;	/* Number of valid entries in block */
++	__le16 dqdh_pad1;
++	__le32 dqdh_pad2;
++};
++
++#define V2_DQINFOOFF	sizeof(struct v2_disk_dqheader)	/* Offset of info header in file */
++#define V2_DQBLKSIZE_BITS	10
++#define V2_DQBLKSIZE	(1 << V2_DQBLKSIZE_BITS)	/* Size of block with quota structures */
++#define V2_DQTREEOFF	1		/* Offset of tree in file in blocks */
++#define V2_DQTREEDEPTH	4		/* Depth of quota tree */
++#define V2_DQSTRINBLK	((V2_DQBLKSIZE - sizeof(struct v2_disk_dqdbheader)) / sizeof(struct v2_disk_dqblk))	/* Number of entries in one blocks */
++
++#endif /* _LINUX_QUOTAIO_V2_H */
+diff -puN include/linux/quotaio_v1.h~quota-move-quotaio_vh-from-include-linux-to-fs /dev/null
+--- a/include/linux/quotaio_v1.h
++++ /dev/null
+@@ -1,33 +0,0 @@
+-#ifndef _LINUX_QUOTAIO_V1_H
+-#define _LINUX_QUOTAIO_V1_H
+-
+-#include <linux/types.h>
+-
+-/*
+- * The following constants define the amount of time given a user
+- * before the soft limits are treated as hard limits (usually resulting
+- * in an allocation failure). The timer is started when the user crosses
+- * their soft limit, it is reset when they go below their soft limit.
+- */
+-#define MAX_IQ_TIME  604800	/* (7*24*60*60) 1 week */
+-#define MAX_DQ_TIME  604800	/* (7*24*60*60) 1 week */
+-
+-/*
+- * The following structure defines the format of the disk quota file
+- * (as it appears on disk) - the file is an array of these structures
+- * indexed by user or group number.
+- */
+-struct v1_disk_dqblk {
+-	__u32 dqb_bhardlimit;	/* absolute limit on disk blks alloc */
+-	__u32 dqb_bsoftlimit;	/* preferred limit on disk blks */
+-	__u32 dqb_curblocks;	/* current block count */
+-	__u32 dqb_ihardlimit;	/* absolute limit on allocated inodes */
+-	__u32 dqb_isoftlimit;	/* preferred inode limit */
+-	__u32 dqb_curinodes;	/* current # allocated inodes */
+-	time_t dqb_btime;	/* time limit for excessive disk use */
+-	time_t dqb_itime;	/* time limit for excessive inode use */
 -};
 -
- #endif	/* _LINUX_DQBLK_V1_H */
-diff -puN include/linux/dqblk_v2.h~quota-convert-union-in-mem_dqinfo-to-a-pointer include/linux/dqblk_v2.h
---- a/include/linux/dqblk_v2.h~quota-convert-union-in-mem_dqinfo-to-a-pointer
-+++ a/include/linux/dqblk_v2.h
-@@ -16,8 +16,4 @@
- #define V2_DEL_ALLOC QTREE_DEL_ALLOC
- #define V2_DEL_REWRITE QTREE_DEL_REWRITE
- 
--struct v2_mem_dqinfo {
--	struct qtree_mem_dqinfo i;
+-#define v1_dqoff(UID)      ((loff_t)((UID) * sizeof (struct v1_disk_dqblk)))
+-
+-#endif	/* _LINUX_QUOTAIO_V1_H */
+diff -puN include/linux/quotaio_v2.h~quota-move-quotaio_vh-from-include-linux-to-fs /dev/null
+--- a/include/linux/quotaio_v2.h
++++ /dev/null
+@@ -1,79 +0,0 @@
+-/*
+- *	Definitions of structures for vfsv0 quota format
+- */
+-
+-#ifndef _LINUX_QUOTAIO_V2_H
+-#define _LINUX_QUOTAIO_V2_H
+-
+-#include <linux/types.h>
+-#include <linux/quota.h>
+-
+-/*
+- * Definitions of magics and versions of current quota files
+- */
+-#define V2_INITQMAGICS {\
+-	0xd9c01f11,	/* USRQUOTA */\
+-	0xd9c01927	/* GRPQUOTA */\
+-}
+-
+-#define V2_INITQVERSIONS {\
+-	0,		/* USRQUOTA */\
+-	0		/* GRPQUOTA */\
+-}
+-
+-/*
+- * The following structure defines the format of the disk quota file
+- * (as it appears on disk) - the file is a radix tree whose leaves point
+- * to blocks of these structures.
+- */
+-struct v2_disk_dqblk {
+-	__le32 dqb_id;		/* id this quota applies to */
+-	__le32 dqb_ihardlimit;	/* absolute limit on allocated inodes */
+-	__le32 dqb_isoftlimit;	/* preferred inode limit */
+-	__le32 dqb_curinodes;	/* current # allocated inodes */
+-	__le32 dqb_bhardlimit;	/* absolute limit on disk space (in QUOTABLOCK_SIZE) */
+-	__le32 dqb_bsoftlimit;	/* preferred limit on disk space (in QUOTABLOCK_SIZE) */
+-	__le64 dqb_curspace;	/* current space occupied (in bytes) */
+-	__le64 dqb_btime;	/* time limit for excessive disk use */
+-	__le64 dqb_itime;	/* time limit for excessive inode use */
 -};
 -
- #endif /* _LINUX_DQBLK_V2_H */
-diff -puN include/linux/quota.h~quota-convert-union-in-mem_dqinfo-to-a-pointer include/linux/quota.h
---- a/include/linux/quota.h~quota-convert-union-in-mem_dqinfo-to-a-pointer
-+++ a/include/linux/quota.h
-@@ -208,10 +208,7 @@ struct mem_dqinfo {
- 	unsigned int dqi_igrace;
- 	qsize_t dqi_maxblimit;
- 	qsize_t dqi_maxilimit;
--	union {
--		struct v1_mem_dqinfo v1_i;
--		struct v2_mem_dqinfo v2_i;
--	} u;
-+	void *dqi_priv;
- };
- 
- struct super_block;
-_
-
-Patches currently in -mm which might be from jack@suse.cz are
-
-linux-next.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format.patch
-quota-support-64-bit-quota-format-fix.patch
-quota-support-64-bit-quota-format-fix-2.patch
-
+-/*
+- * Here are header structures as written on disk and their in-memory copies
+- */
+-/* First generic header */
+-struct v2_disk_dqheader {
+-	__le32 dqh_magic;	/* Magic number identifying file */
+-	__le32 dqh_version;	/* File version */
+-};
+-
+-/* Header with type and version specific information */
+-struct v2_disk_dqinfo {
+-	__le32 dqi_bgrace;	/* Time before block soft limit becomes hard limit */
+-	__le32 dqi_igrace;	/* Time before inode soft limit becomes hard limit */
+-	__le32 dqi_flags;	/* Flags for quotafile (DQF_*) */
+-	__le32 dqi_blocks;	/* Number of blocks in file */
+-	__le32 dqi_free_blk;	/* Number of first free block in the list */
+-	__le32 dqi_free_entry;	/* Number of block with at least one free entry */
+-};
+-
+-/*
+- *  Structure of header of block with quota structures. It is padded to 16 bytes so
+- *  there will be space for exactly 21 quota-entries in a block
+- */
+-struct v2_disk_dqdbheader {
+-	__le32 dqdh_next_free;	/* Number of next block with free entry */
+-	__le32 dqdh_prev_free;	/* Number of previous block with free entry */
+-	__le16 dqdh_entries;	/* Number of valid entries in block */
+-	__le16 dqdh_pad1;
+-	__le32 dqdh_pad2;
+-};
+-
+-#define V2_DQINFOOFF	sizeof(struct v2_disk_dqheader)	/* Offset of info header in file */
+-#define V2_DQBLKSIZE_BITS	10
+-#define V2_DQBLKSIZE	(1 << V2_DQBLKSIZE_BITS)	/* Size of block with quota structures */
+-#define V2_DQTREEOFF	1		/* Offset of tree in file in blocks */
+-#define V2_DQTREEDEPTH	4		/* Depth of quota tree */
+-#define V2_DQSTRINBLK	((V2_DQBLKSIZE - sizeof(struct v2_disk_dqdbheader)) / sizeof(struct v2_disk_dqblk))	/* Number of entries in one blocks */
