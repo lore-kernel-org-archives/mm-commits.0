@@ -1,98 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ata-pata_c-the-rest-remove-redundant-comments.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:46:10 -0800
-Message-ID: <200811262046.mAQKkADs010600@imap1.linux-foundation.org>
+Subject: - bitmap-test-for-constant-as-well-as-small-size-for-inline-versions.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:46:35 -0800
+Message-ID: <200811262046.mAQKkZho010893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752473AbYKZU5C (ORCPT
+	by vger.kernel.org with ESMTP id S1752887AbYKZU5K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:57:02 -0500
+	Wed, 26 Nov 2008 15:57:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qhfeng.kernel@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, mingo@elte.hu, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/ata/pata_*c: the rest, remove redundant comments
+     bitmap: test for constant as well as small size for inline versions
 has been removed from the -mm tree.  Its filename was
-     drivers-ata-pata_c-the-rest-remove-redundant-comments.patch
+     bitmap-test-for-constant-as-well-as-small-size-for-inline-versions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ata/pata_*c: the rest, remove redundant comments
-From: Qinghuang Feng <qhfeng.kernel@gmail.com>
+Subject: bitmap: test for constant as well as small size for inline versions
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Remove some redundant argument comments in pata_*.c
+bitmap_zero et al have a fastpath for nbits <= BITS_PER_LONG, but this
+should really only apply where the nbits is known at compile time.
 
-Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+This only saves about 1200 bytes on an allyesconfig kernel, but with
+cpumasks going variable that number will increase.
+
+   text		data	bss	dec		hex	filename
+35327852        5035607 6782976 47146435        2cf65c3 vmlinux-before
+35326640        5035607 6782976 47145223        2cf6107 vmlinux-after
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_bf54x.c       |    1 -
- drivers/ata/pata_scc.c         |    1 -
- drivers/ata/pata_serverworks.c |    1 -
- drivers/ata/sata_mv.c          |    1 -
- 4 files changed, 4 deletions(-)
+ include/linux/bitmap.h |   35 +++++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 16 deletions(-)
 
-diff -puN drivers/ata/pata_bf54x.c~drivers-ata-pata_c-the-rest-remove-redundant-comments drivers/ata/pata_bf54x.c
---- a/drivers/ata/pata_bf54x.c~drivers-ata-pata_c-the-rest-remove-redundant-comments
-+++ a/drivers/ata/pata_bf54x.c
-@@ -356,7 +356,6 @@ static void bfin_set_piomode(struct ata_
-  *	bfin_set_dmamode - Initialize host controller PATA DMA timings
-  *	@ap: Port whose timings we are configuring
-  *	@adev: um
-- *	@udma: udma mode, 0 - 6
-  *
-  *	Set UDMA mode for device.
-  *
-diff -puN drivers/ata/pata_scc.c~drivers-ata-pata_c-the-rest-remove-redundant-comments drivers/ata/pata_scc.c
---- a/drivers/ata/pata_scc.c~drivers-ata-pata_c-the-rest-remove-redundant-comments
-+++ a/drivers/ata/pata_scc.c
-@@ -210,7 +210,6 @@ static void scc_set_piomode (struct ata_
-  *	scc_set_dmamode - Initialize host controller PATA DMA timings
-  *	@ap: Port whose timings we are configuring
-  *	@adev: um
-- *	@udma: udma mode, 0 - 6
-  *
-  *	Set UDMA mode for device.
-  *
-diff -puN drivers/ata/pata_serverworks.c~drivers-ata-pata_c-the-rest-remove-redundant-comments drivers/ata/pata_serverworks.c
---- a/drivers/ata/pata_serverworks.c~drivers-ata-pata_c-the-rest-remove-redundant-comments
-+++ a/drivers/ata/pata_serverworks.c
-@@ -138,7 +138,6 @@ static struct sv_cable_table cable_detec
- /**
-  *	serverworks_cable_detect	-	cable detection
-  *	@ap: ATA port
-- *	@deadline: deadline jiffies for the operation
-  *
-  *	Perform cable detection according to the device and subvendor
-  *	identifications
-diff -puN drivers/ata/sata_mv.c~drivers-ata-pata_c-the-rest-remove-redundant-comments drivers/ata/sata_mv.c
---- a/drivers/ata/sata_mv.c~drivers-ata-pata_c-the-rest-remove-redundant-comments
-+++ a/drivers/ata/sata_mv.c
-@@ -1836,7 +1836,6 @@ static void mv_unexpected_intr(struct at
- /**
-  *      mv_err_intr - Handle error interrupts on the port
-  *      @ap: ATA channel to manipulate
-- *      @qc: affected command (non-NCQ), or NULL
-  *
-  *      Most cases require a full reset of the chip's state machine,
-  *      which also performs a COMRESET.
+diff -puN include/linux/bitmap.h~bitmap-test-for-constant-as-well-as-small-size-for-inline-versions include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap-test-for-constant-as-well-as-small-size-for-inline-versions
++++ a/include/linux/bitmap.h
+@@ -137,9 +137,12 @@ extern void bitmap_copy_le(void *dst, co
+ 		(1UL<<((nbits) % BITS_PER_LONG))-1 : ~0UL		\
+ )
+ 
++#define small_const_nbits(nbits) \
++	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
++
+ static inline void bitmap_zero(unsigned long *dst, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		*dst = 0UL;
+ 	else {
+ 		int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
+@@ -150,7 +153,7 @@ static inline void bitmap_zero(unsigned 
+ static inline void bitmap_fill(unsigned long *dst, int nbits)
+ {
+ 	size_t nlongs = BITS_TO_LONGS(nbits);
+-	if (nlongs > 1) {
++	if (!small_const_nbits(nbits)) {
+ 		int len = (nlongs - 1) * sizeof(unsigned long);
+ 		memset(dst, 0xff,  len);
+ 	}
+@@ -160,7 +163,7 @@ static inline void bitmap_fill(unsigned 
+ static inline void bitmap_copy(unsigned long *dst, const unsigned long *src,
+ 			int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		*dst = *src;
+ 	else {
+ 		int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
+@@ -171,7 +174,7 @@ static inline void bitmap_copy(unsigned 
+ static inline void bitmap_and(unsigned long *dst, const unsigned long *src1,
+ 			const unsigned long *src2, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		*dst = *src1 & *src2;
+ 	else
+ 		__bitmap_and(dst, src1, src2, nbits);
+@@ -180,7 +183,7 @@ static inline void bitmap_and(unsigned l
+ static inline void bitmap_or(unsigned long *dst, const unsigned long *src1,
+ 			const unsigned long *src2, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		*dst = *src1 | *src2;
+ 	else
+ 		__bitmap_or(dst, src1, src2, nbits);
+@@ -189,7 +192,7 @@ static inline void bitmap_or(unsigned lo
+ static inline void bitmap_xor(unsigned long *dst, const unsigned long *src1,
+ 			const unsigned long *src2, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		*dst = *src1 ^ *src2;
+ 	else
+ 		__bitmap_xor(dst, src1, src2, nbits);
+@@ -198,7 +201,7 @@ static inline void bitmap_xor(unsigned l
+ static inline void bitmap_andnot(unsigned long *dst, const unsigned long *src1,
+ 			const unsigned long *src2, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		*dst = *src1 & ~(*src2);
+ 	else
+ 		__bitmap_andnot(dst, src1, src2, nbits);
+@@ -207,7 +210,7 @@ static inline void bitmap_andnot(unsigne
+ static inline void bitmap_complement(unsigned long *dst, const unsigned long *src,
+ 			int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		*dst = ~(*src) & BITMAP_LAST_WORD_MASK(nbits);
+ 	else
+ 		__bitmap_complement(dst, src, nbits);
+@@ -216,7 +219,7 @@ static inline void bitmap_complement(uns
+ static inline int bitmap_equal(const unsigned long *src1,
+ 			const unsigned long *src2, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		return ! ((*src1 ^ *src2) & BITMAP_LAST_WORD_MASK(nbits));
+ 	else
+ 		return __bitmap_equal(src1, src2, nbits);
+@@ -225,7 +228,7 @@ static inline int bitmap_equal(const uns
+ static inline int bitmap_intersects(const unsigned long *src1,
+ 			const unsigned long *src2, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		return ((*src1 & *src2) & BITMAP_LAST_WORD_MASK(nbits)) != 0;
+ 	else
+ 		return __bitmap_intersects(src1, src2, nbits);
+@@ -234,7 +237,7 @@ static inline int bitmap_intersects(cons
+ static inline int bitmap_subset(const unsigned long *src1,
+ 			const unsigned long *src2, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		return ! ((*src1 & ~(*src2)) & BITMAP_LAST_WORD_MASK(nbits));
+ 	else
+ 		return __bitmap_subset(src1, src2, nbits);
+@@ -242,7 +245,7 @@ static inline int bitmap_subset(const un
+ 
+ static inline int bitmap_empty(const unsigned long *src, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		return ! (*src & BITMAP_LAST_WORD_MASK(nbits));
+ 	else
+ 		return __bitmap_empty(src, nbits);
+@@ -250,7 +253,7 @@ static inline int bitmap_empty(const uns
+ 
+ static inline int bitmap_full(const unsigned long *src, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		return ! (~(*src) & BITMAP_LAST_WORD_MASK(nbits));
+ 	else
+ 		return __bitmap_full(src, nbits);
+@@ -258,7 +261,7 @@ static inline int bitmap_full(const unsi
+ 
+ static inline int bitmap_weight(const unsigned long *src, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		return hweight_long(*src & BITMAP_LAST_WORD_MASK(nbits));
+ 	return __bitmap_weight(src, nbits);
+ }
+@@ -266,7 +269,7 @@ static inline int bitmap_weight(const un
+ static inline void bitmap_shift_right(unsigned long *dst,
+ 			const unsigned long *src, int n, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		*dst = *src >> n;
+ 	else
+ 		__bitmap_shift_right(dst, src, n, nbits);
+@@ -275,7 +278,7 @@ static inline void bitmap_shift_right(un
+ static inline void bitmap_shift_left(unsigned long *dst,
+ 			const unsigned long *src, int n, int nbits)
+ {
+-	if (nbits <= BITS_PER_LONG)
++	if (small_const_nbits(nbits))
+ 		*dst = (*src << n) & BITMAP_LAST_WORD_MASK(nbits);
+ 	else
+ 		__bitmap_shift_left(dst, src, n, nbits);
 _
 
-Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 linux-next.patch
-samples-mark-static__init__exit-for-initexit-functions.patch
-fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-ext2-fix-ext2_splice_branch-comments.patch
+alpha-use-generic-percpu-support.patch
+module-add-within_module_core-and-within_module_init.patch
+module-add-module_state_live-notify.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+reiser4.patch
 
