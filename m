@@ -1,54 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:27:29 -0800
-Message-ID: <200811262027.mAQKRT4c000511@imap1.linux-foundation.org>
+Subject: - quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:27:35 -0800
+Message-ID: <200811262027.mAQKRZ8u000612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54514 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39193 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752727AbYKZUg6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752961AbYKZUhV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:36:58 -0500
+	Wed, 26 Nov 2008 15:37:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@ucw.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota: more headers_check hackarounds
+     quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup
 has been removed from the -mm tree.  Its filename was
-     quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+     quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: more headers_check hackarounds
+Subject: quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-/usr/src/devel/usr/include/linux/dqblk_v2.h:8: included file 'linux/dqblk_qtree.h' is not exported
-
-Cc: Jan Kara <jack@ucw.cz>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/quota_v2.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/Kbuild~quota-more-headers_check-hackarounds include/linux/Kbuild
---- a/include/linux/Kbuild~quota-more-headers_check-hackarounds
-+++ a/include/linux/Kbuild
-@@ -56,9 +56,6 @@ header-y += dlm_device.h
- header-y += dlm_netlink.h
- header-y += dm-ioctl.h
- header-y += dn.h
--header-y += dqblk_v1.h
--header-y += dqblk_v2.h
--header-y += dqblk_xfs.h
- header-y += efs_fs_sb.h
- header-y += elf-fdpic.h
- header-y += elf-em.h
+diff -puN fs/quota_v2.c~quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup fs/quota_v2.c
+--- a/fs/quota_v2.c~quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup
++++ a/fs/quota_v2.c
+@@ -83,8 +83,8 @@ static int v2_read_file_info(struct supe
+ 	}
+ 	info->dqi_priv = kmalloc(sizeof(struct qtree_mem_dqinfo), GFP_NOFS);
+ 	if (!info->dqi_priv) {
+-		printk(KERN_WARNING "Not enough memory for quota information"
+-				    "structure.\n");
++		printk(KERN_WARNING
++		       "Not enough memory for quota information structure.\n");
+ 		return -1;
+ 	}
+ 	qinfo = info->dqi_priv;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +80,6 @@ spi_gpio-driver-cleanups.patch
 kprobes-support-probing-module-__exit-function-fix.patch
 kprobes-support-probing-module-__exit-function-fix-2.patch
 rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
 quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
 quota-support-64-bit-quota-format-fix.patch
 quota-support-64-bit-quota-format-fix-2.patch
