@@ -1,54 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - quota-support-64-bit-quota-format-fix-2.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:27:42 -0800
-Message-ID: <200811262027.mAQKRg4Q000703@imap1.linux-foundation.org>
+Subject: - quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:27:27 -0800
+Message-ID: <200811262027.mAQKRRfD000498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59573 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752596AbYKZU2Q (ORCPT
+	by vger.kernel.org with ESMTP id S1752655AbYKZUgZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:28:16 -0500
+	Wed, 26 Nov 2008 15:36:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andrew.perepechko@sun.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota-support-64-bit-quota-format-fix-2
+     quota-move-quotaio_vh-from-include-linux-to-fs-fix
 has been removed from the -mm tree.  Its filename was
-     quota-support-64-bit-quota-format-fix-2.patch
+     quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-support-64-bit-quota-format-fix-2
+Subject: quota-move-quotaio_vh-from-include-linux-to-fs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andrew Perepechko <andrew.perepechko@sun.com>
 Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/quota_v2.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/Kbuild |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/quota_v2.c~quota-support-64-bit-quota-format-fix-2 fs/quota_v2.c
---- a/fs/quota_v2.c~quota-support-64-bit-quota-format-fix-2
-+++ a/fs/quota_v2.c
-@@ -116,8 +116,8 @@ static int v2_read_file_info(struct supe
- 		info->dqi_maxblimit = 0xffffffff;
- 		info->dqi_maxilimit = 0xffffffff;
- 	} else {
--		info->dqi_maxblimit = 0x7fffffffffffffffUL;
--		info->dqi_maxilimit = 0x7fffffffffffffffUL;
-+		info->dqi_maxblimit = 0x7fffffffffffffffULL;
-+		info->dqi_maxilimit = 0x7fffffffffffffffULL;
- 	}
- 	info->dqi_bgrace = le32_to_cpu(dinfo.dqi_bgrace);
- 	info->dqi_igrace = le32_to_cpu(dinfo.dqi_igrace);
+diff -puN include/linux/Kbuild~quota-move-quotaio_vh-from-include-linux-to-fs-fix include/linux/Kbuild
+--- a/include/linux/Kbuild~quota-move-quotaio_vh-from-include-linux-to-fs-fix
++++ a/include/linux/Kbuild
+@@ -134,8 +134,6 @@ header-y += posix_types.h
+ header-y += ppdev.h
+ header-y += prctl.h
+ header-y += qnxtypes.h
+-header-y += quotaio_v1.h
+-header-y += quotaio_v2.h
+ header-y += radeonfb.h
+ header-y += raw.h
+ header-y += resource.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +78,10 @@ spi_gpio-driver-cleanups.patch
 kprobes-support-probing-module-__exit-function-fix.patch
 kprobes-support-probing-module-__exit-function-fix-2.patch
 rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
+quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
+quota-support-64-bit-quota-format-fix.patch
 quota-support-64-bit-quota-format-fix-2.patch
 quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
 memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
