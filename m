@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-setup_per_zone_inactive_ratio-static.patch added to -mm tree
-Date: Tue, 25 Nov 2008 15:56:10 -0800
-Message-ID: <200811252356.mAPNuAW8026791@imap1.linux-foundation.org>
+Subject: + memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch added to -mm tree
+Date: Tue, 25 Nov 2008 16:00:42 -0800
+Message-ID: <200811260000.mAQ00ggj029206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35575 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752249AbYKYX4O (ORCPT
+	by vger.kernel.org with ESMTP id S1752092AbYKZAAy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 18:56:14 -0500
+	Tue, 25 Nov 2008 19:00:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, xemul@openvz.org
 
 
 The patch titled
-     mm: make setup_per_zone_inactive_ratio() static
+     memcg-new-force_empty-to-free-pages-under-group-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-make-setup_per_zone_inactive_ratio-static.patch
+     memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make setup_per_zone_inactive_ratio() static
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: memcg-new-force_empty-to-free-pages-under-group-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Sparse output following warning.
+be less weird.
 
-mm/page_alloc.c:4301:6: warning: symbol 'setup_per_zone_inactive_ratio' was not declared. Should it be static?
-
-cleanup here.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-make-setup_per_zone_inactive_ratio-static mm/page_alloc.c
---- a/mm/page_alloc.c~mm-make-setup_per_zone_inactive_ratio-static
-+++ a/mm/page_alloc.c
-@@ -4314,7 +4314,7 @@ void setup_per_zone_pages_min(void)
-  *    1TB     101        10GB
-  *   10TB     320        32GB
-  */
--void setup_per_zone_inactive_ratio(void)
-+static void setup_per_zone_inactive_ratio(void)
- {
- 	struct zone *zone;
+diff -puN mm/memcontrol.c~memcg-new-force_empty-to-free-pages-under-group-fix-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-new-force_empty-to-free-pages-under-group-fix-fix
++++ a/mm/memcontrol.c
+@@ -1113,9 +1113,7 @@ out:
  
+ try_to_free:
+ 	/* returns EBUSY if there is a task or if we come here twice. */
+-	if (cgroup_task_count(cgrp)
+-	    || !list_empty(&cgrp->children)
+-	    || shrink) {
++	if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children) || shrink) {
+ 		ret = -EBUSY;
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+epoll-introduce-resource-usage-limits.patch
+epoll-introduce-resource-usage-limits-update-refix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-vmscan-evict-streaming-io-first.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-oom-fix-zone_scan_mutex-name.patch
-mm-get-rid-of-pagevec_release_nonlru.patch
-cleanup-get-rid-of-ifdef-config_migration.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-make-page_lock_anon_vma-static.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-mm-make-init_section_page_cgroup-static.patch
-mm-make-maddr-__iomem.patch
-mm-make-mem_cgroup_resize_limit-static.patch
-mm-make-scan_all_zones_unevictable_pages-static.patch
-mm-make-scan_zone_unevictable_pages-static.patch
-mm-make-setup_per_zone_inactive_ratio-static.patch
-mm-make-vread-and-vwrite-declaration.patch
+next-remove-localversion.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+backlight-catch-invalid-input-checkpatch-fixes.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+kernel-profilec-fix-section-mismatch-warning-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+quota-support-64-bit-quota-format-fix.patch
+quota-support-64-bit-quota-format-fix-2.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
