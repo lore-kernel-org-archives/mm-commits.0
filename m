@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pps-parallel-port-clients-support.patch added to -mm tree
-Date: Wed, 26 Nov 2008 15:53:34 -0800
-Message-ID: <200811262353.mAQNrYg3013191@imap1.linux-foundation.org>
+Subject: + pps-low-level-irq-timestamps-recording.patch added to -mm tree
+Date: Wed, 26 Nov 2008 15:53:37 -0800
+Message-ID: <200811262353.mAQNrcF9013196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752669AbYKZXyo (ORCPT
+	by vger.kernel.org with ESMTP id S1752307AbYKZXyt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 18:54:44 -0500
+	Wed, 26 Nov 2008 18:54:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: giometti@linux.it, alan@lxorguk.ukuu.org.uk, davej@redhat.com, dwmw2@infrade
 
 
 The patch titled
-     PPS: parallel port clients support
+     PPS: low level IRQ timestamps recording
 has been added to the -mm tree.  Its filename is
-     pps-parallel-port-clients-support.patch
+     pps-low-level-irq-timestamps-recording.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PPS: parallel port clients support
+Subject: PPS: low level IRQ timestamps recording
 From: Rodolfo Giometti <giometti@linux.it>
 
-Adds support for the PPS sources connected with the interrupt pin of a
-parallel port.
+Add low level IRQ timestamps recording for x86 (32 and 64 bits) platforms
+and enable UART clients in order to use it.
+
+This improves PPS precision. :)
 
 Signed-off-by: Rodolfo Giometti <giometti@linux.it>
 Cc: David Woodhouse <dwmw2@infradead.org>
@@ -55,160 +57,172 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/lp.c           |   61 ++++++++++++++++++++++++++++++++++
- drivers/pps/clients/Kconfig |   10 +++++
- include/linux/parport.h     |   22 ++++++++++++
- 3 files changed, 93 insertions(+)
+ arch/x86/kernel/irq_32.c    |   16 ++++++++++++++++
+ arch/x86/kernel/irq_64.c    |   21 +++++++++++++++++++--
+ drivers/pps/Kconfig         |   12 ++++++++++++
+ include/linux/pps.h         |    1 +
+ include/linux/serial_core.h |    7 ++++++-
+ 5 files changed, 54 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/lp.c~pps-parallel-port-clients-support drivers/char/lp.c
---- a/drivers/char/lp.c~pps-parallel-port-clients-support
-+++ a/drivers/char/lp.c
-@@ -760,6 +760,27 @@ static struct console lpcons = {
- 
- #endif /* console on line printer */
- 
-+/* Support for PPS signal on the line printer */
-+
-+#ifdef CONFIG_PPS_CLIENT_LP
-+
-+static void lp_pps_echo(int source, int event, void *data)
-+{
-+	struct parport *port = data;
-+	unsigned char status = parport_read_status(port);
-+
-+	/* echo event via SEL bit */
-+	parport_write_control(port,
-+		parport_read_control(port) | PARPORT_CONTROL_SELECT);
-+
-+	/* signal no event */
-+	if ((status & PARPORT_STATUS_ACK) != 0)
-+		parport_write_control(port,
-+			parport_read_control(port) & ~PARPORT_CONTROL_SELECT);
-+}
-+
-+#endif
-+
- /* --- initialisation code ------------------------------------- */
- 
- static int parport_nr[LP_NO] = { [0 ... LP_NO-1] = LP_PARPORT_UNSPEC };
-@@ -831,6 +852,38 @@ static int lp_register(int nr, struct pa
- 	}
- #endif
- 
-+#ifdef CONFIG_PPS_CLIENT_LP
-+	port->pps_info.owner = THIS_MODULE;
-+	port->pps_info.dev = port->dev;
-+	snprintf(port->pps_info.path, PPS_MAX_NAME_LEN, "/dev/lp%d", nr);
-+
-+	/* No PPS support if lp port has no IRQ line */
-+	if (port->irq != PARPORT_IRQ_NONE) {
-+		strncpy(port->pps_info.name, port->name, PPS_MAX_NAME_LEN);
-+
-+		port->pps_info.mode = PPS_CAPTUREASSERT | PPS_OFFSETASSERT | \
-+				PPS_ECHOASSERT | \
-+				PPS_CANWAIT | PPS_TSFMT_TSPEC;
-+
-+		port->pps_info.echo = lp_pps_echo;
-+
-+		port->pps_source = pps_register_source(&(port->pps_info),
-+				PPS_CAPTUREASSERT | PPS_OFFSETASSERT);
-+		if (port->pps_source < 0)
-+			dev_err(port->dev,
-+					"cannot register PPS source \"%s\"\n",
-+					port->pps_info.path);
-+		else
-+			dev_info(port->dev, "PPS source #%d \"%s\" added\n",
-+					port->pps_source, port->pps_info.path);
-+	} else {
-+		port->pps_source = -1;
-+		dev_err(port->dev, "PPS support disabled because port \"%s\" "
-+					"is in polling mode\n",
-+					port->pps_info.path);
-+	}
-+#endif
-+
- 	return 0;
- }
- 
-@@ -873,6 +926,14 @@ static void lp_detach (struct parport *p
- 		console_registered = NULL;
- 	}
- #endif /* CONFIG_LP_CONSOLE */
-+
-+#ifdef CONFIG_PPS_CLIENT_LP
-+	if (port->pps_source >= 0) {
-+		pps_unregister_source(port->pps_source);
-+		dev_dbg(port->dev, "PPS source #%d \"%s\" removed\n",
-+			port->pps_source, port->pps_info.path);
-+	}
-+#endif
- }
- 
- static struct parport_driver lp_driver = {
-diff -puN drivers/pps/clients/Kconfig~pps-parallel-port-clients-support drivers/pps/clients/Kconfig
---- a/drivers/pps/clients/Kconfig~pps-parallel-port-clients-support
-+++ a/drivers/pps/clients/Kconfig
-@@ -22,4 +22,14 @@ config PPS_CLIENT_LDISC
- 	  If you say yes here you get support for a PPS source connected
- 	  with the CD (Carrier Detect) pin of your serial port.
- 
-+comment "Parallel printer support (forced off)"
-+	depends on !( PRINTER != n && !(PPS = m && PRINTER = y))
-+
-+config PPS_CLIENT_LP
-+	bool "Parallel printer support"
-+	depends on PRINTER != n && !(PPS = m && PRINTER = y)
-+	help
-+	  If you say yes here you get support for a PPS source connected
-+	  with the interrupt pin of your parallel port.
-+
- endif
-diff -puN include/linux/parport.h~pps-parallel-port-clients-support include/linux/parport.h
---- a/include/linux/parport.h~pps-parallel-port-clients-support
-+++ a/include/linux/parport.h
-@@ -98,6 +98,7 @@ typedef enum {
- #include <linux/proc_fs.h>
- #include <linux/spinlock.h>
- #include <linux/wait.h>
+diff -puN arch/x86/kernel/irq_32.c~pps-low-level-irq-timestamps-recording arch/x86/kernel/irq_32.c
+--- a/arch/x86/kernel/irq_32.c~pps-low-level-irq-timestamps-recording
++++ a/arch/x86/kernel/irq_32.c
+@@ -15,6 +15,7 @@
+ #include <linux/notifier.h>
+ #include <linux/cpu.h>
+ #include <linux/delay.h>
 +#include <linux/pps.h>
- #include <linux/irqreturn.h>
- #include <linux/semaphore.h>
- #include <asm/system.h>
-@@ -326,6 +327,11 @@ struct parport {
  
- 	struct list_head full_list;
- 	struct parport *slaves[3];
-+
-+#ifdef CONFIG_PPS_CLIENT_LP
-+	struct pps_source_info pps_info;
-+	int pps_source;		/* PPS source ID */
+ #include <asm/apic.h>
+ #include <asm/uaccess.h>
+@@ -25,6 +26,11 @@ EXPORT_PER_CPU_SYMBOL(irq_stat);
+ DEFINE_PER_CPU(struct pt_regs *, irq_regs);
+ EXPORT_PER_CPU_SYMBOL(irq_regs);
+ 
++#ifdef CONFIG_PPS_IRQ_EVENTS
++struct timespec pps_irq_ts[NR_IRQS];
++EXPORT_SYMBOL(pps_irq_ts);
 +#endif
- };
++
+ #ifdef CONFIG_DEBUG_STACKOVERFLOW
+ /* Debugging check for stack overflow: is there less than 1KB free? */
+ static int check_stack_overflow(void)
+@@ -204,7 +210,12 @@ unsigned int do_IRQ(struct pt_regs *regs
+ 	unsigned vector = ~regs->orig_ax;
+ 	struct irq_desc *desc;
+ 	unsigned irq;
++#ifdef CONFIG_PPS_IRQ_EVENTS
++	struct timespec ts;
  
- #define DEFAULT_SPIN_TIME 500 /* us */
-@@ -514,6 +520,22 @@ extern int parport_daisy_select (struct 
- /* Lowlevel drivers _can_ call this support function to handle irqs.  */
- static inline void parport_generic_irq(struct parport *port)
++	/* Get IRQ timestamps as soon as possible for the PPS layer */
++	getnstimeofday(&ts);
++#endif
+ 
+ 	old_regs = set_irq_regs(regs);
+ 	irq_enter();
+@@ -219,6 +230,11 @@ unsigned int do_IRQ(struct pt_regs *regs
+ 		BUG();
+ 	}
+ 
++#ifdef CONFIG_PPS_IRQ_EVENTS
++	/* Then, after sanity check, store the IRQ timestamp */
++	pps_irq_ts[irq] = ts;
++#endif
++
+ 	if (!execute_on_irq_stack(overflow, desc, irq)) {
+ 		if (unlikely(overflow))
+ 			print_stack_overflow();
+diff -puN arch/x86/kernel/irq_64.c~pps-low-level-irq-timestamps-recording arch/x86/kernel/irq_64.c
+--- a/arch/x86/kernel/irq_64.c~pps-low-level-irq-timestamps-recording
++++ a/arch/x86/kernel/irq_64.c
+@@ -17,6 +17,12 @@
+ #include <asm/io_apic.h>
+ #include <asm/idle.h>
+ #include <asm/smp.h>
++#include <linux/pps.h>
++
++#ifdef CONFIG_PPS_IRQ_EVENTS
++struct timespec pps_irq_ts[NR_IRQS];
++EXPORT_SYMBOL(pps_irq_ts);
++#endif
+ 
+ /*
+  * Probabilistic stack overflow check:
+@@ -49,6 +55,12 @@ asmlinkage unsigned int do_IRQ(struct pt
  {
-+#ifdef CONFIG_PPS_CLIENT_LP
-+	struct timespec __ts;
-+	struct pps_ktime ts;
+ 	struct pt_regs *old_regs = set_irq_regs(regs);
+ 	struct irq_desc *desc;
++#ifdef CONFIG_PPS_IRQ_EVENTS
++	struct timespec ts;
 +
-+	/* First of all we get the time stamp... */
-+	getnstimeofday(&__ts);
-+
-+	/* ... and translate it to PPS time data struct */
-+	ts.sec = __ts.tv_sec;
-+	ts.nsec = __ts.tv_nsec;
-+
-+	pps_event(port->pps_source, &ts, PPS_CAPTUREASSERT, port);
-+	dev_dbg(port->dev, "PPS assert at %lu on source #%d\n",
-+		jiffies, port->pps_source);
++	/* Get IRQ timestamps as soon as possible for the PPS layer */
++	getnstimeofday(&ts);
++#endif
+ 
+ 	/* high bit used in ret_from_ code  */
+ 	unsigned vector = ~regs->orig_ax;
+@@ -61,9 +73,14 @@ asmlinkage unsigned int do_IRQ(struct pt
+ 	stack_overflow_check(regs);
+ 
+ 	desc = irq_to_desc(irq);
+-	if (likely(desc))
++	if (likely(desc)) {
++#ifdef CONFIG_PPS_IRQ_EVENTS
++		/* Then, after sanity check, store the IRQ timestamp */
++		pps_irq_ts[irq] = ts;
 +#endif
 +
- 	parport_ieee1284_interrupt (port);
- 	read_lock(&port->cad_lock);
- 	if (port->cad && port->cad->irq_func)
+ 		generic_handle_irq_desc(irq, desc);
+-	else {
++	} else {
+ 		if (!disable_apic)
+ 			ack_APIC_irq();
+ 
+diff -puN drivers/pps/Kconfig~pps-low-level-irq-timestamps-recording drivers/pps/Kconfig
+--- a/drivers/pps/Kconfig~pps-low-level-irq-timestamps-recording
++++ a/drivers/pps/Kconfig
+@@ -22,6 +22,18 @@ config PPS
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called pps_core.ko.
+ 
++config PPS_IRQ_EVENTS
++	bool "Use low level IRQ timestamps"
++	depends on PPS && (X86_32 || X86_64)
++	default yes
++	help
++	  Say Y here if you wish using low level IRQ timestamps to register
++	  PPS events.
++
++	  This should improve PPS resolution but it delays echo functions
++	  call. Note also that this function is not implemented on all
++	  platforms and PPS clients!
++
+ config PPS_DEBUG
+ 	bool "PPS debugging messages"
+ 	depends on PPS
+diff -puN include/linux/pps.h~pps-low-level-irq-timestamps-recording include/linux/pps.h
+--- a/include/linux/pps.h~pps-low-level-irq-timestamps-recording
++++ a/include/linux/pps.h
+@@ -181,6 +181,7 @@ struct pps_device {
+ 
+ extern spinlock_t pps_idr_lock;
+ extern struct idr pps_idr;
++extern struct timespec pps_irq_ts[];
+ 
+ extern struct device_attribute pps_attrs[];
+ 
+diff -puN include/linux/serial_core.h~pps-low-level-irq-timestamps-recording include/linux/serial_core.h
+--- a/include/linux/serial_core.h~pps-low-level-irq-timestamps-recording
++++ a/include/linux/serial_core.h
+@@ -175,6 +175,7 @@
+ #include <linux/tty.h>
+ #include <linux/mutex.h>
+ #include <linux/sysrq.h>
++#include <linux/pps.h>
+ 
+ struct uart_port;
+ struct uart_info;
+@@ -506,7 +507,11 @@ uart_handle_dcd_change(struct uart_port 
+ 	struct timespec ts;
+ 
+ 	if (ld && ld->ops->dcd_change)
++#ifdef CONFIG_PPS_IRQ_EVENTS
++		ts = pps_irq_ts[port->irq];
++#else
+ 		getnstimeofday(&ts);
++#endif
+ 
+ 	port->icount.dcd++;
+ #ifdef CONFIG_HARD_PPS
+@@ -522,7 +527,7 @@ uart_handle_dcd_change(struct uart_port 
+ 	}
+ 
+ 	if (ld && ld->ops->dcd_change)
+-		ld->ops->dcd_change(port, status, &ts);
++		ld->ops->dcd_change(info->port.tty, status, &ts);
+ 	if (ld)
+ 		tty_ldisc_deref(ld);
+ }
 _
 
 Patches currently in -mm which might be from giometti@linux.it are
