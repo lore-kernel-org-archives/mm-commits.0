@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + swapfile-swapon-needs-larger-size-type.patch added to -mm tree
-Date: Tue, 25 Nov 2008 17:23:23 -0800
-Message-ID: <200811260123.mAQ1NNQo008487@imap1.linux-foundation.org>
+Subject: + swapfile-remove-swp_active-mask.patch added to -mm tree
+Date: Tue, 25 Nov 2008 17:23:25 -0800
+Message-ID: <200811260123.mAQ1NPo7008490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53769 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46371 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753004AbYKZBYC (ORCPT
+	by vger.kernel.org with ESMTP id S1753008AbYKZBYE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Nov 2008 20:24:02 -0500
+	Tue, 25 Nov 2008 20:24:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     swapfile: swapon needs larger size type
+     swapfile: remove SWP_ACTIVE mask
 has been added to the -mm tree.  Its filename is
-     swapfile-swapon-needs-larger-size-type.patch
+     swapfile-remove-swp_active-mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swapfile: swapon needs larger size type
+Subject: swapfile: remove SWP_ACTIVE mask
 From: Hugh Dickins <hugh@veritas.com>
 
-sys_swapon()'s swapfilesize (better renamed swapfilepages) is declared as
-an int, but should be an unsigned long like the maxpages it's compared
-against: on 64-bit (with 4kB pages) a swapfile of 2^44 bytes was rejected
-with "Swap area shorter than signature indicates".
+Remove the SWP_ACTIVE mask: it just obscures the SWP_WRITEOK flag.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -48,39 +45,42 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/swap.h |    1 -
+ mm/swapfile.c        |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/swapfile.c~swapfile-swapon-needs-larger-size-type mm/swapfile.c
---- a/mm/swapfile.c~swapfile-swapon-needs-larger-size-type
+diff -puN include/linux/swap.h~swapfile-remove-swp_active-mask include/linux/swap.h
+--- a/include/linux/swap.h~swapfile-remove-swp_active-mask
++++ a/include/linux/swap.h
+@@ -120,7 +120,6 @@ struct swap_extent {
+ enum {
+ 	SWP_USED	= (1 << 0),	/* is slot in swap_info[] used? */
+ 	SWP_WRITEOK	= (1 << 1),	/* ok to write to this swap?	*/
+-	SWP_ACTIVE	= (SWP_USED | SWP_WRITEOK),
+ 					/* add others here before... */
+ 	SWP_SCANNING	= (1 << 8),	/* refcount in scan_swap_map */
+ };
+diff -puN mm/swapfile.c~swapfile-remove-swp_active-mask mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-remove-swp_active-mask
 +++ a/mm/swapfile.c
-@@ -1452,7 +1452,7 @@ asmlinkage long sys_swapon(const char __
- 	int nr_extents = 0;
- 	sector_t span;
- 	unsigned long maxpages = 1;
--	int swapfilesize;
-+	unsigned long swapfilepages;
- 	unsigned short *swap_map = NULL;
- 	struct page *page = NULL;
- 	struct inode *inode = NULL;
-@@ -1530,7 +1530,7 @@ asmlinkage long sys_swapon(const char __
- 		goto bad_swap;
- 	}
+@@ -1222,7 +1222,7 @@ asmlinkage long sys_swapoff(const char _
+ 	spin_lock(&swap_lock);
+ 	for (type = swap_list.head; type >= 0; type = swap_info[type].next) {
+ 		p = swap_info + type;
+-		if ((p->flags & SWP_ACTIVE) == SWP_ACTIVE) {
++		if (p->flags & SWP_WRITEOK) {
+ 			if (p->swap_file->f_mapping == mapping)
+ 				break;
+ 		}
+@@ -1665,7 +1665,7 @@ asmlinkage long sys_swapon(const char __
+ 	else
+ 		p->prio = --least_priority;
+ 	p->swap_map = swap_map;
+-	p->flags = SWP_ACTIVE;
++	p->flags |= SWP_WRITEOK;
+ 	nr_swap_pages += nr_good_pages;
+ 	total_swap_pages += nr_good_pages;
  
--	swapfilesize = i_size_read(inode) >> PAGE_SHIFT;
-+	swapfilepages = i_size_read(inode) >> PAGE_SHIFT;
- 
- 	/*
- 	 * Read the swap header.
-@@ -1607,7 +1607,7 @@ asmlinkage long sys_swapon(const char __
- 		error = -EINVAL;
- 		if (!maxpages)
- 			goto bad_swap;
--		if (swapfilesize && maxpages > swapfilesize) {
-+		if (swapfilepages && maxpages > swapfilepages) {
- 			printk(KERN_WARNING
- 			       "Swap area shorter than signature indicates\n");
- 			goto bad_swap;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
