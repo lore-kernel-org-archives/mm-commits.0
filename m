@@ -1,136 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - quota-add-callbacks-for-allocating-and-destroying-dquot-structures.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:27:02 -0800
-Message-ID: <200811262027.mAQKR23v032756@imap1.linux-foundation.org>
+Subject: - quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:27:13 -0800
+Message-ID: <200811262027.mAQKRDlY000391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58829 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54561 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752092AbYKZU1P (ORCPT
+	by vger.kernel.org with ESMTP id S1752507AbYKZU1r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:27:15 -0500
+	Wed, 26 Nov 2008 15:27:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jack@suse.cz, zlynx@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota: add callbacks for allocating and destroying dquot structures
+     quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix
 has been removed from the -mm tree.  Its filename was
-     quota-add-callbacks-for-allocating-and-destroying-dquot-structures.patch
+     quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: add callbacks for allocating and destroying dquot structures
-From: Jan Kara <jack@suse.cz>
+Subject: quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Some filesystems would like to keep private information together with each
-dquot.  Add callbacks alloc_dquot and destroy_dquot allowing filesystem to
-allocate larger dquots from their private slab in a similar fashion we
-currently allocate inodes.
+fs/quota.c: In function `generic_quotactl_valid':
+fs/quota.c:76: error: implicit declaration of function `sb_has_quota_active'
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Reported-by: Zan Lynx <zlynx@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c            |   19 +++++++++++++++----
- include/linux/quota.h |    2 ++
- 2 files changed, 17 insertions(+), 4 deletions(-)
+ include/linux/quotaops.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/dquot.c~quota-add-callbacks-for-allocating-and-destroying-dquot-structures fs/dquot.c
---- a/fs/dquot.c~quota-add-callbacks-for-allocating-and-destroying-dquot-structures
-+++ a/fs/dquot.c
-@@ -415,6 +415,14 @@ out_dqlock:
- 	return ret;
+diff -puN include/linux/quotaops.h~quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix
++++ a/include/linux/quotaops.h
+@@ -257,6 +257,11 @@ static inline int sb_any_quota_loaded(st
+ 	return 0;
  }
  
-+static void destroy_dquot(struct dquot *dquot)
++static inline int sb_has_quota_active(struct super_block *sb, int type)
 +{
-+	if (dquot->dq_sb->dq_op->destroy_dquot)
-+		dquot->dq_sb->dq_op->destroy_dquot(dquot);
-+	else
-+		kmem_cache_free(dquot_cachep, dquot);
++	return 0;
 +}
 +
- /* Invalidate all dquots on the list. Note that this function is called after
-  * quota is disabled and pointers from inodes removed so there cannot be new
-  * quota users. There can still be some users of quotas due to inodes being
-@@ -463,7 +471,7 @@ restart:
- 		remove_dquot_hash(dquot);
- 		remove_free_dquot(dquot);
- 		remove_inuse(dquot);
--		kmem_cache_free(dquot_cachep, dquot);
-+		destroy_dquot(dquot);
- 	}
- 	spin_unlock(&dq_list_lock);
- }
-@@ -527,7 +535,7 @@ static void prune_dqcache(int count)
- 		remove_dquot_hash(dquot);
- 		remove_free_dquot(dquot);
- 		remove_inuse(dquot);
--		kmem_cache_free(dquot_cachep, dquot);
-+		destroy_dquot(dquot);
- 		count--;
- 		head = free_dquots.prev;
- 	}
-@@ -629,7 +637,10 @@ static struct dquot *get_empty_dquot(str
+ static inline int sb_any_quota_active(struct super_block *sb)
  {
- 	struct dquot *dquot;
- 
--	dquot = kmem_cache_zalloc(dquot_cachep, GFP_NOFS);
-+	if (sb->dq_op->alloc_dquot)
-+		dquot = sb->dq_op->alloc_dquot(sb, type);
-+	else
-+		dquot = kmem_cache_zalloc(dquot_cachep, GFP_NOFS);
- 	if(!dquot)
- 		return NODQUOT;
- 
-@@ -682,7 +693,7 @@ we_slept:
- 		dqstats.lookups++;
- 		spin_unlock(&dq_list_lock);
- 		if (empty)
--			kmem_cache_free(dquot_cachep, empty);
-+			destroy_dquot(empty);
- 	}
- 	/* Wait for dq_lock - after this we know that either dquot_release() is already
- 	 * finished or it will be canceled due to dq_count > 1 test */
-diff -puN include/linux/quota.h~quota-add-callbacks-for-allocating-and-destroying-dquot-structures include/linux/quota.h
---- a/include/linux/quota.h~quota-add-callbacks-for-allocating-and-destroying-dquot-structures
-+++ a/include/linux/quota.h
-@@ -292,6 +292,8 @@ struct dquot_operations {
- 	int (*free_inode) (const struct inode *, unsigned long);
- 	int (*transfer) (struct inode *, struct iattr *);
- 	int (*write_dquot) (struct dquot *);		/* Ordinary dquot write */
-+	struct dquot *(*alloc_dquot)(struct super_block *, int);	/* Allocate memory for new dquot (can be NULL if no special entries dquot are needed) */
-+	void (*destroy_dquot)(struct dquot *);		/* Free memory for dquot (can be NULL if alloc_dquot is NULL) */
- 	int (*acquire_dquot) (struct dquot *);		/* Quota is going to be created on disk */
- 	int (*release_dquot) (struct dquot *);		/* Quota is going to be deleted from disk */
- 	int (*mark_dirty) (struct dquot *);		/* Dquot is marked dirty */
+ 	return 0;
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+epoll-introduce-resource-usage-limits.patch
+epoll-introduce-resource-usage-limits-update-refix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-quota-add-callbacks-for-allocating-and-destroying-dquot-structures.patch
-quota-increase-size-of-variables-for-limits-and-inode-usage.patch
-quota-remove-bogus-optimization-in-check_idq-and-check_bdq.patch
-quota-make-_suspended-just-a-flag.patch
-quota-permit-separately-enabling-quota-accounting-and-enforcing-limits.patch
+next-remove-localversion.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+backlight-catch-invalid-input-checkpatch-fixes.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
 quota-permit-separately-enabling-quota-accounting-and-enforcing-limits-fix.patch
-ext3-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
-ext4-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
-reiserfs-use-sb_any_quota_loaded-instead-of-sb_any_quota_enabled.patch
-quota-remove-compatibility-function-sb_any_quota_enabled.patch
-quota-introduce-dquot_quota_sys_file-flag.patch
-quota-move-quotaio_vh-from-include-linux-to-fs.patch
 quota-move-quotaio_vh-from-include-linux-to-fs-fix.patch
-quota-split-off-quota-tree-handling-into-a-separate-file.patch
-quota-convert-union-in-mem_dqinfo-to-a-pointer.patch
+quota-move-quotaio_vh-from-include-linux-to-fs-fix-2.patch
 quota-convert-union-in-mem_dqinfo-to-a-pointer-cleanup.patch
-quota-support-64-bit-quota-format.patch
 quota-support-64-bit-quota-format-fix.patch
 quota-support-64-bit-quota-format-fix-2.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
