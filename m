@@ -1,62 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ata-pata_legacyc-cleanup-kernel-doc.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:46:06 -0800
-Message-ID: <200811262046.mAQKk6Jg010594@imap1.linux-foundation.org>
+Subject: - ath5k-fix-security-issue-in-debugfs-part-of-ath5k.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:46:32 -0800
+Message-ID: <200811262046.mAQKkW9N010890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37034 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752887AbYKZU45 (ORCPT
+	by vger.kernel.org with ESMTP id S1752596AbYKZU5D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:56:57 -0500
+	Wed, 26 Nov 2008 15:57:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qhfeng.kernel@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: crquan@gmail.com, jeromepoulin@gmail.com, jirislaby@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/ata/pata_legacy.c: cleanup kernel-doc
+     ath5k: fix Security issue in DebugFS part of ath5k
 has been removed from the -mm tree.  Its filename was
-     drivers-ata-pata_legacyc-cleanup-kernel-doc.patch
+     ath5k-fix-security-issue-in-debugfs-part-of-ath5k.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: drivers/ata/pata_legacy.c: cleanup kernel-doc
-From: Qinghuang Feng <qhfeng.kernel@gmail.com>
+Subject: ath5k: fix Security issue in DebugFS part of ath5k
+=46rom: Cheng Renquan <crquan@gmail.com>
 
-No argument named @irq in qdi6580dp_set_piomode remove it.
+http://bugzilla.kernel.org/show_bug.cgi?id=3D12076
 
-Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Remove any write access to groups and others, only keep write permissio=
+n
+to its owner, usually only root user.
+
+Reported-by: J=E9r=F4me Poulin <jeromepoulin@gmail.com>
+Signed-off-by: Cheng Renquan <crquan@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_legacy.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/net/wireless/ath5k/debug.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/ata/pata_legacy.c~drivers-ata-pata_legacyc-cleanup-kernel-doc drivers/ata/pata_legacy.c
---- a/drivers/ata/pata_legacy.c~drivers-ata-pata_legacyc-cleanup-kernel-doc
-+++ a/drivers/ata/pata_legacy.c
-@@ -641,7 +641,6 @@ static void qdi6500_set_piomode(struct a
-  *	qdi6580dp_set_piomode		-	PIO setup for dual channel
-  *	@ap: Port
-  *	@adev: Device
-- *	@irq: interrupt line
-  *
-  *	In dual channel mode the 6580 has one clock per channel and we have
-  *	to software clockswitch in qc_issue.
+diff -puN drivers/net/wireless/ath5k/debug.c~ath5k-fix-security-issue-i=
+n-debugfs-part-of-ath5k drivers/net/wireless/ath5k/debug.c
+--- a/drivers/net/wireless/ath5k/debug.c~ath5k-fix-security-issue-in-de=
+bugfs-part-of-ath5k
++++ a/drivers/net/wireless/ath5k/debug.c
+@@ -417,19 +417,19 @@ ath5k_debug_init_device(struct ath5k_sof
+ 	sc->debug.debugfs_phydir =3D debugfs_create_dir(wiphy_name(sc->hw->wi=
+phy),
+ 				ath5k_global_debugfs);
+=20
+-	sc->debug.debugfs_debug =3D debugfs_create_file("debug", 0666,
++	sc->debug.debugfs_debug =3D debugfs_create_file("debug", S_IWUSR | S_=
+IRUGO,
+ 				sc->debug.debugfs_phydir, sc, &fops_debug);
+=20
+-	sc->debug.debugfs_registers =3D debugfs_create_file("registers", 0444=
+,
++	sc->debug.debugfs_registers =3D debugfs_create_file("registers", S_IR=
+UGO,
+ 				sc->debug.debugfs_phydir, sc, &fops_registers);
+=20
+-	sc->debug.debugfs_tsf =3D debugfs_create_file("tsf", 0666,
++	sc->debug.debugfs_tsf =3D debugfs_create_file("tsf", S_IWUSR | S_IRUG=
+O,
+ 				sc->debug.debugfs_phydir, sc, &fops_tsf);
+=20
+-	sc->debug.debugfs_beacon =3D debugfs_create_file("beacon", 0666,
++	sc->debug.debugfs_beacon =3D debugfs_create_file("beacon", S_IWUSR | =
+S_IRUGO,
+ 				sc->debug.debugfs_phydir, sc, &fops_beacon);
+=20
+-	sc->debug.debugfs_reset =3D debugfs_create_file("reset", 0222,
++	sc->debug.debugfs_reset =3D debugfs_create_file("reset", S_IWUSR,
+ 				sc->debug.debugfs_phydir, sc, &fops_reset);
+ }
+=20
 _
 
-Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
+Patches currently in -mm which might be from crquan@gmail.com are
 
 linux-next.patch
-samples-mark-static__init__exit-for-initexit-functions.patch
-fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-ext2-fix-ext2_splice_branch-comments.patch
+block-remove-kblockd_flush_work.patch
+fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization=
+=2Epatch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
