@@ -1,164 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - parisc-fix-kernel-crash-when-unwinding-a-userspace-process-v2.patch removed from -mm tree
-Date: Wed, 26 Nov 2008 12:46:22 -0800
-Message-ID: <200811262046.mAQKkMQW010794@imap1.linux-foundation.org>
+Subject: - kernel-profilec-fix-section-mismatch-warning-fix.patch removed from -mm tree
+Date: Wed, 26 Nov 2008 12:46:28 -0800
+Message-ID: <200811262046.mAQKkSeU010800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752729AbYKZUrz (ORCPT
+	by vger.kernel.org with ESMTP id S1752121AbYKZU4c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:47:55 -0500
+	Wed, 26 Nov 2008 15:56:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx, randolph@tausq.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, rakib.mullick@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parisc: fix kernel crash when unwinding a userspace process
+     kernel-profilec-fix-section-mismatch-warning-fix
 has been removed from the -mm tree.  Its filename was
-     parisc-fix-kernel-crash-when-unwinding-a-userspace-process-v2.patch
+     kernel-profilec-fix-section-mismatch-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parisc: fix kernel crash when unwinding a userspace process
-From: Helge Deller <deller@gmx.de>
+Subject: kernel-profilec-fix-section-mismatch-warning-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Any user on existing parisc 32- and 64bit-kernels can easily crash
-the kernel and as such enforce a DSO.
-A simple testcase is available here:
-        http://gsyprf10.external.hp.com/~deller/crash.tgz
+No point in inlining this.
 
-The problem is introduced by the fact, that the handle_interruption()
-crash handler calls the show_regs() function, which in turn tries to
-unwind the stack by calling parisc_show_stack().  Since the stack contains
-userspace addresses, a try to unwind the stack is dangerous and useless
-and leads to the crash.
-
-The fix is trivial: For userspace processes
-a) avoid to unwind the stack, and
-b) avoid to resolve userspace addresses to kernel symbol names.
-
-While touching this code, I converted print_symbol() to %pS
-printk formats and made parisc_show_stack() static.
-
-An initial patch for this was written by Kyle McMartin back in August:
-http://marc.info/?l=linux-parisc&m=121805168830283&w=2
-
-Compile and run-tested with a 64bit parisc kernel.
-
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x, 2.6.27.x, earlier...]
+Cc: Rakib Mullick <rakib.mullick@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/traps.c |   41 +++++++++++++++++------------------
- 1 file changed, 20 insertions(+), 21 deletions(-)
+ kernel/profile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/parisc/kernel/traps.c~parisc-fix-kernel-crash-when-unwinding-a-userspace-process-v2 arch/parisc/kernel/traps.c
---- a/arch/parisc/kernel/traps.c~parisc-fix-kernel-crash-when-unwinding-a-userspace-process-v2
-+++ a/arch/parisc/kernel/traps.c
-@@ -24,7 +24,6 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/console.h>
--#include <linux/kallsyms.h>
- #include <linux/bug.h>
+diff -puN kernel/profile.c~kernel-profilec-fix-section-mismatch-warning-fix kernel/profile.c
+--- a/kernel/profile.c~kernel-profilec-fix-section-mismatch-warning-fix
++++ a/kernel/profile.c
+@@ -544,7 +544,7 @@ static const struct file_operations proc
+ };
  
- #include <asm/assembly.h>
-@@ -51,7 +50,7 @@
- DEFINE_SPINLOCK(pa_dbit_lock);
- #endif
- 
--void parisc_show_stack(struct task_struct *t, unsigned long *sp,
-+static void parisc_show_stack(struct task_struct *task, unsigned long *sp,
- 	struct pt_regs *regs);
- 
- static int printbinary(char *buf, unsigned long x, int nbits)
-@@ -121,18 +120,19 @@ static void print_fr(char *level, struct
- 
- void show_regs(struct pt_regs *regs)
+ #ifdef CONFIG_SMP
+-static inline void profile_nop(void *unused)
++static void profile_nop(void *unused)
  {
--	int i;
-+	int i, user;
- 	char *level;
- 	unsigned long cr30, cr31;
- 
--	level = user_mode(regs) ? KERN_DEBUG : KERN_CRIT;
-+	user = user_mode(regs);
-+	level = user ? KERN_DEBUG : KERN_CRIT;
- 
- 	print_gr(level, regs);
- 
- 	for (i = 0; i < 8; i += 4)
- 		PRINTREGS(level, regs->sr, "sr", RFMT, i);
- 
--	if (user_mode(regs))
-+	if (user)
- 		print_fr(level, regs);
- 
- 	cr30 = mfctl(30);
-@@ -145,14 +145,18 @@ void show_regs(struct pt_regs *regs)
- 	printk("%s CPU: %8d   CR30: " RFMT " CR31: " RFMT "\n",
- 	       level, current_thread_info()->cpu, cr30, cr31);
- 	printk("%s ORIG_R28: " RFMT "\n", level, regs->orig_r28);
--	printk(level);
--	print_symbol(" IAOQ[0]: %s\n", regs->iaoq[0]);
--	printk(level);
--	print_symbol(" IAOQ[1]: %s\n", regs->iaoq[1]);
--	printk(level);
--	print_symbol(" RP(r2): %s\n", regs->gr[2]);
- 
--	parisc_show_stack(current, NULL, regs);
-+	if (user) {
-+		printk("%s IAOQ[0]: " RFMT "\n", level, regs->iaoq[0]);
-+		printk("%s IAOQ[1]: " RFMT "\n", level, regs->iaoq[1]);
-+		printk("%s RP(r2): " RFMT "\n", level, regs->gr[2]);
-+	} else {
-+		printk("%s IAOQ[0]: %pS\n", level, (void *) regs->iaoq[0]);
-+		printk("%s IAOQ[1]: %pS\n", level, (void *) regs->iaoq[1]);
-+		printk("%s RP(r2): %pS\n", level, (void *) regs->gr[2]);
-+
-+		parisc_show_stack(current, NULL, regs);
-+	}
  }
  
- 
-@@ -173,20 +177,15 @@ static void do_show_stack(struct unwind_
- 			break;
- 
- 		if (__kernel_text_address(info->ip)) {
--			printk("%s [<" RFMT ">] ", (i&0x3)==1 ? KERN_CRIT : "", info->ip);
--#ifdef CONFIG_KALLSYMS
--			print_symbol("%s\n", info->ip);
--#else
--			if ((i & 0x03) == 0)
--				printk("\n");
--#endif
-+			printk(KERN_CRIT " [<" RFMT ">] %pS\n",
-+				info->ip, (void *) info->ip);
- 			i++;
- 		}
- 	}
--	printk("\n");
-+	printk(KERN_CRIT "\n");
- }
- 
--void parisc_show_stack(struct task_struct *task, unsigned long *sp,
-+static void parisc_show_stack(struct task_struct *task, unsigned long *sp,
- 	struct pt_regs *regs)
- {
- 	struct unwind_frame_info info;
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+epoll-introduce-resource-usage-limits.patch
+epoll-introduce-resource-usage-limits-update-refix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-parisc-maintainers-updates.patch
+next-remove-localversion.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
+backlight-catch-invalid-input-checkpatch-fixes.patch
+pci-uninline-pci_ioremap_bar.patch
+pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+vfs-lseekfd-0-seek_cur-race-condition-fix.patch
+ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch
+bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
