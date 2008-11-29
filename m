@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-linx-next-apply.patch added to -mm tree
-Date: Fri, 28 Nov 2008 22:42:44 -0800
-Message-ID: <200811290642.mAT6giKj029040@imap1.linux-foundation.org>
+Subject: + uml-fix-the-highmem-build-error.patch added to -mm tree
+Date: Fri, 28 Nov 2008 22:45:12 -0800
+Message-ID: <200811290645.mAT6jCl4030368@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38674 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750701AbYK2Gmq (ORCPT
+	by vger.kernel.org with ESMTP id S1750889AbYK2Gpb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 29 Nov 2008 01:42:46 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mAT6gisg020245
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 28 Nov 2008 22:42:45 -0800
+	Sat, 29 Nov 2008 01:45:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: wangcong@zeuux.org, jdike@addtoit.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     make linx-next apply
+     uml: fix the highmem build error
 has been added to the -mm tree.  Its filename is
-     make-linx-next-apply.patch
+     uml-fix-the-highmem-build-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,89 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make linx-next apply
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uml: fix the highmem build error
+From: WANG Cong <wangcong@zeuux.org>
 
+Fix this error:
+
+arch/um/kernel/mem.c: In function 'init_highmem':
+arch/um/kernel/mem.c:177: error: 'pkmap_page_table' undeclared (first
+use in this function)
+arch/um/kernel/mem.c:177: error: (Each undeclared identifier is
+reported only once
+arch/um/kernel/mem.c:177: error: for each function it appears in.)
+
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ftrace.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/include/asm/fixmap.h |    6 ++++++
+ arch/x86/mm/highmem_32.c     |    1 +
+ 2 files changed, 7 insertions(+)
 
-diff -puN include/linux/ftrace.h~make-linx-next-apply include/linux/ftrace.h
---- a/include/linux/ftrace.h~make-linx-next-apply
-+++ a/include/linux/ftrace.h
-@@ -231,7 +231,7 @@ ftrace_init_module(unsigned long *start,
+diff -puN arch/um/include/asm/fixmap.h~uml-fix-the-highmem-build-error arch/um/include/asm/fixmap.h
+--- a/arch/um/include/asm/fixmap.h~uml-fix-the-highmem-build-error
++++ a/arch/um/include/asm/fixmap.h
+@@ -41,6 +41,12 @@ enum fixed_addresses {
+ 	__end_of_fixed_addresses
+ };
  
- struct boot_trace {
- 	pid_t			caller;
--	char			func[KSYM_SYMBOL_LEN];
-+	char			func[KSYM_NAME_LEN];
- 	int			result;
- 	unsigned long long	duration;		/* usecs */
- 	ktime_t			calltime;
++#ifdef CONFIG_HIGHMEM
++extern pte_t *pkmap_page_table;
++extern pte_t *kmap_pte;
++extern pgprot_t kmap_prot;
++#endif
++
+ extern void __set_fixmap (enum fixed_addresses idx,
+ 			  unsigned long phys, pgprot_t flags);
+ 
+diff -puN arch/x86/mm/highmem_32.c~uml-fix-the-highmem-build-error arch/x86/mm/highmem_32.c
+--- a/arch/x86/mm/highmem_32.c~uml-fix-the-highmem-build-error
++++ a/arch/x86/mm/highmem_32.c
+@@ -1,3 +1,4 @@
++#include <asm/fixmap.h>
+ #include <linux/highmem.h>
+ #include <linux/module.h>
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangcong@zeuux.org are
 
-epoll-introduce-resource-usage-limits.patch
-epoll-introduce-resource-usage-limits-update-refix.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
 linux-next.patch
-next-remove-localversion.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
-backlight-catch-invalid-input-checkpatch-fixes.patch
-pci-uninline-pci_ioremap_bar.patch
-pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
-vfs-lseekfd-0-seek_cur-race-condition-fix.patch
-ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch
-bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+scripts-improve-the-decodecode-script.patch
+uml-fix-the-highmem-build-error.patch
+ipc-clean-up-ipc-shmc.patch
+ipc-do-not-goto-to-the-next-line.patch
+ipc-ipc_sysctlc-move-the-definition-of-ipc_auto_callback.patch
 
