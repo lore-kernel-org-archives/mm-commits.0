@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-make-root_list-contains-active-hierarchies-only.patch added to -mm tree
-Date: Fri, 28 Nov 2008 23:01:19 -0800
-Message-ID: <200811290701.mAT71J04006432@imap1.linux-foundation.org>
+Subject: + cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch added to -mm tree
+Date: Fri, 28 Nov 2008 23:01:22 -0800
+Message-ID: <200811290701.mAT71MwC006435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59043 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43372 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750865AbYK2HBj (ORCPT
+	by vger.kernel.org with ESMTP id S1750915AbYK2HBl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 29 Nov 2008 02:01:39 -0500
+	Sat, 29 Nov 2008 02:01:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mena
 
 
 The patch titled
-     cgroups: make root_list contains active hierarchies only
+     cgroups: add inactive subsystems to rootnode.subsys_list
 has been added to the -mm tree.  Its filename is
-     cgroups-make-root_list-contains-active-hierarchies-only.patch
+     cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: make root_list contains active hierarchies only
+Subject: cgroups: add inactive subsystems to rootnode.subsys_list
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-Don't link rootnode to the root list, so root_list contains active
-hierarchies only as the comment indicates.  And rename for_each_root() to
-for_each_active_root().
+Though for an inactive hierarchy, we have subsys->root == &rootnode, but
+rootnode's subsys_list is always empty.
 
-Also remove redundant check in cgroup_kill_sb().
+This conflicts with the code in find_css_set():
+
+	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
+		...
+		if (ss->root->subsys_list.next == &ss->sibling) {
+			...
+		}
+	}
+	if (list_empty(&rootnode.subsys_list)) {
+		...
+	}
+
+The above code assumes rootnode.subsys_list links all inactive
+hierarchies.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -50,71 +62,38 @@ Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ kernel/cgroup.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-make-root_list-contains-active-hierarchies-only kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-make-root_list-contains-active-hierarchies-only
+diff -puN kernel/cgroup.c~cgroups-add-inactive-subsystems-to-rootnodesubsys_list kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-add-inactive-subsystems-to-rootnodesubsys_list
 +++ a/kernel/cgroup.c
-@@ -84,7 +84,7 @@ struct cgroupfs_root {
- 	/* Tracks how many cgroups are currently defined in hierarchy.*/
- 	int number_of_cgroups;
+@@ -713,7 +713,7 @@ static int rebind_subsystems(struct cgro
+ 			BUG_ON(dummytop->subsys[i]->cgroup != dummytop);
+ 			cgrp->subsys[i] = dummytop->subsys[i];
+ 			cgrp->subsys[i]->cgroup = cgrp;
+-			list_add(&ss->sibling, &root->subsys_list);
++			list_move(&ss->sibling, &root->subsys_list);
+ 			ss->root = root;
+ 			if (ss->bind)
+ 				ss->bind(ss, cgrp);
+@@ -727,7 +727,7 @@ static int rebind_subsystems(struct cgro
+ 			dummytop->subsys[i]->cgroup = dummytop;
+ 			cgrp->subsys[i] = NULL;
+ 			subsys[i]->root = &rootnode;
+-			list_del(&ss->sibling);
++			list_move(&ss->sibling, &rootnode.subsys_list);
+ 		} else if (bit & final_bits) {
+ 			/* Subsystem state should already exist */
+ 			BUG_ON(!cgrp->subsys[i]);
+@@ -2521,6 +2521,7 @@ static void __init cgroup_init_subsys(st
+ 	printk(KERN_INFO "Initializing cgroup subsys %s\n", ss->name);
  
--	/* A list running through the mounted hierarchies */
-+	/* A list running through the active hierarchies */
- 	struct list_head root_list;
- 
- 	/* Hierarchy-specific flags */
-@@ -148,8 +148,8 @@ static int notify_on_release(const struc
- #define for_each_subsys(_root, _ss) \
- list_for_each_entry(_ss, &_root->subsys_list, sibling)
- 
--/* for_each_root() allows you to iterate across the active hierarchies */
--#define for_each_root(_root) \
-+/* for_each_active_root() allows you to iterate across the active hierarchies */
-+#define for_each_active_root(_root) \
- list_for_each_entry(_root, &roots, root_list)
- 
- /* the list of cgroups eligible for automatic release. Protected by
-@@ -1111,10 +1111,9 @@ static void cgroup_kill_sb(struct super_
- 	}
- 	write_unlock(&css_set_lock);
- 
--	if (!list_empty(&root->root_list)) {
--		list_del(&root->root_list);
--		root_count--;
--	}
-+	list_del(&root->root_list);
-+	root_count--;
-+
- 	mutex_unlock(&cgroup_mutex);
- 
- 	kfree(root);
-@@ -2559,7 +2558,6 @@ int __init cgroup_init_early(void)
- 	INIT_HLIST_NODE(&init_css_set.hlist);
- 	css_set_count = 1;
- 	init_cgroup_root(&rootnode);
--	list_add(&rootnode.root_list, &roots);
- 	root_count = 1;
- 	init_task.cgroups = &init_css_set;
- 
-@@ -2666,15 +2664,12 @@ static int proc_cgroup_show(struct seq_f
- 
- 	mutex_lock(&cgroup_mutex);
- 
--	for_each_root(root) {
-+	for_each_active_root(root) {
- 		struct cgroup_subsys *ss;
- 		struct cgroup *cgrp;
- 		int subsys_id;
- 		int count = 0;
- 
--		/* Skip this hierarchy if it has no active subsystems */
--		if (!root->actual_subsys_bits)
--			continue;
- 		seq_printf(m, "%lu:", root->subsys_bits);
- 		for_each_subsys(root, ss)
- 			seq_printf(m, "%s%s", count++ ? "," : "", ss->name);
+ 	/* Create the top cgroup state for this subsystem */
++	list_add(&ss->sibling, &rootnode.root_list);
+ 	ss->root = &rootnode;
+ 	css = ss->create(ss, dummytop);
+ 	/* We don't handle early failures gracefully */
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
