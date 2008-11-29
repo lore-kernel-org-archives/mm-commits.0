@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + poll-allow-f_op-poll-to-sleep-take6.patch added to -mm tree
-Date: Fri, 28 Nov 2008 22:26:21 -0800
-Message-ID: <200811290626.mAT6QMk1020408@imap1.linux-foundation.org>
+Subject: + frv-fix-mmap2-error-handling.patch added to -mm tree
+Date: Fri, 28 Nov 2008 22:27:51 -0800
+Message-ID: <200811290627.mAT6Rpvl021180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47078 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56329 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750701AbYK2G1N (ORCPT
+	by vger.kernel.org with ESMTP id S1750701AbYK2G2F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 29 Nov 2008 01:27:13 -0500
+	Sat, 29 Nov 2008 01:28:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com, akpm@linux-foundation.org, davidel@xmailserver.org, ericvh@gmail.com, flar@allandria.com, hch@infradead.org, mchehab@infradead.org, mingo@elte.hu, mszeredi@suse.cz, oleg@redhat.com, rminnich@sandia.gov, roland@redhat.com, tj@kernel.org, viro@zeniv.linux.org.uk
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     poll: allow f_op->poll to sleep
+     frv: fix mmap2 error handling
 has been added to the -mm tree.  Its filename is
-     poll-allow-f_op-poll-to-sleep-take6.patch
+     frv-fix-mmap2-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,296 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: poll: allow f_op->poll to sleep
-From: Tejun Heo <htejun@gmail.com>
+Subject: frv: fix mmap2 error handling
+From: David Howells <dhowells@redhat.com>
 
-f_op->poll is the only vfs operation which is not allowed to sleep.  It's
-because poll and select implementation used task state to synchronize
-against wake ups, which doesn't have to be the case anymore as wait/wake
-interface can now use custom wake up functions.  The non-sleep restriction
-can be a bit tricky because ->poll is not called from an atomic context
-and the result of accidentally sleeping in ->poll only shows up as
-temporary busy looping when the timing is right or rather wrong.
+Fix the error handling in sys_mmap2().  Currently, if the pgoff check
+fails, fput() might have to be called (which it isn't), so do the pgoff
+check first, before fget() is called.
 
-This patch converts poll/select to use custom wake up function and use
-separate triggered variable to synchronize against wake up events.  The
-only added overhead is an extra function call during wake up and
-negligible.
-
-This patch removes the one non-sleep exception from vfs locking rules and
-is beneficial to userland filesystem implementations like FUSE, 9p or
-peculiar fs like spufs as it's very difficult for those to implement
-non-sleeping poll method.
-
-While at it, make the following cosmetic changes to make poll.h and
-select.c checkpatch friendly.
-
-* s/type * symbol/type *symbol/		   : three places in poll.h
-* remove blank line before EXPORT_SYMBOL() : two places in select.c
-
-Oleg: spotted missing barrier in poll_schedule_timeout()
-Davide: spotted missing write barrier in pollwake()
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Christoph Hellwig <hch@infradead.org>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Brad Boyer <flar@allandria.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/Locking |    2 
- drivers/media/video/v4l1-compat.c |    4 -
- fs/select.c                       |   76 ++++++++++++++++++++++------
- include/linux/poll.h              |   15 ++++-
- 4 files changed, 76 insertions(+), 21 deletions(-)
+ arch/frv/kernel/sys_frv.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/filesystems/Locking~poll-allow-f_op-poll-to-sleep-take6 Documentation/filesystems/Locking
---- a/Documentation/filesystems/Locking~poll-allow-f_op-poll-to-sleep-take6
-+++ a/Documentation/filesystems/Locking
-@@ -394,7 +394,7 @@ prototypes:
- };
+diff -puN arch/frv/kernel/sys_frv.c~frv-fix-mmap2-error-handling arch/frv/kernel/sys_frv.c
+--- a/arch/frv/kernel/sys_frv.c~frv-fix-mmap2-error-handling
++++ a/arch/frv/kernel/sys_frv.c
+@@ -35,22 +35,21 @@ asmlinkage long sys_mmap2(unsigned long 
+ 	int error = -EBADF;
+ 	struct file * file = NULL;
  
- locking rules:
--	All except ->poll() may block.
-+	All may block.
- 			BKL
- llseek:			no	(see below)
- read:			no
-diff -puN drivers/media/video/v4l1-compat.c~poll-allow-f_op-poll-to-sleep-take6 drivers/media/video/v4l1-compat.c
---- a/drivers/media/video/v4l1-compat.c~poll-allow-f_op-poll-to-sleep-take6
-+++ a/drivers/media/video/v4l1-compat.c
-@@ -203,7 +203,6 @@ static int poll_one(struct file *file, s
- 	table = &pwq->pt;
- 	for (;;) {
- 		int mask;
--		set_current_state(TASK_INTERRUPTIBLE);
- 		mask = file->f_op->poll(file, table);
- 		if (mask & POLLIN)
- 			break;
-@@ -212,9 +211,8 @@ static int poll_one(struct file *file, s
- 			retval = -ERESTARTSYS;
- 			break;
- 		}
--		schedule();
-+		poll_schedule(pwq, TASK_INTERRUPTIBLE);
- 	}
--	set_current_state(TASK_RUNNING);
- 	poll_freewait(pwq);
- 	return retval;
- }
-diff -puN fs/select.c~poll-allow-f_op-poll-to-sleep-take6 fs/select.c
---- a/fs/select.c~poll-allow-f_op-poll-to-sleep-take6
-+++ a/fs/select.c
-@@ -109,11 +109,11 @@ static void __pollwait(struct file *filp
- void poll_initwait(struct poll_wqueues *pwq)
- {
- 	init_poll_funcptr(&pwq->pt, __pollwait);
-+	pwq->polling_task = current;
- 	pwq->error = 0;
- 	pwq->table = NULL;
- 	pwq->inline_index = 0;
- }
+-	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
+-	if (!(flags & MAP_ANONYMOUS)) {
+-		file = fget(fd);
+-		if (!file)
+-			goto out;
+-	}
 -
- EXPORT_SYMBOL(poll_initwait);
+ 	/* As with sparc32, make sure the shift for mmap2 is constant
+ 	   (12), no matter what PAGE_SIZE we have.... */
  
- static void free_poll_entry(struct poll_table_entry *entry)
-@@ -142,12 +142,10 @@ void poll_freewait(struct poll_wqueues *
- 		free_page((unsigned long) old);
- 	}
- }
--
- EXPORT_SYMBOL(poll_freewait);
+ 	/* But unlike sparc32, don't just silently break if we're
+ 	   trying to map something we can't */
+-	if (pgoff & ((1<<(PAGE_SHIFT-12))-1))
++	if (pgoff & ((1 << (PAGE_SHIFT - 12)) - 1))
+ 		return -EINVAL;
++	pgoff >>= PAGE_SHIFT - 12;
  
--static struct poll_table_entry *poll_get_entry(poll_table *_p)
-+static struct poll_table_entry *poll_get_entry(struct poll_wqueues *p)
- {
--	struct poll_wqueues *p = container_of(_p, struct poll_wqueues, pt);
- 	struct poll_table_page *table = p->table;
+-	pgoff >>= (PAGE_SHIFT - 12);
++	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
++	if (!(flags & MAP_ANONYMOUS)) {
++		file = fget(fd);
++		if (!file)
++			goto out;
++	}
  
- 	if (p->inline_index < N_INLINE_POLL_ENTRIES)
-@@ -159,7 +157,6 @@ static struct poll_table_entry *poll_get
- 		new_table = (struct poll_table_page *) __get_free_page(GFP_KERNEL);
- 		if (!new_table) {
- 			p->error = -ENOMEM;
--			__set_current_state(TASK_RUNNING);
- 			return NULL;
- 		}
- 		new_table->entry = new_table->entries;
-@@ -171,20 +168,75 @@ static struct poll_table_entry *poll_get
- 	return table->entry++;
- }
- 
-+static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
-+{
-+	struct poll_wqueues *pwq = wait->private;
-+	DECLARE_WAITQUEUE(dummy_wait, pwq->polling_task);
-+
-+	/*
-+	 * Although this function is called under waitqueue lock, LOCK
-+	 * doesn't imply write barrier and the users expect write
-+	 * barrier semantics on wakeup functions.  The following
-+	 * smp_wmb() is equivalent to smp_wmb() in try_to_wake_up()
-+	 * and is paired with set_mb() in poll_schedule_timeout.
-+	 */
-+	smp_wmb();
-+	pwq->triggered = 1;
-+
-+	/*
-+	 * Perform the default wake up operation using a dummy
-+	 * waitqueue.
-+	 *
-+	 * TODO: This is hacky but there currently is no interface to
-+	 * pass in @sync.  @sync is scheduled to be removed and once
-+	 * that happens, wake_up_process() can be used directly.
-+	 */
-+	return default_wake_function(&dummy_wait, mode, sync, key);
-+}
-+
- /* Add a new entry */
- static void __pollwait(struct file *filp, wait_queue_head_t *wait_address,
- 				poll_table *p)
- {
--	struct poll_table_entry *entry = poll_get_entry(p);
-+	struct poll_wqueues *pwq = container_of(p, struct poll_wqueues, pt);
-+	struct poll_table_entry *entry = poll_get_entry(pwq);
- 	if (!entry)
- 		return;
- 	get_file(filp);
- 	entry->filp = filp;
- 	entry->wait_address = wait_address;
--	init_waitqueue_entry(&entry->wait, current);
-+	init_waitqueue_func_entry(&entry->wait, pollwake);
-+	entry->wait.private = pwq;
- 	add_wait_queue(wait_address, &entry->wait);
- }
- 
-+int poll_schedule_timeout(struct poll_wqueues *pwq, int state,
-+			  ktime_t *expires, unsigned long slack)
-+{
-+	int rc = -EINTR;
-+
-+	set_current_state(state);
-+	if (!pwq->triggered)
-+		rc = schedule_hrtimeout_range(expires, slack, HRTIMER_MODE_ABS);
-+	__set_current_state(TASK_RUNNING);
-+
-+	/*
-+	 * Prepare for the next iteration.
-+	 *
-+	 * The following set_mb() serves two purposes.  First, it's
-+	 * the counterpart rmb of the wmb in pollwake() such that data
-+	 * written before wake up is always visible after wake up.
-+	 * Second, the full barrier guarantees that triggered clearing
-+	 * doesn't pass event check of the next iteration.  Note that
-+	 * this problem doesn't exist for the first iteration as
-+	 * add_wait_queue() has full barrier semantics.
-+	 */
-+	set_mb(pwq->triggered, 0);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL(poll_schedule_timeout);
-+
- /**
-  * poll_select_set_timeout - helper function to setup the timeout value
-  * @to:		pointer to timespec variable for the final timeout
-@@ -340,8 +392,6 @@ int do_select(int n, fd_set_bits *fds, s
- 	for (;;) {
- 		unsigned long *rinp, *routp, *rexp, *inp, *outp, *exp;
- 
--		set_current_state(TASK_INTERRUPTIBLE);
--
- 		inp = fds->in; outp = fds->out; exp = fds->ex;
- 		rinp = fds->res_in; routp = fds->res_out; rexp = fds->res_ex;
- 
-@@ -411,10 +461,10 @@ int do_select(int n, fd_set_bits *fds, s
- 			to = &expire;
- 		}
- 
--		if (!schedule_hrtimeout_range(to, slack, HRTIMER_MODE_ABS))
-+		if (!poll_schedule_timeout(&table, TASK_INTERRUPTIBLE,
-+					   to, slack))
- 			timed_out = 1;
- 	}
--	__set_current_state(TASK_RUNNING);
- 
- 	poll_freewait(&table);
- 
-@@ -666,7 +716,6 @@ static int do_poll(unsigned int nfds,  s
- 	for (;;) {
- 		struct poll_list *walk;
- 
--		set_current_state(TASK_INTERRUPTIBLE);
- 		for (walk = list; walk != NULL; walk = walk->next) {
- 			struct pollfd * pfd, * pfd_end;
- 
-@@ -709,10 +758,9 @@ static int do_poll(unsigned int nfds,  s
- 			to = &expire;
- 		}
- 
--		if (!schedule_hrtimeout_range(to, slack, HRTIMER_MODE_ABS))
-+		if (!poll_schedule_timeout(wait, TASK_INTERRUPTIBLE, to, slack))
- 			timed_out = 1;
- 	}
--	__set_current_state(TASK_RUNNING);
- 	return count;
- }
- 
-diff -puN include/linux/poll.h~poll-allow-f_op-poll-to-sleep-take6 include/linux/poll.h
---- a/include/linux/poll.h~poll-allow-f_op-poll-to-sleep-take6
-+++ a/include/linux/poll.h
-@@ -46,9 +46,9 @@ static inline void init_poll_funcptr(pol
- }
- 
- struct poll_table_entry {
--	struct file * filp;
-+	struct file *filp;
- 	wait_queue_t wait;
--	wait_queue_head_t * wait_address;
-+	wait_queue_head_t *wait_address;
- };
- 
- /*
-@@ -56,7 +56,9 @@ struct poll_table_entry {
-  */
- struct poll_wqueues {
- 	poll_table pt;
--	struct poll_table_page * table;
-+	struct poll_table_page *table;
-+	struct task_struct *polling_task;
-+	int triggered;
- 	int error;
- 	int inline_index;
- 	struct poll_table_entry inline_entries[N_INLINE_POLL_ENTRIES];
-@@ -64,6 +66,13 @@ struct poll_wqueues {
- 
- extern void poll_initwait(struct poll_wqueues *pwq);
- extern void poll_freewait(struct poll_wqueues *pwq);
-+extern int poll_schedule_timeout(struct poll_wqueues *pwq, int state,
-+				 ktime_t *expires, unsigned long slack);
-+
-+static inline int poll_schedule(struct poll_wqueues *pwq, int state)
-+{
-+	return poll_schedule_timeout(pwq, state, NULL, 0);
-+}
- 
- /*
-  * Scaleable version of the fd_set.
+ 	down_write(&current->mm->mmap_sem);
+ 	error = do_mmap_pgoff(file, addr, len, prot, flags, pgoff);
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-piix3-warn-softer-about-enabling-passive-release.patch
-dma-apitxt-fix-description-of-pci_map_sg-dma_map_sg-scatterlists-handling.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
+frv-fix-mmap2-error-handling.patch
+linux-next.patch
+frv-use-the-new-byteorder-headers.patch
+unaligned-introduce-common-header.patch
+unaligned-convert-arches-where-unaligned-access-is-ok.patch
+unaligned-use-generic-implementation-on-packed-struct-arches.patch
+mutex-subsystem-synchro-test-module.patch
 
