@@ -1,33 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - unaligned-introduce-common-header-fix.patch removed from -mm tree
-Date: Sat, 29 Nov 2008 17:24:32 -0800
-Message-ID: <200811300124.mAU1OWrJ016306@imap1.linux-foundation.org>
+Subject: - unaligned-introduce-common-header-fix-2.patch removed from -mm tree
+Date: Sat, 29 Nov 2008 17:24:35 -0800
+Message-ID: <200811300124.mAU1OZPi016341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51313 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48928 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753634AbYK3BYe (ORCPT
+	by vger.kernel.org with ESMTP id S1753722AbYK3BYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 29 Nov 2008 20:24:34 -0500
+	Sat, 29 Nov 2008 20:24:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unaligned: fix return type for get_unaligned_le64/be64
+     unaligned: write in increasing memory order
 has been removed from the -mm tree.  Its filename was
-     unaligned-introduce-common-header-fix.patch
+     unaligned-introduce-common-header-fix-2.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unaligned: fix return type for get_unaligned_le64/be64
+Subject: unaligned: write in increasing memory order
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-With my apologies, compiler didn't warn about the truncation.
+This ordering seems more logical.
+
+gcc 4.2 seems to be smart enough to figure it out in either order.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -36,27 +38,26 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/asm-generic/unaligned.h |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/unaligned.h~unaligned-introduce-common-header-fix include/asm-generic/unaligned.h
---- a/include/asm-generic/unaligned.h~unaligned-introduce-common-header-fix
+diff -puN include/asm-generic/unaligned.h~unaligned-introduce-common-header-fix-2 include/asm-generic/unaligned.h
+--- a/include/asm-generic/unaligned.h~unaligned-introduce-common-header-fix-2
 +++ a/include/asm-generic/unaligned.h
-@@ -120,7 +120,7 @@ static inline u32 get_unaligned_le32(con
- #endif
+@@ -164,14 +164,14 @@ static inline void __put_le16_noalign(u8
+ 
+ static inline void __put_le32_noalign(u8 *p, u32 val)
+ {
+-	__put_le16_noalign(p + 2, val >> 16);
+ 	__put_le16_noalign(p, val);
++	__put_le16_noalign(p + 2, val >> 16);
  }
  
--static inline u16 get_unaligned_le64(const void *p)
-+static inline u64 get_unaligned_le64(const void *p)
+ static inline void __put_le64_noalign(u8 *p, u64 val)
  {
- #ifdef __LITTLE_ENDIAN
- 	return ((const struct __una_u64 *)p)->x;
-@@ -147,7 +147,7 @@ static inline u32 get_unaligned_be32(con
- #endif
+-	__put_le32_noalign(p + 4, val >> 32);
+ 	__put_le32_noalign(p, val);
++	__put_le32_noalign(p + 4, val >> 32);
  }
  
--static inline u16 get_unaligned_be64(const void *p)
-+static inline u64 get_unaligned_be64(const void *p)
- {
- #ifdef __BIG_ENDIAN
- 	return ((const struct __una_u64 *)p)->x;
+ static inline void __put_be16_noalign(u8 *p, u16 val)
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -87,7 +88,6 @@ ibmpex-add-endian-annotation-to-extract_data-helper.patch
 blackfin-remove-__function__-in-video-driver.patch
 fb-carminefb-trivial-annotation-packing-color-register.patch
 memstick-annotate-endianness-of-attribute-structs.patch
-unaligned-introduce-common-header-fix.patch
 unaligned-introduce-common-header-fix-2.patch
 unaligned-convert-arches-where-unaligned-access-is-ok.patch
 unaligned-use-generic-implementation-on-packed-struct-arches.patch
