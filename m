@@ -1,37 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - unaligned-use-generic-implementation-on-packed-struct-arches.patch removed from -mm tree
-Date: Sat, 29 Nov 2008 17:24:42 -0800
-Message-ID: <200811300124.mAU1Ogc3016399@imap1.linux-foundation.org>
+Subject: - unaligned-introduce-common-header.patch removed from -mm tree
+Date: Sat, 29 Nov 2008 17:24:15 -0800
+Message-ID: <200811300124.mAU1OFPP016167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59506 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753172AbYK3B0N (ORCPT
+	by vger.kernel.org with ESMTP id S1753722AbYK3B00 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 29 Nov 2008 20:26:13 -0500
+	Sat, 29 Nov 2008 20:26:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, bryan.wu@analog.com, davem@davemloft.net, dhowells@redhat.com, grundler@parisc-linux.org, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, kyle@mcmartin.ca
+To: harvey.harrison@gmail.com, benh@kernel.crashing.org, bryan.wu@analog.com, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, grundler@parisc-linux.org
 
 
 The patch titled
-     unaligned: use generic implementation on packed-struct arches
+     unaligned: introduce common header
 has been removed from the -mm tree.  Its filename was
-     unaligned-use-generic-implementation-on-packed-struct-arches.patch
+     unaligned-introduce-common-header.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unaligned: use generic implementation on packed-struct arches
+Subject: unaligned: introduce common header
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-No functional changes, convert arches that use the packed-struct
-implementation for native-endianness and C byteshifting for the other
-endianness.
+There are two common cases in the kernel, one where unaligned access is OK
+for an arch and one where the arch uses a packed-struct for the native
+endianness and opencoded C byteshifting for the other endianness. 
+Consolidate these two implementations in asm-generic/unaligned.h
+
+Arches that require no special handling of unaligned access can define
+_UNALIGNED_ACCESS_OK in their asm/unaligned.h before including the generic
+version.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: Richard Henderson <rth@twiddle.net>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
@@ -44,185 +58,343 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Chris Zankel <zankel@tensilica.com>
 Cc: David Howells <dhowells@redhat.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/unaligned.h    |    7 +------
- arch/avr32/include/asm/unaligned.h    |    8 +-------
- arch/blackfin/include/asm/unaligned.h |    7 +------
- arch/ia64/include/asm/unaligned.h     |    7 +------
- arch/mips/include/asm/unaligned.h     |   17 +----------------
- arch/parisc/include/asm/unaligned.h   |    6 +-----
- arch/sh/include/asm/unaligned.h       |   20 +-------------------
- arch/sparc/include/asm/unaligned.h    |    6 +-----
- arch/xtensa/include/asm/unaligned.h   |   16 +---------------
- include/asm-frv/unaligned.h           |    7 +------
- 10 files changed, 10 insertions(+), 91 deletions(-)
+ include/asm-generic/unaligned.h |  323 ++++++++++++++++++++++++++++++
+ 1 file changed, 323 insertions(+)
 
-diff -puN arch/alpha/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches arch/alpha/include/asm/unaligned.h
---- a/arch/alpha/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches
-+++ a/arch/alpha/include/asm/unaligned.h
-@@ -1,11 +1,6 @@
- #ifndef _ASM_ALPHA_UNALIGNED_H
- #define _ASM_ALPHA_UNALIGNED_H
- 
--#include <linux/unaligned/le_struct.h>
--#include <linux/unaligned/be_byteshift.h>
--#include <linux/unaligned/generic.h>
--
--#define get_unaligned __get_unaligned_le
--#define put_unaligned __put_unaligned_le
-+#include <asm-generic/unaligned.h>
- 
- #endif /* _ASM_ALPHA_UNALIGNED_H */
-diff -puN arch/avr32/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches arch/avr32/include/asm/unaligned.h
---- a/arch/avr32/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches
-+++ a/arch/avr32/include/asm/unaligned.h
-@@ -10,12 +10,6 @@
-  * However, swapped word loads must be word-aligned so we can't
-  * optimize word loads in general.
-  */
--
--#include <linux/unaligned/be_struct.h>
--#include <linux/unaligned/le_byteshift.h>
--#include <linux/unaligned/generic.h>
--
--#define get_unaligned	__get_unaligned_be
--#define put_unaligned	__put_unaligned_be
-+#include <asm-generic/unaligned.h>
- 
- #endif /* _ASM_AVR32_UNALIGNED_H */
-diff -puN arch/blackfin/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches arch/blackfin/include/asm/unaligned.h
---- a/arch/blackfin/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches
-+++ a/arch/blackfin/include/asm/unaligned.h
-@@ -1,11 +1,6 @@
- #ifndef _ASM_BLACKFIN_UNALIGNED_H
- #define _ASM_BLACKFIN_UNALIGNED_H
- 
--#include <linux/unaligned/le_struct.h>
--#include <linux/unaligned/be_byteshift.h>
--#include <linux/unaligned/generic.h>
--
--#define get_unaligned	__get_unaligned_le
--#define put_unaligned	__put_unaligned_le
-+#include <asm-generic/unaligned.h>
- 
- #endif /* _ASM_BLACKFIN_UNALIGNED_H */
-diff -puN arch/ia64/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches arch/ia64/include/asm/unaligned.h
---- a/arch/ia64/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches
-+++ a/arch/ia64/include/asm/unaligned.h
-@@ -1,11 +1,6 @@
- #ifndef _ASM_IA64_UNALIGNED_H
- #define _ASM_IA64_UNALIGNED_H
- 
--#include <linux/unaligned/le_struct.h>
--#include <linux/unaligned/be_byteshift.h>
--#include <linux/unaligned/generic.h>
--
--#define get_unaligned	__get_unaligned_le
--#define put_unaligned	__put_unaligned_le
-+#include <asm-generic/unaligned.h>
- 
- #endif /* _ASM_IA64_UNALIGNED_H */
-diff -puN arch/mips/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches arch/mips/include/asm/unaligned.h
---- a/arch/mips/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches
-+++ a/arch/mips/include/asm/unaligned.h
-@@ -8,21 +8,6 @@
- #ifndef _ASM_MIPS_UNALIGNED_H
- #define _ASM_MIPS_UNALIGNED_H
- 
--#include <linux/compiler.h>
--#if defined(__MIPSEB__)
--# include <linux/unaligned/be_struct.h>
--# include <linux/unaligned/le_byteshift.h>
--# include <linux/unaligned/generic.h>
--# define get_unaligned	__get_unaligned_be
--# define put_unaligned	__put_unaligned_be
--#elif defined(__MIPSEL__)
--# include <linux/unaligned/le_struct.h>
--# include <linux/unaligned/be_byteshift.h>
--# include <linux/unaligned/generic.h>
--# define get_unaligned	__get_unaligned_le
--# define put_unaligned	__put_unaligned_le
--#else
--#  error "MIPS, but neither __MIPSEB__, nor __MIPSEL__???"
--#endif
-+#include <asm-generic/unaligned.h>
- 
- #endif /* _ASM_MIPS_UNALIGNED_H */
-diff -puN arch/parisc/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches arch/parisc/include/asm/unaligned.h
---- a/arch/parisc/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches
-+++ a/arch/parisc/include/asm/unaligned.h
-@@ -1,11 +1,7 @@
- #ifndef _ASM_PARISC_UNALIGNED_H
- #define _ASM_PARISC_UNALIGNED_H
- 
--#include <linux/unaligned/be_struct.h>
--#include <linux/unaligned/le_byteshift.h>
--#include <linux/unaligned/generic.h>
--#define get_unaligned	__get_unaligned_be
--#define put_unaligned	__put_unaligned_be
-+#include <asm-generic/unaligned.h>
- 
- #ifdef __KERNEL__
- struct pt_regs;
-diff -puN arch/sparc/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches arch/sparc/include/asm/unaligned.h
---- a/arch/sparc/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches
-+++ a/arch/sparc/include/asm/unaligned.h
-@@ -1,10 +1,6 @@
- #ifndef _ASM_SPARC_UNALIGNED_H
- #define _ASM_SPARC_UNALIGNED_H
- 
--#include <linux/unaligned/be_struct.h>
--#include <linux/unaligned/le_byteshift.h>
--#include <linux/unaligned/generic.h>
--#define get_unaligned	__get_unaligned_be
--#define put_unaligned	__put_unaligned_be
-+#include <asm-generic/unaligned.h>
- 
- #endif /* _ASM_SPARC_UNALIGNED_H */
-diff -puN arch/xtensa/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches arch/xtensa/include/asm/unaligned.h
---- a/arch/xtensa/include/asm/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches
-+++ a/arch/xtensa/include/asm/unaligned.h
-@@ -10,20 +10,6 @@
- #ifndef _ASM_XTENSA_UNALIGNED_H
- #define _ASM_XTENSA_UNALIGNED_H
- 
--#include <asm/byteorder.h>
--
--#ifdef __LITTLE_ENDIAN
--# include <linux/unaligned/le_struct.h>
--# include <linux/unaligned/be_byteshift.h>
--# include <linux/unaligned/generic.h>
--# define get_unaligned	__get_unaligned_le
--# define put_unaligned	__put_unaligned_le
--#else
--# include <linux/unaligned/be_struct.h>
--# include <linux/unaligned/le_byteshift.h>
--# include <linux/unaligned/generic.h>
--# define get_unaligned	__get_unaligned_be
--# define put_unaligned	__put_unaligned_be
--#endif
-+#include <asm-generic/unaligned.h>
- 
- #endif	/* _ASM_XTENSA_UNALIGNED_H */
-diff -puN include/asm-frv/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches include/asm-frv/unaligned.h
---- a/include/asm-frv/unaligned.h~unaligned-use-generic-implementation-on-packed-struct-arches
-+++ a/include/asm-frv/unaligned.h
-@@ -12,11 +12,6 @@
- #ifndef _ASM_UNALIGNED_H
- #define _ASM_UNALIGNED_H
- 
--#include <linux/unaligned/le_byteshift.h>
--#include <linux/unaligned/be_struct.h>
--#include <linux/unaligned/generic.h>
--
--#define get_unaligned	__get_unaligned_be
--#define put_unaligned	__put_unaligned_be
-+#include <asm-generic/unaligned.h>
- 
- #endif /* _ASM_UNALIGNED_H */
+diff -puN /dev/null include/asm-generic/unaligned.h
+--- /dev/null
++++ a/include/asm-generic/unaligned.h
+@@ -0,0 +1,323 @@
++#ifndef _ASM_GENERIC_UNALIGNED_H
++#define _ASM_GENERIC_UNALIGNED_H
++
++#include <linux/types.h>
++#include <asm/byteorder.h>
++
++#ifdef _UNALIGNED_ACCESS_OK
++
++static inline u16 get_unaligned_le16(const void *p)
++{
++	return le16_to_cpup(p);
++}
++
++static inline u32 get_unaligned_le32(const void *p)
++{
++	return le32_to_cpup(p);
++}
++
++static inline u64 get_unaligned_le64(const void *p)
++{
++	return le64_to_cpup(p);
++}
++
++static inline u16 get_unaligned_be16(const void *p)
++{
++	return be16_to_cpup(p);
++}
++
++static inline u32 get_unaligned_be32(const void *p)
++{
++	return be32_to_cpup(p);
++}
++
++static inline u64 get_unaligned_be64(const void *p)
++{
++	return be64_to_cpup(p);
++}
++
++static inline void put_unaligned_le16(u16 val, void *p)
++{
++	*(__le16 *)p = cpu_to_le16(val);
++}
++
++static inline void put_unaligned_le32(u32 val, void *p)
++{
++	*(__le32 *)p = cpu_to_le32(val);
++}
++
++static inline void put_unaligned_le64(u64 val, void *p)
++{
++	*(__le64 *)p = cpu_to_le64(val);
++}
++
++static inline void put_unaligned_be16(u16 val, void *p)
++{
++	*(__be16 *)p = cpu_to_be16(val);
++}
++
++static inline void put_unaligned_be32(u32 val, void *p)
++{
++	*(__be32 *)p = cpu_to_be32(val);
++}
++
++static inline void put_unaligned_be64(u64 val, void *p)
++{
++	*(__be64 *)p = cpu_to_be64(val);
++}
++
++#else /* _UNALIGNED_ACCESS_OK */
++
++struct __una_u16 { u16 x __attribute__((packed)); };
++struct __una_u32 { u32 x __attribute__((packed)); };
++struct __una_u64 { u64 x __attribute__((packed)); };
++
++static inline u16 __get_le16_noalign(const u8 *p)
++{
++	return p[0] | p[1] << 8;
++}
++
++static inline u32 __get_le32_noalign(const u8 *p)
++{
++	return p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
++}
++
++static inline u64 __get_le64_noalign(const u8 *p)
++{
++	return ((u64)__get_le32_noalign(p + 4) << 32) | __get_le32_noalign(p);
++}
++
++static inline u16 __get_be16_noalign(const u8 *p)
++{
++	return p[0] << 8 | p[1];
++}
++
++static inline u32 __get_be32_noalign(const u8 *p)
++{
++	return p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3];
++}
++
++static inline u64 __get_be64_noalign(const u8 *p)
++{
++	return ((u64)__get_be32_noalign(p) << 32) | __get_be32_noalign(p + 4);
++}
++
++static inline u16 get_unaligned_le16(const void *p)
++{
++#ifdef __LITTLE_ENDIAN
++	return ((const struct __una_u16 *)p)->x;
++#else
++	return __get_le16_noalign(p);
++#endif
++}
++
++static inline u32 get_unaligned_le32(const void *p)
++{
++#ifdef __LITTLE_ENDIAN
++	return ((const struct __una_u32 *)p)->x;
++#else
++	return __get_le32_noalign(p);
++#endif
++}
++
++static inline u16 get_unaligned_le64(const void *p)
++{
++#ifdef __LITTLE_ENDIAN
++	return ((const struct __una_u64 *)p)->x;
++#else
++	return __get_le64_noalign(p);
++#endif
++}
++
++static inline u16 get_unaligned_be16(const void *p)
++{
++#ifdef __BIG_ENDIAN
++	return ((const struct __una_u16 *)p)->x;
++#else
++	return __get_be16_noalign(p);
++#endif
++}
++
++static inline u32 get_unaligned_be32(const void *p)
++{
++#ifdef __BIG_ENDIAN
++	return ((const struct __una_u32 *)p)->x;
++#else
++	return __get_be32_noalign(p);
++#endif
++}
++
++static inline u16 get_unaligned_be64(const void *p)
++{
++#ifdef __BIG_ENDIAN
++	return ((const struct __una_u64 *)p)->x;
++#else
++	return __get_be64_noalign(p);
++#endif
++}
++
++static inline void __put_le16_noalign(u8 *p, u16 val)
++{
++	*p++ = val;
++	*p++ = val >> 8;
++}
++
++static inline void __put_le32_noalign(u8 *p, u32 val)
++{
++	__put_le16_noalign(p + 2, val >> 16);
++	__put_le16_noalign(p, val);
++}
++
++static inline void __put_le64_noalign(u8 *p, u64 val)
++{
++	__put_le32_noalign(p + 4, val >> 32);
++	__put_le32_noalign(p, val);
++}
++
++static inline void __put_be16_noalign(u8 *p, u16 val)
++{
++	*p++ = val >> 8;
++	*p++ = val;
++}
++
++static inline void __put_be32_noalign(u8 *p, u32 val)
++{
++	__put_be16_noalign(p, val >> 16);
++	__put_be16_noalign(p + 2, val);
++}
++
++static inline void __put_be64_noalign(u8 *p, u64 val)
++{
++	__put_be32_noalign(p, val >> 32);
++	__put_be32_noalign(p + 4, val);
++}
++
++static inline void put_unaligned_le16(u16 val, void *p)
++{
++#ifdef __LITTLE_ENDIAN
++	((struct __una_u16 *)p)->x = val;
++#else
++	__put_le16_noalign(p, val);
++#endif
++}
++
++static inline void put_unaligned_le32(u32 val, void *p)
++{
++#ifdef __LITTLE_ENDIAN
++	((struct __una_u32 *)p)->x = val;
++#else
++	__put_le32_noalign(p, val);
++#endif
++}
++
++static inline void put_unaligned_le64(u64 val, void *p)
++{
++#ifdef __LITTLE_ENDIAN
++	((struct __una_u64 *)p)->x = val;
++#else
++	__put_le64_noalign(p, val);
++#endif
++}
++
++static inline void put_unaligned_be16(u16 val, void *p)
++{
++#ifdef __BIG_ENDIAN
++	((struct __una_u16 *)p)->x = val;
++#else
++	__put_be16_noalign(p, val);
++#endif
++}
++
++static inline void put_unaligned_be32(u32 val, void *p)
++{
++#ifdef __BIG_ENDIAN
++	((struct __una_u32 *)p)->x = val;
++#else
++	__put_be32_noalign(p, val);
++#endif
++}
++
++static inline void put_unaligned_be64(u64 val, void *p)
++{
++#ifdef __BIG_ENDIAN
++	((struct __una_u64 *)p)->x = val;
++#else
++	__put_be64_noalign(p, val);
++#endif
++}
++
++#endif /* _UNALIGNED_ACCESS_OK */
++
++/*
++ * Cause a link-time error if we try an unaligned access other than
++ * 1,2,4 or 8 bytes long
++ */
++extern void __bad_unaligned_access_size(void);
++
++#define __get_unaligned_le(ptr) ((__force typeof(*(ptr)))({			\
++	__builtin_choose_expr(sizeof(*(ptr)) == 1, *(ptr),			\
++	__builtin_choose_expr(sizeof(*(ptr)) == 2, get_unaligned_le16((ptr)),	\
++	__builtin_choose_expr(sizeof(*(ptr)) == 4, get_unaligned_le32((ptr)),	\
++	__builtin_choose_expr(sizeof(*(ptr)) == 8, get_unaligned_le64((ptr)),	\
++	__bad_unaligned_access_size()))));					\
++	}))
++
++#define __get_unaligned_be(ptr) ((__force typeof(*(ptr)))({			\
++	__builtin_choose_expr(sizeof(*(ptr)) == 1, *(ptr),			\
++	__builtin_choose_expr(sizeof(*(ptr)) == 2, get_unaligned_be16((ptr)),	\
++	__builtin_choose_expr(sizeof(*(ptr)) == 4, get_unaligned_be32((ptr)),	\
++	__builtin_choose_expr(sizeof(*(ptr)) == 8, get_unaligned_be64((ptr)),	\
++	__bad_unaligned_access_size()))));					\
++	}))
++
++#define __put_unaligned_le(val, ptr) ({					\
++	void *__gu_p = (ptr);						\
++	switch (sizeof(*(ptr))) {					\
++	case 1:								\
++		*(u8 *)__gu_p = (__force u8)(val);			\
++		break;							\
++	case 2:								\
++		put_unaligned_le16((__force u16)(val), __gu_p);		\
++		break;							\
++	case 4:								\
++		put_unaligned_le32((__force u32)(val), __gu_p);		\
++		break;							\
++	case 8:								\
++		put_unaligned_le64((__force u64)(val), __gu_p);		\
++		break;							\
++	default:							\
++		__bad_unaligned_access_size();				\
++		break;							\
++	}								\
++	(void)0; })
++
++#define __put_unaligned_be(val, ptr) ({					\
++	void *__gu_p = (ptr);						\
++	switch (sizeof(*(ptr))) {					\
++	case 1:								\
++		*(u8 *)__gu_p = (__force u8)(val);			\
++		break;							\
++	case 2:								\
++		put_unaligned_be16((__force u16)(val), __gu_p);		\
++		break;							\
++	case 4:								\
++		put_unaligned_be32((__force u32)(val), __gu_p);		\
++		break;							\
++	case 8:								\
++		put_unaligned_be64((__force u64)(val), __gu_p);		\
++		break;							\
++	default:							\
++		__bad_unaligned_access_size();				\
++		break;							\
++	}								\
++	(void)0; })
++
++#ifdef __LITTLE_ENDIAN
++# define get_unaligned __get_unaligned_le
++# define put_unaligned __put_unaligned_le
++#else
++# define get_unaligned __get_unaligned_be
++# define put_unaligned __put_unaligned_be
++#endif
++
++#endif /* _ASM_GENERIC_UNALIGNED_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -253,6 +425,10 @@ ibmpex-add-endian-annotation-to-extract_data-helper.patch
 blackfin-remove-__function__-in-video-driver.patch
 fb-carminefb-trivial-annotation-packing-color-register.patch
 memstick-annotate-endianness-of-attribute-structs.patch
+unaligned-introduce-common-header.patch
+unaligned-introduce-common-header-fix.patch
+unaligned-introduce-common-header-fix-2.patch
+unaligned-convert-arches-where-unaligned-access-is-ok.patch
 unaligned-use-generic-implementation-on-packed-struct-arches.patch
 unaligned-remove-packed-struct-and-unaligned-access_ok-headers.patch
 unaligned-pack-the-struct-not-the-struct-members.patch
