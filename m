@@ -1,173 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds1216-fixes.patch added to -mm tree
-Date: Sat, 29 Nov 2008 17:18:35 -0800
-Message-ID: <200811300118.mAU1IZ9T013111@imap1.linux-foundation.org>
+Subject: - unaligned-introduce-common-header-fix.patch removed from -mm tree
+Date: Sat, 29 Nov 2008 17:24:32 -0800
+Message-ID: <200811300124.mAU1OWrJ016306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37152 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753775AbYK3BS5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753634AbYK3BYe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 29 Nov 2008 20:18:57 -0500
+	Sat, 29 Nov 2008 20:24:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: a.zummo@towertech.it, david-b@pacbell.net, tsbogend@alpha.franken.de
+To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: rtc-ds1216 fixes
-has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds1216-fixes.patch
+     unaligned: fix return type for get_unaligned_le64/be64
+has been removed from the -mm tree.  Its filename was
+     unaligned-introduce-common-header-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-ds1216 fixes
-From: Alessandro Zummo <a.zummo@towertech.it>
+Subject: unaligned: fix return type for get_unaligned_le64/be64
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Fixes a few issues with the rtc-ds1216 driver
+With my apologies, compiler didn't warn about the truncation.
 
-- use rtc_valid_tm
-- use platform_driver_probe
-- fix init sequence
-
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Tested-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1216.c |   30 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ include/asm-generic/unaligned.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1216.c~rtc-rtc-ds1216-fixes drivers/rtc/rtc-ds1216.c
---- a/drivers/rtc/rtc-ds1216.c~rtc-rtc-ds1216-fixes
-+++ a/drivers/rtc/rtc-ds1216.c
-@@ -10,7 +10,7 @@
- #include <linux/platform_device.h>
- #include <linux/bcd.h>
- 
--#define DRV_VERSION "0.1"
-+#define DRV_VERSION "0.2"
- 
- struct ds1216_regs {
- 	u8 tsec;
-@@ -101,7 +101,8 @@ static int ds1216_rtc_read_time(struct d
- 	tm->tm_year = bcd2bin(regs.year);
- 	if (tm->tm_year < 70)
- 		tm->tm_year += 100;
--	return 0;
-+
-+	return rtc_valid_tm(tm);
+diff -puN include/asm-generic/unaligned.h~unaligned-introduce-common-header-fix include/asm-generic/unaligned.h
+--- a/include/asm-generic/unaligned.h~unaligned-introduce-common-header-fix
++++ a/include/asm-generic/unaligned.h
+@@ -120,7 +120,7 @@ static inline u32 get_unaligned_le32(con
+ #endif
  }
  
- static int ds1216_rtc_set_time(struct device *dev, struct rtc_time *tm)
-@@ -138,9 +139,8 @@ static const struct rtc_class_ops ds1216
- 	.set_time	= ds1216_rtc_set_time,
- };
- 
--static int __devinit ds1216_rtc_probe(struct platform_device *pdev)
-+static int __init ds1216_rtc_probe(struct platform_device *pdev)
+-static inline u16 get_unaligned_le64(const void *p)
++static inline u64 get_unaligned_le64(const void *p)
  {
--	struct rtc_device *rtc;
- 	struct resource *res;
- 	struct ds1216_priv *priv;
- 	int ret = 0;
-@@ -152,7 +152,10 @@ static int __devinit ds1216_rtc_probe(st
- 	priv = kzalloc(sizeof *priv, GFP_KERNEL);
- 	if (!priv)
- 		return -ENOMEM;
--	priv->size = res->end - res->start + 1;
-+
-+	platform_set_drvdata(pdev, priv);
-+
-+	priv->size = resource_size(res);
- 	if (!request_mem_region(res->start, priv->size, pdev->name)) {
- 		ret = -EBUSY;
- 		goto out;
-@@ -163,22 +166,18 @@ static int __devinit ds1216_rtc_probe(st
- 		ret = -ENOMEM;
- 		goto out;
- 	}
--	rtc = rtc_device_register("ds1216", &pdev->dev,
-+	priv->rtc = rtc_device_register("ds1216", &pdev->dev,
- 				  &ds1216_rtc_ops, THIS_MODULE);
--	if (IS_ERR(rtc)) {
--		ret = PTR_ERR(rtc);
-+	if (IS_ERR(priv->rtc)) {
-+		ret = PTR_ERR(priv->rtc);
- 		goto out;
- 	}
--	priv->rtc = rtc;
--	platform_set_drvdata(pdev, priv);
- 
- 	/* dummy read to get clock into a known state */
- 	ds1216_read(priv->ioaddr, dummy);
- 	return 0;
- 
- out:
--	if (priv->rtc)
--		rtc_device_unregister(priv->rtc);
- 	if (priv->ioaddr)
- 		iounmap(priv->ioaddr);
- 	if (priv->baseaddr)
-@@ -187,7 +186,7 @@ out:
- 	return ret;
+ #ifdef __LITTLE_ENDIAN
+ 	return ((const struct __una_u64 *)p)->x;
+@@ -147,7 +147,7 @@ static inline u32 get_unaligned_be32(con
+ #endif
  }
  
--static int __devexit ds1216_rtc_remove(struct platform_device *pdev)
-+static int __exit ds1216_rtc_remove(struct platform_device *pdev)
+-static inline u16 get_unaligned_be64(const void *p)
++static inline u64 get_unaligned_be64(const void *p)
  {
- 	struct ds1216_priv *priv = platform_get_drvdata(pdev);
- 
-@@ -203,13 +202,12 @@ static struct platform_driver ds1216_rtc
- 		.name	= "rtc-ds1216",
- 		.owner	= THIS_MODULE,
- 	},
--	.probe		= ds1216_rtc_probe,
--	.remove		= __devexit_p(ds1216_rtc_remove),
-+	.remove		= __exit_p(ds1216_rtc_remove),
- };
- 
- static int __init ds1216_rtc_init(void)
- {
--	return platform_driver_register(&ds1216_rtc_platform_driver);
-+	return platform_driver_probe(&ds1216_rtc_platform_driver, ds1216_rtc_probe);
- }
- 
- static void __exit ds1216_rtc_exit(void)
+ #ifdef __BIG_ENDIAN
+ 	return ((const struct __una_u64 *)p)->x;
 _
 
-Patches currently in -mm which might be from a.zummo@towertech.it are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-genrtc-disable-genrtc-on-blackfin-systems.patch
-rtc-ds1307-smbus-compatibility.patch
-rtc-ds1307-remove-legacy-probe-checks.patch
-rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
-rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
-rtc-driver-for-pxa27x-and-pxa3xx-soc.patch
-rtc-pxa27x-pxa3xx-driver-fixes-revised.patch
-rtc-add-alarm-update-irq-interfaces-version-5.patch
-rtc-rtc-ds1390-probe-sequence-and-misc-fixes.patch
-rtc-kconfig-cleanup.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-rtc-rtc-max6902-fixes-v3.patch
-rtc-rtc-ds3234-fixes-v2.patch
-rtc-use-set_mmss-when-set_time-is-not-available.patch
-rtc-add-rtc-tx4939-driver-v2.patch
-rtc-rtc-ds1216-fixes.patch
+linux-next.patch
+arm-use-the-new-byteorder-headers.patch
+i2c-misannotation-in-i2c-pmcmspc.patch
+i2c-trivial-endian-casting-fixes-in-i2c-highlanderc.patch
+ia64-use-the-new-byteorder-headers.patch
+input-ads7846c-sparse-lock-annotation.patch
+m32r-use-the-new-byteorder-headers.patch
+blackfin-remove-__function__-in-new-serial-driver.patch
+blackfin-use-the-new-byteorder-headers.patch
+parisc-use-the-new-byteorder-headers.patch
+s390-use-the-new-byteorder-headers.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+frv-use-the-new-byteorder-headers.patch
+m68knommu-use-the-new-byteorder-headers.patch
+h8300-use-the-new-byteorder-headers.patch
+alpha-use-the-new-byteorder-headers.patch
+lib-fix-sparse-shadowed-variable-warning.patch
+lib-radix_treec-make-percpu-variable-static.patch
+lib-proportionsc-trivial-sparse-lock-annotation.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+blackfin-remove-__function__-in-video-driver.patch
+fb-carminefb-trivial-annotation-packing-color-register.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+unaligned-introduce-common-header-fix.patch
+unaligned-introduce-common-header-fix-2.patch
+unaligned-convert-arches-where-unaligned-access-is-ok.patch
+unaligned-use-generic-implementation-on-packed-struct-arches.patch
+unaligned-remove-packed-struct-and-unaligned-access_ok-headers.patch
+unaligned-pack-the-struct-not-the-struct-members.patch
+unaligned-move-arm-m32r-h8300-to-the-asm-generic-version.patch
+unaligned-remove-last-bits-of-the-unaligned-access-helpers.patch
 
