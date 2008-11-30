@@ -1,74 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: - unaligned-pack-the-struct-not-the-struct-members.patch removed from -mm tree
-Date: Sat, 29 Nov 2008 17:24:49 -0800
-Message-ID: <200811300124.mAU1OnkU016520@imap1.linux-foundation.org>
+Subject: - unaligned-remove-packed-struct-and-unaligned-access_ok-headers.patch removed from -mm tree
+Date: Sat, 29 Nov 2008 17:24:46 -0800
+Message-ID: <200811300124.mAU1Ok2X016513__2026.38341947949$1228008377$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38449 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753877AbYK3BYx (ORCPT
+	by vger.kernel.org with ESMTP id S1753835AbYK3BYt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 29 Nov 2008 20:24:53 -0500
+	Sat, 29 Nov 2008 20:24:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unaligned: pack the struct, not the struct members
+     unaligned: remove packed-struct and unaligned access_ok headers
 has been removed from the -mm tree.  Its filename was
-     unaligned-pack-the-struct-not-the-struct-members.patch
+     unaligned-remove-packed-struct-and-unaligned-access_ok-headers.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unaligned: pack the struct, not the struct members
+Subject: unaligned: remove packed-struct and unaligned access_ok headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-This is safe for the arches that currently use this as gcc says that
-defining a struct as packed is equivalent to putting packed on each struct
-member.
-
-The reason this is needed is that there are some arches that define
-structs to be aligned to something greater than a byte...so even if the
-first member of the struct is marked as packed, gcc will still treat it as
-having the default stuct alignment which will allow it to choose
-_builtin_memcpy...  see the comments in the memmove-using arches.  This
-also turned out to be the issue with ARM (needs confirmation) because
-_some_ ARM compilers have this alignment set to 4 bytes.
-
-If the struct _itself_ is marked as packed, the compiler cannot assume
-this default alignment and _must_ do the bytewise access in whatever way
-the arch does it.  By making this change, the last 3 arches could move to
-the new asm-generic version and the bits in linux/unaligned/ can be
-removed.
+The asm-generic version of unaligned.h now contains these bits.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/unaligned.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/unaligned/access_ok.h     |   67 ----------------------
+ include/linux/unaligned/be_struct.h     |   36 -----------
+ include/linux/unaligned/le_struct.h     |   36 -----------
+ include/linux/unaligned/packed_struct.h |   46 ---------------
+ 4 files changed, 185 deletions(-)
 
-diff -puN include/asm-generic/unaligned.h~unaligned-pack-the-struct-not-the-struct-members include/asm-generic/unaligned.h
---- a/include/asm-generic/unaligned.h~unaligned-pack-the-struct-not-the-struct-members
-+++ a/include/asm-generic/unaligned.h
-@@ -68,9 +68,9 @@ static inline void put_unaligned_be64(u6
- 
- #else /* _UNALIGNED_ACCESS_OK */
- 
+diff -puN include/linux/unaligned/access_ok.h~unaligned-remove-packed-struct-and-unaligned-access_ok-headers /dev/null
+--- a/include/linux/unaligned/access_ok.h
++++ /dev/null
+@@ -1,67 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_ACCESS_OK_H
+-#define _LINUX_UNALIGNED_ACCESS_OK_H
+-
+-#include <linux/kernel.h>
+-#include <asm/byteorder.h>
+-
+-static inline u16 get_unaligned_le16(const void *p)
+-{
+-	return le16_to_cpup((__le16 *)p);
+-}
+-
+-static inline u32 get_unaligned_le32(const void *p)
+-{
+-	return le32_to_cpup((__le32 *)p);
+-}
+-
+-static inline u64 get_unaligned_le64(const void *p)
+-{
+-	return le64_to_cpup((__le64 *)p);
+-}
+-
+-static inline u16 get_unaligned_be16(const void *p)
+-{
+-	return be16_to_cpup((__be16 *)p);
+-}
+-
+-static inline u32 get_unaligned_be32(const void *p)
+-{
+-	return be32_to_cpup((__be32 *)p);
+-}
+-
+-static inline u64 get_unaligned_be64(const void *p)
+-{
+-	return be64_to_cpup((__be64 *)p);
+-}
+-
+-static inline void put_unaligned_le16(u16 val, void *p)
+-{
+-	*((__le16 *)p) = cpu_to_le16(val);
+-}
+-
+-static inline void put_unaligned_le32(u32 val, void *p)
+-{
+-	*((__le32 *)p) = cpu_to_le32(val);
+-}
+-
+-static inline void put_unaligned_le64(u64 val, void *p)
+-{
+-	*((__le64 *)p) = cpu_to_le64(val);
+-}
+-
+-static inline void put_unaligned_be16(u16 val, void *p)
+-{
+-	*((__be16 *)p) = cpu_to_be16(val);
+-}
+-
+-static inline void put_unaligned_be32(u32 val, void *p)
+-{
+-	*((__be32 *)p) = cpu_to_be32(val);
+-}
+-
+-static inline void put_unaligned_be64(u64 val, void *p)
+-{
+-	*((__be64 *)p) = cpu_to_be64(val);
+-}
+-
+-#endif /* _LINUX_UNALIGNED_ACCESS_OK_H */
+diff -puN include/linux/unaligned/be_struct.h~unaligned-remove-packed-struct-and-unaligned-access_ok-headers /dev/null
+--- a/include/linux/unaligned/be_struct.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_BE_STRUCT_H
+-#define _LINUX_UNALIGNED_BE_STRUCT_H
+-
+-#include <linux/unaligned/packed_struct.h>
+-
+-static inline u16 get_unaligned_be16(const void *p)
+-{
+-	return __get_unaligned_cpu16((const u8 *)p);
+-}
+-
+-static inline u32 get_unaligned_be32(const void *p)
+-{
+-	return __get_unaligned_cpu32((const u8 *)p);
+-}
+-
+-static inline u64 get_unaligned_be64(const void *p)
+-{
+-	return __get_unaligned_cpu64((const u8 *)p);
+-}
+-
+-static inline void put_unaligned_be16(u16 val, void *p)
+-{
+-	__put_unaligned_cpu16(val, p);
+-}
+-
+-static inline void put_unaligned_be32(u32 val, void *p)
+-{
+-	__put_unaligned_cpu32(val, p);
+-}
+-
+-static inline void put_unaligned_be64(u64 val, void *p)
+-{
+-	__put_unaligned_cpu64(val, p);
+-}
+-
+-#endif /* _LINUX_UNALIGNED_BE_STRUCT_H */
+diff -puN include/linux/unaligned/le_struct.h~unaligned-remove-packed-struct-and-unaligned-access_ok-headers /dev/null
+--- a/include/linux/unaligned/le_struct.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_LE_STRUCT_H
+-#define _LINUX_UNALIGNED_LE_STRUCT_H
+-
+-#include <linux/unaligned/packed_struct.h>
+-
+-static inline u16 get_unaligned_le16(const void *p)
+-{
+-	return __get_unaligned_cpu16((const u8 *)p);
+-}
+-
+-static inline u32 get_unaligned_le32(const void *p)
+-{
+-	return __get_unaligned_cpu32((const u8 *)p);
+-}
+-
+-static inline u64 get_unaligned_le64(const void *p)
+-{
+-	return __get_unaligned_cpu64((const u8 *)p);
+-}
+-
+-static inline void put_unaligned_le16(u16 val, void *p)
+-{
+-	__put_unaligned_cpu16(val, p);
+-}
+-
+-static inline void put_unaligned_le32(u32 val, void *p)
+-{
+-	__put_unaligned_cpu32(val, p);
+-}
+-
+-static inline void put_unaligned_le64(u64 val, void *p)
+-{
+-	__put_unaligned_cpu64(val, p);
+-}
+-
+-#endif /* _LINUX_UNALIGNED_LE_STRUCT_H */
+diff -puN include/linux/unaligned/packed_struct.h~unaligned-remove-packed-struct-and-unaligned-access_ok-headers /dev/null
+--- a/include/linux/unaligned/packed_struct.h
++++ /dev/null
+@@ -1,46 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_PACKED_STRUCT_H
+-#define _LINUX_UNALIGNED_PACKED_STRUCT_H
+-
+-#include <linux/kernel.h>
+-
 -struct __una_u16 { u16 x __attribute__((packed)); };
 -struct __una_u32 { u32 x __attribute__((packed)); };
 -struct __una_u64 { u64 x __attribute__((packed)); };
-+struct __una_u16 { u16 x; } __attribute__((packed));
-+struct __una_u32 { u32 x; } __attribute__((packed));
-+struct __una_u64 { u64 x; } __attribute__((packed));
- 
- static inline u16 __get_le16_noalign(const u8 *p)
- {
+-
+-static inline u16 __get_unaligned_cpu16(const void *p)
+-{
+-	const struct __una_u16 *ptr = (const struct __una_u16 *)p;
+-	return ptr->x;
+-}
+-
+-static inline u32 __get_unaligned_cpu32(const void *p)
+-{
+-	const struct __una_u32 *ptr = (const struct __una_u32 *)p;
+-	return ptr->x;
+-}
+-
+-static inline u64 __get_unaligned_cpu64(const void *p)
+-{
+-	const struct __una_u64 *ptr = (const struct __una_u64 *)p;
+-	return ptr->x;
+-}
+-
+-static inline void __put_unaligned_cpu16(u16 val, void *p)
+-{
+-	struct __una_u16 *ptr = (struct __una_u16 *)p;
+-	ptr->x = val;
+-}
+-
+-static inline void __put_unaligned_cpu32(u32 val, void *p)
+-{
+-	struct __una_u32 *ptr = (struct __una_u32 *)p;
+-	ptr->x = val;
+-}
+-
+-static inline void __put_unaligned_cpu64(u64 val, void *p)
+-{
+-	struct __una_u64 *ptr = (struct __una_u64 *)p;
+-	ptr->x = val;
+-}
+-
+-#endif /* _LINUX_UNALIGNED_PACKED_STRUCT_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -99,6 +271,7 @@ ibmpex-add-endian-annotation-to-extract_data-helper.patch
 blackfin-remove-__function__-in-video-driver.patch
 fb-carminefb-trivial-annotation-packing-color-register.patch
 memstick-annotate-endianness-of-attribute-structs.patch
+unaligned-remove-packed-struct-and-unaligned-access_ok-headers.patch
 unaligned-pack-the-struct-not-the-struct-members.patch
 unaligned-move-arm-m32r-h8300-to-the-asm-generic-version.patch
 unaligned-remove-last-bits-of-the-unaligned-access-helpers.patch
