@@ -1,63 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - backlight-catch-invalid-input-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 01 Dec 2008 14:25:05 -0800
-Message-ID: <200812012225.mB1MP6gp015446@imap1.linux-foundation.org>
+Subject: - backlight-catch-invalid-input-fix.patch removed from -mm tree
+Date: Mon, 01 Dec 2008 14:25:08 -0800
+Message-ID: <200812012225.mB1MP8Fw015462@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40313 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752756AbYLAWZT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 17:25:19 -0500
+	by vger.kernel.org with ESMTP id S1752270AbYLAWZv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 17:25:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, pavel@suse.cz, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, pavel@suse.cz, randy.dunlap@oracle.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight-catch-invalid-input-checkpatch-fixes
+     backlight-catch-invalid-input-fix
 has been removed from the -mm tree.  Its filename was
-     backlight-catch-invalid-input-checkpatch-fixes.patch
+     backlight-catch-invalid-input-fix.patch
 
 This patch was dropped because it was folded into backlight-catch-invalid-input.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight-catch-invalid-input-checkpatch-fixes
+Subject: backlight-catch-invalid-input-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#56: FILE: drivers/video/backlight/backlight.c:122:
-+ ^Irc = strict_strtoul(buf, 0, &brightness);$
-
-total: 1 errors, 0 warnings, 57 lines checked
-
-./patches/backlight-catch-invalid-input.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+drivers/video/backlight/backlight.c: In function 'backlight_store_power':
+drivers/video/backlight/backlight.c:95: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
 
 Cc: Pavel Machek <pavel@suse.cz>
 Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/backlight.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-catch-invalid-input-checkpatch-fixes drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-catch-invalid-input-checkpatch-fixes
+diff -puN drivers/video/backlight/backlight.c~backlight-catch-invalid-input-fix drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~backlight-catch-invalid-input-fix
 +++ a/drivers/video/backlight/backlight.c
-@@ -119,7 +119,7 @@ static ssize_t backlight_store_brightnes
- 	struct backlight_device *bd = to_backlight_device(dev);
- 	unsigned long brightness;
- 
-- 	rc = strict_strtoul(buf, 0, &brightness);
-+	rc = strict_strtoul(buf, 0, &brightness);
- 	if (rc)
- 		return rc;
- 
+@@ -92,7 +92,6 @@ static ssize_t backlight_store_power(str
+ 	mutex_lock(&bd->ops_lock);
+ 	if (bd->ops) {
+ 		pr_debug("backlight: set power to %lu\n", power);
+-		pr_debug("backlight: set power to %d\n", power);
+ 		if (bd->props.power != power) {
+ 			bd->props.power = power;
+ 			backlight_update_status(bd);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,7 +68,6 @@ linux-timexh-cleanup-for-userspace.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 netdev-smc911x-fix-for-driver-resume-cleanup.patch
 backlight-catch-invalid-input.patch
-backlight-catch-invalid-input-checkpatch-fixes.patch
 backlight-catch-invalid-input-fix.patch
 pci-uninline-pci_ioremap_bar.patch
 pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
