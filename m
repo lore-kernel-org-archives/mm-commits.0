@@ -1,151 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch added to -mm tree
-Date: Mon, 01 Dec 2008 14:29:45 -0800
-Message-ID: <200812012229.mB1MTjEI018140@imap1.linux-foundation.org>
+Subject: - usb-add-nikon-d300-camera-to-unusual_devs.patch removed from -mm tree
+Date: Mon, 01 Dec 2008 14:33:01 -0800
+Message-ID: <200812012233.mB1MX1Ih019959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35773 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751922AbYLAWad (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 17:30:33 -0500
+	by vger.kernel.org with ESMTP id S1752559AbYLAWdl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 17:33:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mjg59@srcf.ucam.org, jbarnes@virtuousgeek.org, kristen.c.accardi@intel.com, mjg@redhat.com
+To: lxtwin@homecall.co.uk, greg@kroah.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcie: add option to passively listen for PCIE hotplug events
-has been added to the -mm tree.  Its filename is
-     pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch
+     usb: add Nikon D300 camera to unusual_devs
+has been removed from the -mm tree.  Its filename was
+     usb-add-nikon-d300-camera-to-unusual_devs.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcie: add option to passively listen for PCIE hotplug events
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: usb: add Nikon D300 camera to unusual_devs
+From: Paul Ready <lxtwin@homecall.co.uk>
 
-Various pieces of hardware (such as the Acer Aspire One and Asus EEE) use
-PCIE hotplug to change the state of devices in response to events such as
-the removal of SD cards or disabling the wireless radio.  However, they do
-not provide firmware support for this.  As a consequence pciehp will
-refuse to load and various things break.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11685
 
-The existing workaround has been to use the pciehp_force option.  This is
-undesirable as there is little guarantee that manipulating the power file
-in the slot directory will actually result in anything happening, leading
-to potential user confusion and hardware damage.  This patch adds a new
-option, pciehp_passive.  In this configuration pciehp will listen for
-events and notify the PCI core appropriately.  However, it will not
-provide any user controllable sysfs attributes and so the risk of
-confusion or damage is averted.  Any system slots that do have firmware
-support will continue to provide full functionality.
+When A Nikon D300 camera is connected to a system it is seen in
+/proc/bus/pci/devices but is not accessible.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+This is seen in the above file:
+
+T:  Bus=01 Lev=01 Prnt=01 Port=05 Cnt=03 Dev#= 11 Spd=480 MxCh= 0
+D:  Ver= 2.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=04b0 ProdID=041a Rev= 1.03
+S:  Manufacturer=NIKON
+S:  Product=NIKON DSC D300
+S:  SerialNumber=000008014379
+C:* #Ifs= 1 Cfg#= 1 Atr=c0 MxPwr=  2mA
+I:* If#= 0 Alt= 0 #EPs= 3 Cls=06(still) Sub=01 Prot=01 Driver=usbfs
+E:  Ad=81(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+E:  Ad=02(O) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+E:  Ad=83(I) Atr=03(Int.) MxPS=   8 Ivl=32ms
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/pciehp_core.c |   22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ drivers/usb/storage/unusual_devs.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/pci/hotplug/pciehp_core.c~pcie-add-option-to-passively-listen-for-pcie-hotplug-events drivers/pci/hotplug/pciehp_core.c
---- a/drivers/pci/hotplug/pciehp_core.c~pcie-add-option-to-passively-listen-for-pcie-hotplug-events
-+++ a/drivers/pci/hotplug/pciehp_core.c
-@@ -41,6 +41,7 @@ int pciehp_debug;
- int pciehp_poll_mode;
- int pciehp_poll_time;
- int pciehp_force;
-+int pciehp_passive;
- struct workqueue_struct *pciehp_wq;
+diff -puN drivers/usb/storage/unusual_devs.h~usb-add-nikon-d300-camera-to-unusual_devs drivers/usb/storage/unusual_devs.h
+--- a/drivers/usb/storage/unusual_devs.h~usb-add-nikon-d300-camera-to-unusual_devs
++++ a/drivers/usb/storage/unusual_devs.h
+@@ -468,6 +468,13 @@ UNUSUAL_DEV(  0x04b0, 0x0419, 0x0100, 0x
+ 		US_SC_DEVICE, US_PR_DEVICE, NULL,
+ 		US_FL_FIX_CAPACITY),
  
- #define DRIVER_VERSION	"0.4"
-@@ -55,10 +56,12 @@ module_param(pciehp_debug, bool, 0644);
- module_param(pciehp_poll_mode, bool, 0644);
- module_param(pciehp_poll_time, int, 0644);
- module_param(pciehp_force, bool, 0644);
-+module_param(pciehp_passive, bool, 0644);
- MODULE_PARM_DESC(pciehp_debug, "Debugging mode enabled or not");
- MODULE_PARM_DESC(pciehp_poll_mode, "Using polling mechanism for hot-plug events or not");
- MODULE_PARM_DESC(pciehp_poll_time, "Polling mechanism frequency, in seconds");
- MODULE_PARM_DESC(pciehp_force, "Force pciehp, even if _OSC and OSHP are missing");
-+MODULE_PARM_DESC(pciehp_passive, "Listen for pciehp events, even if _OSC and OSHP are missing");
- 
- #define PCIE_MODULE_NAME "pciehp"
- 
-@@ -85,6 +88,13 @@ static struct hotplug_slot_ops pciehp_ho
-   	.get_cur_bus_speed =	get_cur_bus_speed,
- };
- 
-+static struct hotplug_slot_ops pciehp_passive_hotplug_slot_ops = {
-+	.owner =		THIS_MODULE,
-+	.get_adapter_status =	get_adapter_status,
-+  	.get_max_bus_speed =	get_max_bus_speed,
-+  	.get_cur_bus_speed =	get_cur_bus_speed,
-+};
++/* Reported by paul ready <lxtwin@homecall.co.uk> */
++UNUSUAL_DEV(  0x04b0, 0x0419, 0x0100, 0x0200,
++		"NIKON",
++		"NIKON DSC D300",
++		US_SC_DEVICE, US_PR_DEVICE, NULL,
++		US_FL_FIX_CAPACITY),
 +
- /*
-  * Check the status of the Electro Mechanical Interlock (EMI)
-  */
-@@ -212,7 +222,11 @@ static int init_slots(struct controller 
- 		hotplug_slot->info = info;
- 		hotplug_slot->private = slot;
- 		hotplug_slot->release = &release_slot;
--		hotplug_slot->ops = &pciehp_hotplug_slot_ops;
-+		if (pciehp_passive &&
-+		    pciehp_get_hp_hw_control_from_firmware(ctrl->pci_dev))
-+			hotplug_slot->ops = &pciehp_passive_hotplug_slot_ops;
-+		else
-+			hotplug_slot->ops = &pciehp_hotplug_slot_ops;
- 		slot->hotplug_slot = hotplug_slot;
- 		snprintf(name, SLOT_NAME_SIZE, "%u", slot->number);
- 
-@@ -407,7 +421,7 @@ static int pciehp_probe(struct pcie_devi
- 	u8 value;
- 	struct pci_dev *pdev = dev->port;
- 
--	if (pciehp_force)
-+	if (pciehp_force || pciehp_passive)
- 		dev_info(&dev->device,
- 			 "Bypassing BIOS check for pciehp use on %s\n",
- 			 pci_name(pdev));
-@@ -435,7 +449,7 @@ static int pciehp_probe(struct pcie_devi
- 	t_slot = pciehp_find_slot(ctrl, ctrl->slot_device_offset);
- 
- 	t_slot->hpc_ops->get_adapter_status(t_slot, &value); /* Check if slot is occupied */
--	if (value && pciehp_force) {
-+	if (value && (pciehp_force || pciehp_passive)) {
- 		rc = pciehp_enable_slot(t_slot);
- 		if (rc)	/* -ENODEV: shouldn't happen, but deal with it */
- 			value = 0;
-@@ -474,7 +488,7 @@ static int pciehp_suspend (struct pcie_d
- static int pciehp_resume (struct pcie_device *dev)
- {
- 	dev_info(&dev->device, "%s ENTRY\n", __func__);
--	if (pciehp_force) {
-+	if (pciehp_force || pciehp_passive) {
- 		struct controller *ctrl = get_service_data(dev);
- 		struct slot *t_slot;
- 		u8 status;
+ /* Reported by Doug Maxey (dwm@austin.ibm.com) */
+ UNUSUAL_DEV(  0x04b3, 0x4001, 0x0110, 0x0110,
+ 		"IBM",
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from lxtwin@homecall.co.uk are
 
-linux-next.patch
-acpiphp-identify-more-removable-slots.patch
-pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch
-pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
-hp-wmi-handle-rfkill_register-failure.patch
+usb-add-nikon-d300-camera-to-unusual_devs.patch
 
