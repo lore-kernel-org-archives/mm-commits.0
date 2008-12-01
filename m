@@ -1,140 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 01 Dec 2008 14:29:49 -0800
-Message-ID: <200812012229.mB1MTnb2018149@imap1.linux-foundation.org>
+Subject: + pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch added to -mm tree
+Date: Mon, 01 Dec 2008 14:29:45 -0800
+Message-ID: <200812012229.mB1MTjEI018140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35773 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752482AbYLAWae (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 17:30:34 -0500
+	by vger.kernel.org with ESMTP id S1751922AbYLAWad (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 17:30:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jbarnes@virtuousgeek.org, kristen.c.accardi@intel.com, mjg59@srcf.ucam.org, mjg@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mjg59@srcf.ucam.org, jbarnes@virtuousgeek.org, kristen.c.accardi@intel.com, mjg@redhat.com
 
 
 The patch titled
-     pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
+     pcie: add option to passively listen for PCIE hotplug events
+has been added to the -mm tree.  Its filename is
+     pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch
 
-This patch was dropped because it was folded into pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pcie: add option to passively listen for PCIE hotplug events
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-WARNING: line over 80 characters
-#48: FILE: drivers/pci/hotplug/pciehp_core.c:64:
-+MODULE_PARM_DESC(pciehp_passive, "Listen for pciehp events, even if _OSC and OSHP are missing");
+Various pieces of hardware (such as the Acer Aspire One and Asus EEE) use
+PCIE hotplug to change the state of devices in response to events such as
+the removal of SD cards or disabling the wireless radio.  However, they do
+not provide firmware support for this.  As a consequence pciehp will
+refuse to load and various things break.
 
-ERROR: code indent should use tabs where possible
-#59: FILE: drivers/pci/hotplug/pciehp_core.c:94:
-+  ^I.get_max_bus_speed =^Iget_max_bus_speed,$
+The existing workaround has been to use the pciehp_force option.  This is
+undesirable as there is little guarantee that manipulating the power file
+in the slot directory will actually result in anything happening, leading
+to potential user confusion and hardware damage.  This patch adds a new
+option, pciehp_passive.  In this configuration pciehp will listen for
+events and notify the PCI core appropriately.  However, it will not
+provide any user controllable sysfs attributes and so the risk of
+confusion or damage is averted.  Any system slots that do have firmware
+support will continue to provide full functionality.
 
-ERROR: code indent should use tabs where possible
-#60: FILE: drivers/pci/hotplug/pciehp_core.c:95:
-+  ^I.get_cur_bus_speed =^Iget_cur_bus_speed,$
-
-total: 2 errors, 1 warnings, 68 lines checked
-
-./patches/pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/pciehp_core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/hotplug/pciehp_core.c |   22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pci/hotplug/pciehp_core.c~pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes drivers/pci/hotplug/pciehp_core.c
---- a/drivers/pci/hotplug/pciehp_core.c~pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes
+diff -puN drivers/pci/hotplug/pciehp_core.c~pcie-add-option-to-passively-listen-for-pcie-hotplug-events drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pcie-add-option-to-passively-listen-for-pcie-hotplug-events
 +++ a/drivers/pci/hotplug/pciehp_core.c
-@@ -91,8 +91,8 @@ static struct hotplug_slot_ops pciehp_ho
- static struct hotplug_slot_ops pciehp_passive_hotplug_slot_ops = {
- 	.owner =		THIS_MODULE,
- 	.get_adapter_status =	get_adapter_status,
--  	.get_max_bus_speed =	get_max_bus_speed,
--  	.get_cur_bus_speed =	get_cur_bus_speed,
-+	.get_max_bus_speed =	get_max_bus_speed,
-+	.get_cur_bus_speed =	get_cur_bus_speed,
+@@ -41,6 +41,7 @@ int pciehp_debug;
+ int pciehp_poll_mode;
+ int pciehp_poll_time;
+ int pciehp_force;
++int pciehp_passive;
+ struct workqueue_struct *pciehp_wq;
+ 
+ #define DRIVER_VERSION	"0.4"
+@@ -55,10 +56,12 @@ module_param(pciehp_debug, bool, 0644);
+ module_param(pciehp_poll_mode, bool, 0644);
+ module_param(pciehp_poll_time, int, 0644);
+ module_param(pciehp_force, bool, 0644);
++module_param(pciehp_passive, bool, 0644);
+ MODULE_PARM_DESC(pciehp_debug, "Debugging mode enabled or not");
+ MODULE_PARM_DESC(pciehp_poll_mode, "Using polling mechanism for hot-plug events or not");
+ MODULE_PARM_DESC(pciehp_poll_time, "Polling mechanism frequency, in seconds");
+ MODULE_PARM_DESC(pciehp_force, "Force pciehp, even if _OSC and OSHP are missing");
++MODULE_PARM_DESC(pciehp_passive, "Listen for pciehp events, even if _OSC and OSHP are missing");
+ 
+ #define PCIE_MODULE_NAME "pciehp"
+ 
+@@ -85,6 +88,13 @@ static struct hotplug_slot_ops pciehp_ho
+   	.get_cur_bus_speed =	get_cur_bus_speed,
  };
  
++static struct hotplug_slot_ops pciehp_passive_hotplug_slot_ops = {
++	.owner =		THIS_MODULE,
++	.get_adapter_status =	get_adapter_status,
++  	.get_max_bus_speed =	get_max_bus_speed,
++  	.get_cur_bus_speed =	get_cur_bus_speed,
++};
++
  /*
+  * Check the status of the Electro Mechanical Interlock (EMI)
+  */
+@@ -212,7 +222,11 @@ static int init_slots(struct controller 
+ 		hotplug_slot->info = info;
+ 		hotplug_slot->private = slot;
+ 		hotplug_slot->release = &release_slot;
+-		hotplug_slot->ops = &pciehp_hotplug_slot_ops;
++		if (pciehp_passive &&
++		    pciehp_get_hp_hw_control_from_firmware(ctrl->pci_dev))
++			hotplug_slot->ops = &pciehp_passive_hotplug_slot_ops;
++		else
++			hotplug_slot->ops = &pciehp_hotplug_slot_ops;
+ 		slot->hotplug_slot = hotplug_slot;
+ 		snprintf(name, SLOT_NAME_SIZE, "%u", slot->number);
+ 
+@@ -407,7 +421,7 @@ static int pciehp_probe(struct pcie_devi
+ 	u8 value;
+ 	struct pci_dev *pdev = dev->port;
+ 
+-	if (pciehp_force)
++	if (pciehp_force || pciehp_passive)
+ 		dev_info(&dev->device,
+ 			 "Bypassing BIOS check for pciehp use on %s\n",
+ 			 pci_name(pdev));
+@@ -435,7 +449,7 @@ static int pciehp_probe(struct pcie_devi
+ 	t_slot = pciehp_find_slot(ctrl, ctrl->slot_device_offset);
+ 
+ 	t_slot->hpc_ops->get_adapter_status(t_slot, &value); /* Check if slot is occupied */
+-	if (value && pciehp_force) {
++	if (value && (pciehp_force || pciehp_passive)) {
+ 		rc = pciehp_enable_slot(t_slot);
+ 		if (rc)	/* -ENODEV: shouldn't happen, but deal with it */
+ 			value = 0;
+@@ -474,7 +488,7 @@ static int pciehp_suspend (struct pcie_d
+ static int pciehp_resume (struct pcie_device *dev)
+ {
+ 	dev_info(&dev->device, "%s ENTRY\n", __func__);
+-	if (pciehp_force) {
++	if (pciehp_force || pciehp_passive) {
+ 		struct controller *ctrl = get_service_data(dev);
+ 		struct slot *t_slot;
+ 		u8 status;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
-origin.patch
-epoll-introduce-resource-usage-limits.patch
-ntfs-dont-fool-kernel-doc.patch
-drivers-gpu-drm-i915-i915_irqc-fix-warning.patch
-ksym_symbol_len-fixes.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-hwmon-f71882fgc-make-dev_attr_name-static.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-backlight-catch-invalid-input.patch
-pci-uninline-pci_ioremap_bar.patch
+acpiphp-identify-more-removable-slots.patch
 pcie-add-option-to-passively-listen-for-pcie-hotplug-events.patch
 pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
-bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-linuxpps-core-support-drivers-pps-sysfsc-make-dev_attr_name-static.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+hp-wmi-handle-rfkill_register-failure.patch
 
