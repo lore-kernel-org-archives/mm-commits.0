@@ -1,87 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-m25p80-chip-erase-=-block-erase-=-sector-erase.patch removed from -mm tree
-Date: Mon, 01 Dec 2008 11:49:23 -0800
-Message-ID: <200812011949.mB1JnNbC025233@imap1.linux-foundation.org>
+Subject: - acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume.patch removed from -mm tree
+Date: Mon, 01 Dec 2008 11:49:12 -0800
+Message-ID: <200812011949.mB1JnCsu025131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57132 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34102 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752637AbYLATuJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 14:50:09 -0500
+	by vger.kernel.org with ESMTP id S1752649AbYLATuK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 14:50:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: g.chen@freescale.com, clumsycg@gmail.com, dbrownell@users.sourceforge.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, lenb@kernel.org, me@bobcopeland.com, tino.keitel@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd m25p80: chip erase != block erase != sector erase
+     acpi suspend: blacklist boxes that require us to set SCI_EN directly on resume
 has been removed from the -mm tree.  Its filename was
-     mtd-m25p80-chip-erase-=-block-erase-=-sector-erase.patch
+     acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd m25p80: chip erase != block erase != sector erase
-From: Chen Gong <g.chen@freescale.com>
+Subject: acpi suspend: blacklist boxes that require us to set SCI_EN directly on resume
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This fixes broken terminology added in the "m25p80.c erase enhance" patch,
-which added a chip erase command but called it "block erase".  There are
-already two block erase commands; blocks are 4KiB or 32KiB.  There's also
-a sector erase (usually 64 KiB).  Chip erase typically covers Megabytes.
+Some Apple boxes evidently require us to set SCI_EN on resume directly,
+because if we don't do that, they hung somewhere in the resume code path. 
+Moreover, on these boxes it is not sufficient to use acpi_enable() to turn
+ACPI on during resume.  All of this is against the ACPI specification
+which states that (1) the BIOS is supposed to return from the S3 sleep
+state with ACPI enabled (SCI_EN set) and (2) the SCI_EN bit is owned by
+the hardware and we are not supposed to change it.
 
-  OPCODE_BE   ==> OPCODE_CHIP_ERASE
-  erase_block ==> erase_chip
+For this reason, blacklist the affected systems so that the SCI_EN bit is
+set during resume on them.
 
-[dbrownell@users.sourceforge.net: update sector erase comments too ]
+[NOTE: Unconditional setting SCI_EN for all system on resume doesn't
+ work, because it makes some other systems crash (that's to be
+ expected).  Also, it is not entirely clear right now if all of the
+ Apple boxes require this workaround.]
 
-Signed-off-by: Chen Gong <clumsycg@gmail.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
+This patch fixes the recent regression tracked as
+http://bugzilla.kernel.org/show_bug.cgi?id=12038
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Tested-by: Tino Keitel <tino.keitel@gmx.de>
+Tested-by: Bob Copeland <me@bobcopeland.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/m25p80.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ drivers/acpi/sleep/main.c |   40 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 39 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~mtd-m25p80-chip-erase-=-block-erase-=-sector-erase drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~mtd-m25p80-chip-erase-=-block-erase-=-sector-erase
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -37,9 +37,9 @@
- #define	OPCODE_NORM_READ	0x03	/* Read data bytes (low frequency) */
- #define	OPCODE_FAST_READ	0x0b	/* Read data bytes (high frequency) */
- #define	OPCODE_PP		0x02	/* Page program (up to 256 bytes) */
--#define	OPCODE_BE_4K 		0x20	/* Erase 4KiB block */
-+#define	OPCODE_BE_4K		0x20	/* Erase 4KiB block */
- #define	OPCODE_BE_32K		0x52	/* Erase 32KiB block */
--#define	OPCODE_BE		0xc7	/* Erase whole flash block */
-+#define	OPCODE_CHIP_ERASE	0xc7	/* Erase whole flash block */
- #define	OPCODE_SE		0xd8	/* Sector erase (usually 64KiB) */
- #define	OPCODE_RDID		0x9f	/* Read JEDEC ID */
+diff -puN drivers/acpi/sleep/main.c~acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi-suspend-blacklist-boxes-that-require-us-to-set-sci_en-directly-on-resume
++++ a/drivers/acpi/sleep/main.c
+@@ -104,6 +104,18 @@ void __init acpi_s4_no_nvs(void)
+ 	s4_no_nvs = true;
+ }
  
-@@ -167,7 +167,7 @@ static int wait_till_ready(struct m25p *
-  *
-  * Returns 0 if successful, non-zero otherwise.
++/*
++ * According to the ACPI specification the BIOS should make sure that ACPI is
++ * enabled and SCI_EN bit is set on wake-up from S1 - S3 sleep states.  Still,
++ * some BIOSes don't do that and therefore we use acpi_enable() to enable ACPI
++ * on such systems during resume.  Unfortunately that doesn't help in
++ * particularly pathological cases in which SCI_EN has to be set directly on
++ * resume, although the specification states very clearly that this flag is
++ * owned by the hardware.  The set_sci_en_on_resume variable will be set in such
++ * cases.
++ */
++static bool set_sci_en_on_resume;
++
+ /**
+  *	acpi_pm_disable_gpes - Disable the GPEs.
   */
--static int erase_block(struct m25p *flash)
-+static int erase_chip(struct m25p *flash)
- {
- 	DEBUG(MTD_DEBUG_LEVEL3, "%s: %s %dKiB\n",
- 			dev_name(&flash->spi->dev), __func__,
-@@ -181,7 +181,7 @@ static int erase_block(struct m25p *flas
- 	write_enable(flash);
+@@ -249,7 +261,11 @@ static int acpi_suspend_enter(suspend_st
+ 	}
  
- 	/* Set up command buffer. */
--	flash->command[0] = OPCODE_BE;
-+	flash->command[0] = OPCODE_CHIP_ERASE;
+ 	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
+-	acpi_enable();
++	if (set_sci_en_on_resume)
++		acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1);
++	else
++		acpi_enable();
++
+ 	/* Reprogram control registers and execute _BFS */
+ 	acpi_leave_sleep_state_prep(acpi_state);
  
- 	spi_write(flash->spi, flash->command, 1);
+@@ -337,6 +353,12 @@ static int __init init_old_suspend_order
+ 	return 0;
+ }
  
-@@ -250,15 +250,18 @@ static int m25p80_erase(struct mtd_info 
- 
- 	mutex_lock(&flash->lock);
- 
--	/* REVISIT in some cases we could speed up erasing large regions
--	 * by using OPCODE_SE instead of OPCODE_BE_4K
--	 */
++static int __init init_set_sci_en_on_resume(const struct dmi_system_id *d)
++{
++	set_sci_en_on_resume = true;
++	return 0;
++}
++
+ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 	{
+ 	.callback = init_old_suspend_ordering,
+@@ -354,6 +376,22 @@ static struct dmi_system_id __initdata a
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
+ 		},
+ 	},
++	{
++	.callback = init_set_sci_en_on_resume,
++	.ident = "Apple MacBook 1,1",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "MacBook1,1"),
++		},
++	},
++	{
++	.callback = init_set_sci_en_on_resume,
++	.ident = "Apple MacMini 1,1",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
++		},
++	},
+ 	{},
+ };
+ #endif /* CONFIG_SUSPEND */
+_
+
+Patches currently in -mm which might be from rjw@sisk.pl are
+
+origin.patch
+radeonfb-fix-problem-with-color-expansion-alignment.patch
+linux-next.patch
+pnpacpi-enable-power-management.patch
+vfs-fix-switch_names-breakage-in-short-to-short-case.patch
+shrink_slab-handle-bad-shrinkers.patch
+
