@@ -1,68 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - ksym_symbol_len-fixes-fix.patch removed from -mm tree
-Date: Mon, 01 Dec 2008 13:10:42 -0800
-Message-ID: <200812012126.mB1LQHam014657@imap1.linux-foundation.org>
+Subject: - vfs-lseekfd-0-seek_cur-race-condition-fix.patch removed from -mm tree
+Date: Mon, 01 Dec 2008 13:11:31 -0800
+Message-ID: <200812012127.mB1LR6sl015094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36811 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55929 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752269AbYLAV0n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 16:26:43 -0500
+	by vger.kernel.org with ESMTP id S1751768AbYLAV1X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 16:27:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux-foundation.org, fweisbec@gmail.com, hugh@veritas.com, penberg@cs.helsinki.fi, rusty@rustcorp.com.au, srostedt@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alain@knaff.lu, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksym_symbol_len-fixes-fix
+     vfs-lseekfd-0-seek_cur-race-condition-fix
 has been removed from the -mm tree.  Its filename was
-     ksym_symbol_len-fixes-fix.patch
+     vfs-lseekfd-0-seek_cur-race-condition-fix.patch
 
-This patch was dropped because it was folded into ksym_symbol_len-fixes.patch
+This patch was dropped because it was folded into vfs-lseekfd-0-seek_cur-race-condition.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksym_symbol_len-fixes-fix
+Subject: vfs-lseekfd-0-seek_cur-race-condition-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from arch/x86/kernel/machine_kexec_64.c:14:
-include/linux/ftrace.h:234: error: 'MODULE_NAME_LEN' undeclared here (not in a function)
+- fix coding-style
+- fix default_llseek() as well
+- add comments
 
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Steven Rostedt <srostedt@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ftrace.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/read_write.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/ftrace.h~ksym_symbol_len-fixes-fix include/linux/ftrace.h
---- a/include/linux/ftrace.h~ksym_symbol_len-fixes-fix
-+++ a/include/linux/ftrace.h
-@@ -6,6 +6,7 @@
- #include <linux/ktime.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#include <linux/module.h>
- #include <linux/kallsyms.h>
- 
- #ifdef CONFIG_FUNCTION_TRACER
+diff -puN fs/read_write.c~vfs-lseekfd-0-seek_cur-race-condition-fix fs/read_write.c
+--- a/fs/read_write.c~vfs-lseekfd-0-seek_cur-race-condition-fix
++++ a/fs/read_write.c
+@@ -50,6 +50,14 @@ generic_file_llseek_unlocked(struct file
+ 		offset += inode->i_size;
+ 		break;
+ 	case SEEK_CUR:
++		/*
++		 * Here we special-case the lseek(fd, 0, SEEK_CUR)
++		 * position-querying operation.  Avoid rewriting the "same"
++		 * f_pos value back to the file because a concurrent read(),
++		 * write() or lseek() might have altered it
++		 */
++		if (offset == 0)
++			return file->f_pos;
+ 		offset += file->f_pos;
+ 		break;
+ 	}
+@@ -105,8 +113,14 @@ loff_t default_llseek(struct file *file,
+ 			offset += i_size_read(file->f_path.dentry->d_inode);
+ 			break;
+ 		case SEEK_CUR:
+-			if(offset == 0)
+-				return file->f_pos;
++			/*
++			 * See SEEK_CUR description in
++			 * generic_file_llseek_unlocked()
++			 */
++			if (offset == 0) {
++				retval = file->f_pos;
++				goto out;
++			}
+ 			offset += file->f_pos;
+ 	}
+ 	retval = -EINVAL;
+@@ -117,6 +131,7 @@ loff_t default_llseek(struct file *file,
+ 		}
+ 		retval = offset;
+ 	}
++out:
+ 	unlock_kernel();
+ 	return retval;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 epoll-introduce-resource-usage-limits.patch
-ksym_symbol_len-fixes.patch
-ksym_symbol_len-fixes-fix.patch
+vfs-lseekfd-0-seek_cur-race-condition.patch
 vfs-lseekfd-0-seek_cur-race-condition-fix.patch
 ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch
 drivers-gpu-drm-i915-i915_irqc-fix-warning.patch
+ksym_symbol_len-fixes.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 make-linx-next-apply.patch
 linux-next.patch
