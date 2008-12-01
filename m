@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ksym_symbol_len-fixes-fix.patch added to -mm tree
-Date: Mon, 01 Dec 2008 12:35:43 -0800
-Message-ID: <200812012051.mB1KpJHL027448@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-i915-i915_irqc-fix-warning.patch added to -mm tree
+Date: Mon, 01 Dec 2008 12:40:36 -0800
+Message-ID: <200812012056.mB1KuBIC030189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47155 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58813 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752555AbYLAUv5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 15:51:57 -0500
+	by vger.kernel.org with ESMTP id S1750980AbYLAU4d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 15:56:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux-foundation.org, fweisbec@gmail.com, hugh@veritas.com, penberg@cs.helsinki.fi, rusty@rustcorp.com.au, srostedt@redhat.com
+Cc: akpm@linux-foundation.org, airlied@linux.ie
 
 
 The patch titled
-     ksym_symbol_len-fixes-fix
+     drivers/gpu/drm/i915/i915_irq.c: fix warning
 has been added to the -mm tree.  Its filename is
-     ksym_symbol_len-fixes-fix.patch
+     drivers-gpu-drm-i915-i915_irqc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksym_symbol_len-fixes-fix
+Subject: drivers/gpu/drm/i915/i915_irq.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from arch/x86/kernel/machine_kexec_64.c:14:
-include/linux/ftrace.h:234: error: 'MODULE_NAME_LEN' undeclared here (not in a function)
+drivers/gpu/drm/i915/i915_irq.c: In function 'i915_disable_pipestat':
+drivers/gpu/drm/i915/i915_irq.c:101: warning: control may reach end of non-void function 'i915_pipestat' being inlined
 
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Steven Rostedt <srostedt@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ftrace.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpu/drm/i915/i915_irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/ftrace.h~ksym_symbol_len-fixes-fix include/linux/ftrace.h
---- a/include/linux/ftrace.h~ksym_symbol_len-fixes-fix
-+++ a/include/linux/ftrace.h
-@@ -6,6 +6,7 @@
- #include <linux/ktime.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#include <linux/module.h>
- #include <linux/kallsyms.h>
+diff -puN drivers/gpu/drm/i915/i915_irq.c~drivers-gpu-drm-i915-i915_irqc-fix-warning drivers/gpu/drm/i915/i915_irq.c
+--- a/drivers/gpu/drm/i915/i915_irq.c~drivers-gpu-drm-i915-i915_irqc-fix-warning
++++ a/drivers/gpu/drm/i915/i915_irq.c
+@@ -78,7 +78,7 @@ i915_pipestat(int pipe)
+ 		return PIPEASTAT;
+ 	if (pipe == 1)
+ 		return PIPEBSTAT;
+-	BUG_ON(1);
++	BUG();
+ }
  
- #ifdef CONFIG_FUNCTION_TRACER
+ void
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +68,7 @@ epoll-introduce-resource-usage-limits-update-refix.patch
 ksym_symbol_len-fixes-fix.patch
 vfs-lseekfd-0-seek_cur-race-condition-fix.patch
 ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch
+drivers-gpu-drm-i915-i915_irqc-fix-warning.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 make-linx-next-apply.patch
 linux-next.patch
