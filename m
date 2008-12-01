@@ -1,131 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-i915-i915_irqc-fix-warning.patch added to -mm tree
-Date: Mon, 01 Dec 2008 12:40:36 -0800
-Message-ID: <200812012056.mB1KuBIC030189@imap1.linux-foundation.org>
+Subject: - epoll-introduce-resource-usage-limits-update.patch removed from -mm tree
+Date: Mon, 01 Dec 2008 13:09:46 -0800
+Message-ID: <200812012125.mB1LPMfI014139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58908 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750980AbYLAU4d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 15:56:33 -0500
+	by vger.kernel.org with ESMTP id S1750980AbYLAVZk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 16:25:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie
+To: davidel@xmailserver.org, gorcunov@gmail.com, mtk.manpages@gmail.com, stable@kernel.org, vegardno@ifi.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/i915/i915_irq.c: fix warning
-has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-i915-i915_irqc-fix-warning.patch
+     epoll-introduce-resource-usage-limits update
+has been removed from the -mm tree.  Its filename was
+     epoll-introduce-resource-usage-limits-update.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into epoll-introduce-resource-usage-limits.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/i915_irq.c: fix warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: epoll-introduce-resource-usage-limits update
+From: Davide Libenzi <davidel@xmailserver.org>
 
-drivers/gpu/drm/i915/i915_irq.c: In function 'i915_disable_pipestat':
-drivers/gpu/drm/i915/i915_irq.c:101: warning: control may reach end of non-void function 'i915_pipestat' being inlined
+> > On Sat, 22 Nov 2008, Alexey Dobriyan wrote:
+> >
+> > > Don't add new CTL_ numbers, just drop ->strategy and ->ctl_name and defines
+> > > and world will become a better place.
+> >
+> > How do users of the sysctl(2) interface access those variables w/out
+> > ->ctl_name?
+>
+> They don't :-) CONFIG_SYSCTL_SYSCALL_CHECK will warn you about it.
+>
+> > Do we not care about that interface?
+>
+> For already existing stuff, yes. For new stuff, no.
 
-Cc: Dave Airlie <airlied@linux.ie>
+Ok, let's drop them then.
+Andrew, the attached is the same as before, with dropped sysctl(2)
+support.
+
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: <stable@kernel.org>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Vegard Nossum <vegardno@ifi.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_irq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/eventpoll.c         |    6 +-----
+ include/linux/sysctl.h |    8 --------
+ kernel/sysctl.c        |    1 -
+ 3 files changed, 1 insertion(+), 14 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_irq.c~drivers-gpu-drm-i915-i915_irqc-fix-warning drivers/gpu/drm/i915/i915_irq.c
---- a/drivers/gpu/drm/i915/i915_irq.c~drivers-gpu-drm-i915-i915_irqc-fix-warning
-+++ a/drivers/gpu/drm/i915/i915_irq.c
-@@ -78,7 +78,7 @@ i915_pipestat(int pipe)
- 		return PIPEASTAT;
- 	if (pipe == 1)
- 		return PIPEBSTAT;
--	BUG_ON(1);
-+	BUG();
- }
+diff -puN fs/eventpoll.c~epoll-introduce-resource-usage-limits-update fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-introduce-resource-usage-limits-update
++++ a/fs/eventpoll.c
+@@ -261,23 +261,19 @@ static int zero;
  
- void
+ ctl_table epoll_table[] = {
+ 	{
+-		.ctl_name	= EPOLL_MAX_USER_INSTANCES,
+ 		.procname	= "max_user_instances",
+ 		.data		= &max_user_instances,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec_minmax,
+-		.strategy	= &sysctl_intvec,
+ 		.extra1		= &zero,
+ 	},
+ 	{
+-		.ctl_name	= EPOLL_MAX_USER_WATCHES,
+ 		.procname	= "max_user_watches",
+ 		.data		= &max_user_watches,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec_minmax,
+-		.strategy	= &sysctl_intvec,
+ 		.extra1		= &zero,
+ 	},
+ 	{ .ctl_name = 0 }
+@@ -584,7 +580,7 @@ static int ep_alloc(struct eventpoll **p
+ 	struct user_struct *user;
+ 	struct eventpoll *ep;
+ 
+-	user = get_current_user();
++	user = get_uid(current->user);
+ 	error = -EMFILE;
+ 	if (unlikely(atomic_read(&user->epoll_devs) >=
+ 			max_user_instances))
+diff -puN include/linux/sysctl.h~epoll-introduce-resource-usage-limits-update include/linux/sysctl.h
+--- a/include/linux/sysctl.h~epoll-introduce-resource-usage-limits-update
++++ a/include/linux/sysctl.h
+@@ -90,13 +90,6 @@ enum
+ 	INOTIFY_MAX_QUEUED_EVENTS=3	/* max queued events per instance */
+ };
+ 
+-/* /proc/sys/fs/epoll/ */
+-enum
+-{
+-	EPOLL_MAX_USER_INSTANCES = 1,	/* max instances per user */
+-	EPOLL_MAX_USER_WATCHES = 2,	/* max watches per user */
+-};
+-
+ /* CTL_KERN names: */
+ enum
+ {
+@@ -838,7 +831,6 @@ enum
+ 	FS_AIO_NR=18,	/* current system-wide number of aio requests */
+ 	FS_AIO_MAX_NR=19,	/* system-wide maximum number of aio requests */
+ 	FS_INOTIFY=20,	/* inotify submenu */
+-	FS_EPOLL = 21,	/* epoll configuration directory */
+ 	FS_OCFS2=988,	/* ocfs2 */
+ };
+ 
+diff -puN kernel/sysctl.c~epoll-introduce-resource-usage-limits-update kernel/sysctl.c
+--- a/kernel/sysctl.c~epoll-introduce-resource-usage-limits-update
++++ a/kernel/sysctl.c
+@@ -1330,7 +1330,6 @@ static struct ctl_table fs_table[] = {
+ #endif	
+ #ifdef CONFIG_EPOLL
+ 	{
+-		.ctl_name	= FS_EPOLL,
+ 		.procname	= "epoll",
+ 		.mode		= 0555,
+ 		.child		= epoll_table,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
-origin.patch
 epoll-introduce-resource-usage-limits.patch
+epoll-introduce-resource-usage-limits-update.patch
 epoll-introduce-resource-usage-limits-update-refix.patch
-ksym_symbol_len-fixes-fix.patch
-vfs-lseekfd-0-seek_cur-race-condition-fix.patch
-ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch
-drivers-gpu-drm-i915-i915_irqc-fix-warning.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-hwmon-f71882fgc-make-dev_attr_name-static.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-input-ad7879-fix-workaroud-build-error-reported-by-andrew-morton.patch
-backlight-catch-invalid-input-checkpatch-fixes.patch
-backlight-catch-invalid-input-fix.patch
-pci-uninline-pci_ioremap_bar.patch
-pcie-add-option-to-passively-listen-for-pcie-hotplug-events-checkpatch-fixes.patch
-bdi-register-sysfs-bdi-device-only-once-per-queue-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
 poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-linuxpps-core-support-drivers-pps-sysfsc-make-dev_attr_name-static.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
