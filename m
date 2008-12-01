@@ -1,94 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - virtio_blk-fix-type-warning.patch removed from -mm tree
-Date: Mon, 01 Dec 2008 11:49:10 -0800
-Message-ID: <200812011949.mB1JnARv025126@imap1.linux-foundation.org>
+Subject: - block-dont-take-lock-while-changing-ra_pages.patch removed from -mm tree
+Date: Mon, 01 Dec 2008 11:49:08 -0800
+Message-ID: <200812011949.mB1Jn8SJ025082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54626 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752251AbYLATtP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 14:49:15 -0500
+	by vger.kernel.org with ESMTP id S1752187AbYLATtO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 14:49:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, jens.axboe@oracle.com, wfg@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     virtio_blk: fix type warning
+     block: don't take lock while changing ra_pages
 has been removed from the -mm tree.  Its filename was
-     virtio_blk-fix-type-warning.patch
+     block-dont-take-lock-while-changing-ra_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: virtio_blk: fix type warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: block: don't take lock while changing ra_pages
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-linux-next-20081126/drivers/block/virtio_blk.c:307: warning: large integer implicitly truncated to unsigned type
+There's no need to take queue_lock or kernel_lock when modifying
+bdi->ra_pages.  So remove them.  Also remove out of date comment for
+queue_max_sectors_store().
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Wu Fengguang <wfg@linux.intel.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/virtio_blk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/blk-sysfs.c    |    7 +------
+ block/compat_ioctl.c |    2 --
+ block/ioctl.c        |    2 --
+ 3 files changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN drivers/block/virtio_blk.c~virtio_blk-fix-type-warning drivers/block/virtio_blk.c
---- a/drivers/block/virtio_blk.c~virtio_blk-fix-type-warning
-+++ a/drivers/block/virtio_blk.c
-@@ -304,7 +304,7 @@ static int virtblk_probe(struct virtio_d
- 	if (!err)
- 		blk_queue_max_segment_size(vblk->disk->queue, v);
- 	else
--		blk_queue_max_segment_size(vblk->disk->queue, -1UL);
-+		blk_queue_max_segment_size(vblk->disk->queue, -1U);
+diff -puN block/blk-sysfs.c~block-dont-take-lock-while-changing-ra_pages block/blk-sysfs.c
+--- a/block/blk-sysfs.c~block-dont-take-lock-while-changing-ra_pages
++++ a/block/blk-sysfs.c
+@@ -88,9 +88,7 @@ queue_ra_store(struct request_queue *q, 
+ 	unsigned long ra_kb;
+ 	ssize_t ret = queue_var_store(&ra_kb, page, count);
  
- 	/* Host can optionally specify the block size of the device */
- 	err = virtio_config_val(vdev, VIRTIO_BLK_F_BLK_SIZE,
+-	spin_lock_irq(q->queue_lock);
+ 	q->backing_dev_info.ra_pages = ra_kb >> (PAGE_CACHE_SHIFT - 10);
+-	spin_unlock_irq(q->queue_lock);
+ 
+ 	return ret;
+ }
+@@ -117,10 +115,7 @@ queue_max_sectors_store(struct request_q
+ 
+ 	if (max_sectors_kb > max_hw_sectors_kb || max_sectors_kb < page_kb)
+ 		return -EINVAL;
+-	/*
+-	 * Take the queue lock to update the readahead and max_sectors
+-	 * values synchronously:
+-	 */
++
+ 	spin_lock_irq(q->queue_lock);
+ 	q->max_sectors = max_sectors_kb << 1;
+ 	spin_unlock_irq(q->queue_lock);
+diff -puN block/compat_ioctl.c~block-dont-take-lock-while-changing-ra_pages block/compat_ioctl.c
+--- a/block/compat_ioctl.c~block-dont-take-lock-while-changing-ra_pages
++++ a/block/compat_ioctl.c
+@@ -745,9 +745,7 @@ long compat_blkdev_ioctl(struct file *fi
+ 		bdi = blk_get_backing_dev_info(bdev);
+ 		if (bdi == NULL)
+ 			return -ENOTTY;
+-		lock_kernel();
+ 		bdi->ra_pages = (arg * 512) / PAGE_CACHE_SIZE;
+-		unlock_kernel();
+ 		return 0;
+ 	case BLKGETSIZE:
+ 		size = bdev->bd_inode->i_size;
+diff -puN block/ioctl.c~block-dont-take-lock-while-changing-ra_pages block/ioctl.c
+--- a/block/ioctl.c~block-dont-take-lock-while-changing-ra_pages
++++ a/block/ioctl.c
+@@ -323,9 +323,7 @@ int blkdev_ioctl(struct block_device *bd
+ 		bdi = blk_get_backing_dev_info(bdev);
+ 		if (bdi == NULL)
+ 			return -ENOTTY;
+-		lock_kernel();
+ 		bdi->ra_pages = (arg * 512) / PAGE_CACHE_SIZE;
+-		unlock_kernel();
+ 		return 0;
+ 	case BLKBSZSET:
+ 		/* set the logical block size */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-origin.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-arm-fix-kernel-doc-syntax.patch
-audit-remove-excess-kernel-doc.patch
-drivers-hwmon-f71882fgc-make-dev_attr_name-static.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-scripts-extract-ikconfig-remove-bashisms.patch
-mtd-remove-excess-kernel-doc-notation.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-backlight-catch-invalid-input-fix.patch
-esp-fix-section-mismatch-warning.patch
-kernel-doc-handle-varargs-cleanly.patch
-ntfs-dont-fool-kernel-doc.patch
-ntfs-dont-fool-kernel-doc-checkpatch-fixes.patch
-fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-max3100-spi-uart-driver-select-serial_core.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-i2o-remove-extraneous-kernel-doc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-kmod-fix-varargs-kernel-doc.patch
-docs-document-how-to-write-varargs-in-kernel-doc.patch
-rapidio-remove-excess-kernel-doc-notation.patch
-documentation-update-header-file-paths.patch
-documentation-update-s390-header-file-paths.patch
-document-hadling-of-bad-memory.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
-pps-serial-clients-support.patch
-pps-parallel-port-clients-support.patch
-pps-low-level-irq-timestamps-recording.patch
-linuxpps-core-support-drivers-pps-sysfsc-make-dev_attr_name-static.patch
-fix-similar-typos-to-successfull-v2.patch
+9p-convert-d_iname-references-to-d_namename.patch
 
