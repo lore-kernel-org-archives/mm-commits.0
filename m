@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-boot-broken-due-to-buffer-overrun.patch added to -mm tree
-Date: Tue, 02 Dec 2008 12:17:12 -0800
-Message-ID: <200812022017.mB2KHCAi029678@imap1.linux-foundation.org>
+Subject: + misc-add-dell-laptop-driver-update.patch added to -mm tree
+Date: Tue, 02 Dec 2008 12:24:40 -0800
+Message-ID: <200812022024.mB2KOeGh001386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40087 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751018AbYLBURd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 15:17:33 -0500
+	by vger.kernel.org with ESMTP id S1750758AbYLBUZ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 15:25:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, jdike@addtoit.com, penberg@cs.helsinki.fi, skldas@gmail.com, stable@kernel.org, vikki.km@gmail.com, wangcong@zeuux.org
+Cc: mjg59@srcf.ucam.org, Matt_Domsch@dell.com, greg@kroah.com, ivdoorn@gmail.com, lenb@kernel.org, rpurdie@rpsys.net
 
 
 The patch titled
-     uml: boot broken due to buffer overrun
+     misc-add-dell-laptop-driver update
 has been added to the -mm tree.  Its filename is
-     uml-boot-broken-due-to-buffer-overrun.patch
+     misc-add-dell-laptop-driver-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: boot broken due to buffer overrun
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: misc-add-dell-laptop-driver update
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-mconsole_init() passed 256 bytes as length in os_create_unix_socket, while
-the sizeof UNIX_PATH_MAX is 108. This patch fixes that problem and avoids
-a big overrun bug reported on UML bootup.
+Contains Andrew's suggested updates, plus a fix for a leak on the init
+error path.
 
-sockaddr_un.sun_path is UNIX_PATH_MAX long which causes the problem.
-Reported-by: Vikas K Managutte <vikki.km@gmail.com>
-Reported-by: Sarvesh Kumar Lal Das <skldas@gmail.com>
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Reviewed-by: WANG Cong <wangcong@zeuux.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: <stable@kernel.org>		[please check with Jeff]
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Ivo van Doorn <ivdoorn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/mconsole_kern.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/misc/dell-laptop.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN arch/um/drivers/mconsole_kern.c~uml-boot-broken-due-to-buffer-overrun arch/um/drivers/mconsole_kern.c
---- a/arch/um/drivers/mconsole_kern.c~uml-boot-broken-due-to-buffer-overrun
-+++ a/arch/um/drivers/mconsole_kern.c
-@@ -16,6 +16,8 @@
- #include <linux/slab.h>
- #include <linux/syscalls.h>
- #include <linux/utsname.h>
-+#include <linux/socket.h>
-+#include <linux/un.h>
- #include <linux/workqueue.h>
- #include <linux/mutex.h>
- #include <asm/uaccess.h>
-@@ -785,7 +787,7 @@ static int __init mconsole_init(void)
- 	/* long to avoid size mismatch warnings from gcc */
- 	long sock;
- 	int err;
--	char file[256];
-+	char file[UNIX_PATH_MAX];
+diff -puN drivers/misc/dell-laptop.c~misc-add-dell-laptop-driver-update drivers/misc/dell-laptop.c
+--- a/drivers/misc/dell-laptop.c~misc-add-dell-laptop-driver-update
++++ a/drivers/misc/dell-laptop.c
+@@ -34,7 +34,7 @@ struct calling_interface_buffer {
+ 	u16 select;
+ 	volatile u32 input[4];
+ 	volatile u32 output[4];
+-} __attribute__ ((packed));
++} __packed;
  
- 	if (umid_file_name("mconsole", file, sizeof(file)))
- 		return -1;
+ struct calling_interface_token {
+ 	u16 tokenID;
+@@ -51,7 +51,7 @@ struct calling_interface_structure {
+ 	u8 cmdIOCode;
+ 	u32 supportedCmds;
+ 	struct calling_interface_token tokens[];
+-} __attribute__ ((packed));
++} __packed;
+ 
+ static int da_command_address;
+ static int da_command_code;
+@@ -63,7 +63,7 @@ static struct rfkill *wifi_rfkill;
+ static struct rfkill *bluetooth_rfkill;
+ static struct rfkill *wwan_rfkill;
+ 
+-static struct dmi_system_id __initdata dell_device_table[] = {
++static const struct dmi_system_id __initdata dell_device_table[] = {
+ 	{
+ 		.ident = "Dell laptop",
+ 		.matches = {
+@@ -358,17 +358,22 @@ static int __init dell_init(void)
+ 
+ 	dmi_walk(find_tokens);
+ 
+-	if (!da_tokens)
++	if (!da_tokens)  {
++		printk(KERN_INFO "dell-laptop: Unable to find dmi tokens\n");
+ 		return -ENODEV;
++	}
+ 
+ 	ret = dell_setup_rfkill();
+ 
+ 	if (ret) {
+ 		printk(KERN_WARNING "dell-laptop: Unable to setup rfkill\n");
+-		return ret;
++		goto out;
+ 	}
+ 
+ #ifdef CONFIG_ACPI
++	/* In the event of an ACPI backlight being available, don't
++	 * register the platform controller.
++	 */
+ 	if (acpi_video_backlight_support())
+ 		return 0;
+ #endif
+@@ -388,8 +393,8 @@ static int __init dell_init(void)
+ 			&dell_ops);
+ 
+ 		if (IS_ERR(dell_backlight_device)) {
+-			dell_backlight_device = NULL;
+ 			ret = PTR_ERR(dell_backlight_device);
++			dell_backlight_device = NULL;
+ 			goto out;
+ 		}
+ 
+@@ -407,6 +412,7 @@ out:
+ 		rfkill_unregister(bluetooth_rfkill);
+ 	if (wwan_rfkill)
+ 		rfkill_unregister(wwan_rfkill);
++	kfree(da_tokens);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
-uml-boot-broken-due-to-buffer-overrun.patch
 linux-next.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+hp-wmi-handle-rfkill_register-failure.patch
+dcdbas-export-functionality-for-use-in-other-drivers.patch
+misc-add-dell-laptop-driver.patch
+misc-add-dell-laptop-driver-update.patch
+misc-add-dell-laptop-driver-fix.patch
 
