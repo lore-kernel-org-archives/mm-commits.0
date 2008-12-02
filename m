@@ -1,82 +1,459 @@
 From: akpm@linux-foundation.org
-Subject: - frv-fix-mmap2-error-handling.patch removed from -mm tree
-Date: Tue, 02 Dec 2008 10:38:50 -0800
-Message-ID: <200812021838.mB2IcoUk007151@imap1.linux-foundation.org>
+Subject: - resource-allow-mmio-exclusivity-for-device-drivers.patch removed from -mm tree
+Date: Tue, 02 Dec 2008 10:39:20 -0800
+Message-ID: <200812021839.mB2IdKTm007460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752146AbYLBSkA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:40:00 -0500
+	by vger.kernel.org with ESMTP id S1754132AbYLBSjX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:39:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, julia@diku.dk, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, jbarnes@virtuousgeek.org, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: fix mmap2 error handling
+     resource: allow MMIO exclusivity for device drivers
 has been removed from the -mm tree.  Its filename was
-     frv-fix-mmap2-error-handling.patch
+     resource-allow-mmio-exclusivity-for-device-drivers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: fix mmap2 error handling
-From: David Howells <dhowells@redhat.com>
+Subject: resource: allow MMIO exclusivity for device drivers
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-Fix the error handling in sys_mmap2().  Currently, if the pgoff check
-fails, fput() might have to be called (which it isn't), so do the pgoff
-check first, before fget() is called.
+Device drivers that use pci_request_regions() (and similar APIs) have a
+reasonable expectation that they are the only ones accessing their device.
+As part of the e1000e hunt, we were afraid that some userland (X or some
+bootsplash stuff) was mapping the MMIO region that the driver thought it
+had exclusively via /dev/mem or via various sysfs resource mappings.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Reported-by: Julia Lawall <julia@diku.dk>
+This patch adds the option for device drivers to cause their reserved
+regions to be added to the "banned from /dev/mem use" list, so now both
+kernel memory and device-exclusive MMIO regions are banned.  NOTE: This is
+only active when CONFIG_STRICT_DEVMEM is set.
+
+In addition to the config option, a kernel parameter iomem=relaxed is
+provided for the cases where developers want to diagnose, in the field,
+drivers issues from userspace.
+
+Reviewed-by: Matthew Wilcox <willy@linux.intel.com>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/sys_frv.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ Documentation/kernel-parameters.txt |    4 
+ arch/x86/mm/init_32.c               |    2 
+ arch/x86/mm/init_64.c               |    2 
+ drivers/net/e1000e/netdev.c         |    2 
+ drivers/pci/pci-sysfs.c             |    3 
+ drivers/pci/pci.c                   |  107 +++++++++++++++++++++++---
+ include/linux/ioport.h              |   11 +-
+ include/linux/pci.h                 |    3 
+ kernel/resource.c                   |   61 ++++++++++++++
+ 9 files changed, 176 insertions(+), 19 deletions(-)
 
-diff -puN arch/frv/kernel/sys_frv.c~frv-fix-mmap2-error-handling arch/frv/kernel/sys_frv.c
---- a/arch/frv/kernel/sys_frv.c~frv-fix-mmap2-error-handling
-+++ a/arch/frv/kernel/sys_frv.c
-@@ -35,22 +35,21 @@ asmlinkage long sys_mmap2(unsigned long 
- 	int error = -EBADF;
- 	struct file * file = NULL;
+diff -puN Documentation/kernel-parameters.txt~resource-allow-mmio-exclusivity-for-device-drivers Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~resource-allow-mmio-exclusivity-for-device-drivers
++++ a/Documentation/kernel-parameters.txt
+@@ -914,6 +914,10 @@ and is between 256 and 4096 characters. 
  
--	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
--	if (!(flags & MAP_ANONYMOUS)) {
--		file = fget(fd);
--		if (!file)
--			goto out;
--	}
--
- 	/* As with sparc32, make sure the shift for mmap2 is constant
- 	   (12), no matter what PAGE_SIZE we have.... */
+ 	inttest=	[IA64]
  
- 	/* But unlike sparc32, don't just silently break if we're
- 	   trying to map something we can't */
--	if (pgoff & ((1<<(PAGE_SHIFT-12))-1))
-+	if (pgoff & ((1 << (PAGE_SHIFT - 12)) - 1))
- 		return -EINVAL;
-+	pgoff >>= PAGE_SHIFT - 12;
++	iomem=		Disable strict checking of access to MMIO memory
++		strict	regions from userspace.
++		relaxed
++
+ 	iommu=		[x86]
+ 		off
+ 		force
+diff -puN arch/x86/mm/init_32.c~resource-allow-mmio-exclusivity-for-device-drivers arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~resource-allow-mmio-exclusivity-for-device-drivers
++++ a/arch/x86/mm/init_32.c
+@@ -331,6 +331,8 @@ int devmem_is_allowed(unsigned long page
+ {
+ 	if (pagenr <= 256)
+ 		return 1;
++	if (iomem_is_exclusive(pagenr << PAGE_SHIFT))
++		return 0;
+ 	if (!page_is_ram(pagenr))
+ 		return 1;
+ 	return 0;
+diff -puN arch/x86/mm/init_64.c~resource-allow-mmio-exclusivity-for-device-drivers arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~resource-allow-mmio-exclusivity-for-device-drivers
++++ a/arch/x86/mm/init_64.c
+@@ -888,6 +888,8 @@ int devmem_is_allowed(unsigned long page
+ {
+ 	if (pagenr <= 256)
+ 		return 1;
++	if (iomem_is_exclusive(pagenr << PAGE_SHIFT))
++		return 0;
+ 	if (!page_is_ram(pagenr))
+ 		return 1;
+ 	return 0;
+diff -puN drivers/net/e1000e/netdev.c~resource-allow-mmio-exclusivity-for-device-drivers drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~resource-allow-mmio-exclusivity-for-device-drivers
++++ a/drivers/net/e1000e/netdev.c
+@@ -4807,7 +4807,7 @@ static int __devinit e1000_probe(struct 
+ 		}
+ 	}
  
--	pgoff >>= (PAGE_SHIFT - 12);
-+	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
-+	if (!(flags & MAP_ANONYMOUS)) {
-+		file = fget(fd);
-+		if (!file)
-+			goto out;
+-	err = pci_request_selected_regions(pdev,
++	err = pci_request_selected_regions_exclusive(pdev,
+ 	                                  pci_select_bars(pdev, IORESOURCE_MEM),
+ 	                                  e1000e_driver_name);
+ 	if (err)
+diff -puN drivers/pci/pci-sysfs.c~resource-allow-mmio-exclusivity-for-device-drivers drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~resource-allow-mmio-exclusivity-for-device-drivers
++++ a/drivers/pci/pci-sysfs.c
+@@ -620,6 +620,9 @@ pci_mmap_resource(struct kobject *kobj, 
+ 	vma->vm_pgoff += start >> PAGE_SHIFT;
+ 	mmap_type = res->flags & IORESOURCE_MEM ? pci_mmap_mem : pci_mmap_io;
+ 
++	if (res->flags & IORESOURCE_MEM && iomem_is_exclusive(start))
++		return -EINVAL;
++
+ 	return pci_mmap_page_range(pdev, vma, mmap_type, write_combine);
+ }
+ 
+diff -puN drivers/pci/pci.c~resource-allow-mmio-exclusivity-for-device-drivers drivers/pci/pci.c
+--- a/drivers/pci/pci.c~resource-allow-mmio-exclusivity-for-device-drivers
++++ a/drivers/pci/pci.c
+@@ -1411,7 +1411,8 @@ void pci_release_region(struct pci_dev *
+  *	Returns 0 on success, or %EBUSY on error.  A warning
+  *	message is also printed on failure.
+  */
+-int pci_request_region(struct pci_dev *pdev, int bar, const char *res_name)
++static int __pci_request_region(struct pci_dev *pdev, int bar, const char *res_name,
++									int exclusive)
+ {
+ 	struct pci_devres *dr;
+ 
+@@ -1424,8 +1425,9 @@ int pci_request_region(struct pci_dev *p
+ 			goto err_out;
+ 	}
+ 	else if (pci_resource_flags(pdev, bar) & IORESOURCE_MEM) {
+-		if (!request_mem_region(pci_resource_start(pdev, bar),
+-				        pci_resource_len(pdev, bar), res_name))
++		if (!__request_mem_region(pci_resource_start(pdev, bar),
++					pci_resource_len(pdev, bar), res_name,
++					exclusive))
+ 			goto err_out;
+ 	}
+ 
+@@ -1444,6 +1446,47 @@ err_out:
+ }
+ 
+ /**
++ *	pci_request_region - Reserved PCI I/O and memory resource
++ *	@pdev: PCI device whose resources are to be reserved
++ *	@bar: BAR to be reserved
++ *	@res_name: Name to be associated with resource.
++ *
++ *	Mark the PCI region associated with PCI device @pdev BR @bar as
++ *	being reserved by owner @res_name.  Do not access any
++ *	address inside the PCI regions unless this call returns
++ *	successfully.
++ *
++ *	Returns 0 on success, or %EBUSY on error.  A warning
++ *	message is also printed on failure.
++ */
++int pci_request_region(struct pci_dev *pdev, int bar, const char *res_name)
++{
++	return __pci_request_region(pdev, bar, res_name, 0);
++}
++
++/**
++ *	pci_request_region_exclusive - Reserved PCI I/O and memory resource
++ *	@pdev: PCI device whose resources are to be reserved
++ *	@bar: BAR to be reserved
++ *	@res_name: Name to be associated with resource.
++ *
++ *	Mark the PCI region associated with PCI device @pdev BR @bar as
++ *	being reserved by owner @res_name.  Do not access any
++ *	address inside the PCI regions unless this call returns
++ *	successfully.
++ *
++ *	Returns 0 on success, or %EBUSY on error.  A warning
++ *	message is also printed on failure.
++ *
++ *	The key difference that _exclusive makes it that userspace is
++ *	explicitly not allowed to map the resource via /dev/mem or
++ * 	sysfs.
++ */
++int pci_request_region_exclusive(struct pci_dev *pdev, int bar, const char *res_name)
++{
++	return __pci_request_region(pdev, bar, res_name, IORESOURCE_EXCLUSIVE);
++}
++/**
+  * pci_release_selected_regions - Release selected PCI I/O and memory resources
+  * @pdev: PCI device whose resources were previously reserved
+  * @bars: Bitmask of BARs to be released
+@@ -1460,20 +1503,14 @@ void pci_release_selected_regions(struct
+ 			pci_release_region(pdev, i);
+ }
+ 
+-/**
+- * pci_request_selected_regions - Reserve selected PCI I/O and memory resources
+- * @pdev: PCI device whose resources are to be reserved
+- * @bars: Bitmask of BARs to be requested
+- * @res_name: Name to be associated with resource
+- */
+-int pci_request_selected_regions(struct pci_dev *pdev, int bars,
+-				 const char *res_name)
++int __pci_request_selected_regions(struct pci_dev *pdev, int bars,
++				 const char *res_name, int excl)
+ {
+ 	int i;
+ 
+ 	for (i = 0; i < 6; i++)
+ 		if (bars & (1 << i))
+-			if(pci_request_region(pdev, i, res_name))
++			if (__pci_request_region(pdev, i, res_name, excl))
+ 				goto err_out;
+ 	return 0;
+ 
+@@ -1485,6 +1522,26 @@ err_out:
+ 	return -EBUSY;
+ }
+ 
++
++/**
++ * pci_request_selected_regions - Reserve selected PCI I/O and memory resources
++ * @pdev: PCI device whose resources are to be reserved
++ * @bars: Bitmask of BARs to be requested
++ * @res_name: Name to be associated with resource
++ */
++int pci_request_selected_regions(struct pci_dev *pdev, int bars,
++				 const char *res_name)
++{
++	return __pci_request_selected_regions(pdev, bars, res_name, 0);
++}
++
++int pci_request_selected_regions_exclusive(struct pci_dev *pdev,
++				 int bars, const char *res_name)
++{
++	return __pci_request_selected_regions(pdev, bars, res_name,
++			IORESOURCE_EXCLUSIVE);
++}
++
+ /**
+  *	pci_release_regions - Release reserved PCI I/O and memory resources
+  *	@pdev: PCI device whose resources were previously reserved by pci_request_regions
+@@ -1518,6 +1575,29 @@ int pci_request_regions(struct pci_dev *
+ }
+ 
+ /**
++ *	pci_request_regions_exclusive - Reserved PCI I/O and memory resources
++ *	@pdev: PCI device whose resources are to be reserved
++ *	@res_name: Name to be associated with resource.
++ *
++ *	Mark all PCI regions associated with PCI device @pdev as
++ *	being reserved by owner @res_name.  Do not access any
++ *	address inside the PCI regions unless this call returns
++ *	successfully.
++ *
++ *	pci_request_regions_exclusive() will mark the region so that
++ * 	/dev/mem and the sysfs MMIO access will not be allowed.
++ *
++ *	Returns 0 on success, or %EBUSY on error.  A warning
++ *	message is also printed on failure.
++ */
++int pci_request_regions_exclusive(struct pci_dev *pdev, const char *res_name)
++{
++	return pci_request_selected_regions_exclusive(pdev,
++					((1 << 6) - 1), res_name);
++}
++
++
++/**
+  * pci_set_master - enables bus-mastering for device dev
+  * @dev: the PCI device to enable
+  *
+@@ -2165,10 +2245,13 @@ EXPORT_SYMBOL(pci_find_capability);
+ EXPORT_SYMBOL(pci_bus_find_capability);
+ EXPORT_SYMBOL(pci_release_regions);
+ EXPORT_SYMBOL(pci_request_regions);
++EXPORT_SYMBOL(pci_request_regions_exclusive);
+ EXPORT_SYMBOL(pci_release_region);
+ EXPORT_SYMBOL(pci_request_region);
++EXPORT_SYMBOL(pci_request_region_exclusive);
+ EXPORT_SYMBOL(pci_release_selected_regions);
+ EXPORT_SYMBOL(pci_request_selected_regions);
++EXPORT_SYMBOL(pci_request_selected_regions_exclusive);
+ EXPORT_SYMBOL(pci_set_master);
+ EXPORT_SYMBOL(pci_set_mwi);
+ EXPORT_SYMBOL(pci_try_set_mwi);
+diff -puN include/linux/ioport.h~resource-allow-mmio-exclusivity-for-device-drivers include/linux/ioport.h
+--- a/include/linux/ioport.h~resource-allow-mmio-exclusivity-for-device-drivers
++++ a/include/linux/ioport.h
+@@ -49,6 +49,7 @@ struct resource_list {
+ #define IORESOURCE_SIZEALIGN	0x00020000	/* size indicates alignment */
+ #define IORESOURCE_STARTALIGN	0x00040000	/* start field is alignment */
+ 
++#define IORESOURCE_EXCLUSIVE	0x08000000	/* Userland may not map this resource */
+ #define IORESOURCE_DISABLED	0x10000000
+ #define IORESOURCE_UNSET	0x20000000
+ #define IORESOURCE_AUTO		0x40000000
+@@ -133,13 +134,16 @@ static inline unsigned long resource_typ
+ }
+ 
+ /* Convenience shorthand with allocation */
+-#define request_region(start,n,name)	__request_region(&ioport_resource, (start), (n), (name))
+-#define request_mem_region(start,n,name) __request_region(&iomem_resource, (start), (n), (name))
++#define request_region(start,n,name)	__request_region(&ioport_resource, (start), (n), (name), 0)
++#define __request_mem_region(start,n,name, excl) __request_region(&iomem_resource, (start), (n), (name), excl)
++#define request_mem_region(start,n,name) __request_region(&iomem_resource, (start), (n), (name), 0)
++#define request_mem_region_exclusive(start,n,name) \
++	__request_region(&iomem_resource, (start), (n), (name), IORESOURCE_EXCLUSIVE)
+ #define rename_region(region, newname) do { (region)->name = (newname); } while (0)
+ 
+ extern struct resource * __request_region(struct resource *,
+ 					resource_size_t start,
+-					resource_size_t n, const char *name);
++					resource_size_t n, const char *name, int relaxed);
+ 
+ /* Compatibility cruft */
+ #define release_region(start,n)	__release_region(&ioport_resource, (start), (n))
+@@ -175,6 +179,7 @@ extern struct resource * __devm_request_
+ extern void __devm_release_region(struct device *dev, struct resource *parent,
+ 				  resource_size_t start, resource_size_t n);
+ extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
++extern int iomem_is_exclusive(u64 addr);
+ 
+ #endif /* __ASSEMBLY__ */
+ #endif	/* _LINUX_IOPORT_H */
+diff -puN include/linux/pci.h~resource-allow-mmio-exclusivity-for-device-drivers include/linux/pci.h
+--- a/include/linux/pci.h~resource-allow-mmio-exclusivity-for-device-drivers
++++ a/include/linux/pci.h
+@@ -686,10 +686,13 @@ void pci_fixup_irqs(u8 (*)(struct pci_de
+ 		    int (*)(struct pci_dev *, u8, u8));
+ #define HAVE_PCI_REQ_REGIONS	2
+ int __must_check pci_request_regions(struct pci_dev *, const char *);
++int __must_check pci_request_regions_exclusive(struct pci_dev *, const char *);
+ void pci_release_regions(struct pci_dev *);
+ int __must_check pci_request_region(struct pci_dev *, int, const char *);
++int __must_check pci_request_region_exclusive(struct pci_dev *, int, const char *);
+ void pci_release_region(struct pci_dev *, int);
+ int pci_request_selected_regions(struct pci_dev *, int, const char *);
++int pci_request_selected_regions_exclusive(struct pci_dev *, int, const char *);
+ void pci_release_selected_regions(struct pci_dev *, int);
+ 
+ /* drivers/pci/bus.c */
+diff -puN kernel/resource.c~resource-allow-mmio-exclusivity-for-device-drivers kernel/resource.c
+--- a/kernel/resource.c~resource-allow-mmio-exclusivity-for-device-drivers
++++ a/kernel/resource.c
+@@ -623,7 +623,7 @@ resource_size_t resource_alignment(struc
+  */
+ struct resource * __request_region(struct resource *parent,
+ 				   resource_size_t start, resource_size_t n,
+-				   const char *name)
++				   const char *name, int flags)
+ {
+ 	struct resource *res = kzalloc(sizeof(*res), GFP_KERNEL);
+ 
+@@ -634,6 +634,7 @@ struct resource * __request_region(struc
+ 	res->start = start;
+ 	res->end = start + n - 1;
+ 	res->flags = IORESOURCE_BUSY;
++	res->flags |= flags;
+ 
+ 	write_lock(&resource_lock);
+ 
+@@ -679,7 +680,7 @@ int __check_region(struct resource *pare
+ {
+ 	struct resource * res;
+ 
+-	res = __request_region(parent, start, n, "check-region");
++	res = __request_region(parent, start, n, "check-region", 0);
+ 	if (!res)
+ 		return -EBUSY;
+ 
+@@ -776,7 +777,7 @@ struct resource * __devm_request_region(
+ 	dr->start = start;
+ 	dr->n = n;
+ 
+-	res = __request_region(parent, start, n, name);
++	res = __request_region(parent, start, n, name, 0);
+ 	if (res)
+ 		devres_add(dev, dr);
+ 	else
+@@ -867,3 +868,57 @@ int iomem_map_sanity_check(resource_size
+ 
+ 	return err;
+ }
++
++#ifdef CONFIG_STRICT_DEVMEM
++static int strict_iomem_checks = 1;
++#else
++static int strict_iomem_checks;
++#endif
++
++/*
++ * check if an address is reserved in the iomem resource tree
++ * returns 1 if reserved, 0 if not reserved.
++ */
++int iomem_is_exclusive(u64 addr)
++{
++	struct resource *p = &iomem_resource;
++	int err = 0;
++	loff_t l;
++	int size = PAGE_SIZE;
++
++	if (!strict_iomem_checks)
++		return 0;
++
++	addr = addr & PAGE_MASK;
++
++	read_lock(&resource_lock);
++	for (p = p->child; p ; p = r_next(NULL, p, &l)) {
++		/*
++		 * We can probably skip the resources without
++		 * IORESOURCE_IO attribute?
++		 */
++		if (p->start >= addr + size)
++			break;
++		if (p->end < addr)
++			continue;
++		if (p->flags & IORESOURCE_BUSY &&
++		     p->flags & IORESOURCE_EXCLUSIVE) {
++			err = 1;
++			break;
++		}
 +	}
- 
- 	down_write(&current->mm->mmap_sem);
- 	error = do_mmap_pgoff(file, addr, len, prot, flags, pgoff);
++	read_unlock(&resource_lock);
++
++	return err;
++}
++
++static int __init strict_iomem(char *str)
++{
++	if (strstr(str, "relaxed"))
++		strict_iomem_checks = 0;
++	if (strstr(str, "strict"))
++		strict_iomem_checks = 1;
++	return 1;
++}
++
++__setup("iomem=", strict_iomem);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 linux-next.patch
-frv-use-the-new-byteorder-headers.patch
-mutex-subsystem-synchro-test-module.patch
+scripts-improve-the-decodecode-script.patch
+pci-uninline-pci_ioremap_bar.patch
+vfs-expand-some-comments-d_path-seq_path.patch
+pci-use-pci_ioremap_bar-in-drivers-misc.patch
+oops-increment-the-oops-uuid-every-time-we-oops.patch
+scripts-script-from-kerneloopsorg-to-pretty-print-oops-dumps.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+pci-use-pci_ioremap_bar-in-drivers-video.patch
+random-add-a-way-to-get-some-random-bits-into-the-entropy-pools-early-on.patch
+pci-use-pci_ioremap_bar-in-drivers-edac.patch
 
