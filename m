@@ -1,149 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - misc-add-dell-laptop-driver-fix.patch removed from -mm tree
-Date: Tue, 02 Dec 2008 12:24:53 -0800
-Message-ID: <200812022024.mB2KOrJg001579@imap1.linux-foundation.org>
+Subject: + block-internal-dequeue-shouldnt-start-timer.patch added to -mm tree
+Date: Tue, 02 Dec 2008 12:32:29 -0800
+Message-ID: <200812022032.mB2KWTFL005863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37522 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751663AbYLBU0B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 15:26:01 -0500
+	by vger.kernel.org with ESMTP id S1750770AbYLBUdN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 15:33:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Matt_Domsch@dell.com, greg@kroah.com, ivdoorn@gmail.com, lenb@kernel.org, mjg59@srcf.ucam.org, mjg@redhat.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tj@kernel.org, James.Bottomley@HansenPartnership.com, andmike@linux.vnet.ibm.com, hare@suse.de, jens.axboe@oracle.com
 
 
 The patch titled
-     misc-add-dell-laptop-driver-fix
-has been removed from the -mm tree.  Its filename was
-     misc-add-dell-laptop-driver-fix.patch
+     block: internal dequeue shouldn't start timer
+has been added to the -mm tree.  Its filename is
+     block-internal-dequeue-shouldnt-start-timer.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc-add-dell-laptop-driver-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: block: internal dequeue shouldn't start timer
+From: Tejun Heo <tj@kernel.org>
 
-- use __packed
+blkdev_dequeue_request() and elv_dequeue_request() are equivalent and
+both start the timeout timer.  Barrier code dequeues the original
+barrier request but doesn't passes the request itself to lower level
+driver, only broken down proxy requests; however, as the original
+barrier code goes through the same dequeue path and timeout timer is
+started on it.  If barrier sequence takes long enough, this timer
+expires but the low level driver has no idea about this request and
+oops follows.
 
-- make dell_device_table[] const
+Timeout timer shouldn't have been started on the original barrier
+request as it never goes through actual IO.  This patch unexports
+elv_dequeue_request(), which has no external user anyway, and makes it
+operate on elevator proper w/o adding the timer and make
+blkdev_dequeue_request() call elv_dequeue_request() and add timer.
+Internal users which don't pass the request to driver - barrier code
+and end_that_request_last() - are converted to use
+elv_dequeue_request().
 
-- fix error return in dell_init()
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Ivo van Doorn <ivdoorn@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Mike Anderson <andmike@linux.vnet.ibm.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Hannes Reinecke <hare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/dell-laptop.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ block/blk-barrier.c    |    4 ++--
+ block/blk-core.c       |   24 +++++++++++++++++++++++-
+ block/elevator.c       |    7 -------
+ include/linux/blkdev.h |    7 ++-----
+ 4 files changed, 27 insertions(+), 15 deletions(-)
 
-diff -puN drivers/misc/dell-laptop.c~misc-add-dell-laptop-driver-fix drivers/misc/dell-laptop.c
---- a/drivers/misc/dell-laptop.c~misc-add-dell-laptop-driver-fix
-+++ a/drivers/misc/dell-laptop.c
-@@ -34,7 +34,7 @@ struct calling_interface_buffer {
- 	u16 select;
- 	volatile u32 input[4];
- 	volatile u32 output[4];
--} __attribute__ ((packed));
-+} __packed;
+diff -puN block/blk-barrier.c~block-internal-dequeue-shouldnt-start-timer block/blk-barrier.c
+--- a/block/blk-barrier.c~block-internal-dequeue-shouldnt-start-timer
++++ a/block/blk-barrier.c
+@@ -161,7 +161,7 @@ static inline struct request *start_orde
+ 	/*
+ 	 * Prep proxy barrier request.
+ 	 */
+-	blkdev_dequeue_request(rq);
++	elv_dequeue_request(q, rq);
+ 	q->orig_bar_rq = rq;
+ 	rq = &q->bar_rq;
+ 	blk_rq_init(q, rq);
+@@ -219,7 +219,7 @@ int blk_do_ordered(struct request_queue 
+ 			 * This can happen when the queue switches to
+ 			 * ORDERED_NONE while this request is on it.
+ 			 */
+-			blkdev_dequeue_request(rq);
++			elv_dequeue_request(q, rq);
+ 			if (__blk_end_request(rq, -EOPNOTSUPP,
+ 					      blk_rq_bytes(rq)))
+ 				BUG();
+diff -puN block/blk-core.c~block-internal-dequeue-shouldnt-start-timer block/blk-core.c
+--- a/block/blk-core.c~block-internal-dequeue-shouldnt-start-timer
++++ a/block/blk-core.c
+@@ -1641,6 +1641,28 @@ int blk_insert_cloned_request(struct req
+ EXPORT_SYMBOL_GPL(blk_insert_cloned_request);
  
- struct calling_interface_token {
- 	u16 tokenID;
-@@ -51,7 +51,7 @@ struct calling_interface_structure {
- 	u8 cmdIOCode;
- 	u32 supportedCmds;
- 	struct calling_interface_token tokens[];
--} __attribute__ ((packed));
-+} __packed;
+ /**
++ * blkdev_dequeue_request - dequeue request and start timeout timer
++ * @req: request to dequeue
++ *
++ * Dequeue @req and start timeout timer on it.  This hands off the
++ * request to the driver.
++ *
++ * Block internal functions which don't want to start timer should
++ * call elv_dequeue_request().
++ */
++void blkdev_dequeue_request(struct request *req)
++{
++	elv_dequeue_request(req->q, req);
++
++	/*
++	 * We are now handing the request to the hardware, add the
++	 * timeout handler.
++	 */
++	blk_add_timer(req);
++}
++EXPORT_SYMBOL(blkdev_dequeue_request);
++
++/**
+  * __end_that_request_first - end I/O on a request
+  * @req:      the request being processed
+  * @error:    %0 for success, < %0 for error
+@@ -1778,7 +1800,7 @@ static void end_that_request_last(struct
+ 		blk_queue_end_tag(req->q, req);
  
- static int da_command_address;
- static int da_command_code;
-@@ -63,7 +63,7 @@ static struct rfkill *wifi_rfkill;
- static struct rfkill *bluetooth_rfkill;
- static struct rfkill *wwan_rfkill;
+ 	if (blk_queued_rq(req))
+-		blkdev_dequeue_request(req);
++		elv_dequeue_request(req->q, req);
  
--static struct dmi_system_id __initdata dell_device_table[] = {
-+static const struct dmi_system_id __initdata dell_device_table[] = {
- 	{
- 		.ident = "Dell laptop",
- 		.matches = {
-@@ -388,8 +388,8 @@ static int __init dell_init(void)
- 			&dell_ops);
+ 	if (unlikely(laptop_mode) && blk_fs_request(req))
+ 		laptop_io_completion();
+diff -puN block/elevator.c~block-internal-dequeue-shouldnt-start-timer block/elevator.c
+--- a/block/elevator.c~block-internal-dequeue-shouldnt-start-timer
++++ a/block/elevator.c
+@@ -844,14 +844,7 @@ void elv_dequeue_request(struct request_
+ 	 */
+ 	if (blk_account_rq(rq))
+ 		q->in_flight++;
+-
+-	/*
+-	 * We are now handing the request to the hardware, add the
+-	 * timeout handler.
+-	 */
+-	blk_add_timer(rq);
+ }
+-EXPORT_SYMBOL(elv_dequeue_request);
  
- 		if (IS_ERR(dell_backlight_device)) {
--			dell_backlight_device = NULL;
- 			ret = PTR_ERR(dell_backlight_device);
-+			dell_backlight_device = NULL;
- 			goto out;
- 		}
+ int elv_queue_empty(struct request_queue *q)
+ {
+diff -puN include/linux/blkdev.h~block-internal-dequeue-shouldnt-start-timer include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-internal-dequeue-shouldnt-start-timer
++++ a/include/linux/blkdev.h
+@@ -787,6 +787,8 @@ static inline void blk_run_address_space
+ 		blk_run_backing_dev(mapping->backing_dev_info, NULL);
+ }
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-bdi-register-sysfs-bdi-device-only-once-per-queue.patch
-ksym_symbol_len-fixes.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
-linux-next.patch
-next-remove-localversion.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-backlight-catch-invalid-input.patch
-pci-uninline-pci_ioremap_bar.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-misc-add-dell-laptop-driver-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-linuxpps-core-support-drivers-pps-sysfsc-make-dev_attr_name-static.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-
++extern void blkdev_dequeue_request(struct request *req);
++
+ /*
+  * blk_end_request() and friends.
+  * __blk_end_request() and end_request() must be called with
+@@ -821,11 +823,6 @@ extern void blk_update_request(struct re
+ extern unsigned int blk_rq_bytes(struct request *rq);
+ extern unsigned int blk_rq_cur_bytes(struct request *rq);
+ 
+-static inline void blkdev_dequeue_request(struct request *req)
+-{
+-	elv_dequeue_request(req->q, req);
+-}
