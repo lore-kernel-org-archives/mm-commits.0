@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + libsas-fix-test-for-negative-unsigned-and-typos.patch added to -mm tree
-Date: Tue, 02 Dec 2008 14:20:15 -0800
-Message-ID: <200812022220.mB2MKFH1001158@imap1.linux-foundation.org>
+Subject: + proc-move-inode-comment-text-file-to-source-file.patch added to -mm tree
+Date: Tue, 02 Dec 2008 14:21:20 -0800
+Message-ID: <200812022221.mB2MLK00001767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752279AbYLBWUU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 17:20:20 -0500
+	by vger.kernel.org with ESMTP id S1752129AbYLBWV1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 17:21:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com
+Cc: randy.dunlap@oracle.com, adobriyan@gmail.com
 
 
 The patch titled
-     libsas: fix test for negative unsigned and typos
+     proc: move inode comment text file to source file
 has been added to the -mm tree.  Its filename is
-     libsas-fix-test-for-negative-unsigned-and-typos.patch
+     proc-move-inode-comment-text-file-to-source-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libsas: fix test for negative unsigned and typos
-From: roel kluin <roel.kluin@gmail.com>
+Subject: proc: move inode comment text file to source file
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-unsigned req->data_len cannot be negative, and fix typo
+Move fs/proc/inode-alloc.txt comment into a source file so that people
+will realize that it exists and can update it as needed.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/libsas/sas_host_smp.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/proc/generic.c       |   15 +++++++++++++++
+ fs/proc/inode-alloc.txt |   14 --------------
+ 2 files changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN drivers/scsi/libsas/sas_host_smp.c~libsas-fix-test-for-negative-unsigned-and-typos drivers/scsi/libsas/sas_host_smp.c
---- a/drivers/scsi/libsas/sas_host_smp.c~libsas-fix-test-for-negative-unsigned-and-typos
-+++ a/drivers/scsi/libsas/sas_host_smp.c
-@@ -199,12 +199,12 @@ int sas_smp_host_handler(struct Scsi_Hos
- 		break;
- 
- 	case SMP_DISCOVER:
--		req->data_len =- 16;
--		if (req->data_len < 0) {
-+		if (req->data_len < 15) {
- 			req->data_len = 0;
- 			error = -EINVAL;
- 			goto out;
- 		}
-+		req->data_len -= 16;
- 		resp_data_len -= 56;
- 		sas_host_smp_discover(sas_ha, resp_data, req_data[9]);
- 		break;
-@@ -215,12 +215,12 @@ int sas_smp_host_handler(struct Scsi_Hos
- 		break;
- 
- 	case SMP_REPORT_PHY_SATA:
--		req->data_len =- 16;
--		if (req->data_len < 0) {
-+		if (req->data_len < 15) {
- 			req->data_len = 0;
- 			error = -EINVAL;
- 			goto out;
- 		}
-+		req->data_len -= 16;
- 		resp_data_len -= 60;
- 		sas_report_phy_sata(sas_ha, resp_data, req_data[9]);
- 		break;
-@@ -238,12 +238,12 @@ int sas_smp_host_handler(struct Scsi_Hos
- 		break;
- 
- 	case SMP_PHY_CONTROL:
--		req->data_len =- 44;
--		if (req->data_len < 0) {
-+		if (req->data_len < 43) {
- 			req->data_len = 0;
- 			error = -EINVAL;
- 			goto out;
- 		}
-+		req->data_len -= 44;
- 		resp_data_len -= 8;
- 		sas_phy_control(sas_ha, req_data[9], req_data[10],
- 				req_data[32] >> 4, req_data[33] >> 4,
+diff -puN fs/proc/generic.c~proc-move-inode-comment-text-file-to-source-file fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-move-inode-comment-text-file-to-source-file
++++ a/fs/proc/generic.c
+@@ -307,6 +307,21 @@ static DEFINE_SPINLOCK(proc_inum_lock); 
+ /*
+  * Return an inode number between PROC_DYNAMIC_FIRST and
+  * 0xffffffff, or zero on failure.
++ *
++ * Current inode allocations in the proc-fs (hex-numbers):
++ *
++ * 00000000		reserved
++ * 00000001-00000fff	static entries	(goners)
++ *      001		root-ino
++ *
++ * 00001000-00001fff	unused
++ * 0001xxxx-7fffxxxx	pid-dir entries for pid 1-7fff
++ * 80000000-efffffff	unused
++ * f0000000-ffffffff	dynamic entries
++ *
++ * Goal:
++ *	Once we split the thing into several virtual filesystems,
++ *	we will get rid of magical ranges (and this comment, BTW).
+  */
+ static unsigned int get_inode_number(void)
+ {
+diff -puN fs/proc/inode-alloc.txt~proc-move-inode-comment-text-file-to-source-file /dev/null
+--- a/fs/proc/inode-alloc.txt
++++ /dev/null
+@@ -1,14 +0,0 @@
+-Current inode allocations in the proc-fs (hex-numbers):
+-
+-  00000000		reserved
+-  00000001-00000fff	static entries	(goners)
+-       001		root-ino
+-
+-  00001000-00001fff	unused
+-  0001xxxx-7fffxxxx	pid-dir entries for pid 1-7fff
+-  80000000-efffffff	unused
+-  f0000000-ffffffff	dynamic entries
+-
+-Goal:
+-	a) once we'll split the thing into several virtual filesystems we
+-	will get rid of magical ranges (and this file, BTW).
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-libsas-fix-test-for-negative-unsigned-and-typos.patch
-gbefb-unsigned-var-pixclock-cannot-be-less-than-0.patch
-sm501-unsigned-ptr-cannot-be-negative.patch
-ufs-sector_t-cannot-be-negative.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-make-various-things-static.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+audit-remove-excess-kernel-doc.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+scripts-extract-ikconfig-remove-bashisms.patch
+mtd-remove-excess-kernel-doc-notation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+esp-fix-section-mismatch-warning.patch
+fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+document-hadling-of-bad-memory.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
+pps-serial-clients-support.patch
+pps-parallel-port-clients-support.patch
+pps-low-level-irq-timestamps-recording.patch
+linuxpps-core-support-drivers-pps-sysfsc-make-dev_attr_name-static.patch
+fix-similar-typos-to-successfull-v2.patch
 
