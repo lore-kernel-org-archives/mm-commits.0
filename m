@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch added to -mm tree
-Date: Tue, 02 Dec 2008 14:57:40 -0800
-Message-ID: <200812022257.mB2MveFf022299@imap1.linux-foundation.org>
+Subject: + unaligned-wire-up-h8300-and-m32r-arches.patch added to -mm tree
+Date: Tue, 02 Dec 2008 14:57:37 -0800
+Message-ID: <200812022257.mB2MvbDD022248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55295 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752624AbYLBW5x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 17:57:53 -0500
+	by vger.kernel.org with ESMTP id S1752703AbYLBW6A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 17:58:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, linux-arch@vger.kernel.org, rmk@arm.linux.org.uk
+Cc: harvey.harrison@gmail.com, linux-arch@vger.kernel.org, takata@linux-m32r.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     unaligned: wire up ARM arch overrides for unaligned access
+     unaligned: wire up h8300 and m32r arches
 has been added to the -mm tree.  Its filename is
-     unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
+     unaligned-wire-up-h8300-and-m32r-arches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,114 +33,154 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unaligned: wire up ARM arch overrides for unaligned access
+Subject: unaligned: wire up h8300 and m32r arches
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Add byteshifting arch overrides to avoid any functional changes when using
-the new common header.  At a later time this arch should be able to use
-the common header directly, but this has not been proven yet.
+Provide arch overrides using memmove to avoid any functional changes.  At
+a later time these arches should be able to just use the common header
+directly, but this is not certain currently.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: <linux-arch@vger.kernel.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/unaligned.h |   81 ++++++++++++++++++++++++-----
- 1 file changed, 69 insertions(+), 12 deletions(-)
+ arch/h8300/include/asm/unaligned.h |   51 ++++++++++++++++++++--
+ include/asm-m32r/unaligned.h       |   60 +++++++++++++++++++++------
+ 2 files changed, 93 insertions(+), 18 deletions(-)
 
-diff -puN arch/arm/include/asm/unaligned.h~unaligned-wire-up-arm-arch-overrides-for-unaligned-access arch/arm/include/asm/unaligned.h
---- a/arch/arm/include/asm/unaligned.h~unaligned-wire-up-arm-arch-overrides-for-unaligned-access
-+++ a/arch/arm/include/asm/unaligned.h
-@@ -1,19 +1,76 @@
- #ifndef _ASM_ARM_UNALIGNED_H
- #define _ASM_ARM_UNALIGNED_H
+diff -puN arch/h8300/include/asm/unaligned.h~unaligned-wire-up-h8300-and-m32r-arches arch/h8300/include/asm/unaligned.h
+--- a/arch/h8300/include/asm/unaligned.h~unaligned-wire-up-h8300-and-m32r-arches
++++ a/arch/h8300/include/asm/unaligned.h
+@@ -1,11 +1,52 @@
+ #ifndef _ASM_H8300_UNALIGNED_H
+ #define _ASM_H8300_UNALIGNED_H
  
+-#include <linux/unaligned/be_memmove.h>
 -#include <linux/unaligned/le_byteshift.h>
--#include <linux/unaligned/be_byteshift.h>
 -#include <linux/unaligned/generic.h>
--
--/*
-- * Select endianness
-- */
--#ifndef __ARMEB__
--#define get_unaligned	__get_unaligned_le
--#define put_unaligned	__put_unaligned_le
 +#include <linux/kernel.h>
-+#include <asm/byteorder.h>
-+
-+static inline u16 __arch_load_cpu16_noalign(const u8 *p)
++#include <linux/string.h>
+ 
+-#define get_unaligned	__get_unaligned_be
+-#define put_unaligned	__put_unaligned_be
++/* Use memmove here, so gcc does not insert a __builtin_memcpy. */
+ 
++static inline u16 __arch_load_cpu16_noalign(const void *p)
 +{
-+#ifdef __LITTLE_ENDIAN
-+	return p[0] | p[1] << 8;
-+#else
-+	return p[0] << 8 | p[1];
-+#endif
++	u16 tmp;
++	memmove(&tmp, p, 2);
++	return tmp;
 +}
 +#define __arch_load_cpu16_noalign __arch_load_cpu16_noalign
 +
-+static inline u32 __arch_load_cpu32_noalign(const u8 *p)
++static inline u32 __arch_load_cpu32_noalign(const void *p)
 +{
-+#ifdef __LITTLE_ENDIAN
-+	return p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
-+#else
-+	return p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3];
-+#endif
++	u32 tmp;
++	memmove(&tmp, p, 4);
++	return tmp;
 +}
 +#define __arch_load_cpu32_noalign __arch_load_cpu32_noalign
 +
-+static inline u64 __arch_load_cpu64_noalign(const u8 *p)
++static inline u64 __arch_load_cpu16_noalign(const void *p)
 +{
-+#ifdef __LITTLE_ENDIAN
-+	return ((u64)__arch_load_cpu32_noalign(p + 4) << 32) |
-+	        __arch_load_cpu32_noalign(p);
-+#else
-+	return ((u64)__arch_load_cpu32_noalign(p) << 32) |
-+	       __arch_load_cpu32_noalign(p + 4);
-+#endif
++	u64 tmp;
++	memmove(&tmp, p, 8);
++	return tmp;
 +}
 +#define __arch_load_cpu64_noalign __arch_load_cpu64_noalign
 +
-+static inline void __arch_store_cpu16_noalign(u8 *p, u16 val)
++static inline void __arch_store_cpu16_noalign(void *p, u16 val)
 +{
-+#ifdef __LITTLE_ENDIAN
-+	*p++ = val;
-+	*p++ = val >> 8;
-+#else
-+	*p++ = val >> 8;
-+	*p++ = val;
-+#endif
++	memmove(p, &val, 2);
 +}
 +#define __arch_store_cpu16_noalign __arch_store_cpu16_noalign
 +
-+static inline void __arch_store_cpu32_noalign(u8 *p, u32 val)
++static inline void __arch_store_cpu32_noalign(void *p, u32 val)
 +{
-+#ifdef __LITTLE_ENDIAN
-+	__arch_store_cpu16_noalign(p, val);
-+	__arch_store_cpu16_noalign(p + 2, val >> 16);
-+#else
-+	__arch_store_cpu16_noalign(p, val >> 16);
-+	__arch_store_cpu16_noalign(p + 2, val);
-+#endif
++	memmove(p, &val, 4);
 +}
 +#define __arch_store_cpu32_noalign __arch_store_cpu32_noalign
 +
-+static inline void __arch_store_cpu64_noalign(u8 *p, u64 val)
++static inline void __arch_store_cpu64_noalign(void *p, u64 val)
 +{
-+#ifdef __LITTLE_ENDIAN
-+	__arch_store_cpu32_noalign(p, val);
-+	__arch_store_cpu32_noalign(p + 4, val >> 32);
- #else
--#define get_unaligned	__get_unaligned_be
--#define put_unaligned	__put_unaligned_be
-+	__arch_store_cpu32_noalign(p, val >> 32);
-+	__arch_store_cpu32_noalign(p + 4, val);
- #endif
++	memmove(p, &val, 8);
 +}
 +#define __arch_store_cpu64_noalign __arch_store_cpu64_noalign
- 
++
 +#include <linux/unaligned.h>
- #endif /* _ASM_ARM_UNALIGNED_H */
+ #endif /* _ASM_H8300_UNALIGNED_H */
+diff -puN include/asm-m32r/unaligned.h~unaligned-wire-up-h8300-and-m32r-arches include/asm-m32r/unaligned.h
+--- a/include/asm-m32r/unaligned.h~unaligned-wire-up-h8300-and-m32r-arches
++++ a/include/asm-m32r/unaligned.h
+@@ -1,18 +1,52 @@
+ #ifndef _ASM_M32R_UNALIGNED_H
+ #define _ASM_M32R_UNALIGNED_H
+ 
+-#if defined(__LITTLE_ENDIAN__)
+-# include <linux/unaligned/le_memmove.h>
+-# include <linux/unaligned/be_byteshift.h>
+-# include <linux/unaligned/generic.h>
+-# define get_unaligned	__get_unaligned_le
+-# define put_unaligned	__put_unaligned_le
+-#else
+-# include <linux/unaligned/be_memmove.h>
+-# include <linux/unaligned/le_byteshift.h>
+-# include <linux/unaligned/generic.h>
+-# define get_unaligned	__get_unaligned_be
+-# define put_unaligned	__put_unaligned_be
+-#endif
++#include <linux/kernel.h>
++#include <linux/string.h>
+ 
++/* Use memmove here, so gcc does not insert a __builtin_memcpy. */
++
++static inline u16 __arch_load_cpu16_noalign(const void *p)
++{
++	u16 tmp;
++	memmove(&tmp, p, 2);
++	return tmp;
++}
++#define __arch_load_cpu16_noalign __arch_load_cpu16_noalign
++
++static inline u32 __arch_load_cpu32_noalign(const void *p)
++{
++	u32 tmp;
++	memmove(&tmp, p, 4);
++	return tmp;
++}
++#define __arch_load_cpu32_noalign __arch_load_cpu32_noalign
++
++static inline u64 __arch_load_cpu16_noalign(const void *p)
++{
++	u64 tmp;
++	memmove(&tmp, p, 8);
++	return tmp;
++}
++#define __arch_load_cpu64_noalign __arch_load_cpu64_noalign
++
++static inline void __arch_store_cpu16_noalign(void *p, u16 val)
++{
++	memmove(p, &val, 2);
++}
++#define __arch_store_cpu16_noalign __arch_store_cpu16_noalign
++
++static inline void __arch_store_cpu32_noalign(void *p, u32 val)
++{
++	memmove(p, &val, 4);
++}
++#define __arch_store_cpu32_noalign __arch_store_cpu32_noalign
++
++static inline void __arch_store_cpu64_noalign(void *p, u64 val)
++{
++	memmove(p, &val, 8);
++}
++#define __arch_store_cpu64_noalign __arch_store_cpu64_noalign
++
++#include <linux/unaligned.h>
+ #endif /* _ASM_M32R_UNALIGNED_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
