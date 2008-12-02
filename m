@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + alim15x3-fix-sparse-warning.patch added to -mm tree
-Date: Tue, 02 Dec 2008 12:02:00 -0800
-Message-ID: <200812022002.mB2K20DK021117@imap1.linux-foundation.org>
+Subject: + uml-boot-broken-due-to-buffer-overrun.patch added to -mm tree
+Date: Tue, 02 Dec 2008 12:17:12 -0800
+Message-ID: <200812022017.mB2KHCAi029678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35653 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38386 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752653AbYLBUCD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 15:02:03 -0500
+	by vger.kernel.org with ESMTP id S1751018AbYLBURd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 15:17:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@hanneseder.net
+Cc: balbir@linux.vnet.ibm.com, jdike@addtoit.com, penberg@cs.helsinki.fi, skldas@gmail.com, stable@kernel.org, vikki.km@gmail.com, wangcong@zeuux.org
 
 
 The patch titled
-     alim15x3: fix sparse warning
+     uml: boot broken due to buffer overrun
 has been added to the -mm tree.  Its filename is
-     alim15x3-fix-sparse-warning.patch
+     uml-boot-broken-due-to-buffer-overrun.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alim15x3: fix sparse warning
-From: Hannes Eder <hannes@hanneseder.net>
+Subject: uml: boot broken due to buffer overrun
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Fix this sparse warning:
+mconsole_init() passed 256 bytes as length in os_create_unix_socket, while
+the sizeof UNIX_PATH_MAX is 108. This patch fixes that problem and avoids
+a big overrun bug reported on UML bootup.
 
-  drivers/ide/alim15x3.c:594:2: warning: returning void-valued expression
-
-Signed-off-by: Hannes Eder <hannes@hanneseder.net>
+sockaddr_un.sun_path is UNIX_PATH_MAX long which causes the problem.
+Reported-by: Vikas K Managutte <vikki.km@gmail.com>
+Reported-by: Sarvesh Kumar Lal Das <skldas@gmail.com>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Reviewed-by: WANG Cong <wangcong@zeuux.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: <stable@kernel.org>		[please check with Jeff]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/alim15x3.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/drivers/mconsole_kern.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ide/alim15x3.c~alim15x3-fix-sparse-warning drivers/ide/alim15x3.c
---- a/drivers/ide/alim15x3.c~alim15x3-fix-sparse-warning
-+++ a/drivers/ide/alim15x3.c
-@@ -591,7 +591,7 @@ static int __init ali15x3_ide_init(void)
+diff -puN arch/um/drivers/mconsole_kern.c~uml-boot-broken-due-to-buffer-overrun arch/um/drivers/mconsole_kern.c
+--- a/arch/um/drivers/mconsole_kern.c~uml-boot-broken-due-to-buffer-overrun
++++ a/arch/um/drivers/mconsole_kern.c
+@@ -16,6 +16,8 @@
+ #include <linux/slab.h>
+ #include <linux/syscalls.h>
+ #include <linux/utsname.h>
++#include <linux/socket.h>
++#include <linux/un.h>
+ #include <linux/workqueue.h>
+ #include <linux/mutex.h>
+ #include <asm/uaccess.h>
+@@ -785,7 +787,7 @@ static int __init mconsole_init(void)
+ 	/* long to avoid size mismatch warnings from gcc */
+ 	long sock;
+ 	int err;
+-	char file[256];
++	char file[UNIX_PATH_MAX];
  
- static void __exit ali15x3_ide_exit(void)
- {
--	return pci_unregister_driver(&alim15x3_pci_driver);
-+	pci_unregister_driver(&alim15x3_pci_driver);
- }
- 
- module_init(ali15x3_ide_init);
+ 	if (umid_file_name("mconsole", file, sizeof(file)))
+ 		return -1;
 _
 
-Patches currently in -mm which might be from hannes@hanneseder.net are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
+uml-boot-broken-due-to-buffer-overrun.patch
 linux-next.patch
-alim15x3-fix-sparse-warning.patch
-udf-fix-sparse-warnings.patch
-hugetlb-fix-sparse-warnings.patch
-nvidia-fix-sparse-warnings.patch
-viafb-fix-sparse-warnings.patch
-pm3fb-fix-sparse-warning.patch
-neofb-fix-sparse-warnings.patch
-i810-fix-sparse-warnings.patch
-intelfb-fix-sparse-warnings.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
+memory-cgroup-hierarchy-feature-selector-v4-fix.patch
 
