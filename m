@@ -1,60 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - fix-fb-console-blanking.patch removed from -mm tree
-Date: Tue, 02 Dec 2008 10:39:03 -0800
-Message-ID: <200812021839.mB2Id3rh007266@imap1.linux-foundation.org>
+Subject: - acpiphp-identify-more-removable-slots.patch removed from -mm tree
+Date: Tue, 02 Dec 2008 10:39:13 -0800
+Message-ID: <200812021839.mB2IdD47007362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754126AbYLBSjT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:39:19 -0500
+	by vger.kernel.org with ESMTP id S1753562AbYLBSjl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:39:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbaryshkov@gmail.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: mjg59@srcf.ucam.org, gregkh@suse.de, kristen.c.accardi@intel.com, len.brown@intel.com, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: fix FB console blanking
+     acpiphp: identify more removable slots
 has been removed from the -mm tree.  Its filename was
-     fix-fb-console-blanking.patch
+     acpiphp-identify-more-removable-slots.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: fix FB console blanking
-From: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Subject: acpiphp: identify more removable slots
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-The commit aef7db4bd5a3b6068dfa05919a3d685199eed116 fixed the problem with
-recursive locking in fb blanking code if blank is caused by user setting
-the /sys/class/graphics/fb*/blank.  However this broke the fbcon timeout
-blanking.
+According to section 6.3.6 of the ACPI spec, the presence of an _RMV
+method that evaluates to 1 is sufficient to indicate that a slot is
+removable without needing an eject method.  This patch refactors the
+ejectable slot detection code a little in order to flag these slots as
+ejectable and register them.  Acpihp then binds to the expresscard slot on
+my HP test machine.
 
-If you use a driver that defines ->fb_blank operation and at the same time
-that driver relies on other driver (e.g.  backlight or lcd class) to blank
-the screen, when the fbcon times out and tries to blank the fb, it will
-call only fb driver blanker and won't notify the other driver.  Thus FB
-output is disabled, but the screen isn't blanked.
-
-Restore fbcon blanking and at the same time apply the proper fix for the
-above problem: if fbcon_blank is called with FBINFO_FLAG_USEREVENT, we are
-already called through notification from fb_blank, thus we don't have to
-blank the fb again.
-
-Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   32 ++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/console/fbcon.c~fix-fb-console-blanking drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fix-fb-console-blanking
-+++ a/drivers/video/console/fbcon.c
-@@ -2389,16 +2389,13 @@ static int fbcon_blank(struct vc_data *v
+diff -puN drivers/pci/hotplug/acpiphp_glue.c~acpiphp-identify-more-removable-slots drivers/pci/hotplug/acpiphp_glue.c
+--- a/drivers/pci/hotplug/acpiphp_glue.c~acpiphp-identify-more-removable-slots
++++ a/drivers/pci/hotplug/acpiphp_glue.c
+@@ -74,7 +74,7 @@ static void handle_hotplug_event_func(ac
+  * Ejectable slot should satisfy at least these conditions:
+  *
+  *  1. has _ADR method
+- *  2. has _EJ0 method
++ *  2. has _EJ0 method or _RMV method
+  *
+  * optionally
+  *
+@@ -87,18 +87,25 @@ static int is_ejectable(acpi_handle hand
+ {
+ 	acpi_status status;
+ 	acpi_handle tmp;
++	unsigned long long removable;
  
-  	if (!fbcon_is_inactive(vc, info)) {
- 		if (ops->blank_state != blank) {
--			int ret = 1;
+ 	status = acpi_get_handle(handle, "_ADR", &tmp);
+-	if (ACPI_FAILURE(status)) {
++	if (ACPI_FAILURE(status))
+ 		return 0;
+-	}
+ 
+ 	status = acpi_get_handle(handle, "_EJ0", &tmp);
+-	if (ACPI_FAILURE(status)) {
+-		return 0;
++	if (ACPI_SUCCESS(status))
++		return 1;
++
++	status = acpi_get_handle(handle, "_RMV", &tmp);
++	if (ACPI_SUCCESS(status)) {
++		status = acpi_evaluate_integer(handle, "_RMV", NULL,
++					       &removable);
++		if (ACPI_SUCCESS(status) && removable)
++			return 1;
+ 	}
+ 
+-	return 1;
++	return 0;
+ }
+ 
+ 
+@@ -185,16 +192,10 @@ register_slot(acpi_handle handle, u32 lv
+ 	unsigned long long adr, sun;
+ 	int device, function, retval;
+ 
+-	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+-
+-	if (ACPI_FAILURE(status))
+-		return AE_OK;
+-
+-	status = acpi_get_handle(handle, "_EJ0", &tmp);
+-
+-	if (ACPI_FAILURE(status) && !(is_dock_device(handle)))
++	if (!is_ejectable(handle) && !is_dock_device(handle))
+ 		return AE_OK;
+ 
++	acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+ 	device = (adr >> 16) & 0xffff;
+ 	function = adr & 0xffff;
+ 
+@@ -205,7 +206,8 @@ register_slot(acpi_handle handle, u32 lv
+ 	INIT_LIST_HEAD(&newfunc->sibling);
+ 	newfunc->handle = handle;
+ 	newfunc->function = function;
+-	if (ACPI_SUCCESS(status))
++
++	if (ACPI_SUCCESS(acpi_get_handle(handle, "_EJ0", &tmp)))
+ 		newfunc->flags = FUNC_HAS_EJ0;
+ 
+ 	if (ACPI_SUCCESS(acpi_get_handle(handle, "_STA", &tmp)))
+_
+
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+
+linux-next.patch
+hp-wmi-handle-rfkill_register-failure.patch
+
