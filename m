@@ -1,70 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - spi-fix-spi_s3c24xx_gpio-num_chipselect.patch removed from -mm tree
-Date: Tue, 02 Dec 2008 10:38:43 -0800
-Message-ID: <200812021838.mB2IchQ9007056@imap1.linux-foundation.org>
+Subject: - drivers-gpu-drm-i915-i915_irqc-fix-warning.patch removed from -mm tree
+Date: Tue, 02 Dec 2008 10:39:11 -0800
+Message-ID: <200812021839.mB2IdBWW007359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35412 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754188AbYLBSj1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:39:27 -0500
+	by vger.kernel.org with ESMTP id S1754133AbYLBSjU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:39:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: fix spi_s3c24xx_gpio num_chipselect
+     drivers/gpu/drm/i915/i915_irq.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     spi-fix-spi_s3c24xx_gpio-num_chipselect.patch
+     drivers-gpu-drm-i915-i915_irqc-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: fix spi_s3c24xx_gpio num_chipselect
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: drivers/gpu/drm/i915/i915_irq.c: fix warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The spi master driver must have num_chipselect set to allow the bus to
-initialise.  Pass this through the platform data.
+drivers/gpu/drm/i915/i915_irq.c: In function 'i915_disable_pipestat':
+drivers/gpu/drm/i915/i915_irq.c:101: warning: control may reach end of non-void function 'i915_pipestat' being inlined
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-s3c2410/include/mach/spi-gpio.h |    1 +
- drivers/spi/spi_s3c24xx_gpio.c                |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/gpu/drm/i915/i915_irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/mach-s3c2410/include/mach/spi-gpio.h~spi-fix-spi_s3c24xx_gpio-num_chipselect arch/arm/mach-s3c2410/include/mach/spi-gpio.h
---- a/arch/arm/mach-s3c2410/include/mach/spi-gpio.h~spi-fix-spi_s3c24xx_gpio-num_chipselect
-+++ a/arch/arm/mach-s3c2410/include/mach/spi-gpio.h
-@@ -18,6 +18,7 @@ struct s3c2410_spigpio_info {
- 	unsigned long		 pin_mosi;
- 	unsigned long		 pin_miso;
+diff -puN drivers/gpu/drm/i915/i915_irq.c~drivers-gpu-drm-i915-i915_irqc-fix-warning drivers/gpu/drm/i915/i915_irq.c
+--- a/drivers/gpu/drm/i915/i915_irq.c~drivers-gpu-drm-i915-i915_irqc-fix-warning
++++ a/drivers/gpu/drm/i915/i915_irq.c
+@@ -78,7 +78,7 @@ i915_pipestat(int pipe)
+ 		return PIPEASTAT;
+ 	if (pipe == 1)
+ 		return PIPEBSTAT;
+-	BUG_ON(1);
++	BUG();
+ }
  
-+	int			 num_chipselect;
- 	int			 bus_num;
- 
- 	void (*chip_select)(struct s3c2410_spigpio_info *spi, int cs);
-diff -puN drivers/spi/spi_s3c24xx_gpio.c~spi-fix-spi_s3c24xx_gpio-num_chipselect drivers/spi/spi_s3c24xx_gpio.c
---- a/drivers/spi/spi_s3c24xx_gpio.c~spi-fix-spi_s3c24xx_gpio-num_chipselect
-+++ a/drivers/spi/spi_s3c24xx_gpio.c
-@@ -118,6 +118,7 @@ static int s3c2410_spigpio_probe(struct 
- 	/* setup spi bitbang adaptor */
- 	sp->bitbang.master = spi_master_get(master);
- 	sp->bitbang.master->bus_num = info->bus_num;
-+	sp->bitbang.master->num_chipselect = info->num_chipselect;
- 	sp->bitbang.chipselect = s3c2410_spigpio_chipselect;
- 
- 	sp->bitbang.txrx_word[SPI_MODE_0] = s3c2410_spigpio_txrx_mode0;
+ void
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+bdi-register-sysfs-bdi-device-only-once-per-queue.patch
+ksym_symbol_len-fixes.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+make-linx-next-apply.patch
 linux-next.patch
-backlight-value-of-ili9320_rgb_if2-register-should-not-be-hardcoded.patch
-spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio.patch
+next-remove-localversion.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+backlight-catch-invalid-input.patch
+pci-uninline-pci_ioremap_bar.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+linuxpps-core-support-drivers-pps-sysfsc-make-dev_attr_name-static.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
