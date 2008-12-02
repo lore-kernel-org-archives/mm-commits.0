@@ -1,139 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - i82875p_edac-fix-module-remove.patch removed from -mm tree
-Date: Tue, 02 Dec 2008 10:39:08 -0800
-Message-ID: <200812021839.mB2Id8vx007354@imap1.linux-foundation.org>
+Subject: - fix-fb-console-blanking.patch removed from -mm tree
+Date: Tue, 02 Dec 2008 10:39:03 -0800
+Message-ID: <200812021839.mB2Id3rh007266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752146AbYLBSjY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:39:24 -0500
+	by vger.kernel.org with ESMTP id S1754126AbYLBSjT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:39:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlavi@iki.fi, alan@lxorguk.ukuu.org.uk, norsk5@yahoo.com, mm-commits@vger.kernel.org
+To: dbaryshkov@gmail.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i82875p_edac: fix module remove
+     fbdev: fix FB console blanking
 has been removed from the -mm tree.  Its filename was
-     i82875p_edac-fix-module-remove.patch
+     fix-fb-console-blanking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i82875p_edac: fix module remove
-From: Jarkko Lavinen <jlavi@iki.fi>
+Subject: fbdev: fix FB console blanking
+From: Dmitry Baryshkov <dbaryshkov@gmail.com>
 
-Fix module removal bugs of i82875p_edac.  Also i82975x_edac code seems to
-have the same module removal bugs as in i82875p_edac.
+The commit aef7db4bd5a3b6068dfa05919a3d685199eed116 fixed the problem with
+recursive locking in fb blanking code if blank is caused by user setting
+the /sys/class/graphics/fb*/blank.  However this broke the fbcon timeout
+blanking.
 
-The problems were:
+If you use a driver that defines ->fb_blank operation and at the same time
+that driver relies on other driver (e.g.  backlight or lcd class) to blank
+the screen, when the fbcon times out and tries to blank the fb, it will
+call only fb driver blanker and won't notify the other driver.  Thus FB
+output is disabled, but the screen isn't blanked.
 
-1. In module removal i82875p_remove_one() is never called.
+Restore fbcon blanking and at the same time apply the proper fix for the
+above problem: if fbcon_blank is called with FBINFO_FLAG_USEREVENT, we are
+already called through notification from fb_blank, thus we don't have to
+blank the fb again.
 
-   Variable i82875p_registered is newer changed from 1, which
-   guarantees i82875p_remove_one() is not called (and even if it were
-   called, it would be called in wrong order).
-
-   As a result, the edac_mc workque is not stopped and keeps probing.
-   If kernel debugging options are not enabled, user may not notice
-   anything going wrong.
-
-   if debugging options are enabled and I do "rmmod i82875p_edac", I
-   get:
-
-      edac debug: edac_pci_workq_function() checking
-      BUG: unable to handle kernel paging request at f882d16f
-      ...
-      call trace:
-       [<f8834df3>] ? edac_mc_workq_function+0x55/0x7e [edac_core]
-       [<c0233974>] ? run_workqueue+0xd7/0x1a5
-       [<c023392f>] ? run_workqueue+0x92/0x1a5
-       [<f8834d9e>] ? edac_mc_workq_function+0x0/0x7e [edac_core]
-       [<c0233af9>] ? worker_thread+0xb7/0xc3
-       [<c0236a7b>] ? autoremove_wake_function+0x0/0x33
-       [<c0233a42>] ? worker_thread+0x0/0xc3
-       [<c0236809>] ? kthread+0x3b/0x61
-       [<c02367ce>] ? kthread+0x0/0x61
-       [<c0204587>] ? kernel_thread_helper+0x7/0x10
-
-
-   Fix for this is to get rid of needles variable i82875p_registered
-   altogether and run i82875p_remove_one() *before*
-   pci_unregister_driver().
-
-2. edac_mc_del_mc() uses mci after freeing mci
-
-   edac_mc_del_mc() calls calls edac_remove_sysfs_mci_device().  The
-   kobject refcount of mci drops to 0 and mci is freed.  After this
-   mci is accessed via debug print and i82875p_remove_one() still
-   uses mci->pvt and tries to free mci again with edac_mc_free().
-
-   The fix for this is add kobject_get(&mci->edac_mci_kobj) after
-   edac_mc_alloc(). Then the mci is still available after returning
-   from edac_mc_del_mc() with refcount 1, and mci->pvt is still
-   available. When i82875p_remove_one() finally calls edac_mc_free(),
-   this will cause kobject_put() and mci is released properly.
-
-Signed-off-by: Jarkko Lavinen <jlavi@iki.fi>
-Cc: Doug Thompson <norsk5@yahoo.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i82875p_edac.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/video/console/fbcon.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/edac/i82875p_edac.c~i82875p_edac-fix-module-remove drivers/edac/i82875p_edac.c
---- a/drivers/edac/i82875p_edac.c~i82875p_edac-fix-module-remove
-+++ a/drivers/edac/i82875p_edac.c
-@@ -182,8 +182,6 @@ static struct pci_dev *mci_pdev;	/* init
- 					 * already registered driver
- 					 */
+diff -puN drivers/video/console/fbcon.c~fix-fb-console-blanking drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fix-fb-console-blanking
++++ a/drivers/video/console/fbcon.c
+@@ -2389,16 +2389,13 @@ static int fbcon_blank(struct vc_data *v
  
--static int i82875p_registered = 1;
--
- static struct edac_pci_ctl_info *i82875p_pci;
- 
- static void i82875p_get_error_info(struct mem_ctl_info *mci,
-@@ -410,6 +408,9 @@ static int i82875p_probe1(struct pci_dev
- 		goto fail0;
- 	}
- 
-+	/* Keeps mci available after edac_mc_del_mc() till edac_mc_free() */
-+	kobject_get(&mci->edac_mci_kobj);
-+
- 	debugf3("%s(): init mci\n", __func__);
- 	mci->dev = &pdev->dev;
- 	mci->mtype_cap = MEM_FLAG_DDR;
-@@ -452,6 +453,7 @@ static int i82875p_probe1(struct pci_dev
- 	return 0;
- 
- fail1:
-+	kobject_put(&mci->edac_mci_kobj);
- 	edac_mc_free(mci);
- 
- fail0:
-@@ -579,12 +581,11 @@ static void __exit i82875p_exit(void)
- {
- 	debugf3("%s()\n", __func__);
- 
-+	i82875p_remove_one(mci_pdev);
-+	pci_dev_put(mci_pdev);
-+
- 	pci_unregister_driver(&i82875p_driver);
- 
--	if (!i82875p_registered) {
--		i82875p_remove_one(mci_pdev);
--		pci_dev_put(mci_pdev);
--	}
- }
- 
- module_init(i82875p_init);
-_
-
-Patches currently in -mm which might be from jlavi@iki.fi are
-
-
+  	if (!fbcon_is_inactive(vc, info)) {
+ 		if (ops->blank_state != blank) {
+-			int ret = 1;
