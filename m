@@ -1,139 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - lib-idrc-fix-rcu-related-race-with-idr_find.patch removed from -mm tree
-Date: Tue, 02 Dec 2008 10:38:56 -0800
-Message-ID: <200812021838.mB2Icu2x007202@imap1.linux-foundation.org>
+Subject: - i82875p_edac-fix-overflow-device-resource-setup.patch removed from -mm tree
+Date: Tue, 02 Dec 2008 10:39:05 -0800
+Message-ID: <200812021839.mB2Id5OK007291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52794 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752146AbYLBSjk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:39:40 -0500
+	by vger.kernel.org with ESMTP id S1754175AbYLBSjX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:39:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, Nadia.Derbey@bull.net, cboulte@gmail.com, peifferp@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: jlavi@iki.fi, alan@lxorguk.ukuu.org.uk, jbarnes@virtuousgeek.org, norsk5@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib/idr.c: fix rcu related race with idr_find
+     i82875p_edac: fix overflow device resource setup
 has been removed from the -mm tree.  Its filename was
-     lib-idrc-fix-rcu-related-race-with-idr_find.patch
+     i82875p_edac-fix-overflow-device-resource-setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/idr.c: fix rcu related race with idr_find
-From: Manfred Spraul <manfred@colorfullife.com>
+Subject: i82875p_edac: fix overflow device resource setup
+From: Jarkko Lavinen <jlavi@iki.fi>
 
-2nd part of the fixes needed for
-http://bugzilla.kernel.org/show_bug.cgi?id=11796.
+When I do "modprobe i82875p_edac" on my Asus P4C800 MB on kernels 2.6.26
+or later, the module load fails due to BAR 0 collision.  On 2.6.25 the
+module loads just fine.
 
-When the idr tree is either grown or shrunk, then the update to the number
-of layers and the top pointer were not atomic.  This race caused crashes.
+The overflow device on the MB seems to be hidden and its resources are not
+allocated at normal PCI bus init.  Log shows the missing resource problem:
 
-The attached patch fixes that by replicating the layers counter in each
-layer, thus idr_find doesn't need idp->layers anymore.
+  EDAC DEBUG: i82875p_probe1()
+  PCI: 0000:00:06.0 reg 10 32bit mmio: [fecf0000, fecf0fff]
+  pci 0000:00:06.0: device not available because of BAR 0
+[0xfecf0000-0xfecf0fff] collisions
+  EDAC i82875p: i82875p_setup_overfl_dev(): Failed to enable overflow
+device
 
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Clement Calmels <cboulte@gmail.com>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Pierre Peiffer <peifferp@gmail.com>
-Cc: <stable@kernel.org>
+The patch below fixes this by calling pci_bus_assign_resources() after
+the overflow device is revealed and added to the bus. With this patch
+I am again able to load and use the module.
+
+Signed-off-by: Jarkko Lavinen <jlavi@iki.fi>
+Cc: Doug Thompson <norsk5@yahoo.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |    3 ++-
- lib/idr.c           |   14 ++++++++++++--
- 2 files changed, 14 insertions(+), 3 deletions(-)
+ drivers/edac/i82875p_edac.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/idr.h~lib-idrc-fix-rcu-related-race-with-idr_find include/linux/idr.h
---- a/include/linux/idr.h~lib-idrc-fix-rcu-related-race-with-idr_find
-+++ a/include/linux/idr.h
-@@ -52,13 +52,14 @@ struct idr_layer {
- 	unsigned long		 bitmap; /* A zero bit means "space here" */
- 	struct idr_layer	*ary[1<<IDR_BITS];
- 	int			 count;	 /* When zero, we can release it */
-+	int			 layer;	 /* distance from leaf */
- 	struct rcu_head		 rcu_head;
- };
- 
- struct idr {
- 	struct idr_layer *top;
- 	struct idr_layer *id_free;
--	int		  layers;
-+	int		  layers; /* only valid without concurrent changes */
- 	int		  id_free_cnt;
- 	spinlock_t	  lock;
- };
-diff -puN lib/idr.c~lib-idrc-fix-rcu-related-race-with-idr_find lib/idr.c
---- a/lib/idr.c~lib-idrc-fix-rcu-related-race-with-idr_find
-+++ a/lib/idr.c
-@@ -185,6 +185,7 @@ static int sub_alloc(struct idr *idp, in
- 			new = get_from_free_list(idp);
- 			if (!new)
- 				return -1;
-+			new->layer = l-1;
- 			rcu_assign_pointer(p->ary[m], new);
- 			p->count++;
+diff -puN drivers/edac/i82875p_edac.c~i82875p_edac-fix-overflow-device-resource-setup drivers/edac/i82875p_edac.c
+--- a/drivers/edac/i82875p_edac.c~i82875p_edac-fix-overflow-device-resource-setup
++++ a/drivers/edac/i82875p_edac.c
+@@ -295,6 +295,7 @@ static int i82875p_setup_overfl_dev(stru
+ 				"%s(): pci_bus_add_device() Failed\n",
+ 				__func__);
  		}
-@@ -210,6 +211,7 @@ build_up:
- 	if (unlikely(!p)) {
- 		if (!(p = get_from_free_list(idp)))
- 			return -1;
-+		p->layer = 0;
- 		layers = 1;
++		pci_bus_assign_resources(dev->bus);
  	}
- 	/*
-@@ -237,6 +239,7 @@ build_up:
- 		}
- 		new->ary[0] = p;
- 		new->count = 1;
-+		new->layer = layers-1;
- 		if (p->bitmap == IDR_FULL)
- 			__set_bit(0, &new->bitmap);
- 		p = new;
-@@ -493,17 +496,21 @@ void *idr_find(struct idr *idp, int id)
- 	int n;
- 	struct idr_layer *p;
  
--	n = idp->layers * IDR_BITS;
- 	p = rcu_dereference(idp->top);
-+	if (!p)
-+		return NULL;
-+	n = (p->layer+1) * IDR_BITS;
- 
- 	/* Mask off upper bits we don't use for the search. */
- 	id &= MAX_ID_MASK;
- 
- 	if (id >= (1 << n))
- 		return NULL;
-+	BUG_ON(n == 0);
- 
- 	while (n > 0 && p) {
- 		n -= IDR_BITS;
-+		BUG_ON(n != p->layer*IDR_BITS);
- 		p = rcu_dereference(p->ary[(id >> n) & IDR_MASK]);
- 	}
- 	return((void *)p);
-@@ -582,8 +589,11 @@ void *idr_replace(struct idr *idp, void 
- 	int n;
- 	struct idr_layer *p, *old_p;
- 
--	n = idp->layers * IDR_BITS;
- 	p = idp->top;
-+	if (!p)
-+		return ERR_PTR(-EINVAL);
-+
-+	n = (p->layer+1) * IDR_BITS;
- 
- 	id &= MAX_ID_MASK;
- 
+ 	*ovrfl_pdev = dev;
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from jlavi@iki.fi are
 
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-mm-debug-dump-pageframes-on-bad_page.patch
-slab-leaks3-default-y.patch
 
