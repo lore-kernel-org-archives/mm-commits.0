@@ -1,68 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - x86-use-bios-reboot-on-toshiba-portege-4000.patch removed from -mm tree
-Date: Mon, 01 Dec 2008 19:55:45 -0800
-Message-ID: <200812020355.mB23tj1V004519@imap1.linux-foundation.org>
+Subject: - make-get_user_pages-interruptible-update.patch removed from -mm tree
+Date: Tue, 02 Dec 2008 08:20:51 -0800
+Message-ID: <200812021620.mB2GKp56027599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45898 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751832AbYLBD52 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2008 22:57:28 -0500
+	by vger.kernel.org with ESMTP id S1751746AbYLBQVh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 11:21:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvidjaar@mail.ru, avi@redhat.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: yinghan@google.com, hugh@veritas.com, matthew@wil.cx, menage@google.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: use BIOS reboot on Toshiba Portege 4000
+     make-get_user_pages-interruptible-update
 has been removed from the -mm tree.  Its filename was
-     x86-use-bios-reboot-on-toshiba-portege-4000.patch
+     make-get_user_pages-interruptible-update.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: use BIOS reboot on Toshiba Portege 4000
-From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: make-get_user_pages-interruptible-update
+From: Ying Han <yinghan@google.com>
 
-After commit c7ffa6c26277b403920e2255d10df849bd613380 ("x86: default to
-reboot via ACPI") which defaults to reboot via ACPI keyboard is dead on
-Toshiba Portege 4000 upon reboot.  Power off is required to revive it
-again.  Add DMI entry to force BIOS reboot method as it was before.
-
-Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Avi Kivity <avi@redhat.com>
+Cc: Paul Menage <menage@google.com>
+Signed-off-by: Ying Han <yinghan@google.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/reboot.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/memory.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/reboot.c~x86-use-bios-reboot-on-toshiba-portege-4000 arch/x86/kernel/reboot.c
---- a/arch/x86/kernel/reboot.c~x86-use-bios-reboot-on-toshiba-portege-4000
-+++ a/arch/x86/kernel/reboot.c
-@@ -217,6 +217,14 @@ static struct dmi_system_id __initdata r
- 			DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq"),
- 		},
- 	},
-+	{	/* Handle problems with rebooting on Toshiba Portege 4000 */
-+		.callback = set_bios_reboot,
-+		.ident = "Toshiba Portege 4000",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "PORTEGE 4000"),
-+		},
-+	},
- 	{ }
- };
+diff -puN mm/memory.c~make-get_user_pages-interruptible-update mm/memory.c
+--- a/mm/memory.c~make-get_user_pages-interruptible-update
++++ a/mm/memory.c
+@@ -1220,7 +1220,9 @@ int __get_user_pages(struct task_struct 
  
+ 			/*
+ 			 * If we have a pending SIGKILL, don't keep
+-			 * allocating memory.
++			 * allocating memory. We check both current
++			 * and tsk to cover the cases where current
++			 * is allocating pages on behalf of tsk.
+ 			 */
+ 			if (unlikely(sigkill_pending(current) ||
+ 					sigkill_pending(tsk)))
 _
 
-Patches currently in -mm which might be from arvidjaar@mail.ru are
+Patches currently in -mm which might be from yinghan@google.com are
 
-linux-next.patch
-x86-use-bios-reboot-on-toshiba-portege-4000.patch
+make-get_user_pages-interruptible-update.patch
 
