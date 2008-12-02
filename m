@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch added to -mm tree
-Date: Tue, 02 Dec 2008 11:34:11 -0800
-Message-ID: <200812021934.mB2JYBZh005512@imap1.linux-foundation.org>
+Subject: + block-reorder-struct-bio-to-remove-padding-on-64bit.patch added to -mm tree
+Date: Tue, 02 Dec 2008 11:33:29 -0800
+Message-ID: <200812021933.mB2JXUXY005118@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59379 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754418AbYLBTew (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 14:34:52 -0500
+	by vger.kernel.org with ESMTP id S1755696AbYLBTeb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 14:34:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, dwmw2@infradead.org
+Cc: richard@rsk.demon.co.uk, jens.axboe@oracle.com
 
 
 The patch titled
-     drivers/mtd/nand/pasemi_nand.c: Add missing pci_dev_put
+     block: reorder struct bio to remove padding on 64bit
 has been added to the -mm tree.  Its filename is
-     drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch
+     block-reorder-struct-bio-to-remove-padding-on-64bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,105 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mtd/nand/pasemi_nand.c: Add missing pci_dev_put
-From: Julia Lawall <julia@diku.dk>
+Subject: block: reorder struct bio to remove padding on 64bit
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-pci_get_device increments a reference count that should be decremented
-using pci_dev_put.  I have thus added an extra label in the error handling
-code to do this.  I don't know, however, whether there should be a
-pci_dev_put before the return 0 as well.
+Remove 8 bytes of padding from struct bio which also removes 16 bytes from
+struct bio_pair to make it 248 bytes.  bio_pair then fits into one fewer
+cache lines & into a smaller slab.
 
-The semantic match that finds the problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@r exists@
-local idexpression x;
-statement S,S1;
-position p1,p2,p3;
-expression E,E1;
-type T,T1;
-expression *ptr != NULL;
-@@
-
-(
- if ((x@p1 = pci_get_device(...)) == NULL) S
-|
- x@p1 = pci_get_device(...);
-)
- ... when != pci_dev_put(...,(T)x,...)
-     when != if (...) { <+... pci_dev_put(...,(T)x,...) ...+> }
-     when != true x == NULL || ...
-     when != x = E
-     when != E = (T)x
-     when any
-(
- if (x == NULL || ...) S1
-|
- if@p2 (...) {
-  ... when != pci_dev_put(...,(T1)x,...)
-      when != if (...) { <+... pci_dev_put(...,(T1)x,...) ...+> }
-      when != x = E1
-      when != E1 = (T1)x
-(
-  return \(0\|<+...x...+>\|ptr\);
-|
-  return@p3 ...;
-)
-}
-)
-
-@ script:python @
-p1 << r.p1;
-p3 << r.p3;
-@@
-
-print "* file: %s pci_get_device: %s return: %s" % (p1[0].file,p1[0].line,p3[0].line)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/pasemi_nand.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/bio.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/pasemi_nand.c~drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put drivers/mtd/nand/pasemi_nand.c
---- a/drivers/mtd/nand/pasemi_nand.c~drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put
-+++ a/drivers/mtd/nand/pasemi_nand.c
-@@ -144,7 +144,7 @@ static int __devinit pasemi_nand_probe(s
+diff -puN include/linux/bio.h~block-reorder-struct-bio-to-remove-padding-on-64bit include/linux/bio.h
+--- a/include/linux/bio.h~block-reorder-struct-bio-to-remove-padding-on-64bit
++++ a/include/linux/bio.h
+@@ -90,10 +90,11 @@ struct bio {
  
- 	if (!request_region(lpcctl, 4, driver_name)) {
- 		err = -EBUSY;
--		goto out_ior;
-+		goto out_pdev;
- 	}
+ 	unsigned int		bi_comp_cpu;	/* completion CPU */
  
- 	chip->cmd_ctrl = pasemi_hwcontrol;
-@@ -176,6 +176,8 @@ static int __devinit pasemi_nand_probe(s
++	atomic_t		bi_cnt;		/* pin count */
++
+ 	struct bio_vec		*bi_io_vec;	/* the actual vec list */
  
-  out_lpc:
- 	release_region(lpcctl, 4);
-+ out_pdev:
-+	pci_dev_put(pdev);
-  out_ior:
- 	iounmap(chip->IO_ADDR_R);
-  out_mtd:
+ 	bio_end_io_t		*bi_end_io;
+-	atomic_t		bi_cnt;		/* pin count */
+ 
+ 	void			*bi_private;
+ #if defined(CONFIG_BLK_DEV_INTEGRITY)
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
 linux-next.patch
-drivers-char-agp-add-missing-pci_dev_get.patch
-arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-arch-powerpc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-arch-ia64-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-drivers-mtd-maps-nettelc-use-array_size.patch
-drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch
-net-tipc-bcasth-use-array_size.patch
-drivers-isdn-misdn-use-array_size.patch
-fs-namespacec-drop-code-after-return.patch
-mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+block-reorder-struct-bio-to-remove-padding-on-64bit.patch
 
