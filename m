@@ -1,72 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - i82875p_edac-fix-overflow-device-resource-setup.patch removed from -mm tree
-Date: Tue, 02 Dec 2008 10:39:05 -0800
-Message-ID: <200812021839.mB2Id5OK007291@imap1.linux-foundation.org>
+Subject: - frv-fix-mmap2-error-handling.patch removed from -mm tree
+Date: Tue, 02 Dec 2008 10:38:50 -0800
+Message-ID: <200812021838.mB2IcoUk007151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52794 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48754 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754175AbYLBSjX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:39:23 -0500
+	by vger.kernel.org with ESMTP id S1752146AbYLBSkA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 13:40:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlavi@iki.fi, alan@lxorguk.ukuu.org.uk, jbarnes@virtuousgeek.org, norsk5@yahoo.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, julia@diku.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i82875p_edac: fix overflow device resource setup
+     frv: fix mmap2 error handling
 has been removed from the -mm tree.  Its filename was
-     i82875p_edac-fix-overflow-device-resource-setup.patch
+     frv-fix-mmap2-error-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i82875p_edac: fix overflow device resource setup
-From: Jarkko Lavinen <jlavi@iki.fi>
+Subject: frv: fix mmap2 error handling
+From: David Howells <dhowells@redhat.com>
 
-When I do "modprobe i82875p_edac" on my Asus P4C800 MB on kernels 2.6.26
-or later, the module load fails due to BAR 0 collision.  On 2.6.25 the
-module loads just fine.
+Fix the error handling in sys_mmap2().  Currently, if the pgoff check
+fails, fput() might have to be called (which it isn't), so do the pgoff
+check first, before fget() is called.
 
-The overflow device on the MB seems to be hidden and its resources are not
-allocated at normal PCI bus init.  Log shows the missing resource problem:
-
-  EDAC DEBUG: i82875p_probe1()
-  PCI: 0000:00:06.0 reg 10 32bit mmio: [fecf0000, fecf0fff]
-  pci 0000:00:06.0: device not available because of BAR 0
-[0xfecf0000-0xfecf0fff] collisions
-  EDAC i82875p: i82875p_setup_overfl_dev(): Failed to enable overflow
-device
-
-The patch below fixes this by calling pci_bus_assign_resources() after
-the overflow device is revealed and added to the bus. With this patch
-I am again able to load and use the module.
-
-Signed-off-by: Jarkko Lavinen <jlavi@iki.fi>
-Cc: Doug Thompson <norsk5@yahoo.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Reported-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i82875p_edac.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/frv/kernel/sys_frv.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/edac/i82875p_edac.c~i82875p_edac-fix-overflow-device-resource-setup drivers/edac/i82875p_edac.c
---- a/drivers/edac/i82875p_edac.c~i82875p_edac-fix-overflow-device-resource-setup
-+++ a/drivers/edac/i82875p_edac.c
-@@ -295,6 +295,7 @@ static int i82875p_setup_overfl_dev(stru
- 				"%s(): pci_bus_add_device() Failed\n",
- 				__func__);
- 		}
-+		pci_bus_assign_resources(dev->bus);
- 	}
+diff -puN arch/frv/kernel/sys_frv.c~frv-fix-mmap2-error-handling arch/frv/kernel/sys_frv.c
+--- a/arch/frv/kernel/sys_frv.c~frv-fix-mmap2-error-handling
++++ a/arch/frv/kernel/sys_frv.c
+@@ -35,22 +35,21 @@ asmlinkage long sys_mmap2(unsigned long 
+ 	int error = -EBADF;
+ 	struct file * file = NULL;
  
- 	*ovrfl_pdev = dev;
+-	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
+-	if (!(flags & MAP_ANONYMOUS)) {
+-		file = fget(fd);
+-		if (!file)
+-			goto out;
+-	}
+-
+ 	/* As with sparc32, make sure the shift for mmap2 is constant
+ 	   (12), no matter what PAGE_SIZE we have.... */
+ 
+ 	/* But unlike sparc32, don't just silently break if we're
+ 	   trying to map something we can't */
+-	if (pgoff & ((1<<(PAGE_SHIFT-12))-1))
++	if (pgoff & ((1 << (PAGE_SHIFT - 12)) - 1))
+ 		return -EINVAL;
++	pgoff >>= PAGE_SHIFT - 12;
+ 
+-	pgoff >>= (PAGE_SHIFT - 12);
++	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
++	if (!(flags & MAP_ANONYMOUS)) {
++		file = fget(fd);
++		if (!file)
++			goto out;
++	}
+ 
+ 	down_write(&current->mm->mmap_sem);
+ 	error = do_mmap_pgoff(file, addr, len, prot, flags, pgoff);
 _
 
-Patches currently in -mm which might be from jlavi@iki.fi are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
+linux-next.patch
+frv-use-the-new-byteorder-headers.patch
+mutex-subsystem-synchro-test-module.patch
 
