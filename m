@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-revert-gfp-mask-fix.patch added to -mm tree
-Date: Tue, 02 Dec 2008 21:56:58 -0800
-Message-ID: <200812030556.mB35uwjl028763@imap1.linux-foundation.org>
+Subject: + mm-introduce-zone_reclaim-struct.patch added to -mm tree
+Date: Tue, 02 Dec 2008 21:57:29 -0800
+Message-ID: <200812030557.mB35vT2g029069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754007AbYLCF5T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:57:19 -0500
+	by vger.kernel.org with ESMTP id S1751153AbYLCF6Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:58:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.com
 
 
 The patch titled
-     memcg: revert gfp mask fix
+     mm: introduce zone_reclaim struct
 has been added to the -mm tree.  Its filename is
-     memcg-revert-gfp-mask-fix.patch
+     mm-introduce-zone_reclaim-struct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,23 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: revert gfp mask fix
+Subject: mm: introduce zone_reclaim struct
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-My patch, memcg-fix-gfp_mask-of-callers-of-charge.patch changed gfp_mask
-of callers of charge to be GFP_HIGHUSER_MOVABLE for showing what will
-happen at memory reclaim.
+Add zone_reclam_stat struct for later enhancement.
 
-But in recent discussion, it's NACKed because it sounds ugly.
+A later patch uses this.  This patch doesn't any behavior change (yet).
 
-This patch is for reverting it and add some clean up to gfp_mask of
-callers of charge.  No behavior change but need review before generating
-HUNK in deep queue.
-
-This patch also adds explanation to meaning of gfp_mask passed to charge
-functions in memcontrol.h.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Hugh Dickins <hugh@veritas.com>
@@ -57,180 +50,249 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 ++++++++++
- mm/filemap.c               |    2 +-
- mm/memcontrol.c            |   10 +++++-----
- mm/memory.c                |   10 ++++------
- mm/shmem.c                 |    8 ++++----
- mm/swapfile.c              |    3 +--
- 6 files changed, 25 insertions(+), 18 deletions(-)
+ include/linux/mmzone.h |   24 +++++++++++--------
+ mm/page_alloc.c        |    8 +++---
+ mm/swap.c              |   12 ++++++---
+ mm/vmscan.c            |   47 ++++++++++++++++++++++++---------------
+ 4 files changed, 56 insertions(+), 35 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-revert-gfp-mask-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-revert-gfp-mask-fix
-+++ a/include/linux/memcontrol.h
-@@ -26,6 +26,16 @@ struct page;
- struct mm_struct;
+diff -puN include/linux/mmzone.h~mm-introduce-zone_reclaim-struct include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-introduce-zone_reclaim-struct
++++ a/include/linux/mmzone.h
+@@ -263,6 +263,19 @@ enum zone_type {
+ #error ZONES_SHIFT -- too many zones configured adjust calculation
+ #endif
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+/*
-+ * All "charge" functions with gfp_mask should use GFP_KERNEL or
-+ * (gfp_mask & GFP_RECLAIM_MASK). In current implementatin, memcg doesn't
-+ * alloc memory but reclaims memory from all available zones. So, "where I want
-+ * memory from" bits of gfp_mask has no meaning. So any bits of that field is
-+ * available but adding a rule is better. charge functions' gfp_mask should
-+ * be set to GFP_KERNEL or gfp_mask & GFP_RECLAIM_MASK for avoiding ambiguous
-+ * codes.
-+ * (Of course, if memcg does memory allocation in future, GFP_KERNEL is sane.)
-+ */
++struct zone_reclaim_stat {
++	/*
++	 * The pageout code in vmscan.c keeps track of how many of the
++	 * mem/swap backed and file backed pages are refeferenced.
++	 * The higher the rotated/scanned ratio, the more valuable
++	 * that cache is.
++	 *
++	 * The anon LRU stats live in [0], file LRU stats in [1]
++	 */
++	unsigned long		recent_rotated[2];
++	unsigned long		recent_scanned[2];
++};
++
+ struct zone {
+ 	/* Fields commonly accessed by the page allocator */
+ 	unsigned long		pages_min, pages_low, pages_high;
+@@ -315,16 +328,7 @@ struct zone {
+ 		unsigned long nr_scan;
+ 	} lru[NR_LRU_LISTS];
  
- extern int mem_cgroup_newpage_charge(struct page *page, struct mm_struct *mm,
- 				gfp_t gfp_mask);
-diff -puN mm/filemap.c~memcg-revert-gfp-mask-fix mm/filemap.c
---- a/mm/filemap.c~memcg-revert-gfp-mask-fix
-+++ a/mm/filemap.c
-@@ -460,7 +460,7 @@ int add_to_page_cache_locked(struct page
- 	VM_BUG_ON(!PageLocked(page));
+-	/*
+-	 * The pageout code in vmscan.c keeps track of how many of the
+-	 * mem/swap backed and file backed pages are refeferenced.
+-	 * The higher the rotated/scanned ratio, the more valuable
+-	 * that cache is.
+-	 *
+-	 * The anon LRU stats live in [0], file LRU stats in [1]
+-	 */
+-	unsigned long		recent_rotated[2];
+-	unsigned long		recent_scanned[2];
++	struct zone_reclaim_stat reclaim_stat;
  
- 	error = mem_cgroup_cache_charge(page, current->mm,
--					gfp_mask & ~__GFP_HIGHMEM);
-+					gfp_mask & GFP_RECLAIM_MASK);
- 	if (error)
- 		goto out;
- 
-diff -puN mm/memcontrol.c~memcg-revert-gfp-mask-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-revert-gfp-mask-fix
-+++ a/mm/memcontrol.c
-@@ -1248,7 +1248,7 @@ int mem_cgroup_prepare_migration(struct 
- 	unlock_page_cgroup(pc);
- 
- 	if (mem) {
--		ret = mem_cgroup_try_charge(NULL, GFP_HIGHUSER_MOVABLE, &mem);
-+		ret = mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem);
- 		css_put(&mem->css);
- 	}
- 	*ptr = mem;
-@@ -1378,7 +1378,7 @@ static int mem_cgroup_resize_limit(struc
- 			break;
- 
- 		progress = try_to_free_mem_cgroup_pages(memcg,
--				GFP_HIGHUSER_MOVABLE, false);
-+				GFP_KERNEL, false);
-   		if (!progress)			retry_count--;
- 	}
- 	return ret;
-@@ -1418,7 +1418,7 @@ int mem_cgroup_resize_memsw_limit(struct
- 			break;
- 
- 		oldusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
--		try_to_free_mem_cgroup_pages(memcg, GFP_HIGHUSER_MOVABLE, true);
-+		try_to_free_mem_cgroup_pages(memcg, GFP_KERNEL, true);
- 		curusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
- 		if (curusage >= oldusage)
- 			retry_count--;
-@@ -1464,7 +1464,7 @@ static int mem_cgroup_force_empty_list(s
+ 	unsigned long		pages_scanned;	   /* since last reclaim */
+ 	unsigned long		slab_defrag_counter; /* since last defrag */
+diff -puN mm/page_alloc.c~mm-introduce-zone_reclaim-struct mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-zone_reclaim-struct
++++ a/mm/page_alloc.c
+@@ -3523,10 +3523,10 @@ static void __paginginit free_area_init_
+ 			INIT_LIST_HEAD(&zone->lru[l].list);
+ 			zone->lru[l].nr_scan = 0;
  		}
- 		spin_unlock_irqrestore(&zone->lru_lock, flags);
+-		zone->recent_rotated[0] = 0;
+-		zone->recent_rotated[1] = 0;
+-		zone->recent_scanned[0] = 0;
+-		zone->recent_scanned[1] = 0;
++		zone->reclaim_stat.recent_rotated[0] = 0;
++		zone->reclaim_stat.recent_rotated[1] = 0;
++		zone->reclaim_stat.recent_scanned[0] = 0;
++		zone->reclaim_stat.recent_scanned[1] = 0;
+ 		zap_zone_vm_stats(zone);
+ 		zone->flags = 0;
+ 		if (!size)
+diff -puN mm/swap.c~mm-introduce-zone_reclaim-struct mm/swap.c
+--- a/mm/swap.c~mm-introduce-zone_reclaim-struct
++++ a/mm/swap.c
+@@ -157,6 +157,7 @@ void  rotate_reclaimable_page(struct pag
+ void activate_page(struct page *page)
+ {
+ 	struct zone *zone = page_zone(page);
++	struct zone_reclaim_stat *reclaim_stat = &zone->reclaim_stat;
  
--		ret = mem_cgroup_move_parent(pc, mem, GFP_HIGHUSER_MOVABLE);
-+		ret = mem_cgroup_move_parent(pc, mem, GFP_KERNEL);
- 		if (ret == -ENOMEM)
- 			break;
+ 	spin_lock_irq(&zone->lru_lock);
+ 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+@@ -169,8 +170,8 @@ void activate_page(struct page *page)
+ 		add_page_to_lru_list(zone, page, lru);
+ 		__count_vm_event(PGACTIVATE);
  
-@@ -1550,7 +1550,7 @@ try_to_free:
- 			goto out;
+-		zone->recent_rotated[!!file]++;
+-		zone->recent_scanned[!!file]++;
++		reclaim_stat->recent_rotated[!!file]++;
++		reclaim_stat->recent_scanned[!!file]++;
+ 	}
+ 	spin_unlock_irq(&zone->lru_lock);
+ }
+@@ -398,6 +399,8 @@ void ____pagevec_lru_add(struct pagevec 
+ {
+ 	int i;
+ 	struct zone *zone = NULL;
++	struct zone_reclaim_stat *reclaim_stat = NULL;
++
+ 	VM_BUG_ON(is_unevictable_lru(lru));
+ 
+ 	for (i = 0; i < pagevec_count(pvec); i++) {
+@@ -409,6 +412,7 @@ void ____pagevec_lru_add(struct pagevec 
+ 			if (zone)
+ 				spin_unlock_irq(&zone->lru_lock);
+ 			zone = pagezone;
++			reclaim_stat = &zone->reclaim_stat;
+ 			spin_lock_irq(&zone->lru_lock);
  		}
- 		progress = try_to_free_mem_cgroup_pages(mem,
--						  GFP_HIGHUSER_MOVABLE, false);
-+						  GFP_KERNEL, false);
- 		if (!progress) {
- 			nr_retries--;
- 			/* maybe some writeback is necessary */
-diff -puN mm/memory.c~memcg-revert-gfp-mask-fix mm/memory.c
---- a/mm/memory.c~memcg-revert-gfp-mask-fix
-+++ a/mm/memory.c
-@@ -1967,7 +1967,7 @@ gotten:
- 	cow_user_page(new_page, old_page, address, vma);
- 	__SetPageUptodate(new_page);
+ 		VM_BUG_ON(PageActive(page));
+@@ -416,10 +420,10 @@ void ____pagevec_lru_add(struct pagevec 
+ 		VM_BUG_ON(PageLRU(page));
+ 		SetPageLRU(page);
+ 		file = is_file_lru(lru);
+-		zone->recent_scanned[file]++;
++		reclaim_stat->recent_scanned[file]++;
+ 		if (is_active_lru(lru)) {
+ 			SetPageActive(page);
+-			zone->recent_rotated[file]++;
++			reclaim_stat->recent_rotated[file]++;
+ 		}
+ 		add_page_to_lru_list(zone, page, lru);
+ 	}
+diff -puN mm/vmscan.c~mm-introduce-zone_reclaim-struct mm/vmscan.c
+--- a/mm/vmscan.c~mm-introduce-zone_reclaim-struct
++++ a/mm/vmscan.c
+@@ -130,6 +130,12 @@ static DECLARE_RWSEM(shrinker_rwsem);
+ #define scan_global_lru(sc)	(1)
+ #endif
  
--	if (mem_cgroup_newpage_charge(new_page, mm, GFP_HIGHUSER_MOVABLE))
-+	if (mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))
- 		goto oom_free_new;
++static struct zone_reclaim_stat *get_reclaim_stat(struct zone *zone,
++						  struct scan_control *sc)
++{
++	return &zone->reclaim_stat;
++}
++
+ /*
+  * Add a shrinker callback to be called from the vm
+  */
+@@ -1076,6 +1082,7 @@ static unsigned long shrink_inactive_lis
+ 	struct pagevec pvec;
+ 	unsigned long nr_scanned = 0;
+ 	unsigned long nr_reclaimed = 0;
++	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
+ 
+ 	pagevec_init(&pvec, 1);
+ 
+@@ -1119,10 +1126,14 @@ static unsigned long shrink_inactive_lis
+ 
+ 		if (scan_global_lru(sc)) {
+ 			zone->pages_scanned += nr_scan;
+-			zone->recent_scanned[0] += count[LRU_INACTIVE_ANON];
+-			zone->recent_scanned[0] += count[LRU_ACTIVE_ANON];
+-			zone->recent_scanned[1] += count[LRU_INACTIVE_FILE];
+-			zone->recent_scanned[1] += count[LRU_ACTIVE_FILE];
++			reclaim_stat->recent_scanned[0] +=
++						      count[LRU_INACTIVE_ANON];
++			reclaim_stat->recent_scanned[0] +=
++						      count[LRU_ACTIVE_ANON];
++			reclaim_stat->recent_scanned[1] +=
++						      count[LRU_INACTIVE_FILE];
++			reclaim_stat->recent_scanned[1] +=
++						      count[LRU_ACTIVE_FILE];
+ 		}
+ 		spin_unlock_irq(&zone->lru_lock);
+ 
+@@ -1183,7 +1194,7 @@ static unsigned long shrink_inactive_lis
+ 			add_page_to_lru_list(zone, page, lru);
+ 			if (PageActive(page) && scan_global_lru(sc)) {
+ 				int file = !!page_is_file_cache(page);
+-				zone->recent_rotated[file]++;
++				reclaim_stat->recent_rotated[file]++;
+ 			}
+ 			if (!pagevec_add(&pvec, page)) {
+ 				spin_unlock_irq(&zone->lru_lock);
+@@ -1243,6 +1254,7 @@ static void shrink_active_list(unsigned 
+ 	struct page *page;
+ 	struct pagevec pvec;
+ 	enum lru_list lru;
++	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
+ 
+ 	lru_add_drain();
+ 	spin_lock_irq(&zone->lru_lock);
+@@ -1255,7 +1267,7 @@ static void shrink_active_list(unsigned 
+ 	 */
+ 	if (scan_global_lru(sc)) {
+ 		zone->pages_scanned += pgscanned;
+-		zone->recent_scanned[!!file] += pgmoved;
++		reclaim_stat->recent_scanned[!!file] += pgmoved;
+ 	}
+ 
+ 	if (file)
+@@ -1291,7 +1303,7 @@ static void shrink_active_list(unsigned 
+ 	 * pages in get_scan_ratio.
+ 	 */
+ 	if (scan_global_lru(sc))
+-		zone->recent_rotated[!!file] += pgmoved;
++		reclaim_stat->recent_rotated[!!file] += pgmoved;
  
  	/*
-@@ -2398,8 +2398,7 @@ static int do_swap_page(struct mm_struct
- 	lock_page(page);
- 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
+ 	 * Move the pages to the [file or anon] inactive list.
+@@ -1391,6 +1403,7 @@ static void get_scan_ratio(struct zone *
+ 	unsigned long anon, file, free;
+ 	unsigned long anon_prio, file_prio;
+ 	unsigned long ap, fp;
++	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
  
--	if (mem_cgroup_try_charge_swapin(mm, page,
--				GFP_HIGHUSER_MOVABLE, &ptr) == -ENOMEM) {
-+	if (mem_cgroup_try_charge_swapin(mm, page, GFP_KERNEL, &ptr)) {
- 		ret = VM_FAULT_OOM;
- 		unlock_page(page);
- 		goto out;
-@@ -2491,7 +2490,7 @@ static int do_anonymous_page(struct mm_s
- 		goto oom;
- 	__SetPageUptodate(page);
- 
--	if (mem_cgroup_newpage_charge(page, mm, GFP_HIGHUSER_MOVABLE))
-+	if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))
- 		goto oom_free_page;
- 
- 	entry = mk_pte(page, vma->vm_page_prot);
-@@ -2582,8 +2581,7 @@ static int __do_fault(struct mm_struct *
- 				ret = VM_FAULT_OOM;
- 				goto out;
- 			}
--			if (mem_cgroup_newpage_charge(page,
--						mm, GFP_HIGHUSER_MOVABLE)) {
-+			if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL)) {
- 				ret = VM_FAULT_OOM;
- 				page_cache_release(page);
- 				goto out;
-diff -puN mm/shmem.c~memcg-revert-gfp-mask-fix mm/shmem.c
---- a/mm/shmem.c~memcg-revert-gfp-mask-fix
-+++ a/mm/shmem.c
-@@ -924,8 +924,8 @@ found:
- 	 * Charge page using GFP_HIGHUSER_MOVABLE while we can wait.
- 	 * charged back to the user(not to caller) when swap account is used.
+ 	/* If we have no swap space, do not bother scanning anon pages. */
+ 	if (nr_swap_pages <= 0) {
+@@ -1423,17 +1436,17 @@ static void get_scan_ratio(struct zone *
+ 	 *
+ 	 * anon in [0], file in [1]
  	 */
--	error = mem_cgroup_cache_charge_swapin(page,
--			current->mm, GFP_HIGHUSER_MOVABLE, true);
-+	error = mem_cgroup_cache_charge_swapin(page, current->mm, GFP_KERNEL,
-+					true);
- 	if (error)
- 		goto out;
- 	error = radix_tree_preload(GFP_KERNEL);
-@@ -1267,7 +1267,7 @@ repeat:
- 			 * charge against this swap cache here.
- 			 */
- 			if (mem_cgroup_cache_charge_swapin(swappage,
--						current->mm, gfp, false)) {
-+				current->mm, gfp & GFP_RECLAIM_MASK, false)) {
- 				page_cache_release(swappage);
- 				error = -ENOMEM;
- 				goto failed;
-@@ -1385,7 +1385,7 @@ repeat:
+-	if (unlikely(zone->recent_scanned[0] > anon / 4)) {
++	if (unlikely(reclaim_stat->recent_scanned[0] > anon / 4)) {
+ 		spin_lock_irq(&zone->lru_lock);
+-		zone->recent_scanned[0] /= 2;
+-		zone->recent_rotated[0] /= 2;
++		reclaim_stat->recent_scanned[0] /= 2;
++		reclaim_stat->recent_rotated[0] /= 2;
+ 		spin_unlock_irq(&zone->lru_lock);
+ 	}
  
- 			/* Precharge page while we can wait, compensate after */
- 			error = mem_cgroup_cache_charge(filepage, current->mm,
--					GFP_HIGHUSER_MOVABLE);
-+					GFP_KERNEL);
- 			if (error) {
- 				page_cache_release(filepage);
- 				shmem_unacct_blocks(info->flags, 1);
-diff -puN mm/swapfile.c~memcg-revert-gfp-mask-fix mm/swapfile.c
---- a/mm/swapfile.c~memcg-revert-gfp-mask-fix
-+++ a/mm/swapfile.c
-@@ -698,8 +698,7 @@ static int unuse_pte(struct vm_area_stru
- 	pte_t *pte;
- 	int ret = 1;
+-	if (unlikely(zone->recent_scanned[1] > file / 4)) {
++	if (unlikely(reclaim_stat->recent_scanned[1] > file / 4)) {
+ 		spin_lock_irq(&zone->lru_lock);
+-		zone->recent_scanned[1] /= 2;
+-		zone->recent_rotated[1] /= 2;
++		reclaim_stat->recent_scanned[1] /= 2;
++		reclaim_stat->recent_rotated[1] /= 2;
+ 		spin_unlock_irq(&zone->lru_lock);
+ 	}
  
--	if (mem_cgroup_try_charge_swapin(vma->vm_mm, page,
--					GFP_HIGHUSER_MOVABLE, &ptr))
-+	if (mem_cgroup_try_charge_swapin(vma->vm_mm, page, GFP_KERNEL, &ptr))
- 		ret = -ENOMEM;
+@@ -1449,11 +1462,11 @@ static void get_scan_ratio(struct zone *
+ 	 * proportional to the fraction of recently scanned pages on
+ 	 * each list that were recently referenced and in active use.
+ 	 */
+-	ap = (anon_prio + 1) * (zone->recent_scanned[0] + 1);
+-	ap /= zone->recent_rotated[0] + 1;
++	ap = (anon_prio + 1) * (reclaim_stat->recent_scanned[0] + 1);
++	ap /= reclaim_stat->recent_rotated[0] + 1;
  
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	fp = (file_prio + 1) * (zone->recent_scanned[1] + 1);
+-	fp /= zone->recent_rotated[1] + 1;
++	fp = (file_prio + 1) * (reclaim_stat->recent_scanned[1] + 1);
++	fp /= reclaim_stat->recent_rotated[1] + 1;
+ 
+ 	/* Normalize to percentages */
+ 	percent[0] = 100 * ap / (ap + fp + 1);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
