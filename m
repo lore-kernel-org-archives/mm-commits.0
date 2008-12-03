@@ -1,65 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - alim15x3-fix-sparse-warning.patch removed from -mm tree
-Date: Wed, 03 Dec 2008 12:29:01 -0800
-Message-ID: <200812032029.mB3KT1wZ028252@imap1.linux-foundation.org>
+Subject: - intel-agp-avoid-oops-for-g33-on-1mb-stolen-case.patch removed from -mm tree
+Date: Wed, 03 Dec 2008 12:28:51 -0800
+Message-ID: <200812032028.mB3KSqJ6028148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759250AbYLCU3W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:22 -0500
+	by vger.kernel.org with ESMTP id S1753722AbYLCU3f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@hanneseder.net, mm-commits@vger.kernel.org
+To: bphilips@suse.de, airlied@linux.ie, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alim15x3: fix sparse warning
+     intel-agp: avoid oops for G33 on 1MB stolen case
 has been removed from the -mm tree.  Its filename was
-     alim15x3-fix-sparse-warning.patch
+     intel-agp-avoid-oops-for-g33-on-1mb-stolen-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alim15x3: fix sparse warning
-From: Hannes Eder <hannes@hanneseder.net>
+Subject: intel-agp: avoid oops for G33 on 1MB stolen case
+From: Brandon Philips <bphilips@suse.de>
 
-Fix this sparse warning:
+This is similar to f443675affe3f16dd428e46f0f7fd3f4d703eeab which was
+reverted because it broke older X.org driver. This patch only fixes
+the 1MB stolen case since it causes an oops.
 
-  drivers/ide/alim15x3.c:594:2: warning: returning void-valued expression
+Xorg will not work without the accompanying patch[1] but avoiding an
+oops and making it possible to work with patched xorg driver is
+reasonable.
 
-Signed-off-by: Hannes Eder <hannes@hanneseder.net>
+[1] http://ifup.org/~philips/review/xf86-video-intel-G33-1mb.patch
+
+Explanation of the oops:
+
+> static void intel_i830_init_gtt_entries(void)
+...
+>         } else if (IS_G33) {
+>         /* G33's GTT size defined in gmch_ctrl */
+>                 switch (gmch_ctrl & G33_PGETBL_SIZE_MASK) {
+>                 case G33_PGETBL_SIZE_1M:
+>                         size = 1024;
+>                         break;
+...
+>                 size += 4;
+
+size = 1028
+
+Then since we have the BIOS setting 1MB for the device in the GMCH
+control we get to here:
+
+>         } else {
+>                 switch (gmch_ctrl & I855_GMCH_GMS_MASK) {
+>                 case I855_GMCH_GMS_STOLEN_1M:
+>                         gtt_entries = MB(1) - KB(size);
+>                         break;
+
+MB(1) = 1 * 1024 * 1024
+KB(1028) = 1028 * 1024
+
+MB(1) - KB(1028) = -4096
+
+>         gtt_entries /= KB(4);
+>         intel_private.gtt_entries = gtt_entries;
+
+We end up with -1 in gtt_entries.
+
+This leads to intel_i915_configure reading/writing to areas outside of
+mapped memory and the oops.
+
+Bugzilla: https://bugzilla.novell.com/show_bug.cgi?id=391261
+
+Signed-off-by: Brandon Philips <bphilips@suse.de>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: <stable@kernel.org>		[2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/alim15x3.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/agp/intel-agp.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/ide/alim15x3.c~alim15x3-fix-sparse-warning drivers/ide/alim15x3.c
---- a/drivers/ide/alim15x3.c~alim15x3-fix-sparse-warning
-+++ a/drivers/ide/alim15x3.c
-@@ -591,7 +591,7 @@ static int __init ali15x3_ide_init(void)
- 
- static void __exit ali15x3_ide_exit(void)
- {
--	return pci_unregister_driver(&alim15x3_pci_driver);
-+	pci_unregister_driver(&alim15x3_pci_driver);
- }
- 
- module_init(ali15x3_ide_init);
+diff -puN drivers/char/agp/intel-agp.c~intel-agp-avoid-oops-for-g33-on-1mb-stolen-case drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~intel-agp-avoid-oops-for-g33-on-1mb-stolen-case
++++ a/drivers/char/agp/intel-agp.c
+@@ -561,6 +561,13 @@ static void intel_i830_init_gtt_entries(
+ 	} else {
+ 		switch (gmch_ctrl & I855_GMCH_GMS_MASK) {
+ 		case I855_GMCH_GMS_STOLEN_1M:
++			if (IS_G33) {
++				size = 0;
++				WARN(1, KERN_WARNING
++				       "Warning: G33 chip with 1MB allocated."
++					" Older X.org Intel drivers will not"
++					" work.\n");
++			}
+ 			gtt_entries = MB(1) - KB(size);
+ 			break;
+ 		case I855_GMCH_GMS_STOLEN_4M:
 _
 
-Patches currently in -mm which might be from hannes@hanneseder.net are
+Patches currently in -mm which might be from bphilips@suse.de are
 
-origin.patch
 linux-next.patch
-hugetlb-fix-sparse-warnings.patch
-nvidia-fix-sparse-warnings.patch
-viafb-fix-sparse-warnings.patch
-pm3fb-fix-sparse-warning.patch
-neofb-fix-sparse-warnings.patch
-i810-fix-sparse-warnings.patch
-intelfb-fix-sparse-warnings.patch
 
