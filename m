@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-ads7846c-sparse-lock-annotation.patch added to -mm tree
-Date: Tue, 02 Dec 2008 23:14:53 -0800
-Message-ID: <200812030714.mB37ErHQ007065@imap1.linux-foundation.org>
+Subject: + linuxpps-core-support-sysfs-not-needed-variables-removed.patch added to -mm tree
+Date: Tue, 02 Dec 2008 23:50:19 -0800
+Message-ID: <200812030750.mB37oJ3K026674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752928AbYLCHP2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 02:15:28 -0500
+	by vger.kernel.org with ESMTP id S1751753AbYLCHu0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 02:50:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dtor@mail.ru
+Cc: giometti@linux.it
 
 
 The patch titled
-     input: ads7846.c sparse lock annotation
+     pps sysfs: not needed variables removed.
 has been added to the -mm tree.  Its filename is
-     input-ads7846c-sparse-lock-annotation.patch
+     linuxpps-core-support-sysfs-not-needed-variables-removed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: ads7846.c sparse lock annotation
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: pps sysfs: not needed variables removed.
+From: Rodolfo Giometti <giometti@linux.it>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/ads7846.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pps/sysfs.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/input/touchscreen/ads7846.c~input-ads7846c-sparse-lock-annotation drivers/input/touchscreen/ads7846.c
---- a/drivers/input/touchscreen/ads7846.c~input-ads7846c-sparse-lock-annotation
-+++ a/drivers/input/touchscreen/ads7846.c
-@@ -761,6 +761,8 @@ static irqreturn_t ads7846_irq(int irq, 
+diff -puN drivers/pps/sysfs.c~linuxpps-core-support-sysfs-not-needed-variables-removed drivers/pps/sysfs.c
+--- a/drivers/pps/sysfs.c~linuxpps-core-support-sysfs-not-needed-variables-removed
++++ a/drivers/pps/sysfs.c
+@@ -41,7 +41,6 @@ static ssize_t pps_show_assert(struct de
+ 			(long long) pps->assert_tu.sec, pps->assert_tu.nsec,
+ 			pps->assert_sequence);
+ }
+-DEVICE_ATTR(assert, S_IRUGO, pps_show_assert, NULL);
  
- /* Must be called with ts->lock held */
- static void ads7846_disable(struct ads7846 *ts)
-+__releases(&ts->lock)
-+__acquires(&ts->lock)
- {
- 	if (ts->disabled)
- 		return;
+ static ssize_t pps_show_clear(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+@@ -55,7 +54,6 @@ static ssize_t pps_show_clear(struct dev
+ 			(long long) pps->clear_tu.sec, pps->clear_tu.nsec,
+ 			pps->clear_sequence);
+ }
+-DEVICE_ATTR(clear, S_IRUGO, pps_show_clear, NULL);
+ 
+ static ssize_t pps_show_mode(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+@@ -64,7 +62,6 @@ static ssize_t pps_show_mode(struct devi
+ 
+ 	return sprintf(buf, "%4x\n", pps->info.mode);
+ }
+-DEVICE_ATTR(mode, S_IRUGO, pps_show_mode, NULL);
+ 
+ static ssize_t pps_show_echo(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+@@ -73,7 +70,6 @@ static ssize_t pps_show_echo(struct devi
+ 
+ 	return sprintf(buf, "%d\n", !!pps->info.echo);
+ }
+-DEVICE_ATTR(echo, S_IRUGO, pps_show_echo, NULL);
+ 
+ static ssize_t pps_show_name(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+@@ -82,7 +78,6 @@ static ssize_t pps_show_name(struct devi
+ 
+ 	return sprintf(buf, "%s\n", pps->info.name);
+ }
+-DEVICE_ATTR(name, S_IRUGO, pps_show_name, NULL);
+ 
+ static ssize_t pps_show_path(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+@@ -91,7 +86,6 @@ static ssize_t pps_show_path(struct devi
+ 
+ 	return sprintf(buf, "%s\n", pps->info.path);
+ }
+-DEVICE_ATTR(path, S_IRUGO, pps_show_path, NULL);
+ 
+ struct device_attribute pps_attrs[] = {
+ 	__ATTR(assert, S_IRUGO, pps_show_assert, NULL),
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from giometti@linux.it are
 
 linux-next.patch
-arm-use-the-new-byteorder-headers.patch
-i2c-misannotation-in-i2c-pmcmspc.patch
-i2c-trivial-endian-casting-fixes-in-i2c-highlanderc.patch
-ia64-use-the-new-byteorder-headers.patch
-input-ads7846c-sparse-lock-annotation.patch
-input-strict_strtoul-takes-unsigned-long.patch
-m32r-use-the-new-byteorder-headers.patch
-blackfin-remove-__function__-in-new-serial-driver.patch
-blackfin-use-the-new-byteorder-headers.patch
-parisc-use-the-new-byteorder-headers.patch
-s390-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-frv-use-the-new-byteorder-headers.patch
-m68knommu-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
+linuxpps-core-support.patch
+linuxpps-core-support-sysfs-not-needed-variables-removed.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
+pps-serial-clients-support.patch
+pps-parallel-port-clients-support.patch
+pps-low-level-irq-timestamps-recording.patch
+linuxpps-core-support-drivers-pps-sysfsc-make-dev_attr_name-static.patch
 
