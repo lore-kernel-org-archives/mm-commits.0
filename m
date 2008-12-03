@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + badpage-kern_alert-bug-instead-of-kern_emerg.patch added to -mm tree
-Date: Tue, 02 Dec 2008 16:57:25 -0800
-Message-ID: <200812030057.mB30vQwQ024554@imap1.linux-foundation.org>
+Subject: + badpage-simplify-page_alloc-flag-checkclear.patch added to -mm tree
+Date: Tue, 02 Dec 2008 16:57:08 -0800
+Message-ID: <200812030057.mB30v8DU024349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32968 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755837AbYLCA7o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:44 -0500
+	by vger.kernel.org with ESMTP id S1755469AbYLCA7n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.c
 
 
 The patch titled
-     badpage: KERN_ALERT BUG instead of KERN_EMERG
+     badpage: simplify page_alloc flag check+clear
 has been added to the -mm tree.  Its filename is
-     badpage-kern_alert-bug-instead-of-kern_emerg.patch
+     badpage-simplify-page_alloc-flag-checkclear.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: badpage: KERN_ALERT BUG instead of KERN_EMERG
+Subject: badpage: simplify page_alloc flag check+clear
 From: Hugh Dickins <hugh@veritas.com>
 
-bad_page() and rmap Eeek messages have said KERN_EMERG for a few years,
-which I've followed in print_bad_pte().  These are serious system errors,
-on a par with BUGs, but they're not quite emergencies, and we do our best
-to carry on: say KERN_ALERT "BUG: " like the x86 oops does.
-
-And remove the "Trying to fix it up, but a reboot is needed" line: it's
-not untrue, but I hope the KERN_ALERT "BUG: " conveys as much.
+Simplify the PAGE_FLAGS checking and clearing when freeing and allocating
+a page: check the same flags as before when freeing, clear ALL the flags
+(unless PageReserved) when freeing, check ALL flags off when allocating.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -52,87 +48,101 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c     |   15 ++++++++-------
- mm/page_alloc.c |    9 ++++-----
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ include/linux/page-flags.h |   25 ++++++++-----------------
+ mm/page_alloc.c            |   19 ++++++-------------
+ 2 files changed, 14 insertions(+), 30 deletions(-)
 
-diff -puN mm/memory.c~badpage-kern_alert-bug-instead-of-kern_emerg mm/memory.c
---- a/mm/memory.c~badpage-kern_alert-bug-instead-of-kern_emerg
-+++ a/mm/memory.c
-@@ -397,8 +397,8 @@ static void print_bad_pte(struct vm_area
- 			return;
- 		}
- 		if (nr_unshown) {
--			printk(KERN_EMERG
--				"Bad page map: %lu messages suppressed\n",
-+			printk(KERN_ALERT
-+				"BUG: Bad page map: %lu messages suppressed\n",
- 				nr_unshown);
- 			nr_unshown = 0;
- 		}
-@@ -410,26 +410,27 @@ static void print_bad_pte(struct vm_area
- 	mapping = vma->vm_file ? vma->vm_file->f_mapping : NULL;
- 	index = linear_page_index(vma, addr);
+diff -puN include/linux/page-flags.h~badpage-simplify-page_alloc-flag-checkclear include/linux/page-flags.h
+--- a/include/linux/page-flags.h~badpage-simplify-page_alloc-flag-checkclear
++++ a/include/linux/page-flags.h
+@@ -375,31 +375,22 @@ static inline void __ClearPageTail(struc
+ #define __PG_MLOCKED		0
+ #endif
  
--	printk(KERN_EMERG "Bad page map in process %s  pte:%08llx pmd:%08llx\n",
-+	printk(KERN_ALERT
-+		"BUG: Bad page map in process %s  pte:%08llx pmd:%08llx\n",
- 		current->comm,
- 		(long long)pte_val(pte), (long long)pmd_val(*pmd));
- 	if (page) {
--		printk(KERN_EMERG
-+		printk(KERN_ALERT
- 		"page:%p flags:%p count:%d mapcount:%d mapping:%p index:%lx\n",
- 		page, (void *)page->flags, page_count(page),
- 		page_mapcount(page), page->mapping, page->index);
- 	}
--	printk(KERN_EMERG
-+	printk(KERN_ALERT
- 		"addr:%p vm_flags:%08lx anon_vma:%p mapping:%p index:%lx\n",
- 		(void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
- 	/*
- 	 * Choose text because data symbols depend on CONFIG_KALLSYMS_ALL=y
- 	 */
- 	if (vma->vm_ops)
--		print_symbol(KERN_EMERG "vma->vm_ops->fault: %s\n",
-+		print_symbol(KERN_ALERT "vma->vm_ops->fault: %s\n",
- 				(unsigned long)vma->vm_ops->fault);
- 	if (vma->vm_file && vma->vm_file->f_op)
--		print_symbol(KERN_EMERG "vma->vm_file->f_op->mmap: %s\n",
-+		print_symbol(KERN_ALERT "vma->vm_file->f_op->mmap: %s\n",
- 				(unsigned long)vma->vm_file->f_op->mmap);
- 	dump_stack();
- 	add_taint(TAINT_BAD_PAGE);
-diff -puN mm/page_alloc.c~badpage-kern_alert-bug-instead-of-kern_emerg mm/page_alloc.c
---- a/mm/page_alloc.c~badpage-kern_alert-bug-instead-of-kern_emerg
+-#define PAGE_FLAGS	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
+-			 1 << PG_buddy | 1 << PG_writeback | \
+-			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
+-			 __PG_UNEVICTABLE | __PG_MLOCKED)
+-
+-/*
+- * Flags checked in bad_page().  Pages on the free list should not have
+- * these flags set.  It they are, there is a problem.
+- */
+-#define PAGE_FLAGS_CLEAR_WHEN_BAD (PAGE_FLAGS | \
+-		1 << PG_reclaim | 1 << PG_dirty | 1 << PG_swapbacked)
+-
+ /*
+  * Flags checked when a page is freed.  Pages being freed should not have
+  * these flags set.  It they are, there is a problem.
+  */
+-#define PAGE_FLAGS_CHECK_AT_FREE (PAGE_FLAGS | 1 << PG_reserved)
++#define PAGE_FLAGS_CHECK_AT_FREE \
++	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
++	 1 << PG_buddy | 1 << PG_writeback | 1 << PG_reserved | \
++	 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
++	 __PG_UNEVICTABLE | __PG_MLOCKED)
+ 
+ /*
+  * Flags checked when a page is prepped for return by the page allocator.
+- * Pages being prepped should not have these flags set.  It they are, there
+- * is a problem.
++ * Pages being prepped should not have any flags set.  It they are set,
++ * there has been a kernel bug or struct page corruption.
+  */
+-#define PAGE_FLAGS_CHECK_AT_PREP (PAGE_FLAGS | \
+-		1 << PG_reserved | 1 << PG_dirty | 1 << PG_swapbacked)
++#define PAGE_FLAGS_CHECK_AT_PREP	((1 << NR_PAGEFLAGS) - 1)
+ 
+ #endif /* !__GENERATING_BOUNDS_H */
+ #endif	/* PAGE_FLAGS_H */
+diff -puN mm/page_alloc.c~badpage-simplify-page_alloc-flag-checkclear mm/page_alloc.c
+--- a/mm/page_alloc.c~badpage-simplify-page_alloc-flag-checkclear
 +++ a/mm/page_alloc.c
-@@ -237,8 +237,8 @@ static void bad_page(struct page *page)
- 			goto out;
- 		}
- 		if (nr_unshown) {
--			printk(KERN_EMERG
--				"Bad page state: %lu messages suppressed\n",
-+			printk(KERN_ALERT
-+			      "BUG: Bad page state: %lu messages suppressed\n",
- 				nr_unshown);
- 			nr_unshown = 0;
- 		}
-@@ -247,13 +247,12 @@ static void bad_page(struct page *page)
- 	if (nr_shown++ == 0)
- 		resume = jiffies + 60 * HZ;
- 
--	printk(KERN_EMERG "Bad page state in process %s  pfn:%05lx\n",
-+	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
- 		current->comm, page_to_pfn(page));
--	printk(KERN_EMERG
-+	printk(KERN_ALERT
- 		"page:%p flags:%p count:%d mapcount:%d mapping:%p index:%lx\n",
- 		page, (void *)page->flags, page_count(page),
- 		page_mapcount(page), page->mapping, page->index);
--	printk(KERN_EMERG "Trying to fix it up, but a reboot is needed\n");
- 
+@@ -231,7 +231,6 @@ static void bad_page(struct page *page)
+ 	printk(KERN_EMERG "Trying to fix it up, but a reboot is needed\n"
+ 		KERN_EMERG "Backtrace:\n");
  	dump_stack();
- out:
+-	page->flags &= ~PAGE_FLAGS_CLEAR_WHEN_BAD;
+ 	set_page_count(page, 0);
+ 	reset_page_mapcount(page);
+ 	page->mapping = NULL;
+@@ -468,16 +467,16 @@ static inline int free_pages_check(struc
+ 		(page_count(page) != 0)  |
+ 		(page->flags & PAGE_FLAGS_CHECK_AT_FREE)))
+ 		bad_page(page);
+-	if (PageDirty(page))
+-		__ClearPageDirty(page);
+-	if (PageSwapBacked(page))
+-		__ClearPageSwapBacked(page);
+ 	/*
+ 	 * For now, we report if PG_reserved was found set, but do not
+ 	 * clear it, and do not free the page.  But we shall soon need
+ 	 * to do more, for when the ZERO_PAGE count wraps negative.
+ 	 */
+-	return PageReserved(page);
++	if (PageReserved(page))
++		return 1;
++	if (page->flags & PAGE_FLAGS_CHECK_AT_PREP)
++		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
++	return 0;
+ }
+ 
+ /*
+@@ -621,13 +620,7 @@ static int prep_new_page(struct page *pa
+ 	if (PageReserved(page))
+ 		return 1;
+ 
+-	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_reclaim |
+-			1 << PG_referenced | 1 << PG_arch_1 |
+-			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk
+-#ifdef CONFIG_UNEVICTABLE_LRU
+-			| 1 << PG_mlocked
+-#endif
+-			);
++	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+ 	set_page_private(page, 0);
+ 	set_page_refcounted(page);
+ 
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
