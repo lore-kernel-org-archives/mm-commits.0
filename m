@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + relayfs-fix-infinite-loop-with-splice.patch added to -mm tree
-Date: Tue, 02 Dec 2008 20:36:31 -0800
-Message-ID: <200812030436.mB34aVdS016344@imap1.linux-foundation.org>
+Subject: + rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers.patch added to -mm tree
+Date: Tue, 02 Dec 2008 20:39:22 -0800
+Message-ID: <200812030439.mB34dMrh017919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752716AbYLCEg4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 23:36:56 -0500
+	by vger.kernel.org with ESMTP id S1752879AbYLCEjk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 23:39:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zanussi@comcast.net, mathieu.desnoyers@polymtl.ca, penberg@cs.helsinki.fi, tzanussi@gmail.com
+Cc: a.zummo@towertech.it, david-b@pacbell.net, kaloz@openwrt.org
 
 
 The patch titled
-     relayfs: fix infinite loop with splice()
+     rtc: fix missing id_table in rtc-ds1672 and rtc-max6900 drivers
 has been added to the -mm tree.  Its filename is
-     relayfs-fix-infinite-loop-with-splice.patch
+     rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: relayfs: fix infinite loop with splice()
-From: Tom Zanussi <zanussi@comcast.net>
+Subject: rtc: fix missing id_table in rtc-ds1672 and rtc-max6900 drivers
+From: Alessandro Zummo <a.zummo@towertech.it>
 
-Running kmemtraced, which uses splice() on relayfs, causes a hard lock on
-x86-64 SMP.  As described by Tom Zanussi:
+Add missing id_table to the drivers in subject.  Patch is against the
+latest git.  It should go in with 2.6.28 if possible, the drivers won't
+work without the id_table bits.
 
-  It looks like you hit the same problem as described here:
-
-  commit 8191ecd1d14c6914c660dfa007154860a7908857
-
-      splice: fix infinite loop in generic_file_splice_read()
-
-  relay uses the same loop but it never got noticed or fixed.
-
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Tested-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Signed-off-by: Tom Zanussi <tzanussi@gmail.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Reported-by: <kaloz@openwrt.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-ds1672.c  |    6 ++++++
+ drivers/rtc/rtc-max6900.c |    6 ++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN kernel/relay.c~relayfs-fix-infinite-loop-with-splice kernel/relay.c
---- a/kernel/relay.c~relayfs-fix-infinite-loop-with-splice
-+++ a/kernel/relay.c
-@@ -1317,12 +1317,9 @@ static ssize_t relay_file_splice_read(st
- 		if (ret < 0)
- 			break;
- 		else if (!ret) {
--			if (spliced)
--				break;
--			if (flags & SPLICE_F_NONBLOCK) {
-+			if (flags & SPLICE_F_NONBLOCK)
- 				ret = -EAGAIN;
--				break;
--			}
-+			break;
- 		}
+diff -puN drivers/rtc/rtc-ds1672.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers drivers/rtc/rtc-ds1672.c
+--- a/drivers/rtc/rtc-ds1672.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers
++++ a/drivers/rtc/rtc-ds1672.c
+@@ -209,12 +209,18 @@ static int ds1672_probe(struct i2c_clien
+ 	return err;
+ }
  
- 		*ppos += ret;
++static struct i2c_device_id ds1672_id[] = {
++	{ "ds1672", 0 },
++	{ }
++};
++
+ static struct i2c_driver ds1672_driver = {
+ 	.driver = {
+ 		   .name = "rtc-ds1672",
+ 		   },
+ 	.probe = &ds1672_probe,
+ 	.remove = &ds1672_remove,
++	.id_table = ds1672_id,
+ };
+ 
+ static int __init ds1672_init(void)
+diff -puN drivers/rtc/rtc-max6900.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers drivers/rtc/rtc-max6900.c
+--- a/drivers/rtc/rtc-max6900.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers
++++ a/drivers/rtc/rtc-max6900.c
+@@ -247,12 +247,18 @@ max6900_probe(struct i2c_client *client,
+ 	return 0;
+ }
+ 
++static struct i2c_device_id max6900_id[] = {
++	{ "max6900", 0 },
++	{ }
++};
++
+ static struct i2c_driver max6900_driver = {
+ 	.driver = {
+ 		   .name = "rtc-max6900",
+ 		   },
+ 	.probe = max6900_probe,
+ 	.remove = max6900_remove,
++	.id_table = max6900_id,
+ };
+ 
+ static int __init max6900_init(void)
 _
 
-Patches currently in -mm which might be from zanussi@comcast.net are
+Patches currently in -mm which might be from a.zummo@towertech.it are
 
-relayfs-fix-infinite-loop-with-splice.patch
+rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers.patch
+linux-next.patch
+genrtc-disable-genrtc-on-blackfin-systems.patch
+rtc-ds1307-smbus-compatibility.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
+rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
+rtc-driver-for-pxa27x-and-pxa3xx-soc.patch
+rtc-pxa27x-pxa3xx-driver-fixes-revised.patch
+rtc-add-alarm-update-irq-interfaces-version-5.patch
+rtc-rtc-ds1390-probe-sequence-and-misc-fixes.patch
+rtc-kconfig-cleanup.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+rtc-rtc-max6902-fixes-v3.patch
+rtc-rtc-ds3234-fixes-v2.patch
+rtc-use-set_mmss-when-set_time-is-not-available.patch
+rtc-add-rtc-tx4939-driver-v2.patch
+rtc-rtc-ds1216-fixes.patch
 
