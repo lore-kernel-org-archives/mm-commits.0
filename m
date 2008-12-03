@@ -1,356 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables.patch removed from -mm tree
-Date: Wed, 03 Dec 2008 12:27:29 -0800
-Message-ID: <200812032027.mB3KRTbG027352@imap1.linux-foundation.org>
+Subject: - quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix.patch removed from -mm tree
+Date: Wed, 03 Dec 2008 12:27:43 -0800
+Message-ID: <200812032027.mB3KRhCm027517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41395 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759049AbYLCU2G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:28:06 -0500
+	by vger.kernel.org with ESMTP id S1759038AbYLCU2R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:28:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmm@us.ibm.com, hch@lst.de, jack@ucw.cz, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, cmm@us.ibm.com, hch@lst.de, jack@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota cleanup: move EXPORT_SYMBOL immediatlely next to the functions/variables
+     quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix
 has been removed from the -mm tree.  Its filename was
-     quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables.patch
+     quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix.patch
 
 This patch was dropped because of rejects against linux-next
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota cleanup: move EXPORT_SYMBOL immediatlely next to the functions/variables
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-EXPORT_SYMBOL(foo); should immediately follow its function/variable.
+fs/dquot.c:1391: error: redefinition of '__kcrctab_dquot_reserve_space'
+fs/dquot.c:1352: error: previous definition of '__kcrctab_dquot_reserve_space' was here
+fs/dquot.c:1391: error: redefinition of '__kstrtab_dquot_reserve_space'
+fs/dquot.c:1352: error: previous definition of '__kstrtab_dquot_reserve_space' was here
+fs/dquot.c:1391: error: redefinition of '__ksymtab_dquot_reserve_space'
+fs/dquot.c:1352: error: previous definition of '__ksymtab_dquot_reserve_space' was here
+fs/dquot.c:2101: error: redefinition of '__kcrctab_vfs_dq_quota_on_remount'
+fs/dquot.c:1974: error: previous definition of '__kcrctab_vfs_dq_quota_on_remount' was here
+fs/dquot.c:2101: error: redefinition of '__kstrtab_vfs_dq_quota_on_remount'
+fs/dquot.c:1974: error: previous definition of '__kstrtab_vfs_dq_quota_on_remount' was here
+fs/dquot.c:2101: error: redefinition of '__ksymtab_vfs_dq_quota_on_remount'
+fs/dquot.c:1974: error: previous definition of '__ksymtab_vfs_dq_quota_on_remount' was here
 
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jan Kara <jack@ucw.cz>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c |   68 ++++++++++++++++++++++++---------------------------
- 1 file changed, 33 insertions(+), 35 deletions(-)
+ fs/dquot.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/dquot.c~quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables fs/dquot.c
---- a/fs/dquot.c~quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables
+diff -puN fs/dquot.c~quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix fs/dquot.c
+--- a/fs/dquot.c~quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix
 +++ a/fs/dquot.c
-@@ -127,6 +127,7 @@
- 
- static DEFINE_SPINLOCK(dq_list_lock);
- DEFINE_SPINLOCK(dq_data_lock);
-+EXPORT_SYMBOL(dq_data_lock);
- 
- static char *quotatypes[] = INITQFNAMES;
- static struct quota_format_type *quota_formats;	/* List of registered formats */
-@@ -143,6 +144,7 @@ int register_quota_format(struct quota_f
- 	spin_unlock(&dq_list_lock);
- 	return 0;
- }
-+EXPORT_SYMBOL(register_quota_format);
- 
- void unregister_quota_format(struct quota_format_type *fmt)
- {
-@@ -154,6 +156,7 @@ void unregister_quota_format(struct quot
- 		*actqf = (*actqf)->qf_next;
- 	spin_unlock(&dq_list_lock);
- }
-+EXPORT_SYMBOL(unregister_quota_format);
- 
- static struct quota_format_type *find_quota_format(int id)
- {
-@@ -210,6 +213,7 @@ static unsigned int dq_hash_bits, dq_has
- static struct hlist_head *dquot_hash;
- 
- struct dqstats dqstats;
-+EXPORT_SYMBOL(dqstats);
- 
- static void dqput(struct dquot *dquot);
- 
-@@ -306,6 +310,7 @@ int dquot_mark_dquot_dirty(struct dquot 
- 	spin_unlock(&dq_list_lock);
- 	return 0;
- }
-+EXPORT_SYMBOL(dquot_mark_dquot_dirty);
- 
- /* This function needs dq_list_lock */
- static inline int clear_dquot_dirty(struct dquot *dquot)
-@@ -357,6 +362,7 @@ out_iolock:
- 	mutex_unlock(&dquot->dq_lock);
- 	return ret;
- }
-+EXPORT_SYMBOL(dquot_acquire);
- 
- /*
-  *	Write dquot to disk
-@@ -386,6 +392,7 @@ out_sem:
- 	mutex_unlock(&dqopt->dqio_mutex);
- 	return ret;
- }
-+EXPORT_SYMBOL(dquot_commit);
- 
- /*
-  *	Release dquot
-@@ -414,6 +421,7 @@ out_dqlock:
- 	mutex_unlock(&dquot->dq_lock);
- 	return ret;
- }
-+EXPORT_SYMBOL(dquot_release);
- 
- static void destroy_dquot(struct dquot *dquot)
- {
-@@ -522,6 +530,7 @@ int vfs_quota_sync(struct super_block *s
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(vfs_quota_sync);
- 
- /* Free unused dquots from cache */
- static void prune_dqcache(int count)
-@@ -1201,6 +1210,7 @@ out_err:
- 	up_write(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(dquot_initialize);
- 
- /*
-  * 	Release all quotas referenced by inode
-@@ -1220,6 +1230,7 @@ int dquot_drop(struct inode *inode)
- 	up_write(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	return 0;
- }
-+EXPORT_SYMBOL(dquot_drop);
- 
- /* Wrapper to remove references to quota structures from inode */
- void vfs_dq_drop(struct inode *inode)
-@@ -1242,6 +1253,7 @@ void vfs_dq_drop(struct inode *inode)
- 			inode->i_sb->dq_op->drop(inode);
- 	}
- }
-+EXPORT_SYMBOL(vfs_dq_drop);
- 
- /*
-  * Following four functions update i_blocks+i_bytes fields and
-@@ -1318,6 +1330,7 @@ out:
- 		inode_add_bytes(inode, number);
- 	return ret;
- }
-+EXPORT_SYMBOL(dquot_alloc_space);
- 
- int dquot_reserve_space(struct inode *inode, qsize_t number, int warn)
- {
-@@ -1336,6 +1349,7 @@ out_unlock:
- out:
- 	return ret;
- }
-+EXPORT_SYMBOL(dquot_reserve_space);
- 
- int dquot_claim_space(struct inode *inode, qsize_t number)
- {
-@@ -1374,6 +1388,7 @@ int dquot_claim_space(struct inode *inod
+@@ -1388,7 +1388,7 @@ int dquot_claim_space(struct inode *inod
  	inode_add_bytes(inode, number);
  	return ret;
  }
-+EXPORT_SYMBOL(dquot_reserve_space);
+-EXPORT_SYMBOL(dquot_reserve_space);
++EXPORT_SYMBOL(dquot_claim_space);
  
  /*
   * Release reserved quota space
-@@ -1403,6 +1418,7 @@ out_unlock:
- out:
- 	return;
- }
-+EXPORT_SYMBOL(dquot_release_reserved_space);
- 
- /*
-  * This operation can block, but only after everything is updated
-@@ -1448,6 +1464,7 @@ warn_put_all:
- 	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(dquot_alloc_inode);
- 
- /*
-  * This operation can block, but only after everything is updated
-@@ -1488,6 +1505,7 @@ out_sub:
- 	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	return QUOTA_OK;
- }
-+EXPORT_SYMBOL(dquot_free_space);
- 
- /*
-  * This operation can block, but only after everything is updated
-@@ -1524,6 +1542,7 @@ int dquot_free_inode(const struct inode 
- 	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	return QUOTA_OK;
- }
-+EXPORT_SYMBOL(dquot_free_inode);
- 
- /*
-  * Transfer the number of inode and blocks from one diskquota to an other.
-@@ -1634,6 +1653,7 @@ warn_put_all:
- 	up_write(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(dquot_transfer);
- 
- /* Wrapper for transferring ownership of an inode */
- int vfs_dq_transfer(struct inode *inode, struct iattr *iattr)
-@@ -1645,7 +1665,7 @@ int vfs_dq_transfer(struct inode *inode,
- 	}
- 	return 0;
- }
--
-+EXPORT_SYMBOL(vfs_dq_transfer);
- 
- /*
-  * Write info of quota file to disk
-@@ -1660,6 +1680,7 @@ int dquot_commit_info(struct super_block
- 	mutex_unlock(&dqopt->dqio_mutex);
- 	return ret;
- }
-+EXPORT_SYMBOL(dquot_commit_info);
- 
- /*
-  * Definitions of diskquota operations.
-@@ -1805,12 +1826,14 @@ put_inodes:
- 		}
- 	return ret;
- }
-+EXPORT_SYMBOL(vfs_quota_disable);
- 
- int vfs_quota_off(struct super_block *sb, int type, int remount)
- {
- 	return vfs_quota_disable(sb, type, remount ? DQUOT_SUSPENDED :
- 				 (DQUOT_USAGE_ENABLED | DQUOT_LIMITS_ENABLED));
- }
-+EXPORT_SYMBOL(vfs_quota_off);
- 
- /*
-  *	Turn quotas on on a device
-@@ -1948,6 +1971,7 @@ static int vfs_quota_on_remount(struct s
+@@ -1971,7 +1971,7 @@ static int vfs_quota_on_remount(struct s
  
  	return ret;
  }
-+EXPORT_SYMBOL(vfs_dq_quota_on_remount);
+-EXPORT_SYMBOL(vfs_dq_quota_on_remount);
++EXPORT_SYMBOL(vfs_quota_on_remount);
  
  int vfs_quota_on_path(struct super_block *sb, int type, int format_id,
  		      struct path *path)
-@@ -1964,6 +1988,7 @@ int vfs_quota_on_path(struct super_block
- 					     DQUOT_LIMITS_ENABLED);
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_quota_on_path);
- 
- int vfs_quota_on(struct super_block *sb, int type, int format_id, char *name,
- 		 int remount)
-@@ -1981,6 +2006,7 @@ int vfs_quota_on(struct super_block *sb,
- 	}
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_quota_on);
- 
- /*
-  * More powerful function for turning on quotas allowing setting
-@@ -2025,6 +2051,7 @@ out_lock:
- load_quota:
- 	return vfs_load_quota_inode(inode, type, format_id, flags);
- }
-+EXPORT_SYMBOL(vfs_quota_enable);
- 
- /*
-  * This function is used when filesystem needs to initialize quotas
-@@ -2054,6 +2081,7 @@ out:
- 	dput(dentry);
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_quota_on_mount);
- 
- /* Wrapper to turn on quotas when remounting rw */
- int vfs_dq_quota_on_remount(struct super_block *sb)
-@@ -2070,6 +2098,7 @@ int vfs_dq_quota_on_remount(struct super
- 	}
- 	return ret;
- }
-+EXPORT_SYMBOL(vfs_dq_quota_on_remount);
- 
- static inline qsize_t qbtos(qsize_t blocks)
- {
-@@ -2113,6 +2142,7 @@ int vfs_get_dqblk(struct super_block *sb
+@@ -2277,6 +2277,7 @@ out:
  	mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
- 	return 0;
+ 	return err;
  }
-+EXPORT_SYMBOL(vfs_get_dqblk);
++EXPORT_SYMBOL(vfs_set_dqinfo);
  
- /* Generic routine for setting common part of quota structure */
- static int do_set_dqblk(struct dquot *dquot, struct if_dqblk *di)
-@@ -2196,6 +2226,7 @@ out:
- 	mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
- 	return rc;
- }
-+EXPORT_SYMBOL(vfs_set_dqblk);
- 
- /* Generic routine for getting common part of quota file information */
- int vfs_get_dqinfo(struct super_block *sb, int type, struct if_dqinfo *ii)
-@@ -2217,6 +2248,7 @@ int vfs_get_dqinfo(struct super_block *s
- 	mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
- 	return 0;
- }
-+EXPORT_SYMBOL(vfs_get_dqinfo);
- 
- /* Generic routine for setting common part of quota file information */
- int vfs_set_dqinfo(struct super_block *sb, int type, struct if_dqinfo *ii)
-@@ -2400,37 +2432,3 @@ static int __init dquot_init(void)
- 	return 0;
- }
- module_init(dquot_init);
--
--EXPORT_SYMBOL(register_quota_format);
--EXPORT_SYMBOL(unregister_quota_format);
--EXPORT_SYMBOL(dqstats);
--EXPORT_SYMBOL(dq_data_lock);
--EXPORT_SYMBOL(vfs_quota_enable);
--EXPORT_SYMBOL(vfs_quota_on);
--EXPORT_SYMBOL(vfs_quota_on_path);
--EXPORT_SYMBOL(vfs_quota_on_mount);
--EXPORT_SYMBOL(vfs_quota_disable);
--EXPORT_SYMBOL(vfs_quota_off);
--EXPORT_SYMBOL(vfs_quota_sync);
--EXPORT_SYMBOL(vfs_get_dqinfo);
--EXPORT_SYMBOL(vfs_set_dqinfo);
--EXPORT_SYMBOL(vfs_get_dqblk);
--EXPORT_SYMBOL(vfs_set_dqblk);
--EXPORT_SYMBOL(dquot_commit);
--EXPORT_SYMBOL(dquot_commit_info);
--EXPORT_SYMBOL(dquot_acquire);
--EXPORT_SYMBOL(dquot_release);
--EXPORT_SYMBOL(dquot_mark_dquot_dirty);
--EXPORT_SYMBOL(dquot_initialize);
--EXPORT_SYMBOL(dquot_drop);
--EXPORT_SYMBOL(vfs_dq_drop);
--EXPORT_SYMBOL(dquot_alloc_space);
--EXPORT_SYMBOL(dquot_alloc_inode);
--EXPORT_SYMBOL(dquot_free_space);
--EXPORT_SYMBOL(dquot_free_inode);
--EXPORT_SYMBOL(dquot_reserve_space);
--EXPORT_SYMBOL(dquot_claim_space);
--EXPORT_SYMBOL(dquot_release_reserved_space);
--EXPORT_SYMBOL(dquot_transfer);
--EXPORT_SYMBOL(vfs_dq_transfer);
--EXPORT_SYMBOL(vfs_dq_quota_on_remount);
+ struct quotactl_ops vfs_quotactl_ops = {
+ 	.quota_on	= vfs_quota_on,
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-quota-add-reservation-support-for-delayed-block-allocation.patch
-quota-add-quota-claim-and-release-reserved-quota-blocks-operations.patch
-ext4-quota-handling-for-delayed-allocation.patch
-quota-cleanup-use-inode-i_blkbits-to-get-block-bits.patch
-quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
-quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables.patch
+origin.patch
+mm-gup-persist-for-write-permission.patch
+mm-wp-lock-page-before-deciding-cow.patch
+mm-reuse_swap_page-replaces-can_share_swap_page.patch
+mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
+mm-try_to_unuse-check-removing-right-swap.patch
+mm-remove-try_to_munlock-from-vmscan.patch
+mm-remove-gfp_mask-from-add_to_swap.patch
+mm-add-add_to_swap-stub.patch
+mm-optimize-get_scan_ratio-for-no-swap.patch
+memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
+swapfile-swapon-needs-larger-size-type.patch
+swapfile-remove-swp_active-mask.patch
+swapfile-remove-surplus-whitespace.patch
+swapfile-remove-v0-swap-space-message.patch
+swapfile-rearrange-scan-and-swap_info.patch
+swapfile-swapon-use-discard-trim.patch
+swapfile-swap-allocation-use-discard.patch
+swapfile-swapon-randomize-if-nonrot.patch
+swapfile-swap-allocation-cycle-if-nonrot.patch
+swapfile-change-discard-pgoff_t-to-sector_t.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+swapfile-let-others-seed-random.patch
 quota-cleanup-move-export_symbol-immediatlely-next-to-the-functions-variables-fix.patch
+cgroups-make-cgroup-config-a-submenu.patch
+cgroups-documentation-updates.patch
+cgroups-remove-some-redundant-null-checks.patch
+ns_cgroup-remove-unused-spinlock.patch
+memcg-fix-a-typo-in-kconfig.patch
+cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
+cgroups-fix-cgroup_iter_next-bug.patch
+cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
+cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
+cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
+cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
+cgroups-make-root_list-contains-active-hierarchies-only.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
+devcgroup-use-list_for_each_entry_rcu.patch
+memcg-introduce-charge-commit-cancel-style-of-functions.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-fix-gfp_mask-of-callers-of-charge.patch
+memcg-simple-migration-handling.patch
+memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
+memcg-move-all-acccounts-to-parent-at-rmdir.patch
+memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
+memcg-new-force_empty-to-free-pages-under-group.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
+memcg-memswap-controller-kconfig.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+memcg-synchronized-lru.patch
+memcg-add-mem_cgroup_disabled.patch
+memcg-add-mem_cgroup_disabled-fix.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
+memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
+memcg-avoid-unnecessary-system-wide-oom-killer.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+memcg-fix-reclaim-result-checks.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-explain-details-and-test-document.patch
+cpuset-rcu_read_lock-to-protect-task_cs.patch
 
