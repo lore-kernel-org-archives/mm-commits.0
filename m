@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + swapfile-change-discard-pgoff_t-to-sector_t-fix.patch added to -mm tree
-Date: Tue, 02 Dec 2008 16:48:54 -0800
-Message-ID: <200812030048.mB30msK9019768@imap1.linux-foundation.org>
+Subject: + badpage-ratelimit-print_bad_pte-and-bad_page.patch added to -mm tree
+Date: Tue, 02 Dec 2008 16:57:23 -0800
+Message-ID: <200812030057.mB30vNwn024546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51189 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57824 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751954AbYLCAts (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:49:48 -0500
+	by vger.kernel.org with ESMTP id S1754644AbYLCA7d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, djshin90@gmail.com, dwmw2@infradead.org, hugh@veritas.com, jens.axboe@oracle.com, joern@logfs.org, kamezawa.hiroyu@jp.fujitsu.com, matthew@wil.cx, nickpiggin@yahoo.com.au, teheo@suse.de
+Cc: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au, riel@redhat.com
 
 
 The patch titled
-     swapfile-change-discard-pgoff_t-to-sector_t-fix
+     badpage: ratelimit print_bad_pte and bad_page
 has been added to the -mm tree.  Its filename is
-     swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+     badpage-ratelimit-print_bad_pte-and-bad_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,99 +33,154 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swapfile-change-discard-pgoff_t-to-sector_t-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: badpage: ratelimit print_bad_pte and bad_page
+From: Hugh Dickins <hugh@veritas.com>
 
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Donjun Shin <djshin90@gmail.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Joern Engel <joern@logfs.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
+print_bad_pte() and bad_page() might each need ratelimiting - especially
+for their dump_stacks, almost never of interest, yet not quite
+dispensible.  Correlating corruption across neighbouring entries can be
+very helpful, so allow a burst of 60 reports before keeping quiet for the
+remainder of that minute (or allow a steady drip of one report per
+second).
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Tejun Heo <teheo@suse.de>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c     |   23 +++++++++++++++++++++++
+ mm/page_alloc.c |   26 +++++++++++++++++++++++++-
+ 2 files changed, 48 insertions(+), 1 deletion(-)
 
-diff -puN mm/swapfile.c~swapfile-change-discard-pgoff_t-to-sector_t-fix mm/swapfile.c
---- a/mm/swapfile.c~swapfile-change-discard-pgoff_t-to-sector_t-fix
-+++ a/mm/swapfile.c
-@@ -96,7 +96,7 @@ static int discard_swap(struct swap_info
+diff -puN mm/memory.c~badpage-ratelimit-print_bad_pte-and-bad_page mm/memory.c
+--- a/mm/memory.c~badpage-ratelimit-print_bad_pte-and-bad_page
++++ a/mm/memory.c
+@@ -383,6 +383,29 @@ static void print_bad_pte(struct vm_area
+ 	pmd_t *pmd = pmd_offset(pud, addr);
+ 	struct address_space *mapping;
+ 	pgoff_t index;
++	static unsigned long resume;
++	static unsigned long nr_shown;
++	static unsigned long nr_unshown;
++
++	/*
++	 * Allow a burst of 60 reports, then keep quiet for that minute;
++	 * or allow a steady drip of one report per second.
++	 */
++	if (nr_shown == 60) {
++		if (time_before(jiffies, resume)) {
++			nr_unshown++;
++			return;
++		}
++		if (nr_unshown) {
++			printk(KERN_EMERG
++				"Bad page map: %lu messages suppressed\n",
++				nr_unshown);
++			nr_unshown = 0;
++		}
++		nr_shown = 0;
++	}
++	if (nr_shown++ == 0)
++		resume = jiffies + 60 * HZ;
  
- 	list_for_each_entry(se, &si->extent_list, list) {
- 		sector_t start_block = se->start_block << (PAGE_SHIFT - 9);
--		sector_t nr_blocks = se->nr_pages << (PAGE_SHIFT - 9);
-+		sector_t nr_blocks = (sector_t)se->nr_pages << (PAGE_SHIFT - 9);
+ 	mapping = vma->vm_file ? vma->vm_file->f_mapping : NULL;
+ 	index = linear_page_index(vma, addr);
+diff -puN mm/page_alloc.c~badpage-ratelimit-print_bad_pte-and-bad_page mm/page_alloc.c
+--- a/mm/page_alloc.c~badpage-ratelimit-print_bad_pte-and-bad_page
++++ a/mm/page_alloc.c
+@@ -223,6 +223,30 @@ static inline int bad_range(struct zone 
  
- 		if (se->start_page == 0) {
- 			/* Do not discard the swap header page! */
+ static void bad_page(struct page *page)
+ {
++	static unsigned long resume;
++	static unsigned long nr_shown;
++	static unsigned long nr_unshown;
++
++	/*
++	 * Allow a burst of 60 reports, then keep quiet for that minute;
++	 * or allow a steady drip of one report per second.
++	 */
++	if (nr_shown == 60) {
++		if (time_before(jiffies, resume)) {
++			nr_unshown++;
++			goto out;
++		}
++		if (nr_unshown) {
++			printk(KERN_EMERG
++				"Bad page state: %lu messages suppressed\n",
++				nr_unshown);
++			nr_unshown = 0;
++		}
++		nr_shown = 0;
++	}
++	if (nr_shown++ == 0)
++		resume = jiffies + 60 * HZ;
++
+ 	printk(KERN_EMERG "Bad page state in process %s  pfn:%05lx\n",
+ 		current->comm, page_to_pfn(page));
+ 	printk(KERN_EMERG
+@@ -232,7 +256,7 @@ static void bad_page(struct page *page)
+ 	printk(KERN_EMERG "Trying to fix it up, but a reboot is needed\n");
+ 
+ 	dump_stack();
+-
++out:
+ 	/* Leave bad fields for debug, except PageBuddy could make trouble */
+ 	__ClearPageBuddy(page);
+ 	add_taint(TAINT_BAD_PAGE);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-bdi-register-sysfs-bdi-device-only-once-per-queue.patch
 ksym_symbol_len-fixes.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
 linux-next.patch
-next-remove-localversion.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-backlight-catch-invalid-input.patch
-pci-uninline-pci_ioremap_bar.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
+mm-dont-mark_page_accessed-in-shmem_fault.patch
+mm-apply_to_range-call-pte-function-with-lazy-updates.patch
+mm-remove-cgroup_mm_owner_callbacks.patch
+mm-remove-aop_writepage_activate.patch
+mm-remove-gfp_highuser_pagecache.patch
+mm-add-setclearpageswapcache-stubs.patch
+mm-replace-some-bug_ons-by-vm_bug_ons.patch
+mm-add_active_or_unevictable-into-rmap.patch
+mm-make-page_lock_anon_vma-static.patch
+mm-further-cleanup-page_add_new_anon_rmap.patch
+mm-gup-persist-for-write-permission.patch
+mm-wp-lock-page-before-deciding-cow.patch
+mm-reuse_swap_page-replaces-can_share_swap_page.patch
+mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
+mm-try_to_unuse-check-removing-right-swap.patch
+mm-remove-try_to_munlock-from-vmscan.patch
+mm-remove-gfp_mask-from-add_to_swap.patch
+mm-add-add_to_swap-stub.patch
+mm-optimize-get_scan_ratio-for-no-swap.patch
+swapfile-swapon-needs-larger-size-type.patch
+swapfile-remove-swp_active-mask.patch
+swapfile-remove-surplus-whitespace.patch
+swapfile-remove-v0-swap-space-message.patch
+swapfile-rearrange-scan-and-swap_info.patch
+swapfile-swapon-use-discard-trim.patch
+swapfile-swap-allocation-use-discard.patch
+swapfile-swapon-randomize-if-nonrot.patch
+swapfile-swap-allocation-cycle-if-nonrot.patch
+swapfile-change-discard-pgoff_t-to-sector_t.patch
 swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+swapfile-let-others-seed-random.patch
+badpage-simplify-page_alloc-flag-checkclear.patch
+badpage-keep-any-bad-page-out-of-circulation.patch
+badpage-replace-page_remove_rmap-eeek-and-bug.patch
+badpage-vm_normal_page-use-print_bad_pte.patch
+badpage-zap-print_bad_pte-on-swap-and-file.patch
+badpage-remove-vma-from-page_remove_rmap.patch
+badpage-ratelimit-print_bad_pte-and-bad_page.patch
+badpage-kern_alert-bug-instead-of-kern_emerg.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
 memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-linuxpps-core-support-drivers-pps-sysfsc-make-dev_attr_name-static.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+prio_tree-debugging-patch.patch
 
