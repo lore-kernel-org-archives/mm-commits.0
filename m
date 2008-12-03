@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-check-group-leader-fix.patch added to -mm tree
-Date: Tue, 02 Dec 2008 21:57:03 -0800
-Message-ID: <200812030557.mB35v3gt028834@imap1.linux-foundation.org>
+Subject: + memcg-memoryswap-controller-fix-limit-check.patch added to -mm tree
+Date: Tue, 02 Dec 2008 21:57:08 -0800
+Message-ID: <200812030557.mB35v8KG028861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754319AbYLCF5Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:57:24 -0500
+	by vger.kernel.org with ESMTP id S1754333AbYLCF5Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:57:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, knikanth@suse.de, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg: check group leader fix
+     memcg: memoryswap controller fix limit check
 has been added to the -mm tree.  Its filename is
-     memcg-check-group-leader-fix.patch
+     memcg-memoryswap-controller-fix-limit-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: check group leader fix
+Subject: memcg: memoryswap controller fix limit check
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Remove unnecessary codes (...fragments of not-implemented
-functionalilty...)
+There are scatterd calls of res_counter_check_under_limit(), and most of
+them don't take mem+swap accounting into account.
 
-Reported-by: Nikanth Karthikesan <knikanth@suse.de>
-Signed-off-by: Nikanth Karthikesan <knikanth@suse.de>
+define mem_cgroup_check_under_limit() and avoid direct use of
+res_counter_check_limit().
+
+Reported-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
@@ -49,40 +52,73 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   19 ++-----------------
- 1 file changed, 2 insertions(+), 17 deletions(-)
+ mm/memcontrol.c |   26 +++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-check-group-leader-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-check-group-leader-fix
+diff -puN mm/memcontrol.c~memcg-memoryswap-controller-fix-limit-check mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-memoryswap-controller-fix-limit-check
 +++ a/mm/memcontrol.c
-@@ -2008,25 +2008,10 @@ static void mem_cgroup_move_task(struct 
- 				struct cgroup *old_cont,
- 				struct task_struct *p)
- {
--	struct mm_struct *mm;
--	struct mem_cgroup *mem, *old_mem;
--
--	mm = get_task_mm(p);
--	if (mm == NULL)
--		return;
--
--	mem = mem_cgroup_from_cont(cont);
--	old_mem = mem_cgroup_from_cont(old_cont);
--
- 	/*
--	 * Only thread group leaders are allowed to migrate, the mm_struct is
--	 * in effect owned by the leader
-+	 * FIXME: It's better to move charges of this process from old
-+	 * memcg to new memcg. But it's just on TODO-List now.
- 	 */
--	if (!thread_group_leader(p))
--		goto out;
--
--out:
--	mmput(mm);
+@@ -571,6 +571,18 @@ done:
+ 	return ret;
  }
  
- struct cgroup_subsys mem_cgroup_subsys = {
++static bool mem_cgroup_check_under_limit(struct mem_cgroup *mem)
++{
++	if (do_swap_account) {
++		if (res_counter_check_under_limit(&mem->res) &&
++			res_counter_check_under_limit(&mem->memsw))
++			return true;
++	} else
++		if (res_counter_check_under_limit(&mem->res))
++			return true;
++	return false;
++}
++
+ /*
+  * Dance down the hierarchy if needed to reclaim memory. We remember the
+  * last child we reclaimed from, so that we don't end up penalizing
+@@ -592,7 +604,7 @@ static int mem_cgroup_hierarchical_recla
+ 	 * have left.
+ 	 */
+ 	ret = try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap);
+-	if (res_counter_check_under_limit(&root_mem->res))
++	if (mem_cgroup_check_under_limit(root_mem))
+ 		return 0;
+ 
+ 	next_mem = mem_cgroup_get_first_node(root_mem);
+@@ -606,7 +618,7 @@ static int mem_cgroup_hierarchical_recla
+ 			continue;
+ 		}
+ 		ret = try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap);
+-		if (res_counter_check_under_limit(&root_mem->res))
++		if (mem_cgroup_check_under_limit(root_mem))
+ 			return 0;
+ 		cgroup_lock();
+ 		next_mem = mem_cgroup_get_next_node(next_mem, root_mem);
+@@ -709,12 +721,8 @@ static int __mem_cgroup_try_charge(struc
+ 		 * current usage of the cgroup before giving up
+ 		 *
+ 		 */
+-		if (do_swap_account) {
+-			if (res_counter_check_under_limit(&mem_over_limit->res) &&
+-			    res_counter_check_under_limit(&mem_over_limit->memsw))
+-				continue;
+-		} else if (res_counter_check_under_limit(&mem_over_limit->res))
+-				continue;
++		if (mem_cgroup_check_under_limit(mem_over_limit))
++			continue;
+ 
+ 		if (!nr_retries--) {
+ 			if (oom) {
+@@ -1334,7 +1342,7 @@ int mem_cgroup_shrink_usage(struct mm_st
+ 
+ 	do {
+ 		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask, true);
+-		progress += res_counter_check_under_limit(&mem->res);
++		progress += mem_cgroup_check_under_limit(mem);
+ 	} while (!progress && --retry);
+ 
+ 	css_put(&mem->css);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
