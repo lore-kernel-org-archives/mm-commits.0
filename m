@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-unsigned-ret-cannot-be-negative.patch added to -mm tree
-Date: Wed, 03 Dec 2008 00:35:29 -0800
-Message-ID: <200812030835.mB38ZTUE019317@imap1.linux-foundation.org>
+Subject: + mm-make-get_user_pages-interruptible.patch added to -mm tree
+Date: Wed, 03 Dec 2008 00:38:22 -0800
+Message-ID: <200812030838.mB38cMaE020860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37422 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753120AbYLCIfv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 03:35:51 -0500
+	by vger.kernel.org with ESMTP id S1750845AbYLCIiy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 03:38:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, agl@us.ibm.com, clameter@sgi.com, david@gibson.dropbear.id.au, hugh@veritas.com, kenchen@google.com, npiggin@suse.de
+Cc: yinghan@google.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, menage@google.com, nickpiggin@yahoo.com.au, oleg@tv-sign.ru, penberg@cs.helsinki.fi, rientjes@google.com, rohitseth@google.com
 
 
 The patch titled
-     hugetlb: unsigned ret cannot be negative
+     mm: make get_user_pages() interruptible
 has been added to the -mm tree.  Its filename is
-     hugetlb-unsigned-ret-cannot-be-negative.patch
+     mm-make-get_user_pages-interruptible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: unsigned ret cannot be negative
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: mm: make get_user_pages() interruptible
+From: Ying Han <yinghan@google.com>
 
-unsigned long ret cannot be negative, but ret can get -EFAULT.
+The initial implementation of checking TIF_MEMDIE covers the cases of OOM
+killing.  If the process has been OOM killed, the TIF_MEMDIE is set and it
+return immediately.  This patch includes:
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+1.  add the case that the SIGKILL is sent by user processes.  The
+   process can try to get_user_pages() unlimited memory even if a user
+   process has sent a SIGKILL to it(maybe a monitor find the process
+   exceed its memory limit and try to kill it).  In the old
+   implementation, the SIGKILL won't be handled until the get_user_pages()
+   returns.
+
+2.  change the return value to be ERESTARTSYS.  It makes no sense to
+   return ENOMEM if the get_user_pages returned by getting a SIGKILL
+   signal.  Considering the general convention for a system call
+   interrupted by a signal is ERESTARTNOSYS, so the current return value
+   is consistant to that.
+
+Signed-off-by: Paul Menage <menage@google.com>
+Signed-off-by: Ying Han <yinghan@google.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Ken Chen <kenchen@google.com>
-Cc: Nick Piggin <npiggin@suse.de>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Rohit Seth <rohitseth@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/memory.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlb-unsigned-ret-cannot-be-negative fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlb-unsigned-ret-cannot-be-negative
-+++ a/fs/hugetlbfs/inode.c
-@@ -252,6 +252,7 @@ static ssize_t hugetlbfs_read(struct fil
- 	for (;;) {
- 		struct page *page;
- 		unsigned long nr, ret;
-+		int ra;
+diff -puN mm/memory.c~mm-make-get_user_pages-interruptible mm/memory.c
+--- a/mm/memory.c~mm-make-get_user_pages-interruptible
++++ a/mm/memory.c
+@@ -1275,12 +1275,11 @@ int __get_user_pages(struct task_struct 
+ 			struct page *page;
  
- 		/* nr is the maximum number of bytes to copy from this page */
- 		nr = huge_page_size(h);
-@@ -274,16 +275,19 @@ static ssize_t hugetlbfs_read(struct fil
- 			 */
- 			ret = len < nr ? len : nr;
- 			if (clear_user(buf, ret))
--				ret = -EFAULT;
-+				ra = -EFAULT;
-+			else
-+				ra = 0;
- 		} else {
  			/*
- 			 * We have the page, copy it to user space buffer.
+-			 * If tsk is ooming, cut off its access to large memory
+-			 * allocations. It has a pending SIGKILL, but it can't
+-			 * be processed until returning to user space.
++			 * If we have a pending SIGKILL, don't keep
++			 * allocating memory.
  			 */
--			ret = hugetlbfs_read_actor(page, offset, buf, len, nr);
-+			ra = hugetlbfs_read_actor(page, offset, buf, len, nr);
-+			ret = ra;
- 		}
--		if (ret < 0) {
-+		if (ra < 0) {
- 			if (retval == 0)
--				retval = ret;
-+				retval = ra;
- 			if (page)
- 				page_cache_release(page);
- 			goto out;
+-			if (unlikely(test_tsk_thread_flag(tsk, TIF_MEMDIE)))
+-				return i ? i : -ENOMEM;
++			if (unlikely(fatal_signal_pending(current)))
++				return i ? i : -ERESTARTSYS;
+ 
+ 			if (write)
+ 				foll_flags |= FOLL_WRITE;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from yinghan@google.com are
 
-linux-next.patch
-libsas-fix-test-for-negative-unsigned-and-typos.patch
-hugetlb-unsigned-ret-cannot-be-negative.patch
-gbefb-unsigned-var-pixclock-cannot-be-less-than-0.patch
-sm501-unsigned-ptr-cannot-be-negative.patch
-ufs-sector_t-cannot-be-negative.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-make-various-things-static.patch
+mm-make-get_user_pages-interruptible.patch
 
