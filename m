@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + badpage-simplify-page_alloc-flag-checkclear.patch added to -mm tree
-Date: Tue, 02 Dec 2008 16:57:08 -0800
-Message-ID: <200812030057.mB30v8DU024349@imap1.linux-foundation.org>
+Subject: + swapfile-change-discard-pgoff_t-to-sector_t.patch added to -mm tree
+Date: Tue, 02 Dec 2008 17:05:24 -0800
+Message-ID: <200812030105.mB315Oox029147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755469AbYLCA7n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:43 -0500
+	by vger.kernel.org with ESMTP id S1750982AbYLCBFw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 20:05:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au, riel@redhat.com
+Cc: hugh@veritas.com, James.Bottomley@HansenPartnership.com, djshin90@gmail.com, dwmw2@infradead.org, jens.axboe@oracle.com, joern@logfs.org, kamezawa.hiroyu@jp.fujitsu.com, matthew@wil.cx, nickpiggin@yahoo.com.au, teheo@suse.de
 
 
 The patch titled
-     badpage: simplify page_alloc flag check+clear
+     swapfile: change discard pgoff_t to sector_t
 has been added to the -mm tree.  Its filename is
-     badpage-simplify-page_alloc-flag-checkclear.patch
+     swapfile-change-discard-pgoff_t-to-sector_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: badpage: simplify page_alloc flag check+clear
+Subject: swapfile: change discard pgoff_t to sector_t
 From: Hugh Dickins <hugh@veritas.com>
 
-Simplify the PAGE_FLAGS checking and clearing when freeing and allocating
-a page: check the same flags as before when freeing, clear ALL the flags
-(unless PageReserved) when freeing, check ALL flags off when allocating.
+Change pgoff_t nr_blocks in discard_swap() and discard_swap_cluster() to
+sector_t: given the constraints on swap offsets (in particular, the 5 bits
+of swap type accommodated in the same unsigned long), pgoff_t was actually
+safe as is, but it certainly looked worrying when shifted left.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Joern Engel <joern@logfs.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Donjun Shin <djshin90@gmail.com>
+Cc: Tejun Heo <teheo@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   25 ++++++++-----------------
- mm/page_alloc.c            |   19 ++++++-------------
- 2 files changed, 14 insertions(+), 30 deletions(-)
+ mm/swapfile.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/page-flags.h~badpage-simplify-page_alloc-flag-checkclear include/linux/page-flags.h
---- a/include/linux/page-flags.h~badpage-simplify-page_alloc-flag-checkclear
-+++ a/include/linux/page-flags.h
-@@ -375,31 +375,22 @@ static inline void __ClearPageTail(struc
- #define __PG_MLOCKED		0
- #endif
+diff -puN mm/swapfile.c~swapfile-change-discard-pgoff_t-to-sector_t mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-change-discard-pgoff_t-to-sector_t
++++ a/mm/swapfile.c
+@@ -96,7 +96,7 @@ static int discard_swap(struct swap_info
  
--#define PAGE_FLAGS	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
--			 1 << PG_buddy | 1 << PG_writeback | \
--			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
--			 __PG_UNEVICTABLE | __PG_MLOCKED)
--
--/*
-- * Flags checked in bad_page().  Pages on the free list should not have
-- * these flags set.  It they are, there is a problem.
-- */
--#define PAGE_FLAGS_CLEAR_WHEN_BAD (PAGE_FLAGS | \
--		1 << PG_reclaim | 1 << PG_dirty | 1 << PG_swapbacked)
--
- /*
-  * Flags checked when a page is freed.  Pages being freed should not have
-  * these flags set.  It they are, there is a problem.
-  */
--#define PAGE_FLAGS_CHECK_AT_FREE (PAGE_FLAGS | 1 << PG_reserved)
-+#define PAGE_FLAGS_CHECK_AT_FREE \
-+	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
-+	 1 << PG_buddy | 1 << PG_writeback | 1 << PG_reserved | \
-+	 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
-+	 __PG_UNEVICTABLE | __PG_MLOCKED)
+ 	list_for_each_entry(se, &si->extent_list, list) {
+ 		sector_t start_block = se->start_block << (PAGE_SHIFT - 9);
+-		pgoff_t nr_blocks = se->nr_pages << (PAGE_SHIFT - 9);
++		sector_t nr_blocks = se->nr_pages << (PAGE_SHIFT - 9);
  
- /*
-  * Flags checked when a page is prepped for return by the page allocator.
-- * Pages being prepped should not have these flags set.  It they are, there
-- * is a problem.
-+ * Pages being prepped should not have any flags set.  It they are set,
-+ * there has been a kernel bug or struct page corruption.
-  */
--#define PAGE_FLAGS_CHECK_AT_PREP (PAGE_FLAGS | \
--		1 << PG_reserved | 1 << PG_dirty | 1 << PG_swapbacked)
-+#define PAGE_FLAGS_CHECK_AT_PREP	((1 << NR_PAGEFLAGS) - 1)
+ 		if (se->start_page == 0) {
+ 			/* Do not discard the swap header page! */
+@@ -133,7 +133,7 @@ static void discard_swap_cluster(struct 
+ 		    start_page < se->start_page + se->nr_pages) {
+ 			pgoff_t offset = start_page - se->start_page;
+ 			sector_t start_block = se->start_block + offset;
+-			pgoff_t nr_blocks = se->nr_pages - offset;
++			sector_t nr_blocks = se->nr_pages - offset;
  
- #endif /* !__GENERATING_BOUNDS_H */
- #endif	/* PAGE_FLAGS_H */
-diff -puN mm/page_alloc.c~badpage-simplify-page_alloc-flag-checkclear mm/page_alloc.c
---- a/mm/page_alloc.c~badpage-simplify-page_alloc-flag-checkclear
-+++ a/mm/page_alloc.c
-@@ -231,7 +231,6 @@ static void bad_page(struct page *page)
- 	printk(KERN_EMERG "Trying to fix it up, but a reboot is needed\n"
- 		KERN_EMERG "Backtrace:\n");
- 	dump_stack();
--	page->flags &= ~PAGE_FLAGS_CLEAR_WHEN_BAD;
- 	set_page_count(page, 0);
- 	reset_page_mapcount(page);
- 	page->mapping = NULL;
-@@ -468,16 +467,16 @@ static inline int free_pages_check(struc
- 		(page_count(page) != 0)  |
- 		(page->flags & PAGE_FLAGS_CHECK_AT_FREE)))
- 		bad_page(page);
--	if (PageDirty(page))
--		__ClearPageDirty(page);
--	if (PageSwapBacked(page))
--		__ClearPageSwapBacked(page);
- 	/*
- 	 * For now, we report if PG_reserved was found set, but do not
- 	 * clear it, and do not free the page.  But we shall soon need
- 	 * to do more, for when the ZERO_PAGE count wraps negative.
- 	 */
--	return PageReserved(page);
-+	if (PageReserved(page))
-+		return 1;
-+	if (page->flags & PAGE_FLAGS_CHECK_AT_PREP)
-+		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-+	return 0;
- }
- 
- /*
-@@ -621,13 +620,7 @@ static int prep_new_page(struct page *pa
- 	if (PageReserved(page))
- 		return 1;
- 
--	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_reclaim |
--			1 << PG_referenced | 1 << PG_arch_1 |
--			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk
--#ifdef CONFIG_UNEVICTABLE_LRU
--			| 1 << PG_mlocked
--#endif
--			);
-+	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 	set_page_private(page, 0);
- 	set_page_refcounted(page);
- 
+ 			if (nr_blocks > nr_pages)
+ 				nr_blocks = nr_pages;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
