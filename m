@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch added to -mm tree
-Date: Tue, 02 Dec 2008 15:58:52 -0800
-Message-ID: <200812022358.mB2NwqxZ024118@imap1.linux-foundation.org>
+Subject: + factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch added to -mm tree
+Date: Tue, 02 Dec 2008 16:13:24 -0800
+Message-ID: <200812030013.mB30DPAB032286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753489AbYLBX7O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 18:59:14 -0500
+	by vger.kernel.org with ESMTP id S1753810AbYLCAOb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:14:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chris.mason@oracle.com, david@fromorbit.com, dmonakhov@openvz.org, npiggin@suse.de, pbadari@us.ibm.com, zach.brown@oracle.com
+Cc: holt@sgi.com, a.p.zijlstra@chello.nl, linux-arch@vger.kernel.org, mingo@elte.hu, ptesarik@suse.cz, tony.luck@intel.com
 
 
 The patch titled
-     fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix
+     Factor out #ifdefs from kernel/spinlock.c to LOCK_CONTENDED_FLAGS
 has been added to the -mm tree.  Its filename is
-     fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+     factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,100 +33,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Factor out #ifdefs from kernel/spinlock.c to LOCK_CONTENDED_FLAGS
+From: Robin Holt <holt@sgi.com>
 
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dmitri Monakhov <dmonakhov@openvz.org>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Zach Brown <zach.brown@oracle.com>
+SGI has observed that on large systems, interrupts are not serviced for a
+long period of time when waiting for a rwlock.  The following patch series
+re-enables irqs while waiting for the lock, resembling the code which is
+already there for spinlocks.
+
+I only made the ia64 version, because the patch adds some overhead to the
+fast path.  I assume there is currently no demand to have this for other
+architectures, because the systems are not so large.  Of course, the
+possibility to implement raw_{read|write}_lock_flags for any architecture
+is still there.
+
+
+This patch:
+
+The new macro LOCK_CONTENDED_FLAGS expands to the correct implementation
+depending on the config options, so that IRQ's are re-enabled when
+possible, but they remain disabled if CONFIG_LOCKDEP is set.
+
+Signed-off-by: Petr Tesarik <ptesarik@suse.cz>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/linux/lockdep.h |   17 +++++++++++++++++
+ kernel/spinlock.c       |   12 ++----------
+ 2 files changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN fs/direct-io.c~fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix fs/direct-io.c
---- a/fs/direct-io.c~fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix
-+++ a/fs/direct-io.c
-@@ -1215,9 +1215,12 @@ __blockdev_direct_IO(int rw, struct kioc
- 	 * NOTE: DIO_NO_LOCK/DIO_OWN_LOCK callers have to handle this by
- 	 * it's own meaner.
- 	 */
--	if (unlikely(retval < 0 && (rw & WRITE) && (end > i_size_read(inode))
--			&& dio_lock_type == DIO_LOCKING))
--		vmtruncate(inode, inode->i_size);
-+	if (unlikely(retval < 0 && (rw & WRITE))) {
-+		loff_t isize = i_size_read(inode);
-+
-+		if (end > isize && dio_lock_type == DIO_LOCKING)
-+			vmtruncate(inode, isize);
-+	}
+diff -puN include/linux/lockdep.h~factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags include/linux/lockdep.h
+--- a/include/linux/lockdep.h~factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags
++++ a/include/linux/lockdep.h
+@@ -382,6 +382,23 @@ do {								\
  
- 	if (rw == READ && dio_lock_type == DIO_LOCKING)
- 		release_i_mutex = 0;
+ #endif /* CONFIG_LOCK_STAT */
+ 
++#ifdef CONFIG_LOCKDEP
++
++/*
++ * On lockdep we dont want the hand-coded irq-enable of
++ * _raw_*_lock_flags() code, because lockdep assumes
++ * that interrupts are not re-enabled during lock-acquire:
++ */
++#define LOCK_CONTENDED_FLAGS(_lock, try, lock, lockfl, flags) \
++	LOCK_CONTENDED((_lock), (try), (lock))
++
++#else /* CONFIG_LOCKDEP */
++
++#define LOCK_CONTENDED_FLAGS(_lock, try, lock, lockfl, flags) \
++	lockfl((_lock), (flags))
++
++#endif /* CONFIG_LOCKDEP */
++
+ #if defined(CONFIG_TRACE_IRQFLAGS) && defined(CONFIG_GENERIC_HARDIRQS)
+ extern void early_init_irq_lock_class(void);
+ #else
+diff -puN kernel/spinlock.c~factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags kernel/spinlock.c
+--- a/kernel/spinlock.c~factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags
++++ a/kernel/spinlock.c
+@@ -299,16 +299,8 @@ unsigned long __lockfunc _spin_lock_irqs
+ 	local_irq_save(flags);
+ 	preempt_disable();
+ 	spin_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
+-	/*
+-	 * On lockdep we dont want the hand-coded irq-enable of
+-	 * _raw_spin_lock_flags() code, because lockdep assumes
+-	 * that interrupts are not re-enabled during lock-acquire:
+-	 */
+-#ifdef CONFIG_LOCKDEP
+-	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
+-#else
+-	_raw_spin_lock_flags(lock, &flags);
+-#endif
++	LOCK_CONTENDED_FLAGS(lock, _raw_spin_trylock, _raw_spin_lock,
++				_raw_spin_lock_flags, &flags);
+ 	return flags;
+ }
+ EXPORT_SYMBOL(_spin_lock_irqsave_nested);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from holt@sgi.com are
 
-bdi-register-sysfs-bdi-device-only-once-per-queue.patch
-ksym_symbol_len-fixes.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
-linux-next.patch
-next-remove-localversion.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-backlight-catch-invalid-input.patch
-pci-uninline-pci_ioremap_bar.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-linuxpps-core-support-drivers-pps-sysfsc-make-dev_attr_name-static.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mm-gup-persist-for-write-permission.patch
+mm-wp-lock-page-before-deciding-cow.patch
+mm-reuse_swap_page-replaces-can_share_swap_page.patch
+mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
+mm-try_to_unuse-check-removing-right-swap.patch
+mm-remove-try_to_munlock-from-vmscan.patch
+mm-remove-gfp_mask-from-add_to_swap.patch
+mm-add-add_to_swap-stub.patch
+mm-optimize-get_scan_ratio-for-no-swap.patch
+factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch
+allow-rwlocks-to-re-enable-interrupts.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
 
