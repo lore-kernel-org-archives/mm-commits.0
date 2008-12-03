@@ -1,109 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - intel-agp-avoid-oops-for-g33-on-1mb-stolen-case.patch removed from -mm tree
-Date: Wed, 03 Dec 2008 12:28:51 -0800
-Message-ID: <200812032028.mB3KSqJ6028148@imap1.linux-foundation.org>
+Subject: - drivers-char-agp-add-missing-pci_dev_get.patch removed from -mm tree
+Date: Wed, 03 Dec 2008 12:28:54 -0800
+Message-ID: <200812032028.mB3KSsJc028198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58607 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753722AbYLCU3f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:35 -0500
+	by vger.kernel.org with ESMTP id S1761458AbYLCU3Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bphilips@suse.de, airlied@linux.ie, stable@kernel.org, mm-commits@vger.kernel.org
+To: julia@diku.dk, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     intel-agp: avoid oops for G33 on 1MB stolen case
+     drivers/char/agp: add missing pci_dev_get
 has been removed from the -mm tree.  Its filename was
-     intel-agp-avoid-oops-for-g33-on-1mb-stolen-case.patch
+     drivers-char-agp-add-missing-pci_dev_get.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel-agp: avoid oops for G33 on 1MB stolen case
-From: Brandon Philips <bphilips@suse.de>
+Subject: drivers/char/agp: add missing pci_dev_get
+From: Julia Lawall <julia@diku.dk>
 
-This is similar to f443675affe3f16dd428e46f0f7fd3f4d703eeab which was
-reverted because it broke older X.org driver. This patch only fixes
-the 1MB stolen case since it causes an oops.
+pci_get_slot does a pci_dev_get, so pci_dev_put needs to be called in an
+error case.
 
-Xorg will not work without the accompanying patch[1] but avoiding an
-oops and making it possible to work with patched xorg driver is
-reasonable.
+In the first three cases, it might also be possible to move the call to
+pci_get_slot downwards below the error handling code.
 
-[1] http://ifup.org/~philips/review/xf86-video-intel-G33-1mb.patch
+The problem was fixed using the following semantic patch.
+(http://www.emn.fr/x-info/coccinelle/)
 
-Explanation of the oops:
+// <smpl>
+@@
+local idexpression *n;
+statement S1,S2;
+expression E,E1;
+expression *ptr != NULL;
+type T,T1;
+@@
 
-> static void intel_i830_init_gtt_entries(void)
-...
->         } else if (IS_G33) {
->         /* G33's GTT size defined in gmch_ctrl */
->                 switch (gmch_ctrl & G33_PGETBL_SIZE_MASK) {
->                 case G33_PGETBL_SIZE_1M:
->                         size = 1024;
->                         break;
-...
->                 size += 4;
+(
+if (!(n = pci_get_slot(...))) S1
+|
+n = pci_get_slot(...)
+)
+<... when != pci_dev_put(n)
+    when != if (...) { <+... pci_dev_put(n) ...+> }
+    when != true !n  || ...
+    when != n = (T)E
+    when != E = n
+if (!n || ...) S2
+...>
+(
+  return \(0\|<+...n...+>\|ptr\);
+|
++ pci_dev_put(n);
+return ...;
+|
+pci_dev_put(n);
+|
+n = (T1)E1
+|
+E1 = n
+)
+// </smpl>
 
-size = 1028
-
-Then since we have the BIOS setting 1MB for the device in the GMCH
-control we get to here:
-
->         } else {
->                 switch (gmch_ctrl & I855_GMCH_GMS_MASK) {
->                 case I855_GMCH_GMS_STOLEN_1M:
->                         gtt_entries = MB(1) - KB(size);
->                         break;
-
-MB(1) = 1 * 1024 * 1024
-KB(1028) = 1028 * 1024
-
-MB(1) - KB(1028) = -4096
-
->         gtt_entries /= KB(4);
->         intel_private.gtt_entries = gtt_entries;
-
-We end up with -1 in gtt_entries.
-
-This leads to intel_i915_configure reading/writing to areas outside of
-mapped memory and the oops.
-
-Bugzilla: https://bugzilla.novell.com/show_bug.cgi?id=391261
-
-Signed-off-by: Brandon Philips <bphilips@suse.de>
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Cc: Dave Airlie <airlied@linux.ie>
-Cc: <stable@kernel.org>		[2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/char/agp/amd64-agp.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel-agp-avoid-oops-for-g33-on-1mb-stolen-case drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel-agp-avoid-oops-for-g33-on-1mb-stolen-case
-+++ a/drivers/char/agp/intel-agp.c
-@@ -561,6 +561,13 @@ static void intel_i830_init_gtt_entries(
- 	} else {
- 		switch (gmch_ctrl & I855_GMCH_GMS_MASK) {
- 		case I855_GMCH_GMS_STOLEN_1M:
-+			if (IS_G33) {
-+				size = 0;
-+				WARN(1, KERN_WARNING
-+				       "Warning: G33 chip with 1MB allocated."
-+					" Older X.org Intel drivers will not"
-+					" work.\n");
-+			}
- 			gtt_entries = MB(1) - KB(size);
- 			break;
- 		case I855_GMCH_GMS_STOLEN_4M:
+diff -puN drivers/char/agp/amd64-agp.c~drivers-char-agp-add-missing-pci_dev_get drivers/char/agp/amd64-agp.c
+--- a/drivers/char/agp/amd64-agp.c~drivers-char-agp-add-missing-pci_dev_get
++++ a/drivers/char/agp/amd64-agp.c
+@@ -393,6 +393,7 @@ static int __devinit uli_agp_init(struct
+ 
+ 	if (i == ARRAY_SIZE(uli_sizes)) {
+ 		dev_info(&pdev->dev, "no ULi size found for %d\n", size);
++		pci_dev_put(dev1);
+ 		return -ENODEV;
+ 	}
+ 
+@@ -400,8 +401,10 @@ static int __devinit uli_agp_init(struct
+ 	pci_read_config_dword (k8_northbridges[0], AMD64_GARTAPERTUREBASE, &httfea);
+ 
+ 	/* if x86-64 aperture base is beyond 4G, exit here */
+-	if ((httfea & 0x7fff) >> (32 - 25))
++	if ((httfea & 0x7fff) >> (32 - 25)) {
++		pci_dev_put(dev1);
+ 		return -ENODEV;
++	}
+ 
+ 	httfea = (httfea& 0x7fff) << 25;
+ 
+@@ -451,6 +454,7 @@ static int nforce3_agp_init(struct pci_d
+ 
+ 	if (i == ARRAY_SIZE(nforce3_sizes)) {
+ 		dev_info(&pdev->dev, "no NForce3 size found for %d\n", size);
++		pci_dev_put(dev1);
+ 		return -ENODEV;
+ 	}
+ 
+@@ -465,6 +469,7 @@ static int nforce3_agp_init(struct pci_d
+ 	/* if x86-64 aperture base is beyond 4G, exit here */
+ 	if ( (apbase & 0x7fff) >> (32 - 25) ) {
+ 		dev_info(&pdev->dev, "aperture base > 4G\n");
++		pci_dev_put(dev1);
+ 		return -ENODEV;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from bphilips@suse.de are
+Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
+arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+arch-powerpc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+drivers-media-video-cx88-cx88-alsac-adjust-error-handling-code.patch
+arch-ia64-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+drivers-mtd-maps-nettelc-use-array_size.patch
+drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch
+net-tipc-bcasth-use-array_size.patch
+drivers-isdn-misdn-use-array_size.patch
+fs-namespacec-drop-code-after-return.patch
+mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
 
