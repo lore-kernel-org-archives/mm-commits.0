@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-fix-application-of-kernel-module-relocations.patch added to -mm tree
-Date: Wed, 03 Dec 2008 00:26:43 -0800
-Message-ID: <200812030826.mB38Qhwu014437@imap1.linux-foundation.org>
+Subject: + hugetlb-unsigned-ret-cannot-be-negative.patch added to -mm tree
+Date: Wed, 03 Dec 2008 00:35:29 -0800
+Message-ID: <200812030835.mB38ZTUE019317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52807 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60188 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751186AbYLCI1E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 03:27:04 -0500
+	by vger.kernel.org with ESMTP id S1753120AbYLCIfv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 03:35:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: msalter@redhat.com, dhowells@redhat.com
+Cc: roel.kluin@gmail.com, agl@us.ibm.com, clameter@sgi.com, david@gibson.dropbear.id.au, hugh@veritas.com, kenchen@google.com, npiggin@suse.de
 
 
 The patch titled
-     mn10300: fix application of kernel module relocations
+     hugetlb: unsigned ret cannot be negative
 has been added to the -mm tree.  Its filename is
-     mn10300-fix-application-of-kernel-module-relocations.patch
+     hugetlb-unsigned-ret-cannot-be-negative.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: fix application of kernel module relocations
-From: Mark Salter <msalter@redhat.com>
+Subject: hugetlb: unsigned ret cannot be negative
+From: Roel Kluin <roel.kluin@gmail.com>
 
-This fixes the MN10300 kernel module linking to match the toolchain.  RELA
-relocs don't use the value at the location being relocated.  This has been
-working because the tools always leave the value at the target location
-cleared.
+unsigned long ret cannot be negative, but ret can get -EFAULT.
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Ken Chen <kenchen@google.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/kernel/module.c |   35 ++++++---------------------------
- 1 file changed, 7 insertions(+), 28 deletions(-)
+ fs/hugetlbfs/inode.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN arch/mn10300/kernel/module.c~mn10300-fix-application-of-kernel-module-relocations arch/mn10300/kernel/module.c
---- a/arch/mn10300/kernel/module.c~mn10300-fix-application-of-kernel-module-relocations
-+++ a/arch/mn10300/kernel/module.c
-@@ -1,6 +1,6 @@
- /* MN10300 Kernel module helper routines
-  *
-- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Copyright (C) 2007, 2008 Red Hat, Inc. All Rights Reserved.
-  * Written by Mark Salter (msalter@redhat.com)
-  * - Derived from arch/i386/kernel/module.c
-  *
-@@ -64,21 +64,6 @@ int module_frob_arch_sections(Elf_Ehdr *
- 	return 0;
- }
+diff -puN fs/hugetlbfs/inode.c~hugetlb-unsigned-ret-cannot-be-negative fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlb-unsigned-ret-cannot-be-negative
++++ a/fs/hugetlbfs/inode.c
+@@ -252,6 +252,7 @@ static ssize_t hugetlbfs_read(struct fil
+ 	for (;;) {
+ 		struct page *page;
+ 		unsigned long nr, ret;
++		int ra;
  
--static uint32_t reloc_get16(uint8_t *p)
--{
--	return p[0] | (p[1] << 8);
--}
--
--static uint32_t reloc_get24(uint8_t *p)
--{
--	return reloc_get16(p) | (p[2] << 16);
--}
--
--static uint32_t reloc_get32(uint8_t *p)
--{
--	return reloc_get16(p) | (reloc_get16(p+2) << 16);
--}
--
- static void reloc_put16(uint8_t *p, uint32_t val)
- {
- 	p[0] = val & 0xff;
-@@ -144,25 +129,19 @@ int apply_relocate_add(Elf32_Shdr *sechd
- 		relocation = sym->st_value + rel[i].r_addend;
- 
- 		switch (ELF32_R_TYPE(rel[i].r_info)) {
--			/* for the first four relocation types, we add the
--			 * adjustment into the value at the location given */
-+			/* for the first four relocation types, we simply
-+			 * store the adjustment at the location given */
- 		case R_MN10300_32:
--			value = reloc_get32(location);
--			value += relocation;
--			reloc_put32(location, value);
-+			reloc_put32(location, relocation);
- 			break;
- 		case R_MN10300_24:
--			value = reloc_get24(location);
--			value += relocation;
--			reloc_put24(location, value);
-+			reloc_put24(location, relocation);
- 			break;
- 		case R_MN10300_16:
--			value = reloc_get16(location);
--			value += relocation;
--			reloc_put16(location, value);
-+			reloc_put16(location, relocation);
- 			break;
- 		case R_MN10300_8:
--			*location += relocation;
-+			*location = relocation;
- 			break;
- 
- 			/* for the next three relocation types, we write the
+ 		/* nr is the maximum number of bytes to copy from this page */
+ 		nr = huge_page_size(h);
+@@ -274,16 +275,19 @@ static ssize_t hugetlbfs_read(struct fil
+ 			 */
+ 			ret = len < nr ? len : nr;
+ 			if (clear_user(buf, ret))
+-				ret = -EFAULT;
++				ra = -EFAULT;
++			else
++				ra = 0;
+ 		} else {
+ 			/*
+ 			 * We have the page, copy it to user space buffer.
+ 			 */
+-			ret = hugetlbfs_read_actor(page, offset, buf, len, nr);
++			ra = hugetlbfs_read_actor(page, offset, buf, len, nr);
++			ret = ra;
+ 		}
+-		if (ret < 0) {
++		if (ra < 0) {
+ 			if (retval == 0)
+-				retval = ret;
++				retval = ra;
+ 			if (page)
+ 				page_cache_release(page);
+ 			goto out;
 _
 
-Patches currently in -mm which might be from msalter@redhat.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-mn10300-fix-application-of-kernel-module-relocations.patch
+linux-next.patch
+libsas-fix-test-for-negative-unsigned-and-typos.patch
+hugetlb-unsigned-ret-cannot-be-negative.patch
+gbefb-unsigned-var-pixclock-cannot-be-less-than-0.patch
+sm501-unsigned-ptr-cannot-be-negative.patch
+ufs-sector_t-cannot-be-negative.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+make-various-things-static.patch
 
