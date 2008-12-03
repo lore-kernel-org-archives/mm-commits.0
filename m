@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-get_scan_ratio-safe-for-memcg.patch added to -mm tree
-Date: Tue, 02 Dec 2008 21:57:40 -0800
-Message-ID: <200812030557.mB35veNa029222@imap1.linux-foundation.org>
+Subject: + memcg-add-null-check-to-page_cgroup_zoneinfo.patch added to -mm tree
+Date: Tue, 02 Dec 2008 21:57:44 -0800
+Message-ID: <200812030557.mB35vit3029228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751613AbYLCF6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:58:47 -0500
+	by vger.kernel.org with ESMTP id S1751264AbYLCF6m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:58:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.
 
 
 The patch titled
-     mm: make get_scan_ratio() safe for memcg
+     memcg: add null check to page_cgroup_zoneinfo()
 has been added to the -mm tree.  Its filename is
-     mm-make-get_scan_ratio-safe-for-memcg.patch
+     memcg-add-null-check-to-page_cgroup_zoneinfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,19 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make get_scan_ratio() safe for memcg
+Subject: memcg: add null check to page_cgroup_zoneinfo()
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Currently, get_scan_ratio() always calculate the balancing value for
-global reclaim and memcg reclaim doesn't use it.  Therefore it doesn't
-have scan_global_lru() condition.
+If CONFIG_CGROUP_MEM_RES_CTLR_SWAP=y, page_cgroup::mem_cgroup can be NULL.
+Therefore null checking is better.
 
-However, we plan to expand get_scan_ratio() to be usable for memcg too,
-latter.  Then, The dependency code of global reclaim in the
-get_scan_ratio() insert into scan_global_lru() condision explictly.
+A later patch uses this function.
 
-This patch doesn't have any functional change.
-
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -55,35 +51,22 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/vmscan.c~mm-make-get_scan_ratio-safe-for-memcg mm/vmscan.c
---- a/mm/vmscan.c~mm-make-get_scan_ratio-safe-for-memcg
-+++ a/mm/vmscan.c
-@@ -1423,13 +1423,16 @@ static void get_scan_ratio(struct zone *
- 		zone_nr_pages(zone, sc, LRU_INACTIVE_ANON);
- 	file  = zone_nr_pages(zone, sc, LRU_ACTIVE_FILE) +
- 		zone_nr_pages(zone, sc, LRU_INACTIVE_FILE);
--	free  = zone_page_state(zone, NR_FREE_PAGES);
+diff -puN mm/memcontrol.c~memcg-add-null-check-to-page_cgroup_zoneinfo mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-null-check-to-page_cgroup_zoneinfo
++++ a/mm/memcontrol.c
+@@ -231,6 +231,9 @@ page_cgroup_zoneinfo(struct page_cgroup 
+ 	int nid = page_cgroup_nid(pc);
+ 	int zid = page_cgroup_zid(pc);
  
--	/* If we have very few page cache pages, force-scan anon pages. */
--	if (unlikely(file + free <= zone->pages_high)) {
--		percent[0] = 100;
--		percent[1] = 0;
--		return;
-+	if (scan_global_lru(sc)) {
-+		free  = zone_page_state(zone, NR_FREE_PAGES);
-+		/* If we have very few page cache pages,
-+		   force-scan anon pages. */
-+		if (unlikely(file + free <= zone->pages_high)) {
-+			percent[0] = 100;
-+			percent[1] = 0;
-+			return;
-+		}
- 	}
++	if (!mem)
++		return NULL;
++
+ 	return mem_cgroup_zoneinfo(mem, nid, zid);
+ }
  
- 	/*
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
