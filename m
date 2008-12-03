@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + generic-swap-iphase-rename-swap-to-swap_byte_order.patch added to -mm tree
-Date: Wed, 03 Dec 2008 00:19:08 -0800
-Message-ID: <200812030819.mB38J8VH010211@imap1.linux-foundation.org>
+Subject: + generic-swap-dcache-use-swap-instead-of-private-do_switch.patch added to -mm tree
+Date: Wed, 03 Dec 2008 00:19:19 -0800
+Message-ID: <200812030819.mB38JJZT010318@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751037AbYLCITL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 03:19:11 -0500
+	by vger.kernel.org with ESMTP id S1751358AbYLCITX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 03:19:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, davem@davemloft.net
+Cc: fengguang.wu@intel.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     generic swap(): iphase: rename swap() to swap_byte_order()
+     generic swap(): dcache: use swap() instead of private do_switch()
 has been added to the -mm tree.  Its filename is
-     generic-swap-iphase-rename-swap-to-swap_byte_order.patch
+     generic-swap-dcache-use-swap-instead-of-private-do_switch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic swap(): iphase: rename swap() to swap_byte_order()
+Subject: generic swap(): dcache: use swap() instead of private do_switch()
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-In preparation for the introduction of a generic swap() macro.
+Use the new generic implementation.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/iphase.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/dcache.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN drivers/atm/iphase.c~generic-swap-iphase-rename-swap-to-swap_byte_order drivers/atm/iphase.c
---- a/drivers/atm/iphase.c~generic-swap-iphase-rename-swap-to-swap_byte_order
-+++ a/drivers/atm/iphase.c
-@@ -64,7 +64,7 @@
- #include <linux/jiffies.h>
- #include "iphase.h"		  
- #include "suni.h"		  
--#define swap(x) (((x & 0xff) << 8) | ((x & 0xff00) >> 8))  
-+#define swap_byte_order(x) (((x & 0xff) << 8) | ((x & 0xff00) >> 8))
+diff -puN fs/dcache.c~generic-swap-dcache-use-swap-instead-of-private-do_switch fs/dcache.c
+--- a/fs/dcache.c~generic-swap-dcache-use-swap-instead-of-private-do_switch
++++ a/fs/dcache.c
+@@ -1572,10 +1572,6 @@ void d_rehash(struct dentry * entry)
+ 	spin_unlock(&dcache_lock);
+ }
  
- #define PRIV(dev) ((struct suni_priv *) dev->phy_data)
+-#define do_switch(x,y) do { \
+-	__typeof__ (x) __tmp = x; \
+-	x = y; y = __tmp; } while (0)
+-
+ /*
+  * When switching names, the actual string doesn't strictly have to
+  * be preserved in the target - because we're dropping the target
+@@ -1594,7 +1590,7 @@ static void switch_names(struct dentry *
+ 			/*
+ 			 * Both external: swap the pointers
+ 			 */
+-			do_switch(target->d_name.name, dentry->d_name.name);
++			swap(target->d_name.name, dentry->d_name.name);
+ 		} else {
+ 			/*
+ 			 * dentry:internal, target:external.  Steal target's
+@@ -1625,7 +1621,7 @@ static void switch_names(struct dentry *
+ 			return;
+ 		}
+ 	}
+-	do_switch(dentry->d_name.len, target->d_name.len);
++	swap(dentry->d_name.len, target->d_name.len);
+ }
  
-@@ -1306,7 +1306,7 @@ static void rx_dle_intr(struct atm_dev *
-           // get real pkt length  pwang_test
-           trailer = (struct cpcs_trailer*)((u_char *)skb->data +
-                                  skb->len - sizeof(*trailer));
--          length =  swap(trailer->length);
-+	  length = swap_byte_order(trailer->length);
-           if ((length > iadev->rx_buf_sz) || (length > 
-                               (skb->len - sizeof(struct cpcs_trailer))))
-           {
-@@ -2995,7 +2995,7 @@ static int ia_pkt_tx (struct atm_vcc *vc
- 		skb->len, PCI_DMA_TODEVICE);
- 	wr_ptr->local_pkt_addr = (buf_desc_ptr->buf_start_hi << 16) | 
-                                                   buf_desc_ptr->buf_start_lo;  
--	/* wr_ptr->bytes = swap(total_len);	didn't seem to affect ?? */  
-+	/* wr_ptr->bytes = swap_byte_order(total_len); didn't seem to affect?? */
- 	wr_ptr->bytes = skb->len;  
+ /*
+@@ -1685,7 +1681,7 @@ already_unhashed:
  
-         /* hw bug - DLEs of 0x2d, 0x2e, 0x2f cause DMA lockup */
+ 	/* Switch the names.. */
+ 	switch_names(dentry, target);
+-	do_switch(dentry->d_name.hash, target->d_name.hash);
++	swap(dentry->d_name.hash, target->d_name.hash);
+ 
+ 	/* ... and switch the parents */
+ 	if (IS_ROOT(dentry)) {
+@@ -1693,7 +1689,7 @@ already_unhashed:
+ 		target->d_parent = target;
+ 		INIT_LIST_HEAD(&target->d_u.d_child);
+ 	} else {
+-		do_switch(dentry->d_parent, target->d_parent);
++		swap(dentry->d_parent, target->d_parent);
+ 
+ 		/* And add them back to the (new) parent lists */
+ 		list_add(&target->d_u.d_child, &target->d_parent->d_subdirs);
+@@ -1794,7 +1790,7 @@ static void __d_materialise_dentry(struc
+ 	struct dentry *dparent, *aparent;
+ 
+ 	switch_names(dentry, anon);
+-	do_switch(dentry->d_name.hash, anon->d_name.hash);
++	swap(dentry->d_name.hash, anon->d_name.hash);
+ 
+ 	dparent = dentry->d_parent;
+ 	aparent = anon->d_parent;
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
