@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + badpage-keep-any-bad-page-out-of-circulation.patch added to -mm tree
-Date: Tue, 02 Dec 2008 16:57:11 -0800
-Message-ID: <200812030057.mB30vBAg024390@imap1.linux-foundation.org>
+Subject: + badpage-zap-print_bad_pte-on-swap-and-file.patch added to -mm tree
+Date: Tue, 02 Dec 2008 16:57:19 -0800
+Message-ID: <200812030057.mB30vKvh024480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751677AbYLCA7b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:31 -0500
+	by vger.kernel.org with ESMTP id S1755407AbYLCA7k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.c
 
 
 The patch titled
-     badpage: keep any bad page out of circulation
+     badpage: zap print_bad_pte on swap and file
 has been added to the -mm tree.  Its filename is
-     badpage-keep-any-bad-page-out-of-circulation.patch
+     badpage-zap-print_bad_pte-on-swap-and-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,17 +33,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: badpage: keep any bad page out of circulation
+Subject: badpage: zap print_bad_pte on swap and file
 From: Hugh Dickins <hugh@veritas.com>
 
-Until now the bad_page() checkers have special-cased PageReserved, keeping
-those pages out of circulation thereafter.  Now extend the special case to
-all: we want to keep ANY page with bad state out of circulation - the
-"free" page may well be in use by something.
+Complete zap_pte_range()'s coverage of bad pagetable entries by calling
+print_bad_pte() on a pte_file in a linear vma and on a bad swap entry. 
+That needs free_swap_and_cache() to tell it, which will also have shown
+one of those "swap_free" errors (but with much less information).
 
-Leave the bad state of those pages untouched, for examination by
-debuggers; except for PageBuddy - leaving that set would risk bringing the
-page back.
+Similar checks in fork's copy_one_pte()?  No, that would be more noisy
+than helpful: we'll see them when parent and child exec or exit.
+
+Where do_nonlinear_fault() calls print_bad_pte(): omit !VM_CAN_NONLINEAR
+case, that could only be a bug in sys_remap_file_pages(), not a bad pte. 
+VM_FAULT_OOM rather than VM_FAULT_SIGBUS?  Well, okay, that is consistent
+with what happens if do_swap_page() operates a bad swap entry; but don't
+we have patches to be more careful about killing when VM_FAULT_OOM?
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -53,126 +58,96 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   52 +++++++++++++++++++++-------------------------
- 1 file changed, 24 insertions(+), 28 deletions(-)
+ include/linux/swap.h |   12 +++---------
+ mm/memory.c          |   11 +++++++----
+ mm/swapfile.c        |    7 ++++---
+ 3 files changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN mm/page_alloc.c~badpage-keep-any-bad-page-out-of-circulation mm/page_alloc.c
---- a/mm/page_alloc.c~badpage-keep-any-bad-page-out-of-circulation
-+++ a/mm/page_alloc.c
-@@ -231,9 +231,9 @@ static void bad_page(struct page *page)
- 	printk(KERN_EMERG "Trying to fix it up, but a reboot is needed\n"
- 		KERN_EMERG "Backtrace:\n");
- 	dump_stack();
--	set_page_count(page, 0);
--	reset_page_mapcount(page);
--	page->mapping = NULL;
-+
-+	/* Leave bad fields for debug, except PageBuddy could make trouble */
-+	__ClearPageBuddy(page);
- 	add_taint(TAINT_BAD_PAGE);
- }
- 
-@@ -290,25 +290,31 @@ void prep_compound_gigantic_page(struct 
- }
- #endif
- 
--static void destroy_compound_page(struct page *page, unsigned long order)
-+static int destroy_compound_page(struct page *page, unsigned long order)
+diff -puN include/linux/swap.h~badpage-zap-print_bad_pte-on-swap-and-file include/linux/swap.h
+--- a/include/linux/swap.h~badpage-zap-print_bad_pte-on-swap-and-file
++++ a/include/linux/swap.h
+@@ -305,7 +305,7 @@ extern swp_entry_t get_swap_page_of_type
+ extern int swap_duplicate(swp_entry_t);
+ extern int valid_swaphandles(swp_entry_t, unsigned long *);
+ extern void swap_free(swp_entry_t);
+-extern void free_swap_and_cache(swp_entry_t);
++extern int free_swap_and_cache(swp_entry_t);
+ extern int swap_type_of(dev_t, sector_t, struct block_device **);
+ extern unsigned int count_swap_pages(int, int);
+ extern sector_t map_swap_page(struct swap_info_struct *, pgoff_t);
+@@ -355,14 +355,8 @@ static inline void show_swap_cache_info(
  {
- 	int i;
- 	int nr_pages = 1 << order;
-+	int bad = 0;
- 
--	if (unlikely(compound_order(page) != order))
-+	if (unlikely(compound_order(page) != order) ||
-+	    unlikely(!PageHead(page))) {
- 		bad_page(page);
-+		bad++;
-+	}
- 
--	if (unlikely(!PageHead(page)))
--			bad_page(page);
- 	__ClearPageHead(page);
-+
- 	for (i = 1; i < nr_pages; i++) {
- 		struct page *p = page + i;
- 
--		if (unlikely(!PageTail(p) |
--				(p->first_page != page)))
-+		if (unlikely(!PageTail(p) | (p->first_page != page))) {
- 			bad_page(page);
-+			bad++;
-+		}
- 		__ClearPageTail(p);
- 	}
-+
-+	return bad;
  }
  
- static inline void prep_zero_page(struct page *page, int order, gfp_t gfp_flags)
-@@ -428,7 +434,8 @@ static inline void __free_one_page(struc
- 	int migratetype = get_pageblock_migratetype(page);
- 
- 	if (unlikely(PageCompound(page)))
--		destroy_compound_page(page, order);
-+		if (unlikely(destroy_compound_page(page, order)))
-+			return;
- 
- 	page_idx = page_to_pfn(page) & ((1 << MAX_ORDER) - 1);
- 
-@@ -465,15 +472,10 @@ static inline int free_pages_check(struc
- 	if (unlikely(page_mapcount(page) |
- 		(page->mapping != NULL)  |
- 		(page_count(page) != 0)  |
--		(page->flags & PAGE_FLAGS_CHECK_AT_FREE)))
-+		(page->flags & PAGE_FLAGS_CHECK_AT_FREE))) {
- 		bad_page(page);
--	/*
--	 * For now, we report if PG_reserved was found set, but do not
--	 * clear it, and do not free the page.  But we shall soon need
--	 * to do more, for when the ZERO_PAGE count wraps negative.
--	 */
--	if (PageReserved(page))
- 		return 1;
-+	}
- 	if (page->flags & PAGE_FLAGS_CHECK_AT_PREP)
- 		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 	return 0;
-@@ -521,11 +523,11 @@ static void __free_pages_ok(struct page 
- {
- 	unsigned long flags;
- 	int i;
--	int reserved = 0;
-+	int bad = 0;
- 
- 	for (i = 0 ; i < (1 << order) ; ++i)
--		reserved += free_pages_check(page + i);
--	if (reserved)
-+		bad += free_pages_check(page + i);
-+	if (bad)
- 		return;
- 
- 	if (!PageHighMem(page)) {
-@@ -610,17 +612,11 @@ static int prep_new_page(struct page *pa
- 	if (unlikely(page_mapcount(page) |
- 		(page->mapping != NULL)  |
- 		(page_count(page) != 0)  |
--		(page->flags & PAGE_FLAGS_CHECK_AT_PREP)))
-+		(page->flags & PAGE_FLAGS_CHECK_AT_PREP))) {
- 		bad_page(page);
+-static inline void free_swap_and_cache(swp_entry_t swp)
+-{
+-}
 -
--	/*
--	 * For now, we report if PG_reserved was found set, but do not
--	 * clear it, and do not allocate the page: as a safety net.
--	 */
--	if (PageReserved(page))
- 		return 1;
-+	}
+-static inline int swap_duplicate(swp_entry_t swp)
+-{
+-	return 0;
+-}
++#define free_swap_and_cache(swp)	is_migration_entry(swp)
++#define swap_duplicate(swp)		is_migration_entry(swp)
  
--	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 	set_page_private(page, 0);
- 	set_page_refcounted(page);
+ static inline void swap_free(swp_entry_t swp)
+ {
+diff -puN mm/memory.c~badpage-zap-print_bad_pte-on-swap-and-file mm/memory.c
+--- a/mm/memory.c~badpage-zap-print_bad_pte-on-swap-and-file
++++ a/mm/memory.c
+@@ -800,8 +800,12 @@ static unsigned long zap_pte_range(struc
+ 		 */
+ 		if (unlikely(details))
+ 			continue;
+-		if (!pte_file(ptent))
+-			free_swap_and_cache(pte_to_swp_entry(ptent));
++		if (pte_file(ptent)) {
++			if (unlikely(!(vma->vm_flags & VM_NONLINEAR)))
++				print_bad_pte(vma, addr, ptent, NULL);
++		} else if
++		  (unlikely(!free_swap_and_cache(pte_to_swp_entry(ptent))))
++			print_bad_pte(vma, addr, ptent, NULL);
+ 		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
+ 	} while (pte++, addr += PAGE_SIZE, (addr != end && *zap_work > 0));
  
+@@ -2678,8 +2682,7 @@ static int do_nonlinear_fault(struct mm_
+ 	if (!pte_unmap_same(mm, pmd, page_table, orig_pte))
+ 		return 0;
+ 
+-	if (unlikely(!(vma->vm_flags & VM_NONLINEAR) ||
+-			!(vma->vm_flags & VM_CAN_NONLINEAR))) {
++	if (unlikely(!(vma->vm_flags & VM_NONLINEAR))) {
+ 		/*
+ 		 * Page table corrupted: show pte and kill process.
+ 		 */
+diff -puN mm/swapfile.c~badpage-zap-print_bad_pte-on-swap-and-file mm/swapfile.c
+--- a/mm/swapfile.c~badpage-zap-print_bad_pte-on-swap-and-file
++++ a/mm/swapfile.c
+@@ -571,13 +571,13 @@ int try_to_free_swap(struct page *page)
+  * Free the swap entry like above, but also try to
+  * free the page cache entry if it is the last user.
+  */
+-void free_swap_and_cache(swp_entry_t entry)
++int free_swap_and_cache(swp_entry_t entry)
+ {
+-	struct swap_info_struct * p;
++	struct swap_info_struct *p;
+ 	struct page *page = NULL;
+ 
+ 	if (is_migration_entry(entry))
+-		return;
++		return 1;
+ 
+ 	p = swap_info_get(entry);
+ 	if (p) {
+@@ -603,6 +603,7 @@ void free_swap_and_cache(swp_entry_t ent
+ 		unlock_page(page);
+ 		page_cache_release(page);
+ 	}
++	return p != NULL;
+ }
+ 
+ #ifdef CONFIG_HIBERNATION
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
