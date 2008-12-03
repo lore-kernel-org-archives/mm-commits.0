@@ -1,83 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - bdi-register-sysfs-bdi-device-only-once-per-queue.patch removed from -mm tree
-Date: Wed, 03 Dec 2008 12:28:38 -0800
-Message-ID: <200812032028.mB3KSc4d027985@imap1.linux-foundation.org>
+Subject: - sgi-gru-call-gru_init-at-fs_initcall-level.patch removed from -mm tree
+Date: Wed, 03 Dec 2008 12:28:41 -0800
+Message-ID: <200812032028.mB3KSfUW028038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759185AbYLCU3P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:15 -0500
+	by vger.kernel.org with ESMTP id S1752691AbYLCU3E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kay.sievers@vrfy.org, a.p.zijlstra@chello.nl, dwmw2@infradead.org, jacmet@sunsite.dk, mm-commits@vger.kernel.org
+To: dcn@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bdi: register sysfs bdi device only once per queue
+     sgi-gru: call gru_init() at fs_initcall() level
 has been removed from the -mm tree.  Its filename was
-     bdi-register-sysfs-bdi-device-only-once-per-queue.patch
+     sgi-gru-call-gru_init-at-fs_initcall-level.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bdi: register sysfs bdi device only once per queue
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: sgi-gru: call gru_init() at fs_initcall() level
+From: Dean Nelson <dcn@sgi.com>
 
-Devices which share the same queue, like floppies and mtd devices, get
-registered multiple times in the bdi interface, but bdi accounts only the
-last registered device of the devices sharing one queue.
+If xpc.ko and gru.ko are both statically linked into the kernel, then
+xpc_init() can get called before gru_init() and make a call to one of the
+gru's exported functions before the gru has initialized itself. The end
+result is a NULL dereference.
 
-On remove, all earlier registered devices leak, stay around in sysfs, and
-cause "duplicate filename" errors if the devices are re-created.
-
-This prevents the creation of multiple bdi interfaces per queue, and the
-bdi device will carry the dev_t name of the block device which is the
-first one registered, of the pool of devices using the same queue.
-
-[akpm@linux-foundation.org: add a WARN_ON so we know which drivers are misbehaving]
-Tested-by: Peter Korsgaard <jacmet@sunsite.dk>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/misc/sgi-gru/grufile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/backing-dev.c~bdi-register-sysfs-bdi-device-only-once-per-queue mm/backing-dev.c
---- a/mm/backing-dev.c~bdi-register-sysfs-bdi-device-only-once-per-queue
-+++ a/mm/backing-dev.c
-@@ -176,6 +176,9 @@ int bdi_register(struct backing_dev_info
- 	int ret = 0;
- 	struct device *dev;
+diff -puN drivers/misc/sgi-gru/grufile.c~sgi-gru-call-gru_init-at-fs_initcall-level drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~sgi-gru-call-gru_init-at-fs_initcall-level
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -481,7 +481,7 @@ struct vm_operations_struct gru_vm_ops =
+ 	.fault		= gru_fault,
+ };
  
-+	if (WARN_ON(bdi->dev))
-+		goto exit;
-+
- 	va_start(args, fmt);
- 	dev = device_create_vargs(bdi_class, parent, MKDEV(0, 0), bdi, fmt, args);
- 	va_end(args);
+-module_init(gru_init);
++fs_initcall(gru_init);
+ module_exit(gru_exit);
+ 
+ module_param(gru_options, ulong, 0644);
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from dcn@sgi.com are
 
 origin.patch
-mm-backing-devc-remove-recently-added-warn_on.patch
 linux-next.patch
-rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
-pps-serial-clients-support.patch
-pps-parallel-port-clients-support.patch
-pps-low-level-irq-timestamps-recording.patch
 
