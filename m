@@ -1,126 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch added to -mm tree
-Date: Tue, 02 Dec 2008 22:55:41 -0800
-Message-ID: <200812030655.mB36tf7r028780@imap1.linux-foundation.org>
+Subject: - 8250-dont-clobber-spinlocks.patch removed from -mm tree
+Date: Tue, 02 Dec 2008 22:56:07 -0800
+Message-ID: <200812030656.mB36u7rd029060@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752288AbYLCGzr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 01:55:47 -0500
+	by vger.kernel.org with ESMTP id S1752584AbYLCG4K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 01:56:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, dwmw2@infradead.org
+To: ddaney@caviumnetworks.com, tpaoletti@caviumnetworks.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/mtd/nand/pasemi_nand.c: Add missing pci_dev_put
-has been added to the -mm tree.  Its filename is
-     drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch
+     8250: don't clobber spinlocks
+has been removed from the -mm tree.  Its filename was
+     8250-dont-clobber-spinlocks.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mtd/nand/pasemi_nand.c: Add missing pci_dev_put
-From: Julia Lawall <julia@diku.dk>
+Subject: 8250: don't clobber spinlocks
+From: David Daney <ddaney@caviumnetworks.com>
 
-pci_get_device increments a reference count that should be decremented
-using pci_dev_put.
+In serial8250_isa_init_ports(), the port's lock is initialized.  We should
+not overwrite it.  In early_serial_setup(), only copy in the fields we
+need.  Since the early console code only uses a subset of the fields,
+these are sufficient.
 
-The semantic patch that finds the problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@r exists@
-local idexpression x;
-statement S,S1;
-position p1,p2,p3;
-expression E,E1;
-type T,T1;
-expression *ptr != NULL;
-@@
-
-(
- if ((x@p1 = pci_get_device(...)) == NULL) S
-|
- x@p1 = pci_get_device(...);
-)
- ... when != pci_dev_put(...,(T)x,...)
-     when != if (...) { <+... pci_dev_put(...,(T)x,...) ...+> }
-     when != true x == NULL || ...
-     when != x = E
-     when != E = (T)x
-     when any
-(
- if (x == NULL || ...) S1
-|
- if@p2 (...) {
-  ... when != pci_dev_put(...,(T1)x,...)
-      when != if (...) { <+... pci_dev_put(...,(T1)x,...) ...+> }
-      when != x = E1
-      when != E1 = (T1)x
-(
-  return \(0\|<+...x...+>\|ptr\);
-|
-  return@p3 ...;
-)
-}
-)
-
-@ script:python @
-p1 << r.p1;
-p3 << r.p3;
-@@
-
-print "* file: %s pci_get_device: %s return: %s" % (p1[0].file,p1[0].line,p3[0].line)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: David Daney <ddaney@caviumnetworks.com>
+Signed-off-by: Tomaso Paoletti <tpaoletti@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/pasemi_nand.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/serial/8250.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/nand/pasemi_nand.c~drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put drivers/mtd/nand/pasemi_nand.c
---- a/drivers/mtd/nand/pasemi_nand.c~drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put
-+++ a/drivers/mtd/nand/pasemi_nand.c
-@@ -141,6 +141,7 @@ static int __devinit pasemi_nand_probe(s
- 	}
+diff -puN drivers/serial/8250.c~8250-dont-clobber-spinlocks drivers/serial/8250.c
+--- a/drivers/serial/8250.c~8250-dont-clobber-spinlocks
++++ a/drivers/serial/8250.c
+@@ -2752,12 +2752,23 @@ static struct uart_driver serial8250_reg
+  */
+ int __init early_serial_setup(struct uart_port *port)
+ {
++	struct uart_port *p;
++
+ 	if (port->line >= ARRAY_SIZE(serial8250_ports))
+ 		return -ENODEV;
  
- 	lpcctl = pci_resource_start(pdev, 0);
-+	pci_dev_put(pdev);
+ 	serial8250_isa_init_ports();
+-	serial8250_ports[port->line].port	= *port;
+-	serial8250_ports[port->line].port.ops	= &serial8250_pops;
++	p = &serial8250_ports[port->line].port;
++	p->iobase       = port->iobase;
++	p->membase      = port->membase;
++	p->irq          = port->irq;
++	p->uartclk      = port->uartclk;
++	p->fifosize     = port->fifosize;
++	p->regshift     = port->regshift;
++	p->iotype       = port->iotype;
++	p->flags        = port->flags;
++	p->mapbase      = port->mapbase;
++	p->private_data = port->private_data;
+ 	return 0;
+ }
  
- 	if (!request_region(lpcctl, 4, driver_name)) {
- 		err = -EBUSY;
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from ddaney@caviumnetworks.com are
 
-linux-next.patch
-drivers-char-agp-add-missing-pci_dev_get.patch
-arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-arch-powerpc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-drivers-media-video-cx88-cx88-alsac-adjust-error-handling-code.patch
-arch-ia64-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-drivers-mtd-maps-nettelc-use-array_size.patch
-drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch
-net-tipc-bcasth-use-array_size.patch
-drivers-isdn-misdn-use-array_size.patch
-fs-namespacec-drop-code-after-return.patch
-mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+8250-dont-clobber-spinlocks.patch
+8250-serial-driver-changes-to-support-future-cavium-octeon-serial-patches.patch
+serial-allow-port-type-to-be-specified-when-calling-serial8250_register_port.patch
+8250-allow-port-type-to-specify-bugs-that-are-not-probed-for.patch
+serial-uart-driver-changes-for-cavium-octeon.patch
 
