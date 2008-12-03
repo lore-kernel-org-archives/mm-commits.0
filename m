@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + badpage-vm_normal_page-use-print_bad_pte.patch added to -mm tree
-Date: Tue, 02 Dec 2008 16:57:17 -0800
-Message-ID: <200812030057.mB30vHLi024450@imap1.linux-foundation.org>
+Subject: + badpage-kern_alert-bug-instead-of-kern_emerg.patch added to -mm tree
+Date: Tue, 02 Dec 2008 16:57:25 -0800
+Message-ID: <200812030057.mB30vQwQ024554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754688AbYLCA7g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:36 -0500
+	by vger.kernel.org with ESMTP id S1755837AbYLCA7o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.c
 
 
 The patch titled
-     badpage: vm_normal_page use print_bad_pte
+     badpage: KERN_ALERT BUG instead of KERN_EMERG
 has been added to the -mm tree.  Its filename is
-     badpage-vm_normal_page-use-print_bad_pte.patch
+     badpage-kern_alert-bug-instead-of-kern_emerg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: badpage: vm_normal_page use print_bad_pte
+Subject: badpage: KERN_ALERT BUG instead of KERN_EMERG
 From: Hugh Dickins <hugh@veritas.com>
 
-print_bad_pte() is so far being called only when zap_pte_range() finds
-negative page_mapcount, or there's a fault on a pte_file where it does not
-belong.  That's weak coverage when we suspect pagetable corruption.
+bad_page() and rmap Eeek messages have said KERN_EMERG for a few years,
+which I've followed in print_bad_pte().  These are serious system errors,
+on a par with BUGs, but they're not quite emergencies, and we do our best
+to carry on: say KERN_ALERT "BUG: " like the x86 oops does.
 
-Originally, it was called when vm_normal_page() found an invalid pfn: but
-pfn_valid is expensive on some architectures and configurations, so 2.6.24
-put that under CONFIG_DEBUG_VM (which doesn't help in the field), then
-2.6.26 replaced it by a VM_BUG_ON (likewise).
-
-Reinstate the print_bad_pte() in vm_normal_page(), but use a cheaper test
-than pfn_valid(): memmap_init_zone() (used in bootup and hotplug) keep a
-__read_mostly note of the highest_memmap_pfn, vm_normal_page() then check
-pfn against that.  We could call this pfn_plausible() or pfn_sane(), but I
-doubt we'll need it elsewhere: of course it's not reliable, but gives much
-stronger pagetable validation on many boxes.
-
-Also use print_bad_pte() when the pte_special bit is found outside a
-VM_PFNMAP or VM_MIXEDMAP area, instead of VM_BUG_ON.
+And remove the "Trying to fix it up, but a reboot is needed" line: it's
+not untrue, but I hope the KERN_ALERT "BUG: " conveys as much.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -63,90 +52,87 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    1 +
- mm/memory.c     |   20 ++++++++++----------
- mm/page_alloc.c |    4 ++++
- 3 files changed, 15 insertions(+), 10 deletions(-)
+ mm/memory.c     |   15 ++++++++-------
+ mm/page_alloc.c |    9 ++++-----
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/internal.h~badpage-vm_normal_page-use-print_bad_pte mm/internal.h
---- a/mm/internal.h~badpage-vm_normal_page-use-print_bad_pte
-+++ a/mm/internal.h
-@@ -49,6 +49,7 @@ extern void putback_lru_page(struct page
- /*
-  * in mm/page_alloc.c
-  */
-+extern unsigned long highest_memmap_pfn;
- extern void __free_pages_bootmem(struct page *page, unsigned int order);
- 
- /*
-diff -puN mm/memory.c~badpage-vm_normal_page-use-print_bad_pte mm/memory.c
---- a/mm/memory.c~badpage-vm_normal_page-use-print_bad_pte
+diff -puN mm/memory.c~badpage-kern_alert-bug-instead-of-kern_emerg mm/memory.c
+--- a/mm/memory.c~badpage-kern_alert-bug-instead-of-kern_emerg
 +++ a/mm/memory.c
-@@ -467,21 +467,18 @@ static inline int is_cow_mapping(unsigne
- struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
- 				pte_t pte)
- {
--	unsigned long pfn;
-+	unsigned long pfn = pte_pfn(pte);
- 
- 	if (HAVE_PTE_SPECIAL) {
--		if (likely(!pte_special(pte))) {
--			VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
--			return pte_page(pte);
--		}
--		VM_BUG_ON(!(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP)));
-+		if (likely(!pte_special(pte)))
-+			goto check_pfn;
-+		if (!(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP)))
-+			print_bad_pte(vma, addr, pte, NULL);
- 		return NULL;
- 	}
- 
- 	/* !HAVE_PTE_SPECIAL case follows: */
- 
--	pfn = pte_pfn(pte);
--
- 	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
- 		if (vma->vm_flags & VM_MIXEDMAP) {
- 			if (!pfn_valid(pfn))
-@@ -497,11 +494,14 @@ struct page *vm_normal_page(struct vm_ar
+@@ -397,8 +397,8 @@ static void print_bad_pte(struct vm_area
+ 			return;
  		}
+ 		if (nr_unshown) {
+-			printk(KERN_EMERG
+-				"Bad page map: %lu messages suppressed\n",
++			printk(KERN_ALERT
++				"BUG: Bad page map: %lu messages suppressed\n",
+ 				nr_unshown);
+ 			nr_unshown = 0;
+ 		}
+@@ -410,26 +410,27 @@ static void print_bad_pte(struct vm_area
+ 	mapping = vma->vm_file ? vma->vm_file->f_mapping : NULL;
+ 	index = linear_page_index(vma, addr);
+ 
+-	printk(KERN_EMERG "Bad page map in process %s  pte:%08llx pmd:%08llx\n",
++	printk(KERN_ALERT
++		"BUG: Bad page map in process %s  pte:%08llx pmd:%08llx\n",
+ 		current->comm,
+ 		(long long)pte_val(pte), (long long)pmd_val(*pmd));
+ 	if (page) {
+-		printk(KERN_EMERG
++		printk(KERN_ALERT
+ 		"page:%p flags:%p count:%d mapcount:%d mapping:%p index:%lx\n",
+ 		page, (void *)page->flags, page_count(page),
+ 		page_mapcount(page), page->mapping, page->index);
  	}
- 
--	VM_BUG_ON(!pfn_valid(pfn));
-+check_pfn:
-+	if (unlikely(pfn > highest_memmap_pfn)) {
-+		print_bad_pte(vma, addr, pte, NULL);
-+		return NULL;
-+	}
- 
+-	printk(KERN_EMERG
++	printk(KERN_ALERT
+ 		"addr:%p vm_flags:%08lx anon_vma:%p mapping:%p index:%lx\n",
+ 		(void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
  	/*
- 	 * NOTE! We still have PageReserved() pages in the page tables.
--	 *
- 	 * eg. VDSO mappings can cause them to exist.
+ 	 * Choose text because data symbols depend on CONFIG_KALLSYMS_ALL=y
  	 */
- out:
-diff -puN mm/page_alloc.c~badpage-vm_normal_page-use-print_bad_pte mm/page_alloc.c
---- a/mm/page_alloc.c~badpage-vm_normal_page-use-print_bad_pte
+ 	if (vma->vm_ops)
+-		print_symbol(KERN_EMERG "vma->vm_ops->fault: %s\n",
++		print_symbol(KERN_ALERT "vma->vm_ops->fault: %s\n",
+ 				(unsigned long)vma->vm_ops->fault);
+ 	if (vma->vm_file && vma->vm_file->f_op)
+-		print_symbol(KERN_EMERG "vma->vm_file->f_op->mmap: %s\n",
++		print_symbol(KERN_ALERT "vma->vm_file->f_op->mmap: %s\n",
+ 				(unsigned long)vma->vm_file->f_op->mmap);
+ 	dump_stack();
+ 	add_taint(TAINT_BAD_PAGE);
+diff -puN mm/page_alloc.c~badpage-kern_alert-bug-instead-of-kern_emerg mm/page_alloc.c
+--- a/mm/page_alloc.c~badpage-kern_alert-bug-instead-of-kern_emerg
 +++ a/mm/page_alloc.c
-@@ -69,6 +69,7 @@ EXPORT_SYMBOL(node_states);
+@@ -237,8 +237,8 @@ static void bad_page(struct page *page)
+ 			goto out;
+ 		}
+ 		if (nr_unshown) {
+-			printk(KERN_EMERG
+-				"Bad page state: %lu messages suppressed\n",
++			printk(KERN_ALERT
++			      "BUG: Bad page state: %lu messages suppressed\n",
+ 				nr_unshown);
+ 			nr_unshown = 0;
+ 		}
+@@ -247,13 +247,12 @@ static void bad_page(struct page *page)
+ 	if (nr_shown++ == 0)
+ 		resume = jiffies + 60 * HZ;
  
- unsigned long totalram_pages __read_mostly;
- unsigned long totalreserve_pages __read_mostly;
-+unsigned long highest_memmap_pfn __read_mostly;
- int percpu_pagelist_fraction;
+-	printk(KERN_EMERG "Bad page state in process %s  pfn:%05lx\n",
++	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
+ 		current->comm, page_to_pfn(page));
+-	printk(KERN_EMERG
++	printk(KERN_ALERT
+ 		"page:%p flags:%p count:%d mapcount:%d mapping:%p index:%lx\n",
+ 		page, (void *)page->flags, page_count(page),
+ 		page_mapcount(page), page->mapping, page->index);
+-	printk(KERN_EMERG "Trying to fix it up, but a reboot is needed\n");
  
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
-@@ -2597,6 +2598,9 @@ void __meminit memmap_init_zone(unsigned
- 	unsigned long pfn;
- 	struct zone *z;
- 
-+	if (highest_memmap_pfn < end_pfn - 1)
-+		highest_memmap_pfn = end_pfn - 1;
-+
- 	z = &NODE_DATA(nid)->node_zones[zone];
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		/*
+ 	dump_stack();
+ out:
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
