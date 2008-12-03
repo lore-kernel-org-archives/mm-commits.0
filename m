@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-rename-scan-global-lru.patch added to -mm tree
-Date: Tue, 02 Dec 2008 21:58:13 -0800
-Message-ID: <200812030558.mB35wDvo029513@imap1.linux-foundation.org>
+Subject: + memcg-protect-prev_priority.patch added to -mm tree
+Date: Tue, 02 Dec 2008 21:58:19 -0800
+Message-ID: <200812030558.mB35wJ0I029549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38551 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46786 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752049AbYLCF7B (ORCPT
+	by vger.kernel.org with ESMTP id S1752070AbYLCF7B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:59:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg: rename scan global lru
+     memcg: protect prev_priority
 has been added to the -mm tree.  Its filename is
-     memcg-rename-scan-global-lru.patch
+     memcg-protect-prev_priority.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: rename scan global lru
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: protect prev_priority
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Rename scan_global_lru() to scanning_global_lru().
+Currently, mem_cgroup doesn't have own lock and almost its member doesn't
+need.  (e.g.  mem_cgroup->info is protected by zone lock, mem_cgroup->stat
+is per cpu variable)
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+However, there is one explict exception.  mem_cgroup->prev_priorit need
+lock, but doesn't protect.  Luckly, this is NOT bug because prev_priority
+isn't used for current reclaim code.
+
+However, we plan to use prev_priority future again.  Therefore, fixing is
+better.
+
+In addition, we plan to reuse this lock for another member.  Then
+"reclaim_param_lock" name is better than "prev_priority_lock".
+
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Hugh Dickins <hugh@veritas.com>
@@ -46,219 +59,91 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ mm/memcontrol.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~memcg-rename-scan-global-lru mm/vmscan.c
---- a/mm/vmscan.c~memcg-rename-scan-global-lru
-+++ a/mm/vmscan.c
-@@ -125,15 +125,15 @@ static LIST_HEAD(shrinker_list);
- static DECLARE_RWSEM(shrinker_rwsem);
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
--#define scan_global_lru(sc)	(!(sc)->mem_cgroup)
-+#define scanning_global_lru(sc)	(!(sc)->mem_cgroup)
- #else
--#define scan_global_lru(sc)	(1)
-+#define scanning_global_lru(sc)	(1)
- #endif
- 
- static struct zone_reclaim_stat *get_reclaim_stat(struct zone *zone,
- 						  struct scan_control *sc)
- {
--	if (!scan_global_lru(sc))
-+	if (!scanning_global_lru(sc))
- 		mem_cgroup_get_reclaim_stat(sc->mem_cgroup, zone);
- 
- 	return &zone->reclaim_stat;
-@@ -142,7 +142,7 @@ static struct zone_reclaim_stat *get_rec
- static unsigned long zone_nr_pages(struct zone *zone, struct scan_control *sc,
- 				   enum lru_list lru)
- {
--	if (!scan_global_lru(sc))
-+	if (!scanning_global_lru(sc))
- 		return mem_cgroup_zone_nr_pages(sc->mem_cgroup, zone, lru);
- 
- 	return zone_page_state(zone, NR_LRU_BASE + lru);
-@@ -1137,7 +1137,7 @@ static unsigned long shrink_inactive_lis
- 		__mod_zone_page_state(zone, NR_INACTIVE_ANON,
- 						-count[LRU_INACTIVE_ANON]);
- 
--		if (scan_global_lru(sc))
-+		if (scanning_global_lru(sc))
- 			zone->pages_scanned += nr_scan;
- 
- 		reclaim_stat->recent_scanned[0] += count[LRU_INACTIVE_ANON];
-@@ -1176,7 +1176,7 @@ static unsigned long shrink_inactive_lis
- 		if (current_is_kswapd()) {
- 			__count_zone_vm_events(PGSCAN_KSWAPD, zone, nr_scan);
- 			__count_vm_events(KSWAPD_STEAL, nr_freed);
--		} else if (scan_global_lru(sc))
-+		} else if (scanning_global_lru(sc))
- 			__count_zone_vm_events(PGSCAN_DIRECT, zone, nr_scan);
- 
- 		__count_zone_vm_events(PGSTEAL, zone, nr_freed);
-@@ -1275,7 +1275,7 @@ static void shrink_active_list(unsigned 
- 	 * zone->pages_scanned is used for detect zone's oom
- 	 * mem_cgroup remembers nr_scan by itself.
+diff -puN mm/memcontrol.c~memcg-protect-prev_priority mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-protect-prev_priority
++++ a/mm/memcontrol.c
+@@ -144,6 +144,11 @@ struct mem_cgroup {
  	 */
--	if (scan_global_lru(sc)) {
-+	if (scanning_global_lru(sc)) {
- 		zone->pages_scanned += pgscanned;
- 	}
- 	reclaim_stat->recent_scanned[!!file] += pgmoved;
-@@ -1384,7 +1384,7 @@ static int inactive_anon_is_low(struct z
+ 	struct mem_cgroup_lru_info info;
+ 
++	/*
++	  protect against reclaim related member.
++	*/
++	spinlock_t reclaim_param_lock;
++
+ 	int	prev_priority;	/* for recording reclaim priority */
+ 
+ 	/*
+@@ -400,18 +405,28 @@ int mem_cgroup_calc_mapped_ratio(struct 
+  */
+ int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem)
  {
- 	int low;
+-	return mem->prev_priority;
++	int prev_priority;
++
++	spin_lock(&mem->reclaim_param_lock);
++	prev_priority = mem->prev_priority;
++	spin_unlock(&mem->reclaim_param_lock);
++
++	return prev_priority;
+ }
  
--	if (scan_global_lru(sc))
-+	if (scanning_global_lru(sc))
- 		low = inactive_anon_is_low_global(zone);
- 	else
- 		low = mem_cgroup_inactive_anon_is_low(sc->mem_cgroup, zone);
-@@ -1438,7 +1438,7 @@ static void get_scan_ratio(struct zone *
- 	file  = zone_nr_pages(zone, sc, LRU_ACTIVE_FILE) +
- 		zone_nr_pages(zone, sc, LRU_INACTIVE_FILE);
+ void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem, int priority)
+ {
++	spin_lock(&mem->reclaim_param_lock);
+ 	if (priority < mem->prev_priority)
+ 		mem->prev_priority = priority;
++	spin_unlock(&mem->reclaim_param_lock);
+ }
  
--	if (scan_global_lru(sc)) {
-+	if (scanning_global_lru(sc)) {
- 		free  = zone_page_state(zone, NR_FREE_PAGES);
- 		/* If we have very few page cache pages,
- 		   force-scan anon pages. */
-@@ -1520,7 +1520,7 @@ static void shrink_zone(int priority, st
- 			scan >>= priority;
- 			scan = (scan * percent[file]) / 100;
- 		}
--		if (scan_global_lru(sc)) {
-+		if (scanning_global_lru(sc)) {
- 			zone->lru[l].nr_scan += scan;
- 			nr[l] = zone->lru[l].nr_scan;
- 			if (nr[l] >= sc->swap_cluster_max)
-@@ -1595,7 +1595,7 @@ static void shrink_zones(int priority, s
- 		 * Take care memory controller reclaiming has small influence
- 		 * to global LRU.
- 		 */
--		if (scan_global_lru(sc)) {
-+		if (scanning_global_lru(sc)) {
- 			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
- 				continue;
- 			note_zone_scanning_priority(zone, priority);
-@@ -1648,12 +1648,12 @@ static unsigned long do_try_to_free_page
+ void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem, int priority)
+ {
++	spin_lock(&mem->reclaim_param_lock);
+ 	mem->prev_priority = priority;
++	spin_unlock(&mem->reclaim_param_lock);
+ }
  
- 	delayacct_freepages_start();
- 
--	if (scan_global_lru(sc))
-+	if (scanning_global_lru(sc))
- 		count_vm_event(ALLOCSTALL);
- 	/*
- 	 * mem_cgroup will not do shrink_slab.
- 	 */
--	if (scan_global_lru(sc)) {
-+	if (scanning_global_lru(sc)) {
- 		for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
- 
- 			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
-@@ -1672,7 +1672,7 @@ static unsigned long do_try_to_free_page
- 		 * Don't shrink slabs when reclaiming memory from
- 		 * over limit cgroups
- 		 */
--		if (scan_global_lru(sc)) {
-+		if (scanning_global_lru(sc)) {
- 			shrink_slab(sc->nr_scanned, sc->gfp_mask, lru_pages, NULL);
- 			if (reclaim_state) {
- 				sc->nr_reclaimed += reclaim_state->reclaimed_slab;
-@@ -1703,7 +1703,7 @@ static unsigned long do_try_to_free_page
- 			congestion_wait(WRITE, HZ/10);
+ int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg, struct zone *zone)
+@@ -2070,6 +2085,7 @@ mem_cgroup_create(struct cgroup_subsys *
  	}
- 	/* top priority shrink_zones still had more to do? don't OOM, then */
--	if (!sc->all_unreclaimable && scan_global_lru(sc))
-+	if (!sc->all_unreclaimable && scanning_global_lru(sc))
- 		ret = sc->nr_reclaimed;
- out:
- 	/*
-@@ -1716,7 +1716,7 @@ out:
- 	if (priority < 0)
- 		priority = 0;
+ 	mem_cgroup_set_inactive_ratio(mem);
+ 	mem->last_scanned_child = NULL;
++	spin_lock_init(&mem->reclaim_param_lock);
  
--	if (scan_global_lru(sc)) {
-+	if (scanning_global_lru(sc)) {
- 		for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
- 
- 			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 	return &mem->css;
+ free_out:
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 vmscan-evict-streaming-io-first.patch
-mm-gup-persist-for-write-permission.patch
-mm-wp-lock-page-before-deciding-cow.patch
-mm-reuse_swap_page-replaces-can_share_swap_page.patch
-mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
-mm-try_to_unuse-check-removing-right-swap.patch
-mm-remove-try_to_munlock-from-vmscan.patch
-mm-remove-gfp_mask-from-add_to_swap.patch
-mm-add-add_to_swap-stub.patch
-mm-optimize-get_scan_ratio-for-no-swap.patch
+linux-next.patch
+arch-ia64-kernel-iosapicc-fix-warnings.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+oom-fix-zone_scan_mutex-name.patch
+mm-get-rid-of-pagevec_release_nonlru.patch
+cleanup-get-rid-of-ifdef-config_migration.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-make-page_lock_anon_vma-static.patch
 memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-swapfile-swapon-needs-larger-size-type.patch
-swapfile-remove-swp_active-mask.patch
-swapfile-remove-surplus-whitespace.patch
-swapfile-remove-v0-swap-space-message.patch
-swapfile-rearrange-scan-and-swap_info.patch
-swapfile-swapon-use-discard-trim.patch
-swapfile-swap-allocation-use-discard.patch
-swapfile-swapon-randomize-if-nonrot.patch
-swapfile-swap-allocation-cycle-if-nonrot.patch
-swapfile-change-discard-pgoff_t-to-sector_t.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-swapfile-let-others-seed-random.patch
-cgroups-make-cgroup-config-a-submenu.patch
-cgroups-documentation-updates.patch
-cgroups-remove-some-redundant-null-checks.patch
-ns_cgroup-remove-unused-spinlock.patch
-memcg-fix-a-typo-in-kconfig.patch
-cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
-cgroups-fix-cgroup_iter_next-bug.patch
-cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
-cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
-cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
-cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
-cgroups-make-root_list-contains-active-hierarchies-only.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
-devcgroup-use-list_for_each_entry_rcu.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-fix-gfp_mask-of-callers-of-charge.patch
-memcg-simple-migration-handling.patch
-memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
-memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
+mm-make-init_section_page_cgroup-static.patch
+mm-make-maddr-__iomem.patch
+mm-make-mem_cgroup_resize_limit-static.patch
+mm-make-scan_all_zones_unevictable_pages-static.patch
+mm-make-scan_zone_unevictable_pages-static.patch
+mm-make-setup_per_zone_inactive_ratio-static.patch
+mm-make-vread-and-vwrite-declaration.patch
+vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
+mm-kill-zone_is_near_oom.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 memcg-new-force_empty-to-free-pages-under-group-fix.patch
 memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-memswap-controller-kconfig.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-synchronized-lru.patch
-memcg-add-mem_cgroup_disabled.patch
-memcg-add-mem_cgroup_disabled-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-memcg-fix-reclaim-result-checks.patch
 memcg-revert-gfp-mask-fix.patch
 memcg-check-group-leader-fix.patch
 memcg-memoryswap-controller-fix-limit-check.patch
@@ -278,5 +163,4 @@ memcg-rename-scan-global-lru.patch
 memcg-protect-prev_priority.patch
 memcg-swappiness.patch
 memcg-explain-details-and-test-document.patch
-cpuset-rcu_read_lock-to-protect-task_cs.patch
 
