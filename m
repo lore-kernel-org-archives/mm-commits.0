@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-implement-interrupt-enabling-rwlocks.patch added to -mm tree
-Date: Tue, 02 Dec 2008 16:13:29 -0800
-Message-ID: <200812030013.mB30DTIb032356@imap1.linux-foundation.org>
+Subject: + parport-ieee1284-use-del_timer_sync-in-parport_wait_event.patch added to -mm tree
+Date: Tue, 02 Dec 2008 16:31:02 -0800
+Message-ID: <200812030031.mB30V2mF009792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35662 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755327AbYLCAOr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:14:47 -0500
+	by vger.kernel.org with ESMTP id S1753237AbYLCAbj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:31:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: holt@sgi.com, a.p.zijlstra@chello.nl, linux-arch@vger.kernel.org, mingo@elte.hu, ptesarik@suse.cz, tony.luck@intel.com
+Cc: mb@bu3sch.de
 
 
 The patch titled
-     ia64: implement interrupt-enabling rwlocks
+     parport: ieee1284: use del_timer_sync() in parport_wait_event()
 has been added to the -mm tree.  Its filename is
-     ia64-implement-interrupt-enabling-rwlocks.patch
+     parport-ieee1284-use-del_timer_sync-in-parport_wait_event.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,135 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: implement interrupt-enabling rwlocks
-From: Robin Holt <holt@sgi.com>
+Subject: parport: ieee1284: use del_timer_sync() in parport_wait_event()
+From: Michael Buesch <mb@bu3sch.de>
 
-Implement __raw_read_lock_flags and __raw_write_lock_flags for the ia64
-architecture.
+Use del_timer_sync() instead of del_timer() to make sure the timer won't
+be running when we return from parport_wait_event(), because this would
+crash due to destruction of timer_list.
 
-Signed-off-by: Petr Tesarik <ptesarik@suse.cz>
-Signed-off-by: Robin Holt <holt@sgi.com>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+This is untested and just based on a code review.  Just think about the
+following sequence of events:
+
+- add_timer()
+
+- down_interruptible() is interrupted by a signal.
+
+- we enter the timer callback handler on another CPU.
+
+- del_timer(), but the timer callback is still running.
+
+- eturn from parport_wait_even, which destroys the automatic variable
+  "timer" while the callback is running on another CPU.
+
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/spinlock.h |   80 ++++++++++++++++++++++-------
- 1 file changed, 63 insertions(+), 17 deletions(-)
+ drivers/parport/ieee1284.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/include/asm/spinlock.h~ia64-implement-interrupt-enabling-rwlocks arch/ia64/include/asm/spinlock.h
---- a/arch/ia64/include/asm/spinlock.h~ia64-implement-interrupt-enabling-rwlocks
-+++ a/arch/ia64/include/asm/spinlock.h
-@@ -120,6 +120,38 @@ do {											\
- #define __raw_read_can_lock(rw)		(*(volatile int *)(rw) >= 0)
- #define __raw_write_can_lock(rw)	(*(volatile int *)(rw) == 0)
+diff -puN drivers/parport/ieee1284.c~parport-ieee1284-use-del_timer_sync-in-parport_wait_event drivers/parport/ieee1284.c
+--- a/drivers/parport/ieee1284.c~parport-ieee1284-use-del_timer_sync-in-parport_wait_event
++++ a/drivers/parport/ieee1284.c
+@@ -84,7 +84,7 @@ int parport_wait_event (struct parport *
  
-+#ifdef ASM_SUPPORTED
-+
-+static __always_inline void
-+__raw_read_lock_flags(raw_spinlock_t *lock, unsigned long flags)
-+{
-+	__asm__ __volatile__ (
-+		"tbit.nz p6, p0 = %1,%2\n"
-+		"br.few 3f\n"
-+		"1:\n"
-+		"fetchadd4.rel r2 = [%0], -1;;\n"
-+		"(p6) ssm psr.i\n"
-+		"2:\n"
-+		"hint @pause\n"
-+		"ld4 r2 = [%0];;\n"
-+		"cmp4.lt p7,p0 = r2, r0\n"
-+		"(p7) br.cond.spnt.few 2b\n"
-+		"(p6) rsm psr.i\n"
-+		";;\n"
-+		"3:\n"
-+		"fetchadd4.acq r2 = [%0], 1;;\n"
-+		"cmp4.lt p7,p0 = r2, r0\n"
-+		"(p7) br.cond.spnt.few 1b\n"
-+		: : "r"(lock), "r"(flags), "i"(IA64_PSR_I_BIT)
-+		: "p6", "p7", "r2", "memory");
-+}
-+
-+#define __raw_read_lock(lock) __raw_read_lock_flags(lock, 0)
-+
-+#else /* !ASM_SUPPORTED */
-+
-+#define __raw_read_lock_flags(rw, flags) __raw_read_lock(rw)
-+
- #define __raw_read_lock(rw)								\
- do {											\
- 	raw_rwlock_t *__read_lock_ptr = (rw);						\
-@@ -131,6 +163,8 @@ do {											\
- 	}										\
- } while (0)
+ 	add_timer (&timer);
+ 	ret = down_interruptible (&port->physport->ieee1284.irq);
+-	if (!del_timer (&timer) && !ret)
++	if (!del_timer_sync (&timer) && !ret)
+ 		/* Timed out. */
+ 		ret = 1;
  
-+#endif /* !ASM_SUPPORTED */
-+
- #define __raw_read_unlock(rw)					\
- do {								\
- 	raw_rwlock_t *__read_lock_ptr = (rw);			\
-@@ -138,20 +172,33 @@ do {								\
- } while (0)
- 
- #ifdef ASM_SUPPORTED
--#define __raw_write_lock(rw)							\
--do {										\
-- 	__asm__ __volatile__ (							\
--		"mov ar.ccv = r0\n"						\
--		"dep r29 = -1, r0, 31, 1;;\n"					\
--		"1:\n"								\
--		"ld4 r2 = [%0];;\n"						\
--		"cmp4.eq p0,p7 = r0,r2\n"					\
--		"(p7) br.cond.spnt.few 1b \n"					\
--		"cmpxchg4.acq r2 = [%0], r29, ar.ccv;;\n"			\
--		"cmp4.eq p0,p7 = r0, r2\n"					\
--		"(p7) br.cond.spnt.few 1b;;\n"					\
--		:: "r"(rw) : "ar.ccv", "p7", "r2", "r29", "memory");		\
--} while(0)
-+
-+static __always_inline void
-+__raw_write_lock_flags(raw_spinlock_t *lock, unsigned long flags)
-+{
-+	__asm__ __volatile__ (
-+		"tbit.nz p6, p0 = %1, %2\n"
-+		"mov ar.ccv = r0\n"
-+		"dep r29 = -1, r0, 31, 1\n"
-+		"br.few 3f;;\n"
-+		"1:\n"
-+		"(p6) ssm psr.i\n"
-+		"2:\n"
-+		"hint @pause\n"
-+		"ld4 r2 = [%0];;\n"
-+		"cmp4.eq p0,p7 = r0, r2\n"
-+		"(p7) br.cond.spnt.few 2b\n"
-+		"(p6) rsm psr.i\n"
-+		";;\n"
-+		"3:\n"
-+		"cmpxchg4.acq r2 = [%0], r29, ar.ccv;;\n"
-+		"cmp4.eq p0,p7 = r0, r2\n"
-+		"(p7) br.cond.spnt.few 1b;;\n"
-+		: : "r"(lock), "r"(flags), "i"(IA64_PSR_I_BIT)
-+		: "ar.ccv", "p6", "p7", "r2", "r29", "memory");
-+}
-+
-+#define __raw_write_lock(rw) __raw_write_lock_flags(rw, 0)
- 
- #define __raw_write_trylock(rw)							\
- ({										\
-@@ -174,6 +221,8 @@ static inline void __raw_write_unlock(ra
- 
- #else /* !ASM_SUPPORTED */
- 
-+#define __raw_write_lock_flags(l, flags) __raw_write_lock(l)
-+
- #define __raw_write_lock(l)								\
- ({											\
- 	__u64 ia64_val, ia64_set_val = ia64_dep_mi(-1, 0, 31, 1);			\
-@@ -213,9 +262,6 @@ static inline int __raw_read_trylock(raw
- 	return (u32)ia64_cmpxchg4_acq((__u32 *)(x), new.word, old.word) == old.word;
- }
- 
--#define __raw_read_lock_flags(lock, flags) __raw_read_lock(lock)
--#define __raw_write_lock_flags(lock, flags) __raw_write_lock(lock)
+_
+
+Patches currently in -mm which might be from mb@bu3sch.de are
+
+linux-next.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event.patch
+
