@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-zone_nr_pages-helper-function.patch added to -mm tree
-Date: Tue, 02 Dec 2008 20:17:07 -0800
-Message-ID: <200812030417.mB34H7DJ005575@imap1.linux-foundation.org>
+Subject: + memcg-remove-mem_cgroup_calc_reclaim.patch added to -mm tree
+Date: Tue, 02 Dec 2008 20:17:19 -0800
+Message-ID: <200812030417.mB34HJnF005709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752798AbYLCER1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 23:17:27 -0500
+	by vger.kernel.org with ESMTP id S1753338AbYLCERm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 23:17:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@j
 
 
 The patch titled
-     Add zone_nr_pages() helper function
+     memcg: remove mem_cgroup_calc_reclaim()
 has been added to the -mm tree.  Its filename is
-     add-zone_nr_pages-helper-function.patch
+     memcg-remove-mem_cgroup_calc_reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,129 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add zone_nr_pages() helper function
+Subject: memcg: remove mem_cgroup_calc_reclaim()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-It is used by a later patch.  This patch doesn't have any functional
-change.
+Now, get_scan_ratio() return correct value although memcg reclaim.  Then,
+mem_cgroup_calc_reclaim() can be removed.
+
+So, memcg reclaim get the same capability of anon/file reclaim balancing
+as global reclaim now.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |   10 ----------
+ mm/memcontrol.c            |   21 ---------------------
+ mm/vmscan.c                |   27 ++++++++++-----------------
+ 3 files changed, 10 insertions(+), 48 deletions(-)
 
-diff -puN mm/vmscan.c~add-zone_nr_pages-helper-function mm/vmscan.c
---- a/mm/vmscan.c~add-zone_nr_pages-helper-function
-+++ a/mm/vmscan.c
-@@ -136,6 +136,13 @@ static struct zone_reclaim_stat *get_rec
- 	return &zone->reclaim_stat;
+diff -puN include/linux/memcontrol.h~memcg-remove-mem_cgroup_calc_reclaim include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-remove-mem_cgroup_calc_reclaim
++++ a/include/linux/memcontrol.h
+@@ -87,9 +87,6 @@ extern void mem_cgroup_note_reclaim_prio
+ 							int priority);
+ extern void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
+ 							int priority);
+-
+-extern long mem_cgroup_calc_reclaim(struct mem_cgroup *mem, struct zone *zone,
+-					int priority, enum lru_list lru);
+ int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg,
+ 				    struct zone *zone);
+ unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
+@@ -234,13 +231,6 @@ static inline void mem_cgroup_record_rec
+ {
  }
  
-+static unsigned long zone_nr_pages(struct zone *zone, struct scan_control *sc,
-+				   enum lru_list lru)
-+{
-+	return zone_page_state(zone, NR_LRU_BASE + lru);
-+}
-+
-+
- /*
-  * Add a shrinker callback to be called from the vm
-  */
-@@ -1412,10 +1419,10 @@ static void get_scan_ratio(struct zone *
- 		return;
+-static inline long mem_cgroup_calc_reclaim(struct mem_cgroup *mem,
+-					struct zone *zone, int priority,
+-					enum lru_list lru)
+-{
+-	return 0;
+-}
+-
+ static inline bool mem_cgroup_disabled(void)
+ {
+ 	return true;
+diff -puN mm/memcontrol.c~memcg-remove-mem_cgroup_calc_reclaim mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-mem_cgroup_calc_reclaim
++++ a/mm/memcontrol.c
+@@ -414,27 +414,6 @@ void mem_cgroup_record_reclaim_priority(
+ 	mem->prev_priority = priority;
+ }
+ 
+-/*
+- * Calculate # of pages to be scanned in this priority/zone.
+- * See also vmscan.c
+- *
+- * priority starts from "DEF_PRIORITY" and decremented in each loop.
+- * (see include/linux/mmzone.h)
+- */
+-
+-long mem_cgroup_calc_reclaim(struct mem_cgroup *mem, struct zone *zone,
+-					int priority, enum lru_list lru)
+-{
+-	long nr_pages;
+-	int nid = zone->zone_pgdat->node_id;
+-	int zid = zone_idx(zone);
+-	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(mem, nid, zid);
+-
+-	nr_pages = MEM_CGROUP_ZSTAT(mz, lru);
+-
+-	return (nr_pages >> priority);
+-}
+-
+ int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg, struct zone *zone)
+ {
+ 	unsigned long active;
+diff -puN mm/vmscan.c~memcg-remove-mem_cgroup_calc_reclaim mm/vmscan.c
+--- a/mm/vmscan.c~memcg-remove-mem_cgroup_calc_reclaim
++++ a/mm/vmscan.c
+@@ -1512,30 +1512,23 @@ static void shrink_zone(int priority, st
+ 	get_scan_ratio(zone, sc, percent);
+ 
+ 	for_each_evictable_lru(l) {
+-		if (scan_global_lru(sc)) {
+-			int file = is_file_lru(l);
+-			int scan;
++		int file = is_file_lru(l);
++		int scan;
+ 
+-			scan = zone_page_state(zone, NR_LRU_BASE + l);
+-			if (priority) {
+-				scan >>= priority;
+-				scan = (scan * percent[file]) / 100;
+-			}
++		scan = zone_page_state(zone, NR_LRU_BASE + l);
++		if (priority) {
++			scan >>= priority;
++			scan = (scan * percent[file]) / 100;
++		}
++		if (scan_global_lru(sc)) {
+ 			zone->lru[l].nr_scan += scan;
+ 			nr[l] = zone->lru[l].nr_scan;
+ 			if (nr[l] >= sc->swap_cluster_max)
+ 				zone->lru[l].nr_scan = 0;
+ 			else
+ 				nr[l] = 0;
+-		} else {
+-			/*
+-			 * This reclaim occurs not because zone memory shortage
+-			 * but because memory controller hits its limit.
+-			 * Don't modify zone reclaim related data.
+-			 */
+-			nr[l] = mem_cgroup_calc_reclaim(sc->mem_cgroup, zone,
+-								priority, l);
+-		}
++		} else
++			nr[l] = scan;
  	}
  
--	anon  = zone_page_state(zone, NR_ACTIVE_ANON) +
--		zone_page_state(zone, NR_INACTIVE_ANON);
--	file  = zone_page_state(zone, NR_ACTIVE_FILE) +
--		zone_page_state(zone, NR_INACTIVE_FILE);
-+	anon  = zone_nr_pages(zone, sc, LRU_ACTIVE_ANON) +
-+		zone_nr_pages(zone, sc, LRU_INACTIVE_ANON);
-+	file  = zone_nr_pages(zone, sc, LRU_ACTIVE_FILE) +
-+		zone_nr_pages(zone, sc, LRU_INACTIVE_FILE);
- 	free  = zone_page_state(zone, NR_FREE_PAGES);
- 
- 	/* If we have very few page cache pages, force-scan anon pages. */
+ 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
