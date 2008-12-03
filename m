@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-mem_cgroup_zone_nr_pages.patch added to -mm tree
-Date: Tue, 02 Dec 2008 21:57:52 -0800
-Message-ID: <200812030557.mB35vqWn029320@imap1.linux-foundation.org>
+Subject: + memcg-rename-scan-global-lru.patch added to -mm tree
+Date: Tue, 02 Dec 2008 21:58:13 -0800
+Message-ID: <200812030558.mB35wDvo029513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38551 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751959AbYLCF66 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:58:58 -0500
+	by vger.kernel.org with ESMTP id S1752049AbYLCF7B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:59:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg: add mem_cgroup_zone_nr_pages()
+     memcg: rename scan global lru
 has been added to the -mm tree.  Its filename is
-     memcg-add-mem_cgroup_zone_nr_pages.patch
+     memcg-rename-scan-global-lru.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,17 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add mem_cgroup_zone_nr_pages()
+Subject: memcg: rename scan global lru
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Introduce mem_cgroup_zone_nr_pages().  It is called by zone_nr_pages()
-helper function.
+Rename scan_global_lru() to scanning_global_lru().
 
-This patch doesn't have any behavior change.
-
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Hugh Dickins <hugh@veritas.com>
@@ -51,81 +46,145 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   11 +++++++++++
- mm/memcontrol.c            |   12 +++++++++++-
- mm/vmscan.c                |    3 +++
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-add-mem_cgroup_zone_nr_pages include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-mem_cgroup_zone_nr_pages
-+++ a/include/linux/memcontrol.h
-@@ -102,6 +102,9 @@ extern long mem_cgroup_calc_reclaim(stru
- 					int priority, enum lru_list lru);
- int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg,
- 				    struct zone *zone);
-+unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
-+				       struct zone *zone,
-+				       enum lru_list lru);
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- extern int do_swap_account;
-@@ -260,6 +263,14 @@ mem_cgroup_inactive_anon_is_low(struct m
- 	return 1;
- }
- 
-+static inline unsigned long
-+mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg, struct zone *zone,
-+			 enum lru_list lru)
-+{
-+	return 0;
-+}
-+
-+
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_zone_nr_pages mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-mem_cgroup_zone_nr_pages
-+++ a/mm/memcontrol.c
-@@ -186,7 +186,6 @@ pcg_default_flags[NR_CHARGE_TYPE] = {
- 	0, /* FORCE */
- };
- 
--
- /* for encoding cft->private value on file */
- #define _MEM			(0)
- #define _MEMSWAP		(1)
-@@ -448,6 +447,17 @@ int mem_cgroup_inactive_anon_is_low(stru
- 	return 0;
- }
- 
-+unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
-+				       struct zone *zone,
-+				       enum lru_list lru)
-+{
-+	int nid = zone->zone_pgdat->node_id;
-+	int zid = zone_idx(zone);
-+	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(memcg, nid, zid);
-+
-+	return MEM_CGROUP_ZSTAT(mz, lru);
-+}
-+
- unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
- 					struct list_head *dst,
- 					unsigned long *scanned, int order,
-diff -puN mm/vmscan.c~memcg-add-mem_cgroup_zone_nr_pages mm/vmscan.c
---- a/mm/vmscan.c~memcg-add-mem_cgroup_zone_nr_pages
+diff -puN mm/vmscan.c~memcg-rename-scan-global-lru mm/vmscan.c
+--- a/mm/vmscan.c~memcg-rename-scan-global-lru
 +++ a/mm/vmscan.c
-@@ -139,6 +139,9 @@ static struct zone_reclaim_stat *get_rec
+@@ -125,15 +125,15 @@ static LIST_HEAD(shrinker_list);
+ static DECLARE_RWSEM(shrinker_rwsem);
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+-#define scan_global_lru(sc)	(!(sc)->mem_cgroup)
++#define scanning_global_lru(sc)	(!(sc)->mem_cgroup)
+ #else
+-#define scan_global_lru(sc)	(1)
++#define scanning_global_lru(sc)	(1)
+ #endif
+ 
+ static struct zone_reclaim_stat *get_reclaim_stat(struct zone *zone,
+ 						  struct scan_control *sc)
+ {
+-	if (!scan_global_lru(sc))
++	if (!scanning_global_lru(sc))
+ 		mem_cgroup_get_reclaim_stat(sc->mem_cgroup, zone);
+ 
+ 	return &zone->reclaim_stat;
+@@ -142,7 +142,7 @@ static struct zone_reclaim_stat *get_rec
  static unsigned long zone_nr_pages(struct zone *zone, struct scan_control *sc,
  				   enum lru_list lru)
  {
-+	if (!scan_global_lru(sc))
-+		return mem_cgroup_zone_nr_pages(sc->mem_cgroup, zone, lru);
-+
- 	return zone_page_state(zone, NR_LRU_BASE + lru);
- }
+-	if (!scan_global_lru(sc))
++	if (!scanning_global_lru(sc))
+ 		return mem_cgroup_zone_nr_pages(sc->mem_cgroup, zone, lru);
  
+ 	return zone_page_state(zone, NR_LRU_BASE + lru);
+@@ -1137,7 +1137,7 @@ static unsigned long shrink_inactive_lis
+ 		__mod_zone_page_state(zone, NR_INACTIVE_ANON,
+ 						-count[LRU_INACTIVE_ANON]);
+ 
+-		if (scan_global_lru(sc))
++		if (scanning_global_lru(sc))
+ 			zone->pages_scanned += nr_scan;
+ 
+ 		reclaim_stat->recent_scanned[0] += count[LRU_INACTIVE_ANON];
+@@ -1176,7 +1176,7 @@ static unsigned long shrink_inactive_lis
+ 		if (current_is_kswapd()) {
+ 			__count_zone_vm_events(PGSCAN_KSWAPD, zone, nr_scan);
+ 			__count_vm_events(KSWAPD_STEAL, nr_freed);
+-		} else if (scan_global_lru(sc))
++		} else if (scanning_global_lru(sc))
+ 			__count_zone_vm_events(PGSCAN_DIRECT, zone, nr_scan);
+ 
+ 		__count_zone_vm_events(PGSTEAL, zone, nr_freed);
+@@ -1275,7 +1275,7 @@ static void shrink_active_list(unsigned 
+ 	 * zone->pages_scanned is used for detect zone's oom
+ 	 * mem_cgroup remembers nr_scan by itself.
+ 	 */
+-	if (scan_global_lru(sc)) {
++	if (scanning_global_lru(sc)) {
+ 		zone->pages_scanned += pgscanned;
+ 	}
+ 	reclaim_stat->recent_scanned[!!file] += pgmoved;
+@@ -1384,7 +1384,7 @@ static int inactive_anon_is_low(struct z
+ {
+ 	int low;
+ 
+-	if (scan_global_lru(sc))
++	if (scanning_global_lru(sc))
+ 		low = inactive_anon_is_low_global(zone);
+ 	else
+ 		low = mem_cgroup_inactive_anon_is_low(sc->mem_cgroup, zone);
+@@ -1438,7 +1438,7 @@ static void get_scan_ratio(struct zone *
+ 	file  = zone_nr_pages(zone, sc, LRU_ACTIVE_FILE) +
+ 		zone_nr_pages(zone, sc, LRU_INACTIVE_FILE);
+ 
+-	if (scan_global_lru(sc)) {
++	if (scanning_global_lru(sc)) {
+ 		free  = zone_page_state(zone, NR_FREE_PAGES);
+ 		/* If we have very few page cache pages,
+ 		   force-scan anon pages. */
+@@ -1520,7 +1520,7 @@ static void shrink_zone(int priority, st
+ 			scan >>= priority;
+ 			scan = (scan * percent[file]) / 100;
+ 		}
+-		if (scan_global_lru(sc)) {
++		if (scanning_global_lru(sc)) {
+ 			zone->lru[l].nr_scan += scan;
+ 			nr[l] = zone->lru[l].nr_scan;
+ 			if (nr[l] >= sc->swap_cluster_max)
+@@ -1595,7 +1595,7 @@ static void shrink_zones(int priority, s
+ 		 * Take care memory controller reclaiming has small influence
+ 		 * to global LRU.
+ 		 */
+-		if (scan_global_lru(sc)) {
++		if (scanning_global_lru(sc)) {
+ 			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 				continue;
+ 			note_zone_scanning_priority(zone, priority);
+@@ -1648,12 +1648,12 @@ static unsigned long do_try_to_free_page
+ 
+ 	delayacct_freepages_start();
+ 
+-	if (scan_global_lru(sc))
++	if (scanning_global_lru(sc))
+ 		count_vm_event(ALLOCSTALL);
+ 	/*
+ 	 * mem_cgroup will not do shrink_slab.
+ 	 */
+-	if (scan_global_lru(sc)) {
++	if (scanning_global_lru(sc)) {
+ 		for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
+ 
+ 			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+@@ -1672,7 +1672,7 @@ static unsigned long do_try_to_free_page
+ 		 * Don't shrink slabs when reclaiming memory from
+ 		 * over limit cgroups
+ 		 */
+-		if (scan_global_lru(sc)) {
++		if (scanning_global_lru(sc)) {
+ 			shrink_slab(sc->nr_scanned, sc->gfp_mask, lru_pages, NULL);
+ 			if (reclaim_state) {
+ 				sc->nr_reclaimed += reclaim_state->reclaimed_slab;
+@@ -1703,7 +1703,7 @@ static unsigned long do_try_to_free_page
+ 			congestion_wait(WRITE, HZ/10);
+ 	}
+ 	/* top priority shrink_zones still had more to do? don't OOM, then */
+-	if (!sc->all_unreclaimable && scan_global_lru(sc))
++	if (!sc->all_unreclaimable && scanning_global_lru(sc))
+ 		ret = sc->nr_reclaimed;
+ out:
+ 	/*
+@@ -1716,7 +1716,7 @@ out:
+ 	if (priority < 0)
+ 		priority = 0;
+ 
+-	if (scan_global_lru(sc)) {
++	if (scanning_global_lru(sc)) {
+ 		for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
+ 
+ 			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
