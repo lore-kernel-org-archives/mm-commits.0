@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-explain-details-and-test-document.patch added to -mm tree
-Date: Tue, 02 Dec 2008 21:58:29 -0800
-Message-ID: <200812030558.mB35wUum029662@imap1.linux-foundation.org>
+Subject: + memcg-swappiness.patch added to -mm tree
+Date: Tue, 02 Dec 2008 21:58:23 -0800
+Message-ID: <200812030558.mB35wNZs029607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39703 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752091AbYLCF7O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:59:14 -0500
+	by vger.kernel.org with ESMTP id S1751930AbYLCF7M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:59:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.
 
 
 The patch titled
-     memcg: explain details and test document
+     memcg: swappiness
 has been added to the -mm tree.  Its filename is
-     memcg-explain-details-and-test-document.patch
+     memcg-swappiness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: explain details and test document
+Subject: memcg: swappiness
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Documentation for implementation details and how to test.
+Currently, /proc/sys/vm/swappiness can change swappiness ratio for global
+reclaim.  However, memcg reclaim doesn't have tuning parameter for itself.
 
-Just an example. feel free to modify, add, remove lines.
+In general, the optimal swappiness depend on workload.  (e.g.  hpc
+workload need to low swappiness than the others.)
+
+Then, per cgroup swappiness improve administrator tunability.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Hugh Dickins <hugh@veritas.com>
@@ -48,158 +53,224 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/controllers/memcg_test.txt |  145 +++++++++++++++++++++
- 1 file changed, 145 insertions(+)
+ Documentation/controllers/memory.txt |    9 ++
+ include/linux/swap.h                 |    3 
+ mm/memcontrol.c                      |   78 ++++++++++++++++++++++---
+ mm/vmscan.c                          |    7 +-
+ 4 files changed, 86 insertions(+), 11 deletions(-)
 
-diff -puN /dev/null Documentation/controllers/memcg_test.txt
---- /dev/null
-+++ a/Documentation/controllers/memcg_test.txt
-@@ -0,0 +1,145 @@
-+Memory Resource Controller(Memcg)  Implementation Memo.
-+Last Updated: 2009/12/03
+diff -puN Documentation/controllers/memory.txt~memcg-swappiness Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memcg-swappiness
++++ a/Documentation/controllers/memory.txt
+@@ -314,6 +314,15 @@ will be charged as a new owner of it.
+ 	showing for better debug please see the code for meanings.
+ 
+ 
++5.3 swappiness
++  Similar to /proc/sys/vm/swappiness, but affecting a hierarchy of groups only.
 +
-+Because VM is getting complex (one of reasons is memcg...), memcg's behavior
-+is complex. This is a document for memcg's internal behavior and some test
-+patterns tend to be racy.
++  Following cgroup's swapiness can't be changed.
++  - root cgroup (uses /proc/sys/vm/swappiness).
++  - a cgroup which uses hierarchy and it has child cgroup.
++  - a cgroup which uses hierarchy and not the root of hierarchy.
 +
-+1. charges
 +
-+   a page/swp_entry may be charged (usage += PAGE_SIZE) at
+ 6. Hierarchy support
+ 
+ The memory controller supports a deep hierarchy and hierarchical accounting.
+diff -puN include/linux/swap.h~memcg-swappiness include/linux/swap.h
+--- a/include/linux/swap.h~memcg-swappiness
++++ a/include/linux/swap.h
+@@ -214,7 +214,8 @@ static inline void lru_cache_add_active_
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
+-						gfp_t gfp_mask, bool noswap);
++						  gfp_t gfp_mask, bool noswap,
++						  unsigned int swappiness);
+ extern int __isolate_lru_page(struct page *page, int mode, int file);
+ extern unsigned long shrink_all_memory(unsigned long nr_pages);
+ extern int vm_swappiness;
+diff -puN mm/memcontrol.c~memcg-swappiness mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-swappiness
++++ a/mm/memcontrol.c
+@@ -164,6 +164,9 @@ struct mem_cgroup {
+ 	int		obsolete;
+ 	atomic_t	refcnt;
+ 
++	unsigned int	swappiness;
 +
-+	mem_cgroup_newpage_newpage()
-+	  called at new page fault and COW.
 +
-+	mem_cgroup_try_charge_swapin()
-+	  called at do_swap_page() and swapoff.
-+	  followed by charge-commit-cancel protocol.
-+	  (With swap accounting) at commit, charges recorded in swap is removed.
+ 	unsigned int inactive_ratio;
+ 
+ 	/*
+@@ -630,6 +633,22 @@ static bool mem_cgroup_check_under_limit
+ 	return false;
+ }
+ 
++static unsigned int get_swappiness(struct mem_cgroup *memcg)
++{
++	struct cgroup *cgrp = memcg->css.cgroup;
++	unsigned int swappiness;
 +
-+	mem_cgroup_cache_charge()
-+	  called at add_to_page_cache()
++	/* root ? */
++	if (cgrp->parent == NULL)
++		return vm_swappiness;
 +
-+	mem_cgroup_cache_charge_swapin)()
-+	  called by shmem's swapin processing.
++	spin_lock(&memcg->reclaim_param_lock);
++	swappiness = memcg->swappiness;
++	spin_unlock(&memcg->reclaim_param_lock);
 +
-+	mem_cgroup_prepare_migration()
-+	  called before migration. "extra" charge is done
-+	  followed by charge-commit-cancel protocol.
-+	  At commit, charge against oldpage or newpage will be committed.
++	return swappiness;
++}
 +
-+2. uncharge
-+  a page/swp_entry may be uncharged (usage -= PAGE_SIZE) by
+ /*
+  * Dance down the hierarchy if needed to reclaim memory. We remember the
+  * last child we reclaimed from, so that we don't end up penalizing
+@@ -650,7 +669,8 @@ static int mem_cgroup_hierarchical_recla
+ 	 * but there might be left over accounting, even after children
+ 	 * have left.
+ 	 */
+-	ret = try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap);
++	ret = try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap,
++					   get_swappiness(root_mem));
+ 	if (mem_cgroup_check_under_limit(root_mem))
+ 		return 0;
+ 	if (!root_mem->use_hierarchy)
+@@ -666,7 +686,8 @@ static int mem_cgroup_hierarchical_recla
+ 			cgroup_unlock();
+ 			continue;
+ 		}
+-		ret = try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap);
++		ret = try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap,
++						   get_swappiness(next_mem));
+ 		if (mem_cgroup_check_under_limit(root_mem))
+ 			return 0;
+ 		cgroup_lock();
+@@ -1394,7 +1415,8 @@ int mem_cgroup_shrink_usage(struct mm_st
+ 	rcu_read_unlock();
+ 
+ 	do {
+-		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask, true);
++		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask, true,
++							get_swappiness(mem));
+ 		progress += mem_cgroup_check_under_limit(mem);
+ 	} while (!progress && --retry);
+ 
+@@ -1462,7 +1484,9 @@ static int mem_cgroup_resize_limit(struc
+ 			break;
+ 
+ 		progress = try_to_free_mem_cgroup_pages(memcg,
+-				GFP_KERNEL, false);
++							GFP_KERNEL,
++							false,
++							get_swappiness(memcg));
+   		if (!progress)			retry_count--;
+ 	}
+ 
+@@ -1506,7 +1530,8 @@ int mem_cgroup_resize_memsw_limit(struct
+ 			break;
+ 
+ 		oldusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
+-		try_to_free_mem_cgroup_pages(memcg, GFP_KERNEL, true);
++		try_to_free_mem_cgroup_pages(memcg, GFP_KERNEL, true,
++					     get_swappiness(memcg));
+ 		curusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
+ 		if (curusage >= oldusage)
+ 			retry_count--;
+@@ -1637,8 +1662,8 @@ try_to_free:
+ 			ret = -EINTR;
+ 			goto out;
+ 		}
+-		progress = try_to_free_mem_cgroup_pages(mem,
+-						  GFP_KERNEL, false);
++		progress = try_to_free_mem_cgroup_pages(mem, GFP_KERNEL,
++						false, get_swappiness(mem));
+ 		if (!progress) {
+ 			nr_retries--;
+ 			/* maybe some writeback is necessary */
+@@ -1858,6 +1883,37 @@ static int mem_control_stat_show(struct 
+ 	return 0;
+ }
+ 
++static u64 mem_cgroup_swappiness_read(struct cgroup *cgrp, struct cftype *cft)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
 +
-+	mem_cgroup_uncharge_page()
-+	  called when an anonymous page is unmapped. If the page is SwapCache
-+	  uncharge is delayed until mem_cgroup_uncharge_swapcache().
++	return get_swappiness(memcg);
++}
 +
-+	mem_cgroup_uncharge_cache_page()
-+	  called when a page-cache is deleted from radix-tree. If the page is
-+	  SwapCache, uncharge is delayed until mem_cgroup_uncharge_swapcache()
++static int mem_cgroup_swappiness_write(struct cgroup *cgrp, struct cftype *cft,
++				       u64 val)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
++	struct mem_cgroup *parent;
++	if (val > 100)
++		return -EINVAL;
 +
-+	mem_cgroup_uncharge_swapcache()
-+	  called when SwapCache is removed from radix-tree. the charge itself
-+	  is moved to swap_cgroup. (If mem+swap controller is disabled, no
-+	  charge to swap.)
++	if (cgrp->parent == NULL)
++		return -EINVAL;
 +
-+	mem_cgroup_uncharge_swap()
-+	  called when swp_entry's refcnt goes down to be 0. charge against swap
-+	  disappears.
++	parent = mem_cgroup_from_cont(cgrp->parent);
++	/* If under hierarchy, only empty-root can set this value */
++	if ((parent->use_hierarchy) ||
++	    (memcg->use_hierarchy && !list_empty(&cgrp->children)))
++		return -EINVAL;
 +
-+	mem_cgroup_end_migration(old, new)
-+	at success of migration -> old is uncharged (if necessary), charge
-+	to new is committed. at failure, charge to old is committed.
++	spin_lock(&memcg->reclaim_param_lock);
++	memcg->swappiness = val;
++	spin_unlock(&memcg->reclaim_param_lock);
 +
-+3. charge-commit-cancel
-+	In some case, we can't know this "charge" is valid or not at charge.
-+	To handle such case, there are charge-commit-cancel functions.
-+		mem_cgroup_try_charge_XXX
-+		mem_cgroup_commit_charge_XXX
-+		mem_cgroup_cancel_charge_XXX
-+	these are used in swap-in and migration.
++	return 0;
++}
 +
-+	At try_charge(), there are no flags to say "this page is charged".
-+	at this point, usage += PAGE_SIZE.
-+
-+	At commit(), the function checks the page should be charged or not
-+	and set flags or avoid charging.(usage -= PAGE_SIZE)
-+
-+	At cancel(), simply usage -= PAGE_SIZE.
-+
-+4. Typical Tests.
-+
-+  Tests for racy cases.
-+
-+  4.1 small limit to memcg.
-+	When you do test to do racy case, it's good test to set memcg's limit
-+	to be very small rather than GB. Many races found in the test under
-+	xKB or xxMB limits.
-+	(Memory behavior under GB and Memory behavior under MB shows very
-+	 different situation.)
-+
-+  4.2 shmem
-+	Historically, memcg's shmem handling was poor and we saw some amount
-+	of troubles here. This is because shmem is page-cache but can be
-+	SwapCache. Test with shmem/tmpfs is always good test.
-+
-+  4.3 migration
-+	For NUMA, migration is an another special. To do easy test, cpuset
-+	is useful. Following is a sample script to do migration.
-+
-+	mount -t cgroup -o cpuset none /opt/cpuset
-+
-+	mkdir /opt/cpuset/01
-+	echo 1 > /opt/cpuset/01/cpuset.cpus
-+	echo 0 > /opt/cpuset/01/cpuset.mems
-+	echo 1 > /opt/cpuset/01/cpuset.memory_migrate
-+	mkdir /opt/cpuset/02
-+	echo 1 > /opt/cpuset/02/cpuset.cpus
-+	echo 1 > /opt/cpuset/02/cpuset.mems
-+	echo 1 > /opt/cpuset/02/cpuset.memory_migrate
-+
-+	In above set, when you moves a task from 01 to 02, page migration to
-+	node 0 to node 1 will occur. Following is a script to migrate all
-+	under cpuset.
-+	--
-+	move_task()
+ 
+ static struct cftype mem_cgroup_files[] = {
+ 	{
+@@ -1896,6 +1952,11 @@ static struct cftype mem_cgroup_files[] 
+ 		.write_u64 = mem_cgroup_hierarchy_write,
+ 		.read_u64 = mem_cgroup_hierarchy_read,
+ 	},
 +	{
-+	for pid in $1
-+        do
-+                /bin/echo $pid >$2/tasks 2>/dev/null
-+		echo -n $pid
-+		echo -n " "
-+        done
-+	echo END
-+	}
++		.name = "swappiness",
++		.read_u64 = mem_cgroup_swappiness_read,
++		.write_u64 = mem_cgroup_swappiness_write,
++	},
+ };
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+@@ -2087,6 +2148,9 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	mem->last_scanned_child = NULL;
+ 	spin_lock_init(&mem->reclaim_param_lock);
+ 
++	if (parent)
++		mem->swappiness = get_swappiness(parent);
 +
-+	G1_TASK=`cat ${G1}/tasks`
-+	G2_TASK=`cat ${G2}/tasks`
-+	move_task "${G1_TASK}" ${G2} &
-+	--
-+  4.4 memory hotplug.
-+	memory hotplug test is one of good test.
-+	to offline memory, do following.
-+	# echo offline > /sys/devices/system/memory/memoryXXX/state
-+	(XXX is the place of memory)
-+	This is an easy way to test page migration, too.
-+
-+ 4.5 mkdir/rmdir
-+	When using hierarchy, mkdir/rmdir test should be done.
-+	tests like following.
-+
-+	#echo 1 >/opt/cgroup/01/memory/use_hierarchy
-+	#mkdir /opt/cgroup/01/child_a
-+	#mkdir /opt/cgroup/01/child_b
-+
-+	set limit to 01.
-+	add limit to 01/child_b
-+	run jobs under child_a and child_b
-+
-+	create/delete following groups at random while jobs are running.
-+	/opt/cgroup/01/child_a/child_aa
-+	/opt/cgroup/01/child_b/child_bb
-+	/opt/cgroup/01/child_c
-+
-+	running new jobs in new group is also good.
+ 	return &mem->css;
+ free_out:
+ 	for_each_node_state(node, N_POSSIBLE)
+diff -puN mm/vmscan.c~memcg-swappiness mm/vmscan.c
+--- a/mm/vmscan.c~memcg-swappiness
++++ a/mm/vmscan.c
+@@ -1752,14 +1752,15 @@ unsigned long try_to_free_pages(struct z
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ 
+ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
+-						gfp_t gfp_mask,
+-					   bool noswap)
++					   gfp_t gfp_mask,
++					   bool noswap,
++					   unsigned int swappiness)
+ {
+ 	struct scan_control sc = {
+ 		.may_writepage = !laptop_mode,
+ 		.may_swap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+-		.swappiness = vm_swappiness,
++		.swappiness = swappiness,
+ 		.order = 0,
+ 		.mem_cgroup = mem_cont,
+ 		.isolate_pages = mem_cgroup_isolate_pages,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
