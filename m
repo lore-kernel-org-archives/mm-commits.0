@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-zone-nr_pages-helper-function.patch added to -mm tree
-Date: Tue, 02 Dec 2008 21:57:34 -0800
-Message-ID: <200812030557.mB35vYDX029136@imap1.linux-foundation.org>
+Subject: + mm-make-get_scan_ratio-safe-for-memcg.patch added to -mm tree
+Date: Tue, 02 Dec 2008 21:57:40 -0800
+Message-ID: <200812030557.mB35veNa029222@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751264AbYLCF6j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:58:39 -0500
+	by vger.kernel.org with ESMTP id S1751613AbYLCF6r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:58:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.
 
 
 The patch titled
-     mm: add zone nr_pages helper function
+     mm: make get_scan_ratio() safe for memcg
 has been added to the -mm tree.  Its filename is
-     mm-add-zone-nr_pages-helper-function.patch
+     mm-make-get_scan_ratio-safe-for-memcg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,17 +33,21 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add zone nr_pages helper function
+Subject: mm: make get_scan_ratio() safe for memcg
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Add zone_nr_pages() helper function.
+Currently, get_scan_ratio() always calculate the balancing value for
+global reclaim and memcg reclaim doesn't use it.  Therefore it doesn't
+have scan_global_lru() condition.
 
-It is used by a later patch.  This patch doesn't have any functional
-change.
+However, we plan to expand get_scan_ratio() to be usable for memcg too,
+latter.  Then, The dependency code of global reclaim in the
+get_scan_ratio() insert into scan_global_lru() condision explictly.
 
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+This patch doesn't have any functional change.
+
 Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Hugh Dickins <hugh@veritas.com>
@@ -51,41 +55,35 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ mm/vmscan.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmscan.c~mm-add-zone-nr_pages-helper-function mm/vmscan.c
---- a/mm/vmscan.c~mm-add-zone-nr_pages-helper-function
+diff -puN mm/vmscan.c~mm-make-get_scan_ratio-safe-for-memcg mm/vmscan.c
+--- a/mm/vmscan.c~mm-make-get_scan_ratio-safe-for-memcg
 +++ a/mm/vmscan.c
-@@ -136,6 +136,13 @@ static struct zone_reclaim_stat *get_rec
- 	return &zone->reclaim_stat;
- }
+@@ -1423,13 +1423,16 @@ static void get_scan_ratio(struct zone *
+ 		zone_nr_pages(zone, sc, LRU_INACTIVE_ANON);
+ 	file  = zone_nr_pages(zone, sc, LRU_ACTIVE_FILE) +
+ 		zone_nr_pages(zone, sc, LRU_INACTIVE_FILE);
+-	free  = zone_page_state(zone, NR_FREE_PAGES);
  
-+static unsigned long zone_nr_pages(struct zone *zone, struct scan_control *sc,
-+				   enum lru_list lru)
-+{
-+	return zone_page_state(zone, NR_LRU_BASE + lru);
-+}
-+
-+
- /*
-  * Add a shrinker callback to be called from the vm
-  */
-@@ -1412,10 +1419,10 @@ static void get_scan_ratio(struct zone *
- 		return;
+-	/* If we have very few page cache pages, force-scan anon pages. */
+-	if (unlikely(file + free <= zone->pages_high)) {
+-		percent[0] = 100;
+-		percent[1] = 0;
+-		return;
++	if (scan_global_lru(sc)) {
++		free  = zone_page_state(zone, NR_FREE_PAGES);
++		/* If we have very few page cache pages,
++		   force-scan anon pages. */
++		if (unlikely(file + free <= zone->pages_high)) {
++			percent[0] = 100;
++			percent[1] = 0;
++			return;
++		}
  	}
  
--	anon  = zone_page_state(zone, NR_ACTIVE_ANON) +
--		zone_page_state(zone, NR_INACTIVE_ANON);
--	file  = zone_page_state(zone, NR_ACTIVE_FILE) +
--		zone_page_state(zone, NR_INACTIVE_FILE);
-+	anon  = zone_nr_pages(zone, sc, LRU_ACTIVE_ANON) +
-+		zone_nr_pages(zone, sc, LRU_INACTIVE_ANON);
-+	file  = zone_nr_pages(zone, sc, LRU_ACTIVE_FILE) +
-+		zone_nr_pages(zone, sc, LRU_INACTIVE_FILE);
- 	free  = zone_page_state(zone, NR_FREE_PAGES);
- 
- 	/* If we have very few page cache pages, force-scan anon pages. */
+ 	/*
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
