@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers.patch added to -mm tree
-Date: Tue, 02 Dec 2008 20:39:22 -0800
-Message-ID: <200812030439.mB34dMrh017919@imap1.linux-foundation.org>
+Date: Tue, 02 Dec 2008 20:42:13 -0800
+Message-ID: <200812030442.mB34gDIw019557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752879AbYLCEjk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 23:39:40 -0500
+	by vger.kernel.org with ESMTP id S1751073AbYLCEm1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 23:42:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -41,7 +41,8 @@ latest git.  It should go in with 2.6.28 if possible, the drivers won't
 work without the id_table bits.
 
 Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Reported-by: <kaloz@openwrt.org>
+Reported-by: Imre Kaloz <kaloz@openwrt.org>
+Tested-by: Imre Kaloz <kaloz@openwrt.org>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
