@@ -1,269 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - quota-add-quota-claim-and-release-reserved-quota-blocks-operations.patch removed from -mm tree
-Date: Wed, 03 Dec 2008 12:44:40 -0800
-Message-ID: <200812032044.mB3KieEX004637@imap1.linux-foundation.org>
+Subject: - quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch removed from -mm tree
+Date: Wed, 03 Dec 2008 12:44:44 -0800
+Message-ID: <200812032044.mB3Kiij2004742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751227AbYLCUpd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:45:33 -0500
+	by vger.kernel.org with ESMTP id S1752335AbYLCUpq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:45:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmm@us.ibm.com, jack@ucw.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cmm@us.ibm.com, hch@lst.de, jack@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota: add quota claim and release reserved quota blocks operations
+     quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix
 has been removed from the -mm tree.  Its filename was
-     quota-add-quota-claim-and-release-reserved-quota-blocks-operations.patch
+     quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: add quota claim and release reserved quota blocks operations
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Reserved quota will be claimed at the block allocation time.  Over-booked
-quota could be returned back with the release callback function.
-
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jan Kara <jack@ucw.cz>
-Cc: <linux-ext4@vger.kernel.org>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c               |   87 +++++++++++++++++++++++++++++++++++++
- include/linux/quota.h    |    4 +
- include/linux/quotaops.h |   55 +++++++++++++++++++++++
- 3 files changed, 145 insertions(+), 1 deletion(-)
+ include/linux/quotaops.h |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN fs/dquot.c~quota-add-quota-claim-and-release-reserved-quota-blocks-operations fs/dquot.c
---- a/fs/dquot.c~quota-add-quota-claim-and-release-reserved-quota-blocks-operations
-+++ a/fs/dquot.c
-@@ -901,6 +901,24 @@ static inline void dquot_resv_space(stru
- 	dquot->dq_dqb.dqb_rsvspace += number;
- }
- 
-+/*
-+ * Claim reserved quota space
-+ */
-+static int dquot_claim_reserved_space(struct dquot *dquot,
-+						qsize_t number)
-+{
-+	if (dquot->dq_dqb.dqb_rsvspace < number) {
-+		printk(KERN_WARNING "Reserved quota %llu is not enough for"
-+			"request %llu bytes\n",
-+			(unsigned long long)dquot->dq_dqb.dqb_rsvspace, number);
-+		return 1;
-+	}
-+
-+	dquot->dq_dqb.dqb_curspace += number;
-+	dquot->dq_dqb.dqb_rsvspace -= number;
-+	return 0;
-+}
-+
- static inline void dquot_decr_inodes(struct dquot *dquot, qsize_t number)
- {
- 	if (sb_dqopt(dquot->dq_sb)->flags & DQUOT_NEGATIVE_USAGE ||
-@@ -1382,6 +1400,73 @@ out:
- 	return ret;
- }
- 
-+int dquot_claim_space(struct inode *inode, qsize_t number)
-+{
-+	int cnt;
-+	int ret = QUOTA_OK;
-+
-+	if (IS_NOQUOTA(inode)) {
-+		inode_add_bytes(inode, number);
-+		return ret;
-+	}
-+
-+	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+	if (IS_NOQUOTA(inode))	{
-+		up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+		inode_add_bytes(inode, number);
-+		return ret;
-+	}
-+
-+	/* Claim reserved quotas to allocated quotas */
-+	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
-+		if (inode->i_dquot[cnt] != NODQUOT)
-+			ret = dquot_claim_reserved_space(inode->i_dquot[cnt],
-+							number);
-+	}
-+	if (ret == NO_QUOTA) {
-+		up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+		return ret;
-+	}
-+	/* Dirtify all the dquots - this can block when journalling */
-+	for (cnt = 0; cnt < MAXQUOTAS; cnt++)
-+		if (inode->i_dquot[cnt])
-+			mark_dquot_dirty(inode->i_dquot[cnt]);
-+	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+
-+	/* Update inode bytes */
-+	inode_add_bytes(inode, number);
-+	return ret;
-+}
-+
-+/*
-+ * Release reserved quota space
-+ */
-+void dquot_release_reserved_space(struct inode *inode, qsize_t number)
-+{
-+	int cnt;
-+	struct dquot *dquot;
-+
-+	if (IS_NOQUOTA(inode))
-+		goto out;
-+
-+	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+	if (IS_NOQUOTA(inode))
-+		goto out_unlock;
-+
-+	/* Release reserved dquots */
-+	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
-+		if (inode->i_dquot[cnt] != NODQUOT) {
-+			dquot = inode->i_dquot[cnt];
-+			dquot->dq_dqb.dqb_rsvspace -= number;
-+		}
-+	}
-+
-+out_unlock:
-+	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
-+out:
-+	return;
-+}
-+
- /*
-  * This operation can block, but only after everything is updated
-  */
-@@ -2422,6 +2507,8 @@ EXPORT_SYMBOL(dquot_alloc_inode);
- EXPORT_SYMBOL(dquot_free_space);
- EXPORT_SYMBOL(dquot_free_inode);
- EXPORT_SYMBOL(dquot_reserve_space);
-+EXPORT_SYMBOL(dquot_claim_space);
-+EXPORT_SYMBOL(dquot_release_reserved_space);
- EXPORT_SYMBOL(dquot_transfer);
- EXPORT_SYMBOL(vfs_dq_transfer);
- EXPORT_SYMBOL(vfs_dq_quota_on_remount);
-diff -puN include/linux/quota.h~quota-add-quota-claim-and-release-reserved-quota-blocks-operations include/linux/quota.h
---- a/include/linux/quota.h~quota-add-quota-claim-and-release-reserved-quota-blocks-operations
-+++ a/include/linux/quota.h
-@@ -305,7 +305,9 @@ struct dquot_operations {
- 	int (*release_dquot) (struct dquot *);		/* Quota is going to be deleted from disk */
- 	int (*mark_dirty) (struct dquot *);		/* Dquot is marked dirty */
- 	int (*write_info) (struct super_block *, int);	/* Write of quota "superblock" */
--	int (*reserve_space) (struct inode *, qsize_t, int); /* reserve quota for delayed block allocation */
-+	int (*reserve_space) (struct inode *, qsize_t, int); /* reserve quota for delayed alloc */
-+	int (*claim_space) (struct inode *, qsize_t); /* claim reserved quota for delayed alloc */
-+	void (*release_rsv) (struct inode *, qsize_t); /* release rsved quota for delayed alloc */
- };
- 
- /* Operations handling requests from userspace */
-diff -puN include/linux/quotaops.h~quota-add-quota-claim-and-release-reserved-quota-blocks-operations include/linux/quotaops.h
---- a/include/linux/quotaops.h~quota-add-quota-claim-and-release-reserved-quota-blocks-operations
+diff -puN include/linux/quotaops.h~quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix
 +++ a/include/linux/quotaops.h
-@@ -35,6 +35,11 @@ int dquot_scan_active(struct super_block
- int dquot_alloc_space(struct inode *inode, qsize_t number, int prealloc);
- int dquot_alloc_inode(const struct inode *inode, qsize_t number);
+@@ -410,39 +410,33 @@ static inline void vfs_dq_free_space(str
  
-+int dquot_reserve_space(struct inode *inode, qsize_t number, int prealloc);
-+int dquot_claim_space(struct inode *inode, qsize_t number);
-+void dquot_release_reserved_space(struct inode *inode, qsize_t number);
-+
-+
- int dquot_free_space(struct inode *inode, qsize_t number);
- int dquot_free_inode(const struct inode *inode, qsize_t number);
- 
-@@ -203,6 +208,31 @@ static inline int vfs_dq_alloc_inode(str
- 	return 0;
+ static inline int vfs_dq_prealloc_block_nodirty(struct inode *inode, qsize_t nr)
+ {
+-	return vfs_dq_prealloc_space_nodirty(inode,
+-			nr << inode->i_blkbits);
++	return vfs_dq_prealloc_space_nodirty(inode, nr << inode->i_blkbits);
  }
  
-+/*
-+ * Convert in-memory reserved quotas to real consumed quotas
-+ */
-+static inline int vfs_dq_claim_space(struct inode *inode, qsize_t nr)
-+{
-+	if (sb_any_quota_active(inode->i_sb)) {
-+		if (inode->i_sb->dq_op->claim_space(inode, nr) == NO_QUOTA)
-+			return 1;
-+	} else
-+		inode_add_bytes(inode, nr);
-+
-+	mark_inode_dirty(inode);
-+	return 0;
-+}
-+
-+/*
-+ * Release reserved (in-memory) quotas
-+ */
-+static inline
-+void vfs_dq_release_reservation_space(struct inode *inode, qsize_t nr)
-+{
-+	if (sb_any_quota_active(inode->i_sb))
-+		inode->i_sb->dq_op->release_rsv(inode, nr);
-+}
-+
- static inline void vfs_dq_free_space_nodirty(struct inode *inode, qsize_t nr)
+ static inline int vfs_dq_prealloc_block(struct inode *inode, qsize_t nr)
  {
- 	if (sb_any_quota_active(inode->i_sb))
-@@ -354,6 +384,17 @@ static inline int vfs_dq_reserve_space(s
- 	return 0;
+-	return vfs_dq_prealloc_space(inode,
+-			nr << inode->i_blkbits);
++	return vfs_dq_prealloc_space(inode, nr << inode->i_blkbits);
  }
  
-+static inline int vfs_dq_claim_space(struct inode *inode, qsize_t nr)
-+{
-+	return vfs_dq_alloc_space(inode, nr);
-+}
-+
-+static inline
-+int vfs_dq_release_reservation_space(struct inode *inode, qsize_t nr)
-+{
-+	return 0;
-+}
-+
- static inline void vfs_dq_free_space_nodirty(struct inode *inode, qsize_t nr)
+ static inline int vfs_dq_alloc_block_nodirty(struct inode *inode, qsize_t nr)
  {
- 	inode_sub_bytes(inode, nr);
-@@ -398,6 +439,18 @@ static inline int vfs_dq_reserve_block(s
- 			nr << inode->i_blkbits);
+- 	return vfs_dq_alloc_space_nodirty(inode,
+-			nr << inode->i_blkbits);
++ 	return vfs_dq_alloc_space_nodirty(inode, nr << inode->i_blkbits);
  }
  
-+static inline int vfs_dq_claim_block(struct inode *inode, qsize_t nr)
-+{
-+	return vfs_dq_claim_space(inode,
-+			nr << inode->i_blkbits);
-+}
-+
-+static inline
-+void vfs_dq_release_reservation(struct inode *inode, qsize_t nr)
-+{
-+	vfs_dq_release_reservation_space(inode, nr << inode->i_blkbits);
-+}
-+
- static inline void vfs_dq_free_block_nodirty(struct inode *inode, qsize_t nr)
+ 
+ static inline int vfs_dq_alloc_block(struct inode *inode, qsize_t nr)
  {
- 	vfs_dq_free_space_nodirty(inode, nr << inode->i_sb->s_blocksize_bits);
-@@ -427,6 +480,8 @@ static inline void vfs_dq_free_block(str
- 				vfs_dq_alloc_block_nodirty(inode, nr)
- #define DQUOT_ALLOC_BLOCK(inode, nr) vfs_dq_alloc_block(inode, nr)
- #define DQUOT_RESERVE_BLOCK(inode, nr) vfs_dq_reserve_block(inode, nr)
-+#define DQUOT_CLAIM_BLOCK(inode, nr) vfs_dq_claim_block(inode, nr)
-+#define DQUOT_RELEASE_RSV_BLOCK(inode, nr) vfs_dq_release_reservation(inode, nr)
- #define DQUOT_ALLOC_INODE(inode) vfs_dq_alloc_inode(inode)
- #define DQUOT_FREE_SPACE_NODIRTY(inode, nr) \
- 				vfs_dq_free_space_nodirty(inode, nr)
+-	return vfs_dq_alloc_space(inode,
+-			nr << inode->i_blkbits);
++	return vfs_dq_alloc_space(inode, nr << inode->i_blkbits);
+ }
+ 
+ static inline int vfs_dq_reserve_block(struct inode *inode, qsize_t nr)
+ {
+-	return vfs_dq_reserve_space(inode,
+-			nr << inode->i_blkbits);
++	return vfs_dq_reserve_space(inode, nr << inode->i_blkbits);
+ }
+ 
+ static inline int vfs_dq_claim_block(struct inode *inode, qsize_t nr)
+ {
+-	return vfs_dq_claim_space(inode,
+-			nr << inode->i_blkbits);
++	return vfs_dq_claim_space(inode, nr << inode->i_blkbits);
+ }
+ 
+ static inline
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-quota-add-quota-claim-and-release-reserved-quota-blocks-operations.patch
-ext4-quota-handling-for-delayed-allocation.patch
-quota-cleanup-use-inode-i_blkbits-to-get-block-bits.patch
+origin.patch
+mm-backing-devc-remove-recently-added-warn_on.patch
+ksym_symbol_len-fixes.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+make-linx-next-apply.patch
+linux-next.patch
+next-remove-localversion.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+backlight-catch-invalid-input.patch
+pci-uninline-pci_ioremap_bar.patch
+drivers-char-cycladesc-cy_pci_probe-fix-error-path.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
 quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
