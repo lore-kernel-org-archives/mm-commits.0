@@ -1,33 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - add-zone_nr_pages-helper-function.patch removed from -mm tree
-Date: Tue, 02 Dec 2008 21:37:45 -0800
-Message-ID: <200812030537.mB35bjc4018185@imap1.linux-foundation.org>
+Subject: - inactive_anon_is_low-move-to-vmscanc.patch removed from -mm tree
+Date: Tue, 02 Dec 2008 21:37:38 -0800
+Message-ID: <200812030537.mB35bd1v018173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58344 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47437 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751734AbYLCFiH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:38:07 -0500
+	by vger.kernel.org with ESMTP id S1750744AbYLCFiB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:38:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add zone_nr_pages() helper function
+     inactive_anon_is_low(): move to vmscan.c
 has been removed from the -mm tree.  Its filename was
-     add-zone_nr_pages-helper-function.patch
+     inactive_anon_is_low-move-to-vmscanc.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add zone_nr_pages() helper function
+Subject: inactive_anon_is_low(): move to vmscan.c
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-It is used by a later patch.  This patch doesn't have any functional
-change.
+The inactive_anon_is_low() is called only vmscan.  Then it can move to
+vmscan.c
+
+This patch doesn't have any functional change.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Acked-by: Rik van Riel <riel@redhat.com>
@@ -36,41 +38,67 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ include/linux/mm_inline.h |   19 -------------------
+ mm/vmscan.c               |   20 ++++++++++++++++++++
+ 2 files changed, 20 insertions(+), 19 deletions(-)
 
-diff -puN mm/vmscan.c~add-zone_nr_pages-helper-function mm/vmscan.c
---- a/mm/vmscan.c~add-zone_nr_pages-helper-function
-+++ a/mm/vmscan.c
-@@ -136,6 +136,13 @@ static struct zone_reclaim_stat *get_rec
- 	return &zone->reclaim_stat;
+diff -puN include/linux/mm_inline.h~inactive_anon_is_low-move-to-vmscanc include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~inactive_anon_is_low-move-to-vmscanc
++++ a/include/linux/mm_inline.h
+@@ -81,23 +81,4 @@ static inline enum lru_list page_lru(str
+ 	return lru;
  }
  
-+static unsigned long zone_nr_pages(struct zone *zone, struct scan_control *sc,
-+				   enum lru_list lru)
+-/**
+- * inactive_anon_is_low - check if anonymous pages need to be deactivated
+- * @zone: zone to check
+- *
+- * Returns true if the zone does not have enough inactive anon pages,
+- * meaning some active anon pages need to be deactivated.
+- */
+-static inline int inactive_anon_is_low(struct zone *zone)
+-{
+-	unsigned long active, inactive;
+-
+-	active = zone_page_state(zone, NR_ACTIVE_ANON);
+-	inactive = zone_page_state(zone, NR_INACTIVE_ANON);
+-
+-	if (inactive * zone->inactive_ratio < active)
+-		return 1;
+-
+-	return 0;
+-}
+ #endif
+diff -puN mm/vmscan.c~inactive_anon_is_low-move-to-vmscanc mm/vmscan.c
+--- a/mm/vmscan.c~inactive_anon_is_low-move-to-vmscanc
++++ a/mm/vmscan.c
+@@ -1338,6 +1338,26 @@ static void shrink_active_list(unsigned 
+ 	pagevec_release(&pvec);
+ }
+ 
++/**
++ * inactive_anon_is_low - check if anonymous pages need to be deactivated
++ * @zone: zone to check
++ *
++ * Returns true if the zone does not have enough inactive anon pages,
++ * meaning some active anon pages need to be deactivated.
++ */
++static int inactive_anon_is_low(struct zone *zone)
 +{
-+	return zone_page_state(zone, NR_LRU_BASE + lru);
++	unsigned long active, inactive;
++
++	active = zone_page_state(zone, NR_ACTIVE_ANON);
++	inactive = zone_page_state(zone, NR_INACTIVE_ANON);
++
++	if (inactive * zone->inactive_ratio < active)
++		return 1;
++
++	return 0;
 +}
 +
-+
- /*
-  * Add a shrinker callback to be called from the vm
-  */
-@@ -1412,10 +1419,10 @@ static void get_scan_ratio(struct zone *
- 		return;
- 	}
- 
--	anon  = zone_page_state(zone, NR_ACTIVE_ANON) +
--		zone_page_state(zone, NR_INACTIVE_ANON);
--	file  = zone_page_state(zone, NR_ACTIVE_FILE) +
--		zone_page_state(zone, NR_INACTIVE_FILE);
-+	anon  = zone_nr_pages(zone, sc, LRU_ACTIVE_ANON) +
-+		zone_nr_pages(zone, sc, LRU_INACTIVE_ANON);
-+	file  = zone_nr_pages(zone, sc, LRU_ACTIVE_FILE) +
-+		zone_nr_pages(zone, sc, LRU_INACTIVE_FILE);
- 	free  = zone_page_state(zone, NR_FREE_PAGES);
- 
- 	/* If we have very few page cache pages, force-scan anon pages. */
+ static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
+ 	struct zone *zone, struct scan_control *sc, int priority)
+ {
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -100,6 +128,8 @@ proc-export-statistics-for-softirq-to-proc.patch
 proc-update-document-for-proc-softirqs-and-proc-stat.patch
 memcg-new-force_empty-to-free-pages-under-group-fix.patch
 memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+inactive_anon_is_low-move-to-vmscanc.patch
+introduce-zone_reclaim-struct.patch
 add-zone_nr_pages-helper-function.patch
 make-get_scan_ratio-memcg-safe.patch
 memcg-add-null-check-to-page_cgroup_zoneinfo.patch
