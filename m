@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-linux-next-i386-hackfix.patch added to -mm tree
-Date: Wed, 03 Dec 2008 15:05:09 -0800
-Message-ID: <200812032320.mB3NKmNG028088@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 03 Dec 2008 15:23:42 -0800
+Message-ID: <200812032339.mB3NdKRe006025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750740AbYLCXVA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 18:21:00 -0500
+	by vger.kernel.org with ESMTP id S1752123AbYLCXjw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 18:39:52 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mB3NdKQ1009915
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 3 Dec 2008 15:39:22 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david@fromorbit.com, lachlan@sgi.com, tes@sgi.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     xfs: linux-next i386 hackfix
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     xfs-linux-next-i386-hackfix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +37,236 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: linux-next i386 hackfix
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from fs/xfs/linux-2.6/xfs_file.c:39:
-fs/xfs/linux-2.6/xfs_ioctl32.h:50: error: expected specifier-qualifier-list before 'compat_time_t'
-fs/xfs/linux-2.6/xfs_ioctl32.h:79: error: expected specifier-qualifier-list before 'compat_uptr_t'
-fs/xfs/linux-2.6/xfs_ioctl32.h:94: error: expected specifier-qualifier-list before 'compat_uptr_t'
-fs/xfs/linux-2.6/xfs_ioctl32.h:131: error: expected specifier-qualifier-list before 'compat_uptr_t'
-fs/xfs/linux-2.6/xfs_ioctl32.h:142: error: expected specifier-qualifier-list before 'compat_uptr_t'
-fs/xfs/linux-2.6/xfs_ioctl32.h:152: error: expected specifier-qualifier-list before 'compat_uptr_t'
-fs/xfs/linux-2.6/xfs_ioctl32.h:161: error: expected specifier-qualifier-list before 'compat_uptr_t'
-make[1]: *** [fs/xfs/linux-2.6/xfs_file.o] Error 1
-
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: Lachlan McIlroy <lachlan@sgi.com>
-Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_ioctl32.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/powerpc/kvm/powerpc.c |    3 
+ arch/x86/kvm/vmx.c         |   18 ----
+ drivers/ide/ide-io.c       |  140 -----------------------------------
+ 3 files changed, 161 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_ioctl32.h~xfs-linux-next-i386-hackfix fs/xfs/linux-2.6/xfs_ioctl32.h
---- a/fs/xfs/linux-2.6/xfs_ioctl32.h~xfs-linux-next-i386-hackfix
-+++ a/fs/xfs/linux-2.6/xfs_ioctl32.h
-@@ -46,6 +46,7 @@ extern long xfs_file_compat_invis_ioctl(
- #define __compat_packed
- #endif
+diff -puN arch/powerpc/kvm/powerpc.c~linux-next-git-rejects arch/powerpc/kvm/powerpc.c
+--- a/arch/powerpc/kvm/powerpc.c~linux-next-git-rejects
++++ a/arch/powerpc/kvm/powerpc.c
+@@ -211,7 +211,6 @@ int kvm_arch_vcpu_init(struct kvm_vcpu *
+ void kvm_arch_vcpu_uninit(struct kvm_vcpu *vcpu)
+ {
+ 	kvmppc_core_destroy_mmu(vcpu);
+-<<<<<<< HEAD:arch/powerpc/kvm/powerpc.c
+ }
  
-+#ifdef CONFIG_COMPAT
- typedef struct compat_xfs_bstime {
- 	compat_time_t	tv_sec;		/* seconds		*/
- 	__s32		tv_nsec;	/* and nanoseconds	*/
-@@ -232,6 +233,7 @@ typedef struct compat_xfs_growfs_rt {
- #define XFS_IOC_FSGROWFSDATA_32 _IOW('X', 110, struct compat_xfs_growfs_data)
- #define XFS_IOC_FSGROWFSRT_32   _IOW('X', 112, struct compat_xfs_growfs_rt)
+ /* Note: clearing MSR[DE] just means that the debug interrupt will not be
+@@ -278,8 +277,6 @@ static void kvmppc_load_guest_debug_regi
+ 	mtspr(SPRN_DBCR0, dbcr0);
+ 	mtspr(SPRN_DBCR1, 0);
+ 	mtspr(SPRN_DBCR2, 0);
+-=======
+->>>>>>> FETCH_HEAD:arch/powerpc/kvm/powerpc.c
+ }
  
-+#endif	/* CONFIG_COMPAT */
- #endif /* BROKEN_X86_ALIGNMENT */
+ void kvm_arch_vcpu_load(struct kvm_vcpu *vcpu, int cpu)
+diff -puN arch/x86/kvm/vmx.c~linux-next-git-rejects arch/x86/kvm/vmx.c
+--- a/arch/x86/kvm/vmx.c~linux-next-git-rejects
++++ a/arch/x86/kvm/vmx.c
+@@ -3274,23 +3274,6 @@ static void vmx_intr_assist(struct kvm_v
+ {
+ 	update_tpr_threshold(vcpu);
  
- #endif /* __XFS_IOCTL32_H__ */
+-<<<<<<< HEAD:arch/x86/kvm/vmx.c
+-	if (cpu_has_virtual_nmis()) {
+-		if (vcpu->arch.nmi_pending && !vcpu->arch.nmi_injected) {
+-			if (vcpu->arch.interrupt.pending) {
+-				enable_nmi_window(vcpu);
+-			} else if (vmx_nmi_enabled(vcpu)) {
+-				vcpu->arch.nmi_pending = false;
+-				vcpu->arch.nmi_injected = true;
+-			} else {
+-				enable_intr_window(vcpu);
+-				return;
+-			}
+-		}
+-		if (vcpu->arch.nmi_injected) {
+-			vmx_inject_nmi(vcpu);
+-			enable_intr_window(vcpu);
+-=======
+ 	vmx_update_window_states(vcpu);
+ 
+ 	if (vcpu->arch.nmi_pending && !vcpu->arch.nmi_injected) {
+@@ -3301,7 +3284,6 @@ static void vmx_intr_assist(struct kvm_v
+ 			vcpu->arch.nmi_injected = true;
+ 		} else {
+ 			enable_nmi_window(vcpu);
+->>>>>>> FETCH_HEAD:arch/x86/kvm/vmx.c
+ 			return;
+ 		}
+ 	}
+diff -puN drivers/ide/ide-io.c~linux-next-git-rejects drivers/ide/ide-io.c
+--- a/drivers/ide/ide-io.c~linux-next-git-rejects
++++ a/drivers/ide/ide-io.c
+@@ -120,99 +120,6 @@ int ide_end_request (ide_drive_t *drive,
+ }
+ EXPORT_SYMBOL(ide_end_request);
+ 
+-<<<<<<< HEAD:drivers/ide/ide-io.c
+-static void ide_complete_power_step(ide_drive_t *drive, struct request *rq)
+-{
+-	struct request_pm_state *pm = rq->data;
+-
+-#ifdef DEBUG_PM
+-	printk(KERN_INFO "%s: complete_power_step(step: %d)\n",
+-		drive->name, pm->pm_step);
+-#endif
+-	if (drive->media != ide_disk)
+-		return;
+-
+-	switch (pm->pm_step) {
+-	case IDE_PM_FLUSH_CACHE:	/* Suspend step 1 (flush cache) */
+-		if (pm->pm_state == PM_EVENT_FREEZE)
+-			pm->pm_step = IDE_PM_COMPLETED;
+-		else
+-			pm->pm_step = IDE_PM_STANDBY;
+-		break;
+-	case IDE_PM_STANDBY:		/* Suspend step 2 (standby) */
+-		pm->pm_step = IDE_PM_COMPLETED;
+-		break;
+-	case IDE_PM_RESTORE_PIO:	/* Resume step 1 (restore PIO) */
+-		pm->pm_step = IDE_PM_IDLE;
+-		break;
+-	case IDE_PM_IDLE:		/* Resume step 2 (idle)*/
+-		pm->pm_step = IDE_PM_RESTORE_DMA;
+-		break;
+-	}
+-}
+-
+-static ide_startstop_t ide_start_power_step(ide_drive_t *drive, struct request *rq)
+-{
+-	struct request_pm_state *pm = rq->data;
+-	ide_task_t *args = rq->special;
+-
+-	memset(args, 0, sizeof(*args));
+-
+-	switch (pm->pm_step) {
+-	case IDE_PM_FLUSH_CACHE:	/* Suspend step 1 (flush cache) */
+-		if (drive->media != ide_disk)
+-			break;
+-		/* Not supported? Switch to next step now. */
+-		if (ata_id_flush_enabled(drive->id) == 0 ||
+-		    (drive->dev_flags & IDE_DFLAG_WCACHE) == 0) {
+-			ide_complete_power_step(drive, rq);
+-			return ide_stopped;
+-		}
+-		if (ata_id_flush_ext_enabled(drive->id))
+-			args->tf.command = ATA_CMD_FLUSH_EXT;
+-		else
+-			args->tf.command = ATA_CMD_FLUSH;
+-		goto out_do_tf;
+-	case IDE_PM_STANDBY:		/* Suspend step 2 (standby) */
+-		args->tf.command = ATA_CMD_STANDBYNOW1;
+-		goto out_do_tf;
+-	case IDE_PM_RESTORE_PIO:	/* Resume step 1 (restore PIO) */
+-		ide_set_max_pio(drive);
+-		/*
+-		 * skip IDE_PM_IDLE for ATAPI devices
+-		 */
+-		if (drive->media != ide_disk)
+-			pm->pm_step = IDE_PM_RESTORE_DMA;
+-		else
+-			ide_complete_power_step(drive, rq);
+-		return ide_stopped;
+-	case IDE_PM_IDLE:		/* Resume step 2 (idle) */
+-		args->tf.command = ATA_CMD_IDLEIMMEDIATE;
+-		goto out_do_tf;
+-	case IDE_PM_RESTORE_DMA:	/* Resume step 3 (restore DMA) */
+-		/*
+-		 * Right now, all we do is call ide_set_dma(drive),
+-		 * we could be smarter and check for current xfer_speed
+-		 * in struct drive etc...
+-		 */
+-		if (drive->hwif->dma_ops == NULL)
+-			break;
+-		if (drive->dev_flags & IDE_DFLAG_USING_DMA)
+-			ide_set_dma(drive);
+-		break;
+-	}
+-
+-	pm->pm_step = IDE_PM_COMPLETED;
+-	return ide_stopped;
+-
+-out_do_tf:
+-	args->tf_flags	 = IDE_TFLAG_TF | IDE_TFLAG_DEVICE;
+-	args->data_phase = TASKFILE_NO_DATA;
+-	return do_rw_taskfile(drive, args);
+-}
+-
+-=======
+->>>>>>> FETCH_HEAD:drivers/ide/ide-io.c
+ /**
+  *	ide_end_dequeued_request	-	complete an IDE I/O
+  *	@drive: IDE device for the I/O
+@@ -803,52 +710,6 @@ void do_ide_request(struct request_queue
+ 	struct request	*rq;
+ 	ide_startstop_t	startstop;
+ 
+-<<<<<<< HEAD:drivers/ide/ide-io.c
+-	/* caller must own ide_lock */
+-	BUG_ON(!irqs_disabled());
+-
+-	while (!hwgroup->busy) {
+-		hwgroup->busy = 1;
+-		/* for atari only */
+-		ide_get_lock(ide_intr, hwgroup);
+-		drive = choose_drive(hwgroup);
+-		if (drive == NULL) {
+-			int sleeping = 0;
+-			unsigned long sleep = 0; /* shut up, gcc */
+-			hwgroup->rq = NULL;
+-			drive = hwgroup->drive;
+-			do {
+-				if ((drive->dev_flags & IDE_DFLAG_SLEEPING) &&
+-				    (sleeping == 0 ||
+-				     time_before(drive->sleep, sleep))) {
+-					sleeping = 1;
+-					sleep = drive->sleep;
+-				}
+-			} while ((drive = drive->next) != hwgroup->drive);
+-			if (sleeping) {
+-		/*
+-		 * Take a short snooze, and then wake up this hwgroup again.
+-		 * This gives other hwgroups on the same a chance to
+-		 * play fairly with us, just in case there are big differences
+-		 * in relative throughputs.. don't want to hog the cpu too much.
+-		 */
+-				if (time_before(sleep, jiffies + WAIT_MIN_SLEEP))
+-					sleep = jiffies + WAIT_MIN_SLEEP;
+-#if 1
+-				if (timer_pending(&hwgroup->timer))
+-					printk(KERN_CRIT "ide_set_handler: timer already active\n");
+-#endif
+-				/* so that ide_timer_expiry knows what to do */
+-				hwgroup->sleeping = 1;
+-				hwgroup->req_gen_timer = hwgroup->req_gen;
+-				mod_timer(&hwgroup->timer, sleep);
+-				/* we purposely leave hwgroup->busy==1
+-				 * while sleeping */
+-			} else {
+-				/* Ugly, but how can we sleep for the lock
+-				 * otherwise? perhaps from tq_disk?
+-				 */
+-=======
+ 	/*
+ 	 * drive is doing pre-flush, ordered write, post-flush sequence. even
+ 	 * though that is 3 requests, it must be seen as a single transaction.
+@@ -870,7 +731,6 @@ void do_ide_request(struct request_queue
+ 
+ 	if (!ide_lock_hwgroup(hwgroup)) {
+ 		hwgroup->rq = NULL;
+->>>>>>> FETCH_HEAD:drivers/ide/ide-io.c
+ 
+ 		if (drive->dev_flags & IDE_DFLAG_SLEEPING) {
+ 			if (time_before(drive->sleep, jiffies)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +278,8 @@ mm-remove-the-might_sleep-from-lock_page.patch
 make-linx-next-apply.patch
 linux-next.patch
 next-remove-localversion.patch
+linux-next-git-rejects.patch
+xfs-linux-next-i386-hackfix.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 linux-timexh-cleanup-for-userspace.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
@@ -141,5 +336,4 @@ undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-xfs-linux-next-i386-hackfix.patch
 
