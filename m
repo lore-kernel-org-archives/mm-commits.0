@@ -1,40 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - make-get_scan_ratio-memcg-safe.patch removed from -mm tree
-Date: Tue, 02 Dec 2008 21:37:50 -0800
-Message-ID: <200812030537.mB35bouF018277@imap1.linux-foundation.org>
+Subject: - memcg-add-null-check-to-page_cgroup_zoneinfo.patch removed from -mm tree
+Date: Tue, 02 Dec 2008 21:37:55 -0800
+Message-ID: <200812030537.mB35btWK018282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57625 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751734AbYLCFiN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:38:13 -0500
+	by vger.kernel.org with ESMTP id S1751944AbYLCFiR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:38:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make get_scan_ratio() memcg safe
+     memcg: add null check to page_cgroup_zoneinfo()
 has been removed from the -mm tree.  Its filename was
-     make-get_scan_ratio-memcg-safe.patch
+     memcg-add-null-check-to-page_cgroup_zoneinfo.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make get_scan_ratio() memcg safe
+Subject: memcg: add null check to page_cgroup_zoneinfo()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Currently, get_scan_ratio() always calculate the balancing value for
-global reclaim and memcg reclaim doesn't use it.  Therefore it doesn't
-have scan_global_lru() condition.
+If CONFIG_CGROUP_MEM_RES_CTLR_SWAP=y, page_cgroup::mem_cgroup can be NULL.
+Therefore null checking is better.
 
-However, we plan to expand get_scan_ratio() to be usable for memcg too,
-latter.  Then, The dependency code of global reclaim in the
-get_scan_ratio() insert into scan_global_lru() condision explictly.
-
-This patch doesn't have any functional change.
+A later patch uses this function.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -43,35 +38,22 @@ Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/vmscan.c~make-get_scan_ratio-memcg-safe mm/vmscan.c
---- a/mm/vmscan.c~make-get_scan_ratio-memcg-safe
-+++ a/mm/vmscan.c
-@@ -1423,13 +1423,16 @@ static void get_scan_ratio(struct zone *
- 		zone_nr_pages(zone, sc, LRU_INACTIVE_ANON);
- 	file  = zone_nr_pages(zone, sc, LRU_ACTIVE_FILE) +
- 		zone_nr_pages(zone, sc, LRU_INACTIVE_FILE);
--	free  = zone_page_state(zone, NR_FREE_PAGES);
+diff -puN mm/memcontrol.c~memcg-add-null-check-to-page_cgroup_zoneinfo mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-null-check-to-page_cgroup_zoneinfo
++++ a/mm/memcontrol.c
+@@ -231,6 +231,9 @@ page_cgroup_zoneinfo(struct page_cgroup 
+ 	int nid = page_cgroup_nid(pc);
+ 	int zid = page_cgroup_zid(pc);
  
--	/* If we have very few page cache pages, force-scan anon pages. */
--	if (unlikely(file + free <= zone->pages_high)) {
--		percent[0] = 100;
--		percent[1] = 0;
--		return;
-+	if (scan_global_lru(sc)) {
-+		free  = zone_page_state(zone, NR_FREE_PAGES);
-+		/* If we have very few page cache pages,
-+		   force-scan anon pages. */
-+		if (unlikely(file + free <= zone->pages_high)) {
-+			percent[0] = 100;
-+			percent[1] = 0;
-+			return;
-+		}
- 	}
++	if (!mem)
++		return NULL;
++
+ 	return mem_cgroup_zoneinfo(mem, nid, zid);
+ }
  
- 	/*
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -101,7 +83,6 @@ proc-export-statistics-for-softirq-to-proc.patch
 proc-update-document-for-proc-softirqs-and-proc-stat.patch
 memcg-new-force_empty-to-free-pages-under-group-fix.patch
 memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-make-get_scan_ratio-memcg-safe.patch
 memcg-add-null-check-to-page_cgroup_zoneinfo.patch
 memcg-add-inactive_anon_is_low.patch
 memcg-add-mem_cgroup_zone_nr_pages.patch
