@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-memoryswap-controller-fix-limit-check.patch added to -mm tree
-Date: Tue, 02 Dec 2008 21:57:08 -0800
-Message-ID: <200812030557.mB35v8KG028861@imap1.linux-foundation.org>
+Subject: + memcg-revert-gfp-mask-fix.patch added to -mm tree
+Date: Tue, 02 Dec 2008 21:56:58 -0800
+Message-ID: <200812030556.mB35uwjl028763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754333AbYLCF5Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:57:25 -0500
+	by vger.kernel.org with ESMTP id S1754007AbYLCF5T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:57:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.
 
 
 The patch titled
-     memcg: memoryswap controller fix limit check
+     memcg: revert gfp mask fix
 has been added to the -mm tree.  Its filename is
-     memcg-memoryswap-controller-fix-limit-check.patch
+     memcg-revert-gfp-mask-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,17 +33,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: memoryswap controller fix limit check
+Subject: memcg: revert gfp mask fix
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-There are scatterd calls of res_counter_check_under_limit(), and most of
-them don't take mem+swap accounting into account.
+My patch, memcg-fix-gfp_mask-of-callers-of-charge.patch changed gfp_mask
+of callers of charge to be GFP_HIGHUSER_MOVABLE for showing what will
+happen at memory reclaim.
 
-define mem_cgroup_check_under_limit() and avoid direct use of
-res_counter_check_limit().
+But in recent discussion, it's NACKed because it sounds ugly.
 
-Reported-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+This patch is for reverting it and add some clean up to gfp_mask of
+callers of charge.  No behavior change but need review before generating
+HUNK in deep queue.
+
+This patch also adds explanation to meaning of gfp_mask passed to charge
+functions in memcontrol.h.
+
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
@@ -52,73 +57,180 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+ include/linux/memcontrol.h |   10 ++++++++++
+ mm/filemap.c               |    2 +-
+ mm/memcontrol.c            |   10 +++++-----
+ mm/memory.c                |   10 ++++------
+ mm/shmem.c                 |    8 ++++----
+ mm/swapfile.c              |    3 +--
+ 6 files changed, 25 insertions(+), 18 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-memoryswap-controller-fix-limit-check mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-memoryswap-controller-fix-limit-check
+diff -puN include/linux/memcontrol.h~memcg-revert-gfp-mask-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-revert-gfp-mask-fix
++++ a/include/linux/memcontrol.h
+@@ -26,6 +26,16 @@ struct page;
+ struct mm_struct;
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
++/*
++ * All "charge" functions with gfp_mask should use GFP_KERNEL or
++ * (gfp_mask & GFP_RECLAIM_MASK). In current implementatin, memcg doesn't
++ * alloc memory but reclaims memory from all available zones. So, "where I want
++ * memory from" bits of gfp_mask has no meaning. So any bits of that field is
++ * available but adding a rule is better. charge functions' gfp_mask should
++ * be set to GFP_KERNEL or gfp_mask & GFP_RECLAIM_MASK for avoiding ambiguous
++ * codes.
++ * (Of course, if memcg does memory allocation in future, GFP_KERNEL is sane.)
++ */
+ 
+ extern int mem_cgroup_newpage_charge(struct page *page, struct mm_struct *mm,
+ 				gfp_t gfp_mask);
+diff -puN mm/filemap.c~memcg-revert-gfp-mask-fix mm/filemap.c
+--- a/mm/filemap.c~memcg-revert-gfp-mask-fix
++++ a/mm/filemap.c
+@@ -460,7 +460,7 @@ int add_to_page_cache_locked(struct page
+ 	VM_BUG_ON(!PageLocked(page));
+ 
+ 	error = mem_cgroup_cache_charge(page, current->mm,
+-					gfp_mask & ~__GFP_HIGHMEM);
++					gfp_mask & GFP_RECLAIM_MASK);
+ 	if (error)
+ 		goto out;
+ 
+diff -puN mm/memcontrol.c~memcg-revert-gfp-mask-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-revert-gfp-mask-fix
 +++ a/mm/memcontrol.c
-@@ -571,6 +571,18 @@ done:
+@@ -1248,7 +1248,7 @@ int mem_cgroup_prepare_migration(struct 
+ 	unlock_page_cgroup(pc);
+ 
+ 	if (mem) {
+-		ret = mem_cgroup_try_charge(NULL, GFP_HIGHUSER_MOVABLE, &mem);
++		ret = mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem);
+ 		css_put(&mem->css);
+ 	}
+ 	*ptr = mem;
+@@ -1378,7 +1378,7 @@ static int mem_cgroup_resize_limit(struc
+ 			break;
+ 
+ 		progress = try_to_free_mem_cgroup_pages(memcg,
+-				GFP_HIGHUSER_MOVABLE, false);
++				GFP_KERNEL, false);
+   		if (!progress)			retry_count--;
+ 	}
  	return ret;
- }
+@@ -1418,7 +1418,7 @@ int mem_cgroup_resize_memsw_limit(struct
+ 			break;
  
-+static bool mem_cgroup_check_under_limit(struct mem_cgroup *mem)
-+{
-+	if (do_swap_account) {
-+		if (res_counter_check_under_limit(&mem->res) &&
-+			res_counter_check_under_limit(&mem->memsw))
-+			return true;
-+	} else
-+		if (res_counter_check_under_limit(&mem->res))
-+			return true;
-+	return false;
-+}
-+
- /*
-  * Dance down the hierarchy if needed to reclaim memory. We remember the
-  * last child we reclaimed from, so that we don't end up penalizing
-@@ -592,7 +604,7 @@ static int mem_cgroup_hierarchical_recla
- 	 * have left.
- 	 */
- 	ret = try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap);
--	if (res_counter_check_under_limit(&root_mem->res))
-+	if (mem_cgroup_check_under_limit(root_mem))
- 		return 0;
- 
- 	next_mem = mem_cgroup_get_first_node(root_mem);
-@@ -606,7 +618,7 @@ static int mem_cgroup_hierarchical_recla
- 			continue;
+ 		oldusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
+-		try_to_free_mem_cgroup_pages(memcg, GFP_HIGHUSER_MOVABLE, true);
++		try_to_free_mem_cgroup_pages(memcg, GFP_KERNEL, true);
+ 		curusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
+ 		if (curusage >= oldusage)
+ 			retry_count--;
+@@ -1464,7 +1464,7 @@ static int mem_cgroup_force_empty_list(s
  		}
- 		ret = try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap);
--		if (res_counter_check_under_limit(&root_mem->res))
-+		if (mem_cgroup_check_under_limit(root_mem))
- 			return 0;
- 		cgroup_lock();
- 		next_mem = mem_cgroup_get_next_node(next_mem, root_mem);
-@@ -709,12 +721,8 @@ static int __mem_cgroup_try_charge(struc
- 		 * current usage of the cgroup before giving up
- 		 *
- 		 */
--		if (do_swap_account) {
--			if (res_counter_check_under_limit(&mem_over_limit->res) &&
--			    res_counter_check_under_limit(&mem_over_limit->memsw))
--				continue;
--		} else if (res_counter_check_under_limit(&mem_over_limit->res))
--				continue;
-+		if (mem_cgroup_check_under_limit(mem_over_limit))
-+			continue;
+ 		spin_unlock_irqrestore(&zone->lru_lock, flags);
  
- 		if (!nr_retries--) {
- 			if (oom) {
-@@ -1334,7 +1342,7 @@ int mem_cgroup_shrink_usage(struct mm_st
+-		ret = mem_cgroup_move_parent(pc, mem, GFP_HIGHUSER_MOVABLE);
++		ret = mem_cgroup_move_parent(pc, mem, GFP_KERNEL);
+ 		if (ret == -ENOMEM)
+ 			break;
  
- 	do {
- 		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask, true);
--		progress += res_counter_check_under_limit(&mem->res);
-+		progress += mem_cgroup_check_under_limit(mem);
- 	} while (!progress && --retry);
+@@ -1550,7 +1550,7 @@ try_to_free:
+ 			goto out;
+ 		}
+ 		progress = try_to_free_mem_cgroup_pages(mem,
+-						  GFP_HIGHUSER_MOVABLE, false);
++						  GFP_KERNEL, false);
+ 		if (!progress) {
+ 			nr_retries--;
+ 			/* maybe some writeback is necessary */
+diff -puN mm/memory.c~memcg-revert-gfp-mask-fix mm/memory.c
+--- a/mm/memory.c~memcg-revert-gfp-mask-fix
++++ a/mm/memory.c
+@@ -1967,7 +1967,7 @@ gotten:
+ 	cow_user_page(new_page, old_page, address, vma);
+ 	__SetPageUptodate(new_page);
  
- 	css_put(&mem->css);
+-	if (mem_cgroup_newpage_charge(new_page, mm, GFP_HIGHUSER_MOVABLE))
++	if (mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))
+ 		goto oom_free_new;
+ 
+ 	/*
+@@ -2398,8 +2398,7 @@ static int do_swap_page(struct mm_struct
+ 	lock_page(page);
+ 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
+ 
+-	if (mem_cgroup_try_charge_swapin(mm, page,
+-				GFP_HIGHUSER_MOVABLE, &ptr) == -ENOMEM) {
++	if (mem_cgroup_try_charge_swapin(mm, page, GFP_KERNEL, &ptr)) {
+ 		ret = VM_FAULT_OOM;
+ 		unlock_page(page);
+ 		goto out;
+@@ -2491,7 +2490,7 @@ static int do_anonymous_page(struct mm_s
+ 		goto oom;
+ 	__SetPageUptodate(page);
+ 
+-	if (mem_cgroup_newpage_charge(page, mm, GFP_HIGHUSER_MOVABLE))
++	if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))
+ 		goto oom_free_page;
+ 
+ 	entry = mk_pte(page, vma->vm_page_prot);
+@@ -2582,8 +2581,7 @@ static int __do_fault(struct mm_struct *
+ 				ret = VM_FAULT_OOM;
+ 				goto out;
+ 			}
+-			if (mem_cgroup_newpage_charge(page,
+-						mm, GFP_HIGHUSER_MOVABLE)) {
++			if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL)) {
+ 				ret = VM_FAULT_OOM;
+ 				page_cache_release(page);
+ 				goto out;
+diff -puN mm/shmem.c~memcg-revert-gfp-mask-fix mm/shmem.c
+--- a/mm/shmem.c~memcg-revert-gfp-mask-fix
++++ a/mm/shmem.c
+@@ -924,8 +924,8 @@ found:
+ 	 * Charge page using GFP_HIGHUSER_MOVABLE while we can wait.
+ 	 * charged back to the user(not to caller) when swap account is used.
+ 	 */
+-	error = mem_cgroup_cache_charge_swapin(page,
+-			current->mm, GFP_HIGHUSER_MOVABLE, true);
++	error = mem_cgroup_cache_charge_swapin(page, current->mm, GFP_KERNEL,
++					true);
+ 	if (error)
+ 		goto out;
+ 	error = radix_tree_preload(GFP_KERNEL);
+@@ -1267,7 +1267,7 @@ repeat:
+ 			 * charge against this swap cache here.
+ 			 */
+ 			if (mem_cgroup_cache_charge_swapin(swappage,
+-						current->mm, gfp, false)) {
++				current->mm, gfp & GFP_RECLAIM_MASK, false)) {
+ 				page_cache_release(swappage);
+ 				error = -ENOMEM;
+ 				goto failed;
+@@ -1385,7 +1385,7 @@ repeat:
+ 
+ 			/* Precharge page while we can wait, compensate after */
+ 			error = mem_cgroup_cache_charge(filepage, current->mm,
+-					GFP_HIGHUSER_MOVABLE);
++					GFP_KERNEL);
+ 			if (error) {
+ 				page_cache_release(filepage);
+ 				shmem_unacct_blocks(info->flags, 1);
+diff -puN mm/swapfile.c~memcg-revert-gfp-mask-fix mm/swapfile.c
+--- a/mm/swapfile.c~memcg-revert-gfp-mask-fix
++++ a/mm/swapfile.c
+@@ -698,8 +698,7 @@ static int unuse_pte(struct vm_area_stru
+ 	pte_t *pte;
+ 	int ret = 1;
+ 
+-	if (mem_cgroup_try_charge_swapin(vma->vm_mm, page,
+-					GFP_HIGHUSER_MOVABLE, &ptr))
++	if (mem_cgroup_try_charge_swapin(vma->vm_mm, page, GFP_KERNEL, &ptr))
+ 		ret = -ENOMEM;
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
