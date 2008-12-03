@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + badpage-remove-vma-from-page_remove_rmap.patch added to -mm tree
-Date: Tue, 02 Dec 2008 16:57:21 -0800
-Message-ID: <200812030057.mB30vLqp024495@imap1.linux-foundation.org>
+Subject: + badpage-vm_normal_page-use-print_bad_pte.patch added to -mm tree
+Date: Tue, 02 Dec 2008 16:57:17 -0800
+Message-ID: <200812030057.mB30vHLi024450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39379 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754677AbYLCA7g (ORCPT
+	by vger.kernel.org with ESMTP id S1754688AbYLCA7g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.c
 
 
 The patch titled
-     badpage: remove vma from page_remove_rmap
+     badpage: vm_normal_page use print_bad_pte
 has been added to the -mm tree.  Its filename is
-     badpage-remove-vma-from-page_remove_rmap.patch
+     badpage-vm_normal_page-use-print_bad_pte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: badpage: remove vma from page_remove_rmap
+Subject: badpage: vm_normal_page use print_bad_pte
 From: Hugh Dickins <hugh@veritas.com>
 
-Remove page_remove_rmap()'s vma arg, which was only for the Eeek message. 
-And remove the BUG_ON(page_mapcount(page) == 0) from CONFIG_DEBUG_VM's
-page_dup_rmap(): we're trying to be more resilient about that than BUGs.
+print_bad_pte() is so far being called only when zap_pte_range() finds
+negative page_mapcount, or there's a fault on a pte_file where it does not
+belong.  That's weak coverage when we suspect pagetable corruption.
+
+Originally, it was called when vm_normal_page() found an invalid pfn: but
+pfn_valid is expensive on some architectures and configurations, so 2.6.24
+put that under CONFIG_DEBUG_VM (which doesn't help in the field), then
+2.6.26 replaced it by a VM_BUG_ON (likewise).
+
+Reinstate the print_bad_pte() in vm_normal_page(), but use a cheaper test
+than pfn_valid(): memmap_init_zone() (used in bootup and hotplug) keep a
+__read_mostly note of the highest_memmap_pfn, vm_normal_page() then check
+pfn against that.  We could call this pfn_plausible() or pfn_sane(), but I
+doubt we'll need it elsewhere: of course it's not reliable, but gives much
+stronger pagetable validation on many boxes.
+
+Also use print_bad_pte() when the pte_special bit is found outside a
+VM_PFNMAP or VM_MIXEDMAP area, instead of VM_BUG_ON.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -48,112 +63,90 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 +-
- mm/filemap_xip.c     |    2 +-
- mm/fremap.c          |    2 +-
- mm/memory.c          |    4 ++--
- mm/rmap.c            |    8 +++-----
- 5 files changed, 8 insertions(+), 10 deletions(-)
+ mm/internal.h   |    1 +
+ mm/memory.c     |   20 ++++++++++----------
+ mm/page_alloc.c |    4 ++++
+ 3 files changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/rmap.h~badpage-remove-vma-from-page_remove_rmap include/linux/rmap.h
---- a/include/linux/rmap.h~badpage-remove-vma-from-page_remove_rmap
-+++ a/include/linux/rmap.h
-@@ -69,7 +69,7 @@ void __anon_vma_link(struct vm_area_stru
- void page_add_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
- void page_add_new_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
- void page_add_file_rmap(struct page *);
--void page_remove_rmap(struct page *, struct vm_area_struct *);
-+void page_remove_rmap(struct page *);
+diff -puN mm/internal.h~badpage-vm_normal_page-use-print_bad_pte mm/internal.h
+--- a/mm/internal.h~badpage-vm_normal_page-use-print_bad_pte
++++ a/mm/internal.h
+@@ -49,6 +49,7 @@ extern void putback_lru_page(struct page
+ /*
+  * in mm/page_alloc.c
+  */
++extern unsigned long highest_memmap_pfn;
+ extern void __free_pages_bootmem(struct page *page, unsigned int order);
  
- #ifdef CONFIG_DEBUG_VM
- void page_dup_rmap(struct page *page, struct vm_area_struct *vma, unsigned long address);
-diff -puN mm/filemap_xip.c~badpage-remove-vma-from-page_remove_rmap mm/filemap_xip.c
---- a/mm/filemap_xip.c~badpage-remove-vma-from-page_remove_rmap
-+++ a/mm/filemap_xip.c
-@@ -193,7 +193,7 @@ retry:
- 			/* Nuke the page table entry. */
- 			flush_cache_page(vma, address, pte_pfn(*pte));
- 			pteval = ptep_clear_flush_notify(vma, address, pte);
--			page_remove_rmap(page, vma);
-+			page_remove_rmap(page);
- 			dec_mm_counter(mm, file_rss);
- 			BUG_ON(pte_dirty(pteval));
- 			pte_unmap_unlock(pte, ptl);
-diff -puN mm/fremap.c~badpage-remove-vma-from-page_remove_rmap mm/fremap.c
---- a/mm/fremap.c~badpage-remove-vma-from-page_remove_rmap
-+++ a/mm/fremap.c
-@@ -37,7 +37,7 @@ static void zap_pte(struct mm_struct *mm
- 		if (page) {
- 			if (pte_dirty(pte))
- 				set_page_dirty(page);
--			page_remove_rmap(page, vma);
-+			page_remove_rmap(page);
- 			page_cache_release(page);
- 			update_hiwater_rss(mm);
- 			dec_mm_counter(mm, file_rss);
-diff -puN mm/memory.c~badpage-remove-vma-from-page_remove_rmap mm/memory.c
---- a/mm/memory.c~badpage-remove-vma-from-page_remove_rmap
+ /*
+diff -puN mm/memory.c~badpage-vm_normal_page-use-print_bad_pte mm/memory.c
+--- a/mm/memory.c~badpage-vm_normal_page-use-print_bad_pte
 +++ a/mm/memory.c
-@@ -788,7 +788,7 @@ static unsigned long zap_pte_range(struc
- 					mark_page_accessed(page);
- 				file_rss--;
- 			}
--			page_remove_rmap(page, vma);
-+			page_remove_rmap(page);
- 			if (unlikely(page_mapcount(page) < 0))
- 				print_bad_pte(vma, addr, ptent, page);
- 			tlb_remove_page(tlb, page);
-@@ -1994,7 +1994,7 @@ gotten:
- 			 * mapcount is visible. So transitively, TLBs to
- 			 * old page will be flushed before it can be reused.
- 			 */
--			page_remove_rmap(old_page, vma);
-+			page_remove_rmap(old_page);
+@@ -467,21 +467,18 @@ static inline int is_cow_mapping(unsigne
+ struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
+ 				pte_t pte)
+ {
+-	unsigned long pfn;
++	unsigned long pfn = pte_pfn(pte);
+ 
+ 	if (HAVE_PTE_SPECIAL) {
+-		if (likely(!pte_special(pte))) {
+-			VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
+-			return pte_page(pte);
+-		}
+-		VM_BUG_ON(!(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP)));
++		if (likely(!pte_special(pte)))
++			goto check_pfn;
++		if (!(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP)))
++			print_bad_pte(vma, addr, pte, NULL);
+ 		return NULL;
+ 	}
+ 
+ 	/* !HAVE_PTE_SPECIAL case follows: */
+ 
+-	pfn = pte_pfn(pte);
+-
+ 	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
+ 		if (vma->vm_flags & VM_MIXEDMAP) {
+ 			if (!pfn_valid(pfn))
+@@ -497,11 +494,14 @@ struct page *vm_normal_page(struct vm_ar
  		}
+ 	}
  
- 		/* Free the old page.. */
-diff -puN mm/rmap.c~badpage-remove-vma-from-page_remove_rmap mm/rmap.c
---- a/mm/rmap.c~badpage-remove-vma-from-page_remove_rmap
-+++ a/mm/rmap.c
-@@ -707,7 +707,6 @@ void page_add_file_rmap(struct page *pag
-  */
- void page_dup_rmap(struct page *page, struct vm_area_struct *vma, unsigned long address)
- {
--	BUG_ON(page_mapcount(page) == 0);
- 	if (PageAnon(page))
- 		__page_check_anon_rmap(page, vma, address);
- 	atomic_inc(&page->_mapcount);
-@@ -717,11 +716,10 @@ void page_dup_rmap(struct page *page, st
- /**
-  * page_remove_rmap - take down pte mapping from a page
-  * @page: page to remove mapping from
-- * @vma: the vm area in which the mapping is removed
-  *
-  * The caller needs to hold the pte lock.
-  */
--void page_remove_rmap(struct page *page, struct vm_area_struct *vma)
-+void page_remove_rmap(struct page *page)
- {
- 	if (atomic_add_negative(-1, &page->_mapcount)) {
+-	VM_BUG_ON(!pfn_valid(pfn));
++check_pfn:
++	if (unlikely(pfn > highest_memmap_pfn)) {
++		print_bad_pte(vma, addr, pte, NULL);
++		return NULL;
++	}
+ 
+ 	/*
+ 	 * NOTE! We still have PageReserved() pages in the page tables.
+-	 *
+ 	 * eg. VDSO mappings can cause them to exist.
+ 	 */
+ out:
+diff -puN mm/page_alloc.c~badpage-vm_normal_page-use-print_bad_pte mm/page_alloc.c
+--- a/mm/page_alloc.c~badpage-vm_normal_page-use-print_bad_pte
++++ a/mm/page_alloc.c
+@@ -69,6 +69,7 @@ EXPORT_SYMBOL(node_states);
+ 
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
++unsigned long highest_memmap_pfn __read_mostly;
+ int percpu_pagelist_fraction;
+ 
+ #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
+@@ -2597,6 +2598,9 @@ void __meminit memmap_init_zone(unsigned
+ 	unsigned long pfn;
+ 	struct zone *z;
+ 
++	if (highest_memmap_pfn < end_pfn - 1)
++		highest_memmap_pfn = end_pfn - 1;
++
+ 	z = &NODE_DATA(nid)->node_zones[zone];
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
  		/*
-@@ -837,7 +835,7 @@ static int try_to_unmap_one(struct page 
- 		dec_mm_counter(mm, file_rss);
- 
- 
--	page_remove_rmap(page, vma);
-+	page_remove_rmap(page);
- 	page_cache_release(page);
- 
- out_unmap:
-@@ -952,7 +950,7 @@ static int try_to_unmap_cluster(unsigned
- 		if (pte_dirty(pteval))
- 			set_page_dirty(page);
- 
--		page_remove_rmap(page, vma);
-+		page_remove_rmap(page);
- 		page_cache_release(page);
- 		dec_mm_counter(mm, file_rss);
- 		(*mapcount)--;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
