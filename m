@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + generic-swap-introduce-global-macro-swapa-b.patch added to -mm tree
-Date: Wed, 03 Dec 2008 00:19:12 -0800
-Message-ID: <200812030819.mB38JCjt010242@imap1.linux-foundation.org>
+Subject: + generic-swap-iphase-rename-swap-to-swap_byte_order.patch added to -mm tree
+Date: Wed, 03 Dec 2008 00:19:08 -0800
+Message-ID: <200812030819.mB38J8VH010211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751090AbYLCITO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 03:19:14 -0500
+	by vger.kernel.org with ESMTP id S1751037AbYLCITL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 03:19:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com
+Cc: fengguang.wu@intel.com, davem@davemloft.net
 
 
 The patch titled
-     generic swap(): introduce global macro swap(a, b)
+     generic swap(): iphase: rename swap() to swap_byte_order()
 has been added to the -mm tree.  Its filename is
-     generic-swap-introduce-global-macro-swapa-b.patch
+     generic-swap-iphase-rename-swap-to-swap_byte_order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic swap(): introduce global macro swap(a, b)
+Subject: generic swap(): iphase: rename swap() to swap_byte_order()
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-There have been some local definitions of swap(), it's time to replace
-them all with a uniform one.
+In preparation for the introduction of a generic swap() macro.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/atm/iphase.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/kernel.h~generic-swap-introduce-global-macro-swapa-b include/linux/kernel.h
---- a/include/linux/kernel.h~generic-swap-introduce-global-macro-swapa-b
-+++ a/include/linux/kernel.h
-@@ -488,6 +488,12 @@ static inline char *pack_hex_byte(char *
- 	__val = __val < __min ? __min: __val;	\
- 	__val > __max ? __max: __val; })
+diff -puN drivers/atm/iphase.c~generic-swap-iphase-rename-swap-to-swap_byte_order drivers/atm/iphase.c
+--- a/drivers/atm/iphase.c~generic-swap-iphase-rename-swap-to-swap_byte_order
++++ a/drivers/atm/iphase.c
+@@ -64,7 +64,7 @@
+ #include <linux/jiffies.h>
+ #include "iphase.h"		  
+ #include "suni.h"		  
+-#define swap(x) (((x & 0xff) << 8) | ((x & 0xff00) >> 8))  
++#define swap_byte_order(x) (((x & 0xff) << 8) | ((x & 0xff00) >> 8))
  
-+
-+/*
-+ * swap - swap value of @a and @b
-+ */
-+#define swap(a, b) ({ typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; })
-+
- /**
-  * container_of - cast a member of a structure out to the containing structure
-  * @ptr:	the pointer to the member.
+ #define PRIV(dev) ((struct suni_priv *) dev->phy_data)
+ 
+@@ -1306,7 +1306,7 @@ static void rx_dle_intr(struct atm_dev *
+           // get real pkt length  pwang_test
+           trailer = (struct cpcs_trailer*)((u_char *)skb->data +
+                                  skb->len - sizeof(*trailer));
+-          length =  swap(trailer->length);
++	  length = swap_byte_order(trailer->length);
+           if ((length > iadev->rx_buf_sz) || (length > 
+                               (skb->len - sizeof(struct cpcs_trailer))))
+           {
+@@ -2995,7 +2995,7 @@ static int ia_pkt_tx (struct atm_vcc *vc
+ 		skb->len, PCI_DMA_TODEVICE);
+ 	wr_ptr->local_pkt_addr = (buf_desc_ptr->buf_start_hi << 16) | 
+                                                   buf_desc_ptr->buf_start_lo;  
+-	/* wr_ptr->bytes = swap(total_len);	didn't seem to affect ?? */  
++	/* wr_ptr->bytes = swap_byte_order(total_len); didn't seem to affect?? */
+ 	wr_ptr->bytes = skb->len;  
+ 
+         /* hw bug - DLEs of 0x2d, 0x2e, 0x2f cause DMA lockup */
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
