@@ -1,136 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-agp-add-missing-pci_dev_get.patch removed from -mm tree
-Date: Wed, 03 Dec 2008 12:28:54 -0800
-Message-ID: <200812032028.mB3KSsJc028198@imap1.linux-foundation.org>
+Subject: - agp-follow-lspci-device-vendor-style.patch removed from -mm tree
+Date: Wed, 03 Dec 2008 12:28:48 -0800
+Message-ID: <200812032028.mB3KSmP4028083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45147 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44738 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761458AbYLCU3Y (ORCPT
+	by vger.kernel.org with ESMTP id S1759251AbYLCU3Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, airlied@linux.ie, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/agp: add missing pci_dev_get
+     agp: follow lspci device/vendor style
 has been removed from the -mm tree.  Its filename was
-     drivers-char-agp-add-missing-pci_dev_get.patch
+     agp-follow-lspci-device-vendor-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/agp: add missing pci_dev_get
-From: Julia Lawall <julia@diku.dk>
+Subject: agp: follow lspci device/vendor style
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-pci_get_slot does a pci_dev_get, so pci_dev_put needs to be called in an
-error case.
+Use "[%04x:%04x]" for PCI vendor/device IDs to follow the format used by
+lspci(8).
 
-In the first three cases, it might also be possible to move the call to
-pci_get_slot downwards below the error handling code.
-
-The problem was fixed using the following semantic patch.
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-local idexpression *n;
-statement S1,S2;
-expression E,E1;
-expression *ptr != NULL;
-type T,T1;
-@@
-
-(
-if (!(n = pci_get_slot(...))) S1
-|
-n = pci_get_slot(...)
-)
-<... when != pci_dev_put(n)
-    when != if (...) { <+... pci_dev_put(n) ...+> }
-    when != true !n  || ...
-    when != n = (T)E
-    when != E = n
-if (!n || ...) S2
-...>
-(
-  return \(0\|<+...n...+>\|ptr\);
-|
-+ pci_dev_put(n);
-return ...;
-|
-pci_dev_put(n);
-|
-n = (T1)E1
-|
-E1 = n
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/amd64-agp.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/char/agp/ali-agp.c      |    2 +-
+ drivers/char/agp/amd64-agp.c    |    2 +-
+ drivers/char/agp/ati-agp.c      |    2 +-
+ drivers/char/agp/intel-agp.c    |    2 +-
+ drivers/char/agp/isoch.c        |    2 +-
+ drivers/char/agp/sis-agp.c      |    2 +-
+ drivers/char/agp/sworks-agp.c   |    2 +-
+ drivers/char/agp/uninorth-agp.c |    2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/agp/amd64-agp.c~drivers-char-agp-add-missing-pci_dev_get drivers/char/agp/amd64-agp.c
---- a/drivers/char/agp/amd64-agp.c~drivers-char-agp-add-missing-pci_dev_get
+diff -puN drivers/char/agp/ali-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/ali-agp.c
+--- a/drivers/char/agp/ali-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/ali-agp.c
+@@ -316,7 +316,7 @@ static int __devinit agp_ali_probe(struc
+ 			goto found;
+ 	}
+ 
+-	dev_err(&pdev->dev, "unsupported ALi chipset [%04x/%04x])\n",
++	dev_err(&pdev->dev, "unsupported ALi chipset [%04x:%04x])\n",
+ 		pdev->vendor, pdev->device);
+ 	return -ENODEV;
+ 
+diff -puN drivers/char/agp/amd64-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/amd64-agp.c
+--- a/drivers/char/agp/amd64-agp.c~agp-follow-lspci-device-vendor-style
 +++ a/drivers/char/agp/amd64-agp.c
-@@ -393,6 +393,7 @@ static int __devinit uli_agp_init(struct
+@@ -507,7 +507,7 @@ static int __devinit agp_amd64_probe(str
+ 	    pdev->device == PCI_DEVICE_ID_AMD_8151_0) {
+ 		amd8151_init(pdev, bridge);
+ 	} else {
+-		dev_info(&pdev->dev, "AGP bridge [%04x/%04x]\n",
++		dev_info(&pdev->dev, "AGP bridge [%04x:%04x]\n",
+ 			 pdev->vendor, pdev->device);
+ 	}
  
- 	if (i == ARRAY_SIZE(uli_sizes)) {
- 		dev_info(&pdev->dev, "no ULi size found for %d\n", size);
-+		pci_dev_put(dev1);
+diff -puN drivers/char/agp/ati-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/ati-agp.c
+--- a/drivers/char/agp/ati-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/ati-agp.c
+@@ -488,7 +488,7 @@ static int __devinit agp_ati_probe(struc
+ 			goto found;
+ 	}
+ 
+-	dev_err(&pdev->dev, "unsupported Ati chipset [%04x/%04x])\n",
++	dev_err(&pdev->dev, "unsupported Ati chipset [%04x:%04x])\n",
+ 		pdev->vendor, pdev->device);
+ 	return -ENODEV;
+ 
+diff -puN drivers/char/agp/intel-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/intel-agp.c
+@@ -2201,7 +2201,7 @@ static int __devinit agp_intel_probe(str
+ 
+ 	if (intel_agp_chipsets[i].name == NULL) {
+ 		if (cap_ptr)
+-			dev_warn(&pdev->dev, "unsupported Intel chipset [%04x/%04x]\n",
++			dev_warn(&pdev->dev, "unsupported Intel chipset [%04x:%04x]\n",
+ 				 pdev->vendor, pdev->device);
+ 		agp_put_bridge(bridge);
+ 		return -ENODEV;
+diff -puN drivers/char/agp/isoch.c~agp-follow-lspci-device-vendor-style drivers/char/agp/isoch.c
+--- a/drivers/char/agp/isoch.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/isoch.c
+@@ -359,7 +359,7 @@ int agp_3_5_enable(struct agp_bridge_dat
+ 			case 0x0001:    /* Unclassified device */
+ 				/* Don't know what this is, but log it for investigation. */
+ 				if (mcapndx != 0) {
+-					dev_info(&td->dev, "wacky, found unclassified AGP device %s [%04x/%04x]\n",
++					dev_info(&td->dev, "wacky, found unclassified AGP device %s [%04x:%04x]\n",
+ 						 pci_name(dev),
+ 						 dev->vendor, dev->device);
+ 				}
+diff -puN drivers/char/agp/sis-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/sis-agp.c
+--- a/drivers/char/agp/sis-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/sis-agp.c
+@@ -190,7 +190,7 @@ static int __devinit agp_sis_probe(struc
+ 		return -ENODEV;
+ 
+ 
+-	dev_info(&pdev->dev, "SiS chipset [%04x/%04x]\n",
++	dev_info(&pdev->dev, "SiS chipset [%04x:%04x]\n",
+ 		 pdev->vendor, pdev->device);
+ 	bridge = agp_alloc_bridge();
+ 	if (!bridge)
+diff -puN drivers/char/agp/sworks-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/sworks-agp.c
+--- a/drivers/char/agp/sworks-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/sworks-agp.c
+@@ -466,7 +466,7 @@ static int __devinit agp_serverworks_pro
+ 	default:
+ 		if (cap_ptr)
+ 			dev_err(&pdev->dev, "unsupported Serverworks chipset "
+-				"[%04x/%04x]\n", pdev->vendor, pdev->device);
++				"[%04x:%04x]\n", pdev->vendor, pdev->device);
  		return -ENODEV;
  	}
  
-@@ -400,8 +401,10 @@ static int __devinit uli_agp_init(struct
- 	pci_read_config_dword (k8_northbridges[0], AMD64_GARTAPERTUREBASE, &httfea);
- 
- 	/* if x86-64 aperture base is beyond 4G, exit here */
--	if ((httfea & 0x7fff) >> (32 - 25))
-+	if ((httfea & 0x7fff) >> (32 - 25)) {
-+		pci_dev_put(dev1);
- 		return -ENODEV;
-+	}
- 
- 	httfea = (httfea& 0x7fff) << 25;
- 
-@@ -451,6 +454,7 @@ static int nforce3_agp_init(struct pci_d
- 
- 	if (i == ARRAY_SIZE(nforce3_sizes)) {
- 		dev_info(&pdev->dev, "no NForce3 size found for %d\n", size);
-+		pci_dev_put(dev1);
- 		return -ENODEV;
+diff -puN drivers/char/agp/uninorth-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/uninorth-agp.c
+--- a/drivers/char/agp/uninorth-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/uninorth-agp.c
+@@ -601,7 +601,7 @@ static int __devinit agp_uninorth_probe(
+ 		}
  	}
  
-@@ -465,6 +469,7 @@ static int nforce3_agp_init(struct pci_d
- 	/* if x86-64 aperture base is beyond 4G, exit here */
- 	if ( (apbase & 0x7fff) >> (32 - 25) ) {
- 		dev_info(&pdev->dev, "aperture base > 4G\n");
-+		pci_dev_put(dev1);
- 		return -ENODEV;
- 	}
+-	dev_err(&pdev->dev, "unsupported Apple chipset [%04x/%04x]\n",
++	dev_err(&pdev->dev, "unsupported Apple chipset [%04x:%04x]\n",
+ 		pdev->vendor, pdev->device);
+ 	return -ENODEV;
  
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 linux-next.patch
-arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-arch-powerpc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-drivers-media-video-cx88-cx88-alsac-adjust-error-handling-code.patch
-arch-ia64-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-drivers-mtd-maps-nettelc-use-array_size.patch
-drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch
-net-tipc-bcasth-use-array_size.patch
-drivers-isdn-misdn-use-array_size.patch
-fs-namespacec-drop-code-after-return.patch
-mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+pnpacpi-enable-power-management.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+clocksource-acpi_pmc-put-acpi_pm_read_slow-under-config_pci.patch
 
