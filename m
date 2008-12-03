@@ -1,93 +1,318 @@
 From: akpm@linux-foundation.org
-Subject: - udf-fix-sparse-warnings.patch removed from -mm tree
-Date: Wed, 03 Dec 2008 12:29:03 -0800
-Message-ID: <200812032029.mB3KT3V8028305@imap1.linux-foundation.org>
+Subject: - quota-add-reservation-support-for-delayed-block-allocation.patch removed from -mm tree
+Date: Wed, 03 Dec 2008 12:44:38 -0800
+Message-ID: <200812032044.mB3KidLU004625@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45964 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52794 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762949AbYLCUiu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:38:50 -0500
+	by vger.kernel.org with ESMTP id S1750953AbYLCUpd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:45:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@hanneseder.net, mm-commits@vger.kernel.org
+To: cmm@us.ibm.com, jack@ucw.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     udf: fix sparse warnings
+     quota: add reservation support for delayed block allocation
 has been removed from the -mm tree.  Its filename was
-     udf-fix-sparse-warnings.patch
+     quota-add-reservation-support-for-delayed-block-allocation.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: fix sparse warnings
-From: Hannes Eder <hannes@hanneseder.net>
+Subject: quota: add reservation support for delayed block allocation
+From: Mingming Cao <cmm@us.ibm.com>
 
-Fix these sparse warnings:
+Delayed allocation defers the block allocation at the dirty pages
+flush-out time, doing quota charge/check at that time is too late.  But we
+can't charge the quota blocks until blocks are really allocated, otherwise
+users could get overcharged after reboot from system crash.
 
-  fs/udf/balloc.c:843:3: warning: returning void-valued expression
-  fs/udf/balloc.c:847:3: warning: returning void-valued expression
-  fs/udf/balloc.c:851:3: warning: returning void-valued expression
-  fs/udf/balloc.c:855:3: warning: returning void-valued expression
+This patch adds quota reservation for delayed allocation.  Quota blocks
+are reserved in memory, inode and quota won't gets dirtied until later
+block allocation time.
 
-Signed-off-by: Hannes Eder <hannes@hanneseder.net>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/balloc.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ fs/dquot.c               |  105 ++++++++++++++++++++++++++-----------
+ include/linux/quota.h    |    2 
+ include/linux/quotaops.h |   23 ++++++++
+ 3 files changed, 101 insertions(+), 29 deletions(-)
 
-diff -puN fs/udf/balloc.c~udf-fix-sparse-warnings fs/udf/balloc.c
---- a/fs/udf/balloc.c~udf-fix-sparse-warnings
-+++ a/fs/udf/balloc.c
-@@ -840,21 +840,21 @@ void udf_free_blocks(struct super_block 
- 	struct udf_part_map *map = &UDF_SB(sb)->s_partmaps[partition];
+diff -puN fs/dquot.c~quota-add-reservation-support-for-delayed-block-allocation fs/dquot.c
+--- a/fs/dquot.c~quota-add-reservation-support-for-delayed-block-allocation
++++ a/fs/dquot.c
+@@ -896,6 +896,11 @@ static inline void dquot_incr_space(stru
+ 	dquot->dq_dqb.dqb_curspace += number;
+ }
  
- 	if (map->s_partition_flags & UDF_PART_FLAG_UNALLOC_BITMAP) {
--		return udf_bitmap_free_blocks(sb, inode,
--					      map->s_uspace.s_bitmap,
--					      bloc, offset, count);
-+		udf_bitmap_free_blocks(sb, inode, map->s_uspace.s_bitmap,
-+				       bloc, offset, count);
-+		return;
- 	} else if (map->s_partition_flags & UDF_PART_FLAG_UNALLOC_TABLE) {
--		return udf_table_free_blocks(sb, inode,
--					     map->s_uspace.s_table,
--					     bloc, offset, count);
-+		udf_table_free_blocks(sb, inode, map->s_uspace.s_table,
-+				      bloc, offset, count);
-+		return;
- 	} else if (map->s_partition_flags & UDF_PART_FLAG_FREED_BITMAP) {
--		return udf_bitmap_free_blocks(sb, inode,
--					      map->s_fspace.s_bitmap,
--					      bloc, offset, count);
-+		udf_bitmap_free_blocks(sb, inode, map->s_fspace.s_bitmap,
-+				       bloc, offset, count);
-+		return;
- 	} else if (map->s_partition_flags & UDF_PART_FLAG_FREED_TABLE) {
--		return udf_table_free_blocks(sb, inode,
--					     map->s_fspace.s_table,
--					     bloc, offset, count);
-+		udf_table_free_blocks(sb, inode, map->s_fspace.s_table,
-+				      bloc, offset, count);
-+		return;
- 	} else {
- 		return;
++static inline void dquot_resv_space(struct dquot *dquot, qsize_t number)
++{
++	dquot->dq_dqb.dqb_rsvspace += number;
++}
++
+ static inline void dquot_decr_inodes(struct dquot *dquot, qsize_t number)
+ {
+ 	if (sb_dqopt(dquot->dq_sb)->flags & DQUOT_NEGATIVE_USAGE ||
+@@ -1126,13 +1131,18 @@ static int check_idq(struct dquot *dquot
+ /* needs dq_data_lock */
+ static int check_bdq(struct dquot *dquot, qsize_t space, int prealloc, char *warntype)
+ {
++	qsize_t tspace;
++
+ 	*warntype = QUOTA_NL_NOWARN;
+ 	if (!sb_has_quota_limits_enabled(dquot->dq_sb, dquot->dq_type) ||
+ 	    test_bit(DQ_FAKE_B, &dquot->dq_flags))
+ 		return QUOTA_OK;
+ 
++	tspace = dquot->dq_dqb.dqb_curspace + dquot->dq_dqb.dqb_rsvspace
++		+ space;
++
+ 	if (dquot->dq_dqb.dqb_bhardlimit &&
+-	    dquot->dq_dqb.dqb_curspace + space > dquot->dq_dqb.dqb_bhardlimit &&
++	    tspace > dquot->dq_dqb.dqb_bhardlimit &&
+             !ignore_hardlimit(dquot)) {
+ 		if (!prealloc)
+ 			*warntype = QUOTA_NL_BHARDWARN;
+@@ -1140,7 +1150,7 @@ static int check_bdq(struct dquot *dquot
  	}
+ 
+ 	if (dquot->dq_dqb.dqb_bsoftlimit &&
+-	    dquot->dq_dqb.dqb_curspace + space > dquot->dq_dqb.dqb_bsoftlimit &&
++	    tspace > dquot->dq_dqb.dqb_bsoftlimit &&
+ 	    dquot->dq_dqb.dqb_btime && get_seconds() >= dquot->dq_dqb.dqb_btime &&
+             !ignore_hardlimit(dquot)) {
+ 		if (!prealloc)
+@@ -1149,7 +1159,7 @@ static int check_bdq(struct dquot *dquot
+ 	}
+ 
+ 	if (dquot->dq_dqb.dqb_bsoftlimit &&
+-	    dquot->dq_dqb.dqb_curspace + space > dquot->dq_dqb.dqb_bsoftlimit &&
++	    tspace > dquot->dq_dqb.dqb_bsoftlimit &&
+ 	    dquot->dq_dqb.dqb_btime == 0) {
+ 		if (!prealloc) {
+ 			*warntype = QUOTA_NL_BSOFTWARN;
+@@ -1290,49 +1300,85 @@ void vfs_dq_drop(struct inode *inode)
+ /*
+  * This operation can block, but only after everything is updated
+  */
+-int dquot_alloc_space(struct inode *inode, qsize_t number, int warn)
++int __dquot_alloc_space(struct inode *inode, qsize_t number,
++			int warn, int reserve)
+ {
+-	int cnt, ret = NO_QUOTA;
++	int cnt, ret = QUOTA_OK;
+ 	char warntype[MAXQUOTAS];
+ 
+-	/* First test before acquiring mutex - solves deadlocks when we
+-         * re-enter the quota code and are already holding the mutex */
+-	if (IS_NOQUOTA(inode)) {
+-out_add:
+-		inode_add_bytes(inode, number);
+-		return QUOTA_OK;
+-	}
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++)
+ 		warntype[cnt] = QUOTA_NL_NOWARN;
+ 
+-	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
+-	if (IS_NOQUOTA(inode)) {	/* Now we can do reliable test... */
+-		up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
+-		goto out_add;
+-	}
+ 	spin_lock(&dq_data_lock);
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+ 		if (inode->i_dquot[cnt] == NODQUOT)
+ 			continue;
+-		if (check_bdq(inode->i_dquot[cnt], number, warn, warntype+cnt) == NO_QUOTA)
+-			goto warn_put_all;
++		if (check_bdq(inode->i_dquot[cnt], number, warn, warntype+cnt)
++		    == NO_QUOTA) {
++			ret = NO_QUOTA;
++			goto out_unlock;
++		}
+ 	}
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+ 		if (inode->i_dquot[cnt] == NODQUOT)
+ 			continue;
+-		dquot_incr_space(inode->i_dquot[cnt], number);
++		if (reserve)
++			dquot_resv_space(inode->i_dquot[cnt], number);
++		else
++			dquot_incr_space(inode->i_dquot[cnt], number);
+ 	}
+-	inode_add_bytes(inode, number);
+-	ret = QUOTA_OK;
+-warn_put_all:
++out_unlock:
++	flush_warnings(inode->i_dquot, warntype);
+ 	spin_unlock(&dq_data_lock);
++	return ret;
++}
++
++int dquot_alloc_space(struct inode *inode, qsize_t number, int warn)
++{
++	int cnt, ret = QUOTA_OK;
++
++	/*
++	 * First test before acquiring mutex - solves deadlocks when we
++	 * re-enter the quota code and are already holding the mutex
++	 */
++	if (IS_NOQUOTA(inode))
++		goto out;
++
++	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
++	if (IS_NOQUOTA(inode))
++		goto out_unlock;
++
++	ret = __dquot_alloc_space(inode, number, warn, 0);
++	if (ret == NO_QUOTA)
++		goto out_unlock;
++
++	/* Dirtify all the dquots - this can block when journalling */
++	for (cnt = 0; cnt < MAXQUOTAS; cnt++)
++		if (inode->i_dquot[cnt])
++			mark_dquot_dirty(inode->i_dquot[cnt]);
++out_unlock:
++	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
++out:
+ 	if (ret == QUOTA_OK)
+-		/* Dirtify all the dquots - this can block when journalling */
+-		for (cnt = 0; cnt < MAXQUOTAS; cnt++)
+-			if (inode->i_dquot[cnt])
+-				mark_dquot_dirty(inode->i_dquot[cnt]);
+-	flush_warnings(inode->i_dquot, warntype);
++		inode_add_bytes(inode, number);
++	return ret;
++}
++
++int dquot_reserve_space(struct inode *inode, qsize_t number, int warn)
++{
++	int ret = QUOTA_OK;
++
++	if (IS_NOQUOTA(inode))
++		goto out;
++
++	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
++	if (IS_NOQUOTA(inode))
++		goto out_unlock;
++
++	ret = __dquot_alloc_space(inode, number, warn, 1);
++out_unlock:
+ 	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
++out:
+ 	return ret;
+ }
+ 
+@@ -2023,7 +2069,7 @@ static void do_get_dqblk(struct dquot *d
+ 	spin_lock(&dq_data_lock);
+ 	di->dqb_bhardlimit = stoqb(dm->dqb_bhardlimit);
+ 	di->dqb_bsoftlimit = stoqb(dm->dqb_bsoftlimit);
+-	di->dqb_curspace = dm->dqb_curspace;
++	di->dqb_curspace = dm->dqb_curspace + dm->dqb_rsvspace;
+ 	di->dqb_ihardlimit = dm->dqb_ihardlimit;
+ 	di->dqb_isoftlimit = dm->dqb_isoftlimit;
+ 	di->dqb_curinodes = dm->dqb_curinodes;
+@@ -2375,6 +2421,7 @@ EXPORT_SYMBOL(dquot_alloc_space);
+ EXPORT_SYMBOL(dquot_alloc_inode);
+ EXPORT_SYMBOL(dquot_free_space);
+ EXPORT_SYMBOL(dquot_free_inode);
++EXPORT_SYMBOL(dquot_reserve_space);
+ EXPORT_SYMBOL(dquot_transfer);
+ EXPORT_SYMBOL(vfs_dq_transfer);
+ EXPORT_SYMBOL(vfs_dq_quota_on_remount);
+diff -puN include/linux/quota.h~quota-add-reservation-support-for-delayed-block-allocation include/linux/quota.h
+--- a/include/linux/quota.h~quota-add-reservation-support-for-delayed-block-allocation
++++ a/include/linux/quota.h
+@@ -194,6 +194,7 @@ struct mem_dqblk {
+ 	qsize_t dqb_bhardlimit;	/* absolute limit on disk blks alloc */
+ 	qsize_t dqb_bsoftlimit;	/* preferred limit on disk blks */
+ 	qsize_t dqb_curspace;	/* current used space */
++	qsize_t dqb_rsvspace;   /* current reserved space for delalloc*/
+ 	qsize_t dqb_ihardlimit;	/* absolute limit on allocated inodes */
+ 	qsize_t dqb_isoftlimit;	/* preferred inode limit */
+ 	qsize_t dqb_curinodes;	/* current # allocated inodes */
+@@ -304,6 +305,7 @@ struct dquot_operations {
+ 	int (*release_dquot) (struct dquot *);		/* Quota is going to be deleted from disk */
+ 	int (*mark_dirty) (struct dquot *);		/* Dquot is marked dirty */
+ 	int (*write_info) (struct super_block *, int);	/* Write of quota "superblock" */
++	int (*reserve_space) (struct inode *, qsize_t, int); /* reserve quota for delayed block allocation */
+ };
+ 
+ /* Operations handling requests from userspace */
+diff -puN include/linux/quotaops.h~quota-add-reservation-support-for-delayed-block-allocation include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-add-reservation-support-for-delayed-block-allocation
++++ a/include/linux/quotaops.h
+@@ -183,6 +183,16 @@ static inline int vfs_dq_alloc_space(str
+ 	return ret;
+ }
+ 
++static inline int vfs_dq_reserve_space(struct inode *inode, qsize_t nr)
++{
++	if (sb_any_quota_active(inode->i_sb)) {
++		/* Used space is updated in alloc_space() */
++		if (inode->i_sb->dq_op->reserve_space(inode, nr, 0) == NO_QUOTA)
++			return 1;
++	}
++	return 0;
++}
++
+ static inline int vfs_dq_alloc_inode(struct inode *inode)
+ {
+ 	if (sb_any_quota_active(inode->i_sb)) {
+@@ -339,6 +349,11 @@ static inline int vfs_dq_alloc_space(str
+ 	return 0;
+ }
+ 
++static inline int vfs_dq_reserve_space(struct inode *inode, qsize_t nr)
++{
++	return 0;
++}
++
+ static inline void vfs_dq_free_space_nodirty(struct inode *inode, qsize_t nr)
+ {
+ 	inode_sub_bytes(inode, nr);
+@@ -370,12 +385,19 @@ static inline int vfs_dq_alloc_block_nod
+ 			nr << inode->i_sb->s_blocksize_bits);
+ }
+ 
++
+ static inline int vfs_dq_alloc_block(struct inode *inode, qsize_t nr)
+ {
+ 	return vfs_dq_alloc_space(inode,
+ 			nr << inode->i_sb->s_blocksize_bits);
+ }
+ 
++static inline int vfs_dq_reserve_block(struct inode *inode, qsize_t nr)
++{
++	return vfs_dq_reserve_space(inode,
++			nr << inode->i_blkbits);
++}
++
+ static inline void vfs_dq_free_block_nodirty(struct inode *inode, qsize_t nr)
+ {
+ 	vfs_dq_free_space_nodirty(inode, nr << inode->i_sb->s_blocksize_bits);
+@@ -404,6 +426,7 @@ static inline void vfs_dq_free_block(str
+ #define DQUOT_ALLOC_BLOCK_NODIRTY(inode, nr) \
+ 				vfs_dq_alloc_block_nodirty(inode, nr)
+ #define DQUOT_ALLOC_BLOCK(inode, nr) vfs_dq_alloc_block(inode, nr)
++#define DQUOT_RESERVE_BLOCK(inode, nr) vfs_dq_reserve_block(inode, nr)
+ #define DQUOT_ALLOC_INODE(inode) vfs_dq_alloc_inode(inode)
+ #define DQUOT_FREE_SPACE_NODIRTY(inode, nr) \
+ 				vfs_dq_free_space_nodirty(inode, nr)
 _
 
-Patches currently in -mm which might be from hannes@hanneseder.net are
+Patches currently in -mm which might be from cmm@us.ibm.com are
 
-origin.patch
-linux-next.patch
-hugetlb-fix-sparse-warnings.patch
-nvidia-fix-sparse-warnings.patch
-viafb-fix-sparse-warnings.patch
-pm3fb-fix-sparse-warning.patch
-neofb-fix-sparse-warnings.patch
-i810-fix-sparse-warnings.patch
-intelfb-fix-sparse-warnings.patch
+quota-add-reservation-support-for-delayed-block-allocation.patch
+quota-add-quota-claim-and-release-reserved-quota-blocks-operations.patch
+ext4-quota-handling-for-delayed-allocation.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits.patch
+quota-cleanup-use-inode-i_blkbits-to-get-block-bits-fix.patch
 
