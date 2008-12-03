@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + badpage-zap-print_bad_pte-on-swap-and-file.patch added to -mm tree
-Date: Tue, 02 Dec 2008 16:57:19 -0800
-Message-ID: <200812030057.mB30vKvh024480@imap1.linux-foundation.org>
+Subject: + badpage-remove-vma-from-page_remove_rmap.patch added to -mm tree
+Date: Tue, 02 Dec 2008 16:57:21 -0800
+Message-ID: <200812030057.mB30vLqp024495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755407AbYLCA7k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:40 -0500
+	by vger.kernel.org with ESMTP id S1754677AbYLCA7g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 19:59:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.c
 
 
 The patch titled
-     badpage: zap print_bad_pte on swap and file
+     badpage: remove vma from page_remove_rmap
 has been added to the -mm tree.  Its filename is
-     badpage-zap-print_bad_pte-on-swap-and-file.patch
+     badpage-remove-vma-from-page_remove_rmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,22 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: badpage: zap print_bad_pte on swap and file
+Subject: badpage: remove vma from page_remove_rmap
 From: Hugh Dickins <hugh@veritas.com>
 
-Complete zap_pte_range()'s coverage of bad pagetable entries by calling
-print_bad_pte() on a pte_file in a linear vma and on a bad swap entry. 
-That needs free_swap_and_cache() to tell it, which will also have shown
-one of those "swap_free" errors (but with much less information).
-
-Similar checks in fork's copy_one_pte()?  No, that would be more noisy
-than helpful: we'll see them when parent and child exec or exit.
-
-Where do_nonlinear_fault() calls print_bad_pte(): omit !VM_CAN_NONLINEAR
-case, that could only be a bug in sys_remap_file_pages(), not a bad pte. 
-VM_FAULT_OOM rather than VM_FAULT_SIGBUS?  Well, okay, that is consistent
-with what happens if do_swap_page() operates a bad swap entry; but don't
-we have patches to be more careful about killing when VM_FAULT_OOM?
+Remove page_remove_rmap()'s vma arg, which was only for the Eeek message. 
+And remove the BUG_ON(page_mapcount(page) == 0) from CONFIG_DEBUG_VM's
+page_dup_rmap(): we're trying to be more resilient about that than BUGs.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -58,96 +48,112 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   12 +++---------
- mm/memory.c          |   11 +++++++----
- mm/swapfile.c        |    7 ++++---
- 3 files changed, 14 insertions(+), 16 deletions(-)
+ include/linux/rmap.h |    2 +-
+ mm/filemap_xip.c     |    2 +-
+ mm/fremap.c          |    2 +-
+ mm/memory.c          |    4 ++--
+ mm/rmap.c            |    8 +++-----
+ 5 files changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/swap.h~badpage-zap-print_bad_pte-on-swap-and-file include/linux/swap.h
---- a/include/linux/swap.h~badpage-zap-print_bad_pte-on-swap-and-file
-+++ a/include/linux/swap.h
-@@ -305,7 +305,7 @@ extern swp_entry_t get_swap_page_of_type
- extern int swap_duplicate(swp_entry_t);
- extern int valid_swaphandles(swp_entry_t, unsigned long *);
- extern void swap_free(swp_entry_t);
--extern void free_swap_and_cache(swp_entry_t);
-+extern int free_swap_and_cache(swp_entry_t);
- extern int swap_type_of(dev_t, sector_t, struct block_device **);
- extern unsigned int count_swap_pages(int, int);
- extern sector_t map_swap_page(struct swap_info_struct *, pgoff_t);
-@@ -355,14 +355,8 @@ static inline void show_swap_cache_info(
- {
- }
+diff -puN include/linux/rmap.h~badpage-remove-vma-from-page_remove_rmap include/linux/rmap.h
+--- a/include/linux/rmap.h~badpage-remove-vma-from-page_remove_rmap
++++ a/include/linux/rmap.h
+@@ -69,7 +69,7 @@ void __anon_vma_link(struct vm_area_stru
+ void page_add_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
+ void page_add_new_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
+ void page_add_file_rmap(struct page *);
+-void page_remove_rmap(struct page *, struct vm_area_struct *);
++void page_remove_rmap(struct page *);
  
--static inline void free_swap_and_cache(swp_entry_t swp)
--{
--}
--
--static inline int swap_duplicate(swp_entry_t swp)
--{
--	return 0;
--}
-+#define free_swap_and_cache(swp)	is_migration_entry(swp)
-+#define swap_duplicate(swp)		is_migration_entry(swp)
- 
- static inline void swap_free(swp_entry_t swp)
- {
-diff -puN mm/memory.c~badpage-zap-print_bad_pte-on-swap-and-file mm/memory.c
---- a/mm/memory.c~badpage-zap-print_bad_pte-on-swap-and-file
+ #ifdef CONFIG_DEBUG_VM
+ void page_dup_rmap(struct page *page, struct vm_area_struct *vma, unsigned long address);
+diff -puN mm/filemap_xip.c~badpage-remove-vma-from-page_remove_rmap mm/filemap_xip.c
+--- a/mm/filemap_xip.c~badpage-remove-vma-from-page_remove_rmap
++++ a/mm/filemap_xip.c
+@@ -193,7 +193,7 @@ retry:
+ 			/* Nuke the page table entry. */
+ 			flush_cache_page(vma, address, pte_pfn(*pte));
+ 			pteval = ptep_clear_flush_notify(vma, address, pte);
+-			page_remove_rmap(page, vma);
++			page_remove_rmap(page);
+ 			dec_mm_counter(mm, file_rss);
+ 			BUG_ON(pte_dirty(pteval));
+ 			pte_unmap_unlock(pte, ptl);
+diff -puN mm/fremap.c~badpage-remove-vma-from-page_remove_rmap mm/fremap.c
+--- a/mm/fremap.c~badpage-remove-vma-from-page_remove_rmap
++++ a/mm/fremap.c
+@@ -37,7 +37,7 @@ static void zap_pte(struct mm_struct *mm
+ 		if (page) {
+ 			if (pte_dirty(pte))
+ 				set_page_dirty(page);
+-			page_remove_rmap(page, vma);
++			page_remove_rmap(page);
+ 			page_cache_release(page);
+ 			update_hiwater_rss(mm);
+ 			dec_mm_counter(mm, file_rss);
+diff -puN mm/memory.c~badpage-remove-vma-from-page_remove_rmap mm/memory.c
+--- a/mm/memory.c~badpage-remove-vma-from-page_remove_rmap
 +++ a/mm/memory.c
-@@ -800,8 +800,12 @@ static unsigned long zap_pte_range(struc
- 		 */
- 		if (unlikely(details))
- 			continue;
--		if (!pte_file(ptent))
--			free_swap_and_cache(pte_to_swp_entry(ptent));
-+		if (pte_file(ptent)) {
-+			if (unlikely(!(vma->vm_flags & VM_NONLINEAR)))
-+				print_bad_pte(vma, addr, ptent, NULL);
-+		} else if
-+		  (unlikely(!free_swap_and_cache(pte_to_swp_entry(ptent))))
-+			print_bad_pte(vma, addr, ptent, NULL);
- 		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
- 	} while (pte++, addr += PAGE_SIZE, (addr != end && *zap_work > 0));
+@@ -788,7 +788,7 @@ static unsigned long zap_pte_range(struc
+ 					mark_page_accessed(page);
+ 				file_rss--;
+ 			}
+-			page_remove_rmap(page, vma);
++			page_remove_rmap(page);
+ 			if (unlikely(page_mapcount(page) < 0))
+ 				print_bad_pte(vma, addr, ptent, page);
+ 			tlb_remove_page(tlb, page);
+@@ -1994,7 +1994,7 @@ gotten:
+ 			 * mapcount is visible. So transitively, TLBs to
+ 			 * old page will be flushed before it can be reused.
+ 			 */
+-			page_remove_rmap(old_page, vma);
++			page_remove_rmap(old_page);
+ 		}
  
-@@ -2678,8 +2682,7 @@ static int do_nonlinear_fault(struct mm_
- 	if (!pte_unmap_same(mm, pmd, page_table, orig_pte))
- 		return 0;
- 
--	if (unlikely(!(vma->vm_flags & VM_NONLINEAR) ||
--			!(vma->vm_flags & VM_CAN_NONLINEAR))) {
-+	if (unlikely(!(vma->vm_flags & VM_NONLINEAR))) {
- 		/*
- 		 * Page table corrupted: show pte and kill process.
- 		 */
-diff -puN mm/swapfile.c~badpage-zap-print_bad_pte-on-swap-and-file mm/swapfile.c
---- a/mm/swapfile.c~badpage-zap-print_bad_pte-on-swap-and-file
-+++ a/mm/swapfile.c
-@@ -571,13 +571,13 @@ int try_to_free_swap(struct page *page)
-  * Free the swap entry like above, but also try to
-  * free the page cache entry if it is the last user.
+ 		/* Free the old page.. */
+diff -puN mm/rmap.c~badpage-remove-vma-from-page_remove_rmap mm/rmap.c
+--- a/mm/rmap.c~badpage-remove-vma-from-page_remove_rmap
++++ a/mm/rmap.c
+@@ -707,7 +707,6 @@ void page_add_file_rmap(struct page *pag
   */
--void free_swap_and_cache(swp_entry_t entry)
-+int free_swap_and_cache(swp_entry_t entry)
+ void page_dup_rmap(struct page *page, struct vm_area_struct *vma, unsigned long address)
  {
--	struct swap_info_struct * p;
-+	struct swap_info_struct *p;
- 	struct page *page = NULL;
+-	BUG_ON(page_mapcount(page) == 0);
+ 	if (PageAnon(page))
+ 		__page_check_anon_rmap(page, vma, address);
+ 	atomic_inc(&page->_mapcount);
+@@ -717,11 +716,10 @@ void page_dup_rmap(struct page *page, st
+ /**
+  * page_remove_rmap - take down pte mapping from a page
+  * @page: page to remove mapping from
+- * @vma: the vm area in which the mapping is removed
+  *
+  * The caller needs to hold the pte lock.
+  */
+-void page_remove_rmap(struct page *page, struct vm_area_struct *vma)
++void page_remove_rmap(struct page *page)
+ {
+ 	if (atomic_add_negative(-1, &page->_mapcount)) {
+ 		/*
+@@ -837,7 +835,7 @@ static int try_to_unmap_one(struct page 
+ 		dec_mm_counter(mm, file_rss);
  
- 	if (is_migration_entry(entry))
--		return;
-+		return 1;
  
- 	p = swap_info_get(entry);
- 	if (p) {
-@@ -603,6 +603,7 @@ void free_swap_and_cache(swp_entry_t ent
- 		unlock_page(page);
+-	page_remove_rmap(page, vma);
++	page_remove_rmap(page);
+ 	page_cache_release(page);
+ 
+ out_unmap:
+@@ -952,7 +950,7 @@ static int try_to_unmap_cluster(unsigned
+ 		if (pte_dirty(pteval))
+ 			set_page_dirty(page);
+ 
+-		page_remove_rmap(page, vma);
++		page_remove_rmap(page);
  		page_cache_release(page);
- 	}
-+	return p != NULL;
- }
- 
- #ifdef CONFIG_HIBERNATION
+ 		dec_mm_counter(mm, file_rss);
+ 		(*mapcount)--;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
