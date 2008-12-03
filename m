@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-mem_cgroup_zone_nr_pages.patch added to -mm tree
-Date: Tue, 02 Dec 2008 20:17:15 -0800
-Message-ID: <200812030417.mB34HFZ6005679@imap1.linux-foundation.org>
+Subject: + mtd-oops-accessing-flash-operations-over-stm-flash-on-pxa.patch added to -mm tree
+Date: Tue, 02 Dec 2008 20:19:06 -0800
+Message-ID: <200812030419.mB34J6vw006692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53790 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753215AbYLCERf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 23:17:35 -0500
+	by vger.kernel.org with ESMTP id S1752627AbYLCETO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 23:19:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com
+Cc: den@parallels.com, den@openvz.org, dwmw2@infradead.org, ymiao3@marvell.com
 
 
 The patch titled
-     memcg: add mem_cgroup_zone_nr_pages()
+     mtd: fix OOPS accessing flash operations over STM flash on PXA
 has been added to the -mm tree.  Its filename is
-     memcg-add-mem_cgroup_zone_nr_pages.patch
+     mtd-oops-accessing-flash-operations-over-stm-flash-on-pxa.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,134 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add mem_cgroup_zone_nr_pages()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mtd: fix OOPS accessing flash operations over STM flash on PXA
+From: "Denis V. Lunev" <den@parallels.com>
 
-Introduce mem_cgroup_zone_nr_pages().  It is called by zone_nr_pages()
-helper function.
+STM 2Gb flash is a large-page NAND flash.  Set operations accordingly. 
+This field is dereferrenced without a check in several places resulting in
+OOPS.
 
-This patch doesn't have any behavior change.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Acked-by: Eric Miao <ymiao3@marvell.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   11 +++++++++++
- mm/memcontrol.c            |   12 +++++++++++-
- mm/vmscan.c                |    3 +++
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ drivers/mtd/nand/pxa3xx_nand.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/memcontrol.h~memcg-add-mem_cgroup_zone_nr_pages include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-mem_cgroup_zone_nr_pages
-+++ a/include/linux/memcontrol.h
-@@ -92,6 +92,9 @@ extern long mem_cgroup_calc_reclaim(stru
- 					int priority, enum lru_list lru);
- int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg,
- 				    struct zone *zone);
-+unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
-+				       struct zone *zone,
-+				       enum lru_list lru);
+diff -puN drivers/mtd/nand/pxa3xx_nand.c~mtd-oops-accessing-flash-operations-over-stm-flash-on-pxa drivers/mtd/nand/pxa3xx_nand.c
+--- a/drivers/mtd/nand/pxa3xx_nand.c~mtd-oops-accessing-flash-operations-over-stm-flash-on-pxa
++++ a/drivers/mtd/nand/pxa3xx_nand.c
+@@ -269,6 +269,7 @@ static struct pxa3xx_nand_timing stm2GbX
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- extern int do_swap_account;
-@@ -250,6 +253,14 @@ mem_cgroup_inactive_anon_is_low(struct m
- 	return 1;
- }
- 
-+static inline unsigned long
-+mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg, struct zone *zone,
-+			 enum lru_list lru)
-+{
-+	return 0;
-+}
-+
-+
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_zone_nr_pages mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-mem_cgroup_zone_nr_pages
-+++ a/mm/memcontrol.c
-@@ -186,7 +186,6 @@ pcg_default_flags[NR_CHARGE_TYPE] = {
- 	0, /* FORCE */
- };
- 
--
- /* for encoding cft->private value on file */
- #define _MEM			(0)
- #define _MEMSWAP		(1)
-@@ -448,6 +447,17 @@ int mem_cgroup_inactive_anon_is_low(stru
- 	return 0;
- }
- 
-+unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
-+				       struct zone *zone,
-+				       enum lru_list lru)
-+{
-+	int nid = zone->zone_pgdat->node_id;
-+	int zid = zone_idx(zone);
-+	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(memcg, nid, zid);
-+
-+	return MEM_CGROUP_ZSTAT(mz, lru);
-+}
-+
- unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
- 					struct list_head *dst,
- 					unsigned long *scanned, int order,
-diff -puN mm/vmscan.c~memcg-add-mem_cgroup_zone_nr_pages mm/vmscan.c
---- a/mm/vmscan.c~memcg-add-mem_cgroup_zone_nr_pages
-+++ a/mm/vmscan.c
-@@ -139,6 +139,9 @@ static struct zone_reclaim_stat *get_rec
- static unsigned long zone_nr_pages(struct zone *zone, struct scan_control *sc,
- 				   enum lru_list lru)
- {
-+	if (!scan_global_lru(sc))
-+		return mem_cgroup_zone_nr_pages(sc->mem_cgroup, zone, lru);
-+
- 	return zone_page_state(zone, NR_LRU_BASE + lru);
- }
- 
+ static struct pxa3xx_nand_flash stm2GbX16 = {
+ 	.timing = &stm2GbX16_timing,
++	.cmdset	= &largepage_cmdset,
+ 	.page_per_block = 64,
+ 	.page_size = 2048,
+ 	.flash_width = 16,
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from den@parallels.com are
 
-vmscan-evict-streaming-io-first.patch
-linux-next.patch
-arch-ia64-kernel-iosapicc-fix-warnings.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-oom-fix-zone_scan_mutex-name.patch
-mm-get-rid-of-pagevec_release_nonlru.patch
-cleanup-get-rid-of-ifdef-config_migration.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-make-page_lock_anon_vma-static.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-mm-make-init_section_page_cgroup-static.patch
-mm-make-maddr-__iomem.patch
-mm-make-mem_cgroup_resize_limit-static.patch
-mm-make-scan_all_zones_unevictable_pages-static.patch
-mm-make-scan_zone_unevictable_pages-static.patch
-mm-make-setup_per_zone_inactive_ratio-static.patch
-mm-make-vread-and-vwrite-declaration.patch
-vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
-mm-kill-zone_is_near_oom.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-inactive_anon_is_low-move-to-vmscanc.patch
-introduce-zone_reclaim-struct.patch
-add-zone_nr_pages-helper-function.patch
-make-get_scan_ratio-memcg-safe.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-remove-mem_cgroup_calc_reclaim.patch
-memcg-show-inactive_ratio.patch
-memcg-show-reclaim_stat.patch
+mtd-oops-accessing-flash-operations-over-stm-flash-on-pxa.patch
 
