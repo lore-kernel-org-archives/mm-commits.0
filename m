@@ -1,199 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - s390-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Wed, 03 Dec 2008 12:29:05 -0800
-Message-ID: <200812032029.mB3KT599028308@imap1.linux-foundation.org>
+Subject: - mn10300-fix-application-of-kernel-module-relocations.patch removed from -mm tree
+Date: Wed, 03 Dec 2008 12:28:43 -0800
+Message-ID: <200812032028.mB3KShDT028075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38617 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58202 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761466AbYLCU3a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:30 -0500
+	by vger.kernel.org with ESMTP id S1754948AbYLCU3k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: msalter@redhat.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s390: use the new byteorder headers
+     mn10300: fix application of kernel module relocations
 has been removed from the -mm tree.  Its filename was
-     s390-use-the-new-byteorder-headers.patch
+     mn10300-fix-application-of-kernel-module-relocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s390: use the new byteorder headers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: mn10300: fix application of kernel module relocations
+From: Mark Salter <msalter@redhat.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+This fixes the MN10300 kernel module linking to match the toolchain.  RELA
+relocs don't use the value at the location being relocated.  This has been
+working because the tools always leave the value at the target location
+cleared.
+
+Signed-off-by: Mark Salter <msalter@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/byteorder.h |   72 ++++++++--------------------
- 1 file changed, 21 insertions(+), 51 deletions(-)
+ arch/mn10300/kernel/module.c |   35 ++++++---------------------------
+ 1 file changed, 7 insertions(+), 28 deletions(-)
 
-diff -puN arch/s390/include/asm/byteorder.h~s390-use-the-new-byteorder-headers arch/s390/include/asm/byteorder.h
---- a/arch/s390/include/asm/byteorder.h~s390-use-the-new-byteorder-headers
-+++ a/arch/s390/include/asm/byteorder.h
-@@ -11,32 +11,39 @@
- 
- #include <asm/types.h>
- 
--#ifdef __GNUC__
-+#define __BIG_ENDIAN
-+
-+#ifndef __s390x__
-+# define __SWAB_64_THRU_32__
-+#endif
- 
- #ifdef __s390x__
--static inline __u64 ___arch__swab64p(const __u64 *x)
-+static inline __u64 __arch_swab64p(const __u64 *x)
- {
- 	__u64 result;
- 
- 	asm volatile("lrvg %0,%1" : "=d" (result) : "m" (*x));
- 	return result;
+diff -puN arch/mn10300/kernel/module.c~mn10300-fix-application-of-kernel-module-relocations arch/mn10300/kernel/module.c
+--- a/arch/mn10300/kernel/module.c~mn10300-fix-application-of-kernel-module-relocations
++++ a/arch/mn10300/kernel/module.c
+@@ -1,6 +1,6 @@
+ /* MN10300 Kernel module helper routines
+  *
+- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
++ * Copyright (C) 2007, 2008 Red Hat, Inc. All Rights Reserved.
+  * Written by Mark Salter (msalter@redhat.com)
+  * - Derived from arch/i386/kernel/module.c
+  *
+@@ -64,21 +64,6 @@ int module_frob_arch_sections(Elf_Ehdr *
+ 	return 0;
  }
-+#define __arch_swab64p __arch_swab64p
  
--static inline __u64 ___arch__swab64(__u64 x)
-+static inline __u64 __arch_swab64(__u64 x)
- {
- 	__u64 result;
- 
- 	asm volatile("lrvgr %0,%1" : "=d" (result) : "d" (x));
- 	return result;
- }
-+#define __arch_swab64 __arch_swab64
- 
--static inline void ___arch__swab64s(__u64 *x)
-+static inline void __arch_swab64s(__u64 *x)
- {
--	*x = ___arch__swab64p(x);
-+	*x = __arch_swab64p(x);
- }
-+#define __arch_swab64s __arch_swab64s
- #endif /* __s390x__ */
- 
--static inline __u32 ___arch__swab32p(const __u32 *x)
-+static inline __u32 __arch_swab32p(const __u32 *x)
- {
- 	__u32 result;
- 	
-@@ -53,25 +60,20 @@ static inline __u32 ___arch__swab32p(con
- #endif /* __s390x__ */
- 	return result;
- }
-+#define __arch_swab32p __arch_swab32p
- 
--static inline __u32 ___arch__swab32(__u32 x)
-+#ifdef __s390x__
-+static inline __u32 __arch_swab32(__u32 x)
- {
--#ifndef __s390x__
--	return ___arch__swab32p(&x);
--#else /* __s390x__ */
- 	__u32 result;
- 	
- 	asm volatile("lrvr  %0,%1" : "=d" (result) : "d" (x));
- 	return result;
--#endif /* __s390x__ */
+-static uint32_t reloc_get16(uint8_t *p)
+-{
+-	return p[0] | (p[1] << 8);
 -}
 -
--static __inline__ void ___arch__swab32s(__u32 *x)
+-static uint32_t reloc_get24(uint8_t *p)
 -{
--	*x = ___arch__swab32p(x);
- }
-+#define __arch_swab32 __arch_swab32
-+#endif /* __s390x__ */
- 
--static __inline__ __u16 ___arch__swab16p(const __u16 *x)
-+static inline __u16 __arch_swab16p(const __u16 *x)
+-	return reloc_get16(p) | (p[2] << 16);
+-}
+-
+-static uint32_t reloc_get32(uint8_t *p)
+-{
+-	return reloc_get16(p) | (reloc_get16(p+2) << 16);
+-}
+-
+ static void reloc_put16(uint8_t *p, uint32_t val)
  {
- 	__u16 result;
- 	
-@@ -86,40 +88,8 @@ static __inline__ __u16 ___arch__swab16p
- #endif /* __s390x__ */
- 	return result;
- }
-+#define __arch_swab16p __arch_swab16p
+ 	p[0] = val & 0xff;
+@@ -144,25 +129,19 @@ int apply_relocate_add(Elf32_Shdr *sechd
+ 		relocation = sym->st_value + rel[i].r_addend;
  
--static __inline__ __u16 ___arch__swab16(__u16 x)
--{
--	return ___arch__swab16p(&x);
--}
--
--static __inline__ void ___arch__swab16s(__u16 *x)
--{
--	*x = ___arch__swab16p(x);
--}
--
--#ifdef __s390x__
--#define __arch__swab64(x) ___arch__swab64(x)
--#define __arch__swab64p(x) ___arch__swab64p(x)
--#define __arch__swab64s(x) ___arch__swab64s(x)
--#endif /* __s390x__ */
--#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
--#define __arch__swab32p(x) ___arch__swab32p(x)
--#define __arch__swab16p(x) ___arch__swab16p(x)
--#define __arch__swab32s(x) ___arch__swab32s(x)
--#define __arch__swab16s(x) ___arch__swab16s(x)
--
--#ifndef __s390x__
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
--#endif
--#else /* __s390x__ */
--#define __BYTEORDER_HAS_U64__
--#endif /* __s390x__ */
--
--#endif /* __GNUC__ */
--
--#include <linux/byteorder/big_endian.h>
-+#include <linux/byteorder.h>
+ 		switch (ELF32_R_TYPE(rel[i].r_info)) {
+-			/* for the first four relocation types, we add the
+-			 * adjustment into the value at the location given */
++			/* for the first four relocation types, we simply
++			 * store the adjustment at the location given */
+ 		case R_MN10300_32:
+-			value = reloc_get32(location);
+-			value += relocation;
+-			reloc_put32(location, value);
++			reloc_put32(location, relocation);
+ 			break;
+ 		case R_MN10300_24:
+-			value = reloc_get24(location);
+-			value += relocation;
+-			reloc_put24(location, value);
++			reloc_put24(location, relocation);
+ 			break;
+ 		case R_MN10300_16:
+-			value = reloc_get16(location);
+-			value += relocation;
+-			reloc_put16(location, value);
++			reloc_put16(location, relocation);
+ 			break;
+ 		case R_MN10300_8:
+-			*location += relocation;
++			*location = relocation;
+ 			break;
  
- #endif /* _S390_BYTEORDER_H */
+ 			/* for the next three relocation types, we write the
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from msalter@redhat.com are
 
 origin.patch
-linux-next.patch
-arm-use-the-new-byteorder-headers.patch
-i2c-misannotation-in-i2c-pmcmspc.patch
-i2c-trivial-endian-casting-fixes-in-i2c-highlanderc.patch
-ia64-use-the-new-byteorder-headers.patch
-input-ads7846c-sparse-lock-annotation.patch
-input-strict_strtoul-takes-unsigned-long.patch
-m32r-use-the-new-byteorder-headers.patch
-blackfin-remove-__function__-in-new-serial-driver.patch
-blackfin-use-the-new-byteorder-headers.patch
-parisc-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-frv-use-the-new-byteorder-headers.patch
-m68knommu-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
 
