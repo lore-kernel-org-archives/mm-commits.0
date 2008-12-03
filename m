@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-swapout-refcnt-fix.patch added to -mm tree
-Date: Tue, 02 Dec 2008 21:57:13 -0800
-Message-ID: <200812030557.mB35vDnD028931@imap1.linux-foundation.org>
+Subject: + mm-add-zone-nr_pages-helper-function.patch added to -mm tree
+Date: Tue, 02 Dec 2008 21:57:34 -0800
+Message-ID: <200812030557.mB35vYDX029136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750839AbYLCF6B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:58:01 -0500
+	by vger.kernel.org with ESMTP id S1751264AbYLCF6j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 00:58:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.com
 
 
 The patch titled
-     memcg: swapout refcnt fix
+     mm: add zone nr_pages helper function
 has been added to the -mm tree.  Its filename is
-     memcg-swapout-refcnt-fix.patch
+     mm-add-zone-nr_pages-helper-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: swapout refcnt fix
+Subject: mm: add zone nr_pages helper function
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-css's refcnt is dropped before end of following access.
-Hold it until end of access.
+Add zone_nr_pages() helper function.
 
-Reported-by: Li Zefan <lizf@cn.fujitsu.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+It is used by a later patch.  This patch doesn't have any functional
+change.
+
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Hugh Dickins <hugh@veritas.com>
@@ -48,32 +51,41 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-swapout-refcnt-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-swapout-refcnt-fix
-+++ a/mm/memcontrol.c
-@@ -1171,7 +1171,9 @@ __mem_cgroup_uncharge_common(struct page
- 	mz = page_cgroup_zoneinfo(pc);
- 	unlock_page_cgroup(pc);
- 
--	css_put(&mem->css);
-+	/* at swapout, this memcg will be accessed to record to swap */
-+	if (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
-+		css_put(&mem->css);
- 
- 	return mem;
- 
-@@ -1212,6 +1214,8 @@ void mem_cgroup_uncharge_swapcache(struc
- 		swap_cgroup_record(ent, memcg);
- 		mem_cgroup_get(memcg);
- 	}
-+	if (memcg)
-+		css_put(&memcg->css);
+diff -puN mm/vmscan.c~mm-add-zone-nr_pages-helper-function mm/vmscan.c
+--- a/mm/vmscan.c~mm-add-zone-nr_pages-helper-function
++++ a/mm/vmscan.c
+@@ -136,6 +136,13 @@ static struct zone_reclaim_stat *get_rec
+ 	return &zone->reclaim_stat;
  }
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
++static unsigned long zone_nr_pages(struct zone *zone, struct scan_control *sc,
++				   enum lru_list lru)
++{
++	return zone_page_state(zone, NR_LRU_BASE + lru);
++}
++
++
+ /*
+  * Add a shrinker callback to be called from the vm
+  */
+@@ -1412,10 +1419,10 @@ static void get_scan_ratio(struct zone *
+ 		return;
+ 	}
+ 
+-	anon  = zone_page_state(zone, NR_ACTIVE_ANON) +
+-		zone_page_state(zone, NR_INACTIVE_ANON);
+-	file  = zone_page_state(zone, NR_ACTIVE_FILE) +
+-		zone_page_state(zone, NR_INACTIVE_FILE);
++	anon  = zone_nr_pages(zone, sc, LRU_ACTIVE_ANON) +
++		zone_nr_pages(zone, sc, LRU_INACTIVE_ANON);
++	file  = zone_nr_pages(zone, sc, LRU_ACTIVE_FILE) +
++		zone_nr_pages(zone, sc, LRU_INACTIVE_FILE);
+ 	free  = zone_page_state(zone, NR_FREE_PAGES);
+ 
+ 	/* If we have very few page cache pages, force-scan anon pages. */
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
