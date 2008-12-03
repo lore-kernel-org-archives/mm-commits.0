@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-null-check-to-page_cgroup_zoneinfo.patch added to -mm tree
-Date: Tue, 02 Dec 2008 20:17:11 -0800
-Message-ID: <200812030417.mB34HBWj005664@imap1.linux-foundation.org>
+Subject: + add-zone_nr_pages-helper-function.patch added to -mm tree
+Date: Tue, 02 Dec 2008 20:17:07 -0800
+Message-ID: <200812030417.mB34H7DJ005575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752798AbYLCERc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 23:17:32 -0500
+	by vger.kernel.org with ESMTP id S1752798AbYLCER1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2008 23:17:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@j
 
 
 The patch titled
-     memcg: add null check to page_cgroup_zoneinfo()
+     Add zone_nr_pages() helper function
 has been added to the -mm tree.  Its filename is
-     memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+     add-zone_nr_pages-helper-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add null check to page_cgroup_zoneinfo()
+Subject: Add zone_nr_pages() helper function
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-If CONFIG_CGROUP_MEM_RES_CTLR_SWAP=y, page_cgroup::mem_cgroup can be NULL.
-Therefore null checking is better.
-
-A later patch uses this function.
+It is used by a later patch.  This patch doesn't have any functional
+change.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/vmscan.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-null-check-to-page_cgroup_zoneinfo mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-null-check-to-page_cgroup_zoneinfo
-+++ a/mm/memcontrol.c
-@@ -231,6 +231,9 @@ page_cgroup_zoneinfo(struct page_cgroup 
- 	int nid = page_cgroup_nid(pc);
- 	int zid = page_cgroup_zid(pc);
- 
-+	if (!mem)
-+		return NULL;
-+
- 	return mem_cgroup_zoneinfo(mem, nid, zid);
+diff -puN mm/vmscan.c~add-zone_nr_pages-helper-function mm/vmscan.c
+--- a/mm/vmscan.c~add-zone_nr_pages-helper-function
++++ a/mm/vmscan.c
+@@ -136,6 +136,13 @@ static struct zone_reclaim_stat *get_rec
+ 	return &zone->reclaim_stat;
  }
  
++static unsigned long zone_nr_pages(struct zone *zone, struct scan_control *sc,
++				   enum lru_list lru)
++{
++	return zone_page_state(zone, NR_LRU_BASE + lru);
++}
++
++
+ /*
+  * Add a shrinker callback to be called from the vm
+  */
+@@ -1412,10 +1419,10 @@ static void get_scan_ratio(struct zone *
+ 		return;
+ 	}
+ 
+-	anon  = zone_page_state(zone, NR_ACTIVE_ANON) +
+-		zone_page_state(zone, NR_INACTIVE_ANON);
+-	file  = zone_page_state(zone, NR_ACTIVE_FILE) +
+-		zone_page_state(zone, NR_INACTIVE_FILE);
++	anon  = zone_nr_pages(zone, sc, LRU_ACTIVE_ANON) +
++		zone_nr_pages(zone, sc, LRU_INACTIVE_ANON);
++	file  = zone_nr_pages(zone, sc, LRU_ACTIVE_FILE) +
++		zone_nr_pages(zone, sc, LRU_INACTIVE_FILE);
+ 	free  = zone_page_state(zone, NR_FREE_PAGES);
+ 
+ 	/* If we have very few page cache pages, force-scan anon pages. */
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
