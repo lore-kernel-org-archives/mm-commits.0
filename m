@@ -1,120 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - drm-fix-leak-of-uninitialized-data-to-userspace-2.patch removed from -mm tree
-Date: Wed, 03 Dec 2008 12:28:57 -0800
-Message-ID: <200812032028.mB3KSwZa028206@imap1.linux-foundation.org>
+Subject: - s390-use-the-new-byteorder-headers.patch removed from -mm tree
+Date: Wed, 03 Dec 2008 12:29:05 -0800
+Message-ID: <200812032029.mB3KT599028308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35107 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757186AbYLCU31 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:27 -0500
+	by vger.kernel.org with ESMTP id S1761466AbYLCU3a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 15:29:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vegard.nossum@gmail.com, airlied@linux.ie, sitsofe@yahoo.com, vegardno@thuin.ifi.uio.no, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm: fix leak of uninitialized data to userspace
+     s390: use the new byteorder headers
 has been removed from the -mm tree.  Its filename was
-     drm-fix-leak-of-uninitialized-data-to-userspace-2.patch
+     s390-use-the-new-byteorder-headers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: fix leak of uninitialized data to userspace
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: s390: use the new byteorder headers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-On Fri, Oct 10, 2008 at 10:54 AM, Sitsofe Wheeler <sitsofe@yahoo.com> wrote:
->
-> [  175.375036] WARNING: kmemcheck: Caught 32-bit read from uninitialized memory (f65d2294)
-> [  175.375049] 7063693a303030303a30303a30322e3000a76c080800000000a76c080e000000
-> [  175.375096]  i i i i i i i i i i i i i i i i i u u u u u u u u u u u u u u u
-> [  175.375137]                                          ^
-> [  175.375142]
-> [  175.375148] Pid: 2288, comm: Xorg Not tainted (2.6.27-tipskw-00069-g37cb0b7-dirty #81) 900
-> [  175.375155] EIP: 0060:[<c020d283>] EFLAGS: 00003246 CPU: 0
-> [  175.375169] EIP is at __copy_to_user_ll+0x43/0x60
-> [  175.375174] EAX: 00000000 EBX: 00000028 ECX: 00000005 EDX: f65d2280
-> [  175.375180] ESI: f65d2294 EDI: 086cb6b4 EBP: f631bef4 ESP: c055bd68
-> [  175.375186]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-> [  175.375191] CR0: 8005003b CR2: f67c1c44 CR3: 36368000 CR4: 000006c0
-> [  175.375197] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-> [  175.375202] DR6: ffff4ff0 DR7: 00000400
-> [  175.375206]  [<c020d6f3>] copy_to_user+0x43/0x60
-> [  175.375214]  [<c028df28>] drm_getunique+0x38/0x50
-> [  175.375224]  [<c028d329>] drm_ioctl+0x1b9/0x2f0
-> [  175.375231]  [<c0188a07>] vfs_ioctl+0x67/0x70
-> [  175.375239]  [<c0188a6c>] do_vfs_ioctl+0x5c/0x270
-> [  175.375246]  [<c0188cbe>] sys_ioctl+0x3e/0x60
-> [  175.375253]  [<c010336d>] sysenter_do_call+0x12/0x35
-> [  175.375261]  [<ffffffff>] 0xffffffff
-
-The hexdump decodes to:
-
-vegardno@thuin ~ $ ./a.out 7063693a303030303a30303a30322e3000a76c080800000000a76c080e000000
-pci:0000:00:02.0<0><167>l<8><8><0><0><0><0><167>l<8><14><0><0><0>
-
-...so drm_getunique() is trying to copy some uninitialized data to
-userspace. The ECX register contains the number of words that are
-left to copy -- so there are 5 * 4 = 20 bytes left. The offset of the
-first uninitialized byte (counting from the start of the string) is
-also 20 (i.e. 0xf65d2294&((1 << 5)-1) == 20). So somebody tried to
-copy 40 bytes when the string was only 19 long.
-
-In drm_set_busid() we have this code:
-
-        dev->unique_len = 40;
-        dev->unique = drm_alloc(dev->unique_len + 1, DRM_MEM_DRIVER);
-	...
-        len = snprintf(dev->unique, dev->unique_len, "pci:%04x:%02x:%02x.%d",
-
-...so it seems that dev->unique is never updated to reflect the
-actual length of the string. The remaining bytes (20 in this case)
-are random uninitialized bytes that are copied into userspace.
-
-This patch fixes the problem by setting dev->unique_len after the
-snprintf().
-
-Reported-by: Sitsofe Wheeler <sitsofe@yahoo.com>
-Signed-off-by: Vegard Nossum <vegardno@thuin.ifi.uio.no>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_ioctl.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/s390/include/asm/byteorder.h |   72 ++++++++--------------------
+ 1 file changed, 21 insertions(+), 51 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_ioctl.c~drm-fix-leak-of-uninitialized-data-to-userspace-2 drivers/gpu/drm/drm_ioctl.c
---- a/drivers/gpu/drm/drm_ioctl.c~drm-fix-leak-of-uninitialized-data-to-userspace-2
-+++ a/drivers/gpu/drm/drm_ioctl.c
-@@ -136,7 +136,7 @@ static int drm_set_busid(struct drm_devi
- 		return -EBUSY;
+diff -puN arch/s390/include/asm/byteorder.h~s390-use-the-new-byteorder-headers arch/s390/include/asm/byteorder.h
+--- a/arch/s390/include/asm/byteorder.h~s390-use-the-new-byteorder-headers
++++ a/arch/s390/include/asm/byteorder.h
+@@ -11,32 +11,39 @@
  
- 	master->unique_len = 40;
--	master->unique = drm_alloc(master->unique_len + 1, DRM_MEM_DRIVER);
-+	master->unique = drm_alloc(master->unique_len, DRM_MEM_DRIVER);
- 	if (master->unique == NULL)
- 		return -ENOMEM;
+ #include <asm/types.h>
  
-@@ -145,8 +145,10 @@ static int drm_set_busid(struct drm_devi
- 		       dev->pdev->bus->number,
- 		       PCI_SLOT(dev->pdev->devfn),
- 		       PCI_FUNC(dev->pdev->devfn));
--	if (len > master->unique_len)
-+	if (len >= master->unique_len)
- 		DRM_ERROR("buffer overflow");
-+	else
-+		master->unique_len = len;
+-#ifdef __GNUC__
++#define __BIG_ENDIAN
++
++#ifndef __s390x__
++# define __SWAB_64_THRU_32__
++#endif
  
- 	dev->devname =
- 	    drm_alloc(strlen(dev->driver->pci_driver.name) + master->unique_len +
+ #ifdef __s390x__
+-static inline __u64 ___arch__swab64p(const __u64 *x)
++static inline __u64 __arch_swab64p(const __u64 *x)
+ {
+ 	__u64 result;
+ 
+ 	asm volatile("lrvg %0,%1" : "=d" (result) : "m" (*x));
+ 	return result;
+ }
++#define __arch_swab64p __arch_swab64p
+ 
+-static inline __u64 ___arch__swab64(__u64 x)
++static inline __u64 __arch_swab64(__u64 x)
+ {
+ 	__u64 result;
+ 
+ 	asm volatile("lrvgr %0,%1" : "=d" (result) : "d" (x));
+ 	return result;
+ }
++#define __arch_swab64 __arch_swab64
+ 
+-static inline void ___arch__swab64s(__u64 *x)
++static inline void __arch_swab64s(__u64 *x)
+ {
+-	*x = ___arch__swab64p(x);
++	*x = __arch_swab64p(x);
+ }
++#define __arch_swab64s __arch_swab64s
+ #endif /* __s390x__ */
+ 
+-static inline __u32 ___arch__swab32p(const __u32 *x)
++static inline __u32 __arch_swab32p(const __u32 *x)
+ {
+ 	__u32 result;
+ 	
+@@ -53,25 +60,20 @@ static inline __u32 ___arch__swab32p(con
+ #endif /* __s390x__ */
+ 	return result;
+ }
++#define __arch_swab32p __arch_swab32p
+ 
+-static inline __u32 ___arch__swab32(__u32 x)
++#ifdef __s390x__
++static inline __u32 __arch_swab32(__u32 x)
+ {
+-#ifndef __s390x__
+-	return ___arch__swab32p(&x);
+-#else /* __s390x__ */
+ 	__u32 result;
+ 	
+ 	asm volatile("lrvr  %0,%1" : "=d" (result) : "d" (x));
+ 	return result;
+-#endif /* __s390x__ */
+-}
+-
+-static __inline__ void ___arch__swab32s(__u32 *x)
+-{
+-	*x = ___arch__swab32p(x);
+ }
++#define __arch_swab32 __arch_swab32
++#endif /* __s390x__ */
+ 
+-static __inline__ __u16 ___arch__swab16p(const __u16 *x)
++static inline __u16 __arch_swab16p(const __u16 *x)
+ {
+ 	__u16 result;
+ 	
+@@ -86,40 +88,8 @@ static __inline__ __u16 ___arch__swab16p
+ #endif /* __s390x__ */
+ 	return result;
+ }
++#define __arch_swab16p __arch_swab16p
+ 
+-static __inline__ __u16 ___arch__swab16(__u16 x)
+-{
+-	return ___arch__swab16p(&x);
+-}
+-
+-static __inline__ void ___arch__swab16s(__u16 *x)
+-{
+-	*x = ___arch__swab16p(x);
+-}
+-
+-#ifdef __s390x__
+-#define __arch__swab64(x) ___arch__swab64(x)
+-#define __arch__swab64p(x) ___arch__swab64p(x)
+-#define __arch__swab64s(x) ___arch__swab64s(x)
+-#endif /* __s390x__ */
+-#define __arch__swab32(x) ___arch__swab32(x)
+-#define __arch__swab16(x) ___arch__swab16(x)
+-#define __arch__swab32p(x) ___arch__swab32p(x)
+-#define __arch__swab16p(x) ___arch__swab16p(x)
+-#define __arch__swab32s(x) ___arch__swab32s(x)
+-#define __arch__swab16s(x) ___arch__swab16s(x)
+-
+-#ifndef __s390x__
+-#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-#  define __BYTEORDER_HAS_U64__
+-#  define __SWAB_64_THRU_32__
+-#endif
+-#else /* __s390x__ */
+-#define __BYTEORDER_HAS_U64__
+-#endif /* __s390x__ */
+-
+-#endif /* __GNUC__ */
+-
+-#include <linux/byteorder/big_endian.h>
++#include <linux/byteorder.h>
+ 
+ #endif /* _S390_BYTEORDER_H */
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
+origin.patch
 linux-next.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
-inotify-fix-type-errors-in-interfaces.patch
+arm-use-the-new-byteorder-headers.patch
+i2c-misannotation-in-i2c-pmcmspc.patch
+i2c-trivial-endian-casting-fixes-in-i2c-highlanderc.patch
+ia64-use-the-new-byteorder-headers.patch
+input-ads7846c-sparse-lock-annotation.patch
+input-strict_strtoul-takes-unsigned-long.patch
+m32r-use-the-new-byteorder-headers.patch
+blackfin-remove-__function__-in-new-serial-driver.patch
+blackfin-use-the-new-byteorder-headers.patch
+parisc-use-the-new-byteorder-headers.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+frv-use-the-new-byteorder-headers.patch
+m68knommu-use-the-new-byteorder-headers.patch
+h8300-use-the-new-byteorder-headers.patch
+alpha-use-the-new-byteorder-headers.patch
+lib-fix-sparse-shadowed-variable-warning.patch
+lib-radix_treec-make-percpu-variable-static.patch
+lib-proportionsc-trivial-sparse-lock-annotation.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+blackfin-remove-__function__-in-video-driver.patch
+fb-carminefb-trivial-annotation-packing-color-register.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+byteorder-add-load_-store_endian-api.patch
+unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
+unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
+sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
+unaligned-wire-up-h8300-and-m32r-arches.patch
+unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
+unaligned-remove-the-old-implementation.patch
 
