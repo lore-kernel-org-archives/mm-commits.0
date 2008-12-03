@@ -1,24 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch removed from -mm tree
-Date: Tue, 02 Dec 2008 22:55:05 -0800
-Message-ID: <200812030655.mB36t5iU028485@imap1.linux-foundation.org>
+Subject: + drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch added to -mm tree
+Date: Tue, 02 Dec 2008 22:55:41 -0800
+Message-ID: <200812030655.mB36tf7r028780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751263AbYLCGzN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 01:55:13 -0500
+	by vger.kernel.org with ESMTP id S1752288AbYLCGzr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2008 01:55:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: julia@diku.dk, dwmw2@infradead.org
 
 
 The patch titled
      drivers/mtd/nand/pasemi_nand.c: Add missing pci_dev_put
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -27,11 +37,9 @@ Subject: drivers/mtd/nand/pasemi_nand.c: Add missing pci_dev_put
 From: Julia Lawall <julia@diku.dk>
 
 pci_get_device increments a reference count that should be decremented
-using pci_dev_put.  I have thus added an extra label in the error handling
-code to do this.  I don't know, however, whether there should be a
-pci_dev_put before the return 0 as well.
+using pci_dev_put.
 
-The semantic match that finds the problem is as follows:
+The semantic patch that finds the problem is as follows:
 (http://www.emn.fr/x-info/coccinelle/)
 
 // <smpl>
@@ -84,30 +92,20 @@ Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/pasemi_nand.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/mtd/nand/pasemi_nand.c |    1 +
+ 1 file changed, 1 insertion(+)
 
 diff -puN drivers/mtd/nand/pasemi_nand.c~drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put drivers/mtd/nand/pasemi_nand.c
 --- a/drivers/mtd/nand/pasemi_nand.c~drivers-mtd-nand-pasemi_nandc-add-missing-pci_dev_put
 +++ a/drivers/mtd/nand/pasemi_nand.c
-@@ -144,7 +144,7 @@ static int __devinit pasemi_nand_probe(s
+@@ -141,6 +141,7 @@ static int __devinit pasemi_nand_probe(s
+ 	}
+ 
+ 	lpcctl = pci_resource_start(pdev, 0);
++	pci_dev_put(pdev);
  
  	if (!request_region(lpcctl, 4, driver_name)) {
  		err = -EBUSY;
--		goto out_ior;
-+		goto out_pdev;
- 	}
- 
- 	chip->cmd_ctrl = pasemi_hwcontrol;
-@@ -176,6 +176,8 @@ static int __devinit pasemi_nand_probe(s
- 
-  out_lpc:
- 	release_region(lpcctl, 4);
-+ out_pdev:
-+	pci_dev_put(pdev);
-  out_ior:
- 	iounmap(chip->IO_ADDR_R);
-  out_mtd:
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
