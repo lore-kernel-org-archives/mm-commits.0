@@ -1,147 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - genksyms-allow-to-ignore-symbol-checksum-changes.patch removed from -mm tree
-Date: Sat, 06 Dec 2008 16:05:06 -0800
-Message-ID: <200812070005.mB7056D7021173@imap1.linux-foundation.org>
+Subject: - xfs-linux-next-i386-hackfix.patch removed from -mm tree
+Date: Sat, 06 Dec 2008 15:59:56 -0800
+Message-ID: <200812062359.mB6NxuTu018026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58921 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753512AbYLGAFR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:05:17 -0500
+	by vger.kernel.org with ESMTP id S1753455AbYLGAFG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:05:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agruen@suse.de, randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, david@fromorbit.com, lachlan@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     genksyms: allow to ignore symbol checksum changes
+     xfs: linux-next i386 hackfix
 has been removed from the -mm tree.  Its filename was
-     genksyms-allow-to-ignore-symbol-checksum-changes.patch
+     xfs-linux-next-i386-hackfix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: genksyms: allow to ignore symbol checksum changes
-From: Andreas Gruenbacher <agruen@suse.de>
+Subject: xfs: linux-next i386 hackfix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This adds an "override" keyword for use in *.symvers / *.symref files. 
-When a symbol is overridden, the symbol's old definition will be used for
-computing checksums instead of the new one, preserving the previous
-checksum.  (Genksyms will still warn about the change.)
+In file included from fs/xfs/linux-2.6/xfs_file.c:39:
+fs/xfs/linux-2.6/xfs_ioctl32.h:50: error: expected specifier-qualifier-list before 'compat_time_t'
+fs/xfs/linux-2.6/xfs_ioctl32.h:79: error: expected specifier-qualifier-list before 'compat_uptr_t'
+fs/xfs/linux-2.6/xfs_ioctl32.h:94: error: expected specifier-qualifier-list before 'compat_uptr_t'
+fs/xfs/linux-2.6/xfs_ioctl32.h:131: error: expected specifier-qualifier-list before 'compat_uptr_t'
+fs/xfs/linux-2.6/xfs_ioctl32.h:142: error: expected specifier-qualifier-list before 'compat_uptr_t'
+fs/xfs/linux-2.6/xfs_ioctl32.h:152: error: expected specifier-qualifier-list before 'compat_uptr_t'
+fs/xfs/linux-2.6/xfs_ioctl32.h:161: error: expected specifier-qualifier-list before 'compat_uptr_t'
+make[1]: *** [fs/xfs/linux-2.6/xfs_file.o] Error 1
 
-This is meant to allow distributions to hide minor actual as well as fake
-ABI changes.  (For example, when extra type information becomes available
-because additional headers are included, this may change checksums even
-though none of the types used have actully changed.)
-
-This approach also allows to get rid of "#ifdef __GENKSYMS__" hacks in the
-code, which are currently used in some vendor kernels to work around
-checksum changes.
-
-Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: Lachlan McIlroy <lachlan@sgi.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/genksyms/genksyms.c |   34 ++++++++++++++++++++++++++++++----
- scripts/genksyms/genksyms.h |    1 +
- 2 files changed, 31 insertions(+), 4 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl32.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/genksyms/genksyms.c~genksyms-allow-to-ignore-symbol-checksum-changes scripts/genksyms/genksyms.c
---- a/scripts/genksyms/genksyms.c~genksyms-allow-to-ignore-symbol-checksum-changes
-+++ a/scripts/genksyms/genksyms.c
-@@ -191,11 +191,26 @@ struct symbol *__add_symbol(const char *
- 				/* fall through */ ;
- 			else if (sym->type == type &&
- 				 equal_list(sym->defn, defn)) {
-+				if (!sym->is_declared && sym->is_override) {
-+					print_location();
-+					print_type_name(type, name);
-+					fprintf(stderr, " modversion is "
-+						"unchanged\n");
-+				}
- 				sym->is_declared = 1;
- 				return sym;
- 			} else if (!sym->is_declared) {
--				status = is_unknown_symbol(sym) ?
--					STATUS_DEFINED : STATUS_MODIFIED;
-+				if (sym->is_override && flag_preserve) {
-+					print_location();
-+					fprintf(stderr, "ignoring ");
-+					print_type_name(type, name);
-+					fprintf(stderr, " modversion change\n");
-+					sym->is_declared = 1;
-+					return sym;
-+				} else {
-+					status = is_unknown_symbol(sym) ?
-+						STATUS_DEFINED : STATUS_MODIFIED;
-+				}
- 			} else {
- 				error_with_pos("redefinition of %s", name);
- 				return sym;
-@@ -229,6 +244,7 @@ struct symbol *__add_symbol(const char *
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.h~xfs-linux-next-i386-hackfix fs/xfs/linux-2.6/xfs_ioctl32.h
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.h~xfs-linux-next-i386-hackfix
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.h
+@@ -46,6 +46,7 @@ extern long xfs_file_compat_invis_ioctl(
+ #define __compat_packed
+ #endif
  
- 	sym->is_declared = !is_reference;
- 	sym->status = status;
-+	sym->is_override = 0;
++#ifdef CONFIG_COMPAT
+ typedef struct compat_xfs_bstime {
+ 	compat_time_t	tv_sec;		/* seconds		*/
+ 	__s32		tv_nsec;	/* and nanoseconds	*/
+@@ -232,6 +233,7 @@ typedef struct compat_xfs_growfs_rt {
+ #define XFS_IOC_FSGROWFSDATA_32 _IOW('X', 110, struct compat_xfs_growfs_data)
+ #define XFS_IOC_FSGROWFSRT_32   _IOW('X', 112, struct compat_xfs_growfs_rt)
  
- 	if (flag_debug) {
- 		fprintf(debugfile, "Defn for %s %s == <",
-@@ -348,9 +364,16 @@ static void read_reference(FILE *f)
- 	while (!feof(f)) {
- 		struct string_list *defn = NULL;
- 		struct string_list *sym, *def;
--		int is_extern = 0;
-+		int is_extern = 0, is_override = 0;
-+		struct symbol *subsym;
++#endif	/* CONFIG_COMPAT */
+ #endif /* BROKEN_X86_ALIGNMENT */
  
- 		sym = read_node(f);
-+		if (sym && sym->tag == SYM_NORMAL &&
-+		    !strcmp(sym->string, "override")) {
-+			is_override = 1;
-+			free_node(sym);
-+			sym = read_node(f);
-+		}
- 		if (!sym)
- 			continue;
- 		def = read_node(f);
-@@ -365,8 +388,9 @@ static void read_reference(FILE *f)
- 			defn = def;
- 			def = read_node(f);
- 		}
--		add_reference_symbol(xstrdup(sym->string), sym->tag,
-+		subsym = add_reference_symbol(xstrdup(sym->string), sym->tag,
- 					      defn, is_extern);
-+		subsym->is_override = is_override;
- 		free_node(sym);
- 	}
- }
-@@ -743,6 +767,8 @@ int main(int argc, char **argv)
- 		while (visited_symbols != (struct symbol *)-1L) {
- 			struct symbol *sym = visited_symbols;
- 
-+			if (sym->is_override)
-+				fputs("override ", dumpfile);
- 			if (sym->type != SYM_NORMAL) {
- 				putc(symbol_type_name[sym->type][0], dumpfile);
- 				putc('#', dumpfile);
-diff -puN scripts/genksyms/genksyms.h~genksyms-allow-to-ignore-symbol-checksum-changes scripts/genksyms/genksyms.h
---- a/scripts/genksyms/genksyms.h~genksyms-allow-to-ignore-symbol-checksum-changes
-+++ a/scripts/genksyms/genksyms.h
-@@ -49,6 +49,7 @@ struct symbol {
- 	int is_extern;
- 	int is_declared;
- 	enum symbol_status status;
-+	int is_override;
- };
- 
- typedef struct string_list **yystype;
+ #endif /* __XFS_IOCTL32_H__ */
 _
 
-Patches currently in -mm which might be from agruen@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-backing-devc-remove-recently-added-warn_on.patch
+ksym_symbol_len-fixes.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+make-linx-next-apply.patch
 linux-next.patch
+next-remove-localversion.patch
+xfs-linux-next-i386-hackfix.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+netdev-smc911x-fix-for-driver-resume-cleanup.patch
+backlight-catch-invalid-input.patch
+pci-uninline-pci_ioremap_bar.patch
+drivers-char-cycladesc-cy_pci_probe-fix-error-path.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
