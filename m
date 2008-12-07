@@ -1,80 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: - fix-block-dev-compat-ioctl-handling.patch removed from -mm tree
-Date: Sat, 06 Dec 2008 16:06:01 -0800
-Message-ID: <200812070006.mB7061vY021725@imap1.linux-foundation.org>
+Subject: - block-fix-setting-of-max_segment_size-and-seg_boundary-mask.patch removed from -mm tree
+Date: Sat, 06 Dec 2008 16:05:49 -0800
+Message-ID: <200812070005.mB705nKW021616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753594AbYLGAGG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:06:06 -0500
+	by vger.kernel.org with ESMTP id S1753649AbYLGAGP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:06:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: schwab@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mbroz@redhat.com, agk@redhat.com, fujita.tomonori@lab.ntt.co.jp, htejun@gmail.com, jens.axboe@oracle.com, mike.miller@hp.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix block dev compat ioctl handling
+     block: fix setting of max_segment_size and seg_boundary mask
 has been removed from the -mm tree.  Its filename was
-     fix-block-dev-compat-ioctl-handling.patch
+     block-fix-setting-of-max_segment_size-and-seg_boundary-mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix block dev compat ioctl handling
-From: Andreas Schwab <schwab@suse.de>
+Subject: block: fix setting of max_segment_size and seg_boundary mask
+From: Milan Broz <mbroz@redhat.com>
 
-Commit 33c2dca4957bd0da3e1af7b96d0758d97e708ef6 ("trim file propagation in
-block/compat_ioctl.c") removed the handling of some ioctls from
-compat_blkdev_driver_ioctl.  That caused them to be rejected as unknown by
-the compat layer.
+Fix setting of max_segment_size and seg_boundary mask for stacked md/dm
+devices.
 
-Signed-off-by: Andreas Schwab <schwab@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+When stacking devices (LVM over MD over SCSI) some of the request queue
+parameters are not set up correctly in some cases by default, namely
+max_segment_size and and seg_boundary mask.
+
+If you create MD device over SCSI, these attributes are zeroed.
+
+Problem become when there is over this mapping next device-mapper mapping
+- queue attributes are set in DM this way:
+
+request_queue   max_segment_size  seg_boundary_mask
+SCSI                65536             0xffffffff
+MD RAID1                0                      0
+LVM                 65536                 -1 (64bit)
+
+Unfortunately bio_add_page (resp.  bio_phys_segments) calculates number of
+physical segments according to these parameters.
+
+During the generic_make_request() is segment cout recalculated and can
+increase bio->bi_phys_segments count over the allowed limit.  (After
+bio_clone() in stack operation.)
+
+Thi is specially problem in CCISS driver, where it produce OOPS here
+
+    BUG_ON(creq->nr_phys_segments > MAXSGENTRIES);
+
+(MAXSEGENTRIES is 31 by default.)
+
+Sometimes even this command is enough to cause oops:
+
+  dd iflag=direct if=/dev/<vg>/<lv> of=/dev/null bs=128000 count=10
+
+This command generates bios with 250 sectors, allocated in 32 4k-pages
+(last page uses only 1024 bytes).
+
+For LVM layer, it allocates bio with 31 segments (still OK for CCISS),
+unfortunatelly on lower layer it is recalculated to 32 segments and this
+violates CCISS restriction and triggers BUG_ON().
+
+The patch tries to fix it by:
+
+ * initializing attributes above in queue request constructor
+   blk_queue_make_request()
+
+ * make sure that blk_queue_stack_limits() inherits setting
+
+ (DM uses its own function to set the limits because it
+ blk_queue_stack_limits() was introduced later.  It should probably switch
+ to use generic stack limit function too.)
+
+ * sets the default seg_boundary value in one place (blkdev.h)
+
+ * use this mask as default in DM (instead of -1, which differs in 64bit)
+
+Bugs related to this:
+https://bugzilla.redhat.com/show_bug.cgi?id=471639
+http://bugzilla.kernel.org/show_bug.cgi?id=8672
+
+Signed-off-by: Milan Broz <mbroz@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Alasdair G Kergon <agk@redhat.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/compat_ioctl.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ block/blk-core.c       |    2 +-
+ block/blk-settings.c   |    4 ++++
+ drivers/md/dm-table.c  |    2 +-
+ include/linux/blkdev.h |    2 ++
+ 4 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN block/compat_ioctl.c~fix-block-dev-compat-ioctl-handling block/compat_ioctl.c
---- a/block/compat_ioctl.c~fix-block-dev-compat-ioctl-handling
-+++ a/block/compat_ioctl.c
-@@ -677,6 +677,29 @@ static int compat_blkdev_driver_ioctl(st
- 	case DVD_WRITE_STRUCT:
- 	case DVD_AUTH:
- 		arg = (unsigned long)compat_ptr(arg);
-+	/* These intepret arg as an unsigned long, not as a pointer,
-+	 * so we must not do compat_ptr() conversion. */
-+	case HDIO_SET_MULTCOUNT:
-+	case HDIO_SET_UNMASKINTR:
-+	case HDIO_SET_KEEPSETTINGS:
-+	case HDIO_SET_32BIT:
-+	case HDIO_SET_NOWERR:
-+	case HDIO_SET_DMA:
-+	case HDIO_SET_PIO_MODE:
-+	case HDIO_SET_NICE:
-+	case HDIO_SET_WCACHE:
-+	case HDIO_SET_ACOUSTIC:
-+	case HDIO_SET_BUSSTATE:
-+	case HDIO_SET_ADDRESS:
-+	case CDROMEJECT_SW:
-+	case CDROM_SET_OPTIONS:
-+	case CDROM_CLEAR_OPTIONS:
-+	case CDROM_SELECT_SPEED:
-+	case CDROM_SELECT_DISC:
-+	case CDROM_MEDIA_CHANGED:
-+	case CDROM_DRIVE_STATUS:
-+	case CDROM_LOCKDOOR:
-+	case CDROM_DEBUG:
- 		break;
- 	default:
- 		/* unknown ioctl number */
+diff -puN block/blk-core.c~block-fix-setting-of-max_segment_size-and-seg_boundary-mask block/blk-core.c
+--- a/block/blk-core.c~block-fix-setting-of-max_segment_size-and-seg_boundary-mask
++++ a/block/blk-core.c
+@@ -596,7 +596,7 @@ blk_init_queue_node(request_fn_proc *rfn
+ 				   1 << QUEUE_FLAG_STACKABLE);
+ 	q->queue_lock		= lock;
+ 
+-	blk_queue_segment_boundary(q, 0xffffffff);
++	blk_queue_segment_boundary(q, BLK_SEG_BOUNDARY_MASK);
+ 
+ 	blk_queue_make_request(q, __make_request);
+ 	blk_queue_max_segment_size(q, MAX_SEGMENT_SIZE);
+diff -puN block/blk-settings.c~block-fix-setting-of-max_segment_size-and-seg_boundary-mask block/blk-settings.c
+--- a/block/blk-settings.c~block-fix-setting-of-max_segment_size-and-seg_boundary-mask
++++ a/block/blk-settings.c
+@@ -125,6 +125,9 @@ void blk_queue_make_request(struct reque
+ 	q->nr_requests = BLKDEV_MAX_RQ;
+ 	blk_queue_max_phys_segments(q, MAX_PHYS_SEGMENTS);
+ 	blk_queue_max_hw_segments(q, MAX_HW_SEGMENTS);
++	blk_queue_segment_boundary(q, BLK_SEG_BOUNDARY_MASK);
++	blk_queue_max_segment_size(q, MAX_SEGMENT_SIZE);
++
+ 	q->make_request_fn = mfn;
+ 	q->backing_dev_info.ra_pages =
+ 			(VM_MAX_READAHEAD * 1024) / PAGE_CACHE_SIZE;
+@@ -314,6 +317,7 @@ void blk_queue_stack_limits(struct reque
+ 	/* zero is "infinity" */
+ 	t->max_sectors = min_not_zero(t->max_sectors, b->max_sectors);
+ 	t->max_hw_sectors = min_not_zero(t->max_hw_sectors, b->max_hw_sectors);
++	t->seg_boundary_mask = min_not_zero(t->seg_boundary_mask, b->seg_boundary_mask);
+ 
+ 	t->max_phys_segments = min(t->max_phys_segments, b->max_phys_segments);
+ 	t->max_hw_segments = min(t->max_hw_segments, b->max_hw_segments);
+diff -puN drivers/md/dm-table.c~block-fix-setting-of-max_segment_size-and-seg_boundary-mask drivers/md/dm-table.c
+--- a/drivers/md/dm-table.c~block-fix-setting-of-max_segment_size-and-seg_boundary-mask
++++ a/drivers/md/dm-table.c
+@@ -671,7 +671,7 @@ static void check_for_valid_limits(struc
+ 	if (!rs->max_segment_size)
+ 		rs->max_segment_size = MAX_SEGMENT_SIZE;
+ 	if (!rs->seg_boundary_mask)
+-		rs->seg_boundary_mask = -1;
++		rs->seg_boundary_mask = BLK_SEG_BOUNDARY_MASK;
+ 	if (!rs->bounce_pfn)
+ 		rs->bounce_pfn = -1;
+ }
+diff -puN include/linux/blkdev.h~block-fix-setting-of-max_segment_size-and-seg_boundary-mask include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-fix-setting-of-max_segment_size-and-seg_boundary-mask
++++ a/include/linux/blkdev.h
+@@ -919,6 +919,8 @@ extern void blk_set_cmd_filter_defaults(
+ 
+ #define MAX_SEGMENT_SIZE	65536
+ 
++#define BLK_SEG_BOUNDARY_MASK	0xFFFFFFFFUL
++
+ #define blkdev_entry_to_request(entry) list_entry((entry), struct request, queuelist)
+ 
+ static inline int queue_hardsect_size(struct request_queue *q)
 _
 
-Patches currently in -mm which might be from schwab@suse.de are
+Patches currently in -mm which might be from mbroz@redhat.com are
 
 origin.patch
 
