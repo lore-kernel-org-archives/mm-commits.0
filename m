@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-fix-workqueue-shutdown.patch added to -mm tree
-Date: Sat, 06 Dec 2008 23:16:47 -0800
-Message-ID: <200812070716.mB77GlWJ019525@imap1.linux-foundation.org>
+Subject: + rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n.patch added to -mm tree
+Date: Sat, 06 Dec 2008 23:20:13 -0800
+Message-ID: <200812070720.mB77KDK1021552@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752143AbYLGHRM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 02:17:12 -0500
+	by vger.kernel.org with ESMTP id S1752467AbYLGHUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 02:20:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geoffrey.levand@am.sony.com, geert@linux-m68k.org, krzysztof.h1@poczta.fm
+Cc: randy.dunlap@oracle.com, dbrownell@users.sourceforge.net, sameo@openedhand.com, tony@atomide.com
 
 
 The patch titled
-     fbcon: fix workqueue shutdown
+     rtc twl4030: rename ioctl function when RTC_INTF_DEV=n
 has been added to the -mm tree.  Its filename is
-     fbcon-fix-workqueue-shutdown.patch
+     rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,81 +33,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbcon: fix workqueue shutdown
-From: Geoff Levand <geoffrey.levand@am.sony.com>
+Subject: rtc twl4030: rename ioctl function when RTC_INTF_DEV=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add a call to cancel_work_sync() in fbcon_exit() to cancel any pending
-work in the fbcon workqueue.  Also, change the assignment of the workqueue
-function info->queue.func from NULL to fb_flashcursor(), and add a
-corresponding check in fb_flashcursor() to exit immediately if the
-variable fbcon_has_exited is set.
+Fix build error when RTC_INTF_DEV=n:
 
-The current implementation of fbcon_exit() sets the fbcon workqueue
-function info->queue.func to NULL, but does not assure that there is no
-work pending when it does so.  On occasion, depending on system timing,
-there will still be pending work in the queue when fbcon_exit() is called.
- This results in a null pointer deference when run_workqueue() tries to
-call the queue's work function.
+drivers/rtc/rtc-twl4030.c:402: error: 'twl4030_rtc_ioctl' undeclared here (not in a function)
+make[3]: *** [drivers/rtc/rtc-twl4030.o] Error 1
 
-Fixes errors on shutdown similar to these:
-
-  Console: switching to colour dummy device 80x25
-  Unable to handle kernel paging request for data at address 0x00000000
-
-Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-twl4030.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/console/fbcon.c~fbcon-fix-workqueue-shutdown drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbcon-fix-workqueue-shutdown
-+++ a/drivers/video/console/fbcon.c
-@@ -394,13 +394,19 @@ static void fbcon_update_softback(struct
+diff -puN drivers/rtc/rtc-twl4030.c~rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n drivers/rtc/rtc-twl4030.c
+--- a/drivers/rtc/rtc-twl4030.c~rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n
++++ a/drivers/rtc/rtc-twl4030.c
+@@ -337,7 +337,7 @@ static int twl4030_rtc_ioctl(struct devi
+ }
  
- static void fb_flashcursor(struct work_struct *work)
- {
--	struct fb_info *info = container_of(work, struct fb_info, queue);
--	struct fbcon_ops *ops = info->fbcon_par;
-+	struct fb_info *info;
-+	struct fbcon_ops *ops;
- 	struct display *p;
- 	struct vc_data *vc = NULL;
- 	int c;
- 	int mode;
+ #else
+-#define	omap_rtc_ioctl	NULL
++#define	twl4030_rtc_ioctl	NULL
+ #endif
  
-+	if (fbcon_has_exited)
-+		return;
-+
-+	info = container_of(work, struct fb_info, queue);
-+	ops = info->fbcon_par;
-+
- 	acquire_console_sem();
- 	if (ops && ops->currcon != -1)
- 		vc = vc_cons[ops->currcon].d;
-@@ -3531,12 +3537,18 @@ static void fbcon_exit(void)
- 	softback_buf = 0UL;
- 
- 	for (i = 0; i < FB_MAX; i++) {
-+		int pending;
-+
- 		mapped = 0;
- 		info = registered_fb[i];
- 
- 		if (info == NULL)
- 			continue;
- 
-+		pending = cancel_work_sync(&info->queue);
-+		DPRINTK("fbcon: %s pending work\n", (pending ? "canceled" :
-+			"no"));
-+
- 		for (j = first_fb_vc; j <= last_fb_vc; j++) {
- 			if (con2fb_map[j] == i)
- 				mapped = 1;
-@@ -3555,9 +3567,6 @@ static void fbcon_exit(void)
- 				kfree(info->fbcon_par);
- 				info->fbcon_par = NULL;
- 			}
+ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
+_
+
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
+
+origin.patch
+rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n.patch
+linux-next.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+audit-remove-excess-kernel-doc.patch
+mtd-remove-excess-kernel-doc-notation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+esp-fix-section-mismatch-warning.patch
+fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
+pps-serial-clients-support.patch
+pps-parallel-port-clients-support.patch
+pps-low-level-irq-timestamps-recording.patch
+fix-similar-typos-to-successfull-v2.patch
+
