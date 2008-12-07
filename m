@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hid-dont-allow-dealextreme-usb-radio-be-handled-by-usb-hid-driver.patch added to -mm tree
-Date: Sat, 06 Dec 2008 19:36:48 -0800
-Message-ID: <200812070336.mB73amw1017863@imap1.linux-foundation.org>
+Subject: + percpu_counter-fix-cpu-unplug-race-in-percpu_counter_destroy.patch added to -mm tree
+Date: Sat, 06 Dec 2008 19:40:10 -0800
+Message-ID: <200812070340.mB73eANk019840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60132 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753440AbYLGDhJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 22:37:09 -0500
+	by vger.kernel.org with ESMTP id S1753445AbYLGDk2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 22:40:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: klimov.linux@gmail.com, jirislaby@gmail.com, jkosina@suse.cz, mchehab@infradead.org, mlord@pobox.com, tobias.lorenz@gmx.net
+Cc: dada1@cosmosbay.com, a.p.zijlstra@chello.nl, cmm@us.ibm.com, davem@davemloft.net
 
 
 The patch titled
-     hid: don't allow DealExtreme usb-radio be handled by usb hid driver
+     percpu_counter: fix CPU unplug race in percpu_counter_destroy()
 has been added to the -mm tree.  Its filename is
-     hid-dont-allow-dealextreme-usb-radio-be-handled-by-usb-hid-driver.patch
+     percpu_counter-fix-cpu-unplug-race-in-percpu_counter_destroy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hid: don't allow DealExtreme usb-radio be handled by usb hid driver
-From: Alexey Klimov <klimov.linux@gmail.com>
+Subject: percpu_counter: fix CPU unplug race in percpu_counter_destroy()
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-This device is already handled by radio-si470x driver, and we therefore
-want usbhid to ignore it.  Patch places usb ids of that device in
-ignore section of hid-core.c
+We should first delete the counter from percpu_counters list
+before freeing memory, or a percpu_counter_hotcpu_callback()
+could dereference a NULL pointer.
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
-Cc: Tobias Lorenz <tobias.lorenz@gmx.net>
-Cc: Mark Lord <mlord@pobox.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-core.c |    1 +
- drivers/hid/hid-ids.h  |    3 +++
- 2 files changed, 4 insertions(+)
+ lib/percpu_counter.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/hid/hid-core.c~hid-dont-allow-dealextreme-usb-radio-be-handled-by-usb-hid-driver drivers/hid/hid-core.c
---- a/drivers/hid/hid-core.c~hid-dont-allow-dealextreme-usb-radio-be-handled-by-usb-hid-driver
-+++ a/drivers/hid/hid-core.c
-@@ -1496,6 +1496,7 @@ static const struct hid_device_id hid_ig
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_CMEDIA, USB_DEVICE_ID_CM109) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_CYPRESS, USB_DEVICE_ID_CYPRESS_HIDCOM) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_CYPRESS, USB_DEVICE_ID_CYPRESS_ULTRAMOUSE) },
-+	{ HID_USB_DEVICE(USB_VENDOR_ID_DEALEXTREAME, USB_DEVICE_ID_DEALEXTREAME_RADIO_SI4701) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_DELORME, USB_DEVICE_ID_DELORME_EARTHMATE) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_DELORME, USB_DEVICE_ID_DELORME_EM_LT20) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_ESSENTIAL_REALITY, USB_DEVICE_ID_ESSENTIAL_REALITY_P5) },
-diff -puN drivers/hid/hid-ids.h~hid-dont-allow-dealextreme-usb-radio-be-handled-by-usb-hid-driver drivers/hid/hid-ids.h
---- a/drivers/hid/hid-ids.h~hid-dont-allow-dealextreme-usb-radio-be-handled-by-usb-hid-driver
-+++ a/drivers/hid/hid-ids.h
-@@ -138,6 +138,9 @@
- #define USB_DEVICE_ID_CYPRESS_BARCODE_1	0xde61
- #define USB_DEVICE_ID_CYPRESS_BARCODE_2	0xde64
+diff -puN lib/percpu_counter.c~percpu_counter-fix-cpu-unplug-race-in-percpu_counter_destroy lib/percpu_counter.c
+--- a/lib/percpu_counter.c~percpu_counter-fix-cpu-unplug-race-in-percpu_counter_destroy
++++ a/lib/percpu_counter.c
+@@ -104,13 +104,13 @@ void percpu_counter_destroy(struct percp
+ 	if (!fbc->counters)
+ 		return;
  
-+#define USB_VENDOR_ID_DEALEXTREAME	0x10c5
-+#define USB_DEVICE_ID_DEALEXTREAME_RADIO_SI4701	0x819a
-+
- #define USB_VENDOR_ID_DELORME		0x1163
- #define USB_DEVICE_ID_DELORME_EARTHMATE 0x0100
- #define USB_DEVICE_ID_DELORME_EM_LT20	0x0200
+-	free_percpu(fbc->counters);
+-	fbc->counters = NULL;
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	mutex_lock(&percpu_counters_lock);
+ 	list_del(&fbc->list);
+ 	mutex_unlock(&percpu_counters_lock);
+ #endif
++	free_percpu(fbc->counters);
++	fbc->counters = NULL;
+ }
+ EXPORT_SYMBOL(percpu_counter_destroy);
+ 
 _
 
-Patches currently in -mm which might be from klimov.linux@gmail.com are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-hid-dont-allow-dealextreme-usb-radio-be-handled-by-usb-hid-driver.patch
+origin.patch
+linux-next.patch
+percpu_counter-fix-cpu-unplug-race-in-percpu_counter_destroy.patch
+percpu_counter-fix-__percpu_counter_sum.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
