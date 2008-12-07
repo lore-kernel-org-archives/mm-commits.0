@@ -1,124 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - scripts-improve-the-decodecode-script.patch removed from -mm tree
-Date: Sat, 06 Dec 2008 16:05:10 -0800
-Message-ID: <200812070005.mB705AXW021187@imap1.linux-foundation.org>
+Subject: - genksyms-allow-to-ignore-symbol-checksum-changes.patch removed from -mm tree
+Date: Sat, 06 Dec 2008 16:05:06 -0800
+Message-ID: <200812070005.mB7056D7021173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753507AbYLGAFP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:05:15 -0500
+	by vger.kernel.org with ESMTP id S1753512AbYLGAFR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:05:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, sam@ravnborg.org, wangcong@zeuux.org, mm-commits@vger.kernel.org
+To: agruen@suse.de, randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts: improve the decodecode script
+     genksyms: allow to ignore symbol checksum changes
 has been removed from the -mm tree.  Its filename was
-     scripts-improve-the-decodecode-script.patch
+     genksyms-allow-to-ignore-symbol-checksum-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts: improve the decodecode script
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: genksyms: allow to ignore symbol checksum changes
+From: Andreas Gruenbacher <agruen@suse.de>
 
-kerneloops.org has been using an improved "decodecode" script,
-specifically it has a special marker that shows which line in the assembly
-the oops happened at, like this:
+This adds an "override" keyword for use in *.symvers / *.symref files. 
+When a symbol is overridden, the symbol's old definition will be used for
+computing checksums instead of the new one, preserving the previous
+checksum.  (Genksyms will still warn about the change.)
 
-  20:	83 e0 03             	and    $0x3,%eax
-  23:	09 d8                	or     %ebx,%eax
-  25:	85 db                	test   %ebx,%ebx
-  27:	89 02                	mov    %eax,(%edx)
-  29:	74 0f                	je     0x3a
-  2b:*	3b 73 04             	cmp    0x4(%ebx),%esi     <-- trapping instruction
-  2e:	75 05                	jne    0x35
-  30:	89 53 04             	mov    %edx,0x4(%ebx)
-  33:	eb 07                	jmp    0x3c
-  35:	89 53 08             	mov    %edx,0x8(%ebx)
+This is meant to allow distributions to hide minor actual as well as fake
+ABI changes.  (For example, when extra type information becomes available
+because additional headers are included, this may change checksums even
+though none of the types used have actully changed.)
 
-this patch updates the kernel copy to also have this functionality.
+This approach also allows to get rid of "#ifdef __GENKSYMS__" hacks in the
+code, which are currently used in some vendor kernels to work around
+checksum changes.
 
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Reviewed-by: WANG Cong <wangcong@zeuux.org>
+Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
 Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decodecode |   32 ++++++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 10 deletions(-)
+ scripts/genksyms/genksyms.c |   34 ++++++++++++++++++++++++++++++----
+ scripts/genksyms/genksyms.h |    1 +
+ 2 files changed, 31 insertions(+), 4 deletions(-)
 
-diff -puN scripts/decodecode~scripts-improve-the-decodecode-script scripts/decodecode
---- a/scripts/decodecode~scripts-improve-the-decodecode-script
-+++ a/scripts/decodecode
-@@ -7,7 +7,7 @@
- # AFLAGS=--32 decodecode < 386.oops
+diff -puN scripts/genksyms/genksyms.c~genksyms-allow-to-ignore-symbol-checksum-changes scripts/genksyms/genksyms.c
+--- a/scripts/genksyms/genksyms.c~genksyms-allow-to-ignore-symbol-checksum-changes
++++ a/scripts/genksyms/genksyms.c
+@@ -191,11 +191,26 @@ struct symbol *__add_symbol(const char *
+ 				/* fall through */ ;
+ 			else if (sym->type == type &&
+ 				 equal_list(sym->defn, defn)) {
++				if (!sym->is_declared && sym->is_override) {
++					print_location();
++					print_type_name(type, name);
++					fprintf(stderr, " modversion is "
++						"unchanged\n");
++				}
+ 				sym->is_declared = 1;
+ 				return sym;
+ 			} else if (!sym->is_declared) {
+-				status = is_unknown_symbol(sym) ?
+-					STATUS_DEFINED : STATUS_MODIFIED;
++				if (sym->is_override && flag_preserve) {
++					print_location();
++					fprintf(stderr, "ignoring ");
++					print_type_name(type, name);
++					fprintf(stderr, " modversion change\n");
++					sym->is_declared = 1;
++					return sym;
++				} else {
++					status = is_unknown_symbol(sym) ?
++						STATUS_DEFINED : STATUS_MODIFIED;
++				}
+ 			} else {
+ 				error_with_pos("redefinition of %s", name);
+ 				return sym;
+@@ -229,6 +244,7 @@ struct symbol *__add_symbol(const char *
  
- cleanup() {
--	rm -f $T $T.s $T.o
-+	rm -f $T $T.s $T.o $T.oo $T.aa  $T.aaa
- 	exit 1
+ 	sym->is_declared = !is_reference;
+ 	sym->status = status;
++	sym->is_override = 0;
+ 
+ 	if (flag_debug) {
+ 		fprintf(debugfile, "Defn for %s %s == <",
+@@ -348,9 +364,16 @@ static void read_reference(FILE *f)
+ 	while (!feof(f)) {
+ 		struct string_list *defn = NULL;
+ 		struct string_list *sym, *def;
+-		int is_extern = 0;
++		int is_extern = 0, is_override = 0;
++		struct symbol *subsym;
+ 
+ 		sym = read_node(f);
++		if (sym && sym->tag == SYM_NORMAL &&
++		    !strcmp(sym->string, "override")) {
++			is_override = 1;
++			free_node(sym);
++			sym = read_node(f);
++		}
+ 		if (!sym)
+ 			continue;
+ 		def = read_node(f);
+@@ -365,8 +388,9 @@ static void read_reference(FILE *f)
+ 			defn = def;
+ 			def = read_node(f);
+ 		}
+-		add_reference_symbol(xstrdup(sym->string), sym->tag,
++		subsym = add_reference_symbol(xstrdup(sym->string), sym->tag,
+ 					      defn, is_extern);
++		subsym->is_override = is_override;
+ 		free_node(sym);
+ 	}
  }
+@@ -743,6 +767,8 @@ int main(int argc, char **argv)
+ 		while (visited_symbols != (struct symbol *)-1L) {
+ 			struct symbol *sym = visited_symbols;
  
-@@ -44,21 +44,33 @@ if [ $marker -eq 0 ]; then
- 	marker=`expr index "$code" "\("`
- fi
++			if (sym->is_override)
++				fputs("override ", dumpfile);
+ 			if (sym->type != SYM_NORMAL) {
+ 				putc(symbol_type_name[sym->type][0], dumpfile);
+ 				putc('#', dumpfile);
+diff -puN scripts/genksyms/genksyms.h~genksyms-allow-to-ignore-symbol-checksum-changes scripts/genksyms/genksyms.h
+--- a/scripts/genksyms/genksyms.h~genksyms-allow-to-ignore-symbol-checksum-changes
++++ a/scripts/genksyms/genksyms.h
+@@ -49,6 +49,7 @@ struct symbol {
+ 	int is_extern;
+ 	int is_declared;
+ 	enum symbol_status status;
++	int is_override;
+ };
  
-+touch $T.oo
- if [ $marker -ne 0 ]; then
--	beforemark=`echo "$code" | cut -c-$((${marker} - 1))`
-+	echo All code >> $T.oo
-+	echo ======== >> $T.oo
-+	beforemark=`echo "$code"`
- 	echo -n "	.byte 0x" > $T.s
--	echo $beforemark | sed -e 's/ /,0x/g' >> $T.s
--	as $AFLAGS -o $T.o $T.s
--	objdump -S $T.o
--	rm $T.o $T.s
-+	echo $beforemark | sed -e 's/ /,0x/g' | sed -e 's/<//g' | sed -e 's/>//g' >> $T.s
-+	as $AFLAGS -o $T.o $T.s &> /dev/null
-+	objdump -S $T.o | grep -v "/tmp" | grep -v "Disassembly" | grep -v "\.text" | grep -v "^$" &> $T.ooo
-+	cat $T.ooo >> $T.oo
-+	rm -f $T.o $T.s  $T.ooo
- 
- # and fix code at-and-after marker
- 	code=`echo "$code" | cut -c$((${marker} + 1))-`
- fi
--
-+echo Code starting with the faulting instruction  > $T.aa
-+echo =========================================== >> $T.aa
- code=`echo $code | sed -e 's/ [<(]/ /;s/[>)] / /;s/ /,0x/g'`
- echo -n "	.byte 0x" > $T.s
- echo $code >> $T.s
--as $AFLAGS -o $T.o $T.s
--objdump -S $T.o
--rm $T $T.s $T.o
-+as $AFLAGS -o $T.o $T.s &> /dev/null
-+objdump -S $T.o | grep -v "Disassembly" | grep -v "/tmp" | grep -v "\.text" | grep -v "^$" &> $T.aaa
-+cat $T.aaa >> $T.aa
-+
-+faultline=`cat $T.aaa | head -1 | cut -d":" -f2`
-+
-+cat $T.oo | sed -e "s/\($faultline\)/\*\1     <-- trapping instruction/g"
-+echo
-+cat $T.aa
-+cleanup
+ typedef struct string_list **yystype;
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from agruen@suse.de are
 
-origin.patch
 linux-next.patch
-pci-uninline-pci_ioremap_bar.patch
-vfs-expand-some-comments-d_path-seq_path.patch
-pci-use-pci_ioremap_bar-in-drivers-misc.patch
-oops-increment-the-oops-uuid-every-time-we-oops.patch
-scripts-script-from-kerneloopsorg-to-pretty-print-oops-dumps.patch
-pci-use-pci_ioremap_bar-in-drivers-serial.patch
-pci-use-pci_ioremap_bar-in-drivers-video.patch
-pci-use-pci_ioremap_bar-in-drivers-edac.patch
 
