@@ -1,160 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - block-internal-dequeue-shouldnt-start-timer.patch removed from -mm tree
-Date: Sat, 06 Dec 2008 16:05:45 -0800
-Message-ID: <200812070005.mB705j0L021589@imap1.linux-foundation.org>
+Subject: - gen_init_cpio-expand-shell-variables-in-file-names.patch removed from -mm tree
+Date: Sat, 06 Dec 2008 16:06:03 -0800
+Message-ID: <200812070006.mB7063mu021754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36891 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753581AbYLGAGF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:06:05 -0500
+	by vger.kernel.org with ESMTP id S1753599AbYLGAGJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:06:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, James.Bottomley@HansenPartnership.com, andmike@linux.vnet.ibm.com, hare@suse.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: Gene.Sally@timesys.com, gene.sally@timesys.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block: internal dequeue shouldn't start timer
+     gen_init_cpio: expand shell variables in file names
 has been removed from the -mm tree.  Its filename was
-     block-internal-dequeue-shouldnt-start-timer.patch
+     gen_init_cpio-expand-shell-variables-in-file-names.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: internal dequeue shouldn't start timer
-From: Tejun Heo <tj@kernel.org>
+Subject: gen_init_cpio: expand shell variables in file names
+From: "Sally, Gene" <Gene.Sally@timesys.com>
 
-blkdev_dequeue_request() and elv_dequeue_request() are equivalent and
-both start the timeout timer.  Barrier code dequeues the original
-barrier request but doesn't passes the request itself to lower level
-driver, only broken down proxy requests; however, as the original
-barrier code goes through the same dequeue path and timeout timer is
-started on it.  If barrier sequence takes long enough, this timer
-expires but the low level driver has no idea about this request and
-oops follows.
+This modifies gen_init_cpio so that lines that specify files can contain
+what looks like a shell variable that's expanded during processing.
 
-Timeout timer shouldn't have been started on the original barrier
-request as it never goes through actual IO.  This patch unexports
-elv_dequeue_request(), which has no external user anyway, and makes it
-operate on elevator proper w/o adding the timer and make
-blkdev_dequeue_request() call elv_dequeue_request() and add timer.
-Internal users which don't pass the request to driver - barrier code
-and end_that_request_last() - are converted to use
-elv_dequeue_request().
+For example:
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Mike Anderson <andmike@linux.vnet.ibm.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Hannes Reinecke <hare@suse.de>
+file /sbin/kinit ${RFS_BASE}/usr/src/klibc/kinit/kinit 0755 0 0
+
+given RFS_BASE is "/some/directory" in the environment
+
+would be expanded to
+
+file /sbin/kinit /some/directory/usr/src/klibc/kinit/kinit 0755 0 0
+
+If several environment variables appear in a line, they are all expanded
+with processing happening from left to right.  Undefined variables expand
+to a null string.  Syntax errors stop processing, letting the existing
+error handling show the user offending line.
+
+This helps embedded folks who frequently create several RFS directories
+and then switch between them as they're tuning an initramfs.  Having just
+been such an embedded folk, this seems the most efficient solution.
+
+Signed-off-by: Gene Sally <gene.sally@timesys.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-barrier.c    |    4 ++--
- block/blk-core.c       |   24 +++++++++++++++++++++++-
- block/elevator.c       |    7 -------
- include/linux/blkdev.h |    7 ++-----
- 4 files changed, 27 insertions(+), 15 deletions(-)
+ usr/gen_init_cpio.c |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
-diff -puN block/blk-barrier.c~block-internal-dequeue-shouldnt-start-timer block/blk-barrier.c
---- a/block/blk-barrier.c~block-internal-dequeue-shouldnt-start-timer
-+++ a/block/blk-barrier.c
-@@ -161,7 +161,7 @@ static inline struct request *start_orde
- 	/*
- 	 * Prep proxy barrier request.
- 	 */
--	blkdev_dequeue_request(rq);
-+	elv_dequeue_request(q, rq);
- 	q->orig_bar_rq = rq;
- 	rq = &q->bar_rq;
- 	blk_rq_init(q, rq);
-@@ -219,7 +219,7 @@ int blk_do_ordered(struct request_queue 
- 			 * This can happen when the queue switches to
- 			 * ORDERED_NONE while this request is on it.
- 			 */
--			blkdev_dequeue_request(rq);
-+			elv_dequeue_request(q, rq);
- 			if (__blk_end_request(rq, -EOPNOTSUPP,
- 					      blk_rq_bytes(rq)))
- 				BUG();
-diff -puN block/blk-core.c~block-internal-dequeue-shouldnt-start-timer block/blk-core.c
---- a/block/blk-core.c~block-internal-dequeue-shouldnt-start-timer
-+++ a/block/blk-core.c
-@@ -1641,6 +1641,28 @@ int blk_insert_cloned_request(struct req
- EXPORT_SYMBOL_GPL(blk_insert_cloned_request);
+diff -puN usr/gen_init_cpio.c~gen_init_cpio-expand-shell-variables-in-file-names usr/gen_init_cpio.c
+--- a/usr/gen_init_cpio.c~gen_init_cpio-expand-shell-variables-in-file-names
++++ a/usr/gen_init_cpio.c
+@@ -370,6 +370,30 @@ error:
+ 	return rc;
+ }
  
- /**
-+ * blkdev_dequeue_request - dequeue request and start timeout timer
-+ * @req: request to dequeue
-+ *
-+ * Dequeue @req and start timeout timer on it.  This hands off the
-+ * request to the driver.
-+ *
-+ * Block internal functions which don't want to start timer should
-+ * call elv_dequeue_request().
-+ */
-+void blkdev_dequeue_request(struct request *req)
++static char *cpio_replace_env(char *new_location)
 +{
-+	elv_dequeue_request(req->q, req);
++       char expanded[PATH_MAX + 1];
++       char env_var[PATH_MAX + 1];
++       char *start;
++       char *end;
 +
-+	/*
-+	 * We are now handing the request to the hardware, add the
-+	 * timeout handler.
-+	 */
-+	blk_add_timer(req);
++       for (start = NULL; (start = strstr(new_location, "${")); ) {
++	       end = strchr(start, '}');
++	       if (start < end) {
++		       *env_var = *expanded = '\0';
++		       strncat(env_var, start + 2, end - start - 2);
++		       strncat(expanded, new_location, start - new_location);
++		       strncat(expanded, getenv(env_var), PATH_MAX);
++		       strncat(expanded, end + 1, PATH_MAX);
++		       strncpy(new_location, expanded, PATH_MAX);
++	       } else
++		       break;
++       }
++
++       return new_location;
 +}
-+EXPORT_SYMBOL(blkdev_dequeue_request);
 +
-+/**
-  * __end_that_request_first - end I/O on a request
-  * @req:      the request being processed
-  * @error:    %0 for success, < %0 for error
-@@ -1778,7 +1800,7 @@ static void end_that_request_last(struct
- 		blk_queue_end_tag(req->q, req);
- 
- 	if (blk_queued_rq(req))
--		blkdev_dequeue_request(req);
-+		elv_dequeue_request(req->q, req);
- 
- 	if (unlikely(laptop_mode) && blk_fs_request(req))
- 		laptop_io_completion();
-diff -puN block/elevator.c~block-internal-dequeue-shouldnt-start-timer block/elevator.c
---- a/block/elevator.c~block-internal-dequeue-shouldnt-start-timer
-+++ a/block/elevator.c
-@@ -844,14 +844,7 @@ void elv_dequeue_request(struct request_
- 	 */
- 	if (blk_account_rq(rq))
- 		q->in_flight++;
--
--	/*
--	 * We are now handing the request to the hardware, add the
--	 * timeout handler.
--	 */
--	blk_add_timer(rq);
- }
--EXPORT_SYMBOL(elv_dequeue_request);
- 
- int elv_queue_empty(struct request_queue *q)
++
+ static int cpio_mkfile_line(const char *line)
  {
-diff -puN include/linux/blkdev.h~block-internal-dequeue-shouldnt-start-timer include/linux/blkdev.h
---- a/include/linux/blkdev.h~block-internal-dequeue-shouldnt-start-timer
-+++ a/include/linux/blkdev.h
-@@ -787,6 +787,8 @@ static inline void blk_run_address_space
- 		blk_run_backing_dev(mapping->backing_dev_info, NULL);
- }
- 
-+extern void blkdev_dequeue_request(struct request *req);
-+
- /*
-  * blk_end_request() and friends.
-  * __blk_end_request() and end_request() must be called with
-@@ -821,11 +823,6 @@ extern void blk_update_request(struct re
- extern unsigned int blk_rq_bytes(struct request *rq);
- extern unsigned int blk_rq_cur_bytes(struct request *rq);
- 
--static inline void blkdev_dequeue_request(struct request *req)
--{
--	elv_dequeue_request(req->q, req);
--}
+ 	char name[PATH_MAX + 1];
+@@ -415,7 +439,8 @@ static int cpio_mkfile_line(const char *
+ 	} else {
+ 		dname = name;
+ 	}
+-	rc = cpio_mkfile(dname, location, mode, uid, gid, nlinks);
++       rc = cpio_mkfile(dname, cpio_replace_env(location),
++			mode, uid, gid, nlinks);
+  fail:
+ 	if (dname_len) free(dname);
+ 	return rc;
+@@ -439,6 +464,7 @@ void usage(const char *prog)
+ 		"\n"
+ 		"<name>       name of the file/dir/nod/etc in the archive\n"
+ 		"<location>   location of the file in the current filesystem\n"
++		"             expands shell variables quoted with ${}\n"
+ 		"<target>     link target\n"
+ 		"<mode>       mode/permissions of the file\n"
+ 		"<uid>        user id (0=root)\n"
+_
+
+Patches currently in -mm which might be from Gene.Sally@timesys.com are
+
+linux-next.patch
+
