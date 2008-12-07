@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page_cgroup-should-ignore-empty-nodes.patch added to -mm tree
-Date: Sun, 07 Dec 2008 00:31:58 -0800
-Message-ID: <200812070831.mB78VwM7032050@imap1.linux-foundation.org>
+Subject: + define-module_system_table-for-mbp_nvidia_blo-and-applesmco.patch added to -mm tree
+Date: Sun, 07 Dec 2008 00:35:46 -0800
+Message-ID: <200812070835.mB78ZkB6001834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50861 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49834 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754718AbYLGIcE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 03:32:04 -0500
+	by vger.kernel.org with ESMTP id S1753661AbYLGIgL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 03:36:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com
+Cc: penguin-kernel@i-love.sakura.ne.jp, mjg@redhat.com, nicolas@boichat.chpenguin-kernel@i-love.sakura.ne.jp, rydberg@euromail.se
 
 
 The patch titled
-     page_cgroup should ignore empty nodes
+     Define MODULE_SYSTEM_TABLE for mbp_nvidia_bl.o and applesmc.o
 has been added to the -mm tree.  Its filename is
-     page_cgroup-should-ignore-empty-nodes.patch
+     define-module_system_table-for-mbp_nvidia_blo-and-applesmco.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_cgroup should ignore empty nodes
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Define MODULE_SYSTEM_TABLE for mbp_nvidia_bl.o and applesmc.o
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 
-Fix a total bootup freeze on ia64.
+When compiling mbp_nvidia_bl.o and applesmc.o using gcc 3.3.5,
+the below compilation error occurs.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Li Zefan <lizf@cn.fujitsu.com>
-Reported-by: Li Zefan <lizf@cn.fujitsu.com>
+  CC [M]  drivers/video/backlight/mbp_nvidia_bl.o
+  drivers/video/backlight/mbp_nvidia_bl.c:114: error: storage size of `__mod_dmi_device_table' isn't known
+  make[1]: *** [drivers/video/backlight/mbp_nvidia_bl.o] Error 1
+  make: *** [drivers/video/backlight/mbp_nvidia_bl.o] Error 2
+
+  CC [M]  drivers/hwmon/applesmc.o
+  drivers/hwmon/applesmc.c:1567: error: storage size of `__mod_dmi_device_table' isn't known
+  make[1]: *** [drivers/hwmon/applesmc.o] Error 1
+  make: *** [drivers/hwmon/applesmc.o] Error 2
+
+Diffs between 2.6.27.7 and 2.6.28-rc7 are shown below.
+
+  # diff linux-2.6.27.7/drivers/video/backlight/mbp_nvidia_bl.c linux-2.6.28-rc7/drivers/video/backlight/mbp_nvidia_bl.c
+  114,116c114
+  < MODULE_ALIAS("svnAppleInc.:pnMacBookPro3,1");
+  < MODULE_ALIAS("svnAppleInc.:pnMacBookPro3,2");
+  < MODULE_ALIAS("svnAppleInc.:pnMacBookPro4,1");
+  ---
+  > MODULE_DEVICE_TABLE(dmi, mbp_device_table);
+
+We can see that MODULE_ALIAS is replaced by MODULE_DEVICE_TABLE.
+
+mbp_nvidia_bl.c and applesmc.c are using MODULE_DEVICE_TABLE(dmi, ...);
+which will extracted to __mod_dmi_device_table, but it seems to me that
+dmi does not define __mod_dmi_device_table.
+
+I don't know why gcc 4.x doesn't trigger this compilation error.
+
+I don't know whether mbp_nvidia_bl.o and applesmc.o compiled with this
+patch work or not.  Can somebody who has these hardwares try this patch?
+
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Henrik Rydberg <rydberg@euromail.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/hwmon/applesmc.c                |    2 +-
+ drivers/video/backlight/mbp_nvidia_bl.c |    2 +-
+ include/linux/module.h                  |    2 ++
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_cgroup.c~page_cgroup-should-ignore-empty-nodes mm/page_cgroup.c
---- a/mm/page_cgroup.c~page_cgroup-should-ignore-empty-nodes
-+++ a/mm/page_cgroup.c
-@@ -49,6 +49,9 @@ static int __init alloc_node_page_cgroup
- 	start_pfn = NODE_DATA(nid)->node_start_pfn;
- 	nr_pages = NODE_DATA(nid)->node_spanned_pages;
+diff -puN drivers/hwmon/applesmc.c~define-module_system_table-for-mbp_nvidia_blo-and-applesmco drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~define-module_system_table-for-mbp_nvidia_blo-and-applesmco
++++ a/drivers/hwmon/applesmc.c
+@@ -1564,4 +1564,4 @@ module_exit(applesmc_exit);
+ MODULE_AUTHOR("Nicolas Boichat");
+ MODULE_DESCRIPTION("Apple SMC");
+ MODULE_LICENSE("GPL v2");
+-MODULE_DEVICE_TABLE(dmi, applesmc_whitelist);
++MODULE_SYSTEM_TABLE(dmi, applesmc_whitelist);
+diff -puN drivers/video/backlight/mbp_nvidia_bl.c~define-module_system_table-for-mbp_nvidia_blo-and-applesmco drivers/video/backlight/mbp_nvidia_bl.c
+--- a/drivers/video/backlight/mbp_nvidia_bl.c~define-module_system_table-for-mbp_nvidia_blo-and-applesmco
++++ a/drivers/video/backlight/mbp_nvidia_bl.c
+@@ -111,4 +111,4 @@ module_exit(mbp_exit);
+ MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+ MODULE_DESCRIPTION("Nvidia-based Macbook Pro Backlight Driver");
+ MODULE_LICENSE("GPL");
+-MODULE_DEVICE_TABLE(dmi, mbp_device_table);
++MODULE_SYSTEM_TABLE(dmi, mbp_device_table);
+diff -puN include/linux/module.h~define-module_system_table-for-mbp_nvidia_blo-and-applesmco include/linux/module.h
+--- a/include/linux/module.h~define-module_system_table-for-mbp_nvidia_blo-and-applesmco
++++ a/include/linux/module.h
+@@ -139,6 +139,8 @@ extern struct module __this_module;
  
-+	if (!nr_pages)
-+		return 0;
-+
- 	table_size = sizeof(struct page_cgroup) * nr_pages;
+ #define MODULE_DEVICE_TABLE(type,name)		\
+   MODULE_GENERIC_TABLE(type##_device,name)
++#define MODULE_SYSTEM_TABLE(type,name)		\
++  MODULE_GENERIC_TABLE(type##_system,name)
  
- 	base = __alloc_bootmem_node_nopanic(NODE_DATA(nid),
+ /* Version of form [<epoch>:]<version>[-<extra-version>].
+    Or for CVS/RCS ID version, everything but the number is stripped.
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
 
-origin.patch
-page_cgroup-should-ignore-empty-nodes.patch
-mm-gup-persist-for-write-permission.patch
-mm-wp-lock-page-before-deciding-cow.patch
-mm-reuse_swap_page-replaces-can_share_swap_page.patch
-mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
-mm-try_to_unuse-check-removing-right-swap.patch
-mm-remove-try_to_munlock-from-vmscan.patch
-mm-remove-gfp_mask-from-add_to_swap.patch
-mm-add-add_to_swap-stub.patch
-mm-optimize-get_scan_ratio-for-no-swap.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-swapfile-swapon-needs-larger-size-type.patch
-swapfile-remove-swp_active-mask.patch
-swapfile-remove-surplus-whitespace.patch
-swapfile-remove-v0-swap-space-message.patch
-swapfile-rearrange-scan-and-swap_info.patch
-swapfile-swapon-use-discard-trim.patch
-swapfile-swap-allocation-use-discard.patch
-swapfile-swapon-randomize-if-nonrot.patch
-swapfile-swap-allocation-cycle-if-nonrot.patch
-swapfile-change-discard-pgoff_t-to-sector_t.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-swapfile-let-others-seed-random.patch
-cgroups-make-cgroup-config-a-submenu.patch
-cgroups-documentation-updates.patch
-cgroups-remove-some-redundant-null-checks.patch
-ns_cgroup-remove-unused-spinlock.patch
-memcg-fix-a-typo-in-kconfig.patch
-cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
-cgroups-fix-cgroup_iter_next-bug.patch
-cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
-cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
-cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
-cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
-cgroups-make-root_list-contains-active-hierarchies-only.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
-devcgroup-use-list_for_each_entry_rcu.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-fix-gfp_mask-of-callers-of-charge.patch
-memcg-simple-migration-handling.patch
-memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
-memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-memswap-controller-kconfig.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-synchronized-lru.patch
-memcg-add-mem_cgroup_disabled.patch
-memcg-add-mem_cgroup_disabled-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-memcg-fix-reclaim-result-checks.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-explain-details-and-test-document.patch
-cpuset-rcu_read_lock-to-protect-task_cs.patch
+define-module_system_table-for-mbp_nvidia_blo-and-applesmco.patch
 
