@@ -1,229 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - leds-move-i2c-handling-work-to-a-workqueque.patch removed from -mm tree
-Date: Sat, 06 Dec 2008 16:05:21 -0800
-Message-ID: <200812070005.mB705LdY021300@imap1.linux-foundation.org>
+Subject: - leds-ams-delta-fix-wrong-loop-direction-on-removal.patch removed from -mm tree
+Date: Sat, 06 Dec 2008 16:05:43 -0800
+Message-ID: <200812070005.mB705hff021538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55233 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50081 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753541AbYLGAFs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:05:48 -0500
+	by vger.kernel.org with ESMTP id S1753560AbYLGAF5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:05:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riku.voipio@iki.fi, ross@burtonini.com, rpurdie@rpsys.net, tbm@cyrius.com, mm-commits@vger.kernel.org
+To: sven.wegener@stealer.net, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds: move i2c handling work to a workqueque
+     leds-ams-delta: fix wrong loop direction on removal
 has been removed from the -mm tree.  Its filename was
-     leds-move-i2c-handling-work-to-a-workqueque.patch
+     leds-ams-delta-fix-wrong-loop-direction-on-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: move i2c handling work to a workqueque
-From: Riku Voipio <riku.voipio@iki.fi>
+Subject: leds-ams-delta: fix wrong loop direction on removal
+From: Sven Wegener <sven.wegener@stealer.net>
 
-Apparently these might be called under atomic context, and i2c operations
-may sleep.  BUG found by Ross Burton.
+We want to go upwards, not downwards.
 
-Signed-off-by: Riku Voipio <riku.voipio@iki.fi>
-Reported-by: Ross Burton <ross@burtonini.com>
-Tested-by: Martin Michlmayr <tbm@cyrius.com>
+Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-pca9532.c  |   51 +++++++++++++++++++++++++++------
- include/linux/leds-pca9532.h |    2 +
- 2 files changed, 45 insertions(+), 8 deletions(-)
+ drivers/leds/leds-ams-delta.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-pca9532.c~leds-move-i2c-handling-work-to-a-workqueque drivers/leds/leds-pca9532.c
---- a/drivers/leds/leds-pca9532.c~leds-move-i2c-handling-work-to-a-workqueque
-+++ a/drivers/leds/leds-pca9532.c
-@@ -16,6 +16,7 @@
- #include <linux/leds.h>
- #include <linux/input.h>
- #include <linux/mutex.h>
-+#include <linux/workqueue.h>
- #include <linux/leds-pca9532.h>
- 
- static const unsigned short normal_i2c[] = { /*0x60,*/ I2C_CLIENT_END};
-@@ -34,6 +35,7 @@ struct pca9532_data {
- 	struct pca9532_led leds[16];
- 	struct mutex update_lock;
- 	struct input_dev    *idev;
-+	struct work_struct work;
- 	u8 pwm[2];
- 	u8 psc[2];
- };
-@@ -63,7 +65,7 @@ static struct i2c_driver pca9532_driver 
-  * as a compromise we average one pwm to the values requested by all
-  * leds that are not ON/OFF.
-  * */
--static int pca9532_setpwm(struct i2c_client *client, int pwm, int blink,
-+static int pca9532_calcpwm(struct i2c_client *client, int pwm, int blink,
- 	enum led_brightness value)
+diff -puN drivers/leds/leds-ams-delta.c~leds-ams-delta-fix-wrong-loop-direction-on-removal drivers/leds/leds-ams-delta.c
+--- a/drivers/leds/leds-ams-delta.c~leds-ams-delta-fix-wrong-loop-direction-on-removal
++++ a/drivers/leds/leds-ams-delta.c
+@@ -127,7 +127,7 @@ static int ams_delta_led_remove(struct p
  {
- 	int a = 0, b = 0, i = 0;
-@@ -84,11 +86,17 @@ static int pca9532_setpwm(struct i2c_cli
- 	b = b/a;
- 	if (b > 0xFF)
- 		return -EINVAL;
--	mutex_lock(&data->update_lock);
- 	data->pwm[pwm] = b;
-+	data->psc[pwm] = blink;
-+	return 0;
-+}
-+
-+static int pca9532_setpwm(struct i2c_client *client, int pwm)
-+{
-+	struct pca9532_data *data = i2c_get_clientdata(client);
-+	mutex_lock(&data->update_lock);
- 	i2c_smbus_write_byte_data(client, PCA9532_REG_PWM(pwm),
- 		data->pwm[pwm]);
--	data->psc[pwm] = blink;
- 	i2c_smbus_write_byte_data(client, PCA9532_REG_PSC(pwm),
- 		data->psc[pwm]);
- 	mutex_unlock(&data->update_lock);
-@@ -124,11 +132,11 @@ static void pca9532_set_brightness(struc
- 		led->state = PCA9532_ON;
- 	else {
- 		led->state = PCA9532_PWM0; /* Thecus: hardcode one pwm */
--		err = pca9532_setpwm(led->client, 0, 0, value);
-+		err = pca9532_calcpwm(led->client, 0, 0, value);
- 		if (err)
- 			return; /* XXX: led api doesn't allow error code? */
- 	}
--	pca9532_setled(led);
-+	schedule_work(&led->work);
- }
+ 	int i;
  
- static int pca9532_set_blink(struct led_classdev *led_cdev,
-@@ -137,6 +145,7 @@ static int pca9532_set_blink(struct led_
- 	struct pca9532_led *led = ldev_to_led(led_cdev);
- 	struct i2c_client *client = led->client;
- 	int psc;
-+	int err = 0;
+-	for (i = 0; i < ARRAY_SIZE(ams_delta_leds); i--)
++	for (i = 0; i < ARRAY_SIZE(ams_delta_leds); i++)
+ 		led_classdev_unregister(&ams_delta_leds[i].cdev);
  
- 	if (*delay_on == 0 && *delay_off == 0) {
- 	/* led subsystem ask us for a blink rate */
-@@ -148,7 +157,11 @@ static int pca9532_set_blink(struct led_
- 
- 	/* Thecus specific: only use PSC/PWM 0 */
- 	psc = (*delay_on * 152-1)/1000;
--	return pca9532_setpwm(client, 0, psc, led_cdev->brightness);
-+	err = pca9532_calcpwm(client, 0, psc, led_cdev->brightness);
-+	if (err)
-+		return err;
-+	schedule_work(&led->work);
-+	return 0;
- }
- 
- static int pca9532_event(struct input_dev *dev, unsigned int type,
-@@ -165,13 +178,28 @@ static int pca9532_event(struct input_de
- 	else
- 		data->pwm[1] = 0;
- 
--	dev_info(&dev->dev, "setting beep to %d \n", data->pwm[1]);
-+	schedule_work(&data->work);
-+
-+	return 0;
-+}
-+
-+static void pca9532_input_work(struct work_struct *work)
-+{
-+	struct pca9532_data *data;
-+	data = container_of(work, struct pca9532_data, work);
- 	mutex_lock(&data->update_lock);
- 	i2c_smbus_write_byte_data(data->client, PCA9532_REG_PWM(1),
- 		data->pwm[1]);
- 	mutex_unlock(&data->update_lock);
-+}
- 
--	return 0;
-+static void pca9532_led_work(struct work_struct *work)
-+{
-+	struct pca9532_led *led;
-+	led = container_of(work, struct pca9532_led, work);
-+	if (led->state == PCA9532_PWM0)
-+		pca9532_setpwm(led->client, 0);
-+	pca9532_setled(led);
- }
- 
- static int pca9532_configure(struct i2c_client *client,
-@@ -204,6 +232,7 @@ static int pca9532_configure(struct i2c_
- 			led->ldev.brightness = LED_OFF;
- 			led->ldev.brightness_set = pca9532_set_brightness;
- 			led->ldev.blink_set = pca9532_set_blink;
-+			INIT_WORK(&led->work, pca9532_led_work);
- 			err = led_classdev_register(&client->dev, &led->ldev);
- 			if (err < 0) {
- 				dev_err(&client->dev,
-@@ -233,9 +262,11 @@ static int pca9532_configure(struct i2c_
- 						BIT_MASK(SND_TONE);
- 			data->idev->event = pca9532_event;
- 			input_set_drvdata(data->idev, data);
-+			INIT_WORK(&data->work, pca9532_input_work);
- 			err = input_register_device(data->idev);
- 			if (err) {
- 				input_free_device(data->idev);
-+				cancel_work_sync(&data->work);
- 				data->idev = NULL;
- 				goto exit;
- 			}
-@@ -252,11 +283,13 @@ exit:
- 				break;
- 			case PCA9532_TYPE_LED:
- 				led_classdev_unregister(&data->leds[i].ldev);
-+				cancel_work_sync(&data->leds[i].work);
- 				break;
- 			case PCA9532_TYPE_N2100_BEEP:
- 				if (data->idev != NULL) {
- 					input_unregister_device(data->idev);
- 					input_free_device(data->idev);
-+					cancel_work_sync(&data->work);
- 					data->idev = NULL;
- 				}
- 				break;
-@@ -307,11 +340,13 @@ static int pca9532_remove(struct i2c_cli
- 			break;
- 		case PCA9532_TYPE_LED:
- 			led_classdev_unregister(&data->leds[i].ldev);
-+			cancel_work_sync(&data->leds[i].work);
- 			break;
- 		case PCA9532_TYPE_N2100_BEEP:
- 			if (data->idev != NULL) {
- 				input_unregister_device(data->idev);
- 				input_free_device(data->idev);
-+				cancel_work_sync(&data->work);
- 				data->idev = NULL;
- 			}
- 			break;
-diff -puN include/linux/leds-pca9532.h~leds-move-i2c-handling-work-to-a-workqueque include/linux/leds-pca9532.h
---- a/include/linux/leds-pca9532.h~leds-move-i2c-handling-work-to-a-workqueque
-+++ a/include/linux/leds-pca9532.h
-@@ -15,6 +15,7 @@
- #define __LINUX_PCA9532_H
- 
- #include <linux/leds.h>
-+#include <linux/workqueue.h>
- 
- enum pca9532_state {
- 	PCA9532_OFF  = 0x0,
-@@ -31,6 +32,7 @@ struct pca9532_led {
- 	struct i2c_client *client;
- 	char *name;
- 	struct led_classdev ldev;
-+	struct work_struct work;
- 	enum pca9532_type type;
- 	enum pca9532_state state;
- };
+ 	return 0;
 _
 
-Patches currently in -mm which might be from riku.voipio@iki.fi are
+Patches currently in -mm which might be from sven.wegener@stealer.net are
 
 linux-next.patch
 
