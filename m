@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + powerpc-powermac-add-missing-of_node_put.patch added to -mm tree
-Date: Sat, 06 Dec 2008 16:34:57 -0800
-Message-ID: <200812070034.mB70YvQ2006582@imap1.linux-foundation.org>
+Date: Sat, 06 Dec 2008 16:35:08 -0800
+Message-ID: <200812070035.mB70Z8Hp006708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52671 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752946AbYLGAfB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:35:01 -0500
+	by vger.kernel.org with ESMTP id S1753705AbYLGAfL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:35:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,7 +15,7 @@ Cc: npalix@diku.dk, julia@diku.dk
 
 
 The patch titled
-     From: Nicolas Palix <npalix@diku.dk>
+     powerpc/powermac: Add missing of_node_put
 has been added to the -mm tree.  Its filename is
      powerpc-powermac-add-missing-of_node_put.patch
 
@@ -33,8 +33,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Nicolas Palix <npalix@diku.dk>
-
+Subject: powerpc/powermac: Add missing of_node_put
+From: Nicolas Palix <npalix@diku.dk>
 
 of_node_put is needed before discarding a value received from
 of_find_node_by_name, eg in error handling code or when the device
@@ -84,9 +84,6 @@ print "* file: %s of_find_node_by_name %s return %s" % (p1[0].file,p1[0].line,p2
 
 Signed-off-by: Nicolas Palix <npalix@diku.dk>
 Signed-off-by: Julia Lawall <julia@diku.dk>
----
-
-index bcf50d7..800fcce 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
