@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reorder-struct-inotify_device-on-64bits-to-remove-padding.patch added to -mm tree
-Date: Sat, 06 Dec 2008 23:47:19 -0800
-Message-ID: <200812070747.mB77lJfc005342@imap1.linux-foundation.org>
+Subject: + tty-sprogii-dcc-controller-identifiers.patch added to -mm tree
+Date: Sat, 06 Dec 2008 23:46:04 -0800
+Message-ID: <200812070746.mB77k4wi004488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58344 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43795 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752698AbYLGHsK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 02:48:10 -0500
+	by vger.kernel.org with ESMTP id S1752811AbYLGHsY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 02:48:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@rsk.demon.co.uk, viro@zeniv.linux.org.uk
+Cc: alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     fs: reorder struct inotify_device on 64bits to remove padding
+     tty: SprogII DCC controller identifiers
 has been added to the -mm tree.  Its filename is
-     fs-reorder-struct-inotify_device-on-64bits-to-remove-padding.patch
+     tty-sprogii-dcc-controller-identifiers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: reorder struct inotify_device on 64bits to remove padding
-From: Richard Kennedy <richard@rsk.demon.co.uk>
+Subject: tty: SprogII DCC controller identifiers
+From: Alan Cox <alan@redhat.com>
 
-Reorder struct inotify_device to remove 8 bytes of padding on 64bit
-builds, reducing size to 128 bytes.  Therefore allocating from a smaller
-slab & using one fewer cachelines.
+Someone on rmweb reminded me this had been overlooked from ages ago..
 
-Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Add the identifiers for the Sprog II USB. This is a DCC control interface
+using the FTDI-SIO hardware: http://www.sprog-dcc.co.uk/. People have been
+using it with insmod options for ages, this just puts it into the driver
+data.
+
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify_user.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/serial/ftdi_sio.c |    1 +
+ drivers/usb/serial/ftdi_sio.h |    3 +++
+ 2 files changed, 4 insertions(+)
 
-diff -puN fs/inotify_user.c~fs-reorder-struct-inotify_device-on-64bits-to-remove-padding fs/inotify_user.c
---- a/fs/inotify_user.c~fs-reorder-struct-inotify_device-on-64bits-to-remove-padding
-+++ a/fs/inotify_user.c
-@@ -76,10 +76,10 @@ struct inotify_device {
- 	struct mutex		ev_mutex;	/* protects event queue */
- 	struct mutex		up_mutex;	/* synchronizes watch updates */
- 	struct list_head 	events;		/* list of queued events */
--	atomic_t		count;		/* reference count */
- 	struct user_struct	*user;		/* user who opened this dev */
- 	struct inotify_handle	*ih;		/* inotify handle */
- 	struct fasync_struct    *fa;            /* async notification */
-+	atomic_t		count;		/* reference count */
- 	unsigned int		queue_size;	/* size of the queue (bytes) */
- 	unsigned int		event_count;	/* number of pending events */
- 	unsigned int		max_events;	/* maximum number of events */
+diff -puN drivers/usb/serial/ftdi_sio.c~tty-sprogii-dcc-controller-identifiers drivers/usb/serial/ftdi_sio.c
+--- a/drivers/usb/serial/ftdi_sio.c~tty-sprogii-dcc-controller-identifiers
++++ a/drivers/usb/serial/ftdi_sio.c
+@@ -166,6 +166,7 @@ static struct usb_device_id id_table_com
+ 	{ USB_DEVICE(FTDI_VID, FTDI_OPENDCC_PID) },
+ 	{ USB_DEVICE(INTERBIOMETRICS_VID, INTERBIOMETRICS_IOBOARD_PID) },
+ 	{ USB_DEVICE(INTERBIOMETRICS_VID, INTERBIOMETRICS_MINI_IOBOARD_PID) },
++	{ USB_DEVICE(FTDI_VID, FTDI_SPROG_II) },
+ 	{ USB_DEVICE(FTDI_VID, FTDI_XF_632_PID) },
+ 	{ USB_DEVICE(FTDI_VID, FTDI_XF_634_PID) },
+ 	{ USB_DEVICE(FTDI_VID, FTDI_XF_547_PID) },
+diff -puN drivers/usb/serial/ftdi_sio.h~tty-sprogii-dcc-controller-identifiers drivers/usb/serial/ftdi_sio.h
+--- a/drivers/usb/serial/ftdi_sio.h~tty-sprogii-dcc-controller-identifiers
++++ a/drivers/usb/serial/ftdi_sio.h
+@@ -75,6 +75,9 @@
+ /* OpenDCC (www.opendcc.de) product id */
+ #define FTDI_OPENDCC_PID	0xBFD8
+ 
++/* Sprog II (Andrew Crosland's SprogII DCC interface) */
++#define FTDI_SPROG_II		0xF0C8
++
+ /* www.crystalfontz.com devices - thanx for providing free devices for evaluation ! */
+ /* they use the ftdi chipset for the USB interface and the vendor id is the same */
+ #define FTDI_XF_632_PID 0xFC08	/* 632: 16x2 Character Display */
 _
 
-Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
 linux-next.patch
-fs-reorder-struct-inotify_device-on-64bits-to-remove-padding.patch
+tty-sprogii-dcc-controller-identifiers.patch
 
