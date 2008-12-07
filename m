@@ -1,328 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: + usb-use-unaligned-endian-helpers-in-storage-drivers.patch added to -mm tree
-Date: Sat, 06 Dec 2008 21:34:41 -0800
-Message-ID: <200812070534.mB75Yfht023373@imap1.linux-foundation.org>
+Subject: - misc-add-dell-laptop-driver-update.patch removed from -mm tree
+Date: Sat, 06 Dec 2008 22:15:25 -0800
+Message-ID: <200812070615.mB76FPBA015279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751151AbYLGFfQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 00:35:16 -0500
+	by vger.kernel.org with ESMTP id S1751436AbYLGGPs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 01:15:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, stern@rowland.harvard.edu
+To: mjg59@srcf.ucam.org, Matt_Domsch@dell.com, greg@kroah.com, ivdoorn@gmail.com, lenb@kernel.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: use unaligned endian helpers in storage drivers
-has been added to the -mm tree.  Its filename is
-     usb-use-unaligned-endian-helpers-in-storage-drivers.patch
+     misc-add-dell-laptop-driver update
+has been removed from the -mm tree.  Its filename was
+     misc-add-dell-laptop-driver-update.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: use unaligned endian helpers in storage drivers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: misc-add-dell-laptop-driver update
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
+Contains Andrew's suggested updates, plus a fix for a leak on the init
+error path.
+
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Ivo van Doorn <ivdoorn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/datafab.c       |   32 +++++++----------------
- drivers/usb/storage/jumpshot.c      |   32 +++++++----------------
- drivers/usb/storage/shuttle_usbat.c |   36 +++++++-------------------
- 3 files changed, 31 insertions(+), 69 deletions(-)
+ drivers/misc/dell-laptop.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN drivers/usb/storage/datafab.c~usb-use-unaligned-endian-helpers-in-storage-drivers drivers/usb/storage/datafab.c
---- a/drivers/usb/storage/datafab.c~usb-use-unaligned-endian-helpers-in-storage-drivers
-+++ a/drivers/usb/storage/datafab.c
-@@ -50,6 +50,7 @@
+diff -puN drivers/misc/dell-laptop.c~misc-add-dell-laptop-driver-update drivers/misc/dell-laptop.c
+--- a/drivers/misc/dell-laptop.c~misc-add-dell-laptop-driver-update
++++ a/drivers/misc/dell-laptop.c
+@@ -34,7 +34,7 @@ struct calling_interface_buffer {
+ 	u16 select;
+ 	volatile u32 input[4];
+ 	volatile u32 output[4];
+-} __attribute__ ((packed));
++} __packed;
  
- #include <linux/errno.h>
- #include <linux/slab.h>
-+#include <asm/unaligned.h>
+ struct calling_interface_token {
+ 	u16 tokenID;
+@@ -51,7 +51,7 @@ struct calling_interface_structure {
+ 	u8 cmdIOCode;
+ 	u32 supportedCmds;
+ 	struct calling_interface_token tokens[];
+-} __attribute__ ((packed));
++} __packed;
  
- #include <scsi/scsi.h>
- #include <scsi/scsi_cmnd.h>
-@@ -373,10 +374,7 @@ static int datafab_id_device(struct us_d
- 	if (rc == USB_STOR_XFER_GOOD) {
- 		// capacity is at word offset 57-58
- 		//
--		info->sectors = ((u32)(reply[117]) << 24) | 
--				((u32)(reply[116]) << 16) |
--				((u32)(reply[115]) <<  8) | 
--				((u32)(reply[114])      );
-+		info->sectors = load_le32_noalign((__le32 *)&reply[114]);
- 		rc = USB_STOR_TRANSPORT_GOOD;
- 		goto leave;
- 	}
-@@ -556,10 +554,8 @@ int datafab_transport(struct scsi_cmnd *
- 	// don't bother implementing READ_6 or WRITE_6.
- 	//
- 	if (srb->cmnd[0] == READ_10) {
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
+ static int da_command_address;
+ static int da_command_code;
+@@ -63,7 +63,7 @@ static struct rfkill *wifi_rfkill;
+ static struct rfkill *bluetooth_rfkill;
+ static struct rfkill *wwan_rfkill;
  
- 		US_DEBUGP("datafab_transport:  READ_10: read block 0x%04lx  count %ld\n", block, blocks);
- 		return datafab_read_data(us, info, block, blocks);
-@@ -568,21 +564,16 @@ int datafab_transport(struct scsi_cmnd *
- 	if (srb->cmnd[0] == READ_12) {
- 		// we'll probably never see a READ_12 but we'll do it anyway...
- 		//
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
--			 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be32_noalign((__be32 *)&srb->cmnd[6]);
+-static struct dmi_system_id __initdata dell_device_table[] = {
++static const struct dmi_system_id __initdata dell_device_table[] = {
+ 	{
+ 		.ident = "Dell laptop",
+ 		.matches = {
+@@ -358,17 +358,22 @@ static int __init dell_init(void)
  
- 		US_DEBUGP("datafab_transport:  READ_12: read block 0x%04lx  count %ld\n", block, blocks);
- 		return datafab_read_data(us, info, block, blocks);
+ 	dmi_walk(find_tokens);
+ 
+-	if (!da_tokens)
++	if (!da_tokens)  {
++		printk(KERN_INFO "dell-laptop: Unable to find dmi tokens\n");
+ 		return -ENODEV;
++	}
+ 
+ 	ret = dell_setup_rfkill();
+ 
+ 	if (ret) {
+ 		printk(KERN_WARNING "dell-laptop: Unable to setup rfkill\n");
+-		return ret;
++		goto out;
  	}
  
- 	if (srb->cmnd[0] == WRITE_10) {
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
+ #ifdef CONFIG_ACPI
++	/* In the event of an ACPI backlight being available, don't
++	 * register the platform controller.
++	 */
+ 	if (acpi_video_backlight_support())
+ 		return 0;
+ #endif
+@@ -388,8 +393,8 @@ static int __init dell_init(void)
+ 			&dell_ops);
  
- 		US_DEBUGP("datafab_transport:  WRITE_10: write block 0x%04lx  count %ld\n", block, blocks);
- 		return datafab_write_data(us, info, block, blocks);
-@@ -591,11 +582,8 @@ int datafab_transport(struct scsi_cmnd *
- 	if (srb->cmnd[0] == WRITE_12) {
- 		// we'll probably never see a WRITE_12 but we'll do it anyway...
- 		//
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
--			 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be32_noalign((__be32 *)&srb->cmnd[6]);
+ 		if (IS_ERR(dell_backlight_device)) {
+-			dell_backlight_device = NULL;
+ 			ret = PTR_ERR(dell_backlight_device);
++			dell_backlight_device = NULL;
+ 			goto out;
+ 		}
  
- 		US_DEBUGP("datafab_transport:  WRITE_12: write block 0x%04lx  count %ld\n", block, blocks);
- 		return datafab_write_data(us, info, block, blocks);
-diff -puN drivers/usb/storage/jumpshot.c~usb-use-unaligned-endian-helpers-in-storage-drivers drivers/usb/storage/jumpshot.c
---- a/drivers/usb/storage/jumpshot.c~usb-use-unaligned-endian-helpers-in-storage-drivers
-+++ a/drivers/usb/storage/jumpshot.c
-@@ -47,6 +47,7 @@
+@@ -407,6 +412,7 @@ out:
+ 		rfkill_unregister(bluetooth_rfkill);
+ 	if (wwan_rfkill)
+ 		rfkill_unregister(wwan_rfkill);
++	kfree(da_tokens);
+ 	return ret;
+ }
  
- #include <linux/errno.h>
- #include <linux/slab.h>
-+#include <asm/unaligned.h>
- 
- #include <scsi/scsi.h>
- #include <scsi/scsi_cmnd.h>
-@@ -309,10 +310,7 @@ static int jumpshot_id_device(struct us_
- 		goto leave;
- 	}
- 
--	info->sectors = ((u32)(reply[117]) << 24) |
--			((u32)(reply[116]) << 16) |
--			((u32)(reply[115]) <<  8) |
--			((u32)(reply[114])      );
-+	info->sectors = load_le32_noalign((__le32 *)&reply[114]);
- 
- 	rc = USB_STOR_TRANSPORT_GOOD;
- 
-@@ -486,10 +484,8 @@ int jumpshot_transport(struct scsi_cmnd 
- 	}
- 
- 	if (srb->cmnd[0] == READ_10) {
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
- 
- 		US_DEBUGP("jumpshot_transport:  READ_10: read block 0x%04lx  count %ld\n", block, blocks);
- 		return jumpshot_read_data(us, info, block, blocks);
-@@ -498,21 +494,16 @@ int jumpshot_transport(struct scsi_cmnd 
- 	if (srb->cmnd[0] == READ_12) {
- 		// I don't think we'll ever see a READ_12 but support it anyway...
- 		//
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
--			 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be32_noalign((__be32 *)&srb->cmnd[6]);
- 
- 		US_DEBUGP("jumpshot_transport:  READ_12: read block 0x%04lx  count %ld\n", block, blocks);
- 		return jumpshot_read_data(us, info, block, blocks);
- 	}
- 
- 	if (srb->cmnd[0] == WRITE_10) {
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
- 
- 		US_DEBUGP("jumpshot_transport:  WRITE_10: write block 0x%04lx  count %ld\n", block, blocks);
- 		return jumpshot_write_data(us, info, block, blocks);
-@@ -521,11 +512,8 @@ int jumpshot_transport(struct scsi_cmnd 
- 	if (srb->cmnd[0] == WRITE_12) {
- 		// I don't think we'll ever see a WRITE_12 but support it anyway...
- 		//
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
--			 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be32_noalign((__be32 *)&srb->cmnd[6]);
- 
- 		US_DEBUGP("jumpshot_transport:  WRITE_12: write block 0x%04lx  count %ld\n", block, blocks);
- 		return jumpshot_write_data(us, info, block, blocks);
-diff -puN drivers/usb/storage/shuttle_usbat.c~usb-use-unaligned-endian-helpers-in-storage-drivers drivers/usb/storage/shuttle_usbat.c
---- a/drivers/usb/storage/shuttle_usbat.c~usb-use-unaligned-endian-helpers-in-storage-drivers
-+++ a/drivers/usb/storage/shuttle_usbat.c
-@@ -44,6 +44,7 @@
- #include <linux/errno.h>
- #include <linux/slab.h>
- #include <linux/cdrom.h>
-+#include <asm/unaligned.h>
- 
- #include <scsi/scsi.h>
- #include <scsi/scsi_cmnd.h>
-@@ -957,10 +958,7 @@ static int usbat_flash_get_sector_count(
- 	if (rc != USB_STOR_TRANSPORT_GOOD)
- 		goto leave;
- 
--	info->sectors = ((u32)(reply[117]) << 24) |
--		((u32)(reply[116]) << 16) |
--		((u32)(reply[115]) <<  8) |
--		((u32)(reply[114])      );
-+	info->sectors = load_le32_noalign((__le32 *)&reply[114]);
- 
- 	rc = USB_STOR_TRANSPORT_GOOD;
- 
-@@ -1215,9 +1213,7 @@ static int usbat_hp8200e_handle_read10(s
- 	buffer = kmalloc(len, GFP_NOIO);
- 	if (buffer == NULL) /* bloody hell! */
- 		return USB_STOR_TRANSPORT_FAILED;
--	sector = short_pack(data[7+3], data[7+2]);
--	sector <<= 16;
--	sector |= short_pack(data[7+5], data[7+4]);
-+	sector = load_be32_noalign((__be32 *)&data[7 + 2]);
- 	transferred = 0;
- 
- 	while (transferred != scsi_bufflen(srb)) {
-@@ -1596,10 +1592,8 @@ static int usbat_flash_transport(struct 
- 	}
- 
- 	if (srb->cmnd[0] == READ_10) {
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--				((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
- 
- 		US_DEBUGP("usbat_flash_transport:  READ_10: read block 0x%04lx  count %ld\n", block, blocks);
- 		return usbat_flash_read_data(us, info, block, blocks);
-@@ -1609,21 +1603,16 @@ static int usbat_flash_transport(struct 
- 		/*
- 		 * I don't think we'll ever see a READ_12 but support it anyway
- 		 */
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--		        ((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
--		         ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be32_noalign((__be32 *)&srb->cmnd[6]);
- 
- 		US_DEBUGP("usbat_flash_transport: READ_12: read block 0x%04lx  count %ld\n", block, blocks);
- 		return usbat_flash_read_data(us, info, block, blocks);
- 	}
- 
- 	if (srb->cmnd[0] == WRITE_10) {
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--		        ((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
-+		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
-+		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
- 
- 		US_DEBUGP("usbat_flash_transport: WRITE_10: write block 0x%04lx  count %ld\n", block, blocks);
- 		return usbat_flash_write_data(us, info, block, blocks);
-@@ -1633,11 +1622,8 @@ static int usbat_flash_transport(struct 
- 		/*
- 		 * I don't think we'll ever see a WRITE_12 but support it anyway
- 		 */
--		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
--		        ((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
--
--		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
--		         ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
-+		block = load_be16_noalign((__be16 *)&srb->cmnd[2]);
-+		blocks = load_be16_noalign((__be16 *)&srb->cmnd[6]);
- 
- 		US_DEBUGP("usbat_flash_transport: WRITE_12: write block 0x%04lx  count %ld\n", block, blocks);
- 		return usbat_flash_write_data(us, info, block, blocks);
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
-origin.patch
 linux-next.patch
-arm-use-the-new-byteorder-headers.patch
-i2c-misannotation-in-i2c-pmcmspc.patch
-i2c-trivial-endian-casting-fixes-in-i2c-highlanderc.patch
-ia64-use-the-new-byteorder-headers.patch
-input-ads7846c-sparse-lock-annotation.patch
-input-strict_strtoul-takes-unsigned-long.patch
-m32r-use-the-new-byteorder-headers.patch
-blackfin-use-the-new-byteorder-headers.patch
-parisc-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-frv-use-the-new-byteorder-headers.patch
-m68knommu-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
-ata-replace-byteshifting-with-unaligned-endian-helpers.patch
-crypto-replace-private-helper-with-common-unaligned-endian-helper.patch
-usb-use-unaligned-endian-helpers-in-storage-drivers.patch
+hp-wmi-handle-rfkill_register-failure.patch
+dcdbas-export-functionality-for-use-in-other-drivers.patch
+misc-add-dell-laptop-driver-update.patch
 
