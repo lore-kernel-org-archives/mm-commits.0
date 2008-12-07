@@ -1,112 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - document-hadling-of-bad-memory.patch removed from -mm tree
-Date: Sat, 06 Dec 2008 16:06:06 -0800
-Message-ID: <200812070006.mB7066os021815@imap1.linux-foundation.org>
+Subject: - linux-serialh-touchup-for-userspace.patch removed from -mm tree
+Date: Sat, 06 Dec 2008 16:05:59 -0800
+Message-ID: <200812070005.mB705xoS021720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56779 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753649AbYLGAGT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:06:19 -0500
+	by vger.kernel.org with ESMTP id S1753611AbYLGAGI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:06:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@suse.cz, dl9pf@gmx.de, mtk.manpages@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Document handling of bad memory
+     linux/serial.h: touchup for userspace
 has been removed from the -mm tree.  Its filename was
-     document-hadling-of-bad-memory.patch
+     linux-serialh-touchup-for-userspace.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Document handling of bad memory
-=46rom: Pavel Machek <pavel@suse.cz>
+Subject: linux/serial.h: touchup for userspace
+From: Mike Frysinger <vapier@gentoo.org>
 
-Document how to deal with bad memory reported with memtest.
+Commit c26c56c0f40e200e61d1390629c806f6adaffbcc ("tty: Cris has a nice
+RS485 ioctl so we should steal it") added a struct to the linux/serial.h
+header for userspace that uses __u32, so we should make sure we pull in
+linux/types.h all the time.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Signed-off-by: Jan-Simon M=F6ller <dl9pf@gmx.de>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/bad_memory.txt |   45 +++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ include/linux/serial.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/bad_memory.txt
---- /dev/null
-+++ a/Documentation/bad_memory.txt
-@@ -0,0 +1,45 @@
-+March 2008
-+Jan-Simon Moeller, dl9pf@gmx.de
+diff -puN include/linux/serial.h~linux-serialh-touchup-for-userspace include/linux/serial.h
+--- a/include/linux/serial.h~linux-serialh-touchup-for-userspace
++++ a/include/linux/serial.h
+@@ -10,8 +10,9 @@
+ #ifndef _LINUX_SERIAL_H
+ #define _LINUX_SERIAL_H
+ 
+-#ifdef __KERNEL__
+ #include <linux/types.h>
 +
-+
-+How to deal with bad memory e.g. reported by memtest86+ ?
-+#########################################################
-+
-+There are three possibilities I know of:
-+
-+1) Reinsert/swap the memory modules
-+
-+2) Buy new modules (best!) or try to exchange the memory
-+   if you have spare-parts
-+
-+3) Use BadRAM or memmap
-+
-+This Howto is about number 3) .
-+
-+
-+BadRAM
-+######
-+BadRAM is the actively developed and available as kernel-patch
-+here:  http://rick.vanrein.org/linux/badram/
-+
-+For more details see the BadRAM documentation.
-+
-+memmap
-+######
-+
-+memmap is already in the kernel and usable as kernel-parameter at
-+boot-time.  Its syntax is slightly strange and you may need to
-+calculate the values by yourself!
-+
-+Syntax to exclude a memory area (see kernel-parameters.txt for details=
-):
-+memmap=3D<size>$<address>
-+
-+Example: memtest86+ reported here errors at address 0x18691458, 0x1869=
-8424 and
-+         some others. All had 0x1869xxxx in common, so I chose a patte=
-rn of
-+         0x18690000,0xffff0000.
-+
-+With the numbers of the example above:
-+memmap=3D64K$0x18690000
-+ or
-+memmap=3D0x10000$0x18690000
-+
++#ifdef __KERNEL__
+ #include <asm/page.h>
+ 
+ /*
 _
 
-Patches currently in -mm which might be from pavel@suse.cz are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 linux-next.patch
-backlight-catch-invalid-input.patch
-strict_strto-is-not-strict-enough.patch
-lis3lv02d-separate-the-core-from-hp-acpi-api.patch
-lis3lv02d-merge-with-leds-hp-disk.patch
+linux-timexh-cleanup-for-userspace.patch
+mtd-physmap-make-physmap-compat-explicit.patch
+autodetect_raid-add-missing-__init-marking.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
