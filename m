@@ -1,82 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - tags-link-from-config_x-to-config-x-as-well.patch removed from -mm tree
-Date: Sat, 06 Dec 2008 16:00:38 -0800
-Message-ID: <200812070000.mB700c4M018444@imap1.linux-foundation.org>
+Subject: - arch-powerpc-eliminate-null-test-and-memset-after-alloc_bootmem.patch removed from -mm tree
+Date: Sat, 06 Dec 2008 16:05:00 -0800
+Message-ID: <200812070005.mB7050Ch021069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753419AbYLGAAl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:00:41 -0500
+	by vger.kernel.org with ESMTP id S1753500AbYLGAFI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:05:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tags: link from CONFIG_x to 'config x' as well
+     arch/powerpc: eliminate NULL test and memset after alloc_bootmem
 has been removed from the -mm tree.  Its filename was
-     tags-link-from-config_x-to-config-x-as-well.patch
+     arch-powerpc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tags: link from CONFIG_x to 'config x' as well
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: arch/powerpc: eliminate NULL test and memset after alloc_bootmem
+From: Julia Lawall <julia@diku.dk>
 
-Inability to jump from CONFIG_ symbol in source to symbol definition in
-Kconfig is very, very annoying. You'll jump to useless entry in autoconf.h,
-if it exists at all.
+As noted by Akinobu Mita in patch b1fceac2b9e04d278316b2faddf276015fc06e3b,
+alloc_bootmem and related functions never return NULL and always return a
+zeroed region of memory.  Thus a NULL test or memset after calls to these
+functions is unnecessary.
 
-No more.
+This was fixed using the following semantic patch.
+(http://www.emn.fr/x-info/coccinelle/)
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+// <smpl>
+@@
+expression E;
+statement S;
+@@
+
+E = \(alloc_bootmem\|alloc_bootmem_low\|alloc_bootmem_pages\|alloc_bootmem_low_pages\|alloc_bootmem_node\|alloc_bootmem_low_pages_node\|alloc_bootmem_pages_node\)(...)
+... when != E
+(
+- BUG_ON (E == NULL);
+|
+- if (E == NULL) S
+)
+
+@@
+expression E,E1;
+@@
+
+E = \(alloc_bootmem\|alloc_bootmem_low\|alloc_bootmem_pages\|alloc_bootmem_low_pages\|alloc_bootmem_node\|alloc_bootmem_low_pages_node\|alloc_bootmem_pages_node\)(...)
+... when != E
+- memset(E,0,E1);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/powerpc/kernel/setup_64.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN Makefile~tags-link-from-config_x-to-config-x-as-well Makefile
---- a/Makefile~tags-link-from-config_x-to-config-x-as-well
-+++ a/Makefile
-@@ -1482,6 +1482,10 @@ define xtags
- 		--langdef=kconfig \
- 		--language-force=kconfig \
- 		--regex-kconfig='/^[[:blank:]]*(menu|)config[[:blank:]]+([[:alnum:]_]+)/\2/'; \
-+	    $(all-kconfigs) | xargs $1 -a \
-+		--langdef=kconfig \
-+		--language-force=kconfig \
-+		--regex-kconfig='/^[[:blank:]]*(menu|)config[[:blank:]]+([[:alnum:]_]+)/CONFIG_\2/'; \
- 	    $(all-defconfigs) | xargs -r $1 -a \
- 		--langdef=dotconfig \
- 		--language-force=dotconfig \
-@@ -1490,6 +1494,8 @@ define xtags
- 	    $(all-sources) | xargs $1 -a; \
- 	    $(all-kconfigs) | xargs $1 -a \
- 		--regex='/^[ \t]*\(\(menu\)*config\)[ \t]+\([a-zA-Z0-9_]+\)/\3/'; \
-+	    $(all-kconfigs) | xargs $1 -a \
-+		--regex='/^[ \t]*\(\(menu\)*config\)[ \t]+\([a-zA-Z0-9_]+\)/CONFIG_\3/'; \
- 	    $(all-defconfigs) | xargs -r $1 -a \
- 		--regex='/^#?[ \t]?\(CONFIG_[a-zA-Z0-9_]+\)/\1/'; \
- 	else \
+diff -puN arch/powerpc/kernel/setup_64.c~arch-powerpc-eliminate-null-test-and-memset-after-alloc_bootmem arch/powerpc/kernel/setup_64.c
+--- a/arch/powerpc/kernel/setup_64.c~arch-powerpc-eliminate-null-test-and-memset-after-alloc_bootmem
++++ a/arch/powerpc/kernel/setup_64.c
+@@ -606,8 +606,6 @@ void __init setup_per_cpu_areas(void)
+ 
+ 	for_each_possible_cpu(i) {
+ 		ptr = alloc_bootmem_pages_node(NODE_DATA(cpu_to_node(i)), size);
+-		if (!ptr)
+-			panic("Cannot allocate cpu data for CPU %d\n", i);
+ 
+ 		paca[i].data_offset = ptr - __per_cpu_start;
+ 		memcpy(ptr, __per_cpu_start, __per_cpu_end - __per_cpu_start);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
-kconfig-add-module_name-shortcut.patch
-tags-link-from-config_x-to-config-x-as-well.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-remove-remaining-unwinder-code.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-ipc-ipc_sysctlc-move-the-definition-of-ipc_auto_callback.patch
+arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+drivers-media-video-cx88-cx88-alsac-adjust-error-handling-code.patch
+arch-ia64-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+drivers-mtd-maps-nettelc-use-array_size.patch
+net-tipc-bcasth-use-array_size.patch
+drivers-isdn-misdn-use-array_size.patch
+fs-namespacec-drop-code-after-return.patch
+mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
 
