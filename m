@@ -1,116 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - gen_init_cpio-expand-shell-variables-in-file-names.patch removed from -mm tree
-Date: Sat, 06 Dec 2008 16:06:03 -0800
-Message-ID: <200812070006.mB7063mu021754@imap1.linux-foundation.org>
+Subject: - block-reorder-struct-bio-to-remove-padding-on-64bit.patch removed from -mm tree
+Date: Sat, 06 Dec 2008 16:05:36 -0800
+Message-ID: <200812070005.mB705aeu021501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42658 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753599AbYLGAGJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:06:09 -0500
+	by vger.kernel.org with ESMTP id S1753591AbYLGAGD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:06:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Gene.Sally@timesys.com, gene.sally@timesys.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: richard@rsk.demon.co.uk, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gen_init_cpio: expand shell variables in file names
+     block: reorder struct bio to remove padding on 64bit
 has been removed from the -mm tree.  Its filename was
-     gen_init_cpio-expand-shell-variables-in-file-names.patch
+     block-reorder-struct-bio-to-remove-padding-on-64bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gen_init_cpio: expand shell variables in file names
-From: "Sally, Gene" <Gene.Sally@timesys.com>
+Subject: block: reorder struct bio to remove padding on 64bit
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-This modifies gen_init_cpio so that lines that specify files can contain
-what looks like a shell variable that's expanded during processing.
+Remove 8 bytes of padding from struct bio which also removes 16 bytes from
+struct bio_pair to make it 248 bytes.  bio_pair then fits into one fewer
+cache lines & into a smaller slab.
 
-For example:
-
-file /sbin/kinit ${RFS_BASE}/usr/src/klibc/kinit/kinit 0755 0 0
-
-given RFS_BASE is "/some/directory" in the environment
-
-would be expanded to
-
-file /sbin/kinit /some/directory/usr/src/klibc/kinit/kinit 0755 0 0
-
-If several environment variables appear in a line, they are all expanded
-with processing happening from left to right.  Undefined variables expand
-to a null string.  Syntax errors stop processing, letting the existing
-error handling show the user offending line.
-
-This helps embedded folks who frequently create several RFS directories
-and then switch between them as they're tuning an initramfs.  Having just
-been such an embedded folk, this seems the most efficient solution.
-
-Signed-off-by: Gene Sally <gene.sally@timesys.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/gen_init_cpio.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ include/linux/bio.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN usr/gen_init_cpio.c~gen_init_cpio-expand-shell-variables-in-file-names usr/gen_init_cpio.c
---- a/usr/gen_init_cpio.c~gen_init_cpio-expand-shell-variables-in-file-names
-+++ a/usr/gen_init_cpio.c
-@@ -370,6 +370,30 @@ error:
- 	return rc;
- }
+diff -puN include/linux/bio.h~block-reorder-struct-bio-to-remove-padding-on-64bit include/linux/bio.h
+--- a/include/linux/bio.h~block-reorder-struct-bio-to-remove-padding-on-64bit
++++ a/include/linux/bio.h
+@@ -90,10 +90,11 @@ struct bio {
  
-+static char *cpio_replace_env(char *new_location)
-+{
-+       char expanded[PATH_MAX + 1];
-+       char env_var[PATH_MAX + 1];
-+       char *start;
-+       char *end;
+ 	unsigned int		bi_comp_cpu;	/* completion CPU */
+ 
++	atomic_t		bi_cnt;		/* pin count */
 +
-+       for (start = NULL; (start = strstr(new_location, "${")); ) {
-+	       end = strchr(start, '}');
-+	       if (start < end) {
-+		       *env_var = *expanded = '\0';
-+		       strncat(env_var, start + 2, end - start - 2);
-+		       strncat(expanded, new_location, start - new_location);
-+		       strncat(expanded, getenv(env_var), PATH_MAX);
-+		       strncat(expanded, end + 1, PATH_MAX);
-+		       strncpy(new_location, expanded, PATH_MAX);
-+	       } else
-+		       break;
-+       }
-+
-+       return new_location;
-+}
-+
-+
- static int cpio_mkfile_line(const char *line)
- {
- 	char name[PATH_MAX + 1];
-@@ -415,7 +439,8 @@ static int cpio_mkfile_line(const char *
- 	} else {
- 		dname = name;
- 	}
--	rc = cpio_mkfile(dname, location, mode, uid, gid, nlinks);
-+       rc = cpio_mkfile(dname, cpio_replace_env(location),
-+			mode, uid, gid, nlinks);
-  fail:
- 	if (dname_len) free(dname);
- 	return rc;
-@@ -439,6 +464,7 @@ void usage(const char *prog)
- 		"\n"
- 		"<name>       name of the file/dir/nod/etc in the archive\n"
- 		"<location>   location of the file in the current filesystem\n"
-+		"             expands shell variables quoted with ${}\n"
- 		"<target>     link target\n"
- 		"<mode>       mode/permissions of the file\n"
- 		"<uid>        user id (0=root)\n"
+ 	struct bio_vec		*bi_io_vec;	/* the actual vec list */
+ 
+ 	bio_end_io_t		*bi_end_io;
+-	atomic_t		bi_cnt;		/* pin count */
+ 
+ 	void			*bi_private;
+ #if defined(CONFIG_BLK_DEV_INTEGRITY)
 _
 
-Patches currently in -mm which might be from Gene.Sally@timesys.com are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
+origin.patch
 linux-next.patch
 
