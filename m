@@ -1,83 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-document-fmode_-constants.patch removed from -mm tree
-Date: Sat, 06 Dec 2008 16:05:41 -0800
-Message-ID: <200812070005.mB705fsd021515@imap1.linux-foundation.org>
+Subject: - vfs-kill-fmode_ndelay_now.patch removed from -mm tree
+Date: Sat, 06 Dec 2008 16:05:38 -0800
+Message-ID: <200812070005.mB705cHM021510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33780 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753560AbYLGAFv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:05:51 -0500
+	by vger.kernel.org with ESMTP id S1753543AbYLGAFt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:05:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: document FMODE_ constants
+     vfs: kill FMODE_NDELAY_NOW
 has been removed from the -mm tree.  Its filename was
-     vfs-document-fmode_-constants.patch
+     vfs-kill-fmode_ndelay_now.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: document FMODE_ constants
+Subject: vfs: kill FMODE_NDELAY_NOW
 From: Christoph Hellwig <hch@lst.de>
 
-Ensure that all FMODE_ constants are documented, and ensure a coherent
-style for the already existing comments.
+Update FMODE_NDELAY before each ioctl call so that we can kill the magic
+FMODE_NDELAY_NOW.  It would be even better to do this directly in setfl(),
+but for that we'd need to have FMODE_NDELAY for all files, not just block
+special files.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ block/compat_ioctl.c |    8 +++++++-
+ drivers/scsi/sd.c    |    2 +-
+ drivers/scsi/sr.c    |    2 +-
+ fs/block_dev.c       |   10 +++++++++-
+ include/linux/fs.h   |    1 -
+ 5 files changed, 18 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/fs.h~vfs-document-fmode_-constants include/linux/fs.h
---- a/include/linux/fs.h~vfs-document-fmode_-constants
-+++ a/include/linux/fs.h
-@@ -54,21 +54,23 @@ struct inodes_stat_t {
- #define MAY_ACCESS 16
- #define MAY_OPEN 32
+diff -puN block/compat_ioctl.c~vfs-kill-fmode_ndelay_now block/compat_ioctl.c
+--- a/block/compat_ioctl.c~vfs-kill-fmode_ndelay_now
++++ a/block/compat_ioctl.c
+@@ -699,8 +699,14 @@ long compat_blkdev_ioctl(struct file *fi
+ 	struct backing_dev_info *bdi;
+ 	loff_t size;
  
--#define FMODE_READ ((__force fmode_t)1)
--#define FMODE_WRITE ((__force fmode_t)2)
--
--/* Internal kernel extensions */
--#define FMODE_LSEEK	((__force fmode_t)4)
--#define FMODE_PREAD	((__force fmode_t)8)
--#define FMODE_PWRITE	FMODE_PREAD	/* These go hand in hand */
--
--/* File is being opened for execution. Primary users of this flag are
--   distributed filesystems that can use it to achieve correct ETXTBUSY
--   behavior for cross-node execution/opening_for_writing of files */
--#define FMODE_EXEC	((__force fmode_t)16)
--
--#define FMODE_NDELAY	((__force fmode_t)32)
--#define FMODE_EXCL	((__force fmode_t)64)
-+/* file is open for reading */
-+#define FMODE_READ		((__force fmode_t)1)
-+/* file is open for writing */
-+#define FMODE_WRITE		((__force fmode_t)2)
-+/* file is seekable */
-+#define FMODE_LSEEK		((__force fmode_t)4)
-+/* file can be accessed using pread/pwrite */
-+#define FMODE_PREAD		((__force fmode_t)8)
-+#define FMODE_PWRITE		FMODE_PREAD	/* These go hand in hand */
-+/* File is opened for execution with sys_execve / sys_uselib */
-+#define FMODE_EXEC		((__force fmode_t)16)
-+/* File is opened with O_NDELAY (only set for block devices) */
-+#define FMODE_NDELAY		((__force fmode_t)32)
-+/* File is opened with O_EXCL (only set for block devices) */
-+#define FMODE_EXCL		((__force fmode_t)64)
-+/* File is opened using open(.., 3, ..) and is writeable only for ioctls
-+   (specialy hack for floppy.c) */
++	/*
++	 * O_NDELAY can be altered using fcntl(.., F_SETFL, ..), so we have
++	 * to updated it before every ioctl.
++	 */
+ 	if (file->f_flags & O_NDELAY)
+-		mode |= FMODE_NDELAY_NOW;
++		mode |= FMODE_NDELAY;
++	else
++		mode &= ~FMODE_NDELAY;
+ 
+ 	switch (cmd) {
+ 	case HDIO_GETGEO:
+diff -puN drivers/scsi/sd.c~vfs-kill-fmode_ndelay_now drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~vfs-kill-fmode_ndelay_now
++++ a/drivers/scsi/sd.c
+@@ -757,7 +757,7 @@ static int sd_ioctl(struct block_device 
+ 	 * access to the device is prohibited.
+ 	 */
+ 	error = scsi_nonblockable_ioctl(sdp, cmd, p,
+-					(mode & FMODE_NDELAY_NOW) != 0);
++					(mode & FMODE_NDELAY) != 0);
+ 	if (!scsi_block_when_processing_errors(sdp) || !error)
+ 		return error;
+ 
+diff -puN drivers/scsi/sr.c~vfs-kill-fmode_ndelay_now drivers/scsi/sr.c
+--- a/drivers/scsi/sr.c~vfs-kill-fmode_ndelay_now
++++ a/drivers/scsi/sr.c
+@@ -521,7 +521,7 @@ static int sr_block_ioctl(struct block_d
+ 	 * if it doesn't recognise the ioctl
+ 	 */
+ 	ret = scsi_nonblockable_ioctl(sdev, cmd, argp,
+-					(mode & FMODE_NDELAY_NOW) != 0);
++					(mode & FMODE_NDELAY) != 0);
+ 	if (ret != -ENODEV)
+ 		return ret;
+ 	return scsi_ioctl(sdev, cmd, argp);
+diff -puN fs/block_dev.c~vfs-kill-fmode_ndelay_now fs/block_dev.c
+--- a/fs/block_dev.c~vfs-kill-fmode_ndelay_now
++++ a/fs/block_dev.c
+@@ -1218,8 +1218,16 @@ static long block_ioctl(struct file *fil
+ {
+ 	struct block_device *bdev = I_BDEV(file->f_mapping->host);
+ 	fmode_t mode = file->f_mode;
++
++	/*
++	 * O_NDELAY can be altered using fcntl(.., F_SETFL, ..), so we have
++	 * to updated it before every ioctl.
++	 */
+ 	if (file->f_flags & O_NDELAY)
+-		mode |= FMODE_NDELAY_NOW;
++		mode |= FMODE_NDELAY;
++	else
++		mode &= ~FMODE_NDELAY;
++
+ 	return blkdev_ioctl(bdev, mode, cmd, arg);
+ }
+ 
+diff -puN include/linux/fs.h~vfs-kill-fmode_ndelay_now include/linux/fs.h
+--- a/include/linux/fs.h~vfs-kill-fmode_ndelay_now
++++ a/include/linux/fs.h
+@@ -70,7 +70,6 @@ struct inodes_stat_t {
+ #define FMODE_NDELAY	((__force fmode_t)32)
+ #define FMODE_EXCL	((__force fmode_t)64)
  #define FMODE_WRITE_IOCTL	((__force fmode_t)128)
+-#define FMODE_NDELAY_NOW	((__force fmode_t)256)
  
  #define RW_MASK		1
+ #define RWA_MASK	2
 _
 
 Patches currently in -mm which might be from hch@lst.de are
