@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-sprogii-dcc-controller-identifiers.patch added to -mm tree
-Date: Sat, 06 Dec 2008 23:46:04 -0800
-Message-ID: <200812070746.mB77k4wi004488@imap1.linux-foundation.org>
+Subject: + fix-for-tty-serial-move-port.patch added to -mm tree
+Date: Sat, 06 Dec 2008 23:50:52 -0800
+Message-ID: <200812070750.mB77oqdn007385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43795 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752811AbYLGHsY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 02:48:24 -0500
+	by vger.kernel.org with ESMTP id S1751126AbYLGHvC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 02:51:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@redhat.com, greg@kroah.com
+Cc: a.beregalov@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     tty: SprogII DCC controller identifiers
+     fix for tty-serial-move-port
 has been added to the -mm tree.  Its filename is
-     tty-sprogii-dcc-controller-identifiers.patch
+     fix-for-tty-serial-move-port.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: SprogII DCC controller identifiers
-From: Alan Cox <alan@redhat.com>
+Subject: fix for tty-serial-move-port
+From: Alexander Beregalov <a.beregalov@gmail.com>
 
-Someone on rmweb reminded me this had been overlooked from ages ago..
+next-20081204 crashes with the following message:
 
-Add the identifiers for the Sprog II USB. This is a DCC control interface
-using the FTDI-SIO hardware: http://www.sprog-dcc.co.uk/. People have been
-using it with insmod options for ages, this just puts it into the driver
-data.
+BUG: unable to handle kernel paging request at ffff88007d320248
+IP: [<ffffffff803de934>] uart_remove_one_port+0xef/0x111
+                kfree(info);
+     393:       49 8d 7d 10             lea    0x10(%r13),%rdi
+     397:       e8 00 00 00 00          callq  39c <uart_remove_one_port+0xef>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ftdi_sio.c |    1 +
- drivers/usb/serial/ftdi_sio.h |    3 +++
- 2 files changed, 4 insertions(+)
+ drivers/serial/serial_core.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/usb/serial/ftdi_sio.c~tty-sprogii-dcc-controller-identifiers drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~tty-sprogii-dcc-controller-identifiers
-+++ a/drivers/usb/serial/ftdi_sio.c
-@@ -166,6 +166,7 @@ static struct usb_device_id id_table_com
- 	{ USB_DEVICE(FTDI_VID, FTDI_OPENDCC_PID) },
- 	{ USB_DEVICE(INTERBIOMETRICS_VID, INTERBIOMETRICS_IOBOARD_PID) },
- 	{ USB_DEVICE(INTERBIOMETRICS_VID, INTERBIOMETRICS_MINI_IOBOARD_PID) },
-+	{ USB_DEVICE(FTDI_VID, FTDI_SPROG_II) },
- 	{ USB_DEVICE(FTDI_VID, FTDI_XF_632_PID) },
- 	{ USB_DEVICE(FTDI_VID, FTDI_XF_634_PID) },
- 	{ USB_DEVICE(FTDI_VID, FTDI_XF_547_PID) },
-diff -puN drivers/usb/serial/ftdi_sio.h~tty-sprogii-dcc-controller-identifiers drivers/usb/serial/ftdi_sio.h
---- a/drivers/usb/serial/ftdi_sio.h~tty-sprogii-dcc-controller-identifiers
-+++ a/drivers/usb/serial/ftdi_sio.h
-@@ -75,6 +75,9 @@
- /* OpenDCC (www.opendcc.de) product id */
- #define FTDI_OPENDCC_PID	0xBFD8
+diff -puN drivers/serial/serial_core.c~fix-for-tty-serial-move-port drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~fix-for-tty-serial-move-port
++++ a/drivers/serial/serial_core.c
+@@ -2530,10 +2530,8 @@ int uart_remove_one_port(struct uart_dri
+ 	/*
+ 	 * Kill the tasklet, and free resources.
+ 	 */
+-	if (info) {
++	if (info)
+ 		tasklet_kill(&info->tlet);
+-		kfree(info);
+-	}
  
-+/* Sprog II (Andrew Crosland's SprogII DCC interface) */
-+#define FTDI_SPROG_II		0xF0C8
-+
- /* www.crystalfontz.com devices - thanx for providing free devices for evaluation ! */
- /* they use the ftdi chipset for the USB interface and the vendor id is the same */
- #define FTDI_XF_632_PID 0xFC08	/* 632: 16x2 Character Display */
+ 	state->port = NULL;
+ 	mutex_unlock(&port_mutex);
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from a.beregalov@gmail.com are
 
-origin.patch
 linux-next.patch
-tty-sprogii-dcc-controller-identifiers.patch
+fix-for-tty-serial-move-port.patch
 
