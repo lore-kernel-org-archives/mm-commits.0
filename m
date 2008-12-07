@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch added to -mm tree
-Date: Sat, 06 Dec 2008 20:22:52 -0800
-Message-ID: <200812070422.mB74Mqgb012946__6392.39347442544$1228623873$gmane$org@imap1.linux-foundation.org>
+Subject: + usb-use-unaligned-endian-helpers-in-storage-drivers.patch added to -mm tree
+Date: Sat, 06 Dec 2008 21:34:41 -0800
+Message-ID: <200812070534.mB75Yfht023373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57393 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753544AbYLGEXG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 23:23:06 -0500
+	by vger.kernel.org with ESMTP id S1751151AbYLGFfQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 00:35:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, cmm@us.ibm.com, dada1@cosmosbay.com, davem@davemloft.net, linux-ext4@vger.kernel.org
+Cc: harvey.harrison@gmail.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     revert "percpu_counter: new function percpu_counter_sum_and_set"
+     usb: use unaligned endian helpers in storage drivers
 has been added to the -mm tree.  Its filename is
-     revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch
+     usb-use-unaligned-endian-helpers-in-storage-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,180 +33,296 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "percpu_counter: new function percpu_counter_sum_and_set"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: usb: use unaligned endian helpers in storage drivers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Revert
-
-    commit e8ced39d5e8911c662d4d69a342b9d053eaaac4e
-    Author: Mingming Cao <cmm@us.ibm.com>
-    Date:   Fri Jul 11 19:27:31 2008 -0400
-
-        percpu_counter: new function percpu_counter_sum_and_set
-
-
-As described in
-
-	revert "percpu counter: clean up percpu_counter_sum_and_set()"
-
-the new percpu_counter_sum_and_set() is racy against updates to the
-cpu-local accumulators on other CPUs.  Revert that change.
-
-This means that ext4 will be slow again.  But correct.
-
-Reported-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Mingming Cao <cmm@us.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c               |    4 ++--
- include/linux/percpu_counter.h |   12 +++---------
- lib/percpu_counter.c           |    7 +------
- 3 files changed, 6 insertions(+), 17 deletions(-)
+ drivers/usb/storage/datafab.c       |   32 +++++++----------------
+ drivers/usb/storage/jumpshot.c      |   32 +++++++----------------
+ drivers/usb/storage/shuttle_usbat.c |   36 +++++++-------------------
+ 3 files changed, 31 insertions(+), 69 deletions(-)
 
-diff -puN fs/ext4/balloc.c~revert-percpu_counter-new-function-percpu_counter_sum_and_set fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~revert-percpu_counter-new-function-percpu_counter_sum_and_set
-+++ a/fs/ext4/balloc.c
-@@ -609,8 +609,8 @@ int ext4_has_free_blocks(struct ext4_sb_
+diff -puN drivers/usb/storage/datafab.c~usb-use-unaligned-endian-helpers-in-storage-drivers drivers/usb/storage/datafab.c
+--- a/drivers/usb/storage/datafab.c~usb-use-unaligned-endian-helpers-in-storage-drivers
++++ a/drivers/usb/storage/datafab.c
+@@ -50,6 +50,7 @@
  
- 	if (free_blocks - (nblocks + root_blocks + dirty_blocks) <
- 						EXT4_FREEBLOCKS_WATERMARK) {
--		free_blocks  = percpu_counter_sum_and_set(fbc);
--		dirty_blocks = percpu_counter_sum_and_set(dbc);
-+		free_blocks  = percpu_counter_sum_positive(fbc);
-+		dirty_blocks = percpu_counter_sum_positive(dbc);
- 		if (dirty_blocks < 0) {
- 			printk(KERN_CRIT "Dirty block accounting "
- 					"went wrong %lld\n",
-diff -puN include/linux/percpu_counter.h~revert-percpu_counter-new-function-percpu_counter_sum_and_set include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~revert-percpu_counter-new-function-percpu_counter_sum_and_set
-+++ a/include/linux/percpu_counter.h
-@@ -35,7 +35,7 @@ int percpu_counter_init_irq(struct percp
- void percpu_counter_destroy(struct percpu_counter *fbc);
- void percpu_counter_set(struct percpu_counter *fbc, s64 amount);
- void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch);
--s64 __percpu_counter_sum(struct percpu_counter *fbc, int set);
-+s64 __percpu_counter_sum(struct percpu_counter *fbc);
+ #include <linux/errno.h>
+ #include <linux/slab.h>
++#include <asm/unaligned.h>
  
- static inline void percpu_counter_add(struct percpu_counter *fbc, s64 amount)
- {
-@@ -44,19 +44,13 @@ static inline void percpu_counter_add(st
- 
- static inline s64 percpu_counter_sum_positive(struct percpu_counter *fbc)
- {
--	s64 ret = __percpu_counter_sum(fbc, 0);
-+	s64 ret = __percpu_counter_sum(fbc);
- 	return ret < 0 ? 0 : ret;
- }
- 
--static inline s64 percpu_counter_sum_and_set(struct percpu_counter *fbc)
--{
--	return __percpu_counter_sum(fbc, 1);
--}
--
--
- static inline s64 percpu_counter_sum(struct percpu_counter *fbc)
- {
--	return __percpu_counter_sum(fbc, 0);
-+	return __percpu_counter_sum(fbc);
- }
- 
- static inline s64 percpu_counter_read(struct percpu_counter *fbc)
-diff -puN lib/percpu_counter.c~revert-percpu_counter-new-function-percpu_counter_sum_and_set lib/percpu_counter.c
---- a/lib/percpu_counter.c~revert-percpu_counter-new-function-percpu_counter_sum_and_set
-+++ a/lib/percpu_counter.c
-@@ -52,7 +52,7 @@ EXPORT_SYMBOL(__percpu_counter_add);
-  * Add up all the per-cpu counts, return the result.  This is a more accurate
-  * but much slower version of percpu_counter_read_positive()
-  */
--s64 __percpu_counter_sum(struct percpu_counter *fbc, int set)
-+s64 __percpu_counter_sum(struct percpu_counter *fbc)
- {
- 	s64 ret;
- 	int cpu;
-@@ -62,12 +62,7 @@ s64 __percpu_counter_sum(struct percpu_c
- 	for_each_online_cpu(cpu) {
- 		s32 *pcount = per_cpu_ptr(fbc->counters, cpu);
- 		ret += *pcount;
--		if (set)
--			*pcount = 0;
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_cmnd.h>
+@@ -373,10 +374,7 @@ static int datafab_id_device(struct us_d
+ 	if (rc == USB_STOR_XFER_GOOD) {
+ 		// capacity is at word offset 57-58
+ 		//
+-		info->sectors = ((u32)(reply[117]) << 24) | 
+-				((u32)(reply[116]) << 16) |
+-				((u32)(reply[115]) <<  8) | 
+-				((u32)(reply[114])      );
++		info->sectors = load_le32_noalign((__le32 *)&reply[114]);
+ 		rc = USB_STOR_TRANSPORT_GOOD;
+ 		goto leave;
  	}
--	if (set)
--		fbc->count = ret;
+@@ -556,10 +554,8 @@ int datafab_transport(struct scsi_cmnd *
+ 	// don't bother implementing READ_6 or WRITE_6.
+ 	//
+ 	if (srb->cmnd[0] == READ_10) {
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
 -
- 	spin_unlock(&fbc->lock);
- 	return ret;
- }
+-		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
+ 
+ 		US_DEBUGP("datafab_transport:  READ_10: read block 0x%04lx  count %ld\n", block, blocks);
+ 		return datafab_read_data(us, info, block, blocks);
+@@ -568,21 +564,16 @@ int datafab_transport(struct scsi_cmnd *
+ 	if (srb->cmnd[0] == READ_12) {
+ 		// we'll probably never see a READ_12 but we'll do it anyway...
+ 		//
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
+-			 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be32_noalign((__be32 *)&srb->cmnd[6]);
+ 
+ 		US_DEBUGP("datafab_transport:  READ_12: read block 0x%04lx  count %ld\n", block, blocks);
+ 		return datafab_read_data(us, info, block, blocks);
+ 	}
+ 
+ 	if (srb->cmnd[0] == WRITE_10) {
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
+ 
+ 		US_DEBUGP("datafab_transport:  WRITE_10: write block 0x%04lx  count %ld\n", block, blocks);
+ 		return datafab_write_data(us, info, block, blocks);
+@@ -591,11 +582,8 @@ int datafab_transport(struct scsi_cmnd *
+ 	if (srb->cmnd[0] == WRITE_12) {
+ 		// we'll probably never see a WRITE_12 but we'll do it anyway...
+ 		//
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
+-			 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be32_noalign((__be32 *)&srb->cmnd[6]);
+ 
+ 		US_DEBUGP("datafab_transport:  WRITE_12: write block 0x%04lx  count %ld\n", block, blocks);
+ 		return datafab_write_data(us, info, block, blocks);
+diff -puN drivers/usb/storage/jumpshot.c~usb-use-unaligned-endian-helpers-in-storage-drivers drivers/usb/storage/jumpshot.c
+--- a/drivers/usb/storage/jumpshot.c~usb-use-unaligned-endian-helpers-in-storage-drivers
++++ a/drivers/usb/storage/jumpshot.c
+@@ -47,6 +47,7 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/slab.h>
++#include <asm/unaligned.h>
+ 
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_cmnd.h>
+@@ -309,10 +310,7 @@ static int jumpshot_id_device(struct us_
+ 		goto leave;
+ 	}
+ 
+-	info->sectors = ((u32)(reply[117]) << 24) |
+-			((u32)(reply[116]) << 16) |
+-			((u32)(reply[115]) <<  8) |
+-			((u32)(reply[114])      );
++	info->sectors = load_le32_noalign((__le32 *)&reply[114]);
+ 
+ 	rc = USB_STOR_TRANSPORT_GOOD;
+ 
+@@ -486,10 +484,8 @@ int jumpshot_transport(struct scsi_cmnd 
+ 	}
+ 
+ 	if (srb->cmnd[0] == READ_10) {
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
+ 
+ 		US_DEBUGP("jumpshot_transport:  READ_10: read block 0x%04lx  count %ld\n", block, blocks);
+ 		return jumpshot_read_data(us, info, block, blocks);
+@@ -498,21 +494,16 @@ int jumpshot_transport(struct scsi_cmnd 
+ 	if (srb->cmnd[0] == READ_12) {
+ 		// I don't think we'll ever see a READ_12 but support it anyway...
+ 		//
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
+-			 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be32_noalign((__be32 *)&srb->cmnd[6]);
+ 
+ 		US_DEBUGP("jumpshot_transport:  READ_12: read block 0x%04lx  count %ld\n", block, blocks);
+ 		return jumpshot_read_data(us, info, block, blocks);
+ 	}
+ 
+ 	if (srb->cmnd[0] == WRITE_10) {
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
+ 
+ 		US_DEBUGP("jumpshot_transport:  WRITE_10: write block 0x%04lx  count %ld\n", block, blocks);
+ 		return jumpshot_write_data(us, info, block, blocks);
+@@ -521,11 +512,8 @@ int jumpshot_transport(struct scsi_cmnd 
+ 	if (srb->cmnd[0] == WRITE_12) {
+ 		// I don't think we'll ever see a WRITE_12 but support it anyway...
+ 		//
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
+-			 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be32_noalign((__be32 *)&srb->cmnd[6]);
+ 
+ 		US_DEBUGP("jumpshot_transport:  WRITE_12: write block 0x%04lx  count %ld\n", block, blocks);
+ 		return jumpshot_write_data(us, info, block, blocks);
+diff -puN drivers/usb/storage/shuttle_usbat.c~usb-use-unaligned-endian-helpers-in-storage-drivers drivers/usb/storage/shuttle_usbat.c
+--- a/drivers/usb/storage/shuttle_usbat.c~usb-use-unaligned-endian-helpers-in-storage-drivers
++++ a/drivers/usb/storage/shuttle_usbat.c
+@@ -44,6 +44,7 @@
+ #include <linux/errno.h>
+ #include <linux/slab.h>
+ #include <linux/cdrom.h>
++#include <asm/unaligned.h>
+ 
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_cmnd.h>
+@@ -957,10 +958,7 @@ static int usbat_flash_get_sector_count(
+ 	if (rc != USB_STOR_TRANSPORT_GOOD)
+ 		goto leave;
+ 
+-	info->sectors = ((u32)(reply[117]) << 24) |
+-		((u32)(reply[116]) << 16) |
+-		((u32)(reply[115]) <<  8) |
+-		((u32)(reply[114])      );
++	info->sectors = load_le32_noalign((__le32 *)&reply[114]);
+ 
+ 	rc = USB_STOR_TRANSPORT_GOOD;
+ 
+@@ -1215,9 +1213,7 @@ static int usbat_hp8200e_handle_read10(s
+ 	buffer = kmalloc(len, GFP_NOIO);
+ 	if (buffer == NULL) /* bloody hell! */
+ 		return USB_STOR_TRANSPORT_FAILED;
+-	sector = short_pack(data[7+3], data[7+2]);
+-	sector <<= 16;
+-	sector |= short_pack(data[7+5], data[7+4]);
++	sector = load_be32_noalign((__be32 *)&data[7 + 2]);
+ 	transferred = 0;
+ 
+ 	while (transferred != scsi_bufflen(srb)) {
+@@ -1596,10 +1592,8 @@ static int usbat_flash_transport(struct 
+ 	}
+ 
+ 	if (srb->cmnd[0] == READ_10) {
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-				((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
+ 
+ 		US_DEBUGP("usbat_flash_transport:  READ_10: read block 0x%04lx  count %ld\n", block, blocks);
+ 		return usbat_flash_read_data(us, info, block, blocks);
+@@ -1609,21 +1603,16 @@ static int usbat_flash_transport(struct 
+ 		/*
+ 		 * I don't think we'll ever see a READ_12 but support it anyway
+ 		 */
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-		        ((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
+-		         ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be32_noalign((__be32 *)&srb->cmnd[6]);
+ 
+ 		US_DEBUGP("usbat_flash_transport: READ_12: read block 0x%04lx  count %ld\n", block, blocks);
+ 		return usbat_flash_read_data(us, info, block, blocks);
+ 	}
+ 
+ 	if (srb->cmnd[0] == WRITE_10) {
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-		        ((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
++		block = load_be32_noalign((__be32 *)&srb->cmnd[2]);
++		blocks = load_be16_noalign((__be16 *)&srb->cmnd[7]);
+ 
+ 		US_DEBUGP("usbat_flash_transport: WRITE_10: write block 0x%04lx  count %ld\n", block, blocks);
+ 		return usbat_flash_write_data(us, info, block, blocks);
+@@ -1633,11 +1622,8 @@ static int usbat_flash_transport(struct 
+ 		/*
+ 		 * I don't think we'll ever see a WRITE_12 but support it anyway
+ 		 */
+-		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
+-		        ((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+-
+-		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
+-		         ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
++		block = load_be16_noalign((__be16 *)&srb->cmnd[2]);
++		blocks = load_be16_noalign((__be16 *)&srb->cmnd[6]);
+ 
+ 		US_DEBUGP("usbat_flash_transport: WRITE_12: write block 0x%04lx  count %ld\n", block, blocks);
+ 		return usbat_flash_write_data(us, info, block, blocks);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-mm-backing-devc-remove-recently-added-warn_on.patch
-revert-percpu-counter-clean-up-percpu_counter_sum_and_set.patch
-revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch
-ksym_symbol_len-fixes.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
 linux-next.patch
-next-remove-localversion.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-netdev-smc911x-fix-for-driver-resume-cleanup.patch
-backlight-catch-invalid-input.patch
-pci-uninline-pci_ioremap_bar.patch
-drivers-char-cycladesc-cy_pci_probe-fix-error-path.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-ldisc-n_tty-export-all-n_tty-ldisc-methods-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+arm-use-the-new-byteorder-headers.patch
+i2c-misannotation-in-i2c-pmcmspc.patch
+i2c-trivial-endian-casting-fixes-in-i2c-highlanderc.patch
+ia64-use-the-new-byteorder-headers.patch
+input-ads7846c-sparse-lock-annotation.patch
+input-strict_strtoul-takes-unsigned-long.patch
+m32r-use-the-new-byteorder-headers.patch
+blackfin-use-the-new-byteorder-headers.patch
+parisc-use-the-new-byteorder-headers.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+frv-use-the-new-byteorder-headers.patch
+m68knommu-use-the-new-byteorder-headers.patch
+h8300-use-the-new-byteorder-headers.patch
+alpha-use-the-new-byteorder-headers.patch
+lib-fix-sparse-shadowed-variable-warning.patch
+lib-radix_treec-make-percpu-variable-static.patch
+lib-proportionsc-trivial-sparse-lock-annotation.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+blackfin-remove-__function__-in-video-driver.patch
+fb-carminefb-trivial-annotation-packing-color-register.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+byteorder-add-load_-store_endian-api.patch
+unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
+unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
+sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
+unaligned-wire-up-h8300-and-m32r-arches.patch
+unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
+unaligned-remove-the-old-implementation.patch
+ata-replace-byteshifting-with-unaligned-endian-helpers.patch
+crypto-replace-private-helper-with-common-unaligned-endian-helper.patch
+usb-use-unaligned-endian-helpers-in-storage-drivers.patch
 
