@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-up-version-lru_add_drain_all.patch added to -mm tree
-Date: Sat, 06 Dec 2008 23:07:22 -0800
-Message-ID: <200812070707.mB777Mvv013874@imap1.linux-foundation.org>
+Subject: + gpio-pca953x-handles-more-chips-i2c-fault-codes.patch added to -mm tree
+Date: Sat, 06 Dec 2008 23:07:55 -0800
+Message-ID: <200812070707.mB777tO6014235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752143AbYLGHHe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 02:07:34 -0500
+	by vger.kernel.org with ESMTP id S1752154AbYLGHIF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Dec 2008 02:08:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, cl@linux-foundation.org, dave@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com
+Cc: dbrownell@users.sourceforge.net, eric.miao@marvell.com
 
 
 The patch titled
-     mm: remove UP version of lru_add_drain_all()
+     gpio: pca953x handles more chips, i2c fault codes
 has been added to the -mm tree.  Its filename is
-     mm-remove-up-version-lru_add_drain_all.patch
+     gpio-pca953x-handles-more-chips-i2c-fault-codes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,120 +33,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove UP version of lru_add_drain_all()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: gpio: pca953x handles more chips, i2c fault codes
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Currently, lru_add_drain_all() has two version.
-  (1) use schedule_on_each_cpu()
-  (2) don't use schedule_on_each_cpu()
+Minor updates to the pca953x GPIO expander driver: handle several more
+compatible parts, and stop assuming that the I2C layer's return codes are
+garbage (that's now been fixed).
 
-Gerald Schaefer reported it doesn't works well on SMP (not NUMA) S390 machine.
-
-  offline_pages() calls lru_add_drain_all() followed by drain_all_pages().
-  While drain_all_pages() works on each cpu, lru_add_drain_all() only runs
-  on the current cpu for architectures w/o CONFIG_NUMA. This let us run
-  into the BUG_ON(!PageBuddy(page)) in __offline_isolated_pages() during
-  memory hotplug stress test on s390. The page in question was still on the
-  pcp list, because of a race with lru_add_drain_all() and drain_all_pages()
-  on different cpus.
-
-Actually, Almost machine has CONFIG_UNEVICTABLE_LRU=y. Then almost machine use
-(1) version lru_add_drain_all although the machine is UP.
-
-Then this ifdef is not valueable.
-simple removing is better.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Acked-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Eric Miao <eric.miao@marvell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ drivers/gpio/Kconfig   |    7 ++++---
+ drivers/gpio/pca953x.c |   12 +++++++-----
+ 2 files changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN mm/swap.c~mm-remove-up-version-lru_add_drain_all mm/swap.c
---- a/mm/swap.c~mm-remove-up-version-lru_add_drain_all
-+++ a/mm/swap.c
-@@ -299,7 +299,6 @@ void lru_add_drain(void)
- 	put_cpu();
- }
+diff -puN drivers/gpio/Kconfig~gpio-pca953x-handles-more-chips-i2c-fault-codes drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-pca953x-handles-more-chips-i2c-fault-codes
++++ a/drivers/gpio/Kconfig
+@@ -95,7 +95,7 @@ config GPIO_MAX732X
+ 	  number for these GPIOs.
  
--#if defined(CONFIG_NUMA) || defined(CONFIG_UNEVICTABLE_LRU)
- static void lru_add_drain_per_cpu(struct work_struct *dummy)
- {
- 	lru_add_drain();
-@@ -313,18 +312,6 @@ int lru_add_drain_all(void)
- 	return schedule_on_each_cpu(lru_add_drain_per_cpu);
- }
+ config GPIO_PCA953X
+-	tristate "PCA953x, PCA955x, and MAX7310 I/O ports"
++	tristate "PCA953x, PCA955x, TCA64xx, and MAX7310 I/O ports"
+ 	depends on I2C
+ 	help
+ 	  Say yes here to provide access to several register-oriented
+@@ -104,9 +104,10 @@ config GPIO_PCA953X
  
--#else
--
--/*
-- * Returns 0 for success
+ 	  4 bits:	pca9536, pca9537
+ 
+-	  8 bits:	max7310, pca9534, pca9538, pca9554, pca9557
++	  8 bits:	max7310, pca9534, pca9538, pca9554, pca9557,
++	  		tca6408
+ 
+-	  16 bits:	pca9535, pca9539, pca9555
++	  16 bits:	pca9535, pca9539, pca9555, tca6416
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called pca953x.
+diff -puN drivers/gpio/pca953x.c~gpio-pca953x-handles-more-chips-i2c-fault-codes drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~gpio-pca953x-handles-more-chips-i2c-fault-codes
++++ a/drivers/gpio/pca953x.c
+@@ -33,7 +33,12 @@ static const struct i2c_device_id pca953
+ 	{ "pca9554", 8, },
+ 	{ "pca9555", 16, },
+ 	{ "pca9557", 8, },
++
+ 	{ "max7310", 8, },
++	{ "pca6107", 8, },
++	{ "tca6408", 8, },
++	{ "tca6416", 16, },
++	/* NYET:  { "tca6424", 24, }, */
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, pca953x_id);
+@@ -47,9 +52,6 @@ struct pca953x_chip {
+ 	struct gpio_chip gpio_chip;
+ };
+ 
+-/* NOTE:  we can't currently rely on fault codes to come from SMBus
+- * calls, so we map all errors to EIO here and return zero otherwise.
 - */
--int lru_add_drain_all(void)
--{
--	lru_add_drain();
--	return 0;
--}
--#endif
--
- /*
-  * Batched page_cache_release().  Decrement the reference count on all the
-  * passed pages.  If it fell to zero then remove the page from the LRU and
+ static int pca953x_write_reg(struct pca953x_chip *chip, int reg, uint16_t val)
+ {
+ 	int ret;
+@@ -61,7 +63,7 @@ static int pca953x_write_reg(struct pca9
+ 
+ 	if (ret < 0) {
+ 		dev_err(&chip->client->dev, "failed writing register\n");
+-		return -EIO;
++		return ret;
+ 	}
+ 
+ 	return 0;
+@@ -78,7 +80,7 @@ static int pca953x_read_reg(struct pca95
+ 
+ 	if (ret < 0) {
+ 		dev_err(&chip->client->dev, "failed reading register\n");
+-		return -EIO;
++		return ret;
+ 	}
+ 
+ 	*val = (uint16_t)ret;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
-origin.patch
-mm-remove-up-version-lru_add_drain_all.patch
 linux-next.patch
-arch-ia64-kernel-iosapicc-fix-warnings.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-oom-fix-zone_scan_mutex-name.patch
-mm-get-rid-of-pagevec_release_nonlru.patch
-cleanup-get-rid-of-ifdef-config_migration.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-make-page_lock_anon_vma-static.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-mm-make-init_section_page_cgroup-static.patch
-mm-make-maddr-__iomem.patch
-mm-make-mem_cgroup_resize_limit-static.patch
-mm-make-scan_all_zones_unevictable_pages-static.patch
-mm-make-scan_zone_unevictable_pages-static.patch
-mm-make-setup_per_zone_inactive_ratio-static.patch
-mm-make-vread-and-vwrite-declaration.patch
-vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
-vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
-mm-kill-zone_is_near_oom.patch
-mm-make-get_user_pages-interruptible.patch
-mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-mm-make-get_scan_ratio-safe-for-memcg.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-remove-mem_cgroup_cal_reclaim.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-explain-details-and-test-document.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
+genirq-record-irq_level-in-irq_desc.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+spi_gpio-driver.patch
+spi_gpio-driver-cleanups.patch
+atmel_spi-clean-up-spiv1-quirk-handling.patch
+spi-atmel_spi-update-chipselect-handling.patch
+spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio.patch
+mfd-da903x-section-fix.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+twl4030-gpio-cleanup-debounce.patch
+gpio-pca953x-handles-more-chips-i2c-fault-codes.patch
 
