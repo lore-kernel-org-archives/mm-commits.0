@@ -1,67 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - aacraid-disable-dell-percraid-quirk-on-adaptec-2200s-and-2120s.patch removed from -mm tree
-Date: Sat, 06 Dec 2008 16:05:55 -0800
-Message-ID: <200812070005.mB705tvt021685@imap1.linux-foundation.org>
+Subject: + leds-ledtrig-timer-on-deactivation-hardware-blinking-should-be-disabled.patch added to -mm tree
+Date: Sat, 06 Dec 2008 16:21:46 -0800
+Message-ID: <200812070021.mB70LkUh031197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39665 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48149 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753661AbYLGAH3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:07:29 -0500
+	by vger.kernel.org with ESMTP id S1752655AbYLGAVy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Dec 2008 19:21:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thenzl@redhat.com, Achim_Leubner@adaptec.com, James.Bottomley@HansenPartnership.com, Matt_Domsch@dell.com, aacraid@adaptec.com, dermoth@aei.ca, gernot.hillier@siemens.com, stable@kern
+To: mm-commits@vger.kernel.org
+Cc: giometti@linux.it
 
 
 The patch titled
-     aacraid: disable Dell Percraid quirk on Adaptec 2200S and 2120S
-has been removed from the -mm tree.  Its filename was
-     aacraid-disable-dell-percraid-quirk-on-adaptec-2200s-and-2120s.patch
+     leds ledtrig-timer: on deactivation hardware blinking should be disabled.
+has been added to the -mm tree.  Its filename is
+     leds-ledtrig-timer-on-deactivation-hardware-blinking-should-be-disabled.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aacraid: disable Dell Percraid quirk on Adaptec 2200S and 2120S
-From: Tomas Henzl <thenzl@redhat.com>
+Subject: leds ledtrig-timer: on deactivation hardware blinking should be disabled.
+From: Rodolfo Giometti <giometti@linux.it>
 
-A lot of 64bit machines with Adaptec 2200S and 2120S controllers don't
-recognize SCSI disks any more with the patch "fix driver failure with Dell
-PowerEdge Expandable RAID Controller 3/Di", but fail with tons of "aac_srb:
-aac_fib_send failed with status: 8195" instead. This patch disables the
-quirk introduced in the change cited above for those two controllers again.
-
-Signed-off-by: Gernot Hillier <gernot.hillier@siemens.com>
-Signed-off-by: Tomas Henzl <thenzl@redhat.com>
-Cc: <aacraid@adaptec.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Tested-by: Thomas Guyot-Sionnest <dermoth@aei.ca>
-Cc: "Leubner, Achim" <Achim_Leubner@adaptec.com>
-Cc: <stable@kernel.org>		[2.6.27.x, 2.6.26.x, 2.6.25.x]
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/linit.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/leds/ledtrig-timer.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/scsi/aacraid/linit.c~aacraid-disable-dell-percraid-quirk-on-adaptec-2200s-and-2120s drivers/scsi/aacraid/linit.c
---- a/drivers/scsi/aacraid/linit.c~aacraid-disable-dell-percraid-quirk-on-adaptec-2200s-and-2120s
-+++ a/drivers/scsi/aacraid/linit.c
-@@ -175,8 +175,8 @@ static struct aac_driver_ident aac_drive
- 	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Boxster/PERC3DiB) */
- 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "catapult        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* catapult */
- 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "tomcat          ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* tomcat */
--	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2120S   ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2120S (Crusader) */
--	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2200S (Vulcan) */
-+	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2120S   ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG },		      /* Adaptec 2120S (Crusader) */
-+	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG },		      /* Adaptec 2200S (Vulcan) */
- 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2200S (Vulcan-2m) */
- 	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S220     ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Legend S220 (Legend Crusader) */
- 	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S230     ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Legend S230 (Legend Vulcan) */
+diff -puN drivers/leds/ledtrig-timer.c~leds-ledtrig-timer-on-deactivation-hardware-blinking-should-be-disabled drivers/leds/ledtrig-timer.c
+--- a/drivers/leds/ledtrig-timer.c~leds-ledtrig-timer-on-deactivation-hardware-blinking-should-be-disabled
++++ a/drivers/leds/ledtrig-timer.c
+@@ -199,6 +199,7 @@ err_out:
+ static void timer_trig_deactivate(struct led_classdev *led_cdev)
+ {
+ 	struct timer_trig_data *timer_data = led_cdev->trigger_data;
++	unsigned long on = 0, off = 0;
+ 
+ 	if (timer_data) {
+ 		device_remove_file(led_cdev->dev, &dev_attr_delay_on);
+@@ -206,6 +207,10 @@ static void timer_trig_deactivate(struct
+ 		del_timer_sync(&timer_data->timer);
+ 		kfree(timer_data);
+ 	}
++
++	/* If there is hardware support for blinking, stop it */
++	if (led_cdev->blink_set)
++		led_cdev->blink_set(led_cdev, &on, &off);
+ }
+ 
+ static struct led_trigger timer_led_trigger = {
 _
 
-Patches currently in -mm which might be from thenzl@redhat.com are
+Patches currently in -mm which might be from giometti@linux.it are
 
 linux-next.patch
+leds-ledtrig-timer-on-deactivation-hardware-blinking-should-be-disabled.patch
+linuxpps-core-support.patch
+linuxpps-core-support-sysfs-not-needed-variables-removed.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods-fix.patch
+pps-serial-clients-support.patch
+pps-serial-clients-support-avoid-noisy-compilation-on-64bits-architecture.patch
+pps-parallel-port-clients-support.patch
+pps-low-level-irq-timestamps-recording.patch
 
