@@ -1,85 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - generic-swap-ath9k-rename-swap-to-swap_array.patch removed from -mm tree
-Date: Mon, 08 Dec 2008 15:24:48 -0800
-Message-ID: <200812082324.mB8NOmSk007207@imap1.linux-foundation.org>
+Subject: - tty-sprogii-dcc-controller-identifiers.patch removed from -mm tree
+Date: Mon, 08 Dec 2008 15:24:33 -0800
+Message-ID: <200812082324.mB8NOX6i007058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47565 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753397AbYLHXeq (ORCPT
+	by vger.kernel.org with ESMTP id S1753272AbYLHXeq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:34:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, Sujith.Manoharan@atheros.com, jouni.malinen@atheros.com, linville@tuxdriver.com, lrodriguez@atheros.com, senthilkumar@atheros.com, vasanth@atheros.com, mm-comm
+To: alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     generic swap(): ath9k: rename swap() to swap_array()
+     tty: SprogII DCC controller identifiers
 has been removed from the -mm tree.  Its filename was
-     generic-swap-ath9k-rename-swap-to-swap_array.patch
+     tty-sprogii-dcc-controller-identifiers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic swap(): ath9k: rename swap() to swap_array()
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: tty: SprogII DCC controller identifiers
+From: Alan Cox <alan@redhat.com>
 
-In preparation for the introduction of a generic swap() macro.
+Someone on rmweb reminded me this had been overlooked from ages ago..
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Sujith Manoharan <Sujith.Manoharan@atheros.com>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Luis R. Rodriguez <lrodriguez@atheros.com>
-Cc: Vasanthakumar Thiagarajan <vasanth@atheros.com>
-Cc: Senthil Balasubramanian <senthilkumar@atheros.com>
-Cc: Jouni Malinen <jouni.malinen@atheros.com>
+Add the identifiers for the Sprog II USB. This is a DCC control interface
+using the FTDI-SIO hardware: http://www.sprog-dcc.co.uk/. People have been
+using it with insmod options for ages, this just puts it into the driver
+data.
+
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath9k/regd.c |    2 +-
- drivers/net/wireless/ath9k/regd.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/serial/ftdi_sio.c |    1 +
+ drivers/usb/serial/ftdi_sio.h |    3 +++
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/net/wireless/ath9k/regd.c~generic-swap-ath9k-rename-swap-to-swap_array drivers/net/wireless/ath9k/regd.c
---- a/drivers/net/wireless/ath9k/regd.c~generic-swap-ath9k-rename-swap-to-swap_array
-+++ a/drivers/net/wireless/ath9k/regd.c
-@@ -42,7 +42,7 @@ ath9k_regd_sort(void *a, u32 n, u32 size
- 			u8 *u = t - size;
- 			if (cmp(u, t) <= 0)
- 				break;
--			swap(u, t, size);
-+			swap_array(u, t, size);
- 		}
- }
+diff -puN drivers/usb/serial/ftdi_sio.c~tty-sprogii-dcc-controller-identifiers drivers/usb/serial/ftdi_sio.c
+--- a/drivers/usb/serial/ftdi_sio.c~tty-sprogii-dcc-controller-identifiers
++++ a/drivers/usb/serial/ftdi_sio.c
+@@ -166,6 +166,7 @@ static struct usb_device_id id_table_com
+ 	{ USB_DEVICE(FTDI_VID, FTDI_OPENDCC_PID) },
+ 	{ USB_DEVICE(INTERBIOMETRICS_VID, INTERBIOMETRICS_IOBOARD_PID) },
+ 	{ USB_DEVICE(INTERBIOMETRICS_VID, INTERBIOMETRICS_MINI_IOBOARD_PID) },
++	{ USB_DEVICE(FTDI_VID, FTDI_SPROG_II) },
+ 	{ USB_DEVICE(FTDI_VID, FTDI_XF_632_PID) },
+ 	{ USB_DEVICE(FTDI_VID, FTDI_XF_634_PID) },
+ 	{ USB_DEVICE(FTDI_VID, FTDI_XF_547_PID) },
+diff -puN drivers/usb/serial/ftdi_sio.h~tty-sprogii-dcc-controller-identifiers drivers/usb/serial/ftdi_sio.h
+--- a/drivers/usb/serial/ftdi_sio.h~tty-sprogii-dcc-controller-identifiers
++++ a/drivers/usb/serial/ftdi_sio.h
+@@ -75,6 +75,9 @@
+ /* OpenDCC (www.opendcc.de) product id */
+ #define FTDI_OPENDCC_PID	0xBFD8
  
-diff -puN drivers/net/wireless/ath9k/regd.h~generic-swap-ath9k-rename-swap-to-swap_array drivers/net/wireless/ath9k/regd.h
---- a/drivers/net/wireless/ath9k/regd.h~generic-swap-ath9k-rename-swap-to-swap_array
-+++ a/drivers/net/wireless/ath9k/regd.h
-@@ -125,7 +125,7 @@
- 
- #define CHAN_FLAGS      (CHANNEL_ALL|CHANNEL_HALF|CHANNEL_QUARTER)
- 
--#define swap(_a, _b, _size) {                   \
-+#define swap_array(_a, _b, _size) {                   \
- 	u8 *s = _b;                       \
- 	int i = _size;                          \
- 	do {                                    \
++/* Sprog II (Andrew Crosland's SprogII DCC interface) */
++#define FTDI_SPROG_II		0xF0C8
++
+ /* www.crystalfontz.com devices - thanx for providing free devices for evaluation ! */
+ /* they use the ftdi chipset for the USB interface and the vendor id is the same */
+ #define FTDI_XF_632_PID 0xFC08	/* 632: 16x2 Character Display */
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
 linux-next.patch
-9p-convert-d_iname-references-to-d_namename.patch
-nfs-remove-redundant-tests-on-reading-new-pages.patch
-generic-swap-sparc-rename-swap-to-swap_ulong.patch
-generic-swap-iphase-rename-swap-to-swap_byte_order.patch
-generic-swap-lib-sortc-rename-swap-to-swap_func.patch
-generic-swap-introduce-global-macro-swapa-b.patch
-generic-swap-ext3-remove-local-swap-macro.patch
-generic-swap-ext4-remove-local-swap-macro.patch
-generic-swap-sched-remove-local-swap-macro.patch
-generic-swap-dcache-use-swap-instead-of-private-do_switch.patch
 
