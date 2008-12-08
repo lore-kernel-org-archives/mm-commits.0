@@ -1,127 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-remove-the-bkl.patch removed from -mm tree
-Date: Mon, 08 Dec 2008 15:24:43 -0800
-Message-ID: <200812082324.mB8NOh5M007158@imap1.linux-foundation.org>
+Subject: - b1isa-fix-b1isa_exit-to-really-remove-registered-capi-controllers.patch removed from -mm tree
+Date: Mon, 08 Dec 2008 15:24:38 -0800
+Message-ID: <200812082324.mB8NOcVK007111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35327 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33733 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753400AbYLHXe4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:34:56 -0500
+	by vger.kernel.org with ESMTP id S1753413AbYLHXfE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:35:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidjon@xenontk.org, alan@lxorguk.ukuu.org.uk, corbet@lwn.net, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: linux-kernel@lebenslange-mailadresse.de, calle@calle.de, kkeil@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RTC: remove the BKL
+     b1isa: fix b1isa_exit() to really remove registered capi controllers
 has been removed from the -mm tree.  Its filename was
-     rtc-remove-the-bkl.patch
+     b1isa-fix-b1isa_exit-to-really-remove-registered-capi-controllers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: RTC: remove the BKL
-From: David John <davidjon@xenontk.org>
+Subject: b1isa: fix b1isa_exit() to really remove registered capi controllers
+From: Wilfried Klaebe <linux-kernel@lebenslange-mailadresse.de>
 
-Remove calls to the BKL since concurrent access is protected by the spin
-lock rtc_lock.
+On "/etc/init.d/capiutils stop", this oops happened.
 
-Signed-off-by: David John <davidjon@xenontk.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+The oops happens on reading /proc/capi/controllers because
+capi_ctrl->procinfo is called for the wrongly not unregistered
+controller, which points to b1isa_procinfo(), which was removed on
+module unload.
+
+b1isa_exit() did not call b1isa_remove() for its controllers because
+io[0] == 0 on module unload despite having been 0x340 on module load.
+
+Besides, just removing the controllers that where added on module
+load time and not those that were added later via b1isa_add_card() is
+wrong too - the place where all added cards are found is isa_dev[].
+
+relevant dmesg lines:
+
+[    0.000000] Linux version 2.6.27.4 (w@shubashi) (gcc version 4.3.2 (Debian 4.3.2-1) ) #3 Thu Oct 30 16:49:03 CET 2008
+
+[   67.403555] CAPI Subsystem Rev 1.1.2.8
+[   68.529154] capifs: Rev 1.1.2.3
+[   68.563292] capi20: Rev 1.1.2.7: started up with major 68 (middleware+capifs)
+[   77.026936] b1: revision 1.1.2.2
+[   77.049992] b1isa: revision 1.1.2.3
+[   77.722655] kcapi: Controller [001]: b1isa-340 attached
+[   77.722671] b1isa: AVM B1 ISA at i/o 0x340, irq 5, revision 255
+[   81.272669] b1isa-340: card 1 "B1" ready.
+[   81.272683] b1isa-340: card 1 Protocol: DSS1
+[   81.272689] b1isa-340: card 1 Linetype: point to multipoint
+[   81.272695] b1isa-340: B1-card (3.11-03) now active
+[   81.272702] kcapi: card [001] "b1isa-340" ready.
+
+[  153.721281] kcapi: card [001] down.
+[  154.151889] BUG: unable to handle kernel paging request at e87af000
+[  154.152081] IP: [<e87af000>]
+[  154.153292] *pde = 2655b067 *pte = 00000000
+[  154.153307] Oops: 0000 [#1]
+[  154.153360] Modules linked in: rfcomm l2cap ppdev lp ipt_MASQUERADE tun capi capifs kernelcapi ac battery nfsd exportfs nfs lockd nfs_acl sunrpc sit tunnel4 bridge stp llc ipt_REJECT ipt_LOG xt_tcpudp xt_state iptable_filter iptable_mangle iptable_nat nf_nat nf_conntrack_ipv4 nf_conntrack ip_tables x_tables nls_utf8 isofs nls_base zlib_inflate loop ipv6 netconsole snd_via82xx dvb_usb_dib0700 gameport dib7000p dib7000m dvb_usb snd_ac97_codec ac97_bus dvb_core mt2266 snd_pcm tuner_xc2028 dib3000mc dibx000_common mt2060 dib0070 snd_page_alloc snd_mpu401_uart snd_seq_midi snd_seq_midi_event btusb snd_rawmidi bluetooth snd_seq snd_timer snd_seq_device snd via686a i2c_viapro soundcore i2c_core parport_pc parport button dm_mirror dm_log dm_snapshot floppy sg ohci1394 uhci_hcd ehci_hcd 8139too 
+ mii ieee1394 usbcore sr_mod cdrom sd_mod thermal processor fan [last unloaded: b1]
+[  154.153360]
+[  154.153360] Pid: 4132, comm: capiinit Not tainted (2.6.27.4 #3)
+[  154.153360] EIP: 0060:[<e87af000>] EFLAGS: 00010286 CPU: 0
+[  154.153360] EIP is at 0xe87af000
+[  154.153360] EAX: e6b9ccc8 EBX: e6b9ccc8 ECX: e87a0c67 EDX: e87af000
+[  154.153360] ESI: e142bbc0 EDI: e87a56e0 EBP: e0505f0c ESP: e0505ee4
+[  154.153360]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+[  154.153360] Process capiinit (pid: 4132, ti=e0504000 task=d1196cf0 task.ti=e0504000)
+[  154.153360] Stack: e879f650 00000246 e0505ef4 c01472eb e0505f0c 00000246 e7001780 fffffff4
+[  154.153360]        fffffff4 e142bbc0 e0505f48 c01a56c6 00000400 b805e000 d102dc80 e142bbe0
+[  154.153360]        00000000 e87a56e0 00000246 e12617ac 00000000 00000000 e1261760 fffffffb
+[  154.153360] Call Trace:
+[  154.153360]  [<e879f650>] ? controller_show+0x20/0x90 [kernelcapi]
+[  154.153360]  [<c01472eb>] ? trace_hardirqs_on+0xb/0x10
+[  154.153360]  [<c01a56c6>] ? seq_read+0x126/0x2f0
+[  154.153360]  [<c01a55a0>] ? seq_read+0x0/0x2f0
+[  154.153360]  [<c01c033c>] ? proc_reg_read+0x5c/0x90
+[  154.153360]  [<c0189919>] ? vfs_read+0x99/0x140
+[  154.153360]  [<c01c02e0>] ? proc_reg_read+0x0/0x90
+[  154.153360]  [<c0189a7d>] ? sys_read+0x3d/0x70
+[  154.153360]  [<c0103c3d>] ? sysenter_do_call+0x12/0x35
+[  154.153360]  =======================
+[  154.153360] Code:  Bad EIP value.
+[  154.153360] EIP: [<e87af000>] 0xe87af000 SS:ESP 0068:e0505ee4
+[  154.153360] ---[ end trace 23750b6c2862de94 ]---
+
+Signed-off-by: Wilfried Klaebe <linux-kernel@lebenslange-mailadresse.de>
+Cc: <calle@calle.de>
+Cc: Karsten Keil <kkeil@suse.de>
+Cc: <stable@kernel.org> 	[2.6.everything]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rtc.c |   17 ++++-------------
- 1 file changed, 4 insertions(+), 13 deletions(-)
+ drivers/isdn/hardware/avm/b1isa.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/rtc.c~rtc-remove-the-bkl drivers/char/rtc.c
---- a/drivers/char/rtc.c~rtc-remove-the-bkl
-+++ a/drivers/char/rtc.c
-@@ -48,9 +48,10 @@
-  *		CONFIG_HPET_EMULATE_RTC
-  *	1.12a	Maciej W. Rozycki: Handle memory-mapped chips properly.
-  *	1.12ac	Alan Cox: Allow read access to the day of week register
-+ *	1.12b	David John: Remove calls to the BKL.
-  */
+diff -puN drivers/isdn/hardware/avm/b1isa.c~b1isa-fix-b1isa_exit-to-really-remove-registered-capi-controllers drivers/isdn/hardware/avm/b1isa.c
+--- a/drivers/isdn/hardware/avm/b1isa.c~b1isa-fix-b1isa_exit-to-really-remove-registered-capi-controllers
++++ a/drivers/isdn/hardware/avm/b1isa.c
+@@ -233,10 +233,8 @@ static void __exit b1isa_exit(void)
+ 	int i;
  
--#define RTC_VERSION		"1.12ac"
-+#define RTC_VERSION		"1.12b"
- 
- /*
-  *	Note that *all* calls to CMOS_READ and CMOS_WRITE are done with
-@@ -73,7 +74,6 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/spinlock.h>
--#include <linux/smp_lock.h>
- #include <linux/sysctl.h>
- #include <linux/wait.h>
- #include <linux/bcd.h>
-@@ -182,8 +182,8 @@ static int rtc_proc_open(struct inode *i
- 
- /*
-  * rtc_status is never changed by rtc_interrupt, and ioctl/open/close is
-- * protected by the big kernel lock. However, ioctl can still disable the timer
-- * in rtc_status and then with del_timer after the interrupt has read
-+ * protected by the spin lock rtc_lock. However, ioctl can still disable the
-+ * timer in rtc_status and then with del_timer after the interrupt has read
-  * rtc_status but before mod_timer is called, which would then reenable the
-  * timer (but you would need to have an awful timing before you'd trip on it)
-  */
-@@ -720,9 +720,7 @@ static int rtc_do_ioctl(unsigned int cmd
- static long rtc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long ret;
--	lock_kernel();
- 	ret = rtc_do_ioctl(cmd, arg, 0);
--	unlock_kernel();
- 	return ret;
- }
- 
-@@ -731,12 +729,8 @@ static long rtc_ioctl(struct file *file,
-  *	Also clear the previous interrupt data on an open, and clean
-  *	up things on a close.
-  */
--
--/* We use rtc_lock to protect against concurrent opens. So the BKL is not
-- * needed here. Or anywhere else in this driver. */
- static int rtc_open(struct inode *inode, struct file *file)
- {
--	lock_kernel();
- 	spin_lock_irq(&rtc_lock);
- 
- 	if (rtc_status & RTC_IS_OPEN)
-@@ -746,12 +740,10 @@ static int rtc_open(struct inode *inode,
- 
- 	rtc_irq_data = 0;
- 	spin_unlock_irq(&rtc_lock);
--	unlock_kernel();
- 	return 0;
- 
- out_busy:
- 	spin_unlock_irq(&rtc_lock);
--	unlock_kernel();
- 	return -EBUSY;
- }
- 
-@@ -800,7 +792,6 @@ no_irq:
- }
- 
- #ifdef RTC_IRQ
--/* Called without the kernel lock - fine */
- static unsigned int rtc_poll(struct file *file, poll_table *wait)
- {
- 	unsigned long l;
-_
-
-Patches currently in -mm which might be from davidjon@xenontk.org are
-
-linux-next.patch
-
+ 	for (i = 0; i < MAX_CARDS; i++) {
+-		if (!io[i])
+-			break;
