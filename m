@@ -1,154 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - crypto-replace-private-helper-with-common-unaligned-endian-helper.patch removed from -mm tree
-Date: Mon, 08 Dec 2008 15:54:57 -0800
-Message-ID: <200812082354.mB8NswYR025318@imap1.linux-foundation.org>
+Subject: + mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat.patch added to -mm tree
+Date: Mon, 08 Dec 2008 15:57:39 -0800
+Message-ID: <200812082357.mB8NvdZQ026953@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752849AbYLHXzA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:55:00 -0500
+	by vger.kernel.org with ESMTP id S1752897AbYLHX6d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:58:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: Brice.Goglin@inria.fr, clameter@sgi.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, npiggin@suse.de
 
 
 The patch titled
-     crypto: replace private helper with common unaligned endian helper
-has been removed from the -mm tree.  Its filename was
-     crypto-replace-private-helper-with-common-unaligned-endian-helper.patch
+     mm: no get_user/put_user while holding mmap_sem in do_pages_stat?
+has been added to the -mm tree.  Its filename is
+     mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: crypto: replace private helper with common unaligned endian helper
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: mm: no get_user/put_user while holding mmap_sem in do_pages_stat?
+From: Brice Goglin <Brice.Goglin@inria.fr>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Since commit 2f007e74bb85b9fc4eab28524052161703300f1a, do_pages_stat()
+gets the page address from user-space and puts the corresponding status
+back while holding the mmap_sem for read.  There is no need to hold
+mmap_sem there while some page-faults may occur.
+
+This patch adds a temporary address and status buffer so as to only
+hold mmap_sem while working on these kernel buffers.  This is
+implemented by extracting do_pages_stat_array() out of do_pages_stat().
+
+Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/salsa20_generic.c |   37 ++++++++++++++++---------------------
- 1 file changed, 16 insertions(+), 21 deletions(-)
+ mm/migrate.c |   59 ++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 46 insertions(+), 13 deletions(-)
 
-diff -puN crypto/salsa20_generic.c~crypto-replace-private-helper-with-common-unaligned-endian-helper crypto/salsa20_generic.c
---- a/crypto/salsa20_generic.c~crypto-replace-private-helper-with-common-unaligned-endian-helper
-+++ a/crypto/salsa20_generic.c
-@@ -26,6 +26,7 @@
- #include <linux/types.h>
- #include <crypto/algapi.h>
- #include <asm/byteorder.h>
-+#include <asm/unaligned.h>
- 
- #define SALSA20_IV_SIZE        8U
- #define SALSA20_MIN_KEY_SIZE  16U
-@@ -46,12 +47,6 @@ Public domain.
- #define XOR(v,w) ((v) ^ (w))
- #define PLUS(v,w) (((v) + (w)))
- #define PLUSONE(v) (PLUS((v),1))
--#define U32TO8_LITTLE(p, v) \
--	{ (p)[0] = (v >>  0) & 0xff; (p)[1] = (v >>  8) & 0xff; \
--	  (p)[2] = (v >> 16) & 0xff; (p)[3] = (v >> 24) & 0xff; }
--#define U8TO32_LITTLE(p)   \
--	(((u32)((p)[0])      ) | ((u32)((p)[1]) <<  8) | \
--	 ((u32)((p)[2]) << 16) | ((u32)((p)[3]) << 24)   )
- 
- struct salsa20_ctx
+diff -puN mm/migrate.c~mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat mm/migrate.c
+--- a/mm/migrate.c~mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat
++++ a/mm/migrate.c
+@@ -987,25 +987,18 @@ out:
+ /*
+  * Determine the nodes of an array of pages and store it in an array of status.
+  */
+-static int do_pages_stat(struct mm_struct *mm, unsigned long nr_pages,
+-			 const void __user * __user *pages,
+-			 int __user *status)
++static void do_pages_stat_array(struct mm_struct *mm, unsigned long nr_pages,
++				const void __user **pages, int *status)
  {
-@@ -101,7 +96,7 @@ static void salsa20_wordtobyte(u8 output
- 	for (i = 0; i < 16; ++i)
- 		x[i] = PLUS(x[i],input[i]);
- 	for (i = 0; i < 16; ++i)
--		U32TO8_LITTLE(output + 4 * i,x[i]);
-+		store_le32_noalign((__le32 *)(output + 4 * i), x[i]);
- }
+ 	unsigned long i;
+-	int err;
  
- static const char sigma[16] = "expand 32-byte k";
-@@ -111,30 +106,30 @@ static void salsa20_keysetup(struct sals
- {
- 	const char *constants;
+ 	down_read(&mm->mmap_sem);
  
--	ctx->input[1] = U8TO32_LITTLE(k + 0);
--	ctx->input[2] = U8TO32_LITTLE(k + 4);
--	ctx->input[3] = U8TO32_LITTLE(k + 8);
--	ctx->input[4] = U8TO32_LITTLE(k + 12);
-+	ctx->input[1] = load_le32_noalign((__le32 *)(k + 0));
-+	ctx->input[2] = load_le32_noalign((__le32 *)(k + 4));
-+	ctx->input[3] = load_le32_noalign((__le32 *)(k + 8));
-+	ctx->input[4] = load_le32_noalign((__le32 *)(k + 12));
- 	if (kbytes == 32) { /* recommended */
- 		k += 16;
- 		constants = sigma;
- 	} else { /* kbytes == 16 */
- 		constants = tau;
+ 	for (i = 0; i < nr_pages; i++) {
+-		const void __user *p;
+-		unsigned long addr;
++		unsigned long addr = (unsigned long)(*pages);
+ 		struct vm_area_struct *vma;
+ 		struct page *page;
+-
+-		err = -EFAULT;
+-		if (get_user(p, pages+i))
+-			goto out;
+-		addr = (unsigned long) p;
++		int err;
+ 
+ 		vma = find_vma(mm, addr);
+ 		if (!vma)
+@@ -1024,12 +1017,52 @@ static int do_pages_stat(struct mm_struc
+ 
+ 		err = page_to_nid(page);
+ set_status:
+-		put_user(err, status+i);
++		*status = err;
++
++		pages++;
++		status++;
++	}
++
++	up_read(&mm->mmap_sem);
++}
++
++/*
++ * Determine the nodes of a user array of pages and store it in
++ * a user array of status.
++ */
++static int do_pages_stat(struct mm_struct *mm, unsigned long nr_pages,
++			 const void __user * __user *pages,
++			 int __user *status)
++{
++#define DO_PAGES_STAT_CHUNK_NR 16
++	const void __user *chunk_pages[DO_PAGES_STAT_CHUNK_NR];
++	int chunk_status[DO_PAGES_STAT_CHUNK_NR];
++	unsigned long i, chunk_nr = DO_PAGES_STAT_CHUNK_NR;
++	int err;
++
++	for (i = 0; i < nr_pages; i += chunk_nr) {
++		if (chunk_nr + i > nr_pages)
++			chunk_nr = nr_pages - i;
++
++		err = copy_from_user(chunk_pages, &pages[i],
++				     chunk_nr * sizeof(*chunk_pages));
++		if (err) {
++			err = -EFAULT;
++			goto out;
++		}
++
++		do_pages_stat_array(mm, chunk_nr, chunk_pages, chunk_status);
++
++		err = copy_to_user(&status[i], chunk_status,
++				   chunk_nr * sizeof(*chunk_status));
++		if (err) {
++			err = -EFAULT;
++			goto out;
++		}
  	}
--	ctx->input[11] = U8TO32_LITTLE(k + 0);
--	ctx->input[12] = U8TO32_LITTLE(k + 4);
--	ctx->input[13] = U8TO32_LITTLE(k + 8);
--	ctx->input[14] = U8TO32_LITTLE(k + 12);
--	ctx->input[0] = U8TO32_LITTLE(constants + 0);
--	ctx->input[5] = U8TO32_LITTLE(constants + 4);
--	ctx->input[10] = U8TO32_LITTLE(constants + 8);
--	ctx->input[15] = U8TO32_LITTLE(constants + 12);
-+	ctx->input[11] = load_le32_noalign((__le32 *)(k + 0));
-+	ctx->input[12] = load_le32_noalign((__le32 *)(k + 4));
-+	ctx->input[13] = load_le32_noalign((__le32 *)(k + 8));
-+	ctx->input[14] = load_le32_noalign((__le32 *)(k + 12));
-+	ctx->input[0] = load_le32_noalign((__le32 *)(constants + 0));
-+	ctx->input[5] = load_le32_noalign((__le32 *)(constants + 4));
-+	ctx->input[10] = load_le32_noalign((__le32 *)(constants + 8));
-+	ctx->input[15] = load_le32_noalign((__le32 *)(constants + 12));
+ 	err = 0;
+ 
+ out:
+-	up_read(&mm->mmap_sem);
+ 	return err;
  }
  
- static void salsa20_ivsetup(struct salsa20_ctx *ctx, const u8 *iv)
- {
--	ctx->input[6] = U8TO32_LITTLE(iv + 0);
--	ctx->input[7] = U8TO32_LITTLE(iv + 4);
-+	ctx->input[6] = load_le32_noalign((__le32 *)(iv + 0));
-+	ctx->input[7] = load_le32_noalign((__le32 *)(iv + 4));
- 	ctx->input[8] = 0;
- 	ctx->input[9] = 0;
- }
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from Brice.Goglin@inria.fr are
 
-origin.patch
-linux-next.patch
-arm-use-the-new-byteorder-headers.patch
-i2c-misannotation-in-i2c-pmcmspc.patch
-i2c-trivial-endian-casting-fixes-in-i2c-highlanderc.patch
-ia64-use-the-new-byteorder-headers.patch
-input-ads7846c-sparse-lock-annotation.patch
-input-strict_strtoul-takes-unsigned-long.patch
-m32r-use-the-new-byteorder-headers.patch
-blackfin-use-the-new-byteorder-headers.patch
-parisc-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-frv-use-the-new-byteorder-headers.patch
-m68knommu-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
-ata-replace-byteshifting-with-unaligned-endian-helpers.patch
-crypto-replace-private-helper-with-common-unaligned-endian-helper.patch
-usb-use-unaligned-endian-helpers-in-storage-drivers.patch
+mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
+mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
 
