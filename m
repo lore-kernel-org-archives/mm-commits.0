@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + percpu_counter-fbc_batch-should-be-a-variable.patch added to -mm tree
-Date: Mon, 08 Dec 2008 00:19:52 -0800
-Message-ID: <200812080819.mB88JqxN013006@imap1.linux-foundation.org>
+Subject: + sm501-fix-section-mismatches.patch added to -mm tree
+Date: Mon, 08 Dec 2008 13:49:51 -0800
+Message-ID: <200812082149.mB8LnpTs014475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53221 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36079 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751601AbYLHIUE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 03:20:04 -0500
+	by vger.kernel.org with ESMTP id S1752541AbYLHVvD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 16:51:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, a.p.zijlstra@chello.nl, davem@davemloft.net
+Cc: adobriyan@gmail.com, ben-linux@fluff.org
 
 
 The patch titled
-     percpu_counter: FBC_BATCH should be a variable
+     sm501: fix section mismatches
 has been added to the -mm tree.  Its filename is
-     percpu_counter-fbc_batch-should-be-a-variable.patch
+     sm501-fix-section-mismatches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,156 +33,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu_counter: FBC_BATCH should be a variable
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: sm501: fix section mismatches
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-For NR_CPUS >= 16 values, FBC_BATCH is 2*NR_CPUS
+drv => driver renaming is needed otherwise modpost will spit false positives
+re pointing to __devinit function from regular data.
 
-Considering more and more distros are using high NR_CPUS values, it makes
-sense to use a more sensible value for FBC_BATCH, and get rid of NR_CPUS.
-
-A sensible value is 2*num_online_cpus(), with a minimum value of 32 (This
-minimum value helps branch prediction in __percpu_counter_add())
-
-We already have a hotcpu notifier, so we can adjust FBC_BATCH dynamically.
-
-We rename FBC_BATCH to percpu_counter_batch since its not a constant
-anymore.
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ext4.h                 |    6 +++---
- fs/ext4/inode.c                |    2 +-
- include/linux/percpu_counter.h |    8 ++------
- lib/percpu_counter.c           |   18 ++++++++++++++----
- 4 files changed, 20 insertions(+), 14 deletions(-)
+ drivers/mfd/sm501.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN fs/ext4/ext4.h~percpu_counter-fbc_batch-should-be-a-variable fs/ext4/ext4.h
---- a/fs/ext4/ext4.h~percpu_counter-fbc_batch-should-be-a-variable
-+++ a/fs/ext4/ext4.h
-@@ -1253,11 +1253,11 @@ do {								\
- } while (0)
+diff -puN drivers/mfd/sm501.c~sm501-fix-section-mismatches drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-fix-section-mismatches
++++ a/drivers/mfd/sm501.c
+@@ -1295,7 +1295,7 @@ static unsigned int sm501_mem_local[] = 
+  * Common init code for an SM501
+ */
  
- #ifdef CONFIG_SMP
--/* Each CPU can accumulate FBC_BATCH blocks in their local
-+/* Each CPU can accumulate percpu_counter_batch blocks in their local
-  * counters. So we need to make sure we have free blocks more
-- * than FBC_BATCH  * nr_cpu_ids. Also add a window of 4 times.
-+ * than percpu_counter_batch  * nr_cpu_ids. Also add a window of 4 times.
-  */
--#define EXT4_FREEBLOCKS_WATERMARK (4 * (FBC_BATCH * nr_cpu_ids))
-+#define EXT4_FREEBLOCKS_WATERMARK (4 * (percpu_counter_batch * nr_cpu_ids))
- #else
- #define EXT4_FREEBLOCKS_WATERMARK 0
- #endif
-diff -puN fs/ext4/inode.c~percpu_counter-fbc_batch-should-be-a-variable fs/ext4/inode.c
---- a/fs/ext4/inode.c~percpu_counter-fbc_batch-should-be-a-variable
-+++ a/fs/ext4/inode.c
-@@ -2533,7 +2533,7 @@ static int ext4_nonda_switch(struct supe
- 	/*
- 	 * switch to non delalloc mode if we are running low
- 	 * on free block. The free block accounting via percpu
--	 * counters can get slightly wrong with FBC_BATCH getting
-+	 * counters can get slightly wrong with percpu_counter_batch getting
- 	 * accumulated on each CPU without updating global counters
- 	 * Delalloc need an accurate free block accounting. So switch
- 	 * to non delalloc when we are near to error range.
-diff -puN include/linux/percpu_counter.h~percpu_counter-fbc_batch-should-be-a-variable include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~percpu_counter-fbc_batch-should-be-a-variable
-+++ a/include/linux/percpu_counter.h
-@@ -24,11 +24,7 @@ struct percpu_counter {
- 	s32 *counters;
- };
- 
--#if NR_CPUS >= 16
--#define FBC_BATCH	(NR_CPUS*2)
--#else
--#define FBC_BATCH	(NR_CPUS*4)
--#endif
-+extern int percpu_counter_batch;
- 
- int percpu_counter_init(struct percpu_counter *fbc, s64 amount);
- int percpu_counter_init_irq(struct percpu_counter *fbc, s64 amount);
-@@ -39,7 +35,7 @@ s64 __percpu_counter_sum(struct percpu_c
- 
- static inline void percpu_counter_add(struct percpu_counter *fbc, s64 amount)
+-static int sm501_init_dev(struct sm501_devdata *sm)
++static int __devinit sm501_init_dev(struct sm501_devdata *sm)
  {
--	__percpu_counter_add(fbc, amount, FBC_BATCH);
-+	__percpu_counter_add(fbc, amount, percpu_counter_batch);
- }
- 
- static inline s64 percpu_counter_sum_positive(struct percpu_counter *fbc)
-diff -puN lib/percpu_counter.c~percpu_counter-fbc_batch-should-be-a-variable lib/percpu_counter.c
---- a/lib/percpu_counter.c~percpu_counter-fbc_batch-should-be-a-variable
-+++ a/lib/percpu_counter.c
-@@ -9,10 +9,8 @@
- #include <linux/cpu.h>
- #include <linux/module.h>
- 
--#ifdef CONFIG_HOTPLUG_CPU
- static LIST_HEAD(percpu_counters);
- static DEFINE_MUTEX(percpu_counters_lock);
--#endif
- 
- void percpu_counter_set(struct percpu_counter *fbc, s64 amount)
- {
-@@ -111,13 +109,24 @@ void percpu_counter_destroy(struct percp
- }
- EXPORT_SYMBOL(percpu_counter_destroy);
- 
--#ifdef CONFIG_HOTPLUG_CPU
-+int percpu_counter_batch __read_mostly = 32;
-+EXPORT_SYMBOL(percpu_counter_batch);
-+
-+static void compute_batch_value(void)
-+{
-+	int nr = num_online_cpus();
-+
-+	percpu_counter_batch = max(32, nr*2);
-+}
-+
- static int __cpuinit percpu_counter_hotcpu_callback(struct notifier_block *nb,
- 					unsigned long action, void *hcpu)
- {
-+#ifdef CONFIG_HOTPLUG_CPU
- 	unsigned int cpu;
- 	struct percpu_counter *fbc;
- 
-+	compute_batch_value();
- 	if (action != CPU_DEAD)
- 		return NOTIFY_OK;
- 
-@@ -134,13 +143,14 @@ static int __cpuinit percpu_counter_hotc
- 		spin_unlock_irqrestore(&fbc->lock, flags);
- 	}
- 	mutex_unlock(&percpu_counters_lock);
-+#endif
- 	return NOTIFY_OK;
- }
- 
- static int __init percpu_counter_startup(void)
- {
-+	compute_batch_value();
- 	hotcpu_notifier(percpu_counter_hotcpu_callback, 0);
+ 	struct sm501_initdata *idata;
+ 	struct sm501_platdata *pdata;
+@@ -1371,7 +1371,7 @@ static int sm501_init_dev(struct sm501_d
  	return 0;
  }
- module_init(percpu_counter_startup);
--#endif
+ 
+-static int sm501_plat_probe(struct platform_device *dev)
++static int __devinit sm501_plat_probe(struct platform_device *dev)
+ {
+ 	struct sm501_devdata *sm;
+ 	int ret;
+@@ -1560,8 +1560,8 @@ static struct sm501_platdata sm501_pci_p
+ 	.gpio_base	= -1,
+ };
+ 
+-static int sm501_pci_probe(struct pci_dev *dev,
+-			   const struct pci_device_id *id)
++static int __devinit sm501_pci_probe(struct pci_dev *dev,
++				     const struct pci_device_id *id)
+ {
+ 	struct sm501_devdata *sm;
+ 	int err;
+@@ -1667,7 +1667,7 @@ static void sm501_dev_remove(struct sm50
+ 	sm501_gpio_remove(sm);
+ }
+ 
+-static void sm501_pci_remove(struct pci_dev *dev)
++static void __devexit sm501_pci_remove(struct pci_dev *dev)
+ {
+ 	struct sm501_devdata *sm = pci_get_drvdata(dev);
+ 
+@@ -1701,16 +1701,16 @@ static struct pci_device_id sm501_pci_tb
+ 
+ MODULE_DEVICE_TABLE(pci, sm501_pci_tbl);
+ 
+-static struct pci_driver sm501_pci_drv = {
++static struct pci_driver sm501_pci_driver = {
+ 	.name		= "sm501",
+ 	.id_table	= sm501_pci_tbl,
+ 	.probe		= sm501_pci_probe,
+-	.remove		= sm501_pci_remove,
++	.remove		= __devexit_p(sm501_pci_remove),
+ };
+ 
+ MODULE_ALIAS("platform:sm501");
+ 
+-static struct platform_driver sm501_plat_drv = {
++static struct platform_driver sm501_plat_driver = {
+ 	.driver		= {
+ 		.name	= "sm501",
+ 		.owner	= THIS_MODULE,
+@@ -1723,14 +1723,14 @@ static struct platform_driver sm501_plat
+ 
+ static int __init sm501_base_init(void)
+ {
+-	platform_driver_register(&sm501_plat_drv);
+-	return pci_register_driver(&sm501_pci_drv);
++	platform_driver_register(&sm501_plat_driver);
++	return pci_register_driver(&sm501_pci_driver);
+ }
+ 
+ static void __exit sm501_base_exit(void)
+ {
+-	platform_driver_unregister(&sm501_plat_drv);
+-	pci_unregister_driver(&sm501_pci_drv);
++	platform_driver_unregister(&sm501_plat_driver);
++	pci_unregister_driver(&sm501_pci_driver);
+ }
+ 
+ module_init(sm501_base_init);
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-origin.patch
-percpu_counter-fix-cpu-unplug-race-in-percpu_counter_destroy.patch
-revert-percpu-counter-clean-up-percpu_counter_sum_and_set.patch
-revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch
+pagemap-fix-32-bit-pagemap-regression.patch
 linux-next.patch
-percpu_counter-fbc_batch-should-be-a-variable.patch
+kconfig-add-module_name-shortcut.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+vfs-fix-switch_names-breakage-in-short-to-short-case.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+remove-remaining-unwinder-code.patch
 softirq-introduce-statistics-for-softirq.patch
 proc-export-statistics-for-softirq-to-proc.patch
 proc-update-document-for-proc-softirqs-and-proc-stat.patch
+sm501-fix-section-mismatches.patch
+ipc-ipc_sysctlc-move-the-definition-of-ipc_auto_callback.patch
 
