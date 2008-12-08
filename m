@@ -1,161 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: + raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 08 Dec 2008 15:52:59 -0800
-Message-ID: <200812082353.mB8Nr0uo024153@imap1.linux-foundation.org>
+Subject: - crypto-replace-private-helper-with-common-unaligned-endian-helper.patch removed from -mm tree
+Date: Mon, 08 Dec 2008 15:54:57 -0800
+Message-ID: <200812082354.mB8NswYR025318@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44981 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38907 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752958AbYLHXxC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:53:02 -0500
+	by vger.kernel.org with ESMTP id S1752849AbYLHXzA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:55:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, viro@ZenIV.linux.org.ukviro@ZenIV.linux.org.uk
+To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+     crypto: replace private helper with common unaligned endian helper
+has been removed from the -mm tree.  Its filename was
+     crypto-replace-private-helper-with-common-unaligned-endian-helper.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: crypto: replace private helper with common unaligned endian helper
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-ERROR: open brace '{' following struct go on the same line
-#246: FILE: drivers/char/raw.c:249:
-+struct raw32_config_request
-+{
-
-ERROR: code indent should use tabs where possible
-#247: FILE: drivers/char/raw.c:250:
-+        compat_int_t^Iraw_minor;$
-
-ERROR: code indent should use tabs where possible
-#248: FILE: drivers/char/raw.c:251:
-+        compat_u64^Iblock_major;$
-
-ERROR: code indent should use tabs where possible
-#249: FILE: drivers/char/raw.c:252:
-+        compat_u64^Iblock_minor;$
-
-total: 4 errors, 0 warnings, 358 lines checked
-
-./patches/raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/raw.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ crypto/salsa20_generic.c |   37 ++++++++++++++++---------------------
+ 1 file changed, 16 insertions(+), 21 deletions(-)
 
-diff -puN drivers/char/raw.c~raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes drivers/char/raw.c
---- a/drivers/char/raw.c~raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes
-+++ a/drivers/char/raw.c
-@@ -245,11 +245,10 @@ static int raw_ctl_ioctl(struct inode *i
+diff -puN crypto/salsa20_generic.c~crypto-replace-private-helper-with-common-unaligned-endian-helper crypto/salsa20_generic.c
+--- a/crypto/salsa20_generic.c~crypto-replace-private-helper-with-common-unaligned-endian-helper
++++ a/crypto/salsa20_generic.c
+@@ -26,6 +26,7 @@
+ #include <linux/types.h>
+ #include <crypto/algapi.h>
+ #include <asm/byteorder.h>
++#include <asm/unaligned.h>
+ 
+ #define SALSA20_IV_SIZE        8U
+ #define SALSA20_MIN_KEY_SIZE  16U
+@@ -46,12 +47,6 @@ Public domain.
+ #define XOR(v,w) ((v) ^ (w))
+ #define PLUS(v,w) (((v) + (w)))
+ #define PLUSONE(v) (PLUS((v),1))
+-#define U32TO8_LITTLE(p, v) \
+-	{ (p)[0] = (v >>  0) & 0xff; (p)[1] = (v >>  8) & 0xff; \
+-	  (p)[2] = (v >> 16) & 0xff; (p)[3] = (v >> 24) & 0xff; }
+-#define U8TO32_LITTLE(p)   \
+-	(((u32)((p)[0])      ) | ((u32)((p)[1]) <<  8) | \
+-	 ((u32)((p)[2]) << 16) | ((u32)((p)[3]) << 24)   )
+ 
+ struct salsa20_ctx
+ {
+@@ -101,7 +96,7 @@ static void salsa20_wordtobyte(u8 output
+ 	for (i = 0; i < 16; ++i)
+ 		x[i] = PLUS(x[i],input[i]);
+ 	for (i = 0; i < 16; ++i)
+-		U32TO8_LITTLE(output + 4 * i,x[i]);
++		store_le32_noalign((__le32 *)(output + 4 * i), x[i]);
  }
  
- #ifdef CONFIG_COMPAT
--struct raw32_config_request
--{
--        compat_int_t	raw_minor;
--        compat_u64	block_major;
--        compat_u64	block_minor;
-+struct raw32_config_request {
-+	compat_int_t	raw_minor;
-+	compat_u64	block_major;
-+	compat_u64	block_minor;
- };
+ static const char sigma[16] = "expand 32-byte k";
+@@ -111,30 +106,30 @@ static void salsa20_keysetup(struct sals
+ {
+ 	const char *constants;
  
- static long raw_ctl_compat_ioctl(struct file *file, unsigned int cmd,
+-	ctx->input[1] = U8TO32_LITTLE(k + 0);
+-	ctx->input[2] = U8TO32_LITTLE(k + 4);
+-	ctx->input[3] = U8TO32_LITTLE(k + 8);
+-	ctx->input[4] = U8TO32_LITTLE(k + 12);
++	ctx->input[1] = load_le32_noalign((__le32 *)(k + 0));
++	ctx->input[2] = load_le32_noalign((__le32 *)(k + 4));
++	ctx->input[3] = load_le32_noalign((__le32 *)(k + 8));
++	ctx->input[4] = load_le32_noalign((__le32 *)(k + 12));
+ 	if (kbytes == 32) { /* recommended */
+ 		k += 16;
+ 		constants = sigma;
+ 	} else { /* kbytes == 16 */
+ 		constants = tau;
+ 	}
+-	ctx->input[11] = U8TO32_LITTLE(k + 0);
+-	ctx->input[12] = U8TO32_LITTLE(k + 4);
+-	ctx->input[13] = U8TO32_LITTLE(k + 8);
+-	ctx->input[14] = U8TO32_LITTLE(k + 12);
+-	ctx->input[0] = U8TO32_LITTLE(constants + 0);
+-	ctx->input[5] = U8TO32_LITTLE(constants + 4);
+-	ctx->input[10] = U8TO32_LITTLE(constants + 8);
+-	ctx->input[15] = U8TO32_LITTLE(constants + 12);
++	ctx->input[11] = load_le32_noalign((__le32 *)(k + 0));
++	ctx->input[12] = load_le32_noalign((__le32 *)(k + 4));
++	ctx->input[13] = load_le32_noalign((__le32 *)(k + 8));
++	ctx->input[14] = load_le32_noalign((__le32 *)(k + 12));
++	ctx->input[0] = load_le32_noalign((__le32 *)(constants + 0));
++	ctx->input[5] = load_le32_noalign((__le32 *)(constants + 4));
++	ctx->input[10] = load_le32_noalign((__le32 *)(constants + 8));
++	ctx->input[15] = load_le32_noalign((__le32 *)(constants + 12));
+ }
+ 
+ static void salsa20_ivsetup(struct salsa20_ctx *ctx, const u8 *iv)
+ {
+-	ctx->input[6] = U8TO32_LITTLE(iv + 0);
+-	ctx->input[7] = U8TO32_LITTLE(iv + 4);
++	ctx->input[6] = load_le32_noalign((__le32 *)(iv + 0));
++	ctx->input[7] = load_le32_noalign((__le32 *)(iv + 4));
+ 	ctx->input[8] = 0;
+ 	ctx->input[9] = 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-mm-backing-devc-remove-recently-added-warn_on.patch
-revert-percpu-counter-clean-up-percpu_counter_sum_and_set.patch
-revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch
-ksym_symbol_len-fixes.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
 linux-next.patch
-next-remove-localversion.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-pci-uninline-pci_ioremap_bar.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-drivers-char-cycladesc-cy_pci_probe-fix-error-path.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-ldisc-n_tty-export-all-n_tty-ldisc-methods-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+arm-use-the-new-byteorder-headers.patch
+i2c-misannotation-in-i2c-pmcmspc.patch
+i2c-trivial-endian-casting-fixes-in-i2c-highlanderc.patch
+ia64-use-the-new-byteorder-headers.patch
+input-ads7846c-sparse-lock-annotation.patch
+input-strict_strtoul-takes-unsigned-long.patch
+m32r-use-the-new-byteorder-headers.patch
+blackfin-use-the-new-byteorder-headers.patch
+parisc-use-the-new-byteorder-headers.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+frv-use-the-new-byteorder-headers.patch
+m68knommu-use-the-new-byteorder-headers.patch
+h8300-use-the-new-byteorder-headers.patch
+alpha-use-the-new-byteorder-headers.patch
+lib-fix-sparse-shadowed-variable-warning.patch
+lib-radix_treec-make-percpu-variable-static.patch
+lib-proportionsc-trivial-sparse-lock-annotation.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+blackfin-remove-__function__-in-video-driver.patch
+fb-carminefb-trivial-annotation-packing-color-register.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+byteorder-add-load_-store_endian-api.patch
+unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
+unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
+sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
+unaligned-wire-up-h8300-and-m32r-arches.patch
+unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
+unaligned-remove-the-old-implementation.patch
+ata-replace-byteshifting-with-unaligned-endian-helpers.patch
+crypto-replace-private-helper-with-common-unaligned-endian-helper.patch
+usb-use-unaligned-endian-helpers-in-storage-drivers.patch
 
