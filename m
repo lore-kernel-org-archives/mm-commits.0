@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + w1-add-touch-block-command.patch added to -mm tree
-Date: Mon, 08 Dec 2008 13:59:07 -0800
-Message-ID: <200812082159.mB8Lx7NW020045@imap1.linux-foundation.org>
+Subject: + w1-add-list-masters-w1-command.patch added to -mm tree
+Date: Mon, 08 Dec 2008 13:59:02 -0800
+Message-ID: <200812082159.mB8Lx3uS020033@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55704 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752500AbYLHV7m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 16:59:42 -0500
+	by vger.kernel.org with ESMTP id S1752500AbYLHV7p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 16:59:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zbr@ioremap.net
+Cc: zbr@ioremap.net, frederik.deweerdt@xprog.eu, paul.alfille@gmail.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     w1: add touch block command
+     w1: add list masters w1 command
 has been added to the -mm tree.  Its filename is
-     w1-add-touch-block-command.patch
+     w1-add-list-masters-w1-command.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,121 +33,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: add touch block command
+Subject: w1: add list masters w1 command
 From: Evgeniy Polyakov <zbr@ioremap.net>
 
-Writes and returns sampled data back to userspace.
+This patch series introduces and extends several userspace commands
+used with netlink protocol.
+
+Touch block command allows to write data and return sampled data to
+the userspace.
+
+Extended search and alarm seach commands to return list of slave
+devices found during given search.
+
+List masters command allows to send all registered master IDs to the
+userspace.
+
+Great thanks to Paul Alfille (owfs) who
+tested this implementation and wrote w1-to-network daemon
+http://sourceforge.net/projects/w1repeater/ and 
+
+Frederik Deweerdt and Randy Dunlap for review.
+
+
+
+This patch:
+
+Returns list of registered bus master devices.
 
 Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Paul Alfille <paul.alfille@gmail.com>
+Cc: Frederik Deweerdt <frederik.deweerdt@xprog.eu>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.h         |    1 +
- drivers/w1/w1_io.c      |   26 +++++++++++++++++++++++++-
- drivers/w1/w1_netlink.c |   11 ++++++++---
- drivers/w1/w1_netlink.h |    1 +
- 4 files changed, 35 insertions(+), 4 deletions(-)
+ drivers/w1/w1_netlink.c |   56 ++++++++++++++++++++++++++++++++++++++
+ drivers/w1/w1_netlink.h |    1 
+ 2 files changed, 57 insertions(+)
 
-diff -puN drivers/w1/w1.h~w1-add-touch-block-command drivers/w1/w1.h
---- a/drivers/w1/w1.h~w1-add-touch-block-command
-+++ a/drivers/w1/w1.h
-@@ -210,6 +210,7 @@ u8 w1_read_8(struct w1_master *);
- int w1_reset_bus(struct w1_master *);
- u8 w1_calc_crc8(u8 *, int);
- void w1_write_block(struct w1_master *, const u8 *, int);
-+void w1_touch_block(struct w1_master *, u8 *, int);
- u8 w1_read_block(struct w1_master *, u8 *, int);
- int w1_reset_select_slave(struct w1_slave *sl);
- void w1_next_pullup(struct w1_master *, int);
-diff -puN drivers/w1/w1_io.c~w1-add-touch-block-command drivers/w1/w1_io.c
---- a/drivers/w1/w1_io.c~w1-add-touch-block-command
-+++ a/drivers/w1/w1_io.c
-@@ -238,7 +238,6 @@ EXPORT_SYMBOL_GPL(w1_read_8);
-  * @param dev     the master device
-  * @param buf     pointer to the data to write
-  * @param len     the number of bytes to write
-- * @return        the byte read
-  */
- void w1_write_block(struct w1_master *dev, const u8 *buf, int len)
- {
-@@ -256,6 +255,31 @@ void w1_write_block(struct w1_master *de
- EXPORT_SYMBOL_GPL(w1_write_block);
+diff -puN drivers/w1/w1_netlink.c~w1-add-list-masters-w1-command drivers/w1/w1_netlink.c
+--- a/drivers/w1/w1_netlink.c~w1-add-list-masters-w1-command
++++ a/drivers/w1/w1_netlink.c
+@@ -128,6 +128,59 @@ static int w1_process_command_slave(stru
+ 	return err;
+ }
  
- /**
-+ * Touches a series of bytes.
-+ *
-+ * @param dev     the master device
-+ * @param buf     pointer to the data to write
-+ * @param len     the number of bytes to write
-+ */
-+void w1_touch_block(struct w1_master *dev, u8 *buf, int len)
++static int w1_process_command_root(struct cn_msg *msg, struct w1_netlink_msg *mcmd)
 +{
-+	int i, j;
-+	u8 tmp;
++	struct w1_master *m;
++	struct cn_msg *cn;
++	struct w1_netlink_msg *w;
++	u32 *id;
 +
-+	for (i = 0; i < len; ++i) {
-+		tmp = 0;
-+		for (j = 0; j < 8; ++j) {
-+			if (j == 7)
-+				w1_pre_write(dev);
-+			tmp |= w1_touch_bit(dev, (buf[i] >> j) & 0x1) << j;
++	if (mcmd->type != W1_LIST_MASTERS) {
++		printk(KERN_NOTICE "%s: msg: %x.%x, wrong type: %u, len: %u.\n",
++				__func__, msg->id.idx, msg->id.val, mcmd->type, mcmd->len);
++		return -EPROTO;
++	}
++
++	cn = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!cn)
++		return -ENOMEM;
++
++	cn->id.idx = CN_W1_IDX;
++	cn->id.val = CN_W1_VAL;
++
++	cn->seq = msg->seq;
++	cn->ack = 1;
++	cn->len = sizeof(struct w1_netlink_msg);
++	w = (struct w1_netlink_msg *)(cn + 1);
++
++	w->type = W1_LIST_MASTERS;
++	w->reserved = 0;
++	w->len = 0;
++	id = (u32 *)(w + 1);
++
++	mutex_lock(&w1_mlock);
++	list_for_each_entry(m, &w1_masters, w1_master_entry) {
++		if (cn->len + sizeof(*id) > PAGE_SIZE - sizeof(struct cn_msg)) {
++			cn_netlink_send(cn, 0, GFP_KERNEL);
++			cn->ack++;
++			cn->len = sizeof(struct w1_netlink_msg);
++			w->len = 0;
++			id = (u32 *)(w + 1);
 +		}
 +
-+		buf[i] = tmp;
++		*id = m->id;
++		w->len += sizeof(*id);
++		cn->len += sizeof(*id);
++		id++;
 +	}
++	cn->ack = 0;
++	cn_netlink_send(cn, 0, GFP_KERNEL);
++	mutex_unlock(&w1_mlock);
++
++	kfree(cn);
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(w1_touch_block);
 +
-+/**
-  * Reads a series of bytes.
-  *
-  * @param dev     the master device
-diff -puN drivers/w1/w1_netlink.c~w1-add-touch-block-command drivers/w1/w1_netlink.c
---- a/drivers/w1/w1_netlink.c~w1-add-touch-block-command
-+++ a/drivers/w1/w1_netlink.c
-@@ -108,6 +108,10 @@ static int w1_process_command_slave(stru
- 		cmd->cmd, cmd->len);
- 
- 	switch (cmd->cmd) {
-+		case W1_CMD_TOUCH:
-+			w1_touch_block(sl->master, cmd->data, cmd->len);
-+			w1_send_read_reply(sl, msg, hdr, cmd);
-+			break;
- 		case W1_CMD_READ:
- 			w1_read_block(sl->master, cmd->data, cmd->len);
- 			w1_send_read_reply(sl, msg, hdr, cmd);
-@@ -208,9 +212,6 @@ static void w1_cn_callback(void *data)
- 			break;
- 		}
- 
--		if (!mlen)
--			goto out_cont;
--
- 		if (m->type == W1_MASTER_CMD) {
- 			dev = w1_search_master_id(m->id.mst.id);
- 		} else if (m->type == W1_SLAVE_CMD) {
-@@ -227,6 +228,10 @@ static void w1_cn_callback(void *data)
- 			goto out_cont;
- 		}
- 
-+		err = 0;
-+		if (!mlen)
-+			goto out_cont;
-+
- 		mutex_lock(&dev->mutex);
- 
- 		if (sl && w1_reset_select_slave(sl)) {
-diff -puN drivers/w1/w1_netlink.h~w1-add-touch-block-command drivers/w1/w1_netlink.h
---- a/drivers/w1/w1_netlink.h~w1-add-touch-block-command
-+++ a/drivers/w1/w1_netlink.h
-@@ -56,6 +56,7 @@ struct w1_netlink_msg
- #define W1_CMD_WRITE		0x1
- #define W1_CMD_SEARCH		0x2
- #define W1_CMD_ALARM_SEARCH	0x3
-+#define W1_CMD_TOUCH		0x4
- 
- struct w1_netlink_cmd
+ static void w1_cn_callback(void *data)
  {
+ 	struct cn_msg *msg = data;
+@@ -164,6 +217,9 @@ static void w1_cn_callback(void *data)
+ 			sl = w1_search_slave(&id);
+ 			if (sl)
+ 				dev = sl->master;
++		} else {
++			err = w1_process_command_root(msg, m);
++			goto out_cont;
+ 		}
+ 
+ 		if (!dev) {
+diff -puN drivers/w1/w1_netlink.h~w1-add-list-masters-w1-command drivers/w1/w1_netlink.h
+--- a/drivers/w1/w1_netlink.h~w1-add-list-masters-w1-command
++++ a/drivers/w1/w1_netlink.h
+@@ -34,6 +34,7 @@ enum w1_netlink_message_types {
+ 	W1_MASTER_REMOVE,
+ 	W1_MASTER_CMD,
+ 	W1_SLAVE_CMD,
++	W1_LIST_MASTERS,
+ };
+ 
+ struct w1_netlink_msg
 _
 
 Patches currently in -mm which might be from zbr@ioremap.net are
