@@ -1,65 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - fix-for-tty-serial-move-port.patch removed from -mm tree
-Date: Mon, 08 Dec 2008 15:24:03 -0800
-Message-ID: <200812082324.mB8NO4pt006746@imap1.linux-foundation.org>
+Subject: - forcedeth-power-down-phy-when-interface-is-down.patch removed from -mm tree
+Date: Mon, 08 Dec 2008 15:24:15 -0800
+Message-ID: <200812082324.mB8NOF5P006855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57143 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33268 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753053AbYLHXYO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:24:14 -0500
+	by vger.kernel.org with ESMTP id S1753174AbYLHXYc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:24:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.beregalov@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: eswierk@arastra.com, aabdulla@nvidia.com, ajones@riverbed.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix for tty-serial-move-port
+     forcedeth: power down phy when interface is down
 has been removed from the -mm tree.  Its filename was
-     fix-for-tty-serial-move-port.patch
+     forcedeth-power-down-phy-when-interface-is-down.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix for tty-serial-move-port
-From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: forcedeth: power down phy when interface is down
+From: "Ed Swierk" <eswierk@arastra.com>
 
-next-20081204 crashes with the following message:
+Bring the physical link down when the interface is down by placing the PHY
+in power-down state, unless WOL is enabled.  This mirrors the behavior of
+other drivers including e1000 and tg3.
 
-BUG: unable to handle kernel paging request at ffff88007d320248
-IP: [<ffffffff803de934>] uart_remove_one_port+0xef/0x111
-                kfree(info);
-     393:       49 8d 7d 10             lea    0x10(%r13),%rdi
-     397:       e8 00 00 00 00          callq  39c <uart_remove_one_port+0xef>
+Without the patch, ifconfig down leaves the physical link up, which confuses
+datacenter users who expect the link lights both on the NIC and the switch to
+go out when they bring an interface down.
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Furthermore, even though the phy is powered on, autonegotiation stops working,
+so a normally gigabit link might suddenly become 100 Mbit half-duplex when the
+interface goes down, and become gigabit when it comes up again.
+
+Ayaz said:
+
+  I would not include this patch until further testing is performed.  NVIDIA
+  MCP chips use 3rd party PHY vendors.  By powering down the phy, it could
+  have adverse affects on certain phys.
+
+Arthur Jones said:
+
+  I just ran across this patch.  Tested on a Marvell 88E1121R (GigE PHY)
+  and works great.  This is a very important feature for me.
+
+Signed-off-by: Ed Swierk <eswierk@arastra.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Tested-by: Arthur Jones <ajones@riverbed.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/net/forcedeth.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~fix-for-tty-serial-move-port drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~fix-for-tty-serial-move-port
-+++ a/drivers/serial/serial_core.c
-@@ -2530,10 +2530,8 @@ int uart_remove_one_port(struct uart_dri
- 	/*
- 	 * Kill the tasklet, and free resources.
- 	 */
--	if (info) {
-+	if (info)
- 		tasklet_kill(&info->tlet);
--		kfree(info);
--	}
+diff -puN drivers/net/forcedeth.c~forcedeth-power-down-phy-when-interface-is-down drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-power-down-phy-when-interface-is-down
++++ a/drivers/net/forcedeth.c
+@@ -1446,9 +1446,9 @@ static int phy_init(struct net_device *d
+ 	/* some phys clear out pause advertisment on reset, set it back */
+ 	mii_rw(dev, np->phyaddr, MII_ADVERTISE, reg);
  
- 	state->port = NULL;
- 	mutex_unlock(&port_mutex);
+-	/* restart auto negotiation */
++	/* restart auto negotiation, power down phy */
+ 	mii_control = mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ);
+-	mii_control |= (BMCR_ANRESTART | BMCR_ANENABLE);
++	mii_control |= (BMCR_ANRESTART | BMCR_ANENABLE | BMCR_PDOWN);
+ 	if (mii_rw(dev, np->phyaddr, MII_BMCR, mii_control)) {
+ 		return PHY_ERROR;
+ 	}
+@@ -5208,6 +5208,10 @@ static int nv_open(struct net_device *de
+ 
+ 	dprintk(KERN_DEBUG "nv_open: begin\n");
+ 
++	/* power up phy */
++	mii_rw(dev, np->phyaddr, MII_BMCR,
++	       mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ) & ~BMCR_PDOWN);
++
+ 	/* erase previous misconfiguration */
+ 	if (np->driver_data & DEV_HAS_POWER_CNTRL)
+ 		nv_mac_reset(dev);
+@@ -5401,6 +5405,10 @@ static int nv_close(struct net_device *d
+ 	if (np->wolenabled) {
+ 		writel(NVREG_PFF_ALWAYS|NVREG_PFF_MYADDR, base + NvRegPacketFilterFlags);
+ 		nv_start_rx(dev);
++	} else {
++		/* power down phy */
++		mii_rw(dev, np->phyaddr, MII_BMCR,
++		       mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ)|BMCR_PDOWN);
+ 	}
+ 
+ 	/* FIXME: power down nic */
 _
 
-Patches currently in -mm which might be from a.beregalov@gmail.com are
+Patches currently in -mm which might be from eswierk@arastra.com are
 
 linux-next.patch
 
