@@ -1,113 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - backlight-catch-invalid-input.patch removed from -mm tree
-Date: Mon, 08 Dec 2008 15:24:27 -0800
-Message-ID: <200812082324.mB8NOR9p006978@imap1.linux-foundation.org>
+Subject: - backlight-value-of-ili9320_rgb_if2-register-should-not-be-hardcoded.patch removed from -mm tree
+Date: Mon, 08 Dec 2008 15:24:23 -0800
+Message-ID: <200812082324.mB8NONCq006955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753593AbYLHXZR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:25:17 -0500
+	by vger.kernel.org with ESMTP id S1753235AbYLHXZd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:25:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@suse.cz, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: den@openvz.org, ben-linux@fluff.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight: catch invalid input
+     backlight: value of ILI9320_RGB_IF2 register should not be hardcoded
 has been removed from the -mm tree.  Its filename was
-     backlight-catch-invalid-input.patch
+     backlight-value-of-ili9320_rgb_if2-register-should-not-be-hardcoded.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: catch invalid input
-From: Pavel Machek <pavel@suse.cz>
+Subject: backlight: value of ILI9320_RGB_IF2 register should not be hardcoded
+From: "Denis V. Lunev" <den@openvz.org>
 
-Check input properly in backlight, echo > brightness should not turn off
-the backlight.
+It is stored in the board specific file
+  ./arch/arm/mach-s3c2412/mach-jive.c
+as .rgb_if2.
 
-[akpm@linux-foundation.org: coding-style fixes]
-[akpm@linux-foundation.org: fix printk warning]
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Actually, the value is correct, only semantic is wrong.
+
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |   33 +++++++++++---------------
- 1 file changed, 15 insertions(+), 18 deletions(-)
+ drivers/video/backlight/vgg2432a4.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-catch-invalid-input drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-catch-invalid-input
-+++ a/drivers/video/backlight/backlight.c
-@@ -80,20 +80,18 @@ static ssize_t backlight_show_power(stru
- static ssize_t backlight_store_power(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t count)
- {
--	int rc = -ENXIO;
--	char *endp;
-+	int rc;
- 	struct backlight_device *bd = to_backlight_device(dev);
--	int power = simple_strtoul(buf, &endp, 0);
--	size_t size = endp - buf;
-+	unsigned long power;
+diff -puN drivers/video/backlight/vgg2432a4.c~backlight-value-of-ili9320_rgb_if2-register-should-not-be-hardcoded drivers/video/backlight/vgg2432a4.c
+--- a/drivers/video/backlight/vgg2432a4.c~backlight-value-of-ili9320_rgb_if2-register-should-not-be-hardcoded
++++ a/drivers/video/backlight/vgg2432a4.c
+@@ -137,7 +137,7 @@ static int vgg2432a4_lcd_init(struct ili
  
--	if (*endp && isspace(*endp))
--		size++;
--	if (size != count)
--		return -EINVAL;
-+	rc = strict_strtoul(buf, 0, &power);
-+	if (rc)
-+		return rc;
+ 	ili9320_write(lcd, ILI9320_RGB_IF1, cfg->rgb_if1);
+ 	ili9320_write(lcd, ILI9320_FRAMEMAKER, 0x0);
+-	ili9320_write(lcd, ILI9320_RGB_IF2, ILI9320_RGBIF2_DPL);
++	ili9320_write(lcd, ILI9320_RGB_IF2, cfg->rgb_if2);
  
-+	rc = -ENXIO;
- 	mutex_lock(&bd->ops_lock);
- 	if (bd->ops) {
--		pr_debug("backlight: set power to %d\n", power);
-+		pr_debug("backlight: set power to %lu\n", power);
- 		if (bd->props.power != power) {
- 			bd->props.power = power;
- 			backlight_update_status(bd);
-@@ -116,23 +114,22 @@ static ssize_t backlight_show_brightness
- static ssize_t backlight_store_brightness(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t count)
- {
--	int rc = -ENXIO;
--	char *endp;
-+	int rc;
- 	struct backlight_device *bd = to_backlight_device(dev);
--	int brightness = simple_strtoul(buf, &endp, 0);
--	size_t size = endp - buf;
-+	unsigned long brightness;
-+
-+	rc = strict_strtoul(buf, 0, &brightness);
-+	if (rc)
-+		return rc;
- 
--	if (*endp && isspace(*endp))
--		size++;
--	if (size != count)
--		return -EINVAL;
-+	rc = -ENXIO;
- 
- 	mutex_lock(&bd->ops_lock);
- 	if (bd->ops) {
- 		if (brightness > bd->props.max_brightness)
- 			rc = -EINVAL;
- 		else {
--			pr_debug("backlight: set brightness to %d\n",
-+			pr_debug("backlight: set brightness to %lu\n",
- 				 brightness);
- 			if (bd->props.brightness != brightness) {
- 				bd->props.brightness = brightness;
+ 	ret = ili9320_write_regs(lcd, vgg_init1, ARRAY_SIZE(vgg_init1));
+ 	if (ret != 0)
 _
 
-Patches currently in -mm which might be from pavel@suse.cz are
+Patches currently in -mm which might be from den@openvz.org are
 
 linux-next.patch
-strict_strto-is-not-strict-enough.patch
-lis3lv02d-separate-the-core-from-hp-acpi-api.patch
-lis3lv02d-merge-with-leds-hp-disk.patch
+ipc-do-not-goto-to-the-next-line.patch
 
