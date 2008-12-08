@@ -1,104 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - forcedeth-power-down-phy-when-interface-is-down.patch removed from -mm tree
-Date: Mon, 08 Dec 2008 15:24:15 -0800
-Message-ID: <200812082324.mB8NOF5P006855@imap1.linux-foundation.org>
+Subject: - netdev-smc911x-fix-for-driver-resume-cleanup.patch removed from -mm tree
+Date: Mon, 08 Dec 2008 15:24:19 -0800
+Message-ID: <200812082324.mB8NOJ0i006930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33268 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753174AbYLHXYc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:24:32 -0500
+	by vger.kernel.org with ESMTP id S1753209AbYLHXYm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:24:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eswierk@arastra.com, aabdulla@nvidia.com, ajones@riverbed.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, catalin.marinas@arm.com, romit@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth: power down phy when interface is down
+     drivers/net/smc911x.c: smc911x_drv_probe() cleanup
 has been removed from the -mm tree.  Its filename was
-     forcedeth-power-down-phy-when-interface-is-down.patch
+     netdev-smc911x-fix-for-driver-resume-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forcedeth: power down phy when interface is down
-From: "Ed Swierk" <eswierk@arastra.com>
+Subject: drivers/net/smc911x.c: smc911x_drv_probe() cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Bring the physical link down when the interface is down by placing the PHY
-in power-down state, unless WOL is enabled.  This mirrors the behavior of
-other drivers including e1000 and tg3.
+Save an ugly ifdef.
 
-Without the patch, ifconfig down leaves the physical link up, which confuses
-datacenter users who expect the link lights both on the NIC and the switch to
-go out when they bring an interface down.
-
-Furthermore, even though the phy is powered on, autonegotiation stops working,
-so a normally gigabit link might suddenly become 100 Mbit half-duplex when the
-interface goes down, and become gigabit when it comes up again.
-
-Ayaz said:
-
-  I would not include this patch until further testing is performed.  NVIDIA
-  MCP chips use 3rd party PHY vendors.  By powering down the phy, it could
-  have adverse affects on certain phys.
-
-Arthur Jones said:
-
-  I just ran across this patch.  Tested on a Marvell 88E1121R (GigE PHY)
-  and works great.  This is a very important feature for me.
-
-Signed-off-by: Ed Swierk <eswierk@arastra.com>
+Cc: "Dasgupta, Romit" <romit@ti.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
-Tested-by: Arthur Jones <ajones@riverbed.com>
+Cc: Romit Dasgupta <romit@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/net/smc911x.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-power-down-phy-when-interface-is-down drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-power-down-phy-when-interface-is-down
-+++ a/drivers/net/forcedeth.c
-@@ -1446,9 +1446,9 @@ static int phy_init(struct net_device *d
- 	/* some phys clear out pause advertisment on reset, set it back */
- 	mii_rw(dev, np->phyaddr, MII_ADVERTISE, reg);
- 
--	/* restart auto negotiation */
-+	/* restart auto negotiation, power down phy */
- 	mii_control = mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ);
--	mii_control |= (BMCR_ANRESTART | BMCR_ANENABLE);
-+	mii_control |= (BMCR_ANRESTART | BMCR_ANENABLE | BMCR_PDOWN);
- 	if (mii_rw(dev, np->phyaddr, MII_BMCR, mii_control)) {
- 		return PHY_ERROR;
+diff -puN drivers/net/smc911x.c~netdev-smc911x-fix-for-driver-resume-cleanup drivers/net/smc911x.c
+--- a/drivers/net/smc911x.c~netdev-smc911x-fix-for-driver-resume-cleanup
++++ a/drivers/net/smc911x.c
+@@ -2048,9 +2048,6 @@ err_out:
+  */
+ static int __devinit smc911x_drv_probe(struct platform_device *pdev)
+ {
+-#ifdef SMC_DYNAMIC_BUS_CONFIG
+-	struct smc911x_platdata *pd = pdev->dev.platform_data;
+-#endif
+ 	struct net_device *ndev;
+ 	struct resource *res;
+ 	struct smc911x_local *lp;
+@@ -2085,11 +2082,14 @@ static int __devinit smc911x_drv_probe(s
+ 	lp = netdev_priv(ndev);
+ 	lp->netdev = ndev;
+ #ifdef SMC_DYNAMIC_BUS_CONFIG
+-	if (!pd) {
+-		ret = -EINVAL;
+-		goto release_both;
++	{
++		struct smc911x_platdata *pd = pdev->dev.platform_data;
++		if (!pd) {
++			ret = -EINVAL;
++			goto release_both;
++		}
++		memcpy(&lp->cfg, pd, sizeof(lp->cfg));
  	}
-@@ -5208,6 +5208,10 @@ static int nv_open(struct net_device *de
+-	memcpy(&lp->cfg, pd, sizeof(lp->cfg));
+ #endif
  
- 	dprintk(KERN_DEBUG "nv_open: begin\n");
- 
-+	/* power up phy */
-+	mii_rw(dev, np->phyaddr, MII_BMCR,
-+	       mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ) & ~BMCR_PDOWN);
-+
- 	/* erase previous misconfiguration */
- 	if (np->driver_data & DEV_HAS_POWER_CNTRL)
- 		nv_mac_reset(dev);
-@@ -5401,6 +5405,10 @@ static int nv_close(struct net_device *d
- 	if (np->wolenabled) {
- 		writel(NVREG_PFF_ALWAYS|NVREG_PFF_MYADDR, base + NvRegPacketFilterFlags);
- 		nv_start_rx(dev);
-+	} else {
-+		/* power down phy */
-+		mii_rw(dev, np->phyaddr, MII_BMCR,
-+		       mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ)|BMCR_PDOWN);
- 	}
- 
- 	/* FIXME: power down nic */
+ 	addr = ioremap(res->start, SMC911X_IO_EXTENT);
 _
 
-Patches currently in -mm which might be from eswierk@arastra.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-backing-devc-remove-recently-added-warn_on.patch
+revert-percpu-counter-clean-up-percpu_counter_sum_and_set.patch
+revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch
+ksym_symbol_len-fixes.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+make-linx-next-apply.patch
 linux-next.patch
+next-remove-localversion.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+pci-uninline-pci_ioremap_bar.patch
+drivers-char-cycladesc-cy_pci_probe-fix-error-path.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
