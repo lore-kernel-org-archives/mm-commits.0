@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sm501-fix-section-mismatches.patch added to -mm tree
-Date: Mon, 08 Dec 2008 13:49:51 -0800
-Message-ID: <200812082149.mB8LnpTs014475@imap1.linux-foundation.org>
+Subject: + w1-add-touch-block-command.patch added to -mm tree
+Date: Mon, 08 Dec 2008 13:59:07 -0800
+Message-ID: <200812082159.mB8Lx7NW020045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752541AbYLHVvD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 16:51:03 -0500
+	by vger.kernel.org with ESMTP id S1752500AbYLHV7m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 16:59:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, ben-linux@fluff.org
+Cc: zbr@ioremap.net
 
 
 The patch titled
-     sm501: fix section mismatches
+     w1: add touch block command
 has been added to the -mm tree.  Its filename is
-     sm501-fix-section-mismatches.patch
+     w1-add-touch-block-command.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501: fix section mismatches
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: w1: add touch block command
+From: Evgeniy Polyakov <zbr@ioremap.net>
 
-drv => driver renaming is needed otherwise modpost will spit false positives
-re pointing to __devinit function from regular data.
+Writes and returns sampled data back to userspace.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/w1/w1.h         |    1 +
+ drivers/w1/w1_io.c      |   26 +++++++++++++++++++++++++-
+ drivers/w1/w1_netlink.c |   11 ++++++++---
+ drivers/w1/w1_netlink.h |    1 +
+ 4 files changed, 35 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~sm501-fix-section-mismatches drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-fix-section-mismatches
-+++ a/drivers/mfd/sm501.c
-@@ -1295,7 +1295,7 @@ static unsigned int sm501_mem_local[] = 
-  * Common init code for an SM501
- */
- 
--static int sm501_init_dev(struct sm501_devdata *sm)
-+static int __devinit sm501_init_dev(struct sm501_devdata *sm)
+diff -puN drivers/w1/w1.h~w1-add-touch-block-command drivers/w1/w1.h
+--- a/drivers/w1/w1.h~w1-add-touch-block-command
++++ a/drivers/w1/w1.h
+@@ -210,6 +210,7 @@ u8 w1_read_8(struct w1_master *);
+ int w1_reset_bus(struct w1_master *);
+ u8 w1_calc_crc8(u8 *, int);
+ void w1_write_block(struct w1_master *, const u8 *, int);
++void w1_touch_block(struct w1_master *, u8 *, int);
+ u8 w1_read_block(struct w1_master *, u8 *, int);
+ int w1_reset_select_slave(struct w1_slave *sl);
+ void w1_next_pullup(struct w1_master *, int);
+diff -puN drivers/w1/w1_io.c~w1-add-touch-block-command drivers/w1/w1_io.c
+--- a/drivers/w1/w1_io.c~w1-add-touch-block-command
++++ a/drivers/w1/w1_io.c
+@@ -238,7 +238,6 @@ EXPORT_SYMBOL_GPL(w1_read_8);
+  * @param dev     the master device
+  * @param buf     pointer to the data to write
+  * @param len     the number of bytes to write
+- * @return        the byte read
+  */
+ void w1_write_block(struct w1_master *dev, const u8 *buf, int len)
  {
- 	struct sm501_initdata *idata;
- 	struct sm501_platdata *pdata;
-@@ -1371,7 +1371,7 @@ static int sm501_init_dev(struct sm501_d
- 	return 0;
- }
+@@ -256,6 +255,31 @@ void w1_write_block(struct w1_master *de
+ EXPORT_SYMBOL_GPL(w1_write_block);
  
--static int sm501_plat_probe(struct platform_device *dev)
-+static int __devinit sm501_plat_probe(struct platform_device *dev)
+ /**
++ * Touches a series of bytes.
++ *
++ * @param dev     the master device
++ * @param buf     pointer to the data to write
++ * @param len     the number of bytes to write
++ */
++void w1_touch_block(struct w1_master *dev, u8 *buf, int len)
++{
++	int i, j;
++	u8 tmp;
++
++	for (i = 0; i < len; ++i) {
++		tmp = 0;
++		for (j = 0; j < 8; ++j) {
++			if (j == 7)
++				w1_pre_write(dev);
++			tmp |= w1_touch_bit(dev, (buf[i] >> j) & 0x1) << j;
++		}
++
++		buf[i] = tmp;
++	}
++}
++EXPORT_SYMBOL_GPL(w1_touch_block);
++
++/**
+  * Reads a series of bytes.
+  *
+  * @param dev     the master device
+diff -puN drivers/w1/w1_netlink.c~w1-add-touch-block-command drivers/w1/w1_netlink.c
+--- a/drivers/w1/w1_netlink.c~w1-add-touch-block-command
++++ a/drivers/w1/w1_netlink.c
+@@ -108,6 +108,10 @@ static int w1_process_command_slave(stru
+ 		cmd->cmd, cmd->len);
+ 
+ 	switch (cmd->cmd) {
++		case W1_CMD_TOUCH:
++			w1_touch_block(sl->master, cmd->data, cmd->len);
++			w1_send_read_reply(sl, msg, hdr, cmd);
++			break;
+ 		case W1_CMD_READ:
+ 			w1_read_block(sl->master, cmd->data, cmd->len);
+ 			w1_send_read_reply(sl, msg, hdr, cmd);
+@@ -208,9 +212,6 @@ static void w1_cn_callback(void *data)
+ 			break;
+ 		}
+ 
+-		if (!mlen)
+-			goto out_cont;
+-
+ 		if (m->type == W1_MASTER_CMD) {
+ 			dev = w1_search_master_id(m->id.mst.id);
+ 		} else if (m->type == W1_SLAVE_CMD) {
+@@ -227,6 +228,10 @@ static void w1_cn_callback(void *data)
+ 			goto out_cont;
+ 		}
+ 
++		err = 0;
++		if (!mlen)
++			goto out_cont;
++
+ 		mutex_lock(&dev->mutex);
+ 
+ 		if (sl && w1_reset_select_slave(sl)) {
+diff -puN drivers/w1/w1_netlink.h~w1-add-touch-block-command drivers/w1/w1_netlink.h
+--- a/drivers/w1/w1_netlink.h~w1-add-touch-block-command
++++ a/drivers/w1/w1_netlink.h
+@@ -56,6 +56,7 @@ struct w1_netlink_msg
+ #define W1_CMD_WRITE		0x1
+ #define W1_CMD_SEARCH		0x2
+ #define W1_CMD_ALARM_SEARCH	0x3
++#define W1_CMD_TOUCH		0x4
+ 
+ struct w1_netlink_cmd
  {
- 	struct sm501_devdata *sm;
- 	int ret;
-@@ -1560,8 +1560,8 @@ static struct sm501_platdata sm501_pci_p
- 	.gpio_base	= -1,
- };
- 
--static int sm501_pci_probe(struct pci_dev *dev,
--			   const struct pci_device_id *id)
-+static int __devinit sm501_pci_probe(struct pci_dev *dev,
-+				     const struct pci_device_id *id)
- {
- 	struct sm501_devdata *sm;
- 	int err;
-@@ -1667,7 +1667,7 @@ static void sm501_dev_remove(struct sm50
- 	sm501_gpio_remove(sm);
- }
- 
--static void sm501_pci_remove(struct pci_dev *dev)
-+static void __devexit sm501_pci_remove(struct pci_dev *dev)
- {
- 	struct sm501_devdata *sm = pci_get_drvdata(dev);
- 
-@@ -1701,16 +1701,16 @@ static struct pci_device_id sm501_pci_tb
- 
- MODULE_DEVICE_TABLE(pci, sm501_pci_tbl);
- 
--static struct pci_driver sm501_pci_drv = {
-+static struct pci_driver sm501_pci_driver = {
- 	.name		= "sm501",
- 	.id_table	= sm501_pci_tbl,
- 	.probe		= sm501_pci_probe,
--	.remove		= sm501_pci_remove,
-+	.remove		= __devexit_p(sm501_pci_remove),
- };
- 
- MODULE_ALIAS("platform:sm501");
- 
--static struct platform_driver sm501_plat_drv = {
-+static struct platform_driver sm501_plat_driver = {
- 	.driver		= {
- 		.name	= "sm501",
- 		.owner	= THIS_MODULE,
-@@ -1723,14 +1723,14 @@ static struct platform_driver sm501_plat
- 
- static int __init sm501_base_init(void)
- {
--	platform_driver_register(&sm501_plat_drv);
--	return pci_register_driver(&sm501_pci_drv);
-+	platform_driver_register(&sm501_plat_driver);
-+	return pci_register_driver(&sm501_pci_driver);
- }
- 
- static void __exit sm501_base_exit(void)
- {
--	platform_driver_unregister(&sm501_plat_drv);
--	pci_unregister_driver(&sm501_pci_drv);
-+	platform_driver_unregister(&sm501_plat_driver);
-+	pci_unregister_driver(&sm501_pci_driver);
- }
- 
- module_init(sm501_base_init);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from zbr@ioremap.net are
 
-pagemap-fix-32-bit-pagemap-regression.patch
-linux-next.patch
-kconfig-add-module_name-shortcut.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-remove-remaining-unwinder-code.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-sm501-fix-section-mismatches.patch
-ipc-ipc_sysctlc-move-the-definition-of-ipc_auto_callback.patch
+mx2-add-w1-device-resources.patch
+mx31-add-w1-platform_device-and-resources.patch
+mx2-pcm038-add-1-wire-master-support.patch
+pcm037-add-1wire-support.patch
+w1-add-1-wire-master-driver-for-imx27-imx31.patch
+w1-add-1-wire-master-driver-for-imx27-imx31-update.patch
+w1-add-list-masters-w1-command.patch
+w1-add-touch-block-command.patch
+w1-list-slaves-commands.patch
+w1-documentation-update.patch
 
