@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + inotify-fix-in_oneshot-unmount-event-watcher.patch added to -mm tree
-Date: Mon, 08 Dec 2008 16:26:57 -0800
-Message-ID: <200812090026.mB90QvKU012217@imap1.linux-foundation.org>
+Subject: + pci-quirks-dont-mark-one-netmos-as-class-other.patch added to -mm tree
+Date: Mon, 08 Dec 2008 16:29:33 -0800
+Message-ID: <200812090029.mB90TXEU013715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55842 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45813 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753693AbYLIA1H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:27:07 -0500
+	by vger.kernel.org with ESMTP id S1753679AbYLIA3n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:29:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org, rlove@google.com, ttb@tentacle.dhs.org, ulissesf@gmail.com, viro@zeniv.linux.org.uk
+Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     inotify: fix IN_ONESHOT unmount event watcher
+     PCI: quirks, don't mark one netmos as class other
 has been added to the -mm tree.  Its filename is
-     inotify-fix-in_oneshot-unmount-event-watcher.patch
+     pci-quirks-dont-mark-one-netmos-as-class-other.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,94 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inotify: fix IN_ONESHOT unmount event watcher
-From: Dmitri Monakhov <dmonakhov@openvz.org>
+Subject: PCI: quirks, don't mark one netmos as class other
+From: Jiri Slaby <jirislaby@gmail.com>
 
-On umount two event will be dispatched to watcher:
+Let it as serial, since it doesn't have subdevice in the form of 0x00PS.
 
-1: inotify_dev_queue_event(.., IN_UNMOUNT,..)
-2: remove_watch(watch, dev)
-    ->inotify_dev_queue_event(.., IN_IGNORED, ..)
-
-But if watcher has IN_ONESHOT bit set then the watcher will be released
-inside first event.  Which result in accessing invalid object later.  IMHO
-it is not pure regression.  This bug wasn't triggered while initial
-inotify interface testing phase because of another bug in IN_ONESHOT
-handling logic :)
-
-  commit ac74c00e499ed276a965e5b5600667d5dc04a84a
-  Author: Ulisses Furquim <ulissesf@gmail.com>
-  Date:   Fri Feb 8 04:18:16 2008 -0800
-    inotify: fix check for one-shot watches before destroying them
-    As the IN_ONESHOT bit is never set when an event is sent we must check it
-    in the watch's mask and not in the event's mask.
-
-TESTCASE:
-mkdir mnt
-mount -ttmpfs none mnt
-mkdir mnt/d
-./inotify mnt/d&
-umount mnt ## << lockup or crash here
-
-TESTSOURCE:
-/* gcc -oinotify inotify.c */
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/inotify.h>
-
-int main(int argc, char **argv)
-{
-        char buf[1024];
-        struct inotify_event *ie;
-        char *p;
-        int i;
-        ssize_t l;
-
-        p = argv[1];
-        i = inotify_init();
-        inotify_add_watch(i, p, ~0);
-
-        l = read(i, buf, sizeof(buf));
-        printf("read %d bytes\n", l);
-        ie = (struct inotify_event *) buf;
-        printf("event mask: %d\n", ie->mask);
-	return 0;
-}
-
-Signed-off-by: Dmitri Monakhov <dmonakhov@openvz.org>
-Cc: John McCutchan <ttb@tentacle.dhs.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Robert Love <rlove@google.com>
-Cc: Ulisses Furquim <ulissesf@gmail.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pci/quirks.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/inotify.c~inotify-fix-in_oneshot-unmount-event-watcher fs/inotify.c
---- a/fs/inotify.c~inotify-fix-in_oneshot-unmount-event-watcher
-+++ a/fs/inotify.c
-@@ -428,11 +428,13 @@ void inotify_unmount_inodes(struct list_
- 		watches = &inode->inotify_watches;
- 		list_for_each_entry_safe(watch, next_w, watches, i_list) {
- 			struct inotify_handle *ih= watch->ih;
-+			get_inotify_watch(watch);
- 			mutex_lock(&ih->mutex);
- 			ih->in_ops->handle_event(watch, watch->wd, IN_UNMOUNT, 0,
- 						 NULL, NULL);
- 			inotify_remove_watch_locked(ih, watch);
- 			mutex_unlock(&ih->mutex);
-+			put_inotify_watch(watch);
- 		}
- 		mutex_unlock(&inode->inotify_mutex);
- 		iput(inode);		
+diff -puN drivers/pci/quirks.c~pci-quirks-dont-mark-one-netmos-as-class-other drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-quirks-dont-mark-one-netmos-as-class-other
++++ a/drivers/pci/quirks.c
+@@ -1660,9 +1660,13 @@ static void __devinit quirk_netmos(struc
+ 	 * of parallel ports and <S> is the number of serial ports.
+ 	 */
+ 	switch (dev->device) {
++	case PCI_DEVICE_ID_NETMOS_9835:
++		/* Well, this rule doesn't hold for the following 9835 device */
++		if (dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
++				dev->subsystem_device == 0x0299)
++			return;
+ 	case PCI_DEVICE_ID_NETMOS_9735:
+ 	case PCI_DEVICE_ID_NETMOS_9745:
+-	case PCI_DEVICE_ID_NETMOS_9835:
+ 	case PCI_DEVICE_ID_NETMOS_9845:
+ 	case PCI_DEVICE_ID_NETMOS_9855:
+ 		if ((dev->class >> 8) == PCI_CLASS_COMMUNICATION_SERIAL &&
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-inotify-fix-in_oneshot-unmount-event-watcher.patch
-kill-suid-bit-only-for-regular-files.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+origin.patch
+linux-next.patch
+hid-dont-allow-dealextreme-usb-radio-be-handled-by-usb-hid-driver.patch
+ata-piix-fix-pointer-deref-on-suspend.patch
+drivers-char-cycladesc-cy_pci_probe-fix-error-path.patch
+pci-quirks-dont-mark-one-netmos-as-class-other.patch
+8250_pci-add-support-for-netmos-9835.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
