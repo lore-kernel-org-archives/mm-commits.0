@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mmapc-fix-coding-style.patch added to -mm tree
-Date: Tue, 09 Dec 2008 11:57:41 -0800
-Message-ID: <200812091957.mB9Jvfb4009166@imap1.linux-foundation.org>
+Subject: + mm-mmapc-fix-coding-style-fix.patch added to -mm tree
+Date: Tue, 09 Dec 2008 11:57:43 -0800
+Message-ID: <200812091957.mB9JvhgD009186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37212 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754623AbYLIT5t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 14:57:49 -0500
+	by vger.kernel.org with ESMTP id S1754756AbYLIT57 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 14:57:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: helight.xu@gmail.com, hugh@veritas.com
+Cc: akpm@linux-foundation.org, helight.xu@gmail.com, hugh@veritas.com
 
 
 The patch titled
-     mm/mmap.c: fix coding style
+     mm-mmapc-fix-coding-style-fix
 has been added to the -mm tree.  Its filename is
-     mm-mmapc-fix-coding-style.patch
+     mm-mmapc-fix-coding-style-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/mmap.c: fix coding style
-From: ZhenwenXu <helight.xu@gmail.com>
+Subject: mm-mmapc-fix-coding-style-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a little of the coding style in mm/mmap.c
-
-Signed-off-by: ZhenwenXu <helight.xu@gmail.com>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: ZhenwenXu <helight.xu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/mmap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmapc-fix-coding-style mm/mmap.c
---- a/mm/mmap.c~mm-mmapc-fix-coding-style
+diff -puN mm/mmap.c~mm-mmapc-fix-coding-style-fix mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-fix-coding-style-fix
 +++ a/mm/mmap.c
-@@ -413,7 +413,7 @@ void __vma_link_rb(struct mm_struct *mm,
- 
- static void __vma_link_file(struct vm_area_struct *vma)
- {
--	struct file * file;
-+	struct file *file;
- 
- 	file = vma->vm_file;
- 	if (file) {
-@@ -475,10 +475,10 @@ static void vma_link(struct mm_struct *m
+@@ -474,8 +474,7 @@ static void vma_link(struct mm_struct *m
+  * insert vm structure into list and rbtree and anon_vma,
   * but it has already been inserted into prio_tree earlier.
   */
- static void
--__insert_vm_struct(struct mm_struct * mm, struct vm_area_struct * vma)
-+__insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
+-static void
+-__insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
++static void __insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
  {
--	struct vm_area_struct * __vma, * prev;
--	struct rb_node ** rb_link, * rb_parent;
-+	struct vm_area_struct *__vma, *prev;
-+	struct rb_node **rb_link, *rb_parent;
- 
- 	__vma = find_vma_prepare(mm, vma->vm_start,&prev, &rb_link, &rb_parent);
- 	BUG_ON(__vma && __vma->vm_start < vma->vm_end);
-@@ -908,7 +908,7 @@ void vm_stat_account(struct mm_struct *m
-  * The caller must hold down_write(current->mm->mmap_sem).
-  */
- 
--unsigned long do_mmap_pgoff(struct file * file, unsigned long addr,
-+unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
- 			unsigned long len, unsigned long prot,
- 			unsigned long flags, unsigned long pgoff)
- {
-@@ -1464,7 +1464,7 @@ get_unmapped_area(struct file *file, uns
- EXPORT_SYMBOL(get_unmapped_area);
- 
- /* Look up the first VMA which satisfies  addr < vm_end,  NULL if none. */
--struct vm_area_struct * find_vma(struct mm_struct * mm, unsigned long addr)
-+struct vm_area_struct *find_vma(struct mm_struct *mm, unsigned long addr)
- {
- 	struct vm_area_struct *vma = NULL;
- 
-@@ -1507,7 +1507,7 @@ find_vma_prev(struct mm_struct *mm, unsi
- 			struct vm_area_struct **pprev)
- {
- 	struct vm_area_struct *vma = NULL, *prev = NULL;
--	struct rb_node * rb_node;
-+	struct rb_node *rb_node;
- 	if (!mm)
- 		goto out;
- 
-@@ -1541,7 +1541,7 @@ out:
-  * update accounting. This is shared with both the
-  * grow-up and grow-down cases.
-  */
--static int acct_stack_growth(struct vm_area_struct * vma, unsigned long size, unsigned long grow)
-+static int acct_stack_growth(struct vm_area_struct *vma, unsigned long size, unsigned long grow)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct rlimit *rlim = current->signal->rlim;
+ 	struct vm_area_struct *__vma, *prev;
+ 	struct rb_node **rb_link, *rb_parent;
 _
 
-Patches currently in -mm which might be from helight.xu@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmapc-fix-coding-style.patch
+origin.patch
+mm-backing-devc-remove-recently-added-warn_on.patch
+revert-percpu-counter-clean-up-percpu_counter_sum_and_set.patch
+revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch
+ksym_symbol_len-fixes.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+make-linx-next-apply.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+pci-uninline-pci_ioremap_bar.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
 mm-mmapc-fix-coding-style-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
