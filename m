@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-warning-for-p0-patches.patch added to -mm tree
-Date: Mon, 08 Dec 2008 16:04:30 -0800
-Message-ID: <200812090004.mB904UWe031066@imap1.linux-foundation.org>
+Subject: + checkpatch-update-copyrights.patch added to -mm tree
+Date: Mon, 08 Dec 2008 16:04:28 -0800
+Message-ID: <200812090004.mB904SGp031043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39290 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55221 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754191AbYLIAFL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:05:11 -0500
+	by vger.kernel.org with ESMTP id S1754116AbYLIAFD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:05:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: w.sang@pengutronix.de, apw@canonical.com
+Cc: apw@canonical.com
 
 
 The patch titled
-     checkpatch: Add warning for p0-patches
+     checkpatch: update copyrights
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-warning-for-p0-patches.patch
+     checkpatch-update-copyrights.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: Add warning for p0-patches
-From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: checkpatch: update copyrights
+From: Andy Whitcroft <apw@canonical.com>
 
-Some people work internally with -p0-patches which has the danger that one
-forgets to convert them to -p1 before mainlining.  Bitten myself and seen
-p0-patches in mailing lists occasionally, this patch adds a warning to
-checkpatch.pl in case a patch is -p0.  If you really want, you can fool
-this check to generate false positives, this is why it just spits a
-warning.  Making the check 100% proof is trickier than it looks, so let's
-start with a version which catches the cases of real use.
-
-[apw@canonical.com: update message language, handle null prefix, add tests]
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-warning-for-p0-patches scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-warning-for-p0-patches
+diff -puN scripts/checkpatch.pl~checkpatch-update-copyrights scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-update-copyrights
 +++ a/scripts/checkpatch.pl
-@@ -1057,6 +1057,7 @@ sub process {
- 	my $in_comment = 0;
- 	my $comment_edge = 0;
- 	my $first_line = 0;
-+	my $p1_prefix = '';
+@@ -1,7 +1,8 @@
+ #!/usr/bin/perl -w
+ # (c) 2001, Dave Jones. <davej@redhat.com> (the file handling bit)
+ # (c) 2005, Joel Schopp <jschopp@austin.ibm.com> (the ugly bit)
+-# (c) 2007, Andy Whitcroft <apw@uk.ibm.com> (new conditions, test suite, etc)
++# (c) 2007,2008, Andy Whitcroft <apw@uk.ibm.com> (new conditions, test suite)
++# (c) 2008, Andy Whitcroft <apw@canonical.com>
+ # Licensed under the terms of the GNU GPL License version 2
  
- 	my $prev_values = 'E';
- 
-@@ -1205,7 +1206,12 @@ sub process {
- 		# extract the filename as it passes
- 		if ($line=~/^\+\+\+\s+(\S+)/) {
- 			$realfile = $1;
--			$realfile =~ s@^[^/]*/@@;
-+			$realfile =~ s@^([^/]*)/@@;
-+
-+			$p1_prefix = $1;
-+			if ($tree && $p1_prefix ne '' && -e "$root/$p1_prefix") {
-+				WARN("patch prefix '$p1_prefix' exists, appears to be a -p0 patch\n");
-+			}
- 
- 			if ($realfile =~ m@^include/asm/@) {
- 				ERROR("do not modify files in include/asm, change architecture specific files in include/asm-<architecture>\n" . "$here$rawline\n");
+ use strict;
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from apw@canonical.com are
 
 linux-next.patch
+checkpatch-update-copyrights.patch
 checkpatch-add-warning-for-p0-patches.patch
+checkpatch-allow-parentheses-on-return-for-comparisons.patch
+checkpatch-try-to-catch-missing-vmlinux_symbol-in-vmlinuxldsh.patch
+checkpatch-loosen-spacing-on-typedef-function-checks.patch
+checkpatch-fix-continuation-detection-when-handling-spacing-on-operators.patch
+checkpatch-track-ifdef-else-endif-when-tracking-blocks.patch
+checkpatch-do-not-report-nr_static-as-a-static-declaration.patch
+checkpatch-ensure-we-actually-detect-if-assignments-split-across-lines.patch
+checkpatch-struct-file_operations-should-normally-be-const.patch
+checkpatch-fix-the-perlcritic-errors.patch
+checkpatch-version-026.patch
 
