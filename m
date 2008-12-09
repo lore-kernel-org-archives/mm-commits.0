@@ -1,208 +1,225 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-parisc-make-code-static.patch removed from -mm tree
-Date: Tue, 09 Dec 2008 10:45:53 -0800
-Message-ID: <200812091845.mB9Ijr6r027127@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 09 Dec 2008 10:50:51 -0800
+Message-ID: <200812091850.mB9Iop5g030417@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50425 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754546AbYLISqr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 13:46:47 -0500
+	by vger.kernel.org with ESMTP id S1754287AbYLISux (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 13:50:53 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mB9Iopio024211
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 9 Dec 2008 10:50:52 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     drivers/parisc/: make code static
-has been removed from the -mm tree.  Its filename was
-     drivers-parisc-make-code-static.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/parisc/: make code static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make the following needlessly global code static:
-
-- asp.c: asp_init_chip()
-- ccio-dma.c: ccio_io_pdir_entry()
-- dino.c: struct dino_port_ops
-- dino.c: struct dino_bios_ops
-- hppb.c: struct hppb_card_head
-- lasi.c: lasi_led_init()
-- lasi.c: lasi_init_chip()
-- lba_pci.c: struct lba_bios_ops
-- sba_iommu.c: sba_io_pdir_entry()
-- sba_iommu.c: sba_driver_callback()
-- sba_iommu.c: sba_driver_callback()
-- wax.c: wax_init_chip()
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/asp.c       |    3 +--
- drivers/parisc/ccio-dma.c  |    2 +-
- drivers/parisc/dino.c      |    4 ++--
- drivers/parisc/hppb.c      |    2 +-
- drivers/parisc/lasi.c      |    5 ++---
- drivers/parisc/lba_pci.c   |    2 +-
- drivers/parisc/sba_iommu.c |    7 +++----
- drivers/parisc/wax.c       |    3 +--
- 8 files changed, 12 insertions(+), 16 deletions(-)
+ drivers/ide/ide-io.c |   95 -----------------------------------------
+ 1 file changed, 95 deletions(-)
 
-diff -puN drivers/parisc/asp.c~drivers-parisc-make-code-static drivers/parisc/asp.c
---- a/drivers/parisc/asp.c~drivers-parisc-make-code-static
-+++ a/drivers/parisc/asp.c
-@@ -71,8 +71,7 @@ static void asp_choose_irq(struct parisc
-  */
- #define ASP_INTERRUPT_ADDR 0xf0800000
- 
--int __init
--asp_init_chip(struct parisc_device *dev)
-+static int __init asp_init_chip(struct parisc_device *dev)
- {
- 	struct gsc_irq gsc_irq;
- 	int ret;
-diff -puN drivers/parisc/ccio-dma.c~drivers-parisc-make-code-static drivers/parisc/ccio-dma.c
---- a/drivers/parisc/ccio-dma.c~drivers-parisc-make-code-static
-+++ a/drivers/parisc/ccio-dma.c
-@@ -555,7 +555,7 @@ static u32 hint_lookup[] = {
-  * (Load Coherence Index) instruction.  The 8 bits used for the virtual
-  * index are bits 12:19 of the value returned by LCI.
-  */ 
--void CCIO_INLINE
-+static void CCIO_INLINE
- ccio_io_pdir_entry(u64 *pdir_ptr, space_t sid, unsigned long vba,
- 		   unsigned long hints)
- {
-diff -puN drivers/parisc/dino.c~drivers-parisc-make-code-static drivers/parisc/dino.c
---- a/drivers/parisc/dino.c~drivers-parisc-make-code-static
-+++ a/drivers/parisc/dino.c
-@@ -287,7 +287,7 @@ DINO_PORT_OUT(b,  8, 3)
- DINO_PORT_OUT(w, 16, 2)
- DINO_PORT_OUT(l, 32, 0)
- 
--struct pci_port_ops dino_port_ops = {
-+static struct pci_port_ops dino_port_ops = {
- 	.inb	= dino_in8,
- 	.inw	= dino_in16,
- 	.inl	= dino_in32,
-@@ -690,7 +690,7 @@ dino_fixup_bus(struct pci_bus *bus)
+diff -puN drivers/ide/ide-io.c~linux-next-git-rejects drivers/ide/ide-io.c
+--- a/drivers/ide/ide-io.c~linux-next-git-rejects
++++ a/drivers/ide/ide-io.c
+@@ -120,101 +120,6 @@ int ide_end_request (ide_drive_t *drive,
  }
+ EXPORT_SYMBOL(ide_end_request);
  
- 
--struct pci_bios_ops dino_bios_ops = {
-+static struct pci_bios_ops dino_bios_ops = {
- 	.init		= dino_bios_init,
- 	.fixup_bus	= dino_fixup_bus
- };
-diff -puN drivers/parisc/hppb.c~drivers-parisc-make-code-static drivers/parisc/hppb.c
---- a/drivers/parisc/hppb.c~drivers-parisc-make-code-static
-+++ a/drivers/parisc/hppb.c
-@@ -29,7 +29,7 @@ struct hppb_card {
- 	struct hppb_card *next;
- };
- 
--struct hppb_card hppb_card_head = {
-+static struct hppb_card hppb_card_head = {
- 	.hpa = 0,
- 	.next = NULL,
- };
-diff -puN drivers/parisc/lasi.c~drivers-parisc-make-code-static drivers/parisc/lasi.c
---- a/drivers/parisc/lasi.c~drivers-parisc-make-code-static
-+++ a/drivers/parisc/lasi.c
-@@ -107,7 +107,7 @@ lasi_init_irq(struct gsc_asic *this_lasi
- 
- #else
- 
--void __init lasi_led_init(unsigned long lasi_hpa)
-+static void __init lasi_led_init(unsigned long lasi_hpa)
- {
- 	unsigned long datareg;
- 
-@@ -163,8 +163,7 @@ static void lasi_power_off(void)
- 	gsc_writel(0x02, datareg);
- }
- 
--int __init
--lasi_init_chip(struct parisc_device *dev)
-+static int __init lasi_init_chip(struct parisc_device *dev)
- {
- 	extern void (*chassis_power_off)(void);
- 	struct gsc_asic *lasi;
-diff -puN drivers/parisc/lba_pci.c~drivers-parisc-make-code-static drivers/parisc/lba_pci.c
---- a/drivers/parisc/lba_pci.c~drivers-parisc-make-code-static
-+++ a/drivers/parisc/lba_pci.c
-@@ -824,7 +824,7 @@ lba_fixup_bus(struct pci_bus *bus)
- }
- 
- 
--struct pci_bios_ops lba_bios_ops = {
-+static struct pci_bios_ops lba_bios_ops = {
- 	.init =		lba_bios_init,
- 	.fixup_bus =	lba_fixup_bus,
- };
-diff -puN drivers/parisc/sba_iommu.c~drivers-parisc-make-code-static drivers/parisc/sba_iommu.c
---- a/drivers/parisc/sba_iommu.c~drivers-parisc-make-code-static
-+++ a/drivers/parisc/sba_iommu.c
-@@ -561,7 +561,7 @@ typedef unsigned long space_t;
-  * IOMMU uses little endian for the pdir.
-  */
- 
--void SBA_INLINE
-+static void SBA_INLINE
- sba_io_pdir_entry(u64 *pdir_ptr, space_t sid, unsigned long vba,
- 		  unsigned long hint)
- {
-@@ -1874,7 +1874,7 @@ static struct parisc_device_id sba_tbl[]
- 	{ 0, }
- };
- 
--int sba_driver_callback(struct parisc_device *);
-+static int sba_driver_callback(struct parisc_device *);
- 
- static struct parisc_driver sba_driver = {
- 	.name =		MODULE_NAME,
-@@ -1887,8 +1887,7 @@ static struct parisc_driver sba_driver =
- ** If so, initialize the chip and tell other partners in crime they
- ** have work to do.
- */
--int
--sba_driver_callback(struct parisc_device *dev)
-+static int sba_driver_callback(struct parisc_device *dev)
- {
- 	struct sba_device *sba_dev;
- 	u32 func_class;
-diff -puN drivers/parisc/wax.c~drivers-parisc-make-code-static drivers/parisc/wax.c
---- a/drivers/parisc/wax.c~drivers-parisc-make-code-static
-+++ a/drivers/parisc/wax.c
-@@ -68,8 +68,7 @@ wax_init_irq(struct gsc_asic *wax)
- //	gsc_writel(0xFFFFFFFF, base+0x2000); /* RS232-B on Wax */
- }
- 
--int __init
--wax_init_chip(struct parisc_device *dev)
-+static int __init wax_init_chip(struct parisc_device *dev)
- {
- 	struct gsc_asic *wax;
- 	struct parisc_device *parent;
+-<<<<<<< HEAD:drivers/ide/ide-io.c
+-static void ide_complete_power_step(ide_drive_t *drive, struct request *rq)
+-{
+-	struct request_pm_state *pm = rq->data;
+-
+-#ifdef DEBUG_PM
+-	printk(KERN_INFO "%s: complete_power_step(step: %d)\n",
+-		drive->name, pm->pm_step);
+-#endif
+-	if (drive->media != ide_disk)
+-		return;
+-
+-	switch (pm->pm_step) {
+-	case IDE_PM_FLUSH_CACHE:	/* Suspend step 1 (flush cache) */
+-		if (pm->pm_state == PM_EVENT_FREEZE)
+-			pm->pm_step = IDE_PM_COMPLETED;
+-		else
+-			pm->pm_step = IDE_PM_STANDBY;
+-		break;
+-	case IDE_PM_STANDBY:		/* Suspend step 2 (standby) */
+-		pm->pm_step = IDE_PM_COMPLETED;
+-		break;
+-	case IDE_PM_RESTORE_PIO:	/* Resume step 1 (restore PIO) */
+-		pm->pm_step = IDE_PM_IDLE;
+-		break;
+-	case IDE_PM_IDLE:		/* Resume step 2 (idle)*/
+-		pm->pm_step = IDE_PM_RESTORE_DMA;
+-		break;
+-	}
+-}
+-
+-static ide_startstop_t ide_start_power_step(ide_drive_t *drive, struct request *rq)
+-{
+-	struct request_pm_state *pm = rq->data;
+-	ide_task_t *args = rq->special;
+-
+-	memset(args, 0, sizeof(*args));
+-
+-	switch (pm->pm_step) {
+-	case IDE_PM_FLUSH_CACHE:	/* Suspend step 1 (flush cache) */
+-		if (drive->media != ide_disk)
+-			break;
+-		/* Not supported? Switch to next step now. */
+-		if (ata_id_flush_enabled(drive->id) == 0 ||
+-		    (drive->dev_flags & IDE_DFLAG_WCACHE) == 0) {
+-			ide_complete_power_step(drive, rq);
+-			return ide_stopped;
+-		}
+-		if (ata_id_flush_ext_enabled(drive->id))
+-			args->tf.command = ATA_CMD_FLUSH_EXT;
+-		else
+-			args->tf.command = ATA_CMD_FLUSH;
+-		goto out_do_tf;
+-	case IDE_PM_STANDBY:		/* Suspend step 2 (standby) */
+-		args->tf.command = ATA_CMD_STANDBYNOW1;
+-		goto out_do_tf;
+-	case IDE_PM_RESTORE_PIO:	/* Resume step 1 (restore PIO) */
+-		ide_set_max_pio(drive);
+-		/*
+-		 * skip IDE_PM_IDLE for ATAPI devices
+-		 */
+-		if (drive->media != ide_disk)
+-			pm->pm_step = IDE_PM_RESTORE_DMA;
+-		else
+-			ide_complete_power_step(drive, rq);
+-		return ide_stopped;
+-	case IDE_PM_IDLE:		/* Resume step 2 (idle) */
+-		args->tf.command = ATA_CMD_IDLEIMMEDIATE;
+-		goto out_do_tf;
+-	case IDE_PM_RESTORE_DMA:	/* Resume step 3 (restore DMA) */
+-		/*
+-		 * Right now, all we do is call ide_set_dma(drive),
+-		 * we could be smarter and check for current xfer_speed
+-		 * in struct drive etc...
+-		 */
+-		if (drive->hwif->dma_ops == NULL)
+-			break;
+-		/*
+-		 * TODO: respect IDE_DFLAG_USING_DMA
+-		 */
+-		ide_set_dma(drive);
+-		break;
+-	}
+-
+-	pm->pm_step = IDE_PM_COMPLETED;
+-	return ide_stopped;
+-
+-out_do_tf:
+-	args->tf_flags	 = IDE_TFLAG_TF | IDE_TFLAG_DEVICE;
+-	args->data_phase = TASKFILE_NO_DATA;
+-	return do_rw_taskfile(drive, args);
+-}
+-
+-=======
+->>>>>>> FETCH_HEAD:drivers/ide/ide-io.c
+ /**
+  *	ide_end_dequeued_request	-	complete an IDE I/O
+  *	@drive: IDE device for the I/O
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-backing-devc-remove-recently-added-warn_on.patch
+revert-percpu-counter-clean-up-percpu_counter_sum_and_set.patch
+revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch
+ksym_symbol_len-fixes.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+make-linx-next-apply.patch
 linux-next.patch
-m32r-kernel-smpbootc-must-include-linux-cpuh.patch
-if-0-ses_match_host.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-m68knommu-set-no_dma.patch
+next-remove-localversion.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+pci-uninline-pci_ioremap_bar.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
 reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+linux-next-git-rejects.patch
 
