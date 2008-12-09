@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat.patch added to -mm tree
-Date: Mon, 08 Dec 2008 15:57:39 -0800
-Message-ID: <200812082357.mB8NvdZQ026953@imap1.linux-foundation.org>
+Subject: + checkpatch-add-warning-for-p0-patches.patch added to -mm tree
+Date: Mon, 08 Dec 2008 16:04:30 -0800
+Message-ID: <200812090004.mB904UWe031066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42726 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752897AbYLHX6d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 18:58:33 -0500
+	by vger.kernel.org with ESMTP id S1754191AbYLIAFL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:05:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Brice.Goglin@inria.fr, clameter@sgi.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, npiggin@suse.de
+Cc: w.sang@pengutronix.de, apw@canonical.com
 
 
 The patch titled
-     mm: no get_user/put_user while holding mmap_sem in do_pages_stat?
+     checkpatch: Add warning for p0-patches
 has been added to the -mm tree.  Its filename is
-     mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat.patch
+     checkpatch-add-warning-for-p0-patches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,123 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: no get_user/put_user while holding mmap_sem in do_pages_stat?
-From: Brice Goglin <Brice.Goglin@inria.fr>
+Subject: checkpatch: Add warning for p0-patches
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-Since commit 2f007e74bb85b9fc4eab28524052161703300f1a, do_pages_stat()
-gets the page address from user-space and puts the corresponding status
-back while holding the mmap_sem for read.  There is no need to hold
-mmap_sem there while some page-faults may occur.
+Some people work internally with -p0-patches which has the danger that one
+forgets to convert them to -p1 before mainlining.  Bitten myself and seen
+p0-patches in mailing lists occasionally, this patch adds a warning to
+checkpatch.pl in case a patch is -p0.  If you really want, you can fool
+this check to generate false positives, this is why it just spits a
+warning.  Making the check 100% proof is trickier than it looks, so let's
+start with a version which catches the cases of real use.
 
-This patch adds a temporary address and status buffer so as to only
-hold mmap_sem while working on these kernel buffers.  This is
-implemented by extracting do_pages_stat_array() out of do_pages_stat().
-
-Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Hugh Dickins <hugh@veritas.com>
+[apw@canonical.com: update message language, handle null prefix, add tests]
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   59 ++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 46 insertions(+), 13 deletions(-)
+ scripts/checkpatch.pl |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat mm/migrate.c
---- a/mm/migrate.c~mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat
-+++ a/mm/migrate.c
-@@ -987,25 +987,18 @@ out:
- /*
-  * Determine the nodes of an array of pages and store it in an array of status.
-  */
--static int do_pages_stat(struct mm_struct *mm, unsigned long nr_pages,
--			 const void __user * __user *pages,
--			 int __user *status)
-+static void do_pages_stat_array(struct mm_struct *mm, unsigned long nr_pages,
-+				const void __user **pages, int *status)
- {
- 	unsigned long i;
--	int err;
+diff -puN scripts/checkpatch.pl~checkpatch-add-warning-for-p0-patches scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-warning-for-p0-patches
++++ a/scripts/checkpatch.pl
+@@ -1057,6 +1057,7 @@ sub process {
+ 	my $in_comment = 0;
+ 	my $comment_edge = 0;
+ 	my $first_line = 0;
++	my $p1_prefix = '';
  
- 	down_read(&mm->mmap_sem);
+ 	my $prev_values = 'E';
  
- 	for (i = 0; i < nr_pages; i++) {
--		const void __user *p;
--		unsigned long addr;
-+		unsigned long addr = (unsigned long)(*pages);
- 		struct vm_area_struct *vma;
- 		struct page *page;
--
--		err = -EFAULT;
--		if (get_user(p, pages+i))
--			goto out;
--		addr = (unsigned long) p;
-+		int err;
+@@ -1205,7 +1206,12 @@ sub process {
+ 		# extract the filename as it passes
+ 		if ($line=~/^\+\+\+\s+(\S+)/) {
+ 			$realfile = $1;
+-			$realfile =~ s@^[^/]*/@@;
++			$realfile =~ s@^([^/]*)/@@;
++
++			$p1_prefix = $1;
++			if ($tree && $p1_prefix ne '' && -e "$root/$p1_prefix") {
++				WARN("patch prefix '$p1_prefix' exists, appears to be a -p0 patch\n");
++			}
  
- 		vma = find_vma(mm, addr);
- 		if (!vma)
-@@ -1024,12 +1017,52 @@ static int do_pages_stat(struct mm_struc
- 
- 		err = page_to_nid(page);
- set_status:
--		put_user(err, status+i);
-+		*status = err;
-+
-+		pages++;
-+		status++;
-+	}
-+
-+	up_read(&mm->mmap_sem);
-+}
-+
-+/*
-+ * Determine the nodes of a user array of pages and store it in
-+ * a user array of status.
-+ */
-+static int do_pages_stat(struct mm_struct *mm, unsigned long nr_pages,
-+			 const void __user * __user *pages,
-+			 int __user *status)
-+{
-+#define DO_PAGES_STAT_CHUNK_NR 16
-+	const void __user *chunk_pages[DO_PAGES_STAT_CHUNK_NR];
-+	int chunk_status[DO_PAGES_STAT_CHUNK_NR];
-+	unsigned long i, chunk_nr = DO_PAGES_STAT_CHUNK_NR;
-+	int err;
-+
-+	for (i = 0; i < nr_pages; i += chunk_nr) {
-+		if (chunk_nr + i > nr_pages)
-+			chunk_nr = nr_pages - i;
-+
-+		err = copy_from_user(chunk_pages, &pages[i],
-+				     chunk_nr * sizeof(*chunk_pages));
-+		if (err) {
-+			err = -EFAULT;
-+			goto out;
-+		}
-+
-+		do_pages_stat_array(mm, chunk_nr, chunk_pages, chunk_status);
-+
-+		err = copy_to_user(&status[i], chunk_status,
-+				   chunk_nr * sizeof(*chunk_status));
-+		if (err) {
-+			err = -EFAULT;
-+			goto out;
-+		}
- 	}
- 	err = 0;
- 
- out:
--	up_read(&mm->mmap_sem);
- 	return err;
- }
- 
+ 			if ($realfile =~ m@^include/asm/@) {
+ 				ERROR("do not modify files in include/asm, change architecture specific files in include/asm-<architecture>\n" . "$here$rawline\n");
 _
 
-Patches currently in -mm which might be from Brice.Goglin@inria.fr are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
-mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat.patch
-mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
-mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
-mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
+linux-next.patch
+checkpatch-add-warning-for-p0-patches.patch
 
