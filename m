@@ -1,99 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - audit-remove-excess-kernel-doc.patch removed from -mm tree
-Date: Tue, 09 Dec 2008 10:45:42 -0800
-Message-ID: <200812091845.mB9IjgCB027011@imap1.linux-foundation.org>
+Subject: - ata-piix-fix-pointer-deref-on-suspend.patch removed from -mm tree
+Date: Tue, 09 Dec 2008 10:45:47 -0800
+Message-ID: <200812091845.mB9IjllT027054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48615 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753547AbYLISp4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 13:45:56 -0500
+	by vger.kernel.org with ESMTP id S1754296AbYLISqK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 13:46:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, eparis@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, a_romanescu@yahoo.co.uk, jgarzik@redhat.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     audit: remove excess kernel-doc
+     ata: piix, fix pointer deref on suspend
 has been removed from the -mm tree.  Its filename was
-     audit-remove-excess-kernel-doc.patch
+     ata-piix-fix-pointer-deref-on-suspend.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: audit: remove excess kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ata: piix, fix pointer deref on suspend
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Delete excess kernel-doc notation in kernel/auditsc.c:
+Commit
+ata_piix: add borked Tecra M4 to broken suspend list
+introduced DMI variables checking, but they can be null, so that
+we possibly dereference null.
 
-Warning(linux-2.6.27-git10//kernel/auditsc.c:1481): Excess function parameter or struct member 'tsk' description in 'audit_syscall_entry'
-Warning(linux-2.6.27-git10//kernel/auditsc.c:1564): Excess function parameter or struct member 'tsk' description in 'audit_syscall_exit'
+Check if they are null and avoid checks in that case.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Paris <eparis@redhat.com>
+Solves:
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
+IP: [<ffffffff8043da97>] piix_pci_device_suspend+0x117/0x230
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Alexandru Romanescu <a_romanescu@yahoo.co.uk>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/ata/ata_piix.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN kernel/auditsc.c~audit-remove-excess-kernel-doc kernel/auditsc.c
---- a/kernel/auditsc.c~audit-remove-excess-kernel-doc
-+++ a/kernel/auditsc.c
-@@ -1544,7 +1544,6 @@ void audit_free(struct task_struct *tsk)
- 
- /**
-  * audit_syscall_entry - fill in an audit record at syscall entry
-- * @tsk: task being audited
-  * @arch: architecture type
-  * @major: major syscall type (function)
-  * @a1: additional syscall register 1
-@@ -1635,7 +1634,6 @@ void audit_syscall_entry(int arch, int m
- 
- /**
-  * audit_syscall_exit - deallocate audit context after a system call
-- * @tsk: task being audited
-  * @valid: success/failure flag
-  * @return_code: syscall return value
-  *
+diff -puN drivers/ata/ata_piix.c~ata-piix-fix-pointer-deref-on-suspend drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~ata-piix-fix-pointer-deref-on-suspend
++++ a/drivers/ata/ata_piix.c
+@@ -1072,7 +1072,14 @@ static int piix_broken_suspend(void)
+ 	 * matching is necessary because dmi_system_id.matches is
+ 	 * limited to four entries.
+ 	 */
+-	if (!strcmp(dmi_get_system_info(DMI_SYS_VENDOR), "TOSHIBA") &&
++	if (dmi_get_system_info(DMI_SYS_VENDOR) &&
++	    dmi_get_system_info(DMI_PRODUCT_NAME) &&
++	    dmi_get_system_info(DMI_PRODUCT_VERSION) &&
++	    dmi_get_system_info(DMI_PRODUCT_SERIAL) &&
++	    dmi_get_system_info(DMI_BOARD_VENDOR) &&
++	    dmi_get_system_info(DMI_BOARD_NAME) &&
++	    dmi_get_system_info(DMI_BOARD_VERSION) &&
++	    !strcmp(dmi_get_system_info(DMI_SYS_VENDOR), "TOSHIBA") &&
+ 	    !strcmp(dmi_get_system_info(DMI_PRODUCT_NAME), "000000") &&
+ 	    !strcmp(dmi_get_system_info(DMI_PRODUCT_VERSION), "000000") &&
+ 	    !strcmp(dmi_get_system_info(DMI_PRODUCT_SERIAL), "000000") &&
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-arm-fix-kernel-doc-syntax.patch
-mtd-remove-excess-kernel-doc-notation.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
-documentation-when-to-bug-and-when-to-not-bug.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-max3100-spi-uart-driver-select-serial_core.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-i2o-remove-extraneous-kernel-doc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-kmod-fix-varargs-kernel-doc.patch
-docs-document-how-to-write-varargs-in-kernel-doc.patch
-rapidio-remove-excess-kernel-doc-notation.patch
-documentation-update-header-file-paths.patch
-documentation-update-s390-header-file-paths.patch
-w1-add-list-masters-w1-command.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
-pps-serial-clients-support.patch
-pps-parallel-port-clients-support.patch
-pps-low-level-irq-timestamps-recording.patch
-fix-similar-typos-to-successfull-v2.patch
+pci-quirks-dont-mark-one-netmos-as-class-other.patch
+8250_pci-add-support-for-netmos-9835.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
