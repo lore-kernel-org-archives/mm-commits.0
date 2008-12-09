@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + edac-x38-use-the-architectures-readq-function-fix-fix.patch added to -mm tree
-Date: Tue, 09 Dec 2008 13:42:49 -0800
-Message-ID: <200812092158.mB9LwamA023476@imap1.linux-foundation.org>
+Subject: + drivers-net-e1000e-ich8lanc-fix-locking.patch added to -mm tree
+Date: Tue, 09 Dec 2008 15:07:59 -0800
+Message-ID: <200812092307.mB9N7xCN003982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58404 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57561 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754683AbYLIV7R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 16:59:17 -0500
+	by vger.kernel.org with ESMTP id S1754877AbYLIXIT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 18:08:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dougthompson@xmission.com, mitake@clustcom.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, frederik.deweerdt@xprog.eu, jesse.brandeburg@intel.com, stable@kernel.org, tglx@linutronix.de, zdenek.kabelac@gmail.com
 
 
 The patch titled
-     edac-x38-use-the-architectures-readq-function-fix-fix
+     drivers/net/e1000e/ich8lan.c: fix locking
 has been added to the -mm tree.  Its filename is
-     edac-x38-use-the-architectures-readq-function-fix-fix.patch
+     drivers-net-e1000e-ich8lanc-fix-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac-x38-use-the-architectures-readq-function-fix-fix
+Subject: drivers/net/e1000e/ich8lan.c: fix locking
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allmodconfig:
+=====================================
+[ BUG: bad unlock balance detected! ]
+-------------------------------------
 
-drivers/edac/x38_edac.c:167: error: conflicting types for 'readq'
-/usr/src/devel/arch/x86/include/asm/io.h:56: error: previous definition of 'readq' was here
+A regression added by 717d438d1fde94decef874b9808379d1f4523453 ("e1000e:
+debug contention on NVM SWFLAG").
 
-Cc: Doug Thompson <dougthompson@xmission.com>
-Cc: Hitoshi Mitake <mitake@clustcom.com>
+Reported-by: "Zdenek Kabelac" <zdenek.kabelac@gmail.com>
+Cc: Frederik Deweerdt <frederik.deweerdt@xprog.eu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/e1000e/ich8lan.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/edac/Kconfig~edac-x38-use-the-architectures-readq-function-fix-fix drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~edac-x38-use-the-architectures-readq-function-fix-fix
-+++ a/drivers/edac/Kconfig
-@@ -104,7 +104,7 @@ config EDAC_I3000
+diff -puN drivers/net/e1000e/ich8lan.c~drivers-net-e1000e-ich8lanc-fix-locking drivers/net/e1000e/ich8lan.c
+--- a/drivers/net/e1000e/ich8lan.c~drivers-net-e1000e-ich8lanc-fix-locking
++++ a/drivers/net/e1000e/ich8lan.c
+@@ -400,6 +400,7 @@ static s32 e1000_acquire_swflag_ich8lan(
+ {
+ 	u32 extcnf_ctrl;
+ 	u32 timeout = PHY_CFG_TIMEOUT;
++	s32 ret = 0;
  
- config EDAC_X38
- 	tristate "Intel X38"
--	depends on EDAC_MM_EDAC && PCI && X86
-+	depends on EDAC_MM_EDAC && PCI && X86_64
- 	help
- 	  Support for error detection and correction on the Intel
- 	  X38 server chipsets.
+ 	might_sleep();
+ 
+@@ -427,11 +428,11 @@ static s32 e1000_acquire_swflag_ich8lan(
+ 		extcnf_ctrl &= ~E1000_EXTCNF_CTRL_SWFLAG;
+ 		ew32(EXTCNF_CTRL, extcnf_ctrl);
+ 		nvm_owner = -1;
+-		mutex_unlock(&nvm_mutex);
+-		return -E1000_ERR_CONFIG;
++		ret = -E1000_ERR_CONFIG;
+ 	}
+ 
+-	return 0;
++	mutex_unlock(&nvm_mutex);
++	return ret;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -137,4 +157,5 @@ undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-net-e1000e-ich8lanc-fix-locking.patch
 
