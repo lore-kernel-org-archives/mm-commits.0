@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-quirks-dont-mark-one-netmos-as-class-other.patch added to -mm tree
-Date: Mon, 08 Dec 2008 16:29:33 -0800
-Message-ID: <200812090029.mB90TXEU013715@imap1.linux-foundation.org>
+Subject: + 8250_pci-add-support-for-netmos-9835.patch added to -mm tree
+Date: Mon, 08 Dec 2008 16:29:35 -0800
+Message-ID: <200812090029.mB90TZhK013791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753679AbYLIA3n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:29:43 -0500
+	by vger.kernel.org with ESMTP id S1753718AbYLIA3q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:29:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, jbarnes@virtuousgeek.org
+Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     PCI: quirks, don't mark one netmos as class other
+     8250_pci: add support for netmos 9835
 has been added to the -mm tree.  Its filename is
-     pci-quirks-dont-mark-one-netmos-as-class-other.patch
+     8250_pci-add-support-for-netmos-9835.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCI: quirks, don't mark one netmos as class other
+Subject: 8250_pci: add support for netmos 9835
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Let it as serial, since it doesn't have subdevice in the form of 0x00PS.
+Most of netmos 9835 hardware is handled by parport-serial.  IBM introduces
+a device which doesn't have any parallel ports and have screwed subdevice
+PCI id (not corresponding to port numbers).
+
+Handle this device (9710:9835 1014:0299) properly.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/serial/8250_pci.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/pci/quirks.c~pci-quirks-dont-mark-one-netmos-as-class-other drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-quirks-dont-mark-one-netmos-as-class-other
-+++ a/drivers/pci/quirks.c
-@@ -1660,9 +1660,13 @@ static void __devinit quirk_netmos(struc
- 	 * of parallel ports and <S> is the number of serial ports.
- 	 */
- 	switch (dev->device) {
-+	case PCI_DEVICE_ID_NETMOS_9835:
-+		/* Well, this rule doesn't hold for the following 9835 device */
-+		if (dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
-+				dev->subsystem_device == 0x0299)
-+			return;
- 	case PCI_DEVICE_ID_NETMOS_9735:
- 	case PCI_DEVICE_ID_NETMOS_9745:
--	case PCI_DEVICE_ID_NETMOS_9835:
- 	case PCI_DEVICE_ID_NETMOS_9845:
- 	case PCI_DEVICE_ID_NETMOS_9855:
- 		if ((dev->class >> 8) == PCI_CLASS_COMMUNICATION_SERIAL &&
+diff -puN drivers/serial/8250_pci.c~8250_pci-add-support-for-netmos-9835 drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250_pci-add-support-for-netmos-9835
++++ a/drivers/serial/8250_pci.c
+@@ -600,6 +600,10 @@ static int pci_netmos_init(struct pci_de
+ 	/* subdevice 0x00PS means <P> parallel, <S> serial */
+ 	unsigned int num_serial = dev->subsystem_device & 0xf;
+ 
++	if (dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
++			dev->subsystem_device == 0x0299)
++		return 0;
++
+ 	if (num_serial == 0)
+ 		return -ENODEV;
+ 	return num_serial;
+@@ -3091,6 +3095,10 @@ static struct pci_device_id serial_pci_t
+ 		0,
+ 		pbn_b0_8_115200 },
+ 
++	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9835,
++		PCI_VENDOR_ID_IBM, 0x0299,
++		0, 0, pbn_b0_bt_2_115200 },
++
+ 	/*
+ 	 * These entries match devices with class COMMUNICATION_SERIAL,
+ 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
