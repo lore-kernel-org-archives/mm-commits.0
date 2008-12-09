@@ -1,91 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + 8250_pci-add-support-for-netmos-9835.patch added to -mm tree
-Date: Mon, 08 Dec 2008 16:29:35 -0800
-Message-ID: <200812090029.mB90TZhK013791@imap1.linux-foundation.org>
+Subject: - fbcon-fix-workqueue-shutdown.patch removed from -mm tree
+Date: Mon, 08 Dec 2008 16:30:54 -0800
+Message-ID: <200812090030.mB90UtpZ014555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753718AbYLIA3q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:29:46 -0500
+	by vger.kernel.org with ESMTP id S1753763AbYLIAbV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:31:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
+To: geoffrey.levand@am.sony.com, geert@linux-m68k.org, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250_pci: add support for netmos 9835
-has been added to the -mm tree.  Its filename is
-     8250_pci-add-support-for-netmos-9835.patch
+     fbcon: fix workqueue shutdown
+has been removed from the -mm tree.  Its filename was
+     fbcon-fix-workqueue-shutdown.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250_pci: add support for netmos 9835
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: fbcon: fix workqueue shutdown
+From: Geoff Levand <geoffrey.levand@am.sony.com>
 
-Most of netmos 9835 hardware is handled by parport-serial.  IBM introduces
-a device which doesn't have any parallel ports and have screwed subdevice
-PCI id (not corresponding to port numbers).
+Add a call to cancel_work_sync() in fbcon_exit() to cancel any pending
+work in the fbcon workqueue.  Also, change the assignment of the workqueue
+function info->queue.func from NULL to fb_flashcursor(), and add a
+corresponding check in fb_flashcursor() to exit immediately if the
+variable fbcon_has_exited is set.
 
-Handle this device (9710:9835 1014:0299) properly.
+The current implementation of fbcon_exit() sets the fbcon workqueue
+function info->queue.func to NULL, but does not assure that there is no
+work pending when it does so.  On occasion, depending on system timing,
+there will still be pending work in the queue when fbcon_exit() is called.
+ This results in a null pointer deference when run_workqueue() tries to
+call the queue's work function.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Fixes errors on shutdown similar to these:
+
+  Console: switching to colour dummy device 80x25
+  Unable to handle kernel paging request for data at address 0x00000000
+
+Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/video/console/fbcon.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~8250_pci-add-support-for-netmos-9835 drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~8250_pci-add-support-for-netmos-9835
-+++ a/drivers/serial/8250_pci.c
-@@ -600,6 +600,10 @@ static int pci_netmos_init(struct pci_de
- 	/* subdevice 0x00PS means <P> parallel, <S> serial */
- 	unsigned int num_serial = dev->subsystem_device & 0xf;
+diff -puN drivers/video/console/fbcon.c~fbcon-fix-workqueue-shutdown drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-fix-workqueue-shutdown
++++ a/drivers/video/console/fbcon.c
+@@ -394,13 +394,19 @@ static void fbcon_update_softback(struct
  
-+	if (dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
-+			dev->subsystem_device == 0x0299)
-+		return 0;
-+
- 	if (num_serial == 0)
- 		return -ENODEV;
- 	return num_serial;
-@@ -3091,6 +3095,10 @@ static struct pci_device_id serial_pci_t
- 		0,
- 		pbn_b0_8_115200 },
+ static void fb_flashcursor(struct work_struct *work)
+ {
+-	struct fb_info *info = container_of(work, struct fb_info, queue);
+-	struct fbcon_ops *ops = info->fbcon_par;
++	struct fb_info *info;
++	struct fbcon_ops *ops;
+ 	struct display *p;
+ 	struct vc_data *vc = NULL;
+ 	int c;
+ 	int mode;
  
-+	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9835,
-+		PCI_VENDOR_ID_IBM, 0x0299,
-+		0, 0, pbn_b0_bt_2_115200 },
++	if (fbcon_has_exited)
++		return;
 +
- 	/*
- 	 * These entries match devices with class COMMUNICATION_SERIAL,
- 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
-_
-
-Patches currently in -mm which might be from jirislaby@gmail.com are
-
-origin.patch
-linux-next.patch
-hid-dont-allow-dealextreme-usb-radio-be-handled-by-usb-hid-driver.patch
-ata-piix-fix-pointer-deref-on-suspend.patch
-drivers-char-cycladesc-cy_pci_probe-fix-error-path.patch
-pci-quirks-dont-mark-one-netmos-as-class-other.patch
-8250_pci-add-support-for-netmos-9835.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
-
++	info = container_of(work, struct fb_info, queue);
++	ops = info->fbcon_par;
++
+ 	acquire_console_sem();
+ 	if (ops && ops->currcon != -1)
+ 		vc = vc_cons[ops->currcon].d;
+@@ -3531,12 +3537,18 @@ static void fbcon_exit(void)
+ 	softback_buf = 0UL;
+ 
+ 	for (i = 0; i < FB_MAX; i++) {
++		int pending;
++
+ 		mapped = 0;
+ 		info = registered_fb[i];
+ 
+ 		if (info == NULL)
+ 			continue;
+ 
++		pending = cancel_work_sync(&info->queue);
++		DPRINTK("fbcon: %s pending work\n", (pending ? "canceled" :
++			"no"));
++
+ 		for (j = first_fb_vc; j <= last_fb_vc; j++) {
+ 			if (con2fb_map[j] == i)
+ 				mapped = 1;
+@@ -3555,9 +3567,6 @@ static void fbcon_exit(void)
+ 				kfree(info->fbcon_par);
+ 				info->fbcon_par = NULL;
+ 			}
