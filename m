@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page_fault-retry-with-nopage_retry-fix.patch added to -mm tree
-Date: Tue, 09 Dec 2008 11:31:30 -0800
-Message-ID: <200812091931.mB9JVUWF024544@imap1.linux-foundation.org>
+Subject: + rtc-driver-for-marvells-socs-88f6281-and-88f6192.patch added to -mm tree
+Date: Tue, 09 Dec 2008 11:42:28 -0800
+Message-ID: <200812091942.mB9JgSVi031664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33768 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754623AbYLITcF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 14:32:05 -0500
+	by vger.kernel.org with ESMTP id S1754184AbYLITn3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 14:43:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, edwintorok@gmail.com, hpa@zytor.com, hugh@veritas.com, lee.schermerhorn@hp.com, mikew@google.com, mingo@elte.hu, npiggin@suse.de, rientjes@google.com, rohitseth@google.com, yinghan@google.com
+Cc: saeed@marvell.com, a.zummo@towertech.it, buytenh@marvell.com, david-b@pacbell.net, nico@marvell.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     page_fault-retry-with-nopage_retry-fix
+     rtc: driver for Marvell's SoCs 88F6281 and 88F6192
 has been added to the -mm tree.  Its filename is
-     page_fault-retry-with-nopage_retry-fix.patch
+     rtc-driver-for-marvells-socs-88f6281-and-88f6192.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,222 +25,235 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_fault-retry-with-nopage_retry-fix
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc: driver for Marvell's SoCs 88F6281 and 88F6192
+From: Saeed Bishara <saeed@marvell.com>
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mike Waychison <mikew@google.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rohit Seth <rohitseth@google.com>
-Cc: T=F6r=F6k Edwin <edwintorok@gmail.com>
-Cc: Ying Han <yinghan@google.com>
+Driver for the on-chip RTC found in some of Marvell's SoCs such as the
+Kirkwood 88F6281 and 88F6192 devices.
+
+Signed-off-by: Saeed Bishara <saeed@marvell.com>
+Signed-off-by: Lennert Buytenhek <buytenh@marvell.com>
+Signed-off-by: Nicolas Pitre <nico@marvell.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    3 +++
- mm/filemap.c            |   38 ++++++++++++++++++++------------------
- 2 files changed, 23 insertions(+), 18 deletions(-)
+ drivers/rtc/Kconfig  |   11 ++
+ drivers/rtc/Makefile |    1 
+ drivers/rtc/rtc-mv.c |  163 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 175 insertions(+)
 
-diff -puN include/linux/pagemap.h~page_fault-retry-with-nopage_retry-fi=
-x include/linux/pagemap.h
---- a/include/linux/pagemap.h~page_fault-retry-with-nopage_retry-fix
-+++ a/include/linux/pagemap.h
-@@ -232,6 +232,9 @@ extern struct page * find_get_page(struc
- 				pgoff_t index);
- extern struct page * find_lock_page(struct address_space *mapping,
- 				pgoff_t index);
-+extern unsigned find_lock_page_retry(struct address_space *mapping,
-+			pgoff_t offset, struct vm_area_struct *vma,
-+			struct page **ppage, int retry)
- extern struct page * find_or_create_page(struct address_space *mapping=
-,
- 				pgoff_t index, gfp_t gfp_mask);
- unsigned find_get_pages(struct address_space *mapping, pgoff_t start,
-diff -puN mm/filemap.c~page_fault-retry-with-nopage_retry-fix mm/filema=
-p.c
---- a/mm/filemap.c~page_fault-retry-with-nopage_retry-fix
-+++ a/mm/filemap.c
-@@ -714,51 +714,53 @@ repeat:
- EXPORT_SYMBOL(find_lock_page);
-=20
- /**
-- * find_lock_page_retry - locate, pin and lock a pagecache page, if re=
-try
-- * flag is on, and page is already locked by someone else, return a hi=
-nt of
-- * retry.
-+ * find_lock_page_retry - locate, pin and lock a pagecache page
-  * @mapping: the address_space to search
-  * @offset: the page index
-  * @vma: vma in which the fault was taken
-- * @page: zero if page not present, otherwise point to the page in
-- * pagecache.
-+ * @ppage: zero if page not present, otherwise point to the page in pa=
-gecache.
-  * @retry: 1 indicate caller tolerate a retry.
-  *
-- * Return *page=3D=3DNULL if page is not in pagecache. Otherwise retur=
-n *page
-+ * If retry flag is on, and page is already locked by someone else, re=
-turn a
-+ * hint of retry.
+diff -puN drivers/rtc/Kconfig~rtc-driver-for-marvells-socs-88f6281-and-88f6192 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-driver-for-marvells-socs-88f6281-and-88f6192
++++ a/drivers/rtc/Kconfig
+@@ -712,4 +712,15 @@ config RTC_DRV_TX4939
+ 	  Driver for the internal RTC (Realtime Clock) module found on
+ 	  Toshiba TX4939 SoC.
+ 
++config RTC_DRV_MV
++	tristate "Marvell SoC RTC"
++	depends on ARCH_KIRKWOOD
++	help
++	  If you say yes here you will get support for the in-chip RTC
++	  that can be found in some of Marvell's SoC devices, such as
++	  the Kirkwood 88F6281 and 88F6192.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-mv.
++
+ endif # RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-driver-for-marvells-socs-88f6281-and-88f6192 drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-driver-for-marvells-socs-88f6281-and-88f6192
++++ a/drivers/rtc/Makefile
+@@ -48,6 +48,7 @@ obj-$(CONFIG_RTC_DRV_SUN4V)	+= rtc-sun4v
+ obj-$(CONFIG_RTC_DRV_STARFIRE)	+= rtc-starfire.o
+ obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
+ obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
++obj-$(CONFIG_RTC_DRV_MV)	+= rtc-mv.o
+ obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
+ obj-$(CONFIG_RTC_DRV_PCF8563)	+= rtc-pcf8563.o
+ obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf8583.o
+diff -puN /dev/null drivers/rtc/rtc-mv.c
+--- /dev/null
++++ a/drivers/rtc/rtc-mv.c
+@@ -0,0 +1,163 @@
++/*
++ * Driver for the RTC in Marvell SoCs.
 + *
-+ * Return *ppage=3D=3DNULL if page is not in pagecache. Otherwise retu=
-rn *ppage
-  * points to the page in the pagecache with ret=3DVM_FAULT_RETRY indic=
-ate a
-- * hint to caller for retry, or ret=3D0 which means page is succefully
-+ * hint to caller for retry, or ret=3D0 which means page is successful=
-ly
-  * locked.
-  */
- unsigned find_lock_page_retry(struct address_space *mapping, pgoff_t o=
-ffset,
--				struct vm_area_struct *vma, struct page **page,
-+				struct vm_area_struct *vma, struct page **ppage,
- 				int retry)
- {
- 	unsigned int ret =3D 0;
-+	struct page *page;
-=20
- repeat:
--	*page =3D find_get_page(mapping, offset);
--	if (*page) {
-+	page =3D find_get_page(mapping, offset);
-+	if (page) {
- 		if (!retry)
--			lock_page(*page);
-+			lock_page(page);
- 		else {
--			if (!trylock_page(*page)) {
-+			if (!trylock_page(page)) {
- 				struct mm_struct *mm =3D vma->vm_mm;
-=20
- 				up_read(&mm->mmap_sem);
--				wait_on_page_locked(*page);
-+				wait_on_page_locked(page);
- 				down_read(&mm->mmap_sem);
-=20
--				page_cache_release(*page);
-+				page_cache_release(page);
- 				return VM_FAULT_RETRY;
- 			}
- 		}
--		if (unlikely((*page)->mapping !=3D mapping)) {
--			unlock_page(*page);
--			page_cache_release(*page);
-+		if (unlikely(page->mapping !=3D mapping)) {
-+			unlock_page(page);
-+			page_cache_release(page);
- 			goto repeat;
- 		}
--		VM_BUG_ON((*page)->index !=3D offset);
-+		VM_BUG_ON(page->index !=3D offset);
- 	}
-+	*ppage =3D page;
- 	return ret;
- }
- EXPORT_SYMBOL(find_lock_page_retry);
++ * This file is licensed under the terms of the GNU General Public
++ * License version 2.  This program is licensed "as is" without any
++ * warranty of any kind, whether express or implied.
++ */
++
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/rtc.h>
++#include <linux/bcd.h>
++#include <linux/io.h>
++#include <linux/platform_device.h>
++
++
++#define RTC_TIME_REG_OFFS	0
++#define RTC_SECONDS_OFFS	0
++#define RTC_MINUTES_OFFS	8
++#define RTC_HOURS_OFFS		16
++#define RTC_WDAY_OFFS		24
++#define RTC_HOURS_12H_MODE		(1 << 22) /* 12 hours mode */
++
++#define RTC_DATE_REG_OFFS	4
++#define RTC_MDAY_OFFS		0
++#define RTC_MONTH_OFFS		8
++#define RTC_YEAR_OFFS		16
++
++
++struct rtc_plat_data {
++	struct rtc_device *rtc;
++	void __iomem *ioaddr;
++};
++
++static int mv_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	u32	rtc_reg;
++
++	rtc_reg = (bin2bcd(tm->tm_sec) << RTC_SECONDS_OFFS) |
++		(bin2bcd(tm->tm_min) << RTC_MINUTES_OFFS) |
++		(bin2bcd(tm->tm_hour) << RTC_HOURS_OFFS) |
++		(bin2bcd(tm->tm_wday) << RTC_WDAY_OFFS);
++	writel(rtc_reg, ioaddr + RTC_TIME_REG_OFFS);
++
++	rtc_reg = (bin2bcd(tm->tm_mday) << RTC_MDAY_OFFS) |
++		(bin2bcd(tm->tm_mon + 1) << RTC_MONTH_OFFS) |
++		(bin2bcd(tm->tm_year % 100) << RTC_YEAR_OFFS);
++	writel(rtc_reg, ioaddr + RTC_DATE_REG_OFFS);
++
++	return 0;
++}
++
++static int mv_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	u32	rtc_time, rtc_date;
++	unsigned int year, month, day, hour, minute, second, wday;
++
++	rtc_time = readl(ioaddr + RTC_TIME_REG_OFFS);
++	rtc_date = readl(ioaddr + RTC_DATE_REG_OFFS);
++
++	second = rtc_time & 0x7f;
++	minute = (rtc_time >> RTC_MINUTES_OFFS) & 0x7f;
++	hour = (rtc_time >> RTC_HOURS_OFFS) & 0x3f; /* assume 24 hours mode */
++	wday = (rtc_time >> RTC_WDAY_OFFS) & 0x7;
++
++	day = rtc_date & 0x3f;
++	month = (rtc_date >> RTC_MONTH_OFFS) & 0x3f;
++	year = (rtc_date >> RTC_YEAR_OFFS) & 0xff;
++
++	tm->tm_sec = bcd2bin(second);
++	tm->tm_min = bcd2bin(minute);
++	tm->tm_hour = bcd2bin(hour);
++	tm->tm_mday = bcd2bin(day);
++	tm->tm_wday = bcd2bin(wday);
++	tm->tm_mon = bcd2bin(month) - 1;
++	/* hw counts from year 2000, but tm_year is relative to 1900 */
++	tm->tm_year = bcd2bin(year) + 100;
++
++	return rtc_valid_tm(tm);
++}
++
++static const struct rtc_class_ops mv_rtc_ops = {
++	.read_time	= mv_rtc_read_time,
++	.set_time	= mv_rtc_set_time,
++};
++
++static int __init mv_rtc_probe(struct platform_device *pdev)
++{
++	struct resource *res;
++	struct rtc_plat_data *pdata;
++	resource_size_t size;
++	u32 rtc_time;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++
++	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return -ENOMEM;
++
++	size = resource_size(res);
++	if (!devm_request_mem_region(&pdev->dev, res->start, size,
++				     pdev->name))
++		return -EBUSY;
++
++	pdata->ioaddr = devm_ioremap(&pdev->dev, res->start, size);
++	if (!pdata->ioaddr)
++		return -ENOMEM;
++
++	/* make sure the 24 hours mode is enabled */
++	rtc_time = readl(pdata->ioaddr + RTC_TIME_REG_OFFS);
++	if (rtc_time & RTC_HOURS_12H_MODE) {
++		dev_err(&pdev->dev, "24 Hours mode not supported.\n");
++		return -EINVAL;
++	}
++
++	platform_set_drvdata(pdev, pdata);
++	pdata->rtc = rtc_device_register(pdev->name, &pdev->dev,
++					 &mv_rtc_ops, THIS_MODULE);
++	if (IS_ERR(pdata->rtc))
++		return PTR_ERR(pdata->rtc);
++
++	return 0;
++}
++
++static int __exit mv_rtc_remove(struct platform_device *pdev)
++{
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	rtc_device_unregister(pdata->rtc);
++	return 0;
++}
++
++static struct platform_driver mv_rtc_driver = {
++	.remove		= __exit_p(mv_rtc_remove),
++	.driver		= {
++		.name	= "rtc-mv",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static __init int mv_init(void)
++{
++	return platform_driver_probe(&mv_rtc_driver, mv_rtc_probe);
++}
++
++static __exit void mv_exit(void)
++{
++	platform_driver_unregister(&mv_rtc_driver);
++}
++
++module_init(mv_init);
++module_exit(mv_exit);
++
++MODULE_AUTHOR("Saeed Bishara <saeed@marvell.com>");
++MODULE_DESCRIPTION("Marvell RTC driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:rtc-mv");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from saeed@marvell.com are
 
 origin.patch
-mm-backing-devc-remove-recently-added-warn_on.patch
-revert-percpu-counter-clean-up-percpu_counter_sum_and_set.patch
-revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch
-ksym_symbol_len-fixes.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-pci-uninline-pci_ioremap_bar.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fi=
-xes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=3D0-checkpatch-fix=
-es.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=3D0-checkpatch-fix=
-es-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-chec=
-kpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch=
--fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fi=
-xes.patch
-romfs-romfs_iget-unsigned-ino-=3D-0-is-always-true-checkpatch-fixes.pat=
-ch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-ldisc-n_tty-export-all-n_tty-ldisc-methods-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patc=
-h
-w1-build-fix.patch
+rtc-driver-for-marvells-socs-88f6281-and-88f6192.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
