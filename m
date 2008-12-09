@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-fix-workqueue-shutdown-update.patch added to -mm tree
-Date: Mon, 08 Dec 2008 16:31:09 -0800
-Message-ID: <200812090031.mB90V9kQ014678@imap1.linux-foundation.org>
+Subject: + exportfs-handle-null-returns-from-fh_to_dentry-fh_to_parent.patch added to -mm tree
+Date: Mon, 08 Dec 2008 16:33:24 -0800
+Message-ID: <200812090033.mB90XPgr016074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753779AbYLIAbf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:31:35 -0500
+	by vger.kernel.org with ESMTP id S1753750AbYLIAdz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Dec 2008 19:33:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geoffrey.levand@am.sony.com, geert@linux-m68k.org, krzysztof.h1@poczta.fm
+Cc: bfields@citi.umich.edu, dhowells@redhat.com, hch@infradead.org, hugh@veritas.com, neilb@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     fbcon: fix workqueue shutdown
+     exportfs: handle NULL returns from fh_to_dentry()/fh_to_parent()
 has been added to the -mm tree.  Its filename is
-     fbcon-fix-workqueue-shutdown-update.patch
+     exportfs-handle-null-returns-from-fh_to_dentry-fh_to_parent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbcon: fix workqueue shutdown
-From: Geoff Levand <geoffrey.levand@am.sony.com>
+Subject: exportfs: handle NULL returns from fh_to_dentry()/fh_to_parent()
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-Add a call to cancel_work_sync() in fbcon_exit() to cancel any pending
-work in the fbcon workqueue.
+While 440037287c5 "[PATCH] switch all filesystems over to d_obtain_alias"
+removed some cases where fh_to_dentry() and fh_to_parent() could return
+NULL, there are still a few NULL returns left in individual filesystems. 
+Thus it was a mistake for that commit to remove the handling of NULL
+returns in the callers.
 
-The current implementation of fbcon_exit() sets the fbcon workqueue
-function info->queue.func to NULL, but does not assure that there is no
-work pending when it does so.  On occasion, depending on system timing,
-there will still be pending work in the queue when fbcon_exit() is
-called.  This results in a null pointer deference when run_workqueue()
-tries to call the queue's work function.
+Revert those parts of 440037287c5 which removed the NULL handling.
 
-Fixes errors on shutdown similar to these:
+(We could, alternatively, modify all implementations to return -ESTALE
+instead of NULL, but that proves to require fixing a number of
+filesystems, and in some cases it's arguably more natural to return NULL.)
 
-  Console: switching to colour dummy device 80x25
-  Unable to handle kernel paging request for data at address 0x00000000
+Thanks to David for original patch and Linus, Christoph, and Hugh for
+review.
 
-Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/exportfs/expfs.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/video/console/fbcon.c~fbcon-fix-workqueue-shutdown-update drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbcon-fix-workqueue-shutdown-update
-+++ a/drivers/video/console/fbcon.c
-@@ -3531,12 +3531,18 @@ static void fbcon_exit(void)
- 	softback_buf = 0UL;
+diff -puN fs/exportfs/expfs.c~exportfs-handle-null-returns-from-fh_to_dentry-fh_to_parent fs/exportfs/expfs.c
+--- a/fs/exportfs/expfs.c~exportfs-handle-null-returns-from-fh_to_dentry-fh_to_parent
++++ a/fs/exportfs/expfs.c
+@@ -369,6 +369,8 @@ struct dentry *exportfs_decode_fh(struct
+ 	 * Try to get any dentry for the given file handle from the filesystem.
+ 	 */
+ 	result = nop->fh_to_dentry(mnt->mnt_sb, fid, fh_len, fileid_type);
++	if (!result)
++		result = ERR_PTR(-ESTALE);
+ 	if (IS_ERR(result))
+ 		return result;
  
- 	for (i = 0; i < FB_MAX; i++) {
-+		int pending;
-+
- 		mapped = 0;
- 		info = registered_fb[i];
+@@ -422,6 +424,8 @@ struct dentry *exportfs_decode_fh(struct
  
- 		if (info == NULL)
- 			continue;
- 
-+		pending = cancel_work_sync(&info->queue);
-+		DPRINTK("fbcon: %s pending work\n", (pending ? "canceled" :
-+			"no"));
-+
- 		for (j = first_fb_vc; j <= last_fb_vc; j++) {
- 			if (con2fb_map[j] == i)
- 				mapped = 1;
+ 		target_dir = nop->fh_to_parent(mnt->mnt_sb, fid,
+ 				fh_len, fileid_type);
++		if (!target_dir)
++			goto err_result;
+ 		err = PTR_ERR(target_dir);
+ 		if (IS_ERR(target_dir))
+ 			goto err_result;
 _
 
-Patches currently in -mm which might be from geoffrey.levand@am.sony.com are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
-fbcon-fix-workqueue-shutdown-update.patch
+origin.patch
 linux-next.patch
+exportfs-handle-null-returns-from-fh_to_dentry-fh_to_parent.patch
+reiser4.patch
 
