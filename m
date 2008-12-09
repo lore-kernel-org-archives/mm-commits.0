@@ -1,107 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - radeonfb-disable-new-color-expand-acceleration-unless-explicitely-enabled.patch removed from -mm tree
-Date: Tue, 09 Dec 2008 10:45:40 -0800
-Message-ID: <200812091845.mB9IjeiK027008@imap1.linux-foundation.org>
+Subject: - audit-remove-excess-kernel-doc.patch removed from -mm tree
+Date: Tue, 09 Dec 2008 10:45:42 -0800
+Message-ID: <200812091845.mB9IjgCB027011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45441 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753731AbYLISpp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 13:45:45 -0500
+	by vger.kernel.org with ESMTP id S1753547AbYLISp4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 13:45:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, eparis@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     radeonfb: disable new color expand acceleration unless explicitely enabled
+     audit: remove excess kernel-doc
 has been removed from the -mm tree.  Its filename was
-     radeonfb-disable-new-color-expand-acceleration-unless-explicitely-enabled.patch
+     audit-remove-excess-kernel-doc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radeonfb: disable new color expand acceleration unless explicitely enabled
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: audit: remove excess kernel-doc
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This new color expansion acceleration for radeonfb appears to trigger
-problems with X on VT switch and suspend/resume on some machines.  It
-might be a problem in the VT layer or in X, but I haven't quite found it
-yet, so in the meantime, this disables the acceleration by default,
-reverting to 2.6.27 state.  It can be enabled using the "accel_cexp"
-module parameter or fbdev argument.
+Delete excess kernel-doc notation in kernel/auditsc.c:
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: David S. Miller <davem@davemloft.net>
+Warning(linux-2.6.27-git10//kernel/auditsc.c:1481): Excess function parameter or struct member 'tsk' description in 'audit_syscall_entry'
+Warning(linux-2.6.27-git10//kernel/auditsc.c:1564): Excess function parameter or struct member 'tsk' description in 'audit_syscall_exit'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/radeon_accel.c |    3 ++-
- drivers/video/aty/radeon_base.c  |    6 ++++++
- drivers/video/aty/radeonfb.h     |    2 ++
- 3 files changed, 10 insertions(+), 1 deletion(-)
+ kernel/auditsc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/video/aty/radeon_accel.c~radeonfb-disable-new-color-expand-acceleration-unless-explicitely-enabled drivers/video/aty/radeon_accel.c
---- a/drivers/video/aty/radeon_accel.c~radeonfb-disable-new-color-expand-acceleration-unless-explicitely-enabled
-+++ a/drivers/video/aty/radeon_accel.c
-@@ -256,7 +256,8 @@ void radeonfb_imageblit(struct fb_info *
- 		return;
+diff -puN kernel/auditsc.c~audit-remove-excess-kernel-doc kernel/auditsc.c
+--- a/kernel/auditsc.c~audit-remove-excess-kernel-doc
++++ a/kernel/auditsc.c
+@@ -1544,7 +1544,6 @@ void audit_free(struct task_struct *tsk)
  
- 	/* We only do 1 bpp color expansion for now */
--	if (info->flags & FBINFO_HWACCEL_DISABLED || image->depth != 1)
-+	if (!accel_cexp ||
-+	    (info->flags & FBINFO_HWACCEL_DISABLED) || image->depth != 1)
- 		goto fallback;
+ /**
+  * audit_syscall_entry - fill in an audit record at syscall entry
+- * @tsk: task being audited
+  * @arch: architecture type
+  * @major: major syscall type (function)
+  * @a1: additional syscall register 1
+@@ -1635,7 +1634,6 @@ void audit_syscall_entry(int arch, int m
  
- 	/* Fallback if running out of the screen. We may do clipping
-diff -puN drivers/video/aty/radeon_base.c~radeonfb-disable-new-color-expand-acceleration-unless-explicitely-enabled drivers/video/aty/radeon_base.c
---- a/drivers/video/aty/radeon_base.c~radeonfb-disable-new-color-expand-acceleration-unless-explicitely-enabled
-+++ a/drivers/video/aty/radeon_base.c
-@@ -282,6 +282,8 @@ static int backlight = 1;
- static int backlight = 0;
- #endif
- 
-+int accel_cexp = 0;
-+
- /*
-  * prototypes
-  */
-@@ -2520,6 +2522,8 @@ static int __init radeonfb_setup (char *
- 		} else if (!strncmp(this_opt, "ignore_devlist", 14)) {
- 			ignore_devlist = 1;
- #endif
-+		} else if (!strncmp(this_opt, "accel_cexp", 12)) {
-+			accel_cexp = 1;
- 		} else
- 			mode_option = this_opt;
- 	}
-@@ -2567,6 +2571,8 @@ module_param(monitor_layout, charp, 0);
- MODULE_PARM_DESC(monitor_layout, "Specify monitor mapping (like XFree86)");
- module_param(force_measure_pll, bool, 0);
- MODULE_PARM_DESC(force_measure_pll, "Force measurement of PLL (debug)");
-+module_param(accel_cexp, bool, 0);
-+MODULE_PARM_DESC(accel_cexp, "Use acceleration engine for color expansion");
- #ifdef CONFIG_MTRR
- module_param(nomtrr, bool, 0);
- MODULE_PARM_DESC(nomtrr, "bool: disable use of MTRR registers");
-diff -puN drivers/video/aty/radeonfb.h~radeonfb-disable-new-color-expand-acceleration-unless-explicitely-enabled drivers/video/aty/radeonfb.h
---- a/drivers/video/aty/radeonfb.h~radeonfb-disable-new-color-expand-acceleration-unless-explicitely-enabled
-+++ a/drivers/video/aty/radeonfb.h
-@@ -638,4 +638,6 @@ static inline void radeonfb_bl_init(stru
- static inline void radeonfb_bl_exit(struct radeonfb_info *rinfo) {}
- #endif
- 
-+extern int accel_cexp;
-+
- #endif /* __RADEONFB_H__ */
+ /**
+  * audit_syscall_exit - deallocate audit context after a system call
+- * @tsk: task being audited
+  * @valid: success/failure flag
+  * @return_code: syscall return value
+  *
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n.patch
 linux-next.patch
-kprobes-add-kprobe_insn_mutex-and-cleanup-arch_remove_kprobe.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+mtd-remove-excess-kernel-doc-notation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+esp-fix-section-mismatch-warning.patch
+fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+w1-add-list-masters-w1-command.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+ldisc-n_tty-export-all-n_tty-ldisc-methods.patch
+pps-serial-clients-support.patch
+pps-parallel-port-clients-support.patch
+pps-low-level-irq-timestamps-recording.patch
+fix-similar-typos-to-successfull-v2.patch
 
