@@ -1,117 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - inotify-fix-in_oneshot-unmount-event-watcher.patch removed from -mm tree
-Date: Wed, 10 Dec 2008 11:29:11 -0800
-Message-ID: <200812101929.mBAJTBXE021684@imap1.linux-foundation.org>
+Subject: - rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers.patch removed from -mm tree
+Date: Wed, 10 Dec 2008 11:28:38 -0800
+Message-ID: <200812101928.mBAJScZm021290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59092 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41115 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755246AbYLJT3T (ORCPT
+	by vger.kernel.org with ESMTP id S1755416AbYLJT3f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Dec 2008 14:29:19 -0500
+	Wed, 10 Dec 2008 14:29:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@openvz.org, rlove@google.com, ttb@tentacle.dhs.org, ulissesf@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: a.zummo@towertech.it, david-b@pacbell.net, kaloz@openwrt.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     inotify: fix IN_ONESHOT unmount event watcher
+     rtc: fix missing id_table in rtc-ds1672 and rtc-max6900 drivers
 has been removed from the -mm tree.  Its filename was
-     inotify-fix-in_oneshot-unmount-event-watcher.patch
+     rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inotify: fix IN_ONESHOT unmount event watcher
-From: Dmitri Monakhov <dmonakhov@openvz.org>
+Subject: rtc: fix missing id_table in rtc-ds1672 and rtc-max6900 drivers
+From: Alessandro Zummo <a.zummo@towertech.it>
 
-On umount two event will be dispatched to watcher:
+Add missing id_table to the drivers in subject.  Patch is against the
+latest git.  It should go in with 2.6.28 if possible, the drivers won't
+work without the id_table bits.
 
-1: inotify_dev_queue_event(.., IN_UNMOUNT,..)
-2: remove_watch(watch, dev)
-    ->inotify_dev_queue_event(.., IN_IGNORED, ..)
-
-But if watcher has IN_ONESHOT bit set then the watcher will be released
-inside first event.  Which result in accessing invalid object later.  IMHO
-it is not pure regression.  This bug wasn't triggered while initial
-inotify interface testing phase because of another bug in IN_ONESHOT
-handling logic :)
-
-  commit ac74c00e499ed276a965e5b5600667d5dc04a84a
-  Author: Ulisses Furquim <ulissesf@gmail.com>
-  Date:   Fri Feb 8 04:18:16 2008 -0800
-    inotify: fix check for one-shot watches before destroying them
-    As the IN_ONESHOT bit is never set when an event is sent we must check it
-    in the watch's mask and not in the event's mask.
-
-TESTCASE:
-mkdir mnt
-mount -ttmpfs none mnt
-mkdir mnt/d
-./inotify mnt/d&
-umount mnt ## << lockup or crash here
-
-TESTSOURCE:
-/* gcc -oinotify inotify.c */
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/inotify.h>
-
-int main(int argc, char **argv)
-{
-        char buf[1024];
-        struct inotify_event *ie;
-        char *p;
-        int i;
-        ssize_t l;
-
-        p = argv[1];
-        i = inotify_init();
-        inotify_add_watch(i, p, ~0);
-
-        l = read(i, buf, sizeof(buf));
-        printf("read %d bytes\n", l);
-        ie = (struct inotify_event *) buf;
-        printf("event mask: %d\n", ie->mask);
-	return 0;
-}
-
-Signed-off-by: Dmitri Monakhov <dmonakhov@openvz.org>
-Cc: John McCutchan <ttb@tentacle.dhs.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Robert Love <rlove@google.com>
-Cc: Ulisses Furquim <ulissesf@gmail.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Reported-by: Imre Kaloz <kaloz@openwrt.org>
+Tested-by: Imre Kaloz <kaloz@openwrt.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-ds1672.c  |    6 ++++++
+ drivers/rtc/rtc-max6900.c |    6 ++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN fs/inotify.c~inotify-fix-in_oneshot-unmount-event-watcher fs/inotify.c
---- a/fs/inotify.c~inotify-fix-in_oneshot-unmount-event-watcher
-+++ a/fs/inotify.c
-@@ -428,11 +428,13 @@ void inotify_unmount_inodes(struct list_
- 		watches = &inode->inotify_watches;
- 		list_for_each_entry_safe(watch, next_w, watches, i_list) {
- 			struct inotify_handle *ih= watch->ih;
-+			get_inotify_watch(watch);
- 			mutex_lock(&ih->mutex);
- 			ih->in_ops->handle_event(watch, watch->wd, IN_UNMOUNT, 0,
- 						 NULL, NULL);
- 			inotify_remove_watch_locked(ih, watch);
- 			mutex_unlock(&ih->mutex);
-+			put_inotify_watch(watch);
- 		}
- 		mutex_unlock(&inode->inotify_mutex);
- 		iput(inode);		
+diff -puN drivers/rtc/rtc-ds1672.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers drivers/rtc/rtc-ds1672.c
+--- a/drivers/rtc/rtc-ds1672.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers
++++ a/drivers/rtc/rtc-ds1672.c
+@@ -209,12 +209,18 @@ static int ds1672_probe(struct i2c_clien
+ 	return err;
+ }
+ 
++static struct i2c_device_id ds1672_id[] = {
++	{ "ds1672", 0 },
++	{ }
++};
++
+ static struct i2c_driver ds1672_driver = {
+ 	.driver = {
+ 		   .name = "rtc-ds1672",
+ 		   },
+ 	.probe = &ds1672_probe,
+ 	.remove = &ds1672_remove,
++	.id_table = ds1672_id,
+ };
+ 
+ static int __init ds1672_init(void)
+diff -puN drivers/rtc/rtc-max6900.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers drivers/rtc/rtc-max6900.c
+--- a/drivers/rtc/rtc-max6900.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers
++++ a/drivers/rtc/rtc-max6900.c
+@@ -247,12 +247,18 @@ max6900_probe(struct i2c_client *client,
+ 	return 0;
+ }
+ 
++static struct i2c_device_id max6900_id[] = {
++	{ "max6900", 0 },
++	{ }
++};
++
+ static struct i2c_driver max6900_driver = {
+ 	.driver = {
+ 		   .name = "rtc-max6900",
+ 		   },
+ 	.probe = max6900_probe,
+ 	.remove = max6900_remove,
++	.id_table = max6900_id,
+ };
+ 
+ static int __init max6900_init(void)
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from a.zummo@towertech.it are
 
 origin.patch
-kill-suid-bit-only-for-regular-files.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+linux-next.patch
+genrtc-disable-genrtc-on-blackfin-systems.patch
+rtc-ds1307-smbus-compatibility.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
+rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
+rtc-driver-for-pxa27x-and-pxa3xx-soc.patch
+rtc-pxa27x-pxa3xx-driver-fixes-revised.patch
+rtc-add-alarm-update-irq-interfaces-version-5.patch
+rtc-rtc-ds1390-probe-sequence-and-misc-fixes.patch
+rtc-kconfig-cleanup.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+rtc-rtc-max6902-fixes-v3.patch
+rtc-rtc-ds3234-fixes-v2.patch
+rtc-use-set_mmss-when-set_time-is-not-available.patch
+rtc-add-rtc-tx4939-driver-v2.patch
+rtc-rtc-ds1216-fixes.patch
+rtc-driver-for-marvells-socs-88f6281-and-88f6192.patch
 
