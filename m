@@ -1,90 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n.patch removed from -mm tree
-Date: Wed, 10 Dec 2008 11:28:55 -0800
-Message-ID: <200812101928.mBAJStmi021504@imap1.linux-foundation.org>
+Subject: - pagemap-fix-32-bit-pagemap-regression.patch removed from -mm tree
+Date: Wed, 10 Dec 2008 11:29:00 -0800
+Message-ID: <200812101929.mBAJT0XR021546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47171 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753502AbYLJTfQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752783AbYLJTfz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Dec 2008 14:35:16 -0500
+	Wed, 10 Dec 2008 14:35:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, dbrownell@users.sourceforge.net, sameo@openedhand.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: mpm@selenic.com, adobriyan@gmail.com, dave@linux.vnet.ibm.com, dgraham@nortel.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc twl4030: rename ioctl function when RTC_INTF_DEV=n
+     pagemap: fix 32-bit pagemap regression
 has been removed from the -mm tree.  Its filename was
-     rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n.patch
+     pagemap-fix-32-bit-pagemap-regression.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc twl4030: rename ioctl function when RTC_INTF_DEV=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: pagemap: fix 32-bit pagemap regression
+From: Matt Mackall <mpm@selenic.com>
 
-Fix build error when RTC_INTF_DEV=n:
+The large pages fix from bcf8039ed45 broke 32-bit pagemap by pulling the
+pagemap entry code out into a function with the wrong return type. 
+Pagemap entries are 64 bits on all systems and unsigned long is only 32
+bits on 32-bit systems.
 
-drivers/rtc/rtc-twl4030.c:402: error: 'twl4030_rtc_ioctl' undeclared here (not in a function)
-make[3]: *** [drivers/rtc/rtc-twl4030.o] Error 1
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Samuel Ortiz <sameo@openedhand.com>
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Reported-by: Doug Graham <dgraham@nortel.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: <stable@kernel.org>		[2.6.26.x, 2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-twl4030.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-twl4030.c~rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n drivers/rtc/rtc-twl4030.c
---- a/drivers/rtc/rtc-twl4030.c~rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n
-+++ a/drivers/rtc/rtc-twl4030.c
-@@ -337,7 +337,7 @@ static int twl4030_rtc_ioctl(struct devi
+diff -puN fs/proc/task_mmu.c~pagemap-fix-32-bit-pagemap-regression fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-fix-32-bit-pagemap-regression
++++ a/fs/proc/task_mmu.c
+@@ -557,9 +557,9 @@ static u64 swap_pte_to_pagemap_entry(pte
+ 	return swp_type(e) | (swp_offset(e) << MAX_SWAPFILES_SHIFT);
  }
  
- #else
--#define	omap_rtc_ioctl	NULL
-+#define	twl4030_rtc_ioctl	NULL
- #endif
- 
- static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
+-static unsigned long pte_to_pagemap_entry(pte_t pte)
++static u64 pte_to_pagemap_entry(pte_t pte)
+ {
+-	unsigned long pme = 0;
++	u64 pme = 0;
+ 	if (is_swap_pte(pte))
+ 		pme = PM_PFRAME(swap_pte_to_pagemap_entry(pte))
+ 			| PM_PSHIFT(PAGE_SHIFT) | PM_SWAP;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-arm-fix-kernel-doc-syntax.patch
-mtd-remove-excess-kernel-doc-notation.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
-documentation-when-to-bug-and-when-to-not-bug.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-max3100-spi-uart-driver-select-serial_core.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-i2o-remove-extraneous-kernel-doc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-kmod-fix-varargs-kernel-doc.patch
-docs-document-how-to-write-varargs-in-kernel-doc.patch
-rapidio-remove-excess-kernel-doc-notation.patch
-documentation-update-header-file-paths.patch
-documentation-update-s390-header-file-paths.patch
-w1-add-list-masters-w1-command.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
-fix-similar-typos-to-successfull-v2.patch
+shmem-remove-unused-shmem_get_unmapped_area.patch
+shmem-unify-regular-and-tiny-shmem.patch
+random-dont-try-to-look-at-entropy_count-outside-the-lock.patch
 
