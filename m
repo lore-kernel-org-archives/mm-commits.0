@@ -1,134 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-mb862xx-mb862xxfbc-fix-printk.patch removed from -mm tree
-Date: Wed, 10 Dec 2008 11:29:17 -0800
-Message-ID: <200812101929.mBAJTHxJ021748@imap1.linux-foundation.org>
+Subject: - rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n.patch removed from -mm tree
+Date: Wed, 10 Dec 2008 11:28:55 -0800
+Message-ID: <200812101928.mBAJStmi021504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756644AbYLJTeq (ORCPT
+	by vger.kernel.org with ESMTP id S1753502AbYLJTfQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Dec 2008 14:34:46 -0500
+	Wed, 10 Dec 2008 14:35:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agust@denx.de, avorontsov@ru.mvista.com, dbaryshkov@gmail.com, krzysztof.h1@poczta.fm, m.fortini@selcomgroup.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, dbrownell@users.sourceforge.net, sameo@openedhand.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/mb862xx/mb862xxfb.c: fix printk
+     rtc twl4030: rename ioctl function when RTC_INTF_DEV=n
 has been removed from the -mm tree.  Its filename was
-     drivers-video-mb862xx-mb862xxfbc-fix-printk.patch
+     rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/mb862xx/mb862xxfb.c: fix printk
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc twl4030: rename ioctl function when RTC_INTF_DEV=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-sparc64:
+Fix build error when RTC_INTF_DEV=n:
 
-drivers/video/mb862xx/mb862xxfb.c:929: warning: long long unsigned int format, resource_size_t arg (arg 4)
-drivers/video/mb862xx/mb862xxfb.c:931: warning: long long unsigned int format, resource_size_t arg (arg 4)
+drivers/rtc/rtc-twl4030.c:402: error: 'twl4030_rtc_ioctl' undeclared here (not in a function)
+make[3]: *** [drivers/rtc/rtc-twl4030.o] Error 1
 
-We don't know what type the architecture uses to implement u64, hence they
-cannot be printed.
-
-Cc: Anatolij Gustschin <agust@denx.de>
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Matteo Fortini <m.fortini@selcomgroup.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mb862xx/mb862xxfb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-twl4030.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/mb862xx/mb862xxfb.c~drivers-video-mb862xx-mb862xxfbc-fix-printk drivers/video/mb862xx/mb862xxfb.c
---- a/drivers/video/mb862xx/mb862xxfb.c~drivers-video-mb862xx-mb862xxfbc-fix-printk
-+++ a/drivers/video/mb862xx/mb862xxfb.c
-@@ -927,9 +927,9 @@ static int __devinit mb862xx_pci_probe(s
- 	}
+diff -puN drivers/rtc/rtc-twl4030.c~rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n drivers/rtc/rtc-twl4030.c
+--- a/drivers/rtc/rtc-twl4030.c~rtc-twl4030-rename-ioctl-function-when-rtc_intf_dev=n
++++ a/drivers/rtc/rtc-twl4030.c
+@@ -337,7 +337,7 @@ static int twl4030_rtc_ioctl(struct devi
+ }
  
- 	dev_dbg(dev, "fb phys 0x%llx 0x%lx\n",
--		(u64)par->fb_base_phys, (ulong)par->mapped_vram);
-+		(unsigned long long)par->fb_base_phys, (ulong)par->mapped_vram);
- 	dev_dbg(dev, "mmio phys 0x%llx 0x%lx\n",
--		(u64)par->mmio_base_phys, (ulong)par->mmio_len);
-+		(unsigned long long)par->mmio_base_phys, (ulong)par->mmio_len);
+ #else
+-#define	omap_rtc_ioctl	NULL
++#define	twl4030_rtc_ioctl	NULL
+ #endif
  
- 	if (mb862xx_pci_gdc_init(par))
- 		goto io_unmap;
+ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-pci-uninline-pci_ioremap_bar.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
+kgdb-fix-kernel-doc-error.patch
+arm-fix-kernel-doc-syntax.patch
+mtd-remove-excess-kernel-doc-notation.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+esp-fix-section-mismatch-warning.patch
+fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
 max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+w1-add-list-masters-w1-command.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
+fix-similar-typos-to-successfull-v2.patch
 
