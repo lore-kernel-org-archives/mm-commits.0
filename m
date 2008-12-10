@@ -1,205 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: - revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch removed from -mm tree
-Date: Wed, 10 Dec 2008 11:28:47 -0800
-Message-ID: <200812101928.mBAJSlRM021381__43291.7027771056$1228937531$gmane$org@imap1.linux-foundation.org>
+Subject: - ksym_symbol_len-fixes.patch removed from -mm tree
+Date: Wed, 10 Dec 2008 11:29:14 -0800
+Message-ID: <200812101929.mBAJTEA1021711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755451AbYLJT3v (ORCPT
+	by vger.kernel.org with ESMTP id S1755486AbYLJTao (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Dec 2008 14:29:51 -0500
+	Wed, 10 Dec 2008 14:30:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, cmm@us.ibm.com, dada1@cosmosbay.com, davem@davemloft.net, linux-ext4@vger.kernel.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: hugh@veritas.com, cl@linux-foundation.org, fweisbec@gmail.com, miles.lane@gmail.com, penberg@cs.helsinki.fi, rusty@rustcorp.com.au, srostedt@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "percpu_counter: new function percpu_counter_sum_and_set"
+     KSYM_SYMBOL_LEN fixes
 has been removed from the -mm tree.  Its filename was
-     revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch
+     ksym_symbol_len-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "percpu_counter: new function percpu_counter_sum_and_set"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: KSYM_SYMBOL_LEN fixes
+From: Hugh Dickins <hugh@veritas.com>
 
-Revert
+Miles Lane tailing /sys files hit a BUG which Pekka Enberg has tracked
+to my 966c8c12dc9e77f931e2281ba25d2f0244b06949 sprint_symbol(): use
+less stack exposing a bug in slub's list_locations() -
+kallsyms_lookup() writes a 0 to namebuf[KSYM_NAME_LEN-1], but that was
+beyond the end of page provided.
 
-    commit e8ced39d5e8911c662d4d69a342b9d053eaaac4e
-    Author: Mingming Cao <cmm@us.ibm.com>
-    Date:   Fri Jul 11 19:27:31 2008 -0400
+The 100 slop which list_locations() allows at end of page looks roughly
+enough for all the other stuff it might print after the symbol before
+it checks again: break out KSYM_SYMBOL_LEN earlier than before.
 
-        percpu_counter: new function percpu_counter_sum_and_set
+Latencytop and ftrace and are using KSYM_NAME_LEN buffers where they
+need KSYM_SYMBOL_LEN buffers, and vmallocinfo a 2*KSYM_NAME_LEN buffer
+where it wants a KSYM_SYMBOL_LEN buffer: fix those before anyone copies
+them.
 
-
-As described in
-
-	revert "percpu counter: clean up percpu_counter_sum_and_set()"
-
-the new percpu_counter_sum_and_set() is racy against updates to the
-cpu-local accumulators on other CPUs.  Revert that change.
-
-This means that ext4 will be slow again.  But correct.
-
-Reported-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Mingming Cao <cmm@us.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: <stable@kernel.org>		[2.6.27.x]
+[akpm@linux-foundation.org: ftrace.h needs module.h]
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc Miles Lane <miles.lane@gmail.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Steven Rostedt <srostedt@redhat.com>
+Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c               |    4 ++--
- include/linux/percpu_counter.h |   12 +++---------
- lib/percpu_counter.c           |    7 +------
- 3 files changed, 6 insertions(+), 17 deletions(-)
+ fs/proc/base.c         |    2 +-
+ include/linux/ftrace.h |    3 ++-
+ kernel/latencytop.c    |    2 +-
+ mm/slub.c              |    2 +-
+ mm/vmalloc.c           |    2 +-
+ 5 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext4/balloc.c~revert-percpu_counter-new-function-percpu_counter_sum_and_set fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~revert-percpu_counter-new-function-percpu_counter_sum_and_set
-+++ a/fs/ext4/balloc.c
-@@ -609,8 +609,8 @@ int ext4_has_free_blocks(struct ext4_sb_
+diff -puN fs/proc/base.c~ksym_symbol_len-fixes fs/proc/base.c
+--- a/fs/proc/base.c~ksym_symbol_len-fixes
++++ a/fs/proc/base.c
+@@ -371,7 +371,7 @@ static int lstats_show_proc(struct seq_f
+ 				task->latency_record[i].time,
+ 				task->latency_record[i].max);
+ 			for (q = 0; q < LT_BACKTRACEDEPTH; q++) {
+-				char sym[KSYM_NAME_LEN];
++				char sym[KSYM_SYMBOL_LEN];
+ 				char *c;
+ 				if (!task->latency_record[i].backtrace[q])
+ 					break;
+diff -puN include/linux/ftrace.h~ksym_symbol_len-fixes include/linux/ftrace.h
+--- a/include/linux/ftrace.h~ksym_symbol_len-fixes
++++ a/include/linux/ftrace.h
+@@ -6,6 +6,7 @@
+ #include <linux/ktime.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
++#include <linux/module.h>
+ #include <linux/kallsyms.h>
  
- 	if (free_blocks - (nblocks + root_blocks + dirty_blocks) <
- 						EXT4_FREEBLOCKS_WATERMARK) {
--		free_blocks  = percpu_counter_sum_and_set(fbc);
--		dirty_blocks = percpu_counter_sum_and_set(dbc);
-+		free_blocks  = percpu_counter_sum_positive(fbc);
-+		dirty_blocks = percpu_counter_sum_positive(dbc);
- 		if (dirty_blocks < 0) {
- 			printk(KERN_CRIT "Dirty block accounting "
- 					"went wrong %lld\n",
-diff -puN include/linux/percpu_counter.h~revert-percpu_counter-new-function-percpu_counter_sum_and_set include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~revert-percpu_counter-new-function-percpu_counter_sum_and_set
-+++ a/include/linux/percpu_counter.h
-@@ -35,7 +35,7 @@ int percpu_counter_init_irq(struct percp
- void percpu_counter_destroy(struct percpu_counter *fbc);
- void percpu_counter_set(struct percpu_counter *fbc, s64 amount);
- void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch);
--s64 __percpu_counter_sum(struct percpu_counter *fbc, int set);
-+s64 __percpu_counter_sum(struct percpu_counter *fbc);
+ #ifdef CONFIG_FUNCTION_TRACER
+@@ -231,7 +232,7 @@ ftrace_init_module(unsigned long *start,
  
- static inline void percpu_counter_add(struct percpu_counter *fbc, s64 amount)
- {
-@@ -44,19 +44,13 @@ static inline void percpu_counter_add(st
+ struct boot_trace {
+ 	pid_t			caller;
+-	char			func[KSYM_NAME_LEN];
++	char			func[KSYM_SYMBOL_LEN];
+ 	int			result;
+ 	unsigned long long	duration;		/* usecs */
+ 	ktime_t			calltime;
+diff -puN kernel/latencytop.c~ksym_symbol_len-fixes kernel/latencytop.c
+--- a/kernel/latencytop.c~ksym_symbol_len-fixes
++++ a/kernel/latencytop.c
+@@ -191,7 +191,7 @@ static int lstats_show(struct seq_file *
+ 				latency_record[i].time,
+ 				latency_record[i].max);
+ 			for (q = 0; q < LT_BACKTRACEDEPTH; q++) {
+-				char sym[KSYM_NAME_LEN];
++				char sym[KSYM_SYMBOL_LEN];
+ 				char *c;
+ 				if (!latency_record[i].backtrace[q])
+ 					break;
+diff -puN mm/slub.c~ksym_symbol_len-fixes mm/slub.c
+--- a/mm/slub.c~ksym_symbol_len-fixes
++++ a/mm/slub.c
+@@ -3597,7 +3597,7 @@ static int list_locations(struct kmem_ca
+ 	for (i = 0; i < t.count; i++) {
+ 		struct location *l = &t.loc[i];
  
- static inline s64 percpu_counter_sum_positive(struct percpu_counter *fbc)
- {
--	s64 ret = __percpu_counter_sum(fbc, 0);
-+	s64 ret = __percpu_counter_sum(fbc);
- 	return ret < 0 ? 0 : ret;
- }
+-		if (len > PAGE_SIZE - 100)
++		if (len > PAGE_SIZE - KSYM_SYMBOL_LEN - 100)
+ 			break;
+ 		len += sprintf(buf + len, "%7ld ", l->count);
  
--static inline s64 percpu_counter_sum_and_set(struct percpu_counter *fbc)
--{
--	return __percpu_counter_sum(fbc, 1);
--}
--
--
- static inline s64 percpu_counter_sum(struct percpu_counter *fbc)
- {
--	return __percpu_counter_sum(fbc, 0);
-+	return __percpu_counter_sum(fbc);
- }
+diff -puN mm/vmalloc.c~ksym_symbol_len-fixes mm/vmalloc.c
+--- a/mm/vmalloc.c~ksym_symbol_len-fixes
++++ a/mm/vmalloc.c
+@@ -1717,7 +1717,7 @@ static int s_show(struct seq_file *m, vo
+ 		v->addr, v->addr + v->size, v->size);
  
- static inline s64 percpu_counter_read(struct percpu_counter *fbc)
-diff -puN lib/percpu_counter.c~revert-percpu_counter-new-function-percpu_counter_sum_and_set lib/percpu_counter.c
---- a/lib/percpu_counter.c~revert-percpu_counter-new-function-percpu_counter_sum_and_set
-+++ a/lib/percpu_counter.c
-@@ -52,7 +52,7 @@ EXPORT_SYMBOL(__percpu_counter_add);
-  * Add up all the per-cpu counts, return the result.  This is a more accurate
-  * but much slower version of percpu_counter_read_positive()
-  */
--s64 __percpu_counter_sum(struct percpu_counter *fbc, int set)
-+s64 __percpu_counter_sum(struct percpu_counter *fbc)
- {
- 	s64 ret;
- 	int cpu;
-@@ -62,12 +62,7 @@ s64 __percpu_counter_sum(struct percpu_c
- 	for_each_online_cpu(cpu) {
- 		s32 *pcount = per_cpu_ptr(fbc->counters, cpu);
- 		ret += *pcount;
--		if (set)
--			*pcount = 0;
- 	}
--	if (set)
--		fbc->count = ret;
--
- 	spin_unlock(&fbc->lock);
- 	return ret;
- }
+ 	if (v->caller) {
+-		char buff[2 * KSYM_NAME_LEN];
++		char buff[KSYM_SYMBOL_LEN];
+ 
+ 		seq_putc(m, ' ');
+ 		sprint_symbol(buff, (unsigned long)v->caller);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-pci-uninline-pci_ioremap_bar.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
+mm-dont-mark_page_accessed-in-shmem_fault.patch
+mm-apply_to_range-call-pte-function-with-lazy-updates.patch
+mm-remove-cgroup_mm_owner_callbacks.patch
+mm-remove-aop_writepage_activate.patch
+mm-remove-gfp_highuser_pagecache.patch
+mm-add-setclearpageswapcache-stubs.patch
+mm-replace-some-bug_ons-by-vm_bug_ons.patch
+mm-add_active_or_unevictable-into-rmap.patch
+mm-make-page_lock_anon_vma-static.patch
+mm-further-cleanup-page_add_new_anon_rmap.patch
+mm-gup-persist-for-write-permission.patch
+mm-wp-lock-page-before-deciding-cow.patch
+mm-reuse_swap_page-replaces-can_share_swap_page.patch
+mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
+mm-try_to_unuse-check-removing-right-swap.patch
+mm-remove-try_to_munlock-from-vmscan.patch
+mm-remove-gfp_mask-from-add_to_swap.patch
+mm-add-add_to_swap-stub.patch
+mm-optimize-get_scan_ratio-for-no-swap.patch
+swapfile-swapon-needs-larger-size-type.patch
+swapfile-remove-swp_active-mask.patch
+swapfile-remove-surplus-whitespace.patch
+swapfile-remove-v0-swap-space-message.patch
+swapfile-rearrange-scan-and-swap_info.patch
+swapfile-swapon-use-discard-trim.patch
+swapfile-swap-allocation-use-discard.patch
+swapfile-swapon-randomize-if-nonrot.patch
+swapfile-swap-allocation-cycle-if-nonrot.patch
+swapfile-change-discard-pgoff_t-to-sector_t.patch
 swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+swapfile-let-others-seed-random.patch
+badpage-simplify-page_alloc-flag-checkclear.patch
+badpage-keep-any-bad-page-out-of-circulation.patch
+badpage-replace-page_remove_rmap-eeek-and-bug.patch
+badpage-vm_normal_page-use-print_bad_pte.patch
+badpage-zap-print_bad_pte-on-swap-and-file.patch
+badpage-remove-vma-from-page_remove_rmap.patch
+badpage-ratelimit-print_bad_pte-and-bad_page.patch
+badpage-kern_alert-bug-instead-of-kern_emerg.patch
+hugetlb-unsigned-ret-cannot-be-negative.patch
+mm-make-get_user_pages-interruptible.patch
+mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
+shmem-remove-unused-shmem_get_unmapped_area.patch
+shmem-unify-regular-and-tiny-shmem.patch
+page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
 page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style.patch
 mm-mmapc-fix-coding-style-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
 memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-explain-details-and-test-document.patch
+prio_tree-debugging-patch.patch
 
