@@ -1,70 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - pagemap-fix-32-bit-pagemap-regression.patch removed from -mm tree
-Date: Wed, 10 Dec 2008 11:29:00 -0800
-Message-ID: <200812101929.mBAJT0XR021546@imap1.linux-foundation.org>
+Subject: - do_mpage_readpage-remove-first_logical_block-parameter-fix.patch removed from -mm tree
+Date: Wed, 10 Dec 2008 12:29:14 -0800
+Message-ID: <200812102029.mBAKTEWT028458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752783AbYLJTfz (ORCPT
+	by vger.kernel.org with ESMTP id S1754569AbYLJU3S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Dec 2008 14:35:55 -0500
+	Wed, 10 Dec 2008 15:29:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, adobriyan@gmail.com, dave@linux.vnet.ibm.com, dgraham@nortel.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: vagabon.xyz@gmail.com, mikevs@xs4all.net, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pagemap: fix 32-bit pagemap regression
+     do_mpage_readpage-remove-first_logical_block-parameter-fix
 has been removed from the -mm tree.  Its filename was
-     pagemap-fix-32-bit-pagemap-regression.patch
+     do_mpage_readpage-remove-first_logical_block-parameter-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: fix 32-bit pagemap regression
-From: Matt Mackall <mpm@selenic.com>
+Subject: do_mpage_readpage-remove-first_logical_block-parameter-fix
+From: Franck Bui-Huu <vagabon.xyz@gmail.com>
 
-The large pages fix from bcf8039ed45 broke 32-bit pagemap by pulling the
-pagemap entry code out into a function with the wrong return type. 
-Pagemap entries are 64 bits on all systems and unsigned long is only 32
-bits on 32-bit systems.
-
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Reported-by: Doug Graham <dgraham@nortel.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: <stable@kernel.org>		[2.6.26.x, 2.6.27.x]
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Miquel van Smoorenburg <mikevs@xs4all.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/mpage.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-fix-32-bit-pagemap-regression fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-fix-32-bit-pagemap-regression
-+++ a/fs/proc/task_mmu.c
-@@ -557,9 +557,9 @@ static u64 swap_pte_to_pagemap_entry(pte
- 	return swp_type(e) | (swp_offset(e) << MAX_SWAPFILES_SHIFT);
+diff -puN fs/mpage.c~do_mpage_readpage-remove-first_logical_block-parameter-fix fs/mpage.c
+--- a/fs/mpage.c~do_mpage_readpage-remove-first_logical_block-parameter-fix
++++ a/fs/mpage.c
+@@ -157,6 +157,19 @@ map_buffer_to_page(struct page *page, st
  }
  
--static unsigned long pte_to_pagemap_entry(pte_t pte)
-+static u64 pte_to_pagemap_entry(pte_t pte)
- {
--	unsigned long pme = 0;
-+	u64 pme = 0;
- 	if (is_swap_pte(pte))
- 		pme = PM_PFRAME(swap_pte_to_pagemap_entry(pte))
- 			| PM_PSHIFT(PAGE_SHIFT) | PM_SWAP;
+ /*
++ * Since get_block() can map a range of pages, for all these pages the
++ * BH_Boundary flag will be set.  But we only need to push what I/O we
++ * have accumulated at the last block of this range.
++*/
++static int last_mapped_page(struct buffer_head *map_bh, struct page *page)
++{
++	pgoff_t map_index = map_bh->b_page->index;
++
++	return buffer_boundary(map_bh) &&
++		page->index >= map_index + (map_bh->b_size>>PAGE_CACHE_SHIFT);
++}
++
++/*
+  * This is the worker routine which does all the work of mapping the disk
+  * blocks and constructs largest possible bios, submits them for IO if the
+  * blocks are not contiguous on the disk.
+@@ -312,10 +325,7 @@ alloc_new:
+ 		goto alloc_new;
+ 	}
+ 
+-	relative_block = block_in_file - *first_logical_block;
+-	nblocks = map_bh->b_size >> blkbits;
+-	if ((buffer_boundary(map_bh) && relative_block == nblocks) ||
+-	    (first_hole != blocks_per_page))
++	if (last_mapped_page(map_bh, page) || first_hole != blocks_per_page)
+ 		bio = mpage_bio_submit(READ, bio);
+ 	else
+ 		*last_block_in_bio = blocks[blocks_per_page - 1];
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from vagabon.xyz@gmail.com are
 
-origin.patch
-linux-next.patch
-shmem-remove-unused-shmem_get_unmapped_area.patch
-shmem-unify-regular-and-tiny-shmem.patch
-random-dont-try-to-look-at-entropy_count-outside-the-lock.patch
+do_mpage_readpage-remove-first_logical_block-parameter-fix.patch
 
