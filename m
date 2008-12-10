@@ -1,152 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - page_cgroup-should-ignore-empty-nodes.patch removed from -mm tree
-Date: Wed, 10 Dec 2008 11:28:58 -0800
-Message-ID: <200812101928.mBAJSwis021525@imap1.linux-foundation.org>
+Subject: - drivers-video-mb862xx-mb862xxfbc-fix-printk.patch removed from -mm tree
+Date: Wed, 10 Dec 2008 11:29:17 -0800
+Message-ID: <200812101929.mBAJTHxJ021748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756845AbYLJTei (ORCPT
+	by vger.kernel.org with ESMTP id S1756644AbYLJTeq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Dec 2008 14:34:38 -0500
+	Wed, 10 Dec 2008 14:34:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agust@denx.de, avorontsov@ru.mvista.com, dbaryshkov@gmail.com, krzysztof.h1@poczta.fm, m.fortini@selcomgroup.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page_cgroup should ignore empty nodes
+     drivers/video/mb862xx/mb862xxfb.c: fix printk
 has been removed from the -mm tree.  Its filename was
-     page_cgroup-should-ignore-empty-nodes.patch
+     drivers-video-mb862xx-mb862xxfbc-fix-printk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_cgroup should ignore empty nodes
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: drivers/video/mb862xx/mb862xxfb.c: fix printk
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a total bootup freeze on ia64.
+sparc64:
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Li Zefan <lizf@cn.fujitsu.com>
-Reported-by: Li Zefan <lizf@cn.fujitsu.com>
+drivers/video/mb862xx/mb862xxfb.c:929: warning: long long unsigned int format, resource_size_t arg (arg 4)
+drivers/video/mb862xx/mb862xxfb.c:931: warning: long long unsigned int format, resource_size_t arg (arg 4)
+
+We don't know what type the architecture uses to implement u64, hence they
+cannot be printed.
+
+Cc: Anatolij Gustschin <agust@denx.de>
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Matteo Fortini <m.fortini@selcomgroup.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/video/mb862xx/mb862xxfb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_cgroup.c~page_cgroup-should-ignore-empty-nodes mm/page_cgroup.c
---- a/mm/page_cgroup.c~page_cgroup-should-ignore-empty-nodes
-+++ a/mm/page_cgroup.c
-@@ -49,6 +49,9 @@ static int __init alloc_node_page_cgroup
- 	start_pfn = NODE_DATA(nid)->node_start_pfn;
- 	nr_pages = NODE_DATA(nid)->node_spanned_pages;
+diff -puN drivers/video/mb862xx/mb862xxfb.c~drivers-video-mb862xx-mb862xxfbc-fix-printk drivers/video/mb862xx/mb862xxfb.c
+--- a/drivers/video/mb862xx/mb862xxfb.c~drivers-video-mb862xx-mb862xxfbc-fix-printk
++++ a/drivers/video/mb862xx/mb862xxfb.c
+@@ -927,9 +927,9 @@ static int __devinit mb862xx_pci_probe(s
+ 	}
  
-+	if (!nr_pages)
-+		return 0;
-+
- 	table_size = sizeof(struct page_cgroup) * nr_pages;
+ 	dev_dbg(dev, "fb phys 0x%llx 0x%lx\n",
+-		(u64)par->fb_base_phys, (ulong)par->mapped_vram);
++		(unsigned long long)par->fb_base_phys, (ulong)par->mapped_vram);
+ 	dev_dbg(dev, "mmio phys 0x%llx 0x%lx\n",
+-		(u64)par->mmio_base_phys, (ulong)par->mmio_len);
++		(unsigned long long)par->mmio_base_phys, (ulong)par->mmio_len);
  
- 	base = __alloc_bootmem_node_nopanic(NODE_DATA(nid),
+ 	if (mb862xx_pci_gdc_init(par))
+ 		goto io_unmap;
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-gup-persist-for-write-permission.patch
-mm-wp-lock-page-before-deciding-cow.patch
-mm-reuse_swap_page-replaces-can_share_swap_page.patch
-mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
-mm-try_to_unuse-check-removing-right-swap.patch
-mm-remove-try_to_munlock-from-vmscan.patch
-mm-remove-gfp_mask-from-add_to_swap.patch
-mm-add-add_to_swap-stub.patch
-mm-optimize-get_scan_ratio-for-no-swap.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-swapfile-swapon-needs-larger-size-type.patch
-swapfile-remove-swp_active-mask.patch
-swapfile-remove-surplus-whitespace.patch
-swapfile-remove-v0-swap-space-message.patch
-swapfile-rearrange-scan-and-swap_info.patch
-swapfile-swapon-use-discard-trim.patch
-swapfile-swap-allocation-use-discard.patch
-swapfile-swapon-randomize-if-nonrot.patch
-swapfile-swap-allocation-cycle-if-nonrot.patch
-swapfile-change-discard-pgoff_t-to-sector_t.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+make-linx-next-apply.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+pci-uninline-pci_ioremap_bar.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
 swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-swapfile-let-others-seed-random.patch
-cgroups-make-cgroup-config-a-submenu.patch
-cgroups-documentation-updates.patch
-cgroups-remove-some-redundant-null-checks.patch
-ns_cgroup-remove-unused-spinlock.patch
-memcg-fix-a-typo-in-kconfig.patch
-cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
-cgroups-fix-cgroup_iter_next-bug.patch
-cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
-cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
-cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
-cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
-cgroups-make-root_list-contains-active-hierarchies-only.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
-devcgroup-use-list_for_each_entry_rcu.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
 memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-fix-gfp_mask-of-callers-of-charge.patch
-memcg-simple-migration-handling.patch
-memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
-memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
 memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-memswap-controller-kconfig.patch
 memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-synchronized-lru.patch
-memcg-add-mem_cgroup_disabled.patch
-memcg-add-mem_cgroup_disabled-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
 memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
 memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
 memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-memcg-fix-reclaim-result-checks.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-explain-details-and-test-document.patch
-memcg-dont-trigger-oom-at-page-migration.patch
-memcg-remove-mem_cgroup_try_charge.patch
-memcg-avoid-dead-lock-caused-by-race-between-oom-and-cpuset_attach.patch
-memcg-change-try_to_free_pages-to-hierarchical_reclaim.patch
-cpuset-rcu_read_lock-to-protect-task_cs.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
