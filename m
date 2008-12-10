@@ -1,114 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers.patch removed from -mm tree
-Date: Wed, 10 Dec 2008 11:28:38 -0800
-Message-ID: <200812101928.mBAJScZm021290@imap1.linux-foundation.org>
+Subject: - percpu_counter-fix-cpu-unplug-race-in-percpu_counter_destroy.patch removed from -mm tree
+Date: Wed, 10 Dec 2008 11:28:41 -0800
+Message-ID: <200812101928.mBAJSf9R021301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41115 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35361 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755416AbYLJT3f (ORCPT
+	by vger.kernel.org with ESMTP id S1755479AbYLJT3g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Dec 2008 14:29:35 -0500
+	Wed, 10 Dec 2008 14:29:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.zummo@towertech.it, david-b@pacbell.net, kaloz@openwrt.org, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, a.p.zijlstra@chello.nl, cmm@us.ibm.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: fix missing id_table in rtc-ds1672 and rtc-max6900 drivers
+     percpu_counter: fix CPU unplug race in percpu_counter_destroy()
 has been removed from the -mm tree.  Its filename was
-     rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers.patch
+     percpu_counter-fix-cpu-unplug-race-in-percpu_counter_destroy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: fix missing id_table in rtc-ds1672 and rtc-max6900 drivers
-From: Alessandro Zummo <a.zummo@towertech.it>
+Subject: percpu_counter: fix CPU unplug race in percpu_counter_destroy()
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-Add missing id_table to the drivers in subject.  Patch is against the
-latest git.  It should go in with 2.6.28 if possible, the drivers won't
-work without the id_table bits.
+We should first delete the counter from percpu_counters list
+before freeing memory, or a percpu_counter_hotcpu_callback()
+could dereference a NULL pointer.
 
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Reported-by: Imre Kaloz <kaloz@openwrt.org>
-Tested-by: Imre Kaloz <kaloz@openwrt.org>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1672.c  |    6 ++++++
- drivers/rtc/rtc-max6900.c |    6 ++++++
- 2 files changed, 12 insertions(+)
+ lib/percpu_counter.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1672.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers drivers/rtc/rtc-ds1672.c
---- a/drivers/rtc/rtc-ds1672.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers
-+++ a/drivers/rtc/rtc-ds1672.c
-@@ -209,12 +209,18 @@ static int ds1672_probe(struct i2c_clien
- 	return err;
+diff -puN lib/percpu_counter.c~percpu_counter-fix-cpu-unplug-race-in-percpu_counter_destroy lib/percpu_counter.c
+--- a/lib/percpu_counter.c~percpu_counter-fix-cpu-unplug-race-in-percpu_counter_destroy
++++ a/lib/percpu_counter.c
+@@ -104,13 +104,13 @@ void percpu_counter_destroy(struct percp
+ 	if (!fbc->counters)
+ 		return;
+ 
+-	free_percpu(fbc->counters);
+-	fbc->counters = NULL;
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	mutex_lock(&percpu_counters_lock);
+ 	list_del(&fbc->list);
+ 	mutex_unlock(&percpu_counters_lock);
+ #endif
++	free_percpu(fbc->counters);
++	fbc->counters = NULL;
  }
+ EXPORT_SYMBOL(percpu_counter_destroy);
  
-+static struct i2c_device_id ds1672_id[] = {
-+	{ "ds1672", 0 },
-+	{ }
-+};
-+
- static struct i2c_driver ds1672_driver = {
- 	.driver = {
- 		   .name = "rtc-ds1672",
- 		   },
- 	.probe = &ds1672_probe,
- 	.remove = &ds1672_remove,
-+	.id_table = ds1672_id,
- };
- 
- static int __init ds1672_init(void)
-diff -puN drivers/rtc/rtc-max6900.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers drivers/rtc/rtc-max6900.c
---- a/drivers/rtc/rtc-max6900.c~rtc-fix-missing-id_table-in-rtc-ds1672-and-rtc-max6900-drivers
-+++ a/drivers/rtc/rtc-max6900.c
-@@ -247,12 +247,18 @@ max6900_probe(struct i2c_client *client,
- 	return 0;
- }
- 
-+static struct i2c_device_id max6900_id[] = {
-+	{ "max6900", 0 },
-+	{ }
-+};
-+
- static struct i2c_driver max6900_driver = {
- 	.driver = {
- 		   .name = "rtc-max6900",
- 		   },
- 	.probe = max6900_probe,
- 	.remove = max6900_remove,
-+	.id_table = max6900_id,
- };
- 
- static int __init max6900_init(void)
 _
 
-Patches currently in -mm which might be from a.zummo@towertech.it are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
 linux-next.patch
-genrtc-disable-genrtc-on-blackfin-systems.patch
-rtc-ds1307-smbus-compatibility.patch
-rtc-ds1307-remove-legacy-probe-checks.patch
-rtc-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
-rtc-move-power-of-2-periodic-frequency-check-down-into-drivers-v2.patch
-rtc-driver-for-pxa27x-and-pxa3xx-soc.patch
-rtc-pxa27x-pxa3xx-driver-fixes-revised.patch
-rtc-add-alarm-update-irq-interfaces-version-5.patch
-rtc-rtc-ds1390-probe-sequence-and-misc-fixes.patch
-rtc-kconfig-cleanup.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-rtc-rtc-max6902-fixes-v3.patch
-rtc-rtc-ds3234-fixes-v2.patch
-rtc-use-set_mmss-when-set_time-is-not-available.patch
-rtc-add-rtc-tx4939-driver-v2.patch
-rtc-rtc-ds1216-fixes.patch
-rtc-driver-for-marvells-socs-88f6281-and-88f6192.patch
+percpu_counter-fbc_batch-should-be-a-variable.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
