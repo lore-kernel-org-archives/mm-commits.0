@@ -1,150 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-e1000e-ich8lanc-fix-locking.patch removed from -mm tree
-Date: Tue, 09 Dec 2008 15:57:14 -0800
-Message-ID: <200812092357.mB9NvE5M003712@imap1.linux-foundation.org>
+Subject: - define-module_system_table-for-mbp_nvidia_blo-and-applesmco.patch removed from -mm tree
+Date: Wed, 10 Dec 2008 11:17:37 -0800
+Message-ID: <200812101917.mBAJHbXX014096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756059AbYLIX5a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2008 18:57:30 -0500
+	by vger.kernel.org with ESMTP id S1753648AbYLJTSG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Dec 2008 14:18:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, frederik.deweerdt@xprog.eu, jesse.brandeburg@intel.com, stable@kernel.org, tglx@linutronix.de, zdenek.kabelac@gmail.com, mm-commits@vge
+To: penguin-kernel@i-love.sakura.ne.jp, mjg@redhat.com, nicolas@boichat.chpenguin-kernel@i-love.sakura.ne.jp, rydberg@euromail.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/e1000e/ich8lan.c: fix locking
+     Define MODULE_SYSTEM_TABLE for mbp_nvidia_bl.o and applesmc.o
 has been removed from the -mm tree.  Its filename was
-     drivers-net-e1000e-ich8lanc-fix-locking.patch
+     define-module_system_table-for-mbp_nvidia_blo-and-applesmco.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/e1000e/ich8lan.c: fix locking
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Define MODULE_SYSTEM_TABLE for mbp_nvidia_bl.o and applesmc.o
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 
-=====================================
-[ BUG: bad unlock balance detected! ]
--------------------------------------
+When compiling mbp_nvidia_bl.o and applesmc.o using gcc 3.3.5,
+the below compilation error occurs.
 
-A regression added by 717d438d1fde94decef874b9808379d1f4523453 ("e1000e:
-debug contention on NVM SWFLAG").
+  CC [M]  drivers/video/backlight/mbp_nvidia_bl.o
+  drivers/video/backlight/mbp_nvidia_bl.c:114: error: storage size of `__mod_dmi_device_table' isn't known
+  make[1]: *** [drivers/video/backlight/mbp_nvidia_bl.o] Error 1
+  make: *** [drivers/video/backlight/mbp_nvidia_bl.o] Error 2
 
-Reported-by: "Zdenek Kabelac" <zdenek.kabelac@gmail.com>
-Cc: Frederik Deweerdt <frederik.deweerdt@xprog.eu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <stable@kernel.org>
+  CC [M]  drivers/hwmon/applesmc.o
+  drivers/hwmon/applesmc.c:1567: error: storage size of `__mod_dmi_device_table' isn't known
+  make[1]: *** [drivers/hwmon/applesmc.o] Error 1
+  make: *** [drivers/hwmon/applesmc.o] Error 2
+
+Diffs between 2.6.27.7 and 2.6.28-rc7 are shown below.
+
+  # diff linux-2.6.27.7/drivers/video/backlight/mbp_nvidia_bl.c linux-2.6.28-rc7/drivers/video/backlight/mbp_nvidia_bl.c
+  114,116c114
+  < MODULE_ALIAS("svnAppleInc.:pnMacBookPro3,1");
+  < MODULE_ALIAS("svnAppleInc.:pnMacBookPro3,2");
+  < MODULE_ALIAS("svnAppleInc.:pnMacBookPro4,1");
+  ---
+  > MODULE_DEVICE_TABLE(dmi, mbp_device_table);
+
+We can see that MODULE_ALIAS is replaced by MODULE_DEVICE_TABLE.
+
+mbp_nvidia_bl.c and applesmc.c are using MODULE_DEVICE_TABLE(dmi, ...);
+which will extracted to __mod_dmi_device_table, but it seems to me that
+dmi does not define __mod_dmi_device_table.
+
+I don't know why gcc 4.x doesn't trigger this compilation error.
+
+I don't know whether mbp_nvidia_bl.o and applesmc.o compiled with this
+patch work or not.  Can somebody who has these hardwares try this patch?
+
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Henrik Rydberg <rydberg@euromail.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/ich8lan.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/hwmon/applesmc.c                |    2 +-
+ drivers/video/backlight/mbp_nvidia_bl.c |    2 +-
+ include/linux/module.h                  |    2 ++
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/e1000e/ich8lan.c~drivers-net-e1000e-ich8lanc-fix-locking drivers/net/e1000e/ich8lan.c
---- a/drivers/net/e1000e/ich8lan.c~drivers-net-e1000e-ich8lanc-fix-locking
-+++ a/drivers/net/e1000e/ich8lan.c
-@@ -400,6 +400,7 @@ static s32 e1000_acquire_swflag_ich8lan(
- {
- 	u32 extcnf_ctrl;
- 	u32 timeout = PHY_CFG_TIMEOUT;
-+	s32 ret = 0;
+diff -puN drivers/hwmon/applesmc.c~define-module_system_table-for-mbp_nvidia_blo-and-applesmco drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~define-module_system_table-for-mbp_nvidia_blo-and-applesmco
++++ a/drivers/hwmon/applesmc.c
+@@ -1564,4 +1564,4 @@ module_exit(applesmc_exit);
+ MODULE_AUTHOR("Nicolas Boichat");
+ MODULE_DESCRIPTION("Apple SMC");
+ MODULE_LICENSE("GPL v2");
+-MODULE_DEVICE_TABLE(dmi, applesmc_whitelist);
++MODULE_SYSTEM_TABLE(dmi, applesmc_whitelist);
+diff -puN drivers/video/backlight/mbp_nvidia_bl.c~define-module_system_table-for-mbp_nvidia_blo-and-applesmco drivers/video/backlight/mbp_nvidia_bl.c
+--- a/drivers/video/backlight/mbp_nvidia_bl.c~define-module_system_table-for-mbp_nvidia_blo-and-applesmco
++++ a/drivers/video/backlight/mbp_nvidia_bl.c
+@@ -111,4 +111,4 @@ module_exit(mbp_exit);
+ MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+ MODULE_DESCRIPTION("Nvidia-based Macbook Pro Backlight Driver");
+ MODULE_LICENSE("GPL");
+-MODULE_DEVICE_TABLE(dmi, mbp_device_table);
++MODULE_SYSTEM_TABLE(dmi, mbp_device_table);
+diff -puN include/linux/module.h~define-module_system_table-for-mbp_nvidia_blo-and-applesmco include/linux/module.h
+--- a/include/linux/module.h~define-module_system_table-for-mbp_nvidia_blo-and-applesmco
++++ a/include/linux/module.h
+@@ -139,6 +139,8 @@ extern struct module __this_module;
  
- 	might_sleep();
+ #define MODULE_DEVICE_TABLE(type,name)		\
+   MODULE_GENERIC_TABLE(type##_device,name)
++#define MODULE_SYSTEM_TABLE(type,name)		\
++  MODULE_GENERIC_TABLE(type##_system,name)
  
-@@ -427,11 +428,11 @@ static s32 e1000_acquire_swflag_ich8lan(
- 		extcnf_ctrl &= ~E1000_EXTCNF_CTRL_SWFLAG;
- 		ew32(EXTCNF_CTRL, extcnf_ctrl);
- 		nvm_owner = -1;
--		mutex_unlock(&nvm_mutex);
--		return -E1000_ERR_CONFIG;
-+		ret = -E1000_ERR_CONFIG;
- 	}
- 
--	return 0;
-+	mutex_unlock(&nvm_mutex);
-+	return ret;
- }
- 
- /**
+ /* Version of form [<epoch>:]<version>[-<extra-version>].
+    Or for CVS/RCS ID version, everything but the number is stripped.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
 
-origin.patch
-mm-backing-devc-remove-recently-added-warn_on.patch
-revert-percpu-counter-clean-up-percpu_counter_sum_and_set.patch
-revert-percpu_counter-new-function-percpu_counter_sum_and_set.patch
-ksym_symbol_len-fixes.patch
-drivers-video-mb862xx-mb862xxfbc-fix-printk.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-pci-uninline-pci_ioremap_bar.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-drivers-net-e1000e-ich8lanc-fix-locking.patch
+define-module_system_table-for-mbp_nvidia_blo-and-applesmco.patch
 
