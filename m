@@ -1,89 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - uml-boot-broken-due-to-buffer-overrun.patch removed from -mm tree
-Date: Wed, 10 Dec 2008 11:28:32 -0800
-Message-ID: <200812101928.mBAJSWPk021209@imap1.linux-foundation.org>
+Subject: - relayfs-fix-infinite-loop-with-splice.patch removed from -mm tree
+Date: Wed, 10 Dec 2008 11:28:36 -0800
+Message-ID: <200812101928.mBAJSaTp021267@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755274AbYLJT3V (ORCPT
+	by vger.kernel.org with ESMTP id S1755381AbYLJT3W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Dec 2008 14:29:21 -0500
+	Wed, 10 Dec 2008 14:29:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balbir@linux.vnet.ibm.com, jdike@addtoit.com, penberg@cs.helsinki.fi, skldas@gmail.com, stable@kernel.org, vikki.km@gmail.com, wangcong@zeuux.org, mm-commits@vger.kernel.org
+To: zanussi@comcast.net, mathieu.desnoyers@polymtl.ca, penberg@cs.helsinki.fi, tzanussi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: boot broken due to buffer overrun
+     relayfs: fix infinite loop with splice()
 has been removed from the -mm tree.  Its filename was
-     uml-boot-broken-due-to-buffer-overrun.patch
+     relayfs-fix-infinite-loop-with-splice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: boot broken due to buffer overrun
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: relayfs: fix infinite loop with splice()
+From: Tom Zanussi <zanussi@comcast.net>
 
-mconsole_init() passed 256 bytes as length in os_create_unix_socket, while
-the sizeof UNIX_PATH_MAX is 108. This patch fixes that problem and avoids
-a big overrun bug reported on UML bootup.
+Running kmemtraced, which uses splice() on relayfs, causes a hard lock on
+x86-64 SMP.  As described by Tom Zanussi:
 
-sockaddr_un.sun_path is UNIX_PATH_MAX long which causes the problem.
-Reported-by: Vikas K Managutte <vikki.km@gmail.com>
-Reported-by: Sarvesh Kumar Lal Das <skldas@gmail.com>
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Reviewed-by: WANG Cong <wangcong@zeuux.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: <stable@kernel.org>		[please check with Jeff]
+  It looks like you hit the same problem as described here:
+
+  commit 8191ecd1d14c6914c660dfa007154860a7908857
+
+      splice: fix infinite loop in generic_file_splice_read()
+
+  relay uses the same loop but it never got noticed or fixed.
+
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Tested-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Tom Zanussi <tzanussi@gmail.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/mconsole_kern.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/relay.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/drivers/mconsole_kern.c~uml-boot-broken-due-to-buffer-overrun arch/um/drivers/mconsole_kern.c
---- a/arch/um/drivers/mconsole_kern.c~uml-boot-broken-due-to-buffer-overrun
-+++ a/arch/um/drivers/mconsole_kern.c
-@@ -16,6 +16,8 @@
- #include <linux/slab.h>
- #include <linux/syscalls.h>
- #include <linux/utsname.h>
-+#include <linux/socket.h>
-+#include <linux/un.h>
- #include <linux/workqueue.h>
- #include <linux/mutex.h>
- #include <asm/uaccess.h>
-@@ -785,7 +787,7 @@ static int __init mconsole_init(void)
- 	/* long to avoid size mismatch warnings from gcc */
- 	long sock;
- 	int err;
--	char file[256];
-+	char file[UNIX_PATH_MAX];
+diff -puN kernel/relay.c~relayfs-fix-infinite-loop-with-splice kernel/relay.c
+--- a/kernel/relay.c~relayfs-fix-infinite-loop-with-splice
++++ a/kernel/relay.c
+@@ -1317,12 +1317,9 @@ static ssize_t relay_file_splice_read(st
+ 		if (ret < 0)
+ 			break;
+ 		else if (!ret) {
+-			if (spliced)
+-				break;
+-			if (flags & SPLICE_F_NONBLOCK) {
++			if (flags & SPLICE_F_NONBLOCK)
+ 				ret = -EAGAIN;
+-				break;
+-			}
++			break;
+ 		}
  
- 	if (umid_file_name("mconsole", file, sizeof(file)))
- 		return -1;
+ 		*ppos += ret;
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from zanussi@comcast.net are
 
 origin.patch
-linux-next.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
-memcg-dont-trigger-oom-at-page-migration.patch
-memcg-avoid-dead-lock-caused-by-race-between-oom-and-cpuset_attach.patch
-memcg-change-try_to_free_pages-to-hierarchical_reclaim.patch
 
