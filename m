@@ -1,144 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - mm-remove-up-version-lru_add_drain_all.patch removed from -mm tree
-Date: Wed, 10 Dec 2008 11:28:49 -0800
-Message-ID: <200812101928.mBAJSnH8021412@imap1.linux-foundation.org>
+Subject: - mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat.patch removed from -mm tree
+Date: Wed, 10 Dec 2008 11:29:06 -0800
+Message-ID: <200812101929.mBAJT6ZS021633@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755479AbYLJT3c (ORCPT
+	by vger.kernel.org with ESMTP id S1755450AbYLJT3s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Dec 2008 14:29:32 -0500
+	Wed, 10 Dec 2008 14:29:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, cl@linux-foundation.org, dave@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, mm-commits@vger.kernel.org
+To: Brice.Goglin@inria.fr, clameter@sgi.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove UP version of lru_add_drain_all()
+     mm: no get_user/put_user while holding mmap_sem in do_pages_stat?
 has been removed from the -mm tree.  Its filename was
-     mm-remove-up-version-lru_add_drain_all.patch
+     mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove UP version of lru_add_drain_all()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: no get_user/put_user while holding mmap_sem in do_pages_stat?
+From: Brice Goglin <Brice.Goglin@inria.fr>
 
-Currently, lru_add_drain_all() has two version.
-  (1) use schedule_on_each_cpu()
-  (2) don't use schedule_on_each_cpu()
+Since commit 2f007e74bb85b9fc4eab28524052161703300f1a, do_pages_stat()
+gets the page address from user-space and puts the corresponding status
+back while holding the mmap_sem for read.  There is no need to hold
+mmap_sem there while some page-faults may occur.
 
-Gerald Schaefer reported it doesn't works well on SMP (not NUMA) S390 machine.
+This patch adds a temporary address and status buffer so as to only
+hold mmap_sem while working on these kernel buffers.  This is
+implemented by extracting do_pages_stat_array() out of do_pages_stat().
 
-  offline_pages() calls lru_add_drain_all() followed by drain_all_pages().
-  While drain_all_pages() works on each cpu, lru_add_drain_all() only runs
-  on the current cpu for architectures w/o CONFIG_NUMA. This let us run
-  into the BUG_ON(!PageBuddy(page)) in __offline_isolated_pages() during
-  memory hotplug stress test on s390. The page in question was still on the
-  pcp list, because of a race with lru_add_drain_all() and drain_all_pages()
-  on different cpus.
-
-Actually, Almost machine has CONFIG_UNEVICTABLE_LRU=y. Then almost machine use
-(1) version lru_add_drain_all although the machine is UP.
-
-Then this ifdef is not valueable.
-simple removing is better.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Acked-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ mm/migrate.c |   59 ++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 46 insertions(+), 13 deletions(-)
 
-diff -puN mm/swap.c~mm-remove-up-version-lru_add_drain_all mm/swap.c
---- a/mm/swap.c~mm-remove-up-version-lru_add_drain_all
-+++ a/mm/swap.c
-@@ -299,7 +299,6 @@ void lru_add_drain(void)
- 	put_cpu();
- }
- 
--#if defined(CONFIG_NUMA) || defined(CONFIG_UNEVICTABLE_LRU)
- static void lru_add_drain_per_cpu(struct work_struct *dummy)
- {
- 	lru_add_drain();
-@@ -313,18 +312,6 @@ int lru_add_drain_all(void)
- 	return schedule_on_each_cpu(lru_add_drain_per_cpu);
- }
- 
--#else
--
--/*
-- * Returns 0 for success
-- */
--int lru_add_drain_all(void)
--{
--	lru_add_drain();
--	return 0;
--}
--#endif
--
+diff -puN mm/migrate.c~mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat mm/migrate.c
+--- a/mm/migrate.c~mm-no-get_user-put_user-while-holding-mmap_sem-in-do_pages_stat
++++ a/mm/migrate.c
+@@ -987,25 +987,18 @@ out:
  /*
-  * Batched page_cache_release().  Decrement the reference count on all the
-  * passed pages.  If it fell to zero then remove the page from the LRU and
+  * Determine the nodes of an array of pages and store it in an array of status.
+  */
+-static int do_pages_stat(struct mm_struct *mm, unsigned long nr_pages,
+-			 const void __user * __user *pages,
+-			 int __user *status)
++static void do_pages_stat_array(struct mm_struct *mm, unsigned long nr_pages,
++				const void __user **pages, int *status)
+ {
+ 	unsigned long i;
+-	int err;
+ 
+ 	down_read(&mm->mmap_sem);
+ 
+ 	for (i = 0; i < nr_pages; i++) {
+-		const void __user *p;
+-		unsigned long addr;
++		unsigned long addr = (unsigned long)(*pages);
+ 		struct vm_area_struct *vma;
+ 		struct page *page;
+-
+-		err = -EFAULT;
+-		if (get_user(p, pages+i))
+-			goto out;
+-		addr = (unsigned long) p;
++		int err;
+ 
+ 		vma = find_vma(mm, addr);
+ 		if (!vma)
+@@ -1024,12 +1017,52 @@ static int do_pages_stat(struct mm_struc
+ 
+ 		err = page_to_nid(page);
+ set_status:
+-		put_user(err, status+i);
++		*status = err;
++
++		pages++;
++		status++;
++	}
++
++	up_read(&mm->mmap_sem);
++}
++
++/*
++ * Determine the nodes of a user array of pages and store it in
++ * a user array of status.
++ */
++static int do_pages_stat(struct mm_struct *mm, unsigned long nr_pages,
++			 const void __user * __user *pages,
++			 int __user *status)
++{
++#define DO_PAGES_STAT_CHUNK_NR 16
++	const void __user *chunk_pages[DO_PAGES_STAT_CHUNK_NR];
++	int chunk_status[DO_PAGES_STAT_CHUNK_NR];
++	unsigned long i, chunk_nr = DO_PAGES_STAT_CHUNK_NR;
++	int err;
++
++	for (i = 0; i < nr_pages; i += chunk_nr) {
++		if (chunk_nr + i > nr_pages)
++			chunk_nr = nr_pages - i;
++
++		err = copy_from_user(chunk_pages, &pages[i],
++				     chunk_nr * sizeof(*chunk_pages));
++		if (err) {
++			err = -EFAULT;
++			goto out;
++		}
++
++		do_pages_stat_array(mm, chunk_nr, chunk_pages, chunk_status);
++
++		err = copy_to_user(&status[i], chunk_status,
++				   chunk_nr * sizeof(*chunk_status));
++		if (err) {
++			err = -EFAULT;
++			goto out;
++		}
+ 	}
+ 	err = 0;
+ 
+ out:
+-	up_read(&mm->mmap_sem);
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from Brice.Goglin@inria.fr are
 
 origin.patch
-linux-next.patch
-arch-ia64-kernel-iosapicc-fix-warnings.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-oom-fix-zone_scan_mutex-name.patch
-mm-get-rid-of-pagevec_release_nonlru.patch
-cleanup-get-rid-of-ifdef-config_migration.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-make-page_lock_anon_vma-static.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-mm-make-init_section_page_cgroup-static.patch
-mm-make-maddr-__iomem.patch
-mm-make-mem_cgroup_resize_limit-static.patch
-mm-make-scan_all_zones_unevictable_pages-static.patch
-mm-make-scan_zone_unevictable_pages-static.patch
-mm-make-setup_per_zone_inactive_ratio-static.patch
-mm-make-vread-and-vwrite-declaration.patch
-vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
-vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
-mm-kill-zone_is_near_oom.patch
-mm-make-get_user_pages-interruptible.patch
-mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-mm-make-get_scan_ratio-safe-for-memcg.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
-memcg-remove-mem_cgroup_cal_reclaim.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-explain-details-and-test-document.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
+mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
 
