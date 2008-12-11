@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-sys_sync-fix.patch added to -mm tree
-Date: Thu, 11 Dec 2008 13:07:54 -0800
-Message-ID: <200812112107.mBBL7sfJ018439@imap1.linux-foundation.org>
+Subject: + radix-tree-gang-set-if-tagged-operation.patch added to -mm tree
+Date: Thu, 11 Dec 2008 13:20:30 -0800
+Message-ID: <200812112120.mBBLKUGe026668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34991 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757165AbYLKVH7 (ORCPT
+	by vger.kernel.org with ESMTP id S1757072AbYLKVVH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 16:07:59 -0500
+	Thu, 11 Dec 2008 16:21:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     fs: sys_sync fix
+     radix-tree: gang set if tagged operation
 has been added to the -mm tree.  Its filename is
-     fs-sys_sync-fix.patch
+     radix-tree-gang-set-if-tagged-operation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: sys_sync fix
+Subject: radix-tree: gang set if tagged operation
 From: Nick Piggin <npiggin@suse.de>
 
-s_syncing livelock avoidance was breaking data integrity guarantee of
-sys_sync, by allowing sys_sync to skip writing or waiting for superblocks
-if there is a concurrent sys_sync happening.
-
-This livelock avoidance is much less important now that we don't have the
-get_super_to_sync() call after every sb that we sync.  This was replaced
-by __put_super_and_need_restart.
+Add a "radix_tree_gang_set_if_tagged" operation, which takes a range of
+indexes, and sets a given tag, if any of the specified tags were found to
+be set.  Used by the next patch to set an "fsync" bit on any dirty and
+writeback pages.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c  |   20 +-------------------
- include/linux/fs.h |    1 -
- 2 files changed, 1 insertion(+), 20 deletions(-)
+ include/linux/radix-tree.h |    1 
+ lib/radix-tree.c           |  107 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 108 insertions(+)
 
-diff -puN fs/fs-writeback.c~fs-sys_sync-fix fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-sys_sync-fix
-+++ a/fs/fs-writeback.c
-@@ -652,18 +652,6 @@ void sync_inodes_sb(struct super_block *
- 	sync_sb_inodes(sb, &wbc);
- }
+diff -puN include/linux/radix-tree.h~radix-tree-gang-set-if-tagged-operation include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-gang-set-if-tagged-operation
++++ a/include/linux/radix-tree.h
+@@ -183,6 +183,7 @@ unsigned int
+ radix_tree_gang_lookup_tag_slot(struct radix_tree_root *root, void ***results,
+ 		unsigned long first_index, unsigned int max_items,
+ 		unsigned int tag);
++int radix_tree_gang_tag_set_if_tagged(struct radix_tree_root *root, unsigned long first_index, unsigned long last_index, unsigned long ifset, unsigned long thentag);
+ int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag);
  
--/*
-- * Rather lame livelock avoidance.
-- */
--static void set_sb_syncing(int val)
--{
--	struct super_block *sb;
--	spin_lock(&sb_lock);
--	list_for_each_entry_reverse(sb, &super_blocks, s_list)
--		sb->s_syncing = val;
--	spin_unlock(&sb_lock);
--}
--
+ static inline void radix_tree_preload_end(void)
+diff -puN lib/radix-tree.c~radix-tree-gang-set-if-tagged-operation lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-gang-set-if-tagged-operation
++++ a/lib/radix-tree.c
+@@ -629,6 +629,113 @@ int radix_tree_tag_get(struct radix_tree
+ EXPORT_SYMBOL(radix_tree_tag_get);
+ #endif
+ 
++int node_tag_set_if_tagged(struct radix_tree_node *node, unsigned int height, unsigned long first_index, unsigned long last_index, unsigned long ifset, unsigned long thentag)
++{
++	unsigned long first, last;
++	int offset_start, offset_end, i;
++	int ret = 0;
++	unsigned int shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
++	unsigned int size = RADIX_TREE_MAP_SIZE << shift;
++
++	first = first_index;
++	last = min(last_index, ((first + size) & ~(size-1)) - 1);
++
++	offset_start = (first_index >> shift) & RADIX_TREE_MAP_MASK;
++	offset_end = (last_index >> shift) & RADIX_TREE_MAP_MASK;
++	for (i = offset_start; i <= offset_end; i++) {
++
++		if (height > 1) {
++			struct radix_tree_node *slot;
++
++			slot = node->slots[i];
++			if (!slot)
++				goto notset;
++
++			if (node_tag_set_if_tagged(slot, height - 1,
++						first, last,
++						ifset, thentag)) {
++				if (ifset == 0x1)
++					BUG_ON(!tag_get(node, 0, i));
++				if (ifset == 0x2)
++					BUG_ON(!tag_get(node, 1, i));
++				if (ifset == 0x2)
++					BUG_ON(!tag_get(node, 0, i) &&
++						!tag_get(node, 1, i));
++				if (thentag & 0x4) {
++					if (!tag_get(node, 2, i))
++						tag_set(node, 2, i);
++				}
++				ret = 1;
++			}
++notset:
++			first = last+1;
++			last = min(last_index, first + size - 1);
++
++		} else {
++			if (ifset & 0x1) {
++				if (tag_get(node, 0, i))
++					goto isset;
++			}
++			if (ifset & 0x2) {
++				if (tag_get(node, 1, i))
++					goto isset;
++			}
++			continue;
++isset:
++			if (thentag & 0x4) {
++				if (!tag_get(node, 2, i))
++					tag_set(node, 2, i);
++			}
++			ret = 1;
++		}
++	}
++
++	return ret;
++}
++
++int radix_tree_gang_tag_set_if_tagged(struct radix_tree_root *root, unsigned long first_index, unsigned long last_index, unsigned long ifset, unsigned long thentag)
++{
++	unsigned int height;
++	struct radix_tree_node *slot;
++
++	BUG_ON(ifset & ~0x3);
++	BUG_ON(thentag & ~0x4);
++
++	height = root->height;
++	if (height == 0) {
++		/* set the root's tag bit */
++		if (first_index != 0)
++			return 0;
++
++		if (ifset & 0x1)
++			if (root_tag_get(root, 0))
++				goto isset;
++		if (ifset & 0x2)
++			if (root_tag_get(root, 1))
++				goto isset;
++		return 0;
++isset:
++		if (thentag & 0x4) {
++			if (!root_tag_get(root, 2))
++				root_tag_set(root, 2);
++		}
++		return 1;
++	}
++
++	slot = radix_tree_indirect_to_ptr(root->rnode);
++	if (node_tag_set_if_tagged(slot, height, first_index, last_index, ifset, thentag)) {
++		/* set the root's tag bit */
++		if (thentag & 0x4) {
++			if (!root_tag_get(root, 2))
++				root_tag_set(root, 2);
++		}
++
++		return 1;
++	}
++
++	return 0;
++}
++
  /**
-  * sync_inodes - writes all inodes to disk
-  * @wait: wait for completion
-@@ -690,9 +678,6 @@ static void __sync_inodes(int wait)
- 	spin_lock(&sb_lock);
- restart:
- 	list_for_each_entry(sb, &super_blocks, s_list) {
--		if (sb->s_syncing)
--			continue;
--		sb->s_syncing = 1;
- 		sb->s_count++;
- 		spin_unlock(&sb_lock);
- 		down_read(&sb->s_umount);
-@@ -710,13 +695,10 @@ restart:
- 
- void sync_inodes(int wait)
- {
--	set_sb_syncing(0);
- 	__sync_inodes(0);
- 
--	if (wait) {
--		set_sb_syncing(0);
-+	if (wait)
- 		__sync_inodes(1);
--	}
- }
- 
- /**
-diff -puN include/linux/fs.h~fs-sys_sync-fix include/linux/fs.h
---- a/include/linux/fs.h~fs-sys_sync-fix
-+++ a/include/linux/fs.h
-@@ -1112,7 +1112,6 @@ struct super_block {
- 	struct rw_semaphore	s_umount;
- 	struct mutex		s_lock;
- 	int			s_count;
--	int			s_syncing;
- 	int			s_need_sync_fs;
- 	atomic_t		s_active;
- #ifdef CONFIG_SECURITY
+  *	radix_tree_next_hole    -    find the next hole (not-present entry)
+  *	@root:		tree root
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
