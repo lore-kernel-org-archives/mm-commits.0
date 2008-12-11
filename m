@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-fix-a-race-between-rmdir-and-remount.patch added to -mm tree
-Date: Thu, 11 Dec 2008 15:00:05 -0800
-Message-ID: <200812112300.mBBN05EK027075@imap1.linux-foundation.org>
+Subject: + dvb-remove-deprecated-use-of-rw_lock_unlocked-in-frontends.patch added to -mm tree
+Date: Thu, 11 Dec 2008 15:01:14 -0800
+Message-ID: <200812112301.mBBN1EEv027826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42074 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51535 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759025AbYLKXAm (ORCPT
+	by vger.kernel.org with ESMTP id S1759051AbYLKXCJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 18:00:42 -0500
+	Thu, 11 Dec 2008 18:02:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com, lizf@cn.fujitsu.com
+Cc: rostedt@goodmis.org, mchehab@infradead.org, srostedt@redhat.com
 
 
 The patch titled
-     cgroups: fix a race between rmdir and remount
+     dvb: remove deprecated use of RW_LOCK_UNLOCKED in frontends
 has been added to the -mm tree.  Its filename is
-     cgroups-fix-a-race-between-rmdir-and-remount.patch
+     dvb-remove-deprecated-use-of-rw_lock_unlocked-in-frontends.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix a race between rmdir and remount
-From: Paul Menage <menage@google.com>
+Subject: dvb: remove deprecated use of RW_LOCK_UNLOCKED in frontends
+From: Steven Rostedt <rostedt@goodmis.org>
 
-When a cgroup is removed, it's unlinked from its parent's children list,
-but not actually freed until the last dentry on it is released (at which
-point cgrp->root->number_of_cgroups is decremented).
+Impact: clean up
 
-Currently rebind_subsystems checks for the top cgroup's child list being
-empty in order to rebind subsystems into or out of a hierarchy - this can
-result in the set of subsystems bound to a hierarchy being
-removed-but-not-freed cgroup.
+RW_LOCK_UNLOCKED is deprecated.  This patch replaces it with the
+__RW_LOCK_UNLOCKED(lock) macro.  This change was a little trickier than
+others due to the macro being used in another macro that fills an array.
 
-The simplest fix for this is to forbid remounts that change the set of
-subsystems on a hierarchy that has removed-but-not-freed cgroups.  This
-bug can be reproduced via:
-
-mkdir /mnt/cg
-mount -t cgroup -o ns,freezer cgroup /mnt/cg
-mkdir /mnt/cg/foo
-sleep 1h < /mnt/cg/foo &
-rmdir /mnt/cg/foo
-mount -t cgroup -o remount,ns,devices,freezer cgroup /mnt/cg
-kill $!
-
-Signed-off-by: Paul Menage <menage@google.com>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb/frontends/drx397xD.c    |   12 ++++++------
+ drivers/media/dvb/frontends/drx397xD_fw.h |    4 ++--
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-fix-a-race-between-rmdir-and-remount kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-a-race-between-rmdir-and-remount
-+++ a/kernel/cgroup.c
-@@ -702,7 +702,7 @@ static int rebind_subsystems(struct cgro
- 	 * any child cgroups exist. This is theoretically supportable
- 	 * but involves complex error handling, so it's being left until
- 	 * later */
--	if (!list_empty(&cgrp->children))
-+	if (root->number_of_cgroups > 1)
- 		return -EBUSY;
+diff -puN drivers/media/dvb/frontends/drx397xD.c~dvb-remove-deprecated-use-of-rw_lock_unlocked-in-frontends drivers/media/dvb/frontends/drx397xD.c
+--- a/drivers/media/dvb/frontends/drx397xD.c~dvb-remove-deprecated-use-of-rw_lock_unlocked-in-frontends
++++ a/drivers/media/dvb/frontends/drx397xD.c
+@@ -39,7 +39,7 @@ static const char mod_name[] = "drx397xD
+ #define F_SET_0D4h	2
  
- 	/* Process each subsystem */
+ enum fw_ix {
+-#define _FW_ENTRY(a, b)		b
++#define _FW_ENTRY(a, b, c)	b
+ #include "drx397xD_fw.h"
+ };
+ 
+@@ -72,11 +72,11 @@ static struct {
+ 	int refcnt;
+ 	const u8 *data[ARRAY_SIZE(blob_name)];
+ } fw[] = {
+-#define _FW_ENTRY(a, b)		{			\
+-			.name	= a,			\
+-			.file	= 0,			\
+-			.lock	= RW_LOCK_UNLOCKED,	\
+-			.refcnt = 0,			\
++#define _FW_ENTRY(a, b, c)	{					\
++			.name	= a,					\
++			.file	= 0,					\
++			.lock	= __RW_LOCK_UNLOCKED(fw[c].lock),	\
++			.refcnt = 0,					\
+ 			.data	= { }		}
+ #include "drx397xD_fw.h"
+ };
+diff -puN drivers/media/dvb/frontends/drx397xD_fw.h~dvb-remove-deprecated-use-of-rw_lock_unlocked-in-frontends drivers/media/dvb/frontends/drx397xD_fw.h
+--- a/drivers/media/dvb/frontends/drx397xD_fw.h~dvb-remove-deprecated-use-of-rw_lock_unlocked-in-frontends
++++ a/drivers/media/dvb/frontends/drx397xD_fw.h
+@@ -18,8 +18,8 @@
+  */
+ 
+ #ifdef _FW_ENTRY
+-	_FW_ENTRY("drx397xD.A2.fw",	DRXD_FW_A2 = 0		),
+-	_FW_ENTRY("drx397xD.B1.fw",	DRXD_FW_B1		),
++	_FW_ENTRY("drx397xD.A2.fw",	DRXD_FW_A2 = 0,	DRXD_FW_A2	),
++	_FW_ENTRY("drx397xD.B1.fw",	DRXD_FW_B1,	DRXD_FW_B1	),
+ #undef _FW_ENTRY
+ #endif /* _FW_ENTRY */
+ 
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
 linux-next.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
-mm-remove-cgroup_mm_owner_callbacks.patch
-mm-make-get_user_pages-interruptible.patch
-mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
-cgroups-make-cgroup-config-a-submenu.patch
-cgroups-documentation-updates.patch
-cgroups-remove-some-redundant-null-checks.patch
-ns_cgroup-remove-unused-spinlock.patch
-memcg-fix-a-typo-in-kconfig.patch
-cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
-cgroups-fix-cgroup_iter_next-bug.patch
-cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
-cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
-cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
-cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
-cgroups-make-root_list-contains-active-hierarchies-only.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-cgroups-fix-a-race-between-rmdir-and-remount.patch
-devcgroup-use-list_for_each_entry_rcu.patch
-devices-cgroup-allow-mkfifo.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
-cpuset-rcu_read_lock-to-protect-task_cs.patch
-add-a-refcount-check-in-dput.patch
+dvb-remove-deprecated-use-of-rw_lock_unlocked-in-frontends.patch
+net-ipv4-netfilter-nf_nat_rulec-update-rwlock-initialization-for-nat_table.patch
+drivers-isdn-misdn-teic-use-rwlock-runtime-init.patch
+checkpatch-struct-file_operations-should-normally-be-const.patch
 
