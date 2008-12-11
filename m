@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dmi-add-dmi_match.patch added to -mm tree
-Date: Thu, 11 Dec 2008 12:29:19 -0800
-Message-ID: <200812112029.mBBKTJWl025224@imap1.linux-foundation.org>
+Subject: + fs-filp_cachep-can-be-static-in-fs-file_tablec.patch added to -mm tree
+Date: Thu, 11 Dec 2008 12:35:17 -0800
+Message-ID: <200812112035.mBBKZHnK029170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43829 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755003AbYLKUae (ORCPT
+	by vger.kernel.org with ESMTP id S1757018AbYLKUfr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 15:30:34 -0500
+	Thu, 11 Dec 2008 15:35:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, a_romanescu@yahoo.co.uk, alan@lxorguk.ukuu.org.uk, jgarzik@redhat.com, tj@kernel.org
+Cc: dada1@cosmosbay.com, paulmck@linux.vnet.ibm.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     DMI: add dmi_match
+     fs: filp_cachep can be static in fs/file_table.c
 has been added to the -mm tree.  Its filename is
-     dmi-add-dmi_match.patch
+     fs-filp_cachep-can-be-static-in-fs-file_tablec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: DMI: add dmi_match
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: fs: filp_cachep can be static in fs/file_table.c
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-Add a wrapper for testing system_info which will handle also NULL system
-infos.
+1) Documentation cleanup
 
-This will be used by the ata PIIX driver.
+   Documentation/filesystems/files.txt was not updated when f_count
+   became an atomic_long_t.  atomic_long_inc_not_zero() is now used
+   instead of atomic_inc_not_zero()
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Jeff Garzik <jgarzik@redhat.com>
-Cc: Alexandru Romanescu <a_romanescu@yahoo.co.uk>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+2) filp_cachep can be static to fs/file_table.c
+
+   Instead of creating the "filp" kmem_cache in vfs_caches_init(), we
+   can do it a litle be later in files_init(), so that filp_cachep is
+   static to fs/file_table.c
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dmi.h |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ Documentation/filesystems/files.txt |    6 +++---
+ fs/dcache.c                         |    6 ------
+ fs/file_table.c                     |   10 +++++++++-
+ include/linux/fdtable.h             |    2 --
+ 4 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/dmi.h~dmi-add-dmi_match include/linux/dmi.h
---- a/include/linux/dmi.h~dmi-add-dmi_match
-+++ a/include/linux/dmi.h
-@@ -48,6 +48,21 @@ extern int dmi_name_in_serial(const char
- extern int dmi_available;
- extern int dmi_walk(void (*decode)(const struct dmi_header *));
+diff -puN Documentation/filesystems/files.txt~fs-filp_cachep-can-be-static-in-fs-file_tablec Documentation/filesystems/files.txt
+--- a/Documentation/filesystems/files.txt~fs-filp_cachep-can-be-static-in-fs-file_tablec
++++ a/Documentation/filesystems/files.txt
+@@ -76,13 +76,13 @@ the fdtable structure -
+ 5. Handling of the file structures is special. Since the look-up
+    of the fd (fget()/fget_light()) are lock-free, it is possible
+    that look-up may race with the last put() operation on the
+-   file structure. This is avoided using atomic_inc_not_zero()
++   file structure. This is avoided using atomic_long_inc_not_zero()
+    on ->f_count :
  
-+/**
-+ * dmi_match - compare string to the dmi field (if exists)
-+ *
-+ * Returns true if requested field equals to str (including NULL).
-+ */
-+static inline bool dmi_match(enum dmi_field f, const char *str)
-+{
-+	const char *info = dmi_get_system_info(f);
+ 	rcu_read_lock();
+ 	file = fcheck_files(files, fd);
+ 	if (file) {
+-		if (atomic_inc_not_zero(&file->f_count))
++		if (atomic_long_inc_not_zero(&file->f_count))
+ 			*fput_needed = 1;
+ 		else
+ 		/* Didn't get the reference, someone's freed */
+@@ -92,7 +92,7 @@ the fdtable structure -
+ 	....
+ 	return file;
+ 
+-   atomic_inc_not_zero() detects if refcounts is already zero or
++   atomic_long_inc_not_zero() detects if refcounts is already zero or
+    goes to zero during increment. If it does, we fail
+    fget()/fget_light().
+ 
+diff -puN fs/dcache.c~fs-filp_cachep-can-be-static-in-fs-file_tablec fs/dcache.c
+--- a/fs/dcache.c~fs-filp_cachep-can-be-static-in-fs-file_tablec
++++ a/fs/dcache.c
+@@ -2406,9 +2406,6 @@ static void __init dcache_init(void)
+ /* SLAB cache for __getname() consumers */
+ struct kmem_cache *names_cachep __read_mostly;
+ 
+-/* SLAB cache for file structures */
+-struct kmem_cache *filp_cachep __read_mostly;
+-
+ EXPORT_SYMBOL(d_genocide);
+ 
+ void __init vfs_caches_init_early(void)
+@@ -2430,9 +2427,6 @@ void __init vfs_caches_init(unsigned lon
+ 	names_cachep = kmem_cache_create("names_cache", PATH_MAX, 0,
+ 			SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
+ 
+-	filp_cachep = kmem_cache_create("filp", sizeof(struct file), 0,
+-			SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
+-
+ 	dcache_init();
+ 	inode_init();
+ 	files_init(mempages);
+diff -puN fs/file_table.c~fs-filp_cachep-can-be-static-in-fs-file_tablec fs/file_table.c
+--- a/fs/file_table.c~fs-filp_cachep-can-be-static-in-fs-file_tablec
++++ a/fs/file_table.c
+@@ -32,6 +32,9 @@ struct files_stat_struct files_stat = {
+ /* public. Not pretty! */
+ __cacheline_aligned_in_smp DEFINE_SPINLOCK(files_lock);
+ 
++/* SLAB cache for file structures */
++static struct kmem_cache *filp_cachep __read_mostly;
 +
-+	if (info == NULL || str == NULL)
-+		return info == str;
+ static struct percpu_counter nr_files __cacheline_aligned_in_smp;
+ 
+ static inline void file_free_rcu(struct rcu_head *head)
+@@ -397,7 +400,12 @@ too_bad:
+ void __init files_init(unsigned long mempages)
+ { 
+ 	int n; 
+-	/* One file with associated inode and dcache is very roughly 1K. 
 +
-+	return !strcmp(info, str);
-+}
++	filp_cachep = kmem_cache_create("filp", sizeof(struct file), 0,
++			SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
 +
- #else
++	/*
++	 * One file with associated inode and dcache is very roughly 1K.
+ 	 * Per default don't use more than 10% of our memory for files. 
+ 	 */ 
  
- static inline int dmi_check_system(const struct dmi_system_id *list) { return 0; }
-@@ -61,6 +76,8 @@ static inline int dmi_name_in_serial(con
- #define dmi_available 0
- static inline int dmi_walk(void (*decode)(const struct dmi_header *))
- 	{ return -1; }
-+static inline bool dmi_match(enum dmi_field f, const char *str)
-+	{ return false; }
+diff -puN include/linux/fdtable.h~fs-filp_cachep-can-be-static-in-fs-file_tablec include/linux/fdtable.h
+--- a/include/linux/fdtable.h~fs-filp_cachep-can-be-static-in-fs-file_tablec
++++ a/include/linux/fdtable.h
+@@ -57,8 +57,6 @@ struct files_struct {
  
- #endif
+ #define files_fdtable(files) (rcu_dereference((files)->fdt))
  
-_
-
-Patches currently in -mm which might be from jirislaby@gmail.com are
-
-linux-next.patch
-8250_pci-add-support-for-netmos-9835.patch
-dmi-add-dmi_match.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
-
+-extern struct kmem_cache *filp_cachep;
