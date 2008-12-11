@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-isdn-misdn-teic-use-rwlock-runtime-init.patch added to -mm tree
-Date: Thu, 11 Dec 2008 14:50:57 -0800
-Message-ID: <200812112250.mBBMov40021061@imap1.linux-foundation.org>
+Subject: + ibmphp-fix-module-ref-count-underflow.patch added to -mm tree
+Date: Thu, 11 Dec 2008 14:52:14 -0800
+Message-ID: <200812112252.mBBMqEKA021924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757396AbYLKWvT (ORCPT
+	by vger.kernel.org with ESMTP id S1750767AbYLKWxE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 17:51:19 -0500
+	Thu, 11 Dec 2008 17:53:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rostedt@goodmis.org, kkeil@suse.de, srostedt@redhat.com
+Cc: nhorman@tuxdriver.com, gregkh@suse.de, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     drivers/isdn/mISDN/tei.c: use rwlock runtime init 
+     ibmphp: fix module ref count underflow
 has been added to the -mm tree.  Its filename is
-     drivers-isdn-misdn-teic-use-rwlock-runtime-init.patch
+     ibmphp-fix-module-ref-count-underflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/isdn/mISDN/tei.c: use rwlock runtime init 
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: ibmphp: fix module ref count underflow
+From: Neil Horman <nhorman@tuxdriver.com>
 
-__RW_LOCK_UNLOCKED(lock) is meant for compile time initializations. 
-rwlock_init(&lock) is used for run time initialization.
+The ibmphp hotplug driver does something rather silly in its init routine.
+It purposely calls module_put so as to underflow its module ref count to
+avoid being removed from the kernel.
 
-This patch converts drivers/isdn/mISDN/tei.c to initialize the mrg->lock
-rwlock.
+This is bad practice, and wrong, since it provides a window for subsequent
+module_gets to reset the refcount to zero, allowing an unload to race in
+and cause all sorts of mysterious panics.  If the module is unsafe to
+load, it should inform the kernel as such with a call to __unsafe.  The
+patch does that.
 
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/mISDN/tei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/hotplug/ibmphp_core.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/isdn/mISDN/tei.c~drivers-isdn-misdn-teic-use-rwlock-runtime-init drivers/isdn/mISDN/tei.c
---- a/drivers/isdn/mISDN/tei.c~drivers-isdn-misdn-teic-use-rwlock-runtime-init
-+++ a/drivers/isdn/mISDN/tei.c
-@@ -1287,7 +1287,7 @@ create_teimanager(struct mISDNdevice *de
- 	if (!mgr)
- 		return -ENOMEM;
- 	INIT_LIST_HEAD(&mgr->layer2);
--	mgr->lock = __RW_LOCK_UNLOCKED(mgr->lock);
-+	rwlock_init(&mgr->lock);
- 	skb_queue_head_init(&mgr->sendq);
- 	mgr->nextid = 1;
- 	mgr->lastid = MISDN_ID_NONE;
+diff -puN drivers/pci/hotplug/ibmphp_core.c~ibmphp-fix-module-ref-count-underflow drivers/pci/hotplug/ibmphp_core.c
+--- a/drivers/pci/hotplug/ibmphp_core.c~ibmphp-fix-module-ref-count-underflow
++++ a/drivers/pci/hotplug/ibmphp_core.c
+@@ -1402,9 +1402,11 @@ static int __init ibmphp_init(void)
+ 		goto error;
+ 	}
+ 
+-	/* lock ourselves into memory with a module 
+-	 * count of -1 so that no one can unload us. */
+-	module_put(THIS_MODULE);
++	/*
++	 * Its unsafe to unload this module, so tell
++	 * the kernel to avoid inadvertent unloads
++	 */
++	__unsafe(THIS_MODULE);
+ 
+ exit:
+ 	return rc;
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from nhorman@tuxdriver.com are
 
 linux-next.patch
-net-ipv4-netfilter-nf_nat_rulec-update-rwlock-initialization-for-nat_table.patch
-drivers-isdn-misdn-teic-use-rwlock-runtime-init.patch
-checkpatch-struct-file_operations-should-normally-be-const.patch
+ibmphp-fix-module-ref-count-underflow.patch
 
