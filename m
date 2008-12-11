@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ibmphp-fix-module-ref-count-underflow.patch added to -mm tree
-Date: Thu, 11 Dec 2008 14:52:14 -0800
-Message-ID: <200812112252.mBBMqEKA021924@imap1.linux-foundation.org>
+Subject: + video-mbp_nvidia_bl-fix-brightness-after-suspend-hibernation.patch added to -mm tree
+Date: Thu, 11 Dec 2008 14:53:09 -0800
+Message-ID: <200812112253.mBBMr9pS022531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37486 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750767AbYLKWxE (ORCPT
+	by vger.kernel.org with ESMTP id S1756274AbYLKWya (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 17:53:04 -0500
+	Thu, 11 Dec 2008 17:54:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nhorman@tuxdriver.com, gregkh@suse.de, jbarnes@virtuousgeek.org
+Cc: schwalbe@inf.tu-dresden.de, mjg@redhat.com, rpurdie@rpsys.net, rydberg@euromail.se
 
 
 The patch titled
-     ibmphp: fix module ref count underflow
+     video: mbp_nvidia_bl: fix brightness after suspend/hibernation
 has been added to the -mm tree.  Its filename is
-     ibmphp-fix-module-ref-count-underflow.patch
+     video-mbp_nvidia_bl-fix-brightness-after-suspend-hibernation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ibmphp: fix module ref count underflow
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: video: mbp_nvidia_bl: fix brightness after suspend/hibernation
+From: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
 
-The ibmphp hotplug driver does something rather silly in its init routine.
-It purposely calls module_put so as to underflow its module ref count to
-avoid being removed from the kernel.
+The mbp_nvidia_bl driver allows to change the display brightness on Apple
+MacBook Pro with Nvidia graphics adapters.  However, after resuming from
+suspend the brightness is at its maximum instead of the last recently used
+value.  This patch converts the driver into a platform_driver in order to
+register a resume hook to re-send brightness.  In addition, resources will
+be allocated through platform_driver means instead of calling
+request_region/release_region directly.
 
-This is bad practice, and wrong, since it provides a window for subsequent
-module_gets to reset the refcount to zero, allowing an unload to race in
-and cause all sorts of mysterious panics.  If the module is unsafe to
-load, it should inform the kernel as such with a call to __unsafe.  The
-patch does that.
+A patch incorporating MacBook 5 MacBook Air 2, and MacBook Pro 5 support
+is also available and will be sent next.
 
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Acked-by: Henrik Rydberg <rydberg@euromail.se>
+Signed-off-by: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/ibmphp_core.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/video/backlight/mbp_nvidia_bl.c |   97 +++++++++++++++++-----
+ 1 file changed, 78 insertions(+), 19 deletions(-)
 
-diff -puN drivers/pci/hotplug/ibmphp_core.c~ibmphp-fix-module-ref-count-underflow drivers/pci/hotplug/ibmphp_core.c
---- a/drivers/pci/hotplug/ibmphp_core.c~ibmphp-fix-module-ref-count-underflow
-+++ a/drivers/pci/hotplug/ibmphp_core.c
-@@ -1402,9 +1402,11 @@ static int __init ibmphp_init(void)
- 		goto error;
+diff -puN drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-fix-brightness-after-suspend-hibernation drivers/video/backlight/mbp_nvidia_bl.c
+--- a/drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-fix-brightness-after-suspend-hibernation
++++ a/drivers/video/backlight/mbp_nvidia_bl.c
+@@ -25,8 +25,6 @@
+ #include <linux/dmi.h>
+ #include <linux/io.h>
+ 
+-static struct backlight_device *mbp_backlight_device;
+-
+ static struct dmi_system_id __initdata mbp_device_table[] = {
+ 	{
+ 		.ident = "3,1",
+@@ -74,35 +72,96 @@ static struct backlight_ops mbp_ops = {
+ 	.update_status  = mbp_send_intensity,
+ };
+ 
++static int mbp_probe(struct platform_device *pdev)
++{
++	struct backlight_device *bd;
++
++	bd = backlight_device_register("mbp_backlight", NULL, NULL, &mbp_ops);
++	if (IS_ERR(bd))
++		return PTR_ERR(bd);
++
++	bd->props.max_brightness = 15;
++	bd->props.brightness = mbp_get_intensity(bd);
++	backlight_update_status(bd);
++
++	platform_set_drvdata(pdev, bd);
++	return 0;
++}
++
++static int mbp_remove(struct platform_device *pdev)
++{
++	struct backlight_device *bd = platform_get_drvdata(pdev);
++
++	backlight_device_unregister(bd);
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int mbp_resume(struct platform_device *pdev)
++{
++	/*
++	 * Nvidia GeForce 8600M GT in MacBookPro 3,1 and MacBookPro 4,1:
++	 *   1. Resume after suspend:
++	 *      SMI still reports the last recently written value, while
++	 *      the brightness is actually at its maximum.
++	 *   2. Resume after hibernation:
++	 *      SMI reports the actual (maximum) value, but the state
++	 *      in props.brightness might be different.
++	 * -> Re-send to fix (1), but do not re-read to fix (2).
++	 */
++	struct backlight_device *bd = platform_get_drvdata(pdev);
++
++	backlight_update_status(bd);
++	return 0;
++}
++#else
++#define mbp_resume NULL
++#endif
++
++static struct platform_driver mbp_driver = {
++	.probe          = mbp_probe,
++	.remove         = mbp_remove,
++	.resume         = mbp_resume,
++	.driver         = {
++		.owner  = THIS_MODULE,
++		.name   = "mbp_nvidia_bl"
++	},
++};
++
++static struct resource mbp_iores = {
++	.start          = 0xb2,
++	.end            = 0xb3,
++	.name           = "mbp_nvidia_bl",
++	.flags          = IORESOURCE_IO
++};
++
++static struct platform_device *mbp_device;
++
+ static int __init mbp_init(void)
+ {
++	int ret;
++
+ 	if (!dmi_check_system(mbp_device_table))
+ 		return -ENODEV;
+ 
+-	if (!request_region(0xb2, 2, "Macbook Pro backlight"))
+-		return -ENXIO;
+-
+-	mbp_backlight_device = backlight_device_register("mbp_backlight",
+-							 NULL, NULL,
+-							 &mbp_ops);
+-	if (IS_ERR(mbp_backlight_device)) {
+-		release_region(0xb2, 2);
+-		return PTR_ERR(mbp_backlight_device);
++	ret = platform_driver_register(&mbp_driver);
++	if (ret)
++		return ret;
++
++	mbp_device = platform_device_register_simple("mbp_nvidia_bl", -1,
++						     &mbp_iores, 1);
++	if (!mbp_device) {
++		platform_driver_unregister(&mbp_driver);
++		return -ENOMEM;
  	}
  
--	/* lock ourselves into memory with a module 
--	 * count of -1 so that no one can unload us. */
--	module_put(THIS_MODULE);
-+	/*
-+	 * Its unsafe to unload this module, so tell
-+	 * the kernel to avoid inadvertent unloads
-+	 */
-+	__unsafe(THIS_MODULE);
+-	mbp_backlight_device->props.max_brightness = 15;
+-	mbp_backlight_device->props.brightness =
+-		mbp_get_intensity(mbp_backlight_device);
+-	backlight_update_status(mbp_backlight_device);
+-
+ 	return 0;
+ }
  
- exit:
- 	return rc;
-_
-
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
-
-linux-next.patch
-ibmphp-fix-module-ref-count-underflow.patch
-
+ static void __exit mbp_exit(void)
+ {
+-	backlight_device_unregister(mbp_backlight_device);
