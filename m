@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ricoh_mmc-use-suspend-resume_noirq-v2.patch added to -mm tree
-Date: Thu, 11 Dec 2008 11:41:07 -0800
-Message-ID: <200812111941.mBBJfB2c025878@imap1.linux-foundation.org>
+Subject: + drivers-rtc-correct-an-error-test.patch added to -mm tree
+Date: Thu, 11 Dec 2008 11:42:50 -0800
+Message-ID: <200812111942.mBBJgogC026998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50623 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760808AbYLKTmN (ORCPT
+	by vger.kernel.org with ESMTP id S1761556AbYLKTn6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 14:42:13 -0500
+	Thu, 11 Dec 2008 14:43:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: philipl@overt.org, drzeus@drzeus.cx
+Cc: julia@diku.dk, a.zummo@towertech.it, bryan.wu@analog.com, david-b@pacbell.net, michael.frysinger@analog.com
 
 
 The patch titled
-     ricoh_mmc: Use suspend/resume_noirq
+     drivers/rtc: correct an error test
 has been added to the -mm tree.  Its filename is
-     ricoh_mmc-use-suspend-resume_noirq-v2.patch
+     drivers-rtc-correct-an-error-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ricoh_mmc: Use suspend/resume_noirq
-From: Philip Langdale <philipl@overt.org>
+Subject: drivers/rtc: correct an error test
+From: Julia Lawall <julia@diku.dk>
 
-If ricoh_mmc suspends before sdhci_pci, it will pull the card out from
-under the controller, which could leave the system in a very confused
-state.
+rtc is clearly does not satisfy IS_ERR at the point where it is tested, so
+I have changed the test to consider the just initialized rtc->rtc_dev.
 
-Using suspend/resume_noirq ensures that sdhci_pci suspends first and
-resumes second.
+The semantic match that finds the problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Signed-off-by: Philip Langdale <philipl@overt.org>
-Acked-by: Pierre Ossman <drzeus@drzeus.cx>
+// <smpl>
+@match exists@
+expression x, E;
+identifier fld;
+position p1,p2;
+@@
+
+(
+x = E;
+|
+x = E
+|
+x@p1->fld
+... when != x = E
+IS_ERR(x@p2)
+... when any
+)
+
+@other_match exists@
+expression match.x, E1, E2;
+position match.p1,match.p2;
+@@
+
+x = E1
+... when != x = E2
+    when != x@p1
+x@p2
+
+@ script:python depends on !other_match@
+p1 << match.p1;
+p2 << match.p2;
+@@
+
+print "* file %s dereference %s test %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: Mike Frysinger <michael.frysinger@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/ricoh_mmc.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-bfin.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/ricoh_mmc.c~ricoh_mmc-use-suspend-resume_noirq-v2 drivers/mmc/host/ricoh_mmc.c
---- a/drivers/mmc/host/ricoh_mmc.c~ricoh_mmc-use-suspend-resume_noirq-v2
-+++ a/drivers/mmc/host/ricoh_mmc.c
-@@ -196,10 +196,14 @@ static void __devexit ricoh_mmc_remove(s
- 	pci_set_drvdata(pdev, NULL);
- }
+diff -puN drivers/rtc/rtc-bfin.c~drivers-rtc-correct-an-error-test drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~drivers-rtc-correct-an-error-test
++++ a/drivers/rtc/rtc-bfin.c
+@@ -390,7 +390,7 @@ static int __devinit bfin_rtc_probe(stru
  
--static int ricoh_mmc_suspend(struct pci_dev *pdev, pm_message_t state)
-+static int ricoh_mmc_suspend_noirq(struct device *dev)
- {
-+	struct pci_dev *pdev = NULL;
- 	struct pci_dev *fw_dev = NULL;
- 
-+	pdev = to_pci_dev(dev);
-+	BUG_ON(pdev == NULL);
-+
- 	fw_dev = pci_get_drvdata(pdev);
- 	BUG_ON(fw_dev == NULL);
- 
-@@ -210,10 +214,14 @@ static int ricoh_mmc_suspend(struct pci_
- 	return 0;
- }
- 
--static int ricoh_mmc_resume(struct pci_dev *pdev)
-+static int ricoh_mmc_resume_noirq(struct device *dev)
- {
-+	struct pci_dev *pdev = NULL;
- 	struct pci_dev *fw_dev = NULL;
- 
-+	pdev = to_pci_dev(dev);
-+	BUG_ON(pdev == NULL);
-+
- 	fw_dev = pci_get_drvdata(pdev);
- 	BUG_ON(fw_dev == NULL);
- 
-@@ -224,13 +232,17 @@ static int ricoh_mmc_resume(struct pci_d
- 	return 0;
- }
- 
-+static struct dev_pm_ops ricoh_mmc_pm_opts = {
-+	.suspend_noirq =	ricoh_mmc_suspend_noirq,
-+	.resume_noirq =		ricoh_mmc_resume_noirq,
-+};
-+
- static struct pci_driver ricoh_mmc_driver = {
- 	.name = 	DRIVER_NAME,
- 	.id_table =	pci_ids,
- 	.probe = 	ricoh_mmc_probe,
- 	.remove =	__devexit_p(ricoh_mmc_remove),
--	.suspend =	ricoh_mmc_suspend,
--	.resume =	ricoh_mmc_resume,
-+	.driver.pm =	&ricoh_mmc_pm_opts,
- };
- 
- /*****************************************************************************\
+ 	/* Register our RTC with the RTC framework */
+ 	rtc->rtc_dev = rtc_device_register(pdev->name, dev, &bfin_rtc_ops, THIS_MODULE);
+-	if (unlikely(IS_ERR(rtc))) {
++	if (unlikely(IS_ERR(rtc->rtc_dev))) {
+ 		ret = PTR_ERR(rtc->rtc_dev);
+ 		goto err_irq;
+ 	}
 _
 
-Patches currently in -mm which might be from philipl@overt.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
-ricoh_mmc-use-suspend-resume_noirq-v2.patch
-acpi-toshiba-only-register-rfkill-if-bt-is-enabled.patch
+arch-arm-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+powerpc-chrp-add-missing-of_node_put-in-pcic.patch
+powerpc-powermac-add-missing-of_node_put.patch
+drivers-media-video-cx88-cx88-alsac-adjust-error-handling-code.patch
+drivers-mtd-maps-nettelc-use-array_size.patch
+net-tipc-bcasth-use-array_size.patch
+fs-namespacec-drop-code-after-return.patch
+mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc.patch
+drivers-rtc-correct-an-error-test.patch
 
