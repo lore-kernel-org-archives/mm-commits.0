@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-remove-wb_sync_hold.patch added to -mm tree
-Date: Thu, 11 Dec 2008 13:07:27 -0800
-Message-ID: <200812112107.mBBL7SeA018166@imap1.linux-foundation.org>
+Subject: + fs-sync_sb_inodes-fix.patch added to -mm tree
+Date: Thu, 11 Dec 2008 13:07:30 -0800
+Message-ID: <200812112107.mBBL7UM8018187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756337AbYLKVHh (ORCPT
+	by vger.kernel.org with ESMTP id S1756747AbYLKVHg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 16:07:37 -0500
+	Thu, 11 Dec 2008 16:07:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     fs: remove WB_SYNC_HOLD
+     fs: sync_sb_inodes fix
 has been added to the -mm tree.  Its filename is
-     fs-remove-wb_sync_hold.patch
+     fs-sync_sb_inodes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: remove WB_SYNC_HOLD
+Subject: fs: sync_sb_inodes fix
 From: Nick Piggin <npiggin@suse.de>
 
-Remove WB_SYNC_HOLD.  The primary motiviation is the design of my
-anti-starvation code for fsync.  It requires taking an inode lock over the
-sync operation, so we could run into lock ordering problems with multiple
-inodes.  It is possible to take a single global lock to solve the ordering
-problem, but then that would prevent a future nice implementation of "sync
-multiple inodes" based on lock order via inode address.
-
-Seems like a backward step to remove this, but actually it is busted
-anyway: we can't use the inode lists for data integrity wait: an inode can
-be taken off the dirty lists but still be under writeback.  In order to
-satisfy data integrity semantics, we should wait for it to finish
-writeback, but if we only search the dirty lists, we'll miss it.
-
-It would be possible to have a "writeback" list, for sys_sync, I suppose. 
-But why complicate things by prematurely optimise?  For unmounting, we
-could avoid the "livelock avoidance" code, which would be easier, but
-again premature IMO.
-
-Fixing the existing data integrity problem will come next.
+Fix data integrity semantics required by sys_sync, by iterating over all
+inodes and waiting for any writeback pages after the initial writeout. 
+Comments explain the exact problem.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c         |   12 ++----------
- include/linux/writeback.h |    1 -
- 2 files changed, 2 insertions(+), 11 deletions(-)
+ fs/fs-writeback.c |   60 ++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 53 insertions(+), 7 deletions(-)
 
-diff -puN fs/fs-writeback.c~fs-remove-wb_sync_hold fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-remove-wb_sync_hold
+diff -puN fs/fs-writeback.c~fs-sync_sb_inodes-fix fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-sync_sb_inodes-fix
 +++ a/fs/fs-writeback.c
-@@ -421,9 +421,6 @@ __writeback_single_inode(struct inode *i
-  * If we're a pdlfush thread, then implement pdflush collision avoidance
-  * against the entire list.
-  *
-- * WB_SYNC_HOLD is a hack for sys_sync(): reattach the inode to sb->s_dirty so
-- * that it can be located for waiting on in __writeback_single_inode().
-- *
-  * If `bdi' is non-zero then we're being asked to writeback a specific queue.
-  * This function assumes that the blockdev superblock's inodes are backed by
-  * a variety of queues, so all inodes are searched.  For other superblocks,
-@@ -499,10 +496,6 @@ void generic_sync_sb_inodes(struct super
- 		__iget(inode);
- 		pages_skipped = wbc->pages_skipped;
- 		__writeback_single_inode(inode, wbc);
--		if (wbc->sync_mode == WB_SYNC_HOLD) {
--			inode->dirtied_when = jiffies;
--			list_move(&inode->i_list, &sb->s_dirty);
--		}
- 		if (current_is_pdflush())
- 			writeback_release(bdi);
- 		if (wbc->pages_skipped != pages_skipped) {
-@@ -588,8 +581,7 @@ restart:
- 
- /*
-  * writeback and wait upon the filesystem's dirty inodes.  The caller will
-- * do this in two passes - one to write, and one to wait.  WB_SYNC_HOLD is
-- * used to park the written inodes on sb->s_dirty for the wait pass.
-+ * do this in two passes - one to write, and one to wait.
-  *
-  * A finite limit is set on the number of pages which will be written.
-  * To prevent infinite livelock of sys_sync().
-@@ -600,7 +592,7 @@ restart:
- void sync_inodes_sb(struct super_block *sb, int wait)
+@@ -440,6 +440,7 @@ void generic_sync_sb_inodes(struct super
+ 				struct writeback_control *wbc)
  {
- 	struct writeback_control wbc = {
--		.sync_mode	= wait ? WB_SYNC_ALL : WB_SYNC_HOLD,
-+		.sync_mode	= wait ? WB_SYNC_ALL : WB_SYNC_NONE,
+ 	const unsigned long start = jiffies;	/* livelock avoidance */
++	int sync = wbc->sync_mode == WB_SYNC_ALL;
+ 
+ 	spin_lock(&inode_lock);
+ 	if (!wbc->for_kupdate || list_empty(&sb->s_io))
+@@ -516,7 +517,49 @@ void generic_sync_sb_inodes(struct super
+ 		if (!list_empty(&sb->s_more_io))
+ 			wbc->more_io = 1;
+ 	}
+-	spin_unlock(&inode_lock);
++
++	if (sync) {
++		struct inode *inode, *old_inode = NULL;
++
++		/*
++		 * Data integrity sync. Must wait for all pages under writeback,
++		 * because there may have been pages dirtied before our sync
++		 * call, but which had writeout started before we write it out.
++		 * In which case, the inode may not be on the dirty list, but
++		 * we still have to wait for that writeout.
++		 */
++		list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
++			struct address_space *mapping;
++
++			if (inode->i_state & (I_FREEING|I_WILL_FREE))
++				continue;
++			mapping = inode->i_mapping;
++			if (mapping->nrpages == 0)
++				continue;
++			__iget(inode);
++			spin_unlock(&inode_lock);
++			/*
++			 * We hold a reference to 'inode' so it couldn't have
++			 * been removed from s_inodes list while we dropped the
++			 * inode_lock.  We cannot iput the inode now as we can
++			 * be holding the last reference and we cannot iput it
++			 * under inode_lock. So we keep the reference and iput
++			 * it later.
++			 */
++			iput(old_inode);
++			old_inode = inode;
++
++			filemap_fdatawait(mapping);
++
++			cond_resched();
++
++			spin_lock(&inode_lock);
++		}
++		spin_unlock(&inode_lock);
++		iput(old_inode);
++	} else
++		spin_unlock(&inode_lock);
++
+ 	return;		/* Leave any unwritten inodes on s_io */
+ }
+ EXPORT_SYMBOL_GPL(generic_sync_sb_inodes);
+@@ -596,13 +639,16 @@ void sync_inodes_sb(struct super_block *
  		.range_start	= 0,
  		.range_end	= LLONG_MAX,
  	};
-diff -puN include/linux/writeback.h~fs-remove-wb_sync_hold include/linux/writeback.h
---- a/include/linux/writeback.h~fs-remove-wb_sync_hold
-+++ a/include/linux/writeback.h
-@@ -30,7 +30,6 @@ static inline int task_is_pdflush(struct
- enum writeback_sync_modes {
- 	WB_SYNC_NONE,	/* Don't wait on anything */
- 	WB_SYNC_ALL,	/* Wait on every mapping */
--	WB_SYNC_HOLD,	/* Hold the inode on sb_dirty for sys_sync() */
- };
+-	unsigned long nr_dirty = global_page_state(NR_FILE_DIRTY);
+-	unsigned long nr_unstable = global_page_state(NR_UNSTABLE_NFS);
  
- /*
+-	wbc.nr_to_write = nr_dirty + nr_unstable +
+-			(inodes_stat.nr_inodes - inodes_stat.nr_unused) +
+-			nr_dirty + nr_unstable;
+-	wbc.nr_to_write += wbc.nr_to_write / 2;		/* Bit more for luck */
++	if (!wait) {
++		unsigned long nr_dirty = global_page_state(NR_FILE_DIRTY);
++		unsigned long nr_unstable = global_page_state(NR_UNSTABLE_NFS);
++
++		wbc.nr_to_write = nr_dirty + nr_unstable +
++			(inodes_stat.nr_inodes - inodes_stat.nr_unused);
++	} else
++		wbc.nr_to_write = LONG_MAX; /* doesn't actually matter */
++
+ 	sync_sb_inodes(sb, &wbc);
+ }
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
