@@ -1,123 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - fs-filp_cachep-can-be-static-in-fs-file_tablec-fix.patch removed from -mm tree
-Date: Thu, 11 Dec 2008 12:55:40 -0800
-Message-ID: <200812112055.mBBKte3U010404@imap1.linux-foundation.org>
+Subject: + mm-direct-io-starvation-improvement.patch added to -mm tree
+Date: Thu, 11 Dec 2008 13:00:35 -0800
+Message-ID: <200812112100.mBBL0ZL8013593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756209AbYLKUzt (ORCPT
+	by vger.kernel.org with ESMTP id S1755216AbYLKVBK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 15:55:49 -0500
+	Thu, 11 Dec 2008 16:01:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dada1@cosmosbay.com, paulmck@linux.vnet.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: npiggin@suse.de
 
 
 The patch titled
-     fs-filp_cachep-can-be-static-in-fs-file_tablec-fix
-has been removed from the -mm tree.  Its filename was
-     fs-filp_cachep-can-be-static-in-fs-file_tablec-fix.patch
+     mm: direct IO starvation improvement
+has been added to the -mm tree.  Its filename is
+     mm-direct-io-starvation-improvement.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-filp_cachep-can-be-static-in-fs-file_tablec-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: direct IO starvation improvement
+From: Nick Piggin <npiggin@suse.de>
 
-Might as well use this silly thing while we're there.
+Direct IO can invalidate and sync a lot of pagecache pages in the mapping.
+ A 4K direct IO will actually try to sync and/or invalidate the pagecache
+of the entire file, for example (which might be many GB or TB large).
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Improve this by doing range syncs.  Also, memory no longer has to be
+unmapped to catch the dirty bits for syncing, as dirty bits would remain
+coherent due to dirty mmap accounting.
+
+This fixes the immediate DM deadlocks when doing direct IO reads to block
+device with a mounted filesystem, if only by papering over the problem
+somewhat rather than addressing the fsync starvation cases.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/filemap.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN fs/file_table.c~fs-filp_cachep-can-be-static-in-fs-file_tablec-fix fs/file_table.c
---- a/fs/file_table.c~fs-filp_cachep-can-be-static-in-fs-file_tablec-fix
-+++ a/fs/file_table.c
-@@ -401,8 +401,7 @@ void __init files_init(unsigned long mem
- { 
- 	int n; 
+diff -puN mm/filemap.c~mm-direct-io-starvation-improvement mm/filemap.c
+--- a/mm/filemap.c~mm-direct-io-starvation-improvement
++++ a/mm/filemap.c
+@@ -1369,7 +1369,8 @@ generic_file_aio_read(struct kiocb *iocb
+ 			goto out; /* skip atime */
+ 		size = i_size_read(inode);
+ 		if (pos < size) {
+-			retval = filemap_write_and_wait(mapping);
++			retval = filemap_write_and_wait_range(mapping, pos,
++					pos + iov_length(iov, nr_segs) - 1);
+ 			if (!retval) {
+ 				retval = mapping->a_ops->direct_IO(READ, iocb,
+ 							iov, pos, nr_segs);
+@@ -2137,18 +2138,10 @@ generic_file_direct_write(struct kiocb *
+ 	if (count != ocount)
+ 		*nr_segs = iov_shorten((struct iovec *)iov, *nr_segs, count);
  
--	filp_cachep = kmem_cache_create("filp", sizeof(struct file), 0,
--			SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
-+	filp_cachep = KMEM_CACHE("filp", SLAB_HWCACHE_ALIGN | SLAB_PANIC);
+-	/*
+-	 * Unmap all mmappings of the file up-front.
+-	 *
+-	 * This will cause any pte dirty bits to be propagated into the
+-	 * pageframes for the subsequent filemap_write_and_wait().
+-	 */
+ 	write_len = iov_length(iov, *nr_segs);
+ 	end = (pos + write_len - 1) >> PAGE_CACHE_SHIFT;
+-	if (mapping_mapped(mapping))
+-		unmap_mapping_range(mapping, pos, write_len, 0);
  
- 	/*
- 	 * One file with associated inode and dcache is very roughly 1K.
+-	written = filemap_write_and_wait(mapping);
++	written = filemap_write_and_wait_range(mapping, pos, pos + write_len - 1);
+ 	if (written)
+ 		goto out;
+ 
+@@ -2363,7 +2356,8 @@ generic_file_buffered_write(struct kiocb
+ 	 * the file data here, to try to honour O_DIRECT expectations.
+ 	 */
+ 	if (unlikely(file->f_flags & O_DIRECT) && written)
+-		status = filemap_write_and_wait(mapping);
++		status = filemap_write_and_wait_range(mapping,
++					pos, pos + written - 1);
+ 
+ 	return written ? written : status;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-next-remove-localversion.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-pci-uninline-pci_ioremap_bar.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-dont-mark_page_accessed-in-fault-path.patch
+mm-dont-mark_page_accessed-in-shmem_fault.patch
+mm-invoke-oom-killer-from-page-fault.patch
 mm-invoke-oom-killer-from-page-fault-fix.patch
 mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-cyclic-fix.patch
+mm-write_cache_pages-cyclic-fix-fix.patch
+mm-write_cache_pages-early-loop-termination.patch
+mm-write_cache_pages-writepage-error-fix.patch
+mm-write_cache_pages-integrity-fix.patch
+mm-write_cache_pages-cleanups.patch
+mm-write_cache_pages-optimise-page-cleaning.patch
+mm-write_cache_pages-terminate-quickly.patch
 mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+mm-do_sync_mapping_range-integrity-fix.patch
+mm-get-rid-of-pagevec_release_nonlru.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-vmalloc-tweak-failure-printk.patch
+mm-vmalloc-improve-vmallocinfo.patch
+mm-vmalloc-use-mutex-for-purge.patch
+mm-vmalloc-make-lazy-unmapping-configurable.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
 fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+hugetlb-unsigned-ret-cannot-be-negative.patch
+page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
 page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-fs-filp_cachep-can-be-static-in-fs-file_tablec-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
+mm-direct-io-starvation-improvement.patch
+fs-remove-wb_sync_hold.patch
+fs-sync_sb_inodes-fix.patch
+fs-sys_sync-fix.patch
+radix-tree-gang-set-if-tagged-operation.patch
+mm-fsync-livelock-avoidance.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
