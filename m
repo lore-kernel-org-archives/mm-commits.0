@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + video-mbp_nvidia_bl-fix-brightness-after-suspend-hibernation.patch added to -mm tree
-Date: Thu, 11 Dec 2008 14:53:09 -0800
-Message-ID: <200812112253.mBBMr9pS022531@imap1.linux-foundation.org>
+Subject: + ioc4-automatically-load-sgiioc4-subordinate-module.patch added to -mm tree
+Date: Thu, 11 Dec 2008 14:54:06 -0800
+Message-ID: <200812112254.mBBMs6Mo023112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38828 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756274AbYLKWya (ORCPT
+	by vger.kernel.org with ESMTP id S1758083AbYLKWyl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 17:54:30 -0500
+	Thu, 11 Dec 2008 17:54:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: schwalbe@inf.tu-dresden.de, mjg@redhat.com, rpurdie@rpsys.net, rydberg@euromail.se
+Cc: bcasavan@sgi.com, bzolnier@gmail.com, mdr@sgi.com
 
 
 The patch titled
-     video: mbp_nvidia_bl: fix brightness after suspend/hibernation
+     ioc4: automatically load sgiioc4 subordinate module
 has been added to the -mm tree.  Its filename is
-     video-mbp_nvidia_bl-fix-brightness-after-suspend-hibernation.patch
+     ioc4-automatically-load-sgiioc4-subordinate-module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,146 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video: mbp_nvidia_bl: fix brightness after suspend/hibernation
-From: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
+Subject: ioc4: automatically load sgiioc4 subordinate module
+From: Brent Casavant <bcasavan@sgi.com>
 
-The mbp_nvidia_bl driver allows to change the display brightness on Apple
-MacBook Pro with Nvidia graphics adapters.  However, after resuming from
-suspend the brightness is at its maximum instead of the last recently used
-value.  This patch converts the driver into a platform_driver in order to
-register a resume hook to re-send brightness.  In addition, resources will
-be allocated through platform_driver means instead of calling
-request_region/release_region directly.
+Modify ioc4 to always load the sgiioc4 IDE module if the board carrying
+the IOC4 hardware actually implements the IDE interface (not all boards
+bring this functionality off the IOC4 chip).  A drive hosted on the IDE
+interface may contain the root filesystem, and sgiioc4 doesn't load
+automatically as ioc4 owns the PCI device ID, not sgiioc4.
 
-A patch incorporating MacBook 5 MacBook Air 2, and MacBook Pro 5 support
-is also available and will be sent next.
-
-Acked-by: Henrik Rydberg <rydberg@euromail.se>
-Signed-off-by: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Michael Reed <mdr@sgi.com>
+Signed-off-by: Brent Casavant <bcasavan@sgi.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/mbp_nvidia_bl.c |   97 +++++++++++++++++-----
- 1 file changed, 78 insertions(+), 19 deletions(-)
+ drivers/misc/ioc4.c |   38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff -puN drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-fix-brightness-after-suspend-hibernation drivers/video/backlight/mbp_nvidia_bl.c
---- a/drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-fix-brightness-after-suspend-hibernation
-+++ a/drivers/video/backlight/mbp_nvidia_bl.c
-@@ -25,8 +25,6 @@
- #include <linux/dmi.h>
- #include <linux/io.h>
- 
--static struct backlight_device *mbp_backlight_device;
--
- static struct dmi_system_id __initdata mbp_device_table[] = {
- 	{
- 		.ident = "3,1",
-@@ -74,35 +72,96 @@ static struct backlight_ops mbp_ops = {
- 	.update_status  = mbp_send_intensity,
- };
- 
-+static int mbp_probe(struct platform_device *pdev)
-+{
-+	struct backlight_device *bd;
-+
-+	bd = backlight_device_register("mbp_backlight", NULL, NULL, &mbp_ops);
-+	if (IS_ERR(bd))
-+		return PTR_ERR(bd);
-+
-+	bd->props.max_brightness = 15;
-+	bd->props.brightness = mbp_get_intensity(bd);
-+	backlight_update_status(bd);
-+
-+	platform_set_drvdata(pdev, bd);
-+	return 0;
-+}
-+
-+static int mbp_remove(struct platform_device *pdev)
-+{
-+	struct backlight_device *bd = platform_get_drvdata(pdev);
-+
-+	backlight_device_unregister(bd);
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int mbp_resume(struct platform_device *pdev)
-+{
-+	/*
-+	 * Nvidia GeForce 8600M GT in MacBookPro 3,1 and MacBookPro 4,1:
-+	 *   1. Resume after suspend:
-+	 *      SMI still reports the last recently written value, while
-+	 *      the brightness is actually at its maximum.
-+	 *   2. Resume after hibernation:
-+	 *      SMI reports the actual (maximum) value, but the state
-+	 *      in props.brightness might be different.
-+	 * -> Re-send to fix (1), but do not re-read to fix (2).
-+	 */
-+	struct backlight_device *bd = platform_get_drvdata(pdev);
-+
-+	backlight_update_status(bd);
-+	return 0;
-+}
-+#else
-+#define mbp_resume NULL
-+#endif
-+
-+static struct platform_driver mbp_driver = {
-+	.probe          = mbp_probe,
-+	.remove         = mbp_remove,
-+	.resume         = mbp_resume,
-+	.driver         = {
-+		.owner  = THIS_MODULE,
-+		.name   = "mbp_nvidia_bl"
-+	},
-+};
-+
-+static struct resource mbp_iores = {
-+	.start          = 0xb2,
-+	.end            = 0xb3,
-+	.name           = "mbp_nvidia_bl",
-+	.flags          = IORESOURCE_IO
-+};
-+
-+static struct platform_device *mbp_device;
-+
- static int __init mbp_init(void)
- {
-+	int ret;
-+
- 	if (!dmi_check_system(mbp_device_table))
- 		return -ENODEV;
- 
--	if (!request_region(0xb2, 2, "Macbook Pro backlight"))
--		return -ENXIO;
--
--	mbp_backlight_device = backlight_device_register("mbp_backlight",
--							 NULL, NULL,
--							 &mbp_ops);
--	if (IS_ERR(mbp_backlight_device)) {
--		release_region(0xb2, 2);
--		return PTR_ERR(mbp_backlight_device);
-+	ret = platform_driver_register(&mbp_driver);
-+	if (ret)
-+		return ret;
-+
-+	mbp_device = platform_device_register_simple("mbp_nvidia_bl", -1,
-+						     &mbp_iores, 1);
-+	if (!mbp_device) {
-+		platform_driver_unregister(&mbp_driver);
-+		return -ENOMEM;
- 	}
- 
--	mbp_backlight_device->props.max_brightness = 15;
--	mbp_backlight_device->props.brightness =
--		mbp_get_intensity(mbp_backlight_device);
--	backlight_update_status(mbp_backlight_device);
--
- 	return 0;
+diff -puN drivers/misc/ioc4.c~ioc4-automatically-load-sgiioc4-subordinate-module drivers/misc/ioc4.c
+--- a/drivers/misc/ioc4.c~ioc4-automatically-load-sgiioc4-subordinate-module
++++ a/drivers/misc/ioc4.c
+@@ -269,6 +269,16 @@ ioc4_variant(struct ioc4_driver_data *id
+ 	return IOC4_VARIANT_PCI_RT;
  }
  
- static void __exit mbp_exit(void)
++static void
++ioc4_load_modules(struct work_struct *work)
++{
++	/* arg just has to be freed */
++
++	request_module("sgiioc4");
++
++	kfree(work);
++}
++
+ /* Adds a new instance of an IOC4 card */
+ static int
+ ioc4_probe(struct pci_dev *pdev, const struct pci_device_id *pci_id)
+@@ -378,6 +388,32 @@ ioc4_probe(struct pci_dev *pdev, const s
+ 	}
+ 	mutex_unlock(&ioc4_mutex);
+ 
++	/* Request sgiioc4 IDE driver on boards that bring that functionality
++	 * off of IOC4.  The root filesystem may be hosted on a drive connected
++	 * to IOC4, so we need to make sure the sgiioc4 driver is loaded as it
++	 * won't be picked up by modprobes due to the ioc4 module owning the
++	 * PCI device.
++	 */
++	if (idd->idd_variant != IOC4_VARIANT_PCI_RT) {
++		struct work_struct *work;
++		work = kzalloc(sizeof(struct work_struct), GFP_KERNEL);
++		if (!work) {
++			printk(KERN_WARNING
++			       "%s: IOC4 unable to allocate memory for "
++			       "load of sub-modules.\n",
++			       __FUNCTION__);
++		}
++		else {
++			/* Request the module from a work procedure as the
++			 * modprobe goes out to a userland helper and that
++			 * will hang if done directly from ioc4_probe().
++			 */
++			printk(KERN_INFO "IOC4 loading sgiioc4 submodule\n");
++			INIT_WORK(work, ioc4_load_modules);
++			schedule_work(work);
++		}
++	}
++
+ 	return 0;
+ 
+ out_misc_region:
+@@ -462,6 +498,8 @@ ioc4_init(void)
+ static void __devexit
+ ioc4_exit(void)
  {
--	backlight_device_unregister(mbp_backlight_device);
++	/* Ensure ioc4_load_modules() has completed before exiting */
++	flush_scheduled_work();
+ 	pci_unregister_driver(&ioc4_driver);
+ }
+ 
+_
+
+Patches currently in -mm which might be from bcasavan@sgi.com are
+
+ioc4-automatically-load-sgiioc4-subordinate-module.patch
+
