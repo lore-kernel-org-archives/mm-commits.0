@@ -1,91 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - pnpacpi-enable-power-management.patch removed from -mm tree
-Date: Wed, 10 Dec 2008 12:52:36 -0800
-Message-ID: <200812102052.mBAKqaxJ011203@imap1.linux-foundation.org>
+Subject: - make-linx-next-apply.patch removed from -mm tree
+Date: Thu, 11 Dec 2008 11:07:51 -0800
+Message-ID: <200812111907.mBBJ7p7d003457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754316AbYLJUxU (ORCPT
+	by vger.kernel.org with ESMTP id S1750767AbYLKTIq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Dec 2008 15:53:20 -0500
+	Thu, 11 Dec 2008 14:08:46 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mBBJ7pVT013347
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 11 Dec 2008 11:07:52 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Witold.Szczeponik@gmx.net, bjorn.helgaas@hp.com, lenb@kernel.org, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnpacpi: enable Power Management
+     make linx-next apply
 has been removed from the -mm tree.  Its filename was
-     pnpacpi-enable-power-management.patch
+     make-linx-next-apply.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnpacpi: enable Power Management
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Subject: make linx-next apply
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Set the power of PnP ACPI devices to D0 when they are activated and to D3
-when they are disabled.  The latter is in correspondence with the ACPI 3.0
-specification, whereas the former is added in order to be able to power up
-a device after it has been previously disabled (or when booting up a
-system).  (As a consequence, the patch makes the PnP ACPI code more ACPI
-compliant.)
-
-The patch fixes the problem with some IBM ThinkPads (at least the 600E and
-the 600X) where the serial ports have a dedicated power source that needs
-to be brought up before the serial port can be used.  Without this patch,
-the serial port is enabled but has no power.
-
-No regressions were observed on hardware that does not require this patch.
-
-Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/core.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ include/linux/ftrace.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-enable-power-management drivers/pnp/pnpacpi/core.c
---- a/drivers/pnp/pnpacpi/core.c~pnpacpi-enable-power-management
-+++ a/drivers/pnp/pnpacpi/core.c
-@@ -98,18 +98,24 @@ static int pnpacpi_set_resources(struct 
- 	status = acpi_set_current_resources(handle, &buffer);
- 	if (ACPI_FAILURE(status))
- 		ret = -EINVAL;
-+	else if (acpi_bus_power_manageable(handle))
-+		ret = acpi_bus_set_power(handle, ACPI_STATE_D0);
- 	kfree(buffer.pointer);
- 	return ret;
- }
+diff -puN include/linux/ftrace.h~make-linx-next-apply include/linux/ftrace.h
+--- a/include/linux/ftrace.h~make-linx-next-apply
++++ a/include/linux/ftrace.h
+@@ -231,7 +231,7 @@ ftrace_init_module(unsigned long *start,
  
- static int pnpacpi_disable_resources(struct pnp_dev *dev)
- {
-+	acpi_handle handle = dev->data;
-+	int ret = 0;
- 	acpi_status status;
- 
--	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
--	status = acpi_evaluate_object((acpi_handle) dev->data,
--				      "_DIS", NULL, NULL);
--	return ACPI_FAILURE(status) ? -ENODEV : 0;
-+	if (acpi_bus_power_manageable(handle))
-+		ret = acpi_bus_set_power(handle, ACPI_STATE_D3);
-+	status = acpi_evaluate_object(handle, "_DIS", NULL, NULL);
-+	if (ACPI_FAILURE(status))
-+		ret = -ENODEV;
-+	return ret;
- }
- 
- #ifdef CONFIG_ACPI_SLEEP
+ struct boot_trace {
+ 	pid_t			caller;
+-	char			func[KSYM_SYMBOL_LEN];
++	char			func[KSYM_NAME_LEN];
+ 	int			result;
+ 	unsigned long long	duration;		/* usecs */
+ 	ktime_t			calltime;
 _
 
-Patches currently in -mm which might be from Witold.Szczeponik@gmx.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pnpacpi-enable-power-management.patch
+origin.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+make-linx-next-apply.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+pci-uninline-pci_ioremap_bar.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
