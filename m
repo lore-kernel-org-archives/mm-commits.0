@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt-fix-console-ascii-glyph-1-1-mapping.patch added to -mm tree
-Date: Thu, 11 Dec 2008 14:58:34 -0800
-Message-ID: <200812112258.mBBMwZxf026068@imap1.linux-foundation.org>
+Subject: + cgroups-fix-a-race-between-rmdir-and-remount.patch added to -mm tree
+Date: Thu, 11 Dec 2008 15:00:05 -0800
+Message-ID: <200812112300.mBBN05EK027075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44839 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42074 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758878AbYLKW7k (ORCPT
+	by vger.kernel.org with ESMTP id S1759025AbYLKXAm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 17:59:40 -0500
+	Thu, 11 Dec 2008 18:00:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ib@wupperonline.de, alan@lxorguk.ukuu.org.uk, hpa@zytor.com, samuel.thibault@ens-lyon.org
+Cc: menage@google.com, lizf@cn.fujitsu.com
 
 
 The patch titled
-     vt: fix console ASCII glyph 1:1 mapping
+     cgroups: fix a race between rmdir and remount
 has been added to the -mm tree.  Its filename is
-     vt-fix-console-ascii-glyph-1-1-mapping.patch
+     cgroups-fix-a-race-between-rmdir-and-remount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: fix console ASCII glyph 1:1 mapping
-From: Ingo Brueckl <ib@wupperonline.de>
+Subject: cgroups: fix a race between rmdir and remount
+From: Paul Menage <menage@google.com>
 
-For the console, there is a 1:1 mapping of glyphs which cannot be found in
-the current font.  This seems to be meant as a kind of 'emergency
-fallback' for fonts without unicode mapping which otherwise would display
-nothing readable on the screen.
+When a cgroup is removed, it's unlinked from its parent's children list,
+but not actually freed until the last dentry on it is released (at which
+point cgrp->root->number_of_cgroups is decremented).
 
-At the moment it affects all chars for which no substitution character is
-defined.  In particular this means that for all chars (>= 128) where there
-is no iso88591-1/unicode character (e.g.  control character area) you'll
-get the very strange 1:1 mapping of the (cp437) graphics card glyphs.
+Currently rebind_subsystems checks for the top cgroup's child list being
+empty in order to rebind subsystems into or out of a hierarchy - this can
+result in the set of subsystems bound to a hierarchy being
+removed-but-not-freed cgroup.
 
-I'm pretty sure that the 1:1 mapping should only affect strict ASCII code
-characters, i.e.  chars < 128.
+The simplest fix for this is to forbid remounts that change the set of
+subsystems on a hierarchy that has removed-but-not-freed cgroups.  This
+bug can be reproduced via:
 
-The patch limits the mapping as it probably was meant anyway.
+mkdir /mnt/cg
+mount -t cgroup -o ns,freezer cgroup /mnt/cg
+mkdir /mnt/cg/foo
+sleep 1h < /mnt/cg/foo &
+rmdir /mnt/cg/foo
+mount -t cgroup -o remount,ns,devices,freezer cgroup /mnt/cg
+kill $!
 
-Signed-off-by: Ingo Brueckl <ib@wupperonline.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Signed-off-by: Paul Menage <menage@google.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    2 +-
+ kernel/cgroup.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/vt.c~vt-fix-console-ascii-glyph-1-1-mapping drivers/char/vt.c
---- a/drivers/char/vt.c~vt-fix-console-ascii-glyph-1-1-mapping
-+++ a/drivers/char/vt.c
-@@ -2272,7 +2272,7 @@ rescan_last_byte:
- 				    continue; /* nothing to display */
- 				}
- 				/* Glyph not found */
--				if ((!(vc->vc_utf && !vc->vc_disp_ctrl) || c < 128) && !(c & ~charmask)) {
-+				if ((!(vc->vc_utf && !vc->vc_disp_ctrl) && c < 128) && !(c & ~charmask)) {
- 				    /* In legacy mode use the glyph we get by a 1:1 mapping.
- 				       This would make absolutely no sense with Unicode in mind,
- 				       but do this for ASCII characters since a font may lack
+diff -puN kernel/cgroup.c~cgroups-fix-a-race-between-rmdir-and-remount kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-fix-a-race-between-rmdir-and-remount
++++ a/kernel/cgroup.c
+@@ -702,7 +702,7 @@ static int rebind_subsystems(struct cgro
+ 	 * any child cgroups exist. This is theoretically supportable
+ 	 * but involves complex error handling, so it's being left until
+ 	 * later */
+-	if (!list_empty(&cgrp->children))
++	if (root->number_of_cgroups > 1)
+ 		return -EBUSY;
+ 
+ 	/* Process each subsystem */
 _
 
-Patches currently in -mm which might be from ib@wupperonline.de are
+Patches currently in -mm which might be from menage@google.com are
 
-unicode-fix-cp437-table.patch
-vt-fix-console-ascii-glyph-1-1-mapping.patch
+linux-next.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
+mm-remove-cgroup_mm_owner_callbacks.patch
+mm-make-get_user_pages-interruptible.patch
+mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
+cgroups-make-cgroup-config-a-submenu.patch
+cgroups-documentation-updates.patch
+cgroups-remove-some-redundant-null-checks.patch
+ns_cgroup-remove-unused-spinlock.patch
+memcg-fix-a-typo-in-kconfig.patch
+cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
+cgroups-fix-cgroup_iter_next-bug.patch
+cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
+cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
+cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
+cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
+cgroups-make-root_list-contains-active-hierarchies-only.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+cgroups-fix-a-race-between-rmdir-and-remount.patch
+devcgroup-use-list_for_each_entry_rcu.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-move-all-acccounts-to-parent-at-rmdir.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
+memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
+cpuset-rcu_read_lock-to-protect-task_cs.patch
+add-a-refcount-check-in-dput.patch
 
