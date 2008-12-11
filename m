@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 11 Dec 2008 14:55:13 -0800
-Message-ID: <200812112255.mBBMtDsu023856@imap1.linux-foundation.org>
+Subject: + unicode-fix-cp437-table.patch added to -mm tree
+Date: Thu, 11 Dec 2008 14:56:12 -0800
+Message-ID: <200812112256.mBBMuDIc024493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36985 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56404 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757833AbYLKWzq (ORCPT
+	by vger.kernel.org with ESMTP id S1759161AbYLKW4n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 17:55:46 -0500
+	Thu, 11 Dec 2008 17:56:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bcasavan@sgi.com, bzolnier@gmail.com, mdr@sgi.com
+Cc: ib@wupperonline.de
 
 
 The patch titled
-     ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes
+     unicode: fix cp437 table
 has been added to the -mm tree.  Its filename is
-     ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+     unicode-fix-cp437-table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: unicode: fix cp437 table
+From: Ingo Brueckl <ib@wupperonline.de>
 
-WARNING: __func__ should be used instead of gcc specific __FUNCTION__
-#55: FILE: drivers/misc/ioc4.c:404:
-+			       __FUNCTION__);
+There is a major bug in the cp437 to unicode translation table.  Char 0x7c
+is mapped to U+00a5 which is the Yen sign and wrong.  The right mapping is
+U+00a6 (broken bar).
 
-ERROR: else should follow close brace '}'
-#57: FILE: drivers/misc/ioc4.c:406:
-+		}
-+		else {
+Furthermore, a mapping for U+00b4 (a widely used character) is missing
+even though easily possible.
 
-total: 1 errors, 1 warnings, 56 lines checked
+The patch fixes these, as well as providing a few other useful mappings.
 
-./patches/ioc4-automatically-load-sgiioc4-subordinate-module.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+The changes are as follows:
 
-Please run checkpatch prior to sending patches
+0x0f (enhancement) enables a sort of currency symbol
+0x27 (bug) enables a sort of acute accent which is a widely used character
+0x44 (enhancement) enables a sort of icelandic capital letter eth
+0x7c (major bug) corrects mapping
+0xeb (enhancement) enables a sort of icelandic small letter eth
+0xee (enhancement) enables a sort of math 'element of'
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Brent Casavant <bcasavan@sgi.com>
-Cc: Michael Reed <mdr@sgi.com>
+Signed-off-by: Ingo Brueckl <ib@wupperonline.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ioc4.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/char/cp437.uni |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/misc/ioc4.c~ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes drivers/misc/ioc4.c
---- a/drivers/misc/ioc4.c~ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes
-+++ a/drivers/misc/ioc4.c
-@@ -400,10 +400,8 @@ ioc4_probe(struct pci_dev *pdev, const s
- 		if (!work) {
- 			printk(KERN_WARNING
- 			       "%s: IOC4 unable to allocate memory for "
--			       "load of sub-modules.\n",
--			       __FUNCTION__);
--		}
--		else {
-+			       "load of sub-modules.\n", __func__);
-+		} else {
- 			/* Request the module from a work procedure as the
- 			 * modprobe goes out to a userland helper and that
- 			 * will hang if done directly from ioc4_probe().
+diff -puN drivers/char/cp437.uni~unicode-fix-cp437-table drivers/char/cp437.uni
+--- a/drivers/char/cp437.uni~unicode-fix-cp437-table
++++ a/drivers/char/cp437.uni
+@@ -27,7 +27,7 @@
+ 0x0c	U+2640
+ 0x0d	U+266a
+ 0x0e	U+266b
+-0x0f	U+263c
++0x0f	U+263c U+00a4
+ 0x10	U+25b6 U+25ba
+ 0x11	U+25c0 U+25c4
+ 0x12	U+2195
+@@ -55,7 +55,7 @@
+ 0x24	U+0024
+ 0x25	U+0025
+ 0x26	U+0026
+-0x27	U+0027
++0x27	U+0027 U+00b4
+ 0x28	U+0028
+ 0x29	U+0029
+ 0x2a	U+002a
+@@ -84,7 +84,7 @@
+ 0x41	U+0041 U+00c0 U+00c1 U+00c2 U+00c3
+ 0x42	U+0042
+ 0x43	U+0043 U+00a9
+-0x44	U+0044
++0x44	U+0044 U+00d0
+ 0x45	U+0045 U+00c8 U+00ca U+00cb
+ 0x46	U+0046
+ 0x47	U+0047
+@@ -140,7 +140,7 @@
+ 0x79	U+0079 U+00fd
+ 0x7a	U+007a
+ 0x7b	U+007b
+-0x7c	U+007c U+00a5
++0x7c	U+007c U+00a6
+ 0x7d	U+007d
+ 0x7e	U+007e
+ #
+@@ -263,10 +263,10 @@
+ 0xe8	U+03a6 U+00d8
+ 0xe9	U+0398
+ 0xea	U+03a9 U+2126
+-0xeb	U+03b4
++0xeb	U+03b4 U+00f0
+ 0xec	U+221e
+ 0xed	U+03c6 U+00f8
+-0xee	U+03b5
++0xee	U+03b5 U+2208
+ 0xef	U+2229
+ 0xf0	U+2261
+ 0xf1	U+00b1
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ib@wupperonline.de are
 
-origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-pci-uninline-pci_ioremap_bar.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-binfmtsh-include-listh-fix.patch
-max3100-spi-uart-driver-select-serial_core-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+unicode-fix-cp437-table.patch
 
