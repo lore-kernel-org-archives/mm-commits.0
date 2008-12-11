@@ -1,61 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - make-linx-next-apply.patch removed from -mm tree
-Date: Thu, 11 Dec 2008 11:07:51 -0800
-Message-ID: <200812111907.mBBJ7p7d003457@imap1.linux-foundation.org>
+Subject: - linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 11 Dec 2008 11:12:04 -0800
+Message-ID: <200812111912.mBBJC4Q1006237@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52849 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750767AbYLKTIq (ORCPT
+	by vger.kernel.org with ESMTP id S1756143AbYLKTMh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 14:08:46 -0500
+	Thu, 11 Dec 2008 14:12:37 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mBBJ7pVT013347
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mBBJC4gc013630
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 11 Dec 2008 11:07:52 -0800
+	for <mm-commits@vger.kernel.org>; Thu, 11 Dec 2008 11:12:05 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make linx-next apply
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     make-linx-next-apply.patch
+     linux-next-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make linx-next apply
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ftrace.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ crypto/Makefile        |    3 ---
+ include/linux/ftrace.h |   10 ----------
+ 2 files changed, 13 deletions(-)
 
-diff -puN include/linux/ftrace.h~make-linx-next-apply include/linux/ftrace.h
---- a/include/linux/ftrace.h~make-linx-next-apply
-+++ a/include/linux/ftrace.h
-@@ -231,7 +231,7 @@ ftrace_init_module(unsigned long *start,
+diff -puN drivers/ide/ide-io.c~linux-next-git-rejects drivers/ide/ide-io.c
+diff -puN crypto/Makefile~linux-next-git-rejects crypto/Makefile
+--- a/crypto/Makefile~linux-next-git-rejects
++++ a/crypto/Makefile
+@@ -22,12 +22,9 @@ obj-$(CONFIG_CRYPTO_SEQIV) += seqiv.o
  
- struct boot_trace {
- 	pid_t			caller;
--	char			func[KSYM_SYMBOL_LEN];
-+	char			func[KSYM_NAME_LEN];
- 	int			result;
- 	unsigned long long	duration;		/* usecs */
- 	ktime_t			calltime;
+ crypto_hash-objs := hash.o
+ crypto_hash-objs += ahash.o
+-<<<<<<< HEAD:crypto/Makefile
+ obj-$(CONFIG_CRYPTO_HASH2) += crypto_hash.o
+-=======
+ crypto_hash-objs += shash.o
+ obj-$(CONFIG_CRYPTO_HASH) += crypto_hash.o
+->>>>>>> FETCH_HEAD:crypto/Makefile
+ 
+ cryptomgr-objs := algboss.o testmgr.o
+ 
+diff -puN include/linux/ftrace.h~linux-next-git-rejects include/linux/ftrace.h
+--- a/include/linux/ftrace.h~linux-next-git-rejects
++++ a/include/linux/ftrace.h
+@@ -313,15 +313,6 @@ ftrace_init_module(struct module *mod,
+ #endif
+ 
+ 
+-<<<<<<< HEAD:include/linux/ftrace.h
+-struct boot_trace {
+-	pid_t			caller;
+-	char			func[KSYM_NAME_LEN];
+-	int			result;
+-	unsigned long long	duration;		/* usecs */
+-	ktime_t			calltime;
+-	ktime_t			rettime;
+-=======
+ /*
+  * Structure that defines a return function trace.
+  */
+@@ -332,7 +323,6 @@ struct ftrace_retfunc {
+ 	unsigned long long rettime;
+ 	/* Number of functions that overran the depth limit for current task */
+ 	unsigned long overrun;
+->>>>>>> FETCH_HEAD:include/linux/ftrace.h
+ };
+ 
+ #ifdef CONFIG_FUNCTION_RET_TRACER
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mm-remove-the-might_sleep-from-lock_page.patch
-make-linx-next-apply.patch
 linux-next.patch
 next-remove-localversion.patch
 linux-next-git-rejects.patch
