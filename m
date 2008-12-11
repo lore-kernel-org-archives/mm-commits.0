@@ -1,89 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - dmi-add-dmi_match.patch removed from -mm tree
-Date: Thu, 11 Dec 2008 12:53:51 -0800
-Message-ID: <200812112053.mBBKrpqS009207@imap1.linux-foundation.org>
+Subject: - fs-filp_cachep-can-be-static-in-fs-file_tablec-fix.patch removed from -mm tree
+Date: Thu, 11 Dec 2008 12:55:40 -0800
+Message-ID: <200812112055.mBBKte3U010404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752260AbYLKUyd (ORCPT
+	by vger.kernel.org with ESMTP id S1756209AbYLKUzt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 15:54:33 -0500
+	Thu, 11 Dec 2008 15:55:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, a_romanescu@yahoo.co.uk, alan@lxorguk.ukuu.org.uk, jgarzik@redhat.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dada1@cosmosbay.com, paulmck@linux.vnet.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     DMI: add dmi_match
+     fs-filp_cachep-can-be-static-in-fs-file_tablec-fix
 has been removed from the -mm tree.  Its filename was
-     dmi-add-dmi_match.patch
+     fs-filp_cachep-can-be-static-in-fs-file_tablec-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: DMI: add dmi_match
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: fs-filp_cachep-can-be-static-in-fs-file_tablec-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add a wrapper for testing system_info which will handle also NULL system
-infos.
+Might as well use this silly thing while we're there.
 
-This will be used by the ata PIIX driver.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Jeff Garzik <jgarzik@redhat.com>
-Cc: Alexandru Romanescu <a_romanescu@yahoo.co.uk>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dmi.h |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ fs/file_table.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/dmi.h~dmi-add-dmi_match include/linux/dmi.h
---- a/include/linux/dmi.h~dmi-add-dmi_match
-+++ a/include/linux/dmi.h
-@@ -48,6 +48,21 @@ extern int dmi_name_in_serial(const char
- extern int dmi_available;
- extern int dmi_walk(void (*decode)(const struct dmi_header *));
+diff -puN fs/file_table.c~fs-filp_cachep-can-be-static-in-fs-file_tablec-fix fs/file_table.c
+--- a/fs/file_table.c~fs-filp_cachep-can-be-static-in-fs-file_tablec-fix
++++ a/fs/file_table.c
+@@ -401,8 +401,7 @@ void __init files_init(unsigned long mem
+ { 
+ 	int n; 
  
-+/**
-+ * dmi_match - compare string to the dmi field (if exists)
-+ *
-+ * Returns true if requested field equals to str (including NULL).
-+ */
-+static inline bool dmi_match(enum dmi_field f, const char *str)
-+{
-+	const char *info = dmi_get_system_info(f);
-+
-+	if (info == NULL || str == NULL)
-+		return info == str;
-+
-+	return !strcmp(info, str);
-+}
-+
- #else
+-	filp_cachep = kmem_cache_create("filp", sizeof(struct file), 0,
+-			SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
++	filp_cachep = KMEM_CACHE("filp", SLAB_HWCACHE_ALIGN | SLAB_PANIC);
  
- static inline int dmi_check_system(const struct dmi_system_id *list) { return 0; }
-@@ -61,6 +76,8 @@ static inline int dmi_name_in_serial(con
- #define dmi_available 0
- static inline int dmi_walk(void (*decode)(const struct dmi_header *))
- 	{ return -1; }
-+static inline bool dmi_match(enum dmi_field f, const char *str)
-+	{ return false; }
- 
- #endif
- 
+ 	/*
+ 	 * One file with associated inode and dcache is very roughly 1K.
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-8250_pci-add-support-for-netmos-9835.patch
-dmi-add-dmi_match.patch
+next-remove-localversion.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+pci-uninline-pci_ioremap_bar.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+fs-filp_cachep-can-be-static-in-fs-file_tablec-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
 reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
