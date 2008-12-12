@@ -1,81 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - fork_init-fix-division-by-zero.patch removed from -mm tree
-Date: Thu, 11 Dec 2008 17:07:16 -0800
-Message-ID: <200812120107.mBC17GZo012583@imap1.linux-foundation.org>
+Subject: - ibmphp-fix-module-ref-count-underflow.patch removed from -mm tree
+Date: Thu, 11 Dec 2008 18:17:41 -0800
+Message-ID: <200812120217.mBC2HfhE025918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49211 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55239 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756077AbYLLBHx (ORCPT
+	by vger.kernel.org with ESMTP id S1758453AbYLLCSd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 20:07:53 -0500
+	Thu, 11 Dec 2008 21:18:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yur@emcraft.com, yanok@emcraft.com, mm-commits@vger.kernel.org
+To: nhorman@tuxdriver.com, gregkh@suse.de, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fork_init: fix division by zero
+     ibmphp: fix module ref count underflow
 has been removed from the -mm tree.  Its filename was
-     fork_init-fix-division-by-zero.patch
+     ibmphp-fix-module-ref-count-underflow.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fork_init: fix division by zero
-From: Yuri Tikhonov <yur@emcraft.com>
+Subject: ibmphp: fix module ref count underflow
+From: Neil Horman <nhorman@tuxdriver.com>
 
-Fix a divide-by-zero error for the cases of really big PAGE_SIZEs (e.g. 
-256KB on ppc44x).  Support for big page sizes on 44x is not present in the
-current kernel yet, but coming soon.
+The ibmphp hotplug driver does something rather silly in its init routine.
+It purposely calls module_put so as to underflow its module ref count to
+avoid being removed from the kernel.
 
-Also this patch fixes the comment for the max_threads settings, as this
-didn't match the things actually done in the code.
+This is bad practice, and wrong, since it provides a window for subsequent
+module_gets to reset the refcount to zero, allowing an unload to race in
+and cause all sorts of mysterious panics.  If the module is unsafe to
+load, it should inform the kernel as such with a call to __unsafe.  The
+patch does that.
 
-Signed-off-by: Yuri Tikhonov <yur@emcraft.com>
-Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/pci/hotplug/ibmphp_core.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN kernel/fork.c~fork_init-fix-division-by-zero kernel/fork.c
---- a/kernel/fork.c~fork_init-fix-division-by-zero
-+++ a/kernel/fork.c
-@@ -69,6 +69,7 @@
- #include <asm/mmu_context.h>
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
-+#include <asm/div64.h>
+diff -puN drivers/pci/hotplug/ibmphp_core.c~ibmphp-fix-module-ref-count-underflow drivers/pci/hotplug/ibmphp_core.c
+--- a/drivers/pci/hotplug/ibmphp_core.c~ibmphp-fix-module-ref-count-underflow
++++ a/drivers/pci/hotplug/ibmphp_core.c
+@@ -1402,9 +1402,11 @@ static int __init ibmphp_init(void)
+ 		goto error;
+ 	}
  
- /*
-  * Protected counters by write_lock_irq(&tasklist_lock)
-@@ -185,10 +186,15 @@ void __init fork_init(unsigned long memp
+-	/* lock ourselves into memory with a module 
+-	 * count of -1 so that no one can unload us. */
+-	module_put(THIS_MODULE);
++	/*
++	 * Its unsafe to unload this module, so tell
++	 * the kernel to avoid inadvertent unloads
++	 */
++	__unsafe(THIS_MODULE);
  
- 	/*
- 	 * The default maximum number of threads is set to a safe
--	 * value: the thread structures can take up at most half
--	 * of memory.
-+	 * value: the thread structures can take up at most
-+	 * (1/8) part of memory.
- 	 */
--	max_threads = mempages / (8 * THREAD_SIZE / PAGE_SIZE);
-+	{
-+		/* max_threads = (mempages * PAGE_SIZE) / THREAD_SIZE / 8; */
-+		u64 m = mempages * PAGE_SIZE;
-+		do_div(m, THREAD_SIZE * 8);
-+		max_threads = m;
-+	}
- 
- 	/*
- 	 * we need to allow at least 20 threads to boot a system
+ exit:
+ 	return rc;
 _
 
-Patches currently in -mm which might be from yur@emcraft.com are
+Patches currently in -mm which might be from nhorman@tuxdriver.com are
 
 linux-next.patch
-fork_init-fix-division-by-zero.patch
+ibmphp-fix-module-ref-count-underflow.patch
 
