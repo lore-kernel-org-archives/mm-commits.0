@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + loop-flush-possible-running-bios-when-loop-device-is-released.patch added to -mm tree
-Date: Thu, 11 Dec 2008 19:23:14 -0800
-Message-ID: <200812120323.mBC3NEQS003580@imap1.linux-foundation.org>
+Subject: + dmi-add-dmi_match.patch added to -mm tree
+Date: Thu, 11 Dec 2008 19:24:16 -0800
+Message-ID: <200812120324.mBC3OGFN004251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757828AbYLLDXf (ORCPT
+	by vger.kernel.org with ESMTP id S1751838AbYLLDYs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Dec 2008 22:23:35 -0500
+	Thu, 11 Dec 2008 22:24:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mbroz@redhat.com, agk@redhat.com, jens.axboe@oracle.com
+Cc: jirislaby@gmail.com, a_romanescu@yahoo.co.uk, alan@lxorguk.ukuu.org.uk, jgarzik@redhat.com, tj@kernel.org
 
 
 The patch titled
-     loop: flush possible running bios when loop device is released
+     dmi: add dmi_match
 has been added to the -mm tree.  Its filename is
-     loop-flush-possible-running-bios-when-loop-device-is-released.patch
+     dmi-add-dmi_match.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,99 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: loop: flush possible running bios when loop device is released
-From: Milan Broz <mbroz@redhat.com>
+Subject: dmi: add dmi_match
+From: Jiri Slaby <jirislaby@gmail.com>
 
-When there are still queued bios and reference count drops to zero, loop
-device must flush all queued bios.
+Add a wrapper for testing system_info which will handle also NULL system
+infos.
 
-Otherwise it can lead to situation that caller closes the device, but some
-bios are still running and endio() function call later oopses when uses
-unallocated mempool.
+This will be used by the ata PIIX driver.
 
-This happens for example when running dm-crypt over loop, here is typical
-oops backtrace:
-
- Oops: 0000 [#1] PREEMPT SMP
- EIP is at mempool_free+0x12/0x6b
-...
- crypt_dec_pending+0x50/0x54 [dm_crypt]
- crypt_endio+0x9f/0xa7 [dm_crypt]
- crypt_endio+0x0/0xa7 [dm_crypt]
- bio_endio+0x2b/0x2e
- loop_thread+0x37a/0x3b1
- do_lo_send_aops+0x0/0x165
- autoremove_wake_function+0x0/0x33
- loop_thread+0x0/0x3b1
- kthread+0x3b/0x61
- kthread+0x0/0x61
- kernel_thread_helper+0x7/0x10
-
-(But crash is reproducible with different dm targets running over loop
-device too.)
-
-Patch fixes it by flushing the bios in release call, reusing the flush
-mechanism for switching backing store.
-
-Signed-off-by: Milan Broz <mbroz@redhat.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Alasdair G Kergon <agk@redhat.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Alexandru Romanescu <a_romanescu@yahoo.co.uk>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ drivers/firmware/dmi_scan.c |   16 ++++++++++++++++
+ include/linux/dmi.h         |    3 +++
+ 2 files changed, 19 insertions(+)
 
-diff -puN drivers/block/loop.c~loop-flush-possible-running-bios-when-loop-device-is-released drivers/block/loop.c
---- a/drivers/block/loop.c~loop-flush-possible-running-bios-when-loop-device-is-released
-+++ a/drivers/block/loop.c
-@@ -624,20 +624,33 @@ static int loop_switch(struct loop_devic
+diff -puN drivers/firmware/dmi_scan.c~dmi-add-dmi_match drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~dmi-add-dmi_match
++++ a/drivers/firmware/dmi_scan.c
+@@ -582,3 +582,19 @@ int dmi_walk(void (*decode)(const struct
+ 	return 0;
  }
- 
- /*
-+ * Helper to flush the IOs in loop, but keeping loop thread running
+ EXPORT_SYMBOL_GPL(dmi_walk);
++
++/**
++ * dmi_match - compare a string to the dmi field (if exists)
++ *
++ * Returns true if the requested field equals to the str (including NULL).
 + */
-+static int loop_flush(struct loop_device *lo)
++bool dmi_match(enum dmi_field f, const char *str)
 +{
-+	return loop_switch(lo, NULL);
++	const char *info = dmi_get_system_info(f);
++
++	if (info == NULL || str == NULL)
++		return info == str;
++
++	return !strcmp(info, str);
 +}
-+
-+/*
-  * Do the actual switch; called from the BIO completion routine
-  */
- static void do_loop_switch(struct loop_device *lo, struct switch_request *p)
- {
- 	struct file *file = p->file;
- 	struct file *old_file = lo->lo_backing_file;
--	struct address_space *mapping = file->f_mapping;
-+	struct address_space *mapping;
++EXPORT_SYMBOL_GPL(dmi_match);
+diff -puN include/linux/dmi.h~dmi-add-dmi_match include/linux/dmi.h
+--- a/include/linux/dmi.h~dmi-add-dmi_match
++++ a/include/linux/dmi.h
+@@ -47,6 +47,7 @@ extern int dmi_name_in_vendors(const cha
+ extern int dmi_name_in_serial(const char *str);
+ extern int dmi_available;
+ extern int dmi_walk(void (*decode)(const struct dmi_header *));
++extern bool dmi_match(enum dmi_field f, const char *str);
  
-+	if (!file)
-+		goto out;
-+
-+	mapping = file->f_mapping;
- 	mapping_set_gfp_mask(old_file->f_mapping, lo->old_gfp_mask);
- 	lo->lo_backing_file = file;
- 	lo->lo_blocksize = S_ISBLK(mapping->host->i_mode) ?
- 		mapping->host->i_bdev->bd_block_size : PAGE_SIZE;
- 	lo->old_gfp_mask = mapping_gfp_mask(mapping);
- 	mapping_set_gfp_mask(mapping, lo->old_gfp_mask & ~(__GFP_IO|__GFP_FS));
-+out:
- 	complete(&p->wait);
- }
+ #else
  
-@@ -1349,6 +1362,8 @@ static int lo_release(struct gendisk *di
+@@ -61,6 +62,8 @@ static inline int dmi_name_in_serial(con
+ #define dmi_available 0
+ static inline int dmi_walk(void (*decode)(const struct dmi_header *))
+ 	{ return -1; }
++static inline bool dmi_match(enum dmi_field f, const char *str)
++	{ return false; }
  
- 	if ((lo->lo_flags & LO_FLAGS_AUTOCLEAR) && !lo->lo_refcnt)
- 		loop_clr_fd(lo, NULL);
-+	else if (!lo->lo_refcnt && lo->lo_thread)
-+		loop_flush(lo);
- 
- 	mutex_unlock(&lo->lo_ctl_mutex);
+ #endif
  
 _
 
-Patches currently in -mm which might be from mbroz@redhat.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-loop-flush-possible-running-bios-when-loop-device-is-released.patch
+linux-next.patch
+8250_pci-add-support-for-netmos-9835.patch
+dmi-add-dmi_match.patch
+ata-piix-cleanup-dmi-strings-checking.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
