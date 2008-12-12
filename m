@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + dmi-add-dmi_match.patch added to -mm tree
-Date: Thu, 11 Dec 2008 19:24:16 -0800
-Message-ID: <200812120324.mBC3OGFN004251@imap1.linux-foundation.org>
+Subject: + ata-piix-cleanup-dmi-strings-checking.patch added to -mm tree
+Date: Thu, 11 Dec 2008 19:24:18 -0800
+Message-ID: <200812120324.mBC3OIDr004282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58903 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751838AbYLLDYs (ORCPT
+	by vger.kernel.org with ESMTP id S1753824AbYLLDYs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 11 Dec 2008 22:24:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, a_romanescu@yahoo.co.uk, alan@lxorguk.ukuu.org.uk, jgar
 
 
 The patch titled
-     dmi: add dmi_match
+     ata: piix, cleanup dmi strings checking
 has been added to the -mm tree.  Its filename is
-     dmi-add-dmi_match.patch
+     ata-piix-cleanup-dmi-strings-checking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dmi: add dmi_match
+Subject: ata: piix, cleanup dmi strings checking
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Add a wrapper for testing system_info which will handle also NULL system
-infos.
-
-This will be used by the ata PIIX driver.
+Commit
+ATA: piix, fix pointer deref on suspend
+fixed a possible oops in an ugly manner. Use newly introduced dmi_match()
+to make the code pretty again.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Jeff Garzik <jgarzik@redhat.com>
@@ -50,53 +50,40 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |   16 ++++++++++++++++
- include/linux/dmi.h         |    3 +++
- 2 files changed, 19 insertions(+)
+ drivers/ata/ata_piix.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~dmi-add-dmi_match drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~dmi-add-dmi_match
-+++ a/drivers/firmware/dmi_scan.c
-@@ -582,3 +582,19 @@ int dmi_walk(void (*decode)(const struct
+diff -puN drivers/ata/ata_piix.c~ata-piix-cleanup-dmi-strings-checking drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~ata-piix-cleanup-dmi-strings-checking
++++ a/drivers/ata/ata_piix.c
+@@ -1072,20 +1072,13 @@ static int piix_broken_suspend(void)
+ 	 * matching is necessary because dmi_system_id.matches is
+ 	 * limited to four entries.
+ 	 */
+-	if (dmi_get_system_info(DMI_SYS_VENDOR) &&
+-	    dmi_get_system_info(DMI_PRODUCT_NAME) &&
+-	    dmi_get_system_info(DMI_PRODUCT_VERSION) &&
+-	    dmi_get_system_info(DMI_PRODUCT_SERIAL) &&
+-	    dmi_get_system_info(DMI_BOARD_VENDOR) &&
+-	    dmi_get_system_info(DMI_BOARD_NAME) &&
+-	    dmi_get_system_info(DMI_BOARD_VERSION) &&
+-	    !strcmp(dmi_get_system_info(DMI_SYS_VENDOR), "TOSHIBA") &&
+-	    !strcmp(dmi_get_system_info(DMI_PRODUCT_NAME), "000000") &&
+-	    !strcmp(dmi_get_system_info(DMI_PRODUCT_VERSION), "000000") &&
+-	    !strcmp(dmi_get_system_info(DMI_PRODUCT_SERIAL), "000000") &&
+-	    !strcmp(dmi_get_system_info(DMI_BOARD_VENDOR), "TOSHIBA") &&
+-	    !strcmp(dmi_get_system_info(DMI_BOARD_NAME), "Portable PC") &&
+-	    !strcmp(dmi_get_system_info(DMI_BOARD_VERSION), "Version A0"))
++	if (dmi_match(DMI_SYS_VENDOR, "TOSHIBA") &&
++	    dmi_match(DMI_PRODUCT_NAME, "000000") &&
++	    dmi_match(DMI_PRODUCT_VERSION, "000000") &&
++	    dmi_match(DMI_PRODUCT_SERIAL, "000000") &&
++	    dmi_match(DMI_BOARD_VENDOR, "TOSHIBA") &&
++	    dmi_match(DMI_BOARD_NAME, "Portable PC") &&
++	    dmi_match(DMI_BOARD_VERSION, "Version A0"))
+ 		return 1;
+ 
  	return 0;
- }
- EXPORT_SYMBOL_GPL(dmi_walk);
-+
-+/**
-+ * dmi_match - compare a string to the dmi field (if exists)
-+ *
-+ * Returns true if the requested field equals to the str (including NULL).
-+ */
-+bool dmi_match(enum dmi_field f, const char *str)
-+{
-+	const char *info = dmi_get_system_info(f);
-+
-+	if (info == NULL || str == NULL)
-+		return info == str;
-+
-+	return !strcmp(info, str);
-+}
-+EXPORT_SYMBOL_GPL(dmi_match);
-diff -puN include/linux/dmi.h~dmi-add-dmi_match include/linux/dmi.h
---- a/include/linux/dmi.h~dmi-add-dmi_match
-+++ a/include/linux/dmi.h
-@@ -47,6 +47,7 @@ extern int dmi_name_in_vendors(const cha
- extern int dmi_name_in_serial(const char *str);
- extern int dmi_available;
- extern int dmi_walk(void (*decode)(const struct dmi_header *));
-+extern bool dmi_match(enum dmi_field f, const char *str);
- 
- #else
- 
-@@ -61,6 +62,8 @@ static inline int dmi_name_in_serial(con
- #define dmi_available 0
- static inline int dmi_walk(void (*decode)(const struct dmi_header *))
- 	{ return -1; }
-+static inline bool dmi_match(enum dmi_field f, const char *str)
-+	{ return false; }
- 
- #endif
- 
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
