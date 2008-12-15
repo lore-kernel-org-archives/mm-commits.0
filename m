@@ -1,87 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: + remove-linux-hardirqh-from-asm-generic-localh.patch added to -mm tree
-Date: Sun, 14 Dec 2008 09:58:07 -0800
-Message-ID: <200812141758.mBEHw7QD003494@imap1.linux-foundation.org>
+Subject: - arch-ia64-kernel-iosapicc-fix-warnings.patch removed from -mm tree
+Date: Mon, 15 Dec 2008 11:57:05 -0800
+Message-ID: <200812151957.mBFJv5ob027328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750736AbYLNR6u (ORCPT
+	by vger.kernel.org with ESMTP id S1752239AbYLOT5L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 14 Dec 2008 12:58:50 -0500
+	Mon, 15 Dec 2008 14:57:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rmk+kernel@arm.linux.org.uk
+To: kosaki.motohiro@jp.fujitsu.com, avi@qumranet.com, tony.luck@intel.com, xiantao.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove linux/hardirq.h from asm-generic/local.h
-has been added to the -mm tree.  Its filename is
-     remove-linux-hardirqh-from-asm-generic-localh.patch
+     arch/ia64/kernel/iosapic.c fix warnings
+has been removed from the -mm tree.  Its filename was
+     arch-ia64-kernel-iosapicc-fix-warnings.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove linux/hardirq.h from asm-generic/local.h
-From: Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: arch/ia64/kernel/iosapic.c fix warnings
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-While looking at reducing the amount of architecture namespace pollution
-in the generic kernel, I found that asm/irq.h is included in the vast
-majority of compilations on ARM (around 650 files.)
+arch/ia64/kernel/iosapic.c:708: warning: passing argument 2 of '__cpu_clear' from incompatible pointer type
+arch/ia64/kernel/iosapic.c:711: warning: passing argument 1 of '__cpus_weight' from incompatible pointer type
+arch/ia64/kernel/iosapic.c:719: warning: passing argument 1 of '__first_cpu' from incompatible pointer type
+arch/ia64/kernel/iosapic.c:720: warning: passing argument 2 of '__next_cpu' from incompatible pointer type
 
-Since asm/irq.h includes a sub-architecture include file on ARM, this
-causes a negative impact on the ccache's ability to re-use the build
-results from other sub-architectures, so we have a desire to reduce the
-dependencies on asm/irq.h.
-
-It turns out that a major cause of this is the needless include of
-linux/hardirq.h into asm-generic/local.h.  The patch below removes this
-include, resulting in some 250 to 300 files (around half) of the kernel
-then omitting asm/irq.h.
-
-My test builds still succeed, provided two ARM files are fixed
-(arch/arm/kernel/traps.c and arch/arm/mm/fault.c) - so there may be
-negative impacts for this on other architectures.
-
-Note that x86 does not include asm/irq.h nor linux/hardirq.h in its
-asm/local.h, so this patch can be viewed as bringing the generic version
-into line with the x86 version.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Zhang Xiantao <xiantao.zhang@intel.com>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/local.h |    1 -
- 1 file changed, 1 deletion(-)
+ arch/ia64/kernel/iosapic.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-generic/local.h~remove-linux-hardirqh-from-asm-generic-localh include/asm-generic/local.h
---- a/include/asm-generic/local.h~remove-linux-hardirqh-from-asm-generic-localh
-+++ a/include/asm-generic/local.h
-@@ -2,7 +2,6 @@
- #define _ASM_GENERIC_LOCAL_H
+diff -puN arch/ia64/kernel/iosapic.c~arch-ia64-kernel-iosapicc-fix-warnings arch/ia64/kernel/iosapic.c
+--- a/arch/ia64/kernel/iosapic.c~arch-ia64-kernel-iosapicc-fix-warnings
++++ a/arch/ia64/kernel/iosapic.c
+@@ -695,7 +695,7 @@ get_target_cpu (unsigned int gsi, int ir
+ #ifdef CONFIG_NUMA
+ 	{
+ 		int num_cpus, cpu_index, iosapic_index, numa_cpu, i = 0;
+-		const struct cpumask *cpu_mask;
++		struct cpumask *cpu_mask;
  
- #include <linux/percpu.h>
--#include <linux/hardirq.h>
- #include <asm/atomic.h>
- #include <asm/types.h>
+ 		iosapic_index = find_iosapic(gsi);
+ 		if (iosapic_index < 0 ||
+@@ -705,10 +705,10 @@ get_target_cpu (unsigned int gsi, int ir
+ 		cpu_mask = cpumask_of_node(iosapic_lists[iosapic_index].node);
+ 		for_each_cpu_and(numa_cpu, cpu_mask, &domain) {
+ 			if (!cpu_online(numa_cpu))
+-				cpu_clear(numa_cpu, cpu_mask);
++				cpu_clear(numa_cpu, *cpu_mask);
+ 		}
  
+-		num_cpus = cpus_weight(cpu_mask);
++		num_cpus = cpus_weight(*cpu_mask);
+ 
+ 		if (!num_cpus)
+ 			goto skip_numa_setup;
+@@ -716,8 +716,8 @@ get_target_cpu (unsigned int gsi, int ir
+ 		/* Use irq assignment to distribute across cpus in node */
+ 		cpu_index = irq % num_cpus;
+ 
+-		for (numa_cpu = first_cpu(cpu_mask) ; i < cpu_index ; i++)
+-			numa_cpu = next_cpu(numa_cpu, cpu_mask);
++		for (numa_cpu = first_cpu(*cpu_mask) ; i < cpu_index ; i++)
++			numa_cpu = next_cpu(numa_cpu, *cpu_mask);
+ 
+ 		if (numa_cpu != NR_CPUS)
+ 			return cpu_physical_id(numa_cpu);
 _
 
-Patches currently in -mm which might be from rmk+kernel@arm.linux.org.uk are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 linux-next.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-remove-linux-hardirqh-from-asm-generic-localh.patch
+arch-ia64-kernel-iosapicc-fix-warnings.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+oom-fix-zone_scan_mutex-name.patch
+mm-get-rid-of-pagevec_release_nonlru.patch
+cleanup-get-rid-of-ifdef-config_migration.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-make-page_lock_anon_vma-static.patch
+memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
+mm-make-init_section_page_cgroup-static.patch
+mm-make-maddr-__iomem.patch
+mm-make-mem_cgroup_resize_limit-static.patch
+mm-make-scan_all_zones_unevictable_pages-static.patch
+mm-make-scan_zone_unevictable_pages-static.patch
+mm-make-setup_per_zone_inactive_ratio-static.patch
+mm-make-vread-and-vwrite-declaration.patch
+vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
+vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
+mm-kill-zone_is_near_oom.patch
+mm-make-get_user_pages-interruptible.patch
+mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-explain-details-and-test-document.patch
 
