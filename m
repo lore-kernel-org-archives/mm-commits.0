@@ -1,76 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - mx31-add-w1-platform_device-and-resources.patch removed from -mm tree
-Date: Mon, 15 Dec 2008 12:01:48 -0800
-Message-ID: <200812152001.mBFK1mTa030494@imap1.linux-foundation.org>
+Subject: - tick-schedc-suppress-needless-timer-reprogramming.patch removed from -mm tree
+Date: Mon, 15 Dec 2008 12:02:04 -0800
+Message-ID: <200812152002.mBFK24pm030698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33503 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56406 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756020AbYLOUCQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756108AbYLOUCQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 15 Dec 2008 15:02:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: s.hauer@pengutronix.de, zbr@ioremap.net, mm-commits@vger.kernel.org
+To: r-woodruff2@ti.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MX31: add w1 platform_device and resources
+     tick-sched.c: suppress needless timer reprogramming
 has been removed from the -mm tree.  Its filename was
-     mx31-add-w1-platform_device-and-resources.patch
+     tick-schedc-suppress-needless-timer-reprogramming.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MX31: add w1 platform_device and resources
-From: Sascha Hauer <s.hauer@pengutronix.de>
+Subject: tick-sched.c: suppress needless timer reprogramming
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
+In my device I get many interrupts from a high speed USB device in a very
+short period of time.  The system spends a lot of time reprogramming the
+hardware timer which is in a slower timing domain as compared to the CPU. 
+This results in the CPU spending a huge amount of time waiting for the
+timer posting to be done.  All of this reprogramming is useless as the
+wake up time has not changed.
+
+As measured using ETM trace this drops my reprogramming penalty from
+almost 60% CPU load down to 15% during high interrupt rate.  I can send
+traces to show this.
+
+
+Suppress setting of duplicate timer event when timer already stopped. 
+Timer programming can be very costly and can result in long cpu stall/wait
+times.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+
+On Wed, 24 Sep 2008 18:31:29 +0200 (CEST) Thomas Gleixner <tglx@linutronix.de> wrote:
+
+> No, we only fall trrough into raise_softirq() when the reprogram code
+> detects that the event already expired. So you change the flow :)
+>
+> It does also not deal with delta_jiffies >= NEXT_TIMER_MAX_DELTA :(
+>
+> I have a closer look on that.
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-mx3/devices.c |   15 +++++++++++++++
- arch/arm/mach-mx3/devices.h |    1 +
- 2 files changed, 16 insertions(+)
+ kernel/time/tick-sched.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm/mach-mx3/devices.c~mx31-add-w1-platform_device-and-resources arch/arm/mach-mx3/devices.c
---- a/arch/arm/mach-mx3/devices.c~mx31-add-w1-platform_device-and-resources
-+++ a/arch/arm/mach-mx3/devices.c
-@@ -145,3 +145,18 @@ int __init mxc_register_gpios(void)
- {
- 	return mxc_gpio_init(imx_gpio_ports, ARRAY_SIZE(imx_gpio_ports));
- }
+diff -puN kernel/time/tick-sched.c~tick-schedc-suppress-needless-timer-reprogramming kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~tick-schedc-suppress-needless-timer-reprogramming
++++ a/kernel/time/tick-sched.c
+@@ -282,6 +282,17 @@ void tick_nohz_stop_sched_tick(int inidl
+ 	/* Schedule the tick, if we are at least one jiffie off */
+ 	if ((long)delta_jiffies >= 1) {
+ 
++		/*
++		* calculate the expiry time for the next timer wheel
++		* timer
++		*/
++		expires = ktime_add_ns(last_update, tick_period.tv64 *
++				   delta_jiffies);
 +
-+static struct resource mxc_w1_master_resources[] = {
-+	{
-+		.start = OWIRE_BASE_ADDR,
-+		.end   = OWIRE_BASE_ADDR + SZ_4K - 1,
-+		.flags = IORESOURCE_MEM,
-+	},
-+};
++		/* Skip reprogram of event if its not changed */
++		if (ts->tick_stopped && ktime_equal(expires, dev->next_event))
++			goto out2;
 +
-+struct platform_device mxc_w1_master_device = {
-+	.name = "mxc_w1",
-+	.id = 0,
-+	.num_resources = ARRAY_SIZE(mxc_w1_master_resources),
-+	.resource = mxc_w1_master_resources,
-+};
-diff -puN arch/arm/mach-mx3/devices.h~mx31-add-w1-platform_device-and-resources arch/arm/mach-mx3/devices.h
---- a/arch/arm/mach-mx3/devices.h~mx31-add-w1-platform_device-and-resources
-+++ a/arch/arm/mach-mx3/devices.h
-@@ -4,3 +4,4 @@ extern struct platform_device mxc_uart_d
- extern struct platform_device mxc_uart_device2;
- extern struct platform_device mxc_uart_device3;
- extern struct platform_device mxc_uart_device4;
-+extern struct platform_device mxc_w1_master_device;
+ 		if (delta_jiffies > 1)
+ 			cpu_set(cpu, nohz_cpu_mask);
+ 		/*
+@@ -332,12 +343,7 @@ void tick_nohz_stop_sched_tick(int inidl
+ 			goto out;
+ 		}
+ 
+-		/*
+-		 * calculate the expiry time for the next timer wheel
+-		 * timer
+-		 */
+-		expires = ktime_add_ns(last_update, tick_period.tv64 *
+-				       delta_jiffies);
++		/* Mark expiries */
+ 		ts->idle_expires = expires;
+ 
+ 		if (ts->nohz_mode == NOHZ_MODE_HIGHRES) {
+@@ -356,6 +362,7 @@ void tick_nohz_stop_sched_tick(int inidl
+ 		tick_do_update_jiffies64(ktime_get());
+ 		cpu_clear(cpu, nohz_cpu_mask);
+ 	}
++out2:
+ 	raise_softirq_irqoff(TIMER_SOFTIRQ);
+ out:
+ 	ts->next_jiffies = next_jiffies;
 _
 
-Patches currently in -mm which might be from s.hauer@pengutronix.de are
+Patches currently in -mm which might be from r-woodruff2@ti.com are
 
-linux-next.patch
-w1-add-1-wire-master-driver-for-imx27-imx31.patch
-w1-add-1-wire-master-driver-for-imx27-imx31-update.patch
 
