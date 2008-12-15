@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch added to -mm tree
-Date: Mon, 15 Dec 2008 15:27:18 -0800
-Message-ID: <200812152327.mBFNRIa6004944@imap1.linux-foundation.org>
+Subject: + nilfs2-insert-explanations-in-gcinode-file.patch added to -mm tree
+Date: Mon, 15 Dec 2008 15:27:25 -0800
+Message-ID: <200812152327.mBFNRPOj005008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752547AbYLOX2E (ORCPT
+	by vger.kernel.org with ESMTP id S1751810AbYLOX2P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Dec 2008 18:28:04 -0500
+	Mon, 15 Dec 2008 18:28:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: konishi.ryusuke@lab.ntt.co.jp, andi@firstfloor.org
+Cc: konishi.ryusuke@lab.ntt.co.jp, 20080917144146.GD8750@logfs.org, 20080917224953.GB14644@logfs.org, joern@logfs.org
 
 
 The patch titled
-     nilfs2: fix problems of memory allocation in ioctl
+     nilfs2: insert explanations in gcinode file
 has been added to the -mm tree.  Its filename is
-     nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+     nilfs2-insert-explanations-in-gcinode-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: fix problems of memory allocation in ioctl
+Subject: nilfs2: insert explanations in gcinode file
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-This is another patch for fixing the following problems of a memory
-copy function in nilfs2 ioctl:
+The file gcinode.c gives buffer cache functions for on-disk blocks
+moved in garbage collection.  Joern Engel has suggested inserting its
+explanations in the source file (Message-ID:
+<20080917144146.GD8750@logfs.org> and
+<20080917224953.GB14644@logfs.org>).
 
-(1) It tries to allocate 128KB size of memory even for small objects.
+This follows the comment.
 
-(2) Though the function repeatedly tries large memory allocations
-    while reducing the size, GFP_NOWAIT flag is not specified.
-    This increases the possibility of system memory shortage.
-
-(3) During the retries of (2), verbose warnings are printed
-    because _GFP_NOWARN flag is not used for the kmalloc calls.
-
-The first patch was still doing large allocations by kmalloc which are
-repeatedly tried while reducing the size.
-
-Andi Kleen told me that using copy_from_user for large memory is not
-good from the viewpoint of preempt latency:
-
- On Fri, 12 Dec 2008 21:24:11 +0100, Andi Kleen <andi@firstfloor.org> wrote:
- > > In the current interface, each data item is copied twice: one is to
- > > the allocated memory from user space (via copy_from_user), and another
- >
- > For such large copies it is better to use multiple smaller (e.g. 4K)
- > copy user, that gives better real time preempt latencies. Each cfu has a
- > cond_resched(), but only one, not multiple times in the inner loop.
-
-He also advised me that:
-
- On Sun, 14 Dec 2008 16:13:27 +0100, Andi Kleen <andi@firstfloor.org> wrote:
- > Better would be if you could go to PAGE_SIZE. order 0 allocations
- > are typically the fastest / least likely to stall.
- >
- > Also in this case it's a good idea to use __get_free_pages()
- > directly, kmalloc tends to be become less efficient at larger
- > sizes.
-
-For the function in question, the size of buffer memory can be reduced
-since the buffer is repeatedly used for a number of small objects.  On
-the other hand, it may incur large preempt latencies for larger buffer
-because a copy_from_user (and a copy_to_user) was applied only once
-each cycle.
-
-With that, this revision uses the order 0 allocations with
-__get_free_pages() to fix the original problems.
-
-Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Joern Engel <joern@logfs.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c |   20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ fs/nilfs2/gcinode.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/ioctl.c~nilfs2-fix-problems-of-memory-allocation-in-ioctl fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-fix-problems-of-memory-allocation-in-ioctl
-+++ a/fs/nilfs2/ioctl.c
-@@ -34,9 +34,6 @@
- #include "dat.h"
+diff -puN fs/nilfs2/gcinode.c~nilfs2-insert-explanations-in-gcinode-file fs/nilfs2/gcinode.c
+--- a/fs/nilfs2/gcinode.c~nilfs2-insert-explanations-in-gcinode-file
++++ a/fs/nilfs2/gcinode.c
+@@ -1,5 +1,5 @@
+ /*
+- * gcinode.c - NILFS memory inode for GC
++ * gcinode.c - dummy inodes to buffer blocks for garbage collection
+  *
+  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
+  *
+@@ -22,6 +22,25 @@
+  * Revised by Ryusuke Konishi <ryusuke@osrg.net>.
+  *
+  */
++/*
++ * This file adds the cache of on-disk blocks to be moved in garbage
++ * collection.  The disk blocks are held with dummy inodes (called
++ * gcinodes), and this file provides lookup function of the dummy
++ * inodes and their buffer read function.
++ *
++ * Since NILFS2 keeps up multiple checkpoints/snapshots accross GC, it
++ * has to treat blocks that belong to a same file but have different
++ * checkpoint numbers.  To avoid interference among generations, dummy
++ * inodes are managed separatly from actual inodes, and their lookup
++ * function (nilfs_gc_iget) is designed to be specified with a
++ * checkpoint number argument as well as an inode number.
++ *
++ * Buffers and pages held by the dummy inodes will be released each
++ * time after they are copied to a new log.  Dirty blocks made on the
++ * current generation and the blocks to be moved by GC never overlap
++ * because the dirty blocks make a new generation; they rather must be
++ * written individually.
++ */
  
- 
--#define KMALLOC_SIZE_MIN	4096	/* 4KB */
--#define KMALLOC_SIZE_MAX	131072	/* 128 KB */
--
- static int nilfs_ioctl_wrap_copy(struct the_nilfs *nilfs,
- 				 struct nilfs_argv *argv, int dir,
- 				 ssize_t (*dofunc)(struct the_nilfs *,
-@@ -44,21 +41,20 @@ static int nilfs_ioctl_wrap_copy(struct 
- 						   void *, size_t, size_t))
- {
- 	void *buf;
--	size_t ksize, maxmembs, total, n;
-+	size_t maxmembs, total, n;
- 	ssize_t nr;
- 	int ret, i;
- 
- 	if (argv->v_nmembs == 0)
- 		return 0;
- 
--	for (ksize = KMALLOC_SIZE_MAX; ksize >= KMALLOC_SIZE_MIN; ksize /= 2) {
--		buf = kmalloc(ksize, GFP_NOFS);
--		if (buf != NULL)
--			break;
--	}
--	if (ksize < KMALLOC_SIZE_MIN)
-+	if (argv->v_size > PAGE_SIZE)
-+		return -EINVAL;
-+
-+	buf = (void *)__get_free_pages(GFP_NOFS, 0);
-+	if (unlikely(!buf))
- 		return -ENOMEM;
--	maxmembs = ksize / argv->v_size;
-+	maxmembs = PAGE_SIZE / argv->v_size;
- 
- 	ret = 0;
- 	total = 0;
-@@ -89,7 +85,7 @@ static int nilfs_ioctl_wrap_copy(struct 
- 	}
- 	argv->v_nmembs = total;
- 
--	kfree(buf);
-+	free_pages((unsigned long)buf, 0);
- 	return ret;
- }
- 
+ #include <linux/buffer_head.h>
+ #include <linux/mpage.h>
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
