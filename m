@@ -1,112 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - tick-schedc-suppress-needless-timer-reprogramming.patch removed from -mm tree
-Date: Mon, 15 Dec 2008 12:02:04 -0800
-Message-ID: <200812152002.mBFK24pm030698@imap1.linux-foundation.org>
+Subject: - e1000e-fix-double-release-of-mutex.patch removed from -mm tree
+Date: Mon, 15 Dec 2008 12:02:24 -0800
+Message-ID: <200812152002.mBFK2Oiq030918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56406 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60392 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756108AbYLOUCQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752978AbYLOUDE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Dec 2008 15:02:16 -0500
+	Mon, 15 Dec 2008 15:03:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: r-woodruff2@ti.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jeffrey.t.kirsher@intel.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tick-sched.c: suppress needless timer reprogramming
+     e1000e: fix double release of mutex
 has been removed from the -mm tree.  Its filename was
-     tick-schedc-suppress-needless-timer-reprogramming.patch
+     e1000e-fix-double-release-of-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tick-sched.c: suppress needless timer reprogramming
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: e1000e: fix double release of mutex
+From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 
-In my device I get many interrupts from a high speed USB device in a very
-short period of time.  The system spends a lot of time reprogramming the
-hardware timer which is in a slower timing domain as compared to the CPU. 
-This results in the CPU spending a huge amount of time waiting for the
-timer posting to be done.  All of this reprogramming is useless as the
-wake up time has not changed.
+During a reset, releasing the swflag after it failed to be acquired would
+cause a double unlock of the mutex.  Instead, test whether acquisition of
+the swflag was successful and if not, do not release the swflag.  The
+reset must still be done to bring the device to a quiescent state.
 
-As measured using ETM trace this drops my reprogramming penalty from
-almost 60% CPU load down to 15% during high interrupt rate.  I can send
-traces to show this.
+This resolves [BUG 12200] BUG: bad unlock balance detected! e1000e
+http://bugzilla.kernel.org/show_bug.cgi?id=12200
 
-
-Suppress setting of duplicate timer event when timer already stopped. 
-Timer programming can be very costly and can result in long cpu stall/wait
-times.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-
-On Wed, 24 Sep 2008 18:31:29 +0200 (CEST) Thomas Gleixner <tglx@linutronix.de> wrote:
-
-> No, we only fall trrough into raise_softirq() when the reprogram code
-> detects that the event already expired. So you change the flow :)
->
-> It does also not deal with delta_jiffies >= NEXT_TIMER_MAX_DELTA :(
->
-> I have a closer look on that.
-
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-sched.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ drivers/net/e1000e/ich8lan.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN kernel/time/tick-sched.c~tick-schedc-suppress-needless-timer-reprogramming kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~tick-schedc-suppress-needless-timer-reprogramming
-+++ a/kernel/time/tick-sched.c
-@@ -282,6 +282,17 @@ void tick_nohz_stop_sched_tick(int inidl
- 	/* Schedule the tick, if we are at least one jiffie off */
- 	if ((long)delta_jiffies >= 1) {
- 
-+		/*
-+		* calculate the expiry time for the next timer wheel
-+		* timer
-+		*/
-+		expires = ktime_add_ns(last_update, tick_period.tv64 *
-+				   delta_jiffies);
-+
-+		/* Skip reprogram of event if its not changed */
-+		if (ts->tick_stopped && ktime_equal(expires, dev->next_event))
-+			goto out2;
-+
- 		if (delta_jiffies > 1)
- 			cpu_set(cpu, nohz_cpu_mask);
- 		/*
-@@ -332,12 +343,7 @@ void tick_nohz_stop_sched_tick(int inidl
- 			goto out;
- 		}
- 
--		/*
--		 * calculate the expiry time for the next timer wheel
--		 * timer
--		 */
--		expires = ktime_add_ns(last_update, tick_period.tv64 *
--				       delta_jiffies);
-+		/* Mark expiries */
- 		ts->idle_expires = expires;
- 
- 		if (ts->nohz_mode == NOHZ_MODE_HIGHRES) {
-@@ -356,6 +362,7 @@ void tick_nohz_stop_sched_tick(int inidl
- 		tick_do_update_jiffies64(ktime_get());
- 		cpu_clear(cpu, nohz_cpu_mask);
+diff -puN drivers/net/e1000e/ich8lan.c~e1000e-fix-double-release-of-mutex drivers/net/e1000e/ich8lan.c
+--- a/drivers/net/e1000e/ich8lan.c~e1000e-fix-double-release-of-mutex
++++ a/drivers/net/e1000e/ich8lan.c
+@@ -1939,12 +1939,17 @@ static s32 e1000_reset_hw_ich8lan(struct
+ 		ctrl |= E1000_CTRL_PHY_RST;
  	}
-+out2:
- 	raise_softirq_irqoff(TIMER_SOFTIRQ);
- out:
- 	ts->next_jiffies = next_jiffies;
+ 	ret_val = e1000_acquire_swflag_ich8lan(hw);
++	/* Whether or not the swflag was acquired, we need to reset the part */
+ 	hw_dbg(hw, "Issuing a global reset to ich8lan\n");
+ 	ew32(CTRL, (ctrl | E1000_CTRL_RST));
+ 	msleep(20);
+ 
+-	/* release the swflag because it is not reset by hardware reset */
+-	e1000_release_swflag_ich8lan(hw);
++	if (!ret_val) {
++		/* release the swflag because it is not reset by
++		 * hardware reset
++		 */
++		e1000_release_swflag_ich8lan(hw);
++	}
+ 
+ 	ret_val = e1000e_get_auto_rd_done(hw);
+ 	if (ret_val) {
 _
 
-Patches currently in -mm which might be from r-woodruff2@ti.com are
+Patches currently in -mm which might be from jeffrey.t.kirsher@intel.com are
 
+linux-next.patch
 
