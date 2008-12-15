@@ -1,102 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - i2c-trivial-endian-casting-fixes-in-i2c-highlanderc.patch removed from -mm tree
-Date: Mon, 15 Dec 2008 12:02:01 -0800
-Message-ID: <200812152002.mBFK21gt030645@imap1.linux-foundation.org>
+Subject: - mtd-physmap-make-physmap-compat-explicit.patch removed from -mm tree
+Date: Mon, 15 Dec 2008 12:02:14 -0800
+Message-ID: <200812152002.mBFK2El8030797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60681 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752946AbYLOUCk (ORCPT
+	by vger.kernel.org with ESMTP id S1756317AbYLOUCU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Dec 2008 15:02:40 -0500
+	Mon, 15 Dec 2008 15:02:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, ben-linux@fluff.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, Bryan.Wu@analog.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c: trivial endian casting fixes in i2c-highlander.c
+     mtd/physmap: make physmap compat explicit
 has been removed from the -mm tree.  Its filename was
-     i2c-trivial-endian-casting-fixes-in-i2c-highlanderc.patch
+     mtd-physmap-make-physmap-compat-explicit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: trivial endian casting fixes in i2c-highlander.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: mtd/physmap: make physmap compat explicit
+From: Mike Frysinger <vapier@gentoo.org>
 
-Fixes sparse warnings:
-drivers/i2c/busses/i2c-highlander.c:95:26: warning: incorrect type in argument 1 (different base types)
-drivers/i2c/busses/i2c-highlander.c:95:26:    expected restricted __be16 const [usertype] *p
-drivers/i2c/busses/i2c-highlander.c:95:26:    got unsigned short [usertype] *<noident>
-drivers/i2c/busses/i2c-highlander.c:106:15: warning: incorrect type in assignment (different base types)
-drivers/i2c/busses/i2c-highlander.c:106:15:    expected unsigned short [unsigned] [short] [usertype] <noident>
-drivers/i2c/busses/i2c-highlander.c:106:15:    got restricted __be16
+The current method for always showing physmap compat address, size, and
+width is a bit confusing.  If length is set to 0, then the address and
+width are still shown but silently unused.  The physmap code itself
+already has logic which sets compat based on length, so just pull that out
+and into the Kconfig to make everything clear.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Bryan Wu <Bryan.Wu@analog.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-highlander.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/maps/Kconfig   |   17 ++++++++++++++---
+ drivers/mtd/maps/physmap.c |   16 ++++------------
+ 2 files changed, 18 insertions(+), 15 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-highlander.c~i2c-trivial-endian-casting-fixes-in-i2c-highlanderc drivers/i2c/busses/i2c-highlander.c
---- a/drivers/i2c/busses/i2c-highlander.c~i2c-trivial-endian-casting-fixes-in-i2c-highlanderc
-+++ a/drivers/i2c/busses/i2c-highlander.c
-@@ -92,7 +92,7 @@ static void highlander_i2c_setup(struct 
- static void smbus_write_data(u8 *src, u16 *dst, int len)
- {
- 	for (; len > 1; len -= 2) {
--		*dst++ = be16_to_cpup((u16 *)src);
-+		*dst++ = be16_to_cpup((__be16 *)src);
- 		src += 2;
- 	}
+diff -puN drivers/mtd/maps/Kconfig~mtd-physmap-make-physmap-compat-explicit drivers/mtd/maps/Kconfig
+--- a/drivers/mtd/maps/Kconfig~mtd-physmap-make-physmap-compat-explicit
++++ a/drivers/mtd/maps/Kconfig
+@@ -23,9 +23,20 @@ config MTD_PHYSMAP
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called physmap.
  
-@@ -103,7 +103,7 @@ static void smbus_write_data(u8 *src, u1
- static void smbus_read_data(u16 *src, u8 *dst, int len)
- {
- 	for (; len > 1; len -= 2) {
--		*(u16 *)dst = cpu_to_be16p(src++);
-+		*(__be16 *)dst = cpu_to_be16p(src++);
- 		dst += 2;
- 	}
++config MTD_PHYSMAP_COMPAT
++	bool "Physmap compat support"
++	depends on MTD_PHYSMAP
++	default n
++	help
++	  Setup a simple mapping via the Kconfig options.  Normally the
++	  physmap configuration options are done via your board's
++	  resource file.
++
++	  If unsure, say N here.
++
+ config MTD_PHYSMAP_START
+ 	hex "Physical start address of flash mapping"
+-	depends on MTD_PHYSMAP
++	depends on MTD_PHYSMAP_COMPAT
+ 	default "0x8000000"
+ 	help
+ 	  This is the physical memory location at which the flash chips
+@@ -37,7 +48,7 @@ config MTD_PHYSMAP_START
  
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-origin.patch
-linux-next.patch
-arm-use-the-new-byteorder-headers.patch
-ia64-use-the-new-byteorder-headers.patch
-input-ads7846c-sparse-lock-annotation.patch
-input-strict_strtoul-takes-unsigned-long.patch
-m32r-use-the-new-byteorder-headers.patch
-blackfin-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-frv-use-the-new-byteorder-headers.patch
-m68knommu-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
-ata-replace-byteshifting-with-unaligned-endian-helpers.patch
-usb-use-unaligned-endian-helpers-in-storage-drivers.patch
-
+ config MTD_PHYSMAP_LEN
+ 	hex "Physical length of flash mapping"
+-	depends on MTD_PHYSMAP
++	depends on MTD_PHYSMAP_COMPAT
+ 	default "0"
+ 	help
+ 	  This is the total length of the mapping of the flash chips on
+@@ -51,7 +62,7 @@ config MTD_PHYSMAP_LEN
+ 
+ config MTD_PHYSMAP_BANKWIDTH
+ 	int "Bank width in octets"
+-	depends on MTD_PHYSMAP
++	depends on MTD_PHYSMAP_COMPAT
+ 	default "2"
+ 	help
+ 	  This is the total width of the data bus of the flash devices
+diff -puN drivers/mtd/maps/physmap.c~mtd-physmap-make-physmap-compat-explicit drivers/mtd/maps/physmap.c
+--- a/drivers/mtd/maps/physmap.c~mtd-physmap-make-physmap-compat-explicit
++++ a/drivers/mtd/maps/physmap.c
+@@ -253,14 +253,7 @@ static struct platform_driver physmap_fl
+ };
+ 
+ 
+-#ifdef CONFIG_MTD_PHYSMAP_LEN
+-#if CONFIG_MTD_PHYSMAP_LEN != 0
+-#warning using PHYSMAP compat code
+-#define PHYSMAP_COMPAT
+-#endif
+-#endif
+-
+-#ifdef PHYSMAP_COMPAT
++#ifdef CONFIG_MTD_PHYSMAP_COMPAT
+ static struct physmap_flash_data physmap_flash_data = {
+ 	.width		= CONFIG_MTD_PHYSMAP_BANKWIDTH,
+ };
+@@ -304,7 +297,7 @@ static int __init physmap_init(void)
+ 	int err;
+ 
+ 	err = platform_driver_register(&physmap_flash_driver);
+-#ifdef PHYSMAP_COMPAT
++#ifdef CONFIG_MTD_PHYSMAP_COMPAT
+ 	if (err == 0)
+ 		platform_device_register(&physmap_flash);
+ #endif
+@@ -314,7 +307,7 @@ static int __init physmap_init(void)
+ 
+ static void __exit physmap_exit(void)
+ {
+-#ifdef PHYSMAP_COMPAT
++#ifdef CONFIG_MTD_PHYSMAP_COMPAT
+ 	platform_device_unregister(&physmap_flash);
+ #endif
+ 	platform_driver_unregister(&physmap_flash_driver);
+@@ -328,8 +321,7 @@ MODULE_AUTHOR("David Woodhouse <dwmw2@in
+ MODULE_DESCRIPTION("Generic configurable MTD map driver");
+ 
+ /* legacy platform drivers can't hotplug or coldplg */
+-#ifndef PHYSMAP_COMPAT
++#ifndef CONFIG_MTD_PHYSMAP_COMPAT
+ /* work with hotplug and coldplug */
+ MODULE_ALIAS("platform:physmap-flash");
+ #endif
