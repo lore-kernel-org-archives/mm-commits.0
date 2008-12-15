@@ -1,112 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - unicode-fix-cp437-table.patch removed from -mm tree
-Date: Mon, 15 Dec 2008 12:02:28 -0800
-Message-ID: <200812152002.mBFK2Sk3030988@imap1.linux-foundation.org>
+Subject: - genirq-record-irq_level-in-irq_desc.patch removed from -mm tree
+Date: Mon, 15 Dec 2008 12:02:20 -0800
+Message-ID: <200812152002.mBFK2Kc1030890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41722 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752946AbYLOUDB (ORCPT
+	by vger.kernel.org with ESMTP id S1752981AbYLOUDQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Dec 2008 15:03:01 -0500
+	Mon, 15 Dec 2008 15:03:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ib@wupperonline.de, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unicode: fix cp437 table
+     genirq: record IRQ_LEVEL in irq_desc[]
 has been removed from the -mm tree.  Its filename was
-     unicode-fix-cp437-table.patch
+     genirq-record-irq_level-in-irq_desc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unicode: fix cp437 table
-From: Ingo Brueckl <ib@wupperonline.de>
+Subject: genirq: record IRQ_LEVEL in irq_desc[]
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-There is a major bug in the cp437 to unicode translation table.  Char 0x7c
-is mapped to U+00a5 which is the Yen sign and wrong.  The right mapping is
-U+00a6 (broken bar).
+When recording the irq trigger type, let's also make sure
+that IRQ_LEVEL gets set correctly.
 
-Furthermore, a mapping for U+00b4 (a widely used character) is missing
-even though easily possible.
-
-The patch fixes these, as well as providing a few other useful mappings.
-
-The changes are as follows:
-
-0x0f (enhancement) enables a sort of currency symbol
-0x27 (bug) enables a sort of acute accent which is a widely used character
-0x44 (enhancement) enables a sort of icelandic capital letter eth
-0x7c (major bug) corrects mapping
-0xeb (enhancement) enables a sort of icelandic small letter eth
-0xee (enhancement) enables a sort of math 'element of'
-
-Signed-off-by: Ingo Brueckl <ib@wupperonline.de>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cp437.uni |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ kernel/irq/chip.c   |    1 +
+ kernel/irq/manage.c |   15 +++++++++------
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/cp437.uni~unicode-fix-cp437-table drivers/char/cp437.uni
---- a/drivers/char/cp437.uni~unicode-fix-cp437-table
-+++ a/drivers/char/cp437.uni
-@@ -27,7 +27,7 @@
- 0x0c	U+2640
- 0x0d	U+266a
- 0x0e	U+266b
--0x0f	U+263c
-+0x0f	U+263c U+00a4
- 0x10	U+25b6 U+25ba
- 0x11	U+25c0 U+25c4
- 0x12	U+2195
-@@ -55,7 +55,7 @@
- 0x24	U+0024
- 0x25	U+0025
- 0x26	U+0026
--0x27	U+0027
-+0x27	U+0027 U+00b4
- 0x28	U+0028
- 0x29	U+0029
- 0x2a	U+002a
-@@ -84,7 +84,7 @@
- 0x41	U+0041 U+00c0 U+00c1 U+00c2 U+00c3
- 0x42	U+0042
- 0x43	U+0043 U+00a9
--0x44	U+0044
-+0x44	U+0044 U+00d0
- 0x45	U+0045 U+00c8 U+00ca U+00cb
- 0x46	U+0046
- 0x47	U+0047
-@@ -140,7 +140,7 @@
- 0x79	U+0079 U+00fd
- 0x7a	U+007a
- 0x7b	U+007b
--0x7c	U+007c U+00a5
-+0x7c	U+007c U+00a6
- 0x7d	U+007d
- 0x7e	U+007e
- #
-@@ -263,10 +263,10 @@
- 0xe8	U+03a6 U+00d8
- 0xe9	U+0398
- 0xea	U+03a9 U+2126
--0xeb	U+03b4
-+0xeb	U+03b4 U+00f0
- 0xec	U+221e
- 0xed	U+03c6 U+00f8
--0xee	U+03b5
-+0xee	U+03b5 U+2208
- 0xef	U+2229
- 0xf0	U+2261
- 0xf1	U+00b1
+diff -puN kernel/irq/chip.c~genirq-record-irq_level-in-irq_desc kernel/irq/chip.c
+--- a/kernel/irq/chip.c~genirq-record-irq_level-in-irq_desc
++++ a/kernel/irq/chip.c
+@@ -124,6 +124,7 @@ int set_irq_type(unsigned int irq, unsig
+ 		return -ENODEV;
+ 	}
+ 
++	type &= IRQ_TYPE_SENSE_MASK;
+ 	if (type == IRQ_TYPE_NONE)
+ 		return 0;
+ 
+diff -puN kernel/irq/manage.c~genirq-record-irq_level-in-irq_desc kernel/irq/manage.c
+--- a/kernel/irq/manage.c~genirq-record-irq_level-in-irq_desc
++++ a/kernel/irq/manage.c
+@@ -368,16 +368,18 @@ int __irq_set_trigger(struct irq_desc *d
+ 		return 0;
+ 	}
+ 
+-	ret = chip->set_type(irq, flags & IRQF_TRIGGER_MASK);
++	/* caller masked out all except trigger mode flags */
++	ret = chip->set_type(irq, flags);
+ 
+ 	if (ret)
+ 		pr_err("setting trigger mode %d for irq %u failed (%pF)\n",
+-				(int)(flags & IRQF_TRIGGER_MASK),
+-				irq, chip->set_type);
++				(int)flags, irq, chip->set_type);
+ 	else {
++		if (flags & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
++			flags |= IRQ_LEVEL;
+ 		/* note that IRQF_TRIGGER_MASK == IRQ_TYPE_SENSE_MASK */
+-		desc->status &= ~IRQ_TYPE_SENSE_MASK;
+-		desc->status |= flags & IRQ_TYPE_SENSE_MASK;
++		desc->status &= ~(IRQ_LEVEL | IRQ_TYPE_SENSE_MASK);
++		desc->status |= flags;
+ 	}
+ 
+ 	return ret;
+@@ -457,7 +459,8 @@ __setup_irq(unsigned int irq, struct irq
+ 
+ 		/* Setup the type (level, edge polarity) if configured: */
+ 		if (new->flags & IRQF_TRIGGER_MASK) {
+-			ret = __irq_set_trigger(desc, irq, new->flags);
++			ret = __irq_set_trigger(desc, irq,
++					new->flags & IRQF_TRIGGER_MASK);
+ 
+ 			if (ret) {
+ 				spin_unlock_irqrestore(&desc->lock, flags);
 _
 
-Patches currently in -mm which might be from ib@wupperonline.de are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
-origin.patch
+linux-next.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+spi_gpio-driver.patch
+spi_gpio-driver-cleanups.patch
+atmel_spi-clean-up-spiv1-quirk-handling.patch
+spi-atmel_spi-update-chipselect-handling.patch
+spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio.patch
+mfd-da903x-section-fix.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+twl4030-gpio-cleanup-debounce.patch
+gpio-pca953x-handles-more-chips-i2c-fault-codes.patch
 
