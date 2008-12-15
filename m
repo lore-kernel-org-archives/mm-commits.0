@@ -1,64 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - mx2-pcm038-add-1-wire-master-support.patch removed from -mm tree
-Date: Mon, 15 Dec 2008 12:01:50 -0800
-Message-ID: <200812152001.mBFK1oio030523@imap1.linux-foundation.org>
+Subject: - drivers-mtd-maps-nettelc-use-array_size.patch removed from -mm tree
+Date: Mon, 15 Dec 2008 12:02:09 -0800
+Message-ID: <200812152002.mBFK294v030766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55999 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752787AbYLOUCE (ORCPT
+	by vger.kernel.org with ESMTP id S1755630AbYLOUCO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Dec 2008 15:02:04 -0500
+	Mon, 15 Dec 2008 15:02:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: s.hauer@pengutronix.de, zbr@ioremap.net, mm-commits@vger.kernel.org
+To: julia@diku.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MX2 pcm038: add 1-wire master support
+     drivers/mtd/maps/nettel.c: use ARRAY_SIZE
 has been removed from the -mm tree.  Its filename was
-     mx2-pcm038-add-1-wire-master-support.patch
+     drivers-mtd-maps-nettelc-use-array_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MX2 pcm038: add 1-wire master support
-From: Sascha Hauer <s.hauer@pengutronix.de>
+Subject: drivers/mtd/maps/nettel.c: use ARRAY_SIZE
+From: Julia Lawall <julia@diku.dk>
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
+ARRAY_SIZE is more concise to use when the size of an array is divided by
+the size of its type or the size of its first element.
+
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@i@
+@@
+
+#include <linux/kernel.h>
+
+@depends on i using "paren.iso"@
+type T;
+T[] E;
+@@
+
+- (sizeof(E)/sizeof(E[...]))
++ ARRAY_SIZE(E)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-mx2/pcm038.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/mtd/maps/nettel.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/arm/mach-mx2/pcm038.c~mx2-pcm038-add-1-wire-master-support arch/arm/mach-mx2/pcm038.c
---- a/arch/arm/mach-mx2/pcm038.c~mx2-pcm038-add-1-wire-master-support
-+++ a/arch/arm/mach-mx2/pcm038.c
-@@ -168,6 +168,7 @@ static void gpio_fec_inactive(void)
+diff -puN drivers/mtd/maps/nettel.c~drivers-mtd-maps-nettelc-use-array_size drivers/mtd/maps/nettel.c
+--- a/drivers/mtd/maps/nettel.c~drivers-mtd-maps-nettelc-use-array_size
++++ a/drivers/mtd/maps/nettel.c
+@@ -362,8 +362,7 @@ static int __init nettel_init(void)
  
- static struct platform_device *platform_devices[] __initdata = {
- 	&pcm038_nor_mtd_device,
-+	&mxc_w1_master_device,
- };
+ 	intel_mtd->owner = THIS_MODULE;
  
- static void __init pcm038_init(void)
-@@ -177,6 +178,7 @@ static void __init pcm038_init(void)
- 	mxc_register_device(&mxc_uart_device0, &uart_pdata[0]);
- 	mxc_register_device(&mxc_uart_device1, &uart_pdata[1]);
- 	mxc_register_device(&mxc_uart_device2, &uart_pdata[2]);
-+	mxc_gpio_mode(PE16_AF_RTCK); /* OWIRE */
+-	num_intel_partitions = sizeof(nettel_intel_partitions) /
+-		sizeof(nettel_intel_partitions[0]);
++	num_intel_partitions = ARRAY_SIZE(nettel_intel_partitions);
  
- 	platform_add_devices(platform_devices, ARRAY_SIZE(platform_devices));
- 
+ 	if (intelboot) {
+ 		/*
 _
 
-Patches currently in -mm which might be from s.hauer@pengutronix.de are
+Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
-w1-add-1-wire-master-driver-for-imx27-imx31.patch
-w1-add-1-wire-master-driver-for-imx27-imx31-update.patch
+arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+powerpc-chrp-add-missing-of_node_put-in-pcic.patch
+powerpc-powermac-add-missing-of_node_put.patch
+drivers-media-video-cx88-cx88-alsac-adjust-error-handling-code.patch
+net-tipc-bcasth-use-array_size.patch
+fs-namespacec-drop-code-after-return.patch
+mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc.patch
+drivers-rtc-correct-an-error-test.patch
 
