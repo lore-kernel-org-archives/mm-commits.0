@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-touch-uninitialized-variable-in-do_pages_stat_array.patch added to -mm tree
-Date: Mon, 15 Dec 2008 23:19:28 -0800
-Message-ID: <200812160719.mBG7JSfW026001@imap1.linux-foundation.org>
+Subject: + proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq.patch added to -mm tree
+Date: Tue, 16 Dec 2008 00:23:34 -0800
+Message-ID: <200812160823.mBG8NYlm003648@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751165AbYLPHTq (ORCPT
+	by vger.kernel.org with ESMTP id S1751020AbYLPIY0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Dec 2008 02:19:46 -0500
+	Tue, 16 Dec 2008 03:24:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, Brice.Goglin@inria.fr, clameter@sgi.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, npiggin@suse.de
+Cc: kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, yinghai@kernel.org
 
 
 The patch titled
-     mm: don't touch uninitialized variable in do_pages_stat_array()
+     proc: enclose desc variable of show_stat() in CONFIG_SPARSE_IRQ
 has been added to the -mm tree.  Its filename is
-     mm-dont-touch-uninitialized-variable-in-do_pages_stat_array.patch
+     proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: don't touch uninitialized variable in do_pages_stat_array()
+Subject: proc: enclose desc variable of show_stat() in CONFIG_SPARSE_IRQ
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-80bba1290ab5122c60cdb73332b26d288dc8aedd ("mm: no get_user/put_user while
-holding mmap_sem in do_pages_stat?") removed one necessary variable
-initialization.  Then, following warning happend.
+commit 240d367b4e6c6e3c5075e034db14dba60a6f5fa7 moved desc usage point into
+#ifdef CONFIG_SPARSE_IRQ.
+Then, variable declaration also shold be enclosed. otherwise following warning happend.
 
-  CC      mm/migrate.o
-mm/migrate.c: In function 'sys_move_pages':
-mm/migrate.c:1001: warning: 'err' may be used uninitialized in this function
-
-More unfortunately, if find_vma() failed, kernel read uninitialized memory.
+fs/proc/stat.c: In function 'show_stat':
+fs/proc/stat.c:31: warning: unused variable 'desc'
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Brice Goglin <Brice.Goglin@inria.fr>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/stat.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN mm/migrate.c~mm-dont-touch-uninitialized-variable-in-do_pages_stat_array mm/migrate.c
---- a/mm/migrate.c~mm-dont-touch-uninitialized-variable-in-do_pages_stat_array
-+++ a/mm/migrate.c
-@@ -998,7 +998,7 @@ static void do_pages_stat_array(struct m
- 		unsigned long addr = (unsigned long)(*pages);
- 		struct vm_area_struct *vma;
- 		struct page *page;
--		int err;
-+		int err = -EFAULT;
+diff -puN fs/proc/stat.c~proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq fs/proc/stat.c
+--- a/fs/proc/stat.c~proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq
++++ a/fs/proc/stat.c
+@@ -27,7 +27,6 @@ static int show_stat(struct seq_file *p,
+ 	u64 sum = 0;
+ 	struct timespec boottime;
+ 	unsigned int per_irq_sum;
+-	struct irq_desc *desc;
  
- 		vma = find_vma(mm, addr);
- 		if (!vma)
+ 	user = nice = system = idle = iowait =
+ 		irq = softirq = steal = cputime64_zero;
+@@ -47,8 +46,7 @@ static int show_stat(struct seq_file *p,
+ 		guest = cputime64_add(guest, kstat_cpu(i).cpustat.guest);
+ 		for_each_irq_nr(j) {
+ #ifdef CONFIG_SPARSE_IRQ
+-			desc = irq_to_desc(j);
+-			if (!desc)
++			if (!irq_to_desc(j))
+ 				continue;
+ #endif
+ 			sum += kstat_irqs_cpu(j, i);
+@@ -98,8 +96,7 @@ static int show_stat(struct seq_file *p,
+ 	for_each_irq_nr(j) {
+ 		per_irq_sum = 0;
+ #ifdef CONFIG_SPARSE_IRQ
+-		desc = irq_to_desc(j);
+-		if (!desc) {
++		if (!irq_to_desc(j)) {
+ 			seq_printf(p, " %u", per_irq_sum);
+ 			continue;
+ 		}
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 mm-dont-touch-uninitialized-variable-in-do_pages_stat_array.patch
 linux-next.patch
+proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq.patch
 mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
 mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
 oom-fix-zone_scan_mutex-name.patch
