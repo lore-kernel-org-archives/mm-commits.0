@@ -1,87 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-fix-a-race-between-rmdir-and-remount.patch removed from -mm tree
-Date: Tue, 16 Dec 2008 12:30:24 -0800
-Message-ID: <200812162030.mBGKUOOG006511@imap1.linux-foundation.org>
+Subject: - mmotm-2008-12-15-16-45-uploaded.patch removed from -mm tree
+Date: Tue, 16 Dec 2008 12:30:30 -0800
+Message-ID: <200812162030.mBGKUUfk006554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55472 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42450 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753095AbYLPUbe (ORCPT
+	by vger.kernel.org with ESMTP id S1753555AbYLPUbh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Dec 2008 15:31:34 -0500
+	Tue, 16 Dec 2008 15:31:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: fix a race between rmdir and remount
+     Don't call __cfq_exit_single_io_context() twice.
 has been removed from the -mm tree.  Its filename was
-     cgroups-fix-a-race-between-rmdir-and-remount.patch
+     mmotm-2008-12-15-16-45-uploaded.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix a race between rmdir and remount
-From: Paul Menage <menage@google.com>
+Subject: Don't call __cfq_exit_single_io_context() twice.
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-When a cgroup is removed, it's unlinked from its parent's children list,
-but not actually freed until the last dentry on it is released (at which
-point cgrp->root->number_of_cgroups is decremented).
-
-Currently rebind_subsystems checks for the top cgroup's child list being
-empty in order to rebind subsystems into or out of a hierarchy - this can
-result in the set of subsystems bound to a hierarchy being
-removed-but-not-freed cgroup.
-
-The simplest fix for this is to forbid remounts that change the set of
-subsystems on a hierarchy that has removed-but-not-freed cgroups.  This
-bug can be reproduced via:
-
-mkdir /mnt/cg
-mount -t cgroup -o ns,freezer cgroup /mnt/cg
-mkdir /mnt/cg/foo
-sleep 1h < /mnt/cg/foo &
-rmdir /mnt/cg/foo
-mount -t cgroup -o remount,ns,devices,freezer cgroup /mnt/cg
-kill $!
-
-Though the above will cause oops in -mm only but not mainline, but the bug
-can cause memory leak in mainline (and even oops)
-
-Signed-off-by: Paul Menage <menage@google.com>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/cfq-iosched.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroups-fix-a-race-between-rmdir-and-remount kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-a-race-between-rmdir-and-remount
-+++ a/kernel/cgroup.c
-@@ -702,7 +702,7 @@ static int rebind_subsystems(struct cgro
- 	 * any child cgroups exist. This is theoretically supportable
- 	 * but involves complex error handling, so it's being left until
- 	 * later */
--	if (!list_empty(&cgrp->children))
-+	if (root->number_of_cgroups > 1)
- 		return -EBUSY;
+diff -puN block/cfq-iosched.c~mmotm-2008-12-15-16-45-uploaded block/cfq-iosched.c
+--- a/block/cfq-iosched.c~mmotm-2008-12-15-16-45-uploaded
++++ a/block/cfq-iosched.c
+@@ -1322,7 +1322,6 @@ static void cfq_exit_single_io_context(s
+ 		smp_read_barrier_depends();
+ 		if (cic->key)
+ 			__cfq_exit_single_io_context(cfqd, cic);
+-		__cfq_exit_single_io_context(cfqd, cic);
  
- 	/* Process each subsystem */
+ 		spin_unlock_irqrestore(q->queue_lock, flags);
+ 	}
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
-mm-remove-cgroup_mm_owner_callbacks.patch
-mm-make-get_user_pages-interruptible.patch
-mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
+clocksource-pass-clocksource-to-read-callback-fix.patch
+mm-gup-persist-for-write-permission.patch
+mm-wp-lock-page-before-deciding-cow.patch
+mm-reuse_swap_page-replaces-can_share_swap_page.patch
+mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
+mm-try_to_unuse-check-removing-right-swap.patch
+mm-remove-try_to_munlock-from-vmscan.patch
+mm-remove-gfp_mask-from-add_to_swap.patch
+mm-add-add_to_swap-stub.patch
+mm-optimize-get_scan_ratio-for-no-swap.patch
+memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
+swapfile-swapon-needs-larger-size-type.patch
+swapfile-remove-swp_active-mask.patch
+swapfile-remove-surplus-whitespace.patch
+swapfile-remove-v0-swap-space-message.patch
+swapfile-rearrange-scan-and-swap_info.patch
+swapfile-swapon-use-discard-trim.patch
+swapfile-swap-allocation-use-discard.patch
+swapfile-swapon-randomize-if-nonrot.patch
+swapfile-swap-allocation-cycle-if-nonrot.patch
+swapfile-change-discard-pgoff_t-to-sector_t.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+swapfile-let-others-seed-random.patch
 cgroups-make-cgroup-config-a-submenu.patch
 cgroups-documentation-updates.patch
 cgroups-remove-some-redundant-null-checks.patch
@@ -98,11 +90,27 @@ cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
 cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
 cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
 cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
 devcgroup-use-list_for_each_entry_rcu.patch
-devices-cgroup-allow-mkfifo.patch
+memcg-introduce-charge-commit-cancel-style-of-functions.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-fix-gfp_mask-of-callers-of-charge.patch
+memcg-simple-migration-handling.patch
+memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
 memcg-move-all-acccounts-to-parent-at-rmdir.patch
+memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
+memcg-new-force_empty-to-free-pages-under-group.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
+memcg-memswap-controller-kconfig.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+memcg-synchronized-lru.patch
+memcg-add-mem_cgroup_disabled.patch
+memcg-add-mem_cgroup_disabled-fix.patch
 memory-cgroup-hierarchy-documentation-v4.patch
 memory-cgroup-resource-counters-for-hierarchy-v4.patch
 memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
@@ -112,6 +120,35 @@ memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
 memory-cgroup-hierarchy-feature-selector-v4.patch
 memory-cgroup-hierarchy-feature-selector-v4-fix.patch
 memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
+memcg-avoid-unnecessary-system-wide-oom-killer.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+memcg-fix-reclaim-result-checks.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-fix-calclation-of-active_ratio.patch
+memcg-fix-calclation-of-active_ratio-build-error-fix.patch
+memcg-show-real-limit-under-hierarchy-mode.patch
+memcg-explain-details-and-test-document.patch
+memcg-explain-details-and-test-document-fix.patch
+memcg-dont-trigger-oom-at-page-migration.patch
+memcg-remove-mem_cgroup_try_charge.patch
+memcg-avoid-dead-lock-caused-by-race-between-oom-and-cpuset_attach.patch
+memcg-change-try_to_free_pages-to-hierarchical_reclaim.patch
+memcg-fix-swap-accounting-leak-v3.patch
+memcg-fix-swap-accounting-leak-doc-fix.patch
 cpuset-rcu_read_lock-to-protect-task_cs.patch
-add-a-refcount-check-in-dput.patch
 
