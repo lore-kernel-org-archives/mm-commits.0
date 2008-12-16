@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq.patch added to -mm tree
-Date: Tue, 16 Dec 2008 00:23:34 -0800
-Message-ID: <200812160823.mBG8NYlm003648@imap1.linux-foundation.org>
+Subject: + ia64-implement-interrupt-enabling-rwlocks-fix.patch added to -mm tree
+Date: Tue, 16 Dec 2008 00:25:01 -0800
+Message-ID: <200812160825.mBG8P1Pb004604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47912 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751020AbYLPIY0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751901AbYLPI0J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Dec 2008 03:24:26 -0500
+	Tue, 16 Dec 2008 03:26:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, yinghai@kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, a.p.zijlstra@chello.nl, holt@sgi.com, mingo@elte.hu, ptesarik@suse.cz, tony.luck@intel.com
 
 
 The patch titled
-     proc: enclose desc variable of show_stat() in CONFIG_SPARSE_IRQ
+     ia64: typo fix of implement interrupt-enabling rwlocks
 has been added to the -mm tree.  Its filename is
-     proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq.patch
+     ia64-implement-interrupt-enabling-rwlocks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: enclose desc variable of show_stat() in CONFIG_SPARSE_IRQ
+Subject: ia64: typo fix of implement interrupt-enabling rwlocks
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-commit 240d367b4e6c6e3c5075e034db14dba60a6f5fa7 moved desc usage point into
-#ifdef CONFIG_SPARSE_IRQ.
-Then, variable declaration also shold be enclosed. otherwise following warning happend.
+Applied after: ia64-implement-interrupt-enabling-rwlocks.patch
+==
+Recently, __raw_read_lock_flags and __raw_write_lock_flags for ia64 was implemented.
 
-fs/proc/stat.c: In function 'show_stat':
-fs/proc/stat.c:31: warning: unused variable 'desc'
+But its patch has typo. then following warnings happend.
+
+  CC      lib/spinlock_debug.o
+lib/spinlock_debug.c: In function '_raw_read_lock':
+lib/spinlock_debug.c:199: warning: passing argument 1 of '__raw_read_lock_flags' from incompatible pointer type
+lib/spinlock_debug.c: In function '_raw_write_lock':
+lib/spinlock_debug.c:274: warning: passing argument 1 of '__raw_write_lock_flags' from incompatible pointer type
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Petr Tesarik <ptesarik@suse.cz>
+Cc: Robin Holt <holt@sgi.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ arch/ia64/include/asm/spinlock.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/stat.c~proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq fs/proc/stat.c
---- a/fs/proc/stat.c~proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq
-+++ a/fs/proc/stat.c
-@@ -27,7 +27,6 @@ static int show_stat(struct seq_file *p,
- 	u64 sum = 0;
- 	struct timespec boottime;
- 	unsigned int per_irq_sum;
--	struct irq_desc *desc;
+diff -puN arch/ia64/include/asm/spinlock.h~ia64-implement-interrupt-enabling-rwlocks-fix arch/ia64/include/asm/spinlock.h
+--- a/arch/ia64/include/asm/spinlock.h~ia64-implement-interrupt-enabling-rwlocks-fix
++++ a/arch/ia64/include/asm/spinlock.h
+@@ -123,7 +123,7 @@ do {											\
+ #ifdef ASM_SUPPORTED
  
- 	user = nice = system = idle = iowait =
- 		irq = softirq = steal = cputime64_zero;
-@@ -47,8 +46,7 @@ static int show_stat(struct seq_file *p,
- 		guest = cputime64_add(guest, kstat_cpu(i).cpustat.guest);
- 		for_each_irq_nr(j) {
- #ifdef CONFIG_SPARSE_IRQ
--			desc = irq_to_desc(j);
--			if (!desc)
-+			if (!irq_to_desc(j))
- 				continue;
- #endif
- 			sum += kstat_irqs_cpu(j, i);
-@@ -98,8 +96,7 @@ static int show_stat(struct seq_file *p,
- 	for_each_irq_nr(j) {
- 		per_irq_sum = 0;
- #ifdef CONFIG_SPARSE_IRQ
--		desc = irq_to_desc(j);
--		if (!desc) {
-+		if (!irq_to_desc(j)) {
- 			seq_printf(p, " %u", per_irq_sum);
- 			continue;
- 		}
+ static __always_inline void
+-__raw_read_lock_flags(raw_spinlock_t *lock, unsigned long flags)
++__raw_read_lock_flags(raw_rwlock_t *lock, unsigned long flags)
+ {
+ 	__asm__ __volatile__ (
+ 		"tbit.nz p6, p0 = %1,%2\n"
+@@ -174,7 +174,7 @@ do {								\
+ #ifdef ASM_SUPPORTED
+ 
+ static __always_inline void
+-__raw_write_lock_flags(raw_spinlock_t *lock, unsigned long flags)
++__raw_write_lock_flags(raw_rwlock_t *lock, unsigned long flags)
+ {
+ 	__asm__ __volatile__ (
+ 		"tbit.nz p6, p0 = %1, %2\n"
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -143,4 +141,5 @@ memcg-fix-calclation-of-active_ratio.patch
 memcg-fix-calclation-of-active_ratio-build-error-fix.patch
 memcg-show-real-limit-under-hierarchy-mode.patch
 memcg-explain-details-and-test-document.patch
+ia64-implement-interrupt-enabling-rwlocks-fix.patch
 
