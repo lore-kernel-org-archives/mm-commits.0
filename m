@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-implement-interrupt-enabling-rwlocks-fix.patch added to -mm tree
-Date: Tue, 16 Dec 2008 00:25:01 -0800
-Message-ID: <200812160825.mBG8P1Pb004604@imap1.linux-foundation.org>
+Subject: + irq-enclose-irq_desc_lock_class-in-config_sparse_irq.patch added to -mm tree
+Date: Tue, 16 Dec 2008 00:35:05 -0800
+Message-ID: <200812160835.mBG8Z5Jt011313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48350 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751901AbYLPI0J (ORCPT
+	by vger.kernel.org with ESMTP id S1750855AbYLPIfU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Dec 2008 03:26:09 -0500
+	Tue, 16 Dec 2008 03:35:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, a.p.zijlstra@chello.nl, holt@sgi.com, mingo@elte.hu, ptesarik@suse.cz, tony.luck@intel.com
+Cc: kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, yhlu.kernel@gmail.com
 
 
 The patch titled
-     ia64: typo fix of implement interrupt-enabling rwlocks
+     irq: enclose irq_desc_lock_class in CONFIG_SPARSE_IRQ
 has been added to the -mm tree.  Its filename is
-     ia64-implement-interrupt-enabling-rwlocks-fix.patch
+     irq-enclose-irq_desc_lock_class-in-config_sparse_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: typo fix of implement interrupt-enabling rwlocks
+Subject: irq: enclose irq_desc_lock_class in CONFIG_SPARSE_IRQ
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Applied after: ia64-implement-interrupt-enabling-rwlocks.patch
-==
-Recently, __raw_read_lock_flags and __raw_write_lock_flags for ia64 was implemented.
+commit 08678b0841267c1d00d771fe01548d86043d065e introduced
+irq_desc_lock_class variable.
+But it is used only if CONFIG_SPARSE_IRQ=Y.
+otherwise, following warnings happend.
 
-But its patch has typo. then following warnings happend.
-
-  CC      lib/spinlock_debug.o
-lib/spinlock_debug.c: In function '_raw_read_lock':
-lib/spinlock_debug.c:199: warning: passing argument 1 of '__raw_read_lock_flags' from incompatible pointer type
-lib/spinlock_debug.c: In function '_raw_write_lock':
-lib/spinlock_debug.c:274: warning: passing argument 1 of '__raw_write_lock_flags' from incompatible pointer type
+	  CC      kernel/irq/handle.o
+	kernel/irq/handle.c:26: warning: 'irq_desc_lock_class' defined but not used
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Petr Tesarik <ptesarik@suse.cz>
-Cc: Robin Holt <holt@sgi.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/spinlock.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/irq/handle.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN arch/ia64/include/asm/spinlock.h~ia64-implement-interrupt-enabling-rwlocks-fix arch/ia64/include/asm/spinlock.h
---- a/arch/ia64/include/asm/spinlock.h~ia64-implement-interrupt-enabling-rwlocks-fix
-+++ a/arch/ia64/include/asm/spinlock.h
-@@ -123,7 +123,7 @@ do {											\
- #ifdef ASM_SUPPORTED
+diff -puN kernel/irq/handle.c~irq-enclose-irq_desc_lock_class-in-config_sparse_irq kernel/irq/handle.c
+--- a/kernel/irq/handle.c~irq-enclose-irq_desc_lock_class-in-config_sparse_irq
++++ a/kernel/irq/handle.c
+@@ -13,6 +13,7 @@
+ #include <linux/irq.h>
+ #include <linux/module.h>
+ #include <linux/random.h>
++#include <linux/lockdep.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/rculist.h>
+@@ -20,11 +21,6 @@
  
- static __always_inline void
--__raw_read_lock_flags(raw_spinlock_t *lock, unsigned long flags)
-+__raw_read_lock_flags(raw_rwlock_t *lock, unsigned long flags)
- {
- 	__asm__ __volatile__ (
- 		"tbit.nz p6, p0 = %1,%2\n"
-@@ -174,7 +174,7 @@ do {								\
- #ifdef ASM_SUPPORTED
+ #include "internals.h"
  
- static __always_inline void
--__raw_write_lock_flags(raw_spinlock_t *lock, unsigned long flags)
-+__raw_write_lock_flags(raw_rwlock_t *lock, unsigned long flags)
- {
- 	__asm__ __volatile__ (
- 		"tbit.nz p6, p0 = %1, %2\n"
+-/*
+- * lockdep: we want to handle all irq_desc locks as a single lock-class:
+- */
+-static struct lock_class_key irq_desc_lock_class;
+-
+ /**
+  * handle_bad_irq - handle spurious and unhandled irqs
+  * @irq:       the interrupt number
+@@ -61,6 +57,12 @@ void __init __attribute__((weak)) arch_e
+ }
+ 
+ #ifdef CONFIG_SPARSE_IRQ
++
++/*
++ * lockdep: we want to handle all irq_desc locks as a single lock-class:
++ */
++static struct lock_class_key irq_desc_lock_class;
++
+ static struct irq_desc irq_desc_init = {
+ 	.irq	    = -1,
+ 	.status	    = IRQ_DISABLED,
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -89,6 +97,7 @@ Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 mm-dont-touch-uninitialized-variable-in-do_pages_stat_array.patch
 linux-next.patch
 proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq.patch
+irq-enclose-irq_desc_lock_class-in-config_sparse_irq.patch
 mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
 mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
 oom-fix-zone_scan_mutex-name.patch
