@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mqueue-fix-si_pid-value-in-mqueue-do_notify.patch added to -mm tree
-Date: Mon, 15 Dec 2008 21:33:18 -0800
-Message-ID: <200812160533.mBG5XIjV020658@imap1.linux-foundation.org>
+Subject: + pid-generalize-task_active_pid_ns.patch added to -mm tree
+Date: Mon, 15 Dec 2008 21:33:16 -0800
+Message-ID: <200812160533.mBG5XGc4020607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49385 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750896AbYLPFeP (ORCPT
+	by vger.kernel.org with ESMTP id S1751003AbYLPFeP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Dec 2008 00:34:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: sukadev@linux.vnet.ibm.com, Nadia.Derbey@bull.net, bastian@waldi.eu.org, ebi
 
 
 The patch titled
-     mqueue: fix si_pid value in mqueue do_notify()
+     pid: generalize task_active_pid_ns
 has been added to the -mm tree.  Its filename is
-     mqueue-fix-si_pid-value-in-mqueue-do_notify.patch
+     pid-generalize-task_active_pid_ns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mqueue: fix si_pid value in mqueue do_notify()
+Subject: pid: generalize task_active_pid_ns
 From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 
-If a process registers for asynchronous notification on a POSIX message
-queue, it gets a signal and a siginfo_t structure when a message arrives
-on the message queue.  The si_pid in the siginfo_t structure is set to the
-PID of the process that sent the message to the message queue.
+Currently task_active_pid_ns is not safe to call after a task becomes a
+zombie and exit_task_namespaces is called, as nsproxy becomes NULL.  By
+reading the pid namespace from the pid of the task we can trivially solve
+this problem at the cost of one extra memory read in what should be the
+same cacheline as we read the namespace from.
 
-The principle is the following:
-. when mq_notify(SIGEV_SIGNAL) is called, the caller registers for
-  notification when a msg arrives. The associated pid structure is stroed into
-  inode_info->notify_owner. Let's call this process P1.
-. when mq_send() is called by say P2, P2 sends a signal to P1 to notify
-  him about msg arrival.
+When moving things around I have made task_active_pid_ns out of line
+because keeping it in pid_namespace.h would require adding includes of
+pid.h and sched.h that I don't think we want.
 
-The way .si_pid is set today is not correct, since it doesn't take into account
-the fact that the process that is sending the message might not be in the
-same namespace as the notified one.
+This change does make task_active_pid_ns unsafe to call during
+copy_process until we attach a pid on the task_struct which seems to be a
+reasonable trade off.
 
-This patch proposes to set si_pid to the sender's pid into the notify_owner
-namespace.
-
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
 Cc: Bastian Blank <bastian@waldi.eu.org>
 Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/pid_namespace.h |    6 +-----
+ kernel/fork.c                 |    4 ++--
+ kernel/pid.c                  |    6 ++++++
+ 3 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN ipc/mqueue.c~mqueue-fix-si_pid-value-in-mqueue-do_notify ipc/mqueue.c
---- a/ipc/mqueue.c~mqueue-fix-si_pid-value-in-mqueue-do_notify
-+++ a/ipc/mqueue.c
-@@ -506,7 +506,8 @@ static void __do_notify(struct mqueue_in
- 			sig_i.si_errno = 0;
- 			sig_i.si_code = SI_MESGQ;
- 			sig_i.si_value = info->notify.sigev_value;
--			sig_i.si_pid = task_tgid_vnr(current);
-+			sig_i.si_pid = task_tgid_nr_ns(current,
-+						ns_of_pid(info->notify_owner));
- 			sig_i.si_uid = current_uid();
+diff -puN include/linux/pid_namespace.h~pid-generalize-task_active_pid_ns include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~pid-generalize-task_active_pid_ns
++++ a/include/linux/pid_namespace.h
+@@ -79,11 +79,7 @@ static inline void zap_pid_ns_processes(
+ }
+ #endif /* CONFIG_PID_NS */
  
- 			kill_pid_info(info->notify.sigev_signo,
+-static inline struct pid_namespace *task_active_pid_ns(struct task_struct *tsk)
+-{
+-	return tsk->nsproxy->pid_ns;
+-}
+-
++extern struct pid_namespace *task_active_pid_ns(struct task_struct *tsk);
+ void pidhash_init(void);
+ void pidmap_init(void);
+ 
+diff -puN kernel/fork.c~pid-generalize-task_active_pid_ns kernel/fork.c
+--- a/kernel/fork.c~pid-generalize-task_active_pid_ns
++++ a/kernel/fork.c
+@@ -1118,12 +1118,12 @@ static struct task_struct *copy_process(
+ 
+ 	if (pid != &init_struct_pid) {
+ 		retval = -ENOMEM;
+-		pid = alloc_pid(task_active_pid_ns(p));
++		pid = alloc_pid(p->nsproxy->pid_ns);
+ 		if (!pid)
+ 			goto bad_fork_cleanup_io;
+ 
+ 		if (clone_flags & CLONE_NEWPID) {
+-			retval = pid_ns_prepare_proc(task_active_pid_ns(p));
++			retval = pid_ns_prepare_proc(p->nsproxy->pid_ns);
+ 			if (retval < 0)
+ 				goto bad_fork_free_pid;
+ 		}
+diff -puN kernel/pid.c~pid-generalize-task_active_pid_ns kernel/pid.c
+--- a/kernel/pid.c~pid-generalize-task_active_pid_ns
++++ a/kernel/pid.c
+@@ -474,6 +474,12 @@ pid_t task_session_nr_ns(struct task_str
+ }
+ EXPORT_SYMBOL(task_session_nr_ns);
+ 
++struct pid_namespace *task_active_pid_ns(struct task_struct *tsk)
++{
++	return ns_of_pid(task_pid(tsk));
++}
++EXPORT_SYMBOL_GPL(task_active_pid_ns);
++
+ /*
+  * Used by proc to find the first pid that is greater then or equal to nr.
+  *
 _
 
 Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
