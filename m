@@ -1,128 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - mmotm-2008-12-15-16-45-uploaded.patch removed from -mm tree
-Date: Tue, 16 Dec 2008 12:30:30 -0800
-Message-ID: <200812162030.mBGKUUfk006554@imap1.linux-foundation.org>
+Subject: - mm-dont-touch-uninitialized-variable-in-do_pages_stat_array.patch removed from -mm tree
+Date: Tue, 16 Dec 2008 12:30:27 -0800
+Message-ID: <200812162030.mBGKUREp006548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42450 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34746 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753555AbYLPUbh (ORCPT
+	by vger.kernel.org with ESMTP id S1752502AbYLPUbn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Dec 2008 15:31:37 -0500
+	Tue, 16 Dec 2008 15:31:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, Brice.Goglin@inria.fr, clameter@sgi.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Don't call __cfq_exit_single_io_context() twice.
+     mm: don't touch uninitialized variable in do_pages_stat_array()
 has been removed from the -mm tree.  Its filename was
-     mmotm-2008-12-15-16-45-uploaded.patch
+     mm-dont-touch-uninitialized-variable-in-do_pages_stat_array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Don't call __cfq_exit_single_io_context() twice.
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mm: don't touch uninitialized variable in do_pages_stat_array()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+80bba1290ab5122c60cdb73332b26d288dc8aedd ("mm: no get_user/put_user while
+holding mmap_sem in do_pages_stat?") removed one necessary variable
+initialization.  Then, following warning happend.
+
+  CC      mm/migrate.o
+mm/migrate.c: In function 'sys_move_pages':
+mm/migrate.c:1001: warning: 'err' may be used uninitialized in this function
+
+More unfortunately, if find_vma() failed, kernel read uninitialized memory.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cfq-iosched.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN block/cfq-iosched.c~mmotm-2008-12-15-16-45-uploaded block/cfq-iosched.c
---- a/block/cfq-iosched.c~mmotm-2008-12-15-16-45-uploaded
-+++ a/block/cfq-iosched.c
-@@ -1322,7 +1322,6 @@ static void cfq_exit_single_io_context(s
- 		smp_read_barrier_depends();
- 		if (cic->key)
- 			__cfq_exit_single_io_context(cfqd, cic);
--		__cfq_exit_single_io_context(cfqd, cic);
+diff -puN mm/migrate.c~mm-dont-touch-uninitialized-variable-in-do_pages_stat_array mm/migrate.c
+--- a/mm/migrate.c~mm-dont-touch-uninitialized-variable-in-do_pages_stat_array
++++ a/mm/migrate.c
+@@ -998,7 +998,7 @@ static void do_pages_stat_array(struct m
+ 		unsigned long addr = (unsigned long)(*pages);
+ 		struct vm_area_struct *vma;
+ 		struct page *page;
+-		int err;
++		int err = -EFAULT;
  
- 		spin_unlock_irqrestore(q->queue_lock, flags);
- 	}
+ 		vma = find_vma(mm, addr);
+ 		if (!vma)
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-clocksource-pass-clocksource-to-read-callback-fix.patch
-mm-gup-persist-for-write-permission.patch
-mm-wp-lock-page-before-deciding-cow.patch
-mm-reuse_swap_page-replaces-can_share_swap_page.patch
-mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
-mm-try_to_unuse-check-removing-right-swap.patch
-mm-remove-try_to_munlock-from-vmscan.patch
-mm-remove-gfp_mask-from-add_to_swap.patch
-mm-add-add_to_swap-stub.patch
-mm-optimize-get_scan_ratio-for-no-swap.patch
+linux-next.patch
+proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+oom-fix-zone_scan_mutex-name.patch
+mm-get-rid-of-pagevec_release_nonlru.patch
+cleanup-get-rid-of-ifdef-config_migration.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-make-page_lock_anon_vma-static.patch
 memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-swapfile-swapon-needs-larger-size-type.patch
-swapfile-remove-swp_active-mask.patch
-swapfile-remove-surplus-whitespace.patch
-swapfile-remove-v0-swap-space-message.patch
-swapfile-rearrange-scan-and-swap_info.patch
-swapfile-swapon-use-discard-trim.patch
-swapfile-swap-allocation-use-discard.patch
-swapfile-swapon-randomize-if-nonrot.patch
-swapfile-swap-allocation-cycle-if-nonrot.patch
-swapfile-change-discard-pgoff_t-to-sector_t.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-swapfile-let-others-seed-random.patch
-cgroups-make-cgroup-config-a-submenu.patch
-cgroups-documentation-updates.patch
-cgroups-remove-some-redundant-null-checks.patch
-ns_cgroup-remove-unused-spinlock.patch
-memcg-fix-a-typo-in-kconfig.patch
-cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
-cgroups-fix-cgroup_iter_next-bug.patch
-cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
-cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
-cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
-cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
-cgroups-make-root_list-contains-active-hierarchies-only.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
-devcgroup-use-list_for_each_entry_rcu.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-fix-gfp_mask-of-callers-of-charge.patch
-memcg-simple-migration-handling.patch
-memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
-memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
+mm-make-init_section_page_cgroup-static.patch
+mm-make-maddr-__iomem.patch
+mm-make-mem_cgroup_resize_limit-static.patch
+mm-make-scan_all_zones_unevictable_pages-static.patch
+mm-make-scan_zone_unevictable_pages-static.patch
+mm-make-setup_per_zone_inactive_ratio-static.patch
+mm-make-vread-and-vwrite-declaration.patch
+vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
+vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
+mm-kill-zone_is_near_oom.patch
+mm-make-get_user_pages-interruptible.patch
+mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
+introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
+remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+devices-cgroup-allow-mkfifo.patch
 memcg-new-force_empty-to-free-pages-under-group-fix.patch
 memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-memswap-controller-kconfig.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-synchronized-lru.patch
-memcg-add-mem_cgroup_disabled.patch
-memcg-add-mem_cgroup_disabled-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-memcg-fix-reclaim-result-checks.patch
 memcg-revert-gfp-mask-fix.patch
 memcg-check-group-leader-fix.patch
 memcg-memoryswap-controller-fix-limit-check.patch
@@ -131,10 +104,14 @@ memcg-hierarchy-avoid-unnecessary-reclaim.patch
 inactive_anon_is_low-move-to-vmscan.patch
 mm-introduce-zone_reclaim-struct.patch
 mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
 memcg-add-null-check-to-page_cgroup_zoneinfo.patch
 memcg-add-inactive_anon_is_low.patch
+memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
 memcg-add-mem_cgroup_zone_nr_pages.patch
 memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
 memcg-show-reclaim-stat.patch
 memcg-rename-scan-global-lru.patch
 memcg-protect-prev_priority.patch
@@ -143,12 +120,5 @@ memcg-fix-calclation-of-active_ratio.patch
 memcg-fix-calclation-of-active_ratio-build-error-fix.patch
 memcg-show-real-limit-under-hierarchy-mode.patch
 memcg-explain-details-and-test-document.patch
-memcg-explain-details-and-test-document-fix.patch
-memcg-dont-trigger-oom-at-page-migration.patch
-memcg-remove-mem_cgroup_try_charge.patch
-memcg-avoid-dead-lock-caused-by-race-between-oom-and-cpuset_attach.patch
-memcg-change-try_to_free_pages-to-hierarchical_reclaim.patch
-memcg-fix-swap-accounting-leak-v3.patch
-memcg-fix-swap-accounting-leak-doc-fix.patch
-cpuset-rcu_read_lock-to-protect-task_cs.patch
+ia64-implement-interrupt-enabling-rwlocks-fix.patch
 
