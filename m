@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-hrtimerc-kill-warning.patch added to -mm tree
-Date: Tue, 16 Dec 2008 14:03:09 -0800
-Message-ID: <200812162219.mBGMJ5ZB015810@imap1.linux-foundation.org>
+Subject: + smp_call_function_single-be-slightly-less-stupid.patch added to -mm tree
+Date: Tue, 16 Dec 2008 14:47:25 -0800
+Message-ID: <200812162247.mBGMlPHT002616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50034 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41964 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752534AbYLPWT4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751511AbYLPWsF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Dec 2008 17:19:56 -0500
+	Tue, 16 Dec 2008 17:48:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     kernel/hrtimer.c: kill warning
+     smp_call_function_single(): be slightly less stupid
 has been added to the -mm tree.  Its filename is
-     kernel-hrtimerc-kill-warning.patch
+     smp_call_function_single-be-slightly-less-stupid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/hrtimer.c: kill warning
+Subject: smp_call_function_single(): be slightly less stupid
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/hrtimer.c: In function 'hrtimer_cpu_notify':
-kernel/hrtimer.c:1574: warning: unused variable 'dcpu'
+If you do
+
+	smp_call_function_single(expression-with-side-effects, ...)
+
+then expression-with-side-effects never gets evaluated on UP builds.
+
+As always, implementing it in C is the correct thing to do.
+
+While we're there, uninline it for size and possible header dependency
+reasons.
+
+And create a new kernel/up.c, as a place in which to put
+uniprocessor-specific code and storage.  It should mirror kernel/smp.c.
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/smp.h |   13 +++----------
+ kernel/Makefile     |    6 +++++-
+ kernel/up.c         |   18 ++++++++++++++++++
+ 3 files changed, 26 insertions(+), 11 deletions(-)
 
-diff -puN kernel/hrtimer.c~kernel-hrtimerc-kill-warning kernel/hrtimer.c
---- a/kernel/hrtimer.c~kernel-hrtimerc-kill-warning
-+++ a/kernel/hrtimer.c
-@@ -1571,7 +1571,7 @@ static void tickle_timers(void *arg)
- static int __cpuinit hrtimer_cpu_notify(struct notifier_block *self,
- 					unsigned long action, void *hcpu)
- {
--	int dcpu, scpu = (long)hcpu;
-+	int scpu = (long)hcpu;
+diff -puN include/linux/smp.h~smp_call_function_single-be-slightly-less-stupid include/linux/smp.h
+--- a/include/linux/smp.h~smp_call_function_single-be-slightly-less-stupid
++++ a/include/linux/smp.h
+@@ -21,6 +21,9 @@ struct call_single_data {
+ 	u16 priv;
+ };
  
- 	switch (action) {
++int smp_call_function_single(int cpuid, void (*func) (void *info), void *info,
++				int wait);
++
+ #ifdef CONFIG_SMP
  
-@@ -1584,8 +1584,8 @@ static int __cpuinit hrtimer_cpu_notify(
- 	case CPU_DEAD:
- 	case CPU_DEAD_FROZEN:
- 		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DEAD, &scpu);
--		dcpu = migrate_hrtimers(scpu);
--		smp_call_function_single(dcpu, tickle_timers, NULL, 0);
-+		smp_call_function_single(migrate_hrtimers(scpu),
-+					tickle_timers, NULL, 0);
- 		break;
- #endif
+ #include <linux/preempt.h>
+@@ -76,8 +79,6 @@ smp_call_function_mask(cpumask_t mask, v
+ 	return 0;
+ }
  
+-int smp_call_function_single(int cpuid, void (*func) (void *info), void *info,
+-				int wait);
+ void __smp_call_function_single(int cpuid, struct call_single_data *data);
+ 
+ /*
+@@ -137,14 +138,6 @@ static inline int up_smp_call_function(v
+ static inline void smp_send_reschedule(int cpu) { }
+ #define num_booting_cpus()			1
+ #define smp_prepare_boot_cpu()			do {} while (0)
+-#define smp_call_function_single(cpuid, func, info, wait) \
+-({ \
+-	WARN_ON(cpuid != 0);	\
+-	local_irq_disable();	\
+-	(func)(info);		\
+-	local_irq_enable();	\
+-	0;			\
+-})
+ #define smp_call_function_mask(mask, func, info, wait) \
+ 			(up_smp_call_function(func, info))
+ #define smp_call_function_many(mask, func, info, wait) \
+diff -puN kernel/cpu.c~smp_call_function_single-be-slightly-less-stupid kernel/cpu.c
+diff -puN /dev/null kernel/up.c
+--- /dev/null
++++ a/kernel/up.c
+@@ -0,0 +1,18 @@
++/*
++ * Uniprocessor-only support functions.  The counterpart to kernel/smp.c
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/smp.h>
++
++int smp_call_function_single(int cpu, void (*func) (void *info), void *info,
++				int wait)
++{
++	WARN_ON(cpuid != 0);
++	local_irq_disable();
++	(func)(info);
++	local_irq_enable();
++	return 0;
++}
++EXPORT_SYMBOL(smp_call_function_single);
+diff -puN kernel/Makefile~smp_call_function_single-be-slightly-less-stupid kernel/Makefile
+--- a/kernel/Makefile~smp_call_function_single-be-slightly-less-stupid
++++ a/kernel/Makefile
+@@ -39,7 +39,11 @@ obj-$(CONFIG_RT_MUTEXES) += rtmutex.o
+ obj-$(CONFIG_DEBUG_RT_MUTEXES) += rtmutex-debug.o
+ obj-$(CONFIG_RT_MUTEX_TESTER) += rtmutex-tester.o
+ obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
+-obj-$(CONFIG_USE_GENERIC_SMP_HELPERS) += smp.o
++ifeq ($(CONFIG_USE_GENERIC_SMP_HELPERS),y)
++obj-y += smp.o
++else
++obj-y += up.o
++endif
+ obj-$(CONFIG_SMP) += spinlock.o
+ obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock.o
+ obj-$(CONFIG_PROVE_LOCKING) += spinlock.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +165,7 @@ init-properly-placing-noinline-keyword.patch
 add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
 poll-allow-f_op-poll-to-sleep-take6.patch
 ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+smp_call_function_single-be-slightly-less-stupid.patch
 binfmtsh-include-listh-fix.patch
 max3100-spi-uart-driver-select-serial_core-fix.patch
 spi_gpio-driver-cleanups.patch
