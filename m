@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-swap-accounting-leak-doc-fix.patch added to -mm tree
-Date: Mon, 15 Dec 2008 21:22:37 -0800
-Message-ID: <200812160522.mBG5MbIq013580@imap1.linux-foundation.org>
+Subject: + pid-implement-ns_of_pid.patch added to -mm tree
+Date: Mon, 15 Dec 2008 21:33:13 -0800
+Message-ID: <200812160533.mBG5XDMk020604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50897 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750923AbYLPFWt (ORCPT
+	by vger.kernel.org with ESMTP id S1750721AbYLPFeP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Dec 2008 00:22:49 -0500
+	Tue, 16 Dec 2008 00:34:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: sukadev@linux.vnet.ibm.com, Nadia.Derbey@bull.net, bastian@waldi.eu.org, ebiederm@xmission.com, oleg@redhat.com, roland@redhat.com, serue@us.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     memcg fix swap accounting leak doc fix
+     pid: implement ns_of_pid
 has been added to the -mm tree.  Its filename is
-     memcg-fix-swap-accounting-leak-doc-fix.patch
+     pid-implement-ns_of_pid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg fix swap accounting leak doc fix
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: pid: implement ns_of_pid
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 
-fix for documentation.
+A current problem with the pid namespace is that it is easy to do pid
+related work after exit_task_namespaces which drops the nsproxy pointer.
 
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com> 
-Cc: Hugh Dickins <hugh@veritas.com>
+However if we are doing pid namespace related work we are always operating
+on some struct pid which retains the pid_namespace pointer of the pid
+namespace it was allocated in.
+
+So provide ns_of_pid which allows us to find the pid namespace a pid was
+allocated in.
+
+Using this we have the needed infrastructure to do pid namespace related
+work at anytime we have a struct pid, removing the chance of accidentally
+having a NULL pointer dereference when accessing current->nsproxy.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Bastian Blank <bastian@waldi.eu.org>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/controllers/memcg_test.txt |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/pid.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN Documentation/controllers/memcg_test.txt~memcg-fix-swap-accounting-leak-doc-fix Documentation/controllers/memcg_test.txt
---- a/Documentation/controllers/memcg_test.txt~memcg-fix-swap-accounting-leak-doc-fix
-+++ a/Documentation/controllers/memcg_test.txt
-@@ -139,10 +139,10 @@ Under below explanation, we assume CONFI
-           ===========================================
-           (3)        +1/+1    +1/+1     +1/+1   +1/+1
-           (4)          -       0/ 0       -     -1/ 0
--          (5)         0/ 1     0/-1     -1/-1    0/ 0
--          (6)          -        -         -      0/-1
-+          (5)         0/-1     0/ 0     -1/-1    0/ 0
-+          (6)          -       0/-1       -      0/-1
-           ===========================================
--       Result         1/ 1     1/1       1/ 1    1/ 1
-+       Result         1/ 1     1/ 1      1/ 1    1/ 1
+diff -puN include/linux/pid.h~pid-implement-ns_of_pid include/linux/pid.h
+--- a/include/linux/pid.h~pid-implement-ns_of_pid
++++ a/include/linux/pid.h
+@@ -122,6 +122,17 @@ int next_pidmap(struct pid_namespace *pi
+ extern struct pid *alloc_pid(struct pid_namespace *ns);
+ extern void free_pid(struct pid *pid);
  
-        In any cases, charges to this page should be 1/ 1.
- 
++/* ns_of_pid returns the pid namespace in which the specified
++ * pid was allocated.
++ */
++static inline struct pid_namespace *ns_of_pid(struct pid *pid)
++{
++	struct pid_namespace *ns = NULL;
++	if (pid)
++		ns = pid->numbers[pid->level].ns;
++	return ns;
++}
++
+ /*
+  * the helpers to get the pid's id seen from different namespaces
+  *
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
 
-cgroups-make-cgroup-config-a-submenu.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-fix-gfp_mask-of-callers-of-charge.patch
-memcg-simple-migration-handling.patch
-memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
-memcg-handle-swap-caches.patch
-memcg-memswap-controller-kconfig.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-memcg-fix-reclaim-result-checks.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-mm-make-get_scan_ratio-safe-for-memcg.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-remove-mem_cgroup_cal_reclaim.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-explain-details-and-test-document.patch
-memcg-dont-trigger-oom-at-page-migration.patch
-memcg-remove-mem_cgroup_try_charge.patch
-memcg-avoid-dead-lock-caused-by-race-between-oom-and-cpuset_attach.patch
-memcg-change-try_to_free_pages-to-hierarchical_reclaim.patch
-memcg-fix-swap-accounting-leak-v3.patch
-memcg-fix-swap-accounting-leak-doc-fix.patch
+linux-next.patch
+pid-implement-ns_of_pid.patch
+pid-generalize-task_active_pid_ns.patch
+mqueue-fix-si_pid-value-in-mqueue-do_notify.patch
 
