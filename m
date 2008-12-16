@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-calclation-of-active_ratio-build-error-fix.patch added to -mm tree
-Date: Mon, 15 Dec 2008 21:49:25 -0800
-Message-ID: <200812160549.mBG5nPNN031336@imap1.linux-foundation.org>
+Subject: + remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch added to -mm tree
+Date: Mon, 15 Dec 2008 21:50:18 -0800
+Message-ID: <200812160550.mBG5oIuQ031884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36605 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49095 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750970AbYLPFtd (ORCPT
+	by vger.kernel.org with ESMTP id S1751332AbYLPFue (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Dec 2008 00:49:33 -0500
+	Tue, 16 Dec 2008 00:50:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, rmk+kernel@arm.linux.org.uk, rostedt@goodmis.org
 
 
 The patch titled
-     memcg: fix calculation of active_ratio build error fix
+     Add #include <linux/irqflags.h> to acpi/processor_idle.c
 has been added to the -mm tree.  Its filename is
-     memcg-fix-calclation-of-active_ratio-build-error-fix.patch
+     remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix calculation of active_ratio build error fix
+Subject: Add #include <linux/irqflags.h> to acpi/processor_idle.c
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-fix following build error
+Applied after: remove-linux-hardirqh-from-asm-generic-localh.patch
 
-	  CC      mm/vmscan.o
-	mm/vmscan.c: In function 'inactive_anon_is_low':
-	mm/vmscan.c:1397: error: too few arguments to function 'mem_cgroup_inactive_anon_is_low'
+=
+Subject: [mmotm][PATCH] Add #include <linux/irqflags.h> to acpi/processor_idle.c
+
+In past, processor_idle.c include irqflags.h indirectly via local.h.
+But now, its inclusion was removed.
+
+Then following build error happend.
+
+	  CC [M]  drivers/acpi/processor_idle.o
+	drivers/acpi/processor_idle.c: In function 'acpi_cstate_enter':
+	drivers/acpi/processor_idle.c:275: error: implicit declaration of function 'stop_critical_timings'
+	drivers/acpi/processor_idle.c:288: error: implicit declaration of function 'start_critical_timings'
+	make[1]: *** [drivers/acpi/processor_idle.o] Error 1
+	make: *** [drivers/acpi/processor_idle.o] Error 2
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_idle.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-calclation-of-active_ratio-build-error-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-calclation-of-active_ratio-build-error-fix
-+++ a/include/linux/memcontrol.h
-@@ -251,7 +251,7 @@ static inline bool mem_cgroup_oom_called
- }
+diff -puN drivers/acpi/processor_idle.c~remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec
++++ a/drivers/acpi/processor_idle.c
+@@ -41,6 +41,7 @@
+ #include <linux/pm_qos_params.h>
+ #include <linux/clockchips.h>
+ #include <linux/cpuidle.h>
++#include <linux/irqflags.h>
  
- static inline int
--mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg, struct zone *zone)
-+mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg)
- {
- 	return 1;
- }
+ /*
+  * Include the apic definitions for x86 to have the APIC timer related defines
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -90,6 +100,7 @@ mm-kill-zone_is_near_oom.patch
 mm-make-get_user_pages-interruptible.patch
 mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
 introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
+remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
 softirq-introduce-statistics-for-softirq.patch
 proc-export-statistics-for-softirq-to-proc.patch
 proc-update-document-for-proc-softirqs-and-proc-stat.patch
