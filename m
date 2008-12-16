@@ -1,63 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - slob-do-not-pass-the-slab-flags-as-gfp-in-kmem_cache_create.patch removed from -mm tree
-Date: Tue, 16 Dec 2008 12:30:14 -0800
-Message-ID: <200812162030.mBGKUEf2006395@imap1.linux-foundation.org>
+Subject: - ecryptfs-update-maintainers.patch removed from -mm tree
+Date: Tue, 16 Dec 2008 12:30:17 -0800
+Message-ID: <200812162030.mBGKUHbE006432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35099 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58846 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753312AbYLPUbQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752222AbYLPUbL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Dec 2008 15:31:16 -0500
+	Tue, 16 Dec 2008 15:31:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, cl@linux-foundation.org, gorcunov@gmail.com, mpm@selenic.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, kirkland@canonical.com, tyhicks@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slob: do not pass the SLAB flags as GFP in kmem_cache_create()
+     eCryptfs: Update maintainers
 has been removed from the -mm tree.  Its filename was
-     slob-do-not-pass-the-slab-flags-as-gfp-in-kmem_cache_create.patch
+     ecryptfs-update-maintainers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slob: do not pass the SLAB flags as GFP in kmem_cache_create()
-From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: eCryptfs: Update maintainers
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-The kmem_cache_create() function in the slob allocator passes the SLAB
-flags as GFP flags to the slob_alloc() function.  The patch changes this
-call to pass GFP_KERNEL as the other allocators seem to do.
+Tyler Hicks and Dustin Kirkland are now the primary contact points for
+eCryptfs issues that may arise from this point forward.
 
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Matt Mackall <mpm@selenic.com>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Acked-by: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
+Acked-by: Dustin Kirkland <kirkland@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slob.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/slob.c~slob-do-not-pass-the-slab-flags-as-gfp-in-kmem_cache_create mm/slob.c
---- a/mm/slob.c~slob-do-not-pass-the-slab-flags-as-gfp-in-kmem_cache_create
-+++ a/mm/slob.c
-@@ -535,7 +535,7 @@ struct kmem_cache *kmem_cache_create(con
- 	struct kmem_cache *c;
+diff -puN MAINTAINERS~ecryptfs-update-maintainers MAINTAINERS
+--- a/MAINTAINERS~ecryptfs-update-maintainers
++++ a/MAINTAINERS
+@@ -1527,10 +1527,10 @@ W:	http://ebtables.sourceforge.net/
+ S:	Maintained
  
- 	c = slob_alloc(sizeof(struct kmem_cache),
--		flags, ARCH_KMALLOC_MINALIGN, -1);
-+		GFP_KERNEL, ARCH_KMALLOC_MINALIGN, -1);
+ ECRYPT FILE SYSTEM
+-P:	Mike Halcrow, Phillip Hellewell
+-M:	mhalcrow@us.ibm.com, phillip@hellewell.homeip.net
+-L:	ecryptfs-devel@lists.sourceforge.net
+-W:	http://ecryptfs.sourceforge.net/
++P:	Tyler Hicks, Dustin Kirkland
++M:	tyhicks@linux.vnet.ibm.com, kirkland@canonical.com
++L:	ecryptfs-devel@lists.launchpad.net
++W:	https://launchpad.net/ecryptfs
+ S:	Supported
  
- 	if (c) {
- 		c->name = name;
+ EDAC-CORE
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
 linux-next.patch
+ecryptfs-filename-encryption-tag-70-packets.patch
+ecryptfs-filename-encryption-header-updates.patch
+ecryptfs-filename-encryption-encoding-and-encryption-functions.patch
+ecryptfs-filename-encryption-filldir-lookup-and-readlink.patch
+ecryptfs-filename-encryption-mount-option.patch
+ecryptfs-replace-%z-with-%z.patch
+ecryptfs-fix-data-types-int-size_t.patch
+ecryptfs-kerneldoc-for-ecryptfs_parse_tag_70_packet.patch
+ecryptfs-clean-up-ecryptfs_decode_from_filename.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+notify_change-callers-must-hold-i_mutex.patch
 
