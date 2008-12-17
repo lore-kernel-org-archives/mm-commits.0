@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pid-implement-ns_of_pid-update.patch added to -mm tree
-Date: Wed, 17 Dec 2008 14:46:14 -0800
-Message-ID: <200812172246.mBHMkELQ021837@imap1.linux-foundation.org>
+Subject: + rtc-rtc-isl1208-reject-invalid-dates.patch added to -mm tree
+Date: Wed, 17 Dec 2008 14:47:42 -0800
+Message-ID: <200812172247.mBHMlgFU022854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751762AbYLQWqR (ORCPT
+	by vger.kernel.org with ESMTP id S1751056AbYLQWsD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Dec 2008 17:46:17 -0500
+	Wed, 17 Dec 2008 17:48:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, sukadev@linux.vnet.ibm.com
+Cc: celston@katalix.com, a.zummo@towertech.it, david-b@pacbell.net, hvr@gnu.org
 
 
 The patch titled
-     pid: Implement ns_of_pid (update)
+     rtc: rtc-isl1208: reject invalid dates
 has been added to the -mm tree.  Its filename is
-     pid-implement-ns_of_pid-update.patch
+     rtc-rtc-isl1208-reject-invalid-dates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pid: Implement ns_of_pid (update)
-From: Eric Biederman <ebiederm@xmission.com>
+Subject: rtc: rtc-isl1208: reject invalid dates
+From: Chris Elston <celston@katalix.com>
 
-- Add a note in function header of ns_of_pid() re: NULL pid.
+This patch for the rtc-isl1208 driver makes it reject invalid dates.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Signed-off-by: Chris Elston <celston@katalix.com>
+[a.zummo@towertech.it: added comment explaining the check]
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Hebert Valerio Riedel <hvr@gnu.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-isl1208.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/linux/pid.h~pid-implement-ns_of_pid-update include/linux/pid.h
---- a/include/linux/pid.h~pid-implement-ns_of_pid-update
-+++ a/include/linux/pid.h
-@@ -122,8 +122,15 @@ int next_pidmap(struct pid_namespace *pi
- extern struct pid *alloc_pid(struct pid_namespace *ns);
- extern void free_pid(struct pid *pid);
+diff -puN drivers/rtc/rtc-isl1208.c~rtc-rtc-isl1208-reject-invalid-dates drivers/rtc/rtc-isl1208.c
+--- a/drivers/rtc/rtc-isl1208.c~rtc-rtc-isl1208-reject-invalid-dates
++++ a/drivers/rtc/rtc-isl1208.c
+@@ -328,6 +328,13 @@ isl1208_i2c_set_time(struct i2c_client *
+ 	int sr;
+ 	u8 regs[ISL1208_RTC_SECTION_LEN] = { 0, };
  
--/* ns_of_pid returns the pid namespace in which the specified
-- * pid was allocated.
-+/*
-+ * ns_of_pid() returns the pid namespace in which the specified pid was
-+ * allocated.
-+ *
-+ * NOTE:
-+ * 	ns_of_pid() is expected to be called for a process (task) that has
-+ * 	an attached 'struct pid' (see attach_pid(), detach_pid()) i.e @pid
-+ * 	is expected to be non-NULL. If @pid is NULL, caller should handle
-+ * 	the resulting NULL pid-ns.
-  */
- static inline struct pid_namespace *ns_of_pid(struct pid *pid)
- {
++	/* The clock has an 8 bit wide bcd-coded register (they never learn)
++	 * for the year. tm_year is an offset from 1900 and we are interested
++	 * in the 2000-2099 range, so any value less than 100 is invalid.
++	 */
++	if (tm->tm_year < 100)
++		return -EINVAL;
++
+ 	regs[ISL1208_REG_SC] = bin2bcd(tm->tm_sec);
+ 	regs[ISL1208_REG_MN] = bin2bcd(tm->tm_min);
+ 	regs[ISL1208_REG_HR] = bin2bcd(tm->tm_hour) | ISL1208_REG_HR_MIL;
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from celston@katalix.com are
 
-linux-next.patch
-pid-implement-ns_of_pid.patch
-pid-implement-ns_of_pid-update.patch
-pid-generalize-task_active_pid_ns.patch
-mqueue-fix-si_pid-value-in-mqueue-do_notify.patch
-vmcore-remove-saved_max_pfn-check.patch
+rtc-rtc-isl1208-reject-invalid-dates.patch
 
