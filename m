@@ -1,110 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-simplify-parameters-to-deregister_disk-function.patch added to -mm tree
-Date: Wed, 17 Dec 2008 14:38:29 -0800
-Message-ID: <200812172238.mBHMcTdA016598@imap1.linux-foundation.org>
+Subject: - block-handle-bio-system-when-config_block=n.patch removed from -mm tree
+Date: Wed, 17 Dec 2008 14:38:59 -0800
+Message-ID: <200812172238.mBHMcxZa016946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751742AbYLQWil (ORCPT
+	by vger.kernel.org with ESMTP id S1751875AbYLQWjK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Dec 2008 17:38:41 -0500
+	Wed, 17 Dec 2008 17:39:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: scameron@beardog.cca.cpqcorp.net, jens.axboe@oracle.com
+To: randy.dunlap@oracle.com, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: simplify parameters to deregister_disk function
-has been added to the -mm tree.  Its filename is
-     cciss-simplify-parameters-to-deregister_disk-function.patch
+     block: handle bio system when CONFIG_BLOCK=n
+has been removed from the -mm tree.  Its filename was
+     block-handle-bio-system-when-config_block=n.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: simplify parameters to deregister_disk function
-From: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
+Subject: block: handle bio system when CONFIG_BLOCK=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Simplify parameters to deregister_disk function.
+Handle build config of CONFIG_BLOCK=n:
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+kernel/sysctl.c:1233: error: 'bio_inline_vecs' undeclared here (not in a function)
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ kernel/sysctl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/block/cciss.c~cciss-simplify-parameters-to-deregister_disk-function drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-simplify-parameters-to-deregister_disk-function
-+++ a/drivers/block/cciss.c
-@@ -164,7 +164,7 @@ static int cciss_getgeo(struct block_dev
- 
- static int cciss_revalidate(struct gendisk *disk);
- static int rebuild_lun_table(ctlr_info_t *h, int first_time);
--static int deregister_disk(struct gendisk *disk, drive_info_struct *drv,
-+static int deregister_disk(ctlr_info_t *h, int drv_index,
- 			   int clear_all);
- 
- static void cciss_read_capacity(int ctlr, int logvol, int withirq,
-@@ -1479,8 +1479,7 @@ static void cciss_update_drive_info(int 
- 		 * which keeps the interrupt handler from starting
- 		 * the queue.
- 		 */
--		ret = deregister_disk(h->gendisk[drv_index],
--				      &h->drv[drv_index], 0);
-+		ret = deregister_disk(h, drv_index, 0);
- 		h->drv[drv_index].busy_configuring = 0;
- 	}
- 
-@@ -1693,8 +1692,7 @@ static int rebuild_lun_table(ctlr_info_t
- 			spin_lock_irqsave(CCISS_LOCK(h->ctlr), flags);
- 			h->drv[i].busy_configuring = 1;
- 			spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
--			return_code = deregister_disk(h->gendisk[i],
--				&h->drv[i], 1);
-+			return_code = deregister_disk(h, i, 1);
- 			h->drv[i].busy_configuring = 0;
- 		}
- 	}
-@@ -1764,15 +1762,19 @@ mem_msg:
-  *             the highest_lun should be left unchanged and the LunID
-  *             should not be cleared.
- */
--static int deregister_disk(struct gendisk *disk, drive_info_struct *drv,
-+static int deregister_disk(ctlr_info_t *h, int drv_index,
- 			   int clear_all)
- {
- 	int i;
--	ctlr_info_t *h = get_host(disk);
-+	struct gendisk *disk;
-+	drive_info_struct *drv;
- 
- 	if (!capable(CAP_SYS_RAWIO))
- 		return -EPERM;
- 
-+	drv = &h->drv[drv_index];
-+	disk = h->gendisk[drv_index];
-+
- 	/* make sure logical volume is NOT is use */
- 	if (clear_all || (h->gendisk[0] == disk)) {
- 		if (drv->usage_count > 1)
+diff -puN kernel/sysctl.c~block-handle-bio-system-when-config_block=n kernel/sysctl.c
+--- a/kernel/sysctl.c~block-handle-bio-system-when-config_block=n
++++ a/kernel/sysctl.c
+@@ -1227,6 +1227,7 @@ static struct ctl_table vm_table[] = {
+ 		.extra2		= &one,
+ 	},
+ #endif
++#ifdef CONFIG_BLOCK
+ 	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "bio_inline_vecs",
+@@ -1237,6 +1238,7 @@ static struct ctl_table vm_table[] = {
+ 		.strategy	= &sysctl_intvec,
+ 		.extra1		= &zero,
+ 	},
++#endif
+ /*
+  * NOTE: do not add new entries to this table unless you have read
+  * Documentation/sysctl/ctl_unnumbered.txt
 _
 
-Patches currently in -mm which might be from scameron@beardog.cca.cpqcorp.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-cciss-simplify-parameters-to-deregister_disk-function.patch
-cciss-fix-problem-that-deleting-multiple-logical-drives-could-cause-a-panic.patch
+origin.patch
+linux-next.patch
+kgdb-fix-kernel-doc-error.patch
+mtd-fix-dataflash-printk-formats.patch
+mtd-fix-m25p80-printk-formats.patch
+mtd-fix-nettel-printk-formats.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+esp-fix-section-mismatch-warning.patch
+block-handle-bio-system-when-config_block=n.patch
+fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+w1-add-list-masters-w1-command.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
+fix-similar-typos-to-successfull-v2.patch
 
