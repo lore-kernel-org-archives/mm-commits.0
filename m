@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-get-rid-of-the-last-symlink-in-uml-build.patch added to -mm tree
-Date: Wed, 17 Dec 2008 14:52:27 -0800
-Message-ID: <200812172252.mBHMqRFx026075@imap1.linux-foundation.org>
+Subject: + w1-allow-master-io-commands-fix.patch added to -mm tree
+Date: Wed, 17 Dec 2008 15:14:35 -0800
+Message-ID: <200812172314.mBHNEZ5B008631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37302 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752131AbYLQXJu (ORCPT
+	by vger.kernel.org with ESMTP id S1753303AbYLQXOk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Dec 2008 18:09:50 -0500
+	Wed, 17 Dec 2008 18:14:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viro@ZenIV.linux.org.uk, jdike@addtoit.com, sam@ravnborg.orgviro@ZenIV.linux.org.uk
+Cc: akpm@linux-foundation.org, paul.alfille@gmail.com, zbr@ioremap.net
 
 
 The patch titled
-     uml: get rid of the last symlink in uml build
+     w1-allow-master-io-commands-fix
 has been added to the -mm tree.  Its filename is
-     uml-get-rid-of-the-last-symlink-in-uml-build.patch
+     w1-allow-master-io-commands-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,159 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: get rid of the last symlink in uml build
-From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: w1-allow-master-io-commands-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We need to make asm-offsets.h contents visible for objects built with
-userland headers.  Instead of creating a symlink, just have the file with
-equivalent include (relative to location of header) created once.
+reindent switch statements.
 
-That kills the last symlink used in arch/um builds.  Have fun...
-
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Paul Alfille <paul.alfille@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Makefile |   25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+ drivers/w1/w1_netlink.c |   54 +++++++++++++++++++-------------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
-diff -puN arch/um/Makefile~uml-get-rid-of-the-last-symlink-in-uml-build arch/um/Makefile
---- a/arch/um/Makefile~uml-get-rid-of-the-last-symlink-in-uml-build
-+++ a/arch/um/Makefile
-@@ -22,10 +22,11 @@ MODE_INCLUDE	+= -I$(srctree)/$(ARCH_DIR)
+diff -puN drivers/w1/w1_netlink.c~w1-allow-master-io-commands-fix drivers/w1/w1_netlink.c
+--- a/drivers/w1/w1_netlink.c~w1-allow-master-io-commands-fix
++++ a/drivers/w1/w1_netlink.c
+@@ -140,20 +140,20 @@ static int w1_process_command_io(struct 
+ 	int err = 0;
  
- include $(srctree)/$(ARCH_DIR)/Makefile-skas
+ 	switch (cmd->cmd) {
+-		case W1_CMD_TOUCH:
+-			w1_touch_block(dev, cmd->data, cmd->len);
+-			w1_send_read_reply(msg, hdr, cmd);
+-			break;
+-		case W1_CMD_READ:
+-			w1_read_block(dev, cmd->data, cmd->len);
+-			w1_send_read_reply(msg, hdr, cmd);
+-			break;
+-		case W1_CMD_WRITE:
+-			w1_write_block(dev, cmd->data, cmd->len);
+-			break;
+-		default:
+-			err = -1;
+-			break;
++	case W1_CMD_TOUCH:
++		w1_touch_block(dev, cmd->data, cmd->len);
++		w1_send_read_reply(msg, hdr, cmd);
++		break;
++	case W1_CMD_READ:
++		w1_read_block(dev, cmd->data, cmd->len);
++		w1_send_read_reply(msg, hdr, cmd);
++		break;
++	case W1_CMD_WRITE:
++		w1_write_block(dev, cmd->data, cmd->len);
++		break;
++	default:
++		err = -1;
++		break;
+ 	}
  
--ARCH_INCLUDE	:= -I$(srctree)/$(ARCH_DIR)/include/shared
-+SHARED_HEADERS	:= $(ARCH_DIR)/include/shared
-+ARCH_INCLUDE	:= -I$(srctree)/$(SHARED_HEADERS)
- ARCH_INCLUDE	+= -I$(srctree)/$(ARCH_DIR)/sys-$(SUBARCH)/shared
- ifneq ($(KBUILD_SRC),)
--ARCH_INCLUDE	+= -I$(ARCH_DIR)/include/shared # for two generated files
-+ARCH_INCLUDE	+= -I$(SHARED_HEADERS)
- endif
- KBUILD_CPPFLAGS += -I$(srctree)/$(ARCH_DIR)/sys-$(SUBARCH)
+ 	return err;
+@@ -187,20 +187,20 @@ static int w1_process_command_master(str
+ 	cmd->len = 0;
  
-@@ -85,8 +86,8 @@ endef
+ 	switch (cmd->cmd) {
+-		case W1_CMD_SEARCH:
+-		case W1_CMD_ALARM_SEARCH:
+-			err = w1_process_search_command(dev, msg,
++	case W1_CMD_SEARCH:
++	case W1_CMD_ALARM_SEARCH:
++		err = w1_process_search_command(dev, msg,
+ 				PAGE_SIZE - msg->len - sizeof(struct cn_msg));
+-			break;
+-		case W1_CMD_READ:
+-		case W1_CMD_WRITE:
+-		case W1_CMD_TOUCH:
+-			err = w1_process_command_io(dev, msg, hdr, cmd);
+-			break;
+-		default:
+-			cmd->res = EINVAL;
+-			cn_netlink_send(msg, 0, GFP_KERNEL);
+-			break;
++		break;
++	case W1_CMD_READ:
++	case W1_CMD_WRITE:
++	case W1_CMD_TOUCH:
++		err = w1_process_command_io(dev, msg, hdr, cmd);
++		break;
++	default:
++		cmd->res = EINVAL;
++		cn_netlink_send(msg, 0, GFP_KERNEL);
++		break;
+ 	}
  
- KBUILD_KCONFIG := arch/um/Kconfig.$(HEADER_ARCH)
- 
--archprepare: $(ARCH_DIR)/include/shared/user_constants.h
--prepare: $(ARCH_DIR)/include/shared/kern_constants.h
-+archprepare: $(SHARED_HEADERS)/user_constants.h
-+prepare: $(SHARED_HEADERS)/kern_constants.h
- 
- LINK-$(CONFIG_LD_SCRIPT_STATIC) += -static
- LINK-$(CONFIG_LD_SCRIPT_DYN) += -Wl,-rpath,/lib
-@@ -119,17 +120,13 @@ endef
- # When cleaning we don't include .config, so we don't include
- # TT or skas makefiles and don't clean skas_ptregs.h.
- CLEAN_FILES += linux x.i gmon.out \
--	$(ARCH_DIR)/include/shared/user_constants.h \
--	$(ARCH_DIR)/include/shared/kern_constants.h
-+	$(SHARED_HEADERS)/user_constants.h \
-+	$(SHARED_HEADERS)/kern_constants.h
- 
- archclean:
- 	@find . \( -name '*.bb' -o -name '*.bbg' -o -name '*.da' \
- 		-o -name '*.gcov' \) -type f -print | xargs rm -f
- 
--$(objtree)/$(ARCH_DIR)/include/shared:
--	@echo '  MKDIR $@'
--	$(Q)mkdir -p $@
--
- # Generated files
- 
- $(ARCH_DIR)/sys-$(SUBARCH)/user-offsets.s: FORCE
-@@ -148,11 +145,11 @@ define filechk_gen-asm-offsets
-          echo ""; )
- endef
- 
--$(ARCH_DIR)/include/shared/user_constants.h: $(ARCH_DIR)/sys-$(SUBARCH)/user-offsets.s
-+$(SHARED_HEADERS)/user_constants.h: $(ARCH_DIR)/sys-$(SUBARCH)/user-offsets.s
- 	$(call filechk,gen-asm-offsets)
- 
--$(ARCH_DIR)/include/shared/kern_constants.h: $(objtree)/$(ARCH_DIR)/include/shared
--	@echo '  SYMLINK $@'
--	$(Q)ln -sf ../../../../include/asm/asm-offsets.h $@
-+$(SHARED_HEADERS)/kern_constants.h:
-+	$(Q)mkdir -p $(dir $@)
-+	$(Q)echo '#include "../../../../include/asm/asm-offsets.h"' >$@
- 
- export SUBARCH USER_CFLAGS CFLAGS_NO_HARDENING OS HEADER_ARCH DEV_NULL_PATH
+ 	kfree(msg);
 _
 
-Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+next-remove-localversion.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
-uml-get-rid-of-the-last-symlink-in-uml-build.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+smp_call_function_single-be-slightly-less-stupid.patch
+kernel-hrtimerc-kill-warning.patch
+binfmtsh-include-listh-fix.patch
+max3100-spi-uart-driver-select-serial_core-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
