@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-config_out_of_line_pfn_to_page.patch added to -mm tree
-Date: Wed, 17 Dec 2008 14:56:26 -0800
-Message-ID: <200812172256.mBHMuQdJ028815@imap1.linux-foundation.org>
+Subject: + mm-kill-page_queue_congested.patch added to -mm tree
+Date: Wed, 17 Dec 2008 14:57:55 -0800
+Message-ID: <200812172257.mBHMvtXZ029798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37251 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751226AbYLQW4e (ORCPT
+	by vger.kernel.org with ESMTP id S1752154AbYLQW63 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Dec 2008 17:56:34 -0500
+	Wed, 17 Dec 2008 17:58:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, peterz@infradead.org
 
 
 The patch titled
-     mm: remove CONFIG_OUT_OF_LINE_PFN_TO_PAGE
+     mm: kill page_queue_congested()
 has been added to the -mm tree.  Its filename is
-     mm-remove-config_out_of_line_pfn_to_page.patch
+     mm-kill-page_queue_congested.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove CONFIG_OUT_OF_LINE_PFN_TO_PAGE
+Subject: mm: kill page_queue_congested()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-No architectures use CONFIG_OUT_OF_LINE_PFN_TO_PAGE - it can be removed.
+page_queue_congested() was introduced in 2002, but it was never used
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/memory_model.h |    7 -------
- mm/page_alloc.c                    |   13 -------------
- 2 files changed, 20 deletions(-)
+ mm/swapfile.c |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
-diff -puN include/asm-generic/memory_model.h~mm-remove-config_out_of_line_pfn_to_page include/asm-generic/memory_model.h
---- a/include/asm-generic/memory_model.h~mm-remove-config_out_of_line_pfn_to_page
-+++ a/include/asm-generic/memory_model.h
-@@ -69,15 +69,8 @@
- })
- #endif /* CONFIG_FLATMEM/DISCONTIGMEM/SPARSEMEM */
- 
--#ifdef CONFIG_OUT_OF_LINE_PFN_TO_PAGE
--struct page;
--/* this is useful when inlined pfn_to_page is too big */
--extern struct page *pfn_to_page(unsigned long pfn);
--extern unsigned long page_to_pfn(struct page *page);
--#else
- #define page_to_pfn __page_to_pfn
- #define pfn_to_page __pfn_to_page
--#endif /* CONFIG_OUT_OF_LINE_PFN_TO_PAGE */
- 
- #endif /* __ASSEMBLY__ */
- 
-diff -puN mm/page_alloc.c~mm-remove-config_out_of_line_pfn_to_page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-config_out_of_line_pfn_to_page
-+++ a/mm/page_alloc.c
-@@ -4587,19 +4587,6 @@ void *__init alloc_large_system_hash(con
- 	return table;
+diff -puN mm/swapfile.c~mm-kill-page_queue_congested mm/swapfile.c
+--- a/mm/swapfile.c~mm-kill-page_queue_congested
++++ a/mm/swapfile.c
+@@ -1372,26 +1372,6 @@ out:
+ 	return ret;
  }
  
--#ifdef CONFIG_OUT_OF_LINE_PFN_TO_PAGE
--struct page *pfn_to_page(unsigned long pfn)
+-#if 0	/* We don't need this yet */
+-#include <linux/backing-dev.h>
+-int page_queue_congested(struct page *page)
 -{
--	return __pfn_to_page(pfn);
--}
--unsigned long page_to_pfn(struct page *page)
--{
--	return __page_to_pfn(page);
--}
--EXPORT_SYMBOL(pfn_to_page);
--EXPORT_SYMBOL(page_to_pfn);
--#endif /* CONFIG_OUT_OF_LINE_PFN_TO_PAGE */
+-	struct backing_dev_info *bdi;
 -
- /* Return a pointer to the bitmap storing bits affecting a block of pages */
- static inline unsigned long *get_pageblock_bitmap(struct zone *zone,
- 							unsigned long pfn)
+-	VM_BUG_ON(!PageLocked(page));	/* It pins the swap_info_struct */
+-
+-	if (PageSwapCache(page)) {
+-		swp_entry_t entry = { .val = page_private(page) };
+-		struct swap_info_struct *sis;
+-
+-		sis = get_swap_info_struct(swp_type(entry));
+-		bdi = sis->bdev->bd_inode->i_mapping->backing_dev_info;
+-	} else
+-		bdi = page->mapping->backing_dev_info;
+-	return bdi_write_congested(bdi);
+-}
+-#endif
+-
+ asmlinkage long sys_swapoff(const char __user * specialfile)
+ {
+ 	struct swap_info_struct * p = NULL;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -119,6 +106,7 @@ mm-make-get_user_pages-interruptible.patch
 mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
 introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
 mm-remove-config_out_of_line_pfn_to_page.patch
+mm-kill-page_queue_congested.patch
 remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
 softirq-introduce-statistics-for-softirq.patch
 proc-export-statistics-for-softirq-to-proc.patch
