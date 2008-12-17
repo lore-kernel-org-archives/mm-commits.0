@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5.patch added to -mm tree
-Date: Wed, 17 Dec 2008 13:13:45 -0800
-Message-ID: <200812172113.mBHLDkuJ023922@imap1.linux-foundation.org>
+Subject: + video-mbp_nvidia_bl-add-a-debug-switch.patch added to -mm tree
+Date: Wed, 17 Dec 2008 13:14:27 -0800
+Message-ID: <200812172114.mBHLERsP024382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44816 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750961AbYLQVOg (ORCPT
+	by vger.kernel.org with ESMTP id S1751101AbYLQVOs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Dec 2008 16:14:36 -0500
+	Wed, 17 Dec 2008 16:14:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: schwalbe@inf.tu-dresden.de, hugang@soulinfo.com, mjg59@srcf.ucam.org, rpurdie@rpsys.net
+Cc: schwalbe@inf.tu-dresden.de, mjg59@srcf.ucam.org, rpurdie@rpsys.net
 
 
 The patch titled
-     video: mbp_nvidia_bl: Add support for MacBook 5, MacBook Air 2, and MacBook Pro 5
+     video: mbp_nvidia_bl: Add a debug switch
 has been added to the -mm tree.  Its filename is
-     video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5.patch
+     video-mbp_nvidia_bl-add-a-debug-switch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video: mbp_nvidia_bl: Add support for MacBook 5, MacBook Air 2, and MacBook Pro 5
+Subject: video: mbp_nvidia_bl: Add a debug switch
 From: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
 
-This patch adds support for the new Apple models incorporating an Nvidia
-chipset.  Apple still uses the same protocol as on older models, but the
-registers moved to a different address.
-
-The initial code has been contributed by Hu Gang <hugang@soulinfo.com>.
-
-Changes:
-    * new structure to be passed to the DMI_MATCH function
-    * separated implementation for Intel/Nvidia chipset models
-    * added new entries to the device table (moved down)
-    * used driver_data structure to request resources/access ops
-      where necessary
-
-Known to work on:
-    * MacBook Pro 3
-    * MacBook Pro 4
-    * MacBook Pro 5
-
-Known to work with limitations on:
-    * MacBook 5 / MacBook Air 2:
-         Changing brightness within X doesn't work, if using
-         Nvidia's proprietary graphics driver. No fix known yet.
-         Changing brightness on a text console or using the open-source
-         driver does work.
-
-Known Bugs:
-    * MacBook Pro 5:
-         Initial brightness after bootup is the last recently used
-         brightness (in Mac OSX), while the firmware reports maximum.
-         Impossible to fix.
+This patch adds a debug switch to enable (little) diagnostic
+output, to help to trace down the remaining problems.
 
 Signed-off-by: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
 Cc: Matthew Garrett <mjg59@srcf.ucam.org>
@@ -74,214 +46,100 @@ Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/mbp_nvidia_bl.c |  171 ++++++++++++++++------
- 1 file changed, 132 insertions(+), 39 deletions(-)
+ drivers/video/backlight/mbp_nvidia_bl.c |   37 ++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5 drivers/video/backlight/mbp_nvidia_bl.c
---- a/drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5
+diff -puN drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-add-a-debug-switch drivers/video/backlight/mbp_nvidia_bl.c
+--- a/drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-add-a-debug-switch
 +++ a/drivers/video/backlight/mbp_nvidia_bl.c
-@@ -25,63 +25,163 @@
- #include <linux/dmi.h>
- #include <linux/io.h>
- 
--static struct dmi_system_id __initdata mbp_device_table[] = {
--	{
--		.ident = "3,1",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
--			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro3,1"),
--		},
--	},
--	{
--		.ident = "3,2",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
--			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro3,2"),
--		},
--	},
--	{
--		.ident = "4,1",
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
--			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro4,1"),
--		},
--	},
--	{ }
-+/* Structure to be passed to the DMI_MATCH function. */
-+struct dmi_match_data {
-+	/* I/O resource to allocate. */
-+	struct resource iores;
-+	/* Backlight operations structure. */
-+	struct backlight_ops backlight_ops;
+@@ -33,6 +33,11 @@ struct dmi_match_data {
+ 	struct backlight_ops backlight_ops;
  };
  
--static int mbp_send_intensity(struct backlight_device *bd)
-+/*
-+ * Implementation for MacBooks with Intel chipset.
-+ */
-+static int intel_chipset_send_intensity(struct backlight_device *bd)
++/* Module parameters. */
++static int debug;
++module_param_named(debug, debug, int, 0644);
++MODULE_PARM_DESC(debug, "Set to one to enable debugging messages.");
++
+ /*
+  * Implementation for MacBooks with Intel chipset.
+  */
+@@ -40,6 +45,10 @@ static int intel_chipset_send_intensity(
  {
  	int intensity = bd->props.brightness;
  
++	if (debug)
++		printk(KERN_DEBUG "mbp_nvidia_bl: setting brightness to %d\n",
++		       intensity);
++
  	outb(0x04 | (intensity << 4), 0xb3);
  	outb(0xbf, 0xb2);
--
  	return 0;
- }
+@@ -47,9 +56,17 @@ static int intel_chipset_send_intensity(
  
--static int mbp_get_intensity(struct backlight_device *bd)
-+static int intel_chipset_get_intensity(struct backlight_device *bd)
+ static int intel_chipset_get_intensity(struct backlight_device *bd)
  {
++	int intensity;
++
  	outb(0x03, 0xb3);
  	outb(0xbf, 0xb2);
- 	return inb(0xb3) >> 4;
+-	return inb(0xb3) >> 4;
++	intensity = inb(0xb3) >> 4;
++
++	if (debug)
++		printk(KERN_DEBUG "mbp_nvidia_bl: read brightness of %d\n",
++		       intensity);
++
++	return intensity;
  }
  
--static struct backlight_ops mbp_ops = {
--	.get_brightness = mbp_get_intensity,
--	.update_status  = mbp_send_intensity,
-+static const struct dmi_match_data intel_chipset_data = {
-+	.iores = {
-+		.start		= 0xb2,
-+		.end		= 0xb3,
-+		.name		= "mbp_nvidia_bl",
-+		.flags		= IORESOURCE_IO
-+	},
-+	.backlight_ops		= {
-+		.get_brightness	= intel_chipset_get_intensity,
-+		.update_status	= intel_chipset_send_intensity,
-+	}
- };
- 
-+/*
-+ * Implementation for MacBooks with Nvidia chipset.
-+ */
-+static int nvidia_chipset_send_intensity(struct backlight_device *bd)
-+{
-+	int intensity = bd->props.brightness;
-+
-+	outb(0x04 | (intensity << 4), 0x52f);
-+	outb(0xbf, 0x52e);
-+	return 0;
-+}
-+
-+static int nvidia_chipset_get_intensity(struct backlight_device *bd)
-+{
-+	outb(0x03, 0x52f);
-+	outb(0xbf, 0x52e);
-+	return inb(0x52f) >> 4;
-+}
-+
-+static const struct dmi_match_data nvidia_chipset_data = {
-+	.iores = {
-+		.start		= 0x52e,
-+		.end		= 0x52f,
-+		.name		= "mbp_nvidia_bl",
-+		.flags		= IORESOURCE_IO,
-+	},
-+	.backlight_ops		= {
-+		.get_brightness	= nvidia_chipset_get_intensity,
-+		.update_status	= nvidia_chipset_send_intensity
-+	}
-+};
-+
-+/*
-+ * DMI matching.
-+ */
-+static /* const */ struct dmi_match_data *driver_data;
-+
-+static int dmi_match(const struct dmi_system_id *id)
-+{
-+	driver_data = id->driver_data;
-+
-+	printk(KERN_INFO "mbp_nvidia_bl: %s detected\n", id->ident);
-+	return 1;
-+}
-+
-+static const struct dmi_system_id __initdata mbp_device_table[] = {
-+	{
-+		.callback	= dmi_match,
-+		.ident		= "MacBookPro 3,1",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro3,1"),
-+		},
-+		.driver_data	= (void *)&intel_chipset_data,
-+	},
-+	{
-+		.callback	= dmi_match,
-+		.ident		= "MacBookPro 3,2",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro3,2"),
-+		},
-+		.driver_data	= (void *)&intel_chipset_data,
-+	},
-+	{
-+		.callback	= dmi_match,
-+		.ident		= "MacBookPro 4,1",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro4,1"),
-+		},
-+		.driver_data	= (void *)&intel_chipset_data,
-+	},
-+	{
-+		.callback	= dmi_match,
-+		.ident		= "MacBook 5,1",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBook5,1"),
-+		},
-+		.driver_data	= (void *)&nvidia_chipset_data,
-+	},
-+	{
-+		.callback	= dmi_match,
-+		.ident		= "MacBookAir 2,1",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir2,1"),
-+		},
-+		.driver_data	= (void *)&nvidia_chipset_data,
-+	},
-+	{
-+		.callback	= dmi_match,
-+		.ident		= "MacBookPro 5,1",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro5,1"),
-+		},
-+		.driver_data	= (void *)&nvidia_chipset_data,
-+	},
-+	{ }
-+};
-+
-+/*
-+ * Platform driver implementation.
-+ */
- static int mbp_probe(struct platform_device *pdev)
+ static const struct dmi_match_data intel_chipset_data = {
+@@ -72,6 +89,10 @@ static int nvidia_chipset_send_intensity
  {
- 	struct backlight_device *bd;
+ 	int intensity = bd->props.brightness;
  
--	bd = backlight_device_register("mbp_backlight", NULL, NULL, &mbp_ops);
-+	bd = backlight_device_register("mbp_backlight", NULL, NULL,
-+				       &driver_data->backlight_ops);
- 	if (IS_ERR(bd))
- 		return PTR_ERR(bd);
++	if (debug)
++		printk(KERN_DEBUG "mbp_nvidia_bl: setting brightness to %d\n",
++		       intensity);
++
+ 	outb(0x04 | (intensity << 4), 0x52f);
+ 	outb(0xbf, 0x52e);
+ 	return 0;
+@@ -79,9 +100,17 @@ static int nvidia_chipset_send_intensity
  
- 	bd->props.max_brightness = 15;
--	bd->props.brightness = mbp_get_intensity(bd);
-+	bd->props.brightness = bd->ops->get_brightness(bd);
+ static int nvidia_chipset_get_intensity(struct backlight_device *bd)
+ {
++	int intensity;
++
+ 	outb(0x03, 0x52f);
+ 	outb(0xbf, 0x52e);
+-	return inb(0x52f) >> 4;
++	intensity = inb(0x52f) >> 4;
++
++	if (debug)
++		printk(KERN_DEBUG "mbp_nvidia_bl: read brightness of %d\n",
++		       intensity);
++
++	return intensity;
+ }
+ 
+ static const struct dmi_match_data nvidia_chipset_data = {
+@@ -211,6 +240,10 @@ static int mbp_resume(struct platform_de
+ 	 */
+ 	struct backlight_device *bd = platform_get_drvdata(pdev);
+ 
++	if (debug)
++		printk(KERN_DEBUG "mbp_nvidia_bl: resuming with"
++		       " brightness %d\n", bd->props.brightness);
++
  	backlight_update_status(bd);
- 
- 	platform_set_drvdata(pdev, bd);
-@@ -128,13 +228,6 @@ static struct platform_driver mbp_driver
- 	},
- };
- 
--static struct resource mbp_iores = {
--	.start          = 0xb2,
--	.end            = 0xb3,
--	.name           = "mbp_nvidia_bl",
--	.flags          = IORESOURCE_IO
--};
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from schwalbe@inf.tu-dresden.de are
+
+video-mbp_nvidia_bl-fix-brightness-after-suspend-hibernation.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5.patch
+video-mbp_nvidia_bl-add-a-debug-switch.patch
+
