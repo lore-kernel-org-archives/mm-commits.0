@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-fix-problem-that-deleting-multiple-logical-drives-could-cause-a-panic.patch added to -mm tree
-Date: Wed, 17 Dec 2008 14:37:42 -0800
-Message-ID: <200812172237.mBHMbgFB016087@imap1.linux-foundation.org>
+Subject: + cciss-simplify-parameters-to-deregister_disk-function.patch added to -mm tree
+Date: Wed, 17 Dec 2008 14:38:29 -0800
+Message-ID: <200812172238.mBHMcTdA016598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41006 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751712AbYLQWiH (ORCPT
+	by vger.kernel.org with ESMTP id S1751742AbYLQWil (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Dec 2008 17:38:07 -0500
+	Wed, 17 Dec 2008 17:38:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: scameron@beardog.cca.cpqcorp.net, jens.axboe@oracle.com, stable@kernel.org
+Cc: scameron@beardog.cca.cpqcorp.net, jens.axboe@oracle.com
 
 
 The patch titled
-     cciss: fix problem that deleting multiple logical drives could cause a panic
+     cciss: simplify parameters to deregister_disk function
 has been added to the -mm tree.  Its filename is
-     cciss-fix-problem-that-deleting-multiple-logical-drives-could-cause-a-panic.patch
+     cciss-simplify-parameters-to-deregister_disk-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix problem that deleting multiple logical drives could cause a panic
+Subject: cciss: simplify parameters to deregister_disk function
 From: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
 
-Fix problem that deleting multiple logical drives could cause a panic.
-
-It fixes a panic which can be easily reproduced in the following way: Just
-create several "arrays," each with multiple logical drives via hpacucli,
-then delete the first array, and it will blow up in deregister_disk(), in
-the call to get_host() when it tries to dig the hba pointer out of a NULL
-queue pointer.
-
-The problem has been present since my code to make rebuild_lun_table
-behave better went in.
+Simplify parameters to deregister_disk function.
 
 Signed-off-by: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
-Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>		[2.6.27.x]
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/block/cciss.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-problem-that-deleting-multiple-logical-drives-could-cause-a-panic drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-problem-that-deleting-multiple-logical-drives-could-cause-a-panic
+diff -puN drivers/block/cciss.c~cciss-simplify-parameters-to-deregister_disk-function drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-simplify-parameters-to-deregister_disk-function
 +++ a/drivers/block/cciss.c
-@@ -1680,6 +1680,11 @@ static int rebuild_lun_table(ctlr_info_t
- 	for (i = 0; i <= h->highest_lun; i++) {
- 		int j;
- 		drv_found = 0;
+@@ -164,7 +164,7 @@ static int cciss_getgeo(struct block_dev
+ 
+ static int cciss_revalidate(struct gendisk *disk);
+ static int rebuild_lun_table(ctlr_info_t *h, int first_time);
+-static int deregister_disk(struct gendisk *disk, drive_info_struct *drv,
++static int deregister_disk(ctlr_info_t *h, int drv_index,
+ 			   int clear_all);
+ 
+ static void cciss_read_capacity(int ctlr, int logvol, int withirq,
+@@ -1479,8 +1479,7 @@ static void cciss_update_drive_info(int 
+ 		 * which keeps the interrupt handler from starting
+ 		 * the queue.
+ 		 */
+-		ret = deregister_disk(h->gendisk[drv_index],
+-				      &h->drv[drv_index], 0);
++		ret = deregister_disk(h, drv_index, 0);
+ 		h->drv[drv_index].busy_configuring = 0;
+ 	}
+ 
+@@ -1693,8 +1692,7 @@ static int rebuild_lun_table(ctlr_info_t
+ 			spin_lock_irqsave(CCISS_LOCK(h->ctlr), flags);
+ 			h->drv[i].busy_configuring = 1;
+ 			spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
+-			return_code = deregister_disk(h->gendisk[i],
+-				&h->drv[i], 1);
++			return_code = deregister_disk(h, i, 1);
+ 			h->drv[i].busy_configuring = 0;
+ 		}
+ 	}
+@@ -1764,15 +1762,19 @@ mem_msg:
+  *             the highest_lun should be left unchanged and the LunID
+  *             should not be cleared.
+ */
+-static int deregister_disk(struct gendisk *disk, drive_info_struct *drv,
++static int deregister_disk(ctlr_info_t *h, int drv_index,
+ 			   int clear_all)
+ {
+ 	int i;
+-	ctlr_info_t *h = get_host(disk);
++	struct gendisk *disk;
++	drive_info_struct *drv;
+ 
+ 	if (!capable(CAP_SYS_RAWIO))
+ 		return -EPERM;
+ 
++	drv = &h->drv[drv_index];
++	disk = h->gendisk[drv_index];
 +
-+		/* skip holes in the array from already deleted drives */
-+		if (h->drv[i].raid_level == -1)
-+			continue;
-+
- 		for (j = 0; j < num_luns; j++) {
- 			memcpy(&lunid, &ld_buff->LUN[j][0], 4);
- 			lunid = le32_to_cpu(lunid);
+ 	/* make sure logical volume is NOT is use */
+ 	if (clear_all || (h->gendisk[0] == disk)) {
+ 		if (drv->usage_count > 1)
 _
 
 Patches currently in -mm which might be from scameron@beardog.cca.cpqcorp.net are
 
-cciss-fix-problem-that-deleting-multiple-logical-drives-could-cause-a-panic.patch
 cciss-simplify-parameters-to-deregister_disk-function.patch
+cciss-fix-problem-that-deleting-multiple-logical-drives-could-cause-a-panic.patch
 
