@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + irq-remove-unnecessary-ifdef.patch added to -mm tree
-Date: Wed, 17 Dec 2008 14:55:10 -0800
-Message-ID: <200812172255.mBHMtAG6027945@imap1.linux-foundation.org>
+Subject: + mm-remove-config_out_of_line_pfn_to_page.patch added to -mm tree
+Date: Wed, 17 Dec 2008 14:56:26 -0800
+Message-ID: <200812172256.mBHMuQdJ028815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37251 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752041AbYLQWzc (ORCPT
+	by vger.kernel.org with ESMTP id S1751226AbYLQW4e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Dec 2008 17:55:32 -0500
+	Wed, 17 Dec 2008 17:56:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, yhlu.kernel@gmail.com
+Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     irq: remove unnecessary ifdef
+     mm: remove CONFIG_OUT_OF_LINE_PFN_TO_PAGE
 has been added to the -mm tree.  Its filename is
-     irq-remove-unnecessary-ifdef.patch
+     mm-remove-config_out_of_line_pfn_to_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: irq: remove unnecessary ifdef
+Subject: mm: remove CONFIG_OUT_OF_LINE_PFN_TO_PAGE
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-commit 08678b0841267c1d00d771fe01548d86043d065e introduced
-irq_desc_lock_class variable.
-
-But it is used only if CONFIG_SPARSE_IRQ=Y or CONFIG_TRACE_IRQFLAGS=Y. 
-otherwise, following warnings happend.
-
-	CC      kernel/irq/handle.o
-	kernel/irq/handle.c:26: warning: 'irq_desc_lock_class' defined but not used
-
-Actually, current early_init_irq_lock_class has a bit strange and messy
-ifdef.  In addition, it is not valueable.
-
-1 this function protected by !CONFIG_SPARSE_IRQ.  but it is not
-  necessary.  if CONFIG_SPARSE_IRQ=Y, desc of all irq number are
-  initialized by NULL at first.  then this function calling is safe.
-
-2 this function protected by CONFIG_TRACE_IRQFLAGS too.  but it is
-  not necessary too.  because lockdep_set_class() doesn't have bad side
-  effect even if CONFIG_TRACE_IRQFLAGS=n,
-
-This patch bloat kernel size a bit on CONFIG_TRACE_IRQFLAGS=n and
-CONFIG_SPARSE_IRQ=Y.  that's ok.  early_init_irq_lock_class() is not
-fastpatch at all.
-
-To avoid ifdef mess is more important than a few byte diet.
+No architectures use CONFIG_OUT_OF_LINE_PFN_TO_PAGE - it can be removed.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |    2 +-
- kernel/irq/handle.c     |    5 -----
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ include/asm-generic/memory_model.h |    7 -------
+ mm/page_alloc.c                    |   13 -------------
+ 2 files changed, 20 deletions(-)
 
-diff -puN include/linux/lockdep.h~irq-remove-unnecessary-ifdef include/linux/lockdep.h
---- a/include/linux/lockdep.h~irq-remove-unnecessary-ifdef
-+++ a/include/linux/lockdep.h
-@@ -390,7 +390,7 @@ do {								\
+diff -puN include/asm-generic/memory_model.h~mm-remove-config_out_of_line_pfn_to_page include/asm-generic/memory_model.h
+--- a/include/asm-generic/memory_model.h~mm-remove-config_out_of_line_pfn_to_page
++++ a/include/asm-generic/memory_model.h
+@@ -69,15 +69,8 @@
+ })
+ #endif /* CONFIG_FLATMEM/DISCONTIGMEM/SPARSEMEM */
  
- #endif /* CONFIG_LOCK_STAT */
+-#ifdef CONFIG_OUT_OF_LINE_PFN_TO_PAGE
+-struct page;
+-/* this is useful when inlined pfn_to_page is too big */
+-extern struct page *pfn_to_page(unsigned long pfn);
+-extern unsigned long page_to_pfn(struct page *page);
+-#else
+ #define page_to_pfn __page_to_pfn
+ #define pfn_to_page __pfn_to_page
+-#endif /* CONFIG_OUT_OF_LINE_PFN_TO_PAGE */
  
--#if defined(CONFIG_TRACE_IRQFLAGS) && defined(CONFIG_GENERIC_HARDIRQS)
-+#ifdef CONFIG_GENERIC_HARDIRQS
- extern void early_init_irq_lock_class(void);
- #else
- static inline void early_init_irq_lock_class(void)
-diff -puN kernel/irq/handle.c~irq-remove-unnecessary-ifdef kernel/irq/handle.c
---- a/kernel/irq/handle.c~irq-remove-unnecessary-ifdef
-+++ a/kernel/irq/handle.c
-@@ -417,11 +417,8 @@ out:
+ #endif /* __ASSEMBLY__ */
+ 
+diff -puN mm/page_alloc.c~mm-remove-config_out_of_line_pfn_to_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-config_out_of_line_pfn_to_page
++++ a/mm/page_alloc.c
+@@ -4587,19 +4587,6 @@ void *__init alloc_large_system_hash(con
+ 	return table;
  }
- #endif
  
+-#ifdef CONFIG_OUT_OF_LINE_PFN_TO_PAGE
+-struct page *pfn_to_page(unsigned long pfn)
+-{
+-	return __pfn_to_page(pfn);
+-}
+-unsigned long page_to_pfn(struct page *page)
+-{
+-	return __page_to_pfn(page);
+-}
+-EXPORT_SYMBOL(pfn_to_page);
+-EXPORT_SYMBOL(page_to_pfn);
+-#endif /* CONFIG_OUT_OF_LINE_PFN_TO_PAGE */
 -
--#ifdef CONFIG_TRACE_IRQFLAGS
- void early_init_irq_lock_class(void)
- {
--#ifndef CONFIG_SPARSE_IRQ
- 	struct irq_desc *desc;
- 	int i;
- 
-@@ -431,9 +428,7 @@ void early_init_irq_lock_class(void)
- 
- 		lockdep_set_class(&desc->lock, &irq_desc_lock_class);
- 	}
--#endif
- }
--#endif
- 
- #ifdef CONFIG_SPARSE_IRQ
- unsigned int kstat_irqs_cpu(unsigned int irq, int cpu)
+ /* Return a pointer to the bitmap storing bits affecting a block of pages */
+ static inline unsigned long *get_pageblock_bitmap(struct zone *zone,
+ 							unsigned long pfn)
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -138,6 +118,7 @@ mm-kill-zone_is_near_oom.patch
 mm-make-get_user_pages-interruptible.patch
 mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
 introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
+mm-remove-config_out_of_line_pfn_to_page.patch
 remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
 softirq-introduce-statistics-for-softirq.patch
 proc-export-statistics-for-softirq-to-proc.patch
