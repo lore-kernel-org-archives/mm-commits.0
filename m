@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-symlink-write_begin-allocation-context-fix.patch added to -mm tree
-Date: Thu, 18 Dec 2008 15:11:35 -0800
-Message-ID: <200812182311.mBINBZJ3006951@imap1.linux-foundation.org>
+Subject: + fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch added to -mm tree
+Date: Thu, 18 Dec 2008 15:16:00 -0800
+Message-ID: <200812182316.mBING0w3009985@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34378 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59461 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751339AbYLRXM0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753222AbYLRXQG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Dec 2008 18:12:26 -0500
+	Thu, 18 Dec 2008 18:16:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, kosaki.motohiro@jp.fujitsu.com, stable@kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, npiggin@suse.de
 
 
 The patch titled
-     fs: symlink write_begin allocation context fix
+     fs-symlink-write_begin-allocation-context-fix: reiser4 fix
 has been added to the -mm tree.  Its filename is
-     fs-symlink-write_begin-allocation-context-fix.patch
+     fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,480 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: symlink write_begin allocation context fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: fs-symlink-write_begin-allocation-context-fix: reiser4 fix
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-With the write_begin/write_end aops, page_symlink was broken because it
-could no longer pass a GFP_NOFS type mask into the point where the
-allocations happened.  They are done in write_begin, which would always
-assume that the filesystem can be entered from reclaim.  This bug could
-cause filesystem deadlocks.
+build fix.
 
-The funny thing with having a gfp_t mask there is that it doesn't really
-allow the caller to arbitrarily tinker with the context in which it can be
-called.  It couldn't ever be GFP_ATOMIC, for example, because it needs to
-take the page lock.  The only thing any callers care about is __GFP_FS
-anyway, so turn that into a single flag.
-
-Add a new flag for write_begin, AOP_FLAG_NOFS.  Filesystems can now act on
-this flag in their write_begin function.  Change __grab_cache_page to
-accept a nofs argument as well, to honour that flag (while we're there,
-change the name to grab_cache_page_write_begin which is more instructive
-and does away with random leading underscores).
-
-This is really a more flexible way to go in the end anyway -- if a
-filesystem happens to want any extra allocations aside from the pagecache
-ones in ints write_begin function, it may now use GFP_KERNEL (rather than
-GFP_NOFS) for common case allocations (eg.  ocfs2_alloc_write_ctxt, for a
-random example).
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: <stable@kernel.org>		[2.6.28.x]
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c          |    2 +-
- fs/afs/write.c          |    2 +-
- fs/buffer.c             |    6 ++++--
- fs/cifs/file.c          |    3 ++-
- fs/ecryptfs/mmap.c      |    3 ++-
- fs/ext3/inode.c         |    3 ++-
- fs/ext3/namei.c         |    3 +--
- fs/ext4/inode.c         |    6 ++++--
- fs/ext4/namei.c         |    3 +--
- fs/fuse/file.c          |    3 ++-
- fs/gfs2/ops_address.c   |    3 ++-
- fs/hostfs/hostfs_kern.c |    3 ++-
- fs/jffs2/file.c         |    3 ++-
- fs/libfs.c              |    3 ++-
- fs/namei.c              |   13 +++++++++----
- fs/nfs/file.c           |    3 ++-
- fs/reiserfs/inode.c     |    3 ++-
- fs/smbfs/file.c         |    3 ++-
- fs/ubifs/file.c         |    6 ++++--
- include/linux/fs.h      |    5 ++++-
- include/linux/pagemap.h |    3 ++-
- mm/filemap.c            |   13 +++++++++----
- 22 files changed, 62 insertions(+), 33 deletions(-)
+ fs/reiser4/plugin/file/file_conversion.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/affs/file.c~fs-symlink-write_begin-allocation-context-fix fs/affs/file.c
---- a/fs/affs/file.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/affs/file.c
-@@ -628,7 +628,7 @@ static int affs_write_begin_ofs(struct f
- 	}
+diff -puN fs/reiser4/plugin/file/file_conversion.c~fs-symlink-write_begin-allocation-context-fix-reiser4-fix fs/reiser4/plugin/file/file_conversion.c
+--- a/fs/reiser4/plugin/file/file_conversion.c~fs-symlink-write_begin-allocation-context-fix-reiser4-fix
++++ a/fs/reiser4/plugin/file/file_conversion.c
+@@ -686,7 +686,8 @@ int reiser4_write_begin_careful(struct f
+ 	start = pos & (PAGE_CACHE_SIZE - 1);
+ 	end = start + len;
  
- 	index = pos >> PAGE_CACHE_SHIFT;
 -	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index, flags&AOP_FLAG_NOFS);
- 	if (!page)
- 		return -ENOMEM;
++	page = grab_cache_page_write_begin(mapping, index,
++					   flags & AOP_FLAG_NOFS);
  	*pagep = page;
-diff -puN fs/afs/write.c~fs-symlink-write_begin-allocation-context-fix fs/afs/write.c
---- a/fs/afs/write.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/afs/write.c
-@@ -144,7 +144,7 @@ int afs_write_begin(struct file *file, s
- 	candidate->state = AFS_WBACK_PENDING;
- 	init_waitqueue_head(&candidate->waitq);
- 
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index, flags&AOP_FLAG_NOFS);
- 	if (!page) {
- 		kfree(candidate);
- 		return -ENOMEM;
-diff -puN fs/buffer.c~fs-symlink-write_begin-allocation-context-fix fs/buffer.c
---- a/fs/buffer.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/buffer.c
-@@ -1988,7 +1988,8 @@ int block_write_begin(struct file *file,
- 	page = *pagep;
- 	if (page == NULL) {
- 		ownpage = 1;
--		page = __grab_cache_page(mapping, index);
-+		page = grab_cache_page_write_begin(mapping, index,
-+						flags & AOP_FLAG_NOFS);
- 		if (!page) {
- 			status = -ENOMEM;
- 			goto out;
-@@ -2494,7 +2495,8 @@ int nobh_write_begin(struct file *file, 
- 	from = pos & (PAGE_CACHE_SIZE - 1);
- 	to = from + len;
- 
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
  	if (!page)
  		return -ENOMEM;
- 	*pagep = page;
-diff -puN fs/cifs/file.c~fs-symlink-write_begin-allocation-context-fix fs/cifs/file.c
---- a/fs/cifs/file.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/cifs/file.c
-@@ -2073,7 +2073,8 @@ static int cifs_write_begin(struct file 
- 
- 	cFYI(1, ("write_begin from %lld len %d", (long long)pos, len));
- 
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+			flags & AOP_FLAG_NOFS);
- 	if (!page) {
- 		rc = -ENOMEM;
- 		goto out;
-diff -puN fs/ecryptfs/mmap.c~fs-symlink-write_begin-allocation-context-fix fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/ecryptfs/mmap.c
-@@ -288,7 +288,8 @@ static int ecryptfs_write_begin(struct f
- 	loff_t prev_page_end_size;
- 	int rc = 0;
- 
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!page)
- 		return -ENOMEM;
- 	*pagep = page;
-diff -puN fs/ext3/inode.c~fs-symlink-write_begin-allocation-context-fix fs/ext3/inode.c
---- a/fs/ext3/inode.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/ext3/inode.c
-@@ -1160,7 +1160,8 @@ static int ext3_write_begin(struct file 
- 	to = from + len;
- 
- retry:
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!page)
- 		return -ENOMEM;
- 	*pagep = page;
-diff -puN fs/ext3/namei.c~fs-symlink-write_begin-allocation-context-fix fs/ext3/namei.c
---- a/fs/ext3/namei.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/ext3/namei.c
-@@ -2170,8 +2170,7 @@ retry:
- 		 * We have a transaction open.  All is sweetness.  It also sets
- 		 * i_size in generic_commit_write().
- 		 */
--		err = __page_symlink(inode, symname, l,
--				mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
-+		err = __page_symlink(inode, symname, l, 1);
- 		if (err) {
- 			drop_nlink(inode);
- 			ext3_mark_inode_dirty(handle, inode);
-diff -puN fs/ext4/inode.c~fs-symlink-write_begin-allocation-context-fix fs/ext4/inode.c
---- a/fs/ext4/inode.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/ext4/inode.c
-@@ -1345,7 +1345,8 @@ retry:
- 		goto out;
- 	}
- 
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!page) {
- 		ext4_journal_stop(handle);
- 		ret = -ENOMEM;
-@@ -2549,7 +2550,8 @@ retry:
- 		goto out;
- 	}
- 
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!page) {
- 		ext4_journal_stop(handle);
- 		ret = -ENOMEM;
-diff -puN fs/ext4/namei.c~fs-symlink-write_begin-allocation-context-fix fs/ext4/namei.c
---- a/fs/ext4/namei.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/ext4/namei.c
-@@ -2208,8 +2208,7 @@ retry:
- 		 * We have a transaction open.  All is sweetness.  It also sets
- 		 * i_size in generic_commit_write().
- 		 */
--		err = __page_symlink(inode, symname, l,
--				mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
-+		err = __page_symlink(inode, symname, l, 1);
- 		if (err) {
- 			clear_nlink(inode);
- 			ext4_mark_inode_dirty(handle, inode);
-diff -puN fs/fuse/file.c~fs-symlink-write_begin-allocation-context-fix fs/fuse/file.c
---- a/fs/fuse/file.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/fuse/file.c
-@@ -646,7 +646,8 @@ static int fuse_write_begin(struct file 
- {
- 	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
- 
--	*pagep = __grab_cache_page(mapping, index);
-+	*pagep = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!*pagep)
- 		return -ENOMEM;
- 	return 0;
-diff -puN fs/gfs2/ops_address.c~fs-symlink-write_begin-allocation-context-fix fs/gfs2/ops_address.c
---- a/fs/gfs2/ops_address.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/gfs2/ops_address.c
-@@ -675,7 +675,8 @@ static int gfs2_write_begin(struct file 
- 		goto out_trans_fail;
- 
- 	error = -ENOMEM;
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	*pagep = page;
- 	if (unlikely(!page))
- 		goto out_endtrans;
-diff -puN fs/hostfs/hostfs_kern.c~fs-symlink-write_begin-allocation-context-fix fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -501,7 +501,8 @@ int hostfs_write_begin(struct file *file
- {
- 	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
- 
--	*pagep = __grab_cache_page(mapping, index);
-+	*pagep = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!*pagep)
- 		return -ENOMEM;
- 	return 0;
-diff -puN fs/jffs2/file.c~fs-symlink-write_begin-allocation-context-fix fs/jffs2/file.c
---- a/fs/jffs2/file.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/jffs2/file.c
-@@ -132,7 +132,8 @@ static int jffs2_write_begin(struct file
- 	uint32_t pageofs = index << PAGE_CACHE_SHIFT;
- 	int ret = 0;
- 
--	pg = __grab_cache_page(mapping, index);
-+	pg = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!pg)
- 		return -ENOMEM;
- 	*pagep = pg;
-diff -puN fs/libfs.c~fs-symlink-write_begin-allocation-context-fix fs/libfs.c
---- a/fs/libfs.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/libfs.c
-@@ -360,7 +360,8 @@ int simple_write_begin(struct file *file
- 	index = pos >> PAGE_CACHE_SHIFT;
- 	from = pos & (PAGE_CACHE_SIZE - 1);
- 
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!page)
- 		return -ENOMEM;
- 
-diff -puN fs/namei.c~fs-symlink-write_begin-allocation-context-fix fs/namei.c
---- a/fs/namei.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/namei.c
-@@ -2786,18 +2786,23 @@ void page_put_link(struct dentry *dentry
- 	}
- }
- 
--int __page_symlink(struct inode *inode, const char *symname, int len,
--		gfp_t gfp_mask)
-+/*
-+ * The nofs argument instructs pagecache_write_begin to pass AOP_FLAG_NOFS
-+ */
-+int __page_symlink(struct inode *inode, const char *symname, int len, int nofs)
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	struct page *page;
- 	void *fsdata;
- 	int err;
- 	char *kaddr;
-+	unsigned int flags = AOP_FLAG_UNINTERRUPTIBLE;
-+	if (nofs)
-+		flags |= AOP_FLAG_NOFS;
- 
- retry:
- 	err = pagecache_write_begin(NULL, mapping, 0, len-1,
--				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
-+				flags, &page, &fsdata);
- 	if (err)
- 		goto fail;
- 
-@@ -2821,7 +2826,7 @@ fail:
- int page_symlink(struct inode *inode, const char *symname, int len)
- {
- 	return __page_symlink(inode, symname, len,
--			mapping_gfp_mask(inode->i_mapping));
-+			!(mapping_gfp_mask(inode->i_mapping) & __GFP_FS));
- }
- 
- const struct inode_operations page_symlink_inode_operations = {
-diff -puN fs/nfs/file.c~fs-symlink-write_begin-allocation-context-fix fs/nfs/file.c
---- a/fs/nfs/file.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/nfs/file.c
-@@ -354,7 +354,8 @@ static int nfs_write_begin(struct file *
- 		file->f_path.dentry->d_name.name,
- 		mapping->host->i_ino, len, (long long) pos);
- 
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!page)
- 		return -ENOMEM;
- 	*pagep = page;
-diff -puN fs/reiserfs/inode.c~fs-symlink-write_begin-allocation-context-fix fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/reiserfs/inode.c
-@@ -2556,7 +2556,8 @@ static int reiserfs_write_begin(struct f
- 	}
- 
- 	index = pos >> PAGE_CACHE_SHIFT;
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!page)
- 		return -ENOMEM;
- 	*pagep = page;
-diff -puN fs/smbfs/file.c~fs-symlink-write_begin-allocation-context-fix fs/smbfs/file.c
---- a/fs/smbfs/file.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/smbfs/file.c
-@@ -297,7 +297,8 @@ static int smb_write_begin(struct file *
- 			struct page **pagep, void **fsdata)
- {
- 	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
--	*pagep = __grab_cache_page(mapping, index);
-+	*pagep = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (!*pagep)
- 		return -ENOMEM;
- 	return 0;
-diff -puN fs/ubifs/file.c~fs-symlink-write_begin-allocation-context-fix fs/ubifs/file.c
---- a/fs/ubifs/file.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/fs/ubifs/file.c
-@@ -247,7 +247,8 @@ static int write_begin_slow(struct addre
- 	if (unlikely(err))
- 		return err;
- 
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (unlikely(!page)) {
- 		ubifs_release_budget(c, &req);
- 		return -ENOMEM;
-@@ -438,7 +439,8 @@ static int ubifs_write_begin(struct file
- 		return -EROFS;
- 
- 	/* Try out the fast-path part first */
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					flags & AOP_FLAG_NOFS);
- 	if (unlikely(!page))
- 		return -ENOMEM;
- 
-diff -puN include/linux/fs.h~fs-symlink-write_begin-allocation-context-fix include/linux/fs.h
---- a/include/linux/fs.h~fs-symlink-write_begin-allocation-context-fix
-+++ a/include/linux/fs.h
-@@ -414,6 +414,9 @@ enum positive_aop_returns {
- 
- #define AOP_FLAG_UNINTERRUPTIBLE	0x0001 /* will not do a short write */
- #define AOP_FLAG_CONT_EXPAND		0x0002 /* called from cont_expand */
-+#define AOP_FLAG_NOFS			0x0004 /* used by filesystem to direct
-+						* helper code (eg buffer layer)
-+						* to clear GFP_FS from alloc */
- 
- /*
-  * oh the beauties of C type declarations.
-@@ -2023,7 +2026,7 @@ extern int page_readlink(struct dentry *
- extern void *page_follow_link_light(struct dentry *, struct nameidata *);
- extern void page_put_link(struct dentry *, struct nameidata *, void *);
- extern int __page_symlink(struct inode *inode, const char *symname, int len,
--		gfp_t gfp_mask);
-+		int nofs);
- extern int page_symlink(struct inode *inode, const char *symname, int len);
- extern const struct inode_operations page_symlink_inode_operations;
- extern int generic_readlink(struct dentry *, char __user *, int);
-diff -puN include/linux/pagemap.h~fs-symlink-write_begin-allocation-context-fix include/linux/pagemap.h
---- a/include/linux/pagemap.h~fs-symlink-write_begin-allocation-context-fix
-+++ a/include/linux/pagemap.h
-@@ -241,7 +241,8 @@ unsigned find_get_pages_contig(struct ad
- unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
- 			int tag, unsigned int nr_pages, struct page **pages);
- 
--struct page *__grab_cache_page(struct address_space *mapping, pgoff_t index);
-+struct page *grab_cache_page_write_begin(struct address_space *mapping,
-+			pgoff_t index, int nofs);
- 
- /*
-  * Returns locked page at given index in given cache, creating it if needed.
-diff -puN mm/filemap.c~fs-symlink-write_begin-allocation-context-fix mm/filemap.c
---- a/mm/filemap.c~fs-symlink-write_begin-allocation-context-fix
-+++ a/mm/filemap.c
-@@ -2140,19 +2140,24 @@ EXPORT_SYMBOL(generic_file_direct_write)
-  * Find or create a page at the given pagecache position. Return the locked
-  * page. This function is specifically for buffered writes.
-  */
--struct page *__grab_cache_page(struct address_space *mapping, pgoff_t index)
-+struct page *grab_cache_page_write_begin(struct address_space *mapping,
-+					pgoff_t index, int nofs)
- {
- 	int status;
- 	struct page *page;
-+	gfp_t gfp_notmask = 0;
-+	if (nofs)
-+		gfp_notmask = __GFP_FS;
- repeat:
- 	page = find_lock_page(mapping, index);
- 	if (likely(page))
- 		return page;
- 
--	page = page_cache_alloc(mapping);
-+	page = __page_cache_alloc(mapping_gfp_mask(mapping) & ~gfp_notmask);
- 	if (!page)
- 		return NULL;
--	status = add_to_page_cache_lru(page, mapping, index, GFP_KERNEL);
-+	status = add_to_page_cache_lru(page, mapping, index,
-+						GFP_KERNEL & ~gfp_notmask);
- 	if (unlikely(status)) {
- 		page_cache_release(page);
- 		if (status == -EEXIST)
-@@ -2161,7 +2166,7 @@ repeat:
- 	}
- 	return page;
- }
--EXPORT_SYMBOL(__grab_cache_page);
-+EXPORT_SYMBOL(grab_cache_page_write_begin);
- 
- static ssize_t generic_perform_write(struct file *file,
- 				struct iov_iter *i, loff_t pos)
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 fs-symlink-write_begin-allocation-context-fix.patch
 fs-symlink-write_begin-allocation-context-fix-ubifs-fix.patch
 fs-symlink-write_begin-allocation-context-fix-fuse-fix.patch
 linux-next.patch
-mm-dont-mark_page_accessed-in-fault-path.patch
-mm-dont-mark_page_accessed-in-shmem_fault.patch
-mm-invoke-oom-killer-from-page-fault.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-cyclic-fix.patch
-mm-write_cache_pages-cyclic-fix-fix.patch
-mm-write_cache_pages-early-loop-termination.patch
-mm-write_cache_pages-writepage-error-fix.patch
-mm-write_cache_pages-integrity-fix.patch
-mm-write_cache_pages-cleanups.patch
-mm-write_cache_pages-optimise-page-cleaning.patch
-mm-write_cache_pages-terminate-quickly.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-mm-do_sync_mapping_range-integrity-fix.patch
+proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+oom-fix-zone_scan_mutex-name.patch
 mm-get-rid-of-pagevec_release_nonlru.patch
+cleanup-get-rid-of-ifdef-config_migration.patch
 mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-vmalloc-tweak-failure-printk.patch
-mm-vmalloc-improve-vmallocinfo.patch
-mm-vmalloc-use-mutex-for-purge.patch
-mm-vmalloc-make-lazy-unmapping-configurable.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-hugetlb-unsigned-ret-cannot-be-negative.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-direct-io-starvation-improvement.patch
-fs-remove-wb_sync_hold.patch
-fs-sync_sb_inodes-fix.patch
-fs-sys_sync-fix.patch
-radix-tree-gang-set-if-tagged-operation.patch
-mm-pagecache-gfp-flags-fix.patch
-reiser4.patch
+mm-make-page_lock_anon_vma-static.patch
+memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
+mm-make-init_section_page_cgroup-static.patch
+mm-make-maddr-__iomem.patch
+mm-make-mem_cgroup_resize_limit-static.patch
+mm-make-scan_all_zones_unevictable_pages-static.patch
+mm-make-scan_zone_unevictable_pages-static.patch
+mm-make-setup_per_zone_inactive_ratio-static.patch
+mm-make-vread-and-vwrite-declaration.patch
+vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
+vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
+mm-kill-zone_is_near_oom.patch
+mm-make-get_user_pages-interruptible.patch
+mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
+introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
+mm-remove-config_out_of_line_pfn_to_page.patch
+mm-kill-page_queue_congested.patch
+remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
+sys_execve-and-sys_uselib-do-not-call-into-fsnotify.patch
+profile-dont-include-asm-ptraceh-twice.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+irq-remove-unnecessary-ifdef.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-fix-calclation-of-active_ratio.patch
+memcg-fix-calclation-of-active_ratio-build-error-fix.patch
+memcg-show-real-limit-under-hierarchy-mode.patch
+memcg-explain-details-and-test-document.patch
+ia64-implement-interrupt-enabling-rwlocks-fix.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
