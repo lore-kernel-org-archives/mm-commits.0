@@ -1,107 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + net-bridge-netfilter-move-a-dereference-below-a-null-test.patch added to -mm tree
-Date: Thu, 18 Dec 2008 13:10:54 -0800
-Message-ID: <200812182110.mBILAsRE022173@imap1.linux-foundation.org>
+Subject: - driver-core-fix-duplicate-removal-of-driver-link-in-__device_release_driver.patch removed from -mm tree
+Date: Thu, 18 Dec 2008 14:37:11 -0800
+Message-ID: <200812182237.mBIMbCSb015898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752306AbYLRVK6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752371AbYLRWhm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Dec 2008 16:10:58 -0500
+	Thu, 18 Dec 2008 17:37:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk
+To: tom.leiming@gmail.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/bridge/netfilter: move a dereference below a NULL test
-has been added to the -mm tree.  Its filename is
-     net-bridge-netfilter-move-a-dereference-below-a-null-test.patch
+     driver core: fix duplicate removal of driver link in __device_release_driver
+has been removed from the -mm tree.  Its filename was
+     driver-core-fix-duplicate-removal-of-driver-link-in-__device_release_driver.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/bridge/netfilter: move a dereference below a NULL test
-From: Julia Lawall <julia@diku.dk>
+Subject: driver core: fix duplicate removal of driver link in __device_release_driver
+From: Ming Lei <tom.leiming@gmail.com>
 
-In each case, if the NULL test is necessary, then the dereference should be
-moved below the NULL test.
+In __device_release_driver(), driver_sysfs_remove() has removed the driver
+link under device dir in sysfs, but sysfs_remove_link() is called again to
+do such thing.  Remove the duplicate call to sys_remove_link().
 
-The semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-type T;
-expression E;
-identifier i,fld;
-statement S;
-@@
-
-- T i = E->fld;
-+ T i;
-  ... when != E
-      when != i
-  if (E == NULL) S
-+ i = E->fld;
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/netfilter/ebtables.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/base/dd.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN net/bridge/netfilter/ebtables.c~net-bridge-netfilter-move-a-dereference-below-a-null-test net/bridge/netfilter/ebtables.c
---- a/net/bridge/netfilter/ebtables.c~net-bridge-netfilter-move-a-dereference-below-a-null-test
-+++ a/net/bridge/netfilter/ebtables.c
-@@ -85,12 +85,13 @@ static inline int ebt_do_match (struct e
- static inline int ebt_dev_check(char *entry, const struct net_device *device)
- {
- 	int i = 0;
--	const char *devname = device->name;
-+	const char *devname;
+diff -puN drivers/base/dd.c~driver-core-fix-duplicate-removal-of-driver-link-in-__device_release_driver drivers/base/dd.c
+--- a/drivers/base/dd.c~driver-core-fix-duplicate-removal-of-driver-link-in-__device_release_driver
++++ a/drivers/base/dd.c
+@@ -298,7 +298,6 @@ static void __device_release_driver(stru
+ 	drv = dev->driver;
+ 	if (drv) {
+ 		driver_sysfs_remove(dev);
+-		sysfs_remove_link(&dev->kobj, "driver");
  
- 	if (*entry == '\0')
- 		return 0;
- 	if (!device)
- 		return 1;
-+	devname = device->name;
- 	/* 1 is the wildcard token */
- 	while (entry[i] != '\0' && entry[i] != 1 && entry[i] == devname[i])
- 		i++;
+ 		if (dev->bus)
+ 			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from tom.leiming@gmail.com are
 
-origin.patch
 linux-next.patch
-arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-powerpc-powermac-add-missing-of_node_put.patch
-net-tipc-bcasth-use-array_size.patch
-fs-namespacec-drop-code-after-return.patch
-mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc.patch
-drivers-rtc-correct-an-error-test.patch
-drivers-isdn-hardware-misdn-move-a-dereference-below-a-null-test.patch
-drivers-mmc-move-a-dereference-below-a-null-test.patch
-drivers-net-hamradio-6packc-move-a-dereference-below-a-null-test.patch
-drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch
-drivers-scsi-move-a-dereference-below-a-null-test.patch
-drivers-spi-move-a-dereference-below-a-null-test.patch
-net-bridge-netfilter-move-a-dereference-below-a-null-test.patch
+driver-core-fix-duplicate-removal-of-driver-link-in-__device_release_driver.patch
 
