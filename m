@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch added to -mm tree
-Date: Thu, 18 Dec 2008 13:10:48 -0800
-Message-ID: <200812182110.mBILAnYN022138@imap1.linux-foundation.org>
+Subject: + net-bridge-netfilter-move-a-dereference-below-a-null-test.patch added to -mm tree
+Date: Thu, 18 Dec 2008 13:10:54 -0800
+Message-ID: <200812182110.mBILAsRE022173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42523 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44635 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752305AbYLRVLF (ORCPT
+	by vger.kernel.org with ESMTP id S1752306AbYLRVK6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Dec 2008 16:11:05 -0500
+	Thu, 18 Dec 2008 16:10:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, dcbw@redhat.com
+Cc: julia@diku.dk
 
 
 The patch titled
-     drivers/net/wireless/libertas: move a dereference below a NULL test
+     net/bridge/netfilter: move a dereference below a NULL test
 has been added to the -mm tree.  Its filename is
-     drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch
+     net-bridge-netfilter-move-a-dereference-below-a-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/libertas: move a dereference below a NULL test
+Subject: net/bridge/netfilter: move a dereference below a NULL test
 From: Julia Lawall <julia@diku.dk>
 
 In each case, if the NULL test is necessary, then the dereference should be
-moved below the NULL test.  I have also taken advantage of the availability
-of the value of priv->dev in the subsequent calls to netif_stop_queue and
-netif_carrier_off.
+moved below the NULL test.
 
 The semantic patch that makes this change is as follows:
 (http://www.emn.fr/x-info/coccinelle/)
@@ -62,38 +60,30 @@ statement S;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Dan Williams <dcbw@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas/main.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ net/bridge/netfilter/ebtables.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/libertas/main.c~drivers-net-wireless-libertas-move-a-dereference-below-a-null-test drivers/net/wireless/libertas/main.c
---- a/drivers/net/wireless/libertas/main.c~drivers-net-wireless-libertas-move-a-dereference-below-a-null-test
-+++ a/drivers/net/wireless/libertas/main.c
-@@ -1369,7 +1369,7 @@ EXPORT_SYMBOL_GPL(lbs_start_card);
- 
- void lbs_stop_card(struct lbs_private *priv)
+diff -puN net/bridge/netfilter/ebtables.c~net-bridge-netfilter-move-a-dereference-below-a-null-test net/bridge/netfilter/ebtables.c
+--- a/net/bridge/netfilter/ebtables.c~net-bridge-netfilter-move-a-dereference-below-a-null-test
++++ a/net/bridge/netfilter/ebtables.c
+@@ -85,12 +85,13 @@ static inline int ebt_do_match (struct e
+ static inline int ebt_dev_check(char *entry, const struct net_device *device)
  {
--	struct net_device *dev = priv->dev;
-+	struct net_device *dev;
- 	struct cmd_ctrl_node *cmdnode;
- 	unsigned long flags;
+ 	int i = 0;
+-	const char *devname = device->name;
++	const char *devname;
  
-@@ -1377,9 +1377,10 @@ void lbs_stop_card(struct lbs_private *p
- 
- 	if (!priv)
- 		goto out;
-+	dev = priv->dev;
- 
--	netif_stop_queue(priv->dev);
--	netif_carrier_off(priv->dev);
-+	netif_stop_queue(dev);
-+	netif_carrier_off(dev);
- 
- 	lbs_debugfs_remove_one(priv);
- 	if (priv->mesh_tlv) {
+ 	if (*entry == '\0')
+ 		return 0;
+ 	if (!device)
+ 		return 1;
++	devname = device->name;
+ 	/* 1 is the wildcard token */
+ 	while (entry[i] != '\0' && entry[i] != 1 && entry[i] == devname[i])
+ 		i++;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
