@@ -1,672 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - battery-add-dialog-da9030-battery-charger-driver.patch removed from -mm tree
-Date: Thu, 18 Dec 2008 14:52:54 -0800
-Message-ID: <200812182252.mBIMqsbW026670@imap1.linux-foundation.org>
+Subject: + fs-symlink-write_begin-allocation-context-fix-fuse-fix.patch added to -mm tree
+Date: Thu, 18 Dec 2008 15:11:43 -0800
+Message-ID: <200812182311.mBINBhVA007069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43302 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752679AbYLRWxq (ORCPT
+	by vger.kernel.org with ESMTP id S1751771AbYLRXMS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Dec 2008 17:53:46 -0500
+	Thu, 18 Dec 2008 18:12:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike@compulab.co.il, cbouatmailru@gmail.com, dwmw2@infradead.org, eric.miao@marvell.com, jic23@cam.ac.uk, sameo@openedhand.com, samuel@sortiz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, npiggin@suse.de
 
 
 The patch titled
-     battery: add Dialog DA9030 battery charger driver
-has been removed from the -mm tree.  Its filename was
-     battery-add-dialog-da9030-battery-charger-driver.patch
+     fs-symlink-write_begin-allocation-context-fix: fuse fix
+has been added to the -mm tree.  Its filename is
+     fs-symlink-write_begin-allocation-context-fix-fuse-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: battery: add Dialog DA9030 battery charger driver
-From: Mike Rapoport <mike@compulab.co.il>
+Subject: fs-symlink-write_begin-allocation-context-fix: fuse fix
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Driver for battery charger integrated into Dialog Semiconductor DA9030 PMIC.
+build fix.
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-Cc: Eric Miao <eric.miao@marvell.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: Samuel Ortiz <sameo@openedhand.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/Kconfig          |    7 
- drivers/power/Makefile         |    1 
- drivers/power/da9030_battery.c |  592 +++++++++++++++++++++++++++++++
- 3 files changed, 600 insertions(+)
+ fs/fuse/file.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/power/Kconfig~battery-add-dialog-da9030-battery-charger-driver drivers/power/Kconfig
---- a/drivers/power/Kconfig~battery-add-dialog-da9030-battery-charger-driver
-+++ a/drivers/power/Kconfig
-@@ -75,4 +75,11 @@ config BATTERY_BQ27x00
- 	help
- 	  Say Y here to enable support for batteries with BQ27200(I2C) chip.
+diff -puN fs/fuse/file.c~fs-symlink-write_begin-allocation-context-fix-fuse-fix fs/fuse/file.c
+--- a/fs/fuse/file.c~fs-symlink-write_begin-allocation-context-fix-fuse-fix
++++ a/fs/fuse/file.c
+@@ -780,7 +780,7 @@ static ssize_t fuse_fill_write_pages(str
+ 			break;
  
-+config BATTERY_DA903X
-+	tristate "DA903x battery driver"
-+	depends on PMIC_DA903X
-+	help
-+	  Say Y here to enable support for batteries charger integrated into
-+	  DA9030/DA9030 PMICs.
-+
- endif # POWER_SUPPLY
-diff -puN drivers/power/Makefile~battery-add-dialog-da9030-battery-charger-driver drivers/power/Makefile
---- a/drivers/power/Makefile~battery-add-dialog-da9030-battery-charger-driver
-+++ a/drivers/power/Makefile
-@@ -24,3 +24,4 @@ obj-$(CONFIG_BATTERY_OLPC)	+= olpc_batte
- obj-$(CONFIG_BATTERY_TOSA)	+= tosa_battery.o
- obj-$(CONFIG_BATTERY_WM97XX)	+= wm97xx_battery.o
- obj-$(CONFIG_BATTERY_BQ27x00)	+= bq27x00_battery.o
-+obj-$(CONFIG_BATTERY_DA903X)	+= da903x_battery.o
-diff -puN /dev/null drivers/power/da9030_battery.c
---- /dev/null
-+++ a/drivers/power/da9030_battery.c
-@@ -0,0 +1,592 @@
-+/*
-+ * Battery charger driver for Dialog Semiconductor DA9030
-+ *
-+ * Copyright (C) 2008 Compulab, Ltd.
-+ * 	Mike Rapoport <mike@compulab.co.il>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/power_supply.h>
-+#include <linux/mfd/da903x.h>
-+
-+#ifdef CONFIG_DEBUG_FS
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+#endif
-+
-+#define DA9030_STATUS_CHDET	(1 << 3)
-+
-+#define DA9030_FAULT_LOG		0x0a
-+#define DA9030_FAULT_LOG_OVER_TEMP	(1 << 7)
-+#define DA9030_FAULT_LOG_VBAT_OVER	(1 << 4)
-+
-+#define DA9030_CHARGE_CONTROL		0x28
-+#define DA9030_CHRG_CHARGER_ENABLE	(1 << 7)
-+
-+#define DA9030_ADC_MAN_CONTROL		0x30
-+#define DA9030_ADC_TBATREF_ENABLE	(1 << 5)
-+#define DA9030_ADC_LDO_INT_ENABLE	(1 << 4)
-+
-+#define DA9030_ADC_AUTO_CONTROL		0x31
-+#define DA9030_ADC_TBAT_ENABLE		(1 << 5)
-+#define DA9030_ADC_VBAT_IN_TXON		(1 << 4)
-+#define DA9030_ADC_VCH_ENABLE		(1 << 3)
-+#define DA9030_ADC_ICH_ENABLE		(1 << 2)
-+#define DA9030_ADC_VBAT_ENABLE		(1 << 1)
-+#define DA9030_ADC_AUTO_SLEEP_ENABLE	(1 << 0)
-+
-+#define DA9030_VBATMON		0x32
-+#define DA9030_VBATMONTXON	0x33
-+#define DA9030_TBATHIGHP	0x34
-+#define DA9030_TBATHIGHN	0x35
-+#define DA9030_TBATLOW		0x36
-+
-+#define DA9030_VBAT_RES		0x41
-+#define DA9030_VBATMIN_RES	0x42
-+#define DA9030_VBATMINTXON_RES	0x43
-+#define DA9030_ICHMAX_RES	0x44
-+#define DA9030_ICHMIN_RES	0x45
-+#define DA9030_ICHAVERAGE_RES	0x46
-+#define DA9030_VCHMAX_RES	0x47
-+#define DA9030_VCHMIN_RES	0x48
-+#define DA9030_TBAT_RES		0x49
-+
-+struct da9030_adc_res {
-+	uint8_t vbat_res;
-+	uint8_t vbatmin_res;
-+	uint8_t vbatmintxon;
-+	uint8_t ichmax_res;
-+	uint8_t ichmin_res;
-+	uint8_t ichaverage_res;
-+	uint8_t vchmax_res;
-+	uint8_t vchmin_res;
-+	uint8_t tbat_res;
-+	uint8_t adc_in4_res;
-+	uint8_t adc_in5_res;
-+};
-+
-+struct da9030_battery_thresholds {
-+	int tbat_low;
-+	int tbat_high;
-+	int tbat_restart;
-+
-+	int vbat_low;
-+	int vbat_crit;
-+	int vbat_charge_start;
-+	int vbat_charge_stop;
-+	int vbat_charge_restart;
-+
-+	int vcharge_min;
-+	int vcharge_max;
-+};
-+
-+struct da9030_charger {
-+	struct power_supply psy;
-+
-+	struct device *master;
-+
-+	struct da9030_adc_res adc;
-+	struct delayed_work work;
-+	unsigned int interval;
-+
-+	struct power_supply_info *battery_info;
-+
-+	struct da9030_battery_thresholds thresholds;
-+
-+	unsigned int charge_milliamp;
-+	unsigned int charge_millivolt;
-+
-+	/* charger status */
-+	int chdet:1;
-+	uint8_t fault;
-+	int mA;
-+	int mV;
-+	int is_on;
-+
-+	struct notifier_block nb;
-+
-+	/* platform callbacks for battery low and critical events */
-+	void (*battery_low)(void);
-+	void (*battery_critical)(void);
-+
-+#ifdef CONFIG_DEBUG_FS
-+	struct dentry *debug_file;
-+#endif
-+};
-+
-+#ifdef CONFIG_DEBUG_FS
-+
-+static inline int da9030_reg_to_mV(int reg)
-+{
-+	return ((reg * 2650) >> 8) + 2650;
-+}
-+
-+static inline int da9030_millivolt_to_reg(int mV)
-+{
-+	return ((mV - 2650) << 8) / 2650;
-+}
-+
-+static inline int da9030_reg_to_mA(int reg)
-+{
-+	return ((reg * 24000) >> 8) / 15;
-+}
-+
-+static int bat_debug_show(struct seq_file *s, void *data)
-+{
-+	struct da9030_charger *charger = s->private;
-+
-+	seq_printf(s, "charger is %s\n", charger->is_on ? "on" : "off");
-+	if (charger->chdet) {
-+		seq_printf(s, "iset = %dmA, vset = %dmV\n",
-+			   charger->mA, charger->mV);
-+	}
-+
-+	seq_printf(s, "vbat_res = %d (%dmV)\n",
-+		   charger->adc.vbat_res,
-+		   da9030_reg_to_mV(charger->adc.vbat_res));
-+	seq_printf(s, "vbatmin_res = %d (%dmV)\n",
-+		   charger->adc.vbatmin_res,
-+		   da9030_reg_to_mV(charger->adc.vbatmin_res));
-+	seq_printf(s, "vbatmintxon = %d (%dmV)\n",
-+		   charger->adc.vbatmintxon,
-+		   da9030_reg_to_mV(charger->adc.vbatmintxon));
-+	seq_printf(s, "ichmax_res = %d (%dmA)\n",
-+		   charger->adc.ichmax_res,
-+		   da9030_reg_to_mV(charger->adc.ichmax_res));
-+	seq_printf(s, "ichmin_res = %d (%dmA)\n",
-+		   charger->adc.ichmin_res,
-+		   da9030_reg_to_mA(charger->adc.ichmin_res));
-+	seq_printf(s, "ichaverage_res = %d (%dmA)\n",
-+		   charger->adc.ichaverage_res,
-+		   da9030_reg_to_mA(charger->adc.ichaverage_res));
-+	seq_printf(s, "vchmax_res = %d (%dmV)\n",
-+		   charger->adc.vchmax_res,
-+		   da9030_reg_to_mA(charger->adc.vchmax_res));
-+	seq_printf(s, "vchmin_res = %d (%dmV)\n",
-+		   charger->adc.vchmin_res,
-+		   da9030_reg_to_mV(charger->adc.vchmin_res));
-+
-+	return 0;
-+}
-+
-+static int debug_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, bat_debug_show, inode->i_private);
-+}
-+
-+static const struct file_operations bat_debug_fops = {
-+	.open		= debug_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static struct dentry *da9030_bat_create_debugfs(struct da9030_charger *charger)
-+{
-+	charger->debug_file = debugfs_create_file("charger", 0666, 0, charger,
-+						 &bat_debug_fops);
-+	return charger->debug_file;
-+}
-+
-+static void da9030_bat_remove_debugfs(struct da9030_charger *charger)
-+{
-+	debugfs_remove(charger->debug_file);
-+}
-+#else
-+#define da9030_bat_create_debugfs(x)	NULL
-+#define da9030_bat_remove_debugfs(x)	do {} while (0)
-+#endif
-+
-+static inline void da9030_read_adc(struct da9030_charger *charger,
-+				   struct da9030_adc_res *adc)
-+{
-+	da903x_reads(charger->master, DA9030_VBAT_RES,
-+		     sizeof(*adc), (uint8_t *)adc);
-+}
-+
-+static void da9030_charger_update_state(struct da9030_charger *charger)
-+{
-+	uint8_t val;
-+
-+	da903x_read(charger->master, DA9030_CHARGE_CONTROL, &val);
-+	charger->is_on = (val & DA9030_CHRG_CHARGER_ENABLE) ? 1 : 0;
-+	charger->mA = ((val >> 3) & 0xf) * 100;
-+	charger->mV = (val & 0x7) * 50 + 4000;
-+
-+	da9030_read_adc(charger, &charger->adc);
-+	da903x_read(charger->master, DA9030_FAULT_LOG, &charger->fault);
-+	charger->chdet = da903x_query_status(charger->master,
-+						     DA9030_STATUS_CHDET);
-+}
-+
-+static void da9030_set_charge(struct da9030_charger *charger, int on)
-+{
-+	uint8_t val = 0;
-+
-+	if (on) {
-+		val = DA9030_CHRG_CHARGER_ENABLE;
-+		val |= (charger->charge_milliamp / 100) << 3;
-+		val |= (charger->charge_millivolt - 4000) / 50;
-+		charger->is_on = 1;
-+	} else {
-+		val = 0;
-+		charger->is_on = 0;
-+	}
-+
-+	da903x_write(charger->master, DA9030_CHARGE_CONTROL, val);
-+}
-+
-+static void da9030_charger_check_state(struct da9030_charger *charger)
-+{
-+	da9030_charger_update_state(charger);
-+
-+	/* we wake or boot with external power on */
-+	if (!charger->is_on) {
-+		if ((charger->chdet) &&
-+		    (charger->adc.vbat_res <
-+		     charger->thresholds.vbat_charge_start)) {
-+			da9030_set_charge(charger, 1);
-+		}
-+	} else {
-+		if (charger->adc.vbat_res >=
-+		    charger->thresholds.vbat_charge_stop) {
-+			da9030_set_charge(charger, 0);
-+			da903x_write(charger->master, DA9030_VBATMON,
-+				       charger->thresholds.vbat_charge_restart);
-+		} else if (charger->adc.vbat_res >
-+			   charger->thresholds.vbat_low) {
-+			/* we are charging and passed LOW_THRESH,
-+			   so upate DA9030 VBAT threshold
-+			 */
-+			da903x_write(charger->master, DA9030_VBATMON,
-+				     charger->thresholds.vbat_low);
-+		}
-+		if (charger->adc.vchmax_res > charger->thresholds.vcharge_max ||
-+		    charger->adc.vchmin_res < charger->thresholds.vcharge_min ||
-+		    /* Tempreture readings are negative */
-+		    charger->adc.tbat_res < charger->thresholds.tbat_high ||
-+		    charger->adc.tbat_res > charger->thresholds.tbat_low) {
-+			/* disable charger */
-+			da9030_set_charge(charger, 0);
-+		}
-+	}
-+}
-+
-+static void da9030_charging_monitor(struct work_struct *work)
-+{
-+	struct da9030_charger *charger;
-+
-+	charger = container_of(work, struct da9030_charger, work.work);
-+
-+	da9030_charger_check_state(charger);
-+
-+	/* reschedule for the next time */
-+	schedule_delayed_work(&charger->work, charger->interval);
-+}
-+
-+static enum power_supply_property da9030_battery_props[] = {
-+	POWER_SUPPLY_PROP_MODEL_NAME,
-+	POWER_SUPPLY_PROP_STATUS,
-+	POWER_SUPPLY_PROP_HEALTH,
-+	POWER_SUPPLY_PROP_TECHNOLOGY,
-+	POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN,
-+	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
-+	POWER_SUPPLY_PROP_VOLTAGE_NOW,
-+	POWER_SUPPLY_PROP_CURRENT_AVG,
-+};
-+
-+static void da9030_battery_check_status(struct da9030_charger *charger,
-+				    union power_supply_propval *val)
-+{
-+	if (charger->chdet) {
-+		if (charger->is_on)
-+			val->intval = POWER_SUPPLY_STATUS_CHARGING;
-+		else
-+			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
-+	} else {
-+		val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
-+	}
-+}
-+
-+static void da9030_battery_check_health(struct da9030_charger *charger,
-+				    union power_supply_propval *val)
-+{
-+	if (charger->fault & DA9030_FAULT_LOG_OVER_TEMP)
-+		val->intval = POWER_SUPPLY_HEALTH_OVERHEAT;
-+	else if (charger->fault & DA9030_FAULT_LOG_VBAT_OVER)
-+		val->intval = POWER_SUPPLY_HEALTH_OVERVOLTAGE;
-+	else
-+		val->intval = POWER_SUPPLY_HEALTH_GOOD;
-+}
-+
-+static int da9030_battery_get_property(struct power_supply *psy,
-+				   enum power_supply_property psp,
-+				   union power_supply_propval *val)
-+{
-+	struct da9030_charger *charger;
-+	charger = container_of(psy, struct da9030_charger, psy);
-+
-+	switch (psp) {
-+	case POWER_SUPPLY_PROP_STATUS:
-+		da9030_battery_check_status(charger, val);
-+		break;
-+	case POWER_SUPPLY_PROP_HEALTH:
-+		da9030_battery_check_health(charger, val);
-+		break;
-+	case POWER_SUPPLY_PROP_TECHNOLOGY:
-+		val->intval = charger->battery_info->technology;
-+		break;
-+	case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
-+		val->intval = charger->battery_info->voltage_max_design;
-+		break;
-+	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
-+		val->intval = charger->battery_info->voltage_min_design;
-+		break;
-+	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-+		val->intval = da9030_reg_to_mV(charger->adc.vbat_res) * 1000;
-+		break;
-+	case POWER_SUPPLY_PROP_CURRENT_AVG:
-+		val->intval =
-+			da9030_reg_to_mA(charger->adc.ichaverage_res) * 1000;
-+		break;
-+	case POWER_SUPPLY_PROP_MODEL_NAME:
-+		val->strval = charger->battery_info->name;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static void da9030_battery_vbat_event(struct da9030_charger *charger)
-+{
-+	da9030_read_adc(charger, &charger->adc);
-+
-+	if (!charger->is_on) {
-+		if (charger->adc.vbat_res < charger->thresholds.vbat_low) {
-+			/* set VBAT threshold for critical */
-+			da903x_write(charger->master, DA9030_VBATMON,
-+				     charger->thresholds.vbat_crit);
-+			if (charger->battery_low)
-+				charger->battery_low();
-+		} else if (charger->adc.vbat_res <
-+			   charger->thresholds.vbat_crit) {
-+			/* notify the system of battery critical */
-+			if (charger->battery_critical)
-+				charger->battery_critical();
-+		}
-+	}
-+}
-+
-+static int da9030_battery_event(struct notifier_block *nb, unsigned long event,
-+				void *data)
-+{
-+	struct da9030_charger *charger =
-+		container_of(nb, struct da9030_charger, nb);
-+	int status;
-+
-+	switch (event) {
-+	case DA9030_EVENT_CHDET:
-+		status = da903x_query_status(charger->master,
-+					     DA9030_STATUS_CHDET);
-+		da9030_set_charge(charger, status);
-+		break;
-+	case DA9030_EVENT_VBATMON:
-+		da9030_battery_vbat_event(charger);
-+		break;
-+	case DA9030_EVENT_CHIOVER:
-+	case DA9030_EVENT_TBAT:
-+		da9030_set_charge(charger, 0);
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static void da9030_battery_convert_thresholds(struct da9030_charger *charger,
-+					      struct da9030_battery_info *pdata)
-+{
-+	charger->thresholds.tbat_low = pdata->tbat_low;
-+	charger->thresholds.tbat_high = pdata->tbat_high;
-+	charger->thresholds.tbat_restart  = pdata->tbat_restart;
-+
-+	charger->thresholds.vbat_low =
-+		da9030_millivolt_to_reg(pdata->vbat_low);
-+	charger->thresholds.vbat_crit =
-+		da9030_millivolt_to_reg(pdata->vbat_crit);
-+	charger->thresholds.vbat_charge_start =
-+		da9030_millivolt_to_reg(pdata->vbat_charge_start);
-+	charger->thresholds.vbat_charge_stop =
-+		da9030_millivolt_to_reg(pdata->vbat_charge_stop);
-+	charger->thresholds.vbat_charge_restart =
-+		da9030_millivolt_to_reg(pdata->vbat_charge_restart);
-+
-+	charger->thresholds.vcharge_min =
-+		da9030_millivolt_to_reg(pdata->vcharge_min);
-+	charger->thresholds.vcharge_max =
-+		da9030_millivolt_to_reg(pdata->vcharge_max);
-+}
-+
-+static void da9030_battery_setup_psy(struct da9030_charger *charger)
-+{
-+	struct power_supply *psy = &charger->psy;
-+	struct power_supply_info *info = charger->battery_info;
-+
-+	psy->name = info->name;
-+	psy->use_for_apm = info->use_for_apm;
-+	psy->type = POWER_SUPPLY_TYPE_BATTERY;
-+	psy->get_property = da9030_battery_get_property;
-+
-+	psy->properties = da9030_battery_props;
-+	psy->num_properties = ARRAY_SIZE(da9030_battery_props);;
-+};
-+
-+static int da9030_battery_charger_init(struct da9030_charger *charger)
-+{
-+	char v[5];
-+	int ret;
-+
-+	v[0] = v[1] = charger->thresholds.vbat_low;
-+	v[2] = charger->thresholds.tbat_high;
-+	v[3] = charger->thresholds.tbat_restart;
-+	v[4] = charger->thresholds.tbat_low;
-+
-+	ret = da903x_writes(charger->master, DA9030_VBATMON, 5, v);
-+	if (ret)
-+		return ret;
-+
-+	/* enable reference voltage supply for ADC from the LDO_INTERNAL
-+	   regulator. Must be set before ADC measurements can be made. */
-+	ret = da903x_write(charger->master, DA9030_ADC_MAN_CONTROL,
-+			   DA9030_ADC_LDO_INT_ENABLE |
-+			   DA9030_ADC_TBATREF_ENABLE);
-+	if (ret)
-+		return ret;
-+
-+	/* enable auto ADC measuremnts */
-+	return da903x_write(charger->master, DA9030_ADC_AUTO_CONTROL,
-+			    DA9030_ADC_TBAT_ENABLE | DA9030_ADC_VBAT_IN_TXON |
-+			    DA9030_ADC_VCH_ENABLE | DA9030_ADC_ICH_ENABLE |
-+			    DA9030_ADC_VBAT_ENABLE |
-+			    DA9030_ADC_AUTO_SLEEP_ENABLE);
-+}
-+
-+static int da9030_battery_probe(struct platform_device *pdev)
-+{
-+	struct da9030_charger *charger;
-+	struct da9030_battery_info *pdata = pdev->dev.platform_data;
-+	int ret;
-+
-+	if (pdata == NULL)
-+		return -EINVAL;
-+
-+	if (pdata->charge_milliamp >= 1500 ||
-+	    pdata->charge_millivolt < 4000 ||
-+	    pdata->charge_millivolt > 4350)
-+		return -EINVAL;
-+
-+	charger = kzalloc(sizeof(*charger), GFP_KERNEL);
-+	if (charger == NULL)
-+		return -ENOMEM;
-+
-+	charger->master = pdev->dev.parent;
-+
-+	/* 10 seconds between monotor runs unless platfrom defines other
-+	   interval */
-+	charger->interval = msecs_to_jiffies(
-+		(pdata->batmon_interval ? : 10) * 1000);
-+
-+	charger->charge_milliamp = pdata->charge_milliamp;
-+	charger->charge_millivolt = pdata->charge_millivolt;
-+	charger->battery_info = pdata->battery_info;
-+	charger->battery_low = pdata->battery_low;
-+	charger->battery_critical = pdata->battery_critical;
-+
-+	da9030_battery_convert_thresholds(charger, pdata);
-+
-+	ret = da9030_battery_charger_init(charger);
-+	if (ret)
-+		goto err_charger_init;
-+
-+	INIT_DELAYED_WORK(&charger->work, da9030_charging_monitor);
-+	schedule_delayed_work(&charger->work, charger->interval);
-+
-+	charger->nb.notifier_call = da9030_battery_event;
-+	ret = da903x_register_notifier(charger->master, &charger->nb,
-+				       DA9030_EVENT_CHDET |
-+				       DA9030_EVENT_VBATMON |
-+				       DA9030_EVENT_CHIOVER |
-+				       DA9030_EVENT_TBAT);
-+	if (ret)
-+		goto err_notifier;
-+
-+	da9030_battery_setup_psy(charger);
-+	ret = power_supply_register(&pdev->dev, &charger->psy);
-+	if (ret)
-+		goto err_ps_register;
-+
-+	charger->debug_file = da9030_bat_create_debugfs(charger);
-+	platform_set_drvdata(pdev, charger);
-+	return 0;
-+
-+err_ps_register:
-+	da903x_unregister_notifier(charger->master, &charger->nb,
-+				   DA9030_EVENT_CHDET | DA9030_EVENT_VBATMON |
-+				   DA9030_EVENT_CHIOVER | DA9030_EVENT_TBAT);
-+err_notifier:
-+	cancel_delayed_work(&charger->work);
-+
-+err_charger_init:
-+	kfree(charger);
-+
-+	return ret;
-+}
-+
-+static int da9030_battery_remove(struct platform_device *dev)
-+{
-+	struct da9030_charger *charger = platform_get_drvdata(dev);
-+
-+	da9030_bat_remove_debugfs(charger);
-+
-+	da903x_unregister_notifier(charger->master, &charger->nb,
-+				   DA9030_EVENT_CHDET | DA9030_EVENT_VBATMON |
-+				   DA9030_EVENT_CHIOVER | DA9030_EVENT_TBAT);
-+	cancel_delayed_work(&charger->work);
-+	power_supply_unregister(&charger->psy);
-+
-+	kfree(charger);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver da903x_battery_driver = {
-+	.driver	= {
-+		.name	= "da903x-battery",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe = da9030_battery_probe,
-+	.remove = da9030_battery_remove,
-+};
-+
-+static int da903x_battery_init(void)
-+{
-+	return platform_driver_register(&da903x_battery_driver);
-+}
-+
-+static void da903x_battery_exit(void)
-+{
-+	platform_driver_unregister(&da903x_battery_driver);
-+}
-+
-+module_init(da903x_battery_init);
-+module_exit(da903x_battery_exit);
-+
-+MODULE_DESCRIPTION("DA9030 battery charger driver");
-+MODULE_AUTHOR("Mike Rapoport, CompuLab");
-+MODULE_LICENSE("GPL");
+ 		err = -ENOMEM;
+-		page = __grab_cache_page(mapping, index);
++		page = grab_cache_page_write_begin(mapping, index, 0);
+ 		if (!page)
+ 			break;
+ 
 _
 
-Patches currently in -mm which might be from mike@compulab.co.il are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+origin.patch
+fs-symlink-write_begin-allocation-context-fix.patch
+fs-symlink-write_begin-allocation-context-fix-ubifs-fix.patch
+fs-symlink-write_begin-allocation-context-fix-fuse-fix.patch
 linux-next.patch
-battery-add-dialog-da9030-battery-charger-driver.patch
+proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+oom-fix-zone_scan_mutex-name.patch
+mm-get-rid-of-pagevec_release_nonlru.patch
+cleanup-get-rid-of-ifdef-config_migration.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-make-page_lock_anon_vma-static.patch
+memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
+mm-make-init_section_page_cgroup-static.patch
+mm-make-maddr-__iomem.patch
+mm-make-mem_cgroup_resize_limit-static.patch
+mm-make-scan_all_zones_unevictable_pages-static.patch
+mm-make-scan_zone_unevictable_pages-static.patch
+mm-make-setup_per_zone_inactive_ratio-static.patch
+mm-make-vread-and-vwrite-declaration.patch
+vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
+vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
+mm-kill-zone_is_near_oom.patch
+mm-make-get_user_pages-interruptible.patch
+mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
+introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
+mm-remove-config_out_of_line_pfn_to_page.patch
+mm-kill-page_queue_congested.patch
+remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
+sys_execve-and-sys_uselib-do-not-call-into-fsnotify.patch
+profile-dont-include-asm-ptraceh-twice.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+irq-remove-unnecessary-ifdef.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-fix-calclation-of-active_ratio.patch
+memcg-fix-calclation-of-active_ratio-build-error-fix.patch
+memcg-show-real-limit-under-hierarchy-mode.patch
+memcg-explain-details-and-test-document.patch
+ia64-implement-interrupt-enabling-rwlocks-fix.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
