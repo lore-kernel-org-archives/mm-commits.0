@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-move-a-dereference-below-a-null-test.patch added to -mm tree
-Date: Thu, 18 Dec 2008 13:10:50 -0800
-Message-ID: <200812182110.mBILApCv022141@imap1.linux-foundation.org>
+Subject: + drivers-spi-move-a-dereference-below-a-null-test.patch added to -mm tree
+Date: Thu, 18 Dec 2008 13:10:52 -0800
+Message-ID: <200812182110.mBILArMQ022144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36722 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59450 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751942AbYLRVK4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751511AbYLRVLD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Dec 2008 16:10:56 -0500
+	Thu, 18 Dec 2008 16:11:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, James.Smart@Emulex.Com
+Cc: julia@diku.dk, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     drivers/scsi: move a dereference below a NULL test
+     drivers/spi: move a dereference below a NULL test
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-move-a-dereference-below-a-null-test.patch
+     drivers-spi-move-a-dereference-below-a-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi: move a dereference below a NULL test
+Subject: drivers/spi: move a dereference below a NULL test
 From: Julia Lawall <julia@diku.dk>
 
 In each case, if the NULL test is necessary, then the dereference should be
@@ -60,31 +60,30 @@ statement S;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: James Smart <James.Smart@Emulex.Com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_init.c |    3 ++-
+ drivers/spi/pxa2xx_spi.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_init.c~drivers-scsi-move-a-dereference-below-a-null-test drivers/scsi/lpfc/lpfc_init.c
---- a/drivers/scsi/lpfc/lpfc_init.c~drivers-scsi-move-a-dereference-below-a-null-test
-+++ a/drivers/scsi/lpfc/lpfc_init.c
-@@ -1736,12 +1736,13 @@ lpfc_block_mgmt_io(struct lpfc_hba * phb
- int
- lpfc_online(struct lpfc_hba *phba)
+diff -puN drivers/spi/pxa2xx_spi.c~drivers-spi-move-a-dereference-below-a-null-test drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~drivers-spi-move-a-dereference-below-a-null-test
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -1561,11 +1561,12 @@ out_error_master_alloc:
+ static int pxa2xx_spi_remove(struct platform_device *pdev)
  {
--	struct lpfc_vport *vport = phba->pport;
-+	struct lpfc_vport *vport;
- 	struct lpfc_vport **vports;
- 	int i;
+ 	struct driver_data *drv_data = platform_get_drvdata(pdev);
+-	struct ssp_device *ssp = drv_data->ssp;
++	struct ssp_device *ssp;
+ 	int status = 0;
  
- 	if (!phba)
+ 	if (!drv_data)
  		return 0;
-+	vport = phba->pport;
++	ssp = drv_data->ssp;
  
- 	if (!(vport->fc_flag & FC_OFFLINE_MODE))
- 		return 0;
+ 	/* Remove the queue */
+ 	status = destroy_queue(drv_data);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
