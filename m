@@ -1,163 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: + battery-add-prerequisites-for-dialog-da9030-battery-charger-driver.patch added to -mm tree
-Date: Wed, 17 Dec 2008 22:39:08 -0800
-Message-ID: <200812180639.mBI6d89Z016649@imap1.linux-foundation.org>
+Subject: - configfs-silence-lockdep-on-mkdir-rmdir-and-configfs_depend_item.patch removed from -mm tree
+Date: Thu, 18 Dec 2008 10:29:11 -0800
+Message-ID: <200812181829.mBIITBOs009815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56214 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751467AbYLRGj1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750973AbYLRSag (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Dec 2008 01:39:27 -0500
+	Thu, 18 Dec 2008 13:30:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mike@compulab.co.il, cbouatmailru@gmail.com, dwmw2@infradead.org, eric.miao@marvell.com, jic23@cam.ac.uk, sameo@openedhand.com, samuel@sortiz.org
+To: louis.rilling@kerlabs.com, Joel.Becker@oracle.com, a.p.zijlstra@chello.nl, mingo@elte.hu, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     battery: add prerequisites for Dialog DA9030 battery charger driver
-has been added to the -mm tree.  Its filename is
-     battery-add-prerequisites-for-dialog-da9030-battery-charger-driver.patch
+     configfs: silence lockdep on mkdir(), rmdir() and configfs_depend_item()
+has been removed from the -mm tree.  Its filename was
+     configfs-silence-lockdep-on-mkdir-rmdir-and-configfs_depend_item.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: battery: add prerequisites for Dialog DA9030 battery charger driver
-From: Mike Rapoport <mike@compulab.co.il>
+Subject: configfs: silence lockdep on mkdir(), rmdir() and configfs_depend_item()
+From: Louis Rilling <louis.rilling@kerlabs.com>
 
-This patch amends DA903x MFD driver with definitions and methods needed
-for battery charger driver.
+When attaching default groups (subdirs) of a new group (in mkdir() or in
+configfs_register()), configfs recursively takes inode's mutexes along the
+path from the parent of the new group to the default subdirs.  This is
+needed to ensure that the VFS will not race with operations on these
+sub-dirs.  This is safe for the following reasons:
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-Acked-by: Eric Miao <eric.miao@marvell.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: Samuel Ortiz <sameo@openedhand.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
+- the VFS allows one to lock first an inode and second one of its
+  children (The lock subclasses for this pattern are respectively
+  I_MUTEX_PARENT and I_MUTEX_CHILD);
+- from this rule any inode path can be recursively locked in
+  descending order as long as it stays under a single mountpoint and
+  does not follow symlinks.
+
+Unfortunately lockdep does not know (yet?) how to handle such recursion.
+
+I've tried to use Peter Zijlstra's lock_set_subclass() helper to upgrade
+i_mutexes from I_MUTEX_CHILD to I_MUTEX_PARENT when we know that we might
+recursively lock some of their descendant, but this usage does not seem to
+fit the purpose of lock_set_subclass() because it leads to several i_mutex
+locked with subclass I_MUTEX_PARENT by the same task.
+
+From inside configfs it is not possible to serialize those recursive
+locking with a top-level one, because mkdir() and rmdir() are already
+called with inodes locked by the VFS.  So using some
+mutex_lock_nest_lock() is not an option.
+
+I am proposing two solutions:
+1) one that wraps recursive mutex_lock()s with
+   lockdep_off()/lockdep_on().
+2) (as suggested earlier by Peter Zijlstra) one that puts the
+   i_mutexes recursively locked in different classes based on their
+   depth from the top-level config_group created. This
+   induces an arbitrary limit (MAX_LOCK_DEPTH - 2 == 46) on the
+   nesting of configfs default groups whenever lockdep is activated
+   but this limit looks reasonably high. Unfortunately, this alos
+   isolates VFS operations on configfs default groups from the others
+   and thus lowers the chances to detect locking issues.
+
+This patch implements solution 1).
+
+Solution 2) looks better from lockdep's point of view, but fails with
+configfs_depend_item(). This needs to rework the locking
+scheme of configfs_depend_item() by removing the variable lock recursion
+depth, and I think that it's doable thanks to the configfs_dirent_lock.
+For now, let's stick to solution 1).
+
+Signed-off-by: Louis Rilling <louis.rilling@kerlabs.com>
+Cc: Joel Becker <Joel.Becker@oracle.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/da903x.c       |   12 +++++++++
- include/linux/mfd/da903x.h |   44 +++++++++++++++++++++++++++++++++--
- 2 files changed, 54 insertions(+), 2 deletions(-)
+ fs/configfs/dir.c |   59 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
 
-diff -puN drivers/mfd/da903x.c~battery-add-prerequisites-for-dialog-da9030-battery-charger-driver drivers/mfd/da903x.c
---- a/drivers/mfd/da903x.c~battery-add-prerequisites-for-dialog-da9030-battery-charger-driver
-+++ a/drivers/mfd/da903x.c
-@@ -151,12 +151,24 @@ int da903x_write(struct device *dev, int
+diff -puN fs/configfs/dir.c~configfs-silence-lockdep-on-mkdir-rmdir-and-configfs_depend_item fs/configfs/dir.c
+--- a/fs/configfs/dir.c~configfs-silence-lockdep-on-mkdir-rmdir-and-configfs_depend_item
++++ a/fs/configfs/dir.c
+@@ -553,12 +553,24 @@ static void detach_groups(struct config_
+ 
+ 		child = sd->s_dentry;
+ 
++		/*
++		 * Note: we hide this from lockdep since we have no way
++		 * to teach lockdep about recursive
++		 * I_MUTEX_PARENT -> I_MUTEX_CHILD patterns along a path
++		 * in an inode tree, which are valid as soon as
++		 * I_MUTEX_PARENT -> I_MUTEX_CHILD is valid from a
++		 * parent inode to one of its children.
++		 */
++		lockdep_off();
+ 		mutex_lock(&child->d_inode->i_mutex);
++		lockdep_on();
+ 
+ 		configfs_detach_group(sd->s_element);
+ 		child->d_inode->i_flags |= S_DEAD;
+ 
++		lockdep_off();
+ 		mutex_unlock(&child->d_inode->i_mutex);
++		lockdep_on();
+ 
+ 		d_delete(child);
+ 		dput(child);
+@@ -748,11 +760,22 @@ static int configfs_attach_item(struct c
+ 			 * We are going to remove an inode and its dentry but
+ 			 * the VFS may already have hit and used them. Thus,
+ 			 * we must lock them as rmdir() would.
++			 *
++			 * Note: we hide this from lockdep since we have no way
++			 * to teach lockdep about recursive
++			 * I_MUTEX_PARENT -> I_MUTEX_CHILD patterns along a path
++			 * in an inode tree, which are valid as soon as
++			 * I_MUTEX_PARENT -> I_MUTEX_CHILD is valid from a
++			 * parent inode to one of its children.
+ 			 */
++			lockdep_off();
+ 			mutex_lock(&dentry->d_inode->i_mutex);
++			lockdep_on();
+ 			configfs_remove_dir(item);
+ 			dentry->d_inode->i_flags |= S_DEAD;
++			lockdep_off();
+ 			mutex_unlock(&dentry->d_inode->i_mutex);
++			lockdep_on();
+ 			d_delete(dentry);
+ 		}
+ 	}
+@@ -787,14 +810,25 @@ static int configfs_attach_group(struct 
+ 		 *
+ 		 * We must also lock the inode to remove it safely in case of
+ 		 * error, as rmdir() would.
++		 *
++		 * Note: we hide this from lockdep since we have no way
++		 * to teach lockdep about recursive
++		 * I_MUTEX_PARENT -> I_MUTEX_CHILD patterns along a path
++		 * in an inode tree, which are valid as soon as
++		 * I_MUTEX_PARENT -> I_MUTEX_CHILD is valid from a
++		 * parent inode to one of its children.
+ 		 */
++		lockdep_off();
+ 		mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
++		lockdep_on();
+ 		ret = populate_groups(to_config_group(item));
+ 		if (ret) {
+ 			configfs_detach_item(item);
+ 			dentry->d_inode->i_flags |= S_DEAD;
+ 		}
++		lockdep_off();
+ 		mutex_unlock(&dentry->d_inode->i_mutex);
++		lockdep_on();
+ 		if (ret)
+ 			d_delete(dentry);
+ 	}
+@@ -956,7 +990,17 @@ static int configfs_depend_prep(struct d
+ 	BUG_ON(!origin || !sd);
+ 
+ 	/* Lock this guy on the way down */
++	/*
++	 * Note: we hide this from lockdep since we have no way
++	 * to teach lockdep about recursive
++	 * I_MUTEX_PARENT -> I_MUTEX_CHILD patterns along a path
++	 * in an inode tree, which are valid as soon as
++	 * I_MUTEX_PARENT -> I_MUTEX_CHILD is valid from a
++	 * parent inode to one of its children.
++	 */
++	lockdep_off();
+ 	mutex_lock(&sd->s_dentry->d_inode->i_mutex);
++	lockdep_on();
+ 	if (sd->s_element == target)  /* Boo-yah */
+ 		goto out;
+ 
+@@ -970,7 +1014,9 @@ static int configfs_depend_prep(struct d
+ 	}
+ 
+ 	/* We looped all our children and didn't find target */
++	lockdep_off();
+ 	mutex_unlock(&sd->s_dentry->d_inode->i_mutex);
++	lockdep_on();
+ 	ret = -ENOENT;
+ 
+ out:
+@@ -990,11 +1036,16 @@ static void configfs_depend_rollback(str
+ 	struct dentry *dentry = item->ci_dentry;
+ 
+ 	while (dentry != origin) {
++		/* See comments in configfs_depend_prep() */
++		lockdep_off();
+ 		mutex_unlock(&dentry->d_inode->i_mutex);
++		lockdep_on();
+ 		dentry = dentry->d_parent;
+ 	}
+ 
++	lockdep_off();
+ 	mutex_unlock(&origin->d_inode->i_mutex);
++	lockdep_on();
  }
- EXPORT_SYMBOL_GPL(da903x_write);
  
-+int da903x_writes(struct device *dev, int reg, int len, uint8_t *val)
-+{
-+	return __da903x_writes(to_i2c_client(dev), reg, len, val);
-+}
-+EXPORT_SYMBOL_GPL(da903x_writes);
-+
- int da903x_read(struct device *dev, int reg, uint8_t *val)
- {
- 	return __da903x_read(to_i2c_client(dev), reg, val);
- }
- EXPORT_SYMBOL_GPL(da903x_read);
+ int configfs_depend_item(struct configfs_subsystem *subsys,
+@@ -1329,8 +1380,16 @@ static int configfs_rmdir(struct inode *
+ 			}
  
-+int da903x_reads(struct device *dev, int reg, int len, uint8_t *val)
-+{
-+	return __da903x_reads(to_i2c_client(dev), reg, len, val);
-+}
-+EXPORT_SYMBOL_GPL(da903x_reads);
-+
- int da903x_set_bits(struct device *dev, int reg, uint8_t bit_mask)
- {
- 	struct da903x_chip *chip = dev_get_drvdata(dev);
-diff -puN include/linux/mfd/da903x.h~battery-add-prerequisites-for-dialog-da9030-battery-charger-driver include/linux/mfd/da903x.h
---- a/include/linux/mfd/da903x.h~battery-add-prerequisites-for-dialog-da9030-battery-charger-driver
-+++ a/include/linux/mfd/da903x.h
-@@ -32,6 +32,7 @@ enum {
- 	DA9030_ID_LDO18,
- 	DA9030_ID_LDO19,
- 	DA9030_ID_LDO_INT,	/* LDO Internal */
-+	DA9030_ID_BAT,		/* battery charger */
+ 			/* Wait until the racing operation terminates */
++			/*
++			 * Note: we hide this from lockdep since we are locked
++			 * with subclass I_MUTEX_NORMAL from vfs_rmdir() (why
++			 * not I_MUTEX_CHILD?), and I_MUTEX_XATTR or
++			 * I_MUTEX_QUOTA are not relevant for the locked inode.
++			 */
++			lockdep_off();
+ 			mutex_lock(wait_mutex);
+ 			mutex_unlock(wait_mutex);
++			lockdep_on();
+ 		}
+ 	} while (ret == -EAGAIN);
  
- 	DA9034_ID_LED_1,
- 	DA9034_ID_LED_2,
-@@ -93,6 +94,43 @@ struct da9034_touch_pdata {
- 	int	y_inverted;
- };
- 
-+/* DA9030 battery charger data */
-+struct power_supply_info;
-+
-+struct da9030_battery_info {
-+	/* battery parameters */
-+	struct power_supply_info *battery_info;
-+
-+	/* current and voltage to use for battery charging */
-+	unsigned int charge_milliamp;
-+	unsigned int charge_millivolt;
-+
-+	/* voltage thresholds (in millivolts) */
-+	int vbat_low;
-+	int vbat_crit;
-+	int vbat_charge_start;
-+	int vbat_charge_stop;
-+	int vbat_charge_restart;
-+
-+	/* battery nominal minimal and maximal voltages in millivolts */
-+	int vcharge_min;
-+	int vcharge_max;
-+
-+	/* Temperature thresholds. These are DA9030 register values
-+	   "as is" and should be measured for each battery type */
-+	int tbat_low;
-+	int tbat_high;
-+	int tbat_restart;
-+
-+
-+	/* battery monitor interval (seconds) */
-+	unsigned int batmon_interval;
-+
-+	/* platform callbacks for battery low and critical events */
-+	void (*battery_low)(void);
-+	void (*battery_critical)(void);
-+};
-+
- struct da903x_subdev_info {
- 	int		id;
- 	const char	*name;
-@@ -190,11 +228,13 @@ extern int da903x_unregister_notifier(st
- extern int da903x_query_status(struct device *dev, unsigned int status);
- 
- 
--/* NOTE: the two functions below are not intended for use outside
-- * of the DA9034 sub-device drivers
-+/* NOTE: the functions below are not intended for use outside
-+ * of the DA903x sub-device drivers
-  */
- extern int da903x_write(struct device *dev, int reg, uint8_t val);
-+extern int da903x_writes(struct device *dev, int reg, int len, uint8_t *val);
- extern int da903x_read(struct device *dev, int reg, uint8_t *val);
-+extern int da903x_reads(struct device *dev, int reg, int len, uint8_t *val);
- extern int da903x_update(struct device *dev, int reg, uint8_t val, uint8_t mask);
- extern int da903x_set_bits(struct device *dev, int reg, uint8_t bit_mask);
- extern int da903x_clr_bits(struct device *dev, int reg, uint8_t bit_mask);
 _
 
-Patches currently in -mm which might be from mike@compulab.co.il are
+Patches currently in -mm which might be from louis.rilling@kerlabs.com are
 
-linux-next.patch
-battery-add-prerequisites-for-dialog-da9030-battery-charger-driver.patch
-battery-add-dialog-da9030-battery-charger-driver.patch
+configfs-silence-lockdep-on-mkdir-rmdir-and-configfs_depend_item.patch
 
