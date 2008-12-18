@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-symlink-write_begin-allocation-context-fix-fuse-fix.patch added to -mm tree
-Date: Thu, 18 Dec 2008 15:11:43 -0800
-Message-ID: <200812182311.mBINBhVA007069@imap1.linux-foundation.org>
+Subject: + fs-symlink-write_begin-allocation-context-fix-ubifs-fix.patch added to -mm tree
+Date: Thu, 18 Dec 2008 15:11:39 -0800
+Message-ID: <200812182311.mBINBdMo007063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39263 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751771AbYLRXMS (ORCPT
+	by vger.kernel.org with ESMTP id S1751028AbYLRXMQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Dec 2008 18:12:18 -0500
+	Thu, 18 Dec 2008 18:12:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, npiggin@suse.de
 
 
 The patch titled
-     fs-symlink-write_begin-allocation-context-fix: fuse fix
+     fs-symlink-write_begin-allocation-context-fix: ubifs fix
 has been added to the -mm tree.  Its filename is
-     fs-symlink-write_begin-allocation-context-fix-fuse-fix.patch
+     fs-symlink-write_begin-allocation-context-fix-ubifs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-symlink-write_begin-allocation-context-fix: fuse fix
+Subject: fs-symlink-write_begin-allocation-context-fix: ubifs fix
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
 build fix.
@@ -44,21 +44,31 @@ Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ubifs/file.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/fuse/file.c~fs-symlink-write_begin-allocation-context-fix-fuse-fix fs/fuse/file.c
---- a/fs/fuse/file.c~fs-symlink-write_begin-allocation-context-fix-fuse-fix
-+++ a/fs/fuse/file.c
-@@ -780,7 +780,7 @@ static ssize_t fuse_fill_write_pages(str
- 			break;
+diff -puN fs/ubifs/file.c~fs-symlink-write_begin-allocation-context-fix-ubifs-fix fs/ubifs/file.c
+--- a/fs/ubifs/file.c~fs-symlink-write_begin-allocation-context-fix-ubifs-fix
++++ a/fs/ubifs/file.c
+@@ -219,7 +219,8 @@ static void release_existing_page_budget
+ }
  
- 		err = -ENOMEM;
--		page = __grab_cache_page(mapping, index);
-+		page = grab_cache_page_write_begin(mapping, index, 0);
- 		if (!page)
- 			break;
+ static int write_begin_slow(struct address_space *mapping,
+-			    loff_t pos, unsigned len, struct page **pagep)
++			    loff_t pos, unsigned len, struct page **pagep,
++			    unsigned flags)
+ {
+ 	struct inode *inode = mapping->host;
+ 	struct ubifs_info *c = inode->i_sb->s_fs_info;
+@@ -485,7 +486,7 @@ static int ubifs_write_begin(struct file
+ 		unlock_page(page);
+ 		page_cache_release(page);
  
+-		return write_begin_slow(mapping, pos, len, pagep);
++		return write_begin_slow(mapping, pos, len, pagep, flags);
+ 	}
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
