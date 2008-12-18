@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + driver-core-fix-duplicate-removal-of-driver-link-in-__device_release_driver.patch added to -mm tree
-Date: Wed, 17 Dec 2008 22:23:32 -0800
-Message-ID: <200812180623.mBI6NWjV006205@imap1.linux-foundation.org>
+Subject: + profile-dont-include-asm-ptraceh-twice.patch added to -mm tree
+Date: Wed, 17 Dec 2008 22:24:45 -0800
+Message-ID: <200812180624.mBI6OjOn007002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45138 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751325AbYLRGXg (ORCPT
+	by vger.kernel.org with ESMTP id S1751248AbYLRGYu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Dec 2008 01:23:36 -0500
+	Thu, 18 Dec 2008 01:24:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tom.leiming@gmail.com, greg@kroah.com, kay.sievers@vrfy.org
+Cc: kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     driver core: fix duplicate removal of driver link in __device_release_driver
+     profile: don't include <asm/ptrace.h> twice.
 has been added to the -mm tree.  Its filename is
-     driver-core-fix-duplicate-removal-of-driver-link-in-__device_release_driver.patch
+     profile-dont-include-asm-ptraceh-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: driver core: fix duplicate removal of driver link in __device_release_driver
-From: Ming Lei <tom.leiming@gmail.com>
+Subject: profile: don't include <asm/ptrace.h> twice.
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-In __device_release_driver(), driver_sysfs_remove() has removed the driver
-link under device dir in sysfs, but sysfs_remove_link() is called again to
-do such thing.  Remove the duplicate call to sys_remove_link().
+Currently, kernel/profile.c include <asm/ptrace.h> twice.  It can be
+removed.
 
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dd.c |    1 -
+ kernel/profile.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/base/dd.c~driver-core-fix-duplicate-removal-of-driver-link-in-__device_release_driver drivers/base/dd.c
---- a/drivers/base/dd.c~driver-core-fix-duplicate-removal-of-driver-link-in-__device_release_driver
-+++ a/drivers/base/dd.c
-@@ -298,7 +298,6 @@ static void __device_release_driver(stru
- 	drv = dev->driver;
- 	if (drv) {
- 		driver_sysfs_remove(dev);
--		sysfs_remove_link(&dev->kobj, "driver");
+diff -puN kernel/profile.c~profile-dont-include-asm-ptraceh-twice kernel/profile.c
+--- a/kernel/profile.c~profile-dont-include-asm-ptraceh-twice
++++ a/kernel/profile.c
+@@ -437,7 +437,6 @@ void profile_tick(int type)
+ #ifdef CONFIG_PROC_FS
+ #include <linux/proc_fs.h>
+ #include <asm/uaccess.h>
+-#include <asm/ptrace.h>
  
- 		if (dev->bus)
- 			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+ static int prof_cpu_mask_read_proc(char *page, char **start, off_t off,
+ 			int count, int *eof, void *data)
 _
 
-Patches currently in -mm which might be from tom.leiming@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+origin.patch
 linux-next.patch
-driver-core-fix-duplicate-removal-of-driver-link-in-__device_release_driver.patch
+proc-enclose-desc-variable-of-show_stat-in-config_sparse_irq.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+oom-fix-zone_scan_mutex-name.patch
+mm-get-rid-of-pagevec_release_nonlru.patch
+cleanup-get-rid-of-ifdef-config_migration.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-make-page_lock_anon_vma-static.patch
+memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
+mm-make-init_section_page_cgroup-static.patch
+mm-make-maddr-__iomem.patch
+mm-make-mem_cgroup_resize_limit-static.patch
+mm-make-scan_all_zones_unevictable_pages-static.patch
+mm-make-scan_zone_unevictable_pages-static.patch
+mm-make-setup_per_zone_inactive_ratio-static.patch
+mm-make-vread-and-vwrite-declaration.patch
+vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
+vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
+mm-kill-zone_is_near_oom.patch
+mm-make-get_user_pages-interruptible.patch
+mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
+introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
+mm-remove-config_out_of_line_pfn_to_page.patch
+mm-kill-page_queue_congested.patch
+remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
+sys_execve-and-sys_uselib-do-not-call-into-fsnotify.patch
+profile-dont-include-asm-ptraceh-twice.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+irq-remove-unnecessary-ifdef.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-fix-calclation-of-active_ratio.patch
+memcg-fix-calclation-of-active_ratio-build-error-fix.patch
+memcg-show-real-limit-under-hierarchy-mode.patch
+memcg-explain-details-and-test-document.patch
+ia64-implement-interrupt-enabling-rwlocks-fix.patch
 
