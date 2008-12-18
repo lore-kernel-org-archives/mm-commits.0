@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + driver-core-unbork-device_release.patch added to -mm tree
-Date: Wed, 17 Dec 2008 22:03:41 -0800
-Message-ID: <200812180603.mBI63f6f025235@imap1.linux-foundation.org>
+Subject: + nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch added to -mm tree
+Date: Wed, 17 Dec 2008 22:08:28 -0800
+Message-ID: <200812180608.mBI68Sl5028424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35879 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751409AbYLRGEA (ORCPT
+	by vger.kernel.org with ESMTP id S1751470AbYLRGJU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Dec 2008 01:04:00 -0500
+	Thu, 18 Dec 2008 01:09:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, greg@kroah.com, gregkh@suse.de, kay.sievers@vrfy.org
+Cc: konishi.ryusuke@lab.ntt.co.jp, 20081215.155840.105124170.ryusuke@osrg.net
 
 
 The patch titled
-     driver core: unbork device_release()
+     nilfs2: fix gc failure on volumes keeping numerous snapshots
 has been added to the -mm tree.  Its filename is
-     driver-core-unbork-device_release.patch
+     nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,164 +34,311 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: driver core: unbork device_release()
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: nilfs2: fix gc failure on volumes keeping numerous snapshots
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-dev->release() may free struct dev itself. To free dev->p
-in safe way, remember dev->p.
+This resolves the following failure of nilfs2 cleaner daemon:
 
-Appears to be a fix against
+ nilfs_cleanerd[20670]: cannot clean segments: No such file or directory
+ nilfs_cleanerd[20670]: shutdown
 
-commit 33930cd1ccf6cf8c6124dc147d70641eb5d89a19
-Author: Greg Kroah-Hartman <gregkh@suse.de>
-Date:   Tue Dec 16 12:23:36 2008 -0800
+When creating thousands of snapshots, the cleaner daemon had rarely died
+as above due to an error returned from the kernel code.
 
-    driver core: create a private portion of struct device
-    
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+After applying the recent patch which fixed memory allocation problems in
+ioctl (Message-Id: <20081215.155840.105124170.ryusuke@osrg.net>), the
+problem gets more frequent.
+
+It turned out to be a bug of nilfs_ioctl_wrap_copy function and one of its
+callback routines to read out information of snapshots; if the
+nilfs_ioctl_wrap_copy function divided a large read request into multiple
+requests, the second and later requests have failed since a restart
+position on snapshot meta data was not properly set forward.
+
+It's a deficiency of the callback interface that cannot pass the restart
+position among multiple requests.  This patch fixes the issue by allowing
+nilfs_ioctl_wrap_copy and snapshot read functions to exchange a position
+argument.
+
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/nilfs2/cpfile.c |   24 ++++++++++++++----------
+ fs/nilfs2/cpfile.h |    2 +-
+ fs/nilfs2/ioctl.c  |   38 +++++++++++++++++++++++---------------
+ 3 files changed, 38 insertions(+), 26 deletions(-)
 
-diff -puN drivers/base/core.c~driver-core-unbork-device_release drivers/base/core.c
---- a/drivers/base/core.c~driver-core-unbork-device_release
-+++ a/drivers/base/core.c
-@@ -109,6 +109,7 @@ static struct sysfs_ops dev_sysfs_ops = 
- static void device_release(struct kobject *kobj)
- {
- 	struct device *dev = to_dev(kobj);
-+	struct device_private *p = dev->p;
- 
- 	if (dev->release)
- 		dev->release(dev);
-@@ -116,11 +117,13 @@ static void device_release(struct kobjec
- 		dev->type->release(dev);
- 	else if (dev->class && dev->class->dev_release)
- 		dev->class->dev_release(dev);
--	else
-+	else {
- 		WARN(1, KERN_ERR "Device '%s' does not have a release() "
- 			"function, it is broken and must be fixed.\n",
- 			dev_name(dev));
--	kfree(dev->p);
-+		return;
-+	}
-+	kfree(p);
+diff -puN fs/nilfs2/cpfile.c~nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots fs/nilfs2/cpfile.c
+--- a/fs/nilfs2/cpfile.c~nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots
++++ a/fs/nilfs2/cpfile.c
+@@ -422,20 +422,20 @@ static ssize_t nilfs_cpfile_do_get_cpinf
+ 	return ret;
  }
  
- static struct kobj_type device_ktype = {
+-static ssize_t nilfs_cpfile_do_get_ssinfo(struct inode *cpfile, __u64 cno,
++static ssize_t nilfs_cpfile_do_get_ssinfo(struct inode *cpfile, __u64 *cnop,
+ 					  struct nilfs_cpinfo *ci, size_t nci)
+ {
+ 	struct buffer_head *bh;
+ 	struct nilfs_cpfile_header *header;
+ 	struct nilfs_checkpoint *cp;
+-	__u64 curr, next;
++	__u64 curr = *cnop, next;
+ 	unsigned long curr_blkoff, next_blkoff;
+ 	void *kaddr;
+ 	int n, ret;
+ 
+ 	down_read(&NILFS_MDT(cpfile)->mi_sem);
+ 
+-	if (cno == 0) {
++	if (curr == 0) {
+ 		ret = nilfs_cpfile_get_header_block(cpfile, &bh);
+ 		if (ret < 0)
+ 			goto out;
+@@ -448,8 +448,11 @@ static ssize_t nilfs_cpfile_do_get_ssinf
+ 			ret = 0;
+ 			goto out;
+ 		}
+-	} else
+-		curr = cno;
++	} else if (unlikely(curr == ~(__u64)0)) {
++		ret = 0;
++		goto out;
++	}
++
+ 	curr_blkoff = nilfs_cpfile_get_blkoff(cpfile, curr);
+ 	ret = nilfs_cpfile_get_checkpoint_block(cpfile, curr, 0, &bh);
+ 	if (ret < 0)
+@@ -461,7 +464,7 @@ static ssize_t nilfs_cpfile_do_get_ssinf
+ 		nilfs_cpfile_checkpoint_to_cpinfo(cpfile, cp, &ci[n]);
+ 		next = le64_to_cpu(cp->cp_snapshot_list.ssl_next);
+ 		if (next == 0) {
+-			curr = next;
++			curr = ~(__u64)0; /* Terminator */
+ 			n++;
+ 			break;
+ 		}
+@@ -480,6 +483,7 @@ static ssize_t nilfs_cpfile_do_get_ssinf
+ 	}
+ 	kunmap_atomic(kaddr, KM_USER0);
+ 	brelse(bh);
++	*cnop = curr;
+ 	ret = n;
+ 
+  out:
+@@ -494,15 +498,15 @@ static ssize_t nilfs_cpfile_do_get_ssinf
+  * @ci:
+  * @nci:
+  */
+-ssize_t nilfs_cpfile_get_cpinfo(struct inode *cpfile,
+-				__u64 cno, int mode,
++
++ssize_t nilfs_cpfile_get_cpinfo(struct inode *cpfile, __u64 *cnop, int mode,
+ 				struct nilfs_cpinfo *ci, size_t nci)
+ {
+ 	switch (mode) {
+ 	case NILFS_CHECKPOINT:
+-		return nilfs_cpfile_do_get_cpinfo(cpfile, cno, ci, nci);
++		return nilfs_cpfile_do_get_cpinfo(cpfile, *cnop, ci, nci);
+ 	case NILFS_SNAPSHOT:
+-		return nilfs_cpfile_do_get_ssinfo(cpfile, cno, ci, nci);
++		return nilfs_cpfile_do_get_ssinfo(cpfile, cnop, ci, nci);
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff -puN fs/nilfs2/cpfile.h~nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots fs/nilfs2/cpfile.h
+--- a/fs/nilfs2/cpfile.h~nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots
++++ a/fs/nilfs2/cpfile.h
+@@ -39,7 +39,7 @@ int nilfs_cpfile_delete_checkpoint(struc
+ int nilfs_cpfile_change_cpmode(struct inode *, __u64, int);
+ int nilfs_cpfile_is_snapshot(struct inode *, __u64);
+ int nilfs_cpfile_get_stat(struct inode *, struct nilfs_cpstat *);
+-ssize_t nilfs_cpfile_get_cpinfo(struct inode *, __u64, int,
++ssize_t nilfs_cpfile_get_cpinfo(struct inode *, __u64 *, int,
+ 				struct nilfs_cpinfo *, size_t);
+ 
+ #endif	/* _NILFS_CPFILE_H */
+diff -puN fs/nilfs2/ioctl.c~nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots
++++ a/fs/nilfs2/ioctl.c
+@@ -37,13 +37,14 @@
+ static int nilfs_ioctl_wrap_copy(struct the_nilfs *nilfs,
+ 				 struct nilfs_argv *argv, int dir,
+ 				 ssize_t (*dofunc)(struct the_nilfs *,
+-						   int, int,
++						   __u64 *, int,
+ 						   void *, size_t, size_t))
+ {
+ 	void *buf;
+ 	size_t maxmembs, total, n;
+ 	ssize_t nr;
+ 	int ret, i;
++	__u64 pos, ppos;
+ 
+ 	if (argv->v_nmembs == 0)
+ 		return 0;
+@@ -58,6 +59,7 @@ static int nilfs_ioctl_wrap_copy(struct 
+ 
+ 	ret = 0;
+ 	total = 0;
++	pos = argv->v_index;
+ 	for (i = 0; i < argv->v_nmembs; i += n) {
+ 		n = (argv->v_nmembs - i < maxmembs) ?
+ 			argv->v_nmembs - i : maxmembs;
+@@ -68,8 +70,9 @@ static int nilfs_ioctl_wrap_copy(struct 
+ 			ret = -EFAULT;
+ 			break;
+ 		}
+-		nr = (*dofunc)(nilfs, argv->v_index + i, argv->v_flags, buf,
+-			       argv->v_size, n);
++		ppos = pos;
++		nr = (*dofunc)(nilfs, &pos, argv->v_flags, buf, argv->v_size,
++			       n);
+ 		if (nr < 0) {
+ 			ret = nr;
+ 			break;
+@@ -82,6 +85,10 @@ static int nilfs_ioctl_wrap_copy(struct 
+ 			break;
+ 		}
+ 		total += nr;
++		if ((size_t)nr < n)
++			break;
++		if (pos == ppos)
++			pos += n;
+ 	}
+ 	argv->v_nmembs = total;
+ 
+@@ -138,10 +145,10 @@ nilfs_ioctl_delete_checkpoint(struct ino
+ }
+ 
+ static ssize_t
+-nilfs_ioctl_do_get_cpinfo(struct the_nilfs *nilfs, int index, int flags,
++nilfs_ioctl_do_get_cpinfo(struct the_nilfs *nilfs, __u64 *posp, int flags,
+ 			  void *buf, size_t size, size_t nmembs)
+ {
+-	return nilfs_cpfile_get_cpinfo(nilfs->ns_cpfile, index, flags, buf,
++	return nilfs_cpfile_get_cpinfo(nilfs->ns_cpfile, posp, flags, buf,
+ 				       nmembs);
+ }
+ 
+@@ -186,10 +193,10 @@ static int nilfs_ioctl_get_cpstat(struct
+ }
+ 
+ static ssize_t
+-nilfs_ioctl_do_get_suinfo(struct the_nilfs *nilfs, int index, int flags,
++nilfs_ioctl_do_get_suinfo(struct the_nilfs *nilfs, __u64 *posp, int flags,
+ 			  void *buf, size_t size, size_t nmembs)
+ {
+-	return nilfs_sufile_get_suinfo(nilfs->ns_sufile, index, buf, nmembs);
++	return nilfs_sufile_get_suinfo(nilfs->ns_sufile, *posp, buf, nmembs);
+ }
+ 
+ static int nilfs_ioctl_get_suinfo(struct inode *inode, struct file *filp,
+@@ -233,7 +240,7 @@ static int nilfs_ioctl_get_sustat(struct
+ }
+ 
+ static ssize_t
+-nilfs_ioctl_do_get_vinfo(struct the_nilfs *nilfs, int index, int flags,
++nilfs_ioctl_do_get_vinfo(struct the_nilfs *nilfs, __u64 *posp, int flags,
+ 			 void *buf, size_t size, size_t nmembs)
+ {
+ 	return nilfs_dat_get_vinfo(nilfs_dat_inode(nilfs), buf, nmembs);
+@@ -262,7 +269,7 @@ static int nilfs_ioctl_get_vinfo(struct 
+ }
+ 
+ static ssize_t
+-nilfs_ioctl_do_get_bdescs(struct the_nilfs *nilfs, int index, int flags,
++nilfs_ioctl_do_get_bdescs(struct the_nilfs *nilfs, __u64 *posp, int flags,
+ 			  void *buf, size_t size, size_t nmembs)
+ {
+ 	struct inode *dat = nilfs_dat_inode(nilfs);
+@@ -341,7 +348,7 @@ static int nilfs_ioctl_move_inode_block(
+ }
+ 
+ static ssize_t
+-nilfs_ioctl_do_move_blocks(struct the_nilfs *nilfs, int index, int flags,
++nilfs_ioctl_do_move_blocks(struct the_nilfs *nilfs, __u64 *posp, int flags,
+ 			   void *buf, size_t size, size_t nmembs)
+ {
+ 	struct inode *inode;
+@@ -413,7 +420,7 @@ static inline int nilfs_ioctl_move_block
+ }
+ 
+ static ssize_t
+-nilfs_ioctl_do_delete_checkpoints(struct the_nilfs *nilfs, int index,
++nilfs_ioctl_do_delete_checkpoints(struct the_nilfs *nilfs, __u64 *posp,
+ 				  int flags, void *buf, size_t size,
+ 				  size_t nmembs)
+ {
+@@ -439,7 +446,7 @@ static inline int nilfs_ioctl_delete_che
+ }
+ 
+ static ssize_t
+-nilfs_ioctl_do_free_vblocknrs(struct the_nilfs *nilfs, int index, int flags,
++nilfs_ioctl_do_free_vblocknrs(struct the_nilfs *nilfs, __u64 *posp, int flags,
+ 			      void *buf, size_t size, size_t nmembs)
+ {
+ 	int ret = nilfs_dat_freev(nilfs_dat_inode(nilfs), buf, nmembs);
+@@ -456,8 +463,9 @@ static inline int nilfs_ioctl_free_vbloc
+ }
+ 
+ static ssize_t
+-nilfs_ioctl_do_mark_blocks_dirty(struct the_nilfs *nilfs, int index, int flags,
+-				 void *buf, size_t size, size_t nmembs)
++nilfs_ioctl_do_mark_blocks_dirty(struct the_nilfs *nilfs, __u64 *posp,
++				 int flags, void *buf, size_t size,
++				 size_t nmembs)
+ {
+ 	struct inode *dat = nilfs_dat_inode(nilfs);
+ 	struct nilfs_bmap *bmap = NILFS_I(dat)->i_bmap;
+@@ -506,7 +514,7 @@ static inline int nilfs_ioctl_mark_block
+ }
+ 
+ static ssize_t
+-nilfs_ioctl_do_free_segments(struct the_nilfs *nilfs, int index, int flags,
++nilfs_ioctl_do_free_segments(struct the_nilfs *nilfs, __u64 *posp, int flags,
+ 			     void *buf, size_t size, size_t nmembs)
+ {
+ 	struct nilfs_sb_info *sbi = nilfs_get_writer(nilfs);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-origin.patch
-driver-core-unbork-device_release.patch
-clocksource-pass-clocksource-to-read-callback-fix.patch
-mm-gup-persist-for-write-permission.patch
-mm-wp-lock-page-before-deciding-cow.patch
-mm-reuse_swap_page-replaces-can_share_swap_page.patch
-mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
-mm-try_to_unuse-check-removing-right-swap.patch
-mm-remove-try_to_munlock-from-vmscan.patch
-mm-remove-gfp_mask-from-add_to_swap.patch
-mm-add-add_to_swap-stub.patch
-mm-optimize-get_scan_ratio-for-no-swap.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-swapfile-swapon-needs-larger-size-type.patch
-swapfile-remove-swp_active-mask.patch
-swapfile-remove-surplus-whitespace.patch
-swapfile-remove-v0-swap-space-message.patch
-swapfile-rearrange-scan-and-swap_info.patch
-swapfile-swapon-use-discard-trim.patch
-swapfile-swap-allocation-use-discard.patch
-swapfile-swapon-randomize-if-nonrot.patch
-swapfile-swap-allocation-cycle-if-nonrot.patch
-swapfile-change-discard-pgoff_t-to-sector_t.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-swapfile-let-others-seed-random.patch
-mm-remove-config_out_of_line_pfn_to_page.patch
-cgroups-make-cgroup-config-a-submenu.patch
-cgroups-documentation-updates.patch
-cgroups-remove-some-redundant-null-checks.patch
-ns_cgroup-remove-unused-spinlock.patch
-memcg-fix-a-typo-in-kconfig.patch
-cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
-cgroups-fix-cgroup_iter_next-bug.patch
-cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
-cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
-cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
-cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
-cgroups-make-root_list-contains-active-hierarchies-only.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
-devcgroup-use-list_for_each_entry_rcu.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-fix-gfp_mask-of-callers-of-charge.patch
-memcg-simple-migration-handling.patch
-memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
-memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-memswap-controller-kconfig.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-synchronized-lru.patch
-memcg-add-mem_cgroup_disabled.patch
-memcg-add-mem_cgroup_disabled-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-memcg-fix-reclaim-result-checks.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-fix-calclation-of-active_ratio.patch
-memcg-fix-calclation-of-active_ratio-build-error-fix.patch
-memcg-show-real-limit-under-hierarchy-mode.patch
-memcg-explain-details-and-test-document.patch
-memcg-explain-details-and-test-document-fix.patch
-memcg-dont-trigger-oom-at-page-migration.patch
-memcg-remove-mem_cgroup_try_charge.patch
-memcg-avoid-dead-lock-caused-by-race-between-oom-and-cpuset_attach.patch
-memcg-change-try_to_free_pages-to-hierarchical_reclaim.patch
-memcg-fix-swap-accounting-leak-v3.patch
-memcg-fix-swap-accounting-leak-doc-fix.patch
-cgroups-add-a-per-subsystem-hierarchy_mutex.patch
-cgroups-use-hierarchy_mutex-in-memory-controller.patch
-cgroups-add-css_tryget.patch
-cpuset-rcu_read_lock-to-protect-task_cs.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+nilfs2-cleanup-nilfs_clear_inode.patch
+nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
+nilfs2-insert-explanations-in-gcinode-file.patch
+nilfs2-add-maintainer.patch
+nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
 
