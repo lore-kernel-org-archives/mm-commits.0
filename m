@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1-allow-master-io-commands-fix.patch added to -mm tree
-Date: Wed, 17 Dec 2008 15:14:35 -0800
-Message-ID: <200812172314.mBHNEZ5B008631@imap1.linux-foundation.org>
+Subject: + video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch added to -mm tree
+Date: Wed, 17 Dec 2008 16:26:06 -0800
+Message-ID: <200812180042.mBI0g3K6002967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753303AbYLQXOk (ORCPT
+	by vger.kernel.org with ESMTP id S1752257AbYLRAme (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Dec 2008 18:14:40 -0500
+	Wed, 17 Dec 2008 19:42:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, paul.alfille@gmail.com, zbr@ioremap.net
+Cc: akpm@linux-foundation.org, mjg59@srcf.ucam.org, rpurdie@rpsys.net, schwalbe@inf.tu-dresden.de
 
 
 The patch titled
-     w1-allow-master-io-commands-fix
+     video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix
 has been added to the -mm tree.  Its filename is
-     w1-allow-master-io-commands-fix.patch
+     video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-allow-master-io-commands-fix
+Subject: video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-reindent switch statements.
+drivers/video/backlight/mbp_nvidia_bl.c:135: error: conflicting types for 'dmi_match'
+include/linux/dmi.h:50: error: previous declaration of 'dmi_match' was here
 
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Paul Alfille <paul.alfille@gmail.com>
+Cc: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_netlink.c |   54 +++++++++++++++++++-------------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+ drivers/video/backlight/mbp_nvidia_bl.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/w1/w1_netlink.c~w1-allow-master-io-commands-fix drivers/w1/w1_netlink.c
---- a/drivers/w1/w1_netlink.c~w1-allow-master-io-commands-fix
-+++ a/drivers/w1/w1_netlink.c
-@@ -140,20 +140,20 @@ static int w1_process_command_io(struct 
- 	int err = 0;
+diff -puN drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix drivers/video/backlight/mbp_nvidia_bl.c
+--- a/drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix
++++ a/drivers/video/backlight/mbp_nvidia_bl.c
+@@ -102,7 +102,7 @@ static const struct dmi_match_data nvidi
+  */
+ static /* const */ struct dmi_match_data *driver_data;
  
- 	switch (cmd->cmd) {
--		case W1_CMD_TOUCH:
--			w1_touch_block(dev, cmd->data, cmd->len);
--			w1_send_read_reply(msg, hdr, cmd);
--			break;
--		case W1_CMD_READ:
--			w1_read_block(dev, cmd->data, cmd->len);
--			w1_send_read_reply(msg, hdr, cmd);
--			break;
--		case W1_CMD_WRITE:
--			w1_write_block(dev, cmd->data, cmd->len);
--			break;
--		default:
--			err = -1;
--			break;
-+	case W1_CMD_TOUCH:
-+		w1_touch_block(dev, cmd->data, cmd->len);
-+		w1_send_read_reply(msg, hdr, cmd);
-+		break;
-+	case W1_CMD_READ:
-+		w1_read_block(dev, cmd->data, cmd->len);
-+		w1_send_read_reply(msg, hdr, cmd);
-+		break;
-+	case W1_CMD_WRITE:
-+		w1_write_block(dev, cmd->data, cmd->len);
-+		break;
-+	default:
-+		err = -1;
-+		break;
- 	}
+-static int dmi_match(const struct dmi_system_id *id)
++static int mbp_dmi_match(const struct dmi_system_id *id)
+ {
+ 	driver_data = id->driver_data;
  
- 	return err;
-@@ -187,20 +187,20 @@ static int w1_process_command_master(str
- 	cmd->len = 0;
+@@ -112,7 +112,7 @@ static int dmi_match(const struct dmi_sy
  
- 	switch (cmd->cmd) {
--		case W1_CMD_SEARCH:
--		case W1_CMD_ALARM_SEARCH:
--			err = w1_process_search_command(dev, msg,
-+	case W1_CMD_SEARCH:
-+	case W1_CMD_ALARM_SEARCH:
-+		err = w1_process_search_command(dev, msg,
- 				PAGE_SIZE - msg->len - sizeof(struct cn_msg));
--			break;
--		case W1_CMD_READ:
--		case W1_CMD_WRITE:
--		case W1_CMD_TOUCH:
--			err = w1_process_command_io(dev, msg, hdr, cmd);
--			break;
--		default:
--			cmd->res = EINVAL;
--			cn_netlink_send(msg, 0, GFP_KERNEL);
--			break;
-+		break;
-+	case W1_CMD_READ:
-+	case W1_CMD_WRITE:
-+	case W1_CMD_TOUCH:
-+		err = w1_process_command_io(dev, msg, hdr, cmd);
-+		break;
-+	default:
-+		cmd->res = EINVAL;
-+		cn_netlink_send(msg, 0, GFP_KERNEL);
-+		break;
- 	}
- 
- 	kfree(msg);
+ static const struct dmi_system_id __initdata mbp_device_table[] = {
+ 	{
+-		.callback	= dmi_match,
++		.callback	= mbp_dmi_match,
+ 		.ident		= "MacBookPro 3,1",
+ 		.matches	= {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+@@ -121,7 +121,7 @@ static const struct dmi_system_id __init
+ 		.driver_data	= (void *)&intel_chipset_data,
+ 	},
+ 	{
+-		.callback	= dmi_match,
++		.callback	= mbp_dmi_match,
+ 		.ident		= "MacBookPro 3,2",
+ 		.matches	= {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+@@ -130,7 +130,7 @@ static const struct dmi_system_id __init
+ 		.driver_data	= (void *)&intel_chipset_data,
+ 	},
+ 	{
+-		.callback	= dmi_match,
++		.callback	= mbp_dmi_match,
+ 		.ident		= "MacBookPro 4,1",
+ 		.matches	= {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+@@ -139,7 +139,7 @@ static const struct dmi_system_id __init
+ 		.driver_data	= (void *)&intel_chipset_data,
+ 	},
+ 	{
+-		.callback	= dmi_match,
++		.callback	= mbp_dmi_match,
+ 		.ident		= "MacBook 5,1",
+ 		.matches	= {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+@@ -148,7 +148,7 @@ static const struct dmi_system_id __init
+ 		.driver_data	= (void *)&nvidia_chipset_data,
+ 	},
+ 	{
+-		.callback	= dmi_match,
++		.callback	= mbp_dmi_match,
+ 		.ident		= "MacBookAir 2,1",
+ 		.matches	= {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+@@ -157,7 +157,7 @@ static const struct dmi_system_id __init
+ 		.driver_data	= (void *)&nvidia_chipset_data,
+ 	},
+ 	{
+-		.callback	= dmi_match,
++		.callback	= mbp_dmi_match,
+ 		.ident		= "MacBookPro 5,1",
+ 		.matches	= {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,6 +125,7 @@ linux-next.patch
 next-remove-localversion.patch
 linux-timexh-cleanup-for-userspace.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-invoke-oom-killer-from-page-fault-fix.patch
