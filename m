@@ -1,186 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - clocksource-pass-clocksource-to-read-callback-fix.patch removed from -mm tree
-Date: Fri, 19 Dec 2008 13:14:01 -0800
-Message-ID: <200812192114.mBJLE2GP025272@imap1.linux-foundation.org>
+Subject: + cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch added to -mm tree
+Date: Fri, 19 Dec 2008 13:16:48 -0800
+Message-ID: <200812192116.mBJLGnO7027145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37900 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52490 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751412AbYLSVOv (ORCPT
+	by vger.kernel.org with ESMTP id S1751585AbYLSVRo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Dec 2008 16:14:51 -0500
+	Fri, 19 Dec 2008 16:17:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, damm@igel.co.jp, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: root@localdomain.pl, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, xemul@openvz.org
 
 
 The patch titled
-     clocksource-pass-clocksource-to-read-callback-fix
-has been removed from the -mm tree.  Its filename was
-     clocksource-pass-clocksource-to-read-callback-fix.patch
+     cgroups: relax ns_can_attach checks to allow attaching to grandchild cgroups
+has been added to the -mm tree.  Its filename is
+     cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource-pass-clocksource-to-read-callback-fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: cgroups: relax ns_can_attach checks to allow attaching to grandchild cgroups
+From: Grzegorz Nosek <root@localdomain.pl>
 
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+The ns_proxy cgroup allows moving processes to child cgroups only one
+level deep at a time.  This commit relaxes this restriction and makes it
+possible to attach tasks directly to grandchild cgroups, e.g.:
+
+($pid is in the root cgroup)
+echo $pid > /cgroup/CG1/CG2/tasks
+
+Previously this operation would fail with -EPERM and would have to be
+performed as two steps:
+echo $pid > /cgroup/CG1/tasks
+echo $pid > /cgroup/CG1/CG2/tasks
+
+Signed-off-by: Grzegorz Nosek <root@localdomain.pl>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/clocksource.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/cgroup.h |    4 ++--
+ kernel/cgroup.c        |   12 +++++++-----
+ kernel/ns_cgroup.c     |    9 +++------
+ 3 files changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN kernel/time/clocksource.c~clocksource-pass-clocksource-to-read-callback-fix kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-pass-clocksource-to-read-callback-fix
-+++ a/kernel/time/clocksource.c
-@@ -105,12 +105,12 @@ static void clocksource_watchdog(unsigne
+diff -puN include/linux/cgroup.h~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
++++ a/include/linux/cgroup.h
+@@ -344,8 +344,8 @@ int cgroup_path(const struct cgroup *cgr
  
- 	resumed = test_and_clear_bit(0, &watchdog_resumed);
+ int cgroup_task_count(const struct cgroup *cgrp);
  
--	wdnow = watchdog->read();
-+	wdnow = clocksource_read(watchdog);
- 	wd_nsec = cyc2ns(watchdog, (wdnow - watchdog_last) & watchdog->mask);
- 	watchdog_last = wdnow;
+-/* Return true if the cgroup is a descendant of the current cgroup */
+-int cgroup_is_descendant(const struct cgroup *cgrp);
++/* Return true if cgrp is a descendant of the task's cgroup */
++int cgroup_is_descendant(const struct cgroup *cgrp, struct task_struct *task);
  
- 	list_for_each_entry_safe(cs, tmp, &watchdog_list, wd_list) {
--		csnow = cs->read();
-+		csnow = clocksource_read(cs);
+ /* Control Group subsystem type. See Documentation/cgroups.txt for details */
  
- 		if (unlikely(resumed)) {
- 			cs->wd_last = csnow;
-@@ -170,7 +170,7 @@ static void clocksource_check_watchdog(s
+diff -puN kernel/cgroup.c~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
++++ a/kernel/cgroup.c
+@@ -3072,18 +3072,19 @@ int cgroup_clone(struct task_struct *tsk
+ }
  
- 		list_add(&cs->wd_list, &watchdog_list);
- 		if (!started && watchdog) {
--			watchdog_last = watchdog->read();
-+			watchdog_last = clocksource_read(watchdog);
- 			watchdog_timer.expires = jiffies + WATCHDOG_INTERVAL;
- 			add_timer_on(&watchdog_timer,
- 				     first_cpu(cpu_online_map));
-@@ -191,7 +191,7 @@ static void clocksource_check_watchdog(s
- 				cse->flags &= ~CLOCK_SOURCE_WATCHDOG;
- 			/* Start if list is not empty */
- 			if (!list_empty(&watchdog_list)) {
--				watchdog_last = watchdog->read();
-+				watchdog_last = clocksource_read(watchdog);
- 				watchdog_timer.expires =
- 					jiffies + WATCHDOG_INTERVAL;
- 				add_timer_on(&watchdog_timer,
+ /**
+- * cgroup_is_descendant - see if @cgrp is a descendant of current task's cgrp
++ * cgroup_is_descendant - see if @cgrp is a descendant of @task's cgrp
+  * @cgrp: the cgroup in question
++ * @task: the task in question
+  *
+- * See if @cgrp is a descendant of the current task's cgroup in
+- * the appropriate hierarchy.
++ * See if @cgrp is a descendant of @task's cgroup in the appropriate
++ * hierarchy.
+  *
+  * If we are sending in dummytop, then presumably we are creating
+  * the top cgroup in the subsystem.
+  *
+  * Called only by the ns (nsproxy) cgroup.
+  */
+-int cgroup_is_descendant(const struct cgroup *cgrp)
++int cgroup_is_descendant(const struct cgroup *cgrp, struct task_struct *task)
+ {
+ 	int ret;
+ 	struct cgroup *target;
+@@ -3093,7 +3094,8 @@ int cgroup_is_descendant(const struct cg
+ 		return 1;
+ 
+ 	get_first_subsys(cgrp, NULL, &subsys_id);
+-	target = task_cgroup(current, subsys_id);
++	target = task_cgroup(task, subsys_id);
++
+ 	while (cgrp != target && cgrp!= cgrp->top_cgroup)
+ 		cgrp = cgrp->parent;
+ 	ret = (cgrp == target);
+diff -puN kernel/ns_cgroup.c~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups kernel/ns_cgroup.c
+--- a/kernel/ns_cgroup.c~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
++++ a/kernel/ns_cgroup.c
+@@ -45,21 +45,18 @@ int ns_cgroup_clone(struct task_struct *
+ static int ns_can_attach(struct cgroup_subsys *ss,
+ 		struct cgroup *new_cgroup, struct task_struct *task)
+ {
+-	struct cgroup *orig;
+-
+ 	if (current != task) {
+ 		if (!capable(CAP_SYS_ADMIN))
+ 			return -EPERM;
+ 
+-		if (!cgroup_is_descendant(new_cgroup))
++		if (!cgroup_is_descendant(new_cgroup, current))
+ 			return -EPERM;
+ 	}
+ 
+ 	if (atomic_read(&new_cgroup->count) != 0)
+ 		return -EPERM;
+ 
+-	orig = task_cgroup(task, ns_subsys_id);
+-	if (orig && orig != new_cgroup->parent)
++	if (!cgroup_is_descendant(new_cgroup, task))
+ 		return -EPERM;
+ 
+ 	return 0;
+@@ -77,7 +74,7 @@ static struct cgroup_subsys_state *ns_cr
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return ERR_PTR(-EPERM);
+-	if (!cgroup_is_descendant(cgroup))
++	if (!cgroup_is_descendant(cgroup, current))
+ 		return ERR_PTR(-EPERM);
+ 
+ 	ns_cgroup = kzalloc(sizeof(*ns_cgroup), GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from root@localdomain.pl are
 
-clocksource-pass-clocksource-to-read-callback-fix.patch
-mm-gup-persist-for-write-permission.patch
-mm-wp-lock-page-before-deciding-cow.patch
-mm-reuse_swap_page-replaces-can_share_swap_page.patch
-mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
-mm-try_to_unuse-check-removing-right-swap.patch
-mm-remove-try_to_munlock-from-vmscan.patch
-mm-remove-gfp_mask-from-add_to_swap.patch
-mm-add-add_to_swap-stub.patch
-mm-optimize-get_scan_ratio-for-no-swap.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-swapfile-swapon-needs-larger-size-type.patch
-swapfile-remove-swp_active-mask.patch
-swapfile-remove-surplus-whitespace.patch
-swapfile-remove-v0-swap-space-message.patch
-swapfile-rearrange-scan-and-swap_info.patch
-swapfile-swapon-use-discard-trim.patch
-swapfile-swap-allocation-use-discard.patch
-swapfile-swapon-randomize-if-nonrot.patch
-swapfile-swap-allocation-cycle-if-nonrot.patch
-swapfile-change-discard-pgoff_t-to-sector_t.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-swapfile-let-others-seed-random.patch
-mm-remove-config_out_of_line_pfn_to_page.patch
-cgroups-make-cgroup-config-a-submenu.patch
-cgroups-documentation-updates.patch
-cgroups-remove-some-redundant-null-checks.patch
-ns_cgroup-remove-unused-spinlock.patch
-memcg-fix-a-typo-in-kconfig.patch
-cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
-cgroups-fix-cgroup_iter_next-bug.patch
-cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
-cgroups-use-task_lock-for-access-tsk-cgroups-safe-in-cgroup_clone.patch
-cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
-cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
-cgroups-make-root_list-contains-active-hierarchies-only.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
-devcgroup-use-list_for_each_entry_rcu.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-fix-gfp_mask-of-callers-of-charge.patch
-memcg-simple-migration-handling.patch
-memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
-memcg-move-all-acccounts-to-parent-at-rmdir.patch
-memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-memswap-controller-kconfig.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-synchronized-lru.patch
-memcg-add-mem_cgroup_disabled.patch
-memcg-add-mem_cgroup_disabled-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcontrol-rcu_read_lock-to-protect-mm_match_cgroup.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-memcg-fix-reclaim-result-checks.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-fix-calclation-of-active_ratio.patch
-memcg-fix-calclation-of-active_ratio-build-error-fix.patch
-memcg-show-real-limit-under-hierarchy-mode.patch
-memcg-explain-details-and-test-document.patch
-memcg-explain-details-and-test-document-fix.patch
-memcg-dont-trigger-oom-at-page-migration.patch
-memcg-remove-mem_cgroup_try_charge.patch
-memcg-avoid-dead-lock-caused-by-race-between-oom-and-cpuset_attach.patch
-memcg-change-try_to_free_pages-to-hierarchical_reclaim.patch
-memcg-fix-swap-accounting-leak-v3.patch
-memcg-fix-swap-accounting-leak-doc-fix.patch
-memcg-fix-double-free-and-make-refcnt-sane.patch
-memcg-use-css_tryget-in-memcg.patch
-cgroups-add-a-per-subsystem-hierarchy_mutex.patch
-cgroups-use-hierarchy_mutex-in-memory-controller.patch
-cgroups-add-css_tryget.patch
-cpuset-rcu_read_lock-to-protect-task_cs.patch
+cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
 
