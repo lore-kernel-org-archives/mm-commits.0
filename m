@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-shmemc-fix-division-by-zero.patch added to -mm tree
-Date: Fri, 19 Dec 2008 13:24:49 -0800
-Message-ID: <200812192124.mBJLOnjc032531@imap1.linux-foundation.org>
+Subject: + fs-dlm-astc-fix-warning.patch added to -mm tree
+Date: Fri, 19 Dec 2008 13:29:59 -0800
+Message-ID: <200812192145.mBJLjwEp014412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47905 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751474AbYLSVZb (ORCPT
+	by vger.kernel.org with ESMTP id S1751392AbYLSVq4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Dec 2008 16:25:31 -0500
+	Fri, 19 Dec 2008 16:46:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yur@emcraft.com, hugh@veritas.com
+Cc: akpm@linux-foundation.org, swhiteho@redhat.com, teigland@redhat.com
 
 
 The patch titled
-     mm/shmem.c: fix division by zero
+     fs/dlm/ast.c: fix warning
 has been added to the -mm tree.  Its filename is
-     mm-shmemc-fix-division-by-zero.patch
+     fs-dlm-astc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,153 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/shmem.c: fix division by zero
-From: Yuri Tikhonov <yur@emcraft.com>
+Subject: fs/dlm/ast.c: fix warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a division by zero which we have in shmem_truncate_range() and
-shmem_unuse_inode() when using big PAGE_SIZE values (e.g.  256KB on ppc44x).
+fs/dlm/ast.c: In function 'dlm_astd':
+fs/dlm/ast.c:64: warning: 'bastmode' may be used uninitialized in this function
 
-With 256KB PAGE_SIZE the ENTRIES_PER_PAGEPAGE constant becomes too large
-(0x1.0000.0000), so this patch just changes the types from 'ulong' to
-'ullong' where it's necessary.
+Cleans code up.
 
-Signed-off-by: Yuri Tikhonov <yur@emcraft.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Might be wrong.
+
+This is an O(n*n) search :(
+
+Cc: David Teigland <teigland@redhat.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/dlm/ast.c |   39 +++++++++++++++++----------------------
+ 1 file changed, 17 insertions(+), 22 deletions(-)
 
-diff -puN mm/shmem.c~mm-shmemc-fix-division-by-zero mm/shmem.c
---- a/mm/shmem.c~mm-shmemc-fix-division-by-zero
-+++ a/mm/shmem.c
-@@ -65,7 +65,7 @@ static struct vfsmount *shm_mnt;
- #include <asm/pgtable.h>
+diff -puN fs/dlm/ast.c~fs-dlm-astc-fix-warning fs/dlm/ast.c
+--- a/fs/dlm/ast.c~fs-dlm-astc-fix-warning
++++ a/fs/dlm/ast.c
+@@ -61,30 +61,23 @@ static void process_asts(void)
+ 	struct dlm_lkb *lkb;
+ 	void (*cast) (void *astparam);
+ 	void (*bast) (void *astparam, int mode);
+-	int type = 0, found, bastmode;
++	int type = 0, bastmode;
  
- #define ENTRIES_PER_PAGE (PAGE_CACHE_SIZE/sizeof(unsigned long))
--#define ENTRIES_PER_PAGEPAGE (ENTRIES_PER_PAGE*ENTRIES_PER_PAGE)
-+#define ENTRIES_PER_PAGEPAGE ((unsigned long long)ENTRIES_PER_PAGE*ENTRIES_PER_PAGE)
- #define BLOCKS_PER_PAGE  (PAGE_CACHE_SIZE/512)
+-	for (;;) {
+-		found = 0;
+-		spin_lock(&ast_queue_lock);
+-		list_for_each_entry(lkb, &ast_queue, lkb_astqueue) {
+-			r = lkb->lkb_resource;
+-			ls = r->res_ls;
+-
+-			if (dlm_locking_stopped(ls))
+-				continue;
+-
+-			list_del(&lkb->lkb_astqueue);
+-			type = lkb->lkb_ast_type;
+-			lkb->lkb_ast_type = 0;
+-			bastmode = lkb->lkb_bastmode;
+-			found = 1;
+-			break;
+-		}
+-		spin_unlock(&ast_queue_lock);
+-
+-		if (!found)
+-			break;
++repeat:
++	spin_lock(&ast_queue_lock);
++	list_for_each_entry(lkb, &ast_queue, lkb_astqueue) {
++		r = lkb->lkb_resource;
++		ls = r->res_ls;
++
++		if (dlm_locking_stopped(ls))
++			continue;
++
++		list_del(&lkb->lkb_astqueue);
++		type = lkb->lkb_ast_type;
++		lkb->lkb_ast_type = 0;
++		bastmode = lkb->lkb_bastmode;
  
- #define SHMEM_MAX_INDEX  (SHMEM_NR_DIRECT + (ENTRIES_PER_PAGEPAGE/2) * (ENTRIES_PER_PAGE+1))
-@@ -103,7 +103,7 @@ static unsigned long shmem_default_max_i
++		spin_unlock(&ast_queue_lock);
+ 		cast = lkb->lkb_astfn;
+ 		bast = lkb->lkb_bastfn;
+ 
+@@ -99,7 +92,9 @@ static void process_asts(void)
+ 		dlm_put_lkb(lkb);
+ 
+ 		cond_resched();
++		goto repeat;
+ 	}
++	spin_unlock(&ast_queue_lock);
  }
- #endif
  
--static int shmem_getpage(struct inode *inode, unsigned long idx,
-+static int shmem_getpage(struct inode *inode, unsigned long long idx,
- 			 struct page **pagep, enum sgp_type sgp, int *type);
- 
- static inline struct page *shmem_dir_alloc(gfp_t gfp_mask)
-@@ -541,7 +541,7 @@ static void shmem_truncate_range(struct 
- 	int punch_hole;
- 	spinlock_t *needs_lock;
- 	spinlock_t *punch_lock;
--	unsigned long upper_limit;
-+	unsigned long long upper_limit;
- 
- 	inode->i_ctime = inode->i_mtime = CURRENT_TIME;
- 	idx = (start + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
-@@ -1183,7 +1183,7 @@ static inline struct mempolicy *shmem_ge
-  * vm. If we swap it in we mark it dirty since we also free the swap
-  * entry since a page cannot live in both the swap and page cache
-  */
--static int shmem_getpage(struct inode *inode, unsigned long idx,
-+static int shmem_getpage(struct inode *inode, unsigned long long idx,
- 			struct page **pagep, enum sgp_type sgp, int *type)
- {
- 	struct address_space *mapping = inode->i_mapping;
+ static inline int no_asts(void)
 _
 
-Patches currently in -mm which might be from yur@emcraft.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-shmemc-fix-division-by-zero.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+fs-dlm-astc-fix-warning.patch
+linux-timexh-cleanup-for-userspace.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+smp_call_function_single-be-slightly-less-stupid.patch
+kernel-hrtimerc-kill-warning.patch
+binfmtsh-include-listh-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
