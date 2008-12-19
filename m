@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + fs-dlm-astc-fix-warning.patch added to -mm tree
-Date: Fri, 19 Dec 2008 13:29:59 -0800
-Message-ID: <200812192145.mBJLjwEp014412@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 19 Dec 2008 13:31:05 -0800
+Message-ID: <200812192147.mBJLl4KD015197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751392AbYLSVq4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751412AbYLSVrg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Dec 2008 16:46:56 -0500
+	Fri, 19 Dec 2008 16:47:36 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mBJLl4pv015294
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 19 Dec 2008 13:47:05 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, swhiteho@redhat.com, teigland@redhat.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     fs/dlm/ast.c: fix warning
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     fs-dlm-astc-fix-warning.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +38,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/dlm/ast.c: fix warning
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/dlm/ast.c: In function 'dlm_astd':
-fs/dlm/ast.c:64: warning: 'bastmode' may be used uninitialized in this function
-
-Cleans code up.
-
-Might be wrong.
-
-This is an O(n*n) search :(
-
-Cc: David Teigland <teigland@redhat.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/ast.c |   39 +++++++++++++++++----------------------
- 1 file changed, 17 insertions(+), 22 deletions(-)
+ drivers/md/bitmap.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/dlm/ast.c~fs-dlm-astc-fix-warning fs/dlm/ast.c
---- a/fs/dlm/ast.c~fs-dlm-astc-fix-warning
-+++ a/fs/dlm/ast.c
-@@ -61,30 +61,23 @@ static void process_asts(void)
- 	struct dlm_lkb *lkb;
- 	void (*cast) (void *astparam);
- 	void (*bast) (void *astparam, int mode);
--	int type = 0, found, bastmode;
-+	int type = 0, bastmode;
+diff -puN drivers/md/bitmap.c~linux-next-git-rejects drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~linux-next-git-rejects
++++ a/drivers/md/bitmap.c
+@@ -215,11 +215,6 @@ static struct page *read_sb_page(mddev_t
+ 	/* choose a good rdev and read the page from there */
  
--	for (;;) {
--		found = 0;
--		spin_lock(&ast_queue_lock);
--		list_for_each_entry(lkb, &ast_queue, lkb_astqueue) {
--			r = lkb->lkb_resource;
--			ls = r->res_ls;
--
--			if (dlm_locking_stopped(ls))
--				continue;
--
--			list_del(&lkb->lkb_astqueue);
--			type = lkb->lkb_ast_type;
--			lkb->lkb_ast_type = 0;
--			bastmode = lkb->lkb_bastmode;
--			found = 1;
--			break;
--		}
--		spin_unlock(&ast_queue_lock);
--
--		if (!found)
--			break;
-+repeat:
-+	spin_lock(&ast_queue_lock);
-+	list_for_each_entry(lkb, &ast_queue, lkb_astqueue) {
-+		r = lkb->lkb_resource;
-+		ls = r->res_ls;
-+
-+		if (dlm_locking_stopped(ls))
-+			continue;
-+
-+		list_del(&lkb->lkb_astqueue);
-+		type = lkb->lkb_ast_type;
-+		lkb->lkb_ast_type = 0;
-+		bastmode = lkb->lkb_bastmode;
+ 	mdk_rdev_t *rdev;
+-<<<<<<< HEAD:drivers/md/bitmap.c
+-	struct list_head *tmp;
+-=======
+-	struct page *page = alloc_page(GFP_KERNEL);
+->>>>>>> FETCH_HEAD:drivers/md/bitmap.c
+ 	sector_t target;
  
-+		spin_unlock(&ast_queue_lock);
- 		cast = lkb->lkb_astfn;
- 		bast = lkb->lkb_bastfn;
- 
-@@ -99,7 +92,9 @@ static void process_asts(void)
- 		dlm_put_lkb(lkb);
- 
- 		cond_resched();
-+		goto repeat;
- 	}
-+	spin_unlock(&ast_queue_lock);
- }
- 
- static inline int no_asts(void)
+ 	if (!page)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,6 +69,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 next-remove-localversion.patch
+linux-next-git-rejects.patch
 fs-dlm-astc-fix-warning.patch
 linux-timexh-cleanup-for-userspace.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
