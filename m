@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-hackery.patch added to -mm tree
-Date: Fri, 19 Dec 2008 14:20:17 -0800
-Message-ID: <200812192236.mBJMaIQC016527@imap1.linux-foundation.org>
+Subject: + revert-sched-fix-uneven-per-cpu-task_group-share-distribution.patch added to -mm tree
+Date: Fri, 19 Dec 2008 14:24:44 -0800
+Message-ID: <200812192240.mBJMehTZ019606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56657 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751934AbYLSWhJ (ORCPT
+	by vger.kernel.org with ESMTP id S1750976AbYLSWlV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Dec 2008 17:37:09 -0500
+	Fri, 19 Dec 2008 17:41:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, kenchen@google.com, mingo@elte.hu
 
 
 The patch titled
-     sched-hackery
+     revert "sched: fix uneven per-cpu task_group share distribution"
 has been added to the -mm tree.  Its filename is
-     sched-hackery.patch
+     revert-sched-fix-uneven-per-cpu-task_group-share-distribution.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched-hackery
+Subject: revert "sched: fix uneven per-cpu task_group share distribution"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ken Chen <kenchen@google.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ kernel/sched.c |   43 +++++++++++++++++++------------------------
+ 1 file changed, 19 insertions(+), 24 deletions(-)
 
-diff -puN kernel/sched.c~sched-hackery kernel/sched.c
---- a/kernel/sched.c~sched-hackery
+diff -puN kernel/sched.c~revert-sched-fix-uneven-per-cpu-task_group-share-distribution kernel/sched.c
+--- a/kernel/sched.c~revert-sched-fix-uneven-per-cpu-task_group-share-distribution
 +++ a/kernel/sched.c
-@@ -1492,7 +1492,10 @@ update_group_shares_cpu(struct task_grou
- 		 *               \Sum rq_weight
- 		 *
- 		 */
+@@ -1475,34 +1475,24 @@ static void __set_se_shares(struct sched
+  * Calculate and set the cpu's group shares.
+  */
+ static void
+-update_group_shares_cpu(struct task_group *tg, int cpu, int empty,
++update_group_shares_cpu(struct task_group *tg, int cpu,
+ 			unsigned long sd_shares, unsigned long sd_rq_weight)
+ {
+-	unsigned long shares, raw_shares;
++	unsigned long shares;
+ 	unsigned long rq_weight;
+ 
+ 	if (!tg->se[cpu])
+ 		return;
+ 
+ 	rq_weight = tg->cfs_rq[cpu]->rq_weight;
+-	if (rq_weight) {
+-		/*
+-		 *           \Sum shares * rq_weight
+-		 * shares =  -----------------------
+-		 *               \Sum rq_weight
+-		 *
+-		 */
 -		raw_shares = (sd_shares * rq_weight) / sd_rq_weight;
-+		if (WARN_ON(!sd_rq_weight))
-+			raw_shares = 1;
-+		else
-+			raw_shares = (sd_shares * rq_weight) / sd_rq_weight;
- 		shares = raw_shares;
- 	} else {
- 		/*
-@@ -1501,7 +1504,10 @@ update_group_shares_cpu(struct task_grou
- 		 * run here it will not get delayed by group starvation.
- 		 */
- 		raw_shares = 0;
+-		shares = raw_shares;
+-	} else {
+-		/*
+-		 * If there are currently no tasks on the cpu pretend there
+-		 * is one of average load so that when a new task gets to
+-		 * run here it will not get delayed by group starvation.
+-		 */
+-		raw_shares = 0;
 -		shares = sd_shares / empty;
-+		if (WARN_ON(!empty))
-+			shares = 1;
-+		else
-+			shares = sd_shares / empty;
- 	}
+-	}
++
++	/*
++	 *           \Sum shares * rq_weight
++	 * shares =  -----------------------
++	 *               \Sum rq_weight
++	 *
++	 */
++	shares = (sd_shares * rq_weight) / sd_rq_weight;
  	shares = clamp_t(unsigned long, shares, MIN_SHARES, MAX_SHARES);
  
+ 	if (abs(shares - tg->se[cpu]->load.weight) >
+@@ -1511,7 +1501,7 @@ update_group_shares_cpu(struct task_grou
+ 		unsigned long flags;
+ 
+ 		spin_lock_irqsave(&rq->lock, flags);
+-		tg->cfs_rq[cpu]->shares = raw_shares;
++		tg->cfs_rq[cpu]->shares = shares;
+ 
+ 		__set_se_shares(tg->se[cpu], shares);
+ 		spin_unlock_irqrestore(&rq->lock, flags);
+@@ -1528,12 +1518,17 @@ static int tg_shares_up(struct task_grou
+ 	unsigned long weight, rq_weight = 0;
+ 	unsigned long shares = 0;
+ 	struct sched_domain *sd = data;
+-	int i, empty = 0;
++	int i;
+ 
+ 	for_each_cpu(i, sched_domain_span(sd)) {
++		/*
++		 * If there are currently no tasks on the cpu pretend there
++		 * is one of average load so that when a new task gets to
++		 * run here it will not get delayed by group starvation.
++		 */
+ 		weight = tg->cfs_rq[i]->load.weight;
+ 		if (!weight)
+-			empty++;
++			weight = NICE_0_LOAD;
+ 
+ 		tg->cfs_rq[i]->rq_weight = weight;
+ 		rq_weight += weight;
+@@ -1547,7 +1542,7 @@ static int tg_shares_up(struct task_grou
+ 		shares = tg->shares;
+ 
+ 	for_each_cpu(i, sched_domain_span(sd))
+-		update_group_shares_cpu(tg, i, empty, shares, rq_weight);
++		update_group_shares_cpu(tg, i, shares, rq_weight);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +140,7 @@ mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 next-remove-localversion.patch
 linux-next-git-rejects.patch
+revert-sched-fix-uneven-per-cpu-task_group-share-distribution.patch
 sched-hackery.patch
 fs-dlm-astc-fix-warning.patch
 linux-timexh-cleanup-for-userspace.patch
