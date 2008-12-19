@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch added to -mm tree
-Date: Fri, 19 Dec 2008 13:16:48 -0800
-Message-ID: <200812192116.mBJLGnO7027145@imap1.linux-foundation.org>
+Subject: + docs-add-more-early-params-to-kernel-parameterstxt.patch added to -mm tree
+Date: Fri, 19 Dec 2008 13:17:35 -0800
+Message-ID: <200812192117.mBJLHZA4027695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45893 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751585AbYLSVRo (ORCPT
+	by vger.kernel.org with ESMTP id S1751479AbYLSVSN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Dec 2008 16:17:44 -0500
+	Fri, 19 Dec 2008 16:18:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: root@localdomain.pl, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, xemul@openvz.org
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     cgroups: relax ns_can_attach checks to allow attaching to grandchild cgroups
+     docs: add more early params to kernel-parameters.txt
 has been added to the -mm tree.  Its filename is
-     cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+     docs-add-more-early-params-to-kernel-parameterstxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: relax ns_can_attach checks to allow attaching to grandchild cgroups
-From: Grzegorz Nosek <root@localdomain.pl>
+Subject: docs: add more early params to kernel-parameters.txt
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The ns_proxy cgroup allows moving processes to child cgroups only one
-level deep at a time.  This commit relaxes this restriction and makes it
-possible to attach tasks directly to grandchild cgroups, e.g.:
+Add some (more) early_param boot options to kernel-parameters.txt.
 
-($pid is in the root cgroup)
-echo $pid > /cgroup/CG1/CG2/tasks
-
-Previously this operation would fail with -EPERM and would have to be
-performed as two steps:
-echo $pid > /cgroup/CG1/tasks
-echo $pid > /cgroup/CG1/CG2/tasks
-
-Signed-off-by: Grzegorz Nosek <root@localdomain.pl>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    4 ++--
- kernel/cgroup.c        |   12 +++++++-----
- kernel/ns_cgroup.c     |    9 +++------
- 3 files changed, 12 insertions(+), 13 deletions(-)
+ Documentation/kernel-parameters.txt |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN include/linux/cgroup.h~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
-+++ a/include/linux/cgroup.h
-@@ -344,8 +344,8 @@ int cgroup_path(const struct cgroup *cgr
+diff -puN Documentation/kernel-parameters.txt~docs-add-more-early-params-to-kernel-parameterstxt Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~docs-add-more-early-params-to-kernel-parameterstxt
++++ a/Documentation/kernel-parameters.txt
+@@ -1131,6 +1131,8 @@ and is between 256 and 4096 characters. 
+ 			If there are multiple matching configurations changing
+ 			the same attribute, the last one is used.
  
- int cgroup_task_count(const struct cgroup *cgrp);
- 
--/* Return true if the cgroup is a descendant of the current cgroup */
--int cgroup_is_descendant(const struct cgroup *cgrp);
-+/* Return true if cgrp is a descendant of the task's cgroup */
-+int cgroup_is_descendant(const struct cgroup *cgrp, struct task_struct *task);
- 
- /* Control Group subsystem type. See Documentation/cgroups.txt for details */
- 
-diff -puN kernel/cgroup.c~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
-+++ a/kernel/cgroup.c
-@@ -3072,18 +3072,19 @@ int cgroup_clone(struct task_struct *tsk
- }
- 
- /**
-- * cgroup_is_descendant - see if @cgrp is a descendant of current task's cgrp
-+ * cgroup_is_descendant - see if @cgrp is a descendant of @task's cgrp
-  * @cgrp: the cgroup in question
-+ * @task: the task in question
-  *
-- * See if @cgrp is a descendant of the current task's cgroup in
-- * the appropriate hierarchy.
-+ * See if @cgrp is a descendant of @task's cgroup in the appropriate
-+ * hierarchy.
-  *
-  * If we are sending in dummytop, then presumably we are creating
-  * the top cgroup in the subsystem.
-  *
-  * Called only by the ns (nsproxy) cgroup.
-  */
--int cgroup_is_descendant(const struct cgroup *cgrp)
-+int cgroup_is_descendant(const struct cgroup *cgrp, struct task_struct *task)
- {
- 	int ret;
- 	struct cgroup *target;
-@@ -3093,7 +3094,8 @@ int cgroup_is_descendant(const struct cg
- 		return 1;
- 
- 	get_first_subsys(cgrp, NULL, &subsys_id);
--	target = task_cgroup(current, subsys_id);
-+	target = task_cgroup(task, subsys_id);
++	lmb=debug	[KNL] Enable lmb debug messages.
 +
- 	while (cgrp != target && cgrp!= cgrp->top_cgroup)
- 		cgrp = cgrp->parent;
- 	ret = (cgrp == target);
-diff -puN kernel/ns_cgroup.c~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups kernel/ns_cgroup.c
---- a/kernel/ns_cgroup.c~cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
-+++ a/kernel/ns_cgroup.c
-@@ -45,21 +45,18 @@ int ns_cgroup_clone(struct task_struct *
- static int ns_can_attach(struct cgroup_subsys *ss,
- 		struct cgroup *new_cgroup, struct task_struct *task)
- {
--	struct cgroup *orig;
--
- 	if (current != task) {
- 		if (!capable(CAP_SYS_ADMIN))
- 			return -EPERM;
+ 	load_ramdisk=	[RAM] List of ramdisks to load from floppy
+ 			See Documentation/blockdev/ramdisk.txt.
  
--		if (!cgroup_is_descendant(new_cgroup))
-+		if (!cgroup_is_descendant(new_cgroup, current))
- 			return -EPERM;
- 	}
+@@ -1583,6 +1585,10 @@ and is between 256 and 4096 characters. 
  
- 	if (atomic_read(&new_cgroup->count) != 0)
- 		return -EPERM;
+ 	nr_uarts=	[SERIAL] maximum number of UARTs to be registered.
  
--	orig = task_cgroup(task, ns_subsys_id);
--	if (orig && orig != new_cgroup->parent)
-+	if (!cgroup_is_descendant(new_cgroup, task))
- 		return -EPERM;
- 
- 	return 0;
-@@ -77,7 +74,7 @@ static struct cgroup_subsys_state *ns_cr
- 
- 	if (!capable(CAP_SYS_ADMIN))
- 		return ERR_PTR(-EPERM);
--	if (!cgroup_is_descendant(cgroup))
-+	if (!cgroup_is_descendant(cgroup, current))
- 		return ERR_PTR(-EPERM);
- 
- 	ns_cgroup = kzalloc(sizeof(*ns_cgroup), GFP_KERNEL);
++	ohci1394_dma=early	[HW] enable debugging via the ohci1394 driver.
++			See Documentation/debugging-via-ohci1394.txt for more
++			info.
++
+ 	olpc_ec_timeout= [OLPC] ms delay when issuing EC commands
+ 			Rather than timing out after 20 ms if an EC
+ 			command is not properly ACKed, override the length
 _
 
-Patches currently in -mm which might be from root@localdomain.pl are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-cgroups-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+linux-next.patch
+kgdb-fix-kernel-doc-error.patch
+mtd-fix-dataflash-printk-formats.patch
+mtd-fix-m25p80-printk-formats.patch
+mtd-fix-nettel-printk-formats.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+esp-fix-section-mismatch-warning.patch
+fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+documentation-how-to-use-doc-section-blocks.patch
+docs-add-more-early-params-to-kernel-parameterstxt.patch
+doc-reformat-some-long-lines-in-kernel-parameterstxt.patch
+w1-add-list-masters-w1-command.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
+fix-similar-typos-to-successfull-v2.patch
 
