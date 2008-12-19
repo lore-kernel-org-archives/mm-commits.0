@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 19 Dec 2008 13:31:05 -0800
-Message-ID: <200812192147.mBJLl4KD015197@imap1.linux-foundation.org>
+Subject: + sched-hackery.patch added to -mm tree
+Date: Fri, 19 Dec 2008 14:20:17 -0800
+Message-ID: <200812192236.mBJMaIQC016527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57882 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751412AbYLSVrg (ORCPT
+	by vger.kernel.org with ESMTP id S1751934AbYLSWhJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Dec 2008 16:47:36 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mBJLl4pv015294
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 19 Dec 2008 13:47:05 -0800
+	Fri, 19 Dec 2008 17:37:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu
 
 
 The patch titled
-     linux-next-git-rejects
+     sched-hackery
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     sched-hackery.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,30 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: sched-hackery
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c |    5 -----
- 1 file changed, 5 deletions(-)
+ kernel/sched.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/bitmap.c~linux-next-git-rejects drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~linux-next-git-rejects
-+++ a/drivers/md/bitmap.c
-@@ -215,11 +215,6 @@ static struct page *read_sb_page(mddev_t
- 	/* choose a good rdev and read the page from there */
+diff -puN kernel/sched.c~sched-hackery kernel/sched.c
+--- a/kernel/sched.c~sched-hackery
++++ a/kernel/sched.c
+@@ -1492,7 +1492,10 @@ update_group_shares_cpu(struct task_grou
+ 		 *               \Sum rq_weight
+ 		 *
+ 		 */
+-		raw_shares = (sd_shares * rq_weight) / sd_rq_weight;
++		if (WARN_ON(!sd_rq_weight))
++			raw_shares = 1;
++		else
++			raw_shares = (sd_shares * rq_weight) / sd_rq_weight;
+ 		shares = raw_shares;
+ 	} else {
+ 		/*
+@@ -1501,7 +1504,10 @@ update_group_shares_cpu(struct task_grou
+ 		 * run here it will not get delayed by group starvation.
+ 		 */
+ 		raw_shares = 0;
+-		shares = sd_shares / empty;
++		if (WARN_ON(!empty))
++			shares = 1;
++		else
++			shares = sd_shares / empty;
+ 	}
+ 	shares = clamp_t(unsigned long, shares, MIN_SHARES, MAX_SHARES);
  
- 	mdk_rdev_t *rdev;
--<<<<<<< HEAD:drivers/md/bitmap.c
--	struct list_head *tmp;
--=======
--	struct page *page = alloc_page(GFP_KERNEL);
-->>>>>>> FETCH_HEAD:drivers/md/bitmap.c
- 	sector_t target;
- 
- 	if (!page)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +80,7 @@ mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 next-remove-localversion.patch
 linux-next-git-rejects.patch
+sched-hackery.patch
 fs-dlm-astc-fix-warning.patch
 linux-timexh-cleanup-for-userspace.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
