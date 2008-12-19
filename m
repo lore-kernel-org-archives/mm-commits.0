@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + docs-add-more-early-params-to-kernel-parameterstxt.patch added to -mm tree
-Date: Fri, 19 Dec 2008 13:17:35 -0800
-Message-ID: <200812192117.mBJLHZA4027695@imap1.linux-foundation.org>
+Subject: + doc-reformat-some-long-lines-in-kernel-parameterstxt.patch added to -mm tree
+Date: Fri, 19 Dec 2008 13:17:37 -0800
+Message-ID: <200812192117.mBJLHbaC027698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45893 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751479AbYLSVSN (ORCPT
+	by vger.kernel.org with ESMTP id S1751602AbYLSVSR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Dec 2008 16:18:13 -0500
+	Fri, 19 Dec 2008 16:18:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     docs: add more early params to kernel-parameters.txt
+     doc: reformat some long lines in kernel-parameters.txt
 has been added to the -mm tree.  Its filename is
-     docs-add-more-early-params-to-kernel-parameterstxt.patch
+     doc-reformat-some-long-lines-in-kernel-parameterstxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docs: add more early params to kernel-parameters.txt
+Subject: doc: reformat some long lines in kernel-parameters.txt
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add some (more) early_param boot options to kernel-parameters.txt.
+Reformat text to (mostly) stay within 80 columns of text.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/kernel-parameters.txt |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~docs-add-more-early-params-to-kernel-parameterstxt Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~docs-add-more-early-params-to-kernel-parameterstxt
+diff -puN Documentation/kernel-parameters.txt~doc-reformat-some-long-lines-in-kernel-parameterstxt Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~doc-reformat-some-long-lines-in-kernel-parameterstxt
 +++ a/Documentation/kernel-parameters.txt
-@@ -1131,6 +1131,8 @@ and is between 256 and 4096 characters. 
- 			If there are multiple matching configurations changing
- 			the same attribute, the last one is used.
+@@ -1813,10 +1813,10 @@ and is between 256 and 4096 characters. 
+ 			autoconfiguration.
+ 			Ranges are in pairs (memory base and size).
  
-+	lmb=debug	[KNL] Enable lmb debug messages.
-+
- 	load_ramdisk=	[RAM] List of ramdisks to load from floppy
- 			See Documentation/blockdev/ramdisk.txt.
+-	dynamic_printk
+-			Enables pr_debug()/dev_dbg() calls if
+-			CONFIG_DYNAMIC_PRINTK_DEBUG has been enabled. These can also
+-			be switched on/off via <debugfs>/dynamic_printk/modules
++	dynamic_printk	Enables pr_debug()/dev_dbg() calls if
++			CONFIG_DYNAMIC_PRINTK_DEBUG has been enabled.
++			These can also be switched on/off via
++			<debugfs>/dynamic_printk/modules
  
-@@ -1583,6 +1585,10 @@ and is between 256 and 4096 characters. 
+ 	print-fatal-signals=
+ 			[KNL] debug: print fatal signals
+@@ -1904,7 +1904,7 @@ and is between 256 and 4096 characters. 
  
- 	nr_uarts=	[SERIAL] maximum number of UARTs to be registered.
+ 	reboot=		[BUGS=X86-32,BUGS=ARM,BUGS=IA-64] Rebooting mode
+ 			Format: <reboot_mode>[,<reboot_mode2>[,...]]
+-			See arch/*/kernel/reboot.c or arch/*/kernel/process.c			
++			See arch/*/kernel/reboot.c or arch/*/kernel/process.c
  
-+	ohci1394_dma=early	[HW] enable debugging via the ohci1394 driver.
-+			See Documentation/debugging-via-ohci1394.txt for more
-+			info.
-+
- 	olpc_ec_timeout= [OLPC] ms delay when issuing EC commands
- 			Rather than timing out after 20 ms if an EC
- 			command is not properly ACKed, override the length
+ 	relax_domain_level=
+ 			[KNL, SMP] Set scheduler's default relax_domain_level.
+@@ -2477,8 +2477,8 @@ and is between 256 and 4096 characters. 
+ 			Format:
+ 			<irq>,<irq_mask>,<io>,<full_duplex>,<do_sound>,<lockup_hack>[,<irq2>[,<irq3>[,<irq4>]]]
+ 
+-	norandmaps	Don't use address space randomization
+-			Equivalent to echo 0 > /proc/sys/kernel/randomize_va_space
++	norandmaps	Don't use address space randomization.  Equivalent to
++			echo 0 > /proc/sys/kernel/randomize_va_space
+ 
+ ______________________________________________________________________
+ 
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
