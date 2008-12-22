@@ -1,122 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - 9p-convert-d_iname-references-to-d_namename.patch removed from -mm tree
-Date: Mon, 22 Dec 2008 11:48:32 -0800
-Message-ID: <200812221948.mBMJmWnA002206@imap1.linux-foundation.org>
+Subject: + i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch added to -mm tree
+Date: Mon, 22 Dec 2008 13:01:46 -0800
+Message-ID: <200812222101.mBML1kn7021201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47581 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753198AbYLVTsn (ORCPT
+	by vger.kernel.org with ESMTP id S1754337AbYLVVCc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Dec 2008 14:48:43 -0500
+	Mon, 22 Dec 2008 16:02:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, ericvh@gmail.com, lucho@ionkov.net, wfg@linux.intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: clifford@clifford.at, khali@linux-fr.org
 
 
 The patch titled
-     9p: convert d_iname references to d_name.name
-has been removed from the -mm tree.  Its filename was
-     9p-convert-d_iname-references-to-d_namename.patch
+     i2c: fix i2c-mpc driver for multi-master i2c busses
+has been added to the -mm tree.  Its filename is
+     i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 9p: convert d_iname references to d_name.name
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: i2c: fix i2c-mpc driver for multi-master i2c busses
+From: Clifford Wolf <clifford@clifford.at>
 
-d_iname is rubbish for long file names.
-Use d_name.name in printks instead.
+Simply retry on arbitration lost until xfer is successfull, a
+non-arbitration-lost error is triggered or the 1s timeout is hit.
 
-Signed-off-by: Wu Fengguang <wfg@linux.intel.com>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+Tested with a freescale MPC8349E host cpu.
+
+Signed-off-by: Clifford Wolf <clifford@clifford.at>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/fid.c        |    4 ++--
- fs/9p/vfs_dentry.c |    6 +++---
- fs/9p/vfs_inode.c  |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/i2c/busses/i2c-mpc.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN fs/9p/fid.c~9p-convert-d_iname-references-to-d_namename fs/9p/fid.c
---- a/fs/9p/fid.c~9p-convert-d_iname-references-to-d_namename
-+++ a/fs/9p/fid.c
-@@ -45,7 +45,7 @@ int v9fs_fid_add(struct dentry *dentry, 
- 	struct v9fs_dentry *dent;
+diff -puN drivers/i2c/busses/i2c-mpc.c~i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses drivers/i2c/busses/i2c-mpc.c
+--- a/drivers/i2c/busses/i2c-mpc.c~i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses
++++ a/drivers/i2c/busses/i2c-mpc.c
+@@ -134,13 +134,13 @@ static int i2c_wait(struct mpc_i2c *i2c,
+ 	if (result < 0)
+ 		return result;
  
- 	P9_DPRINTK(P9_DEBUG_VFS, "fid %d dentry %s\n",
--					fid->fid, dentry->d_iname);
-+					fid->fid, dentry->d_name.name);
+-	if (!(x & CSR_MCF)) {
+-		pr_debug("I2C: unfinished\n");
+-		return -EIO;
+-	}
+-
+ 	if (x & CSR_MAL) {
+ 		pr_debug("I2C: MAL\n");
++		return -EAGAIN;
++	}
++
++	if (!(x & CSR_MCF)) {
++		pr_debug("I2C: unfinished\n");
+ 		return -EIO;
+ 	}
  
- 	dent = dentry->d_fsdata;
- 	if (!dent) {
-@@ -79,7 +79,7 @@ static struct p9_fid *v9fs_fid_find(stru
- 	struct p9_fid *fid, *ret;
- 
- 	P9_DPRINTK(P9_DEBUG_VFS, " dentry: %s (%p) uid %d any %d\n",
--		dentry->d_iname, dentry, uid, any);
-+		dentry->d_name.name, dentry, uid, any);
- 	dent = (struct v9fs_dentry *) dentry->d_fsdata;
- 	ret = NULL;
- 	if (dent) {
-diff -puN fs/9p/vfs_dentry.c~9p-convert-d_iname-references-to-d_namename fs/9p/vfs_dentry.c
---- a/fs/9p/vfs_dentry.c~9p-convert-d_iname-references-to-d_namename
-+++ a/fs/9p/vfs_dentry.c
-@@ -52,7 +52,7 @@
- 
- static int v9fs_dentry_delete(struct dentry *dentry)
+@@ -257,11 +257,11 @@ static int mpc_read(struct mpc_i2c *i2c,
+ static int mpc_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
  {
--	P9_DPRINTK(P9_DEBUG_VFS, " dentry: %s (%p)\n", dentry->d_iname, dentry);
-+	P9_DPRINTK(P9_DEBUG_VFS, " dentry: %s (%p)\n", dentry->d_name.name, dentry);
+ 	struct i2c_msg *pmsg;
+-	int i;
+-	int ret = 0;
++	int i, ret;
+ 	unsigned long orig_jiffies = jiffies;
+ 	struct mpc_i2c *i2c = i2c_get_adapdata(adap);
  
- 	return 1;
++restart:
+ 	mpc_i2c_start(i2c);
+ 
+ 	/* Allow bus up to 1s to become not busy */
+@@ -281,7 +281,7 @@ static int mpc_xfer(struct i2c_adapter *
+ 		schedule();
+ 	}
+ 
+-	for (i = 0; ret >= 0 && i < num; i++) {
++	for (i = 0, ret = 0; ret >= 0 && i < num; i++) {
+ 		pmsg = &msgs[i];
+ 		pr_debug("Doing %s %d bytes to 0x%02x - %d of %d messages\n",
+ 			 pmsg->flags & I2C_M_RD ? "read" : "write",
+@@ -292,7 +292,13 @@ static int mpc_xfer(struct i2c_adapter *
+ 		else
+ 			ret =
+ 			    mpc_write(i2c, pmsg->addr, pmsg->buf, pmsg->len, i);
++		if (ret == -EAGAIN) {
++			pr_debug("Lost i2c arbitration -> retry.\n");
++			mpc_i2c_stop(i2c);
++			goto restart;
++		}
+ 	}
++
+ 	mpc_i2c_stop(i2c);
+ 	return (ret < 0) ? ret : num;
  }
-@@ -69,7 +69,7 @@ static int v9fs_dentry_delete(struct den
- static int v9fs_cached_dentry_delete(struct dentry *dentry)
- {
- 	struct inode *inode = dentry->d_inode;
--	P9_DPRINTK(P9_DEBUG_VFS, " dentry: %s (%p)\n", dentry->d_iname, dentry);
-+	P9_DPRINTK(P9_DEBUG_VFS, " dentry: %s (%p)\n", dentry->d_name.name, dentry);
- 
- 	if(!inode)
- 		return 1;
-@@ -88,7 +88,7 @@ void v9fs_dentry_release(struct dentry *
- 	struct v9fs_dentry *dent;
- 	struct p9_fid *temp, *current_fid;
- 
--	P9_DPRINTK(P9_DEBUG_VFS, " dentry: %s (%p)\n", dentry->d_iname, dentry);
-+	P9_DPRINTK(P9_DEBUG_VFS, " dentry: %s (%p)\n", dentry->d_name.name, dentry);
- 	dent = dentry->d_fsdata;
- 	if (dent) {
- 		list_for_each_entry_safe(current_fid, temp, &dent->fidlist,
-diff -puN fs/9p/vfs_inode.c~9p-convert-d_iname-references-to-d_namename fs/9p/vfs_inode.c
---- a/fs/9p/vfs_inode.c~9p-convert-d_iname-references-to-d_namename
-+++ a/fs/9p/vfs_inode.c
-@@ -963,7 +963,7 @@ static int v9fs_vfs_readlink(struct dent
- 	if (buflen > PATH_MAX)
- 		buflen = PATH_MAX;
- 
--	P9_DPRINTK(P9_DEBUG_VFS, " dentry: %s (%p)\n", dentry->d_iname, dentry);
-+	P9_DPRINTK(P9_DEBUG_VFS, " dentry: %s (%p)\n", dentry->d_name.name, dentry);
- 
- 	retval = v9fs_readlink(dentry, link, buflen);
- 
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from clifford@clifford.at are
 
-origin.patch
-linux-next.patch
-nfs-remove-redundant-tests-on-reading-new-pages.patch
-generic-swap-sparc-rename-swap-to-swap_ulong.patch
-generic-swap-iphase-rename-swap-to-swap_byte_order.patch
-generic-swap-lib-sortc-rename-swap-to-swap_func.patch
-generic-swap-introduce-global-macro-swapa-b.patch
-generic-swap-ext3-remove-local-swap-macro.patch
-generic-swap-ext4-remove-local-swap-macro.patch
-generic-swap-sched-remove-local-swap-macro.patch
-generic-swap-dcache-use-swap-instead-of-private-do_switch.patch
+i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch
 
