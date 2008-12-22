@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch added to -mm tree
-Date: Mon, 22 Dec 2008 14:53:28 -0800
-Message-ID: <200812222253.mBMMrSSQ002860@imap1.linux-foundation.org>
+Subject: + remove-linux-hardirqh-from-asm-generic-localh-sparc-fix.patch added to -mm tree
+Date: Mon, 22 Dec 2008 15:26:40 -0800
+Message-ID: <200812222326.mBMNQeOI026742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754375AbYLVWxi (ORCPT
+	by vger.kernel.org with ESMTP id S1752806AbYLVX06 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Dec 2008 17:53:38 -0500
+	Mon, 22 Dec 2008 18:26:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, dbaryshkov@gmail.com, jbarnes@virtuousgeek.org, lg@denx.de, penberg@cs.helsinki.fi
+Cc: sam@ravnborg.org, adobriyan@gmail.com, davem@davemloft.net, rmk@arm.linux.org.uk
 
 
 The patch titled
-     dma-coherent: catch oversized requests to dma_alloc_from_coherent()
+     sparc: fix hardirq.h removal fallout
 has been added to the -mm tree.  Its filename is
-     dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch
+     remove-linux-hardirqh-from-asm-generic-localh-sparc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-coherent: catch oversized requests to dma_alloc_from_coherent()
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: sparc: fix hardirq.h removal fallout
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Prevent passing an order to bitmap_find_free_region() that is larger than
-the actual bitmap can represent.
+When hardirq.h are removed from asm-generic/local.h a few bits fails to
+build.  Fix these upfront.  Reported by Alexey.
 
-These requests can come from device drivers that have no idea how big the
-dma region is and need to rely on dma_alloc_from_coherent() to sort it out
-for them.
-
-Reported-by: Guennadi Liakhovetski <lg@denx.de>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma-coherent.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/sparc/kernel/mdesc.c |    1 +
+ arch/sparc/kernel/sysfs.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN kernel/dma-coherent.c~dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent kernel/dma-coherent.c
---- a/kernel/dma-coherent.c~dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent
-+++ a/kernel/dma-coherent.c
-@@ -112,6 +112,9 @@ int dma_alloc_from_coherent(struct devic
- 	struct dma_coherent_mem *mem = dev ? dev->dma_mem : NULL;
- 	int order = get_order(size);
+diff -puN arch/sparc/kernel/mdesc.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix arch/sparc/kernel/mdesc.c
+--- a/arch/sparc/kernel/mdesc.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix
++++ a/arch/sparc/kernel/mdesc.c
+@@ -11,6 +11,7 @@
+ #include <linux/mm.h>
+ #include <linux/miscdevice.h>
  
-+	if (unlikely(size > mem->size))
-+		return 0;
-+
- 	if (mem) {
- 		int page = bitmap_find_free_region(mem->bitmap, mem->size,
- 						     order);
++#include <asm/cpudata.h>
+ #include <asm/hypervisor.h>
+ #include <asm/mdesc.h>
+ #include <asm/prom.h>
+diff -puN arch/sparc/kernel/sysfs.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix arch/sparc/kernel/sysfs.c
+--- a/arch/sparc/kernel/sysfs.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix
++++ a/arch/sparc/kernel/sysfs.c
+@@ -8,6 +8,7 @@
+ #include <linux/percpu.h>
+ #include <linux/init.h>
+ 
++#include <asm/cpudata.h>
+ #include <asm/hypervisor.h>
+ #include <asm/spitfire.h>
+ 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-apply_to_range-call-pte-function-with-lazy-updates.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch
+linux-next.patch
+kconfig-add-module_name-shortcut.patch
+uml-get-rid-of-the-last-symlink-in-uml-build.patch
+remove-linux-hardirqh-from-asm-generic-localh-sparc-fix.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
 
