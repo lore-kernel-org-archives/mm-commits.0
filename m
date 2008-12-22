@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-suppress-bogus-warning-messages.patch added to -mm tree
-Date: Mon, 22 Dec 2008 14:45:36 -0800
-Message-ID: <200812222245.mBMMjasF029752@imap1.linux-foundation.org>
+Subject: + dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch added to -mm tree
+Date: Mon, 22 Dec 2008 14:52:24 -0800
+Message-ID: <200812222252.mBMMqOPO002154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48261 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53831 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754439AbYLVWqT (ORCPT
+	by vger.kernel.org with ESMTP id S1755156AbYLVWwp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Dec 2008 17:46:19 -0500
+	Mon, 22 Dec 2008 17:52:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sharyath@in.ibm.com, adobriyan@gmail.com, menage@google.com, serge@hallyn.com, sharyathi@in.ibm.com
+Cc: hannes@cmpxchg.org, lg@denx.de, penberg@cs.helsinki.fi
 
 
 The patch titled
-     cgroups: suppress bogus warning messages
+     dma-coherent: catch oversized requests to dma_alloc_from_coherent()
 has been added to the -mm tree.  Its filename is
-     cgroups-suppress-bogus-warning-messages.patch
+     dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: suppress bogus warning messages
-From: Sharyathi Nagesh <sharyath@in.ibm.com>
+Subject: dma-coherent: catch oversized requests to dma_alloc_from_coherent()
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Remove spurious warning messages that are thrown onto the console during
-cgroup operations.
+Prevent passing an order to bitmap_find_free_region() that is larger than
+the actual bitmap can represent.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: Sharyathi Nagesh <sharyathi@in.ibm.com>
-Acked-by: Serge E. Hallyn <serge@hallyn.com>
-Cc: Paul Menage <menage@google.com>
+These requests can come from device drivers that have no idea how big the
+dma region is and need to rely on dma_alloc_from_coherent() to sort it out
+for them.
+
+Reported-by: Guennadi Liakhovetski <lg@denx.de>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/dma-coherent.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/cgroup.c~cgroups-suppress-bogus-warning-messages kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-suppress-bogus-warning-messages
-+++ a/kernel/cgroup.c
-@@ -2934,9 +2934,6 @@ int cgroup_clone(struct task_struct *tsk
-  again:
- 	root = subsys->root;
- 	if (root == &rootnode) {
--		printk(KERN_INFO
--		       "Not cloning cgroup for unused subsystem %s\n",
--		       subsys->name);
- 		mutex_unlock(&cgroup_mutex);
- 		return 0;
- 	}
+diff -puN kernel/dma-coherent.c~dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent kernel/dma-coherent.c
+--- a/kernel/dma-coherent.c~dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent
++++ a/kernel/dma-coherent.c
+@@ -112,6 +112,9 @@ int dma_alloc_from_coherent(struct devic
+ 	struct dma_coherent_mem *mem = dev ? dev->dma_mem : NULL;
+ 	int order = get_order(size);
+ 
++	if (unlikely(size > mem->size))
++		return 0;
++
+ 	if (mem) {
+ 		int page = bitmap_find_free_region(mem->bitmap, mem->size,
+ 						     order);
 _
 
-Patches currently in -mm which might be from sharyath@in.ibm.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-cgroups-suppress-bogus-warning-messages.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-apply_to_range-call-pte-function-with-lazy-updates.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch
 
