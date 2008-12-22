@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-lru-accounting-for-swapcache-v2.patch added to -mm tree
-Date: Mon, 22 Dec 2008 15:36:18 -0800
-Message-ID: <200812222336.mBMNaI2P001116@imap1.linux-foundation.org>
+Subject: + memcg-fix-shmems-swap-accounting.patch added to -mm tree
+Date: Mon, 22 Dec 2008 15:38:05 -0800
+Message-ID: <200812222338.mBMNc50J002451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37501 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754543AbYLVXhD (ORCPT
+	by vger.kernel.org with ESMTP id S1753952AbYLVXjA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Dec 2008 18:37:03 -0500
+	Mon, 22 Dec 2008 18:39:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg: fix LRU accounting for SwapCache
+     memcg: fix shmem's swap accounting
 has been added to the -mm tree.  Its filename is
-     memcg-fix-lru-accounting-for-swapcache-v2.patch
+     memcg-fix-shmems-swap-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,150 +34,358 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix LRU accounting for SwapCache
+Subject: memcg: fix shmem's swap accounting
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Now, a page can be deleted from SwapCache while do_swap_page(). 
-memcg-fix-swap-accounting-leak-v3.patch handles that, but, LRU handling is
-still broken.  (above behavior broke assumption of memcg-synchronized-lru
-patch.)
+Now, you can see following even when swap accounting is enabled.
 
-This patch is a fix for LRU handling (especially for per-zone counters).
-At charging SwapCache,
- - Remove page_cgroup from LRU if it's not used.
- - Add page cgroup to LRU if it's not linked to.
+ 1. Create Group 01, and 02.
+ 2. allocate a "file" on tmpfs by a task under 01.
+ 3. swap out the "file" (by memory pressure)
+ 4. Read "file" from a task in group 02.
+ 5. the charge of "file" is moved to group 02.
 
-Reported-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+This is not ideal behavior. This is because SwapCache which was loaded
+by read-ahead is not taken into account..
+
+This is a patch to fix shmem's swapcache behavior.
+  - remove mem_cgroup_cache_charge_swapin().
+  - Add SwapCache handler routine to mem_cgroup_cache_charge().
+    By this, shmem's file cache is charged at add_to_page_cache()
+    with GFP_NOWAIT.
+  - pass the page of swapcache to shrink_mem_cgroup.
+
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Paul Menage <menage@google.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   59 ++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 50 insertions(+), 9 deletions(-)
+ include/linux/memcontrol.h |    6 +
+ include/linux/swap.h       |    8 --
+ mm/memcontrol.c            |  134 +++++++++++++++--------------------
+ mm/shmem.c                 |   30 +++----
+ 4 files changed, 76 insertions(+), 102 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-lru-accounting-for-swapcache-v2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-lru-accounting-for-swapcache-v2
-+++ a/mm/memcontrol.c
-@@ -331,8 +331,12 @@ void mem_cgroup_del_lru_list(struct page
- 		return;
- 	pc = lookup_page_cgroup(page);
- 	/* can happen while we handle swapcache. */
--	if (list_empty(&pc->lru))
-+	if (list_empty(&pc->lru) || !pc->mem_cgroup)
- 		return;
-+	/*
-+	 * We don't check PCG_USED bit. It's cleared when the "page" is finally
-+	 * removed from global LRU.
-+	 */
- 	mz = page_cgroup_zoneinfo(pc);
- 	mem = pc->mem_cgroup;
- 	MEM_CGROUP_ZSTAT(mz, lru) -= 1;
-@@ -379,16 +383,44 @@ void mem_cgroup_add_lru_list(struct page
- 	MEM_CGROUP_ZSTAT(mz, lru) += 1;
- 	list_add(&pc->lru, &mz->lists[lru]);
+diff -puN include/linux/memcontrol.h~memcg-fix-shmems-swap-accounting include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-fix-shmems-swap-accounting
++++ a/include/linux/memcontrol.h
+@@ -56,7 +56,8 @@ extern void mem_cgroup_move_lists(struct
+ 				  enum lru_list from, enum lru_list to);
+ extern void mem_cgroup_uncharge_page(struct page *page);
+ extern void mem_cgroup_uncharge_cache_page(struct page *page);
+-extern int mem_cgroup_shrink_usage(struct mm_struct *mm, gfp_t gfp_mask);
++extern int mem_cgroup_shrink_usage(struct page *page,
++			struct mm_struct *mm, gfp_t gfp_mask);
+ 
+ extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+ 					struct list_head *dst,
+@@ -155,7 +156,8 @@ static inline void mem_cgroup_uncharge_c
+ {
  }
-+
- /*
-- * To add swapcache into LRU. Be careful to all this function.
-- * zone->lru_lock shouldn't be held and irq must not be disabled.
-+ * At handling SwapCache, pc->mem_cgroup may be changed while it's linked to
-+ * lru because the page may.be reused after it's fully uncharged (because of
-+ * SwapCache behavior).To handle that, unlink page_cgroup from LRU when charge
-+ * it again. This function is only used to charge SwapCache. It's done under
-+ * lock_page and expected that zone->lru_lock is never held.
-  */
--static void mem_cgroup_lru_fixup(struct page *page)
-+static void mem_cgroup_lru_del_before_commit_swapcache(struct page *page)
+ 
+-static inline int mem_cgroup_shrink_usage(struct mm_struct *mm, gfp_t gfp_mask)
++static inline int mem_cgroup_shrink_usage(struct page *page,
++			struct mm_struct *mm, gfp_t gfp_mask)
+ {
+ 	return 0;
+ }
+diff -puN include/linux/swap.h~memcg-fix-shmems-swap-accounting include/linux/swap.h
+--- a/include/linux/swap.h~memcg-fix-shmems-swap-accounting
++++ a/include/linux/swap.h
+@@ -338,16 +338,8 @@ static inline void disable_swap_token(vo
+ }
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+-extern int mem_cgroup_cache_charge_swapin(struct page *page,
+-				struct mm_struct *mm, gfp_t mask, bool locked);
+ extern void mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent);
+ #else
+-static inline
+-int mem_cgroup_cache_charge_swapin(struct page *page,
+-				struct mm_struct *mm, gfp_t mask, bool locked)
+-{
+-	return 0;
+-}
+ static inline void
+ mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent)
+ {
+diff -puN mm/memcontrol.c~memcg-fix-shmems-swap-accounting mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-shmems-swap-accounting
++++ a/mm/memcontrol.c
+@@ -888,6 +888,23 @@ nomem:
+ 	return -ENOMEM;
+ }
+ 
++static struct mem_cgroup *try_get_mem_cgroup_from_swapcache(struct page *page)
 +{
-+	unsigned long flags;
-+	struct zone *zone = page_zone(page);
-+	struct page_cgroup *pc = lookup_page_cgroup(page);
++	struct mem_cgroup *mem;
++	swp_entry_t ent;
 +
-+	spin_lock_irqsave(&zone->lru_lock, flags);
-+	/*
-+	 * Forget old LRU when this page_cgroup is *not* used. This Used bit
-+	 * is guarded by lock_page() because the page is SwapCache.
-+	 */
-+	if (!PageCgroupUsed(pc))
-+		mem_cgroup_del_lru_list(page, page_lru(page));
-+	spin_unlock_irqrestore(&zone->lru_lock, flags);
++	if (!PageSwapCache(page))
++		return NULL;
++
++	ent.val = page_private(page);
++	mem = lookup_swap_cgroup(ent);
++	if (!mem)
++		return NULL;
++	if (!css_tryget(&mem->css))
++		return NULL;
++	return mem;
 +}
 +
-+static void mem_cgroup_lru_add_after_commit_swapcache(struct page *page)
+ /*
+  * commit a charge got by __mem_cgroup_try_charge() and makes page_cgroup to be
+  * USED state. If already USED, uncharge and return.
+@@ -1079,6 +1096,9 @@ int mem_cgroup_newpage_charge(struct pag
+ int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
+ 				gfp_t gfp_mask)
  {
--	if (!isolate_lru_page(page))
--		putback_lru_page(page);
-+	unsigned long flags;
-+	struct zone *zone = page_zone(page);
-+	struct page_cgroup *pc = lookup_page_cgroup(page);
++	struct mem_cgroup *mem = NULL;
++	int ret;
 +
-+	spin_lock_irqsave(&zone->lru_lock, flags);
-+	/* link when the page is linked to LRU but page_cgroup isn't */
-+	if (PageLRU(page) && list_empty(&pc->lru))
-+		mem_cgroup_add_lru_list(page, page_lru(page));
-+	spin_unlock_irqrestore(&zone->lru_lock, flags);
- }
+ 	if (mem_cgroup_disabled())
+ 		return 0;
+ 	if (PageCompound(page))
+@@ -1091,6 +1111,8 @@ int mem_cgroup_cache_charge(struct page 
+ 	 * For GFP_NOWAIT case, the page may be pre-charged before calling
+ 	 * add_to_page_cache(). (See shmem.c) check it here and avoid to call
+ 	 * charge twice. (It works but has to pay a bit larger cost.)
++	 * And when the page is SwapCache, it should take swap information
++	 * into account. This is under lock_page() now.
+ 	 */
+ 	if (!(gfp_mask & __GFP_WAIT)) {
+ 		struct page_cgroup *pc;
+@@ -1107,15 +1129,40 @@ int mem_cgroup_cache_charge(struct page 
+ 		unlock_page_cgroup(pc);
+ 	}
  
-+
- void mem_cgroup_move_lists(struct page *page,
- 			   enum lru_list from, enum lru_list to)
- {
-@@ -1163,8 +1195,11 @@ int mem_cgroup_cache_charge_swapin(struc
- 					mem = NULL; /* charge to current */
- 			}
- 		}
+-	if (unlikely(!mm))
++	if (do_swap_account && PageSwapCache(page)) {
++		mem = try_get_mem_cgroup_from_swapcache(page);
++		if (mem)
++			mm = NULL;
++		  else
++			mem = NULL;
 +		/* SwapCache may be still linked to LRU now. */
 +		mem_cgroup_lru_del_before_commit_swapcache(page);
- 		ret = mem_cgroup_charge_common(page, mm, mask,
- 				MEM_CGROUP_CHARGE_TYPE_SHMEM, mem);
-+		mem_cgroup_lru_add_after_commit_swapcache(page);
- 		/* drop extra refcnt from tryget */
- 		if (mem)
- 			css_put(&mem->css);
-@@ -1180,8 +1215,6 @@ int mem_cgroup_cache_charge_swapin(struc
- 	}
- 	if (!locked)
- 		unlock_page(page);
--	/* add this page(page_cgroup) to the LRU we want. */
--	mem_cgroup_lru_fixup(page);
- 
- 	return ret;
- }
-@@ -1196,7 +1229,9 @@ void mem_cgroup_commit_charge_swapin(str
- 	if (!ptr)
- 		return;
- 	pc = lookup_page_cgroup(page);
-+	mem_cgroup_lru_del_before_commit_swapcache(page);
- 	__mem_cgroup_commit_charge(ptr, pc, MEM_CGROUP_CHARGE_TYPE_MAPPED);
-+	mem_cgroup_lru_add_after_commit_swapcache(page);
- 	/*
- 	 * Now swap is on-memory. This means this page may be
- 	 * counted both as mem and swap....double count.
-@@ -1215,7 +1250,7 @@ void mem_cgroup_commit_charge_swapin(str
- 
- 	}
- 	/* add this page(page_cgroup) to the LRU we want. */
--	mem_cgroup_lru_fixup(page);
++	}
 +
++	if (unlikely(!mm && !mem))
+ 		mm = &init_mm;
+ 
+ 	if (page_is_file_cache(page))
+ 		return mem_cgroup_charge_common(page, mm, gfp_mask,
+ 				MEM_CGROUP_CHARGE_TYPE_CACHE, NULL);
+-	else
+-		return mem_cgroup_charge_common(page, mm, gfp_mask,
+-				MEM_CGROUP_CHARGE_TYPE_SHMEM, NULL);
++
++	ret = mem_cgroup_charge_common(page, mm, gfp_mask,
++				MEM_CGROUP_CHARGE_TYPE_SHMEM, mem);
++	if (mem)
++		css_put(&mem->css);
++	if (PageSwapCache(page))
++		mem_cgroup_lru_add_after_commit_swapcache(page);
++
++	if (do_swap_account && !ret && PageSwapCache(page)) {
++		swp_entry_t ent = {.val = page_private(page)};
++		/* avoid double counting */
++		mem = swap_cgroup_record(ent, NULL);
++		if (mem) {
++			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++			mem_cgroup_put(mem);
++		}
++	}
++	return ret;
  }
  
- void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *mem)
-@@ -1283,6 +1318,12 @@ __mem_cgroup_uncharge_common(struct page
+ /*
+@@ -1129,7 +1176,6 @@ int mem_cgroup_try_charge_swapin(struct 
+ 				 gfp_t mask, struct mem_cgroup **ptr)
+ {
+ 	struct mem_cgroup *mem;
+-	swp_entry_t     ent;
+ 	int ret;
  
- 	mem_cgroup_charge_statistics(mem, pc, false);
- 	ClearPageCgroupUsed(pc);
-+	/*
-+	 * pc->mem_cgroup is not cleared here. It will be accessed when it's
-+	 * freed from LRU. This is safe because uncharged page is expected not
-+	 * to be reused (freed soon). Exception is SwapCache, it's handled by
-+	 * special functions.
-+	 */
+ 	if (mem_cgroup_disabled())
+@@ -1137,7 +1183,6 @@ int mem_cgroup_try_charge_swapin(struct 
  
- 	mz = page_cgroup_zoneinfo(pc);
- 	unlock_page_cgroup(pc);
+ 	if (!do_swap_account)
+ 		goto charge_cur_mm;
+-
+ 	/*
+ 	 * A racing thread's fault, or swapoff, may have already updated
+ 	 * the pte, and even removed page from swap cache: return success
+@@ -1145,14 +1190,9 @@ int mem_cgroup_try_charge_swapin(struct 
+ 	 */
+ 	if (!PageSwapCache(page))
+ 		return 0;
+-
+-	ent.val = page_private(page);
+-
+-	mem = lookup_swap_cgroup(ent);
++	mem = try_get_mem_cgroup_from_swapcache(page);
+ 	if (!mem)
+ 		goto charge_cur_mm;
+-	if (!css_tryget(&mem->css))
+-		goto charge_cur_mm;
+ 	*ptr = mem;
+ 	ret = __mem_cgroup_try_charge(NULL, mask, ptr, true);
+ 	/* drop extra refcnt from tryget */
+@@ -1164,62 +1204,6 @@ charge_cur_mm:
+ 	return __mem_cgroup_try_charge(mm, mask, ptr, true);
+ }
+ 
+-#ifdef CONFIG_SWAP
+-
+-int mem_cgroup_cache_charge_swapin(struct page *page,
+-			struct mm_struct *mm, gfp_t mask, bool locked)
+-{
+-	int ret = 0;
+-
+-	if (mem_cgroup_disabled())
+-		return 0;
+-	if (unlikely(!mm))
+-		mm = &init_mm;
+-	if (!locked)
+-		lock_page(page);
+-	/*
+-	 * If not locked, the page can be dropped from SwapCache until
+-	 * we reach here.
+-	 */
+-	if (PageSwapCache(page)) {
+-		struct mem_cgroup *mem = NULL;
+-		swp_entry_t ent;
+-
+-		ent.val = page_private(page);
+-		if (do_swap_account) {
+-			mem = lookup_swap_cgroup(ent);
+-			if (mem) {
+-				if (css_tryget(&mem->css))
+-					mm = NULL; /* charge to recorded */
+-				else
+-					mem = NULL; /* charge to current */
+-			}
+-		}
+-		/* SwapCache may be still linked to LRU now. */
+-		mem_cgroup_lru_del_before_commit_swapcache(page);
+-		ret = mem_cgroup_charge_common(page, mm, mask,
+-				MEM_CGROUP_CHARGE_TYPE_SHMEM, mem);
+-		mem_cgroup_lru_add_after_commit_swapcache(page);
+-		/* drop extra refcnt from tryget */
+-		if (mem)
+-			css_put(&mem->css);
+-
+-		if (!ret && do_swap_account) {
+-			/* avoid double counting */
+-			mem = swap_cgroup_record(ent, NULL);
+-			if (mem) {
+-				res_counter_uncharge(&mem->memsw, PAGE_SIZE);
+-				mem_cgroup_put(mem);
+-			}
+-		}
+-	}
+-	if (!locked)
+-		unlock_page(page);
+-
+-	return ret;
+-}
+-#endif
+-
+ void mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *ptr)
+ {
+ 	struct page_cgroup *pc;
+@@ -1481,18 +1465,20 @@ void mem_cgroup_end_migration(struct mem
+  * This is typically used for page reclaiming for shmem for reducing side
+  * effect of page allocation from shmem, which is used by some mem_cgroup.
+  */
+-int mem_cgroup_shrink_usage(struct mm_struct *mm, gfp_t gfp_mask)
++int mem_cgroup_shrink_usage(struct page *page,
++			    struct mm_struct *mm,
++			    gfp_t gfp_mask)
+ {
+-	struct mem_cgroup *mem;
++	struct mem_cgroup *mem = NULL;
+ 	int progress = 0;
+ 	int retry = MEM_CGROUP_RECLAIM_RETRIES;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return 0;
+-	if (!mm)
+-		return 0;
+-
+-	mem = try_get_mem_cgroup_from_mm(mm);
++	if (page)
++		mem = try_get_mem_cgroup_from_swapcache(page);
++	if (!mem && mm)
++		mem = try_get_mem_cgroup_from_mm(mm);
+ 	if (unlikely(!mem))
+ 		return 0;
+ 
+diff -puN mm/shmem.c~memcg-fix-shmems-swap-accounting mm/shmem.c
+--- a/mm/shmem.c~memcg-fix-shmems-swap-accounting
++++ a/mm/shmem.c
+@@ -929,11 +929,11 @@ found:
+ 	if (!inode)
+ 		goto out;
+ 	/*
+-	 * Charge page using GFP_HIGHUSER_MOVABLE while we can wait.
+-	 * charged back to the user(not to caller) when swap account is used.
++	 * Charge page using GFP_KERNEL while we can wait.
++	 * Charged back to the user(not to caller) when swap account is used.
++	 * add_to_page_cache() will be called with GFP_NOWAIT.
+ 	 */
+-	error = mem_cgroup_cache_charge_swapin(page, current->mm, GFP_KERNEL,
+-					true);
++	error = mem_cgroup_cache_charge(page, current->mm, GFP_KERNEL);
+ 	if (error)
+ 		goto out;
+ 	error = radix_tree_preload(GFP_KERNEL);
+@@ -1270,16 +1270,6 @@ repeat:
+ 				goto repeat;
+ 			}
+ 			wait_on_page_locked(swappage);
+-			/*
+-			 * We want to avoid charge at add_to_page_cache().
+-			 * charge against this swap cache here.
+-			 */
+-			if (mem_cgroup_cache_charge_swapin(swappage,
+-				current->mm, gfp & GFP_RECLAIM_MASK, false)) {
+-				page_cache_release(swappage);
+-				error = -ENOMEM;
+-				goto failed;
+-			}
+ 			page_cache_release(swappage);
+ 			goto repeat;
+ 		}
+@@ -1334,15 +1324,19 @@ repeat:
+ 		} else {
+ 			shmem_swp_unmap(entry);
+ 			spin_unlock(&info->lock);
+-			unlock_page(swappage);
+-			page_cache_release(swappage);
+ 			if (error == -ENOMEM) {
+ 				/* allow reclaim from this memory cgroup */
+-				error = mem_cgroup_shrink_usage(current->mm,
++				error = mem_cgroup_shrink_usage(swappage,
++								current->mm,
+ 								gfp);
+-				if (error)
++				if (error) {
++					unlock_page(swappage);
++					page_cache_release(swappage);
+ 					goto failed;
++				}
+ 			}
++			unlock_page(swappage);
++			page_cache_release(swappage);
+ 			goto repeat;
+ 		}
+ 	} else if (sgp == SGP_READ && !filepage) {
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -285,6 +493,7 @@ memcg-fix-double-free-and-make-refcnt-sane.patch
 memcg-use-css_tryget-in-memcg.patch
 memcg-use-css_tryget-in-memcg-fix.patch
 memcg-fix-lru-accounting-for-swapcache-v2.patch
+memcg-fix-shmems-swap-accounting.patch
 cgroups-add-a-per-subsystem-hierarchy_mutex.patch
 cgroups-use-hierarchy_mutex-in-memory-controller.patch
 cgroups-add-css_tryget.patch
