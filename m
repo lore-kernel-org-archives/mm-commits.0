@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-use-css_tryget-in-memcg-fix.patch added to -mm tree
-Date: Mon, 22 Dec 2008 15:35:09 -0800
-Message-ID: <200812222335.mBMNZ9Ip000309@imap1.linux-foundation.org>
+Subject: + memcg-fix-lru-accounting-for-swapcache-v2.patch added to -mm tree
+Date: Mon, 22 Dec 2008 15:36:18 -0800
+Message-ID: <200812222336.mBMNaI2P001116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59654 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37501 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754399AbYLVXf4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754543AbYLVXhD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Dec 2008 18:35:56 -0500
+	Mon, 22 Dec 2008 18:37:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, mena
 
 
 The patch titled
-     memcg use css_tryget fix
+     memcg: fix LRU accounting for SwapCache
 has been added to the -mm tree.  Its filename is
-     memcg-use-css_tryget-in-memcg-fix.patch
+     memcg-fix-lru-accounting-for-swapcache-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg use css_tryget fix
+Subject: memcg: fix LRU accounting for SwapCache
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-root_mem->last_scanned_child can be NULL here.
-This may cause NULL pointer access when hierarchy is used.
-This is a fix for memcg-use-css-tryget-in-memcg.patch
+Now, a page can be deleted from SwapCache while do_swap_page(). 
+memcg-fix-swap-accounting-leak-v3.patch handles that, but, LRU handling is
+still broken.  (above behavior broke assumption of memcg-synchronized-lru
+patch.)
 
+This patch is a fix for LRU handling (especially for per-zone counters).
+At charging SwapCache,
+ - Remove page_cgroup from LRU if it's not used.
+ - Add page cgroup to LRU if it's not linked to.
+
+Reported-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-CcDaisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Paul Menage <menage@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   59 ++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 50 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-use-css_tryget-in-memcg-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-css_tryget-in-memcg-fix
+diff -puN mm/memcontrol.c~memcg-fix-lru-accounting-for-swapcache-v2 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-lru-accounting-for-swapcache-v2
 +++ a/mm/memcontrol.c
-@@ -656,7 +656,7 @@ mem_cgroup_get_first_node(struct mem_cgr
+@@ -331,8 +331,12 @@ void mem_cgroup_del_lru_list(struct page
+ 		return;
+ 	pc = lookup_page_cgroup(page);
+ 	/* can happen while we handle swapcache. */
+-	if (list_empty(&pc->lru))
++	if (list_empty(&pc->lru) || !pc->mem_cgroup)
+ 		return;
++	/*
++	 * We don't check PCG_USED bit. It's cleared when the "page" is finally
++	 * removed from global LRU.
++	 */
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	mem = pc->mem_cgroup;
+ 	MEM_CGROUP_ZSTAT(mz, lru) -= 1;
+@@ -379,16 +383,44 @@ void mem_cgroup_add_lru_list(struct page
+ 	MEM_CGROUP_ZSTAT(mz, lru) += 1;
+ 	list_add(&pc->lru, &mz->lists[lru]);
+ }
++
+ /*
+- * To add swapcache into LRU. Be careful to all this function.
+- * zone->lru_lock shouldn't be held and irq must not be disabled.
++ * At handling SwapCache, pc->mem_cgroup may be changed while it's linked to
++ * lru because the page may.be reused after it's fully uncharged (because of
++ * SwapCache behavior).To handle that, unlink page_cgroup from LRU when charge
++ * it again. This function is only used to charge SwapCache. It's done under
++ * lock_page and expected that zone->lru_lock is never held.
+  */
+-static void mem_cgroup_lru_fixup(struct page *page)
++static void mem_cgroup_lru_del_before_commit_swapcache(struct page *page)
++{
++	unsigned long flags;
++	struct zone *zone = page_zone(page);
++	struct page_cgroup *pc = lookup_page_cgroup(page);
++
++	spin_lock_irqsave(&zone->lru_lock, flags);
++	/*
++	 * Forget old LRU when this page_cgroup is *not* used. This Used bit
++	 * is guarded by lock_page() because the page is SwapCache.
++	 */
++	if (!PageCgroupUsed(pc))
++		mem_cgroup_del_lru_list(page, page_lru(page));
++	spin_unlock_irqrestore(&zone->lru_lock, flags);
++}
++
++static void mem_cgroup_lru_add_after_commit_swapcache(struct page *page)
+ {
+-	if (!isolate_lru_page(page))
+-		putback_lru_page(page);
++	unsigned long flags;
++	struct zone *zone = page_zone(page);
++	struct page_cgroup *pc = lookup_page_cgroup(page);
++
++	spin_lock_irqsave(&zone->lru_lock, flags);
++	/* link when the page is linked to LRU but page_cgroup isn't */
++	if (PageLRU(page) && list_empty(&pc->lru))
++		mem_cgroup_add_lru_list(page, page_lru(page));
++	spin_unlock_irqrestore(&zone->lru_lock, flags);
+ }
  
- 	if (!root_mem->last_scanned_child || obsolete) {
++
+ void mem_cgroup_move_lists(struct page *page,
+ 			   enum lru_list from, enum lru_list to)
+ {
+@@ -1163,8 +1195,11 @@ int mem_cgroup_cache_charge_swapin(struc
+ 					mem = NULL; /* charge to current */
+ 			}
+ 		}
++		/* SwapCache may be still linked to LRU now. */
++		mem_cgroup_lru_del_before_commit_swapcache(page);
+ 		ret = mem_cgroup_charge_common(page, mm, mask,
+ 				MEM_CGROUP_CHARGE_TYPE_SHMEM, mem);
++		mem_cgroup_lru_add_after_commit_swapcache(page);
+ 		/* drop extra refcnt from tryget */
+ 		if (mem)
+ 			css_put(&mem->css);
+@@ -1180,8 +1215,6 @@ int mem_cgroup_cache_charge_swapin(struc
+ 	}
+ 	if (!locked)
+ 		unlock_page(page);
+-	/* add this page(page_cgroup) to the LRU we want. */
+-	mem_cgroup_lru_fixup(page);
  
--		if (obsolete)
-+		if (obsolete && root_mem->last_scanned_child)
- 			mem_cgroup_put(root_mem->last_scanned_child);
+ 	return ret;
+ }
+@@ -1196,7 +1229,9 @@ void mem_cgroup_commit_charge_swapin(str
+ 	if (!ptr)
+ 		return;
+ 	pc = lookup_page_cgroup(page);
++	mem_cgroup_lru_del_before_commit_swapcache(page);
+ 	__mem_cgroup_commit_charge(ptr, pc, MEM_CGROUP_CHARGE_TYPE_MAPPED);
++	mem_cgroup_lru_add_after_commit_swapcache(page);
+ 	/*
+ 	 * Now swap is on-memory. This means this page may be
+ 	 * counted both as mem and swap....double count.
+@@ -1215,7 +1250,7 @@ void mem_cgroup_commit_charge_swapin(str
  
- 		cgroup = list_first_entry(&root_mem->css.cgroup->children,
+ 	}
+ 	/* add this page(page_cgroup) to the LRU we want. */
+-	mem_cgroup_lru_fixup(page);
++
+ }
+ 
+ void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *mem)
+@@ -1283,6 +1318,12 @@ __mem_cgroup_uncharge_common(struct page
+ 
+ 	mem_cgroup_charge_statistics(mem, pc, false);
+ 	ClearPageCgroupUsed(pc);
++	/*
++	 * pc->mem_cgroup is not cleared here. It will be accessed when it's
++	 * freed from LRU. This is safe because uncharged page is expected not
++	 * to be reused (freed soon). Exception is SwapCache, it's handled by
++	 * special functions.
++	 */
+ 
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	unlock_page_cgroup(pc);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -171,6 +284,7 @@ memcg-fix-swap-accounting-leak-doc-fix.patch
 memcg-fix-double-free-and-make-refcnt-sane.patch
 memcg-use-css_tryget-in-memcg.patch
 memcg-use-css_tryget-in-memcg-fix.patch
+memcg-fix-lru-accounting-for-swapcache-v2.patch
 cgroups-add-a-per-subsystem-hierarchy_mutex.patch
 cgroups-use-hierarchy_mutex-in-memory-controller.patch
 cgroups-add-css_tryget.patch
