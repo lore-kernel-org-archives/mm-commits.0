@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-linux-hardirqh-from-asm-generic-localh-sparc-fix.patch added to -mm tree
-Date: Mon, 22 Dec 2008 15:26:40 -0800
-Message-ID: <200812222326.mBMNQeOI026742@imap1.linux-foundation.org>
+Subject: + cgroups-make-cgroup_path-rcu-safe-fixlet.patch added to -mm tree
+Date: Mon, 22 Dec 2008 15:28:02 -0800
+Message-ID: <200812222328.mBMNS2nK027693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55212 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752806AbYLVX06 (ORCPT
+	by vger.kernel.org with ESMTP id S1753215AbYLVX2s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Dec 2008 18:26:58 -0500
+	Mon, 22 Dec 2008 18:28:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, adobriyan@gmail.com, davem@davemloft.net, rmk@arm.linux.org.uk
+Cc: lizf@cn.fujitsu.com, a.p.zijlstra@chello.nl, menage@google.com
 
 
 The patch titled
-     sparc: fix hardirq.h removal fallout
+     a fixlet for cgroups-make-cgroup_path-rcu-safe.patch
 has been added to the -mm tree.  Its filename is
-     remove-linux-hardirqh-from-asm-generic-localh-sparc-fix.patch
+     cgroups-make-cgroup_path-rcu-safe-fixlet.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc: fix hardirq.h removal fallout
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: a fixlet for cgroups-make-cgroup_path-rcu-safe.patch
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-When hardirq.h are removed from asm-generic/local.h a few bits fails to
-build.  Fix these upfront.  Reported by Alexey.
+With cgroups-make-cgroup_path-rcu-safe.patch applied, I can trigger kernel
+panic easily using this test program:
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+	for ((; ;))
+	{
+		mount -t cgroup -o debug xxx /mnt
+		mkdir /mnt/0
+		rmdir /mnt/0
+		umount /mnt
+	}
+
+It's caused by the deactive_super() in rcu callback.
+
+This patch restores the original code that call deactive_super() in
+cgroup_diput().
+
+Also remove duplicated comment in cgroup.h added by the patch.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/mdesc.c |    1 +
- arch/sparc/kernel/sysfs.c |    1 +
- 2 files changed, 2 insertions(+)
+ include/linux/cgroup.h      |    6 ------
+ include/linux/cgroup.h.orig |    6 ++++++
+ kernel/cgroup.c             |   11 ++++++-----
+ 3 files changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN arch/sparc/kernel/mdesc.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix arch/sparc/kernel/mdesc.c
---- a/arch/sparc/kernel/mdesc.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix
-+++ a/arch/sparc/kernel/mdesc.c
-@@ -11,6 +11,7 @@
- #include <linux/mm.h>
- #include <linux/miscdevice.h>
+diff -puN include/linux/cgroup.h~cgroups-make-cgroup_path-rcu-safe-fixlet include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-make-cgroup_path-rcu-safe-fixlet
++++ a/include/linux/cgroup.h
+@@ -308,12 +308,6 @@ int cgroup_add_files(struct cgroup *cgrp
  
-+#include <asm/cpudata.h>
- #include <asm/hypervisor.h>
- #include <asm/mdesc.h>
- #include <asm/prom.h>
-diff -puN arch/sparc/kernel/sysfs.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix arch/sparc/kernel/sysfs.c
---- a/arch/sparc/kernel/sysfs.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix
-+++ a/arch/sparc/kernel/sysfs.c
-@@ -8,6 +8,7 @@
- #include <linux/percpu.h>
- #include <linux/init.h>
+ int cgroup_is_removed(const struct cgroup *cgrp);
  
-+#include <asm/cpudata.h>
- #include <asm/hypervisor.h>
- #include <asm/spitfire.h>
+-/*
+- * cgroup_path() fills in a filesystem-like path for the given cgroup
+- * into "buf", up to "buflen" characters. Should be called with
+- * cgroup_mutex held, or else in an RCU section with an RCU-protected
+- * cgroup reference
+- */
+ int cgroup_path(const struct cgroup *cgrp, char *buf, int buflen);
  
+ int cgroup_task_count(const struct cgroup *cgrp);
+diff -puN include/linux/cgroup.h.orig~cgroups-make-cgroup_path-rcu-safe-fixlet include/linux/cgroup.h.orig
+--- a/include/linux/cgroup.h.orig~cgroups-make-cgroup_path-rcu-safe-fixlet
++++ a/include/linux/cgroup.h.orig
+@@ -308,6 +308,12 @@ int cgroup_add_files(struct cgroup *cgrp
+ 
+ int cgroup_is_removed(const struct cgroup *cgrp);
+ 
++/*
++ * cgroup_path() fills in a filesystem-like path for the given cgroup
++ * into "buf", up to "buflen" characters. Should be called with
++ * cgroup_mutex held, or else in an RCU section with an RCU-protected
++ * cgroup reference
++ */
+ int cgroup_path(const struct cgroup *cgrp, char *buf, int buflen);
+ 
+ int cgroup_task_count(const struct cgroup *cgrp);
+diff -puN kernel/cgroup.c~cgroups-make-cgroup_path-rcu-safe-fixlet kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-make-cgroup_path-rcu-safe-fixlet
++++ a/kernel/cgroup.c
+@@ -598,11 +598,6 @@ static void cgroup_call_pre_destroy(stru
+ static void free_cgroup_rcu(struct rcu_head *obj)
+ {
+ 	struct cgroup *cgrp = container_of(obj, struct cgroup, rcu_head);
+-	/*
+-	 * Drop the active superblock reference that we took when we
+-	 * created the cgroup
+-	 */
+-	deactivate_super(cgrp->root->sb);
+ 
+ 	kfree(cgrp);
+ }
+@@ -632,6 +627,12 @@ static void cgroup_diput(struct dentry *
+ 		cgrp->root->number_of_cgroups--;
+ 		mutex_unlock(&cgroup_mutex);
+ 
++		/*
++		 * Drop the active superblock reference that we took when we
++		 * created the cgroup
++		 */
++		deactivate_super(cgrp->root->sb);
++
+ 		call_rcu(&cgrp->rcu_head, free_cgroup_rcu);
+ 	}
+ 	iput(inode);
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 linux-next.patch
-kconfig-add-module_name-shortcut.patch
-uml-get-rid-of-the-last-symlink-in-uml-build.patch
-remove-linux-hardirqh-from-asm-generic-localh-sparc-fix.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
+cpuacct-refactoring-cpuusage_read-cpuusage_write.patch
+cpuacct-export-percpu-cpuacct-cgroup-stats.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
+cgroups-documentation-updates.patch
+cgroups-remove-some-redundant-null-checks.patch
+ns_cgroup-remove-unused-spinlock.patch
+memcg-fix-a-typo-in-kconfig.patch
+cgroups-make-root_list-contains-active-hierarchies-only.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
+cgroups-make-cgroup_path-rcu-safe.patch
+cgroups-make-cgroup_path-rcu-safe-fixlet.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
+memcg-new-force_empty-to-free-pages-under-group.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-handle-swap-caches.patch
+memcg-memswap-controller-kconfig.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+memcg-synchronized-lru.patch
+memcg-add-mem_cgroup_disabled.patch
+memcg-add-mem_cgroup_disabled-fix.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
+memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+memcg-avoid-unnecessary-system-wide-oom-killer.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+memcg-fix-reclaim-result-checks.patch
+memcg-swapout-refcnt-fix.patch
+memcg-fix-double-free-and-make-refcnt-sane.patch
+memcg-use-css_tryget-in-memcg.patch
+cgroups-add-a-per-subsystem-hierarchy_mutex.patch
+cgroups-use-hierarchy_mutex-in-memory-controller.patch
+cgroups-add-css_tryget.patch
 
