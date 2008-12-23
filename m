@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bio-zero-inlined-bio_vec.patch added to -mm tree
-Date: Mon, 22 Dec 2008 17:13:29 -0800
-Message-ID: <200812230113.mBN1DTY7005611@imap1.linux-foundation.org>
+Subject: + memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch added to -mm tree
+Date: Mon, 22 Dec 2008 17:31:58 -0800
+Message-ID: <200812230131.mBN1VwJN018796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47063 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753289AbYLWBOJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753463AbYLWBcJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Dec 2008 20:14:09 -0500
+	Mon, 22 Dec 2008 20:32:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, jens.axboe@oracle.com
+Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     bio: zero inlined bio_vec
+     memcg: avoid reclaim_stat oops when disabled
 has been added to the -mm tree.  Its filename is
-     bio-zero-inlined-bio_vec.patch
+     memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bio: zero inlined bio_vec
+Subject: memcg: avoid reclaim_stat oops when disabled
 From: Hugh Dickins <hugh@veritas.com>
 
-bvec_alloc_bs() zeroes its bio_vec, and at least __blk_queue_bounce()
-relies upon that: therefore bio_alloc_bioset() must zero the inlined
-bio_vec - without that, lots of nastiness occurs in bounce_end_io and
-blk_rq_map_sg and other places when booting up my PAE box.
+mem_cgroup_get_reclaim_stat_from_page() oopses in page_cgroup_zoneinfo()
+when you boot with cgroup_disabled=memory: it needs to check for that.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memcontrol.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN fs/bio.c~bio-zero-inlined-bio_vec fs/bio.c
---- a/fs/bio.c~bio-zero-inlined-bio_vec
-+++ a/fs/bio.c
-@@ -324,6 +324,8 @@ struct bio *bio_alloc_bioset(gfp_t gfp_m
- 			if (nr_iovecs <= BIO_INLINE_VECS) {
- 				idx = 0;
- 				bvl = bio->bi_inline_vecs;
-+				memset(bvl, 0, BIO_INLINE_VECS *
-+							sizeof(struct bio_vec));
- 				nr_iovecs = BIO_INLINE_VECS;
- 			} else {
- 				bvl = bvec_alloc_bs(gfp_mask, nr_iovecs, &idx,
+diff -puN mm/memcontrol.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix
++++ a/mm/memcontrol.c
+@@ -473,9 +473,14 @@ struct zone_reclaim_stat *mem_cgroup_get
+ struct zone_reclaim_stat *
+ mem_cgroup_get_reclaim_stat_from_page(struct page *page)
+ {
+-	struct page_cgroup *pc = lookup_page_cgroup(page);
+-	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
++	struct page_cgroup *pc;
++	struct mem_cgroup_per_zone *mz;
+ 
++	if (mem_cgroup_disabled())
++		return NULL;
++
++	pc = lookup_page_cgroup(page);
++	mz = page_cgroup_zoneinfo(pc);
+ 	if (!mz)
+ 		return NULL;
+ 
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
@@ -137,6 +145,7 @@ memcg-add-null-check-to-page_cgroup_zoneinfo.patch
 memcg-add-inactive_anon_is_low.patch
 memcg-add-mem_cgroup_zone_nr_pages.patch
 memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
 memcg-remove-mem_cgroup_cal_reclaim.patch
 memcg-show-reclaim-stat.patch
 memcg-rename-scan-global-lru.patch
