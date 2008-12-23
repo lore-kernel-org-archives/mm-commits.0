@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clocksource-pass-clocksource-to-read-callback-v2-fix.patch added to -mm tree
-Date: Mon, 22 Dec 2008 17:53:32 -0800
-Message-ID: <200812230153.mBN1rWH9001544@imap1.linux-foundation.org>
+Subject: + sparc64-fix-unsigned-long-long-warnings-in-drivers.patch added to -mm tree
+Date: Tue, 23 Dec 2008 12:17:15 -0800
+Message-ID: <200812232017.mBNKHFrT007498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38997 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34395 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753980AbYLWBxm (ORCPT
+	by vger.kernel.org with ESMTP id S1751149AbYLWURY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Dec 2008 20:53:42 -0500
+	Tue, 23 Dec 2008 15:17:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, damm@igel.co.jp
+Cc: sam@ravnborg.org
 
 
 The patch titled
-     clocksource pass clocksource powerpc fix
+     sparc64: fix unsigned long long warnings in drivers
 has been added to the -mm tree.  Its filename is
-     clocksource-pass-clocksource-to-read-callback-v2-fix.patch
+     sparc64-fix-unsigned-long-long-warnings-in-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,134 +34,138 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource pass clocksource powerpc fix
-From: Hugh Dickins <hugh@veritas.com>
+Subject: sparc64: fix unsigned long long warnings in drivers
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix powerpc build of clocksource pass clocksource mods:
+Fix warnings caused by the unsigned long long usage in sparc
+specific drivers.
 
-arch/powerpc/kernel/time.c:88: warning: initialization from incompatible pointer type
-arch/powerpc/kernel/time.c:99: warning: initialization from incompatible pointer type
-arch/powerpc/kernel/time.c:770: error: conflicting types for 'rtc_read'
-arch/powerpc/kernel/time.c:80: error: previous declaration of 'rtc_read' was here
-arch/powerpc/kernel/time.c:775: error: conflicting types for 'timebase_read'
-arch/powerpc/kernel/time.c:91: error: previous declaration of 'timebase_read' was here
-make[1]: *** [arch/powerpc/kernel/time.o] Error 1
-make: *** [arch/powerpc/kernel] Error 2
+The drivers were considered sparc specific more or less from the
+filename alone.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Magnus Damm <damm@igel.co.jp>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/time.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/sunvdc.c          |    8 ++++----
+ drivers/char/hw_random/n2-drv.c |    2 +-
+ drivers/net/sunvnet.c           |    8 ++++----
+ drivers/sbus/char/display7seg.c |    2 +-
+ sound/sparc/cs4231.c            |    2 +-
+ 5 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/powerpc/kernel/time.c~clocksource-pass-clocksource-to-read-callback-v2-fix arch/powerpc/kernel/time.c
---- a/arch/powerpc/kernel/time.c~clocksource-pass-clocksource-to-read-callback-v2-fix
-+++ a/arch/powerpc/kernel/time.c
-@@ -77,7 +77,7 @@
- #include <linux/clockchips.h>
- #include <linux/clocksource.h>
+diff -puN drivers/block/sunvdc.c~sparc64-fix-unsigned-long-long-warnings-in-drivers drivers/block/sunvdc.c
+--- a/drivers/block/sunvdc.c~sparc64-fix-unsigned-long-long-warnings-in-drivers
++++ a/drivers/block/sunvdc.c
+@@ -153,7 +153,7 @@ static int vdc_send_attr(struct vio_driv
+ 	pkt.vdisk_block_size = port->vdisk_block_size;
+ 	pkt.max_xfer_size = port->max_xfer_size;
  
--static cycle_t rtc_read(void);
-+static cycle_t rtc_read(struct clocksource *);
- static struct clocksource clocksource_rtc = {
- 	.name         = "rtc",
- 	.rating       = 400,
-@@ -88,7 +88,7 @@ static struct clocksource clocksource_rt
- 	.read         = rtc_read,
- };
+-	viodbg(HS, "SEND ATTR xfer_mode[0x%x] blksz[%u] max_xfer[%lu]\n",
++	viodbg(HS, "SEND ATTR xfer_mode[0x%x] blksz[%u] max_xfer[%llu]\n",
+ 	       pkt.xfer_mode, pkt.vdisk_block_size, pkt.max_xfer_size);
  
--static cycle_t timebase_read(void);
-+static cycle_t timebase_read(struct clocksource *);
- static struct clocksource clocksource_timebase = {
- 	.name         = "timebase",
- 	.rating       = 400,
+ 	return vio_ldc_send(&port->vio, &pkt, sizeof(pkt));
+@@ -164,8 +164,8 @@ static int vdc_handle_attr(struct vio_dr
+ 	struct vdc_port *port = to_vdc_port(vio);
+ 	struct vio_disk_attr_info *pkt = arg;
+ 
+-	viodbg(HS, "GOT ATTR stype[0x%x] ops[%lx] disk_size[%lu] disk_type[%x] "
+-	       "xfer_mode[0x%x] blksz[%u] max_xfer[%lu]\n",
++	viodbg(HS, "GOT ATTR stype[0x%x] ops[%llx] disk_size[%llu] disk_type[%x] "
++	       "xfer_mode[0x%x] blksz[%u] max_xfer[%llu]\n",
+ 	       pkt->tag.stype, pkt->operations,
+ 	       pkt->vdisk_size, pkt->vdisk_type,
+ 	       pkt->xfer_mode, pkt->vdisk_block_size,
+@@ -753,7 +753,7 @@ static int __devinit vdc_port_probe(stru
+ 
+ 	err = -ENODEV;
+ 	if ((vdev->dev_no << PARTITION_SHIFT) & ~(u64)MINORMASK) {
+-		printk(KERN_ERR PFX "Port id [%lu] too large.\n",
++		printk(KERN_ERR PFX "Port id [%llu] too large.\n",
+ 		       vdev->dev_no);
+ 		goto err_out_release_mdesc;
+ 	}
+diff -puN drivers/char/hw_random/n2-drv.c~sparc64-fix-unsigned-long-long-warnings-in-drivers drivers/char/hw_random/n2-drv.c
+--- a/drivers/char/hw_random/n2-drv.c~sparc64-fix-unsigned-long-long-warnings-in-drivers
++++ a/drivers/char/hw_random/n2-drv.c
+@@ -482,7 +482,7 @@ static void n2rng_dump_test_buffer(struc
+ 	int i;
+ 
+ 	for (i = 0; i < SELFTEST_BUFFER_WORDS; i++)
+-		dev_err(&np->op->dev, "Test buffer slot %d [0x%016lx]\n",
++		dev_err(&np->op->dev, "Test buffer slot %d [0x%016llx]\n",
+ 			i, np->test_buffer[i]);
+ }
+ 
+diff -puN drivers/net/sunvnet.c~sparc64-fix-unsigned-long-long-warnings-in-drivers drivers/net/sunvnet.c
+--- a/drivers/net/sunvnet.c~sparc64-fix-unsigned-long-long-warnings-in-drivers
++++ a/drivers/net/sunvnet.c
+@@ -336,7 +336,7 @@ static int vnet_walk_rx_one(struct vnet_
+ 	if (IS_ERR(desc))
+ 		return PTR_ERR(desc);
+ 
+-	viodbg(DATA, "vio_walk_rx_one desc[%02x:%02x:%08x:%08x:%lx:%lx]\n",
++	viodbg(DATA, "vio_walk_rx_one desc[%02x:%02x:%08x:%08x:%llx:%llx]\n",
+ 	       desc->hdr.state, desc->hdr.ack,
+ 	       desc->size, desc->ncookies,
+ 	       desc->cookies[0].cookie_addr,
+@@ -394,14 +394,14 @@ static int vnet_rx(struct vnet_port *por
+ 	struct vio_dring_state *dr = &port->vio.drings[VIO_DRIVER_RX_RING];
+ 	struct vio_driver_state *vio = &port->vio;
+ 
+-	viodbg(DATA, "vnet_rx stype_env[%04x] seq[%016lx] rcv_nxt[%016lx]\n",
++	viodbg(DATA, "vnet_rx stype_env[%04x] seq[%016llx] rcv_nxt[%016llx]\n",
+ 	       pkt->tag.stype_env, pkt->seq, dr->rcv_nxt);
+ 
+ 	if (unlikely(pkt->tag.stype_env != VIO_DRING_DATA))
+ 		return 0;
+ 	if (unlikely(pkt->seq != dr->rcv_nxt)) {
+-		printk(KERN_ERR PFX "RX out of sequence seq[0x%lx] "
+-		       "rcv_nxt[0x%lx]\n", pkt->seq, dr->rcv_nxt);
++		printk(KERN_ERR PFX "RX out of sequence seq[0x%llx] "
++		       "rcv_nxt[0x%llx]\n", pkt->seq, dr->rcv_nxt);
+ 		return 0;
+ 	}
+ 
+diff -puN drivers/sbus/char/display7seg.c~sparc64-fix-unsigned-long-long-warnings-in-drivers drivers/sbus/char/display7seg.c
+--- a/drivers/sbus/char/display7seg.c~sparc64-fix-unsigned-long-long-warnings-in-drivers
++++ a/drivers/sbus/char/display7seg.c
+@@ -214,7 +214,7 @@ static int __devinit d7s_probe(struct of
+ 
+ 	writeb(regs,  p->regs);
+ 
+-	printk(KERN_INFO PFX "7-Segment Display%s at [%s:0x%lx] %s\n", 
++	printk(KERN_INFO PFX "7-Segment Display%s at [%s:0x%llx] %s\n",
+ 	       op->node->full_name,
+ 	       (regs & D7S_FLIP) ? " (FLIPPED)" : "",
+ 	       op->resource[0].start,
+diff -puN sound/sparc/cs4231.c~sparc64-fix-unsigned-long-long-warnings-in-drivers sound/sparc/cs4231.c
+--- a/sound/sparc/cs4231.c~sparc64-fix-unsigned-long-long-warnings-in-drivers
++++ a/sound/sparc/cs4231.c
+@@ -2057,7 +2057,7 @@ static int __devinit cs4231_ebus_probe(s
+ 	if (err)
+ 		return err;
+ 
+-	sprintf(card->longname, "%s at 0x%lx, irq %d",
++	sprintf(card->longname, "%s at 0x%llx, irq %d",
+ 		card->shortname,
+ 		op->resource[0].start,
+ 		op->irqs[0]);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 linux-next.patch
-clocksource-pass-clocksource-to-read-callback-v2-fix.patch
-bio-zero-inlined-bio_vec.patch
-mm-dont-mark_page_accessed-in-shmem_fault.patch
-mm-apply_to_range-call-pte-function-with-lazy-updates.patch
-mm-remove-cgroup_mm_owner_callbacks.patch
-mm-remove-aop_writepage_activate.patch
-mm-remove-gfp_highuser_pagecache.patch
-mm-add-setclearpageswapcache-stubs.patch
-mm-replace-some-bug_ons-by-vm_bug_ons.patch
-mm-add_active_or_unevictable-into-rmap.patch
-mm-make-page_lock_anon_vma-static.patch
-mm-further-cleanup-page_add_new_anon_rmap.patch
-mm-gup-persist-for-write-permission.patch
-mm-wp-lock-page-before-deciding-cow.patch
-mm-reuse_swap_page-replaces-can_share_swap_page.patch
-mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
-mm-try_to_unuse-check-removing-right-swap.patch
-mm-remove-try_to_munlock-from-vmscan.patch
-mm-remove-gfp_mask-from-add_to_swap.patch
-mm-add-add_to_swap-stub.patch
-mm-optimize-get_scan_ratio-for-no-swap.patch
-swapfile-swapon-needs-larger-size-type.patch
-swapfile-remove-swp_active-mask.patch
-swapfile-remove-surplus-whitespace.patch
-swapfile-remove-v0-swap-space-message.patch
-swapfile-rearrange-scan-and-swap_info.patch
-swapfile-swapon-use-discard-trim.patch
-swapfile-swap-allocation-use-discard.patch
-swapfile-swapon-randomize-if-nonrot.patch
-swapfile-swap-allocation-cycle-if-nonrot.patch
-swapfile-change-discard-pgoff_t-to-sector_t.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-swapfile-let-others-seed-random.patch
-badpage-simplify-page_alloc-flag-checkclear.patch
-badpage-keep-any-bad-page-out-of-circulation.patch
-badpage-replace-page_remove_rmap-eeek-and-bug.patch
-badpage-vm_normal_page-use-print_bad_pte.patch
-badpage-zap-print_bad_pte-on-swap-and-file.patch
-badpage-remove-vma-from-page_remove_rmap.patch
-badpage-ratelimit-print_bad_pte-and-bad_page.patch
-badpage-kern_alert-bug-instead-of-kern_emerg.patch
-hugetlb-unsigned-ret-cannot-be-negative.patch
-mm-make-get_user_pages-interruptible.patch
-mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
-shmem-unify-regular-and-tiny-shmem.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style.patch
-mm-mmapc-fix-coding-style-fix.patch
-introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
-mm-shmemc-fix-division-by-zero.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-mm-make-get_scan_ratio-safe-for-memcg.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
-memcg-remove-mem_cgroup_cal_reclaim.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-explain-details-and-test-document.patch
-memcg-fix-swap-accounting-leak-v3.patch
-memcg-fix-swap-accounting-leak-doc-fix.patch
-memcg-fix-shmems-swap-accounting.patch
-prio_tree-debugging-patch.patch
+kconfig-add-module_name-shortcut.patch
+sparc64-use-unsigned-long-long-for-u64.patch
+sparc64-fix-unsigned-long-long-warnings-in-drivers.patch
+uml-get-rid-of-the-last-symlink-in-uml-build.patch
+remove-linux-hardirqh-from-asm-generic-localh-sparc-fix.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
 
