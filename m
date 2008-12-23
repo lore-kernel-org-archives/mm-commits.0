@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch added to -mm tree
-Date: Mon, 22 Dec 2008 17:31:58 -0800
-Message-ID: <200812230131.mBN1VwJN018796@imap1.linux-foundation.org>
+Subject: + clocksource-pass-clocksource-to-read-callback-v2-fix.patch added to -mm tree
+Date: Mon, 22 Dec 2008 17:53:32 -0800
+Message-ID: <200812230153.mBN1rWH9001544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753463AbYLWBcJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753980AbYLWBxm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Dec 2008 20:32:09 -0500
+	Mon, 22 Dec 2008 20:53:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+Cc: hugh@veritas.com, damm@igel.co.jp
 
 
 The patch titled
-     memcg: avoid reclaim_stat oops when disabled
+     clocksource pass clocksource powerpc fix
 has been added to the -mm tree.  Its filename is
-     memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
+     clocksource-pass-clocksource-to-read-callback-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: avoid reclaim_stat oops when disabled
+Subject: clocksource pass clocksource powerpc fix
 From: Hugh Dickins <hugh@veritas.com>
 
-mem_cgroup_get_reclaim_stat_from_page() oopses in page_cgroup_zoneinfo()
-when you boot with cgroup_disabled=memory: it needs to check for that.
+Fix powerpc build of clocksource pass clocksource mods:
+
+arch/powerpc/kernel/time.c:88: warning: initialization from incompatible pointer type
+arch/powerpc/kernel/time.c:99: warning: initialization from incompatible pointer type
+arch/powerpc/kernel/time.c:770: error: conflicting types for 'rtc_read'
+arch/powerpc/kernel/time.c:80: error: previous declaration of 'rtc_read' was here
+arch/powerpc/kernel/time.c:775: error: conflicting types for 'timebase_read'
+arch/powerpc/kernel/time.c:91: error: previous declaration of 'timebase_read' was here
+make[1]: *** [arch/powerpc/kernel/time.o] Error 1
+make: *** [arch/powerpc/kernel] Error 2
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Magnus Damm <damm@igel.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ arch/powerpc/kernel/time.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix
-+++ a/mm/memcontrol.c
-@@ -473,9 +473,14 @@ struct zone_reclaim_stat *mem_cgroup_get
- struct zone_reclaim_stat *
- mem_cgroup_get_reclaim_stat_from_page(struct page *page)
- {
--	struct page_cgroup *pc = lookup_page_cgroup(page);
--	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
-+	struct page_cgroup *pc;
-+	struct mem_cgroup_per_zone *mz;
+diff -puN arch/powerpc/kernel/time.c~clocksource-pass-clocksource-to-read-callback-v2-fix arch/powerpc/kernel/time.c
+--- a/arch/powerpc/kernel/time.c~clocksource-pass-clocksource-to-read-callback-v2-fix
++++ a/arch/powerpc/kernel/time.c
+@@ -77,7 +77,7 @@
+ #include <linux/clockchips.h>
+ #include <linux/clocksource.h>
  
-+	if (mem_cgroup_disabled())
-+		return NULL;
-+
-+	pc = lookup_page_cgroup(page);
-+	mz = page_cgroup_zoneinfo(pc);
- 	if (!mz)
- 		return NULL;
+-static cycle_t rtc_read(void);
++static cycle_t rtc_read(struct clocksource *);
+ static struct clocksource clocksource_rtc = {
+ 	.name         = "rtc",
+ 	.rating       = 400,
+@@ -88,7 +88,7 @@ static struct clocksource clocksource_rt
+ 	.read         = rtc_read,
+ };
  
+-static cycle_t timebase_read(void);
++static cycle_t timebase_read(struct clocksource *);
+ static struct clocksource clocksource_timebase = {
+ 	.name         = "timebase",
+ 	.rating       = 400,
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
 
 linux-next.patch
+clocksource-pass-clocksource-to-read-callback-v2-fix.patch
 bio-zero-inlined-bio_vec.patch
 mm-dont-mark_page_accessed-in-shmem_fault.patch
 mm-apply_to_range-call-pte-function-with-lazy-updates.patch
