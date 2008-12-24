@@ -1,126 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - w1-fix-slave-selection-on-big-endian-systems-fix.patch removed from -mm tree
-Date: Tue, 23 Dec 2008 13:56:27 -0800
-Message-ID: <200812232156.mBNLuRUb014093@imap1.linux-foundation.org>
+Subject: + dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch added to -mm tree
+Date: Tue, 23 Dec 2008 23:37:38 -0800
+Message-ID: <200812240737.mBO7bc79014498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32786 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56418 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751412AbYLWV4q (ORCPT
+	by vger.kernel.org with ESMTP id S1752731AbYLXHiX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Dec 2008 16:56:46 -0500
+	Wed, 24 Dec 2008 02:38:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi_hummel@gmx.de, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hannes@cmpxchg.org, dbaryshkov@gmail.com, jbarnes@virtuousgeek.org, lg@denx.de, penberg@cs.helsinki.fi, penguin-kernel@i-love.sakura.ne.jp
 
 
 The patch titled
-     w1-fix-slave-selection-on-big-endian-systems-fix
-has been removed from the -mm tree.  Its filename was
-     w1-fix-slave-selection-on-big-endian-systems-fix.patch
+     dma-coherent: catch oversized requests to dma_alloc_from_coherent()
+has been added to the -mm tree.  Its filename is
+     dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch
 
-This patch was dropped because it was folded into w1-fix-slave-selection-on-big-endian-systems.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-fix-slave-selection-on-big-endian-systems-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dma-coherent: catch oversized requests to dma_alloc_from_coherent()
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-unneeded cast
+Prevent passing an order to bitmap_find_free_region() that is larger than
+the actual bitmap can represent.
 
-Cc: Andreas Hummel <andi_hummel@gmx.de>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+These requests can come from device drivers that have no idea how big the
+dma region is and need to rely on dma_alloc_from_coherent() to sort it out
+for them.
+
+Reported-by: Guennadi Liakhovetski <lg@denx.de>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_io.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/dma-coherent.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/w1/w1_io.c~w1-fix-slave-selection-on-big-endian-systems-fix drivers/w1/w1_io.c
---- a/drivers/w1/w1_io.c~w1-fix-slave-selection-on-big-endian-systems-fix
-+++ a/drivers/w1/w1_io.c
-@@ -358,7 +358,7 @@ int w1_reset_select_slave(struct w1_slav
- 		u8 match[9] = {W1_MATCH_ROM, };
- 		u64 rn = le64_to_cpu(*((u64*)&sl->reg_num));
+diff -puN kernel/dma-coherent.c~dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent kernel/dma-coherent.c
+--- a/kernel/dma-coherent.c~dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent
++++ a/kernel/dma-coherent.c
+@@ -118,6 +118,8 @@ int dma_alloc_from_coherent(struct devic
+ 	mem = dev->dma_mem;
+ 	if (!mem)
+ 		return 0;
++	if (unlikely(size > mem->size))
++ 		return 0;
  
--		memcpy(&match[1], (u8 *)&rn, 8);
-+		memcpy(&match[1], &rn, 8);
- 		w1_write_block(sl->master, match, 9);
- 	}
- 	return 0;
+ 	pageno = bitmap_find_free_region(mem->bitmap, mem->size, order);
+ 	if (pageno >= 0) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-w1-fix-slave-selection-on-big-endian-systems.patch
-w1-fix-slave-selection-on-big-endian-systems-fix.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-revert-sched-fix-uneven-per-cpu-task_group-share-distribution.patch
-fs-dlm-astc-fix-warning.patch
-linux-timexh-cleanup-for-userspace.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-apply_to_range-call-pte-function-with-lazy-updates.patch
 vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-kernel-hrtimerc-kill-warning.patch
-binfmtsh-include-listh-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+dma_alloc_coherent-clean-it-up.patch
+dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch
 
