@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch added to -mm tree
-Date: Wed, 24 Dec 2008 10:38:29 -0800
-Message-ID: <200812241838.mBOIcTGI003790@imap1.linux-foundation.org>
+Subject: + dma_alloc_coherent-clean-it-up.patch added to -mm tree
+Date: Wed, 24 Dec 2008 10:38:34 -0800
+Message-ID: <200812241838.mBOIcZo2003801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751067AbYLXSiw (ORCPT
+	by vger.kernel.org with ESMTP id S1750952AbYLXSiw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 24 Dec 2008 13:38:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dbaryshkov@gmail.com, hannes@cmpxchg.org, mingo@elte.hu, penguin-kernel@i-love.sakura.ne.jp
+Cc: akpm@linux-foundation.org, dbaryshkov@gmail.com, hannes@cmpxchg.org, jbarnes@virtuousgeek.org, lg@denx.de, penberg@cs.helsinki.fi, penguin-kernel@i-love.sakura.ne.jp
 
 
 The patch titled
-     dma_alloc_from_coherent(): fix fallback to generic memory
+     dma_alloc_coherent: clean it up
 has been added to the -mm tree.  Its filename is
-     dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
+     dma_alloc_coherent-clean-it-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma_alloc_from_coherent(): fix fallback to generic memory
+Subject: dma_alloc_coherent: clean it up
 From: Andrew Morton <akpm@linux-foundation.org>
 
-If bitmap_find_free_region() fails and DMA_MEMORY_EXCLUSIVE is not set,
-the function will fail to write anything to *ret and will return 1.             This will cause dma_alloc_coherent() to return an uninitialised value,
-crashing the kernel, perhaps via DMA to a random address.
+This thing was rather stupidly coded.  Rework it all prior to making
+changes.
 
-Fix that by changing it to return zero in this case, so the caller will
-proceed to allocate the memory from the generic memory allocator.
+Also, rename local variable `page': kernel readers expect something called
+`page' to have type `struct page *'.
 
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Guennadi Liakhovetski <lg@denx.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma-coherent.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ kernel/dma-coherent.c |   54 +++++++++++++++++++++-------------------
+ 1 file changed, 29 insertions(+), 25 deletions(-)
 
-diff -puN kernel/dma-coherent.c~dma_alloc_from_coherent-fix-fallback-to-generic-memory kernel/dma-coherent.c
---- a/kernel/dma-coherent.c~dma_alloc_from_coherent-fix-fallback-to-generic-memory
+diff -puN kernel/dma-coherent.c~dma_alloc_coherent-clean-it-up kernel/dma-coherent.c
+--- a/kernel/dma-coherent.c~dma_alloc_coherent-clean-it-up
 +++ a/kernel/dma-coherent.c
-@@ -116,11 +116,25 @@ int dma_alloc_from_coherent(struct devic
- 		int page = bitmap_find_free_region(mem->bitmap, mem->size,
- 						     order);
- 		if (page >= 0) {
-+			/*
-+			 * Memory was found in the per-device arena.
-+			 */
- 			*dma_handle = mem->device_base + (page << PAGE_SHIFT);
- 			*ret = mem->virt_base + (page << PAGE_SHIFT);
- 			memset(*ret, 0, size);
--		} else if (mem->flags & DMA_MEMORY_EXCLUSIVE)
-+		} else if (mem->flags & DMA_MEMORY_EXCLUSIVE) {
-+			/*
-+			 * The per-device arena is exhausted and we are not
-+			 * permitted to fall back to generic memory.
-+			 */
- 			*ret = NULL;
-+		} else {
-+			/*
-+			 * The per-device arena is exhausted and we are
-+			 * permitted to fall back to generic memory.
-+			 */
-+			 return 0;
-+		}
+@@ -109,34 +109,38 @@ EXPORT_SYMBOL(dma_mark_declared_memory_o
+ int dma_alloc_from_coherent(struct device *dev, ssize_t size,
+ 				       dma_addr_t *dma_handle, void **ret)
+ {
+-	struct dma_coherent_mem *mem = dev ? dev->dma_mem : NULL;
++	struct dma_coherent_mem *mem;
+ 	int order = get_order(size);
++	int pageno;
++
++	if (!dev)
++		return 0;
++	mem = dev->dma_mem;
++	if (!mem)
++		return 0;
+ 
+-	if (mem) {
+-		int page = bitmap_find_free_region(mem->bitmap, mem->size,
+-						     order);
+-		if (page >= 0) {
+-			/*
+-			 * Memory was found in the per-device arena.
+-			 */
+-			*dma_handle = mem->device_base + (page << PAGE_SHIFT);
+-			*ret = mem->virt_base + (page << PAGE_SHIFT);
+-			memset(*ret, 0, size);
+-		} else if (mem->flags & DMA_MEMORY_EXCLUSIVE) {
+-			/*
+-			 * The per-device arena is exhausted and we are not
+-			 * permitted to fall back to generic memory.
+-			 */
+-			*ret = NULL;
+-		} else {
+-			/*
+-			 * The per-device arena is exhausted and we are
+-			 * permitted to fall back to generic memory.
+-			 */
+-			 return 0;
+-		}
++	pageno = bitmap_find_free_region(mem->bitmap, mem->size, order);
++	if (pageno >= 0) {
++		/*
++		 * Memory was found in the per-device arena.
++		 */
++		*dma_handle = mem->device_base + (pageno << PAGE_SHIFT);
++		*ret = mem->virt_base + (pageno << PAGE_SHIFT);
++		memset(*ret, 0, size);
++	} else if (mem->flags & DMA_MEMORY_EXCLUSIVE) {
++		/*
++		 * The per-device arena is exhausted and we are not
++		 * permitted to fall back to generic memory.
++		 */
++		*ret = NULL;
++	} else {
++		/*
++		 * The per-device arena is exhausted and we are
++		 * permitted to fall back to generic memory.
++		 */
++		 return 0;
  	}
- 	return (mem != NULL);
+-	return (mem != NULL);
++	return 1;
  }
+ EXPORT_SYMBOL(dma_alloc_from_coherent);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
