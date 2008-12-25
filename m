@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-fix-a-race-between-cgroup_clone-and-umount.patch added to -mm tree
-Date: Wed, 24 Dec 2008 23:17:37 -0800
-Message-ID: <200812250717.mBP7Hbmf014703@imap1.linux-foundation.org>
+Subject: + powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch added to -mm tree
+Date: Wed, 24 Dec 2008 23:35:41 -0800
+Message-ID: <200812250735.mBP7ZfdC028100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49340 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751182AbYLYHRz (ORCPT
+	by vger.kernel.org with ESMTP id S1750948AbYLYHgU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Dec 2008 02:17:55 -0500
+	Thu, 25 Dec 2008 02:36:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, menage@google.com, serue@us.ibm.com
+Cc: chandru@in.ibm.com, benh@kernel.crashing.org, chandru@linux.vnet.ibm.com, paulus@samba.org
 
 
 The patch titled
-     cgroups: fix a race between cgroup_clone and umount
+     powerpc: fix code for reserved memory spanning across nodes
 has been added to the -mm tree.  Its filename is
-     cgroups-fix-a-race-between-cgroup_clone-and-umount.patch
+     powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,119 +29,106 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: cgroups: fix a race between cgroup_clone and umount
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: powerpc: fix code for reserved memory spanning across nodes
+=46rom: Chandru <chandru@in.ibm.com>
 
-The race is calling cgroup_clone() while umounting the ns cgroup subsys,
-and thus cgroup_clone() might access invalid cgroup_fs, or kill_sb() is
-called after cgroup_clone() created a new dir in it.
+When booted with crashkernel=3D224M@32M or any memory size less than th=
+is,
+the system boots properly.  The following was the observation..  The
+system comes up with two nodes (0-256M and 256M-4GB).  =A0The crashkern=
+el
+memory reservation spans across these two nodes.  =A0The
+mark_reserved_regions_for_nid() in arch/powerpc/mm/numa.c resizes the
+reserved part of the memory within it as:
 
-The BUG I triggered is BUG_ON(root->number_of_cgroups != 1);
+=A0 =A0 =A0 =A0 =A0 =A0 if (end_pfn > node_ar.end_pfn)
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reserve_size =3D (node_ar.end_pfn << PA=
+GE_SHIFT)
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 - (start_pfn << PAGE_SHIFT);
 
-------------[ cut here ]------------
-kernel BUG at kernel/cgroup.c:1093!
-invalid opcode: 0000 [#1] SMP
-...
-Process umount (pid: 5177, ti=e411e000 task=e40c4670 task.ti=e411e000)
-...
-Call Trace:
- [<c0493df7>] ? deactivate_super+0x3f/0x51
- [<c04a3600>] ? mntput_no_expire+0xb3/0xdd
- [<c04a3ab2>] ? sys_umount+0x265/0x2ac
- [<c04a3b06>] ? sys_oldumount+0xd/0xf
- [<c0403911>] ? sysenter_do_call+0x12/0x31
-...
-EIP: [<c0456e76>] cgroup_kill_sb+0x23/0xe0 SS:ESP 0068:e411ef2c
----[ end trace c766c1be3bf944ac ]---
 
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+but the reserve_bootmem_node() in mm/bootmem.c raises the pfn value of =
+end=20
+
+=A0 =A0 end =3D PFN_UP(physaddr + size);
+
+This causes end to get a value past the last page in the 0-256M node.=20
+=A0Again when reserve_bootmem_node() returns,
+=A0mark_reserved_regions_for_nid() loops around to set the rest of the
+crashkernel memory in the next node as reserved.  =A0 It references
+NODE_DATA(node_ar.nid) and this causes another 'Oops: kernel access of =
+bad
+area' problem.  The following changes made the system to boot with any
+amount of crashkernel memory size.
+
+Signed-off-by: Chandru S <chandru@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/powerpc/mm/numa.c |    7 ++++---
+ mm/bootmem.c           |    4 ++++
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-fix-a-race-between-cgroup_clone-and-umount kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-a-race-between-cgroup_clone-and-umount
-+++ a/kernel/cgroup.c
-@@ -2942,7 +2942,11 @@ int cgroup_clone(struct task_struct *tsk
- 	parent = task_cgroup(tsk, subsys->subsys_id);
- 
- 	/* Pin the hierarchy */
--	atomic_inc(&parent->root->sb->s_active);
-+	if (!atomic_inc_not_zero(&parent->root->sb->s_active)) {
-+		/* We race with the final deactivate_super() */
-+		mutex_unlock(&cgroup_mutex);
-+		return 0;
+diff -puN arch/powerpc/mm/numa.c~powerpc-fix-code-for-reserved-memory-s=
+panning-across-nodes arch/powerpc/mm/numa.c
+--- a/arch/powerpc/mm/numa.c~powerpc-fix-code-for-reserved-memory-spann=
+ing-across-nodes
++++ a/arch/powerpc/mm/numa.c
+@@ -995,10 +995,11 @@ void __init do_init_bootmem(void)
+ 				  start_pfn, end_pfn);
+=20
+ 		free_bootmem_with_active_regions(nid, end_pfn);
 +	}
- 
- 	/* Keep the cgroup alive */
- 	get_css_set(cg);
++
++	for_each_online_node(nid) {
+ 		/*
+-		 * Be very careful about moving this around.  Future
+-		 * calls to careful_allocation() depend on this getting
+-		 * done correctly.
++		 * Be very careful about moving this around.
+ 		 */
+ 		mark_reserved_regions_for_nid(nid);
+ 		sparse_memory_present_with_active_regions(nid);
+diff -puN mm/bootmem.c~powerpc-fix-code-for-reserved-memory-spanning-ac=
+ross-nodes mm/bootmem.c
+--- a/mm/bootmem.c~powerpc-fix-code-for-reserved-memory-spanning-across=
+-nodes
++++ a/mm/bootmem.c
+@@ -375,10 +375,14 @@ int __init reserve_bootmem_node(pg_data_
+ 				 unsigned long size, int flags)
+ {
+ 	unsigned long start, end;
++	bootmem_data_t *bdata =3D pgdat->bdata;
+=20
+ 	start =3D PFN_DOWN(physaddr);
+ 	end =3D PFN_UP(physaddr + size);
+=20
++	if (end > bdata->node_low_pfn)
++		end =3D bdata->node_low_pfn;
++
+ 	return mark_bootmem_node(pgdat->bdata, start, end, 1, flags);
+ }
+=20
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from chandru@in.ibm.com are
 
-cgroups-avoid-accessing-uninitialized-data-in-failure-path.patch
-cgroups-fix-a-race-between-cgroup_clone-and-umount.patch
-linux-next.patch
-cpuacct-refactoring-cpuusage_read-cpuusage_write.patch
-cpuacct-export-percpu-cpuacct-cgroup-stats.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
-cgroups-documentation-updates.patch
-cgroups-remove-some-redundant-null-checks.patch
-ns_cgroup-remove-unused-spinlock.patch
-memcg-fix-a-typo-in-kconfig.patch
-cgroups-make-root_list-contains-active-hierarchies-only.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
-cgroups-make-cgroup_path-rcu-safe.patch
-cgroups-make-cgroup_path-rcu-safe-fixlet.patch
-devices-cgroup-allow-mkfifo.patch
-memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-handle-swap-caches.patch
-memcg-memswap-controller-kconfig.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-synchronized-lru.patch
-memcg-add-mem_cgroup_disabled.patch
-memcg-add-mem_cgroup_disabled-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-memcg-fix-reclaim-result-checks.patch
-memcg-swapout-refcnt-fix.patch
-memcg-fix-double-free-and-make-refcnt-sane.patch
-memcg-use-css_tryget-in-memcg.patch
-memcg-use-css_tryget-in-memcg-fix.patch
-memcg-fix-lru-accounting-for-swapcache-v2.patch
-memcg-fix-shmems-swap-accounting.patch
-cgroups-add-a-per-subsystem-hierarchy_mutex.patch
-cgroups-use-hierarchy_mutex-in-memory-controller.patch
-cgroups-add-css_tryget.patch
+powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
