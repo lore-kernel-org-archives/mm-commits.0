@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch added to -mm tree
-Date: Thu, 25 Dec 2008 00:06:21 -0800
-Message-ID: <200812250806.mBP86LPQ018399@imap1.linux-foundation.org>
+Subject: + vmallocc-fix-flushing-in-vmap_page_range.patch added to -mm tree
+Date: Fri, 26 Dec 2008 16:39:52 -0800
+Message-ID: <200812270039.mBR0dqae011038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35681 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750952AbYLYIGa (ORCPT
+	by vger.kernel.org with ESMTP id S1753296AbYL0AkD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Dec 2008 03:06:30 -0500
+	Fri, 26 Dec 2008 19:40:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chandru@in.ibm.com, benh@kernel.crashing.org, chandru@linux.vnet.ibm.com, paulus@samba.org
+Cc: adam@os.inf.tu-dresden.de, nickpiggin@yahoo.com.au, stable@kernel.org
 
 
 The patch titled
-     powerpc: fix code for reserved memory spanning across nodes
+     vmalloc.c: fix flushing in vmap_page_range()
 has been added to the -mm tree.  Its filename is
-     powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
+     vmallocc-fix-flushing-in-vmap_page_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: fix code for reserved memory spanning across nodes
-From: Chandru <chandru@in.ibm.com>
+Subject: vmalloc.c: fix flushing in vmap_page_range()
+From: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
 
-When booted with crashkernel=224M@32M or any memory size less than this,
-the system boots properly.  The following was the observation..  The
-system comes up with two nodes (0-256M and 256M-4GB).  The crashkernel
-memory reservation spans across these two nodes.  The
-mark_reserved_regions_for_nid() in arch/powerpc/mm/numa.c resizes the
-reserved part of the memory within it as:
+The flush_cache_vmap in vmap_page_range() is called with the end of the
+range twice.  The following patch fixes this for me.
 
-	if (end_pfn > node_ar.end_pfn)
-		reserve_size = (node_ar.end_pfn << PAGE_SHIFT)
-				- (start_pfn << PAGE_SHIFT);
-
-
-but the reserve_bootmem_node() in mm/bootmem.c raises the pfn value of end 
-
-	end = PFN_UP(physaddr + size);
-
-This causes end to get a value past the last page in the 0-256M node. 
-Again when reserve_bootmem_node() returns, mark_reserved_regions_for_nid()
-loops around to set the rest of the crashkernel memory in the next node as
-reserved.  It references NODE_DATA(node_ar.nid) and this causes another
-'Oops: kernel access of bad area' problem.  The following changes made the
-system to boot with any amount of crashkernel memory size.
-
-Signed-off-by: Chandru S <chandru@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/numa.c |    7 ++++---
- mm/bootmem.c           |    4 ++++
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/mm/numa.c~powerpc-fix-code-for-reserved-memory-spanning-across-nodes arch/powerpc/mm/numa.c
---- a/arch/powerpc/mm/numa.c~powerpc-fix-code-for-reserved-memory-spanning-across-nodes
-+++ a/arch/powerpc/mm/numa.c
-@@ -995,10 +995,11 @@ void __init do_init_bootmem(void)
- 				  start_pfn, end_pfn);
- 
- 		free_bootmem_with_active_regions(nid, end_pfn);
-+	}
-+
-+	for_each_online_node(nid) {
- 		/*
--		 * Be very careful about moving this around.  Future
--		 * calls to careful_allocation() depend on this getting
--		 * done correctly.
-+		 * Be very careful about moving this around.
- 		 */
- 		mark_reserved_regions_for_nid(nid);
- 		sparse_memory_present_with_active_regions(nid);
-diff -puN mm/bootmem.c~powerpc-fix-code-for-reserved-memory-spanning-across-nodes mm/bootmem.c
---- a/mm/bootmem.c~powerpc-fix-code-for-reserved-memory-spanning-across-nodes
-+++ a/mm/bootmem.c
-@@ -375,10 +375,14 @@ int __init reserve_bootmem_node(pg_data_
- 				 unsigned long size, int flags)
+diff -puN mm/vmalloc.c~vmallocc-fix-flushing-in-vmap_page_range mm/vmalloc.c
+--- a/mm/vmalloc.c~vmallocc-fix-flushing-in-vmap_page_range
++++ a/mm/vmalloc.c
+@@ -151,11 +151,12 @@ static int vmap_pud_range(pgd_t *pgd, un
+  *
+  * Ie. pte at addr+N*PAGE_SIZE shall point to pfn corresponding to pages[N]
+  */
+-static int vmap_page_range(unsigned long addr, unsigned long end,
++static int vmap_page_range(unsigned long start_addr, unsigned long end,
+ 				pgprot_t prot, struct page **pages)
  {
- 	unsigned long start, end;
-+	bootmem_data_t *bdata = pgdat->bdata;
+ 	pgd_t *pgd;
+ 	unsigned long next;
++	unsigned long addr = start_addr;
+ 	int err = 0;
+ 	int nr = 0;
  
- 	start = PFN_DOWN(physaddr);
- 	end = PFN_UP(physaddr + size);
+@@ -167,7 +168,7 @@ static int vmap_page_range(unsigned long
+ 		if (err)
+ 			break;
+ 	} while (pgd++, addr = next, addr != end);
+-	flush_cache_vmap(addr, end);
++	flush_cache_vmap(start_addr, end);
  
-+	if (end > bdata->node_low_pfn)
-+		end = bdata->node_low_pfn;
-+
- 	return mark_bootmem_node(pgdat->bdata, start, end, 1, flags);
- }
- 
+ 	if (unlikely(err))
+ 		return err;
 _
 
-Patches currently in -mm which might be from chandru@in.ibm.com are
+Patches currently in -mm which might be from adam@os.inf.tu-dresden.de are
 
-powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
+vmallocc-fix-flushing-in-vmap_page_range.patch
 
