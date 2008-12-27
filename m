@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmallocc-fix-flushing-in-vmap_page_range.patch added to -mm tree
-Date: Fri, 26 Dec 2008 16:39:52 -0800
-Message-ID: <200812270039.mBR0dqae011038@imap1.linux-foundation.org>
+Subject: + fix-core-x86-make-list_poison-less-deadly.patch added to -mm tree
+Date: Sat, 27 Dec 2008 02:09:18 -0800
+Message-ID: <200812271009.mBRA9IfV011778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52975 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753296AbYL0AkD (ORCPT
+	by vger.kernel.org with ESMTP id S1752631AbYL0KJr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Dec 2008 19:40:03 -0500
+	Sat, 27 Dec 2008 05:09:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adam@os.inf.tu-dresden.de, nickpiggin@yahoo.com.au, stable@kernel.org
+Cc: jaswinder@infradead.org, avi@redhat.com, jaswinderrajput@gmail.com, mingo@elte.hu
 
 
 The patch titled
-     vmalloc.c: fix flushing in vmap_page_range()
+     fix "core, x86: make LIST_POISON less deadly"
 has been added to the -mm tree.  Its filename is
-     vmallocc-fix-flushing-in-vmap_page_range.patch
+     fix-core-x86-make-list_poison-less-deadly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc.c: fix flushing in vmap_page_range()
-From: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+Subject: fix "core, x86: make LIST_POISON less deadly"
+From: Jaswinder Singh Rajput <jaswinder@infradead.org>
 
-The flush_cache_vmap in vmap_page_range() is called with the end of the
-range twice.  The following patch fixes this for me.
+Impact: cleanup, avoid 10000+ sparse warnings
 
-Signed-off-by: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: <stable@kernel.org>
+Eliminate 1434 sparse warnings like:
+include/linux/list.h:106:16: warning: constant 0xdead000000000000 is so big it is unsigned long
+
+Eliminate 1434 sparse warnings like:
+include/linux/list.h:107:16: warning: constant 0xdead000000000000 is so big it is unsigned long
+
+Eliminate 1434 sparse warnings like:
+include/linux/list.h:579:12: warning: constant 0xdead000000000000 is so big it is unsigned long
+
+Eliminate 1434 sparse warnings like:
+include/linux/list.h:580:13: warning: constant 0xdead000000000000 is so big it is unsigned long
+
+Eliminate 1237 sparse warnings like:
+include/linux/rculist.h:97:16: warning: constant 0xdead000000000000 is so big it is unsigned long
+
+Eliminate 1237 sparse warnings like:
+include/linux/rculist.h:143:14: warning: constant 0xdead000000000000 is so big it is unsigned long
+
+Eliminate 1237 sparse warnings like:
+include/linux/rculist.h:260:13: warning: constant 0xdead000000000000 is so big it is unsigned long
+
+Eliminate 1237 sparse warnings like:
+include/linux/rculist.h:280:15: warning: constant 0xdead000000000000 is so big it is unsigned long
+
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Avi Kivity <avi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/poison.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~vmallocc-fix-flushing-in-vmap_page_range mm/vmalloc.c
---- a/mm/vmalloc.c~vmallocc-fix-flushing-in-vmap_page_range
-+++ a/mm/vmalloc.c
-@@ -151,11 +151,12 @@ static int vmap_pud_range(pgd_t *pgd, un
-  *
-  * Ie. pte at addr+N*PAGE_SIZE shall point to pfn corresponding to pages[N]
+diff -puN include/linux/poison.h~fix-core-x86-make-list_poison-less-deadly include/linux/poison.h
+--- a/include/linux/poison.h~fix-core-x86-make-list_poison-less-deadly
++++ a/include/linux/poison.h
+@@ -9,7 +9,7 @@
+  * that is also not mappable by user-space exploits:
   */
--static int vmap_page_range(unsigned long addr, unsigned long end,
-+static int vmap_page_range(unsigned long start_addr, unsigned long end,
- 				pgprot_t prot, struct page **pages)
- {
- 	pgd_t *pgd;
- 	unsigned long next;
-+	unsigned long addr = start_addr;
- 	int err = 0;
- 	int nr = 0;
- 
-@@ -167,7 +168,7 @@ static int vmap_page_range(unsigned long
- 		if (err)
- 			break;
- 	} while (pgd++, addr = next, addr != end);
--	flush_cache_vmap(addr, end);
-+	flush_cache_vmap(start_addr, end);
- 
- 	if (unlikely(err))
- 		return err;
+ #ifdef CONFIG_ILLEGAL_POINTER_VALUE
+-# define POISON_POINTER_DELTA CONFIG_ILLEGAL_POINTER_VALUE
++# define POISON_POINTER_DELTA _AC(CONFIG_ILLEGAL_POINTER_VALUE, UL)
+ #else
+ # define POISON_POINTER_DELTA 0
+ #endif
 _
 
-Patches currently in -mm which might be from adam@os.inf.tu-dresden.de are
+Patches currently in -mm which might be from jaswinder@infradead.org are
 
-vmallocc-fix-flushing-in-vmap_page_range.patch
+linux-next.patch
+fix-core-x86-make-list_poison-less-deadly.patch
+make-firmware-dsp56k-bootstrapasm-buildable-on-a56.patch
 
