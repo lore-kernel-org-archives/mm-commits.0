@@ -1,109 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - futex-cleanup-futex_unlock_pi-fault-handling.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:19:38 -0800
-Message-ID: <200812291919.mBTJJcq9031826@imap1.linux-foundation.org>
+Subject: - kernel-hrtimerc-kill-warning.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:19:25 -0800
+Message-ID: <200812291919.mBTJJPU1031667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752226AbYL2TUj (ORCPT
+	by vger.kernel.org with ESMTP id S1752044AbYL2TWO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:20:39 -0500
+	Mon, 29 Dec 2008 14:22:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvhltc@us.ibm.com, a.p.zijlstra@chello.nl, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex: cleanup futex_(un)lock_pi fault handling
+     kernel/hrtimer.c: kill warning
 has been removed from the -mm tree.  Its filename was
-     futex-cleanup-futex_unlock_pi-fault-handling.patch
+     kernel-hrtimerc-kill-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: futex: cleanup futex_(un)lock_pi fault handling
-From: Darren Hart <dvhltc@us.ibm.com>
+Subject: kernel/hrtimer.c: kill warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Some apparently left over cruft code was complicating the fault logic. 
-Testing if uval != -EFAULT doesn't have any meaning, get_user() sets ret
-to either 0 or -EFAULT, there's no need to compare uval, especially not
-against EFAULT which it will never be.  This patch removes the superfluous
-test and clarifies the comment blocks.
+kernel/hrtimer.c: In function 'hrtimer_cpu_notify':
+kernel/hrtimer.c:1574: warning: unused variable 'dcpu'
 
-Signed-off-by: Darren Hart <dvhltc@us.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ kernel/hrtimer.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/futex.c~futex-cleanup-futex_unlock_pi-fault-handling kernel/futex.c
---- a/kernel/futex.c~futex-cleanup-futex_unlock_pi-fault-handling
-+++ a/kernel/futex.c
-@@ -1572,12 +1572,11 @@ static int futex_lock_pi(u32 __user *uad
+diff -puN kernel/hrtimer.c~kernel-hrtimerc-kill-warning kernel/hrtimer.c
+--- a/kernel/hrtimer.c~kernel-hrtimerc-kill-warning
++++ a/kernel/hrtimer.c
+@@ -1571,7 +1571,7 @@ static void tickle_timers(void *arg)
+ static int __cpuinit hrtimer_cpu_notify(struct notifier_block *self,
+ 					unsigned long action, void *hcpu)
+ {
+-	int dcpu, scpu = (long)hcpu;
++	int scpu = (long)hcpu;
  
-  uaddr_faulted:
- 	/*
--	 * We have to r/w  *(int __user *)uaddr, but we can't modify it
--	 * non-atomically.  Therefore, if get_user below is not
--	 * enough, we need to handle the fault ourselves, while
--	 * still holding the mmap_sem.
--	 *
--	 * ... and hb->lock. :-) --ANK
-+	 * We have to r/w  *(int __user *)uaddr, and we have to modify it
-+	 * atomically.  Therefore, if we continue to fault after get_user()
-+	 * below, we need to handle the fault ourselves, while still holding
-+	 * the mmap_sem.  This can occur if the uaddr is under contention as
-+	 * we have to drop the mmap_sem in order to call get_user().
- 	 */
- 	queue_unlock(&q, hb);
+ 	switch (action) {
  
-@@ -1589,7 +1588,7 @@ static int futex_lock_pi(u32 __user *uad
- 	}
+@@ -1584,8 +1584,8 @@ static int __cpuinit hrtimer_cpu_notify(
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
+ 		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DEAD, &scpu);
+-		dcpu = migrate_hrtimers(scpu);
+-		smp_call_function_single(dcpu, tickle_timers, NULL, 0);
++		smp_call_function_single(migrate_hrtimers(scpu),
++					tickle_timers, NULL, 0);
+ 		break;
+ #endif
  
- 	ret = get_user(uval, uaddr);
--	if (!ret && (uval != -EFAULT))
-+	if (!ret)
- 		goto retry;
- 
- 	if (to)
-@@ -1683,12 +1682,11 @@ out:
- 
- pi_faulted:
- 	/*
--	 * We have to r/w  *(int __user *)uaddr, but we can't modify it
--	 * non-atomically.  Therefore, if get_user below is not
--	 * enough, we need to handle the fault ourselves, while
--	 * still holding the mmap_sem.
--	 *
--	 * ... and hb->lock. --ANK
-+	 * We have to r/w  *(int __user *)uaddr, and we have to modify it
-+	 * atomically.  Therefore, if we continue to fault after get_user()
-+	 * below, we need to handle the fault ourselves, while still holding
-+	 * the mmap_sem.  This can occur if the uaddr is under contention as
-+	 * we have to drop the mmap_sem in order to call get_user().
- 	 */
- 	spin_unlock(&hb->lock);
- 
-@@ -1701,7 +1699,7 @@ pi_faulted:
- 	}
- 
- 	ret = get_user(uval, uaddr);
--	if (!ret && (uval != -EFAULT))
-+	if (!ret)
- 		goto retry;
- 
- 	return ret;
 _
 
-Patches currently in -mm which might be from dvhltc@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+smp_call_function_single-be-slightly-less-stupid.patch
+binfmtsh-include-listh-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
+dma_alloc_coherent-clean-it-up.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
