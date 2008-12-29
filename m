@@ -1,94 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: + fix-core-x86-make-list_poison-less-deadly.patch added to -mm tree
-Date: Sat, 27 Dec 2008 02:09:18 -0800
-Message-ID: <200812271009.mBRA9IfV011778@imap1.linux-foundation.org>
+Subject: - mmc_block-print-better-data-error-message-after-timeout.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:07:11 -0800
+Message-ID: <200812291907.mBTJ7Bkw022142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52975 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752631AbYL0KJr (ORCPT
+	by vger.kernel.org with ESMTP id S1751727AbYL2THw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Dec 2008 05:09:47 -0500
+	Mon, 29 Dec 2008 14:07:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jaswinder@infradead.org, avi@redhat.com, jaswinderrajput@gmail.com, mingo@elte.hu
+To: ext-adrian.hunter@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "core, x86: make LIST_POISON less deadly"
-has been added to the -mm tree.  Its filename is
-     fix-core-x86-make-list_poison-less-deadly.patch
+     mmc_block: print better data error message after timeout
+has been removed from the -mm tree.  Its filename was
+     mmc_block-print-better-data-error-message-after-timeout.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because other wtuff was merged, and wrecked it
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "core, x86: make LIST_POISON less deadly"
-From: Jaswinder Singh Rajput <jaswinder@infradead.org>
+Subject: mmc_block: print better data error message after timeout
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
 
-Impact: cleanup, avoid 10000+ sparse warnings
+In particular, if the card gets an ECC error it will timeout, in which
+case it is much more helpful to see an ECC error rather than a timeout
+error.
 
-Eliminate 1434 sparse warnings like:
-include/linux/list.h:106:16: warning: constant 0xdead000000000000 is so big it is unsigned long
-
-Eliminate 1434 sparse warnings like:
-include/linux/list.h:107:16: warning: constant 0xdead000000000000 is so big it is unsigned long
-
-Eliminate 1434 sparse warnings like:
-include/linux/list.h:579:12: warning: constant 0xdead000000000000 is so big it is unsigned long
-
-Eliminate 1434 sparse warnings like:
-include/linux/list.h:580:13: warning: constant 0xdead000000000000 is so big it is unsigned long
-
-Eliminate 1237 sparse warnings like:
-include/linux/rculist.h:97:16: warning: constant 0xdead000000000000 is so big it is unsigned long
-
-Eliminate 1237 sparse warnings like:
-include/linux/rculist.h:143:14: warning: constant 0xdead000000000000 is so big it is unsigned long
-
-Eliminate 1237 sparse warnings like:
-include/linux/rculist.h:260:13: warning: constant 0xdead000000000000 is so big it is unsigned long
-
-Eliminate 1237 sparse warnings like:
-include/linux/rculist.h:280:15: warning: constant 0xdead000000000000 is so big it is unsigned long
-
-Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Avi Kivity <avi@redhat.com>
+Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/card/block.c |   47 +++++++++++++++++++++++++++++++++----
+ 1 file changed, 43 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/poison.h~fix-core-x86-make-list_poison-less-deadly include/linux/poison.h
---- a/include/linux/poison.h~fix-core-x86-make-list_poison-less-deadly
-+++ a/include/linux/poison.h
-@@ -9,7 +9,7 @@
-  * that is also not mappable by user-space exploits:
-  */
- #ifdef CONFIG_ILLEGAL_POINTER_VALUE
--# define POISON_POINTER_DELTA CONFIG_ILLEGAL_POINTER_VALUE
-+# define POISON_POINTER_DELTA _AC(CONFIG_ILLEGAL_POINTER_VALUE, UL)
- #else
- # define POISON_POINTER_DELTA 0
- #endif
+diff -puN drivers/mmc/card/block.c~mmc_block-print-better-data-error-message-after-timeout drivers/mmc/card/block.c
+--- a/drivers/mmc/card/block.c~mmc_block-print-better-data-error-message-after-timeout
++++ a/drivers/mmc/card/block.c
+@@ -207,6 +207,47 @@ static u32 mmc_sd_num_wr_blocks(struct m
+ 	return ntohl(blocks);
+ }
+ 
++static void print_data_error(struct mmc_blk_request *brq, struct mmc_card *card,
++			     struct request *req)
++{
++	struct mmc_command cmd;
++	char *emsg;
++	u32 status;
++	int status_err = 0;
++
++	if (brq->data.error != -ETIMEDOUT || mmc_host_is_spi(card->host))
++		goto out_print;
++
++	if (brq->mrq.stop)
++		/* 'Stop' response contains card status */
++		status = brq->mrq.stop->resp[0];
++	else {
++		cmd.opcode = MMC_SEND_STATUS;
++		cmd.arg = card->rca << 16;
++		cmd.flags = MMC_RSP_R1 | MMC_CMD_AC;
++		status_err = mmc_wait_for_cmd(card->host, &cmd, 0);
++		if (status_err)
++			goto out_print;
++		status = cmd.resp[0];
++	}
++
++	emsg = (status & R1_CARD_ECC_FAILED) ? "ECC" : "I/O";
++
++	printk(KERN_ERR "%s: %s error transferring data, sector %u, "
++	       "card status %#x\n", req->rq_disk->disk_name, emsg,
++	       (unsigned)req->sector, status);
++
++	return;
++
++out_print:
++	printk(KERN_ERR "%s: error %d transferring data, sector %u, nr %u\n",
++	       req->rq_disk->disk_name, brq->data.error, (unsigned)req->sector,
++	       (unsigned)req->nr_sectors);
++	if (status_err)
++		printk(KERN_ERR "%s: error %d requesting card status\n",
++		       req->rq_disk->disk_name, status_err);
++}
++
+ static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
+ {
+ 	struct mmc_blk_data *md = mq->data;
+@@ -278,10 +319,8 @@ static int mmc_blk_issue_rq(struct mmc_q
+ 			       req->rq_disk->disk_name, brq.cmd.error);
+ 		}
+ 
+-		if (brq.data.error) {
+-			printk(KERN_ERR "%s: error %d transferring data\n",
+-			       req->rq_disk->disk_name, brq.data.error);
+-		}
++		if (brq.data.error)
++			print_data_error(&brq, card, req);
+ 
+ 		if (brq.stop.error) {
+ 			printk(KERN_ERR "%s: error %d sending stop command\n",
 _
 
-Patches currently in -mm which might be from jaswinder@infradead.org are
+Patches currently in -mm which might be from ext-adrian.hunter@nokia.com are
 
+origin.patch
 linux-next.patch
-fix-core-x86-make-list_poison-less-deadly.patch
-make-firmware-dsp56k-bootstrapasm-buildable-on-a56.patch
+mmc_block-print-better-data-error-message-after-timeout.patch
+mmc_block-ensure-all-sectors-that-do-not-have-errors-are-read.patch
 
