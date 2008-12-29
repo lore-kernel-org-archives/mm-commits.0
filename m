@@ -1,497 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: - input-add-tsc2007-based-touchscreen-driver.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:19:01 -0800
-Message-ID: <200812291919.mBTJJ1Zq031281@imap1.linux-foundation.org>
+Subject: - revert-sched-fix-uneven-per-cpu-task_group-share-distribution.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:18:30 -0800
+Message-ID: <200812291918.mBTJIUQ0030846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41751 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752158AbYL2TTr (ORCPT
+	by vger.kernel.org with ESMTP id S1752097AbYL2TT0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:19:47 -0500
+	Mon, 29 Dec 2008 14:19:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kwangwoo.lee@gmail.com, dtor@mail.ru, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, kenchen@google.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: add tsc2007 based touchscreen driver
+     revert "sched: fix uneven per-cpu task_group share distribution"
 has been removed from the -mm tree.  Its filename was
-     input-add-tsc2007-based-touchscreen-driver.patch
+     revert-sched-fix-uneven-per-cpu-task_group-share-distribution.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: add tsc2007 based touchscreen driver
-From: "Kwangwoo Lee" <kwangwoo.lee@gmail.com>
+Subject: revert "sched: fix uneven per-cpu task_group share distribution"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I tested this driver on my ARM9 based SoC - MV86XX.
-
-Signed-off-by: Kwangwoo Lee <kwangwoo.lee@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Acked-by: Jean Delvare <khali@linux-fr.org>	[i2c parts]
+Cc: Ken Chen <kenchen@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/Kconfig   |    9 
- drivers/input/touchscreen/Makefile  |    1 
- drivers/input/touchscreen/tsc2007.c |  398 ++++++++++++++++++++++++++
- include/linux/i2c/tsc2007.h         |   17 +
- 4 files changed, 425 insertions(+)
+ kernel/sched.c |   43 +++++++++++++++++++------------------------
+ 1 file changed, 19 insertions(+), 24 deletions(-)
 
-diff -puN drivers/input/touchscreen/Kconfig~input-add-tsc2007-based-touchscreen-driver drivers/input/touchscreen/Kconfig
---- a/drivers/input/touchscreen/Kconfig~input-add-tsc2007-based-touchscreen-driver
-+++ a/drivers/input/touchscreen/Kconfig
-@@ -435,4 +435,13 @@ config TOUCHSCREEN_TOUCHIT213
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called touchit213.
+diff -puN kernel/sched.c~revert-sched-fix-uneven-per-cpu-task_group-share-distribution kernel/sched.c
+--- a/kernel/sched.c~revert-sched-fix-uneven-per-cpu-task_group-share-distribution
++++ a/kernel/sched.c
+@@ -1475,34 +1475,24 @@ static void __set_se_shares(struct sched
+  * Calculate and set the cpu's group shares.
+  */
+ static void
+-update_group_shares_cpu(struct task_group *tg, int cpu, int empty,
++update_group_shares_cpu(struct task_group *tg, int cpu,
+ 			unsigned long sd_shares, unsigned long sd_rq_weight)
+ {
+-	unsigned long shares, raw_shares;
++	unsigned long shares;
+ 	unsigned long rq_weight;
  
-+config TOUCHSCREEN_TSC2007
-+	tristate "TSC2007 based touchscreens"
-+	depends on I2C
-+	help
-+	  Say Y here if you have a TSC2007 based touchscreens.
+ 	if (!tg->se[cpu])
+ 		return;
+ 
+ 	rq_weight = tg->cfs_rq[cpu]->rq_weight;
+-	if (rq_weight) {
+-		/*
+-		 *           \Sum shares * rq_weight
+-		 * shares =  -----------------------
+-		 *               \Sum rq_weight
+-		 *
+-		 */
+-		raw_shares = (sd_shares * rq_weight) / sd_rq_weight;
+-		shares = raw_shares;
+-	} else {
+-		/*
+-		 * If there are currently no tasks on the cpu pretend there
+-		 * is one of average load so that when a new task gets to
+-		 * run here it will not get delayed by group starvation.
+-		 */
+-		raw_shares = 0;
+-		shares = sd_shares / empty;
+-	}
 +
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called tsc2007.
-+
- endif
-diff -puN drivers/input/touchscreen/Makefile~input-add-tsc2007-based-touchscreen-driver drivers/input/touchscreen/Makefile
---- a/drivers/input/touchscreen/Makefile~input-add-tsc2007-based-touchscreen-driver
-+++ a/drivers/input/touchscreen/Makefile
-@@ -34,3 +34,4 @@ wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9705)	+
- wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9712)	+= wm9712.o
- wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9713)	+= wm9713.o
- obj-$(CONFIG_TOUCHSCREEN_WM97XX_MAINSTONE)	+= mainstone-wm97xx.o
-+obj-$(CONFIG_TOUCHSCREEN_TSC2007)	+= tsc2007.o
-diff -puN /dev/null drivers/input/touchscreen/tsc2007.c
---- /dev/null
-+++ a/drivers/input/touchscreen/tsc2007.c
-@@ -0,0 +1,398 @@
-+/*
-+ * drivers/input/touchscreen/tsc2007.c
-+ *
-+ * Copyright (c) 2008 MtekVision Co., Ltd.
-+ * 	Kwangwoo Lee <kwlee@mtekvision.com>
-+ *
-+ * Using code from:
-+ *  - ads7846.c
-+ * 	Copyright (c) 2005 David Brownell
-+ * 	Copyright (c) 2006 Nokia Corporation
-+ *  - corgi_ts.c
-+ *	Copyright (C) 2004-2005 Richard Purdie
-+ *  - omap_ts.[hc], ads7846.h, ts_osk.c
-+ *	Copyright (C) 2002 MontaVista Software
-+ *	Copyright (C) 2004 Texas Instruments
-+ *	Copyright (C) 2005 Dirk Behme
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ */
-+
-+#include <linux/hwmon.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/delay.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c/tsc2007.h>
-+#include <linux/io.h>
-+
-+#include <asm/irq.h>
-+
-+#define TS_POLL_DELAY	(10 * 1000)	/* ns delay before the first sample */
-+#define TS_POLL_PERIOD	(5 * 1000)	/* ns delay between samples */
-+
-+#define TSC2007_MEASURE_TEMP0		(0x0 << 4)
-+#define TSC2007_MEASURE_AUX		(0x2 << 4)
-+#define TSC2007_MEASURE_TEMP1		(0x4 << 4)
-+#define TSC2007_ACTIVATE_XN		(0x8 << 4)
-+#define TSC2007_ACTIVATE_YN		(0x9 << 4)
-+#define TSC2007_ACTIVATE_YP_XN		(0xa << 4)
-+#define TSC2007_SETUP			(0xb << 4)
-+#define TSC2007_MEASURE_X		(0xc << 4)
-+#define TSC2007_MEASURE_Y		(0xd << 4)
-+#define TSC2007_MEASURE_Z1		(0xe << 4)
-+#define TSC2007_MEASURE_Z2		(0xf << 4)
-+
-+#define TSC2007_POWER_OFF_IRQ_EN	(0x0 << 2)
-+#define TSC2007_ADC_ON_IRQ_DIS0		(0x1 << 2)
-+#define TSC2007_ADC_OFF_IRQ_EN		(0x2 << 2)
-+#define TSC2007_ADC_ON_IRQ_DIS1		(0x3 << 2)
-+
-+#define TSC2007_12BIT			(0x0 << 1)
-+#define TSC2007_8BIT			(0x1 << 1)
-+
-+#define	MAX_12BIT			((1 << 12) - 1)
-+
-+#define ADC_ON_12BIT	(TSC2007_12BIT | TSC2007_ADC_ON_IRQ_DIS0)
-+
-+#define READ_Y		(ADC_ON_12BIT | TSC2007_MEASURE_Y)
-+#define READ_Z1		(ADC_ON_12BIT | TSC2007_MEASURE_Z1)
-+#define READ_Z2		(ADC_ON_12BIT | TSC2007_MEASURE_Z2)
-+#define READ_X		(ADC_ON_12BIT | TSC2007_MEASURE_X)
-+#define PWRDOWN		(TSC2007_12BIT | TSC2007_POWER_OFF_IRQ_EN)
-+
-+struct ts_event {
-+	u16	x;
-+	u16	y;
-+	u16	z1, z2;
-+};
-+
-+struct tsc2007 {
-+	struct input_dev	*input;
-+	char			phys[32];
-+	struct hrtimer		timer;
-+	struct ts_event		tc;
-+
-+	struct i2c_client	*client;
-+
-+	spinlock_t		lock;
-+
-+	u16			model;
-+	u16			x_plate_ohms;
-+
-+	unsigned		pendown;
-+	int			irq;
-+
-+	int			(*get_pendown_state)(void);
-+	void			(*clear_penirq)(void);
-+};
-+
-+static int tsc2007_xfer(void *tsc, unsigned char cmd)
-+{
-+	struct tsc2007    *ts     = tsc;
-+	struct i2c_client *client = ts->client;
-+
-+	unsigned char  rbuf[2];
-+	unsigned short val;
-+	int result;
-+
-+	result = i2c_master_send(client, &cmd, 1);
-+	if (result != 1) {
-+		dev_err(&client->dev, "send failed, cmd 0x%x\n", cmd);
-+		goto cmd_fail;
-+	}
-+
-+	result = i2c_master_recv(client, rbuf, 2);
-+	if (result != 2) {
-+		dev_err(&client->dev, "recv failed, cmd 0x%x\n", cmd);
-+		goto cmd_fail;
-+	}
-+
-+	rbuf[1] = (rbuf[1] >> 4) | ((rbuf[0] & 0x0f) << 4);
-+	rbuf[0] = rbuf[0] >> 4;
-+
-+	val = *((unsigned short *) rbuf);
-+	val = be16_to_cpu(val);
-+
-+	dev_dbg(&client->dev, "cmd [0x%x], rbuf [0x%x, 0x%x] => val [%u]\n",
-+		cmd, rbuf[0], rbuf[1], val);
-+
-+	return (int) val;
-+
-+cmd_fail:
-+	return -EIO;
-+}
-+
-+static void tsc2007_send_event(void *tsc)
-+{
-+	struct tsc2007	*ts = tsc;
-+	u32		Rt;
-+	u16		x, y, z1, z2;
-+
-+	x = ts->tc.x;
-+	y = ts->tc.y;
-+	z1 = ts->tc.z1;
-+	z2 = ts->tc.z2;
-+
-+	/* range filtering */
-+	if (x == MAX_12BIT)
-+		x = 0;
-+
-+	if (likely(x && z1)) {
-+		/* compute touch pressure resistance using equation #1 */
-+		Rt = z2;
-+		Rt -= z1;
-+		Rt *= x;
-+		Rt *= ts->x_plate_ohms;
-+		Rt /= z1;
-+		Rt = (Rt + 2047) >> 12;
-+	} else
-+		Rt = 0;
-+
-+	/* Sample found inconsistent by debouncing or pressure is beyond
-+	 * the maximum. Don't report it to user space, repeat at least
-+	 * once more the measurement
-+	 */
-+	if (Rt > MAX_12BIT) {
-+		dev_dbg(&ts->client->dev, "ignored pressure %d\n", Rt);
-+
-+		hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD),
-+			      HRTIMER_MODE_REL);
-+		return;
-+	}
-+
-+	/* NOTE: We can't rely on the pressure to determine the pen down
-+	 * state, even this controller has a pressure sensor.  The pressure
-+	 * value can fluctuate for quite a while after lifting the pen and
-+	 * in some cases may not even settle at the expected value.
++	/*
++	 *           \Sum shares * rq_weight
++	 * shares =  -----------------------
++	 *               \Sum rq_weight
 +	 *
-+	 * The only safe way to check for the pen up condition is in the
-+	 * timer by reading the pen signal state (it's a GPIO _and_ IRQ).
 +	 */
-+	if (Rt) {
-+		struct input_dev *input = ts->input;
-+
-+		if (!ts->pendown) {
-+			dev_dbg(&ts->client->dev, "DOWN\n");
-+
-+			input_report_key(input, BTN_TOUCH, 1);
-+			ts->pendown = 1;
-+		}
-+
-+		input_report_abs(input, ABS_X, x);
-+		input_report_abs(input, ABS_Y, y);
-+		input_report_abs(input, ABS_PRESSURE, Rt);
-+
-+		input_sync(input);
-+
-+		dev_dbg(&ts->client->dev, "point(%4d,%4d), pressure (%4u)\n",
-+			x, y, Rt);
-+	}
-+
-+	hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD),
-+			HRTIMER_MODE_REL);
-+}
-+
-+static int tsc2007_read_values(struct tsc2007 *tsc)
-+{
-+	struct tsc2007	*ts = tsc;
-+
-+	/* y- still on; turn on only y+ (and ADC) */
-+	ts->tc.y = tsc2007_xfer(ts, READ_Y);
-+
-+	/* turn y- off, x+ on, then leave in lowpower */
-+	ts->tc.x = tsc2007_xfer(ts, READ_X);
-+
-+	/* turn y+ off, x- on; we'll use formula #1 */
-+	ts->tc.z1 = tsc2007_xfer(ts, READ_Z1);
-+	ts->tc.z2 = tsc2007_xfer(ts, READ_Z2);
-+
-+	/* power down */
-+	tsc2007_xfer(ts, PWRDOWN);
-+	return 0;
-+}
-+
-+static enum hrtimer_restart tsc2007_timer(struct hrtimer *handle)
-+{
-+	struct tsc2007	*ts = container_of(handle, struct tsc2007, timer);
-+
-+	spin_lock_irq(&ts->lock);
-+
-+	if (unlikely(!ts->get_pendown_state() && ts->pendown)) {
-+		struct input_dev *input = ts->input;
-+
-+		dev_dbg(&ts->client->dev, "UP\n");
-+
-+		input_report_key(input, BTN_TOUCH, 0);
-+		input_report_abs(input, ABS_PRESSURE, 0);
-+		input_sync(input);
-+
-+		ts->pendown = 0;
-+		enable_irq(ts->irq);
-+	} else {
-+		/* pen is still down, continue with the measurement */
-+		dev_dbg(&ts->client->dev, "pen is still down\n");
-+
-+		tsc2007_read_values(ts);
-+		tsc2007_send_event(ts);
-+	}
-+
-+	spin_unlock_irq(&ts->lock);
-+	return HRTIMER_NORESTART;
-+}
-+
-+static irqreturn_t tsc2007_irq(int irq, void *handle)
-+{
-+	struct tsc2007 *ts = handle;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ts->lock, flags);
-+	if (likely(ts->get_pendown_state())) {
-+		disable_irq(ts->irq);
-+		hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_DELAY),
-+					HRTIMER_MODE_REL);
-+	}
-+
-+	if (ts->clear_penirq)
-+		ts->clear_penirq();
-+
-+	spin_unlock_irqrestore(&ts->lock, flags);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int tsc2007_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
-+	struct tsc2007		*ts;
-+	struct tsc2007_platform_data *pdata;
-+	struct input_dev	*input_dev;
-+	int			err;
-+
-+	pdata = client->dev.platform_data;
-+	if (pdata == NULL) {
-+		dev_err(&client->dev, "platform data is required!\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!i2c_check_functionality(adapter,
-+			I2C_FUNC_I2C | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
-+		return -EIO;
-+
-+	ts = kzalloc(sizeof(struct tsc2007), GFP_KERNEL);
-+	input_dev = input_allocate_device();
-+	if (!ts || !input_dev) {
-+		err = -ENOMEM;
-+		goto err_free_mem;
-+	}
-+
-+	ts->client = client;
-+	i2c_set_clientdata(client, ts);
-+
-+	ts->input = input_dev;
-+
-+	hrtimer_init(&ts->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-+	ts->timer.function = tsc2007_timer;
-+
-+	spin_lock_init(&ts->lock);
-+
-+	ts->model 	      = pdata->model;
-+	ts->x_plate_ohms      = pdata->x_plate_ohms;
-+	ts->get_pendown_state = pdata->get_pendown_state;
-+	ts->clear_penirq      = pdata->clear_penirq;
-+
-+	pdata->init_platform_hw();
-+
-+	snprintf(ts->phys, sizeof(ts->phys), "%s/input0", client->dev.bus_id);
-+
-+	input_dev->name = "TSC2007 Touchscreen";
-+	input_dev->phys = ts->phys;
-+
-+	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
-+	input_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
-+
-+	input_set_abs_params(input_dev, ABS_X, 0, MAX_12BIT, 0, 0);
-+	input_set_abs_params(input_dev, ABS_Y, 0, MAX_12BIT, 0, 0);
-+	input_set_abs_params(input_dev, ABS_PRESSURE, 0, MAX_12BIT, 0, 0);
-+
-+	tsc2007_read_values(ts);
-+
-+	ts->irq = client->irq;
-+	if (request_irq(ts->irq, tsc2007_irq, 0,
-+			client->dev.driver->name, ts)) {
-+		dev_err(&client->dev, "irq %d busy?\n", ts->irq);
-+		err = -EBUSY;
-+		goto err_free_mem;
-+	}
-+
-+	err = input_register_device(input_dev);
-+	if (err)
-+		goto err_free_irq;
-+
-+	dev_info(&client->dev, "registered with irq (%d)\n", ts->irq);
-+
-+	return 0;
-+
-+ err_free_irq:
-+	free_irq(ts->irq, ts);
-+ err_free_mem:
-+	input_free_device(input_dev);
-+	kfree(ts);
-+	return err;
-+}
-+
-+static int tsc2007_remove(struct i2c_client *client)
-+{
-+	struct tsc2007	*ts = i2c_get_clientdata(client);
-+	struct tsc2007_platform_data *pdata;
-+
-+	pdata = client->dev.platform_data;
-+	pdata->exit_platform_hw();
-+
-+	input_unregister_device(ts->input);
-+	free_irq(ts->irq, ts);
-+	kfree(ts);
-+
-+	dev_info(&client->dev, "unregistered\n");
-+	return 0;
-+}
-+
-+static struct i2c_device_id tsc2007_idtable[] = {
-+	{ "tsc2007", 0 },
-+	{ }
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, tsc2007_idtable);
-+
-+static struct i2c_driver tsc2007_driver = {
-+	.driver 	= {
-+		.owner		= THIS_MODULE,
-+		.name		= "tsc2007"
-+	},
-+	.id_table	= tsc2007_idtable,
-+	.probe		= tsc2007_probe,
-+	.remove		= tsc2007_remove,
-+};
-+
-+static int __init tsc2007_init(void)
-+{
-+	return i2c_add_driver(&tsc2007_driver);
-+}
-+
-+static void __exit tsc2007_exit(void)
-+{
-+	i2c_del_driver(&tsc2007_driver);
-+}
-+
-+module_init(tsc2007_init);
-+module_exit(tsc2007_exit);
-+
-+MODULE_AUTHOR("Kwangwoo Lee <kwlee@mtekvision.com>");
-+MODULE_DESCRIPTION("TSC2007 TouchScreen Driver");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null include/linux/i2c/tsc2007.h
---- /dev/null
-+++ a/include/linux/i2c/tsc2007.h
-@@ -0,0 +1,17 @@
-+#ifndef __LINUX_I2C_TSC2007_H
-+#define __LINUX_I2C_TSC2007_H
-+
-+/* linux/i2c/tsc2007.h */
-+
-+struct tsc2007_platform_data {
-+	u16	model;				/* 2007. */
-+	u16	x_plate_ohms;
-+
-+	int	(*get_pendown_state)(void);
-+	void	(*clear_penirq)(void);		/* If needed, clear 2nd level
-+						   interrupt source */
-+	int	(*init_platform_hw)(void);
-+	void	(*exit_platform_hw)(void);
-+};
-+
-+#endif
++	shares = (sd_shares * rq_weight) / sd_rq_weight;
+ 	shares = clamp_t(unsigned long, shares, MIN_SHARES, MAX_SHARES);
+ 
+ 	if (abs(shares - tg->se[cpu]->load.weight) >
+@@ -1511,7 +1501,7 @@ update_group_shares_cpu(struct task_grou
+ 		unsigned long flags;
+ 
+ 		spin_lock_irqsave(&rq->lock, flags);
+-		tg->cfs_rq[cpu]->shares = raw_shares;
++		tg->cfs_rq[cpu]->shares = shares;
+ 
+ 		__set_se_shares(tg->se[cpu], shares);
+ 		spin_unlock_irqrestore(&rq->lock, flags);
+@@ -1528,12 +1518,17 @@ static int tg_shares_up(struct task_grou
+ 	unsigned long weight, rq_weight = 0;
+ 	unsigned long shares = 0;
+ 	struct sched_domain *sd = data;
+-	int i, empty = 0;
++	int i;
+ 
+ 	for_each_cpu(i, sched_domain_span(sd)) {
++		/*
++		 * If there are currently no tasks on the cpu pretend there
++		 * is one of average load so that when a new task gets to
++		 * run here it will not get delayed by group starvation.
++		 */
+ 		weight = tg->cfs_rq[i]->load.weight;
+ 		if (!weight)
+-			empty++;
++			weight = NICE_0_LOAD;
+ 
+ 		tg->cfs_rq[i]->rq_weight = weight;
+ 		rq_weight += weight;
+@@ -1547,7 +1542,7 @@ static int tg_shares_up(struct task_grou
+ 		shares = tg->shares;
+ 
+ 	for_each_cpu(i, sched_domain_span(sd))
+-		update_group_shares_cpu(tg, i, empty, shares, rq_weight);
++		update_group_shares_cpu(tg, i, shares, rq_weight);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from kwangwoo.lee@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+smp_call_function_single-be-slightly-less-stupid.patch
+binfmtsh-include-listh-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
+nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
+dma_alloc_coherent-clean-it-up.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
