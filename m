@@ -1,113 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - mmc_block-print-better-data-error-message-after-timeout.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:07:11 -0800
-Message-ID: <200812291907.mBTJ7Bkw022142@imap1.linux-foundation.org>
+Subject: - posix-timers-simplify-de_thread-exit_itimers-path.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:18:57 -0800
+Message-ID: <200812291918.mBTJIvwn031248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56756 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52348 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751727AbYL2THw (ORCPT
+	by vger.kernel.org with ESMTP id S1751997AbYL2TTk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:07:52 -0500
+	Mon, 29 Dec 2008 14:19:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ext-adrian.hunter@nokia.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc_block: print better data error message after timeout
+     posix-timers: simplify de_thread()->exit_itimers() path
 has been removed from the -mm tree.  Its filename was
-     mmc_block-print-better-data-error-message-after-timeout.patch
+     posix-timers-simplify-de_thread-exit_itimers-path.patch
 
-This patch was dropped because other wtuff was merged, and wrecked it
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc_block: print better data error message after timeout
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: posix-timers: simplify de_thread()->exit_itimers() path
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-In particular, if the card gets an ECC error it will timeout, in which
-case it is much more helpful to see an ECC error rather than a timeout
-error.
+de_thread() postpones release_task(leader) until after exit_itimers().
+This was needed because !SIGEV_THREAD_ID timers could use ->group_leader
+without get_task_struct(). With the recent changes we can release the
+leader earlier and simplify the code.
 
-Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Rolanda McGrath <roland@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/block.c |   47 +++++++++++++++++++++++++++++++++----
- 1 file changed, 43 insertions(+), 4 deletions(-)
+ fs/exec.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mmc/card/block.c~mmc_block-print-better-data-error-message-after-timeout drivers/mmc/card/block.c
---- a/drivers/mmc/card/block.c~mmc_block-print-better-data-error-message-after-timeout
-+++ a/drivers/mmc/card/block.c
-@@ -207,6 +207,47 @@ static u32 mmc_sd_num_wr_blocks(struct m
- 	return ntohl(blocks);
- }
+diff -puN fs/exec.c~posix-timers-simplify-de_thread-exit_itimers-path fs/exec.c
+--- a/fs/exec.c~posix-timers-simplify-de_thread-exit_itimers-path
++++ a/fs/exec.c
+@@ -773,7 +773,6 @@ static int de_thread(struct task_struct 
+ 	struct signal_struct *sig = tsk->signal;
+ 	struct sighand_struct *oldsighand = tsk->sighand;
+ 	spinlock_t *lock = &oldsighand->siglock;
+-	struct task_struct *leader = NULL;
+ 	int count;
  
-+static void print_data_error(struct mmc_blk_request *brq, struct mmc_card *card,
-+			     struct request *req)
-+{
-+	struct mmc_command cmd;
-+	char *emsg;
-+	u32 status;
-+	int status_err = 0;
-+
-+	if (brq->data.error != -ETIMEDOUT || mmc_host_is_spi(card->host))
-+		goto out_print;
-+
-+	if (brq->mrq.stop)
-+		/* 'Stop' response contains card status */
-+		status = brq->mrq.stop->resp[0];
-+	else {
-+		cmd.opcode = MMC_SEND_STATUS;
-+		cmd.arg = card->rca << 16;
-+		cmd.flags = MMC_RSP_R1 | MMC_CMD_AC;
-+		status_err = mmc_wait_for_cmd(card->host, &cmd, 0);
-+		if (status_err)
-+			goto out_print;
-+		status = cmd.resp[0];
-+	}
-+
-+	emsg = (status & R1_CARD_ECC_FAILED) ? "ECC" : "I/O";
-+
-+	printk(KERN_ERR "%s: %s error transferring data, sector %u, "
-+	       "card status %#x\n", req->rq_disk->disk_name, emsg,
-+	       (unsigned)req->sector, status);
-+
-+	return;
-+
-+out_print:
-+	printk(KERN_ERR "%s: error %d transferring data, sector %u, nr %u\n",
-+	       req->rq_disk->disk_name, brq->data.error, (unsigned)req->sector,
-+	       (unsigned)req->nr_sectors);
-+	if (status_err)
-+		printk(KERN_ERR "%s: error %d requesting card status\n",
-+		       req->rq_disk->disk_name, status_err);
-+}
-+
- static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
- {
- 	struct mmc_blk_data *md = mq->data;
-@@ -278,10 +319,8 @@ static int mmc_blk_issue_rq(struct mmc_q
- 			       req->rq_disk->disk_name, brq.cmd.error);
- 		}
+ 	if (thread_group_empty(tsk))
+@@ -811,7 +810,7 @@ static int de_thread(struct task_struct 
+ 	 * and to assume its PID:
+ 	 */
+ 	if (!thread_group_leader(tsk)) {
+-		leader = tsk->group_leader;
++		struct task_struct *leader = tsk->group_leader;
  
--		if (brq.data.error) {
--			printk(KERN_ERR "%s: error %d transferring data\n",
--			       req->rq_disk->disk_name, brq.data.error);
--		}
-+		if (brq.data.error)
-+			print_data_error(&brq, card, req);
+ 		sig->notify_count = -1;	/* for exit_notify() */
+ 		for (;;) {
+@@ -863,8 +862,9 @@ static int de_thread(struct task_struct 
  
- 		if (brq.stop.error) {
- 			printk(KERN_ERR "%s: error %d sending stop command\n",
+ 		BUG_ON(leader->exit_state != EXIT_ZOMBIE);
+ 		leader->exit_state = EXIT_DEAD;
+-
+ 		write_unlock_irq(&tasklist_lock);
++
++		release_task(leader);
+ 	}
+ 
+ 	sig->group_exit_task = NULL;
+@@ -873,8 +873,6 @@ static int de_thread(struct task_struct 
+ no_thread_group:
+ 	exit_itimers(sig);
+ 	flush_itimer_signals();
+-	if (leader)
+-		release_task(leader);
+ 
+ 	if (atomic_read(&oldsighand->count) != 1) {
+ 		struct sighand_struct *newsighand;
 _
 
-Patches currently in -mm which might be from ext-adrian.hunter@nokia.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
 linux-next.patch
-mmc_block-print-better-data-error-message-after-timeout.patch
-mmc_block-ensure-all-sectors-that-do-not-have-errors-are-read.patch
+mm-make-get_user_pages-interruptible.patch
+mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
+send_sig_noinfo-masquerade-si_pid-when-crossing-pid-ns-boundary.patch
+send_sig_noinfo-set-si_pid-to-tgid-instead-of-pid.patch
 
