@@ -1,384 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-nvramc-codingstyle-fixes.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:19:30 -0800
-Message-ID: <200812291919.mBTJJUuO031701@imap1.linux-foundation.org>
+Subject: - futex-update-futex_q-to-clarify-single-waiter-semantics.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:19:35 -0800
+Message-ID: <200812291919.mBTJJZCC031811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752174AbYL2TUK (ORCPT
+	by vger.kernel.org with ESMTP id S1752196AbYL2TUZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:20:10 -0500
+	Mon, 29 Dec 2008 14:20:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wim@iguana.be, mm-commits@vger.kernel.org
+To: dvhltc@us.ibm.com, a.p.zijlstra@chello.nl, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/nvram.c: CodingStyle fixes
+     futex: update futex_q to clarify single waiter semantics
 has been removed from the -mm tree.  Its filename was
-     drivers-char-nvramc-codingstyle-fixes.patch
+     futex-update-futex_q-to-clarify-single-waiter-semantics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/nvram.c: CodingStyle fixes
-From: Wim Van Sebroeck <wim@iguana.be>
+Subject: futex: update futex_q to clarify single waiter semantics
+From: Darren Hart <dvhltc@us.ibm.com>
 
-Bring drivers/char/nvram.c in line with the Coding Style.
+I've tripped over this a couple times.  The futex_q uses a waiters list to
+represent a single blocked task and then calls wake_up_all().  This can
+lead to confusion in trying to understand the intent of the code, which is
+to have a single futex_q for every task waiting on a futex.
 
-Signed-off-by: Wim Van Sebroeck <wim@iguana.be>
+This patch corrects the problem, using a single pointer to the waiting
+task, and an appropriate call to wake_up, rather than wake_up_all.
+
+Signed-off-by: Darren Hart <dvhltc@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/nvram.c |  126 ++++++++++++++++-------------------------
- 1 file changed, 52 insertions(+), 74 deletions(-)
+ kernel/futex.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/nvram.c~drivers-char-nvramc-codingstyle-fixes drivers/char/nvram.c
---- a/drivers/char/nvram.c~drivers-char-nvramc-codingstyle-fixes
-+++ a/drivers/char/nvram.c
-@@ -46,7 +46,7 @@
- /* select machine configuration */
- #if defined(CONFIG_ATARI)
- #  define MACH ATARI
--#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)  /* and others?? */
-+#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)  /* and ?? */
- #  define MACH PC
- #else
- #  error Cannot build nvram driver for this machine configuration.
-@@ -107,9 +107,9 @@
- #include <linux/init.h>
- #include <linux/proc_fs.h>
- #include <linux/spinlock.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
- 
--#include <asm/io.h>
--#include <asm/uaccess.h>
- #include <asm/system.h>
- 
- static DEFINE_SPINLOCK(nvram_state_lock);
-@@ -123,7 +123,7 @@ static void mach_set_checksum(void);
- 
- #ifdef CONFIG_PROC_FS
- static int mach_proc_infos(unsigned char *contents, char *buffer, int *len,
--    off_t *begin, off_t offset, int size);
-+					off_t *begin, off_t offset, int size);
- #endif
- 
- /*
-@@ -133,18 +133,17 @@ static int mach_proc_infos(unsigned char
-  *
-  * It is worth noting that these functions all access bytes of general
-  * purpose memory in the NVRAM - that is to say, they all add the
-- * NVRAM_FIRST_BYTE offset.  Pass them offsets into NVRAM as if you did not 
-+ * NVRAM_FIRST_BYTE offset.  Pass them offsets into NVRAM as if you did not
-  * know about the RTC cruft.
+diff -puN kernel/futex.c~futex-update-futex_q-to-clarify-single-waiter-semantics kernel/futex.c
+--- a/kernel/futex.c~futex-update-futex_q-to-clarify-single-waiter-semantics
++++ a/kernel/futex.c
+@@ -92,11 +92,12 @@ struct futex_pi_state {
+  * A futex_q has a woken state, just like tasks have TASK_RUNNING.
+  * It is considered woken when plist_node_empty(&q->list) || q->lock_ptr == 0.
+  * The order of wakup is always to make the first condition true, then
+- * wake up q->waiters, then make the second condition true.
++ * wake up q->waiter, then make the second condition true.
   */
+ struct futex_q {
+ 	struct plist_node list;
+-	wait_queue_head_t waiters;
++	/* There can only be a single waiter */
++	wait_queue_head_t waiter;
  
--unsigned char
--__nvram_read_byte(int i)
-+unsigned char __nvram_read_byte(int i)
+ 	/* Which hash list lock to use: */
+ 	spinlock_t *lock_ptr;
+@@ -580,7 +581,7 @@ static void wake_futex(struct futex_q *q
+ 	 * The lock in wake_up_all() is a crucial memory barrier after the
+ 	 * plist_del() and also before assigning to q->lock_ptr.
+ 	 */
+-	wake_up_all(&q->waiters);
++	wake_up(&q->waiter);
+ 	/*
+ 	 * The waiting task can free the futex_q as soon as this is written,
+ 	 * without taking any locks.  This must come last.
+@@ -937,7 +938,7 @@ static inline struct futex_hash_bucket *
  {
- 	return CMOS_READ(NVRAM_FIRST_BYTE + i);
- }
-+EXPORT_SYMBOL(__nvram_read_byte);
+ 	struct futex_hash_bucket *hb;
  
--unsigned char
--nvram_read_byte(int i)
-+unsigned char nvram_read_byte(int i)
- {
- 	unsigned long flags;
- 	unsigned char c;
-@@ -154,16 +153,16 @@ nvram_read_byte(int i)
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 	return c;
- }
-+EXPORT_SYMBOL(nvram_read_byte);
+-	init_waitqueue_head(&q->waiters);
++	init_waitqueue_head(&q->waiter);
  
- /* This races nicely with trying to read with checksum checking (nvram_read) */
--void
--__nvram_write_byte(unsigned char c, int i)
-+void __nvram_write_byte(unsigned char c, int i)
- {
- 	CMOS_WRITE(c, NVRAM_FIRST_BYTE + i);
- }
-+EXPORT_SYMBOL(__nvram_write_byte);
+ 	get_futex_key_refs(&q->key);
+ 	hb = hash_futex(&q->key);
+@@ -1228,7 +1229,7 @@ static int futex_wait(u32 __user *uaddr,
  
--void
--nvram_write_byte(unsigned char c, int i)
-+void nvram_write_byte(unsigned char c, int i)
- {
- 	unsigned long flags;
- 
-@@ -171,15 +170,15 @@ nvram_write_byte(unsigned char c, int i)
- 	__nvram_write_byte(c, i);
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- }
-+EXPORT_SYMBOL(nvram_write_byte);
- 
--int
--__nvram_check_checksum(void)
-+int __nvram_check_checksum(void)
- {
- 	return mach_check_checksum();
- }
-+EXPORT_SYMBOL(__nvram_check_checksum);
- 
--int
--nvram_check_checksum(void)
-+int nvram_check_checksum(void)
- {
- 	unsigned long flags;
- 	int rv;
-@@ -189,16 +188,15 @@ nvram_check_checksum(void)
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 	return rv;
- }
-+EXPORT_SYMBOL(nvram_check_checksum);
- 
--static void
--__nvram_set_checksum(void)
-+static void __nvram_set_checksum(void)
- {
- 	mach_set_checksum();
- }
- 
- #if 0
--void
--nvram_set_checksum(void)
-+void nvram_set_checksum(void)
- {
- 	unsigned long flags;
- 
-@@ -212,7 +210,7 @@ nvram_set_checksum(void)
-  * The are the file operation function for user access to /dev/nvram
-  */
- 
--static loff_t nvram_llseek(struct file *file,loff_t offset, int origin )
-+static loff_t nvram_llseek(struct file *file, loff_t offset, int origin)
- {
- 	lock_kernel();
- 	switch (origin) {
-@@ -230,8 +228,8 @@ static loff_t nvram_llseek(struct file *
- 	return (offset >= 0) ? (file->f_pos = offset) : -EINVAL;
- }
- 
--static ssize_t
--nvram_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
-+static ssize_t nvram_read(struct file *file, char __user *buf,
-+						size_t count, loff_t *ppos)
- {
- 	unsigned char contents[NVRAM_BYTES];
- 	unsigned i = *ppos;
-@@ -254,13 +252,13 @@ nvram_read(struct file *file, char __use
- 
- 	return tmp - contents;
- 
--      checksum_err:
-+checksum_err:
- 	spin_unlock_irq(&rtc_lock);
- 	return -EIO;
- }
- 
--static ssize_t
--nvram_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
-+static ssize_t nvram_write(struct file *file, const char __user *buf,
-+						size_t count, loff_t *ppos)
- {
- 	unsigned char contents[NVRAM_BYTES];
- 	unsigned i = *ppos;
-@@ -287,14 +285,13 @@ nvram_write(struct file *file, const cha
- 
- 	return tmp - contents;
- 
--      checksum_err:
-+checksum_err:
- 	spin_unlock_irq(&rtc_lock);
- 	return -EIO;
- }
- 
--static int
--nvram_ioctl(struct inode *inode, struct file *file,
--    unsigned int cmd, unsigned long arg)
-+static int nvram_ioctl(struct inode *inode, struct file *file,
-+					unsigned int cmd, unsigned long arg)
- {
- 	int i;
- 
-@@ -315,7 +312,7 @@ nvram_ioctl(struct inode *inode, struct 
- 		return 0;
- 
- 	case NVRAM_SETCKS:
--		/* just set checksum, contents unchanged (maybe useful after 
-+		/* just set checksum, contents unchanged (maybe useful after
- 		 * checksum garbaged somehow...) */
- 		if (!capable(CAP_SYS_ADMIN))
- 			return -EACCES;
-@@ -330,8 +327,7 @@ nvram_ioctl(struct inode *inode, struct 
- 	}
- }
- 
--static int
--nvram_open(struct inode *inode, struct file *file)
-+static int nvram_open(struct inode *inode, struct file *file)
- {
- 	lock_kernel();
- 	spin_lock(&nvram_state_lock);
-@@ -356,8 +352,7 @@ nvram_open(struct inode *inode, struct f
- 	return 0;
- }
- 
--static int
--nvram_release(struct inode *inode, struct file *file)
-+static int nvram_release(struct inode *inode, struct file *file)
- {
- 	spin_lock(&nvram_state_lock);
- 
-@@ -375,17 +370,15 @@ nvram_release(struct inode *inode, struc
- }
- 
- #ifndef CONFIG_PROC_FS
--static int
--nvram_read_proc(char *buffer, char **start, off_t offset,
--    int size, int *eof, void *data)
-+static int nvram_read_proc(char *buffer, char **start, off_t offset,
-+						int size, int *eof, void *data)
- {
- 	return 0;
- }
- #else
- 
--static int
--nvram_read_proc(char *buffer, char **start, off_t offset,
--    int size, int *eof, void *data)
-+static int nvram_read_proc(char *buffer, char **start, off_t offset,
-+						int size, int *eof, void *data)
- {
- 	unsigned char contents[NVRAM_BYTES];
- 	int i, len = 0;
-@@ -409,14 +402,14 @@ nvram_read_proc(char *buffer, char **sta
-  * this like that... */
- #define PRINT_PROC(fmt,args...)					\
- 	do {							\
--		*len += sprintf(buffer+*len, fmt, ##args);	\
-+		*len += sprintf(buffer + *len, fmt, ##args);	\
- 		if (*begin + *len > offset + size)		\
- 			return 0;				\
- 		if (*begin + *len < offset) {			\
- 			*begin += *len;				\
- 			*len = 0;				\
- 		}						\
--	} while(0)
-+	} while (0)
- 
- #endif /* CONFIG_PROC_FS */
- 
-@@ -436,8 +429,7 @@ static struct miscdevice nvram_dev = {
- 	&nvram_fops
- };
- 
--static int __init
--nvram_init(void)
-+static int __init nvram_init(void)
- {
- 	int ret;
- 
-@@ -459,15 +451,14 @@ nvram_init(void)
- 	}
- 	ret = 0;
- 	printk(KERN_INFO "Non-volatile memory driver v" NVRAM_VERSION "\n");
--      out:
-+out:
- 	return ret;
--      outmisc:
-+outmisc:
- 	misc_deregister(&nvram_dev);
- 	goto out;
- }
- 
--static void __exit
--nvram_cleanup_module(void)
-+static void __exit nvram_cleanup_module(void)
- {
- 	remove_proc_entry("driver/nvram", NULL);
- 	misc_deregister(&nvram_dev);
-@@ -482,8 +473,7 @@ module_exit(nvram_cleanup_module);
- 
- #if MACH == PC
- 
--static int
--pc_check_checksum(void)
-+static int pc_check_checksum(void)
- {
- 	int i;
- 	unsigned short sum = 0;
-@@ -493,11 +483,10 @@ pc_check_checksum(void)
- 		sum += __nvram_read_byte(i);
- 	expect = __nvram_read_byte(PC_CKS_LOC)<<8 |
- 	    __nvram_read_byte(PC_CKS_LOC+1);
--	return ((sum & 0xffff) == expect);
-+	return (sum & 0xffff) == expect;
- }
- 
--static void
--pc_set_checksum(void)
-+static void pc_set_checksum(void)
- {
- 	int i;
- 	unsigned short sum = 0;
-@@ -522,9 +511,8 @@ static char *gfx_types[] = {
- 	"monochrome",
- };
- 
--static int
--pc_proc_infos(unsigned char *nvram, char *buffer, int *len,
--    off_t *begin, off_t offset, int size)
-+static int pc_proc_infos(unsigned char *nvram, char *buffer, int *len,
-+					off_t *begin, off_t offset, int size)
- {
- 	int checksum;
- 	int type;
-@@ -590,20 +578,18 @@ pc_proc_infos(unsigned char *nvram, char
- 
- #if MACH == ATARI
- 
--static int
--atari_check_checksum(void)
-+static int atari_check_checksum(void)
- {
- 	int i;
- 	unsigned char sum = 0;
- 
- 	for (i = ATARI_CKS_RANGE_START; i <= ATARI_CKS_RANGE_END; ++i)
- 		sum += __nvram_read_byte(i);
--	return (__nvram_read_byte(ATARI_CKS_LOC) == (~sum & 0xff) &&
--	    __nvram_read_byte(ATARI_CKS_LOC + 1) == (sum & 0xff));
-+	return (__nvram_read_byte(ATARI_CKS_LOC) == (~sum & 0xff)) &&
-+	    (__nvram_read_byte(ATARI_CKS_LOC + 1) == (sum & 0xff));
- }
- 
--static void
--atari_set_checksum(void)
-+static void atari_set_checksum(void)
- {
- 	int i;
- 	unsigned char sum = 0;
-@@ -654,9 +640,8 @@ static char *colors[] = {
- 	"2", "4", "16", "256", "65536", "??", "??", "??"
- };
- 
--static int
--atari_proc_infos(unsigned char *nvram, char *buffer, int *len,
--    off_t *begin, off_t offset, int size)
-+static int atari_proc_infos(unsigned char *nvram, char *buffer, int *len,
-+					off_t *begin, off_t offset, int size)
- {
- 	int checksum = nvram_check_checksum();
- 	int i;
-@@ -725,11 +710,4 @@ atari_proc_infos(unsigned char *nvram, c
- #endif /* MACH == ATARI */
- 
- MODULE_LICENSE("GPL");
+ 	/* add_wait_queue is the barrier after __set_current_state. */
+ 	__set_current_state(TASK_INTERRUPTIBLE);
+-	add_wait_queue(&q.waiters, &wait);
++	add_wait_queue(&q.waiter, &wait);
+ 	/*
+ 	 * !plist_node_empty() is safe here without any lock.
+ 	 * q.lock_ptr != 0 is not safe, because of ordering against wakeup.
+_
+
+Patches currently in -mm which might be from dvhltc@us.ibm.com are
+
+linux-next.patch
+
