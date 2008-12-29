@@ -1,196 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - revert-sched-fix-uneven-per-cpu-task_group-share-distribution.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:18:30 -0800
-Message-ID: <200812291918.mBTJIUQ0030846@imap1.linux-foundation.org>
+Subject: - cgroups-avoid-accessing-uninitialized-data-in-failure-path.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:18:23 -0800
+Message-ID: <200812291918.mBTJIN3F030708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58340 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752097AbYL2TT0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752068AbYL2TTQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:19:26 -0500
+	Mon, 29 Dec 2008 14:19:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, kenchen@google.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "sched: fix uneven per-cpu task_group share distribution"
+     cgroups: avoid accessing uninitialized data in failure path
 has been removed from the -mm tree.  Its filename was
-     revert-sched-fix-uneven-per-cpu-task_group-share-distribution.patch
+     cgroups-avoid-accessing-uninitialized-data-in-failure-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "sched: fix uneven per-cpu task_group share distribution"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cgroups: avoid accessing uninitialized data in failure path
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Cc: Ken Chen <kenchen@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
+If cgroup_get_rootdir() failed, free_cg_links() will be called in the
+failure path, but tmp_cg_links hasn't been initialized at that time.
+
+I introduced this bug in the 2.6.27 merge window.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   43 +++++++++++++++++++------------------------
- 1 file changed, 19 insertions(+), 24 deletions(-)
+ kernel/cgroup.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sched.c~revert-sched-fix-uneven-per-cpu-task_group-share-distribution kernel/sched.c
---- a/kernel/sched.c~revert-sched-fix-uneven-per-cpu-task_group-share-distribution
-+++ a/kernel/sched.c
-@@ -1475,34 +1475,24 @@ static void __set_se_shares(struct sched
-  * Calculate and set the cpu's group shares.
-  */
- static void
--update_group_shares_cpu(struct task_group *tg, int cpu, int empty,
-+update_group_shares_cpu(struct task_group *tg, int cpu,
- 			unsigned long sd_shares, unsigned long sd_rq_weight)
- {
--	unsigned long shares, raw_shares;
-+	unsigned long shares;
- 	unsigned long rq_weight;
+diff -puN kernel/cgroup.c~cgroups-avoid-accessing-uninitialized-data-in-failure-path kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-avoid-accessing-uninitialized-data-in-failure-path
++++ a/kernel/cgroup.c
+@@ -1024,7 +1024,7 @@ static int cgroup_get_sb(struct file_sys
+ 		if (ret == -EBUSY) {
+ 			mutex_unlock(&cgroup_mutex);
+ 			mutex_unlock(&inode->i_mutex);
+-			goto drop_new_super;
++			goto free_cg_links;
+ 		}
  
- 	if (!tg->se[cpu])
- 		return;
+ 		/* EBUSY should be the only error here */
+@@ -1073,10 +1073,11 @@ static int cgroup_get_sb(struct file_sys
  
- 	rq_weight = tg->cfs_rq[cpu]->rq_weight;
--	if (rq_weight) {
--		/*
--		 *           \Sum shares * rq_weight
--		 * shares =  -----------------------
--		 *               \Sum rq_weight
--		 *
--		 */
--		raw_shares = (sd_shares * rq_weight) / sd_rq_weight;
--		shares = raw_shares;
--	} else {
--		/*
--		 * If there are currently no tasks on the cpu pretend there
--		 * is one of average load so that when a new task gets to
--		 * run here it will not get delayed by group starvation.
--		 */
--		raw_shares = 0;
--		shares = sd_shares / empty;
--	}
-+
-+	/*
-+	 *           \Sum shares * rq_weight
-+	 * shares =  -----------------------
-+	 *               \Sum rq_weight
-+	 *
-+	 */
-+	shares = (sd_shares * rq_weight) / sd_rq_weight;
- 	shares = clamp_t(unsigned long, shares, MIN_SHARES, MAX_SHARES);
+ 	return simple_set_mnt(mnt, sb);
  
- 	if (abs(shares - tg->se[cpu]->load.weight) >
-@@ -1511,7 +1501,7 @@ update_group_shares_cpu(struct task_grou
- 		unsigned long flags;
- 
- 		spin_lock_irqsave(&rq->lock, flags);
--		tg->cfs_rq[cpu]->shares = raw_shares;
-+		tg->cfs_rq[cpu]->shares = shares;
- 
- 		__set_se_shares(tg->se[cpu], shares);
- 		spin_unlock_irqrestore(&rq->lock, flags);
-@@ -1528,12 +1518,17 @@ static int tg_shares_up(struct task_grou
- 	unsigned long weight, rq_weight = 0;
- 	unsigned long shares = 0;
- 	struct sched_domain *sd = data;
--	int i, empty = 0;
-+	int i;
- 
- 	for_each_cpu(i, sched_domain_span(sd)) {
-+		/*
-+		 * If there are currently no tasks on the cpu pretend there
-+		 * is one of average load so that when a new task gets to
-+		 * run here it will not get delayed by group starvation.
-+		 */
- 		weight = tg->cfs_rq[i]->load.weight;
- 		if (!weight)
--			empty++;
-+			weight = NICE_0_LOAD;
- 
- 		tg->cfs_rq[i]->rq_weight = weight;
- 		rq_weight += weight;
-@@ -1547,7 +1542,7 @@ static int tg_shares_up(struct task_grou
- 		shares = tg->shares;
- 
- 	for_each_cpu(i, sched_domain_span(sd))
--		update_group_shares_cpu(tg, i, empty, shares, rq_weight);
-+		update_group_shares_cpu(tg, i, shares, rq_weight);
- 
- 	return 0;
++ free_cg_links:
++	free_cg_links(&tmp_cg_links);
+  drop_new_super:
+ 	up_write(&sb->s_umount);
+ 	deactivate_super(sb);
+-	free_cg_links(&tmp_cg_links);
+ 	return ret;
  }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-binfmtsh-include-listh-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+cgroups-fix-a-race-between-cgroup_clone-and-umount.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
+cgroups-documentation-updates.patch
+cgroups-remove-some-redundant-null-checks.patch
+ns_cgroup-remove-unused-spinlock.patch
+memcg-fix-a-typo-in-kconfig.patch
+cgroups-make-root_list-contains-active-hierarchies-only.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
+cgroups-make-cgroup_path-rcu-safe.patch
+cgroups-make-cgroup_path-rcu-safe-fixlet.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
+memcg-new-force_empty-to-free-pages-under-group.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
 memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-handle-swap-caches.patch
+memcg-memswap-controller-kconfig.patch
 memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+memcg-synchronized-lru.patch
+memcg-add-mem_cgroup_disabled.patch
+memcg-add-mem_cgroup_disabled-fix.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
 memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
 memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
+memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+memcg-avoid-unnecessary-system-wide-oom-killer.patch
 memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+memcg-fix-reclaim-result-checks.patch
+memcg-swapout-refcnt-fix.patch
+memcg-fix-double-free-and-make-refcnt-sane.patch
+memcg-use-css_tryget-in-memcg.patch
+memcg-use-css_tryget-in-memcg-fix.patch
+memcg-fix-lru-accounting-for-swapcache-v2.patch
+memcg-fix-shmems-swap-accounting.patch
+cgroups-add-a-per-subsystem-hierarchy_mutex.patch
+cgroups-use-hierarchy_mutex-in-memory-controller.patch
+cgroups-add-css_tryget.patch
 
