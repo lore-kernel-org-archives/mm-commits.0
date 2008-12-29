@@ -1,86 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - x86-remove-init_mm-export-as-planned-for-2626.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:18:36 -0800
-Message-ID: <200812291918.mBTJIaR8030971@imap1.linux-foundation.org>
+Subject: - cpuacct-refactoring-cpuusage_read-cpuusage_write.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:19:14 -0800
+Message-ID: <200812291919.mBTJJEYW031522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33022 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48983 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751989AbYL2T0N (ORCPT
+	by vger.kernel.org with ESMTP id S1752033AbYL2T0b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:26:13 -0500
+	Mon, 29 Dec 2008 14:26:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, hch@lst.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: kenchen@google.com, lizf@cn.fujitsu.com, menage@google.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: remove init_mm export as planned for 2.6.26
+     cpuacct: refactoring cpuusage_read / cpuusage_write
 has been removed from the -mm tree.  Its filename was
-     x86-remove-init_mm-export-as-planned-for-2626.patch
+     cpuacct-refactoring-cpuusage_read-cpuusage_write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: remove init_mm export as planned for 2.6.26
-From: Dave Jones <davej@redhat.com>
+Subject: cpuacct: refactoring cpuusage_read / cpuusage_write
+From: Ken Chen <kenchen@google.com>
 
-Signed-off-by: Dave Jones <davej@redhat.com>
+In the thread regarding to 'export percpu cpuacct cgroup stats'
+http://lkml.org/lkml/2008/12/7/13
+
+akpm pointed out that current cpuacct code is inefficient.  This patch
+refactoring the following:
+
+* make cpu_rq locking only on 32-bit
+* change iterator to each_present_cpu instead of each_possible_cpu to
+  make it hotplug friendly.
+
+It's a bit of code churn, but I was rewarded with 160 byte code size saving
+on x86-64 arch and zero code size change on i386.
+
+Signed-off-by: Ken Chen <kenchen@google.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   12 ------------
- arch/x86/kernel/init_task.c                |    1 -
- 2 files changed, 13 deletions(-)
+ kernel/sched.c |   56 ++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 39 insertions(+), 17 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~x86-remove-init_mm-export-as-planned-for-2626 Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~x86-remove-init_mm-export-as-planned-for-2626
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -237,18 +237,6 @@ Who:	Michael Buesch <mb@bu3sch.de>
+diff -puN kernel/sched.c~cpuacct-refactoring-cpuusage_read-cpuusage_write kernel/sched.c
+--- a/kernel/sched.c~cpuacct-refactoring-cpuusage_read-cpuusage_write
++++ a/kernel/sched.c
+@@ -9391,6 +9391,41 @@ cpuacct_destroy(struct cgroup_subsys *ss
+ 	kfree(ca);
+ }
  
- ---------------------------
++static u64 cpuacct_cpuusage_read(struct cpuacct *ca, int cpu)
++{
++	u64 *cpuusage = percpu_ptr(ca->cpuusage, cpu);
++	u64 data;
++
++#ifndef CONFIG_64BIT
++	/*
++	 * Take rq->lock to make 64-bit read safe on 32-bit platforms.
++	 */
++	spin_lock_irq(&cpu_rq(cpu)->lock);
++	data = *cpuusage;
++	spin_unlock_irq(&cpu_rq(cpu)->lock);
++#else
++	data = *cpuusage;
++#endif
++
++	return data;
++}
++
++static void cpuacct_cpuusage_write(struct cpuacct *ca, int cpu, u64 val)
++{
++	u64 *cpuusage = percpu_ptr(ca->cpuusage, cpu);
++
++#ifndef CONFIG_64BIT
++	/*
++	 * Take rq->lock to make 64-bit write safe on 32-bit platforms.
++	 */
++	spin_lock_irq(&cpu_rq(cpu)->lock);
++	*cpuusage = val;
++	spin_unlock_irq(&cpu_rq(cpu)->lock);
++#else
++	*cpuusage = val;
++#endif
++}
++
+ /* return total cpu usage (in nanoseconds) of a group */
+ static u64 cpuusage_read(struct cgroup *cgrp, struct cftype *cft)
+ {
+@@ -9398,17 +9433,8 @@ static u64 cpuusage_read(struct cgroup *
+ 	u64 totalcpuusage = 0;
+ 	int i;
  
--What:	init_mm export
--When:	2.6.26
--Why:	Not used in-tree. The current out-of-tree users used it to
--	work around problems in the CPA code which should be resolved
--	by now. One usecase was described to provide verification code
--	of the CPA operation. That's a good idea in general, but such
--	code / infrastructure should be in the kernel and not in some
--	out-of-tree driver.
--Who:	Thomas Gleixner <tglx@linutronix.de>
+-	for_each_possible_cpu(i) {
+-		u64 *cpuusage = percpu_ptr(ca->cpuusage, i);
 -
------------------------------
--
- What:	usedac i386 kernel parameter
- When:	2.6.27
- Why:	replaced by allowdac and no dac combination
-diff -puN arch/x86/kernel/init_task.c~x86-remove-init_mm-export-as-planned-for-2626 arch/x86/kernel/init_task.c
---- a/arch/x86/kernel/init_task.c~x86-remove-init_mm-export-as-planned-for-2626
-+++ a/arch/x86/kernel/init_task.c
-@@ -14,7 +14,6 @@ static struct fs_struct init_fs = INIT_F
- static struct signal_struct init_signals = INIT_SIGNALS(init_signals);
- static struct sighand_struct init_sighand = INIT_SIGHAND(init_sighand);
- struct mm_struct init_mm = INIT_MM(init_mm);
--EXPORT_UNUSED_SYMBOL(init_mm); /* will be removed in 2.6.26 */
+-		/*
+-		 * Take rq->lock to make 64-bit addition safe on 32-bit
+-		 * platforms.
+-		 */
+-		spin_lock_irq(&cpu_rq(i)->lock);
+-		totalcpuusage += *cpuusage;
+-		spin_unlock_irq(&cpu_rq(i)->lock);
+-	}
++	for_each_present_cpu(i)
++		totalcpuusage += cpuacct_cpuusage_read(ca, i);
  
- /*
-  * Initial thread structure.
+ 	return totalcpuusage;
+ }
+@@ -9425,13 +9451,9 @@ static int cpuusage_write(struct cgroup 
+ 		goto out;
+ 	}
+ 
+-	for_each_possible_cpu(i) {
+-		u64 *cpuusage = percpu_ptr(ca->cpuusage, i);
++	for_each_present_cpu(i)
++		cpuacct_cpuusage_write(ca, i, 0);
+ 
+-		spin_lock_irq(&cpu_rq(i)->lock);
+-		*cpuusage = 0;
+-		spin_unlock_irq(&cpu_rq(i)->lock);
+-	}
+ out:
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from kenchen@google.com are
 
 origin.patch
 linux-next.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
+hugetlb-unsigned-ret-cannot-be-negative.patch
 
