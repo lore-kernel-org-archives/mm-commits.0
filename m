@@ -1,135 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-hrtimerc-kill-warning.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:19:25 -0800
-Message-ID: <200812291919.mBTJJPU1031667@imap1.linux-foundation.org>
+Subject: - mtd-fix-m25p80-printk-formats.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:19:10 -0800
+Message-ID: <200812291919.mBTJJAH4031427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59782 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35017 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752044AbYL2TWO (ORCPT
+	by vger.kernel.org with ESMTP id S1752124AbYL2TW1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:22:14 -0500
+	Mon, 29 Dec 2008 14:22:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/hrtimer.c: kill warning
+     mtd: fix m25p80 printk formats
 has been removed from the -mm tree.  Its filename was
-     kernel-hrtimerc-kill-warning.patch
+     mtd-fix-m25p80-printk-formats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/hrtimer.c: kill warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mtd: fix m25p80 printk formats
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-kernel/hrtimer.c: In function 'hrtimer_cpu_notify':
-kernel/hrtimer.c:1574: warning: unused variable 'dcpu'
+Fix printk format warnings:
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+build-r7150.out:/local/linsrc/linux-next-20081215/drivers/mtd/devices/m25p80.c:172: warning: format '%d' expects type 'int', but argument 4 has type 'uint64_t'
+build-r7150.out:/local/linsrc/linux-next-20081215/drivers/mtd/devices/m25p80.c:236: warning: format '%d' expects type 'int', but argument 6 has type 'uint64_t'
+build-r7150.out:/local/linsrc/linux-next-20081215/drivers/mtd/devices/m25p80.c:680: warning: format '%d' expects type 'int', but argument 5 has type 'uint64_t'
+build-r7150.out:/local/linsrc/linux-next-20081215/drivers/mtd/devices/m25p80.c:683: warning: format '%.8x' expects type 'unsigned int', but argument 3 has type 'uint64_t'
+build-r7150.out:/local/linsrc/linux-next-20081215/drivers/mtd/devices/m25p80.c:683: warning: format '%u' expects type 'unsigned int', but argument 4 has type 'uint64_t'
+build-r7150.out:/local/linsrc/linux-next-20081215/drivers/mtd/devices/m25p80.c:693: warning: format '%.8x' expects type 'unsigned int', but argument 3 has type 'uint64_t'
+build-r7150.out:/local/linsrc/linux-next-20081215/drivers/mtd/devices/m25p80.c:724: warning: format '%.8x' expects type 'unsigned int', but argument 4 has type 'uint64_t'
+build-r7150.out:/local/linsrc/linux-next-20081215/drivers/mtd/devices/m25p80.c:724: warning: format '%.8x' expects type 'unsigned int', but argument 5 has type 'uint64_t'
+build-r7150.out:/local/linsrc/linux-next-20081215/drivers/mtd/devices/m25p80.c:724: warning: format '%u' expects type 'unsigned int', but argument 6 has type 'uint64_t'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mtd/devices/m25p80.c |   34 +++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN kernel/hrtimer.c~kernel-hrtimerc-kill-warning kernel/hrtimer.c
---- a/kernel/hrtimer.c~kernel-hrtimerc-kill-warning
-+++ a/kernel/hrtimer.c
-@@ -1571,7 +1571,7 @@ static void tickle_timers(void *arg)
- static int __cpuinit hrtimer_cpu_notify(struct notifier_block *self,
- 					unsigned long action, void *hcpu)
+diff -puN drivers/mtd/devices/m25p80.c~mtd-fix-m25p80-printk-formats drivers/mtd/devices/m25p80.c
+--- a/drivers/mtd/devices/m25p80.c~mtd-fix-m25p80-printk-formats
++++ a/drivers/mtd/devices/m25p80.c
+@@ -169,9 +169,9 @@ static int wait_till_ready(struct m25p *
+  */
+ static int erase_chip(struct m25p *flash)
  {
--	int dcpu, scpu = (long)hcpu;
-+	int scpu = (long)hcpu;
+-	DEBUG(MTD_DEBUG_LEVEL3, "%s: %s %dKiB\n",
++	DEBUG(MTD_DEBUG_LEVEL3, "%s: %s %lluKiB\n",
+ 			dev_name(&flash->spi->dev), __func__,
+-			flash->mtd.size / 1024);
++			(unsigned long long)flash->mtd.size / 1024);
  
- 	switch (action) {
+ 	/* Wait until finished previous write command. */
+ 	if (wait_till_ready(flash))
+@@ -233,9 +233,9 @@ static int m25p80_erase(struct mtd_info 
+ 	struct m25p *flash = mtd_to_m25p(mtd);
+ 	u32 addr,len;
  
-@@ -1584,8 +1584,8 @@ static int __cpuinit hrtimer_cpu_notify(
- 	case CPU_DEAD:
- 	case CPU_DEAD_FROZEN:
- 		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DEAD, &scpu);
--		dcpu = migrate_hrtimers(scpu);
--		smp_call_function_single(dcpu, tickle_timers, NULL, 0);
-+		smp_call_function_single(migrate_hrtimers(scpu),
-+					tickle_timers, NULL, 0);
- 		break;
- #endif
+-	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %d\n",
++	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %u\n",
+ 			dev_name(&flash->spi->dev), __func__, "at",
+-			(u32)instr->addr, instr->len);
++			(u32)instr->addr, (u32)instr->len);
  
+ 	/* sanity checks */
+ 	if (instr->addr + instr->len > flash->mtd.size)
+@@ -677,24 +677,26 @@ static int __devinit m25p_probe(struct s
+ 		flash->mtd.erasesize = info->sector_size;
+ 	}
+ 
+-	dev_info(&spi->dev, "%s (%d Kbytes)\n", info->name,
+-			flash->mtd.size / 1024);
++	dev_info(&spi->dev, "%s (%llu Kbytes)\n", info->name,
++			(unsigned long long)flash->mtd.size / 1024);
+ 
+ 	DEBUG(MTD_DEBUG_LEVEL2,
+-		"mtd .name = %s, .size = 0x%.8x (%uMiB) "
++		"mtd .name = %s, .size = 0x%.8llx (%lluMiB) "
+ 			".erasesize = 0x%.8x (%uKiB) .numeraseregions = %d\n",
+ 		flash->mtd.name,
+-		flash->mtd.size, flash->mtd.size / (1024*1024),
++		(unsigned long long)flash->mtd.size,
++		(unsigned long long)flash->mtd.size / (1024*1024),
+ 		flash->mtd.erasesize, flash->mtd.erasesize / 1024,
+ 		flash->mtd.numeraseregions);
+ 
+ 	if (flash->mtd.numeraseregions)
+ 		for (i = 0; i < flash->mtd.numeraseregions; i++)
+ 			DEBUG(MTD_DEBUG_LEVEL2,
+-				"mtd.eraseregions[%d] = { .offset = 0x%.8x, "
++				"mtd.eraseregions[%d] = { .offset = 0x%.8llx, "
+ 				".erasesize = 0x%.8x (%uKiB), "
+-				".numblocks = %d }\n",
+-				i, flash->mtd.eraseregions[i].offset,
++				".numblocks = %d }\n", i,
++				(unsigned long long)
++				  flash->mtd.eraseregions[i].offset,
+ 				flash->mtd.eraseregions[i].erasesize,
+ 				flash->mtd.eraseregions[i].erasesize / 1024,
+ 				flash->mtd.eraseregions[i].numblocks);
+@@ -722,12 +724,12 @@ static int __devinit m25p_probe(struct s
+ 		if (nr_parts > 0) {
+ 			for (i = 0; i < nr_parts; i++) {
+ 				DEBUG(MTD_DEBUG_LEVEL2, "partitions[%d] = "
+-					"{.name = %s, .offset = 0x%.8x, "
+-						".size = 0x%.8x (%uKiB) }\n",
++					"{.name = %s, .offset = 0x%.8llx, "
++						".size = 0x%.8llx (%lluKiB) }\n",
+ 					i, parts[i].name,
+-					parts[i].offset,
+-					parts[i].size,
+-					parts[i].size / 1024);
++					(unsigned long long)parts[i].offset,
++					(unsigned long long)parts[i].size,
++					(unsigned long long)(parts[i].size / 1024));
+ 			}
+ 			flash->partitioned = 1;
+ 			return add_mtd_partitions(&flash->mtd, parts, nr_parts);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-binfmtsh-include-listh-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+kgdb-fix-kernel-doc-error.patch
+mtd-fix-nettel-printk-formats.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+esp-fix-section-mismatch-warning.patch
+fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+documentation-how-to-use-doc-section-blocks.patch
+docs-add-more-early-params-to-kernel-parameterstxt.patch
+doc-reformat-some-long-lines-in-kernel-parameterstxt.patch
+w1-add-list-masters-w1-command.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
+fix-similar-typos-to-successfull-v2.patch
 
