@@ -1,82 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - remove-linux-hardirqh-from-asm-generic-localh-sparc-fix.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:19:23 -0800
-Message-ID: <200812291919.mBTJJN6s031568@imap1.linux-foundation.org>
+Subject: - futex-cleanup-futex_unlock_pi-fault-handling.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:19:38 -0800
+Message-ID: <200812291919.mBTJJcq9031826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37271 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752217AbYL2TUb (ORCPT
+	by vger.kernel.org with ESMTP id S1752226AbYL2TUj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:20:31 -0500
+	Mon, 29 Dec 2008 14:20:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, adobriyan@gmail.com, davem@davemloft.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: dvhltc@us.ibm.com, a.p.zijlstra@chello.nl, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparc: fix hardirq.h removal fallout
+     futex: cleanup futex_(un)lock_pi fault handling
 has been removed from the -mm tree.  Its filename was
-     remove-linux-hardirqh-from-asm-generic-localh-sparc-fix.patch
+     futex-cleanup-futex_unlock_pi-fault-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc: fix hardirq.h removal fallout
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: futex: cleanup futex_(un)lock_pi fault handling
+From: Darren Hart <dvhltc@us.ibm.com>
 
-When hardirq.h are removed from asm-generic/local.h a few bits fails to
-build.  Fix these upfront.  Reported by Alexey.
+Some apparently left over cruft code was complicating the fault logic. 
+Testing if uval != -EFAULT doesn't have any meaning, get_user() sets ret
+to either 0 or -EFAULT, there's no need to compare uval, especially not
+against EFAULT which it will never be.  This patch removes the superfluous
+test and clarifies the comment blocks.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Darren Hart <dvhltc@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/mdesc.c |    1 +
- arch/sparc/kernel/sysfs.c |    1 +
- 2 files changed, 2 insertions(+)
+ kernel/futex.c |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN arch/sparc/kernel/mdesc.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix arch/sparc/kernel/mdesc.c
---- a/arch/sparc/kernel/mdesc.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix
-+++ a/arch/sparc/kernel/mdesc.c
-@@ -11,6 +11,7 @@
- #include <linux/mm.h>
- #include <linux/miscdevice.h>
+diff -puN kernel/futex.c~futex-cleanup-futex_unlock_pi-fault-handling kernel/futex.c
+--- a/kernel/futex.c~futex-cleanup-futex_unlock_pi-fault-handling
++++ a/kernel/futex.c
+@@ -1572,12 +1572,11 @@ static int futex_lock_pi(u32 __user *uad
  
-+#include <asm/cpudata.h>
- #include <asm/hypervisor.h>
- #include <asm/mdesc.h>
- #include <asm/prom.h>
-diff -puN arch/sparc/kernel/sysfs.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix arch/sparc/kernel/sysfs.c
---- a/arch/sparc/kernel/sysfs.c~remove-linux-hardirqh-from-asm-generic-localh-sparc-fix
-+++ a/arch/sparc/kernel/sysfs.c
-@@ -8,6 +8,7 @@
- #include <linux/percpu.h>
- #include <linux/init.h>
+  uaddr_faulted:
+ 	/*
+-	 * We have to r/w  *(int __user *)uaddr, but we can't modify it
+-	 * non-atomically.  Therefore, if get_user below is not
+-	 * enough, we need to handle the fault ourselves, while
+-	 * still holding the mmap_sem.
+-	 *
+-	 * ... and hb->lock. :-) --ANK
++	 * We have to r/w  *(int __user *)uaddr, and we have to modify it
++	 * atomically.  Therefore, if we continue to fault after get_user()
++	 * below, we need to handle the fault ourselves, while still holding
++	 * the mmap_sem.  This can occur if the uaddr is under contention as
++	 * we have to drop the mmap_sem in order to call get_user().
+ 	 */
+ 	queue_unlock(&q, hb);
  
-+#include <asm/cpudata.h>
- #include <asm/hypervisor.h>
- #include <asm/spitfire.h>
+@@ -1589,7 +1588,7 @@ static int futex_lock_pi(u32 __user *uad
+ 	}
  
+ 	ret = get_user(uval, uaddr);
+-	if (!ret && (uval != -EFAULT))
++	if (!ret)
+ 		goto retry;
+ 
+ 	if (to)
+@@ -1683,12 +1682,11 @@ out:
+ 
+ pi_faulted:
+ 	/*
+-	 * We have to r/w  *(int __user *)uaddr, but we can't modify it
+-	 * non-atomically.  Therefore, if get_user below is not
+-	 * enough, we need to handle the fault ourselves, while
+-	 * still holding the mmap_sem.
+-	 *
+-	 * ... and hb->lock. --ANK
++	 * We have to r/w  *(int __user *)uaddr, and we have to modify it
++	 * atomically.  Therefore, if we continue to fault after get_user()
++	 * below, we need to handle the fault ourselves, while still holding
++	 * the mmap_sem.  This can occur if the uaddr is under contention as
++	 * we have to drop the mmap_sem in order to call get_user().
+ 	 */
+ 	spin_unlock(&hb->lock);
+ 
+@@ -1701,7 +1699,7 @@ pi_faulted:
+ 	}
+ 
+ 	ret = get_user(uval, uaddr);
+-	if (!ret && (uval != -EFAULT))
++	if (!ret)
+ 		goto retry;
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from dvhltc@us.ibm.com are
 
-origin.patch
 linux-next.patch
-kconfig-add-module_name-shortcut.patch
-sparc64-use-unsigned-long-long-for-u64.patch
-sparc64-fix-unsigned-long-long-warnings-in-drivers.patch
-uml-get-rid-of-the-last-symlink-in-uml-build.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
 
