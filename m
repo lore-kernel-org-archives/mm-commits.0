@@ -1,99 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - futex-update-futex_q-to-clarify-single-waiter-semantics.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:19:35 -0800
-Message-ID: <200812291919.mBTJJZCC031811@imap1.linux-foundation.org>
+Subject: - smackfs-check-for-allocation-failures-in-smk_set_access.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:19:19 -0800
+Message-ID: <200812291919.mBTJJJ0T031564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50960 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752196AbYL2TUZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752189AbYL2TUW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:20:25 -0500
+	Mon, 29 Dec 2008 14:20:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvhltc@us.ibm.com, a.p.zijlstra@chello.nl, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: sergio@larces.uece.br, casey@schaufler-ca.com, darwish.07@gmail.com, jmorris@namei.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex: update futex_q to clarify single waiter semantics
+     smackfs: check for allocation failures in smk_set_access()
 has been removed from the -mm tree.  Its filename was
-     futex-update-futex_q-to-clarify-single-waiter-semantics.patch
+     smackfs-check-for-allocation-failures-in-smk_set_access.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: futex: update futex_q to clarify single waiter semantics
-From: Darren Hart <dvhltc@us.ibm.com>
+Subject: smackfs: check for allocation failures in smk_set_access()
+From: Sergio Luis <sergio@larces.uece.br>
 
-I've tripped over this a couple times.  The futex_q uses a waiters list to
-represent a single blocked task and then calls wake_up_all().  This can
-lead to confusion in trying to understand the intent of the code, which is
-to have a single futex_q for every task waiting on a futex.
+While adding a new subject/object pair to smack_list, smk_set_access()
+didn't check the return of kzalloc().
 
-This patch corrects the problem, using a single pointer to the waiting
-task, and an appropriate call to wake_up, rather than wake_up_all.
+This patch changes smk_set_access() to return 0 or -ENOMEM, based on
+kzalloc()'s return.  It also updates its caller, smk_write_load(), to
+check for smk_set_access()'s return, given it is no longer a void return
+function.
 
-Signed-off-by: Darren Hart <dvhltc@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Sergio Luis <sergio@larces.uece.br>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ security/smack/smackfs.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-diff -puN kernel/futex.c~futex-update-futex_q-to-clarify-single-waiter-semantics kernel/futex.c
---- a/kernel/futex.c~futex-update-futex_q-to-clarify-single-waiter-semantics
-+++ a/kernel/futex.c
-@@ -92,11 +92,12 @@ struct futex_pi_state {
-  * A futex_q has a woken state, just like tasks have TASK_RUNNING.
-  * It is considered woken when plist_node_empty(&q->list) || q->lock_ptr == 0.
-  * The order of wakup is always to make the first condition true, then
-- * wake up q->waiters, then make the second condition true.
-+ * wake up q->waiter, then make the second condition true.
+diff -puN security/smack/smackfs.c~smackfs-check-for-allocation-failures-in-smk_set_access security/smack/smackfs.c
+--- a/security/smack/smackfs.c~smackfs-check-for-allocation-failures-in-smk_set_access
++++ a/security/smack/smackfs.c
+@@ -206,11 +206,15 @@ static int smk_open_load(struct inode *i
+  * the subject/object pair and replaces the access that was
+  * there. If the pair isn't found add it with the specified
+  * access.
++ *
++ * Returns 0 if nothing goes wrong or -ENOMEM if it fails
++ * during the allocation of the new pair to add.
   */
- struct futex_q {
- 	struct plist_node list;
--	wait_queue_head_t waiters;
-+	/* There can only be a single waiter */
-+	wait_queue_head_t waiter;
- 
- 	/* Which hash list lock to use: */
- 	spinlock_t *lock_ptr;
-@@ -580,7 +581,7 @@ static void wake_futex(struct futex_q *q
- 	 * The lock in wake_up_all() is a crucial memory barrier after the
- 	 * plist_del() and also before assigning to q->lock_ptr.
- 	 */
--	wake_up_all(&q->waiters);
-+	wake_up(&q->waiter);
- 	/*
- 	 * The waiting task can free the futex_q as soon as this is written,
- 	 * without taking any locks.  This must come last.
-@@ -937,7 +938,7 @@ static inline struct futex_hash_bucket *
+-static void smk_set_access(struct smack_rule *srp)
++static int smk_set_access(struct smack_rule *srp)
  {
- 	struct futex_hash_bucket *hb;
+ 	struct smk_list_entry *sp;
+ 	struct smk_list_entry *newp;
++	int ret = 0;
  
--	init_waitqueue_head(&q->waiters);
-+	init_waitqueue_head(&q->waiter);
+ 	mutex_lock(&smack_list_lock);
  
- 	get_futex_key_refs(&q->key);
- 	hb = hash_futex(&q->key);
-@@ -1228,7 +1229,7 @@ static int futex_wait(u32 __user *uaddr,
+@@ -223,14 +227,20 @@ static void smk_set_access(struct smack_
  
- 	/* add_wait_queue is the barrier after __set_current_state. */
- 	__set_current_state(TASK_INTERRUPTIBLE);
--	add_wait_queue(&q.waiters, &wait);
-+	add_wait_queue(&q.waiter, &wait);
- 	/*
- 	 * !plist_node_empty() is safe here without any lock.
- 	 * q.lock_ptr != 0 is not safe, because of ordering against wakeup.
+ 	if (sp == NULL) {
+ 		newp = kzalloc(sizeof(struct smk_list_entry), GFP_KERNEL);
++		if (newp == NULL) {
++			ret = -ENOMEM;
++			goto out;
++		}
++
+ 		newp->smk_rule = *srp;
+ 		newp->smk_next = smack_list;
+ 		smack_list = newp;
+ 	}
+ 
++out:
+ 	mutex_unlock(&smack_list_lock);
+ 
+-	return;
++	return ret;
+ }
+ 
+ /**
+@@ -330,8 +340,10 @@ static ssize_t smk_write_load(struct fil
+ 		goto out;
+ 	}
+ 
+-	smk_set_access(&rule);
+-	rc = count;
++	rc = smk_set_access(&rule);
++
++	if (!rc)
++		rc = count;
+ 
+ out:
+ 	kfree(data);
 _
 
-Patches currently in -mm which might be from dvhltc@us.ibm.com are
+Patches currently in -mm which might be from sergio@larces.uece.br are
 
-linux-next.patch
+origin.patch
 
