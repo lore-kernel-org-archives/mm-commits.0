@@ -1,171 +1,384 @@
 From: akpm@linux-foundation.org
-Subject: - irq-remove-unnecessary-ifdef.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:19:27 -0800
-Message-ID: <200812291919.mBTJJR0J031692@imap1.linux-foundation.org>
+Subject: - drivers-char-nvramc-codingstyle-fixes.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:19:30 -0800
+Message-ID: <200812291919.mBTJJUuO031701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51070 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751870AbYL2TUE (ORCPT
+	by vger.kernel.org with ESMTP id S1752174AbYL2TUK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:20:04 -0500
+	Mon, 29 Dec 2008 14:20:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
+To: wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     irq: remove unnecessary ifdef
+     drivers/char/nvram.c: CodingStyle fixes
 has been removed from the -mm tree.  Its filename was
-     irq-remove-unnecessary-ifdef.patch
+     drivers-char-nvramc-codingstyle-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: irq: remove unnecessary ifdef
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: drivers/char/nvram.c: CodingStyle fixes
+From: Wim Van Sebroeck <wim@iguana.be>
 
-commit 08678b0841267c1d00d771fe01548d86043d065e introduced
-irq_desc_lock_class variable.
+Bring drivers/char/nvram.c in line with the Coding Style.
 
-But it is used only if CONFIG_SPARSE_IRQ=Y or CONFIG_TRACE_IRQFLAGS=Y. 
-otherwise, following warnings happend.
-
-	CC      kernel/irq/handle.o
-	kernel/irq/handle.c:26: warning: 'irq_desc_lock_class' defined but not used
-
-Actually, current early_init_irq_lock_class has a bit strange and messy
-ifdef.  In addition, it is not valueable.
-
-1 this function protected by !CONFIG_SPARSE_IRQ.  but it is not
-  necessary.  if CONFIG_SPARSE_IRQ=Y, desc of all irq number are
-  initialized by NULL at first.  then this function calling is safe.
-
-2 this function protected by CONFIG_TRACE_IRQFLAGS too.  but it is
-  not necessary too.  because lockdep_set_class() doesn't have bad side
-  effect even if CONFIG_TRACE_IRQFLAGS=n,
-
-This patch bloat kernel size a bit on CONFIG_TRACE_IRQFLAGS=n and
-CONFIG_SPARSE_IRQ=Y.  that's ok.  early_init_irq_lock_class() is not
-fastpatch at all.
-
-To avoid ifdef mess is more important than a few byte diet.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |    2 +-
- kernel/irq/handle.c     |    5 -----
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ drivers/char/nvram.c |  126 ++++++++++++++++-------------------------
+ 1 file changed, 52 insertions(+), 74 deletions(-)
 
-diff -puN include/linux/lockdep.h~irq-remove-unnecessary-ifdef include/linux/lockdep.h
---- a/include/linux/lockdep.h~irq-remove-unnecessary-ifdef
-+++ a/include/linux/lockdep.h
-@@ -390,7 +390,7 @@ do {								\
- 
- #endif /* CONFIG_LOCK_STAT */
- 
--#if defined(CONFIG_TRACE_IRQFLAGS) && defined(CONFIG_GENERIC_HARDIRQS)
-+#ifdef CONFIG_GENERIC_HARDIRQS
- extern void early_init_irq_lock_class(void);
+diff -puN drivers/char/nvram.c~drivers-char-nvramc-codingstyle-fixes drivers/char/nvram.c
+--- a/drivers/char/nvram.c~drivers-char-nvramc-codingstyle-fixes
++++ a/drivers/char/nvram.c
+@@ -46,7 +46,7 @@
+ /* select machine configuration */
+ #if defined(CONFIG_ATARI)
+ #  define MACH ATARI
+-#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)  /* and others?? */
++#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)  /* and ?? */
+ #  define MACH PC
  #else
- static inline void early_init_irq_lock_class(void)
-diff -puN kernel/irq/handle.c~irq-remove-unnecessary-ifdef kernel/irq/handle.c
---- a/kernel/irq/handle.c~irq-remove-unnecessary-ifdef
-+++ a/kernel/irq/handle.c
-@@ -417,11 +417,8 @@ out:
- }
+ #  error Cannot build nvram driver for this machine configuration.
+@@ -107,9 +107,9 @@
+ #include <linux/init.h>
+ #include <linux/proc_fs.h>
+ #include <linux/spinlock.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
+ 
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
+ #include <asm/system.h>
+ 
+ static DEFINE_SPINLOCK(nvram_state_lock);
+@@ -123,7 +123,7 @@ static void mach_set_checksum(void);
+ 
+ #ifdef CONFIG_PROC_FS
+ static int mach_proc_infos(unsigned char *contents, char *buffer, int *len,
+-    off_t *begin, off_t offset, int size);
++					off_t *begin, off_t offset, int size);
  #endif
  
--
--#ifdef CONFIG_TRACE_IRQFLAGS
- void early_init_irq_lock_class(void)
+ /*
+@@ -133,18 +133,17 @@ static int mach_proc_infos(unsigned char
+  *
+  * It is worth noting that these functions all access bytes of general
+  * purpose memory in the NVRAM - that is to say, they all add the
+- * NVRAM_FIRST_BYTE offset.  Pass them offsets into NVRAM as if you did not 
++ * NVRAM_FIRST_BYTE offset.  Pass them offsets into NVRAM as if you did not
+  * know about the RTC cruft.
+  */
+ 
+-unsigned char
+-__nvram_read_byte(int i)
++unsigned char __nvram_read_byte(int i)
  {
--#ifndef CONFIG_SPARSE_IRQ
- 	struct irq_desc *desc;
+ 	return CMOS_READ(NVRAM_FIRST_BYTE + i);
+ }
++EXPORT_SYMBOL(__nvram_read_byte);
+ 
+-unsigned char
+-nvram_read_byte(int i)
++unsigned char nvram_read_byte(int i)
+ {
+ 	unsigned long flags;
+ 	unsigned char c;
+@@ -154,16 +153,16 @@ nvram_read_byte(int i)
+ 	spin_unlock_irqrestore(&rtc_lock, flags);
+ 	return c;
+ }
++EXPORT_SYMBOL(nvram_read_byte);
+ 
+ /* This races nicely with trying to read with checksum checking (nvram_read) */
+-void
+-__nvram_write_byte(unsigned char c, int i)
++void __nvram_write_byte(unsigned char c, int i)
+ {
+ 	CMOS_WRITE(c, NVRAM_FIRST_BYTE + i);
+ }
++EXPORT_SYMBOL(__nvram_write_byte);
+ 
+-void
+-nvram_write_byte(unsigned char c, int i)
++void nvram_write_byte(unsigned char c, int i)
+ {
+ 	unsigned long flags;
+ 
+@@ -171,15 +170,15 @@ nvram_write_byte(unsigned char c, int i)
+ 	__nvram_write_byte(c, i);
+ 	spin_unlock_irqrestore(&rtc_lock, flags);
+ }
++EXPORT_SYMBOL(nvram_write_byte);
+ 
+-int
+-__nvram_check_checksum(void)
++int __nvram_check_checksum(void)
+ {
+ 	return mach_check_checksum();
+ }
++EXPORT_SYMBOL(__nvram_check_checksum);
+ 
+-int
+-nvram_check_checksum(void)
++int nvram_check_checksum(void)
+ {
+ 	unsigned long flags;
+ 	int rv;
+@@ -189,16 +188,15 @@ nvram_check_checksum(void)
+ 	spin_unlock_irqrestore(&rtc_lock, flags);
+ 	return rv;
+ }
++EXPORT_SYMBOL(nvram_check_checksum);
+ 
+-static void
+-__nvram_set_checksum(void)
++static void __nvram_set_checksum(void)
+ {
+ 	mach_set_checksum();
+ }
+ 
+ #if 0
+-void
+-nvram_set_checksum(void)
++void nvram_set_checksum(void)
+ {
+ 	unsigned long flags;
+ 
+@@ -212,7 +210,7 @@ nvram_set_checksum(void)
+  * The are the file operation function for user access to /dev/nvram
+  */
+ 
+-static loff_t nvram_llseek(struct file *file,loff_t offset, int origin )
++static loff_t nvram_llseek(struct file *file, loff_t offset, int origin)
+ {
+ 	lock_kernel();
+ 	switch (origin) {
+@@ -230,8 +228,8 @@ static loff_t nvram_llseek(struct file *
+ 	return (offset >= 0) ? (file->f_pos = offset) : -EINVAL;
+ }
+ 
+-static ssize_t
+-nvram_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
++static ssize_t nvram_read(struct file *file, char __user *buf,
++						size_t count, loff_t *ppos)
+ {
+ 	unsigned char contents[NVRAM_BYTES];
+ 	unsigned i = *ppos;
+@@ -254,13 +252,13 @@ nvram_read(struct file *file, char __use
+ 
+ 	return tmp - contents;
+ 
+-      checksum_err:
++checksum_err:
+ 	spin_unlock_irq(&rtc_lock);
+ 	return -EIO;
+ }
+ 
+-static ssize_t
+-nvram_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++static ssize_t nvram_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
+ {
+ 	unsigned char contents[NVRAM_BYTES];
+ 	unsigned i = *ppos;
+@@ -287,14 +285,13 @@ nvram_write(struct file *file, const cha
+ 
+ 	return tmp - contents;
+ 
+-      checksum_err:
++checksum_err:
+ 	spin_unlock_irq(&rtc_lock);
+ 	return -EIO;
+ }
+ 
+-static int
+-nvram_ioctl(struct inode *inode, struct file *file,
+-    unsigned int cmd, unsigned long arg)
++static int nvram_ioctl(struct inode *inode, struct file *file,
++					unsigned int cmd, unsigned long arg)
+ {
  	int i;
  
-@@ -431,9 +428,7 @@ void early_init_irq_lock_class(void)
+@@ -315,7 +312,7 @@ nvram_ioctl(struct inode *inode, struct 
+ 		return 0;
  
- 		lockdep_set_class(&desc->lock, &irq_desc_lock_class);
+ 	case NVRAM_SETCKS:
+-		/* just set checksum, contents unchanged (maybe useful after 
++		/* just set checksum, contents unchanged (maybe useful after
+ 		 * checksum garbaged somehow...) */
+ 		if (!capable(CAP_SYS_ADMIN))
+ 			return -EACCES;
+@@ -330,8 +327,7 @@ nvram_ioctl(struct inode *inode, struct 
  	}
--#endif
  }
--#endif
  
- #ifdef CONFIG_SPARSE_IRQ
- unsigned int kstat_irqs_cpu(unsigned int irq, int cpu)
-_
-
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
-
-origin.patch
-fs-symlink-write_begin-allocation-context-fix.patch
-fs-symlink-write_begin-allocation-context-fix-ubifs-fix.patch
-fs-symlink-write_begin-allocation-context-fix-fuse-fix.patch
-linux-next.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-oom-fix-zone_scan_mutex-name.patch
-mm-get-rid-of-pagevec_release_nonlru.patch
-cleanup-get-rid-of-ifdef-config_migration.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-make-page_lock_anon_vma-static.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-mm-make-init_section_page_cgroup-static.patch
-mm-make-maddr-__iomem.patch
-mm-make-mem_cgroup_resize_limit-static.patch
-mm-make-scan_all_zones_unevictable_pages-static.patch
-mm-make-scan_zone_unevictable_pages-static.patch
-mm-make-setup_per_zone_inactive_ratio-static.patch
-mm-make-vread-and-vwrite-declaration.patch
-vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
-vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
-mm-kill-zone_is_near_oom.patch
-mm-make-get_user_pages-interruptible.patch
-mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
-introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
-mm-remove-config_out_of_line_pfn_to_page.patch
-mm-kill-page_queue_congested.patch
-remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
-sys_execve-and-sys_uselib-do-not-call-into-fsnotify.patch
-profile-dont-include-asm-ptraceh-twice.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-devices-cgroup-allow-mkfifo.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-mm-make-get_scan_ratio-safe-for-memcg.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
-memcg-remove-mem_cgroup_cal_reclaim.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-fix-calclation-of-active_ratio.patch
-memcg-fix-calclation-of-active_ratio-build-error-fix.patch
-memcg-show-real-limit-under-hierarchy-mode.patch
-memcg-explain-details-and-test-document.patch
-ia64-implement-interrupt-enabling-rwlocks-fix.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-
+-static int
+-nvram_open(struct inode *inode, struct file *file)
++static int nvram_open(struct inode *inode, struct file *file)
+ {
+ 	lock_kernel();
+ 	spin_lock(&nvram_state_lock);
+@@ -356,8 +352,7 @@ nvram_open(struct inode *inode, struct f
+ 	return 0;
+ }
+ 
+-static int
+-nvram_release(struct inode *inode, struct file *file)
++static int nvram_release(struct inode *inode, struct file *file)
+ {
+ 	spin_lock(&nvram_state_lock);
+ 
+@@ -375,17 +370,15 @@ nvram_release(struct inode *inode, struc
+ }
+ 
+ #ifndef CONFIG_PROC_FS
+-static int
+-nvram_read_proc(char *buffer, char **start, off_t offset,
+-    int size, int *eof, void *data)
++static int nvram_read_proc(char *buffer, char **start, off_t offset,
++						int size, int *eof, void *data)
+ {
+ 	return 0;
+ }
+ #else
+ 
+-static int
+-nvram_read_proc(char *buffer, char **start, off_t offset,
+-    int size, int *eof, void *data)
++static int nvram_read_proc(char *buffer, char **start, off_t offset,
++						int size, int *eof, void *data)
+ {
+ 	unsigned char contents[NVRAM_BYTES];
+ 	int i, len = 0;
+@@ -409,14 +402,14 @@ nvram_read_proc(char *buffer, char **sta
+  * this like that... */
+ #define PRINT_PROC(fmt,args...)					\
+ 	do {							\
+-		*len += sprintf(buffer+*len, fmt, ##args);	\
++		*len += sprintf(buffer + *len, fmt, ##args);	\
+ 		if (*begin + *len > offset + size)		\
+ 			return 0;				\
+ 		if (*begin + *len < offset) {			\
+ 			*begin += *len;				\
+ 			*len = 0;				\
+ 		}						\
+-	} while(0)
++	} while (0)
+ 
+ #endif /* CONFIG_PROC_FS */
+ 
+@@ -436,8 +429,7 @@ static struct miscdevice nvram_dev = {
+ 	&nvram_fops
+ };
+ 
+-static int __init
+-nvram_init(void)
++static int __init nvram_init(void)
+ {
+ 	int ret;
+ 
+@@ -459,15 +451,14 @@ nvram_init(void)
+ 	}
+ 	ret = 0;
+ 	printk(KERN_INFO "Non-volatile memory driver v" NVRAM_VERSION "\n");
+-      out:
++out:
+ 	return ret;
+-      outmisc:
++outmisc:
+ 	misc_deregister(&nvram_dev);
+ 	goto out;
+ }
+ 
+-static void __exit
+-nvram_cleanup_module(void)
++static void __exit nvram_cleanup_module(void)
+ {
+ 	remove_proc_entry("driver/nvram", NULL);
+ 	misc_deregister(&nvram_dev);
+@@ -482,8 +473,7 @@ module_exit(nvram_cleanup_module);
+ 
+ #if MACH == PC
+ 
+-static int
+-pc_check_checksum(void)
++static int pc_check_checksum(void)
+ {
+ 	int i;
+ 	unsigned short sum = 0;
+@@ -493,11 +483,10 @@ pc_check_checksum(void)
+ 		sum += __nvram_read_byte(i);
+ 	expect = __nvram_read_byte(PC_CKS_LOC)<<8 |
+ 	    __nvram_read_byte(PC_CKS_LOC+1);
+-	return ((sum & 0xffff) == expect);
++	return (sum & 0xffff) == expect;
+ }
+ 
+-static void
+-pc_set_checksum(void)
++static void pc_set_checksum(void)
+ {
+ 	int i;
+ 	unsigned short sum = 0;
+@@ -522,9 +511,8 @@ static char *gfx_types[] = {
+ 	"monochrome",
+ };
+ 
+-static int
+-pc_proc_infos(unsigned char *nvram, char *buffer, int *len,
+-    off_t *begin, off_t offset, int size)
++static int pc_proc_infos(unsigned char *nvram, char *buffer, int *len,
++					off_t *begin, off_t offset, int size)
+ {
+ 	int checksum;
+ 	int type;
+@@ -590,20 +578,18 @@ pc_proc_infos(unsigned char *nvram, char
+ 
+ #if MACH == ATARI
+ 
+-static int
+-atari_check_checksum(void)
++static int atari_check_checksum(void)
+ {
+ 	int i;
+ 	unsigned char sum = 0;
+ 
+ 	for (i = ATARI_CKS_RANGE_START; i <= ATARI_CKS_RANGE_END; ++i)
+ 		sum += __nvram_read_byte(i);
+-	return (__nvram_read_byte(ATARI_CKS_LOC) == (~sum & 0xff) &&
+-	    __nvram_read_byte(ATARI_CKS_LOC + 1) == (sum & 0xff));
++	return (__nvram_read_byte(ATARI_CKS_LOC) == (~sum & 0xff)) &&
++	    (__nvram_read_byte(ATARI_CKS_LOC + 1) == (sum & 0xff));
+ }
+ 
+-static void
+-atari_set_checksum(void)
++static void atari_set_checksum(void)
+ {
+ 	int i;
+ 	unsigned char sum = 0;
+@@ -654,9 +640,8 @@ static char *colors[] = {
+ 	"2", "4", "16", "256", "65536", "??", "??", "??"
+ };
+ 
+-static int
+-atari_proc_infos(unsigned char *nvram, char *buffer, int *len,
+-    off_t *begin, off_t offset, int size)
++static int atari_proc_infos(unsigned char *nvram, char *buffer, int *len,
++					off_t *begin, off_t offset, int size)
+ {
+ 	int checksum = nvram_check_checksum();
+ 	int i;
+@@ -725,11 +710,4 @@ atari_proc_infos(unsigned char *nvram, c
+ #endif /* MACH == ATARI */
+ 
+ MODULE_LICENSE("GPL");
