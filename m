@@ -1,62 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - hibernate-replace-unnecessary-evaluation-of-pfn_to_page.patch removed from -mm tree
-Date: Mon, 29 Dec 2008 11:18:33 -0800
-Message-ID: <200812291918.mBTJIX9r030852@imap1.linux-foundation.org>
+Subject: - drivers-mmc-move-a-dereference-below-a-null-test.patch removed from -mm tree
+Date: Mon, 29 Dec 2008 11:19:06 -0800
+Message-ID: <200812291919.mBTJJ6gK031410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35028 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752107AbYL2TTf (ORCPT
+	by vger.kernel.org with ESMTP id S1752135AbYL2TTm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 14:19:35 -0500
+	Mon, 29 Dec 2008 14:19:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, lenb@kernel.org, pavel@suse.cz, mm-commits@vger.kernel.org
+To: julia@diku.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hibernate: replace unnecessary evaluation of pfn_to_page()
+     drivers/mmc: move a dereference below a NULL test
 has been removed from the -mm tree.  Its filename was
-     hibernate-replace-unnecessary-evaluation-of-pfn_to_page.patch
+     drivers-mmc-move-a-dereference-below-a-null-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hibernate: replace unnecessary evaluation of pfn_to_page()
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: drivers/mmc: move a dereference below a NULL test
+From: Julia Lawall <julia@diku.dk>
 
-Replace one evaluation of pfn_to_page() in copy_data_pages() with
-the value of a local variable containing the right number already.
+In each case, if the NULL test is necessary, then the dereference should be
+moved below the NULL test.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@suse.cz>
-Cc: Len Brown <lenb@kernel.org>
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+type T;
+expression E;
+identifier i,fld;
+statement S;
+@@
+
+- T i = E->fld;
++ T i;
+  ... when != E
+      when != i
+  if (E == NULL) S
++ i = E->fld;
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/snapshot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/tmio_mmc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/power/snapshot.c~hibernate-replace-unnecessary-evaluation-of-pfn_to_page kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~hibernate-replace-unnecessary-evaluation-of-pfn_to_page
-+++ a/kernel/power/snapshot.c
-@@ -981,7 +981,7 @@ static void copy_data_page(unsigned long
- 			 * data modified by kmap_atomic()
- 			 */
- 			safe_copy_page(buffer, s_page);
--			dst = kmap_atomic(pfn_to_page(dst_pfn), KM_USER0);
-+			dst = kmap_atomic(d_page, KM_USER0);
- 			memcpy(dst, buffer, PAGE_SIZE);
- 			kunmap_atomic(dst, KM_USER0);
- 		} else {
+diff -puN drivers/mmc/host/tmio_mmc.c~drivers-mmc-move-a-dereference-below-a-null-test drivers/mmc/host/tmio_mmc.c
+--- a/drivers/mmc/host/tmio_mmc.c~drivers-mmc-move-a-dereference-below-a-null-test
++++ a/drivers/mmc/host/tmio_mmc.c
+@@ -224,7 +224,7 @@ static inline void tmio_mmc_data_irq(str
+ {
+ 	void __iomem *ctl = host->ctl;
+ 	struct mmc_data *data = host->data;
+-	struct mmc_command *stop = data->stop;
++	struct mmc_command *stop;
+ 
+ 	host->data = NULL;
+ 
+@@ -232,6 +232,7 @@ static inline void tmio_mmc_data_irq(str
+ 		pr_debug("Spurious data end IRQ\n");
+ 		return;
+ 	}
++	stop = data->stop;
+ 
+ 	/* FIXME - return correct transfer count on errors */
+ 	if (!data->error)
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-vfs-fix-switch_names-breakage-in-short-to-short-case.patch
-shrink_slab-handle-bad-shrinkers.patch
+arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+powerpc-powermac-add-missing-of_node_put.patch
+net-tipc-bcasth-use-array_size.patch
+net-bridge-netfilter-move-a-dereference-below-a-null-test.patch
+drivers-isdn-hardware-misdn-move-a-dereference-below-a-null-test.patch
+drivers-net-hamradio-6packc-move-a-dereference-below-a-null-test.patch
+drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch
+drivers-scsi-move-a-dereference-below-a-null-test.patch
+fs-namespacec-drop-code-after-return.patch
+mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc.patch
+drivers-spi-move-a-dereference-below-a-null-test.patch
+drivers-rtc-correct-an-error-test.patch
 
