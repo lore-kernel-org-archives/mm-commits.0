@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch added to -mm tree
-Date: Tue, 30 Dec 2008 13:20:58 -0800
-Message-ID: <200812302120.mBULKxCe031869@imap1.linux-foundation.org>
+Subject: + fs-nfs-nfs4procc-make-nfs4_map_errors-static.patch added to -mm tree
+Date: Tue, 30 Dec 2008 13:21:49 -0800
+Message-ID: <200812302121.mBULLnbn032587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752540AbYL3VVX (ORCPT
+	by vger.kernel.org with ESMTP id S1752401AbYL3VWE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 16:21:23 -0500
+	Tue, 30 Dec 2008 16:22:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, greg@kroah.com, stern@rowland.harvard.edu
+Cc: wangcong@zeuux.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     usb: fsl_qe_udc: Fix oops on QE UDC probe failure
+     fs/nfs/nfs4proc.c: make nfs4_map_errors() static
 has been added to the -mm tree.  Its filename is
-     usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
+     fs-nfs-nfs4procc-make-nfs4_map_errors-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: fsl_qe_udc: Fix oops on QE UDC probe failure
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: fs/nfs/nfs4proc.c: make nfs4_map_errors() static
+From: WANG Cong <wangcong@zeuux.org>
 
-In case of probing errors the driver kfrees the udc_controller, but it
-doesn't set the pointer to NULL.
+nfs4_map_errors() can become static.
 
-When usb_gadget_register_driver is called, it checks for udc_controller !=
-NULL, the check passes and the driver accesses nonexistent memory.  Fix
-this by setting udc_controller to NULL in case of errors.
-
-While at it, also implement irq_of_parse_and_map()'s failure and cleanup
-cases.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
+Cc: J. Bruce Fields <bfields@fieldses.org>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/fsl_qe_udc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/nfs/nfs4_fs.h  |    1 -
+ fs/nfs/nfs4proc.c |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure drivers/usb/gadget/fsl_qe_udc.c
---- a/drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure
-+++ a/drivers/usb/gadget/fsl_qe_udc.c
-@@ -2604,6 +2604,10 @@ static int __devinit qe_udc_probe(struct
- 			(unsigned long)udc_controller);
- 	/* request irq and disable DR  */
- 	udc_controller->usb_irq = irq_of_parse_and_map(np, 0);
-+	if (!udc_controller->usb_irq) {
-+		ret = -EINVAL;
-+		goto err_noirq;
-+	}
+diff -puN fs/nfs/nfs4_fs.h~fs-nfs-nfs4procc-make-nfs4_map_errors-static fs/nfs/nfs4_fs.h
+--- a/fs/nfs/nfs4_fs.h~fs-nfs-nfs4procc-make-nfs4_map_errors-static
++++ a/fs/nfs/nfs4_fs.h
+@@ -174,7 +174,6 @@ extern ssize_t nfs4_listxattr(struct den
  
- 	ret = request_irq(udc_controller->usb_irq, qe_udc_irq, 0,
- 				driver_name, udc_controller);
-@@ -2625,6 +2629,8 @@ static int __devinit qe_udc_probe(struct
- err6:
- 	free_irq(udc_controller->usb_irq, udc_controller);
- err5:
-+	irq_dispose_mapping(udc_controller->usb_irq);
-+err_noirq:
- 	if (udc_controller->nullmap) {
- 		dma_unmap_single(udc_controller->gadget.dev.parent,
- 			udc_controller->nullp, 256,
-@@ -2648,7 +2654,7 @@ err2:
- 	iounmap(udc_controller->usb_regs);
- err1:
- 	kfree(udc_controller);
--
-+	udc_controller = NULL;
- 	return ret;
- }
  
-@@ -2710,6 +2716,7 @@ static int __devexit qe_udc_remove(struc
- 	kfree(ep->txframe);
+ /* nfs4proc.c */
+-extern int nfs4_map_errors(int err);
+ extern int nfs4_proc_setclientid(struct nfs_client *, u32, unsigned short, struct rpc_cred *);
+ extern int nfs4_proc_setclientid_confirm(struct nfs_client *, struct rpc_cred *);
+ extern int nfs4_proc_async_renew(struct nfs_client *, struct rpc_cred *);
+diff -puN fs/nfs/nfs4proc.c~fs-nfs-nfs4procc-make-nfs4_map_errors-static fs/nfs/nfs4proc.c
+--- a/fs/nfs/nfs4proc.c~fs-nfs-nfs4procc-make-nfs4_map_errors-static
++++ a/fs/nfs/nfs4proc.c
+@@ -69,7 +69,7 @@ static int _nfs4_proc_lookup(struct inod
+ static int _nfs4_proc_getattr(struct nfs_server *server, struct nfs_fh *fhandle, struct nfs_fattr *fattr);
  
- 	free_irq(udc_controller->usb_irq, udc_controller);
-+	irq_dispose_mapping(udc_controller->usb_irq);
- 
- 	tasklet_kill(&udc_controller->rx_tasklet);
- 
+ /* Prevent leaks of NFSv4 errors into userland */
+-int nfs4_map_errors(int err)
++static int nfs4_map_errors(int err)
+ {
+ 	if (err < -1000) {
+ 		dprintk("%s could not handle NFSv4 error %d\n",
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from wangcong@zeuux.org are
 
 origin.patch
-linux-next.patch
-usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
-usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
-usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
-usb-fsl_qe_udc-fix-qe-usb-controller-initialization.patch
-usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
-usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
-usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+fs-nfs-nfs4procc-make-nfs4_map_errors-static.patch
+ipc-clean-up-ipc-shmc.patch
+ipc-do-not-goto-to-the-next-line.patch
+ipc-ipc_sysctlc-move-the-definition-of-ipc_auto_callback.patch
 
