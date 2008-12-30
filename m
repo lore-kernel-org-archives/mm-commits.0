@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + eeepc-laptop-enable-bluetooth-for-asus-eee-901.patch added to -mm tree
-Date: Tue, 30 Dec 2008 15:40:50 -0800
-Message-ID: <200812302340.mBUNeol8010351@imap1.linux-foundation.org>
+Subject: + sg_io-fix-sg_io_hdrinfo-corruption-in-compat-code.patch added to -mm tree
+Date: Tue, 30 Dec 2008 15:46:13 -0800
+Message-ID: <200812302346.mBUNkDiC014444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37392 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752273AbYL3XlP (ORCPT
+	by vger.kernel.org with ESMTP id S1752640AbYL3XqU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 18:41:15 -0500
+	Tue, 30 Dec 2008 18:46:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: santiago@crfreenet.org, corentincj@iksaif.net, lenb@kernel.org, mjg59@srcf.ucam.org
+Cc: alexey.zaytsev@gmail.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com
 
 
 The patch titled
-     eeepc-laptop: enable Bluetooth for Asus EEE 901
+     sg_io: fix sg_io_hdr.info corruption in compat code
 has been added to the -mm tree.  Its filename is
-     eeepc-laptop-enable-bluetooth-for-asus-eee-901.patch
+     sg_io-fix-sg_io_hdrinfo-corruption-in-compat-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eeepc-laptop: enable Bluetooth for Asus EEE 901
-From: Ondrej Zajicek <santiago@crfreenet.org>
+Subject: sg_io: fix sg_io_hdr.info corruption in compat code
+From: Alexey Zaytsev <alexey.zaytsev@gmail.com>
 
-eeepc-laptop driver has interface for enabling/disabling Bluetooth, but it
-does not work.  This patch fixes it.
+sizeof(unsigned (short)) is actually sizeof(function), == 1.  Spotted by
+sparse.
 
-Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Alexey Zaytsev <alexey.zaytsev@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/eeepc-laptop.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/compat_ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-bluetooth-for-asus-eee-901 drivers/platform/x86/eeepc-laptop.c
---- a/drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-bluetooth-for-asus-eee-901
-+++ a/drivers/platform/x86/eeepc-laptop.c
-@@ -90,7 +90,7 @@ enum {
- };
+diff -puN fs/compat_ioctl.c~sg_io-fix-sg_io_hdrinfo-corruption-in-compat-code fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~sg_io-fix-sg_io_hdrinfo-corruption-in-compat-code
++++ a/fs/compat_ioctl.c
+@@ -784,7 +784,7 @@ static int sg_ioctl_trans(unsigned int f
  
- static const char *cm_getv[] = {
--	"WLDG", NULL, NULL, NULL,
-+	"WLDG", "BTHG", NULL, NULL,
- 	"CAMG", NULL, NULL, NULL,
- 	NULL, "PBLG", NULL, NULL,
- 	"CFVG", NULL, NULL, NULL,
-@@ -99,7 +99,7 @@ static const char *cm_getv[] = {
- };
+ 	if (copy_in_user(&sgio->status, &sgio32->status,
+ 			 (4 * sizeof(unsigned char)) +
+-			 (2 * sizeof(unsigned (short))) +
++			 (2 * sizeof(unsigned short)) +
+ 			 (3 * sizeof(int))))
+ 		return -EFAULT;
  
- static const char *cm_setv[] = {
--	"WLDS", NULL, NULL, NULL,
-+	"WLDS", "BTHS", NULL, NULL,
- 	"CAMS", NULL, NULL, NULL,
- 	"SDSP", "PBLS", "HDPS", NULL,
- 	"CFVS", NULL, NULL, NULL,
 _
 
-Patches currently in -mm which might be from santiago@crfreenet.org are
+Patches currently in -mm which might be from alexey.zaytsev@gmail.com are
 
-eeepc-laptop-enable-bluetooth-for-asus-eee-901.patch
+sg_io-fix-sg_io_hdrinfo-corruption-in-compat-code.patch
 
