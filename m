@@ -1,90 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + fs-execc-make-do_coredump-void-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 30 Dec 2008 15:09:40 -0800
-Message-ID: <200812302309.mBUN9egF018672@imap1.linux-foundation.org>
+Subject: - reiser4-tree_lock-fixes.patch removed from -mm tree
+Date: Tue, 30 Dec 2008 15:10:29 -0800
+Message-ID: <200812302310.mBUNATIw019324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46188 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752388AbYL3XKL (ORCPT
+	by vger.kernel.org with ESMTP id S1751586AbYL3XLB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 18:10:11 -0500
+	Tue, 30 Dec 2008 18:11:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, wangcong@zeuux.org
+To: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs-execc-make-do_coredump-void-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     fs-execc-make-do_coredump-void-checkpatch-fixes.patch
+     reiser4-tree_lock-fixes
+has been removed from the -mm tree.  Its filename was
+     reiser4-tree_lock-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-execc-make-do_coredump-void-checkpatch-fixes
+Subject: reiser4-tree_lock-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#23: FILE: fs/exec.c:1727:
-+void do_coredump(long signr, int exit_code, struct pt_regs * regs)
-
-ERROR: "foo * bar" should be "foo *bar"
-#42: FILE: include/linux/binfmts.h:110:
-+extern void do_coredump(long signr, int exit_code, struct pt_regs * regs);
-
-total: 2 errors, 0 warnings, 22 lines checked
-
-./patches/fs-execc-make-do_coredump-void.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: WANG Cong <wangcong@zeuux.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c               |    2 +-
- include/linux/binfmts.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/reiser4/as_ops.c |    4 ++--
+ fs/reiser4/jnode.c  |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/exec.c~fs-execc-make-do_coredump-void-checkpatch-fixes fs/exec.c
---- a/fs/exec.c~fs-execc-make-do_coredump-void-checkpatch-fixes
-+++ a/fs/exec.c
-@@ -1724,7 +1724,7 @@ int get_dumpable(struct mm_struct *mm)
- 	return (ret >= 2) ? 2 : ret;
- }
+diff -puN fs/reiser4/as_ops.c~reiser4-tree_lock-fixes fs/reiser4/as_ops.c
+--- a/fs/reiser4/as_ops.c~reiser4-tree_lock-fixes
++++ a/fs/reiser4/as_ops.c
+@@ -77,7 +77,7 @@ int reiser4_set_page_dirty(struct page *
+ 		struct address_space *mapping = page->mapping;
  
--void do_coredump(long signr, int exit_code, struct pt_regs * regs)
-+void do_coredump(long signr, int exit_code, struct pt_regs *regs)
- {
- 	struct core_state core_state;
- 	char corename[CORENAME_MAX_SIZE + 1];
-diff -puN include/linux/binfmts.h~fs-execc-make-do_coredump-void-checkpatch-fixes include/linux/binfmts.h
---- a/include/linux/binfmts.h~fs-execc-make-do_coredump-void-checkpatch-fixes
-+++ a/include/linux/binfmts.h
-@@ -107,7 +107,7 @@ extern int setup_arg_pages(struct linux_
- extern int bprm_mm_init(struct linux_binprm *bprm);
- extern int copy_strings_kernel(int argc,char ** argv,struct linux_binprm *bprm);
- extern void install_exec_creds(struct linux_binprm *bprm);
--extern void do_coredump(long signr, int exit_code, struct pt_regs * regs);
-+extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
- extern int set_binfmt(struct linux_binfmt *new);
- extern void free_bprm(struct linux_binprm *);
+ 		if (mapping) {
+-			write_lock_irq(&mapping->tree_lock);
++			spin_lock_irq(&mapping->tree_lock);
+ 
+ 			/* check for race with truncate */
+ 			if (page->mapping) {
+@@ -89,7 +89,7 @@ int reiser4_set_page_dirty(struct page *
+ 						   page->index,
+ 						   PAGECACHE_TAG_REISER4_MOVED);
+ 			}
+-			write_unlock_irq(&mapping->tree_lock);
++			spin_unlock_irq(&mapping->tree_lock);
+ 			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ 		}
+ 	}
+diff -puN fs/reiser4/jnode.c~reiser4-tree_lock-fixes fs/reiser4/jnode.c
+--- a/fs/reiser4/jnode.c~reiser4-tree_lock-fixes
++++ a/fs/reiser4/jnode.c
+@@ -434,9 +434,9 @@ static void inode_attach_jnode(jnode * n
+ 	if (rtree->rnode == NULL) {
+ 		/* prevent inode from being pruned when it has jnodes attached
+ 		   to it */
+-		write_lock_irq(&inode->i_data.tree_lock);
++		spin_lock_irq(&inode->i_data.tree_lock);
+ 		inode->i_data.nrpages++;
+-		write_unlock_irq(&inode->i_data.tree_lock);
++		spin_unlock_irq(&inode->i_data.tree_lock);
+ 	}
+ 	assert("zam-1049", equi(rtree->rnode != NULL, info->nr_jnodes != 0));
+ 	check_me("zam-1045",
+@@ -464,9 +464,9 @@ static void inode_detach_jnode(jnode * n
+ 	check_me("zam-1046", radix_tree_delete(rtree, node->key.j.index));
+ 	if (rtree->rnode == NULL) {
+ 		/* inode can be pruned now */
+-		write_lock_irq(&inode->i_data.tree_lock);
++		spin_lock_irq(&inode->i_data.tree_lock);
+ 		inode->i_data.nrpages--;
+-		write_unlock_irq(&inode->i_data.tree_lock);
++		spin_unlock_irq(&inode->i_data.tree_lock);
+ 	}
+ }
  
 _
 
