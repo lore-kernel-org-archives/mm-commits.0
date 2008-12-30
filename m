@@ -1,29 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 30 Dec 2008 11:06:18 -0800
-Message-ID: <200812301906.mBUJ6JiF025624@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 30 Dec 2008 11:53:24 -0800
+Message-ID: <200812301953.mBUJrOov029428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57766 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751446AbYL3TGV (ORCPT
+	by vger.kernel.org with ESMTP id S1751738AbYL3Tx0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 14:06:21 -0500
+	Tue, 30 Dec 2008 14:53:26 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mBUJ6JSg026139
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mBUJrOK5029171
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 30 Dec 2008 11:06:20 -0800
+	for <mm-commits@vger.kernel.org>; Tue, 30 Dec 2008 11:53:25 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
      linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -34,10 +44,26 @@ From: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- 0 files changed
+ drivers/char/Makefile |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/md/bitmap.c~linux-next-git-rejects drivers/md/bitmap.c
 diff -puN drivers/char/Makefile~linux-next-git-rejects drivers/char/Makefile
+--- a/drivers/char/Makefile~linux-next-git-rejects
++++ a/drivers/char/Makefile
+@@ -50,13 +50,8 @@ obj-$(CONFIG_HVC_BEAT)		+= hvc_beat.o
+ obj-$(CONFIG_HVC_DRIVER)	+= hvc_console.o
+ obj-$(CONFIG_HVC_IRQ)		+= hvc_irq.o
+ obj-$(CONFIG_HVC_XEN)		+= hvc_xen.o
+-<<<<<<< HEAD:drivers/char/Makefile
+ obj-$(CONFIG_HVC_IUCV)		+= hvc_iucv.o
+ obj-$(CONFIG_HVC_UDBG)		+= hvc_udbg.o
+-=======
+-obj-$(CONFIG_HVC_UDBG)		+= hvc_udbg.o
+-obj-$(CONFIG_HVC_IUCV)		+= hvc_iucv.o
+->>>>>>> FETCH_HEAD:drivers/char/Makefile
+ obj-$(CONFIG_VIRTIO_CONSOLE)	+= virtio_console.o
+ obj-$(CONFIG_RAW_DRIVER)	+= raw.o
+ obj-$(CONFIG_SGI_SNSC)		+= snsc.o snsc_event.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -45,8 +71,8 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
+linux-next-git-rejects.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
@@ -91,6 +117,7 @@ filesystem-freeze-implement-generic-freeze-feature-fix.patch
 nilfs2-inode-operations-fix.patch
 nilfs2-pathname-operations-fix.patch
 nilfs2-super-block-operations-fix.patch
+kmemleak-add-the-base-support-fix.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
