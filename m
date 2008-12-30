@@ -1,158 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0.patch removed from -mm tree
-Date: Tue, 30 Dec 2008 12:40:16 -0800
-Message-ID: <200812302040.mBUKeGEl000528@imap1.linux-foundation.org>
+Subject: - lockd-convert-reclaimer-thread-to-kthread-interface.patch removed from -mm tree
+Date: Tue, 30 Dec 2008 12:40:10 -0800
+Message-ID: <200812302040.mBUKeA1S000513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751831AbYL3UlC (ORCPT
+	by vger.kernel.org with ESMTP id S1751702AbYL3UlI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 15:41:02 -0500
+	Tue, 30 Dec 2008 15:41:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: staubach@redhat.com, mm-commits@vger.kernel.org
+To: jlayton@redhat.com, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs: optimize attribute timeouts for "noac" and "actimeo=0"
+     lockd: convert reclaimer thread to kthread interface
 has been removed from the -mm tree.  Its filename was
-     nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0.patch
+     lockd-convert-reclaimer-thread-to-kthread-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfs: optimize attribute timeouts for "noac" and "actimeo=0"
-From: Peter Staubach <staubach@redhat.com>
+Subject: lockd: convert reclaimer thread to kthread interface
+From: Jeff Layton <jlayton@redhat.com>
 
-I've been looking at a bugzilla which describes a problem where a customer
-was advised to use either the "noac" or "actimeo=0" mount options to solve
-a consistency problem that they were seeing in the file attributes.  It
-turned out that this solution did not work reliably for them because
-sometimes, the local attribute cache was believed to be valid and not
-timed out.  (With an attribute cache timeout of 0, the cache should always
-appear to be timed out.)
+My understanding is that there is a push to turn the kernel_thread
+interface into a non-exported symbol and move all kernel threads to use
+the kthread API. This patch changes lockd to use kthread_run to spawn
+the reclaimer thread.
 
-In looking at this situation, it appears to me that the problem is that
-the attribute cache timeout code has an off-by-one error in it.  It is
-assuming that the cache is valid in the region, [read_cache_jiffies,
-read_cache_jiffies + attrtimeo].  The cache should be considered valid
-only in the region, [read_cache_jiffies, read_cache_jiffies + attrtimeo). 
-With this change, the options, "noac" and "actimeo=0", work as originally
-expected.
+I've made the assumption here that the extra module references taken
+when we spawn this thread are unnecessary and removed them. I've also
+added a KERN_ERR printk that pops if the thread can't be spawned to warn
+the admin that the locks won't be reclaimed.
 
-This problem was previously addressed by special casing the attrtimeo == 0
-case.  However, since the problem is only an off- by-one error, the
-cleaner solution is address the off-by-one error and thus, not require the
-special case.
+In the future, it would be nice to be able to notify userspace that
+locks have been lost (probably by implementing SIGLOST), and adding some
+good policies about how long we should reattempt to reclaim the locks.
 
-Signed-off-by: Peter Staubach <staubach@redhat.com>
+Finally, I removed a comment about memory leaks that I believe is
+obsolete and added a new one to clarify the result of sending a SIGKILL
+to the reclaimer thread. As best I can tell, doing so doesn't actually
+cause a memory leak.
+
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/dir.c            |    2 +-
- fs/nfs/inode.c          |   11 ++---------
- include/linux/jiffies.h |   10 ++++++++++
- include/linux/nfs_fs.h  |    5 ++++-
- net/sunrpc/auth.c       |    2 +-
- 5 files changed, 18 insertions(+), 12 deletions(-)
+ fs/lockd/clntlock.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-diff -puN fs/nfs/dir.c~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0 fs/nfs/dir.c
---- a/fs/nfs/dir.c~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0
-+++ a/fs/nfs/dir.c
-@@ -1794,7 +1794,7 @@ static int nfs_access_get_cached(struct 
- 	cache = nfs_access_search_rbtree(inode, cred);
- 	if (cache == NULL)
- 		goto out;
--	if (!time_in_range(jiffies, cache->jiffies, cache->jiffies + nfsi->attrtimeo))
-+	if (!time_in_range_open(jiffies, cache->jiffies, cache->jiffies + nfsi->attrtimeo))
- 		goto out_stale;
- 	res->jiffies = cache->jiffies;
- 	res->cred = cache->cred;
-diff -puN fs/nfs/inode.c~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0 fs/nfs/inode.c
---- a/fs/nfs/inode.c~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0
-+++ a/fs/nfs/inode.c
-@@ -712,14 +712,7 @@ int nfs_attribute_timeout(struct inode *
+diff -puN fs/lockd/clntlock.c~lockd-convert-reclaimer-thread-to-kthread-interface fs/lockd/clntlock.c
+--- a/fs/lockd/clntlock.c~lockd-convert-reclaimer-thread-to-kthread-interface
++++ a/fs/lockd/clntlock.c
+@@ -14,6 +14,7 @@
+ #include <linux/sunrpc/svc.h>
+ #include <linux/lockd/lockd.h>
+ #include <linux/smp_lock.h>
++#include <linux/kthread.h>
  
- 	if (nfs_have_delegation(inode, FMODE_READ))
- 		return 0;
--	/*
--	 * Special case: if the attribute timeout is set to 0, then always
--	 * 		 treat the cache as having expired (unless holding
--	 * 		 a delegation).
--	 */
--	if (nfsi->attrtimeo == 0)
--		return 1;
--	return !time_in_range(jiffies, nfsi->read_cache_jiffies, nfsi->read_cache_jiffies + nfsi->attrtimeo);
-+	return !time_in_range_open(jiffies, nfsi->read_cache_jiffies, nfsi->read_cache_jiffies + nfsi->attrtimeo);
+ #define NLMDBG_FACILITY		NLMDBG_CLIENT
+ 
+@@ -191,11 +192,15 @@ __be32 nlmclnt_grant(const struct sockad
+ void
+ nlmclnt_recovery(struct nlm_host *host)
+ {
++	struct task_struct *task;
++
+ 	if (!host->h_reclaiming++) {
+ 		nlm_get_host(host);
+-		__module_get(THIS_MODULE);
+-		if (kernel_thread(reclaimer, host, CLONE_FS | CLONE_FILES) < 0)
+-			module_put(THIS_MODULE);
++		task = kthread_run(reclaimer, host, "%s-reclaim", host->h_name);
++		if (IS_ERR(task))
++			printk(KERN_ERR "lockd: unable to spawn reclaimer "
++				"thread. Locks for %s won't be reclaimed! "
++				"(%ld)\n", host->h_name, PTR_ERR(task));
+ 	}
  }
  
- /**
-@@ -1182,7 +1175,7 @@ static int nfs_update_inode(struct inode
- 		nfsi->attrtimeo_timestamp = now;
- 		nfsi->attr_gencount = nfs_inc_attr_generation_counter();
- 	} else {
--		if (!time_in_range(now, nfsi->attrtimeo_timestamp, nfsi->attrtimeo_timestamp + nfsi->attrtimeo)) {
-+		if (!time_in_range_open(now, nfsi->attrtimeo_timestamp, nfsi->attrtimeo_timestamp + nfsi->attrtimeo)) {
- 			if ((nfsi->attrtimeo <<= 1) > NFS_MAXATTRTIMEO(inode))
- 				nfsi->attrtimeo = NFS_MAXATTRTIMEO(inode);
- 			nfsi->attrtimeo_timestamp = now;
-diff -puN include/linux/jiffies.h~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0 include/linux/jiffies.h
---- a/include/linux/jiffies.h~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0
-+++ a/include/linux/jiffies.h
-@@ -115,10 +115,20 @@ static inline u64 get_jiffies_64(void)
- 	 ((long)(a) - (long)(b) >= 0))
- #define time_before_eq(a,b)	time_after_eq(b,a)
+@@ -207,7 +212,6 @@ reclaimer(void *ptr)
+ 	struct file_lock *fl, *next;
+ 	u32 nsmstate;
  
-+/*
-+ * Calculate whether a is in the range of [b, c].
-+ */
- #define time_in_range(a,b,c) \
- 	(time_after_eq(a,b) && \
- 	 time_before_eq(a,c))
+-	daemonize("%s-reclaim", host->h_name);
+ 	allow_signal(SIGKILL);
  
-+/*
-+ * Calculate whether a is in the range of [b, c).
-+ */
-+#define time_in_range_open(a,b,c) \
-+	(time_after_eq(a,b) && \
-+	 time_before(a,c))
-+
- /* Same as above, but does so with platform independent 64bit types.
-  * These must be used when utilizing jiffies_64 (i.e. return value of
-  * get_jiffies_64() */
-diff -puN include/linux/nfs_fs.h~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0 include/linux/nfs_fs.h
---- a/include/linux/nfs_fs.h~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0
-+++ a/include/linux/nfs_fs.h
-@@ -130,7 +130,10 @@ struct nfs_inode {
- 	 *
- 	 * We need to revalidate the cached attrs for this inode if
- 	 *
--	 *	jiffies - read_cache_jiffies > attrtimeo
-+	 *	jiffies - read_cache_jiffies >= attrtimeo
-+	 *
-+	 * Please note the comparison is greater than or equal
-+	 * so that zero timeout values can be specified.
- 	 */
- 	unsigned long		read_cache_jiffies;
- 	unsigned long		attrtimeo;
-diff -puN net/sunrpc/auth.c~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0 net/sunrpc/auth.c
---- a/net/sunrpc/auth.c~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0
-+++ a/net/sunrpc/auth.c
-@@ -234,7 +234,7 @@ rpcauth_prune_expired(struct list_head *
- 	list_for_each_entry_safe(cred, next, &cred_unused, cr_lru) {
+ 	down_write(&host->h_rwsem);
+@@ -233,7 +237,12 @@ restart:
+ 	list_for_each_entry_safe(fl, next, &host->h_reclaim, fl_u.nfs_fl.list) {
+ 		list_del_init(&fl->fl_u.nfs_fl.list);
  
- 		/* Enforce a 60 second garbage collection moratorium */
--		if (time_in_range(cred->cr_expire, expired, jiffies) &&
-+		if (time_in_range_open(cred->cr_expire, expired, jiffies) &&
- 		    test_bit(RPCAUTH_CRED_HASHED, &cred->cr_flags) != 0)
+-		/* Why are we leaking memory here? --okir */
++		/*
++		 * sending this thread a SIGKILL will result in any unreclaimed
++		 * locks being removed from the h_granted list. This means that
++		 * the kernel will not attempt to reclaim them again if a new
++		 * reclaimer thread is spawned for this host.
++		 */
+ 		if (signalled())
  			continue;
- 
+ 		if (nlmclnt_reclaim(host, fl) != 0)
+@@ -261,5 +270,5 @@ restart:
+ 	nlm_release_host(host);
+ 	lockd_down();
+ 	unlock_kernel();
+-	module_put_and_exit(0);
++	return 0;
+ }
 _
 
-Patches currently in -mm which might be from staubach@redhat.com are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
+origin.patch
 linux-next.patch
 
