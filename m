@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-factor-out-duplicated-code-in-get_fs_type.patch added to -mm tree
-Date: Tue, 30 Dec 2008 13:18:50 -0800
-Message-ID: <200812302118.mBULIovV030246@imap1.linux-foundation.org>
+Subject: + usb-fsl_qe_udc-fix-qe-usb-controller-initialization.patch added to -mm tree
+Date: Tue, 30 Dec 2008 13:21:03 -0800
+Message-ID: <200812302121.mBULL3re031997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752135AbYL3VS5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752099AbYL3VVN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 16:18:57 -0500
+	Tue, 30 Dec 2008 16:21:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, viro@zeniv.linux.org.uk
+Cc: avorontsov@ru.mvista.com, greg@kroah.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     vfs: factor out duplicated code in get_fs_type()
+     usb: fsl_qe_udc: Fix QE USB controller initialization
 has been added to the -mm tree.  Its filename is
-     vfs-factor-out-duplicated-code-in-get_fs_type.patch
+     usb-fsl_qe_udc-fix-qe-usb-controller-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: factor out duplicated code in get_fs_type()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: usb: fsl_qe_udc: Fix QE USB controller initialization
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-save 14 bytes:
+qe_udc_reg_init() leaves the USB controller enabled before muram memory
+initialized.  Sometimes the uninitialized muram memory confuses the
+controller, and it start sending the busy interrupts.
 
-   text    data     bss     dec     hex filename
-   1354      32       4    1390     56e fs/filesystems.o.before
-   text    data     bss     dec     hex filename
-   1340      32       4    1376     560 fs/filesystems.o
+Fix this by disabling the controller, it will be enabled later by the
+gadget driver, at bind time.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/filesystems.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ drivers/usb/gadget/fsl_qe_udc.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/filesystems.c~vfs-factor-out-duplicated-code-in-get_fs_type fs/filesystems.c
---- a/fs/filesystems.c~vfs-factor-out-duplicated-code-in-get_fs_type
-+++ a/fs/filesystems.c
-@@ -253,24 +253,27 @@ static int __init proc_filesystems_init(
- module_init(proc_filesystems_init);
- #endif
+diff -puN drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-qe-usb-controller-initialization drivers/usb/gadget/fsl_qe_udc.c
+--- a/drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-qe-usb-controller-initialization
++++ a/drivers/usb/gadget/fsl_qe_udc.c
+@@ -2452,8 +2452,12 @@ static int __devinit qe_udc_reg_init(str
+ 	struct usb_ctlr __iomem *qe_usbregs;
+ 	qe_usbregs = udc->usb_regs;
  
--struct file_system_type *get_fs_type(const char *name)
-+static struct file_system_type *__get_fs_type(const char *name, int len)
- {
- 	struct file_system_type *fs;
--	const char *dot = strchr(name, '.');
--	unsigned len = dot ? dot - name : strlen(name);
- 
- 	read_lock(&file_systems_lock);
- 	fs = *(find_filesystem(name, len));
- 	if (fs && !try_module_get(fs->owner))
- 		fs = NULL;
- 	read_unlock(&file_systems_lock);
--	if (!fs && (request_module("%.*s", len, name) == 0)) {
--		read_lock(&file_systems_lock);
--		fs = *(find_filesystem(name, len));
--		if (fs && !try_module_get(fs->owner))
--			fs = NULL;
--		read_unlock(&file_systems_lock);
--	}
-+	return fs;
-+}
+-	/* Init the usb register */
++	/* Spec says that we must enable the USB controller to change mode. */
+ 	out_8(&qe_usbregs->usb_usmod, 0x01);
++	/* Mode changed, now disable it, since muram isn't initialized yet. */
++	out_8(&qe_usbregs->usb_usmod, 0x00);
 +
-+struct file_system_type *get_fs_type(const char *name)
-+{
-+	struct file_system_type *fs;
-+	const char *dot = strchr(name, '.');
-+	int len = dot ? dot - name : strlen(name);
-+
-+	fs = __get_fs_type(name, len);
-+	if (!fs && (request_module("%.*s", len, name) == 0))
-+		fs = __get_fs_type(name, len);
- 
- 	if (dot && fs && !(fs->fs_flags & FS_HAS_SUBTYPE)) {
- 		put_filesystem(fs);
++	/* Initialize the rest. */
+ 	out_be16(&qe_usbregs->usb_usbmr, 0);
+ 	out_8(&qe_usbregs->usb_uscom, 0);
+ 	out_be16(&qe_usbregs->usb_usber, USBER_ALL_CLEAR);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
-cgroups-fix-a-race-between-cgroup_clone-and-umount.patch
-vfs-factor-out-duplicated-code-in-get_fs_type.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
-cgroups-documentation-updates.patch
-cgroups-remove-some-redundant-null-checks.patch
-ns_cgroup-remove-unused-spinlock.patch
-memcg-fix-a-typo-in-kconfig.patch
-cgroups-make-root_list-contains-active-hierarchies-only.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
-cgroups-make-cgroup_path-rcu-safe.patch
-cgroups-make-cgroup_path-rcu-safe-fixlet.patch
-devices-cgroup-allow-mkfifo.patch
-memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-handle-swap-caches.patch
-memcg-memswap-controller-kconfig.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-synchronized-lru.patch
-memcg-add-mem_cgroup_disabled.patch
-memcg-add-mem_cgroup_disabled-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-memcg-fix-reclaim-result-checks.patch
-memcg-swapout-refcnt-fix.patch
-memcg-fix-double-free-and-make-refcnt-sane.patch
-memcg-use-css_tryget-in-memcg.patch
-memcg-use-css_tryget-in-memcg-fix.patch
-memcg-fix-lru-accounting-for-swapcache-v2.patch
-memcg-fix-shmems-swap-accounting.patch
-cgroups-add-a-per-subsystem-hierarchy_mutex.patch
-cgroups-use-hierarchy_mutex-in-memory-controller.patch
-cgroups-add-css_tryget.patch
+linux-next.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
+usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
+usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
+usb-fsl_qe_udc-fix-qe-usb-controller-initialization.patch
+usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
+usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
+usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
 
