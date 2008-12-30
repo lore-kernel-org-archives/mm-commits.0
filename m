@@ -1,89 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - spi-spi_write_then_read-regression-fix.patch removed from -mm tree
-Date: Tue, 30 Dec 2008 13:06:40 -0800
-Message-ID: <200812302106.mBUL6fgi020967@imap1.linux-foundation.org>
+Subject: + pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch added to -mm tree
+Date: Tue, 30 Dec 2008 13:13:06 -0800
+Message-ID: <200812302113.mBULD6Au025869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52151 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751702AbYL3VG4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752134AbYL3VNT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 16:06:56 -0500
+	Tue, 30 Dec 2008 16:13:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, vernoninhand@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mirq-linux@rere.qmqm.pl, jbarnes@virtuousgeek.org, norsk5@yahoo.com
 
 
 The patch titled
-     spi: spi_write_then_read() regression fix
-has been removed from the -mm tree.  Its filename was
-     spi-spi_write_then_read-regression-fix.patch
+     pci-quirks: unhide 'Overflow' device on i828{6,7}5P/PE chipsets
+has been added to the -mm tree.  Its filename is
+     pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
 
-This patch was dropped because of confusion
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: spi_write_then_read() regression fix
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: pci-quirks: unhide 'Overflow' device on i828{6,7}5P/PE chipsets
+From: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 
-The recent "simplify spi_write_then_read()" patch included a small
-regression from the 2.6.27 behavior with its performance win.
+As I found out from EDAC driver sources for i82875P some BIOSes for
+i82875P/PE hide 'overflow' device 6.  The same thing happens for
+i82865P/PE chipsets.
 
-All SPI transfers are full duplex, and are packaged as half duplex
-by either discarding the data that's read ("write only"), or else
-by writing zeroes ("read only").  That patch wasn't ensuring that
-zeroes were getting written out during the "half duplex read" part
-of the transaction; instead, old RX bits were getting sent.
+After testing this patch for couple of days on my laptop (i82856P) it
+looks like something is resetting device 0 (MCH) config register 0xF4 to
+zero and effectively disabling the device again.  The delay looks random
+to me.  I can easily update the register using 'hexedit
+/sys/bus/pci/devices/0000\:00\:00.0/config' and see correct values in
+lspci output afterwards.
 
-The fix is trivial:  zero the buffer before using it.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Vernon Sauder <vernoninhand@gmail.com>
+Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/pci/quirks.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN drivers/spi/spi.c~spi-spi_write_then_read-regression-fix drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-spi_write_then_read-regression-fix
-+++ a/drivers/spi/spi.c
-@@ -677,11 +677,13 @@ int spi_write_then_read(struct spi_devic
+diff -puN drivers/pci/quirks.c~pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets
++++ a/drivers/pci/quirks.c
+@@ -2149,6 +2149,27 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AT
  
- 	/* ... unless someone else is using the pre-allocated buffer */
- 	if (!mutex_trylock(&lock)) {
--		local_buf = kmalloc(SPI_BUFSIZ, GFP_KERNEL);
-+		local_buf = kzalloc(SPI_BUFSIZ, GFP_KERNEL);
- 		if (!local_buf)
- 			return -ENOMEM;
--	} else
-+	} else {
- 		local_buf = buf;
-+		memset(local_buf, 0, x.len);
+ #endif /* CONFIG_PCI_MSI */
+ 
++/* Originally in EDAC sources for i82875P:
++ * Intel tells BIOS developers to hide device 6 which
++ * configures the overflow device access containing
++ * the DRBs - this is where we expose device 6.
++ * http://www.x86-secret.com/articles/tweak/pat/patsecrets-2.htm
++ */
++static void __devinit quirk_unhide_mch_memory_controller_dev6(struct pci_dev *dev)
++{
++	u8 reg;
++
++	if (pci_read_config_byte(dev, 0xF4, &reg) == 0 && !(reg & 0x02)) {
++		dev_info(&dev->dev, "Enabling MCH Memory Controller 'Overflow' Device");
++		pci_write_config_byte(dev, 0xF4, reg | 0x02);
 +	}
- 
- 	memcpy(local_buf, txbuf, n_tx);
- 	x.tx_buf = local_buf;
++}
++
++DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82865_HB,
++			quirk_unhide_mch_memory_controller_dev6);
++DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82875_HB,
++			quirk_unhide_mch_memory_controller_dev6);
++
+ static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
+ 			  struct pci_fixup *end)
+ {
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from mirq-linux@rere.qmqm.pl are
 
-origin.patch
-spi-spi_write_then_read-regression-fix.patch
-linux-next.patch
-acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
-usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
-documentation-when-to-bug-and-when-to-not-bug.patch
-spi_gpio-driver.patch
-spi_gpio-driver-cleanups.patch
-atmel_spi-clean-up-spiv1-quirk-handling.patch
-spi-atmel_spi-update-chipselect-handling.patch
-spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio.patch
-drivers-spi-move-a-dereference-below-a-null-test.patch
-mfd-da903x-section-fix.patch
-rtc-ds1307-remove-legacy-probe-checks.patch
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
-twl4030-gpio-cleanup-debounce.patch
-gpio-pca953x-handles-more-chips-i2c-fault-codes.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
 
