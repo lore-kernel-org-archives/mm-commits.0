@@ -1,130 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-semaphore-fix.patch removed from -mm tree
-Date: Tue, 30 Dec 2008 15:10:47 -0800
-Message-ID: <200812302310.mBUNAlZT019595@imap1.linux-foundation.org>
+Subject: - reiser4-fix-kill_hook_internal.patch removed from -mm tree
+Date: Tue, 30 Dec 2008 15:10:44 -0800
+Message-ID: <200812302310.mBUNAipu019581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55940 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53322 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752612AbYL3XLT (ORCPT
+	by vger.kernel.org with ESMTP id S1752540AbYL3XLQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 18:11:19 -0500
+	Tue, 30 Dec 2008 18:11:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, edward.shishkin@gmail.com, mm-commits@vger.kernel.org
+To: edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4-semaphore-fix
+     reiser4: fix kill_hook_internal
 has been removed from the -mm tree.  Its filename was
-     reiser4-semaphore-fix.patch
+     reiser4-fix-kill_hook_internal.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-semaphore-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reiser4: fix kill_hook_internal
+From: Edward Shishkin <edward.shishkin@gmail.com>
 
-In file included from fs/reiser4/znode.h:23,
-                 from fs/reiser4/tree.h:14,
-                 from fs/reiser4/super.h:11,
-                 from fs/reiser4/debug.c:28:
-include/asm/semaphore.h:1:2: warning: #warning Use linux/semaphore.h, not asm/semaphore.h
+Problem:
+Failed assertion (nikita-2754): child znode is not loaded
+when looking at its number of items in kill_hook_internal().
+Nobody cares about its loading.
 
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Fixup:
+Added missed zload/zrelse of the child.
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/znode.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiser4/plugin/item/internal.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN fs/reiser4/znode.h~reiser4-semaphore-fix fs/reiser4/znode.h
---- a/fs/reiser4/znode.h~reiser4-semaphore-fix
-+++ a/fs/reiser4/znode.h
-@@ -18,9 +18,9 @@
+diff -puN fs/reiser4/plugin/item/internal.c~reiser4-fix-kill_hook_internal fs/reiser4/plugin/item/internal.c
+--- a/fs/reiser4/plugin/item/internal.c~reiser4-fix-kill_hook_internal
++++ a/fs/reiser4/plugin/item/internal.c
+@@ -308,6 +308,7 @@ int kill_hook_internal(const coord_t * i
+ 		       struct carry_kill_data *p UNUSED_ARG)
+ {
+ 	znode *child;
++	int result = 0;
  
- #include <linux/types.h>
- #include <linux/spinlock.h>
-+#include <linux/semaphore.h>
- #include <linux/pagemap.h>	/* for PAGE_CACHE_SIZE */
- #include <asm/atomic.h>
--#include <asm/semaphore.h>
+ 	assert("nikita-1222", item != NULL);
+ 	assert("nikita-1224", from == 0);
+@@ -316,7 +317,14 @@ int kill_hook_internal(const coord_t * i
+ 	child = znode_at(item, item->node);
+ 	if (IS_ERR(child))
+ 		return PTR_ERR(child);
+-	else if (node_is_empty(child)) {
++	assert("edward-1560", child != NULL);
++
++	result = zload(child);
++	if (result) {
++		zput(child);
++		return result;
++	}
++	if (node_is_empty(child)) {
+ 		reiser4_tree *tree;
  
- /* znode tracks its position within parent (internal item in a parent node,
-  * that contains znode's block number). */
+ 		assert("nikita-1397", znode_is_write_locked(child));
+@@ -328,14 +336,14 @@ int kill_hook_internal(const coord_t * i
+ 		init_parent_coord(&child->in_parent, NULL);
+ 		--item->node->c_count;
+ 		write_unlock_tree(tree);
+-		zput(child);
+-		return 0;
+ 	} else {
+ 		warning("nikita-1223",
+ 			"Cowardly refuse to remove link to non-empty node");
+-		zput(child);
+-		return RETERR(-EIO);
++		result = RETERR(-EIO);
+ 	}
++	zrelse(child);
++	zput(child);
++	return result;
+ }
+ 
+ /* hook called by ->shift() node plugin method when iternal item was just
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
-origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-mm-check-for-no-mmaps-in-exit_mmap-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-binfmtsh-include-listh-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-fs-execc-make-do_coredump-void-checkpatch-fixes.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
 reiser4.patch
+reiser4-fix-kill_hook_internal.patch
 reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
+reiser4-compile-warning-cleanups.patch
+reiser4-use-wake_up_process-instead-of-wake_up-when-possible.patch
 reiser4-track-upstream-changes.patch
+reiser4-adjust-to-the-new-aops.patch
+reiser4-adjust-to-the-new-aops-fixup.patch
+reiser4-remove-simple_prepare_write-usage.patch
 reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
 
