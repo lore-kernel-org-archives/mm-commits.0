@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-nfs-nfs4procc-make-nfs4_map_errors-static.patch added to -mm tree
-Date: Tue, 30 Dec 2008 13:21:49 -0800
-Message-ID: <200812302121.mBULLnbn032587@imap1.linux-foundation.org>
+Subject: + usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch added to -mm tree
+Date: Tue, 30 Dec 2008 13:21:07 -0800
+Message-ID: <200812302121.mBULL7ji032009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752401AbYL3VWE (ORCPT
+	by vger.kernel.org with ESMTP id S1752430AbYL3VXU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 16:22:04 -0500
+	Tue, 30 Dec 2008 16:23:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wangcong@zeuux.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, greg@kroah.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     fs/nfs/nfs4proc.c: make nfs4_map_errors() static
+     usb: fsl_qe_udc: Fix muram corruption by disabled endpoints
 has been added to the -mm tree.  Its filename is
-     fs-nfs-nfs4procc-make-nfs4_map_errors-static.patch
+     usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/nfs/nfs4proc.c: make nfs4_map_errors() static
-From: WANG Cong <wangcong@zeuux.org>
+Subject: usb: fsl_qe_udc: Fix muram corruption by disabled endpoints
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-nfs4_map_errors() can become static.
+Before freeing an endpoint's muram memory, we should stop all activity of
+the endpoint, otherwise the QE UDC controller might do nasty things with
+the muram memory that isn't belong to that endpoint anymore.
 
-Signed-off-by: WANG Cong <wangcong@zeuux.org>
-Cc: J. Bruce Fields <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+The qe_ep_reset() effectively flushes the hardware fifos, finishes all
+late transaction and thus prevents the corruption.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/nfs4_fs.h  |    1 -
- fs/nfs/nfs4proc.c |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/usb/gadget/fsl_qe_udc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/nfs/nfs4_fs.h~fs-nfs-nfs4procc-make-nfs4_map_errors-static fs/nfs/nfs4_fs.h
---- a/fs/nfs/nfs4_fs.h~fs-nfs-nfs4procc-make-nfs4_map_errors-static
-+++ a/fs/nfs/nfs4_fs.h
-@@ -174,7 +174,6 @@ extern ssize_t nfs4_listxattr(struct den
+diff -puN drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints drivers/usb/gadget/fsl_qe_udc.c
+--- a/drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints
++++ a/drivers/usb/gadget/fsl_qe_udc.c
+@@ -1622,6 +1622,7 @@ static int qe_ep_disable(struct usb_ep *
+ 	nuke(ep, -ESHUTDOWN);
+ 	ep->desc = NULL;
+ 	ep->stopped = 1;
++	qe_ep_reset(udc, ep->epnum);
+ 	spin_unlock_irqrestore(&udc->lock, flags);
  
- 
- /* nfs4proc.c */
--extern int nfs4_map_errors(int err);
- extern int nfs4_proc_setclientid(struct nfs_client *, u32, unsigned short, struct rpc_cred *);
- extern int nfs4_proc_setclientid_confirm(struct nfs_client *, struct rpc_cred *);
- extern int nfs4_proc_async_renew(struct nfs_client *, struct rpc_cred *);
-diff -puN fs/nfs/nfs4proc.c~fs-nfs-nfs4procc-make-nfs4_map_errors-static fs/nfs/nfs4proc.c
---- a/fs/nfs/nfs4proc.c~fs-nfs-nfs4procc-make-nfs4_map_errors-static
-+++ a/fs/nfs/nfs4proc.c
-@@ -69,7 +69,7 @@ static int _nfs4_proc_lookup(struct inod
- static int _nfs4_proc_getattr(struct nfs_server *server, struct nfs_fh *fhandle, struct nfs_fattr *fattr);
- 
- /* Prevent leaks of NFSv4 errors into userland */
--int nfs4_map_errors(int err)
-+static int nfs4_map_errors(int err)
- {
- 	if (err < -1000) {
- 		dprintk("%s could not handle NFSv4 error %d\n",
+ 	cpm_muram_free(cpm_muram_offset(ep->rxbase));
 _
 
-Patches currently in -mm which might be from wangcong@zeuux.org are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
-fs-nfs-nfs4procc-make-nfs4_map_errors-static.patch
-ipc-clean-up-ipc-shmc.patch
-ipc-do-not-goto-to-the-next-line.patch
-ipc-ipc_sysctlc-move-the-definition-of-ipc_auto_callback.patch
+linux-next.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
+usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
+usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
+usb-fsl_qe_udc-fix-qe-usb-controller-initialization.patch
+usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
+usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
+usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
 
