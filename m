@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch added to -mm tree
-Date: Tue, 30 Dec 2008 13:21:01 -0800
-Message-ID: <200812302121.mBULL12x031935@imap1.linux-foundation.org>
+Subject: + drivers-message-fusion-move-a-dereference-below-a-null-test.patch added to -mm tree
+Date: Tue, 30 Dec 2008 14:29:16 -0800
+Message-ID: <200812302229.mBUMTG7a019781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58377 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752407AbYL3VXO (ORCPT
+	by vger.kernel.org with ESMTP id S1750811AbYL3W3z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 16:23:14 -0500
+	Tue, 30 Dec 2008 17:29:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, greg@kroah.com, stern@rowland.harvard.edu
+Cc: julia@diku.dk, James.Bottomley@HansenPartnership.com, Sathya.Prakash@lsi.com
 
 
 The patch titled
-     usb: fsl_qe_udc: Fix recursive locking bug in ch9getstatus()
+     drivers/message/fusion: Move a dereference below a NULL test
 has been added to the -mm tree.  Its filename is
-     usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
+     drivers-message-fusion-move-a-dereference-below-a-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: fsl_qe_udc: Fix recursive locking bug in ch9getstatus()
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: drivers/message/fusion: Move a dereference below a NULL test
+From: Julia Lawall <julia@diku.dk>
 
-The call chain is this:
+If the NULL test is necessary, then the dereference should be moved below
+the NULL test.
 
-qe_udc_irq() <- grabs the udc->lock spinlock
-rx_irq()
-qe_ep0_rx()
-ep0_setup_handle()
-setup_received_handle()
-ch9getstatus()
-qe_ep_queue() <- tries to grab the udc->lock again
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/).
 
-It seems unsafe to temporarily drop the lock in the ch9getstatus(), so to
-fix that bug the lock-less __qe_ep_queue() function implemented and used
-by the ch9getstatus().
+// <smpl>
+@disable is_null@
+identifier f;
+expression E;
+identifier fld;
+statement S;
+@@
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
++ if (E == NULL) S
+  f(...,E->fld,...);
+- if (E == NULL) S
+
+@@
+identifier f;
+expression E;
+identifier fld;
+statement S;
+@@
+
++ if (!E) S
+  f(...,E->fld,...);
+- if (!E) S
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: "Prakash, Sathya" <Sathya.Prakash@lsi.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/fsl_qe_udc.c |   26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ drivers/message/fusion/mptctl.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus drivers/usb/gadget/fsl_qe_udc.c
---- a/drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus
-+++ a/drivers/usb/gadget/fsl_qe_udc.c
-@@ -1681,14 +1681,11 @@ static void qe_free_request(struct usb_e
- 		kfree(req);
- }
- 
--/* queues (submits) an I/O request to an endpoint */
--static int qe_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
--				gfp_t gfp_flags)
-+static int __qe_ep_queue(struct usb_ep *_ep, struct usb_request *_req)
+diff -puN drivers/message/fusion/mptctl.c~drivers-message-fusion-move-a-dereference-below-a-null-test drivers/message/fusion/mptctl.c
+--- a/drivers/message/fusion/mptctl.c~drivers-message-fusion-move-a-dereference-below-a-null-test
++++ a/drivers/message/fusion/mptctl.c
+@@ -308,10 +308,11 @@ static void mptctl_timeout_expired (MPT_
  {
- 	struct qe_ep *ep = container_of(_ep, struct qe_ep, ep);
- 	struct qe_req *req = container_of(_req, struct qe_req, req);
- 	struct qe_udc *udc;
--	unsigned long flags;
- 	int reval;
+ 	int rc = 1;
  
- 	udc = ep->udc;
-@@ -1732,7 +1729,7 @@ static int qe_ep_queue(struct usb_ep *_e
- 	list_add_tail(&req->queue, &ep->queue);
- 	dev_vdbg(udc->dev, "gadget have request in %s! %d\n",
- 			ep->name, req->req.length);
--	spin_lock_irqsave(&udc->lock, flags);
-+
- 	/* push the request to device */
- 	if (ep_is_in(ep))
- 		reval = ep_req_send(ep, req);
-@@ -1748,11 +1745,24 @@ static int qe_ep_queue(struct usb_ep *_e
- 	if (ep->dir == USB_DIR_OUT)
- 		reval = ep_req_receive(ep, req);
- 
--	spin_unlock_irqrestore(&udc->lock, flags);
--
- 	return 0;
- }
- 
-+/* queues (submits) an I/O request to an endpoint */
-+static int qe_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
-+		       gfp_t gfp_flags)
-+{
-+	struct qe_ep *ep = container_of(_ep, struct qe_ep, ep);
-+	struct qe_udc *udc = ep->udc;
-+	unsigned long flags;
-+	int ret;
-+
-+	spin_lock_irqsave(&udc->lock, flags);
-+	ret = __qe_ep_queue(_ep, _req);
-+	spin_unlock_irqrestore(&udc->lock, flags);
-+	return ret;
-+}
-+
- /* dequeues (cancels, unlinks) an I/O request from an endpoint */
- static int qe_ep_dequeue(struct usb_ep *_ep, struct usb_request *_req)
- {
-@@ -2008,7 +2018,7 @@ static void ch9getstatus(struct qe_udc *
- 	udc->ep0_dir = USB_DIR_IN;
- 
- 	/* data phase */
--	status = qe_ep_queue(&ep->ep, &req->req, GFP_ATOMIC);
-+	status = __qe_ep_queue(&ep->ep, &req->req);
- 
- 	if (status == 0)
+-	dctlprintk(ioctl->ioc, printk(MYIOC_s_DEBUG_FMT ": Timeout Expired! Host %d\n",
+-				ioctl->ioc->name, ioctl->ioc->id));
+ 	if (ioctl == NULL)
  		return;
++	dctlprintk(ioctl->ioc,
++		   printk(MYIOC_s_DEBUG_FMT ": Timeout Expired! Host %d\n",
++		   ioctl->ioc->name, ioctl->ioc->id));
+ 
+ 	ioctl->wait_done = 0;
+ 	if (ioctl->reset & MPTCTL_RESET_OK)
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
-usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
-usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
-usb-fsl_qe_udc-fix-qe-usb-controller-initialization.patch
-usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
-usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
-usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+powerpc-powermac-add-missing-of_node_put.patch
+net-tipc-bcasth-use-array_size.patch
+net-bridge-netfilter-move-a-dereference-below-a-null-test.patch
+drivers-isdn-hardware-misdn-move-a-dereference-below-a-null-test.patch
+drivers-net-hamradio-6packc-move-a-dereference-below-a-null-test.patch
+drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch
+drivers-scsi-move-a-dereference-below-a-null-test.patch
+drivers-message-fusion-move-a-dereference-below-a-null-test.patch
+fs-namespacec-drop-code-after-return.patch
+mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc.patch
+drivers-spi-move-a-dereference-below-a-null-test.patch
+drivers-rtc-correct-an-error-test.patch
 
