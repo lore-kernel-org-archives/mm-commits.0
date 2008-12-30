@@ -1,69 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 30 Dec 2008 11:53:24 -0800
-Message-ID: <200812301953.mBUJrOov029428@imap1.linux-foundation.org>
+Subject: - nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 30 Dec 2008 12:29:41 -0800
+Message-ID: <200812302029.mBUKTfNM024912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751738AbYL3Tx0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751702AbYL3Uab (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 14:53:26 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mBUJrOK5029171
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 30 Dec 2008 11:53:25 -0800
+	Tue, 30 Dec 2008 15:30:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, staubach@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+WARNING: line over 80 characters
+#43: FILE: fs/nfs/dir.c:1797:
++	if (!time_in_range_open(jiffies, cache->jiffies, cache->jiffies + nfsi->attrtimeo))
+
+WARNING: line over 80 characters
+#62: FILE: fs/nfs/inode.c:715:
++	return !time_in_range_open(jiffies, nfsi->read_cache_jiffies, nfsi->read_cache_jiffies + nfsi->attrtimeo);
+
+WARNING: line over 80 characters
+#71: FILE: fs/nfs/inode.c:1178:
++		if (!time_in_range_open(now, nfsi->attrtimeo_timestamp, nfsi->attrtimeo_timestamp + nfsi->attrtimeo)) {
+
+ERROR: space required after that ',' (ctx:VxV)
+#92: FILE: include/linux/jiffies.h:128:
++#define time_in_range_open(a,b,c) \
+                             ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#93: FILE: include/linux/jiffies.h:129:
++	(time_after_eq(a,b) && \
+ 	                ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#94: FILE: include/linux/jiffies.h:130:
++	 time_before(a,c))
+ 	              ^
+
+total: 3 errors, 3 warnings, 70 lines checked
+
+./patches/nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Peter Staubach <staubach@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Makefile |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/nfs/dir.c            |    3 ++-
+ fs/nfs/inode.c          |    6 ++++--
+ include/linux/jiffies.h |    5 ++---
+ 3 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/Makefile~linux-next-git-rejects drivers/char/Makefile
---- a/drivers/char/Makefile~linux-next-git-rejects
-+++ a/drivers/char/Makefile
-@@ -50,13 +50,8 @@ obj-$(CONFIG_HVC_BEAT)		+= hvc_beat.o
- obj-$(CONFIG_HVC_DRIVER)	+= hvc_console.o
- obj-$(CONFIG_HVC_IRQ)		+= hvc_irq.o
- obj-$(CONFIG_HVC_XEN)		+= hvc_xen.o
--<<<<<<< HEAD:drivers/char/Makefile
- obj-$(CONFIG_HVC_IUCV)		+= hvc_iucv.o
- obj-$(CONFIG_HVC_UDBG)		+= hvc_udbg.o
--=======
--obj-$(CONFIG_HVC_UDBG)		+= hvc_udbg.o
--obj-$(CONFIG_HVC_IUCV)		+= hvc_iucv.o
-->>>>>>> FETCH_HEAD:drivers/char/Makefile
- obj-$(CONFIG_VIRTIO_CONSOLE)	+= virtio_console.o
- obj-$(CONFIG_RAW_DRIVER)	+= raw.o
- obj-$(CONFIG_SGI_SNSC)		+= snsc.o snsc_event.o
+diff -puN fs/nfs/dir.c~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes fs/nfs/dir.c
+--- a/fs/nfs/dir.c~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes
++++ a/fs/nfs/dir.c
+@@ -1798,7 +1798,8 @@ static int nfs_access_get_cached(struct 
+ 	if (cache == NULL)
+ 		goto out;
+ 	if (!nfs_have_delegation(inode, FMODE_READ) &&
+-	    !time_in_range_open(jiffies, cache->jiffies, cache->jiffies + nfsi->attrtimeo))
++	    !time_in_range_open(jiffies, cache->jiffies,
++				cache->jiffies + nfsi->attrtimeo))
+ 		goto out_stale;
+ 	res->jiffies = cache->jiffies;
+ 	res->cred = cache->cred;
+diff -puN fs/nfs/inode.c~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes fs/nfs/inode.c
+--- a/fs/nfs/inode.c~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes
++++ a/fs/nfs/inode.c
+@@ -712,7 +712,8 @@ int nfs_attribute_timeout(struct inode *
+ 
+ 	if (nfs_have_delegation(inode, FMODE_READ))
+ 		return 0;
+-	return !time_in_range_open(jiffies, nfsi->read_cache_jiffies, nfsi->read_cache_jiffies + nfsi->attrtimeo);
++	return !time_in_range_open(jiffies, nfsi->read_cache_jiffies,
++				nfsi->read_cache_jiffies + nfsi->attrtimeo);
+ }
+ 
+ /**
+@@ -1175,7 +1176,8 @@ static int nfs_update_inode(struct inode
+ 		nfsi->attrtimeo_timestamp = now;
+ 		nfsi->attr_gencount = nfs_inc_attr_generation_counter();
+ 	} else {
+-		if (!time_in_range_open(now, nfsi->attrtimeo_timestamp, nfsi->attrtimeo_timestamp + nfsi->attrtimeo)) {
++		if (!time_in_range_open(now, nfsi->attrtimeo_timestamp,
++				nfsi->attrtimeo_timestamp + nfsi->attrtimeo)) {
+ 			if ((nfsi->attrtimeo <<= 1) > NFS_MAXATTRTIMEO(inode))
+ 				nfsi->attrtimeo = NFS_MAXATTRTIMEO(inode);
+ 			nfsi->attrtimeo_timestamp = now;
+diff -puN include/linux/jiffies.h~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes include/linux/jiffies.h
+--- a/include/linux/jiffies.h~nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes
++++ a/include/linux/jiffies.h
+@@ -125,9 +125,8 @@ static inline u64 get_jiffies_64(void)
+ /*
+  * Calculate whether a is in the range of [b, c).
+  */
+-#define time_in_range_open(a,b,c) \
+-	(time_after_eq(a,b) && \
+-	 time_before(a,c))
++#define time_in_range_open(a, b, c) \
++	(time_after_eq(a, b) && time_before(a,c))
+ 
+ /* Same as above, but does so with platform independent 64bit types.
+  * These must be used when utilizing jiffies_64 (i.e. return value of
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +130,6 @@ origin.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 next-remove-localversion.patch
-linux-next-git-rejects.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
