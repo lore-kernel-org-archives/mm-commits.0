@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-provide-_sdata-in-the-vmlinux_ldss-files.patch added to -mm tree
-Date: Mon, 29 Dec 2008 16:23:05 -0800
-Message-ID: <200812300023.mBU0N5AB006071@imap1.linux-foundation.org>
+Subject: + kmemleak-add-the-slob-memory-allocation-freeing-hooks.patch added to -mm tree
+Date: Mon, 29 Dec 2008 16:22:54 -0800
+Message-ID: <200812300022.mBU0Msb8005928@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753896AbYL3AXc (ORCPT
+	by vger.kernel.org with ESMTP id S1753229AbYL3AXZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Dec 2008 19:23:32 -0500
+	Mon, 29 Dec 2008 19:23:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: catalin.marinas@arm.com, mingo@elte.hu
+Cc: catalin.marinas@arm.com, mpm@selenic.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     x86: provide _sdata in the vmlinux_*.lds.S files
+     kmemleak: add the slob memory allocation/freeing hooks
 has been added to the -mm tree.  Its filename is
-     x86-provide-_sdata-in-the-vmlinux_ldss-files.patch
+     kmemleak-add-the-slob-memory-allocation-freeing-hooks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: provide _sdata in the vmlinux_*.lds.S files
+Subject: kmemleak: add the slob memory allocation/freeing hooks
 From: Catalin Marinas <catalin.marinas@arm.com>
 
-_sdata is a common symbol defined by many architectures and made available
-to the kernel via asm-generic/sections.h.  Kmemleak uses this symbol when
-scanning the data sections.
+Add the callbacks to kmemleak_(alloc|free) functions from the slob
+allocator.
 
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Matt Mackall <mpm@selenic.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux_32.lds.S |    1 +
- arch/x86/kernel/vmlinux_64.lds.S |    1 +
- 2 files changed, 2 insertions(+)
+ mm/slob.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/vmlinux_32.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files arch/x86/kernel/vmlinux_32.lds.S
---- a/arch/x86/kernel/vmlinux_32.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files
-+++ a/arch/x86/kernel/vmlinux_32.lds.S
-@@ -63,6 +63,7 @@ SECTIONS
+diff -puN mm/slob.c~kmemleak-add-the-slob-memory-allocation-freeing-hooks mm/slob.c
+--- a/mm/slob.c~kmemleak-add-the-slob-memory-allocation-freeing-hooks
++++ a/mm/slob.c
+@@ -60,6 +60,7 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
++#include <linux/kmemleak.h>
+ #include <linux/cache.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+@@ -494,7 +495,7 @@ void *__kmalloc_node(size_t size, gfp_t 
+ 					  _RET_IP_, ret,
+ 					  size, PAGE_SIZE << order, gfp, node);
+ 	}
+-
++	kmemleak_alloc(ret, size, 1, gfp);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(__kmalloc_node);
+@@ -505,6 +506,7 @@ void kfree(const void *block)
  
-   /* writeable */
-   . = ALIGN(PAGE_SIZE);
-+  _sdata = .;			/* Start of data section */
-   .data : AT(ADDR(.data) - LOAD_OFFSET) {	/* Data */
- 	DATA_DATA
- 	CONSTRUCTORS
-diff -puN arch/x86/kernel/vmlinux_64.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files arch/x86/kernel/vmlinux_64.lds.S
---- a/arch/x86/kernel/vmlinux_64.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files
-+++ a/arch/x86/kernel/vmlinux_64.lds.S
-@@ -53,6 +53,7 @@ SECTIONS
-   RODATA
+ 	if (unlikely(ZERO_OR_NULL_PTR(block)))
+ 		return;
++	kmemleak_free(block);
  
-   . = ALIGN(PAGE_SIZE);		/* Align data segment to page size boundary */
-+  _sdata = .;			/* Start of data section */
- 				/* Data */
-   .data : AT(ADDR(.data) - LOAD_OFFSET) {
- 	DATA_DATA
+ 	sp = (struct slob_page *)virt_to_page(block);
+ 	if (slob_page(sp)) {
+@@ -569,12 +571,14 @@ struct kmem_cache *kmem_cache_create(con
+ 	} else if (flags & SLAB_PANIC)
+ 		panic("Cannot create slab cache %s\n", name);
+ 
++	kmemleak_alloc(c, sizeof(struct kmem_cache), 1, GFP_KERNEL);
+ 	return c;
+ }
+ EXPORT_SYMBOL(kmem_cache_create);
+ 
+ void kmem_cache_destroy(struct kmem_cache *c)
+ {
++	kmemleak_free(c);
+ 	slob_free(c, sizeof(struct kmem_cache));
+ }
+ EXPORT_SYMBOL(kmem_cache_destroy);
+@@ -600,6 +604,7 @@ void *kmem_cache_alloc_node(struct kmem_
+ 	if (c->ctor)
+ 		c->ctor(b);
+ 
++	kmemleak_alloc_recursive(b, c->size, 1, c->flags, flags);
+ 	return b;
+ }
+ EXPORT_SYMBOL(kmem_cache_alloc_node);
+@@ -622,6 +627,7 @@ static void kmem_rcu_free(struct rcu_hea
+ 
+ void kmem_cache_free(struct kmem_cache *c, void *b)
+ {
++	kmemleak_free_recursive(b, c->flags);
+ 	if (unlikely(c->flags & SLAB_DESTROY_BY_RCU)) {
+ 		struct slob_rcu *slob_rcu;
+ 		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
 _
 
 Patches currently in -mm which might be from catalin.marinas@arm.com are
