@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch added to -mm tree
-Date: Tue, 30 Dec 2008 13:21:05 -0800
-Message-ID: <200812302121.mBULL6hh032000@imap1.linux-foundation.org>
+Subject: + usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch added to -mm tree
+Date: Tue, 30 Dec 2008 13:21:09 -0800
+Message-ID: <200812302121.mBULL9k3032012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51966 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752866AbYL3VV2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752532AbYL3VVX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 16:21:28 -0500
+	Tue, 30 Dec 2008 16:21:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, greg@kroah.com, s
 
 
 The patch titled
-     usb: fsl_qe_udc: Fix disconnects reporting during bus reset
+     usb: fsl_qe_udc: Fix stalled TX requests bug
 has been added to the -mm tree.  Its filename is
-     usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
+     usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: fsl_qe_udc: Fix disconnects reporting during bus reset
+Subject: usb: fsl_qe_udc: Fix stalled TX requests bug
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Freescale QE UDC controllers can't report the "port change" states, so the
-only way to handle disconnects is to process bus reset interrupts.  The
-bus reset can take some time, that is, few irqs.  Gadgets may print the
-disconnection events, and this causes few repetitive messages in the
-kernel log.
+While disabling an endpoint the driver nuking any pending requests, thus
+completing them with -ESHUTDOWN status.  But the driver doesn't clear the
+tx_req, which means that a next TX request (after ep_enable), might get
+stalled, since the driver won't queue the new reqests.
 
-This patch fixes the issue by using the usb_state machine, if the usb
-controller has been already reset, just quit the reset irq early.
+This patch fixes a bug I'm observing with ethernet gadget while playing
+with ifconfig usb0 up/down (the up/down sequence disables and enables `in'
+and `out' endpoints).
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Acked-by: David Brownell <dbrownell@users.sourceforge.net>
@@ -53,21 +53,19 @@ Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/fsl_qe_udc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/usb/gadget/fsl_qe_udc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset drivers/usb/gadget/fsl_qe_udc.c
---- a/drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset
+diff -puN drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-stalled-tx-requests-bug drivers/usb/gadget/fsl_qe_udc.c
+--- a/drivers/usb/gadget/fsl_qe_udc.c~usb-fsl_qe_udc-fix-stalled-tx-requests-bug
 +++ a/drivers/usb/gadget/fsl_qe_udc.c
-@@ -2161,6 +2161,9 @@ static int reset_irq(struct qe_udc *udc)
- {
- 	unsigned char i;
- 
-+	if (udc->usb_state == USB_STATE_DEFAULT)
-+		return 0;
-+
- 	qe_usb_disable();
- 	out_8(&udc->usb_regs->usb_usadr, 0);
+@@ -1622,6 +1622,7 @@ static int qe_ep_disable(struct usb_ep *
+ 	nuke(ep, -ESHUTDOWN);
+ 	ep->desc = NULL;
+ 	ep->stopped = 1;
++	ep->tx_req = NULL;
+ 	qe_ep_reset(udc, ep->epnum);
+ 	spin_unlock_irqrestore(&udc->lock, flags);
  
 _
 
