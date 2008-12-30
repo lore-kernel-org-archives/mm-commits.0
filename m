@@ -1,86 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-tree_lock-fixes.patch removed from -mm tree
-Date: Tue, 30 Dec 2008 15:10:29 -0800
-Message-ID: <200812302310.mBUNATIw019324@imap1.linux-foundation.org>
+Subject: - reiser4-tree_lock-fixes-fix.patch removed from -mm tree
+Date: Tue, 30 Dec 2008 15:10:33 -0800
+Message-ID: <200812302310.mBUNAXHa019450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58376 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751586AbYL3XLB (ORCPT
+	by vger.kernel.org with ESMTP id S1752352AbYL3XLG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 18:11:01 -0500
+	Tue, 30 Dec 2008 18:11:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4-tree_lock-fixes
+     reiser4-tree_lock-fixes-fix
 has been removed from the -mm tree.  Its filename was
-     reiser4-tree_lock-fixes.patch
+     reiser4-tree_lock-fixes-fix.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-tree_lock-fixes
+Subject: reiser4-tree_lock-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/as_ops.c |    4 ++--
- fs/reiser4/jnode.c  |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ fs/reiser4/plugin/file/cryptcompress.c |    8 +++----
+ fs/reiser4/plugin/file/file.c          |   26 +++++++++++------------
+ 2 files changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN fs/reiser4/as_ops.c~reiser4-tree_lock-fixes fs/reiser4/as_ops.c
---- a/fs/reiser4/as_ops.c~reiser4-tree_lock-fixes
-+++ a/fs/reiser4/as_ops.c
-@@ -77,7 +77,7 @@ int reiser4_set_page_dirty(struct page *
- 		struct address_space *mapping = page->mapping;
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-tree_lock-fixes-fix fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-tree_lock-fixes-fix
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -3435,7 +3435,7 @@ static int find_anon_page_cluster(struct
+ {
+ 	int i = 0;
+ 	int found;
+-	write_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 	do {
+ 		/* looking for one page */
+ 		found = radix_tree_gang_lookup_tag(&mapping->page_tree,
+@@ -3457,7 +3457,7 @@ static int find_anon_page_cluster(struct
+ 		if (last_page_in_cluster(pages[i++]))
+ 			break;
+ 	} while (1);
+-	write_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 	return i;
+ }
  
- 		if (mapping) {
--			write_lock_irq(&mapping->tree_lock);
-+			spin_lock_irq(&mapping->tree_lock);
+@@ -3532,10 +3532,10 @@ static int capture_anon_pages(struct add
+ static int cryptcompress_inode_has_anon_pages(struct inode *inode)
+ {
+ 	int result;
+-	read_lock_irq(&inode->i_mapping->tree_lock);
++	spin_lock_irq(&inode->i_mapping->tree_lock);
+ 	result = radix_tree_tagged(&inode->i_mapping->page_tree,
+ 				   PAGECACHE_TAG_REISER4_MOVED);
+-	read_unlock_irq(&inode->i_mapping->tree_lock);
++	spin_unlock_irq(&inode->i_mapping->tree_lock);
+ 	return result;
+ }
  
- 			/* check for race with truncate */
- 			if (page->mapping) {
-@@ -89,7 +89,7 @@ int reiser4_set_page_dirty(struct page *
- 						   page->index,
+diff -puN fs/reiser4/plugin/file/file.c~reiser4-tree_lock-fixes-fix fs/reiser4/plugin/file/file.c
+--- a/fs/reiser4/plugin/file/file.c~reiser4-tree_lock-fixes-fix
++++ a/fs/reiser4/plugin/file/file.c
+@@ -848,9 +848,9 @@ static int has_anonymous_pages(struct in
+ {
+ 	int result;
+ 
+-	read_lock_irq(&inode->i_mapping->tree_lock);
++	spin_lock_irq(&inode->i_mapping->tree_lock);
+ 	result = radix_tree_tagged(&inode->i_mapping->page_tree, PAGECACHE_TAG_REISER4_MOVED);
+-	read_unlock_irq(&inode->i_mapping->tree_lock);
++	spin_unlock_irq(&inode->i_mapping->tree_lock);
+ 	return result;
+ }
+ 
+@@ -994,7 +994,7 @@ capture_anonymous_pages(struct address_s
+ 	nr = 0;
+ 
+ 	/* find pages tagged MOVED */
+-	write_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 	pvec.nr = radix_tree_gang_lookup_tag(&mapping->page_tree,
+ 					     (void **)pvec.pages, *index, count,
+ 					     PAGECACHE_TAG_REISER4_MOVED);
+@@ -1003,7 +1003,7 @@ capture_anonymous_pages(struct address_s
+ 		 * there are no pages tagged MOVED in mapping->page_tree
+ 		 * starting from *index
+ 		 */
+-		write_unlock_irq(&mapping->tree_lock);
++		spin_unlock_irq(&mapping->tree_lock);
+ 		*index = (pgoff_t)-1;
+ 		return 0;
+ 	}
+@@ -1014,7 +1014,7 @@ capture_anonymous_pages(struct address_s
+ 		radix_tree_tag_clear(&mapping->page_tree, pvec.pages[i]->index,
+ 				     PAGECACHE_TAG_REISER4_MOVED);
+ 	}
+-	write_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 
+ 
+ 	*index = pvec.pages[i - 1]->index + 1;
+@@ -1039,13 +1039,13 @@ capture_anonymous_pages(struct address_s
+ 				 * set MOVED tag to all pages which left not
+ 				 * captured
+ 				 */
+-				write_lock_irq(&mapping->tree_lock);
++				spin_lock_irq(&mapping->tree_lock);
+ 				for (; i < pagevec_count(&pvec); i ++) {
+ 					radix_tree_tag_set(&mapping->page_tree,
+ 							   pvec.pages[i]->index,
+ 							   PAGECACHE_TAG_REISER4_MOVED);
+ 				}
+-				write_unlock_irq(&mapping->tree_lock);
++				spin_unlock_irq(&mapping->tree_lock);
+ 
+ 				pagevec_release(&pvec);
+ 				return result;
+@@ -1055,11 +1055,11 @@ capture_anonymous_pages(struct address_s
+ 				 * 0 for Writeback-ed page. Set MOVED tag on
+ 				 * that page
+ 				 */
+-				write_lock_irq(&mapping->tree_lock);
++				spin_lock_irq(&mapping->tree_lock);
+ 				radix_tree_tag_set(&mapping->page_tree,
+ 						   pvec.pages[i]->index,
  						   PAGECACHE_TAG_REISER4_MOVED);
- 			}
--			write_unlock_irq(&mapping->tree_lock);
-+			spin_unlock_irq(&mapping->tree_lock);
- 			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
- 		}
+-				write_unlock_irq(&mapping->tree_lock);
++				spin_unlock_irq(&mapping->tree_lock);
+ 				if (i == 0)
+ 					*index = pvec.pages[0]->index;
+ 				else
+@@ -1135,7 +1135,7 @@ static int sync_page_list(struct inode *
+ 	mapping = inode->i_mapping;
+ 	from = 0;
+ 	result = 0;
+-	read_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 	while (result == 0) {
+ 		struct page *page;
+ 
+@@ -1150,17 +1150,17 @@ static int sync_page_list(struct inode *
+ 		 * truncating by inode->i_mutex locked by sys_fsync
+ 		 */
+ 		page_cache_get(page);
+-		read_unlock_irq(&mapping->tree_lock);
++		spin_unlock_irq(&mapping->tree_lock);
+ 
+ 		from = page->index + 1;
+ 
+ 		result = sync_page(page);
+ 
+ 		page_cache_release(page);
+-		read_lock_irq(&mapping->tree_lock);
++		spin_lock_irq(&mapping->tree_lock);
  	}
-diff -puN fs/reiser4/jnode.c~reiser4-tree_lock-fixes fs/reiser4/jnode.c
---- a/fs/reiser4/jnode.c~reiser4-tree_lock-fixes
-+++ a/fs/reiser4/jnode.c
-@@ -434,9 +434,9 @@ static void inode_attach_jnode(jnode * n
- 	if (rtree->rnode == NULL) {
- 		/* prevent inode from being pruned when it has jnodes attached
- 		   to it */
--		write_lock_irq(&inode->i_data.tree_lock);
-+		spin_lock_irq(&inode->i_data.tree_lock);
- 		inode->i_data.nrpages++;
--		write_unlock_irq(&inode->i_data.tree_lock);
-+		spin_unlock_irq(&inode->i_data.tree_lock);
- 	}
- 	assert("zam-1049", equi(rtree->rnode != NULL, info->nr_jnodes != 0));
- 	check_me("zam-1045",
-@@ -464,9 +464,9 @@ static void inode_detach_jnode(jnode * n
- 	check_me("zam-1046", radix_tree_delete(rtree, node->key.j.index));
- 	if (rtree->rnode == NULL) {
- 		/* inode can be pruned now */
--		write_lock_irq(&inode->i_data.tree_lock);
-+		spin_lock_irq(&inode->i_data.tree_lock);
- 		inode->i_data.nrpages--;
--		write_unlock_irq(&inode->i_data.tree_lock);
-+		spin_unlock_irq(&inode->i_data.tree_lock);
- 	}
+ 
+-	read_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 	return result;
  }
  
 _
@@ -141,7 +229,6 @@ nilfs2-pathname-operations-fix.patch
 nilfs2-super-block-operations-fix.patch
 kmemleak-add-the-base-support-fix.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
 reiser4-semaphore-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
