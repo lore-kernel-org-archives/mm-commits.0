@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch added to -mm tree
-Date: Tue, 30 Dec 2008 13:14:24 -0800
-Message-ID: <200812302114.mBULEOAG026888@imap1.linux-foundation.org>
+Subject: + do_coredump-check-return-from-argv_split.patch added to -mm tree
+Date: Tue, 30 Dec 2008 13:15:54 -0800
+Message-ID: <200812302115.mBULFsOn028008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752040AbYL3VO2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751541AbYL3VQA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 16:14:28 -0500
+	Tue, 30 Dec 2008 16:16:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mirq-linux@rere.qmqm.pl, jbarnes@virtuousgeek.org
+Cc: penguin-kernel@i-love.sakura.ne.jppenguin-kernel@i-love.sakura.ne.jp
 
 
 The patch titled
-     pci-quirks: HP hides SMBus controller in Compaq nx9500 laptops
+     do_coredump(): check return from argv_split()
 has been added to the -mm tree.  Its filename is
-     pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
+     do_coredump-check-return-from-argv_split.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-quirks: HP hides SMBus controller in Compaq nx9500 laptops
-From: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Subject: do_coredump(): check return from argv_split()
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 
-I found no references to SMBus in ACPI DSDT disassembly on my laptop
-so this should be safe.
+do_coredump() accesses helper_argv[0] without checking helper_argv !=
+NULL.  This can happen if page allocation failed.
 
-Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/exec.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/pci/quirks.c~pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops
-+++ a/drivers/pci/quirks.c
-@@ -1098,6 +1098,7 @@ static void __init asus_hides_smbus_host
- 			switch (dev->subsystem_device) {
- 			case 0x12bc: /* HP D330L */
- 			case 0x12bd: /* HP D530 */
-+			case 0x006a: /* HP Compaq nx9500 */
- 				asus_hides_smbus = 1;
- 			}
- 		else if (dev->device == PCI_DEVICE_ID_INTEL_82875_HB)
+diff -puN fs/exec.c~do_coredump-check-return-from-argv_split fs/exec.c
+--- a/fs/exec.c~do_coredump-check-return-from-argv_split
++++ a/fs/exec.c
+@@ -1808,6 +1808,11 @@ int do_coredump(long signr, int exit_cod
+ 
+  	if (ispipe) {
+ 		helper_argv = argv_split(GFP_KERNEL, corename+1, &helper_argc);
++		if (!helper_argv) {
++			printk(KERN_WARNING "%s failed to allocate memory\n",
++			       __func__);
++			goto fail_unlock;
++		}
+ 		/* Terminate the string before the first option */
+ 		delimit = strchr(corename, ' ');
+ 		if (delimit)
 _
 
-Patches currently in -mm which might be from mirq-linux@rere.qmqm.pl are
+Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
 
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-checkpatch-fixes.patch
-pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
+do_coredump-check-return-from-argv_split.patch
+dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
+dma_alloc_coherent-clean-it-up.patch
+dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch
 
