@@ -1,136 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-suid.patch removed from -mm tree
-Date: Tue, 30 Dec 2008 15:10:53 -0800
-Message-ID: <200812302310.mBUNArXK019718@imap1.linux-foundation.org>
+Subject: - reiser4-use-wake_up_process-instead-of-wake_up-when-possible.patch removed from -mm tree
+Date: Tue, 30 Dec 2008 15:11:02 -0800
+Message-ID: <200812302311.mBUNB22C019804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55367 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55365 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752577AbYL3XLX (ORCPT
+	by vger.kernel.org with ESMTP id S1752626AbYL3XLe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 18:11:23 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mBUNArxX008455
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 30 Dec 2008 15:10:54 -0800
+	Tue, 30 Dec 2008 18:11:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: rmh3093@gmail.com, edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4-suid
+     reiser4: use wake_up_process() instead of wake_up() when possible
 has been removed from the -mm tree.  Its filename was
-     reiser4-suid.patch
+     reiser4-use-wake_up_process-instead-of-wake_up-when-possible.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-suid
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reiser4: use wake_up_process() instead of wake_up() when possible
+From: Ryan Hope <rmh3093@gmail.com>
 
+This was item #6 on the todo list for reiser4 inclusion in mainline:
+
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/cryptcompress.c |    2 +-
- fs/reiser4/plugin/file/file.c          |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/reiser4/entd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-suid fs/reiser4/plugin/file/cryptcompress.c
---- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-suid
-+++ a/fs/reiser4/plugin/file/cryptcompress.c
-@@ -2823,7 +2823,7 @@ ssize_t write_cryptcompress(struct file 
- 	}
-   	if (unlikely(count == 0))
- 		return 0;
--	result = remove_suid(file->f_dentry);
-+	result = file_remove_suid(file);
- 	if (unlikely(result != 0)) {
- 		context_set_commit_async(ctx);
- 		return result;
-diff -puN fs/reiser4/plugin/file/file.c~reiser4-suid fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~reiser4-suid
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -2121,7 +2121,7 @@ ssize_t write_unix_file(struct file *fil
- 		return result;
- 	}
+diff -puN fs/reiser4/entd.c~reiser4-use-wake_up_process-instead-of-wake_up-when-possible fs/reiser4/entd.c
+--- a/fs/reiser4/entd.c~reiser4-use-wake_up_process-instead-of-wake_up-when-possible
++++ a/fs/reiser4/entd.c
+@@ -218,7 +218,7 @@ void reiser4_leave_flush(struct super_bl
+ #endif
+ 	spin_unlock(&ent->guard);
+ 	if (wake_up_ent)
+-		wake_up(&ent->wait);
++		wake_up_process(ent->tsk);
+ }
  
--	result = remove_suid(file->f_dentry);
-+	result = file_remove_suid(file);
- 	if (result) {
- 		context_set_commit_async(ctx);
- 		return result;
+ #define ENTD_CAPTURE_APAGE_BURST SWAP_CLUSTER_MAX
+@@ -304,7 +304,7 @@ int write_page_by_ent(struct page *page,
+ 	ent->nr_todo_reqs++;
+ 	list_add_tail(&rq.link, &ent->todo_list);
+ 	if (ent->nr_todo_reqs == 1)
+-		wake_up(&ent->wait);
++		wake_up_process(ent->tsk);
+ 
+ 	spin_unlock(&ent->guard);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rmh3093@gmail.com are
 
-origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-mm-check-for-no-mmaps-in-exit_mmap-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-binfmtsh-include-listh-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-fs-execc-make-do_coredump-void-checkpatch-fixes.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
 reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+reiser4-use-wake_up_process-instead-of-wake_up-when-possible.patch
 
