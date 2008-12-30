@@ -1,137 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + mm-check-for-no-mmaps-in-exit_mmap-fix.patch added to -mm tree
-Date: Tue, 30 Dec 2008 13:04:33 -0800
-Message-ID: <200812302104.mBUL4X3Q019293@imap1.linux-foundation.org>
+Subject: - spi-spi_write_then_read-regression-fix.patch removed from -mm tree
+Date: Tue, 30 Dec 2008 13:06:40 -0800
+Message-ID: <200812302106.mBUL6fgi020967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55042 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752135AbYL3VEo (ORCPT
+	by vger.kernel.org with ESMTP id S1751702AbYL3VG4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 16:04:44 -0500
+	Tue, 30 Dec 2008 16:06:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com, hannes@cmpxchg.org, hugh@veritas.com, nickpiggin@yahoo.com.au
+To: dbrownell@users.sourceforge.net, vernoninhand@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-check-for-no-mmaps-in-exit_mmap-fix
-has been added to the -mm tree.  Its filename is
-     mm-check-for-no-mmaps-in-exit_mmap-fix.patch
+     spi: spi_write_then_read() regression fix
+has been removed from the -mm tree.  Its filename was
+     spi-spi_write_then_read-regression-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of confusion
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-check-for-no-mmaps-in-exit_mmap-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: spi: spi_write_then_read() regression fix
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-i shouldn't have to do this
+The recent "simplify spi_write_then_read()" patch included a small
+regression from the 2.6.27 behavior with its performance win.
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+All SPI transfers are full duplex, and are packaged as half duplex
+by either discarding the data that's read ("write only"), or else
+by writing zeroes ("read only").  That patch wasn't ensuring that
+zeroes were getting written out during the "half duplex read" part
+of the transaction; instead, old RX bits were getting sent.
+
+The fix is trivial:  zero the buffer before using it.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Vernon Sauder <vernoninhand@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-check-for-no-mmaps-in-exit_mmap-fix mm/mmap.c
---- a/mm/mmap.c~mm-check-for-no-mmaps-in-exit_mmap-fix
-+++ a/mm/mmap.c
-@@ -2090,7 +2090,7 @@ void exit_mmap(struct mm_struct *mm)
- 	arch_exit_mmap(mm);
- 	mmu_notifier_release(mm);
+diff -puN drivers/spi/spi.c~spi-spi_write_then_read-regression-fix drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-spi_write_then_read-regression-fix
++++ a/drivers/spi/spi.c
+@@ -677,11 +677,13 @@ int spi_write_then_read(struct spi_devic
  
--	if (!mm->mmap)
-+	if (!mm->mmap)	/* Can happen if dup_mmap() received an OOM */
- 		return;
+ 	/* ... unless someone else is using the pre-allocated buffer */
+ 	if (!mutex_trylock(&lock)) {
+-		local_buf = kmalloc(SPI_BUFSIZ, GFP_KERNEL);
++		local_buf = kzalloc(SPI_BUFSIZ, GFP_KERNEL);
+ 		if (!local_buf)
+ 			return -ENOMEM;
+-	} else
++	} else {
+ 		local_buf = buf;
++		memset(local_buf, 0, x.len);
++	}
  
- 	if (mm->locked_vm) {
+ 	memcpy(local_buf, txbuf, n_tx);
+ 	x.tx_buf = local_buf;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
+spi-spi_write_then_read-regression-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-mm-check-for-no-mmaps-in-exit_mmap-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-binfmtsh-include-listh-fix.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+spi_gpio-driver.patch
 spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes.patch
-nfs-optimize-attribute-timeouts-for-noac-and-actimeo=0-checkpatch-fixes-checkpatch-fixes.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+atmel_spi-clean-up-spiv1-quirk-handling.patch
+spi-atmel_spi-update-chipselect-handling.patch
+spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio.patch
+drivers-spi-move-a-dereference-below-a-null-test.patch
+mfd-da903x-section-fix.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+twl4030-gpio-cleanup-debounce.patch
+gpio-pca953x-handles-more-chips-i2c-fault-codes.patch
 
