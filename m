@@ -1,54 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - slb-drop-kmem-cache-argument-from-constructor-reiser4.patch removed from -mm tree
-Date: Tue, 30 Dec 2008 15:10:50 -0800
-Message-ID: <200812302310.mBUNAorC019598@imap1.linux-foundation.org>
+Subject: - reiser4-semaphore-fix.patch removed from -mm tree
+Date: Tue, 30 Dec 2008 15:10:47 -0800
+Message-ID: <200812302310.mBUNAlZT019595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57302 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752559AbYL3XLS (ORCPT
+	by vger.kernel.org with ESMTP id S1752612AbYL3XLT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 18:11:18 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id mBUNAoZa008449
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 30 Dec 2008 15:10:51 -0800
+	Tue, 30 Dec 2008 18:11:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slb-drop-kmem-cache-argument-from-constructor-reiser4
+     reiser4-semaphore-fix
 has been removed from the -mm tree.  Its filename was
-     slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+     reiser4-semaphore-fix.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slb-drop-kmem-cache-argument-from-constructor-reiser4
+Subject: reiser4-semaphore-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+In file included from fs/reiser4/znode.h:23,
+                 from fs/reiser4/tree.h:14,
+                 from fs/reiser4/super.h:11,
+                 from fs/reiser4/debug.c:28:
+include/asm/semaphore.h:1:2: warning: #warning Use linux/semaphore.h, not asm/semaphore.h
+
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/super_ops.c |    2 +-
+ fs/reiser4/znode.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiser4/super_ops.c~slb-drop-kmem-cache-argument-from-constructor-reiser4 fs/reiser4/super_ops.c
---- a/fs/reiser4/super_ops.c~slb-drop-kmem-cache-argument-from-constructor-reiser4
-+++ a/fs/reiser4/super_ops.c
-@@ -26,7 +26,7 @@ static struct dentry *reiser4_debugfs_ro
-  * Initialization function to be called when new page is allocated by reiser4
-  * inode cache. It is set on inode cache creation.
-  */
--static void init_once(struct kmem_cache *cache, void *obj)
-+static void init_once(void *obj)
- {
- 	struct reiser4_inode_object *info;
+diff -puN fs/reiser4/znode.h~reiser4-semaphore-fix fs/reiser4/znode.h
+--- a/fs/reiser4/znode.h~reiser4-semaphore-fix
++++ a/fs/reiser4/znode.h
+@@ -18,9 +18,9 @@
  
+ #include <linux/types.h>
+ #include <linux/spinlock.h>
++#include <linux/semaphore.h>
+ #include <linux/pagemap.h>	/* for PAGE_CACHE_SIZE */
+ #include <asm/atomic.h>
+-#include <asm/semaphore.h>
+ 
+ /* znode tracks its position within parent (internal item in a parent node,
+  * that contains znode's block number). */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +112,7 @@ nilfs2-pathname-operations-fix.patch
 nilfs2-super-block-operations-fix.patch
 kmemleak-add-the-base-support-fix.patch
 reiser4.patch
+reiser4-semaphore-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
 reiser4-suid.patch
 reiser4-track-upstream-changes.patch
