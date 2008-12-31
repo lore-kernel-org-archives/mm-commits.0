@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch added to -mm tree
-Date: Tue, 30 Dec 2008 20:43:31 -0800
-Message-ID: <200812310443.mBV4hVB0017878@imap1.linux-foundation.org>
+Subject: + spih-uses-needs-deviceh.patch added to -mm tree
+Date: Tue, 30 Dec 2008 20:47:03 -0800
+Message-ID: <200812310447.mBV4l31V020687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45038 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752506AbYLaEnn (ORCPT
+	by vger.kernel.org with ESMTP id S1752548AbYLaErN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Dec 2008 23:43:43 -0500
+	Tue, 30 Dec 2008 23:47:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dmitry.torokhov@gmail.com, rydberg@euromail.se
+Cc: randy.dunlap@oracle.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     input: fix function arg list
+     spi.h uses/needs device.h
 has been added to the -mm tree.  Its filename is
-     es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+     spih-uses-needs-deviceh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: fix function arg list
+Subject: spi.h uses/needs device.h
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix function args build warning:
+Include header files as used/needed:
 
-mmotm-2008-1230-1605/drivers/input/input.c:1661: warning: function declaration isn't a prototype
+In file included from mmotm-2008-1230-1605/drivers/leds/leds-dac124s085.c:16:
+mmotm-2008-1230-1605/include/linux/spi/spi.h:66: error: field 'dev' has incomplete type
+mmotm-2008-1230-1605/include/linux/spi/spi.h: In function 'to_spi_device':
+mmotm-2008-1230-1605/include/linux/spi/spi.h:100: warning: type defaults to 'int' in declaration of '__mptr'
+<etc>
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Henrik Rydberg <rydberg@euromail.se>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/input.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/spi/spi.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/input/input.c~es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix drivers/input/input.c
---- a/drivers/input/input.c~es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix
-+++ a/drivers/input/input.c
-@@ -1644,7 +1644,7 @@ static const struct file_operations inpu
- 	.open = input_open_file,
- };
+diff -puN include/linux/spi/spi.h~spih-uses-needs-deviceh include/linux/spi/spi.h
+--- a/include/linux/spi/spi.h~spih-uses-needs-deviceh
++++ a/include/linux/spi/spi.h
+@@ -19,6 +19,8 @@
+ #ifndef __LINUX_SPI_H
+ #define __LINUX_SPI_H
  
--static void __init input_init_abs_bypass()
-+static void __init input_init_abs_bypass(void)
- {
- 	const unsigned int *p;
- 	for (p = input_abs_bypass_init_data; *p; p++)
++#include <linux/device.h>
++
+ /*
+  * INTERFACES between SPI master-side drivers and SPI infrastructure.
+  * (There's no SPI slave support for Linux yet...)
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+spih-uses-needs-deviceh.patch
 linux-next.patch
 kgdb-fix-kernel-doc-error.patch
 es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
