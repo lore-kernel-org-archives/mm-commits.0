@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-remove-excess-kernel-doc-notation.patch added to -mm tree
-Date: Mon, 05 Jan 2009 15:27:30 -0800
-Message-ID: <200901052327.n05NRUoH009962@imap1.linux-foundation.org>
+Subject: + fs-fix-function-param-name-in-kernel-doc.patch added to -mm tree
+Date: Mon, 05 Jan 2009 15:27:54 -0800
+Message-ID: <200901052327.n05NRsT1010239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37351 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44203 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751110AbZAEX1h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 18:27:37 -0500
+	by vger.kernel.org with ESMTP id S1752272AbZAEX2B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 18:28:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     jbd: remove excess kernel-doc notation
+     fs: fix function param name in kernel-doc
 has been added to the -mm tree.  Its filename is
-     jbd-remove-excess-kernel-doc-notation.patch
+     fs-fix-function-param-name-in-kernel-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: remove excess kernel-doc notation
+Subject: fs: fix function param name in kernel-doc
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Remove excess kernel-doc from fs/jbd/transaction.c:
+Fix function parameter name in kernel-doc:
 
-Warning(linux-2.6.28-git5//fs/jbd/transaction.c:764): Excess function parameter 'credits' description in 'journal_get_write_access'
+Warning(linux-2.6.28-git5//fs/block_dev.c:1272): No description found for parameter 'pathname'
+Warning(linux-2.6.28-git5//fs/block_dev.c:1272): Excess function parameter 'path' description in 'lookup_bdev'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/transaction.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/block_dev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jbd/transaction.c~jbd-remove-excess-kernel-doc-notation fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-remove-excess-kernel-doc-notation
-+++ a/fs/jbd/transaction.c
-@@ -754,7 +754,6 @@ out:
-  * int journal_get_write_access() - notify intent to modify a buffer for metadata (not data) update.
-  * @handle: transaction to add buffer modifications to
-  * @bh:     bh to be used for metadata writes
-- * @credits: variable that will receive credits for the buffer
+diff -puN fs/block_dev.c~fs-fix-function-param-name-in-kernel-doc fs/block_dev.c
+--- a/fs/block_dev.c~fs-fix-function-param-name-in-kernel-doc
++++ a/fs/block_dev.c
+@@ -1291,7 +1291,7 @@ EXPORT_SYMBOL(ioctl_by_bdev);
+ 
+ /**
+  * lookup_bdev  - lookup a struct block_device by name
+- * @path:	special file representing the block device
++ * @pathname:	special file representing the block device
   *
-  * Returns an error code or 0 on success.
-  *
+  * Get a reference to the blockdevice at @pathname in the current
+  * namespace if possible and return it.  Return ERR_PTR(error)
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -76,6 +78,7 @@ fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
 documentation-when-to-bug-and-when-to-not-bug.patch
 fs-inode-fix-kernel-doc-notation.patch
 sysrq-more-explicit-less-terse-help-messages.patch
+fs-fix-function-param-name-in-kernel-doc.patch
 fs-ncpfs-getoptc-cleanup-keneldoc.patch
 max3100-spi-uart-driver-select-serial_core.patch
 dmi-fix-kernel-doc-notation.patch
