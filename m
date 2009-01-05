@@ -1,102 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-message-fusion-move-a-dereference-below-a-null-test.patch removed from -mm tree
-Date: Mon, 05 Jan 2009 01:26:33 -0800
-Message-ID: <200901050926.n059QXaN008731@imap1.linux-foundation.org>
+Subject: - mfd-da903x-section-fix.patch removed from -mm tree
+Date: Mon, 05 Jan 2009 01:26:47 -0800
+Message-ID: <200901050926.n059Qlt2008874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45945 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751930AbZAEJ0t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 04:26:49 -0500
+	by vger.kernel.org with ESMTP id S1751930AbZAEJ1E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 04:27:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, James.Bottomley@HansenPartnership.com, Sathya.Prakash@lsi.com, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, eric.miao@marvell.com, sameo@openedhand.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/message/fusion: Move a dereference below a NULL test
+     mfd da903x: section fix
 has been removed from the -mm tree.  Its filename was
-     drivers-message-fusion-move-a-dereference-below-a-null-test.patch
+     mfd-da903x-section-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/message/fusion: Move a dereference below a NULL test
-From: Julia Lawall <julia@diku.dk>
+Subject: mfd da903x: section fix
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-If the NULL test is necessary, then the dereference should be moved below
-the NULL test.
+This fixes the following section warning:
 
-The semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/).
+  WARNING: vmlinux.o(.devinit.text+0x3d36): Section mismatch in reference from the function
+  da903x_add_subdevs() to the function .devexit.text:da903x_remove_subdevs()
+  The function __devinit da903x_add_subdevs() references
+  a function __devexit da903x_remove_subdevs().
+  This is often seen when error handling in the init function
+  uses functionality in the exit path.
+  The fix is often to remove the __devexit annotation of
+  da903x_remove_subdevs() so it may be used outside an exit section.
 
-// <smpl>
-@disable is_null@
-identifier f;
-expression E;
-identifier fld;
-statement S;
-@@
+It might be nice to have an "init and exit" section annotation for such
+cases; in this case the waste is only about 40 bytes (x86 test build).
 
-+ if (E == NULL) S
-  f(...,E->fld,...);
-- if (E == NULL) S
-
-@@
-identifier f;
-expression E;
-identifier fld;
-statement S;
-@@
-
-+ if (!E) S
-  f(...,E->fld,...);
-- if (!E) S
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: "Prakash, Sathya" <Sathya.Prakash@lsi.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Eric Miao <eric.miao@marvell.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptctl.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/mfd/da903x.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/message/fusion/mptctl.c~drivers-message-fusion-move-a-dereference-below-a-null-test drivers/message/fusion/mptctl.c
---- a/drivers/message/fusion/mptctl.c~drivers-message-fusion-move-a-dereference-below-a-null-test
-+++ a/drivers/message/fusion/mptctl.c
-@@ -308,10 +308,11 @@ static void mptctl_timeout_expired (MPT_
+diff -puN drivers/mfd/da903x.c~mfd-da903x-section-fix drivers/mfd/da903x.c
+--- a/drivers/mfd/da903x.c~mfd-da903x-section-fix
++++ a/drivers/mfd/da903x.c
+@@ -435,13 +435,13 @@ static const struct i2c_device_id da903x
+ };
+ MODULE_DEVICE_TABLE(i2c, da903x_id_table);
+ 
+-static int __devexit __remove_subdev(struct device *dev, void *unused)
++static int __remove_subdev(struct device *dev, void *unused)
  {
- 	int rc = 1;
+ 	platform_device_unregister(to_platform_device(dev));
+ 	return 0;
+ }
  
--	dctlprintk(ioctl->ioc, printk(MYIOC_s_DEBUG_FMT ": Timeout Expired! Host %d\n",
--				ioctl->ioc->name, ioctl->ioc->id));
- 	if (ioctl == NULL)
- 		return;
-+	dctlprintk(ioctl->ioc,
-+		   printk(MYIOC_s_DEBUG_FMT ": Timeout Expired! Host %d\n",
-+		   ioctl->ioc->name, ioctl->ioc->id));
- 
- 	ioctl->wait_done = 0;
- 	if (ioctl->reset & MPTCTL_RESET_OK)
+-static int __devexit da903x_remove_subdevs(struct da903x_chip *chip)
++static int da903x_remove_subdevs(struct da903x_chip *chip)
+ {
+ 	return device_for_each_child(chip->dev, NULL, __remove_subdev);
+ }
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
 linux-next.patch
-arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-powerpc-powermac-add-missing-of_node_put.patch
-net-tipc-bcasth-use-array_size.patch
-net-bridge-netfilter-move-a-dereference-below-a-null-test.patch
-drivers-isdn-hardware-misdn-move-a-dereference-below-a-null-test.patch
-drivers-net-hamradio-6packc-move-a-dereference-below-a-null-test.patch
-drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch
-mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
-drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
+usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
+usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
+usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
+usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
+usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+spi_gpio-driver.patch
+spi_gpio-driver-cleanups.patch
+atmel_spi-clean-up-spiv1-quirk-handling.patch
+spi-atmel_spi-update-chipselect-handling.patch
+spi-use-generic-gpio-calls-in-spi_s3c24xx_gpio.patch
 drivers-spi-move-a-dereference-below-a-null-test.patch
-drivers-rtc-correct-an-error-test.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+twl4030-gpio-cleanup-debounce.patch
+gpio-pca953x-handles-more-chips-i2c-fault-codes.patch
 
