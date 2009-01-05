@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch added to -mm tree
-Date: Mon, 05 Jan 2009 14:03:49 -0800
-Message-ID: <200901052203.n05M3nxY006780@imap1.linux-foundation.org>
+Subject: + mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch added to -mm tree
+Date: Mon, 05 Jan 2009 14:04:16 -0800
+Message-ID: <200901052204.n05M4G3F007137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753153AbZAEWEf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:04:35 -0500
+	by vger.kernel.org with ESMTP id S1753381AbZAEWE5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:04:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@suse.de, wassim.dagash@gmail.com
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@suse.de, wassim.dagash@gmail.com
 
 
 The patch titled
-     mm: stop kswapd's infinite loop at high order allocation
+     mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix
 has been added to the -mm tree.  Its filename is
-     mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
+     mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,122 +33,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: stop kswapd's infinite loop at high order allocation
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Wassim Dagash reported following kswapd infinite loop problem.
-
-  kswapd runs in some infinite loop trying to swap until order 10 of zone
-  highmem is OK.... kswapd will continue to try to balance order 10 of zone
-  highmem forever (or until someone release a very large chunk of highmem).
-
-For non order-0 allocations, the system may never be balanced due to
-fragmentation but kswapd should not infinitely loop as a result.
-
-Instead, recheck all watermarks at order-0 as they are the most important.
-If watermarks are ok, kswapd will go back to sleep.
-
-Reported-by: wassim dagash <wassim.dagash@gmail.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: wassim dagash <wassim.dagash@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2 mm/vmscan.c
---- a/mm/vmscan.c~mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2
+diff -puN mm/vmscan.c~mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix
 +++ a/mm/vmscan.c
-@@ -1867,6 +1867,23 @@ out:
- 
- 		try_to_freeze();
- 
-+		/*
-+		 * Fragmentation may mean that the system cannot be
-+		 * rebalanced for high-order allocations in all zones.
-+		 * At this point, if nr_reclaimed < SWAP_CLUSTER_MAX,
-+		 * it means the zones have been fully scanned and are still
-+		 * not balanced. For high-order allocations, there is
-+		 * little point trying all over again as kswapd may
-+		 * infinite loop.
-+		 *
-+		 * Instead, recheck all watermarks at order-0 as they
-+		 * are the most important. If watermarks are ok, kswapd will go
-+		 * back to sleep. High-order users can still direct reclaim
-+		 * if they wish.
-+		 */
-+		if (nr_reclaimed < SWAP_CLUSTER_MAX)
-+			order = sc.order = 0;
-+
- 		goto loop_again;
- 	}
- 
+@@ -1878,8 +1878,8 @@ out:
+ 		 *
+ 		 * Instead, recheck all watermarks at order-0 as they
+ 		 * are the most important. If watermarks are ok, kswapd will go
+-		 * back to sleep. High-order users can still direct reclaim
+-		 * if they wish.
++		 * back to sleep. High-order users can still perform direct
++		 * reclaim if they wish.
+ 		 */
+ 		if (nr_reclaimed < SWAP_CLUSTER_MAX)
+ 			order = sc.order = 0;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-oom-fix-zone_scan_mutex-name.patch
-mm-get-rid-of-pagevec_release_nonlru.patch
-cleanup-get-rid-of-ifdef-config_migration.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-make-page_lock_anon_vma-static.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-mm-make-init_section_page_cgroup-static.patch
-mm-make-maddr-__iomem.patch
-mm-make-mem_cgroup_resize_limit-static.patch
-mm-make-scan_all_zones_unevictable_pages-static.patch
-mm-make-scan_zone_unevictable_pages-static.patch
-mm-make-setup_per_zone_inactive_ratio-static.patch
-mm-make-vread-and-vwrite-declaration.patch
-vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
-vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
-mm-kill-zone_is_near_oom.patch
-mm-make-get_user_pages-interruptible.patch
-mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
-introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
-mm-remove-config_out_of_line_pfn_to_page.patch
-mm-kill-page_queue_congested.patch
-mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
-remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
-sys_execve-and-sys_uselib-do-not-call-into-fsnotify.patch
-profile-dont-include-asm-ptraceh-twice.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-devices-cgroup-allow-mkfifo.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
+i-need-old-gcc.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+mm-check-for-no-mmaps-in-exit_mmap-fix.patch
+mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+smp_call_function_single-be-slightly-less-stupid.patch
+binfmtsh-include-listh-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
 memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-mm-make-get_scan_ratio-safe-for-memcg.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
-memcg-remove-mem_cgroup_cal_reclaim.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-fix-calclation-of-active_ratio.patch
-memcg-fix-calclation-of-active_ratio-build-error-fix.patch
-memcg-show-real-limit-under-hierarchy-mode.patch
-memcg-explain-details-and-test-document.patch
-coredump_filter-permit-changing-of-the-default-filter.patch
-ia64-implement-interrupt-enabling-rwlocks-fix.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+fs-execc-make-do_coredump-void-checkpatch-fixes.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
+dma_alloc_coherent-clean-it-up.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+kmemleak-add-the-base-support-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
