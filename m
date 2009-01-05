@@ -1,128 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - fs-introduce-bgl_lock_ptr.patch removed from -mm tree
-Date: Sun, 04 Jan 2009 22:40:47 -0800
-Message-ID: <200901050640.n056el62004845__5549.3900472813$1231137744$gmane$org@imap1.linux-foundation.org>
+Subject: - spih-uses-needs-deviceh.patch removed from -mm tree
+Date: Sun, 04 Jan 2009 22:40:45 -0800
+Message-ID: <200901050640.n056ejvp004842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40176 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750891AbZAEGkz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 01:40:55 -0500
+	by vger.kernel.org with ESMTP id S1751328AbZAEGlC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 01:41:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, adilger@sun.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: introduce bgl_lock_ptr()
+     spi.h uses/needs device.h
 has been removed from the -mm tree.  Its filename was
-     fs-introduce-bgl_lock_ptr.patch
+     spih-uses-needs-deviceh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: introduce bgl_lock_ptr()
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: spi.h uses/needs device.h
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-As suggested by Andreas Dilger, introduce a bgl_lock_ptr() helper in
-<linux/blockgroup_lock.h> and add separate sb_bgl_lock() helpers to filesystem
-specific header files to break the hidden dependency to struct
-ext[234]_sb_info. Also, while at it, convert the macros to static inlines to
-try make up for all the times I broke Andrew Morton's tree.
+Include header files as used/needed:
 
-Acked-by: Andreas Dilger <adilger@sun.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: <linux-ext4@vger.kernel.org>
+In file included from mmotm-2008-1230-1605/drivers/leds/leds-dac124s085.c:16:
+mmotm-2008-1230-1605/include/linux/spi/spi.h:66: error: field 'dev' has incomplete type
+mmotm-2008-1230-1605/include/linux/spi/spi.h: In function 'to_spi_device':
+mmotm-2008-1230-1605/include/linux/spi/spi.h:100: warning: type defaults to 'int' in declaration of '__mptr'
+<etc>
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ext4_sb.h               |    6 ++++++
- include/linux/blockgroup_lock.h |    7 +++++--
- include/linux/ext2_fs_sb.h      |    6 ++++++
- include/linux/ext3_fs_sb.h      |    6 ++++++
- 4 files changed, 23 insertions(+), 2 deletions(-)
+ include/linux/spi/spi.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ext4/ext4_sb.h~fs-introduce-bgl_lock_ptr fs/ext4/ext4_sb.h
---- a/fs/ext4/ext4_sb.h~fs-introduce-bgl_lock_ptr
-+++ a/fs/ext4/ext4_sb.h
-@@ -146,4 +146,10 @@ struct ext4_sb_info {
- 	struct flex_groups *s_flex_groups;
- };
+diff -puN include/linux/spi/spi.h~spih-uses-needs-deviceh include/linux/spi/spi.h
+--- a/include/linux/spi/spi.h~spih-uses-needs-deviceh
++++ a/include/linux/spi/spi.h
+@@ -19,6 +19,8 @@
+ #ifndef __LINUX_SPI_H
+ #define __LINUX_SPI_H
  
-+static inline spinlock_t *
-+sb_bgl_lock(struct ext4_sb_info *sbi, unsigned int block_group)
-+{
-+	return bgl_lock_ptr(&sbi->s_blockgroup_lock, block_group);
-+}
++#include <linux/device.h>
 +
- #endif	/* _EXT4_SB */
-diff -puN include/linux/blockgroup_lock.h~fs-introduce-bgl_lock_ptr include/linux/blockgroup_lock.h
---- a/include/linux/blockgroup_lock.h~fs-introduce-bgl_lock_ptr
-+++ a/include/linux/blockgroup_lock.h
-@@ -53,7 +53,10 @@ static inline void bgl_lock_init(struct 
-  * The accessor is a macro so we can embed a blockgroup_lock into different
-  * superblock types
-  */
--#define sb_bgl_lock(sb, block_group) \
--	(&(sb)->s_blockgroup_lock.locks[(block_group) & (NR_BG_LOCKS-1)].lock)
-+static inline spinlock_t *
-+bgl_lock_ptr(struct blockgroup_lock *bgl, unsigned int block_group)
-+{
-+	return &bgl->locks[(block_group) & (NR_BG_LOCKS-1)].lock;
-+}
- 
- #endif
-diff -puN include/linux/ext2_fs_sb.h~fs-introduce-bgl_lock_ptr include/linux/ext2_fs_sb.h
---- a/include/linux/ext2_fs_sb.h~fs-introduce-bgl_lock_ptr
-+++ a/include/linux/ext2_fs_sb.h
-@@ -108,4 +108,10 @@ struct ext2_sb_info {
- 	struct ext2_reserve_window_node s_rsv_window_head;
- };
- 
-+static inline spinlock_t *
-+sb_bgl_lock(struct ext2_sb_info *sbi, unsigned int block_group)
-+{
-+	return bgl_lock_ptr(&sbi->s_blockgroup_lock, block_group);
-+}
-+
- #endif	/* _LINUX_EXT2_FS_SB */
-diff -puN include/linux/ext3_fs_sb.h~fs-introduce-bgl_lock_ptr include/linux/ext3_fs_sb.h
---- a/include/linux/ext3_fs_sb.h~fs-introduce-bgl_lock_ptr
-+++ a/include/linux/ext3_fs_sb.h
-@@ -83,4 +83,10 @@ struct ext3_sb_info {
- #endif
- };
- 
-+static inline spinlock_t *
-+sb_bgl_lock(struct ext3_sb_info *sbi, unsigned int block_group)
-+{
-+	return bgl_lock_ptr(&sbi->s_blockgroup_lock, block_group);
-+}
-+
- #endif	/* _LINUX_EXT3_FS_SB */
+ /*
+  * INTERFACES between SPI master-side drivers and SPI infrastructure.
+  * (There's no SPI slave support for Linux yet...)
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
-ext4-allocate-s_blockgroup_lock-separately.patch
-mm-make-get_user_pages-interruptible.patch
-mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
-ext2-allocate-s_blockgroup_lock-separately.patch
-ext3-allocate-s_blockgroup_lock-separately.patch
-memcg-add-inactive_anon_is_low.patch
-dma_alloc_coherent-clean-it-up.patch
-dma-coherent-catch-oversized-requests-to-dma_alloc_from_coherent.patch
-nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
-kmemleak-add-the-base-support.patch
-kmemleak-add-the-base-support-fix.patch
-kmemleak-add-the-slab-memory-allocation-freeing-hooks.patch
-kmemleak-add-the-slob-memory-allocation-freeing-hooks.patch
-kmemleak-add-the-slub-memory-allocation-freeing-hooks.patch
-kmemleak-remove-some-of-the-kmemleak-false-positives.patch
-slab-leaks3-default-y.patch
+kgdb-fix-kernel-doc-error.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+mtd-fix-nettel-printk-formats.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+esp-fix-section-mismatch-warning.patch
+fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+documentation-how-to-use-doc-section-blocks.patch
+docs-add-more-early-params-to-kernel-parameterstxt.patch
+doc-reformat-some-long-lines-in-kernel-parameterstxt.patch
+w1-add-list-masters-w1-command.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
+fix-similar-typos-to-successfull-v2.patch
+kmemleak-add-documentation-on-the-memory-leak-detector.patch
 
