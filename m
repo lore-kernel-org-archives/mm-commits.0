@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + getrusage-fill-ru_maxrss-value.patch added to -mm tree
-Date: Mon, 05 Jan 2009 14:13:20 -0800
-Message-ID: <200901052213.n05MDKMq014521@imap1.linux-foundation.org>
+Subject: + fs-remove-wb_sync_hold-fix.patch added to -mm tree
+Date: Mon, 05 Jan 2009 14:25:13 -0800
+Message-ID: <200901052225.n05MPD1l024274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34550 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49295 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754832AbZAEWNo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:13:44 -0500
+	by vger.kernel.org with ESMTP id S1751827AbZAEWZX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:25:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jpirko@redhat.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com
+Cc: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com, npiggin@suse.de
 
 
 The patch titled
-     getrusage: fill ru_maxrss value
+     fs-remove-wb_sync_hold-fix
 has been added to the -mm tree.  Its filename is
-     getrusage-fill-ru_maxrss-value.patch
+     fs-remove-wb_sync_hold-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,409 +33,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: getrusage: fill ru_maxrss value
-From: Jiri Pirko <jpirko@redhat.com>
+Subject: fs-remove-wb_sync_hold-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make ->ru_maxrss value in struct rusage filled accordingly to rss hiwater
-mark.  This struct is filled as a parameter to getrusage syscall. 
-->ru_maxrss value is set to KBs which is the way it is done in BSD
-systems.  /usr/bin/time (gnu time) application converts ->ru_maxrss to KBs
-which seems to be incorrect behavior.  Maintainer of this util was
-notified by me with the patch which corrects it and cc'ed.
-
-To make this happen we extend struct signal_struct by two fields.  The
-first one is ->maxrss which we use to store rss hiwater of the task.  The
-second one is ->cmaxrss which we use to store highest rss hiwater of all
-task childs.  These values are used in k_getrusage() to actually fill
-->ru_maxrss.  k_getrusage() uses current rss hiwater value directly if mm
-struct exists.
-
-Note:
-exec() clear mm->hiwater_rss, but doesn't clear sig->maxrss.
-it is intetionally behavior. *BSD getrusage have exec() inheriting.
-
-Test progmam and test case
-===========================
-
-getrusage.c
-====
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <signal.h>
-
-static void consume(int mega)
-{
-	size_t sz = mega * 1024 * 1024;
-	void *ptr;
-
-	ptr = malloc(sz);
-	memset(ptr, 0, sz);
-	usleep(1);  /* BSD rusage statics need to sleep 1 tick */
-}
-
-static void show_rusage(char *prefix)
-{
-	int err, err2;
-	struct rusage rusage_self;
-	struct rusage rusage_children;
-
-	printf("%s: ", prefix);
-	err = getrusage(RUSAGE_SELF, &rusage_self);
-	if (!err)
-		printf("self %ld ", rusage_self.ru_maxrss);
-	err2 = getrusage(RUSAGE_CHILDREN, &rusage_children);
-	if (!err2)
-		printf("children %ld ", rusage_children.ru_maxrss);
-
-	printf("\n");
-}
-
-int main(int argc, char** argv)
-{
-	int status;
-	int c;
-	int need_sleep_before_wait = 0;
-	int consume_large_memory_at_first = 0;
-	int create_child_at_first = 0;
-	int sigign = 0;
-	int create_child_before_exec = 0;
-	int after_fork_test = 0;
-
-	while ((c = getopt(argc, argv, "ceflsz")) != -1) {
-		switch (c) {
-		case 'c':
-			create_child_at_first = 1;
-			break;
-		case 'e':
-			create_child_before_exec = 1;
-			break;
-		case 'f':
-			after_fork_test = 1;
-			break;
-		case 'l':
-			consume_large_memory_at_first = 1;
-			break;
-		case 's':
-			sigign = 1;
-			break;
-		case 'z':
-			need_sleep_before_wait = 1;
-			break;
-		default:
-			break;
-		}
-	}
-
-	if (consume_large_memory_at_first)
-		consume(100);
-
-	if (create_child_at_first)
-		system("./child -q");
-
-	if (sigign)
-		signal(SIGCHLD, SIG_IGN);
-
-	if (fork()) {
-		usleep(1);
-		if (need_sleep_before_wait)
-			sleep(3); /* children become zombie */
-		show_rusage("pre_wait");
-		wait(&status);
-		show_rusage("post_wait");
-	} else {
-		usleep(1);
-		show_rusage("fork");
-
-		if (after_fork_test) {
-			consume(30);
-			show_rusage("fork2");
-		}
-		if (create_child_before_exec) {
-			system("./child -lq");
-			usleep(1);
-			show_rusage("fork3");
-		}
-
-		execl("./child", "child", 0);
-		exit(0);
-	}
-
-	return 0;
-}
-
-child.c
-====
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-
-static void consume(int mega)
-{
-	size_t sz = mega * 1024 * 1024;
-	void *ptr;
-
-	ptr = malloc(sz);
-	memset(ptr, 0, sz);
-	usleep(1);  /* BSD rusage statics need to sleep 1 tick */
-}
-
-static void show_rusage(char *prefix)
-{
-	int err, err2;
-	struct rusage rusage_self;
-	struct rusage rusage_children;
-
-	printf("%s: ", prefix);
-	err = getrusage(RUSAGE_SELF, &rusage_self);
-	if (!err)
-		printf("self %ld ", rusage_self.ru_maxrss);
-	err2 = getrusage(RUSAGE_CHILDREN, &rusage_children);
-	if (!err2)
-		printf("children %ld ", rusage_children.ru_maxrss);
-
-	printf("\n");
-
-}
-
-int main(int argc, char** argv)
-{
-	int status;
-	int c;
-	int silent = 0;
-	int light_weight = 0;
-
-	while ((c = getopt(argc, argv, "lq")) != -1) {
-		switch (c) {
-		case 'l':
-			light_weight = 1;
-			break;
-		case 'q':
-			silent = 1;
-			break;
-		default:
-			break;
-		}
-	}
-
-	if (!silent)
-		show_rusage("exec");
-
-	if (fork()) {
-		if (light_weight)
-			consume(400);
-		else
-			consume(700);
-		wait(&status);
-	} else {
-		if (light_weight)
-			consume(600);
-		else
-			consume(900);
-
-		exit(0);
-	}
-
-	return 0;
-}
-
-testcase
-========
-
-1. inherit fork?
-
-   test way:
-   	% ./getrusage -lc
-
-   bsd result:
-   	fork line is "fork: self 0 children 0".
-
-   	-> rusage sholdn't be inherit by fork.
-	   (both RUSAGE_SELF and RUSAGE_CHILDREN)
-
-2. inherit exec?
-
-   test way:
-   	% ./getrusage -lce
-
-   bsd result:
-   	fork3: self 103204 children 60000
-	exec: self 103204 children 60000
-
-   	fork3 and exec line are the same.
-
-   	-> rusage shold be inherit by exec.
-	   (both RUSAGE_SELF and RUSAGE_CHILDREN)
-
-3. getrusage(RUSAGE_CHILDREN) collect grandchild statics?
-
-   test way:
-   	% ./getrusage
-
-   bsd result:
-   	post_wait line is about "post_wait: self 0 children 90000".
-
-	-> RUSAGE_CHILDREN can collect grandchild.
-
-4. zombie, but not waited children collect or not?
-
-   test way:
-   	% ./getrusage -z
-
-   bsd result:
-   	pre_wait line is "pre_wait: self 0 children 0".
-
-	-> zombie child process (not waited-for child process)
-	   isn't accounted.
-
-5. SIG_IGN collect or not
-
-   test way:
-   	% ./getrusage -s
-
-   bsd result:
-   	post_wait line is "post_wait: self 0 children 0".
-
-	-> if SIGCHLD is ignored, children isn't accounted.
-
-6. fork and malloc
-   test way:
-   	% ./getrusage -lcf
-
-   bsd result:
-   	fork line is "fork: self 0 children 0".
-   	fork2 line is about "fork: self 130000 children 0".
-
-   	-> rusage sholdn't be inherit by fork.
-	   (both RUSAGE_SELF and RUSAGE_CHILDREN)
-	   but additional memory cunsumption cause right
-	   maxrss calculation.
-
-Signed-off-by: Jiri Pirko <jpirko@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c             |    7 +++++++
- include/linux/sched.h |    1 +
- kernel/exit.c         |   10 ++++++++++
- kernel/fork.c         |    1 +
- kernel/sys.c          |   12 ++++++++++++
- 5 files changed, 31 insertions(+)
+ fs/fs-writeback.c |    2 +-
+ fs/ubifs/super.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/exec.c~getrusage-fill-ru_maxrss-value fs/exec.c
---- a/fs/exec.c~getrusage-fill-ru_maxrss-value
-+++ a/fs/exec.c
-@@ -864,6 +864,13 @@ static int de_thread(struct task_struct 
- 	sig->notify_count = 0;
- 
- no_thread_group:
-+	if (current->mm) {
-+		unsigned long hiwater_rss = get_mm_hiwater_rss(current->mm);
-+
-+		if (sig->maxrss < hiwater_rss)
-+			sig->maxrss = hiwater_rss;
-+	}
-+
- 	exit_itimers(sig);
- 	flush_itimer_signals();
- 
-diff -puN include/linux/sched.h~getrusage-fill-ru_maxrss-value include/linux/sched.h
---- a/include/linux/sched.h~getrusage-fill-ru_maxrss-value
-+++ a/include/linux/sched.h
-@@ -560,6 +560,7 @@ struct signal_struct {
- 	unsigned long nvcsw, nivcsw, cnvcsw, cnivcsw;
- 	unsigned long min_flt, maj_flt, cmin_flt, cmaj_flt;
- 	unsigned long inblock, oublock, cinblock, coublock;
-+	unsigned long maxrss, cmaxrss;
- 	struct task_io_accounting ioac;
- 
- 	/*
-diff -puN kernel/exit.c~getrusage-fill-ru_maxrss-value kernel/exit.c
---- a/kernel/exit.c~getrusage-fill-ru_maxrss-value
-+++ a/kernel/exit.c
-@@ -1053,6 +1053,12 @@ NORET_TYPE void do_exit(long code)
- 	if (group_dead) {
- 		hrtimer_cancel(&tsk->signal->real_timer);
- 		exit_itimers(tsk->signal);
-+		if (tsk->mm) {
-+			unsigned long hiwater_rss = get_mm_hiwater_rss(tsk->mm);
-+
-+			if (tsk->signal->maxrss < hiwater_rss)
-+				tsk->signal->maxrss = hiwater_rss;
-+		}
- 	}
- 	acct_collect(code, group_dead);
- 	if (group_dead)
-@@ -1296,6 +1302,7 @@ static int wait_task_zombie(struct task_
- 		struct signal_struct *psig;
- 		struct signal_struct *sig;
- 		struct task_cputime cputime;
-+		unsigned long maxrss;
- 
- 		/*
- 		 * The resource counters for the group leader are in its
-@@ -1347,6 +1354,9 @@ static int wait_task_zombie(struct task_
- 		psig->coublock +=
- 			task_io_get_oublock(p) +
- 			sig->oublock + sig->coublock;
-+		maxrss = max(sig->maxrss, sig->cmaxrss);
-+		if (psig->cmaxrss < maxrss)
-+			psig->cmaxrss = maxrss;
- 		task_io_accounting_add(&psig->ioac, &p->ioac);
- 		task_io_accounting_add(&psig->ioac, &sig->ioac);
- 		spin_unlock_irq(&p->parent->sighand->siglock);
-diff -puN kernel/fork.c~getrusage-fill-ru_maxrss-value kernel/fork.c
---- a/kernel/fork.c~getrusage-fill-ru_maxrss-value
-+++ a/kernel/fork.c
-@@ -851,6 +851,7 @@ static int copy_signal(unsigned long clo
- 	sig->nvcsw = sig->nivcsw = sig->cnvcsw = sig->cnivcsw = 0;
- 	sig->min_flt = sig->maj_flt = sig->cmin_flt = sig->cmaj_flt = 0;
- 	sig->inblock = sig->oublock = sig->cinblock = sig->coublock = 0;
-+	sig->maxrss = sig->cmaxrss = 0;
- 	task_io_accounting_init(&sig->ioac);
- 	taskstats_tgid_init(sig);
- 
-diff -puN kernel/sys.c~getrusage-fill-ru_maxrss-value kernel/sys.c
---- a/kernel/sys.c~getrusage-fill-ru_maxrss-value
-+++ a/kernel/sys.c
-@@ -1676,6 +1676,18 @@ static void k_getrusage(struct task_stru
- out:
- 	cputime_to_timeval(utime, &r->ru_utime);
- 	cputime_to_timeval(stime, &r->ru_stime);
-+
-+	if (who != RUSAGE_CHILDREN) {
-+		struct mm_struct *mm = get_task_mm(p);
-+		if (mm) {
-+			unsigned long hiwater_rss = get_mm_hiwater_rss(mm);
-+
-+			if (maxrss < hiwater_rss)
-+				maxrss = hiwater_rss;
-+			mmput(mm);
-+		}
-+	}
-+	r->ru_maxrss <<= PAGE_SHIFT - 10;
- }
- 
- int getrusage(struct task_struct *p, int who, struct rusage __user *ru)
+diff -puN fs/fs-writeback.c~fs-remove-wb_sync_hold-fix fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-remove-wb_sync_hold-fix
++++ a/fs/fs-writeback.c
+@@ -688,7 +688,7 @@ int write_inode_now(struct inode *inode,
+ 	int ret;
+ 	struct writeback_control wbc = {
+ 		.nr_to_write = LONG_MAX,
+-		.sync_mode = sync ? WB_SYNC_ALL : WB_SYNC_NONE,
++		.sync_mode = sync ? WB_SYNC_ALL : WB_SYNC_HOLD,
+ 		.range_start = 0,
+ 		.range_end = LLONG_MAX,
+ 	};
+diff -puN fs/ubifs/super.c~fs-remove-wb_sync_hold-fix fs/ubifs/super.c
+--- a/fs/ubifs/super.c~fs-remove-wb_sync_hold-fix
++++ a/fs/ubifs/super.c
+@@ -432,7 +432,7 @@ static int ubifs_sync_fs(struct super_bl
+ 	int i, err;
+ 	struct ubifs_info *c = sb->s_fs_info;
+ 	struct writeback_control wbc = {
+-		.sync_mode   = wait ? WB_SYNC_ALL : WB_SYNC_HOLD,
++		.sync_mode   = wait ? WB_SYNC_ALL : WB_SYNC_NONE,
+ 		.range_start = 0,
+ 		.range_end   = LLONG_MAX,
+ 		.nr_to_write = LONG_MAX,
 _
 
-Patches currently in -mm which might be from jpirko@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-getrusage-fill-ru_maxrss-value.patch
+origin.patch
+i-need-old-gcc.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+fs-remove-wb_sync_hold-fix.patch
+mm-check-for-no-mmaps-in-exit_mmap-fix.patch
+mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+smp_call_function_single-be-slightly-less-stupid.patch
+binfmtsh-include-listh-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+fs-execc-make-do_coredump-void-checkpatch-fixes.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
+dma_alloc_coherent-clean-it-up.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+kmemleak-add-the-base-support-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
