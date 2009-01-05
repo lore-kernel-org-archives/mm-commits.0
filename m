@@ -1,118 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - fs-symlink-write_begin-allocation-context-fix-fuse-fix.patch removed from -mm tree
-Date: Sun, 04 Jan 2009 11:34:07 -0800
-Message-ID: <200901041934.n04JY7Nk022831@imap1.linux-foundation.org>
+Subject: - error-for-gcc-4101.patch removed from -mm tree
+Date: Sun, 04 Jan 2009 22:27:46 -0800
+Message-ID: <200901050627.n056RkIl026865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752896AbZADTeq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 4 Jan 2009 14:34:46 -0500
+	by vger.kernel.org with ESMTP id S1751339AbZAEG2j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 01:28:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: bunk@kernel.org, dave@hiauly1.hia.nrc.ca, deller@gmx.de, ian.campbell@citrix.com, jeremy.fitzhardinge@citrix.com, kyle@mcmartin.ca, mingo@elte.hu, randolph@tausq.org, rdreier@cisco.co
 
 
 The patch titled
-     fs-symlink-write_begin-allocation-context-fix: fuse fix
+     #error for gcc 4.1.{0,1}
 has been removed from the -mm tree.  Its filename was
-     fs-symlink-write_begin-allocation-context-fix-fuse-fix.patch
+     error-for-gcc-4101.patch
 
-This patch was dropped because it was folded into fs-symlink-write_begin-allocation-context-fix.patch
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-symlink-write_begin-allocation-context-fix: fuse fix
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: #error for gcc 4.1.{0,1}
+From: Adrian Bunk <bunk@kernel.org>
 
-build fix.
+gcc 4.1.0 and 4.1.1 are known to miscompile the kernel:
+  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=27781
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@suse.de>
+Usage of weak functions has become a common pattern in the kernel, and
+usages get added in each kernel version increasing the probability of
+bugs with each kernel release.
+
+This miscompilation of weak functions can result in subtle runtime
+errors.
+
+#error for gcc 4.1.0 and 4.1.1 to prevent users from running into
+this bug.
+
+Note:
+We already printed a #warning for gcc 4.1.0 due to a different bug.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Roland Dreier <rdreier@cisco.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ian Campbell <ian.campbell@citrix.com>
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Randolph Chung <randolph@tausq.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: John David Anglin <dave@hiauly1.hia.nrc.ca>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/main.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/fuse/file.c~fs-symlink-write_begin-allocation-context-fix-fuse-fix fs/fuse/file.c
---- a/fs/fuse/file.c~fs-symlink-write_begin-allocation-context-fix-fuse-fix
-+++ a/fs/fuse/file.c
-@@ -780,7 +780,7 @@ static ssize_t fuse_fill_write_pages(str
- 			break;
+diff -puN init/main.c~error-for-gcc-4101 init/main.c
+--- a/init/main.c~error-for-gcc-4101
++++ a/init/main.c
+@@ -81,8 +81,9 @@
+  * trouble.
+  */
  
- 		err = -ENOMEM;
--		page = __grab_cache_page(mapping, index);
-+		page = grab_cache_page_write_begin(mapping, index, 0);
- 		if (!page)
- 			break;
+-#if __GNUC__ == 4 && __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 0
+-#warning gcc-4.1.0 is known to miscompile the kernel.  A different compiler version is recommended.
++/*  due to http://gcc.gnu.org/bugzilla/show_bug.cgi?id=27781  */
++#if __GNUC__ == 4 && __GNUC_MINOR__ == 1 && (__GNUC_PATCHLEVEL__ == 0 || __GNUC_PATCHLEVEL__ == 1)
++#error gcc 4.1.0 and 4.1.1 are known to miscompile the kernel.
+ #endif
  
+ static int kernel_init(void *);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-fs-symlink-write_begin-allocation-context-fix.patch
-fs-symlink-write_begin-allocation-context-fix-fuse-fix.patch
-mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
-mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
-oom-fix-zone_scan_mutex-name.patch
-mm-get-rid-of-pagevec_release_nonlru.patch
-cleanup-get-rid-of-ifdef-config_migration.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-make-page_lock_anon_vma-static.patch
-memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
-mm-make-init_section_page_cgroup-static.patch
-mm-make-maddr-__iomem.patch
-mm-make-mem_cgroup_resize_limit-static.patch
-mm-make-scan_all_zones_unevictable_pages-static.patch
-mm-make-scan_zone_unevictable_pages-static.patch
-mm-make-setup_per_zone_inactive_ratio-static.patch
-mm-make-vread-and-vwrite-declaration.patch
-vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
-vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
-mm-kill-zone_is_near_oom.patch
-mm-make-get_user_pages-interruptible.patch
-mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
-introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
-mm-remove-config_out_of_line_pfn_to_page.patch
-mm-kill-page_queue_congested.patch
-remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
-sys_execve-and-sys_uselib-do-not-call-into-fsnotify.patch
-profile-dont-include-asm-ptraceh-twice.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-devices-cgroup-allow-mkfifo.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-mm-make-get_scan_ratio-safe-for-memcg.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
-memcg-remove-mem_cgroup_cal_reclaim.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-fix-calclation-of-active_ratio.patch
-memcg-fix-calclation-of-active_ratio-build-error-fix.patch
-memcg-show-real-limit-under-hierarchy-mode.patch
-memcg-explain-details-and-test-document.patch
-coredump_filter-permit-changing-of-the-default-filter.patch
-ia64-implement-interrupt-enabling-rwlocks-fix.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+linux-next.patch
+m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+if-0-ses_match_host.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+m68knommu-set-no_dma.patch
+error-for-gcc-4101.patch
+reiser4.patch
 
