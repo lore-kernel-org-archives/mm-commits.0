@@ -1,675 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-new-lsm-hooks-where-vfsmount-is-available.patch removed from -mm tree
-Date: Sun, 04 Jan 2009 22:41:17 -0800
-Message-ID: <200901050641.n056fHXj005354@imap1.linux-foundation.org>
+Subject: + usb-emi26-fix-oops-on-load.patch added to -mm tree
+Date: Sun, 04 Jan 2009 23:15:40 -0800
+Message-ID: <200901050715.n057FeFJ000503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57553 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750904AbZAEGmj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 01:42:39 -0500
+	by vger.kernel.org with ESMTP id S1751402AbZAEHQJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 02:16:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: takedakn@nttdata.co.jp, casey@schaufler-ca.com, crispin@crispincowan.com, haradats@nttdata.co.jp, hch@lst.de, jmorris@namei.org, penguin-kernel@I-love.SAKURA.ne.jp, sds@tycho.nsa.gov
+To: mm-commits@vger.kernel.org
+Cc: marcin.slusarz@gmail.com, david@upcs.at, dwmw2@infradead.org, gregkh@suse.de, stable@kernel.org
 
 
 The patch titled
-     vfs: introduce new LSM hooks where vfsmount is available.
-has been removed from the -mm tree.  Its filename was
-     introduce-new-lsm-hooks-where-vfsmount-is-available.patch
+     usb: emi26: fix oops on load
+has been added to the -mm tree.  Its filename is
+     usb-emi26-fix-oops-on-load.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: introduce new LSM hooks where vfsmount is available.
-From: Kentaro Takeda <takedakn@nttdata.co.jp>
+Subject: usb: emi26: fix oops on load
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
------ What is this patch for? -----
+Fix oops introduced by commit ae93a55bf948753de0bb8e43fa9c027f786abb05
+(emi26: use request_firmware()):
 
-There are security_inode_*() LSM hooks for attribute-based MAC, but they are not
-suitable for pathname-based MAC because they don't receive "struct vfsmount"
-information.
+usb 1-1: new full speed USB device using uhci_hcd and address 2
+usb 1-1: configuration #1 chosen from 1 choice
+emi26 - firmware loader 1-1:1.0: emi26_probe start
+usb 1-1: firmware: requesting emi26/loader.fw
+usb 1-1: firmware: requesting emi26/bitstream.fw
+usb 1-1: firmware: requesting emi26/firmware.fw
+usb 1-1: emi26_set_reset - 1
+usb 1-1: emi26_set_reset - 0
+BUG: unable to handle kernel NULL pointer dereference at 00000000
+IP: [<f80dc487>] emi26_probe+0x2f7/0x620 [emi26]
+*pde = 00000000
+Oops: 0000 [#1] SMP
+last sysfs file: /sys/devices/pci0000:00/0000:00:1d.0/usb1/1-1/firmware/1-1/loading
+Modules linked in: emi26(+) ipv6 cpufreq_ondemand coretemp arc4 ecb iwl3945 irtty_sir sir_dev nsc_ircc ehci_hcd uhci_hcd mac80211 irda usbcore snd_hda_intel thinkpad_acpi rfkill hwmon led_class e1000e snd_pcm cfg80211 snd_timer crc_ccitt snd snd_page_alloc aes_generic
 
------ How this patch was developed? -----
+Pid: 5082, comm: modprobe Not tainted (2.6.28 #2) 17023QG
+EIP: 0060:[<f80dc487>] EFLAGS: 00010206 CPU: 0
+EIP is at emi26_probe+0x2f7/0x620 [emi26]
+EAX: 0000015c EBX: 00000000 ECX: c1ffd9c0 EDX: 00000000
+ESI: 0000015c EDI: f6bb215c EBP: f6bb0400 ESP: f00ebcfc
+ DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process modprobe (pid: 5082, ti=f00ea000 task=f5c7c700 task.ti=f00ea000)
+Stack:
+ 0000015c 000000a5 f6a67cb8 f80dc7e0 c01c6262 fbef2986 f6bb2000 00008fe0
+ 0000015c f715f748 f715f740 f715f738 f715f748 f6a67c00 f80dd040 f80dcfc0
+ f6bb0400 fbacb290 f6a67c94 fbae0160 c01c70bf 00000000 f6a67c1c 00000000
+Call Trace:
+ [<c01c6262>] sysfs_add_one+0x12/0x50
+ [<fbacb290>] usb_probe_interface+0xa0/0x140 [usbcore]
+ [<c01c70bf>] sysfs_create_link+0xf/0x20
+ [<c02dead2>] driver_probe_device+0x82/0x180
+ [<fbac9eeb>] usb_match_id+0x3b/0x50 [usbcore]
+ [<c02dec4e>] __driver_attach+0x7e/0x80
+ [<c02de27a>] bus_for_each_dev+0x3a/0x60
+ [<c02de956>] driver_attach+0x16/0x20
+ [<c02debd0>] __driver_attach+0x0/0x80
+ [<c02de7b1>] bus_add_driver+0x1a1/0x220
+ [<c02dee4d>] driver_register+0x4d/0x120
+ [<c024e622>] idr_get_empty_slot+0xf2/0x290
+ [<fbacab71>] usb_register_driver+0x81/0x100 [usbcore]
+ [<f806c000>] emi26_init+0x0/0x14 [emi26]
+ [<c0101126>] do_one_initcall+0x36/0x1b0
+ [<c01c5e70>] sysfs_ilookup_test+0x0/0x10
+ [<c0197a61>] ifind+0x31/0x90
+ [<c01c6229>] __sysfs_add_one+0x59/0x80
+ [<c01c64e4>] sysfs_addrm_finish+0x14/0x1c0
+ [<c0175ca3>] __vunmap+0xa3/0xd0
+ [<c014b854>] load_module+0x1544/0x1640
+ [<c014b9d7>] sys_init_module+0x87/0x1b0
+ [<c0187f41>] sys_read+0x41/0x70
+ [<c01032a5>] sysenter_do_call+0x12/0x21
+ [<c03d0000>] wait_for_common+0x40/0x110
+Code: 66 c1 e8 08 66 09 d0 75 a5 31 d2 89 e8 e8 72 fc ff ff 85 c0 0f 88 9a 02 00 00 b8 fa 00 00 00 e8 30 46 05 c8 8b 74 24 28 8b 5e 04 <8b> 03 89 44 24 1c 0f c8 89 44 24 1c 0f b7 4b 04 c7 44 24 20 00
+EIP: [<f80dc487>] emi26_probe+0x2f7/0x620 [emi26] SS:ESP 0068:f00ebcfc
+---[ end trace 2eefa13825431230 ]---
 
-Two pathname-based MACs, AppArmor and TOMOYO Linux, are trying to merge
-upstream. But because of "struct vfsmount" problem, they have been unable to
-merge upstream.
+After the last "package" of firmware data is sent to the device, we dereference
+NULL pointer (on access to rec->addr). Fix it.
 
-Here are the list of approaches and the reasons of denial.
-
-(1) Not using LSM
- http://lwn.net/Articles/277833/
-
- This approach was rejected because security modules should use LSM because the
- whole idea behind LSM was to have a single set of hooks for all security
- modules; if every module now adds its own set of hooks, that purpose will have
- been defeated and the kernel will turn into a big mess of security hooks.
-
-(2) Retrieving "struct vfsmount" from "struct task_struct".
- http://lkml.org/lkml/2007/11/5/388
-
- Since "struct task_struct" contains list of "struct vfsmount",
- "struct vfsmount" which corresponds to "struct dentry" can be retrieved from
- the list unless "mount --bind" is used.
-
- This approach turned out to cause a critical problem that getting namespace_sem
- lock from security_inode_*() triggers AB-BA deadlock.
-
-(3) Adding "struct vfsmount" parameter to VFS helper functions.
- http://lkml.org/lkml/2008/5/29/207
-
- This approach adds "struct vfsmount" to VFS helper functions (e.g. vfs_mkdir()
- and vfs_symlink()) and LSM hooks inside VFS helper functions. This approach is
- helpful for not only AppArmor and TOMOYO Linux 2.x but also SELinux and
- auditing purpose, for this approach allows existent LSM users to use pathnames
- in their access control and audit logs.
-
- This approach was rejected by Al Viro, the VFS maintainer, because he thinks
- individual filesystem should remain "struct vfsmount"-unaware and VFS helper
- functions should not receive "struct vfsmount".
-
- Al Viro also suggested to move existing security_inode_*() to out of VFS
- helper functions so that security_inode_*() can receive "struct vfsmount"
- without modifying VFS helper functions, but this suggestion was opposed by
- Stephen Smalley because changing the order of permission checks (i.e.
- MAC checks before DAC checks) is not acceptable.
-
-(4) Passing "struct vfsmount" via "struct task_struct".
- http://lkml.org/lkml/2007/11/16/157
-
- Since we didn't understand the reason why accessing "struct vfsmount" from
- LSM hooks inside VFS helper functions is not acceptable, we thought the reason
- why VFS helper functions don't receive "struct vfsmount" is the amount of
- modifications needed to do so. Thus, we proposed to pass "struct vfsmount" via
- "struct task_struct" so that modifications remain minimal.
-
- This approach was rejected because this is an abuse of "struct task_struct".
-
-(5) Remembering pathname of "struct vfsmount" via "struct task_struct".
- http://lkml.org/lkml/2008/8/19/16
-
- Since pathname of a "struct dentry" up to the mount point can be calculated
- without "struct vfsmount", absolute pathname of a "struct dentry" can be
- calculated if "struct task_struct" can remember absolute pathname of a
- "struct vfsmount" which corresponds to "struct dentry".
- As we now understand that Al Viro is opposing to access "struct vfsmount" from
- LSM hooks inside VFS helper functions, we gave up delivering "struct vfsmount"
- to LSM hooks inside VFS helper functions.
- Kernel 2.6.26 introduced read-only bind mount feature, and hooks for that
- feature (i.e. mnt_want_write() and mnt_drop_write()) were inserted around
- VFS helper functions call. Since mnt_want_write() receives "struct vfsmount"
- which corresponds to "struct dentry" that will be passed to subsequent VFS
- helper functions call, we associated pathname of "struct vfsmount" with
- "struct task_struct" instead of associating "struct vfsmount" itself.
-
- This approach was not explicitly rejected, but there seems to be performance
- problem.
-
-(6) Introducing new LSM hooks.
- (this patch)
-
- We understand that adding new LSM hooks which receive "struct vfsmount" outside
- VFS helper functions is the most straightforward approach. This approach has
- less impact to existing LSM module and no impact to VFS helper functions.
-
-Signed-off-by: Kentaro Takeda <takedakn@nttdata.co.jp>
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Signed-off-by: Toshiharu Harada <haradats@nttdata.co.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Crispin Cowan <crispin@crispincowan.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: James Morris <jmorris@namei.org>
+Reported-and-tested-by: David Flatz <david@upcs.at>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: <stable@kernel.org> [2.6.27.x, 2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c               |   37 +++++++++
- fs/open.c                |    5 +
- include/linux/security.h |  139 +++++++++++++++++++++++++++++++++++++
- net/unix/af_unix.c       |    4 +
- security/Kconfig         |    9 ++
- security/capability.c    |   57 +++++++++++++++
- security/security.c      |   66 +++++++++++++++++
- 7 files changed, 317 insertions(+)
+ drivers/usb/misc/emi26.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namei.c~introduce-new-lsm-hooks-where-vfsmount-is-available fs/namei.c
---- a/fs/namei.c~introduce-new-lsm-hooks-where-vfsmount-is-available
-+++ a/fs/namei.c
-@@ -1556,6 +1556,10 @@ int may_open(struct nameidata *nd, int a
- 		 * Refuse to truncate files with mandatory locks held on them.
- 		 */
- 		error = locks_verify_locked(inode);
-+		if (!error)
-+			error = security_path_truncate(&nd->path, 0,
-+					       ATTR_MTIME|ATTR_CTIME|ATTR_OPEN,
-+						       NULL);
- 		if (!error) {
- 			DQUOT_INIT(inode);
+diff -puN drivers/usb/misc/emi26.c~usb-emi26-fix-oops-on-load drivers/usb/misc/emi26.c
+--- a/drivers/usb/misc/emi26.c~usb-emi26-fix-oops-on-load
++++ a/drivers/usb/misc/emi26.c
+@@ -160,7 +160,7 @@ static int emi26_load_firmware (struct u
+ 			err("%s - error loading firmware: error = %d", __func__, err);
+ 			goto wraperr;
+ 		}
+-	} while (i > 0);
++	} while (rec);
  
-@@ -1586,7 +1590,11 @@ static int __open_namei_create(struct na
- 
- 	if (!IS_POSIXACL(dir->d_inode))
- 		mode &= ~current->fs->umask;
-+	error = security_path_mknod(&nd->path, path->dentry, mode, 0);
-+	if (error)
-+		goto out_unlock;
- 	error = vfs_create(dir->d_inode, path->dentry, mode, nd);
-+out_unlock:
- 	mutex_unlock(&dir->d_inode->i_mutex);
- 	dput(nd->path.dentry);
- 	nd->path.dentry = path->dentry;
-@@ -1999,6 +2007,9 @@ asmlinkage long sys_mknodat(int dfd, con
- 	error = mnt_want_write(nd.path.mnt);
- 	if (error)
- 		goto out_dput;
-+	error = security_path_mknod(&nd.path, dentry, mode, dev);
-+	if (error)
-+		goto out_drop_write;
- 	switch (mode & S_IFMT) {
- 		case 0: case S_IFREG:
- 			error = vfs_create(nd.path.dentry->d_inode,dentry,mode,&nd);
-@@ -2011,6 +2022,7 @@ asmlinkage long sys_mknodat(int dfd, con
- 			error = vfs_mknod(nd.path.dentry->d_inode,dentry,mode,0);
- 			break;
- 	}
-+out_drop_write:
- 	mnt_drop_write(nd.path.mnt);
- out_dput:
- 	dput(dentry);
-@@ -2070,7 +2082,11 @@ asmlinkage long sys_mkdirat(int dfd, con
- 	error = mnt_want_write(nd.path.mnt);
- 	if (error)
- 		goto out_dput;
-+	error = security_path_mkdir(&nd.path, dentry, mode);
-+	if (error)
-+		goto out_drop_write;
- 	error = vfs_mkdir(nd.path.dentry->d_inode, dentry, mode);
-+out_drop_write:
- 	mnt_drop_write(nd.path.mnt);
- out_dput:
- 	dput(dentry);
-@@ -2180,7 +2196,11 @@ static long do_rmdir(int dfd, const char
- 	error = mnt_want_write(nd.path.mnt);
- 	if (error)
- 		goto exit3;
-+	error = security_path_rmdir(&nd.path, dentry);
-+	if (error)
-+		goto exit4;
- 	error = vfs_rmdir(nd.path.dentry->d_inode, dentry);
-+exit4:
- 	mnt_drop_write(nd.path.mnt);
- exit3:
- 	dput(dentry);
-@@ -2265,7 +2285,11 @@ static long do_unlinkat(int dfd, const c
- 		error = mnt_want_write(nd.path.mnt);
- 		if (error)
- 			goto exit2;
-+		error = security_path_unlink(&nd.path, dentry);
-+		if (error)
-+			goto exit3;
- 		error = vfs_unlink(nd.path.dentry->d_inode, dentry);
-+exit3:
- 		mnt_drop_write(nd.path.mnt);
- 	exit2:
- 		dput(dentry);
-@@ -2346,7 +2370,11 @@ asmlinkage long sys_symlinkat(const char
- 	error = mnt_want_write(nd.path.mnt);
- 	if (error)
- 		goto out_dput;
-+	error = security_path_symlink(&nd.path, dentry, from);
-+	if (error)
-+		goto out_drop_write;
- 	error = vfs_symlink(nd.path.dentry->d_inode, dentry, from);
-+out_drop_write:
- 	mnt_drop_write(nd.path.mnt);
- out_dput:
- 	dput(dentry);
-@@ -2443,7 +2471,11 @@ asmlinkage long sys_linkat(int olddfd, c
- 	error = mnt_want_write(nd.path.mnt);
- 	if (error)
- 		goto out_dput;
-+	error = security_path_link(old_path.dentry, &nd.path, new_dentry);
-+	if (error)
-+		goto out_drop_write;
- 	error = vfs_link(old_path.dentry, nd.path.dentry->d_inode, new_dentry);
-+out_drop_write:
- 	mnt_drop_write(nd.path.mnt);
- out_dput:
- 	dput(new_dentry);
-@@ -2677,8 +2709,13 @@ asmlinkage long sys_renameat(int olddfd,
- 	error = mnt_want_write(oldnd.path.mnt);
- 	if (error)
- 		goto exit5;
-+	error = security_path_rename(&oldnd.path, old_dentry,
-+				     &newnd.path, new_dentry);
-+	if (error)
-+		goto exit6;
- 	error = vfs_rename(old_dir->d_inode, old_dentry,
- 				   new_dir->d_inode, new_dentry);
-+exit6:
- 	mnt_drop_write(oldnd.path.mnt);
- exit5:
- 	dput(new_dentry);
-diff -puN fs/open.c~introduce-new-lsm-hooks-where-vfsmount-is-available fs/open.c
---- a/fs/open.c~introduce-new-lsm-hooks-where-vfsmount-is-available
-+++ a/fs/open.c
-@@ -272,6 +272,8 @@ static long do_sys_truncate(const char _
- 		goto put_write_and_out;
- 
- 	error = locks_verify_truncate(inode, NULL, length);
-+	if (!error)
-+		error = security_path_truncate(&path, length, 0, NULL);
- 	if (!error) {
- 		DQUOT_INIT(inode);
- 		error = do_truncate(path.dentry, length, 0, NULL);
-@@ -329,6 +331,9 @@ static long do_sys_ftruncate(unsigned in
- 
- 	error = locks_verify_truncate(inode, file, length);
- 	if (!error)
-+		error = security_path_truncate(&file->f_path, length,
-+					       ATTR_MTIME|ATTR_CTIME, file);
-+	if (!error)
- 		error = do_truncate(dentry, length, ATTR_MTIME|ATTR_CTIME, file);
- out_putf:
- 	fput(file);
-diff -puN include/linux/security.h~introduce-new-lsm-hooks-where-vfsmount-is-available include/linux/security.h
---- a/include/linux/security.h~introduce-new-lsm-hooks-where-vfsmount-is-available
-+++ a/include/linux/security.h
-@@ -335,17 +335,37 @@ static inline void security_free_mnt_opt
-  *	@dir contains the inode structure of the parent directory of the new link.
-  *	@new_dentry contains the dentry structure for the new link.
-  *	Return 0 if permission is granted.
-+ * @path_link:
-+ *	Check permission before creating a new hard link to a file.
-+ *	@old_dentry contains the dentry structure for an existing link
-+ *	to the file.
-+ *	@new_dir contains the path structure of the parent directory of
-+ *	the new link.
-+ *	@new_dentry contains the dentry structure for the new link.
-+ *	Return 0 if permission is granted.
-  * @inode_unlink:
-  *	Check the permission to remove a hard link to a file.
-  *	@dir contains the inode structure of parent directory of the file.
-  *	@dentry contains the dentry structure for file to be unlinked.
-  *	Return 0 if permission is granted.
-+ * @path_unlink:
-+ *	Check the permission to remove a hard link to a file.
-+ *	@dir contains the path structure of parent directory of the file.
-+ *	@dentry contains the dentry structure for file to be unlinked.
-+ *	Return 0 if permission is granted.
-  * @inode_symlink:
-  *	Check the permission to create a symbolic link to a file.
-  *	@dir contains the inode structure of parent directory of the symbolic link.
-  *	@dentry contains the dentry structure of the symbolic link.
-  *	@old_name contains the pathname of file.
-  *	Return 0 if permission is granted.
-+ * @path_symlink:
-+ *	Check the permission to create a symbolic link to a file.
-+ *	@dir contains the path structure of parent directory of
-+ *	the symbolic link.
-+ *	@dentry contains the dentry structure of the symbolic link.
-+ *	@old_name contains the pathname of file.
-+ *	Return 0 if permission is granted.
-  * @inode_mkdir:
-  *	Check permissions to create a new directory in the existing directory
-  *	associated with inode strcture @dir.
-@@ -353,11 +373,25 @@ static inline void security_free_mnt_opt
-  *	@dentry contains the dentry structure of new directory.
-  *	@mode contains the mode of new directory.
-  *	Return 0 if permission is granted.
-+ * @path_mkdir:
-+ *	Check permissions to create a new directory in the existing directory
-+ *	associated with path strcture @path.
-+ *	@dir containst the path structure of parent of the directory
-+ *	to be created.
-+ *	@dentry contains the dentry structure of new directory.
-+ *	@mode contains the mode of new directory.
-+ *	Return 0 if permission is granted.
-  * @inode_rmdir:
-  *	Check the permission to remove a directory.
-  *	@dir contains the inode structure of parent of the directory to be removed.
-  *	@dentry contains the dentry structure of directory to be removed.
-  *	Return 0 if permission is granted.
-+ * @path_rmdir:
-+ *	Check the permission to remove a directory.
-+ *	@dir contains the path structure of parent of the directory to be
-+ *	removed.
-+ *	@dentry contains the dentry structure of directory to be removed.
-+ *	Return 0 if permission is granted.
-  * @inode_mknod:
-  *	Check permissions when creating a special file (or a socket or a fifo
-  *	file created via the mknod system call).  Note that if mknod operation
-@@ -368,6 +402,15 @@ static inline void security_free_mnt_opt
-  *	@mode contains the mode of the new file.
-  *	@dev contains the device number.
-  *	Return 0 if permission is granted.
-+ * @path_mknod:
-+ *	Check permissions when creating a file. Note that this hook is called
-+ *	even if mknod operation is being done for a regular file.
-+ *	@dir contains the path structure of parent of the new file.
-+ *	@dentry contains the dentry structure of the new file.
-+ *	@mode contains the mode of the new file.
-+ *	@dev contains the undecoded device number. Use new_decode_dev() to get
-+ *	the decoded device number.
-+ *	Return 0 if permission is granted.
-  * @inode_rename:
-  *	Check for permission to rename a file or directory.
-  *	@old_dir contains the inode structure for parent of the old link.
-@@ -375,6 +418,13 @@ static inline void security_free_mnt_opt
-  *	@new_dir contains the inode structure for parent of the new link.
-  *	@new_dentry contains the dentry structure of the new link.
-  *	Return 0 if permission is granted.
-+ * @path_rename:
-+ *	Check for permission to rename a file or directory.
-+ *	@old_dir contains the path structure for parent of the old link.
-+ *	@old_dentry contains the dentry structure of the old link.
-+ *	@new_dir contains the path structure for parent of the new link.
-+ *	@new_dentry contains the dentry structure of the new link.
-+ *	Return 0 if permission is granted.
-  * @inode_readlink:
-  *	Check the permission to read the symbolic link.
-  *	@dentry contains the dentry structure for the file link.
-@@ -403,6 +453,13 @@ static inline void security_free_mnt_opt
-  *	@dentry contains the dentry structure for the file.
-  *	@attr is the iattr structure containing the new file attributes.
-  *	Return 0 if permission is granted.
-+ * @path_truncate:
-+ *	Check permission before truncating a file.
-+ *	@path contains the path structure for the file.
-+ *	@length is the new length of the file.
-+ *	@time_attrs is the flags passed to do_truncate().
-+ *	@filp is the file structure (may be NULL).
-+ *	Return 0 if permission is granted.
-  * @inode_getattr:
-  *	Check permission before obtaining file attributes.
-  *	@mnt is the vfsmount where the dentry was looked up
-@@ -1331,6 +1388,22 @@ struct security_operations {
- 				   struct super_block *newsb);
- 	int (*sb_parse_opts_str) (char *options, struct security_mnt_opts *opts);
- 
-+#ifdef CONFIG_SECURITY_PATH
-+	int (*path_unlink) (struct path *dir, struct dentry *dentry);
-+	int (*path_mkdir) (struct path *dir, struct dentry *dentry, int mode);
-+	int (*path_rmdir) (struct path *dir, struct dentry *dentry);
-+	int (*path_mknod) (struct path *dir, struct dentry *dentry, int mode,
-+			   unsigned int dev);
-+	int (*path_truncate) (struct path *path, loff_t length,
-+			      unsigned int time_attrs, struct file *filp);
-+	int (*path_symlink) (struct path *dir, struct dentry *dentry,
-+			     const char *old_name);
-+	int (*path_link) (struct dentry *old_dentry, struct path *new_dir,
-+			  struct dentry *new_dentry);
-+	int (*path_rename) (struct path *old_dir, struct dentry *old_dentry,
-+			    struct path *new_dir, struct dentry *new_dentry);
-+#endif
-+
- 	int (*inode_alloc_security) (struct inode *inode);
- 	void (*inode_free_security) (struct inode *inode);
- 	int (*inode_init_security) (struct inode *inode, struct inode *dir,
-@@ -2705,6 +2778,72 @@ static inline void security_skb_classify
- 
- #endif	/* CONFIG_SECURITY_NETWORK_XFRM */
- 
-+#ifdef CONFIG_SECURITY_PATH
-+int security_path_unlink(struct path *dir, struct dentry *dentry);
-+int security_path_mkdir(struct path *dir, struct dentry *dentry, int mode);
-+int security_path_rmdir(struct path *dir, struct dentry *dentry);
-+int security_path_mknod(struct path *dir, struct dentry *dentry, int mode,
-+			unsigned int dev);
-+int security_path_truncate(struct path *path, loff_t length,
-+			   unsigned int time_attrs, struct file *filp);
-+int security_path_symlink(struct path *dir, struct dentry *dentry,
-+			  const char *old_name);
-+int security_path_link(struct dentry *old_dentry, struct path *new_dir,
-+		       struct dentry *new_dentry);
-+int security_path_rename(struct path *old_dir, struct dentry *old_dentry,
-+			 struct path *new_dir, struct dentry *new_dentry);
-+#else	/* CONFIG_SECURITY_PATH */
-+static inline int security_path_unlink(struct path *dir, struct dentry *dentry)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_mkdir(struct path *dir, struct dentry *dentry,
-+				      int mode)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_rmdir(struct path *dir, struct dentry *dentry)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_mknod(struct path *dir, struct dentry *dentry,
-+				      int mode, unsigned int dev)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_truncate(struct path *path, loff_t length,
-+					 unsigned int time_attrs,
-+					 struct file *filp)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_symlink(struct path *dir, struct dentry *dentry,
-+					const char *old_name)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_link(struct dentry *old_dentry,
-+				     struct path *new_dir,
-+				     struct dentry *new_dentry)
-+{
-+	return 0;
-+}
-+
-+static inline int security_path_rename(struct path *old_dir,
-+				       struct dentry *old_dentry,
-+				       struct path *new_dir,
-+				       struct dentry *new_dentry)
-+{
-+	return 0;
-+}
-+#endif	/* CONFIG_SECURITY_PATH */
-+
- #ifdef CONFIG_KEYS
- #ifdef CONFIG_SECURITY
- 
-diff -puN net/unix/af_unix.c~introduce-new-lsm-hooks-where-vfsmount-is-available net/unix/af_unix.c
---- a/net/unix/af_unix.c~introduce-new-lsm-hooks-where-vfsmount-is-available
-+++ a/net/unix/af_unix.c
-@@ -836,7 +836,11 @@ static int unix_bind(struct socket *sock
- 		err = mnt_want_write(nd.path.mnt);
- 		if (err)
- 			goto out_mknod_dput;
-+		err = security_path_mknod(&nd.path, dentry, mode, 0);
-+		if (err)
-+			goto out_mknod_drop_write;
- 		err = vfs_mknod(nd.path.dentry->d_inode, dentry, mode, 0);
-+out_mknod_drop_write:
- 		mnt_drop_write(nd.path.mnt);
- 		if (err)
- 			goto out_mknod_dput;
-diff -puN security/Kconfig~introduce-new-lsm-hooks-where-vfsmount-is-available security/Kconfig
---- a/security/Kconfig~introduce-new-lsm-hooks-where-vfsmount-is-available
-+++ a/security/Kconfig
-@@ -81,6 +81,15 @@ config SECURITY_NETWORK_XFRM
- 	  IPSec.
- 	  If you are unsure how to answer this question, answer N.
- 
-+config SECURITY_PATH
-+	bool "Security hooks for pathname based access control"
-+	depends on SECURITY
-+	help
-+	  This enables the security hooks for pathname based access control.
-+	  If enabled, a security module can use these hooks to
-+	  implement pathname based access controls.
-+	  If you are unsure how to answer this question, answer N.
-+
- config SECURITY_FILE_CAPABILITIES
- 	bool "File POSIX Capabilities"
- 	default n
-diff -puN security/capability.c~introduce-new-lsm-hooks-where-vfsmount-is-available security/capability.c
---- a/security/capability.c~introduce-new-lsm-hooks-where-vfsmount-is-available
-+++ a/security/capability.c
-@@ -263,6 +263,53 @@ static void cap_inode_getsecid(const str
- 	*secid = 0;
- }
- 
-+#ifdef CONFIG_SECURITY_PATH
-+static int cap_path_mknod(struct path *dir, struct dentry *dentry, int mode,
-+			  unsigned int dev)
-+{
-+	return 0;
-+}
-+
-+static int cap_path_mkdir(struct path *dir, struct dentry *dentry, int mode)
-+{
-+	return 0;
-+}
-+
-+static int cap_path_rmdir(struct path *dir, struct dentry *dentry)
-+{
-+	return 0;
-+}
-+
-+static int cap_path_unlink(struct path *dir, struct dentry *dentry)
-+{
-+	return 0;
-+}
-+
-+static int cap_path_symlink(struct path *dir, struct dentry *dentry,
-+			    const char *old_name)
-+{
-+	return 0;
-+}
-+
-+static int cap_path_link(struct dentry *old_dentry, struct path *new_dir,
-+			 struct dentry *new_dentry)
-+{
-+	return 0;
-+}
-+
-+static int cap_path_rename(struct path *old_path, struct dentry *old_dentry,
-+			   struct path *new_path, struct dentry *new_dentry)
-+{
-+	return 0;
-+}
-+
-+static int cap_path_truncate(struct path *path, loff_t length,
-+			     unsigned int time_attrs, struct file *filp)
-+{
-+	return 0;
-+}
-+#endif
-+
- static int cap_file_permission(struct file *file, int mask)
- {
- 	return 0;
-@@ -883,6 +930,16 @@ void security_fixup_ops(struct security_
- 	set_to_cap_if_null(ops, inode_setsecurity);
- 	set_to_cap_if_null(ops, inode_listsecurity);
- 	set_to_cap_if_null(ops, inode_getsecid);
-+#ifdef CONFIG_SECURITY_PATH
-+	set_to_cap_if_null(ops, path_mknod);
-+	set_to_cap_if_null(ops, path_mkdir);
-+	set_to_cap_if_null(ops, path_rmdir);
-+	set_to_cap_if_null(ops, path_unlink);
-+	set_to_cap_if_null(ops, path_symlink);
-+	set_to_cap_if_null(ops, path_link);
-+	set_to_cap_if_null(ops, path_rename);
-+	set_to_cap_if_null(ops, path_truncate);
-+#endif
- 	set_to_cap_if_null(ops, file_permission);
- 	set_to_cap_if_null(ops, file_alloc_security);
- 	set_to_cap_if_null(ops, file_free_security);
-diff -puN security/security.c~introduce-new-lsm-hooks-where-vfsmount-is-available security/security.c
---- a/security/security.c~introduce-new-lsm-hooks-where-vfsmount-is-available
-+++ a/security/security.c
-@@ -355,6 +355,72 @@ int security_inode_init_security(struct 
- }
- EXPORT_SYMBOL(security_inode_init_security);
- 
-+#ifdef CONFIG_SECURITY_PATH
-+int security_path_mknod(struct path *path, struct dentry *dentry, int mode,
-+			unsigned int dev)
-+{
-+	if (unlikely(IS_PRIVATE(path->dentry->d_inode)))
-+		return 0;
-+	return security_ops->path_mknod(path, dentry, mode, dev);
-+}
-+EXPORT_SYMBOL(security_path_mknod);
-+
-+int security_path_mkdir(struct path *path, struct dentry *dentry, int mode)
-+{
-+	if (unlikely(IS_PRIVATE(path->dentry->d_inode)))
-+		return 0;
-+	return security_ops->path_mkdir(path, dentry, mode);
-+}
-+
-+int security_path_rmdir(struct path *path, struct dentry *dentry)
-+{
-+	if (unlikely(IS_PRIVATE(path->dentry->d_inode)))
-+		return 0;
-+	return security_ops->path_rmdir(path, dentry);
-+}
-+
-+int security_path_unlink(struct path *path, struct dentry *dentry)
-+{
-+	if (unlikely(IS_PRIVATE(path->dentry->d_inode)))
-+		return 0;
-+	return security_ops->path_unlink(path, dentry);
-+}
-+
-+int security_path_symlink(struct path *path, struct dentry *dentry,
-+			  const char *old_name)
-+{
-+	if (unlikely(IS_PRIVATE(path->dentry->d_inode)))
-+		return 0;
-+	return security_ops->path_symlink(path, dentry, old_name);
-+}
-+
-+int security_path_link(struct dentry *old_dentry, struct path *new_dir,
-+		       struct dentry *new_dentry)
-+{
-+	if (unlikely(IS_PRIVATE(old_dentry->d_inode)))
-+		return 0;
-+	return security_ops->path_link(old_dentry, new_dir, new_dentry);
-+}
-+
-+int security_path_rename(struct path *old_dir, struct dentry *old_dentry,
-+			 struct path *new_dir, struct dentry *new_dentry)
-+{
-+	if (unlikely(IS_PRIVATE(old_dentry->d_inode) ||
-+		     (new_dentry->d_inode && IS_PRIVATE(new_dentry->d_inode))))
-+		return 0;
-+	return security_ops->path_rename(old_dir, old_dentry, new_dir,
-+					 new_dentry);
-+}
-+
-+int security_path_truncate(struct path *path, loff_t length,
-+			   unsigned int time_attrs, struct file *filp)
-+{
-+	if (unlikely(IS_PRIVATE(path->dentry->d_inode)))
-+		return 0;
-+	return security_ops->path_truncate(path, length, time_attrs, filp);
-+}
-+#endif
-+
- int security_inode_create(struct inode *dir, struct dentry *dentry, int mode)
- {
- 	if (unlikely(IS_PRIVATE(dir)))
+ 	/* Assert reset (stop the CPU in the EMI) */
+ 	err = emi26_set_reset(dev,1);
 _
 
-Patches currently in -mm which might be from takedakn@nttdata.co.jp are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
+linux-next.patch
+usb-emi26-fix-oops-on-load.patch
 
