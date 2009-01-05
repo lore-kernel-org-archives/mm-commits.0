@@ -1,93 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - spih-uses-needs-deviceh.patch removed from -mm tree
-Date: Sun, 04 Jan 2009 22:40:45 -0800
-Message-ID: <200901050640.n056ejvp004842@imap1.linux-foundation.org>
+Subject: - cgroups-fix-a-race-between-cgroup_clone-and-umount.patch removed from -mm tree
+Date: Sun, 04 Jan 2009 22:40:39 -0800
+Message-ID: <200901050640.n056edpf004715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751328AbZAEGlC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 01:41:02 -0500
+	by vger.kernel.org with ESMTP id S1751363AbZAEGlL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 01:41:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, balbir@in.ibm.com, menage@google.com, serue@us.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi.h uses/needs device.h
+     cgroups: fix a race between cgroup_clone and umount
 has been removed from the -mm tree.  Its filename was
-     spih-uses-needs-deviceh.patch
+     cgroups-fix-a-race-between-cgroup_clone-and-umount.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi.h uses/needs device.h
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cgroups: fix a race between cgroup_clone and umount
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Include header files as used/needed:
+The race is calling cgroup_clone() while umounting the ns cgroup subsys,
+and thus cgroup_clone() might access invalid cgroup_fs, or kill_sb() is
+called after cgroup_clone() created a new dir in it.
 
-In file included from mmotm-2008-1230-1605/drivers/leds/leds-dac124s085.c:16:
-mmotm-2008-1230-1605/include/linux/spi/spi.h:66: error: field 'dev' has incomplete type
-mmotm-2008-1230-1605/include/linux/spi/spi.h: In function 'to_spi_device':
-mmotm-2008-1230-1605/include/linux/spi/spi.h:100: warning: type defaults to 'int' in declaration of '__mptr'
-<etc>
+The BUG I triggered is BUG_ON(root->number_of_cgroups != 1);
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+------------[ cut here ]------------
+kernel BUG at kernel/cgroup.c:1093!
+invalid opcode: 0000 [#1] SMP
+...
+Process umount (pid: 5177, ti=e411e000 task=e40c4670 task.ti=e411e000)
+...
+Call Trace:
+ [<c0493df7>] ? deactivate_super+0x3f/0x51
+ [<c04a3600>] ? mntput_no_expire+0xb3/0xdd
+ [<c04a3ab2>] ? sys_umount+0x265/0x2ac
+ [<c04a3b06>] ? sys_oldumount+0xd/0xf
+ [<c0403911>] ? sysenter_do_call+0x12/0x31
+...
+EIP: [<c0456e76>] cgroup_kill_sb+0x23/0xe0 SS:ESP 0068:e411ef2c
+---[ end trace c766c1be3bf944ac ]---
+
+Cc: Serge E. Hallyn <serue@us.ibm.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spi/spi.h |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/cgroup.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/spi/spi.h~spih-uses-needs-deviceh include/linux/spi/spi.h
---- a/include/linux/spi/spi.h~spih-uses-needs-deviceh
-+++ a/include/linux/spi/spi.h
-@@ -19,6 +19,8 @@
- #ifndef __LINUX_SPI_H
- #define __LINUX_SPI_H
+diff -puN kernel/cgroup.c~cgroups-fix-a-race-between-cgroup_clone-and-umount kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-fix-a-race-between-cgroup_clone-and-umount
++++ a/kernel/cgroup.c
+@@ -2945,7 +2945,11 @@ int cgroup_clone(struct task_struct *tsk
+ 	parent = task_cgroup(tsk, subsys->subsys_id);
  
-+#include <linux/device.h>
-+
- /*
-  * INTERFACES between SPI master-side drivers and SPI infrastructure.
-  * (There's no SPI slave support for Linux yet...)
+ 	/* Pin the hierarchy */
+-	atomic_inc(&parent->root->sb->s_active);
++	if (!atomic_inc_not_zero(&parent->root->sb->s_active)) {
++		/* We race with the final deactivate_super() */
++		mutex_unlock(&cgroup_mutex);
++		return 0;
++	}
+ 
+ 	/* Keep the cgroup alive */
+ 	get_css_set(cg);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-mtd-fix-nettel-printk-formats.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
-documentation-when-to-bug-and-when-to-not-bug.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-max3100-spi-uart-driver-select-serial_core.patch
-i2o-remove-extraneous-kernel-doc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-kmod-fix-varargs-kernel-doc.patch
-docs-document-how-to-write-varargs-in-kernel-doc.patch
-rapidio-remove-excess-kernel-doc-notation.patch
-documentation-update-header-file-paths.patch
-documentation-update-s390-header-file-paths.patch
-documentation-how-to-use-doc-section-blocks.patch
-docs-add-more-early-params-to-kernel-parameterstxt.patch
-doc-reformat-some-long-lines-in-kernel-parameterstxt.patch
-w1-add-list-masters-w1-command.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
-fix-similar-typos-to-successfull-v2.patch
-kmemleak-add-documentation-on-the-memory-leak-detector.patch
+vfs-factor-out-duplicated-code-in-get_fs_type.patch
+oom-print-triggering-tasks-cpuset-and-mems-allowed-fix.patch
+cgroups-documentation-updates.patch
+cgroups-remove-some-redundant-null-checks.patch
+ns_cgroup-remove-unused-spinlock.patch
+memcg-fix-a-typo-in-kconfig.patch
+cgroups-make-root_list-contains-active-hierarchies-only.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
+cgroups-make-cgroup_path-rcu-safe.patch
+cgroups-make-cgroup_path-rcu-safe-fixlet.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
+memcg-new-force_empty-to-free-pages-under-group.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-handle-swap-caches.patch
+memcg-memswap-controller-kconfig.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+memcg-synchronized-lru.patch
+memcg-add-mem_cgroup_disabled.patch
+memcg-add-mem_cgroup_disabled-fix.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
+memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+memcg-avoid-unnecessary-system-wide-oom-killer.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+memcg-fix-reclaim-result-checks.patch
+memcg-swapout-refcnt-fix.patch
+memcg-fix-double-free-and-make-refcnt-sane.patch
+memcg-use-css_tryget-in-memcg.patch
+memcg-use-css_tryget-in-memcg-fix.patch
+memcg-fix-lru-accounting-for-swapcache-v2.patch
+memcg-fix-shmems-swap-accounting.patch
+cgroups-add-a-per-subsystem-hierarchy_mutex.patch
+cgroups-use-hierarchy_mutex-in-memory-controller.patch
+cgroups-add-css_tryget.patch
 
