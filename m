@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 9p-fix-rdma-dependency.patch added to -mm tree
-Date: Mon, 05 Jan 2009 15:07:15 -0800
-Message-ID: <200901052307.n05N7FgC025973@imap1.linux-foundation.org>
+Subject: + sysrq-more-explicit-less-terse-help-messages.patch added to -mm tree
+Date: Mon, 05 Jan 2009 15:11:51 -0800
+Message-ID: <200901052311.n05NBpTc029746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50359 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752030AbZAEXHX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 18:07:23 -0500
+	by vger.kernel.org with ESMTP id S1750828AbZAEXMH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 18:12:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, ericvh@gmail.com, rolandd@cisco.com
+Cc: randy.dunlap@oracle.com, 330403@bugs.debian.org, jidanni@jidanni.org
 
 
 The patch titled
-     9p: fix RDMA dependency
+     sysrq: more explicit, less terse help messages
 has been added to the -mm tree.  Its filename is
-     9p-fix-rdma-dependency.patch
+     sysrq-more-explicit-less-terse-help-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 9p: fix RDMA dependency
+Subject: sysrq: more explicit, less terse help messages
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-NET_9P_RDMA uses Infiniband RDMA, which is controlled by the
-INFINIBAND_ADDR_TRANS kconfig symbol, so fix NET_9P so that it builds
-cleanly.
+Eliminate sysrq terse help mode; make sysrq help messages more meaningful
+(more explicit/verbose).  Make the sysrq action letter clearer by listing
+it explicitly in more sysrq help messages (when it is not simple/clear).
 
-Found by inspection (suspicion) and then forced via kconfig.
+The SysRq help message now looks like this:
 
-ERROR: "rdma_destroy_id" [net/9p/9pnet_rdma.ko] undefined!
-ERROR: "rdma_connect" [net/9p/9pnet_rdma.ko] undefined!
-ERROR: "rdma_create_id" [net/9p/9pnet_rdma.ko] undefined!
-ERROR: "rdma_create_qp" [net/9p/9pnet_rdma.ko] undefined!
-ERROR: "rdma_resolve_route" [net/9p/9pnet_rdma.ko] undefined!
-ERROR: "rdma_disconnect" [net/9p/9pnet_rdma.ko] undefined!
-ERROR: "rdma_resolve_addr" [net/9p/9pnet_rdma.ko] undefined!
+SysRq : HELP : loglevel(0-9) reBoot terminate-all-tasks(E) memory-full-oom-kill(F) kill-all-tasks(I) saK show-backtrace-all-active-cpus(L) show-memory-usage(M) nice-all-RT-tasks(N) powerOff show-registers(P) show-all-timers(Q) unRaw Sync show-task-states(T) Unmount show-blocked-tasks(W)
+
+Addresses http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=330403.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: <jidanni@jidanni.org>
+Cc: <330403@bugs.debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/sysrq.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN net/9p/Kconfig~9p-fix-rdma-dependency net/9p/Kconfig
---- a/net/9p/Kconfig~9p-fix-rdma-dependency
-+++ a/net/9p/Kconfig
-@@ -23,7 +23,7 @@ config NET_9P_VIRTIO
- 	  guest partitions and a host partition.
+diff -puN drivers/char/sysrq.c~sysrq-more-explicit-less-terse-help-messages drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~sysrq-more-explicit-less-terse-help-messages
++++ a/drivers/char/sysrq.c
+@@ -82,7 +82,7 @@ static void sysrq_handle_loglevel(int ke
+ }
+ static struct sysrq_key_op sysrq_loglevel_op = {
+ 	.handler	= sysrq_handle_loglevel,
+-	.help_msg	= "loglevel0-8",
++	.help_msg	= "loglevel(0-9)",
+ 	.action_msg	= "Changing Loglevel",
+ 	.enable_mask	= SYSRQ_ENABLE_LOG,
+ };
+@@ -233,7 +233,7 @@ static void sysrq_handle_showallcpus(int
  
- config NET_9P_RDMA
--	depends on INET && INFINIBAND && EXPERIMENTAL
-+	depends on INET && INFINIBAND_ADDR_TRANS && EXPERIMENTAL
- 	tristate "9P RDMA Transport (Experimental)"
- 	help
- 	  This builds support for an RDMA transport.
+ static struct sysrq_key_op sysrq_showallcpus_op = {
+ 	.handler	= sysrq_handle_showallcpus,
+-	.help_msg	= "aLlcpus",
++	.help_msg	= "show-backtrace-all-active-cpus(L)",
+ 	.action_msg	= "Show backtrace of all active CPUs",
+ 	.enable_mask	= SYSRQ_ENABLE_DUMP,
+ };
+@@ -247,7 +247,7 @@ static void sysrq_handle_showregs(int ke
+ }
+ static struct sysrq_key_op sysrq_showregs_op = {
+ 	.handler	= sysrq_handle_showregs,
+-	.help_msg	= "showPc",
++	.help_msg	= "show-registers(P)",
+ 	.action_msg	= "Show Regs",
+ 	.enable_mask	= SYSRQ_ENABLE_DUMP,
+ };
+@@ -258,7 +258,7 @@ static void sysrq_handle_showstate(int k
+ }
+ static struct sysrq_key_op sysrq_showstate_op = {
+ 	.handler	= sysrq_handle_showstate,
+-	.help_msg	= "showTasks",
++	.help_msg	= "show-task-states(T)",
+ 	.action_msg	= "Show State",
+ 	.enable_mask	= SYSRQ_ENABLE_DUMP,
+ };
+@@ -269,7 +269,7 @@ static void sysrq_handle_showstate_block
+ }
+ static struct sysrq_key_op sysrq_showstate_blocked_op = {
+ 	.handler	= sysrq_handle_showstate_blocked,
+-	.help_msg	= "shoW-blocked-tasks",
++	.help_msg	= "show-blocked-tasks(W)",
+ 	.action_msg	= "Show Blocked State",
+ 	.enable_mask	= SYSRQ_ENABLE_DUMP,
+ };
+@@ -297,7 +297,7 @@ static void sysrq_handle_showmem(int key
+ }
+ static struct sysrq_key_op sysrq_showmem_op = {
+ 	.handler	= sysrq_handle_showmem,
+-	.help_msg	= "showMem",
++	.help_msg	= "show-memory-usage(M)",
+ 	.action_msg	= "Show Memory",
+ 	.enable_mask	= SYSRQ_ENABLE_DUMP,
+ };
+@@ -323,7 +323,7 @@ static void sysrq_handle_term(int key, s
+ }
+ static struct sysrq_key_op sysrq_term_op = {
+ 	.handler	= sysrq_handle_term,
+-	.help_msg	= "tErm",
++	.help_msg	= "terminate-all-tasks(E)",
+ 	.action_msg	= "Terminate All Tasks",
+ 	.enable_mask	= SYSRQ_ENABLE_SIGNAL,
+ };
+@@ -341,7 +341,7 @@ static void sysrq_handle_moom(int key, s
+ }
+ static struct sysrq_key_op sysrq_moom_op = {
+ 	.handler	= sysrq_handle_moom,
+-	.help_msg	= "Full",
++	.help_msg	= "memory-full-oom-kill(F)",
+ 	.action_msg	= "Manual OOM execution",
+ 	.enable_mask	= SYSRQ_ENABLE_SIGNAL,
+ };
+@@ -353,7 +353,7 @@ static void sysrq_handle_kill(int key, s
+ }
+ static struct sysrq_key_op sysrq_kill_op = {
+ 	.handler	= sysrq_handle_kill,
+-	.help_msg	= "kIll",
++	.help_msg	= "kill-all-tasks(I)",
+ 	.action_msg	= "Kill All Tasks",
+ 	.enable_mask	= SYSRQ_ENABLE_SIGNAL,
+ };
+@@ -364,7 +364,7 @@ static void sysrq_handle_unrt(int key, s
+ }
+ static struct sysrq_key_op sysrq_unrt_op = {
+ 	.handler	= sysrq_handle_unrt,
+-	.help_msg	= "Nice",
++	.help_msg	= "nice-all-RT-tasks(N)",
+ 	.action_msg	= "Nice All RT Tasks",
+ 	.enable_mask	= SYSRQ_ENABLE_RTNICE,
+ };
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -89,6 +166,7 @@ esp-fix-section-mismatch-warning.patch
 fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
 documentation-when-to-bug-and-when-to-not-bug.patch
 fs-inode-fix-kernel-doc-notation.patch
+sysrq-more-explicit-less-terse-help-messages.patch
 fs-ncpfs-getoptc-cleanup-keneldoc.patch
 max3100-spi-uart-driver-select-serial_core.patch
 dmi-fix-kernel-doc-notation.patch
