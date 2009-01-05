@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-remove-wb_sync_hold-fix.patch added to -mm tree
-Date: Mon, 05 Jan 2009 14:25:13 -0800
-Message-ID: <200901052225.n05MPD1l024274@imap1.linux-foundation.org>
+Subject: + leds-add-a-dac124s085-spi-led-driver-fix.patch added to -mm tree
+Date: Mon, 05 Jan 2009 14:31:39 -0800
+Message-ID: <200901052231.n05MVeHJ029484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49295 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751827AbZAEWZX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:25:23 -0500
+	by vger.kernel.org with ESMTP id S1751235AbZAEWdI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:33:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com, npiggin@suse.de
+Cc: randy.dunlap@oracle.com, ben-linux@fluff.org, hmh@hmh.eng.br, lg@denx.de, rpurdie@rpsys.net
 
 
 The patch titled
-     fs-remove-wb_sync_hold-fix
+     leds-dac124s085: use header files for interfaces
 has been added to the -mm tree.  Its filename is
-     fs-remove-wb_sync_hold-fix.patch
+     leds-add-a-dac124s085-spi-led-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-remove-wb_sync_hold-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: leds-dac124s085: use header files for interfaces
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Fix build errors caused by not using #includes for interfaces that are used:
+
+drivers/leds/leds-dac124s085.c: In function 'dac124s085_probe':
+drivers/leds/leds-dac124s085.c:70: error: 'GFP_KERNEL' undeclared (first use in this function)
+drivers/leds/leds-dac124s085.c:70: warning: assignment makes pointer from integer without a cast
+drivers/leds/leds-dac124s085.c: At top level:
+drivers/leds/leds-dac124s085.c:127: error: field name not in record or union initializer
+drivers/leds/leds-dac124s085.c:127: error: (near initialization for 'dac124s085_driver.driver')
+drivers/leds/leds-dac124s085.c:128: error: field name not in record or union initializer
+drivers/leds/leds-dac124s085.c:128: error: (near initialization for 'dac124s085_driver.driver')
+drivers/leds/leds-dac124s085.c:128: error: 'THIS_MODULE' undeclared here (not in a function)
+drivers/leds/leds-dac124s085.c:145: error: expected declaration specifiers or '...' before string constant
+drivers/leds/leds-dac124s085.c:145: warning: data definition has no type or storage class
+drivers/leds/leds-dac124s085.c:145: warning: type defaults to 'int' in declaration of 'MODULE_AUTHOR'
+drivers/leds/leds-dac124s085.c:145: warning: function declaration isn't a prototype
+drivers/leds/leds-dac124s085.c:146: error: expected declaration specifiers or '...' before string constant
+drivers/leds/leds-dac124s085.c:146: warning: data definition has no type or storage class
+drivers/leds/leds-dac124s085.c:146: warning: type defaults to 'int' in declaration of 'MODULE_DESCRIPTION'
+drivers/leds/leds-dac124s085.c:146: warning: function declaration isn't a prototype
+drivers/leds/leds-dac124s085.c:147: error: expected declaration specifiers or '...' before string constant
+drivers/leds/leds-dac124s085.c:147: warning: data definition has no type or storage class
+drivers/leds/leds-dac124s085.c:147: warning: type defaults to 'int' in declaration of 'MODULE_LICENSE'
+drivers/leds/leds-dac124s085.c:147: warning: function declaration isn't a prototype
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Guennadi Liakhovetski <lg@denx.de>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    2 +-
- fs/ubifs/super.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/leds/leds-dac124s085.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/fs-writeback.c~fs-remove-wb_sync_hold-fix fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-remove-wb_sync_hold-fix
-+++ a/fs/fs-writeback.c
-@@ -688,7 +688,7 @@ int write_inode_now(struct inode *inode,
- 	int ret;
- 	struct writeback_control wbc = {
- 		.nr_to_write = LONG_MAX,
--		.sync_mode = sync ? WB_SYNC_ALL : WB_SYNC_NONE,
-+		.sync_mode = sync ? WB_SYNC_ALL : WB_SYNC_HOLD,
- 		.range_start = 0,
- 		.range_end = LLONG_MAX,
- 	};
-diff -puN fs/ubifs/super.c~fs-remove-wb_sync_hold-fix fs/ubifs/super.c
---- a/fs/ubifs/super.c~fs-remove-wb_sync_hold-fix
-+++ a/fs/ubifs/super.c
-@@ -432,7 +432,7 @@ static int ubifs_sync_fs(struct super_bl
- 	int i, err;
- 	struct ubifs_info *c = sb->s_fs_info;
- 	struct writeback_control wbc = {
--		.sync_mode   = wait ? WB_SYNC_ALL : WB_SYNC_HOLD,
-+		.sync_mode   = wait ? WB_SYNC_ALL : WB_SYNC_NONE,
- 		.range_start = 0,
- 		.range_end   = LLONG_MAX,
- 		.nr_to_write = LONG_MAX,
+diff -puN drivers/leds/leds-dac124s085.c~leds-add-a-dac124s085-spi-led-driver-fix drivers/leds/leds-dac124s085.c
+--- a/drivers/leds/leds-dac124s085.c~leds-add-a-dac124s085-spi-led-driver-fix
++++ a/drivers/leds/leds-dac124s085.c
+@@ -9,8 +9,11 @@
+  * LED driver for the DAC124S085 SPI DAC
+  */
+ 
++#include <linux/gfp.h>
+ #include <linux/leds.h>
++#include <linux/module.h>
+ #include <linux/mutex.h>
++#include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/workqueue.h>
+ #include <linux/spi/spi.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-i-need-old-gcc.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-fs-remove-wb_sync_hold-fix.patch
-mm-check-for-no-mmaps-in-exit_mmap-fix.patch
-mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-binfmtsh-include-listh-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-fs-execc-make-do_coredump-void-checkpatch-fixes.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+kgdb-fix-kernel-doc-error.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+leds-add-a-dac124s085-spi-led-driver-fix.patch
+mtd-fix-nettel-printk-formats.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+esp-fix-section-mismatch-warning.patch
+fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
+documentation-when-to-bug-and-when-to-not-bug.patch
+fs-ncpfs-getoptc-cleanup-keneldoc.patch
+max3100-spi-uart-driver-select-serial_core.patch
+i2o-remove-extraneous-kernel-doc.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+fs-ecryptfs-inodec-cleanup-kerneldoc.patch
+kmod-fix-varargs-kernel-doc.patch
+docs-document-how-to-write-varargs-in-kernel-doc.patch
+rapidio-remove-excess-kernel-doc-notation.patch
+documentation-update-header-file-paths.patch
+documentation-update-s390-header-file-paths.patch
+documentation-how-to-use-doc-section-blocks.patch
+docs-add-more-early-params-to-kernel-parameterstxt.patch
+doc-reformat-some-long-lines-in-kernel-parameterstxt.patch
+w1-add-list-masters-w1-command.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
+fix-similar-typos-to-successfull-v2.patch
+kmemleak-add-documentation-on-the-memory-leak-detector.patch
 
