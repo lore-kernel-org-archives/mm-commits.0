@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dmi-fix-kernel-doc-notation.patch added to -mm tree
-Date: Mon, 05 Jan 2009 14:41:39 -0800
-Message-ID: <200901052241.n05MfdWZ005227@imap1.linux-foundation.org>
+Subject: + fs-inode-fix-kernel-doc-notation.patch added to -mm tree
+Date: Mon, 05 Jan 2009 14:42:28 -0800
+Message-ID: <200901052242.n05MgSlg005884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751009AbZAEWmO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:42:14 -0500
+	by vger.kernel.org with ESMTP id S1751127AbZAEWnD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:43:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     dmi: fix kernel-doc notation
+     fs/inode: fix kernel-doc notation
 has been added to the -mm tree.  Its filename is
-     dmi-fix-kernel-doc-notation.patch
+     fs-inode-fix-kernel-doc-notation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dmi: fix kernel-doc notation
+Subject: fs/inode: fix kernel-doc notation
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add missing kernel-doc notation:
+Fix kernel-doc notation:
 
-drivers/firmware/dmi_scan.c:475: No description found for parameter 'str'
-drivers/firmware/dmi_scan.c:592: No description found for parameter 'f'
-drivers/firmware/dmi_scan.c:592: No description found for parameter 'str'
+Warning(linux-2.6.28-git3//fs/inode.c:120): No description found for parameter 'sb'
+Warning(linux-2.6.28-git3//fs/inode.c:120): No description found for parameter 'inode'
+Warning(linux-2.6.28-git3//fs/inode.c:588): No description found for parameter 'sb'
+Warning(linux-2.6.28-git3//fs/inode.c:588): No description found for parameter 'inode'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/inode.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~dmi-fix-kernel-doc-notation drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~dmi-fix-kernel-doc-notation
-+++ a/drivers/firmware/dmi_scan.c
-@@ -468,8 +468,8 @@ const char *dmi_get_system_info(int fiel
- EXPORT_SYMBOL(dmi_get_system_info);
+diff -puN fs/inode.c~fs-inode-fix-kernel-doc-notation fs/inode.c
+--- a/fs/inode.c~fs-inode-fix-kernel-doc-notation
++++ a/fs/inode.c
+@@ -110,8 +110,8 @@ static void wake_up_inode(struct inode *
  
  /**
-- *	dmi_name_in_serial - 	Check if string is in the DMI product serial
-- *				information.
-+ * dmi_name_in_serial - Check if string is in the DMI product serial information
-+ * @str: string to check for
-  */
- int dmi_name_in_serial(const char *str)
- {
-@@ -585,6 +585,8 @@ EXPORT_SYMBOL_GPL(dmi_walk);
- 
- /**
-  * dmi_match - compare a string to the dmi field (if exists)
-+ * @f: DMI field identifier
-+ * @str: string to compare the DMI field to
+  * inode_init_always - perform inode structure intialisation
+- * @sb		- superblock inode belongs to.
+- * @inode	- inode to initialise
++ * @sb: superblock inode belongs to
++ * @inode: inode to initialise
   *
-  * Returns true if the requested field equals to the str (including NULL).
-  */
+  * These are initializations that need to be done on every inode
+  * allocation as the fields are not initialised by slab allocation.
+@@ -574,8 +574,8 @@ __inode_add_to_lists(struct super_block 
+ 
+ /**
+  * inode_add_to_lists - add a new inode to relevant lists
+- * @sb		- superblock inode belongs to.
+- * @inode	- inode to mark in use
++ * @sb: superblock inode belongs to
++ * @inode: inode to mark in use
+  *
+  * When an inode is allocated it needs to be accounted for, added to the in use
+  * list, the owning superblock and the inode hash. This needs to be done under
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -87,6 +91,7 @@ proc-move-inode-comment-text-file-to-source-file.patch
 esp-fix-section-mismatch-warning.patch
 fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
 documentation-when-to-bug-and-when-to-not-bug.patch
+fs-inode-fix-kernel-doc-notation.patch
 fs-ncpfs-getoptc-cleanup-keneldoc.patch
 max3100-spi-uart-driver-select-serial_core.patch
 dmi-fix-kernel-doc-notation.patch
