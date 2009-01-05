@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-acpi-hardware-hwsleepc-fix-warning-msg.patch added to -mm tree
-Date: Sun, 04 Jan 2009 23:23:25 -0800
-Message-ID: <200901050723.n057NPZF006789@imap1.linux-foundation.org>
+Subject: + input-keyboard-hilkbdc-fix-crash-when-removing-hilkbd-module.patch added to -mm tree
+Date: Sun, 04 Jan 2009 23:28:35 -0800
+Message-ID: <200901050728.n057SZRT010927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57376 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751362AbZAEHYD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 02:24:03 -0500
+	by vger.kernel.org with ESMTP id S1751362AbZAEHaX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 02:30:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: valdis.kletnieks@vt.edu, lenb@kernel.org
+Cc: deller@gmx.de, elendil@planet.nl, geert@linux-m68k.org, grundler@parisc-linux.org, kyle@mcmartin.ca
 
 
 The patch titled
-     drivers/acpi/hardware/hwsleep.c: fix warning msg
+     input/keyboard/hilkbd.c: fix crash when removing hilkbd module
 has been added to the -mm tree.  Its filename is
-     drivers-acpi-hardware-hwsleepc-fix-warning-msg.patch
+     input-keyboard-hilkbdc-fix-crash-when-removing-hilkbd-module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/acpi/hardware/hwsleep.c: fix warning msg
-From: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Subject: input/keyboard/hilkbd.c: fix crash when removing hilkbd module
+From: Helge Deller <deller@gmx.de>
 
-In mmotm1230 the linux.next patch, most likely via this commit:
+On parisc machines, which don't have HIL, removing the hilkbd module
+panics the kernel.  Fix this by adding proper implementations for the
+probe and remove functions to the parisc_driver structure.
 
-commit ecd196686aee5028f71ee09072c8581c7293a847
-Author: Len Brown <len.brown=40intel.com>
-Date:   Fri Dec 19 03:53:37 2008 -0500
+A few functions were renamed to clean up the code and make it easier
+readable.
 
-    ACPICA: disable ACPI 2.0 _GTS/_BFS support
+Disable the MODULE_DEVICE_TABLE() macro on parisc since the kernel module
+autoloader should instead prefer the hp_sdc driver which takes care of
+full HIL support, including HIL mouse and HIL tablets.
 
-added some warning messages:
-
-  CC      drivers/acpi/hardware/hwsleep.o
-drivers/acpi/hardware/hwsleep.c: In function`acpi_enter_sleep_state':
-drivers/acpi/hardware/hwsleep.c:231: warning: unused variable`arg'
-drivers/acpi/hardware/hwsleep.c:230: warning: unused variable`arg_list'
-drivers/acpi/hardware/hwsleep.c: In function`acpi_leave_sleep_state_prep':
-drivers/acpi/hardware/hwsleep.c:471: warning: unused variable`arg'
-drivers/acpi/hardware/hwsleep.c:470: warning: unused variable`arg_list'
-
-If we're going to ifdef-wrap the code, let's do the variables involved
-as well, so we don't get warnings.
-
-Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Frans Pop <elendil@planet.nl>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/hardware/hwsleep.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/input/keyboard/hilkbd.c |   63 ++++++++++++++++++++----------
+ 1 file changed, 43 insertions(+), 20 deletions(-)
 
-diff -puN drivers/acpi/hardware/hwsleep.c~drivers-acpi-hardware-hwsleepc-fix-warning-msg drivers/acpi/hardware/hwsleep.c
---- a/drivers/acpi/hardware/hwsleep.c~drivers-acpi-hardware-hwsleepc-fix-warning-msg
-+++ a/drivers/acpi/hardware/hwsleep.c
-@@ -227,8 +227,10 @@ acpi_status asmlinkage acpi_enter_sleep_
- 	struct acpi_bit_register_info *sleep_type_reg_info;
- 	struct acpi_bit_register_info *sleep_enable_reg_info;
- 	u32 in_value;
-+#ifdef	ACPI_20_GTS_BFS
- 	struct acpi_object_list arg_list;
- 	union acpi_object arg;
-+#endif
- 	acpi_status status;
+diff -puN drivers/input/keyboard/hilkbd.c~input-keyboard-hilkbdc-fix-crash-when-removing-hilkbd-module drivers/input/keyboard/hilkbd.c
+--- a/drivers/input/keyboard/hilkbd.c~input-keyboard-hilkbdc-fix-crash-when-removing-hilkbd-module
++++ a/drivers/input/keyboard/hilkbd.c
+@@ -198,9 +198,8 @@ static void hil_do(unsigned char cmd, un
+ }
  
- 	ACPI_FUNCTION_TRACE(acpi_enter_sleep_state);
-@@ -467,8 +469,10 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_stat
-  ******************************************************************************/
- acpi_status acpi_leave_sleep_state_prep(u8 sleep_state)
+ 
+-/* initialise HIL */
+-static int __init
+-hil_keyb_init(void)
++/* initialize HIL */
++static int __init hil_keyb_init(void)
  {
-+#ifdef	ACPI_20_GTS_BFS
- 	struct acpi_object_list arg_list;
- 	union acpi_object arg;
+ 	unsigned char c;
+ 	unsigned int i, kbid;
+@@ -308,13 +307,39 @@ err1:
+ 	return err;
+ }
+ 
++static void __exit hil_keyb_exit(void)
++{
++	/* exit if there is no HIL keyboard */
++	if (!hil_dev.dev)
++		return;
++
++	if (HIL_IRQ) {
++		disable_irq(HIL_IRQ);
++		free_irq(HIL_IRQ, hil_dev.dev_id);
++	}
++
++	/* Turn off interrupts */
++	hil_do(HIL_INTOFF, NULL, 0);
++
++	input_unregister_device(hil_dev.dev);
++
++	hil_dev.dev = NULL;
++
++#if defined(CONFIG_HP300)
++	release_region(HILBASE+HIL_DATA, 2);
 +#endif
- 	acpi_status status;
- 	struct acpi_bit_register_info *sleep_type_reg_info;
- 	struct acpi_bit_register_info *sleep_enable_reg_info;
-_
-
-Patches currently in -mm which might be from valdis.kletnieks@vt.edu are
-
-workqueues-kill-cpu_singlethread_map-use-get_cpu_mask-instead-fix.patch
-drivers-acpi-hardware-hwsleepc-fix-warning-msg.patch
-
++}
+ 
+ #if defined(CONFIG_PARISC)
+-static int __init
+-hil_init_chip(struct parisc_device *dev)
++static int __init hil_probe_chip(struct parisc_device *dev)
+ {
++	/* Only allow one HIL keyboard */
++	if (hil_dev.dev)
++		return -ENODEV;
++
+ 	if (!dev->irq) {
+-		printk(KERN_WARNING "HIL: IRQ not found for HIL bus at 0x%08lx\n", dev->hpa.start);
++		printk(KERN_WARNING "HIL: IRQ not found for HIL bus at 0x%p\n",
++			(void *)dev->hpa.start);
+ 		return -ENODEV;
+ 	}
+ 
+@@ -327,17 +352,27 @@ hil_init_chip(struct parisc_device *dev)
+ 	return hil_keyb_init();
+ }
+ 
++static int __exit hil_remove_chip(struct parisc_device *dev)
++{
++	hil_keyb_exit();
++	return 0;
++}
++
+ static struct parisc_device_id hil_tbl[] = {
+ 	{ HPHW_FIO, HVERSION_REV_ANY_ID, HVERSION_ANY_ID, 0x00073 },
+ 	{ 0, }
+ };
+ 
++#if 0
++/* Disabled to avoid conflicts with the HP SDC HIL drivers */
+ MODULE_DEVICE_TABLE(parisc, hil_tbl);
++#endif
+ 
+ static struct parisc_driver hil_driver = {
+ 	.name =		"hil",
+ 	.id_table =	hil_tbl,
+-	.probe =	hil_init_chip,
++	.probe =	hil_probe_chip,
++	.remove =	hil_remove_chip,
+ };
+ #endif /* CONFIG_PARISC */
+ 
+@@ -354,22 +389,10 @@ static int __init hil_init(void)
+ 
+ static void __exit hil_exit(void)
+ {
+-	if (HIL_IRQ) {
+-		disable_irq(HIL_IRQ);
+-		free_irq(HIL_IRQ, hil_dev.dev_id);
+-	}
+-
+-	/* Turn off interrupts */
+-	hil_do(HIL_INTOFF, NULL, 0);
+-
+-	input_unregister_device(hil_dev.dev);
+-
+-	hil_dev.dev = NULL;
