@@ -1,96 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - include-linux-fsh-put-declarations-in-__kernel__.patch removed from -mm tree
-Date: Sun, 04 Jan 2009 22:41:10 -0800
-Message-ID: <200901050641.n056fAg4005152@imap1.linux-foundation.org>
+Subject: - fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch removed from -mm tree
+Date: Sun, 04 Jan 2009 22:41:21 -0800
+Message-ID: <200901050641.n056fLID005365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44389 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751390AbZAEGlS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 01:41:18 -0500
+	by vger.kernel.org with ESMTP id S1751028AbZAEGlZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 01:41:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@medozas.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: crquan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include: linux/fs.h: put declarations in __KERNEL__
+     fs/block_dev.c: __read_mostly improvement and sb_is_blkdev_sb utilization
 has been removed from the -mm tree.  Its filename was
-     include-linux-fsh-put-declarations-in-__kernel__.patch
+     fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include: linux/fs.h: put declarations in __KERNEL__
-From: Jan Engelhardt <jengelh@medozas.de>
+Subject: fs/block_dev.c: __read_mostly improvement and sb_is_blkdev_sb utilization
+From: Denis ChengRq <crquan@gmail.com>
 
-An anonymous user tried to use symbols from /usr/include/linux/fs.h.
-Since these however are not defined in libc, but are specific to the
-kernel, they should be in an #ifdef __KERNEL__ section. Move them
-there.
+- iget5_locked in bdget really needs blockdev_superblock, instead of
+  bd_mnt, so bd_mnt could be just a local variable;
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+- blockdev_superblock really needs __read_mostly, while local var bd_mnt
+  not;
+
+- make use of sb_is_blkdev_sb in bd_forget, instead of direct reference
+  to blockdev_superblock.
+
+Signed-off-by: Denis ChengRq <crquan@gmail.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/block_dev.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/fs.h~include-linux-fsh-put-declarations-in-__kernel__ include/linux/fs.h
---- a/include/linux/fs.h~include-linux-fsh-put-declarations-in-__kernel__
-+++ a/include/linux/fs.h
-@@ -21,7 +21,6 @@
- 
- /* Fixed constants first: */
- #undef NR_OPEN
--extern int sysctl_nr_open;
- #define INR_OPEN 1024		/* Initial setting for nfile rlimits */
- 
- #define BLOCK_SIZE_BITS 10
-@@ -38,21 +37,13 @@ struct files_stat_struct {
- 	int nr_free_files;	/* read only */
- 	int max_files;		/* tunable */
+diff -puN fs/block_dev.c~fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization fs/block_dev.c
+--- a/fs/block_dev.c~fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization
++++ a/fs/block_dev.c
+@@ -326,12 +326,13 @@ static struct file_system_type bd_type =
+ 	.kill_sb	= kill_anon_super,
  };
--extern struct files_stat_struct files_stat;
--extern int get_max_files(void);
  
- struct inodes_stat_t {
- 	int nr_inodes;
- 	int nr_unused;
- 	int dummy[5];		/* padding for sysctl ABI compatibility */
- };
--extern struct inodes_stat_t inodes_stat;
+-static struct vfsmount *bd_mnt __read_mostly;
+-struct super_block *blockdev_superblock;
++struct super_block *blockdev_superblock __read_mostly;
  
--extern int leases_enable, lease_break_time;
--
--#ifdef CONFIG_DNOTIFY
--extern int dir_notify_enable;
--#endif
- 
- #define NR_FILE  8192	/* this can well be larger on a larger system */
- 
-@@ -321,6 +312,15 @@ extern void __init inode_init(void);
- extern void __init inode_init_early(void);
- extern void __init files_init(unsigned long);
- 
-+extern struct files_stat_struct files_stat;
-+extern int get_max_files(void);
-+extern int sysctl_nr_open;
-+extern struct inodes_stat_t inodes_stat;
-+extern int leases_enable, lease_break_time;
-+#ifdef CONFIG_DNOTIFY
-+extern int dir_notify_enable;
-+#endif
+ void __init bdev_cache_init(void)
+ {
+ 	int err;
++	struct vfsmount *bd_mnt;
 +
- struct buffer_head;
- typedef int (get_block_t)(struct inode *inode, sector_t iblock,
- 			struct buffer_head *bh_result, int create);
+ 	bdev_cachep = kmem_cache_create("bdev_cache", sizeof(struct bdev_inode),
+ 			0, (SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|
+ 				SLAB_MEM_SPREAD|SLAB_PANIC),
+@@ -373,7 +374,7 @@ struct block_device *bdget(dev_t dev)
+ 	struct block_device *bdev;
+ 	struct inode *inode;
+ 
+-	inode = iget5_locked(bd_mnt->mnt_sb, hash(dev),
++	inode = iget5_locked(blockdev_superblock, hash(dev),
+ 			bdev_test, bdev_set, &dev);
+ 
+ 	if (!inode)
+@@ -463,7 +464,7 @@ void bd_forget(struct inode *inode)
+ 
+ 	spin_lock(&bdev_lock);
+ 	if (inode->i_bdev) {
+-		if (inode->i_sb != blockdev_superblock)
++		if (!sb_is_blkdev_sb(inode->i_sb))
+ 			bdev = inode->i_bdev;
+ 		__bd_forget(inode);
+ 	}
 _
 
-Patches currently in -mm which might be from jengelh@medozas.de are
+Patches currently in -mm which might be from crquan@gmail.com are
 
 origin.patch
+linux-next.patch
 
