@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-remove-on-stack-cpumask_t-in-cpuset_can_attach.patch added to -mm tree
-Date: Sun, 04 Jan 2009 23:47:57 -0800
-Message-ID: <200901050747.n057lvpX026475@imap1.linux-foundation.org>
+Subject: + cpuset-convert-cpuset_attach-to-use-cpumask_var_t.patch added to -mm tree
+Date: Sun, 04 Jan 2009 23:47:59 -0800
+Message-ID: <200901050747.n057lxdx026528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750836AbZAEHsQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 02:48:16 -0500
+	by vger.kernel.org with ESMTP id S1751346AbZAEHsT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 02:48:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, lizf@cn.fujistu.com, menage@google.com, mingo@elte.hu, rusty@rustcorp.com.au, travis@sgi.com
+Cc: lizf@cn.fujitsu.com, menage@google.com, mingo@elte.hu, rusty@rustcorp.com.au, travis@sgi.com
 
 
 The patch titled
-     cpuset: remove on stack cpumask_t in cpuset_can_attach()
+     cpuset: convert cpuset_attach() to use cpumask_var_t
 has been added to the -mm tree.  Its filename is
-     cpuset-remove-on-stack-cpumask_t-in-cpuset_can_attach.patch
+     cpuset-convert-cpuset_attach-to-use-cpumask_var_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: remove on stack cpumask_t in cpuset_can_attach()
+Subject: cpuset: convert cpuset_attach() to use cpumask_var_t
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-Impact: redue stack usage
+Impact: reduce stack usage
 
-Just use cs->cpus_allowed, and no need to allocate a cpumask_var_t.
+Allocate a cpumask_var_t in cpuset_can_attach() and then use it in
+cpuset_attach(), so we won't fail cpuset_attach().
 
-Signed-off-by: Li Zefan <lizf@cn.fujistu.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Acked-by: Mike Travis <travis@sgi.com>
@@ -48,38 +49,84 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ kernel/cpuset.c |   31 +++++++++++++++++++++++++------
+ 1 file changed, 25 insertions(+), 6 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-remove-on-stack-cpumask_t-in-cpuset_can_attach kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-remove-on-stack-cpumask_t-in-cpuset_can_attach
+diff -puN kernel/cpuset.c~cpuset-convert-cpuset_attach-to-use-cpumask_var_t kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-convert-cpuset_attach-to-use-cpumask_var_t
 +++ a/kernel/cpuset.c
-@@ -1311,20 +1311,19 @@ static int cpuset_can_attach(struct cgro
+@@ -1306,6 +1306,14 @@ static int fmeter_getrate(struct fmeter 
+ 	return val;
+ }
+ 
++/*
++ * Since cpuset_attach() can't fail, we allocate a cpumask_var_t in
++ * cpuset_can_attach() and then use it in cpuset_attach().
++ *
++ * Protected by cgroup_lock.
++ */
++static cpumask_var_t cpus_attach;
++
+ /* Called by cgroups to determine if a cpuset is usable; cgroup_mutex held */
+ static int cpuset_can_attach(struct cgroup_subsys *ss,
  			     struct cgroup *cont, struct task_struct *tsk)
- {
- 	struct cpuset *cs = cgroup_cs(cont);
-+	int ret = 0;
- 
- 	if (cpus_empty(cs->cpus_allowed) || nodes_empty(cs->mems_allowed))
- 		return -ENOSPC;
--	if (tsk->flags & PF_THREAD_BOUND) {
--		cpumask_t mask;
- 
-+	if (tsk->flags & PF_THREAD_BOUND) {
- 		mutex_lock(&callback_mutex);
--		mask = cs->cpus_allowed;
-+		if (!cpus_equal(tsk->cpus_allowed, cs->cpus_allowed))
-+			ret = -EINVAL;
+@@ -1321,16 +1329,25 @@ static int cpuset_can_attach(struct cgro
+ 		if (!cpus_equal(tsk->cpus_allowed, cs->cpus_allowed))
+ 			ret = -EINVAL;
  		mutex_unlock(&callback_mutex);
--		if (!cpus_equal(tsk->cpus_allowed, mask))
--			return -EINVAL;
++
++		if (ret)
++			return ret;
  	}
  
--	return security_task_setscheduler(tsk, 0, NULL);
-+	return ret < 0 ? ret : security_task_setscheduler(tsk, 0, NULL);
+-	return ret < 0 ? ret : security_task_setscheduler(tsk, 0, NULL);
++	ret = security_task_setscheduler(tsk, 0, NULL);
++	if (ret)
++		return ret;
++
++	if (!alloc_cpumask_var(&cpus_attach, GFP_KERNEL))
++		return -ENOMEM;
++
++	return 0;
  }
  
  static void cpuset_attach(struct cgroup_subsys *ss,
+ 			  struct cgroup *cont, struct cgroup *oldcont,
+ 			  struct task_struct *tsk)
+ {
+-	cpumask_t cpus;
+ 	nodemask_t from, to;
+ 	struct mm_struct *mm;
+ 	struct cpuset *cs = cgroup_cs(cont);
+@@ -1338,15 +1355,15 @@ static void cpuset_attach(struct cgroup_
+ 	int err;
+ 
+ 	if (cs == &top_cpuset) {
+-		cpus = cpu_possible_map;
++		cpumask_copy(cpus_attach, cpu_possible_mask);
+ 	} else {
+ 		mutex_lock(&callback_mutex);
+-		guarantee_online_cpus(cs, &cpus);
++		guarantee_online_cpus(cs, cpus_attach);
+ 		mutex_unlock(&callback_mutex);
+ 	}
+-	err = set_cpus_allowed_ptr(tsk, &cpus);
++	err = set_cpus_allowed_ptr(tsk, cpus_attach);
+ 	if (err)
+-		return;
++		goto out;
+ 
+ 	from = oldcs->mems_allowed;
+ 	to = cs->mems_allowed;
+@@ -1358,6 +1375,8 @@ static void cpuset_attach(struct cgroup_
+ 		mmput(mm);
+ 	}
+ 
++out:
++	free_cpumask_var(cpus_attach);
+ }
+ 
+ /* The various types of files and directories in a cpuset file system */
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
