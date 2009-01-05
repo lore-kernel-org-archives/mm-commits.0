@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-proc-controls-for-pdflush-threads.patch added to -mm tree
-Date: Mon, 05 Jan 2009 14:53:03 -0800
-Message-ID: <200901052253.n05Mr3au014416@imap1.linux-foundation.org>
+Subject: + mm-add-proc-controls-for-pdflush-threads-fix.patch added to -mm tree
+Date: Mon, 05 Jan 2009 14:53:05 -0800
+Message-ID: <200901052253.n05Mr5cT014456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57909 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750890AbZAEWxv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:53:51 -0500
+	by vger.kernel.org with ESMTP id S1750965AbZAEWxw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:53:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pmorreale@novell.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, pmorreale@novell.com, riel@redhat.com
 
 
 The patch titled
-     mm: add /proc controls for pdflush threads
+     mm-add-proc-controls-for-pdflush-threads-fix
 has been added to the -mm tree.  Its filename is
-     mm-add-proc-controls-for-pdflush-threads.patch
+     mm-add-proc-controls-for-pdflush-threads-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,208 +33,132 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add /proc controls for pdflush threads
-From: Peter W Morreale <pmorreale@novell.com>
+Subject: mm-add-proc-controls-for-pdflush-threads-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add /proc entries to give the admin the ability to control the minimum and
-maximum number of pdflush threads.  This allows finer control of pdflush
-on both large and small machines.
+- fix comment
 
-The rationale is simply one size does not fit all.  Admins on large and/or
-small systems may want to tune the min/max pdflush thread count to best
-suit their needs.  Right now the min/max is hardcoded to 2/8.  While
-probably a fair estimate for smaller machines, large machines with large
-numbers of CPUs and large numbers of filesystems/block devices may benefit
-from larger numbers of threads working on different block devices.
+- futz with whitespace a bit
 
-Even if the background flushing algorithm is radically changed, it is
-still likely that multiple threads will be involved and admins would still
-desire finer control on the min/max other than to have to recompile the
-kernel.
+- use __read_mostly on the globals
 
-The patch adds '/proc/sys/vm/nr_pdflush_threads_min' and
-'/proc/sys/vm/nr_pdflush_threads_max' with r/w permissions.
-
-The minimum value for nr_pdflush_threads_min is 1 and the maximum value is
-the current value of nr_pdflush_threads_max.  This minimum is required
-since additional thread creation is performed in a pdflush thread itself.
-
-The minimum value for nr_pdflush_threads_max is the current value of
-nr_pdflush_threads_min and the maximum value can be 1000.
-
-Documentation/sysctl/vm.txt is also updated.
-
-Signed-off-by: Peter W Morreale <pmorreale@novell.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Peter W Morreale <pmorreale@novell.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   28 ++++++++++++++++++++++++++++
- include/linux/writeback.h   |    2 ++
- kernel/sysctl.c             |   23 +++++++++++++++++++++++
- mm/pdflush.c                |   19 ++++++++++++++-----
- 4 files changed, 67 insertions(+), 5 deletions(-)
+ mm/pdflush.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-add-proc-controls-for-pdflush-threads Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-add-proc-controls-for-pdflush-threads
-+++ a/Documentation/sysctl/vm.txt
-@@ -22,6 +22,8 @@ Currently, these files are in /proc/sys/
- - dirty_background_ratio
- - dirty_expire_centisecs
- - dirty_writeback_centisecs
-+- nr_pdflush_threads_min
-+- nr_pdflush_threads_max
- - highmem_is_dirtyable   (only if CONFIG_HIGHMEM set)
- - max_map_count
- - min_free_kbytes
-@@ -52,6 +54,32 @@ See Documentation/filesystems/proc.txt
- 
- ==============================================================
- 
-+nr_pdflush_threads_min
-+
-+This value controls the minimum number of pdflush threads.
-+
-+At boot time, the kernel will create and maintain 'nr_pdflush_threads_min'
-+threads for the kernel's lifetime.
-+
-+The default value is 2.  The minimum value you can specify is 1, and
-+the maximum value is the current setting of 'nr_pdflush_threads_max'.
-+
-+See 'nr_pdflush_threads_max' below for more information.
-+
-+==============================================================
-+
-+nr_pdflush_threads_max
-+
-+This value controls the maximum number of pdflush threads that can be
-+created.  The pdflush algorithm will create a new pdflush thread (up to
-+this maximum) if no pdflush threads have been available for >= 1 second.
-+
-+The default value is 8.  The minimum value you can specify is the
-+current value of 'nr_pdflush_threads_min' and the
-+maximum is 1000.
-+
-+==============================================================
-+
- overcommit_memory:
- 
- This value contains a flag that enables memory overcommitment.
-diff -puN include/linux/writeback.h~mm-add-proc-controls-for-pdflush-threads include/linux/writeback.h
---- a/include/linux/writeback.h~mm-add-proc-controls-for-pdflush-threads
-+++ a/include/linux/writeback.h
-@@ -168,6 +168,8 @@ void writeback_set_ratelimit(void);
- /* pdflush.c */
- extern int nr_pdflush_threads;	/* Global so it can be exported to sysctl
- 				   read-only. */
-+extern int nr_pdflush_threads_max; /* Global so it can be exported to sysctl */
-+extern int nr_pdflush_threads_min; /* Global so it can be exported to sysctl */
- 
- 
- #endif		/* WRITEBACK_H */
-diff -puN kernel/sysctl.c~mm-add-proc-controls-for-pdflush-threads kernel/sysctl.c
---- a/kernel/sysctl.c~mm-add-proc-controls-for-pdflush-threads
-+++ a/kernel/sysctl.c
-@@ -103,6 +103,7 @@ static int two = 2;
- static int zero;
- static int one = 1;
- static int one_hundred = 100;
-+static int one_thousand = 1000;
- 
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
- static int maxolduid = 65535;
-@@ -1022,6 +1023,28 @@ static struct ctl_table vm_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
- 	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "nr_pdflush_threads_min",
-+		.data		= &nr_pdflush_threads_min,
-+		.maxlen		= sizeof nr_pdflush_threads_min,
-+		.mode		= 0644 /* read-write */,
-+		.proc_handler	= &proc_dointvec_minmax,
-+		.strategy	= &sysctl_intvec,
-+		.extra1		= &one,
-+		.extra2		= &nr_pdflush_threads_max,
-+	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "nr_pdflush_threads_max",
-+		.data		= &nr_pdflush_threads_max,
-+		.maxlen		= sizeof nr_pdflush_threads_max,
-+		.mode		= 0644 /* read-write */,
-+		.proc_handler	= &proc_dointvec_minmax,
-+		.strategy	= &sysctl_intvec,
-+		.extra1		= &nr_pdflush_threads_min,
-+		.extra2		= &one_thousand,
-+	},
-+	{
- 		.ctl_name	= VM_SWAPPINESS,
- 		.procname	= "swappiness",
- 		.data		= &vm_swappiness,
-diff -puN mm/pdflush.c~mm-add-proc-controls-for-pdflush-threads mm/pdflush.c
---- a/mm/pdflush.c~mm-add-proc-controls-for-pdflush-threads
+diff -puN mm/pdflush.c~mm-add-proc-controls-for-pdflush-threads-fix mm/pdflush.c
+--- a/mm/pdflush.c~mm-add-proc-controls-for-pdflush-threads-fix
 +++ a/mm/pdflush.c
-@@ -58,6 +58,14 @@ static DEFINE_SPINLOCK(pdflush_lock);
- int nr_pdflush_threads = 0;
+@@ -59,10 +59,10 @@ int nr_pdflush_threads = 0;
  
  /*
-+ * The max/min number of pdflush threads. R/W by sysctl at
-+ * /proc/sys/vm/nr_pdflush_threads_max
-+ */
-+int nr_pdflush_threads_max = MAX_PDFLUSH_THREADS;
-+int nr_pdflush_threads_min = MIN_PDFLUSH_THREADS;
-+
-+
-+/*
-  * The time at which the pdflush thread pool last went empty
+  * The max/min number of pdflush threads. R/W by sysctl at
+- * /proc/sys/vm/nr_pdflush_threads_max
++ * /proc/sys/vm/nr_pdflush_threads_max/min
   */
- static unsigned long last_empty_jifs;
-@@ -68,7 +76,7 @@ static unsigned long last_empty_jifs;
-  * Thread pool management algorithm:
-  * 
-  * - The minimum and maximum number of pdflush instances are bound
-- *   by MIN_PDFLUSH_THREADS and MAX_PDFLUSH_THREADS.
-+ *   by nr_pdflush_threads_min and nr_pdflush_threads_max.
-  * 
-  * - If there have been no idle pdflush instances for 1 second, create
-  *   a new one.
-@@ -135,7 +143,8 @@ static int __pdflush(struct pdflush_work
+-int nr_pdflush_threads_max = MAX_PDFLUSH_THREADS;
+-int nr_pdflush_threads_min = MIN_PDFLUSH_THREADS;
++int nr_pdflush_threads_max __read_mostly = MAX_PDFLUSH_THREADS;
++int nr_pdflush_threads_min __read_mostly = MIN_PDFLUSH_THREADS;
+ 
+ 
+ /*
+@@ -142,15 +142,13 @@ static int __pdflush(struct pdflush_work
+ 		 * To throttle creation, we reset last_empty_jifs.
  		 */
  		if (time_after(jiffies, last_empty_jifs + 1 * HZ)) {
- 			if (list_empty(&pdflush_list)) {
--				if (nr_pdflush_threads < MAX_PDFLUSH_THREADS) {
-+				if (nr_pdflush_threads <
-+						nr_pdflush_threads_max) {
- 					last_empty_jifs = jiffies;
- 					nr_pdflush_threads++;
- 					spin_unlock_irq(&pdflush_lock);
-@@ -153,7 +162,7 @@ static int __pdflush(struct pdflush_work
- 		 */
- 		if (list_empty(&pdflush_list))
- 			continue;
--		if (nr_pdflush_threads <= MIN_PDFLUSH_THREADS)
-+		if (nr_pdflush_threads <= nr_pdflush_threads_min)
- 			continue;
- 		pdf = list_entry(pdflush_list.prev, struct pdflush_work, list);
- 		if (time_after(jiffies, pdf->when_i_went_to_sleep + 1 * HZ)) {
-@@ -259,9 +268,9 @@ static int __init pdflush_init(void)
- 	 * Pre-set nr_pdflush_threads...  If we fail to create,
- 	 * the count will be decremented.
- 	 */
--	nr_pdflush_threads = MIN_PDFLUSH_THREADS;
-+	nr_pdflush_threads = nr_pdflush_threads_min;
+-			if (list_empty(&pdflush_list)) {
+-				if (nr_pdflush_threads <
+-						nr_pdflush_threads_max) {
+-					last_empty_jifs = jiffies;
+-					nr_pdflush_threads++;
+-					spin_unlock_irq(&pdflush_lock);
+-					start_one_pdflush_thread();
+-					spin_lock_irq(&pdflush_lock);
+-				}
++			if (list_empty(&pdflush_list) &&
++			    (nr_pdflush_threads < nr_pdflush_threads_max) {
++				last_empty_jifs = jiffies;
++				nr_pdflush_threads++;
++				spin_unlock_irq(&pdflush_lock);
++				start_one_pdflush_thread();
++				spin_lock_irq(&pdflush_lock);
+ 			}
+ 		}
  
--	for (i = 0; i < MIN_PDFLUSH_THREADS; i++)
-+	for (i = 0; i < nr_pdflush_threads_min; i++)
- 		start_one_pdflush_thread();
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from pmorreale@novell.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-pdflush-thread-creation-upper-bound.patch
-mm-add-proc-controls-for-pdflush-threads.patch
+origin.patch
+i-need-old-gcc.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+next-remove-localversion.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+fs-remove-wb_sync_hold-fix.patch
+mm-check-for-no-mmaps-in-exit_mmap-fix.patch
+mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
 mm-add-proc-controls-for-pdflush-threads-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+smp_call_function_single-be-slightly-less-stupid.patch
+binfmtsh-include-listh-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+fs-execc-make-do_coredump-void-checkpatch-fixes.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
+dma_alloc_coherent-clean-it-up.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+kmemleak-add-the-base-support-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
