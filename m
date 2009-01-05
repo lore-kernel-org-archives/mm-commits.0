@@ -1,72 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-correct-wrong-function-name-of-d_put-in-kernel-document-and-source-comment.patch removed from -mm tree
-Date: Sun, 04 Jan 2009 22:41:23 -0800
-Message-ID: <200901050641.n056fNXN005411@imap1.linux-foundation.org>
+Subject: - fs-namespacec-drop-code-after-return.patch removed from -mm tree
+Date: Sun, 04 Jan 2009 22:41:13 -0800
+Message-ID: <200901050641.n056fDEZ005273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751396AbZAEGl3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751398AbZAEGl3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 01:41:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhaolei@cn.fujitsu.com, rdunlap@xenotime.net, zhaolei@cn.fuijtsu.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, hch@lst.de, richard.genoud@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: correct wrong function name of d_put in kernel document and source comment
+     fs/namespace.c: drop code after return
 has been removed from the -mm tree.  Its filename was
-     vfs-correct-wrong-function-name-of-d_put-in-kernel-document-and-source-comment.patch
+     fs-namespacec-drop-code-after-return.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: correct wrong function name of d_put in kernel document and source comment
-From: Zhaolei <zhaolei@cn.fujitsu.com>
+Subject: fs/namespace.c: drop code after return
+From: Julia Lawall <julia@diku.dk>
 
-no function named d_put(), it should be dput().
+The extra semicolon serves no purpose.
 
-Impact: fix document and comment, no functionality changed
-
-Signed-off-by: Zhao Lei <zhaolei@cn.fuijtsu.com>
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Reviewed-by: Richard Genoud <richard.genoud@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfs.txt |    2 +-
- fs/dcache.c                       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/vfs.txt~vfs-correct-wrong-function-name-of-d_put-in-kernel-document-and-source-comment Documentation/filesystems/vfs.txt
---- a/Documentation/filesystems/vfs.txt~vfs-correct-wrong-function-name-of-d_put-in-kernel-document-and-source-comment
-+++ a/Documentation/filesystems/vfs.txt
-@@ -931,7 +931,7 @@ manipulate dentries:
-   d_lookup: look up a dentry given its parent and path name component
- 	It looks up the child of that given name from the dcache
- 	hash table. If it is found, the reference count is incremented
--	and the dentry is returned. The caller must use d_put()
-+	and the dentry is returned. The caller must use dput()
- 	to free the dentry when it finishes using it.
- 
- For further information on dentry locking, please refer to the document
-diff -puN fs/dcache.c~vfs-correct-wrong-function-name-of-d_put-in-kernel-document-and-source-comment fs/dcache.c
---- a/fs/dcache.c~vfs-correct-wrong-function-name-of-d_put-in-kernel-document-and-source-comment
-+++ a/fs/dcache.c
-@@ -1337,7 +1337,7 @@ err_out:
-  *
-  * Searches the children of the parent dentry for the name in question. If
-  * the dentry is found its reference count is incremented and the dentry
-- * is returned. The caller must use d_put to free the entry when it has
-+ * is returned. The caller must use dput to free the entry when it has
-  * finished using it. %NULL is returned on failure.
-  *
-  * __d_lookup is dcache_lock free. The hash list is protected using RCU.
+diff -puN fs/namespace.c~fs-namespacec-drop-code-after-return fs/namespace.c
+--- a/fs/namespace.c~fs-namespacec-drop-code-after-return
++++ a/fs/namespace.c
+@@ -1990,7 +1990,7 @@ static struct mnt_namespace *dup_mnt_ns(
+ 	if (!new_ns->root) {
+ 		up_write(&namespace_sem);
+ 		kfree(new_ns);
+-		return ERR_PTR(-ENOMEM);;
++		return ERR_PTR(-ENOMEM);
+ 	}
+ 	spin_lock(&vfsmount_lock);
+ 	list_add_tail(&new_ns->list, &new_ns->root->mnt_list);
 _
 
-Patches currently in -mm which might be from zhaolei@cn.fujitsu.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-forkc-cleanup-for-copy_sighand.patch
+linux-next.patch
+arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+powerpc-powermac-add-missing-of_node_put.patch
+net-tipc-bcasth-use-array_size.patch
+net-bridge-netfilter-move-a-dereference-below-a-null-test.patch
+drivers-isdn-hardware-misdn-move-a-dereference-below-a-null-test.patch
+drivers-net-hamradio-6packc-move-a-dereference-below-a-null-test.patch
+drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch
+drivers-scsi-move-a-dereference-below-a-null-test.patch
+drivers-message-fusion-move-a-dereference-below-a-null-test.patch
+mm-page_allocc-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc.patch
+drivers-spi-move-a-dereference-below-a-null-test.patch
+drivers-rtc-correct-an-error-test.patch
 
