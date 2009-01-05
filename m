@@ -1,164 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-proc-controls-for-pdflush-threads-fix.patch added to -mm tree
-Date: Mon, 05 Jan 2009 14:53:05 -0800
-Message-ID: <200901052253.n05Mr5cT014456@imap1.linux-foundation.org>
+Subject: - sg_io-fix-sg_io_hdrinfo-corruption-in-compat-code.patch removed from -mm tree
+Date: Mon, 05 Jan 2009 14:55:36 -0800
+Message-ID: <200901052255.n05Mta3I016507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39089 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750965AbZAEWxw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:53:52 -0500
+	by vger.kernel.org with ESMTP id S1751280AbZAEW4M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 17:56:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, pmorreale@novell.com, riel@redhat.com
+To: alexey.zaytsev@gmail.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-add-proc-controls-for-pdflush-threads-fix
-has been added to the -mm tree.  Its filename is
-     mm-add-proc-controls-for-pdflush-threads-fix.patch
+     sg_io: fix sg_io_hdr.info corruption in compat code
+has been removed from the -mm tree.  Its filename was
+     sg_io-fix-sg_io_hdrinfo-corruption-in-compat-code.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-add-proc-controls-for-pdflush-threads-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sg_io: fix sg_io_hdr.info corruption in compat code
+From: Alexey Zaytsev <alexey.zaytsev@gmail.com>
 
-- fix comment
+sizeof(unsigned (short)) is actually sizeof(function), == 1.  Spotted by
+sparse.
 
-- futz with whitespace a bit
-
-- use __read_mostly on the globals
-
-Cc: Peter W Morreale <pmorreale@novell.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Alexey Zaytsev <alexey.zaytsev@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pdflush.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ fs/compat_ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/pdflush.c~mm-add-proc-controls-for-pdflush-threads-fix mm/pdflush.c
---- a/mm/pdflush.c~mm-add-proc-controls-for-pdflush-threads-fix
-+++ a/mm/pdflush.c
-@@ -59,10 +59,10 @@ int nr_pdflush_threads = 0;
+diff -puN fs/compat_ioctl.c~sg_io-fix-sg_io_hdrinfo-corruption-in-compat-code fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~sg_io-fix-sg_io_hdrinfo-corruption-in-compat-code
++++ a/fs/compat_ioctl.c
+@@ -784,7 +784,7 @@ static int sg_ioctl_trans(unsigned int f
  
- /*
-  * The max/min number of pdflush threads. R/W by sysctl at
-- * /proc/sys/vm/nr_pdflush_threads_max
-+ * /proc/sys/vm/nr_pdflush_threads_max/min
-  */
--int nr_pdflush_threads_max = MAX_PDFLUSH_THREADS;
--int nr_pdflush_threads_min = MIN_PDFLUSH_THREADS;
-+int nr_pdflush_threads_max __read_mostly = MAX_PDFLUSH_THREADS;
-+int nr_pdflush_threads_min __read_mostly = MIN_PDFLUSH_THREADS;
- 
- 
- /*
-@@ -142,15 +142,13 @@ static int __pdflush(struct pdflush_work
- 		 * To throttle creation, we reset last_empty_jifs.
- 		 */
- 		if (time_after(jiffies, last_empty_jifs + 1 * HZ)) {
--			if (list_empty(&pdflush_list)) {
--				if (nr_pdflush_threads <
--						nr_pdflush_threads_max) {
--					last_empty_jifs = jiffies;
--					nr_pdflush_threads++;
--					spin_unlock_irq(&pdflush_lock);
--					start_one_pdflush_thread();
--					spin_lock_irq(&pdflush_lock);
--				}
-+			if (list_empty(&pdflush_list) &&
-+			    (nr_pdflush_threads < nr_pdflush_threads_max) {
-+				last_empty_jifs = jiffies;
-+				nr_pdflush_threads++;
-+				spin_unlock_irq(&pdflush_lock);
-+				start_one_pdflush_thread();
-+				spin_lock_irq(&pdflush_lock);
- 			}
- 		}
+ 	if (copy_in_user(&sgio->status, &sgio32->status,
+ 			 (4 * sizeof(unsigned char)) +
+-			 (2 * sizeof(unsigned (short))) +
++			 (2 * sizeof(unsigned short)) +
+ 			 (3 * sizeof(int))))
+ 		return -EFAULT;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alexey.zaytsev@gmail.com are
 
-origin.patch
-i-need-old-gcc.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-fs-remove-wb_sync_hold-fix.patch
-mm-check-for-no-mmaps-in-exit_mmap-fix.patch
-mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-binfmtsh-include-listh-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-fs-execc-make-do_coredump-void-checkpatch-fixes.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+sg_io-fix-sg_io_hdrinfo-corruption-in-compat-code.patch
 
