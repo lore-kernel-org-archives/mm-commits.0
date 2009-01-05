@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fix-function-param-name-in-kernel-doc.patch added to -mm tree
-Date: Mon, 05 Jan 2009 15:27:54 -0800
-Message-ID: <200901052327.n05NRsT1010239@imap1.linux-foundation.org>
+Subject: + acpi-dock-terminate-eject-request-is-the-dock-is-not-present.patch added to -mm tree
+Date: Mon, 05 Jan 2009 15:57:54 -0800
+Message-ID: <200901052357.n05NvsKU002139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44203 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752272AbZAEX2B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 18:28:01 -0500
+	by vger.kernel.org with ESMTP id S1752504AbZAEX6H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 18:58:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: marvin@mydatex.cz, lenb@kernel.org, rui.zhang@intel.com, stable@kernel.org
 
 
 The patch titled
-     fs: fix function param name in kernel-doc
+     acpi dock: terminate eject request is the dock is not present
 has been added to the -mm tree.  Its filename is
-     fs-fix-function-param-name-in-kernel-doc.patch
+     acpi-dock-terminate-eject-request-is-the-dock-is-not-present.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: fix function param name in kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: acpi dock: terminate eject request is the dock is not present
+From: Daniel Smolik <marvin@mydatex.cz>
 
-Fix function parameter name in kernel-doc:
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=12360
 
-Warning(linux-2.6.28-git5//fs/block_dev.c:1272): No description found for parameter 'pathname'
-Warning(linux-2.6.28-git5//fs/block_dev.c:1272): Excess function parameter 'path' description in 'lookup_bdev'
+nfi if it's right - I merged it so it wouldn't get lost.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: <stable@kernel.org>		[2.6.26.x, 2.6.27.x, 2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/dock.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/block_dev.c~fs-fix-function-param-name-in-kernel-doc fs/block_dev.c
---- a/fs/block_dev.c~fs-fix-function-param-name-in-kernel-doc
-+++ a/fs/block_dev.c
-@@ -1291,7 +1291,7 @@ EXPORT_SYMBOL(ioctl_by_bdev);
+diff -puN drivers/acpi/dock.c~acpi-dock-terminate-eject-request-is-the-dock-is-not-present drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~acpi-dock-terminate-eject-request-is-the-dock-is-not-present
++++ a/drivers/acpi/dock.c
+@@ -668,6 +668,9 @@ EXPORT_SYMBOL_GPL(unregister_hotplug_doc
+  */
+ static int handle_eject_request(struct dock_station *ds, u32 event)
+ {
++	if (!dock_present(ds))
++		return -ENODEV;
++
+ 	if (dock_in_progress(ds))
+ 		return -EBUSY;
  
- /**
-  * lookup_bdev  - lookup a struct block_device by name
-- * @path:	special file representing the block device
-+ * @pathname:	special file representing the block device
-  *
-  * Get a reference to the blockdevice at @pathname in the current
-  * namespace if possible and return it.  Return ERR_PTR(error)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from marvin@mydatex.cz are
 
-origin.patch
-linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-leds-add-a-dac124s085-spi-led-driver-fix.patch
-mtd-fix-nettel-printk-formats.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-fs-use-menuconfig-to-control-the-misc-filesystems-menu.patch
-documentation-when-to-bug-and-when-to-not-bug.patch
-fs-inode-fix-kernel-doc-notation.patch
-sysrq-more-explicit-less-terse-help-messages.patch
-fs-fix-function-param-name-in-kernel-doc.patch
-fs-ncpfs-getoptc-cleanup-keneldoc.patch
-max3100-spi-uart-driver-select-serial_core.patch
-dmi-fix-kernel-doc-notation.patch
-i2o-remove-extraneous-kernel-doc.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-fs-ecryptfs-inodec-cleanup-kerneldoc.patch
-jbd-remove-excess-kernel-doc-notation.patch
-kmod-fix-varargs-kernel-doc.patch
-docs-document-how-to-write-varargs-in-kernel-doc.patch
-rapidio-remove-excess-kernel-doc-notation.patch
-documentation-update-header-file-paths.patch
-documentation-update-s390-header-file-paths.patch
-documentation-how-to-use-doc-section-blocks.patch
-docs-add-more-early-params-to-kernel-parameterstxt.patch
-doc-reformat-some-long-lines-in-kernel-parameterstxt.patch
-w1-add-list-masters-w1-command.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
-fix-similar-typos-to-successfull-v2.patch
-kmemleak-add-documentation-on-the-memory-leak-detector.patch
+acpi-dock-terminate-eject-request-is-the-dock-is-not-present.patch
 
