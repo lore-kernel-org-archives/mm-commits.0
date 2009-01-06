@@ -1,162 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-lseekfd-0-seek_cur-race-condition.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 11:58:59 -0800
-Message-ID: <200901061959.n06JwxdC031793@imap1.linux-foundation.org>
+Subject: - uml-get-rid-of-the-last-symlink-in-uml-build.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 11:59:08 -0800
+Message-ID: <200901061959.n06Jx8sE031924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34738 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751661AbZAFT7Q (ORCPT
+	by vger.kernel.org with ESMTP id S1751647AbZAFT7Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 14:59:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alain@knaff.lu, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: viro@ZenIV.linux.org.uk, jdike@addtoit.com, sam@ravnborg.orgviro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     VFS: lseek(fd, 0, SEEK_CUR) race condition
+     uml: get rid of the last symlink in uml build
 has been removed from the -mm tree.  Its filename was
-     vfs-lseekfd-0-seek_cur-race-condition.patch
+     uml-get-rid-of-the-last-symlink-in-uml-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: VFS: lseek(fd, 0, SEEK_CUR) race condition
-From: Alain Knaff <alain@knaff.lu>
+Subject: uml: get rid of the last symlink in uml build
+From: Al Viro <viro@ZenIV.linux.org.uk>
 
-This patch fixes a race condition in lseek.  While it is expected that
-unpredictable behaviour may result while repositioning the offset of a
-file descriptor concurrently with reading/writing to the same file
-descriptor, this should not happen when merely *reading* the file
-descriptor's offset.
+We need to make asm-offsets.h contents visible for objects built with
+userland headers.  Instead of creating a symlink, just have the file with
+equivalent include (relative to location of header) created once.
 
-Unfortunately, the only portable way in Unix to read a file
-descriptor's offset is lseek(fd, 0, SEEK_CUR); however executing this
-concurrently with read/write may mess up the position, as shown by the
-testcase below:
+That kills the last symlink used in arch/um builds.  Have fun...
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <pthread.h>
-
-void *loop(void *ptr)
-{
-  fprintf(stderr, "Starting seek thread\n");
-  while(1) {
-    if(lseek(0, 0LL, SEEK_CUR) < 0LL)
-      perror("seek");
-  }
-}
-
-int main(int argc, char **argv) {
-  long long l=0;
-  int r;
-  char buf[4096];
-
-  pthread_t thread;
-  pthread_create(&thread, 0, loop, 0);
-
-  for(r=0; 1 ; r++) {
-    int n = read(0, buf, 4096);
-    if(n == 0)
-      break;
-    if(n < 4096) {
-      fprintf(stderr, "Short read %d %s\n", n, strerror(errno));
-    }
-    l+= n;
-  }
-  fprintf(stderr, "Read %lld bytes\n", l);
-
-  return 0;
-}
-
-Compile this and run it on a multi-processor machine as
- ./a.out <bigFile
-
-where bigFile is a 1 Gigabyte file. It should print 1073741824.
-However, on a buggy kernel, it usually produces a bigger number. The
-problem only happens on a multiprocessor machine. This is because an
-lseek(fd, 0, SEEK_CUR) running concurrently with a read() or write()
-will reset the position back to what it used to be when the read()
-started.
-
-This behavior was observed "in the wild" when using udpcast which uses
-lseek to monitor progress of reading/writing the uncompressed data.
-
-The patch below fixes the issue by "special-casing" the lseek(fd, 0,
-SEEK_CUR) pattern.
-
-Apparently, an attempt was already made to fix the issue by the
-following code:
-
-		if (offset != file->f_pos) {
-			file->f_pos = offset;
-			file->f_version = 0;
-		}
-
-However, this doesn't work if file->f_pos was changed (by read() or
-write()) between the time offset was computed, and the time where it
-considers writing it back.
-
-Signed-off-by: Alain Knaff <alain@knaff.lu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ arch/um/Makefile |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN fs/read_write.c~vfs-lseekfd-0-seek_cur-race-condition fs/read_write.c
---- a/fs/read_write.c~vfs-lseekfd-0-seek_cur-race-condition
-+++ a/fs/read_write.c
-@@ -50,6 +50,14 @@ generic_file_llseek_unlocked(struct file
- 		offset += inode->i_size;
- 		break;
- 	case SEEK_CUR:
-+		/*
-+		 * Here we special-case the lseek(fd, 0, SEEK_CUR)
-+		 * position-querying operation.  Avoid rewriting the "same"
-+		 * f_pos value back to the file because a concurrent read(),
-+		 * write() or lseek() might have altered it
-+		 */
-+		if (offset == 0)
-+			return file->f_pos;
- 		offset += file->f_pos;
- 		break;
- 	}
-@@ -105,6 +113,14 @@ loff_t default_llseek(struct file *file,
- 			offset += i_size_read(file->f_path.dentry->d_inode);
- 			break;
- 		case SEEK_CUR:
-+			/*
-+			 * See SEEK_CUR description in
-+			 * generic_file_llseek_unlocked()
-+			 */
-+			if (offset == 0) {
-+				retval = file->f_pos;
-+				goto out;
-+			}
- 			offset += file->f_pos;
- 	}
- 	retval = -EINVAL;
-@@ -115,6 +131,7 @@ loff_t default_llseek(struct file *file,
- 		}
- 		retval = offset;
- 	}
-+out:
- 	unlock_kernel();
- 	return retval;
- }
+diff -puN arch/um/Makefile~uml-get-rid-of-the-last-symlink-in-uml-build arch/um/Makefile
+--- a/arch/um/Makefile~uml-get-rid-of-the-last-symlink-in-uml-build
++++ a/arch/um/Makefile
+@@ -22,10 +22,11 @@ MODE_INCLUDE	+= -I$(srctree)/$(ARCH_DIR)
+ 
+ include $(srctree)/$(ARCH_DIR)/Makefile-skas
+ 
+-ARCH_INCLUDE	:= -I$(srctree)/$(ARCH_DIR)/include/shared
++SHARED_HEADERS	:= $(ARCH_DIR)/include/shared
++ARCH_INCLUDE	:= -I$(srctree)/$(SHARED_HEADERS)
+ ARCH_INCLUDE	+= -I$(srctree)/$(ARCH_DIR)/sys-$(SUBARCH)/shared
+ ifneq ($(KBUILD_SRC),)
+-ARCH_INCLUDE	+= -I$(ARCH_DIR)/include/shared # for two generated files
++ARCH_INCLUDE	+= -I$(SHARED_HEADERS)
+ endif
+ KBUILD_CPPFLAGS += -I$(srctree)/$(ARCH_DIR)/sys-$(SUBARCH)
+ 
+@@ -85,8 +86,8 @@ endef
+ 
+ KBUILD_KCONFIG := arch/um/Kconfig.$(HEADER_ARCH)
+ 
+-archprepare: $(ARCH_DIR)/include/shared/user_constants.h
+-prepare: $(ARCH_DIR)/include/shared/kern_constants.h
++archprepare: $(SHARED_HEADERS)/user_constants.h
++prepare: $(SHARED_HEADERS)/kern_constants.h
+ 
+ LINK-$(CONFIG_LD_SCRIPT_STATIC) += -static
+ LINK-$(CONFIG_LD_SCRIPT_DYN) += -Wl,-rpath,/lib
+@@ -119,17 +120,13 @@ endef
+ # When cleaning we don't include .config, so we don't include
+ # TT or skas makefiles and don't clean skas_ptregs.h.
+ CLEAN_FILES += linux x.i gmon.out \
+-	$(ARCH_DIR)/include/shared/user_constants.h \
+-	$(ARCH_DIR)/include/shared/kern_constants.h
++	$(SHARED_HEADERS)/user_constants.h \
++	$(SHARED_HEADERS)/kern_constants.h
+ 
+ archclean:
+ 	@find . \( -name '*.bb' -o -name '*.bbg' -o -name '*.da' \
+ 		-o -name '*.gcov' \) -type f -print | xargs rm -f
+ 
+-$(objtree)/$(ARCH_DIR)/include/shared:
+-	@echo '  MKDIR $@'
+-	$(Q)mkdir -p $@
+-
+ # Generated files
+ 
+ $(ARCH_DIR)/sys-$(SUBARCH)/user-offsets.s: FORCE
+@@ -148,11 +145,11 @@ define filechk_gen-asm-offsets
+          echo ""; )
+ endef
+ 
+-$(ARCH_DIR)/include/shared/user_constants.h: $(ARCH_DIR)/sys-$(SUBARCH)/user-offsets.s
++$(SHARED_HEADERS)/user_constants.h: $(ARCH_DIR)/sys-$(SUBARCH)/user-offsets.s
+ 	$(call filechk,gen-asm-offsets)
+ 
+-$(ARCH_DIR)/include/shared/kern_constants.h: $(objtree)/$(ARCH_DIR)/include/shared
+-	@echo '  SYMLINK $@'
+-	$(Q)ln -sf ../../../../include/asm/asm-offsets.h $@
++$(SHARED_HEADERS)/kern_constants.h:
++	$(Q)mkdir -p $(dir $@)
++	$(Q)echo '#include "../../../../include/asm/asm-offsets.h"' >$@
+ 
+ export SUBARCH USER_CFLAGS CFLAGS_NO_HARDENING OS HEADER_ARCH DEV_NULL_PATH
 _
 
-Patches currently in -mm which might be from alain@knaff.lu are
+Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
 
 origin.patch
+linux-next.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
 
