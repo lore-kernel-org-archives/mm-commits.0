@@ -1,132 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:47:49 -0800
-Message-ID: <200901062047.n06Klo7m006733@imap1.linux-foundation.org>
+Subject: - hfs-add-basic-export-support.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 15:33:35 -0800
+Message-ID: <200901062333.n06NXaUK014164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751844AbZAFUsO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:48:14 -0500
+	by vger.kernel.org with ESMTP id S1751470AbZAFXeD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 18:34:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: flameeyes@gmail.com, hch@lst.de, neilb@suse.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes
+     hfs+: add basic export support
 has been removed from the -mm tree.  Its filename was
-     add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+     hfs-add-basic-export-support.patch
 
-This patch was dropped because you all suck
+This patch was dropped because an updated version will be merged
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hfs+: add basic export support
+=46rom: "Diego Elio 'Flameeyes' Petten=F2" <flameeyes@gmail.com>
 
-ERROR: code indent should use tabs where possible
-#43: FILE: include/linux/kernel.h:343:
-+        printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)$
+The function's skeleton is taken from ext2/super.c and seems to work fi=
+ne
+for R/W access to HFS+ non-journaled case-sensitive filesystems.
 
-ERROR: code indent should use tabs where possible
-#45: FILE: include/linux/kernel.h:345:
-+        printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)$
+It's probably slow and has a lot of space for improvement but it's stil=
+l
+better than having no hope to export HFS+ filesystems.
 
-ERROR: code indent should use tabs where possible
-#47: FILE: include/linux/kernel.h:347:
-+        printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#49: FILE: include/linux/kernel.h:349:
-+        printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#51: FILE: include/linux/kernel.h:351:
-+        printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#53: FILE: include/linux/kernel.h:353:
-+        printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#55: FILE: include/linux/kernel.h:355:
-+        printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)$
-
-total: 7 errors, 0 warnings, 55 lines checked
-
-./patches/add-pr_prefix-to-pr_xyz-macros.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: "Diego Elio 'Flameeyes' Petten=F2"  <flameeyes@gmail.com=
+>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/hfsplus/super.c |   49 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff -puN include/linux/kernel.h~add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes include/linux/kernel.h
---- a/include/linux/kernel.h~add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes
-+++ a/include/linux/kernel.h
-@@ -340,19 +340,19 @@ static inline char *pack_hex_byte(char *
- #endif
- 
- #define pr_emerg(fmt, ...) \
--        printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_alert(fmt, ...) \
--        printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_crit(fmt, ...) \
--        printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_err(fmt, ...) \
--        printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_warning(fmt, ...) \
--        printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_notice(fmt, ...) \
--        printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_info(fmt, ...) \
--        printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
- 
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(CONFIG_DYNAMIC_PRINTK_DEBUG)
+diff -puN fs/hfsplus/super.c~hfs-add-basic-export-support fs/hfsplus/su=
+per.c
+--- a/fs/hfsplus/super.c~hfs-add-basic-export-support
++++ a/fs/hfsplus/super.c
+@@ -11,6 +11,7 @@
+ #include <linux/init.h>
+ #include <linux/pagemap.h>
+ #include <linux/fs.h>
++#include <linux/exportfs.h>
+ #include <linux/slab.h>
+ #include <linux/vfs.h>
+ #include <linux/nls.h>
+@@ -287,6 +288,53 @@ static const struct super_operations hfs
+ 	.show_options	=3D hfsplus_show_options,
+ };
+=20
++static struct inode *hfsplus_export_get_inode(struct super_block *sb,
++					      u64 ino, u32 generation)
++{
++	struct inode *inode;
++
++	if (ino < HFSPLUS_FIRSTUSER_CNID && ino !=3D HFSPLUS_ROOT_CNID)
++		return ERR_PTR(-ESTALE);
++
++	/* iget isn't really right if the inode is currently unallocated!!
++	 */
++	inode =3D hfsplus_iget(sb, ino);
++	if (IS_ERR(inode))
++		return ERR_CAST(inode);
++	if (generation && inode->i_generation !=3D generation) {
++		/* we didn't find the right inode.. */
++		iput(inode);
++		return ERR_PTR(-ESTALE);
++	}
++	return inode;
++}
++
++static struct dentry *hfsplus_fh_to_dentry(struct super_block *sb, str=
+uct fid *fid,
++					   int fh_len, int fh_type)
++
++{
++	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
++				    hfsplus_export_get_inode);
++}
++
++static struct dentry *hfsplus_fh_to_parent(struct super_block *sb, str=
+uct fid *fid,
++					   int fh_len, int fh_type)
++
++{
++	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
++				    hfsplus_export_get_inode);
++}
++
++/* Yes, most of these are left as NULL!!
++ * A NULL value implies the default, which (hopefully) works with
++ * hfs+-like file systems, but can be improved upon.
++ * Currently only fh_to_dentry is required.
++ */
++static const struct export_operations hfsplus_export_ops =3D {
++	.fh_to_dentry =3D hfsplus_fh_to_dentry,
++	.fh_to_parent =3D hfsplus_fh_to_parent,
++};
++
+ static int hfsplus_fill_super(struct super_block *sb, void *data, int =
+silent)
+ {
+ 	struct hfsplus_vh *vhdr;
+@@ -351,6 +399,7 @@ static int hfsplus_fill_super(struct sup
+=20
+ 	/* Set up operations so we can load metadata */
+ 	sb->s_op =3D &hfsplus_sops;
++	sb->s_export_op =3D &hfsplus_export_ops;
+ 	sb->s_maxbytes =3D MAX_LFS_FILESIZE;
+=20
+ 	if (!(vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_UNMNT))) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from flameeyes@gmail.com are
 
-origin.patch
-mm-invoke-oom-killer-from-page-fault.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-mm-mmapc-fix-coding-style.patch
-mm-check-for-no-mmaps-in-exit_mmap.patch
-mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
-mm-hugetlb-get-rid-of-redundant-if-operation.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module.patch
-binfmtsh-include-listh.patch
-spi_gpio-driver.patch
-kprobes-support-probing-module-__exit-function.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver.patch
-minix-fix-add-links-wrong-position-calculation.patch
-fs-execc-make-do_coredump-void.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-edac-x38-use-the-architectures-readq-function.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event.patch
+hfs-add-basic-export-support.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
