@@ -1,55 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - mm-check-for-no-mmaps-in-exit_mmap-fix.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:19:52 -0800
-Message-ID: <200901062019.n06KJqaT016335@imap1.linux-foundation.org>
+Subject: - mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:20:33 -0800
+Message-ID: <200901062020.n06KKXIb016915@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754716AbZAFUUD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:20:03 -0500
+	by vger.kernel.org with ESMTP id S1750843AbZAFUUs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:20:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, akinobu.mita@gmail.com, hannes@cmpxchg.org, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@suse.de, wassim.dagash@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-check-for-no-mmaps-in-exit_mmap-fix
+     mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix
 has been removed from the -mm tree.  Its filename was
-     mm-check-for-no-mmaps-in-exit_mmap-fix.patch
+     mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
 
-This patch was dropped because it was folded into mm-check-for-no-mmaps-in-exit_mmap.patch
+This patch was dropped because it was folded into mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-check-for-no-mmaps-in-exit_mmap-fix
+Subject: mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i shouldn't have to do this
-
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: wassim dagash <wassim.dagash@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-check-for-no-mmaps-in-exit_mmap-fix mm/mmap.c
---- a/mm/mmap.c~mm-check-for-no-mmaps-in-exit_mmap-fix
-+++ a/mm/mmap.c
-@@ -2090,7 +2090,7 @@ void exit_mmap(struct mm_struct *mm)
- 	arch_exit_mmap(mm);
- 	mmu_notifier_release(mm);
- 
--	if (!mm->mmap)
-+	if (!mm->mmap)	/* Can happen if dup_mmap() received an OOM */
- 		return;
- 
- 	if (mm->locked_vm) {
+diff -puN mm/vmscan.c~mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix
++++ a/mm/vmscan.c
+@@ -1878,8 +1878,8 @@ out:
+ 		 *
+ 		 * Instead, recheck all watermarks at order-0 as they
+ 		 * are the most important. If watermarks are ok, kswapd will go
+-		 * back to sleep. High-order users can still direct reclaim
+-		 * if they wish.
++		 * back to sleep. High-order users can still perform direct
++		 * reclaim if they wish.
+ 		 */
+ 		if (nr_reclaimed < SWAP_CLUSTER_MAX)
+ 			order = sc.order = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +62,7 @@ fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
 vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
 mm-mmapc-fix-coding-style.patch
 mm-check-for-no-mmaps-in-exit_mmap.patch
-mm-check-for-no-mmaps-in-exit_mmap-fix.patch
+mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
 mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
 mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch
 init-properly-placing-noinline-keyword.patch
