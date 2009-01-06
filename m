@@ -1,210 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + mark-complex-bitopsh-inlines-as-__always_inline.patch added to -mm tree
-Date: Tue, 06 Jan 2009 11:29:48 -0800
-Message-ID: <200901061929.n06JTmtd008222@imap1.linux-foundation.org>
+Subject: - rcu-fix-rcutree-grace-period-latency-bug-on-small-systems.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 11:58:54 -0800
+Message-ID: <200901061958.n06Jws2L031756@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751002AbZAFTax (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 14:30:53 -0500
+	by vger.kernel.org with ESMTP id S1751659AbZAFT7L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 14:59:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com, hpa@zytor.com, hugh@veritas.com, mingo@elte.hu, tglx@linutronix.de
+To: paulmck@linux.vnet.ibm.com, andi@firstfloor.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mark complex bitops.h inlines as __always_inline
-has been added to the -mm tree.  Its filename is
-     mark-complex-bitopsh-inlines-as-__always_inline.patch
+     rcu: fix rcutree grace-period-latency bug on small systems
+has been removed from the -mm tree.  Its filename was
+     rcu-fix-rcutree-grace-period-latency-bug-on-small-systems.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mark complex bitops.h inlines as __always_inline
-From: Andi Kleen <andi@firstfloor.org>
+Subject: rcu: fix rcutree grace-period-latency bug on small systems
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-Hugh Dickins noticed that released gcc versions building the kernel with
-CONFIG_OPTIMIZE_INLINING=y don't inline some of the bitops - sometimes
-generating very inefficient pageflag tests, and many instances of
-constant_test_bit().
+Kudos to Andi Kleen for finding a grace-period-latency problem!  The
+problem was that the special-case code for small machines never updated
+the ->signaled field to indicate that grace-period initialization had
+completed, which prevented force_quiescent_state() from ever expediting
+grace periods.  This problem resulted in grace periods extending for more
+than 20 seconds.  Not subtle.  I introduced this bug during my inspection
+process when I fixed a race between grace-period initialization and
+force_quiescent_state() execution.
 
-Mark all complex x86 bitops that have more than a single asm statement or
-two as always inline to avoid this problem.
+The following patch properly updates the ->signaled field for the
+"small"-system case (no more than 32 CPUs for 32-bit kernels and no more
+than 64 CPUs for 64-bit kernels).
 
-Probably should be done for other architectures too.
+I believe that this patch should be included for 2.6.29.
 
-
-One or two instruction bitops should be always inlined, not inlining them
-always generates much worse code than inlining them.  That's easy to prove
-just based on code size: the call overhead is larger than the inlined
-code.
-
-This patch just makes sure they get always inlined by marking those
-explicitely.  There's no reason ever to not inline those, so giving the
-compiler a choice doesn't make sense.
-
-Even on a compiler with perfect inlining algorithm (which no compiler has)
-that's true and stating that explicitely is correct.
-
-Also to handle inlines in all cases that have code that collapses at
-compile time (e.g.  __builtin_constant_p tests and similar) correctly the
-compiler needs the new "early inlining + optimization" pass that was added
-with gcc 4.4 only.  But 4.4 is not even out yet, so obviously most people
-don't use it.
-
-That is why *_user() for example always needs to be marked
-__always_inline.  This patch just extends it a bit more to more functions
-with the same problem.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Reported-by: Andi Kleen <andi@firstfloor.org>
+Tested-by: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/bitops.h      |   15 +++++++++++----
- include/asm-generic/bitops/__ffs.h |    2 +-
- include/asm-generic/bitops/__fls.h |    2 +-
- include/asm-generic/bitops/fls.h   |    2 +-
- include/asm-generic/bitops/fls64.h |    4 ++--
- 5 files changed, 16 insertions(+), 9 deletions(-)
+ kernel/rcutree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/include/asm/bitops.h~mark-complex-bitopsh-inlines-as-__always_inline arch/x86/include/asm/bitops.h
---- a/arch/x86/include/asm/bitops.h~mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/arch/x86/include/asm/bitops.h
-@@ -3,6 +3,9 @@
- 
- /*
-  * Copyright 1992, Linus Torvalds.
-+ *
-+ * Note: inlines with more than a single statement should be marked
-+ * __always_inline to avoid problems with older gcc's inlining heuristics.
-  */
- 
- #ifndef _LINUX_BITOPS_H
-@@ -53,7 +56,8 @@
-  * Note that @nr may be almost arbitrarily large; this function is not
-  * restricted to acting on a single-word quantity.
-  */
--static inline void set_bit(unsigned int nr, volatile unsigned long *addr)
-+static __always_inline void
-+set_bit(unsigned int nr, volatile unsigned long *addr)
- {
- 	if (IS_IMMEDIATE(nr)) {
- 		asm volatile(LOCK_PREFIX "orb %1,%0"
-@@ -90,7 +94,8 @@ static inline void __set_bit(int nr, vol
-  * you should call smp_mb__before_clear_bit() and/or smp_mb__after_clear_bit()
-  * in order to ensure changes are visible on other processors.
-  */
--static inline void clear_bit(int nr, volatile unsigned long *addr)
-+static __always_inline void
-+clear_bit(int nr, volatile unsigned long *addr)
- {
- 	if (IS_IMMEDIATE(nr)) {
- 		asm volatile(LOCK_PREFIX "andb %1,%0"
-@@ -204,7 +209,8 @@ static inline int test_and_set_bit(int n
-  *
-  * This is the same as test_and_set_bit on x86.
-  */
--static inline int test_and_set_bit_lock(int nr, volatile unsigned long *addr)
-+static __always_inline int
-+test_and_set_bit_lock(int nr, volatile unsigned long *addr)
- {
- 	return test_and_set_bit(nr, addr);
- }
-@@ -300,7 +306,8 @@ static inline int test_and_change_bit(in
- 	return oldbit;
- }
- 
--static inline int constant_test_bit(int nr, const volatile unsigned long *addr)
-+static __always_inline int
-+constant_test_bit(int nr, const volatile unsigned long *addr)
- {
- 	return ((1UL << (nr % BITS_PER_LONG)) &
- 		(((unsigned long *)addr)[nr / BITS_PER_LONG])) != 0;
-diff -puN include/asm-generic/bitops/__ffs.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/__ffs.h
---- a/include/asm-generic/bitops/__ffs.h~mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/__ffs.h
-@@ -9,7 +9,7 @@
-  *
-  * Undefined if no bit exists, so code should check against 0 first.
-  */
--static inline unsigned long __ffs(unsigned long word)
-+static __always_inline unsigned long __ffs(unsigned long word)
- {
- 	int num = 0;
- 
-diff -puN include/asm-generic/bitops/__fls.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/__fls.h
---- a/include/asm-generic/bitops/__fls.h~mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/__fls.h
-@@ -9,7 +9,7 @@
-  *
-  * Undefined if no set bit exists, so code should check against 0 first.
-  */
--static inline unsigned long __fls(unsigned long word)
-+static __always_inline unsigned long __fls(unsigned long word)
- {
- 	int num = BITS_PER_LONG - 1;
- 
-diff -puN include/asm-generic/bitops/fls.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/fls.h
---- a/include/asm-generic/bitops/fls.h~mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/fls.h
-@@ -9,7 +9,7 @@
-  * Note fls(0) = 0, fls(1) = 1, fls(0x80000000) = 32.
-  */
- 
--static inline int fls(int x)
-+static __always_inline int fls(int x)
- {
- 	int r = 32;
- 
-diff -puN include/asm-generic/bitops/fls64.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/fls64.h
---- a/include/asm-generic/bitops/fls64.h~mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/fls64.h
-@@ -15,7 +15,7 @@
-  * at position 64.
-  */
- #if BITS_PER_LONG == 32
--static inline int fls64(__u64 x)
-+static __always_inline int fls64(__u64 x)
- {
- 	__u32 h = x >> 32;
- 	if (h)
-@@ -23,7 +23,7 @@ static inline int fls64(__u64 x)
- 	return fls(x);
- }
- #elif BITS_PER_LONG == 64
--static inline int fls64(__u64 x)
-+static __always_inline int fls64(__u64 x)
- {
- 	if (x == 0)
- 		return 0;
+diff -puN kernel/rcutree.c~rcu-fix-rcutree-grace-period-latency-bug-on-small-systems kernel/rcutree.c
+--- a/kernel/rcutree.c~rcu-fix-rcutree-grace-period-latency-bug-on-small-systems
++++ a/kernel/rcutree.c
+@@ -572,6 +572,7 @@ rcu_start_gp(struct rcu_state *rsp, unsi
+ 	/* Special-case the common single-level case. */
+ 	if (NUM_RCU_NODES == 1) {
+ 		rnp->qsmask = rnp->qsmaskinit;
++		rsp->signaled = RCU_SIGNAL_INIT; /* force_quiescent_state OK. */
+ 		spin_unlock_irqrestore(&rnp->lock, flags);
+ 		return;
+ 	}
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
 origin.patch
-x86-only-scan-the-root-bus-in-early-pci-quirks.patch
-x86-hpet-allow-force-enable-on-ich10-hpet.patch
-mark-complex-bitopsh-inlines-as-__always_inline.patch
-x86-avoid-theoretical-vmalloc-fault-loop.patch
-rcu-fix-rcutree-grace-period-latency-bug-on-small-systems.patch
-remove-remaining-unwinder-code.patch
-elf-implement-at_random-for-glibc-prng-seeding.patch
-nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+linux-next.patch
+kmemleak-add-the-base-support.patch
+kmemleak-add-the-base-support-fix.patch
 
