@@ -1,59 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - swapfile-change-discard-pgoff_t-to-sector_t-fix.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:16:16 -0800
-Message-ID: <200901062016.n06KGG62013387@imap1.linux-foundation.org>
+Subject: - fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:17:06 -0800
+Message-ID: <200901062017.n06KH6s8014111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49352 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755033AbZAFUQo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:16:44 -0500
+	by vger.kernel.org with ESMTP id S1755304AbZAFURT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:17:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, djshin90@gmail.com, dwmw2@infradead.org, hugh@veritas.com, jens.axboe@oracle.com, joern@logfs.org, kamezawa.hiroyu@jp
+To: akpm@linux-foundation.org, chris.mason@oracle.com, david@fromorbit.com, dmonakhov@openvz.org, npiggin@suse.de, pbadari@us.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swapfile-change-discard-pgoff_t-to-sector_t-fix
+     fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix
 has been removed from the -mm tree.  Its filename was
-     swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+     fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
 
-This patch was dropped because it was folded into swapfile-change-discard-pgoff_t-to-sector_t.patch
+This patch was dropped because it was folded into fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swapfile-change-discard-pgoff_t-to-sector_t-fix
+Subject: fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Donjun Shin <djshin90@gmail.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Joern Engel <joern@logfs.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Tejun Heo <teheo@suse.de>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dmitri Monakhov <dmonakhov@openvz.org>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/direct-io.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/swapfile.c~swapfile-change-discard-pgoff_t-to-sector_t-fix mm/swapfile.c
---- a/mm/swapfile.c~swapfile-change-discard-pgoff_t-to-sector_t-fix
-+++ a/mm/swapfile.c
-@@ -96,7 +96,7 @@ static int discard_swap(struct swap_info
+diff -puN fs/direct-io.c~fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix fs/direct-io.c
+--- a/fs/direct-io.c~fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix
++++ a/fs/direct-io.c
+@@ -1215,9 +1215,12 @@ __blockdev_direct_IO(int rw, struct kioc
+ 	 * NOTE: DIO_NO_LOCK/DIO_OWN_LOCK callers have to handle this by
+ 	 * it's own meaner.
+ 	 */
+-	if (unlikely(retval < 0 && (rw & WRITE) && (end > i_size_read(inode))
+-			&& dio_lock_type == DIO_LOCKING))
+-		vmtruncate(inode, inode->i_size);
++	if (unlikely(retval < 0 && (rw & WRITE))) {
++		loff_t isize = i_size_read(inode);
++
++		if (end > isize && dio_lock_type == DIO_LOCKING)
++			vmtruncate(inode, isize);
++	}
  
- 	list_for_each_entry(se, &si->extent_list, list) {
- 		sector_t start_block = se->start_block << (PAGE_SHIFT - 9);
--		sector_t nr_blocks = se->nr_pages << (PAGE_SHIFT - 9);
-+		sector_t nr_blocks = (sector_t)se->nr_pages << (PAGE_SHIFT - 9);
- 
- 		if (se->start_page == 0) {
- 			/* Do not discard the swap header page! */
+ 	if (rw == READ && dio_lock_type == DIO_LOCKING)
+ 		release_i_mutex = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +65,7 @@ origin.patch
 mm-invoke-oom-killer-from-page-fault.patch
 mm-write_cache_pages-more-terminate-quickly.patch
 swapfile-change-discard-pgoff_t-to-sector_t.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
 fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
 vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
 mm-mmapc-fix-coding-style-fix.patch
