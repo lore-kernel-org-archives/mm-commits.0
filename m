@@ -1,36 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:12:35 -0800
-Message-ID: <200901062012.n06KCZQX010442@imap1.linux-foundation.org>
+Subject: - mm-invoke-oom-killer-from-page-fault-fix.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:12:31 -0800
+Message-ID: <200901062012.n06KCW7u010376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751434AbZAFUMu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:12:50 -0500
+	by vger.kernel.org with ESMTP id S1751672AbZAFUNE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:13:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jdike@addtoit.com, mingo@elte.hu, npiggin@suse.de, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-invoke-oom-killer-from-page-fault-fix-fix-2
+     mm-invoke-oom-killer-from-page-fault-fix
 has been removed from the -mm tree.  Its filename was
-     mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+     mm-invoke-oom-killer-from-page-fault-fix.patch
 
 This patch was dropped because it was folded into mm-invoke-oom-killer-from-page-fault.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-invoke-oom-killer-from-page-fault-fix-fix-2
+Subject: mm-invoke-oom-killer-from-page-fault-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix now-wrong comment, noted by Ingo.
-
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Jeff Dike <jdike@addtoit.com>
 Cc: Nick Piggin <npiggin@suse.de>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -38,24 +36,25 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/oom_kill.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-invoke-oom-killer-from-page-fault-fix-fix-2 mm/oom_kill.c
---- a/mm/oom_kill.c~mm-invoke-oom-killer-from-page-fault-fix-fix-2
+diff -puN mm/oom_kill.c~mm-invoke-oom-killer-from-page-fault-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-invoke-oom-killer-from-page-fault-fix
 +++ a/mm/oom_kill.c
-@@ -566,7 +566,7 @@ void pagefault_out_of_memory(void)
- 
- 	/*
- 	 * Give "p" a good chance of killing itself before we
--	 * retry to allocate memory unless "p" is current
-+	 * retry to allocate memory.
- 	 */
- 	if (!test_thread_flag(TIF_MEMDIE))
- 		schedule_timeout_uninterruptible(1);
+@@ -512,7 +512,7 @@ void clear_zonelist_oom(struct zonelist 
+ /*
+  * Must be called with tasklist_lock held for read.
+  */
+-void __out_of_memory(gfp_t gfp_mask, int order)
++static void __out_of_memory(gfp_t gfp_mask, int order)
+ {
+ 	if (sysctl_oom_kill_allocating_task) {
+ 		oom_kill_process(current, gfp_mask, order, 0, NULL,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mm-invoke-oom-killer-from-page-fault.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
 mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
 mm-write_cache_pages-more-terminate-quickly.patch
 swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
