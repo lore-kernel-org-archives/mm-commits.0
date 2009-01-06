@@ -1,64 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:38:19 -0800
-Message-ID: <200901062038.n06KcKb5031448@imap1.linux-foundation.org>
+Subject: - rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:37:16 -0800
+Message-ID: <200901062037.n06KbHNr030592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751002AbZAFUid (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:38:33 -0500
+	by vger.kernel.org with ESMTP id S1751200AbZAFUi7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:38:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dushistov@mail.ru, nickpiggin@yahoo.com.au, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, mano@roarinelk.homelinux.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     minix-fix-add-links-wrong-position-calculation-checkpatch-fixes
+     rtc-au1000-on-chip-counter0-as-rtc-driver-fix
 has been removed from the -mm tree.  Its filename was
-     minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
+     rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
 
-This patch was dropped because it was folded into minix-fix-add-links-wrong-position-calculation.patch
+This patch was dropped because it was folded into rtc-au1000-on-chip-counter0-as-rtc-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: minix-fix-add-links-wrong-position-calculation-checkpatch-fixes
+Subject: rtc-au1000-on-chip-counter0-as-rtc-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "(foo*)" should be "(foo *)"
-#23: FILE: fs/minix/dir.c:283:
-+	pos = page_offset(page) + p - (char*)page_address(page);
-
-total: 1 errors, 0 warnings, 8 lines checked
-
-./patches/minix-fix-add-links-wrong-position-calculation.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: <stable@kernel.org>		[2.6.lots]
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Manuel Lauss <mano@roarinelk.homelinux.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/dir.c |    2 +-
+ drivers/rtc/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/minix/dir.c~minix-fix-add-links-wrong-position-calculation-checkpatch-fixes fs/minix/dir.c
---- a/fs/minix/dir.c~minix-fix-add-links-wrong-position-calculation-checkpatch-fixes
-+++ a/fs/minix/dir.c
-@@ -280,7 +280,7 @@ int minix_add_link(struct dentry *dentry
- 	return -EINVAL;
+diff -puN drivers/rtc/Kconfig~rtc-au1000-on-chip-counter0-as-rtc-driver-fix drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-au1000-on-chip-counter0-as-rtc-driver-fix
++++ a/drivers/rtc/Kconfig
+@@ -639,7 +639,7 @@ config RTC_DRV_AT91SAM9_GPBR
+ 	  on some systems other software needs to use that register.
  
- got_it:
--	pos = page_offset(page) + p - (char*)page_address(page);
-+	pos = page_offset(page) + p - (char *)page_address(page);
- 	err = __minix_write_begin(NULL, page->mapping, pos, sbi->s_dirsize,
- 					AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
- 	if (err)
+ config RTC_DRV_AU1XXX
+-	tristate "Au1xxx Counter0 RTC support
++	tristate "Au1xxx Counter0 RTC support"
+ 	depends on SOC_AU1X00
+ 	help
+ 	  This is a driver for the Au1xxx on-chip Counter0 (Time-Of-Year
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +69,7 @@ binfmtsh-include-listh.patch
 spi_gpio-driver.patch
 kprobes-support-probing-module-__exit-function.patch
 rtc-au1000-on-chip-counter0-as-rtc-driver.patch
-minix-fix-add-links-wrong-position-calculation.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
 minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
 cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
 memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
