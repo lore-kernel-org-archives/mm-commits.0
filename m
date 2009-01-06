@@ -1,79 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - sys_execve-and-sys_uselib-do-not-call-into-fsnotify.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 11:59:11 -0800
-Message-ID: <200901061959.n06JxB9l031975@imap1.linux-foundation.org>
+Subject: - mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:12:11 -0800
+Message-ID: <200901062012.n06KCBbn010080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54901 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35835 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751684AbZAFT7m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 14:59:42 -0500
+	by vger.kernel.org with ESMTP id S1750924AbZAFUMV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:12:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eparis@redhat.com, frederik.deweerdt@xprog.eu, hch@lst.de, kosaki.motohiro@jp.fujitsu.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: Brice.Goglin@inria.fr, Nathalie.Furmento@labri.fr, cl@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_execve and sys_uselib do not call into fsnotify
+     mm-rework-do_pages_move-to-work-on-page_sized-chunks update
 has been removed from the -mm tree.  Its filename was
-     sys_execve-and-sys_uselib-do-not-call-into-fsnotify.patch
+     mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_execve and sys_uselib do not call into fsnotify
-From: Eric Paris <eparis@redhat.com>
+Subject: mm-rework-do_pages_move-to-work-on-page_sized-chunks update
+From: Brice Goglin <Brice.Goglin@inria.fr>
 
-sys_execve and sys_uselib do not call into fsnotify so inotify does not
-get open events for these types of syscalls.  This patch simply makes the
-requisite fsnotify calls.
-
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Frederik Deweerdt <frederik.deweerdt@xprog.eu>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
+Signed-off-by: Nathalie Furmento <Nathalie.Furmento@labri.fr>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/migrate.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/exec.c~sys_execve-and-sys_uselib-do-not-call-into-fsnotify fs/exec.c
---- a/fs/exec.c~sys_execve-and-sys_uselib-do-not-call-into-fsnotify
-+++ a/fs/exec.c
-@@ -51,6 +51,7 @@
- #include <linux/audit.h>
- #include <linux/tracehook.h>
- #include <linux/kmod.h>
-+#include <linux/fsnotify.h>
+diff -puN mm/migrate.c~mm-rework-do_pages_move-to-work-on-page_sized-chunks-update mm/migrate.c
+--- a/mm/migrate.c~mm-rework-do_pages_move-to-work-on-page_sized-chunks-update
++++ a/mm/migrate.c
+@@ -928,14 +928,14 @@ static int do_pages_move(struct mm_struc
+ 	task_nodes = cpuset_mems_allowed(task);
  
- #include <asm/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -136,6 +137,8 @@ asmlinkage long sys_uselib(const char __
- 	if (IS_ERR(file))
+ 	err = -ENOMEM;
+-	pm = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	pm = (struct page_to_node *)__get_free_page(GFP_KERNEL);
+ 	if (!pm)
  		goto out;
+ 	/*
+ 	 * Store a chunk of page_to_node array in a page,
+ 	 * but keep the last one as a marker
+ 	 */
+-	chunk_nr_pages = PAGE_SIZE/sizeof(struct page_to_node) - 1;
++	chunk_nr_pages = (PAGE_SIZE / sizeof(struct page_to_node)) - 1;
  
-+	fsnotify_open(file->f_path.dentry);
-+
- 	error = -ENOEXEC;
- 	if(file->f_op) {
- 		struct linux_binfmt * fmt;
-@@ -680,6 +683,8 @@ struct file *open_exec(const char *name)
- 	if (IS_ERR(file))
- 		return file;
+ 	for (chunk_start = 0;
+ 	     chunk_start < nr_pages;
+@@ -988,7 +988,7 @@ static int do_pages_move(struct mm_struc
+ 	err = 0;
  
-+	fsnotify_open(file->f_path.dentry);
-+
- 	err = deny_write_access(file);
- 	if (err) {
- 		fput(file);
+ out_pm:
+-	kfree(pm);
++	free_page((unsigned long)pm);
+ out:
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from eparis@redhat.com are
+Patches currently in -mm which might be from Brice.Goglin@inria.fr are
 
-origin.patch
-linux-next.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
+mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
 
