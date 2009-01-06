@@ -1,52 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - mm-mmapc-fix-coding-style-fix.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:18:59 -0800
-Message-ID: <200901062018.n06KIxqM015635@imap1.linux-foundation.org>
+Subject: - mm-check-for-no-mmaps-in-exit_mmap-fix.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:19:52 -0800
+Message-ID: <200901062019.n06KJqaT016335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751651AbZAFUTG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:19:06 -0500
+	by vger.kernel.org with ESMTP id S1754716AbZAFUUD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:20:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, helight.xu@gmail.com, hugh@veritas.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, akinobu.mita@gmail.com, hannes@cmpxchg.org, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-mmapc-fix-coding-style-fix
+     mm-check-for-no-mmaps-in-exit_mmap-fix
 has been removed from the -mm tree.  Its filename was
-     mm-mmapc-fix-coding-style-fix.patch
+     mm-check-for-no-mmaps-in-exit_mmap-fix.patch
 
-This patch was dropped because it was folded into mm-mmapc-fix-coding-style.patch
+This patch was dropped because it was folded into mm-check-for-no-mmaps-in-exit_mmap.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-mmapc-fix-coding-style-fix
+Subject: mm-check-for-no-mmaps-in-exit_mmap-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+i shouldn't have to do this
+
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Hugh Dickins <hugh@veritas.com>
-Cc: ZhenwenXu <helight.xu@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-mmapc-fix-coding-style-fix mm/mmap.c
---- a/mm/mmap.c~mm-mmapc-fix-coding-style-fix
+diff -puN mm/mmap.c~mm-check-for-no-mmaps-in-exit_mmap-fix mm/mmap.c
+--- a/mm/mmap.c~mm-check-for-no-mmaps-in-exit_mmap-fix
 +++ a/mm/mmap.c
-@@ -474,8 +474,7 @@ static void vma_link(struct mm_struct *m
-  * insert vm structure into list and rbtree and anon_vma,
-  * but it has already been inserted into prio_tree earlier.
-  */
--static void
--__insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
-+static void __insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
- {
- 	struct vm_area_struct *__vma, *prev;
- 	struct rb_node **rb_link, *rb_parent;
+@@ -2090,7 +2090,7 @@ void exit_mmap(struct mm_struct *mm)
+ 	arch_exit_mmap(mm);
+ 	mmu_notifier_release(mm);
+ 
+-	if (!mm->mmap)
++	if (!mm->mmap)	/* Can happen if dup_mmap() received an OOM */
+ 		return;
+ 
+ 	if (mm->locked_vm) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,7 +61,7 @@ swapfile-change-discard-pgoff_t-to-sector_t.patch
 fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
 vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
 mm-mmapc-fix-coding-style.patch
-mm-mmapc-fix-coding-style-fix.patch
+mm-check-for-no-mmaps-in-exit_mmap.patch
 mm-check-for-no-mmaps-in-exit_mmap-fix.patch
 mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
 mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch
