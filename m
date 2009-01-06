@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rcu-fix-rcutree-grace-period-latency-bug-on-small-systems.patch added to -mm tree
-Date: Mon, 05 Jan 2009 16:08:49 -0800
-Message-ID: <200901060008.n0608och011008@imap1.linux-foundation.org>
+Subject: + fs-remove-wb_sync_hold-fix.patch added to -mm tree
+Date: Mon, 05 Jan 2009 20:19:56 -0800
+Message-ID: <200901060419.n064JuwH019423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751307AbZAFAJH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 19:09:07 -0500
+	by vger.kernel.org with ESMTP id S1751356AbZAFEUh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2009 23:20:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulmck@linux.vnet.ibm.com, andi@firstfloor.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com, npiggin@suse.de
 
 
 The patch titled
-     rcu: fix rcutree grace-period-latency bug on small systems
+     fs-remove-wb_sync_hold-fix
 has been added to the -mm tree.  Its filename is
-     rcu-fix-rcutree-grace-period-latency-bug-on-small-systems.patch
+     fs-remove-wb_sync_hold-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu: fix rcutree grace-period-latency bug on small systems
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: fs-remove-wb_sync_hold-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Kudos to Andi Kleen for finding a grace-period-latency problem!  The
-problem was that the special-case code for small machines never updated
-the ->signaled field to indicate that grace-period initialization had
-completed, which prevented force_quiescent_state() from ever expediting
-grace periods.  This problem resulted in grace periods extending for more
-than 20 seconds.  Not subtle.  I introduced this bug during my inspection
-process when I fixed a race between grace-period initialization and
-force_quiescent_state() execution.
-
-The following patch properly updates the ->signaled field for the
-"small"-system case (no more than 32 CPUs for 32-bit kernels and no more
-than 64 CPUs for 64-bit kernels).
-
-I believe that this patch should be included for 2.6.29.
-
-Reported-by: Andi Kleen <andi@firstfloor.org>
-Tested-by: Andi Kleen <andi@firstfloor.org>
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcutree.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ubifs/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/rcutree.c~rcu-fix-rcutree-grace-period-latency-bug-on-small-systems kernel/rcutree.c
---- a/kernel/rcutree.c~rcu-fix-rcutree-grace-period-latency-bug-on-small-systems
-+++ a/kernel/rcutree.c
-@@ -572,6 +572,7 @@ rcu_start_gp(struct rcu_state *rsp, unsi
- 	/* Special-case the common single-level case. */
- 	if (NUM_RCU_NODES == 1) {
- 		rnp->qsmask = rnp->qsmaskinit;
-+		rsp->signaled = RCU_SIGNAL_INIT; /* force_quiescent_state OK. */
- 		spin_unlock_irqrestore(&rnp->lock, flags);
- 		return;
- 	}
+diff -puN fs/ubifs/super.c~fs-remove-wb_sync_hold-fix fs/ubifs/super.c
+--- a/fs/ubifs/super.c~fs-remove-wb_sync_hold-fix
++++ a/fs/ubifs/super.c
+@@ -432,7 +432,7 @@ static int ubifs_sync_fs(struct super_bl
+ 	int i, err;
+ 	struct ubifs_info *c = sb->s_fs_info;
+ 	struct writeback_control wbc = {
+-		.sync_mode   = wait ? WB_SYNC_ALL : WB_SYNC_HOLD,
++		.sync_mode   = wait ? WB_SYNC_ALL : WB_SYNC_NONE,
+ 		.range_start = 0,
+ 		.range_end   = LLONG_MAX,
+ 		.nr_to_write = LONG_MAX,
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i-need-old-gcc.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-rcu-fix-rcutree-grace-period-latency-bug-on-small-systems.patch
-kmemleak-add-the-base-support.patch
+next-remove-localversion.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-mmapc-fix-coding-style-fix.patch
+fs-remove-wb_sync_hold-fix.patch
+mm-check-for-no-mmaps-in-exit_mmap-fix.patch
+mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+smp_call_function_single-be-slightly-less-stupid.patch
+binfmtsh-include-listh-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+fs-execc-make-do_coredump-void-checkpatch-fixes.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
+dma_alloc_coherent-clean-it-up.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
 kmemleak-add-the-base-support-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
