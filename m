@@ -1,121 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: - fs-remove-wb_sync_hold-fix.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 09:13:19 -0800
-Message-ID: <200901061713.n06HDJxd027359@imap1.linux-foundation.org>
+Subject: + mark-complex-bitopsh-inlines-as-__always_inline.patch added to -mm tree
+Date: Tue, 06 Jan 2009 11:29:48 -0800
+Message-ID: <200901061929.n06JTmtd008222@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36596 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751512AbZAFRN7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 12:13:59 -0500
+	by vger.kernel.org with ESMTP id S1751002AbZAFTax (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 14:30:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: andi@firstfloor.org, ak@linux.intel.com, hpa@zytor.com, hugh@veritas.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     fs-remove-wb_sync_hold-fix
-has been removed from the -mm tree.  Its filename was
-     fs-remove-wb_sync_hold-fix.patch
+     mark complex bitops.h inlines as __always_inline
+has been added to the -mm tree.  Its filename is
+     mark-complex-bitopsh-inlines-as-__always_inline.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-remove-wb_sync_hold-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mark complex bitops.h inlines as __always_inline
+From: Andi Kleen <andi@firstfloor.org>
 
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Hugh Dickins noticed that released gcc versions building the kernel with
+CONFIG_OPTIMIZE_INLINING=y don't inline some of the bitops - sometimes
+generating very inefficient pageflag tests, and many instances of
+constant_test_bit().
+
+Mark all complex x86 bitops that have more than a single asm statement or
+two as always inline to avoid this problem.
+
+Probably should be done for other architectures too.
+
+
+One or two instruction bitops should be always inlined, not inlining them
+always generates much worse code than inlining them.  That's easy to prove
+just based on code size: the call overhead is larger than the inlined
+code.
+
+This patch just makes sure they get always inlined by marking those
+explicitely.  There's no reason ever to not inline those, so giving the
+compiler a choice doesn't make sense.
+
+Even on a compiler with perfect inlining algorithm (which no compiler has)
+that's true and stating that explicitely is correct.
+
+Also to handle inlines in all cases that have code that collapses at
+compile time (e.g.  __builtin_constant_p tests and similar) correctly the
+compiler needs the new "early inlining + optimization" pass that was added
+with gcc 4.4 only.  But 4.4 is not even out yet, so obviously most people
+don't use it.
+
+That is why *_user() for example always needs to be marked
+__always_inline.  This patch just extends it a bit more to more functions
+with the same problem.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/bitops.h      |   15 +++++++++++----
+ include/asm-generic/bitops/__ffs.h |    2 +-
+ include/asm-generic/bitops/__fls.h |    2 +-
+ include/asm-generic/bitops/fls.h   |    2 +-
+ include/asm-generic/bitops/fls64.h |    4 ++--
+ 5 files changed, 16 insertions(+), 9 deletions(-)
 
-diff -puN fs/ubifs/super.c~fs-remove-wb_sync_hold-fix fs/ubifs/super.c
---- a/fs/ubifs/super.c~fs-remove-wb_sync_hold-fix
-+++ a/fs/ubifs/super.c
-@@ -432,7 +432,7 @@ static int ubifs_sync_fs(struct super_bl
- 	int i, err;
- 	struct ubifs_info *c = sb->s_fs_info;
- 	struct writeback_control wbc = {
--		.sync_mode   = wait ? WB_SYNC_ALL : WB_SYNC_HOLD,
-+		.sync_mode   = wait ? WB_SYNC_ALL : WB_SYNC_NONE,
- 		.range_start = 0,
- 		.range_end   = LLONG_MAX,
- 		.nr_to_write = LONG_MAX,
+diff -puN arch/x86/include/asm/bitops.h~mark-complex-bitopsh-inlines-as-__always_inline arch/x86/include/asm/bitops.h
+--- a/arch/x86/include/asm/bitops.h~mark-complex-bitopsh-inlines-as-__always_inline
++++ a/arch/x86/include/asm/bitops.h
+@@ -3,6 +3,9 @@
+ 
+ /*
+  * Copyright 1992, Linus Torvalds.
++ *
++ * Note: inlines with more than a single statement should be marked
++ * __always_inline to avoid problems with older gcc's inlining heuristics.
+  */
+ 
+ #ifndef _LINUX_BITOPS_H
+@@ -53,7 +56,8 @@
+  * Note that @nr may be almost arbitrarily large; this function is not
+  * restricted to acting on a single-word quantity.
+  */
+-static inline void set_bit(unsigned int nr, volatile unsigned long *addr)
++static __always_inline void
++set_bit(unsigned int nr, volatile unsigned long *addr)
+ {
+ 	if (IS_IMMEDIATE(nr)) {
+ 		asm volatile(LOCK_PREFIX "orb %1,%0"
+@@ -90,7 +94,8 @@ static inline void __set_bit(int nr, vol
+  * you should call smp_mb__before_clear_bit() and/or smp_mb__after_clear_bit()
+  * in order to ensure changes are visible on other processors.
+  */
+-static inline void clear_bit(int nr, volatile unsigned long *addr)
++static __always_inline void
++clear_bit(int nr, volatile unsigned long *addr)
+ {
+ 	if (IS_IMMEDIATE(nr)) {
+ 		asm volatile(LOCK_PREFIX "andb %1,%0"
+@@ -204,7 +209,8 @@ static inline int test_and_set_bit(int n
+  *
+  * This is the same as test_and_set_bit on x86.
+  */
+-static inline int test_and_set_bit_lock(int nr, volatile unsigned long *addr)
++static __always_inline int
++test_and_set_bit_lock(int nr, volatile unsigned long *addr)
+ {
+ 	return test_and_set_bit(nr, addr);
+ }
+@@ -300,7 +306,8 @@ static inline int test_and_change_bit(in
+ 	return oldbit;
+ }
+ 
+-static inline int constant_test_bit(int nr, const volatile unsigned long *addr)
++static __always_inline int
++constant_test_bit(int nr, const volatile unsigned long *addr)
+ {
+ 	return ((1UL << (nr % BITS_PER_LONG)) &
+ 		(((unsigned long *)addr)[nr / BITS_PER_LONG])) != 0;
+diff -puN include/asm-generic/bitops/__ffs.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/__ffs.h
+--- a/include/asm-generic/bitops/__ffs.h~mark-complex-bitopsh-inlines-as-__always_inline
++++ a/include/asm-generic/bitops/__ffs.h
+@@ -9,7 +9,7 @@
+  *
+  * Undefined if no bit exists, so code should check against 0 first.
+  */
+-static inline unsigned long __ffs(unsigned long word)
++static __always_inline unsigned long __ffs(unsigned long word)
+ {
+ 	int num = 0;
+ 
+diff -puN include/asm-generic/bitops/__fls.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/__fls.h
+--- a/include/asm-generic/bitops/__fls.h~mark-complex-bitopsh-inlines-as-__always_inline
++++ a/include/asm-generic/bitops/__fls.h
+@@ -9,7 +9,7 @@
+  *
+  * Undefined if no set bit exists, so code should check against 0 first.
+  */
+-static inline unsigned long __fls(unsigned long word)
++static __always_inline unsigned long __fls(unsigned long word)
+ {
+ 	int num = BITS_PER_LONG - 1;
+ 
+diff -puN include/asm-generic/bitops/fls.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/fls.h
+--- a/include/asm-generic/bitops/fls.h~mark-complex-bitopsh-inlines-as-__always_inline
++++ a/include/asm-generic/bitops/fls.h
+@@ -9,7 +9,7 @@
+  * Note fls(0) = 0, fls(1) = 1, fls(0x80000000) = 32.
+  */
+ 
+-static inline int fls(int x)
++static __always_inline int fls(int x)
+ {
+ 	int r = 32;
+ 
+diff -puN include/asm-generic/bitops/fls64.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/fls64.h
+--- a/include/asm-generic/bitops/fls64.h~mark-complex-bitopsh-inlines-as-__always_inline
++++ a/include/asm-generic/bitops/fls64.h
+@@ -15,7 +15,7 @@
+  * at position 64.
+  */
+ #if BITS_PER_LONG == 32
+-static inline int fls64(__u64 x)
++static __always_inline int fls64(__u64 x)
+ {
+ 	__u32 h = x >> 32;
+ 	if (h)
+@@ -23,7 +23,7 @@ static inline int fls64(__u64 x)
+ 	return fls(x);
+ }
+ #elif BITS_PER_LONG == 64
+-static inline int fls64(__u64 x)
++static __always_inline int fls64(__u64 x)
+ {
+ 	if (x == 0)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
 origin.patch
-i-need-old-gcc.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-fs-remove-wb_sync_hold-fix.patch
-mm-check-for-no-mmaps-in-exit_mmap-fix.patch
-mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-binfmtsh-include-listh-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-fs-execc-make-do_coredump-void-checkpatch-fixes.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+x86-only-scan-the-root-bus-in-early-pci-quirks.patch
+x86-hpet-allow-force-enable-on-ich10-hpet.patch
+mark-complex-bitopsh-inlines-as-__always_inline.patch
+x86-avoid-theoretical-vmalloc-fault-loop.patch
+rcu-fix-rcutree-grace-period-latency-bug-on-small-systems.patch
+remove-remaining-unwinder-code.patch
+elf-implement-at_random-for-glibc-prng-seeding.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
 
