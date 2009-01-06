@@ -1,79 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - fs-execc-make-do_coredump-void-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:39:27 -0800
-Message-ID: <200901062039.n06KdRte032329@imap1.linux-foundation.org>
+Subject: - edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:40:27 -0800
+Message-ID: <200901062040.n06KeR3d000667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58054 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750711AbZAFUja (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:39:30 -0500
+	by vger.kernel.org with ESMTP id S1755048AbZAFUkd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:40:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, wangcong@zeuux.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dougthompson@xmission.com, gregkh@suse.de, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs-execc-make-do_coredump-void-checkpatch-fixes
+     edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     fs-execc-make-do_coredump-void-checkpatch-fixes.patch
+     edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into fs-execc-make-do_coredump-void.patch
+This patch was dropped because it was folded into edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-execc-make-do_coredump-void-checkpatch-fixes
+Subject: edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#23: FILE: fs/exec.c:1727:
-+void do_coredump(long signr, int exit_code, struct pt_regs * regs)
+ERROR: space required after that ',' (ctx:VxV)
+#40: FILE: drivers/edac/edac_mc.c:404:
++		"%s (%s) %s %s already assigned %d\n",dev_name( p->dev),
+ 		                                     ^
 
-ERROR: "foo * bar" should be "foo *bar"
-#42: FILE: include/linux/binfmts.h:110:
-+extern void do_coredump(long signr, int exit_code, struct pt_regs * regs);
+ERROR: space prohibited after that open parenthesis '('
+#40: FILE: drivers/edac/edac_mc.c:404:
++		"%s (%s) %s %s already assigned %d\n",dev_name( p->dev),
 
-total: 2 errors, 0 warnings, 22 lines checked
+WARNING: line over 80 characters
+#73: FILE: drivers/edac/edac_pci_sysfs.c:603:
++	debugf4("PCI HEADER TYPE= 0x%02x %s\n", header_type, dev_name(&dev->dev));
 
-./patches/fs-execc-make-do_coredump-void.patch has style problems, please review.  If any of these errors
+WARNING: line over 80 characters
+#80: FILE: drivers/edac/edac_pci_sysfs.c:609:
++		debugf4("PCI SEC_STATUS= 0x%04x %s\n", status, dev_name(&dev->dev));
+
+total: 2 errors, 2 warnings, 47 lines checked
+
+./patches/edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: WANG Cong <wangcong@zeuux.org>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c               |    2 +-
- include/linux/binfmts.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/edac/edac_mc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~fs-execc-make-do_coredump-void-checkpatch-fixes fs/exec.c
---- a/fs/exec.c~fs-execc-make-do_coredump-void-checkpatch-fixes
-+++ a/fs/exec.c
-@@ -1724,7 +1724,7 @@ int get_dumpable(struct mm_struct *mm)
- 	return (ret >= 2) ? 2 : ret;
- }
+diff -puN drivers/edac/edac_mc.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes drivers/edac/edac_mc.c
+--- a/drivers/edac/edac_mc.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes
++++ a/drivers/edac/edac_mc.c
+@@ -401,7 +401,7 @@ static int add_mc_to_global_list(struct 
  
--void do_coredump(long signr, int exit_code, struct pt_regs * regs)
-+void do_coredump(long signr, int exit_code, struct pt_regs *regs)
- {
- 	struct core_state core_state;
- 	char corename[CORENAME_MAX_SIZE + 1];
-diff -puN include/linux/binfmts.h~fs-execc-make-do_coredump-void-checkpatch-fixes include/linux/binfmts.h
---- a/include/linux/binfmts.h~fs-execc-make-do_coredump-void-checkpatch-fixes
-+++ a/include/linux/binfmts.h
-@@ -107,7 +107,7 @@ extern int setup_arg_pages(struct linux_
- extern int bprm_mm_init(struct linux_binprm *bprm);
- extern int copy_strings_kernel(int argc,char ** argv,struct linux_binprm *bprm);
- extern void install_exec_creds(struct linux_binprm *bprm);
--extern void do_coredump(long signr, int exit_code, struct pt_regs * regs);
-+extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
- extern int set_binfmt(struct linux_binfmt *new);
- extern void free_bprm(struct linux_binprm *);
+ fail0:
+ 	edac_printk(KERN_WARNING, EDAC_MC,
+-		"%s (%s) %s %s already assigned %d\n",dev_name( p->dev),
++		"%s (%s) %s %s already assigned %d\n", dev_name(p->dev),
+ 		edac_dev_name(mci), p->mod_name, p->ctl_name, p->mc_idx);
+ 	return 1;
  
 _
 
@@ -99,7 +96,7 @@ kprobes-support-probing-module-__exit-function.patch
 rtc-au1000-on-chip-counter0-as-rtc-driver.patch
 minix-fix-add-links-wrong-position-calculation.patch
 fs-execc-make-do_coredump-void.patch
-fs-execc-make-do_coredump-void-checkpatch-fixes.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
 edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
 edac-x38-use-the-architectures-readq-function-fix.patch
 edac-x38-use-the-architectures-readq-function-fix-fix.patch
