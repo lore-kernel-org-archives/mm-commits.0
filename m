@@ -1,73 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - rcu-fix-rcutree-grace-period-latency-bug-on-small-systems.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 11:58:54 -0800
-Message-ID: <200901061958.n06Jws2L031756@imap1.linux-foundation.org>
+Subject: - kill-suid-bit-only-for-regular-files.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 11:58:57 -0800
+Message-ID: <200901061958.n06Jwvcs031778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54950 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751659AbZAFT7L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 14:59:11 -0500
+	by vger.kernel.org with ESMTP id S1751324AbZAFT7C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 14:59:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com, andi@firstfloor.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: dmonakhov@openvz.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rcu: fix rcutree grace-period-latency bug on small systems
+     kill suid bit only for regular files
 has been removed from the -mm tree.  Its filename was
-     rcu-fix-rcutree-grace-period-latency-bug-on-small-systems.patch
+     kill-suid-bit-only-for-regular-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu: fix rcutree grace-period-latency bug on small systems
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: kill suid bit only for regular files
+From: Dmitri Monakhov <dmonakhov@openvz.org>
 
-Kudos to Andi Kleen for finding a grace-period-latency problem!  The
-problem was that the special-case code for small machines never updated
-the ->signaled field to indicate that grace-period initialization had
-completed, which prevented force_quiescent_state() from ever expediting
-grace periods.  This problem resulted in grace periods extending for more
-than 20 seconds.  Not subtle.  I introduced this bug during my inspection
-process when I fixed a race between grace-period initialization and
-force_quiescent_state() execution.
+We don't have to do it because it is useless for non regular files.
+In fact block device may trigger this path without dentry->d_inode->i_mutex.
 
-The following patch properly updates the ->signaled field for the
-"small"-system case (no more than 32 CPUs for 32-bit kernels and no more
-than 64 CPUs for 64-bit kernels).
+(akpm: concerns were expressed (by me) about S_ISDIR inodes)
 
-I believe that this patch should be included for 2.6.29.
-
-Reported-by: Andi Kleen <andi@firstfloor.org>
-Tested-by: Andi Kleen <andi@firstfloor.org>
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Dmitri Monakhov <dmonakhov@openvz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcutree.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/rcutree.c~rcu-fix-rcutree-grace-period-latency-bug-on-small-systems kernel/rcutree.c
---- a/kernel/rcutree.c~rcu-fix-rcutree-grace-period-latency-bug-on-small-systems
-+++ a/kernel/rcutree.c
-@@ -572,6 +572,7 @@ rcu_start_gp(struct rcu_state *rsp, unsi
- 	/* Special-case the common single-level case. */
- 	if (NUM_RCU_NODES == 1) {
- 		rnp->qsmask = rnp->qsmaskinit;
-+		rsp->signaled = RCU_SIGNAL_INIT; /* force_quiescent_state OK. */
- 		spin_unlock_irqrestore(&rnp->lock, flags);
- 		return;
- 	}
+diff -puN mm/filemap.c~kill-suid-bit-only-for-regular-files mm/filemap.c
+--- a/mm/filemap.c~kill-suid-bit-only-for-regular-files
++++ a/mm/filemap.c
+@@ -1766,7 +1766,7 @@ int should_remove_suid(struct dentry *de
+ 	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
+ 		kill |= ATTR_KILL_SGID;
+ 
+-	if (unlikely(kill && !capable(CAP_FSETID)))
++	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
+ 		return kill;
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
 origin.patch
-linux-next.patch
-kmemleak-add-the-base-support.patch
-kmemleak-add-the-base-support-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
 
