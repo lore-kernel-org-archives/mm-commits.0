@@ -1,65 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - spi_gpio-driver-cleanups.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:34:19 -0800
-Message-ID: <200901062034.n06KYJ9t028153@imap1.linux-foundation.org>
+Subject: - kprobes-support-probing-module-__exit-function-fix.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:35:02 -0800
+Message-ID: <200901062035.n06KZ3M6028700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60615 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751737AbZAFUe3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:34:29 -0500
+	by vger.kernel.org with ESMTP id S1752137AbZAFUfZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:35:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, damm@igel.co.jp, dbrownell@users.sourceforge.net, torgil.svensson@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, mhiramat@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_gpio-driver cleanups
+     kprobes-support-probing-module-__exit-function-fix
 has been removed from the -mm tree.  Its filename was
-     spi_gpio-driver-cleanups.patch
+     kprobes-support-probing-module-__exit-function-fix.patch
 
-This patch was dropped because it was folded into spi_gpio-driver.patch
+This patch was dropped because it was folded into kprobes-support-probing-module-__exit-function.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_gpio-driver cleanups
+Subject: kprobes-support-probing-module-__exit-function-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- fix checkpatch whine.
-
-- spi_master_put() already returns void, and that (void) thing is
-  pointless and fugly.
-
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Torgil Svensson <torgil.svensson@gmail.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Masami Hiramatsu <mhiramat@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_gpio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kprobes.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_gpio.c~spi_gpio-driver-cleanups drivers/spi/spi_gpio.c
---- a/drivers/spi/spi_gpio.c~spi_gpio-driver-cleanups
-+++ a/drivers/spi/spi_gpio.c
-@@ -125,7 +125,7 @@ static inline int getmiso(const struct s
-  * reaching even one Mbit/sec (except when we can inline bitops), so for now
-  * we'll just assume we never need additional per-bit slowdowns.
-  */
--#define spidelay(nsecs)	do{} while(0)
-+#define spidelay(nsecs)	do {} while (0)
+diff -puN include/linux/kprobes.h~kprobes-support-probing-module-__exit-function-fix include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-support-probing-module-__exit-function-fix
++++ a/include/linux/kprobes.h
+@@ -101,7 +101,7 @@ struct kprobe {
+ 	/* copy of the original instruction */
+ 	struct arch_specific_insn ainsn;
  
- #define	EXPAND_BITBANG_TXRX
- #include <linux/spi/spi_bitbang.h>
-@@ -323,7 +323,7 @@ static int __exit spi_gpio_remove(struct
- 
- 	/* stop() unregisters child devices too */
- 	status = spi_bitbang_stop(&spi_gpio->bitbang);
--	(void) spi_master_put(spi_gpio->bitbang.master);
-+	spi_master_put(spi_gpio->bitbang.master);
- 
- 	platform_set_drvdata(pdev, NULL);
+-	/* Indicates various status flags */
++	/* Indicates various status flags.  Protected by kprobe_mutex. */
+ 	u32 flags;
+ };
  
 _
 
@@ -81,7 +67,7 @@ poll-allow-f_op-poll-to-sleep-take6.patch
 ioc4-automatically-load-sgiioc4-subordinate-module.patch
 binfmtsh-include-listh.patch
 spi_gpio-driver.patch
-spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function.patch
 kprobes-support-probing-module-__exit-function-fix.patch
 kprobes-support-probing-module-__exit-function-fix-2.patch
 rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
