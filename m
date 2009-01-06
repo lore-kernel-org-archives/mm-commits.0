@@ -1,132 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 15:58:14 -0800
-Message-ID: <200901062358.n06NwEUc001762@imap1.linux-foundation.org>
+Subject: - linux-ratelimith-fixed-missing-initializer-warning.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 15:58:12 -0800
+Message-ID: <200901062358.n06NwCxs001725@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51614 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752654AbZAFX6S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 18:58:18 -0500
+	by vger.kernel.org with ESMTP id S1752728AbZAFX6T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 18:58:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, bryan.wu@analog.com, mm-commits@vger.kernel.org
+To: mk@cm4all.com, bart.vanassche@gmail.com, vst@vlnb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin: use the new byteorder headers
+     linux/ratelimit.h: fixed "missing initializer" warning
 has been removed from the -mm tree.  Its filename was
-     blackfin-use-the-new-byteorder-headers.patch
+     linux-ratelimith-fixed-missing-initializer-warning.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin: use the new byteorder headers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: linux/ratelimit.h: fixed "missing initializer" warning
+From: Max Kellermann <mk@cm4all.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
+When compiled with -Wmissing-field-initializers (-Wextra), gcc complains
+that there are uninitialized fields in the struct:
+
+ include/linux/ratelimit.h: In function 'ratelimit':
+ include/linux/ratelimit.h:23: warning: missing initializer
+ include/linux/ratelimit.h:23: warning: (near initialization for 'rs.printed')
+
+Fix this by using C99 initializers.
+
+
+Bart said:
+
+  The current version of the header file include/linux/ratelimit.h
+  triggers false positives when the compiler flag
+  -Wmissing-field-initializers is specified.  The header file
+  include/linux/ratelimit.h is included directly or indirectly by many
+  other header files -- inclusion of this file can't be avoided.  The
+  above patch suppresses these false positives by converting the
+  initializers to C99 style, such that kernel developers who want to check
+  their code through -Wmissing-field-initializers can use this compiler
+  flag.
+
+Signed-off-by: Max Kellermann <mk@cm4all.com>
+Cc: "Bart Van Assche" <bart.vanassche@gmail.com>
+Cc: "Vladislav Bolkhovitin" <vst@vlnb.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/include/asm/byteorder.h |   33 ++++++++++--------------
- 1 file changed, 15 insertions(+), 18 deletions(-)
+ include/linux/ratelimit.h |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/blackfin/include/asm/byteorder.h~blackfin-use-the-new-byteorder-headers arch/blackfin/include/asm/byteorder.h
---- a/arch/blackfin/include/asm/byteorder.h~blackfin-use-the-new-byteorder-headers
-+++ a/arch/blackfin/include/asm/byteorder.h
-@@ -4,9 +4,10 @@
- #include <asm/types.h>
- #include <linux/compiler.h>
+diff -puN include/linux/ratelimit.h~linux-ratelimith-fixed-missing-initializer-warning include/linux/ratelimit.h
+--- a/include/linux/ratelimit.h~linux-ratelimith-fixed-missing-initializer-warning
++++ a/include/linux/ratelimit.h
+@@ -13,8 +13,11 @@ struct ratelimit_state {
+ 	unsigned long begin;
+ };
  
--#ifdef __GNUC__
-+#define __LITTLE_ENDIAN
-+#define __SWAB_64_THRU_32__
+-#define DEFINE_RATELIMIT_STATE(name, interval, burst)		\
+-		struct ratelimit_state name = {interval, burst,}
++#define DEFINE_RATELIMIT_STATE(name, _interval, _burst) \
++		struct ratelimit_state name = { \
++			.interval = _interval, \
++			.burst = _burst, \
++		}
  
--static __inline__ __attribute_const__ __u32 ___arch__swahb32(__u32 xx)
-+static inline __attribute_const__ __u32 __arch_swahb32(__u32 xx)
- {
- 	__u32 tmp;
- 	__asm__("%1 = %0 >> 8 (V);\n\t"
-@@ -15,34 +16,30 @@ static __inline__ __attribute_const__ __
- 		: "+d"(xx), "=&d"(tmp));
- 	return xx;
- }
-+#define __arch_swahb32 __arch_swahb32
- 
--static __inline__ __attribute_const__ __u32 ___arch__swahw32(__u32 xx)
-+static inline __attribute_const__ __u32 __arch_swahw32(__u32 xx)
- {
- 	__u32 rv;
- 	__asm__("%0 = PACK(%1.L, %1.H);\n\t": "=d"(rv): "d"(xx));
- 	return rv;
- }
-+#define __arch_swahw32 __arch_swahw32
- 
--#define __arch__swahb32(x) ___arch__swahb32(x)
--#define __arch__swahw32(x) ___arch__swahw32(x)
--#define __arch__swab32(x) ___arch__swahb32(___arch__swahw32(x))
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 xx)
-+{
-+	return __arch_swahb32(__arch_swahw32(xx));
-+}
-+#define __arch_swab32 __arch_swab32
- 
--static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 xx)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 xx)
- {
- 	__u32 xw = xx;
- 	__asm__("%0 <<= 8;\n	%0.L = %0.L + %0.H (NS);\n": "+d"(xw));
- 	return (__u16)xw;
- }
-+#define __arch_swab16 __arch_swab16
- 
--#define __arch__swab16(x) ___arch__swab16(x)
--
--#endif
--
--#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
--#endif
--
--#include <linux/byteorder/little_endian.h>
-+#include <linux/byteorder.h>
- 
--#endif				/* _BLACKFIN_BYTEORDER_H */
-+#endif /* _BLACKFIN_BYTEORDER_H */
+ extern int __ratelimit(struct ratelimit_state *rs);
+ #endif
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from mk@cm4all.com are
 
-origin.patch
-frv-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-linux-next.patch
-input-ads7846c-sparse-lock-annotation.patch
-blackfin-use-the-new-byteorder-headers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-m68knommu-use-the-new-byteorder-headers.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
-ata-replace-byteshifting-with-unaligned-endian-helpers.patch
-usb-use-unaligned-endian-helpers-in-storage-drivers.patch
+linux-ratelimith-fixed-missing-initializer-warning.patch
 
