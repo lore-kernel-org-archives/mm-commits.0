@@ -1,54 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:21:07 -0800
-Message-ID: <200901062021.n06KL81c017398@imap1.linux-foundation.org>
+Subject: - ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:26:01 -0800
+Message-ID: <200901062026.n06KQ12E021406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56260 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754972AbZAFUVS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:21:18 -0500
+	by vger.kernel.org with ESMTP id S1751838AbZAFU0I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:26:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gorcunov@gmail.com, gorcunov@openvz.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bcasavan@sgi.com, bzolnier@gmail.com, mdr@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-hugetlb-get-rid-of-redundant-if-operation-fix
+     ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch
+     ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-hugetlb-get-rid-of-redundant-if-operation.patch
+This patch was dropped because it was folded into ioc4-automatically-load-sgiioc4-subordinate-module.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-hugetlb-get-rid-of-redundant-if-operation-fix
+Subject: ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- can't help myself!
+WARNING: __func__ should be used instead of gcc specific __FUNCTION__
+#55: FILE: drivers/misc/ioc4.c:404:
++			       __FUNCTION__);
 
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+ERROR: else should follow close brace '}'
+#57: FILE: drivers/misc/ioc4.c:406:
++		}
++		else {
+
+total: 1 errors, 1 warnings, 56 lines checked
+
+./patches/ioc4-automatically-load-sgiioc4-subordinate-module.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Brent Casavant <bcasavan@sgi.com>
+Cc: Michael Reed <mdr@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/ioc4.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-get-rid-of-redundant-if-operation-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-get-rid-of-redundant-if-operation-fix
-+++ a/mm/hugetlb.c
-@@ -1005,7 +1005,7 @@ static struct page *alloc_huge_page(stru
- 	return page;
- }
- 
--__attribute__((weak)) int alloc_bootmem_huge_page(struct hstate *h)
-+int __weak alloc_bootmem_huge_page(struct hstate *h)
- {
- 	struct huge_bootmem_page *m;
- 	int nr_nodes = nodes_weight(node_online_map);
+diff -puN drivers/misc/ioc4.c~ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes drivers/misc/ioc4.c
+--- a/drivers/misc/ioc4.c~ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes
++++ a/drivers/misc/ioc4.c
+@@ -400,10 +400,8 @@ ioc4_probe(struct pci_dev *pdev, const s
+ 		if (!work) {
+ 			printk(KERN_WARNING
+ 			       "%s: IOC4 unable to allocate memory for "
+-			       "load of sub-modules.\n",
+-			       __FUNCTION__);
+-		}
+-		else {
++			       "load of sub-modules.\n", __func__);
++		} else {
+ 			/* Request the module from a work procedure as the
+ 			 * modprobe goes out to a userland helper and that
+ 			 * will hang if done directly from ioc4_probe().
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,10 +82,10 @@ mm-mmapc-fix-coding-style.patch
 mm-check-for-no-mmaps-in-exit_mmap.patch
 mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
 mm-hugetlb-get-rid-of-redundant-if-operation.patch
-mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch
 init-properly-placing-noinline-keyword.patch
 add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
 poll-allow-f_op-poll-to-sleep-take6.patch
+ioc4-automatically-load-sgiioc4-subordinate-module.patch
 ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
 smp_call_function_single-be-slightly-less-stupid.patch
 binfmtsh-include-listh-fix.patch
