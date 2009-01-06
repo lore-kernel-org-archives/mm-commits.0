@@ -1,55 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:20:33 -0800
-Message-ID: <200901062020.n06KKXIb016915@imap1.linux-foundation.org>
+Subject: - mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:21:07 -0800
+Message-ID: <200901062021.n06KL81c017398@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750843AbZAFUUs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:20:48 -0500
+	by vger.kernel.org with ESMTP id S1754972AbZAFUVS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:21:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@suse.de, wassim.dagash@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gorcunov@gmail.com, gorcunov@openvz.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix
+     mm-hugetlb-get-rid-of-redundant-if-operation-fix
 has been removed from the -mm tree.  Its filename was
-     mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
+     mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch
 
-This patch was dropped because it was folded into mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
+This patch was dropped because it was folded into mm-hugetlb-get-rid-of-redundant-if-operation.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix
+Subject: mm-hugetlb-get-rid-of-redundant-if-operation-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: wassim dagash <wassim.dagash@gmail.com>
+- can't help myself!
+
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix
-+++ a/mm/vmscan.c
-@@ -1878,8 +1878,8 @@ out:
- 		 *
- 		 * Instead, recheck all watermarks at order-0 as they
- 		 * are the most important. If watermarks are ok, kswapd will go
--		 * back to sleep. High-order users can still direct reclaim
--		 * if they wish.
-+		 * back to sleep. High-order users can still perform direct
-+		 * reclaim if they wish.
- 		 */
- 		if (nr_reclaimed < SWAP_CLUSTER_MAX)
- 			order = sc.order = 0;
+diff -puN mm/hugetlb.c~mm-hugetlb-get-rid-of-redundant-if-operation-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-get-rid-of-redundant-if-operation-fix
++++ a/mm/hugetlb.c
+@@ -1005,7 +1005,7 @@ static struct page *alloc_huge_page(stru
+ 	return page;
+ }
+ 
+-__attribute__((weak)) int alloc_bootmem_huge_page(struct hstate *h)
++int __weak alloc_bootmem_huge_page(struct hstate *h)
+ {
+ 	struct huge_bootmem_page *m;
+ 	int nr_nodes = nodes_weight(node_online_map);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +62,7 @@ vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
 mm-mmapc-fix-coding-style.patch
 mm-check-for-no-mmaps-in-exit_mmap.patch
 mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
-mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
+mm-hugetlb-get-rid-of-redundant-if-operation.patch
 mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch
 init-properly-placing-noinline-keyword.patch
 add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
