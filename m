@@ -1,121 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:15:38 -0800
-Message-ID: <200901062015.n06KFcX8012856@imap1.linux-foundation.org>
+Subject: - swapfile-change-discard-pgoff_t-to-sector_t-fix.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:16:16 -0800
+Message-ID: <200901062016.n06KGG62013387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55707 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751735AbZAFUPu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:15:50 -0500
+	by vger.kernel.org with ESMTP id S1755033AbZAFUQo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:16:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, cl@linux-foundation.org, david@fromorbit.com, peterz@infradead.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, djshin90@gmail.com, dwmw2@infradead.org, hugh@veritas.com, jens.axboe@oracle.com, joern@logfs.org, kamezawa.hiroyu@jp
 
 
 The patch titled
-     mm: add dirty_background_bytes and dirty_bytes sysctls fix
+     swapfile-change-discard-pgoff_t-to-sector_t-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix.patch
+     swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
 
-This patch was dropped because it was folded into mm-add-dirty_background_bytes-and-dirty_bytes-sysctls.patch
+This patch was dropped because it was folded into swapfile-change-discard-pgoff_t-to-sector_t.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add dirty_background_bytes and dirty_bytes sysctls fix
-From: David Rientjes <rientjes@google.com>
+Subject: swapfile-change-discard-pgoff_t-to-sector_t-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Andrea Righi <righi.andrea@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Donjun Shin <djshin90@gmail.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Joern Engel <joern@logfs.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Tejun Heo <teheo@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c     |    9 +++------
- mm/page-writeback.c |    4 ++--
- 2 files changed, 5 insertions(+), 8 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix kernel/sysctl.c
---- a/kernel/sysctl.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix
-+++ a/kernel/sysctl.c
-@@ -88,10 +88,6 @@ extern int rcutorture_runnable;
- #endif /* #ifdef CONFIG_RCU_TORTURE_TEST */
+diff -puN mm/swapfile.c~swapfile-change-discard-pgoff_t-to-sector_t-fix mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-change-discard-pgoff_t-to-sector_t-fix
++++ a/mm/swapfile.c
+@@ -96,7 +96,7 @@ static int discard_swap(struct swap_info
  
- /* Constants used for minimum and  maximum */
--#if defined(CONFIG_HIGHMEM) || defined(CONFIG_DETECT_SOFTLOCKUP)
--static int one = 1;
--#endif
--
- #ifdef CONFIG_DETECT_SOFTLOCKUP
- static int sixty = 60;
- static int neg_one = -1;
-@@ -102,6 +98,7 @@ static int two = 2;
- #endif
+ 	list_for_each_entry(se, &si->extent_list, list) {
+ 		sector_t start_block = se->start_block << (PAGE_SHIFT - 9);
+-		sector_t nr_blocks = se->nr_pages << (PAGE_SHIFT - 9);
++		sector_t nr_blocks = (sector_t)se->nr_pages << (PAGE_SHIFT - 9);
  
- static int zero;
-+static int one = 1;
- static int one_hundred = 100;
- 
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
-@@ -956,7 +953,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &dirty_background_bytes_handler,
- 		.strategy	= &sysctl_intvec,
--		.extra1		= &zero,
-+		.extra1		= &one,
- 	},
- 	{
- 		.ctl_name	= VM_DIRTY_RATIO,
-@@ -977,7 +974,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &dirty_bytes_handler,
- 		.strategy	= &sysctl_intvec,
--		.extra1		= &zero,
-+		.extra1		= &one,
- 	},
- 	{
- 		.procname	= "dirty_writeback_centisecs",
-diff -puN mm/page-writeback.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix
-+++ a/mm/page-writeback.c
-@@ -435,7 +435,7 @@ get_dirty_limits(unsigned long *pbackgro
- 	struct task_struct *tsk;
- 
- 	if (vm_dirty_bytes)
--		dirty = (vm_dirty_bytes + PAGE_SIZE) / PAGE_SIZE;
-+		dirty = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE);
- 	else {
- 		int dirty_ratio;
- 
-@@ -446,7 +446,7 @@ get_dirty_limits(unsigned long *pbackgro
- 	}
- 
- 	if (dirty_background_bytes)
--		background = (dirty_background_bytes + PAGE_SIZE) / PAGE_SIZE;
-+		background = DIV_ROUND_UP(dirty_background_bytes, PAGE_SIZE);
- 	else
- 		background = (dirty_background_ratio * available_memory) / 100;
- 
+ 		if (se->start_page == 0) {
+ 			/* Do not discard the swap header page! */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-oom-fix-zone_scan_mutex-name.patch
-oom-print-triggering-tasks-cpuset-and-mems-allowed.patch
-mm-change-dirty-limit-type-specifiers-to-unsigned-long.patch
-mm-add-dirty_background_bytes-and-dirty_bytes-sysctls.patch
-mm-add-dirty_background_bytes-and-dirty_bytes-sysctls-fix.patch
-mm-make-get_user_pages-interruptible.patch
-mm-make-get_user_pages-interruptible-mmotm-ignore-sigkill-in-get_user_pages-during-munlock.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
+mm-invoke-oom-killer-from-page-fault.patch
+mm-write_cache_pages-more-terminate-quickly.patch
+swapfile-change-discard-pgoff_t-to-sector_t.patch
+swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
+fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
+vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
+mm-mmapc-fix-coding-style-fix.patch
+mm-check-for-no-mmaps-in-exit_mmap-fix.patch
+mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
+mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch
+init-properly-placing-noinline-keyword.patch
+add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
+poll-allow-f_op-poll-to-sleep-take6.patch
+ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+smp_call_function_single-be-slightly-less-stupid.patch
+binfmtsh-include-listh-fix.patch
+spi_gpio-driver-cleanups.patch
+kprobes-support-probing-module-__exit-function-fix.patch
+kprobes-support-probing-module-__exit-function-fix-2.patch
+rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
+minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
 memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
 memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+fs-execc-make-do_coredump-void-checkpatch-fixes.patch
+edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
+edac-x38-use-the-architectures-readq-function-fix.patch
+edac-x38-use-the-architectures-readq-function-fix-fix.patch
+dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
+dma_alloc_coherent-clean-it-up.patch
+parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
+w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+kmemleak-add-the-base-support-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
