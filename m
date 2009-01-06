@@ -1,130 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:26:01 -0800
-Message-ID: <200901062026.n06KQ12E021406@imap1.linux-foundation.org>
+Subject: - remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:26:23 -0800
+Message-ID: <200901062026.n06KQNo4021709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60688 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751838AbZAFU0I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:26:08 -0500
+	by vger.kernel.org with ESMTP id S1751073AbZAFU0o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:26:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bcasavan@sgi.com, bzolnier@gmail.com, mdr@sgi.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, rmk+kernel@arm.linux.org.uk, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes
+     Add #include <linux/irqflags.h> to acpi/processor_idle.c
 has been removed from the -mm tree.  Its filename was
-     ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
+     remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
 
-This patch was dropped because it was folded into ioc4-automatically-load-sgiioc4-subordinate-module.patch
+This patch was dropped because it was folded into remove-linux-hardirqh-from-asm-generic-localh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Add #include <linux/irqflags.h> to acpi/processor_idle.c
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-WARNING: __func__ should be used instead of gcc specific __FUNCTION__
-#55: FILE: drivers/misc/ioc4.c:404:
-+			       __FUNCTION__);
+Applied after: remove-linux-hardirqh-from-asm-generic-localh.patch
 
-ERROR: else should follow close brace '}'
-#57: FILE: drivers/misc/ioc4.c:406:
-+		}
-+		else {
+=
+Subject: [mmotm][PATCH] Add #include <linux/irqflags.h> to acpi/processor_idle.c
 
-total: 1 errors, 1 warnings, 56 lines checked
+In past, processor_idle.c include irqflags.h indirectly via local.h.
+But now, its inclusion was removed.
 
-./patches/ioc4-automatically-load-sgiioc4-subordinate-module.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Then following build error happend.
 
-Please run checkpatch prior to sending patches
+	  CC [M]  drivers/acpi/processor_idle.o
+	drivers/acpi/processor_idle.c: In function 'acpi_cstate_enter':
+	drivers/acpi/processor_idle.c:275: error: implicit declaration of function 'stop_critical_timings'
+	drivers/acpi/processor_idle.c:288: error: implicit declaration of function 'start_critical_timings'
+	make[1]: *** [drivers/acpi/processor_idle.o] Error 1
+	make: *** [drivers/acpi/processor_idle.o] Error 2
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Brent Casavant <bcasavan@sgi.com>
-Cc: Michael Reed <mdr@sgi.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ioc4.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/acpi/processor_idle.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/misc/ioc4.c~ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes drivers/misc/ioc4.c
---- a/drivers/misc/ioc4.c~ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes
-+++ a/drivers/misc/ioc4.c
-@@ -400,10 +400,8 @@ ioc4_probe(struct pci_dev *pdev, const s
- 		if (!work) {
- 			printk(KERN_WARNING
- 			       "%s: IOC4 unable to allocate memory for "
--			       "load of sub-modules.\n",
--			       __FUNCTION__);
--		}
--		else {
-+			       "load of sub-modules.\n", __func__);
-+		} else {
- 			/* Request the module from a work procedure as the
- 			 * modprobe goes out to a userland helper and that
- 			 * will hang if done directly from ioc4_probe().
+diff -puN drivers/acpi/processor_idle.c~remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec
++++ a/drivers/acpi/processor_idle.c
+@@ -41,6 +41,7 @@
+ #include <linux/pm_qos_params.h>
+ #include <linux/clockchips.h>
+ #include <linux/cpuidle.h>
++#include <linux/irqflags.h>
+ 
+ /*
+  * Include the apic definitions for x86 to have the APIC timer related defines
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-mm-invoke-oom-killer-from-page-fault.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-mm-mmapc-fix-coding-style.patch
-mm-check-for-no-mmaps-in-exit_mmap.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+oom-fix-zone_scan_mutex-name.patch
+mm-get-rid-of-pagevec_release_nonlru.patch
+cleanup-get-rid-of-ifdef-config_migration.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-make-page_lock_anon_vma-static.patch
+memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
+mm-make-init_section_page_cgroup-static.patch
+mm-make-maddr-__iomem.patch
+mm-make-mem_cgroup_resize_limit-static.patch
+mm-make-scan_all_zones_unevictable_pages-static.patch
+mm-make-scan_zone_unevictable_pages-static.patch
+mm-make-setup_per_zone_inactive_ratio-static.patch
+mm-make-vread-and-vwrite-declaration.patch
+vmscan-bail-out-of-direct-reclaim-after-swap_cluster_max-pages.patch
+vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
+mm-kill-zone_is_near_oom.patch
+mm-make-get_user_pages-interruptible.patch
+introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
+mm-remove-config_out_of_line_pfn_to_page.patch
+mm-kill-page_queue_congested.patch
 mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
-mm-hugetlb-get-rid-of-redundant-if-operation.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-binfmtsh-include-listh-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
+remove-linux-hardirqh-from-asm-generic-localh.patch
+remove-linux-hardirqh-from-asm-generic-localh-add-include-linux-irqflagsh-to-acpi-processor_idlec.patch
+profile-dont-include-asm-ptraceh-twice.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
 memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-fs-execc-make-do_coredump-void-checkpatch-fixes.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-fix-calclation-of-active_ratio.patch
+memcg-fix-calclation-of-active_ratio-build-error-fix.patch
+memcg-show-real-limit-under-hierarchy-mode.patch
+memcg-explain-details-and-test-document.patch
+coredump_filter-permit-changing-of-the-default-filter.patch
+ia64-implement-interrupt-enabling-rwlocks-fix.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
