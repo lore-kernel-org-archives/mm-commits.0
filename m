@@ -1,58 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - binfmtsh-include-listh-fix.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 12:33:14 -0800
-Message-ID: <200901062033.n06KXFpu027266@imap1.linux-foundation.org>
+Subject: - spi_gpio-driver-cleanups.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 12:34:19 -0800
+Message-ID: <200901062034.n06KYJ9t028153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750928AbZAFUdS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:33:18 -0500
+	by vger.kernel.org with ESMTP id S1751737AbZAFUe3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 15:34:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, h-shimamoto@ct.jp.nec.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, damm@igel.co.jp, dbrownell@users.sourceforge.net, torgil.svensson@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     binfmtsh-include-listh-fix
+     spi_gpio-driver cleanups
 has been removed from the -mm tree.  Its filename was
-     binfmtsh-include-listh-fix.patch
+     spi_gpio-driver-cleanups.patch
 
-This patch was dropped because it was folded into binfmtsh-include-listh.patch
+This patch was dropped because it was folded into spi_gpio-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmtsh-include-listh-fix
+Subject: spi_gpio-driver cleanups
 From: Andrew Morton <akpm@linux-foundation.org>
 
-/usr/src/devel/usr/include/linux/binfmts.h:4: included file 'linux/list.h' is not exported
+- fix checkpatch whine.
 
-Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+- spi_master_put() already returns void, and that (void) thing is
+  pointless and fugly.
+
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Magnus Damm <damm@igel.co.jp>
+Cc: Torgil Svensson <torgil.svensson@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/binfmts.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi_gpio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/binfmts.h~binfmtsh-include-listh-fix include/linux/binfmts.h
---- a/include/linux/binfmts.h~binfmtsh-include-listh-fix
-+++ a/include/linux/binfmts.h
-@@ -1,7 +1,6 @@
- #ifndef _LINUX_BINFMTS_H
- #define _LINUX_BINFMTS_H
+diff -puN drivers/spi/spi_gpio.c~spi_gpio-driver-cleanups drivers/spi/spi_gpio.c
+--- a/drivers/spi/spi_gpio.c~spi_gpio-driver-cleanups
++++ a/drivers/spi/spi_gpio.c
+@@ -125,7 +125,7 @@ static inline int getmiso(const struct s
+  * reaching even one Mbit/sec (except when we can inline bitops), so for now
+  * we'll just assume we never need additional per-bit slowdowns.
+  */
+-#define spidelay(nsecs)	do{} while(0)
++#define spidelay(nsecs)	do {} while (0)
  
--#include <linux/list.h>
- #include <linux/capability.h>
+ #define	EXPAND_BITBANG_TXRX
+ #include <linux/spi/spi_bitbang.h>
+@@ -323,7 +323,7 @@ static int __exit spi_gpio_remove(struct
  
- struct pt_regs;
-@@ -19,6 +18,7 @@ struct pt_regs;
- #define BINPRM_BUF_SIZE 128
+ 	/* stop() unregisters child devices too */
+ 	status = spi_bitbang_stop(&spi_gpio->bitbang);
+-	(void) spi_master_put(spi_gpio->bitbang.master);
++	spi_master_put(spi_gpio->bitbang.master);
  
- #ifdef __KERNEL__
-+#include <linux/list.h>
- 
- #define CORENAME_MAX_SIZE 128
+ 	platform_set_drvdata(pdev, NULL);
  
 _
 
@@ -73,7 +80,7 @@ add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
 poll-allow-f_op-poll-to-sleep-take6.patch
 ioc4-automatically-load-sgiioc4-subordinate-module.patch
 binfmtsh-include-listh.patch
-binfmtsh-include-listh-fix.patch
+spi_gpio-driver.patch
 spi_gpio-driver-cleanups.patch
 kprobes-support-probing-module-__exit-function-fix.patch
 kprobes-support-probing-module-__exit-function-fix-2.patch
