@@ -1,74 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - send_sig_noinfo-set-si_pid-to-tgid-instead-of-pid.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:20:25 -0800
-Message-ID: <200901072220.n07MKP9i019683@imap1.linux-foundation.org>
+Subject: - doc-reformat-some-long-lines-in-kernel-parameterstxt.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:20:20 -0800
+Message-ID: <200901072220.n07MKKdb019592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762211AbZAGWVb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:21:31 -0500
+	by vger.kernel.org with ESMTP id S1757742AbZAGWVL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:21:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sukadev@linux.vnet.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru, roland@redhat.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SEND_SIG_NOINFO: set si_pid to tgid instead of pid
+     doc: reformat some long lines in kernel-parameters.txt
 has been removed from the -mm tree.  Its filename was
-     send_sig_noinfo-set-si_pid-to-tgid-instead-of-pid.patch
+     doc-reformat-some-long-lines-in-kernel-parameterstxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SEND_SIG_NOINFO: set si_pid to tgid instead of pid
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Subject: doc: reformat some long lines in kernel-parameters.txt
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-POSIX requires the si_pid to be the process id of the sender, so ->si_pid
-should really be set to 'tgid'.  This change does have following changes
-in behavior:
+Reformat text to (mostly) stay within 80 columns of text.
 
-	- When sending pdeath_signal on re-parent to a sub-thread, ->si_pid
-	  cannot be used to identify the thread that did the re-parent since
-	  it will now show the tgid instead of thread id.
-
-	- A multi-threaded application that expects to find the specific
-	  thread that encountered a SIGPIPE using the ->si_pid will now
-	  break.
-
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Acked-By: Roland McGrath <roland@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/signal.c~send_sig_noinfo-set-si_pid-to-tgid-instead-of-pid kernel/signal.c
---- a/kernel/signal.c~send_sig_noinfo-set-si_pid-to-tgid-instead-of-pid
-+++ a/kernel/signal.c
-@@ -858,7 +858,7 @@ static int send_signal(int sig, struct s
- 			q->info.si_signo = sig;
- 			q->info.si_errno = 0;
- 			q->info.si_code = SI_USER;
--			q->info.si_pid = task_pid_nr_ns(current,
-+			q->info.si_pid = task_tgid_nr_ns(current,
- 							task_active_pid_ns(t));
- 			q->info.si_uid = current_uid();
- 			break;
+diff -puN Documentation/kernel-parameters.txt~doc-reformat-some-long-lines-in-kernel-parameterstxt Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~doc-reformat-some-long-lines-in-kernel-parameterstxt
++++ a/Documentation/kernel-parameters.txt
+@@ -1799,10 +1799,10 @@ and is between 256 and 4096 characters. 
+ 			autoconfiguration.
+ 			Ranges are in pairs (memory base and size).
+ 
+-	dynamic_printk
+-			Enables pr_debug()/dev_dbg() calls if
+-			CONFIG_DYNAMIC_PRINTK_DEBUG has been enabled. These can also
+-			be switched on/off via <debugfs>/dynamic_printk/modules
++	dynamic_printk	Enables pr_debug()/dev_dbg() calls if
++			CONFIG_DYNAMIC_PRINTK_DEBUG has been enabled.
++			These can also be switched on/off via
++			<debugfs>/dynamic_printk/modules
+ 
+ 	print-fatal-signals=
+ 			[KNL] debug: print fatal signals
+@@ -1890,7 +1890,7 @@ and is between 256 and 4096 characters. 
+ 
+ 	reboot=		[BUGS=X86-32,BUGS=ARM,BUGS=IA-64] Rebooting mode
+ 			Format: <reboot_mode>[,<reboot_mode2>[,...]]
+-			See arch/*/kernel/reboot.c or arch/*/kernel/process.c			
++			See arch/*/kernel/reboot.c or arch/*/kernel/process.c
+ 
+ 	relax_domain_level=
+ 			[KNL, SMP] Set scheduler's default relax_domain_level.
+@@ -2438,8 +2438,8 @@ and is between 256 and 4096 characters. 
+ 			Format:
+ 			<irq>,<irq_mask>,<io>,<full_duplex>,<do_sound>,<lockup_hack>[,<irq2>[,<irq3>[,<irq4>]]]
+ 
+-	norandmaps	Don't use address space randomization
+-			Equivalent to echo 0 > /proc/sys/kernel/randomize_va_space
++	norandmaps	Don't use address space randomization.  Equivalent to
++			echo 0 > /proc/sys/kernel/randomize_va_space
+ 
+ ______________________________________________________________________
+ 
 _
 
-Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-pid-implement-ns_of_pid.patch
-pid-implement-ns_of_pid-update.patch
-pid-generalize-task_active_pid_ns.patch
-mqueue-fix-si_pid-value-in-mqueue-do_notify.patch
+kgdb-fix-kernel-doc-error.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+leds-add-a-dac124s085-spi-led-driver-fix.patch
+mtd-fix-nettel-printk-formats.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+sunrpc-fix-rdma-dependency.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+esp-fix-section-mismatch-warning.patch
+max3100-spi-uart-driver-select-serial_core.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+jbd-remove-excess-kernel-doc-notation.patch
+w1-add-list-masters-w1-command.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
+fix-similar-typos-to-successfull-v2.patch
+kmemleak-add-documentation-on-the-memory-leak-detector.patch
 
