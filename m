@@ -1,68 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - autofs4-fix-var-shadowed-by-local-delaration.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:18:42 -0800
-Message-ID: <200901072218.n07MIgkO018152@imap1.linux-foundation.org>
+Subject: - fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:17:31 -0800
+Message-ID: <200901072217.n07MHV4T017120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46176 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932370AbZAGWcK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:32:10 -0500
+	by vger.kernel.org with ESMTP id S1763121AbZAGWc1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:32:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, mm-commits@vger.kernel.org
+To: qhfeng.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: fix var shadowed by local delaration
+     fs/binfmt_misc.c: add terminating newline to /proc/sys/fs/binfmt_misc/status
 has been removed from the -mm tree.  Its filename was
-     autofs4-fix-var-shadowed-by-local-delaration.patch
+     fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: fix var shadowed by local delaration
-From: Ian Kent <raven@themaw.net>
+Subject: fs/binfmt_misc.c: add terminating newline to /proc/sys/fs/binfmt_misc/status
+From: Qinghuang Feng <qhfeng.kernel@gmail.com>
 
-A local definition of devid in autofs_dev_ioctl_ismountpoint() shadows
-the fuction wide definition.
+The following is what it looks like before patching.
+It is not much readable.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
+user@ubuntu:/proc/sys/fs/binfmt_misc$ cat status
+enableduser@ubuntu:/proc/sys/fs/binfmt_misc$
+
+Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/binfmt_misc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs4-fix-var-shadowed-by-local-delaration fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs4-fix-var-shadowed-by-local-delaration
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -646,17 +646,17 @@ static int autofs_dev_ioctl_ismountpoint
- 			magic = nd.path.dentry->d_inode->i_sb->s_magic;
- 		}
- 	} else {
--		dev_t devid = new_encode_dev(sbi->sb->s_dev);
-+		dev_t dev = autofs4_get_dev(sbi);
+diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status
++++ a/fs/binfmt_misc.c
+@@ -649,7 +649,7 @@ static const struct file_operations bm_r
+ static ssize_t
+ bm_status_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
+ {
+-	char *s = enabled ? "enabled" : "disabled";
++	char *s = enabled ? "enabled\n" : "disabled\n";
  
- 		err = path_lookup(path, LOOKUP_PARENT, &nd);
- 		if (err)
- 			goto out;
- 
--		err = autofs_dev_ioctl_find_super(&nd, devid);
-+		err = autofs_dev_ioctl_find_super(&nd, dev);
- 		if (err)
- 			goto out_release;
- 
--		devid = autofs4_get_dev(sbi);
-+		devid = dev;
- 
- 		err = have_submounts(nd.path.dentry);
- 
+ 	return simple_read_from_buffer(buf, nbytes, ppos, s, strlen(s));
+ }
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
 
 origin.patch
+linux-next.patch
+drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
+ext2-fix-ext2_splice_branch-comments.patch
 
