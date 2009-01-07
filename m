@@ -1,88 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 15:15:58 -0800
-Message-ID: <200901072315.n07NFxpa000604@imap1.linux-foundation.org>
+Subject: - memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 15:16:46 -0800
+Message-ID: <200901072316.n07NGljJ001316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763735AbZAGXQq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:16:46 -0500
+	by vger.kernel.org with ESMTP id S1763165AbZAGXRT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:17:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, jblunck@suse.de, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, nickpiggin@yahoo.com.au, nishimura@mxp.nes.nec.co.jp, pbadari@us.ib
+To: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-avoid-unnecessary-system-wide-oom-killer-fix
+     vmscan: style cleanup
 has been removed from the -mm tree.  Its filename was
-     memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+     memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
 
-This patch was dropped because it was folded into memcg-avoid-unnecessary-system-wide-oom-killer.patch
+This patch was dropped because it was folded into memcg-add-inactive_anon_is_low.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-avoid-unnecessary-system-wide-oom-killer-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmscan: style cleanup
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Hirokazu Takahashi <taka@valinux.co.jp>
-Cc: Jan Blunck <jblunck@suse.de>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+trivial style cleanup.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-avoid-unnecessary-system-wide-oom-killer-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-avoid-unnecessary-system-wide-oom-killer-fix
-+++ a/include/linux/memcontrol.h
-@@ -236,7 +236,8 @@ static inline bool mem_cgroup_disabled(v
- {
- 	return true;
- }
--static inline bool mem_cgroup_oom_called(struct task_struct *task);
-+
-+static inline bool mem_cgroup_oom_called(struct task_struct *task)
- {
- 	return false;
- }
+diff -puN mm/vmscan.c~memcg-add-inactive_anon_is_low-vmscan-style-cleanup mm/vmscan.c
+--- a/mm/vmscan.c~memcg-add-inactive_anon_is_low-vmscan-style-cleanup
++++ a/mm/vmscan.c
+@@ -1399,8 +1399,7 @@ static unsigned long shrink_list(enum lr
+ 		return 0;
+ 	}
+ 
+-	if (lru == LRU_ACTIVE_ANON &&
+-	    inactive_anon_is_low(zone, sc)) {
++	if (lru == LRU_ACTIVE_ANON && inactive_anon_is_low(zone, sc)) {
+ 		shrink_active_list(nr_to_scan, zone, sc, priority, file);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-fix-calclation-of-active_ratio.patch
+memcg-fix-calclation-of-active_ratio-build-error-fix.patch
+memcg-show-real-limit-under-hierarchy-mode.patch
+memcg-explain-details-and-test-document.patch
+ia64-implement-interrupt-enabling-rwlocks-fix.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
