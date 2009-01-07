@@ -1,67 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - dmi-fix-kernel-doc-notation.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:17:36 -0800
-Message-ID: <200901072217.n07MHaOW017182@imap1.linux-foundation.org>
+Subject: - i2o-remove-extraneous-kernel-doc.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:18:15 -0800
+Message-ID: <200901072218.n07MIF3k017763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932563AbZAGWdK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:33:10 -0500
+	by vger.kernel.org with ESMTP id S1758737AbZAGWdZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:33:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dmi: fix kernel-doc notation
+     i2o: remove extraneous kernel-doc
 has been removed from the -mm tree.  Its filename was
-     dmi-fix-kernel-doc-notation.patch
+     i2o-remove-extraneous-kernel-doc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dmi: fix kernel-doc notation
+Subject: i2o: remove extraneous kernel-doc
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add missing kernel-doc notation:
+Remove excess kernel-doc function parameter notation from i2o/.
 
-drivers/firmware/dmi_scan.c:475: No description found for parameter 'str'
-drivers/firmware/dmi_scan.c:592: No description found for parameter 'f'
-drivers/firmware/dmi_scan.c:592: No description found for parameter 'str'
+Warning(drivers/message/i2o/iop.c:64): Excess function parameter 'msg' description in 'i2o_msg_get_wait'
+Warning(drivers/message/i2o/device.c:62): Excess function parameter 'drv' description in 'i2o_device_claim'
+Warning(drivers/message/i2o/device.c:95): Excess function parameter 'drv' description in 'i2o_device_claim_release'
+Warning(drivers/message/i2o/driver.c:186): Excess function parameter 'msg' description in 'i2o_driver_dispatch'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/message/i2o/device.c |    2 --
+ drivers/message/i2o/driver.c |    1 -
+ 2 files changed, 3 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~dmi-fix-kernel-doc-notation drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~dmi-fix-kernel-doc-notation
-+++ a/drivers/firmware/dmi_scan.c
-@@ -468,8 +468,8 @@ const char *dmi_get_system_info(int fiel
- EXPORT_SYMBOL(dmi_get_system_info);
- 
+diff -puN drivers/message/i2o/device.c~i2o-remove-extraneous-kernel-doc drivers/message/i2o/device.c
+--- a/drivers/message/i2o/device.c~i2o-remove-extraneous-kernel-doc
++++ a/drivers/message/i2o/device.c
+@@ -52,7 +52,6 @@ static inline int i2o_device_issue_claim
  /**
-- *	dmi_name_in_serial - 	Check if string is in the DMI product serial
-- *				information.
-+ * dmi_name_in_serial - Check if string is in the DMI product serial information
-+ * @str: string to check for
-  */
- int dmi_name_in_serial(const char *str)
- {
-@@ -585,6 +585,8 @@ EXPORT_SYMBOL_GPL(dmi_walk);
- 
- /**
-  * dmi_match - compare a string to the dmi field (if exists)
-+ * @f: DMI field identifier
-+ * @str: string to compare the DMI field to
+  *	i2o_device_claim - claim a device for use by an OSM
+  *	@dev: I2O device to claim
+- *	@drv: I2O driver which wants to claim the device
   *
-  * Returns true if the requested field equals to the str (including NULL).
-  */
+  *	Do the leg work to assign a device to a given OSM. If the claim succeeds,
+  *	the owner is the primary. If the attempt fails a negative errno code
+@@ -80,7 +79,6 @@ int i2o_device_claim(struct i2o_device *
+ /**
+  *	i2o_device_claim_release - release a device that the OSM is using
+  *	@dev: device to release
+- *	@drv: driver which claimed the device
+  *
+  *	Drop a claim by an OSM on a given I2O device.
+  *
+diff -puN drivers/message/i2o/driver.c~i2o-remove-extraneous-kernel-doc drivers/message/i2o/driver.c
+--- a/drivers/message/i2o/driver.c~i2o-remove-extraneous-kernel-doc
++++ a/drivers/message/i2o/driver.c
+@@ -173,7 +173,6 @@ void i2o_driver_unregister(struct i2o_dr
+  *	i2o_driver_dispatch - dispatch an I2O reply message
+  *	@c: I2O controller of the message
+  *	@m: I2O message number
+- *	@msg: I2O message to be delivered
+  *
+  *	The reply is delivered to the driver from which the original message
+  *	was. This function is only called from interrupt context.
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
