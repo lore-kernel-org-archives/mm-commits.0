@@ -1,421 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - mm-add-dirty_background_bytes-and-dirty_bytes-sysctls.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:12:31 -0800
-Message-ID: <200901072212.n07MCVob012726@imap1.linux-foundation.org>
+Subject: - mm-add_active_or_unevictable-into-rmap.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:12:19 -0800
+Message-ID: <200901072212.n07MCJae012533@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58556 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755983AbZAGWMm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:12:42 -0500
+	by vger.kernel.org with ESMTP id S1756001AbZAGWMo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:12:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, cl@linux-foundation.org, david@fromorbit.com, peterz@infradead.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, Lee.Schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add dirty_background_bytes and dirty_bytes sysctls
+     mm: add_active_or_unevictable into rmap
 has been removed from the -mm tree.  Its filename was
-     mm-add-dirty_background_bytes-and-dirty_bytes-sysctls.patch
+     mm-add_active_or_unevictable-into-rmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add dirty_background_bytes and dirty_bytes sysctls
-From: David Rientjes <rientjes@google.com>
+Subject: mm: add_active_or_unevictable into rmap
+From: Hugh Dickins <hugh@veritas.com>
 
-This change introduces two new sysctls to /proc/sys/vm:
-dirty_background_bytes and dirty_bytes.
+lru_cache_add_active_or_unevictable() and page_add_new_anon_rmap() always
+appear together.  Save some symbol table space and some jumping around by
+removing lru_cache_add_active_or_unevictable(), folding its code into
+page_add_new_anon_rmap(): like how we add file pages to lru just after
+adding them to page cache.
 
-dirty_background_bytes is the counterpart to dirty_background_ratio and
-dirty_bytes is the counterpart to dirty_ratio.
+Remove the nearby "TODO: is this safe?" comments (yes, it is safe), and
+change page_add_new_anon_rmap()'s address BUG_ON to VM_BUG_ON as
+originally intended.
 
-With growing memory capacities of individual machines, it's no longer
-sufficient to specify dirty thresholds as a percentage of the amount of
-dirtyable memory over the entire system.
-
-dirty_background_bytes and dirty_bytes specify quantities of memory, in
-bytes, that represent the dirty limits for the entire system.  If either
-of these values is set, its value represents the amount of dirty memory
-that is needed to commence either background or direct writeback.
-
-When a `bytes' or `ratio' file is written, its counterpart becomes a
-function of the written value.  For example, if dirty_bytes is written to
-be 8096, 8K of memory is required to commence direct writeback. 
-dirty_ratio is then functionally equivalent to 8K / the amount of
-dirtyable memory:
-
-	dirtyable_memory = free pages + mapped pages + file cache
-
-	dirty_background_bytes = dirty_background_ratio * dirtyable_memory
-		-or-
-	dirty_background_ratio = dirty_background_bytes / dirtyable_memory
-
-		AND
-
-	dirty_bytes = dirty_ratio * dirtyable_memory
-		-or-
-	dirty_ratio = dirty_bytes / dirtyable_memory
-
-Only one of dirty_background_bytes and dirty_background_ratio may be
-specified at a time, and only one of dirty_bytes and dirty_ratio may be
-specified.  When one sysctl is written, the other appears as 0 when read.
-
-The `bytes' files operate on a page size granularity since dirty limits
-are compared with ZVC values, which are in page units.
-
-Prior to this change, the minimum dirty_ratio was 5 as implemented by
-get_dirty_limits() although /proc/sys/vm/dirty_ratio would show any user
-written value between 0 and 100.  This restriction is maintained, but
-dirty_bytes has a lower limit of only one page.
-
-Also prior to this change, the dirty_background_ratio could not equal or
-exceed dirty_ratio.  This restriction is maintained in addition to
-restricting dirty_background_bytes.  If either background threshold equals
-or exceeds that of the dirty threshold, it is implicitly set to half the
-dirty threshold.
-
-Acked-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Andrea Righi <righi.andrea@gmail.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   26 ++++++
- Documentation/sysctl/vm.txt        |    3 
- include/linux/writeback.h          |   11 ++
- kernel/sysctl.c                    |   27 +++++--
- mm/page-writeback.c                |  104 ++++++++++++++++++++++-----
- 5 files changed, 147 insertions(+), 24 deletions(-)
+ include/linux/swap.h |    2 --
+ mm/memory.c          |    6 ------
+ mm/rmap.c            |    7 ++++++-
+ mm/swap.c            |   19 -------------------
+ 4 files changed, 6 insertions(+), 28 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls
-+++ a/Documentation/filesystems/proc.txt
-@@ -1385,6 +1385,15 @@ swapcache reclaim.  Decreasing vfs_cache
- to retain dentry and inode caches.  Increasing vfs_cache_pressure beyond 100
- causes the kernel to prefer to reclaim dentries and inodes.
- 
-+dirty_background_bytes
-+----------------------
-+
-+Contains the amount of dirty memory at which the pdflush background writeback
-+daemon will start writeback.
-+
-+If dirty_background_bytes is written, dirty_background_ratio becomes a function
-+of its value (dirty_background_bytes / the amount of dirtyable system memory).
-+
- dirty_background_ratio
- ----------------------
- 
-@@ -1393,14 +1402,29 @@ pages + file cache, not including locked
- pages at which the pdflush background writeback daemon will start writing out
- dirty data.
- 
-+If dirty_background_ratio is written, dirty_background_bytes becomes a function
-+of its value (dirty_background_ratio * the amount of dirtyable system memory).
-+
-+dirty_bytes
-+-----------
-+
-+Contains the amount of dirty memory at which a process generating disk writes
-+will itself start writeback.
-+
-+If dirty_bytes is written, dirty_ratio becomes a function of its value
-+(dirty_bytes / the amount of dirtyable system memory).
-+
- dirty_ratio
-------------------
-+-----------
- 
- Contains, as a percentage of the dirtyable system memory (free pages + mapped
- pages + file cache, not including locked pages and HugePages), the number of
- pages at which a process which is generating disk writes will itself start
- writing out dirty data.
- 
-+If dirty_ratio is written, dirty_bytes becomes a function of its value
-+(dirty_ratio * the amount of dirtyable system memory).
-+
- dirty_writeback_centisecs
- -------------------------
- 
-diff -puN Documentation/sysctl/vm.txt~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls
-+++ a/Documentation/sysctl/vm.txt
-@@ -41,7 +41,8 @@ Currently, these files are in /proc/sys/
- 
- ==============================================================
- 
--dirty_ratio, dirty_background_ratio, dirty_expire_centisecs,
-+dirty_bytes, dirty_ratio, dirty_background_bytes,
-+dirty_background_ratio, dirty_expire_centisecs,
- dirty_writeback_centisecs, highmem_is_dirtyable,
- vfs_cache_pressure, laptop_mode, block_dump, swap_token_timeout,
- drop-caches, hugepages_treat_as_movable:
-diff -puN include/linux/writeback.h~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls include/linux/writeback.h
---- a/include/linux/writeback.h~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls
-+++ a/include/linux/writeback.h
-@@ -107,7 +107,9 @@ void throttle_vm_writeout(gfp_t gfp_mask
- 
- /* These are exported to sysctl. */
- extern int dirty_background_ratio;
-+extern unsigned long dirty_background_bytes;
- extern int vm_dirty_ratio;
-+extern unsigned long vm_dirty_bytes;
- extern int dirty_writeback_interval;
- extern int dirty_expire_interval;
- extern int vm_highmem_is_dirtyable;
-@@ -116,9 +118,18 @@ extern int laptop_mode;
- 
- extern unsigned long determine_dirtyable_memory(void);
- 
-+extern int dirty_background_ratio_handler(struct ctl_table *table, int write,
-+		struct file *filp, void __user *buffer, size_t *lenp,
-+		loff_t *ppos);
-+extern int dirty_background_bytes_handler(struct ctl_table *table, int write,
-+		struct file *filp, void __user *buffer, size_t *lenp,
-+		loff_t *ppos);
- extern int dirty_ratio_handler(struct ctl_table *table, int write,
- 		struct file *filp, void __user *buffer, size_t *lenp,
- 		loff_t *ppos);
-+extern int dirty_bytes_handler(struct ctl_table *table, int write,
-+		struct file *filp, void __user *buffer, size_t *lenp,
-+		loff_t *ppos);
- 
- struct ctl_table;
- struct file;
-diff -puN kernel/sysctl.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls kernel/sysctl.c
---- a/kernel/sysctl.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls
-+++ a/kernel/sysctl.c
-@@ -87,10 +87,6 @@ extern int rcutorture_runnable;
- #endif /* #ifdef CONFIG_RCU_TORTURE_TEST */
- 
- /* Constants used for minimum and  maximum */
--#if defined(CONFIG_HIGHMEM) || defined(CONFIG_DETECT_SOFTLOCKUP)
--static int one = 1;
--#endif
+diff -puN include/linux/swap.h~mm-add_active_or_unevictable-into-rmap include/linux/swap.h
+--- a/include/linux/swap.h~mm-add_active_or_unevictable-into-rmap
++++ a/include/linux/swap.h
+@@ -174,8 +174,6 @@ extern unsigned int nr_free_pagecache_pa
+ /* linux/mm/swap.c */
+ extern void __lru_cache_add(struct page *, enum lru_list lru);
+ extern void lru_cache_add_lru(struct page *, enum lru_list lru);
+-extern void lru_cache_add_active_or_unevictable(struct page *,
+-					struct vm_area_struct *);
+ extern void activate_page(struct page *);
+ extern void mark_page_accessed(struct page *);
+ extern void lru_add_drain(void);
+diff -puN mm/memory.c~mm-add_active_or_unevictable-into-rmap mm/memory.c
+--- a/mm/memory.c~mm-add_active_or_unevictable-into-rmap
++++ a/mm/memory.c
+@@ -1949,10 +1949,7 @@ gotten:
+ 		 */
+ 		ptep_clear_flush_notify(vma, address, page_table);
+ 		SetPageSwapBacked(new_page);
+-		lru_cache_add_active_or_unevictable(new_page, vma);
+ 		page_add_new_anon_rmap(new_page, vma, address);
 -
- #ifdef CONFIG_DETECT_SOFTLOCKUP
- static int sixty = 60;
- static int neg_one = -1;
-@@ -101,6 +97,7 @@ static int two = 2;
- #endif
+-//TODO:  is this safe?  do_anonymous_page() does it this way.
+ 		set_pte_at(mm, address, page_table, entry);
+ 		update_mmu_cache(vma, address, entry);
+ 		if (old_page) {
+@@ -2448,7 +2445,6 @@ static int do_anonymous_page(struct mm_s
+ 		goto release;
+ 	inc_mm_counter(mm, anon_rss);
+ 	SetPageSwapBacked(page);
+-	lru_cache_add_active_or_unevictable(page, vma);
+ 	page_add_new_anon_rmap(page, vma, address);
+ 	set_pte_at(mm, address, page_table, entry);
  
- static int zero;
-+static int one = 1;
- static int one_hundred = 100;
+@@ -2597,7 +2593,6 @@ static int __do_fault(struct mm_struct *
+ 		if (anon) {
+ 			inc_mm_counter(mm, anon_rss);
+ 			SetPageSwapBacked(page);
+-			lru_cache_add_active_or_unevictable(page, vma);
+ 			page_add_new_anon_rmap(page, vma, address);
+ 		} else {
+ 			inc_mm_counter(mm, file_rss);
+@@ -2607,7 +2602,6 @@ static int __do_fault(struct mm_struct *
+ 				get_page(dirty_page);
+ 			}
+ 		}
+-//TODO:  is this safe?  do_anonymous_page() does it this way.
+ 		set_pte_at(mm, address, page_table, entry);
  
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
-@@ -952,12 +949,22 @@ static struct ctl_table vm_table[] = {
- 		.data		= &dirty_background_ratio,
- 		.maxlen		= sizeof(dirty_background_ratio),
- 		.mode		= 0644,
--		.proc_handler	= &proc_dointvec_minmax,
-+		.proc_handler	= &dirty_background_ratio_handler,
- 		.strategy	= &sysctl_intvec,
- 		.extra1		= &zero,
- 		.extra2		= &one_hundred,
- 	},
- 	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "dirty_background_bytes",
-+		.data		= &dirty_background_bytes,
-+		.maxlen		= sizeof(dirty_background_bytes),
-+		.mode		= 0644,
-+		.proc_handler	= &dirty_background_bytes_handler,
-+		.strategy	= &sysctl_intvec,
-+		.extra1		= &one,
-+	},
-+	{
- 		.ctl_name	= VM_DIRTY_RATIO,
- 		.procname	= "dirty_ratio",
- 		.data		= &vm_dirty_ratio,
-@@ -969,6 +976,16 @@ static struct ctl_table vm_table[] = {
- 		.extra2		= &one_hundred,
- 	},
- 	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "dirty_bytes",
-+		.data		= &vm_dirty_bytes,
-+		.maxlen		= sizeof(vm_dirty_bytes),
-+		.mode		= 0644,
-+		.proc_handler	= &dirty_bytes_handler,
-+		.strategy	= &sysctl_intvec,
-+		.extra1		= &one,
-+	},
-+	{
- 		.procname	= "dirty_writeback_centisecs",
- 		.data		= &dirty_writeback_interval,
- 		.maxlen		= sizeof(dirty_writeback_interval),
-diff -puN mm/page-writeback.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls mm/page-writeback.c
---- a/mm/page-writeback.c~mm-add-dirty_background_bytes-and-dirty_bytes-sysctls
-+++ a/mm/page-writeback.c
-@@ -69,6 +69,12 @@ static inline long sync_writeback_pages(
- int dirty_background_ratio = 5;
- 
- /*
-+ * dirty_background_bytes starts at 0 (disabled) so that it is a function of
-+ * dirty_background_ratio * the amount of dirtyable memory
-+ */
-+unsigned long dirty_background_bytes;
-+
-+/*
-  * free highmem will not be subtracted from the total free memory
-  * for calculating free ratios if vm_highmem_is_dirtyable is true
-  */
-@@ -80,6 +86,12 @@ int vm_highmem_is_dirtyable;
- int vm_dirty_ratio = 10;
- 
- /*
-+ * vm_dirty_bytes starts at 0 (disabled) so that it is a function of
-+ * vm_dirty_ratio * the amount of dirtyable memory
-+ */
-+unsigned long vm_dirty_bytes;
-+
-+/*
-  * The interval between `kupdate'-style writebacks, in jiffies
-  */
- int dirty_writeback_interval = 5 * HZ;
-@@ -135,23 +147,75 @@ static int calc_period_shift(void)
+ 		/* no need to invalidate: a not-present page won't be cached */
+diff -puN mm/rmap.c~mm-add_active_or_unevictable-into-rmap mm/rmap.c
+--- a/mm/rmap.c~mm-add_active_or_unevictable-into-rmap
++++ a/mm/rmap.c
+@@ -47,6 +47,7 @@
+ #include <linux/rmap.h>
+ #include <linux/rcupdate.h>
+ #include <linux/module.h>
++#include <linux/mm_inline.h>
+ #include <linux/kallsyms.h>
+ #include <linux/memcontrol.h>
+ #include <linux/mmu_notifier.h>
+@@ -671,9 +672,13 @@ void page_add_anon_rmap(struct page *pag
+ void page_add_new_anon_rmap(struct page *page,
+ 	struct vm_area_struct *vma, unsigned long address)
  {
- 	unsigned long dirty_total;
- 
--	dirty_total = (vm_dirty_ratio * determine_dirtyable_memory()) / 100;
-+	if (vm_dirty_bytes)
-+		dirty_total = vm_dirty_bytes / PAGE_SIZE;
+-	BUG_ON(address < vma->vm_start || address >= vma->vm_end);
++	VM_BUG_ON(address < vma->vm_start || address >= vma->vm_end);
+ 	atomic_set(&page->_mapcount, 0); /* elevate count by 1 (starts at -1) */
+ 	__page_set_anon_rmap(page, vma, address);
++	if (page_evictable(page, vma))
++		lru_cache_add_lru(page, LRU_ACTIVE + page_is_file_cache(page));
 +	else
-+		dirty_total = (vm_dirty_ratio * determine_dirtyable_memory()) /
-+				100;
- 	return 2 + ilog2(dirty_total - 1);
++		add_page_to_unevictable_list(page);
  }
  
- /*
-- * update the period when the dirty ratio changes.
-+ * update the period when the dirty threshold changes.
-  */
-+static void update_completion_period(void)
-+{
-+	int shift = calc_period_shift();
-+	prop_change_shift(&vm_completions, shift);
-+	prop_change_shift(&vm_dirties, shift);
-+}
-+
-+int dirty_background_ratio_handler(struct ctl_table *table, int write,
-+		struct file *filp, void __user *buffer, size_t *lenp,
-+		loff_t *ppos)
-+{
-+	int ret;
-+
-+	ret = proc_dointvec_minmax(table, write, filp, buffer, lenp, ppos);
-+	if (ret == 0 && write)
-+		dirty_background_bytes = 0;
-+	return ret;
-+}
-+
-+int dirty_background_bytes_handler(struct ctl_table *table, int write,
-+		struct file *filp, void __user *buffer, size_t *lenp,
-+		loff_t *ppos)
-+{
-+	int ret;
-+
-+	ret = proc_doulongvec_minmax(table, write, filp, buffer, lenp, ppos);
-+	if (ret == 0 && write)
-+		dirty_background_ratio = 0;
-+	return ret;
-+}
-+
- int dirty_ratio_handler(struct ctl_table *table, int write,
- 		struct file *filp, void __user *buffer, size_t *lenp,
- 		loff_t *ppos)
- {
- 	int old_ratio = vm_dirty_ratio;
--	int ret = proc_dointvec_minmax(table, write, filp, buffer, lenp, ppos);
-+	int ret;
-+
-+	ret = proc_dointvec_minmax(table, write, filp, buffer, lenp, ppos);
- 	if (ret == 0 && write && vm_dirty_ratio != old_ratio) {
--		int shift = calc_period_shift();
--		prop_change_shift(&vm_completions, shift);
--		prop_change_shift(&vm_dirties, shift);
-+		update_completion_period();
-+		vm_dirty_bytes = 0;
-+	}
-+	return ret;
-+}
-+
-+
-+int dirty_bytes_handler(struct ctl_table *table, int write,
-+		struct file *filp, void __user *buffer, size_t *lenp,
-+		loff_t *ppos)
-+{
-+	int old_bytes = vm_dirty_bytes;
-+	int ret;
-+
-+	ret = proc_doulongvec_minmax(table, write, filp, buffer, lenp, ppos);
-+	if (ret == 0 && write && vm_dirty_bytes != old_bytes) {
-+		update_completion_period();
-+		vm_dirty_ratio = 0;
- 	}
- 	return ret;
+ /**
+diff -puN mm/swap.c~mm-add_active_or_unevictable-into-rmap mm/swap.c
+--- a/mm/swap.c~mm-add_active_or_unevictable-into-rmap
++++ a/mm/swap.c
+@@ -246,25 +246,6 @@ void add_page_to_unevictable_list(struct
+ 	spin_unlock_irq(&zone->lru_lock);
  }
-@@ -365,23 +429,29 @@ void
- get_dirty_limits(unsigned long *pbackground, unsigned long *pdirty,
- 		 unsigned long *pbdi_dirty, struct backing_dev_info *bdi)
- {
--	int background_ratio;		/* Percentages */
--	int dirty_ratio;
- 	unsigned long background;
- 	unsigned long dirty;
- 	unsigned long available_memory = determine_dirtyable_memory();
- 	struct task_struct *tsk;
  
--	dirty_ratio = vm_dirty_ratio;
--	if (dirty_ratio < 5)
--		dirty_ratio = 5;
+-/**
+- * lru_cache_add_active_or_unevictable
+- * @page:  the page to be added to LRU
+- * @vma:   vma in which page is mapped for determining reclaimability
+- *
+- * place @page on active or unevictable LRU list, depending on
+- * page_evictable().  Note that if the page is not evictable,
+- * it goes directly back onto it's zone's unevictable list.  It does
+- * NOT use a per cpu pagevec.
+- */
+-void lru_cache_add_active_or_unevictable(struct page *page,
+-					struct vm_area_struct *vma)
+-{
+-	if (page_evictable(page, vma))
+-		lru_cache_add_lru(page, LRU_ACTIVE + page_is_file_cache(page));
+-	else
+-		add_page_to_unevictable_list(page);
+-}
 -
--	background_ratio = dirty_background_ratio;
--	if (background_ratio >= dirty_ratio)
--		background_ratio = dirty_ratio / 2;
-+	if (vm_dirty_bytes)
-+		dirty = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE);
-+	else {
-+		int dirty_ratio;
-+
-+		dirty_ratio = vm_dirty_ratio;
-+		if (dirty_ratio < 5)
-+			dirty_ratio = 5;
-+		dirty = (dirty_ratio * available_memory) / 100;
-+	}
-+
-+	if (dirty_background_bytes)
-+		background = DIV_ROUND_UP(dirty_background_bytes, PAGE_SIZE);
-+	else
-+		background = (dirty_background_ratio * available_memory) / 100;
- 
--	background = (background_ratio * available_memory) / 100;
--	dirty = (dirty_ratio * available_memory) / 100;
-+	if (background >= dirty)
-+		background = dirty / 2;
- 	tsk = current;
- 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
- 		background += background / 4;
+ /*
+  * Drain pages out of the cpu's pagevecs.
+  * Either "cpu" is the current CPU, and preemption has already been
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
+linux-next.patch
+mark-complex-bitopsh-inlines-as-__always_inline.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-pass-clocksource-to-read-callback-sparc-cleanup.patch
+bio-zero-inlined-bio_vec.patch
 page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
 page_fault-retry-with-nopage_retry-fix-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+mm-shmemc-fix-division-by-zero.patch
+getrusage-fill-ru_maxrss-value.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-explain-details-and-test-document.patch
+memcg-fix-swap-accounting-leak-v3.patch
+memcg-fix-swap-accounting-leak-doc-fix.patch
+memcg-fix-shmems-swap-accounting.patch
+prio_tree-debugging-patch.patch
 
