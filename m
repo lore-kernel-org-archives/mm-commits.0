@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-proc-controls-for-pdflush-threads-fix-fix.patch added to -mm tree
-Date: Wed, 07 Jan 2009 11:29:43 -0800
-Message-ID: <200901071929.n07JThUS009548@imap1.linux-foundation.org>
+Subject: + byteorder-add-load-store_endian-api-update.patch added to -mm tree
+Date: Wed, 07 Jan 2009 12:54:02 -0800
+Message-ID: <200901072054.n07Ks2B7013413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57824 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751014AbZAGTaa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 14:30:30 -0500
+	by vger.kernel.org with ESMTP id S1756537AbZAGUye (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 15:54:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, pmorreale@novell.com, riel@redhat.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     mm-add-proc-controls-for-pdflush-threads-fix-fix
+     byteorder: add load/store_{endian} api
 has been added to the -mm tree.  Its filename is
-     mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+     byteorder-add-load-store_endian-api-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +33,182 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-add-proc-controls-for-pdflush-threads-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: byteorder: add load/store_{endian} api
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Cc: Peter W Morreale <pmorreale@novell.com>
-Cc: Rik van Riel <riel@redhat.com>
+load_le16 is a synonym for the existing le16_to_cpup and is added to be
+symmetric with the load_le16_noalign API.  On arches where unaligned
+access is OK, the unaligned calls are replaced with aligned calls.
+
+store_le16 is a new API and is added to be symmetric with the unaligned
+functions.  It is implemented as a macro to allow compile-time
+byteswapping when the value is a constant.  This will also allow use in
+many places currently that are of the form:
+
+*(__le16 *)ptr = cpu_to_le16(foo);
+
+In addition, some drivers/filesystems/arches already provide this API
+privately, which will allow them to be consolidated into this common code.
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pdflush.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/byteorder.h         |   26 ++++++--------------------
+ include/linux/byteorder/generic.h |   25 +++++++++++++++++++------
+ 2 files changed, 25 insertions(+), 26 deletions(-)
 
-diff -puN mm/pdflush.c~mm-add-proc-controls-for-pdflush-threads-fix-fix mm/pdflush.c
---- a/mm/pdflush.c~mm-add-proc-controls-for-pdflush-threads-fix-fix
-+++ a/mm/pdflush.c
-@@ -143,7 +143,7 @@ static int __pdflush(struct pdflush_work
- 		 */
- 		if (time_after(jiffies, last_empty_jifs + 1 * HZ)) {
- 			if (list_empty(&pdflush_list) &&
--			    (nr_pdflush_threads < nr_pdflush_threads_max) {
-+			    nr_pdflush_threads < nr_pdflush_threads_max) {
- 				last_empty_jifs = jiffies;
- 				nr_pdflush_threads++;
- 				spin_unlock_irq(&pdflush_lock);
+diff -puN include/linux/byteorder.h~byteorder-add-load-store_endian-api-update include/linux/byteorder.h
+--- a/include/linux/byteorder.h~byteorder-add-load-store_endian-api-update
++++ a/include/linux/byteorder.h
+@@ -292,20 +292,6 @@ static inline __be64 __cpu_to_be64p(cons
+ # define cpu_to_be32 __cpu_to_be32
+ # define cpu_to_be64 __cpu_to_be64
+ 
+-# define load_le16 __le16_to_cpup
+-# define load_le32 __le32_to_cpup
+-# define load_le64 __le64_to_cpup
+-# define load_be16 __be16_to_cpup
+-# define load_be32 __be32_to_cpup
+-# define load_be64 __be64_to_cpup
+-
+-# define store_le16(p, val) (*(__le16 *)(p) = cpu_to_le16(val))
+-# define store_le32(p, val) (*(__le32 *)(p) = cpu_to_le32(val))
+-# define store_le64(p, val) (*(__le64 *)(p) = cpu_to_le64(val))
+-# define store_be16(p, val) (*(__be16 *)(p) = cpu_to_be16(val))
+-# define store_be32(p, val) (*(__be32 *)(p) = cpu_to_be32(val))
+-# define store_be64(p, val) (*(__be64 *)(p) = cpu_to_be64(val))
+-
+ # define le16_to_cpup __le16_to_cpup
+ # define le32_to_cpup __le32_to_cpup
+ # define le64_to_cpup __le64_to_cpup
+@@ -354,32 +340,32 @@ static inline __be64 __cpu_to_be64p(cons
+ 
+ static inline void le16_add_cpu(__le16 *var, u16 val)
+ {
+-	store_le16(var, load_le16(var) + val);
++	*var = cpu_to_le16(le16_to_cpup(var) + val);
+ }
+ 
+ static inline void le32_add_cpu(__le32 *var, u32 val)
+ {
+-	store_le32(var, load_le32(var) + val);
++	*var = cpu_to_le32(le32_to_cpup(var) + val);
+ }
+ 
+ static inline void le64_add_cpu(__le64 *var, u64 val)
+ {
+-	store_le64(var, load_le64(var) + val);
++	*var = cpu_to_le64(le64_to_cpup(var) + val);
+ }
+ 
+ static inline void be16_add_cpu(__be16 *var, u16 val)
+ {
+-	store_be16(var, load_be16(var) + val);
++	*var = cpu_to_be16(be16_to_cpup(var) + val);
+ }
+ 
+ static inline void be32_add_cpu(__be32 *var, u32 val)
+ {
+-	store_be32(var, load_be32(var) + val);
++	*var = cpu_to_be32(be32_to_cpup(var) + val);
+ }
+ 
+ static inline void be64_add_cpu(__be64 *var, u64 val)
+ {
+-	store_be64(var, load_be64(var) + val);
++	*var = cpu_to_be64(be64_to_cpup(var) + val);
+ }
+ 
+ #endif /* __KERNEL__ */
+diff -puN include/linux/byteorder/generic.h~byteorder-add-load-store_endian-api-update include/linux/byteorder/generic.h
+--- a/include/linux/byteorder/generic.h~byteorder-add-load-store_endian-api-update
++++ a/include/linux/byteorder/generic.h
+@@ -119,6 +119,19 @@
+ #define cpu_to_be16s __cpu_to_be16s
+ #define be16_to_cpus __be16_to_cpus
+ 
++#define load_le16 __le16_to_cpup
++#define load_le32 __le32_to_cpup
++#define load_le64 __le64_to_cpup
++#define load_be16 __be16_to_cpup
++#define load_be32 __be32_to_cpup
++#define load_be64 __be64_to_cpup
++#define store_le16(p, val) (*(__le16 *)(p) = cpu_to_le16(val))
++#define store_le32(p, val) (*(__le32 *)(p) = cpu_to_le32(val))
++#define store_le64(p, val) (*(__le64 *)(p) = cpu_to_le64(val))
++#define store_be16(p, val) (*(__be16 *)(p) = cpu_to_be16(val))
++#define store_be32(p, val) (*(__be32 *)(p) = cpu_to_be32(val))
++#define store_be64(p, val) (*(__be64 *)(p) = cpu_to_be64(val))
++
+ /*
+  * They have to be macros in order to do the constant folding
+  * correctly - if the argument passed into a inline function
+@@ -142,32 +155,32 @@
+ 
+ static inline void le16_add_cpu(__le16 *var, u16 val)
+ {
+-	*var = cpu_to_le16(le16_to_cpu(*var) + val);
++	store_le16(var, load_le16(var) + val);
+ }
+ 
+ static inline void le32_add_cpu(__le32 *var, u32 val)
+ {
+-	*var = cpu_to_le32(le32_to_cpu(*var) + val);
++	store_le32(var, load_le32(var) + val);
+ }
+ 
+ static inline void le64_add_cpu(__le64 *var, u64 val)
+ {
+-	*var = cpu_to_le64(le64_to_cpu(*var) + val);
++	store_le64(var, load_le64(var) + val);
+ }
+ 
+ static inline void be16_add_cpu(__be16 *var, u16 val)
+ {
+-	*var = cpu_to_be16(be16_to_cpu(*var) + val);
++	store_be16(var, load_be16(var) + val);
+ }
+ 
+ static inline void be32_add_cpu(__be32 *var, u32 val)
+ {
+-	*var = cpu_to_be32(be32_to_cpu(*var) + val);
++	store_be32(var, load_be32(var) + val);
+ }
+ 
+ static inline void be64_add_cpu(__be64 *var, u64 val)
+ {
+-	*var = cpu_to_be64(be64_to_cpu(*var) + val);
++	store_be64(var, load_be64(var) + val);
+ }
+ 
+ #endif /* _LINUX_BYTEORDER_GENERIC_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-mm-invoke-oom-killer-from-page-fault.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-mm-mmapc-fix-coding-style.patch
-mm-check-for-no-mmaps-in-exit_mmap.patch
-mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
-mm-hugetlb-get-rid-of-redundant-if-operation.patch
-init-properly-placing-noinline-keyword.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module.patch
-binfmtsh-include-listh.patch
-spi_gpio-driver.patch
-kprobes-support-probing-module-__exit-function.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver.patch
-minix-fix-add-links-wrong-position-calculation.patch
-fs-execc-make-do_coredump-void.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event.patch
-i-need-old-gcc.patch
-mm-remove-the-might_sleep-from-lock_page.patch
+lib-fix-sparse-shadowed-variable-warning.patch
+lib-radix_treec-make-percpu-variable-static.patch
+lib-proportionsc-trivial-sparse-lock-annotation.patch
+ibmpex-add-endian-annotation-to-extract_data-helper.patch
+blackfin-remove-__function__-in-video-driver.patch
+fb-carminefb-trivial-annotation-packing-color-register.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+input-ads7846c-sparse-lock-annotation.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+byteorder-add-load_-store_endian-api.patch
+byteorder-add-load-store_endian-api-update.patch
+unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
+unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
+sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
+unaligned-wire-up-h8300-and-m32r-arches.patch
+unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
+unaligned-remove-the-old-implementation.patch
+ata-replace-byteshifting-with-unaligned-endian-helpers.patch
+usb-use-unaligned-endian-helpers-in-storage-drivers.patch
 
