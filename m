@@ -1,248 +1,397 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-driver-for-marvells-socs-88f6281-and-88f6192.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:19:26 -0800
-Message-ID: <200901072219.n07MJQsX018759@imap1.linux-foundation.org>
+Subject: - rtc-add-rtc-tx4939-driver-v2.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:19:20 -0800
+Message-ID: <200901072219.n07MJKiF018673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44720 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758776AbZAGWU1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:20:27 -0500
+	by vger.kernel.org with ESMTP id S1755541AbZAGWUW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:20:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: saeed@marvell.com, a.zummo@towertech.it, buytenh@marvell.com, david-b@pacbell.net, nico@marvell.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: driver for Marvell's SoCs 88F6281 and 88F6192
+     rtc: add rtc-tx4939 driver
 has been removed from the -mm tree.  Its filename was
-     rtc-driver-for-marvells-socs-88f6281-and-88f6192.patch
+     rtc-add-rtc-tx4939-driver-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: driver for Marvell's SoCs 88F6281 and 88F6192
-From: Saeed Bishara <saeed@marvell.com>
+Subject: rtc: add rtc-tx4939 driver
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Driver for the on-chip RTC found in some of Marvell's SoCs such as the
-Kirkwood 88F6281 and 88F6192 devices.
+Add support for RTC in TX4939 SoC.
 
-Signed-off-by: Saeed Bishara <saeed@marvell.com>
-Signed-off-by: Lennert Buytenhek <buytenh@marvell.com>
-Signed-off-by: Nicolas Pitre <nico@marvell.com>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Cc: David Brownell <david-b@pacbell.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig  |   11 ++
- drivers/rtc/Makefile |    1 
- drivers/rtc/rtc-mv.c |  163 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 175 insertions(+)
+ drivers/rtc/Kconfig      |    7 
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-tx4939.c |  317 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 325 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-driver-for-marvells-socs-88f6281-and-88f6192 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-driver-for-marvells-socs-88f6281-and-88f6192
+diff -puN drivers/rtc/Kconfig~rtc-add-rtc-tx4939-driver-v2 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-rtc-tx4939-driver-v2
 +++ a/drivers/rtc/Kconfig
-@@ -712,4 +712,15 @@ config RTC_DRV_TX4939
- 	  Driver for the internal RTC (Realtime Clock) module found on
- 	  Toshiba TX4939 SoC.
+@@ -705,4 +705,11 @@ config RTC_DRV_STARFIRE
+ 	  If you say Y here you will get support for the RTC found on
+ 	  Starfire systems.
  
-+config RTC_DRV_MV
-+	tristate "Marvell SoC RTC"
-+	depends on ARCH_KIRKWOOD
++config RTC_DRV_TX4939
++	tristate "TX4939 SoC"
++	depends on SOC_TX4939
 +	help
-+	  If you say yes here you will get support for the in-chip RTC
-+	  that can be found in some of Marvell's SoC devices, such as
-+	  the Kirkwood 88F6281 and 88F6192.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-mv.
++	  Driver for the internal RTC (Realtime Clock) module found on
++	  Toshiba TX4939 SoC.
 +
  endif # RTC_CLASS
-diff -puN drivers/rtc/Makefile~rtc-driver-for-marvells-socs-88f6281-and-88f6192 drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-driver-for-marvells-socs-88f6281-and-88f6192
+diff -puN drivers/rtc/Makefile~rtc-add-rtc-tx4939-driver-v2 drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-rtc-tx4939-driver-v2
 +++ a/drivers/rtc/Makefile
-@@ -48,6 +48,7 @@ obj-$(CONFIG_RTC_DRV_SUN4V)	+= rtc-sun4v
- obj-$(CONFIG_RTC_DRV_STARFIRE)	+= rtc-starfire.o
- obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
- obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
-+obj-$(CONFIG_RTC_DRV_MV)	+= rtc-mv.o
- obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
- obj-$(CONFIG_RTC_DRV_PCF8563)	+= rtc-pcf8563.o
- obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf8583.o
-diff -puN /dev/null drivers/rtc/rtc-mv.c
+@@ -68,6 +68,7 @@ obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
+ obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
+ obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
+ obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl4030.o
++obj-$(CONFIG_RTC_DRV_TX4939)	+= rtc-tx4939.o
+ obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
+ obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
+ obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm8350.o
+diff -puN /dev/null drivers/rtc/rtc-tx4939.c
 --- /dev/null
-+++ a/drivers/rtc/rtc-mv.c
-@@ -0,0 +1,163 @@
++++ a/drivers/rtc/rtc-tx4939.c
+@@ -0,0 +1,317 @@
 +/*
-+ * Driver for the RTC in Marvell SoCs.
++ * TX4939 internal RTC driver
++ * Based on RBTX49xx patch from CELF patch archive.
 + *
-+ * This file is licensed under the terms of the GNU General Public
-+ * License version 2.  This program is licensed "as is" without any
-+ * warranty of any kind, whether express or implied.
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * (C) Copyright TOSHIBA CORPORATION 2005-2007
 + */
-+
-+#include <linux/init.h>
-+#include <linux/kernel.h>
 +#include <linux/rtc.h>
-+#include <linux/bcd.h>
-+#include <linux/io.h>
 +#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <asm/txx9/tx4939.h>
 +
-+
-+#define RTC_TIME_REG_OFFS	0
-+#define RTC_SECONDS_OFFS	0
-+#define RTC_MINUTES_OFFS	8
-+#define RTC_HOURS_OFFS		16
-+#define RTC_WDAY_OFFS		24
-+#define RTC_HOURS_12H_MODE		(1 << 22) /* 12 hours mode */
-+
-+#define RTC_DATE_REG_OFFS	4
-+#define RTC_MDAY_OFFS		0
-+#define RTC_MONTH_OFFS		8
-+#define RTC_YEAR_OFFS		16
-+
-+
-+struct rtc_plat_data {
++struct tx4939rtc_plat_data {
 +	struct rtc_device *rtc;
-+	void __iomem *ioaddr;
++	struct tx4939_rtc_reg __iomem *rtcreg;
 +};
 +
-+static int mv_rtc_set_time(struct device *dev, struct rtc_time *tm)
++static struct tx4939rtc_plat_data *get_tx4939rtc_plat_data(struct device *dev)
 +{
-+	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
-+	void __iomem *ioaddr = pdata->ioaddr;
-+	u32	rtc_reg;
++	return platform_get_drvdata(to_platform_device(dev));
++}
 +
-+	rtc_reg = (bin2bcd(tm->tm_sec) << RTC_SECONDS_OFFS) |
-+		(bin2bcd(tm->tm_min) << RTC_MINUTES_OFFS) |
-+		(bin2bcd(tm->tm_hour) << RTC_HOURS_OFFS) |
-+		(bin2bcd(tm->tm_wday) << RTC_WDAY_OFFS);
-+	writel(rtc_reg, ioaddr + RTC_TIME_REG_OFFS);
++static int tx4939_rtc_cmd(struct tx4939_rtc_reg __iomem *rtcreg, int cmd)
++{
++	int i = 0;
 +
-+	rtc_reg = (bin2bcd(tm->tm_mday) << RTC_MDAY_OFFS) |
-+		(bin2bcd(tm->tm_mon + 1) << RTC_MONTH_OFFS) |
-+		(bin2bcd(tm->tm_year % 100) << RTC_YEAR_OFFS);
-+	writel(rtc_reg, ioaddr + RTC_DATE_REG_OFFS);
-+
++	__raw_writel(cmd, &rtcreg->ctl);
++	/* This might take 30us (next 32.768KHz clock) */
++	while (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_BUSY) {
++		/* timeout on approx. 100us (@ GBUS200MHz) */
++		if (i++ > 200 * 100)
++			return -EBUSY;
++		cpu_relax();
++	}
 +	return 0;
 +}
 +
-+static int mv_rtc_read_time(struct device *dev, struct rtc_time *tm)
++static int tx4939_rtc_set_mmss(struct device *dev, unsigned long secs)
 +{
-+	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
-+	void __iomem *ioaddr = pdata->ioaddr;
-+	u32	rtc_time, rtc_date;
-+	unsigned int year, month, day, hour, minute, second, wday;
++	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
++	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
++	int i, ret;
++	unsigned char buf[6];
 +
-+	rtc_time = readl(ioaddr + RTC_TIME_REG_OFFS);
-+	rtc_date = readl(ioaddr + RTC_DATE_REG_OFFS);
++	buf[0] = 0;
++	buf[1] = 0;
++	buf[2] = secs;
++	buf[3] = secs >> 8;
++	buf[4] = secs >> 16;
++	buf[5] = secs >> 24;
++	spin_lock_irq(&pdata->rtc->irq_lock);
++	__raw_writel(0, &rtcreg->adr);
++	for (i = 0; i < 6; i++)
++		__raw_writel(buf[i], &rtcreg->dat);
++	ret = tx4939_rtc_cmd(rtcreg,
++			     TX4939_RTCCTL_COMMAND_SETTIME |
++			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
++	spin_unlock_irq(&pdata->rtc->irq_lock);
++	return ret;
++}
 +
-+	second = rtc_time & 0x7f;
-+	minute = (rtc_time >> RTC_MINUTES_OFFS) & 0x7f;
-+	hour = (rtc_time >> RTC_HOURS_OFFS) & 0x3f; /* assume 24 hours mode */
-+	wday = (rtc_time >> RTC_WDAY_OFFS) & 0x7;
++static int tx4939_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
++	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
++	int i, ret;
++	unsigned long sec;
++	unsigned char buf[6];
 +
-+	day = rtc_date & 0x3f;
-+	month = (rtc_date >> RTC_MONTH_OFFS) & 0x3f;
-+	year = (rtc_date >> RTC_YEAR_OFFS) & 0xff;
-+
-+	tm->tm_sec = bcd2bin(second);
-+	tm->tm_min = bcd2bin(minute);
-+	tm->tm_hour = bcd2bin(hour);
-+	tm->tm_mday = bcd2bin(day);
-+	tm->tm_wday = bcd2bin(wday);
-+	tm->tm_mon = bcd2bin(month) - 1;
-+	/* hw counts from year 2000, but tm_year is relative to 1900 */
-+	tm->tm_year = bcd2bin(year) + 100;
-+
++	spin_lock_irq(&pdata->rtc->irq_lock);
++	ret = tx4939_rtc_cmd(rtcreg,
++			     TX4939_RTCCTL_COMMAND_GETTIME |
++			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
++	if (ret) {
++		spin_unlock_irq(&pdata->rtc->irq_lock);
++		return ret;
++	}
++	__raw_writel(2, &rtcreg->adr);
++	for (i = 2; i < 6; i++)
++		buf[i] = __raw_readl(&rtcreg->dat);
++	spin_unlock_irq(&pdata->rtc->irq_lock);
++	sec = (buf[5] << 24) | (buf[4] << 16) | (buf[3] << 8) | buf[2];
++	rtc_time_to_tm(sec, tm);
 +	return rtc_valid_tm(tm);
 +}
 +
-+static const struct rtc_class_ops mv_rtc_ops = {
-+	.read_time	= mv_rtc_read_time,
-+	.set_time	= mv_rtc_set_time,
++static int tx4939_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
++	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
++	int i, ret;
++	unsigned long sec;
++	unsigned char buf[6];
++
++	if (alrm->time.tm_sec < 0 ||
++	    alrm->time.tm_min < 0 ||
++	    alrm->time.tm_hour < 0 ||
++	    alrm->time.tm_mday < 0 ||
++	    alrm->time.tm_mon < 0 ||
++	    alrm->time.tm_year < 0)
++		return -EINVAL;
++	rtc_tm_to_time(&alrm->time, &sec);
++	buf[0] = 0;
++	buf[1] = 0;
++	buf[2] = sec;
++	buf[3] = sec >> 8;
++	buf[4] = sec >> 16;
++	buf[5] = sec >> 24;
++	spin_lock_irq(&pdata->rtc->irq_lock);
++	__raw_writel(0, &rtcreg->adr);
++	for (i = 0; i < 6; i++)
++		__raw_writel(buf[i], &rtcreg->dat);
++	ret = tx4939_rtc_cmd(rtcreg, TX4939_RTCCTL_COMMAND_SETALARM |
++			     (alrm->enabled ? TX4939_RTCCTL_ALME : 0));
++	spin_unlock_irq(&pdata->rtc->irq_lock);
++	return ret;
++}
++
++static int tx4939_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
++	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
++	int i, ret;
++	unsigned long sec;
++	unsigned char buf[6];
++	u32 ctl;
++
++	spin_lock_irq(&pdata->rtc->irq_lock);
++	ret = tx4939_rtc_cmd(rtcreg,
++			     TX4939_RTCCTL_COMMAND_GETALARM |
++			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
++	if (ret) {
++		spin_unlock_irq(&pdata->rtc->irq_lock);
++		return ret;
++	}
++	__raw_writel(2, &rtcreg->adr);
++	for (i = 2; i < 6; i++)
++		buf[i] = __raw_readl(&rtcreg->dat);
++	ctl = __raw_readl(&rtcreg->ctl);
++	alrm->enabled = (ctl & TX4939_RTCCTL_ALME) ? 1 : 0;
++	alrm->pending = (ctl & TX4939_RTCCTL_ALMD) ? 1 : 0;
++	spin_unlock_irq(&pdata->rtc->irq_lock);
++	sec = (buf[5] << 24) | (buf[4] << 16) | (buf[3] << 8) | buf[2];
++	rtc_time_to_tm(sec, &alrm->time);
++	return rtc_valid_tm(&alrm->time);
++}
++
++static int tx4939_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
++{
++	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
++
++	spin_lock_irq(&pdata->rtc->irq_lock);
++	tx4939_rtc_cmd(pdata->rtcreg,
++		       TX4939_RTCCTL_COMMAND_NOP |
++		       (enabled ? TX4939_RTCCTL_ALME : 0));
++	spin_unlock_irq(&pdata->rtc->irq_lock);
++	return 0;
++}
++
++static irqreturn_t tx4939_rtc_interrupt(int irq, void *dev_id)
++{
++	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev_id);
++	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
++	unsigned long events = RTC_IRQF;
++
++	spin_lock(&pdata->rtc->irq_lock);
++	if (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALMD) {
++		events |= RTC_AF;
++		tx4939_rtc_cmd(rtcreg, TX4939_RTCCTL_COMMAND_NOP);
++	}
++	spin_unlock(&pdata->rtc->irq_lock);
++	rtc_update_irq(pdata->rtc, 1, events);
++	return IRQ_HANDLED;
++}
++
++static const struct rtc_class_ops tx4939_rtc_ops = {
++	.read_time		= tx4939_rtc_read_time,
++	.read_alarm		= tx4939_rtc_read_alarm,
++	.set_alarm		= tx4939_rtc_set_alarm,
++	.set_mmss		= tx4939_rtc_set_mmss,
++	.alarm_irq_enable	= tx4939_rtc_alarm_irq_enable,
 +};
 +
-+static int __init mv_rtc_probe(struct platform_device *pdev)
++static ssize_t tx4939_rtc_nvram_read(struct kobject *kobj,
++				     struct bin_attribute *bin_attr,
++				     char *buf, loff_t pos, size_t size)
 +{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
++	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
++	ssize_t count;
++
++	spin_lock_irq(&pdata->rtc->irq_lock);
++	for (count = 0; size > 0 && pos < TX4939_RTC_REG_RAMSIZE;
++	     count++, size--) {
++		__raw_writel(pos++, &rtcreg->adr);
++		*buf++ = __raw_readl(&rtcreg->dat);
++	}
++	spin_unlock_irq(&pdata->rtc->irq_lock);
++	return count;
++}
++
++static ssize_t tx4939_rtc_nvram_write(struct kobject *kobj,
++				      struct bin_attribute *bin_attr,
++				      char *buf, loff_t pos, size_t size)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
++	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
++	ssize_t count;
++
++	spin_lock_irq(&pdata->rtc->irq_lock);
++	for (count = 0; size > 0 && pos < TX4939_RTC_REG_RAMSIZE;
++	     count++, size--) {
++		__raw_writel(pos++, &rtcreg->adr);
++		__raw_writel(*buf++, &rtcreg->dat);
++	}
++	spin_unlock_irq(&pdata->rtc->irq_lock);
++	return count;
++}
++
++static struct bin_attribute tx4939_rtc_nvram_attr = {
++	.attr = {
++		.name = "nvram",
++		.mode = S_IRUGO | S_IWUSR,
++	},
++	.size = TX4939_RTC_REG_RAMSIZE,
++	.read = tx4939_rtc_nvram_read,
++	.write = tx4939_rtc_nvram_write,
++};
++
++static int __init tx4939_rtc_probe(struct platform_device *pdev)
++{
++	struct rtc_device *rtc;
++	struct tx4939rtc_plat_data *pdata;
 +	struct resource *res;
-+	struct rtc_plat_data *pdata;
-+	resource_size_t size;
-+	u32 rtc_time;
++	int irq, ret;
 +
 +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 +	if (!res)
 +		return -ENODEV;
-+
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0)
++		return -ENODEV;
 +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
 +	if (!pdata)
 +		return -ENOMEM;
++	platform_set_drvdata(pdev, pdata);
 +
-+	size = resource_size(res);
-+	if (!devm_request_mem_region(&pdev->dev, res->start, size,
-+				     pdev->name))
++	if (!devm_request_mem_region(&pdev->dev, res->start,
++				     resource_size(res), pdev->name))
++		return -EBUSY;
++	pdata->rtcreg = devm_ioremap(&pdev->dev, res->start,
++				     resource_size(res));
++	if (!pdata->rtcreg)
 +		return -EBUSY;
 +
-+	pdata->ioaddr = devm_ioremap(&pdev->dev, res->start, size);
-+	if (!pdata->ioaddr)
-+		return -ENOMEM;
-+
-+	/* make sure the 24 hours mode is enabled */
-+	rtc_time = readl(pdata->ioaddr + RTC_TIME_REG_OFFS);
-+	if (rtc_time & RTC_HOURS_12H_MODE) {
-+		dev_err(&pdev->dev, "24 Hours mode not supported.\n");
-+		return -EINVAL;
++	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
++	if (devm_request_irq(&pdev->dev, irq, tx4939_rtc_interrupt,
++			     IRQF_DISABLED | IRQF_SHARED,
++			     pdev->name, &pdev->dev) < 0) {
++		return -EBUSY;
 +	}
-+
-+	platform_set_drvdata(pdev, pdata);
-+	pdata->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+					 &mv_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(pdata->rtc))
-+		return PTR_ERR(pdata->rtc);
-+
-+	return 0;
++	rtc = rtc_device_register(pdev->name, &pdev->dev,
++				  &tx4939_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
++	pdata->rtc = rtc;
++	ret = sysfs_create_bin_file(&pdev->dev.kobj, &tx4939_rtc_nvram_attr);
++	if (ret)
++		rtc_device_unregister(rtc);
++	return ret;
 +}
 +
-+static int __exit mv_rtc_remove(struct platform_device *pdev)
++static int __exit tx4939_rtc_remove(struct platform_device *pdev)
 +{
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	struct tx4939rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	struct rtc_device *rtc = pdata->rtc;
 +
-+	rtc_device_unregister(pdata->rtc);
++	spin_lock_irq(&rtc->irq_lock);
++	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
++	spin_unlock_irq(&rtc->irq_lock);
++	sysfs_remove_bin_file(&pdev->dev.kobj, &tx4939_rtc_nvram_attr);
++	rtc_device_unregister(rtc);
++	platform_set_drvdata(pdev, NULL);
 +	return 0;
 +}
 +
-+static struct platform_driver mv_rtc_driver = {
-+	.remove		= __exit_p(mv_rtc_remove),
++static struct platform_driver tx4939_rtc_driver = {
++	.remove		= __exit_p(tx4939_rtc_remove),
 +	.driver		= {
-+		.name	= "rtc-mv",
++		.name	= "tx4939rtc",
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+static __init int mv_init(void)
++static int __init tx4939rtc_init(void)
 +{
-+	return platform_driver_probe(&mv_rtc_driver, mv_rtc_probe);
++	return platform_driver_probe(&tx4939_rtc_driver, tx4939_rtc_probe);
 +}
 +
-+static __exit void mv_exit(void)
++static void __exit tx4939rtc_exit(void)
 +{
-+	platform_driver_unregister(&mv_rtc_driver);
++	platform_driver_unregister(&tx4939_rtc_driver);
 +}
 +
-+module_init(mv_init);
-+module_exit(mv_exit);
++module_init(tx4939rtc_init);
++module_exit(tx4939rtc_exit);
 +
-+MODULE_AUTHOR("Saeed Bishara <saeed@marvell.com>");
-+MODULE_DESCRIPTION("Marvell RTC driver");
++MODULE_AUTHOR("Atsushi Nemoto <anemo@mba.ocn.ne.jp>");
++MODULE_DESCRIPTION("TX4939 internal RTC driver");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:rtc-mv");
++MODULE_ALIAS("platform:tx4939rtc");
 _
 
-Patches currently in -mm which might be from saeed@marvell.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
+linux-next.patch
+physmap-make-map_info-customizable.patch
+atmel_serial-might-lose-modem-status-change.patch
 
