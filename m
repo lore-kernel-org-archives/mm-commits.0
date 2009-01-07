@@ -1,311 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - loop-add-ioctl-to-resize-a-loop-device.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 16:04:25 -0800
-Message-ID: <200901070004.n0704PJY006823__15861.2894978889$1231286810$gmane$org@imap1.linux-foundation.org>
+Subject: - dmatest-flush-and-invalidate-destination-buffer-before-dma.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 16:07:47 -0800
+Message-ID: <200901070007.n0707mSA009637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49610 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752029AbZAGAEr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 19:04:47 -0500
+	by vger.kernel.org with ESMTP id S1751002AbZAGAHz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 19:07:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hooanon05@yahoo.co.jp, akinobu.mita@gmail.com, hch@lst.de, jens.axboe@oracle.com, kzak@redhat.com, linux-api@vger.kernel.org, tomas@slax.org, util-linux-ng@vger.kernel.org, viro@zeniv
+To: anemo@mba.ocn.ne.jp, dan.j.williams@intel.com, maciej.sosnowski@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     loop: add ioctl to resize a loop device
+     dmatest: flush and invalidate destination buffer before DMA
 has been removed from the -mm tree.  Its filename was
-     loop-add-ioctl-to-resize-a-loop-device.patch
+     dmatest-flush-and-invalidate-destination-buffer-before-dma.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: loop: add ioctl to resize a loop device
-From: J. R. Okajima <hooanon05@yahoo.co.jp>
+Subject: dmatest: flush and invalidate destination buffer before DMA
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Add the ability to 'resize' the loop device on the fly.
+On non-coherent architectures, such as MIPS, the dmatest reports
+mismatches on just before and after the DMA area.  This is because test
+patterns in the dstbuf discarded from cache without writing to main
+memory.
 
-One practical application is a loop file with XFS filesystem, already
-mounted: You can easily enlarge the file (append some bytes) and then call
-ioctl(fd, LOOP_SET_CAPACITY, new); The loop driver will learn about the
-new size and you can use xfs_growfs later on, which will allow you to use
-full capacity of the loop file without the need to unmount.
-
-Test app:
-
-----------------------------------------------------------------------
-/*
- * Copyright (C) 2005-2008 Junjiro Okajima
- *
- * This program, aufs is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
-
-/*
- * $Id: logrow.c,v 1.1 2008/11/17 01:59:40 sfjro Exp $
- */
-
-#include <linux/fs.h>
-#include <linux/loop.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#define _GNU_SOURCE
-#include <getopt.h>
-
-char *me;
-
-void usage(FILE *f)
-{
-	fprintf(f, "%s [options] loop_dev [backend_file]\n"
-		"-s, --set new_size_in_bytes\n"
-		"\twhen backend_file is given, "
-		"it will be expanded too while keeping the original contents\n",
-		me);
-}
-
-struct option opts[] = {
-	{
-		.name		= "set",
-		.has_arg	= 1,
-		.flag		= NULL,
-		.val		= 's'
-	},
-	{
-		.name		= "help",
-		.has_arg	= 0,
-		.flag		= NULL,
-		.val		= 'h'
-	}
-};
-
-void err_size(char *name, __u64 old)
-{
-	fprintf(stderr, "size must be larger than current %s (%llu)\n",
-		name, old);
-}
-
-int main(int argc, char *argv[])
-{
-	int fd, err, c, i, bfd;
-	ssize_t ssz;
-	size_t sz;
-	__u64 old, new, append;
-	char a[BUFSIZ];
-	struct stat st;
-	FILE *out;
-	char *backend, *dev;
-
-	err = EINVAL;
-	out = stderr;
-	me = argv[0];
-	new = 0;
-	while ((c = getopt_long(argc, argv, "s:h", opts, &i)) != -1) {
-		switch (c) {
-		case 's':
-			errno = 0;
-			new = strtoull(optarg, NULL, 0);
-			if (errno) {
-				err = errno;
-				perror(argv[i]);
-				goto out;
-			}
-			break;
-
-		case 'h':
-			err = 0;
-			out = stdout;
-			goto err;
-
-		default:
-			perror(argv[i]);
-			goto err;
-		}
-	}
-
-	if (optind < argc)
-		dev = argv[optind++];
-	else
-		goto err;
-
-	fd = open(dev, O_RDONLY);
-	if (fd < 0) {
-		err = errno;
-		perror(dev);
-		goto out;
-	}
-
-	err = ioctl(fd, BLKGETSIZE64, &old);
-	if (err) {
-		err = errno;
-		perror("ioctl BLKGETSIZE64");
-		goto out;
-	}
-
-	if (!new) {
-		printf("%llu\n", old);
-		goto out;
-	}
-
-	if (new < old) {
-		err = EINVAL;
-		err_size(dev, old);
-		goto out;
-	}
-
-	if (optind < argc) {
-		backend = argv[optind++];
-		bfd = open(backend, O_WRONLY|O_APPEND);
-		if (bfd < 0) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-		err = fstat(bfd, &st);
-		if (err) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-		if (new < st.st_size) {
-			err = EINVAL;
-			err_size(backend, st.st_size);
-			goto out;
-		}
-		append = new - st.st_size;
-		sz = sizeof(a);
-		while (append > 0) {
-			if (append < sz)
-				sz = append;
-			ssz = write(bfd, a, sz);
-			if (ssz != sz) {
-				err = errno;
-				perror(backend);
-				goto out;
-			}
-			append -= sz;
-		}
-		err = fsync(bfd);
-		if (err) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-	}
-
-	err = ioctl(fd, LOOP_SET_CAPACITY, new);
-	if (err) {
-		err = errno;
-		perror("ioctl LOOP_SET_CAPACITY");
-	}
-	goto out;
-
- err:
-	usage(out);
- out:
-	return err;
-}
-
-Signed-off-by: J. R. Okajima <hooanon05@yahoo.co.jp>
-Signed-off-by: Tomas Matejicek <tomas@slax.org>
-Cc: <util-linux-ng@vger.kernel.org>
-Cc: Karel Zak <kzak@redhat.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: <linux-api@vger.kernel.org>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Maciej Sosnowski <maciej.sosnowski@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   26 ++++++++++++++++++++++++++
- include/linux/loop.h |    1 +
- 2 files changed, 27 insertions(+)
+ drivers/dma/dmatest.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device drivers/block/loop.c
---- a/drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device
-+++ a/drivers/block/loop.c
-@@ -1158,6 +1158,28 @@ loop_get_status64(struct loop_device *lo
- 	return err;
- }
+diff -puN drivers/dma/dmatest.c~dmatest-flush-and-invalidate-destination-buffer-before-dma drivers/dma/dmatest.c
+--- a/drivers/dma/dmatest.c~dmatest-flush-and-invalidate-destination-buffer-before-dma
++++ a/drivers/dma/dmatest.c
+@@ -202,6 +202,7 @@ static int dmatest_func(void *data)
+ 	dma_cookie_t		cookie;
+ 	enum dma_status		status;
+ 	int			ret;
++	dma_addr_t		dma_dest;
  
-+static int loop_set_capacity(struct loop_device *lo, struct block_device *bdev)
-+{
-+	int err;
-+	sector_t sec;
-+	loff_t sz;
-+
-+	err = -ENXIO;
-+	if (unlikely(lo->lo_state != Lo_bound))
-+		goto out;
-+	err = figure_loop_size(lo);
-+	if (unlikely(err))
-+		goto out;
-+	sec = get_capacity(lo->lo_disk);
-+	sz = sec << 9;
-+	mutex_lock(&bdev->bd_mutex);
-+	bd_set_size(bdev, sz);
-+	mutex_unlock(&bdev->bd_mutex);
-+
-+ out:
-+	return err;
-+}
-+
- static int lo_ioctl(struct block_device *bdev, fmode_t mode,
- 	unsigned int cmd, unsigned long arg)
- {
-@@ -1187,6 +1209,9 @@ static int lo_ioctl(struct block_device 
- 	case LOOP_GET_STATUS64:
- 		err = loop_get_status64(lo, (struct loop_info64 __user *) arg);
- 		break;
-+	case LOOP_SET_CAPACITY:
-+		err = loop_set_capacity(lo, bdev);
-+		break;
- 	default:
- 		err = lo->ioctl ? lo->ioctl(lo, cmd, arg) : -EINVAL;
- 	}
-@@ -1332,6 +1357,7 @@ static int lo_compat_ioctl(struct block_
- 			lo, (struct compat_loop_info __user *) arg);
- 		mutex_unlock(&lo->lo_ctl_mutex);
- 		break;
-+	case LOOP_SET_CAPACITY:
- 	case LOOP_CLR_FD:
- 	case LOOP_GET_STATUS64:
- 	case LOOP_SET_STATUS64:
-diff -puN include/linux/loop.h~loop-add-ioctl-to-resize-a-loop-device include/linux/loop.h
---- a/include/linux/loop.h~loop-add-ioctl-to-resize-a-loop-device
-+++ a/include/linux/loop.h
-@@ -160,5 +160,6 @@ int loop_unregister_transfer(int number)
- #define LOOP_SET_STATUS64	0x4C04
- #define LOOP_GET_STATUS64	0x4C05
- #define LOOP_CHANGE_FD		0x4C06
-+#define LOOP_SET_CAPACITY	0x4C07
+ 	thread_name = current->comm;
  
- #endif
+@@ -225,6 +226,12 @@ static int dmatest_func(void *data)
+ 
+ 		dmatest_init_srcbuf(thread->srcbuf, src_off, len);
+ 		dmatest_init_dstbuf(thread->dstbuf, dst_off, len);
++		/* flush and invalidate caches for whole dstbuf */
++		dma_dest = dma_map_single(chan->device->dev,
++				thread->dstbuf,
++				test_buf_size, DMA_BIDIRECTIONAL);
++		dma_unmap_single(chan->device->dev, dma_dest,
++				test_buf_size, DMA_BIDIRECTIONAL);
+ 
+ 		cookie = dma_async_memcpy_buf_to_buf(chan,
+ 				thread->dstbuf + dst_off,
 _
 
-Patches currently in -mm which might be from hooanon05@yahoo.co.jp are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-loop-add-ioctl-to-resize-a-loop-device.patch
+origin.patch
+rtc-add-rtc-tx4939-driver-v2.patch
+linux-next.patch
+dmatest-flush-and-invalidate-destination-buffer-before-dma.patch
+physmap-make-map_info-customizable.patch
+atmel_serial-might-lose-modem-status-change.patch
 
