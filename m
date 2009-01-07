@@ -1,123 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: - fs-remove-wb_sync_hold.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:14:38 -0800
-Message-ID: <200901072214.n07MEcPi014532@imap1.linux-foundation.org>
+Subject: - badpage-ratelimit-print_bad_pte-and-bad_page.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:14:11 -0800
+Message-ID: <200901072214.n07MEBrc014163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761043AbZAGWOn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:43 -0500
+	by vger.kernel.org with ESMTP id S1759927AbZAGWOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: remove WB_SYNC_HOLD
+     badpage: ratelimit print_bad_pte and bad_page
 has been removed from the -mm tree.  Its filename was
-     fs-remove-wb_sync_hold.patch
+     badpage-ratelimit-print_bad_pte-and-bad_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: remove WB_SYNC_HOLD
-From: Nick Piggin <npiggin@suse.de>
+Subject: badpage: ratelimit print_bad_pte and bad_page
+From: Hugh Dickins <hugh@veritas.com>
 
-Remove WB_SYNC_HOLD.  The primary motiviation is the design of my
-anti-starvation code for fsync.  It requires taking an inode lock over the
-sync operation, so we could run into lock ordering problems with multiple
-inodes.  It is possible to take a single global lock to solve the ordering
-problem, but then that would prevent a future nice implementation of "sync
-multiple inodes" based on lock order via inode address.
+print_bad_pte() and bad_page() might each need ratelimiting - especially
+for their dump_stacks, almost never of interest, yet not quite
+dispensible.  Correlating corruption across neighbouring entries can be
+very helpful, so allow a burst of 60 reports before keeping quiet for the
+remainder of that minute (or allow a steady drip of one report per
+second).
 
-Seems like a backward step to remove this, but actually it is busted
-anyway: we can't use the inode lists for data integrity wait: an inode can
-be taken off the dirty lists but still be under writeback.  In order to
-satisfy data integrity semantics, we should wait for it to finish
-writeback, but if we only search the dirty lists, we'll miss it.
-
-It would be possible to have a "writeback" list, for sys_sync, I suppose. 
-But why complicate things by prematurely optimise?  For unmounting, we
-could avoid the "livelock avoidance" code, which would be easier, but
-again premature IMO.
-
-Fixing the existing data integrity problem will come next.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c         |   12 ++----------
- include/linux/writeback.h |    1 -
- 2 files changed, 2 insertions(+), 11 deletions(-)
+ mm/memory.c     |   23 +++++++++++++++++++++++
+ mm/page_alloc.c |   26 +++++++++++++++++++++++++-
+ 2 files changed, 48 insertions(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~fs-remove-wb_sync_hold fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-remove-wb_sync_hold
-+++ a/fs/fs-writeback.c
-@@ -421,9 +421,6 @@ __writeback_single_inode(struct inode *i
-  * If we're a pdlfush thread, then implement pdflush collision avoidance
-  * against the entire list.
-  *
-- * WB_SYNC_HOLD is a hack for sys_sync(): reattach the inode to sb->s_dirty so
-- * that it can be located for waiting on in __writeback_single_inode().
-- *
-  * If `bdi' is non-zero then we're being asked to writeback a specific queue.
-  * This function assumes that the blockdev superblock's inodes are backed by
-  * a variety of queues, so all inodes are searched.  For other superblocks,
-@@ -499,10 +496,6 @@ void generic_sync_sb_inodes(struct super
- 		__iget(inode);
- 		pages_skipped = wbc->pages_skipped;
- 		__writeback_single_inode(inode, wbc);
--		if (wbc->sync_mode == WB_SYNC_HOLD) {
--			inode->dirtied_when = jiffies;
--			list_move(&inode->i_list, &sb->s_dirty);
--		}
- 		if (current_is_pdflush())
- 			writeback_release(bdi);
- 		if (wbc->pages_skipped != pages_skipped) {
-@@ -588,8 +581,7 @@ restart:
+diff -puN mm/memory.c~badpage-ratelimit-print_bad_pte-and-bad_page mm/memory.c
+--- a/mm/memory.c~badpage-ratelimit-print_bad_pte-and-bad_page
++++ a/mm/memory.c
+@@ -383,6 +383,29 @@ static void print_bad_pte(struct vm_area
+ 	pmd_t *pmd = pmd_offset(pud, addr);
+ 	struct address_space *mapping;
+ 	pgoff_t index;
++	static unsigned long resume;
++	static unsigned long nr_shown;
++	static unsigned long nr_unshown;
++
++	/*
++	 * Allow a burst of 60 reports, then keep quiet for that minute;
++	 * or allow a steady drip of one report per second.
++	 */
++	if (nr_shown == 60) {
++		if (time_before(jiffies, resume)) {
++			nr_unshown++;
++			return;
++		}
++		if (nr_unshown) {
++			printk(KERN_EMERG
++				"Bad page map: %lu messages suppressed\n",
++				nr_unshown);
++			nr_unshown = 0;
++		}
++		nr_shown = 0;
++	}
++	if (nr_shown++ == 0)
++		resume = jiffies + 60 * HZ;
  
- /*
-  * writeback and wait upon the filesystem's dirty inodes.  The caller will
-- * do this in two passes - one to write, and one to wait.  WB_SYNC_HOLD is
-- * used to park the written inodes on sb->s_dirty for the wait pass.
-+ * do this in two passes - one to write, and one to wait.
-  *
-  * A finite limit is set on the number of pages which will be written.
-  * To prevent infinite livelock of sys_sync().
-@@ -600,7 +592,7 @@ restart:
- void sync_inodes_sb(struct super_block *sb, int wait)
+ 	mapping = vma->vm_file ? vma->vm_file->f_mapping : NULL;
+ 	index = linear_page_index(vma, addr);
+diff -puN mm/page_alloc.c~badpage-ratelimit-print_bad_pte-and-bad_page mm/page_alloc.c
+--- a/mm/page_alloc.c~badpage-ratelimit-print_bad_pte-and-bad_page
++++ a/mm/page_alloc.c
+@@ -223,6 +223,30 @@ static inline int bad_range(struct zone 
+ 
+ static void bad_page(struct page *page)
  {
- 	struct writeback_control wbc = {
--		.sync_mode	= wait ? WB_SYNC_ALL : WB_SYNC_HOLD,
-+		.sync_mode	= wait ? WB_SYNC_ALL : WB_SYNC_NONE,
- 		.range_start	= 0,
- 		.range_end	= LLONG_MAX,
- 	};
-diff -puN include/linux/writeback.h~fs-remove-wb_sync_hold include/linux/writeback.h
---- a/include/linux/writeback.h~fs-remove-wb_sync_hold
-+++ a/include/linux/writeback.h
-@@ -30,7 +30,6 @@ static inline int task_is_pdflush(struct
- enum writeback_sync_modes {
- 	WB_SYNC_NONE,	/* Don't wait on anything */
- 	WB_SYNC_ALL,	/* Wait on every mapping */
--	WB_SYNC_HOLD,	/* Hold the inode on sb_dirty for sys_sync() */
- };
++	static unsigned long resume;
++	static unsigned long nr_shown;
++	static unsigned long nr_unshown;
++
++	/*
++	 * Allow a burst of 60 reports, then keep quiet for that minute;
++	 * or allow a steady drip of one report per second.
++	 */
++	if (nr_shown == 60) {
++		if (time_before(jiffies, resume)) {
++			nr_unshown++;
++			goto out;
++		}
++		if (nr_unshown) {
++			printk(KERN_EMERG
++				"Bad page state: %lu messages suppressed\n",
++				nr_unshown);
++			nr_unshown = 0;
++		}
++		nr_shown = 0;
++	}
++	if (nr_shown++ == 0)
++		resume = jiffies + 60 * HZ;
++
+ 	printk(KERN_EMERG "Bad page state in process %s  pfn:%05lx\n",
+ 		current->comm, page_to_pfn(page));
+ 	printk(KERN_EMERG
+@@ -232,7 +256,7 @@ static void bad_page(struct page *page)
+ 	printk(KERN_EMERG "Trying to fix it up, but a reboot is needed\n");
  
- /*
+ 	dump_stack();
+-
++out:
+ 	/* Leave bad fields for debug, except PageBuddy could make trouble */
+ 	__ClearPageBuddy(page);
+ 	add_taint(TAINT_BAD_PAGE);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
 linux-next.patch
+mark-complex-bitopsh-inlines-as-__always_inline.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-pass-clocksource-to-read-callback-sparc-cleanup.patch
+bio-zero-inlined-bio_vec.patch
 page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
 page_fault-retry-with-nopage_retry-fix-fix.patch
-radix-tree-gang-set-if-tagged-operation.patch
-reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+mm-shmemc-fix-division-by-zero.patch
+getrusage-fill-ru_maxrss-value.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-explain-details-and-test-document.patch
+memcg-fix-swap-accounting-leak-v3.patch
+memcg-fix-swap-accounting-leak-doc-fix.patch
+memcg-fix-shmems-swap-accounting.patch
+prio_tree-debugging-patch.patch
 
