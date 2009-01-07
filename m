@@ -1,60 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - xen-add-xenfs-to-allow-usermode-xen-interaction-fix-xenbus-message-reads.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 15:03:02 -0800
-Message-ID: <200901072303.n07N33jF022449@imap1.linux-foundation.org>
+Subject: - jbd-improve-fsync-batching-update.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 15:05:20 -0800
+Message-ID: <200901072305.n07N5KAl024265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57450 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763356AbZAGXDl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:03:41 -0500
+	by vger.kernel.org with ESMTP id S1761817AbZAGXGO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:06:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, alex.zeffertt@eu.citrix.com, jeremy.fitzhardinge@citrix.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: jbacik@redhat.com, adilger@sun.com, arjan@infradead.org, linux-ext4@vger.kernel.org, rwheeler@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen/xenfs: fix xenbus message reads
+     improve jbd fsync batching (update)
 has been removed from the -mm tree.  Its filename was
-     xen-add-xenfs-to-allow-usermode-xen-interaction-fix-xenbus-message-reads.patch
+     jbd-improve-fsync-batching-update.patch
 
-This patch was dropped because it was folded into xen-add-xenfs-to-allow-usermode-xen-interaction.patch
+This patch was dropped because it was folded into jbd-improve-fsync-batching.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xen/xenfs: fix xenbus message reads
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: improve jbd fsync batching (update)
+From: Josef Bacik <jbacik@redhat.com>
 
-Compute the remaining data size properly.
+On Mon, Nov 03, 2008 at 12:55:09PM -0800, Andrew Morton wrote:
+> On Mon, 3 Nov 2008 15:24:43 -0500
+> Josef Bacik <jbacik@redhat.com> wrote:
+>
+> > > please fix.
+> >
+> > I see you already pulled this into -mm, would you like me to repost with the
+> > same changelog and the patch updated, or just reply to this with the updated
+> > patch?  Thanks,
+>
+> Either works for me at this stage.  If it's a replacement then I'll turn
+> it into an incremental so I can see what changed, which takes me about 2.15
+> seconds.
+>
+> If it had been a large patch or if it had been under test in someone's
+> tree for a while then a replacement patch would be unwelcome.  But for a
+> small, fresh patch like this one it's no big deal either way.
+>
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Alex Zeffertt <alex.zeffertt@eu.citrix.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Ok here is a replacement patch with the comments as requested, as well as a
+comment for j_last_sync_writer.  Thank you,
+
+Cc: Andreas Dilger <adilger@sun.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ric Wheeler <rwheeler@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/xenfs/xenbus.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jbd/transaction.c |   11 +++++++++++
+ include/linux/jbd.h  |    8 ++++++++
+ 2 files changed, 19 insertions(+)
 
-diff -puN drivers/xen/xenfs/xenbus.c~xen-add-xenfs-to-allow-usermode-xen-interaction-fix-xenbus-message-reads drivers/xen/xenfs/xenbus.c
---- a/drivers/xen/xenfs/xenbus.c~xen-add-xenfs-to-allow-usermode-xen-interaction-fix-xenbus-message-reads
-+++ a/drivers/xen/xenfs/xenbus.c
-@@ -132,7 +132,7 @@ static ssize_t xenbus_file_read(struct f
- 	rb = list_entry(u->read_buffers.next, struct read_buffer, list);
- 	i = 0;
- 	while (i < len) {
--		unsigned sz = min((unsigned)len - i, rb->cons - rb->len);
-+		unsigned sz = min((unsigned)len - i, rb->len - rb->cons);
+diff -puN fs/jbd/transaction.c~jbd-improve-fsync-batching-update fs/jbd/transaction.c
+--- a/fs/jbd/transaction.c~jbd-improve-fsync-batching-update
++++ a/fs/jbd/transaction.c
+@@ -1401,6 +1401,17 @@ int journal_stop(handle_t *handle)
+ 	 * on IO anyway.  Speeds up many-threaded, many-dir operations
+ 	 * by 30x or more...
+ 	 *
++	 * We try and optimize the sleep time against what the underlying disk
++	 * can do, instead of having a static sleep time.  This is usefull for
++	 * the case where our storage is so fast that it is more optimal to go
++	 * ahead and force a flush and wait for the transaction to be committed
++	 * than it is to wait for an arbitrary amount of time for new writers to
++	 * join the transaction.  We acheive this by measuring how long it takes
++	 * to commit a transaction, and compare it with how long this
++	 * transaction has been running, and if run time < commit time then we
++	 * sleep for the delta and commit.  This greatly helps super fast disks
++	 * that would see slowdowns as more threads started doing fsyncs.
++	 *
+ 	 * But don't do this if this process was the most recent one to
+ 	 * perform a synchronous write.  We do this to detect the case where a
+ 	 * single process is doing a stream of sync writes.  No point in waiting
+diff -puN include/linux/jbd.h~jbd-improve-fsync-batching-update include/linux/jbd.h
+--- a/include/linux/jbd.h~jbd-improve-fsync-batching-update
++++ a/include/linux/jbd.h
+@@ -803,8 +803,16 @@ struct journal_s
+ 	struct buffer_head	**j_wbuf;
+ 	int			j_wbufsize;
  
- 		ret = copy_to_user(ubuf + i, &rb->msg[rb->cons], sz);
++	/*
++	 * this is the pid of the last person to run a synchronous operation
++	 * through the journal.
++	 */
+ 	pid_t			j_last_sync_writer;
  
++	/*
++	 * the average amount of time in nanoseconds it takes to commit a
++	 * transaction to the disk.  [j_state_lock]
++	 */
+ 	u64			j_average_commit_time;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from jbacik@redhat.com are
 
-origin.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-xen-add-xenfs-to-allow-usermode-xen-interaction.patch
-xen-add-xenfs-to-allow-usermode-xen-interaction-fix-xenbus-message-reads.patch
+jbd-improve-fsync-batching.patch
+jbd-improve-fsync-batching-update.patch
 
