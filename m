@@ -1,49 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: - badpage-vm_normal_page-use-print_bad_pte.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:14:03 -0800
-Message-ID: <200901072214.n07ME3nZ014056@imap1.linux-foundation.org>
+Subject: - badpage-zap-print_bad_pte-on-swap-and-file.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:14:06 -0800
+Message-ID: <200901072214.n07ME6QG014061@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760731AbZAGWOc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:32 -0500
+	by vger.kernel.org with ESMTP id S1761770AbZAGWOy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     badpage: vm_normal_page use print_bad_pte
+     badpage: zap print_bad_pte on swap and file
 has been removed from the -mm tree.  Its filename was
-     badpage-vm_normal_page-use-print_bad_pte.patch
+     badpage-zap-print_bad_pte-on-swap-and-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: badpage: vm_normal_page use print_bad_pte
+Subject: badpage: zap print_bad_pte on swap and file
 From: Hugh Dickins <hugh@veritas.com>
 
-print_bad_pte() is so far being called only when zap_pte_range() finds
-negative page_mapcount, or there's a fault on a pte_file where it does not
-belong.  That's weak coverage when we suspect pagetable corruption.
+Complete zap_pte_range()'s coverage of bad pagetable entries by calling
+print_bad_pte() on a pte_file in a linear vma and on a bad swap entry. 
+That needs free_swap_and_cache() to tell it, which will also have shown
+one of those "swap_free" errors (but with much less information).
 
-Originally, it was called when vm_normal_page() found an invalid pfn: but
-pfn_valid is expensive on some architectures and configurations, so 2.6.24
-put that under CONFIG_DEBUG_VM (which doesn't help in the field), then
-2.6.26 replaced it by a VM_BUG_ON (likewise).
+Similar checks in fork's copy_one_pte()?  No, that would be more noisy
+than helpful: we'll see them when parent and child exec or exit.
 
-Reinstate the print_bad_pte() in vm_normal_page(), but use a cheaper test
-than pfn_valid(): memmap_init_zone() (used in bootup and hotplug) keep a
-__read_mostly note of the highest_memmap_pfn, vm_normal_page() then check
-pfn against that.  We could call this pfn_plausible() or pfn_sane(), but I
-doubt we'll need it elsewhere: of course it's not reliable, but gives much
-stronger pagetable validation on many boxes.
-
-Also use print_bad_pte() when the pte_special bit is found outside a
-VM_PFNMAP or VM_MIXEDMAP area, instead of VM_BUG_ON.
+Where do_nonlinear_fault() calls print_bad_pte(): omit !VM_CAN_NONLINEAR
+case, that could only be a bug in sys_remap_file_pages(), not a bad pte. 
+VM_FAULT_OOM rather than VM_FAULT_SIGBUS?  Well, okay, that is consistent
+with what happens if do_swap_page() operates a bad swap entry; but don't
+we have patches to be more careful about killing when VM_FAULT_OOM?
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -53,90 +48,96 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    1 +
- mm/memory.c     |   20 ++++++++++----------
- mm/page_alloc.c |    4 ++++
- 3 files changed, 15 insertions(+), 10 deletions(-)
+ include/linux/swap.h |   12 +++---------
+ mm/memory.c          |   11 +++++++----
+ mm/swapfile.c        |    7 ++++---
+ 3 files changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN mm/internal.h~badpage-vm_normal_page-use-print_bad_pte mm/internal.h
---- a/mm/internal.h~badpage-vm_normal_page-use-print_bad_pte
-+++ a/mm/internal.h
-@@ -49,6 +49,7 @@ extern void putback_lru_page(struct page
- /*
-  * in mm/page_alloc.c
-  */
-+extern unsigned long highest_memmap_pfn;
- extern void __free_pages_bootmem(struct page *page, unsigned int order);
- 
- /*
-diff -puN mm/memory.c~badpage-vm_normal_page-use-print_bad_pte mm/memory.c
---- a/mm/memory.c~badpage-vm_normal_page-use-print_bad_pte
-+++ a/mm/memory.c
-@@ -467,21 +467,18 @@ static inline int is_cow_mapping(unsigne
- struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
- 				pte_t pte)
+diff -puN include/linux/swap.h~badpage-zap-print_bad_pte-on-swap-and-file include/linux/swap.h
+--- a/include/linux/swap.h~badpage-zap-print_bad_pte-on-swap-and-file
++++ a/include/linux/swap.h
+@@ -302,7 +302,7 @@ extern swp_entry_t get_swap_page_of_type
+ extern int swap_duplicate(swp_entry_t);
+ extern int valid_swaphandles(swp_entry_t, unsigned long *);
+ extern void swap_free(swp_entry_t);
+-extern void free_swap_and_cache(swp_entry_t);
++extern int free_swap_and_cache(swp_entry_t);
+ extern int swap_type_of(dev_t, sector_t, struct block_device **);
+ extern unsigned int count_swap_pages(int, int);
+ extern sector_t map_swap_page(struct swap_info_struct *, pgoff_t);
+@@ -352,14 +352,8 @@ static inline void show_swap_cache_info(
  {
--	unsigned long pfn;
-+	unsigned long pfn = pte_pfn(pte);
+ }
  
- 	if (HAVE_PTE_SPECIAL) {
--		if (likely(!pte_special(pte))) {
--			VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
--			return pte_page(pte);
--		}
--		VM_BUG_ON(!(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP)));
-+		if (likely(!pte_special(pte)))
-+			goto check_pfn;
-+		if (!(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP)))
-+			print_bad_pte(vma, addr, pte, NULL);
- 		return NULL;
- 	}
- 
- 	/* !HAVE_PTE_SPECIAL case follows: */
- 
--	pfn = pte_pfn(pte);
+-static inline void free_swap_and_cache(swp_entry_t swp)
+-{
+-}
 -
- 	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
- 		if (vma->vm_flags & VM_MIXEDMAP) {
- 			if (!pfn_valid(pfn))
-@@ -497,11 +494,14 @@ struct page *vm_normal_page(struct vm_ar
- 		}
- 	}
+-static inline int swap_duplicate(swp_entry_t swp)
+-{
+-	return 0;
+-}
++#define free_swap_and_cache(swp)	is_migration_entry(swp)
++#define swap_duplicate(swp)		is_migration_entry(swp)
  
--	VM_BUG_ON(!pfn_valid(pfn));
-+check_pfn:
-+	if (unlikely(pfn > highest_memmap_pfn)) {
-+		print_bad_pte(vma, addr, pte, NULL);
-+		return NULL;
-+	}
+ static inline void swap_free(swp_entry_t swp)
+ {
+diff -puN mm/memory.c~badpage-zap-print_bad_pte-on-swap-and-file mm/memory.c
+--- a/mm/memory.c~badpage-zap-print_bad_pte-on-swap-and-file
++++ a/mm/memory.c
+@@ -810,8 +810,12 @@ static unsigned long zap_pte_range(struc
+ 		 */
+ 		if (unlikely(details))
+ 			continue;
+-		if (!pte_file(ptent))
+-			free_swap_and_cache(pte_to_swp_entry(ptent));
++		if (pte_file(ptent)) {
++			if (unlikely(!(vma->vm_flags & VM_NONLINEAR)))
++				print_bad_pte(vma, addr, ptent, NULL);
++		} else if
++		  (unlikely(!free_swap_and_cache(pte_to_swp_entry(ptent))))
++			print_bad_pte(vma, addr, ptent, NULL);
+ 		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
+ 	} while (pte++, addr += PAGE_SIZE, (addr != end && *zap_work > 0));
  
- 	/*
- 	 * NOTE! We still have PageReserved() pages in the page tables.
--	 *
- 	 * eg. VDSO mappings can cause them to exist.
- 	 */
- out:
-diff -puN mm/page_alloc.c~badpage-vm_normal_page-use-print_bad_pte mm/page_alloc.c
---- a/mm/page_alloc.c~badpage-vm_normal_page-use-print_bad_pte
-+++ a/mm/page_alloc.c
-@@ -69,6 +69,7 @@ EXPORT_SYMBOL(node_states);
+@@ -2707,8 +2711,7 @@ static int do_nonlinear_fault(struct mm_
+ 	if (!pte_unmap_same(mm, pmd, page_table, orig_pte))
+ 		return 0;
  
- unsigned long totalram_pages __read_mostly;
- unsigned long totalreserve_pages __read_mostly;
-+unsigned long highest_memmap_pfn __read_mostly;
- int percpu_pagelist_fraction;
- 
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
-@@ -2597,6 +2598,9 @@ void __meminit memmap_init_zone(unsigned
- 	unsigned long pfn;
- 	struct zone *z;
- 
-+	if (highest_memmap_pfn < end_pfn - 1)
-+		highest_memmap_pfn = end_pfn - 1;
-+
- 	z = &NODE_DATA(nid)->node_zones[zone];
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+-	if (unlikely(!(vma->vm_flags & VM_NONLINEAR) ||
+-			!(vma->vm_flags & VM_CAN_NONLINEAR))) {
++	if (unlikely(!(vma->vm_flags & VM_NONLINEAR))) {
  		/*
+ 		 * Page table corrupted: show pte and kill process.
+ 		 */
+diff -puN mm/swapfile.c~badpage-zap-print_bad_pte-on-swap-and-file mm/swapfile.c
+--- a/mm/swapfile.c~badpage-zap-print_bad_pte-on-swap-and-file
++++ a/mm/swapfile.c
+@@ -571,13 +571,13 @@ int try_to_free_swap(struct page *page)
+  * Free the swap entry like above, but also try to
+  * free the page cache entry if it is the last user.
+  */
+-void free_swap_and_cache(swp_entry_t entry)
++int free_swap_and_cache(swp_entry_t entry)
+ {
+-	struct swap_info_struct * p;
++	struct swap_info_struct *p;
+ 	struct page *page = NULL;
+ 
+ 	if (is_migration_entry(entry))
+-		return;
++		return 1;
+ 
+ 	p = swap_info_get(entry);
+ 	if (p) {
+@@ -603,6 +603,7 @@ void free_swap_and_cache(swp_entry_t ent
+ 		unlock_page(page);
+ 		page_cache_release(page);
+ 	}
++	return p != NULL;
+ }
+ 
+ #ifdef CONFIG_HIBERNATION
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
