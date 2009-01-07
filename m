@@ -1,60 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 15:16:46 -0800
-Message-ID: <200901072316.n07NGljJ001316@imap1.linux-foundation.org>
+Subject: - memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 15:17:07 -0800
+Message-ID: <200901072317.n07NH7NT001594@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47478 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763165AbZAGXRT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:17:19 -0500
+	by vger.kernel.org with ESMTP id S1763494AbZAGXRo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:17:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: style cleanup
+     memcg: avoid reclaim_stat oops when disabled
 has been removed from the -mm tree.  Its filename was
-     memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
+     memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
 
-This patch was dropped because it was folded into memcg-add-inactive_anon_is_low.patch
+This patch was dropped because it was folded into memcg-add-zone_reclaim_stat.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: style cleanup
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: memcg: avoid reclaim_stat oops when disabled
+From: Hugh Dickins <hugh@veritas.com>
 
-trivial style cleanup.
+mem_cgroup_get_reclaim_stat_from_page() oopses in page_cgroup_zoneinfo()
+when you boot with cgroup_disabled=memory: it needs to check for that.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~memcg-add-inactive_anon_is_low-vmscan-style-cleanup mm/vmscan.c
---- a/mm/vmscan.c~memcg-add-inactive_anon_is_low-vmscan-style-cleanup
-+++ a/mm/vmscan.c
-@@ -1399,8 +1399,7 @@ static unsigned long shrink_list(enum lr
- 		return 0;
- 	}
+diff -puN mm/memcontrol.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix
++++ a/mm/memcontrol.c
+@@ -473,9 +473,14 @@ struct zone_reclaim_stat *mem_cgroup_get
+ struct zone_reclaim_stat *
+ mem_cgroup_get_reclaim_stat_from_page(struct page *page)
+ {
+-	struct page_cgroup *pc = lookup_page_cgroup(page);
+-	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
++	struct page_cgroup *pc;
++	struct mem_cgroup_per_zone *mz;
  
--	if (lru == LRU_ACTIVE_ANON &&
--	    inactive_anon_is_low(zone, sc)) {
-+	if (lru == LRU_ACTIVE_ANON && inactive_anon_is_low(zone, sc)) {
- 		shrink_active_list(nr_to_scan, zone, sc, priority, file);
- 		return 0;
- 	}
++	if (mem_cgroup_disabled())
++		return NULL;
++
++	pc = lookup_page_cgroup(page);
++	mz = page_cgroup_zoneinfo(pc);
+ 	if (!mz)
+ 		return NULL;
+ 
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-devices-cgroup-allow-mkfifo.patch
+memcg-handle-swap-caches.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
 memcg-revert-gfp-mask-fix.patch
 memcg-check-group-leader-fix.patch
 memcg-memoryswap-controller-fix-limit-check.patch
@@ -66,20 +78,17 @@ mm-add-zone-nr_pages-helper-function.patch
 mm-make-get_scan_ratio-safe-for-memcg.patch
 memcg-add-null-check-to-page_cgroup_zoneinfo.patch
 memcg-add-inactive_anon_is_low.patch
-memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
 memcg-add-mem_cgroup_zone_nr_pages.patch
 memcg-add-zone_reclaim_stat.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
 memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
 memcg-remove-mem_cgroup_cal_reclaim.patch
 memcg-show-reclaim-stat.patch
 memcg-rename-scan-global-lru.patch
 memcg-protect-prev_priority.patch
 memcg-swappiness.patch
-memcg-fix-calclation-of-active_ratio.patch
-memcg-fix-calclation-of-active_ratio-build-error-fix.patch
-memcg-show-real-limit-under-hierarchy-mode.patch
 memcg-explain-details-and-test-document.patch
-ia64-implement-interrupt-enabling-rwlocks-fix.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+memcg-fix-swap-accounting-leak-v3.patch
+memcg-fix-swap-accounting-leak-doc-fix.patch
+memcg-fix-shmems-swap-accounting.patch
+prio_tree-debugging-patch.patch
 
