@@ -1,72 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - fb-carminefb-trivial-annotation-packing-color-register.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:19:42 -0800
-Message-ID: <200901072219.n07MJgF7019014@imap1.linux-foundation.org>
+Subject: - i810-fix-sparse-warnings.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:19:55 -0800
+Message-ID: <200901072219.n07MJtTI019193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763192AbZAGWgS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:36:18 -0500
+	by vger.kernel.org with ESMTP id S1763236AbZAGWgd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:36:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, bigeasy@linutronix.de, mm-commits@vger.kernel.org
+To: hannes@hanneseder.net, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fb: carminefb: trivial annotation packing color register
+     i810: fix sparse warnings
 has been removed from the -mm tree.  Its filename was
-     fb-carminefb-trivial-annotation-packing-color-register.patch
+     i810-fix-sparse-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb: carminefb: trivial annotation packing color register
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: i810: fix sparse warnings
+From: Hannes Eder <hannes@hanneseder.net>
 
-drivers/video/carminefb.c:171:41: warning: cast to restricted __be32
+Fix this sparse warnings:
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Sebastian Siewior <bigeasy@linutronix.de>
+  drivers/video/i810/i810_accel.c:305:3: warning: returning void-valued expression
+  drivers/video/i810/i810_accel.c:331:3: warning: returning void-valued expression
+  drivers/video/i810/i810_accel.c:370:3: warning: returning void-valued expression
+
+Signed-off-by: Hannes Eder <hannes@hanneseder.net>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/carminefb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/i810/i810_accel.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/carminefb.c~fb-carminefb-trivial-annotation-packing-color-register drivers/video/carminefb.c
---- a/drivers/video/carminefb.c~fb-carminefb-trivial-annotation-packing-color-register
-+++ a/drivers/video/carminefb.c
-@@ -168,7 +168,7 @@ static int carmine_setcolreg(unsigned re
- 	blue >>= 8;
- 	transp >>= 8;
+diff -puN drivers/video/i810/i810_accel.c~i810-fix-sparse-warnings drivers/video/i810/i810_accel.c
+--- a/drivers/video/i810/i810_accel.c~i810-fix-sparse-warnings
++++ a/drivers/video/i810/i810_accel.c
+@@ -301,8 +301,10 @@ void i810fb_fillrect(struct fb_info *inf
+ 	u32 dx, dy, width, height, dest, rop = 0, color = 0;
  
--	((u32 *)info->pseudo_palette)[regno] = be32_to_cpu(transp << 24 |
-+	((__be32 *)info->pseudo_palette)[regno] = cpu_to_be32(transp << 24 |
- 		red << 0 | green << 8 | blue << 16);
- 	return 0;
- }
+ 	if (!info->var.accel_flags || par->dev_flags & LOCKUP ||
+-	    par->depth == 4) 
+-		return cfb_fillrect(info, rect);
++	    par->depth == 4) {
++		cfb_fillrect(info, rect);
++		return;
++	}
+ 
+ 	if (par->depth == 1) 
+ 		color = rect->color;
+@@ -327,8 +329,10 @@ void i810fb_copyarea(struct fb_info *inf
+ 	u32 sx, sy, dx, dy, pitch, width, height, src, dest, xdir;
+ 
+ 	if (!info->var.accel_flags || par->dev_flags & LOCKUP ||
+-	    par->depth == 4)
+-		return cfb_copyarea(info, region);
++	    par->depth == 4) {
++		cfb_copyarea(info, region);
++		return;
++	}
+ 
+ 	dx = region->dx * par->depth;
+ 	sx = region->sx * par->depth;
+@@ -366,8 +370,10 @@ void i810fb_imageblit(struct fb_info *in
+ 	u32 fg = 0, bg = 0, size, dst;
+ 	
+ 	if (!info->var.accel_flags || par->dev_flags & LOCKUP ||
+-	    par->depth == 4 || image->depth != 1) 
+-		return cfb_imageblit(info, image);
++	    par->depth == 4 || image->depth != 1) {
++		cfb_imageblit(info, image);
++		return;
++	}
+ 
+ 	switch (info->var.bits_per_pixel) {
+ 	case 8:
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from hannes@hanneseder.net are
 
 origin.patch
 linux-next.patch
-input-ads7846c-sparse-lock-annotation.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
-ata-replace-byteshifting-with-unaligned-endian-helpers.patch
-usb-use-unaligned-endian-helpers-in-storage-drivers.patch
 
