@@ -1,81 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - autofs4-fix-string-validation-check-order.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:18:47 -0800
-Message-ID: <200901072218.n07MIlZH018190@imap1.linux-foundation.org>
+Subject: - fb-carminefb-trivial-annotation-packing-color-register.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:19:42 -0800
+Message-ID: <200901072219.n07MJgF7019014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57484 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56943 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763147AbZAGWgI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:36:08 -0500
+	by vger.kernel.org with ESMTP id S1763192AbZAGWgS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:36:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, jmoyer@redhat.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, bigeasy@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: fix string validation check order
+     fb: carminefb: trivial annotation packing color register
 has been removed from the -mm tree.  Its filename was
-     autofs4-fix-string-validation-check-order.patch
+     fb-carminefb-trivial-annotation-packing-color-register.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: fix string validation check order
-From: Ian Kent <raven@themaw.net>
+Subject: fb: carminefb: trivial annotation packing color register
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-In function validate_dev_ioctl() we check that the string we've been sent
-is a valid path.  The function that does this check assumes the string is
-NULL terminated but our NULL termination check isn't done until after this
-call.  This patch changes the order of the check.
+drivers/video/carminefb.c:171:41: warning: cast to restricted __be32
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Sebastian Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/video/carminefb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs4-fix-string-validation-check-order fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs4-fix-string-validation-check-order
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -124,7 +124,7 @@ static inline void free_dev_ioctl(struct
+diff -puN drivers/video/carminefb.c~fb-carminefb-trivial-annotation-packing-color-register drivers/video/carminefb.c
+--- a/drivers/video/carminefb.c~fb-carminefb-trivial-annotation-packing-color-register
++++ a/drivers/video/carminefb.c
+@@ -168,7 +168,7 @@ static int carmine_setcolreg(unsigned re
+ 	blue >>= 8;
+ 	transp >>= 8;
  
- /*
-  * Check sanity of parameter control fields and if a path is present
-- * check that it has a "/" and is terminated.
-+ * check that it is terminated and contains at least one "/".
-  */
- static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
- {
-@@ -138,15 +138,16 @@ static int validate_dev_ioctl(int cmd, s
- 	}
- 
- 	if (param->size > sizeof(*param)) {
--		err = check_name(param->path);
-+		err = invalid_str(param->path,
-+				 (void *) ((size_t) param + param->size));
- 		if (err) {
--			AUTOFS_WARN("invalid path supplied for cmd(0x%08x)",
--				    cmd);
-+			AUTOFS_WARN(
-+			  "path string terminator missing for cmd(0x%08x)",
-+			  cmd);
- 			goto out;
- 		}
- 
--		err = invalid_str(param->path,
--				 (void *) ((size_t) param + param->size));
-+		err = check_name(param->path);
- 		if (err) {
- 			AUTOFS_WARN("invalid path supplied for cmd(0x%08x)",
- 				    cmd);
+-	((u32 *)info->pseudo_palette)[regno] = be32_to_cpu(transp << 24 |
++	((__be32 *)info->pseudo_palette)[regno] = cpu_to_be32(transp << 24 |
+ 		red << 0 | green << 8 | blue << 16);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
+linux-next.patch
+input-ads7846c-sparse-lock-annotation.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+byteorder-add-load_-store_endian-api.patch
+unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
+unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
+sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
+unaligned-wire-up-h8300-and-m32r-arches.patch
+unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
+unaligned-remove-the-old-implementation.patch
+ata-replace-byteshifting-with-unaligned-endian-helpers.patch
+usb-use-unaligned-endian-helpers-in-storage-drivers.patch
 
