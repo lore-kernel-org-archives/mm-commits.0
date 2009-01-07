@@ -1,120 +1,393 @@
 From: akpm@linux-foundation.org
-Subject: - usb-emi26-fix-oops-on-load.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:21:21 -0800
-Message-ID: <200901072221.n07MLLZQ020541@imap1.linux-foundation.org>
+Subject: - kprobes-support-probing-module-__exit-function.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:18:06 -0800
+Message-ID: <200901072218.n07MI6WB017620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56890 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763045AbZAGWh5 (ORCPT
+	by vger.kernel.org with ESMTP id S1762835AbZAGWh5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:37:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, david@upcs.at, dwmw2@infradead.org, gregkh@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: emi26: fix oops on load
+     kprobes: support probing module __exit function
 has been removed from the -mm tree.  Its filename was
-     usb-emi26-fix-oops-on-load.patch
+     kprobes-support-probing-module-__exit-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: emi26: fix oops on load
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: kprobes: support probing module __exit function
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-Fix oops introduced by commit ae93a55bf948753de0bb8e43fa9c027f786abb05
-(emi26: use request_firmware()):
+Allows kprobes to probe __exit routine.  This adds flags member to struct
+kprobe.  When module is freed(kprobes hooks module_notifier to get this
+event), kprobes which probe the functions in that module are set to "Gone"
+flag to the flags member.  These "Gone" probes are never be enabled. 
+Users can check the GONE flag through debugfs.
 
-usb 1-1: new full speed USB device using uhci_hcd and address 2
-usb 1-1: configuration #1 chosen from 1 choice
-emi26 - firmware loader 1-1:1.0: emi26_probe start
-usb 1-1: firmware: requesting emi26/loader.fw
-usb 1-1: firmware: requesting emi26/bitstream.fw
-usb 1-1: firmware: requesting emi26/firmware.fw
-usb 1-1: emi26_set_reset - 1
-usb 1-1: emi26_set_reset - 0
-BUG: unable to handle kernel NULL pointer dereference at 00000000
-IP: [<f80dc487>] emi26_probe+0x2f7/0x620 [emi26]
-*pde = 00000000
-Oops: 0000 [#1] SMP
-last sysfs file: /sys/devices/pci0000:00/0000:00:1d.0/usb1/1-1/firmware/1-1/loading
-Modules linked in: emi26(+) ipv6 cpufreq_ondemand coretemp arc4 ecb iwl3945 irtty_sir sir_dev nsc_ircc ehci_hcd uhci_hcd mac80211 irda usbcore snd_hda_intel thinkpad_acpi rfkill hwmon led_class e1000e snd_pcm cfg80211 snd_timer crc_ccitt snd snd_page_alloc aes_generic
+This also removes mod_refcounted, because we couldn't free a module if
+kprobe incremented the refcount of that module.
 
-Pid: 5082, comm: modprobe Not tainted (2.6.28 #2) 17023QG
-EIP: 0060:[<f80dc487>] EFLAGS: 00010206 CPU: 0
-EIP is at emi26_probe+0x2f7/0x620 [emi26]
-EAX: 0000015c EBX: 00000000 ECX: c1ffd9c0 EDX: 00000000
-ESI: 0000015c EDI: f6bb215c EBP: f6bb0400 ESP: f00ebcfc
- DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-Process modprobe (pid: 5082, ti=f00ea000 task=f5c7c700 task.ti=f00ea000)
-Stack:
- 0000015c 000000a5 f6a67cb8 f80dc7e0 c01c6262 fbef2986 f6bb2000 00008fe0
- 0000015c f715f748 f715f740 f715f738 f715f748 f6a67c00 f80dd040 f80dcfc0
- f6bb0400 fbacb290 f6a67c94 fbae0160 c01c70bf 00000000 f6a67c1c 00000000
-Call Trace:
- [<c01c6262>] sysfs_add_one+0x12/0x50
- [<fbacb290>] usb_probe_interface+0xa0/0x140 [usbcore]
- [<c01c70bf>] sysfs_create_link+0xf/0x20
- [<c02dead2>] driver_probe_device+0x82/0x180
- [<fbac9eeb>] usb_match_id+0x3b/0x50 [usbcore]
- [<c02dec4e>] __driver_attach+0x7e/0x80
- [<c02de27a>] bus_for_each_dev+0x3a/0x60
- [<c02de956>] driver_attach+0x16/0x20
- [<c02debd0>] __driver_attach+0x0/0x80
- [<c02de7b1>] bus_add_driver+0x1a1/0x220
- [<c02dee4d>] driver_register+0x4d/0x120
- [<c024e622>] idr_get_empty_slot+0xf2/0x290
- [<fbacab71>] usb_register_driver+0x81/0x100 [usbcore]
- [<f806c000>] emi26_init+0x0/0x14 [emi26]
- [<c0101126>] do_one_initcall+0x36/0x1b0
- [<c01c5e70>] sysfs_ilookup_test+0x0/0x10
- [<c0197a61>] ifind+0x31/0x90
- [<c01c6229>] __sysfs_add_one+0x59/0x80
- [<c01c64e4>] sysfs_addrm_finish+0x14/0x1c0
- [<c0175ca3>] __vunmap+0xa3/0xd0
- [<c014b854>] load_module+0x1544/0x1640
- [<c014b9d7>] sys_init_module+0x87/0x1b0
- [<c0187f41>] sys_read+0x41/0x70
- [<c01032a5>] sysenter_do_call+0x12/0x21
- [<c03d0000>] wait_for_common+0x40/0x110
-Code: 66 c1 e8 08 66 09 d0 75 a5 31 d2 89 e8 e8 72 fc ff ff 85 c0 0f 88 9a 02 00 00 b8 fa 00 00 00 e8 30 46 05 c8 8b 74 24 28 8b 5e 04 <8b> 03 89 44 24 1c 0f c8 89 44 24 1c 0f b7 4b 04 c7 44 24 20 00
-EIP: [<f80dc487>] emi26_probe+0x2f7/0x620 [emi26] SS:ESP 0068:f00ebcfc
----[ end trace 2eefa13825431230 ]---
-
-After the last "package" of firmware data is sent to the device, we dereference
-NULL pointer (on access to rec->addr). Fix it.
-
-Reported-and-tested-by: David Flatz <david@upcs.at>
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: <stable@kernel.org> [2.6.27.x, 2.6.28.x]
+[akpm@linux-foundation.org: document some locking]
+[mhiramat@redhat.com: bugfix: pass aggr_kprobe to arch_remove_kprobe]
+[mhiramat@redhat.com: bugfix: release old_p's insn_slot before error return]
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/emi26.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/kprobes.txt |    5 -
+ include/linux/kprobes.h   |   14 ++-
+ kernel/kprobes.c          |  159 ++++++++++++++++++++++++++----------
+ 3 files changed, 134 insertions(+), 44 deletions(-)
 
-diff -puN drivers/usb/misc/emi26.c~usb-emi26-fix-oops-on-load drivers/usb/misc/emi26.c
---- a/drivers/usb/misc/emi26.c~usb-emi26-fix-oops-on-load
-+++ a/drivers/usb/misc/emi26.c
-@@ -160,7 +160,7 @@ static int emi26_load_firmware (struct u
- 			err("%s - error loading firmware: error = %d", __func__, err);
- 			goto wraperr;
- 		}
--	} while (i > 0);
-+	} while (rec);
+diff -puN Documentation/kprobes.txt~kprobes-support-probing-module-__exit-function Documentation/kprobes.txt
+--- a/Documentation/kprobes.txt~kprobes-support-probing-module-__exit-function
++++ a/Documentation/kprobes.txt
+@@ -497,7 +497,10 @@ The first column provides the kernel add
+ The second column identifies the type of probe (k - kprobe, r - kretprobe
+ and j - jprobe), while the third column specifies the symbol+offset of
+ the probe. If the probed function belongs to a module, the module name
+-is also specified.
++is also specified. Following columns show probe status. If the probe is on
++a virtual address that is no longer valid (module init sections, module
++virtual addresses that correspond to modules that've been unloaded),
++such probes are marked with [GONE].
  
- 	/* Assert reset (stop the CPU in the EMI) */
- 	err = emi26_set_reset(dev,1);
+ /debug/kprobes/enabled: Turn kprobes ON/OFF
+ 
+diff -puN include/linux/kprobes.h~kprobes-support-probing-module-__exit-function include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-support-probing-module-__exit-function
++++ a/include/linux/kprobes.h
+@@ -69,9 +69,6 @@ struct kprobe {
+ 	/* list of kprobes for multi-handler support */
+ 	struct list_head list;
+ 
+-	/* Indicates that the corresponding module has been ref counted */
+-	unsigned int mod_refcounted;
+-
+ 	/*count the number of times this probe was temporarily disarmed */
+ 	unsigned long nmissed;
+ 
+@@ -103,8 +100,19 @@ struct kprobe {
+ 
+ 	/* copy of the original instruction */
+ 	struct arch_specific_insn ainsn;
++
++	/* Indicates various status flags.  Protected by kprobe_mutex. */
++	u32 flags;
+ };
+ 
++/* Kprobe status flags */
++#define KPROBE_FLAG_GONE	1 /* breakpoint has already gone */
++
++static inline int kprobe_gone(struct kprobe *p)
++{
++	return p->flags & KPROBE_FLAG_GONE;
++}
++
+ /*
+  * Special probe type that uses setjmp-longjmp type tricks to resume
+  * execution at a specified entry with a matching prototype corresponding
+diff -puN kernel/kprobes.c~kprobes-support-probing-module-__exit-function kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-support-probing-module-__exit-function
++++ a/kernel/kprobes.c
+@@ -327,7 +327,7 @@ static int __kprobes aggr_pre_handler(st
+ 	struct kprobe *kp;
+ 
+ 	list_for_each_entry_rcu(kp, &p->list, list) {
+-		if (kp->pre_handler) {
++		if (kp->pre_handler && !kprobe_gone(kp)) {
+ 			set_kprobe_instance(kp);
+ 			if (kp->pre_handler(kp, regs))
+ 				return 1;
+@@ -343,7 +343,7 @@ static void __kprobes aggr_post_handler(
+ 	struct kprobe *kp;
+ 
+ 	list_for_each_entry_rcu(kp, &p->list, list) {
+-		if (kp->post_handler) {
++		if (kp->post_handler && !kprobe_gone(kp)) {
+ 			set_kprobe_instance(kp);
+ 			kp->post_handler(kp, regs, flags);
+ 			reset_kprobe_instance();
+@@ -545,9 +545,10 @@ static inline void add_aggr_kprobe(struc
+ 	ap->addr = p->addr;
+ 	ap->pre_handler = aggr_pre_handler;
+ 	ap->fault_handler = aggr_fault_handler;
+-	if (p->post_handler)
++	/* We don't care the kprobe which has gone. */
++	if (p->post_handler && !kprobe_gone(p))
+ 		ap->post_handler = aggr_post_handler;
+-	if (p->break_handler)
++	if (p->break_handler && !kprobe_gone(p))
+ 		ap->break_handler = aggr_break_handler;
+ 
+ 	INIT_LIST_HEAD(&ap->list);
+@@ -566,17 +567,41 @@ static int __kprobes register_aggr_kprob
+ 	int ret = 0;
+ 	struct kprobe *ap;
+ 
++	if (kprobe_gone(old_p)) {
++		/*
++		 * Attempting to insert new probe at the same location that
++		 * had a probe in the module vaddr area which already
++		 * freed. So, the instruction slot has already been
++		 * released. We need a new slot for the new probe.
++		 */
++		ret = arch_prepare_kprobe(old_p);
++		if (ret)
++			return ret;
++	}
+ 	if (old_p->pre_handler == aggr_pre_handler) {
+ 		copy_kprobe(old_p, p);
+ 		ret = add_new_kprobe(old_p, p);
++		ap = old_p;
+ 	} else {
+ 		ap = kzalloc(sizeof(struct kprobe), GFP_KERNEL);
+-		if (!ap)
++		if (!ap) {
++			if (kprobe_gone(old_p))
++				arch_remove_kprobe(old_p);
+ 			return -ENOMEM;
++		}
+ 		add_aggr_kprobe(ap, old_p);
+ 		copy_kprobe(ap, p);
+ 		ret = add_new_kprobe(ap, p);
+ 	}
++	if (kprobe_gone(old_p)) {
++		/*
++		 * If the old_p has gone, its breakpoint has been disarmed.
++		 * We have to arm it again after preparing real kprobes.
++		 */
++		ap->flags &= ~KPROBE_FLAG_GONE;
++		if (kprobe_enabled)
++			arch_arm_kprobe(ap);
++	}
+ 	return ret;
+ }
+ 
+@@ -639,8 +664,7 @@ static int __kprobes __register_kprobe(s
+ 		return -EINVAL;
+ 	}
+ 
+-	p->mod_refcounted = 0;
+-
++	p->flags = 0;
+ 	/*
+ 	 * Check if are we probing a module.
+ 	 */
+@@ -649,16 +673,14 @@ static int __kprobes __register_kprobe(s
+ 		struct module *calling_mod;
+ 		calling_mod = __module_text_address(called_from);
+ 		/*
+-		 * We must allow modules to probe themself and in this case
+-		 * avoid incrementing the module refcount, so as to allow
+-		 * unloading of self probing modules.
++		 * We must hold a refcount of the probed module while updating
++		 * its code to prohibit unexpected unloading.
+ 		 */
+ 		if (calling_mod != probed_mod) {
+ 			if (unlikely(!try_module_get(probed_mod))) {
+ 				preempt_enable();
+ 				return -EINVAL;
+ 			}
+-			p->mod_refcounted = 1;
+ 		} else
+ 			probed_mod = NULL;
+ 	}
+@@ -687,8 +709,9 @@ static int __kprobes __register_kprobe(s
+ out:
+ 	mutex_unlock(&kprobe_mutex);
+ 
+-	if (ret && probed_mod)
++	if (probed_mod)
+ 		module_put(probed_mod);
++
+ 	return ret;
+ }
+ 
+@@ -716,16 +739,16 @@ valid_p:
+ 	     list_is_singular(&old_p->list))) {
+ 		/*
+ 		 * Only probe on the hash list. Disarm only if kprobes are
+-		 * enabled - otherwise, the breakpoint would already have
+-		 * been removed. We save on flushing icache.
++		 * enabled and not gone - otherwise, the breakpoint would
++		 * already have been removed. We save on flushing icache.
+ 		 */
+-		if (kprobe_enabled)
++		if (kprobe_enabled && !kprobe_gone(old_p))
+ 			arch_disarm_kprobe(p);
+ 		hlist_del_rcu(&old_p->hlist);
+ 	} else {
+-		if (p->break_handler)
++		if (p->break_handler && !kprobe_gone(p))
+ 			old_p->break_handler = NULL;
+-		if (p->post_handler) {
++		if (p->post_handler && !kprobe_gone(p)) {
+ 			list_for_each_entry_rcu(list_p, &old_p->list, list) {
+ 				if ((list_p != p) && (list_p->post_handler))
+ 					goto noclean;
+@@ -740,27 +763,16 @@ noclean:
+ 
+ static void __kprobes __unregister_kprobe_bottom(struct kprobe *p)
+ {
+-	struct module *mod;
+ 	struct kprobe *old_p;
+ 
+-	if (p->mod_refcounted) {
+-		/*
+-		 * Since we've already incremented refcount,
+-		 * we don't need to disable preemption.
+-		 */
+-		mod = module_text_address((unsigned long)p->addr);
+-		if (mod)
+-			module_put(mod);
+-	}
+-
+-	if (list_empty(&p->list) || list_is_singular(&p->list)) {
+-		if (!list_empty(&p->list)) {
+-			/* "p" is the last child of an aggr_kprobe */
+-			old_p = list_entry(p->list.next, struct kprobe, list);
+-			list_del(&p->list);
+-			kfree(old_p);
+-		}
++	if (list_empty(&p->list))
+ 		arch_remove_kprobe(p);
++	else if (list_is_singular(&p->list)) {
++		/* "p" is the last child of an aggr_kprobe */
++		old_p = list_entry(p->list.next, struct kprobe, list);
++		list_del(&p->list);
++		arch_remove_kprobe(old_p);
++		kfree(old_p);
+ 	}
+ }
+ 
+@@ -1074,6 +1086,67 @@ static int __kprobes pre_handler_kretpro
+ 
+ #endif /* CONFIG_KRETPROBES */
+ 
++/* Set the kprobe gone and remove its instruction buffer. */
++static void __kprobes kill_kprobe(struct kprobe *p)
++{
++	struct kprobe *kp;
++	p->flags |= KPROBE_FLAG_GONE;
++	if (p->pre_handler == aggr_pre_handler) {
++		/*
++		 * If this is an aggr_kprobe, we have to list all the
++		 * chained probes and mark them GONE.
++		 */
++		list_for_each_entry_rcu(kp, &p->list, list)
++			kp->flags |= KPROBE_FLAG_GONE;
++		p->post_handler = NULL;
++		p->break_handler = NULL;
++	}
++	/*
++	 * Here, we can remove insn_slot safely, because no thread calls
++	 * the original probed function (which will be freed soon) any more.
++	 */
++	arch_remove_kprobe(p);
++}
++
++/* Module notifier call back, checking kprobes on the module */
++static int __kprobes kprobes_module_callback(struct notifier_block *nb,
++					     unsigned long val, void *data)
++{
++	struct module *mod = data;
++	struct hlist_head *head;
++	struct hlist_node *node;
++	struct kprobe *p;
++	unsigned int i;
++
++	if (val != MODULE_STATE_GOING)
++		return NOTIFY_DONE;
++
++	/*
++	 * module .text section will be freed. We need to
++	 * disable kprobes which have been inserted in the section.
++	 */
++	mutex_lock(&kprobe_mutex);
++	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
++		head = &kprobe_table[i];
++		hlist_for_each_entry_rcu(p, node, head, hlist)
++			if (within_module_core((unsigned long)p->addr, mod)) {
++				/*
++				 * The vaddr this probe is installed will soon
++				 * be vfreed buy not synced to disk. Hence,
++				 * disarming the breakpoint isn't needed.
++				 */
++				kill_kprobe(p);
++			}
++	}
++	mutex_unlock(&kprobe_mutex);
++	return NOTIFY_DONE;
++}
++
++static struct notifier_block kprobe_module_nb = {
++	.notifier_call = kprobes_module_callback,
++	.priority = 0
++};
++
+ static int __init init_kprobes(void)
+ {
+ 	int i, err = 0;
+@@ -1130,6 +1203,9 @@ static int __init init_kprobes(void)
+ 	err = arch_init_kprobes();
+ 	if (!err)
+ 		err = register_die_notifier(&kprobe_exceptions_nb);
++	if (!err)
++		err = register_module_notifier(&kprobe_module_nb);
++
+ 	kprobes_initialized = (err == 0);
+ 
+ 	if (!err)
+@@ -1150,10 +1226,12 @@ static void __kprobes report_probe(struc
+ 	else
+ 		kprobe_type = "k";
+ 	if (sym)
+-		seq_printf(pi, "%p  %s  %s+0x%x  %s\n", p->addr, kprobe_type,
+-			sym, offset, (modname ? modname : " "));
++		seq_printf(pi, "%p  %s  %s+0x%x  %s %s\n", p->addr, kprobe_type,
++			sym, offset, (modname ? modname : " "),
++			(kprobe_gone(p) ? "[GONE]" : ""));
+ 	else
+-		seq_printf(pi, "%p  %s  %p\n", p->addr, kprobe_type, p->addr);
++		seq_printf(pi, "%p  %s  %p %s\n", p->addr, kprobe_type, p->addr,
++			(kprobe_gone(p) ? "[GONE]" : ""));
+ }
+ 
+ static void __kprobes *kprobe_seq_start(struct seq_file *f, loff_t *pos)
+@@ -1234,7 +1312,8 @@ static void __kprobes enable_all_kprobes
+ 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
+ 		head = &kprobe_table[i];
+ 		hlist_for_each_entry_rcu(p, node, head, hlist)
+-			arch_arm_kprobe(p);
++			if (!kprobe_gone(p))
++				arch_arm_kprobe(p);
+ 	}
+ 
+ 	kprobe_enabled = true;
+@@ -1263,7 +1342,7 @@ static void __kprobes disable_all_kprobe
+ 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
+ 		head = &kprobe_table[i];
+ 		hlist_for_each_entry_rcu(p, node, head, hlist) {
+-			if (!arch_trampoline_kprobe(p))
++			if (!arch_trampoline_kprobe(p) && !kprobe_gone(p))
+ 				arch_disarm_kprobe(p);
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
 origin.patch
-linux-next.patch
 
