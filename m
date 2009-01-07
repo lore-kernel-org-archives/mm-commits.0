@@ -1,194 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - swapfile-rearrange-scan-and-swap_info.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:13:21 -0800
-Message-ID: <200901072213.n07MDLOI013451@imap1.linux-foundation.org>
+Subject: - swapfile-swapon-use-discard-trim.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:13:23 -0800
+Message-ID: <200901072213.n07MDNhH013487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48505 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761795AbZAGWN3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:29 -0500
+	by vger.kernel.org with ESMTP id S1758974AbZAGWNz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: hugh@veritas.com, James.Bottomley@HansenPartnership.com, djshin90@gmail.com, dwmw2@infradead.org, jens.axboe@oracle.com, joern@logfs.org, kamezawa.hiroyu@jp.fujitsu.com, matthew@wil.cx
 
 
 The patch titled
-     swapfile: rearrange scan and swap_info
+     swapfile: swapon use discard (trim)
 has been removed from the -mm tree.  Its filename was
-     swapfile-rearrange-scan-and-swap_info.patch
+     swapfile-swapon-use-discard-trim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swapfile: rearrange scan and swap_info
+Subject: swapfile: swapon use discard (trim)
 From: Hugh Dickins <hugh@veritas.com>
 
-Before making functional changes, rearrange scan_swap_map() to simplify
-subsequent diffs.  Actually, there is one functional change in there:
-leave cluster_nr negative while scanning for a new cluster - resetting it
-early increased the likelihood that when we have difficulty finding a free
-cluster, another task may come in and try doing exactly the same - just a
-waste of cpu.
+When adding swap, all the old data on swap can be forgotten: sys_swapon()
+discard all but the header page of the swap partition (or every extent but
+the header of the swap file), to give a solidstate swap device the
+opportunity to optimize its wear-levelling.
 
-Before making functional changes, rearrange struct swap_info_struct
-slightly: flags will be needed as an unsigned long (for wait_on_bit), next
-is a good int to pair with prio, old_block_size is uninteresting so shift
-it to the end.
+If that succeeds, note SWP_DISCARDABLE for later use, and report it with a
+"D" at the right end of the kernel's "Adding ...  swap" message.  Perhaps
+something should be shown in /proc/swaps (swapon -s), but we have to be
+more cautious before making any addition to that format.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Joern Engel <joern@logfs.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Donjun Shin <djshin90@gmail.com>
+Cc: Tejun Heo <teheo@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    8 ++--
- mm/swapfile.c        |   66 ++++++++++++++++++++++-------------------
- 2 files changed, 41 insertions(+), 33 deletions(-)
+ include/linux/swap.h |    1 +
+ mm/swapfile.c        |   39 +++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 38 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/swap.h~swapfile-rearrange-scan-and-swap_info include/linux/swap.h
---- a/include/linux/swap.h~swapfile-rearrange-scan-and-swap_info
+diff -puN include/linux/swap.h~swapfile-swapon-use-discard-trim include/linux/swap.h
+--- a/include/linux/swap.h~swapfile-swapon-use-discard-trim
 +++ a/include/linux/swap.h
-@@ -133,14 +133,14 @@ enum {
-  * The in-memory structure used to track swap areas.
-  */
- struct swap_info_struct {
--	unsigned int flags;
-+	unsigned long flags;
- 	int prio;			/* swap priority */
-+	int next;			/* next entry on swap list */
- 	struct file *swap_file;
- 	struct block_device *bdev;
- 	struct list_head extent_list;
- 	struct swap_extent *curr_swap_extent;
--	unsigned old_block_size;
--	unsigned short * swap_map;
-+	unsigned short *swap_map;
- 	unsigned int lowest_bit;
- 	unsigned int highest_bit;
- 	unsigned int cluster_next;
-@@ -148,7 +148,7 @@ struct swap_info_struct {
- 	unsigned int pages;
- 	unsigned int max;
- 	unsigned int inuse_pages;
--	int next;			/* next entry on swap list */
-+	unsigned int old_block_size;
+@@ -120,6 +120,7 @@ struct swap_extent {
+ enum {
+ 	SWP_USED	= (1 << 0),	/* is slot in swap_info[] used? */
+ 	SWP_WRITEOK	= (1 << 1),	/* ok to write to this swap?	*/
++	SWP_DISCARDABLE = (1 << 2),	/* blkdev supports discard */
+ 					/* add others here before... */
+ 	SWP_SCANNING	= (1 << 8),	/* refcount in scan_swap_map */
  };
- 
- struct swap_list_t {
-diff -puN mm/swapfile.c~swapfile-rearrange-scan-and-swap_info mm/swapfile.c
---- a/mm/swapfile.c~swapfile-rearrange-scan-and-swap_info
+diff -puN mm/swapfile.c~swapfile-swapon-use-discard-trim mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-swapon-use-discard-trim
 +++ a/mm/swapfile.c
-@@ -89,7 +89,8 @@ void swap_unplug_io_fn(struct backing_de
+@@ -84,6 +84,37 @@ void swap_unplug_io_fn(struct backing_de
+ 	up_read(&swap_unplug_sem);
+ }
  
- static inline unsigned long scan_swap_map(struct swap_info_struct *si)
- {
--	unsigned long offset, last_in_cluster;
-+	unsigned long offset;
-+	unsigned long last_in_cluster;
- 	int latency_ration = LATENCY_LIMIT;
- 
- 	/*
-@@ -103,10 +104,13 @@ static inline unsigned long scan_swap_ma
- 	 */
- 
- 	si->flags += SWP_SCANNING;
--	if (unlikely(!si->cluster_nr)) {
--		si->cluster_nr = SWAPFILE_CLUSTER - 1;
--		if (si->pages - si->inuse_pages < SWAPFILE_CLUSTER)
--			goto lowest;
-+	offset = si->cluster_next;
++/*
++ * swapon tell device that all the old swap contents can be discarded,
++ * to allow the swap device to optimize its wear-levelling.
++ */
++static int discard_swap(struct swap_info_struct *si)
++{
++	struct swap_extent *se;
++	int err = 0;
 +
-+	if (unlikely(!si->cluster_nr--)) {
-+		if (si->pages - si->inuse_pages < SWAPFILE_CLUSTER) {
-+			si->cluster_nr = SWAPFILE_CLUSTER - 1;
-+			goto checks;
++	list_for_each_entry(se, &si->extent_list, list) {
++		sector_t start_block = se->start_block << (PAGE_SHIFT - 9);
++		pgoff_t nr_blocks = se->nr_pages << (PAGE_SHIFT - 9);
++
++		if (se->start_page == 0) {
++			/* Do not discard the swap header page! */
++			start_block += 1 << (PAGE_SHIFT - 9);
++			nr_blocks -= 1 << (PAGE_SHIFT - 9);
++			if (!nr_blocks)
++				continue;
 +		}
- 		spin_unlock(&swap_lock);
- 
- 		offset = si->lowest_bit;
-@@ -118,43 +122,47 @@ static inline unsigned long scan_swap_ma
- 				last_in_cluster = offset + SWAPFILE_CLUSTER;
- 			else if (offset == last_in_cluster) {
- 				spin_lock(&swap_lock);
--				si->cluster_next = offset-SWAPFILE_CLUSTER+1;
--				goto cluster;
-+				offset -= SWAPFILE_CLUSTER - 1;
-+				si->cluster_next = offset;
-+				si->cluster_nr = SWAPFILE_CLUSTER - 1;
-+				goto checks;
- 			}
- 			if (unlikely(--latency_ration < 0)) {
- 				cond_resched();
- 				latency_ration = LATENCY_LIMIT;
- 			}
- 		}
 +
-+		offset = si->lowest_bit;
- 		spin_lock(&swap_lock);
--		goto lowest;
-+		si->cluster_nr = SWAPFILE_CLUSTER - 1;
- 	}
- 
--	si->cluster_nr--;
--cluster:
--	offset = si->cluster_next;
--	if (offset > si->highest_bit)
--lowest:		offset = si->lowest_bit;
--checks:	if (!(si->flags & SWP_WRITEOK))
-+checks:
-+	if (!(si->flags & SWP_WRITEOK))
- 		goto no_page;
- 	if (!si->highest_bit)
- 		goto no_page;
--	if (!si->swap_map[offset]) {
--		if (offset == si->lowest_bit)
--			si->lowest_bit++;
--		if (offset == si->highest_bit)
--			si->highest_bit--;
--		si->inuse_pages++;
--		if (si->inuse_pages == si->pages) {
--			si->lowest_bit = si->max;
--			si->highest_bit = 0;
--		}
--		si->swap_map[offset] = 1;
--		si->cluster_next = offset + 1;
--		si->flags -= SWP_SCANNING;
--		return offset;
-+	if (offset > si->highest_bit)
-+		offset = si->lowest_bit;
-+	if (si->swap_map[offset])
-+		goto scan;
++		err = blkdev_issue_discard(si->bdev, start_block,
++						nr_blocks, GFP_KERNEL);
++		if (err)
++			break;
 +
-+	if (offset == si->lowest_bit)
-+		si->lowest_bit++;
-+	if (offset == si->highest_bit)
-+		si->highest_bit--;
-+	si->inuse_pages++;
-+	if (si->inuse_pages == si->pages) {
-+		si->lowest_bit = si->max;
-+		si->highest_bit = 0;
- 	}
-+	si->swap_map[offset] = 1;
-+	si->cluster_next = offset + 1;
-+	si->flags -= SWP_SCANNING;
-+	return offset;
++		cond_resched();
++	}
++	return err;		/* That will often be -EOPNOTSUPP */
++}
++
+ #define SWAPFILE_CLUSTER	256
+ #define LATENCY_LIMIT		256
  
-+scan:
- 	spin_unlock(&swap_lock);
- 	while (++offset <= si->highest_bit) {
- 		if (!si->swap_map[offset]) {
-@@ -167,7 +175,7 @@ checks:	if (!(si->flags & SWP_WRITEOK))
- 		}
+@@ -1658,6 +1689,9 @@ asmlinkage long sys_swapon(const char __
+ 		goto bad_swap;
  	}
+ 
++	if (discard_swap(p) == 0)
++		p->flags |= SWP_DISCARDABLE;
++
+ 	mutex_lock(&swapon_mutex);
  	spin_lock(&swap_lock);
--	goto lowest;
-+	goto checks;
+ 	if (swap_flags & SWAP_FLAG_PREFER)
+@@ -1671,9 +1705,10 @@ asmlinkage long sys_swapon(const char __
+ 	total_swap_pages += nr_good_pages;
  
- no_page:
- 	si->flags -= SWP_SCANNING;
+ 	printk(KERN_INFO "Adding %uk swap on %s.  "
+-			"Priority:%d extents:%d across:%lluk\n",
++			"Priority:%d extents:%d across:%lluk%s\n",
+ 		nr_good_pages<<(PAGE_SHIFT-10), name, p->prio,
+-		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10));
++		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
++		(p->flags & SWP_DISCARDABLE) ? " D" : "");
+ 
+ 	/* insert swap space into swap_list: */
+ 	prev = -1;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
