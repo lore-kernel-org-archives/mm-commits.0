@@ -1,269 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-filename-encryption-mount-option.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:18:26 -0800
-Message-ID: <200901072218.n07MIQo3017906@imap1.linux-foundation.org>
+Subject: - usb-emi26-fix-oops-on-load.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:21:21 -0800
+Message-ID: <200901072221.n07MLLZQ020541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42369 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763389AbZAGWh6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:37:58 -0500
+	by vger.kernel.org with ESMTP id S1763045AbZAGWh5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:37:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, dustin.kirkland@gmail.com, sandeen@redhat.com, shaggy@us.ibm.com, tchicks@us.ibm.com, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, david@upcs.at, dwmw2@infradead.org, gregkh@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: Filename Encryption: mount option
+     usb: emi26: fix oops on load
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-filename-encryption-mount-option.patch
+     usb-emi26-fix-oops-on-load.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eCryptfs: Filename Encryption: mount option
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: usb: emi26: fix oops on load
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Enable mount-wide filename encryption by providing the Filename Encryption
-Key (FNEK) signature as a mount option.  Note that the ecryptfs-utils
-userspace package versions 61 or later support this option.
+Fix oops introduced by commit ae93a55bf948753de0bb8e43fa9c027f786abb05
+(emi26: use request_firmware()):
 
-When mounting with ecryptfs-utils version 61 or later, the mount helper
-will detect the availability of the passphrase-based filename encryption
-in the kernel (via the eCryptfs sysfs handle) and query the user
-interactively as to whether or not he wants to enable the feature for the
-mount.  If the user enables filename encryption, the mount helper will
-then prompt for the FNEK signature that the user wishes to use, suggesting
-by default the signature for the mount passphrase that the user has
-already entered for encrypting the file contents.
+usb 1-1: new full speed USB device using uhci_hcd and address 2
+usb 1-1: configuration #1 chosen from 1 choice
+emi26 - firmware loader 1-1:1.0: emi26_probe start
+usb 1-1: firmware: requesting emi26/loader.fw
+usb 1-1: firmware: requesting emi26/bitstream.fw
+usb 1-1: firmware: requesting emi26/firmware.fw
+usb 1-1: emi26_set_reset - 1
+usb 1-1: emi26_set_reset - 0
+BUG: unable to handle kernel NULL pointer dereference at 00000000
+IP: [<f80dc487>] emi26_probe+0x2f7/0x620 [emi26]
+*pde = 00000000
+Oops: 0000 [#1] SMP
+last sysfs file: /sys/devices/pci0000:00/0000:00:1d.0/usb1/1-1/firmware/1-1/loading
+Modules linked in: emi26(+) ipv6 cpufreq_ondemand coretemp arc4 ecb iwl3945 irtty_sir sir_dev nsc_ircc ehci_hcd uhci_hcd mac80211 irda usbcore snd_hda_intel thinkpad_acpi rfkill hwmon led_class e1000e snd_pcm cfg80211 snd_timer crc_ccitt snd snd_page_alloc aes_generic
 
-When not using the mount helper, the user can specify the signature for
-the passphrase key with the ecryptfs_fnek_sig= mount option.  This key
-must be available in the user's keyring.  The mount helper usually takes
-care of this step.  If, however, the user is not mounting with the mount
-helper, then he will need to enter the passphrase key into his keyring
-with some other utility prior to mounting, such as ecryptfs-manager.
+Pid: 5082, comm: modprobe Not tainted (2.6.28 #2) 17023QG
+EIP: 0060:[<f80dc487>] EFLAGS: 00010206 CPU: 0
+EIP is at emi26_probe+0x2f7/0x620 [emi26]
+EAX: 0000015c EBX: 00000000 ECX: c1ffd9c0 EDX: 00000000
+ESI: 0000015c EDI: f6bb215c EBP: f6bb0400 ESP: f00ebcfc
+ DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process modprobe (pid: 5082, ti=f00ea000 task=f5c7c700 task.ti=f00ea000)
+Stack:
+ 0000015c 000000a5 f6a67cb8 f80dc7e0 c01c6262 fbef2986 f6bb2000 00008fe0
+ 0000015c f715f748 f715f740 f715f738 f715f748 f6a67c00 f80dd040 f80dcfc0
+ f6bb0400 fbacb290 f6a67c94 fbae0160 c01c70bf 00000000 f6a67c1c 00000000
+Call Trace:
+ [<c01c6262>] sysfs_add_one+0x12/0x50
+ [<fbacb290>] usb_probe_interface+0xa0/0x140 [usbcore]
+ [<c01c70bf>] sysfs_create_link+0xf/0x20
+ [<c02dead2>] driver_probe_device+0x82/0x180
+ [<fbac9eeb>] usb_match_id+0x3b/0x50 [usbcore]
+ [<c02dec4e>] __driver_attach+0x7e/0x80
+ [<c02de27a>] bus_for_each_dev+0x3a/0x60
+ [<c02de956>] driver_attach+0x16/0x20
+ [<c02debd0>] __driver_attach+0x0/0x80
+ [<c02de7b1>] bus_add_driver+0x1a1/0x220
+ [<c02dee4d>] driver_register+0x4d/0x120
+ [<c024e622>] idr_get_empty_slot+0xf2/0x290
+ [<fbacab71>] usb_register_driver+0x81/0x100 [usbcore]
+ [<f806c000>] emi26_init+0x0/0x14 [emi26]
+ [<c0101126>] do_one_initcall+0x36/0x1b0
+ [<c01c5e70>] sysfs_ilookup_test+0x0/0x10
+ [<c0197a61>] ifind+0x31/0x90
+ [<c01c6229>] __sysfs_add_one+0x59/0x80
+ [<c01c64e4>] sysfs_addrm_finish+0x14/0x1c0
+ [<c0175ca3>] __vunmap+0xa3/0xd0
+ [<c014b854>] load_module+0x1544/0x1640
+ [<c014b9d7>] sys_init_module+0x87/0x1b0
+ [<c0187f41>] sys_read+0x41/0x70
+ [<c01032a5>] sysenter_do_call+0x12/0x21
+ [<c03d0000>] wait_for_common+0x40/0x110
+Code: 66 c1 e8 08 66 09 d0 75 a5 31 d2 89 e8 e8 72 fc ff ff 85 c0 0f 88 9a 02 00 00 b8 fa 00 00 00 e8 30 46 05 c8 8b 74 24 28 8b 5e 04 <8b> 03 89 44 24 1c 0f c8 89 44 24 1c 0f b7 4b 04 c7 44 24 20 00
+EIP: [<f80dc487>] emi26_probe+0x2f7/0x620 [emi26] SS:ESP 0068:f00ebcfc
+---[ end trace 2eefa13825431230 ]---
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Dustin Kirkland <dustin.kirkland@gmail.com>
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Tyler Hicks <tchicks@us.ibm.com>
-Cc: David Kleikamp <shaggy@us.ibm.com>
+After the last "package" of firmware data is sent to the device, we dereference
+NULL pointer (on access to rec->addr). Fix it.
+
+Reported-and-tested-by: David Flatz <david@upcs.at>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: <stable@kernel.org> [2.6.27.x, 2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/main.c |  126 +++++++++++++++++++++++++++++++++----------
- 1 file changed, 99 insertions(+), 27 deletions(-)
+ drivers/usb/misc/emi26.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/main.c~ecryptfs-filename-encryption-mount-option fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-filename-encryption-mount-option
-+++ a/fs/ecryptfs/main.c
-@@ -206,7 +206,9 @@ enum { ecryptfs_opt_sig, ecryptfs_opt_ec
-        ecryptfs_opt_cipher, ecryptfs_opt_ecryptfs_cipher,
-        ecryptfs_opt_ecryptfs_key_bytes,
-        ecryptfs_opt_passthrough, ecryptfs_opt_xattr_metadata,
--       ecryptfs_opt_encrypted_view, ecryptfs_opt_err };
-+       ecryptfs_opt_encrypted_view, ecryptfs_opt_fnek_sig,
-+       ecryptfs_opt_fn_cipher, ecryptfs_opt_fn_cipher_key_bytes,
-+       ecryptfs_opt_err };
- 
- static const match_table_t tokens = {
- 	{ecryptfs_opt_sig, "sig=%s"},
-@@ -217,6 +219,9 @@ static const match_table_t tokens = {
- 	{ecryptfs_opt_passthrough, "ecryptfs_passthrough"},
- 	{ecryptfs_opt_xattr_metadata, "ecryptfs_xattr_metadata"},
- 	{ecryptfs_opt_encrypted_view, "ecryptfs_encrypted_view"},
-+	{ecryptfs_opt_fnek_sig, "ecryptfs_fnek_sig=%s"},
-+	{ecryptfs_opt_fn_cipher, "ecryptfs_fn_cipher=%s"},
-+	{ecryptfs_opt_fn_cipher_key_bytes, "ecryptfs_fn_key_bytes=%u"},
- 	{ecryptfs_opt_err, NULL}
- };
- 
-@@ -281,8 +286,11 @@ static int ecryptfs_parse_options(struct
- 	int rc = 0;
- 	int sig_set = 0;
- 	int cipher_name_set = 0;
-+	int fn_cipher_name_set = 0;
- 	int cipher_key_bytes;
- 	int cipher_key_bytes_set = 0;
-+	int fn_cipher_key_bytes;
-+	int fn_cipher_key_bytes_set = 0;
- 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
- 		&ecryptfs_superblock_to_private(sb)->mount_crypt_stat;
- 	substring_t args[MAX_OPT_ARGS];
-@@ -290,7 +298,12 @@ static int ecryptfs_parse_options(struct
- 	char *sig_src;
- 	char *cipher_name_dst;
- 	char *cipher_name_src;
-+	char *fn_cipher_name_dst;
-+	char *fn_cipher_name_src;
-+	char *fnek_dst;
-+	char *fnek_src;
- 	char *cipher_key_bytes_src;
-+	char *fn_cipher_key_bytes_src;
- 
- 	if (!options) {
- 		rc = -EINVAL;
-@@ -322,10 +335,7 @@ static int ecryptfs_parse_options(struct
- 				global_default_cipher_name;
- 			strncpy(cipher_name_dst, cipher_name_src,
- 				ECRYPTFS_MAX_CIPHER_NAME_SIZE);
--			ecryptfs_printk(KERN_DEBUG,
--					"The mount_crypt_stat "
--					"global_default_cipher_name set to: "
--					"[%s]\n", cipher_name_dst);
-+			cipher_name_dst[ECRYPTFS_MAX_CIPHER_NAME_SIZE] = '\0';
- 			cipher_name_set = 1;
- 			break;
- 		case ecryptfs_opt_ecryptfs_key_bytes:
-@@ -335,11 +345,6 @@ static int ecryptfs_parse_options(struct
- 						   &cipher_key_bytes_src, 0);
- 			mount_crypt_stat->global_default_cipher_key_size =
- 				cipher_key_bytes;
--			ecryptfs_printk(KERN_DEBUG,
--					"The mount_crypt_stat "
--					"global_default_cipher_key_size "
--					"set to: [%d]\n", mount_crypt_stat->
--					global_default_cipher_key_size);
- 			cipher_key_bytes_set = 1;
- 			break;
- 		case ecryptfs_opt_passthrough:
-@@ -356,11 +361,51 @@ static int ecryptfs_parse_options(struct
- 			mount_crypt_stat->flags |=
- 				ECRYPTFS_ENCRYPTED_VIEW_ENABLED;
- 			break;
-+		case ecryptfs_opt_fnek_sig:
-+			fnek_src = args[0].from;
-+			fnek_dst =
-+				mount_crypt_stat->global_default_fnek_sig;
-+			strncpy(fnek_dst, fnek_src, ECRYPTFS_SIG_SIZE_HEX);
-+			mount_crypt_stat->global_default_fnek_sig[
-+				ECRYPTFS_SIG_SIZE_HEX] = '\0';
-+			rc = ecryptfs_add_global_auth_tok(
-+				mount_crypt_stat,
-+				mount_crypt_stat->global_default_fnek_sig);
-+			if (rc) {
-+				printk(KERN_ERR "Error attempting to register "
-+				       "global fnek sig [%s]; rc = [%d]\n",
-+				       mount_crypt_stat->global_default_fnek_sig,
-+				       rc);
-+				goto out;
-+			}
-+			mount_crypt_stat->flags |=
-+				(ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES
-+				 | ECRYPTFS_GLOBAL_ENCFN_USE_MOUNT_FNEK);
-+			break;
-+		case ecryptfs_opt_fn_cipher:
-+			fn_cipher_name_src = args[0].from;
-+			fn_cipher_name_dst =
-+				mount_crypt_stat->global_default_fn_cipher_name;
-+			strncpy(fn_cipher_name_dst, fn_cipher_name_src,
-+				ECRYPTFS_MAX_CIPHER_NAME_SIZE);
-+			mount_crypt_stat->global_default_fn_cipher_name[
-+				ECRYPTFS_MAX_CIPHER_NAME_SIZE] = '\0';
-+			fn_cipher_name_set = 1;
-+			break;
-+		case ecryptfs_opt_fn_cipher_key_bytes:
-+			fn_cipher_key_bytes_src = args[0].from;
-+			fn_cipher_key_bytes =
-+				(int)simple_strtol(fn_cipher_key_bytes_src,
-+						   &fn_cipher_key_bytes_src, 0);
-+			mount_crypt_stat->global_default_fn_cipher_key_bytes =
-+				fn_cipher_key_bytes;
-+			fn_cipher_key_bytes_set = 1;
-+			break;
- 		case ecryptfs_opt_err:
- 		default:
--			ecryptfs_printk(KERN_WARNING,
--					"eCryptfs: unrecognized option '%s'\n",
--					p);
-+			printk(KERN_WARNING
-+			       "%s: eCryptfs: unrecognized option [%s]\n",
-+			       __func__, p);
+diff -puN drivers/usb/misc/emi26.c~usb-emi26-fix-oops-on-load drivers/usb/misc/emi26.c
+--- a/drivers/usb/misc/emi26.c~usb-emi26-fix-oops-on-load
++++ a/drivers/usb/misc/emi26.c
+@@ -160,7 +160,7 @@ static int emi26_load_firmware (struct u
+ 			err("%s - error loading firmware: error = %d", __func__, err);
+ 			goto wraperr;
  		}
- 	}
- 	if (!sig_set) {
-@@ -374,33 +419,60 @@ static int ecryptfs_parse_options(struct
- 		int cipher_name_len = strlen(ECRYPTFS_DEFAULT_CIPHER);
+-	} while (i > 0);
++	} while (rec);
  
- 		BUG_ON(cipher_name_len >= ECRYPTFS_MAX_CIPHER_NAME_SIZE);
--
- 		strcpy(mount_crypt_stat->global_default_cipher_name,
- 		       ECRYPTFS_DEFAULT_CIPHER);
- 	}
--	if (!cipher_key_bytes_set) {
-+	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)
-+	    && !fn_cipher_name_set)
-+		strcpy(mount_crypt_stat->global_default_fn_cipher_name,
-+		       mount_crypt_stat->global_default_cipher_name);
-+	if (!cipher_key_bytes_set)
- 		mount_crypt_stat->global_default_cipher_key_size = 0;
--	}
-+	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)
-+	    && !fn_cipher_key_bytes_set)
-+		mount_crypt_stat->global_default_fn_cipher_key_bytes =
-+			mount_crypt_stat->global_default_cipher_key_size;
- 	mutex_lock(&key_tfm_list_mutex);
- 	if (!ecryptfs_tfm_exists(mount_crypt_stat->global_default_cipher_name,
--				 NULL))
-+				 NULL)) {
- 		rc = ecryptfs_add_new_key_tfm(
- 			NULL, mount_crypt_stat->global_default_cipher_name,
- 			mount_crypt_stat->global_default_cipher_key_size);
--	mutex_unlock(&key_tfm_list_mutex);
--	if (rc) {
--		printk(KERN_ERR "Error attempting to initialize cipher with "
--		       "name = [%s] and key size = [%td]; rc = [%d]\n",
--		       mount_crypt_stat->global_default_cipher_name,
--		       mount_crypt_stat->global_default_cipher_key_size, rc);
--		rc = -EINVAL;
--		goto out;
-+		if (rc) {
-+			printk(KERN_ERR "Error attempting to initialize "
-+			       "cipher with name = [%s] and key size = [%td]; "
-+			       "rc = [%d]\n",
-+			       mount_crypt_stat->global_default_cipher_name,
-+			       mount_crypt_stat->global_default_cipher_key_size,
-+			       rc);
-+			rc = -EINVAL;
-+			mutex_unlock(&key_tfm_list_mutex);
-+			goto out;
-+		}
- 	}
-+	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)
-+	    && !ecryptfs_tfm_exists(
-+		    mount_crypt_stat->global_default_fn_cipher_name, NULL)) {
-+		rc = ecryptfs_add_new_key_tfm(
-+			NULL, mount_crypt_stat->global_default_fn_cipher_name,
-+			mount_crypt_stat->global_default_fn_cipher_key_bytes);
-+		if (rc) {
-+			printk(KERN_ERR "Error attempting to initialize "
-+			       "cipher with name = [%s] and key size = [%td]; "
-+			       "rc = [%d]\n",
-+			       mount_crypt_stat->global_default_fn_cipher_name,
-+			       mount_crypt_stat->global_default_fn_cipher_key_bytes,
-+			       rc);
-+			rc = -EINVAL;
-+			mutex_unlock(&key_tfm_list_mutex);
-+			goto out;
-+		}
-+	}
-+	mutex_unlock(&key_tfm_list_mutex);
- 	rc = ecryptfs_init_global_auth_toks(mount_crypt_stat);
--	if (rc) {
-+	if (rc)
- 		printk(KERN_WARNING "One or more global auth toks could not "
- 		       "properly register; rc = [%d]\n", rc);
--	}
- out:
- 	return rc;
- }
+ 	/* Assert reset (stop the CPU in the EMI) */
+ 	err = emi26_set_reset(dev,1);
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-notify_change-callers-must-hold-i_mutex.patch
+linux-next.patch
 
