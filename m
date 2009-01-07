@@ -1,69 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:17:51 -0800
-Message-ID: <200901072217.n07MHpAR017431@imap1.linux-foundation.org>
+Subject: - kprobes-indirectly-call-kprobe_target.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:17:54 -0800
+Message-ID: <200901072217.n07MHs6W017470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762294AbZAGWTD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:19:03 -0500
+	by vger.kernel.org with ESMTP id S1762289AbZAGWTC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:19:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhiramat@redhat.com, ananth@in.ibm.com, h-shimamoto@ct.jp.nec.com, laijs@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, jkenisto@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: bugfix: try_module_get even if calling_mod is NULL
+     kprobes: indirectly call kprobe_target
 has been removed from the -mm tree.  Its filename was
-     kprobes-bugfix-try_module_get-even-if-calling_mod-is-null.patch
+     kprobes-indirectly-call-kprobe_target.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: bugfix: try_module_get even if calling_mod is NULL
+Subject: kprobes: indirectly call kprobe_target
 From: Masami Hiramatsu <mhiramat@redhat.com>
 
-When someone called register_*probe() from kernel-core code(not from
-module) and that probes a kernel module, users can remove the probed
-module because kprobe doesn't increment reference counter of the module. 
-(on the other hand, if the kernel-module calls register_*probe, kprobe
-increments refcount of the probed module.)
+Call kprobe_target indirectly.  This prevents gcc to unroll a noinline
+function in caller function.
 
-Currently, we have no register_*probe() calling from kernel-core(except
-smoke-test, but the smoke-test doesn't probe module), so there is no real
-bugs.  But the logic is wrong(or not fair) and it can causes a problem
-when someone might want to probe module from kernel.
-
-After this patch is applied, even if someone put register_*probe() call in
-the kernel-core code, it increments the reference counter of the probed
-module, and it prevents user to remove the module until stopping probing
-it.
+I ported patches which had been discussed on
+http://sources.redhat.com/bugzilla/show_bug.cgi?id=3542
 
 Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/test_kprobes.c |   21 ++++++---------------
+ 1 file changed, 6 insertions(+), 15 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-bugfix-try_module_get-even-if-calling_mod-is-null kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-bugfix-try_module_get-even-if-calling_mod-is-null
-+++ a/kernel/kprobes.c
-@@ -634,7 +634,7 @@ static int __kprobes __register_kprobe(s
- 		 * avoid incrementing the module refcount, so as to allow
- 		 * unloading of self probing modules.
- 		 */
--		if (calling_mod && calling_mod != probed_mod) {
-+		if (calling_mod != probed_mod) {
- 			if (unlikely(!try_module_get(probed_mod))) {
- 				preempt_enable();
- 				return -EINVAL;
+diff -puN kernel/test_kprobes.c~kprobes-indirectly-call-kprobe_target kernel/test_kprobes.c
+--- a/kernel/test_kprobes.c~kprobes-indirectly-call-kprobe_target
++++ a/kernel/test_kprobes.c
+@@ -22,21 +22,10 @@
+ 
+ static u32 rand1, preh_val, posth_val, jph_val;
+ static int errors, handler_errors, num_tests;
++static u32 (*target)(u32 value);
+ 
+ static noinline u32 kprobe_target(u32 value)
+ {
+-	/*
+-	 * gcc ignores noinline on some architectures unless we stuff
+-	 * sufficient lard into the function. The get_kprobe() here is
+-	 * just for that.
+-	 *
+-	 * NOTE: We aren't concerned about the correctness of get_kprobe()
+-	 * here; hence, this call is neither under !preempt nor with the
+-	 * kprobe_mutex held. This is fine(tm)
+-	 */
+-	if (get_kprobe((void *)0xdeadbeef))
+-		printk(KERN_INFO "Kprobe smoke test: probe on 0xdeadbeef!\n");
+-
+ 	return (value / div_factor);
+ }
+ 
+@@ -74,7 +63,7 @@ static int test_kprobe(void)
+ 		return ret;
+ 	}
+ 
+-	ret = kprobe_target(rand1);
++	ret = target(rand1);
+ 	unregister_kprobe(&kp);
+ 
+ 	if (preh_val == 0) {
+@@ -121,7 +110,7 @@ static int test_jprobe(void)
+ 		return ret;
+ 	}
+ 
+-	ret = kprobe_target(rand1);
++	ret = target(rand1);
+ 	unregister_jprobe(&jp);
+ 	if (jph_val == 0) {
+ 		printk(KERN_ERR "Kprobe smoke test failed: "
+@@ -177,7 +166,7 @@ static int test_kretprobe(void)
+ 		return ret;
+ 	}
+ 
+-	ret = kprobe_target(rand1);
++	ret = target(rand1);
+ 	unregister_kretprobe(&rp);
+ 	if (krph_val != rand1) {
+ 		printk(KERN_ERR "Kprobe smoke test failed: "
+@@ -193,6 +182,8 @@ int init_test_probes(void)
+ {
+ 	int ret;
+ 
++	target = kprobe_target;
++
+ 	do {
+ 		rand1 = random32();
+ 	} while (rand1 <= div_factor);
 _
 
 Patches currently in -mm which might be from mhiramat@redhat.com are
