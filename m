@@ -1,70 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - pid-implement-ns_of_pid-update.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 15:21:51 -0800
-Message-ID: <200901072321.n07NLpb9005573@imap1.linux-foundation.org>
+Subject: - w1-add-1-wire-master-driver-for-imx27-imx31-update.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 15:22:42 -0800
+Message-ID: <200901072322.n07NMgQx006252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33329 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754357AbZAGXVy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:21:54 -0500
+	by vger.kernel.org with ESMTP id S1752654AbZAGXXK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:23:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, sukadev@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: s.hauer@pengutronix.de, l.fu@pengutronix.de, rmk@arm.linux.org.uk, zbr@ioremap.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pid: Implement ns_of_pid (update)
+     Add 1-wire master driver for i.MX27 / i.MX31 (update)
 has been removed from the -mm tree.  Its filename was
-     pid-implement-ns_of_pid-update.patch
+     w1-add-1-wire-master-driver-for-imx27-imx31-update.patch
 
-This patch was dropped because it was folded into pid-implement-ns_of_pid.patch
+This patch was dropped because it was folded into w1-add-1-wire-master-driver-for-imx27-imx31.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pid: Implement ns_of_pid (update)
-From: Eric Biederman <ebiederm@xmission.com>
+Subject: Add 1-wire master driver for i.MX27 / i.MX31 (update)
+From: Sascha Hauer <s.hauer@pengutronix.de>
 
-- Add a note in function header of ns_of_pid() re: NULL pid.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Signed-off-by: Luotao Fu <l.fu@pengutronix.de>
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ Documentation/w1/masters/00-INDEX |    2 +
+ Documentation/w1/masters/mxc-w1   |   11 +++++++
+ drivers/w1/masters/mxc_w1.c       |   40 ++++++++++++----------------
+ 3 files changed, 31 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/pid.h~pid-implement-ns_of_pid-update include/linux/pid.h
---- a/include/linux/pid.h~pid-implement-ns_of_pid-update
-+++ a/include/linux/pid.h
-@@ -122,8 +122,15 @@ int next_pidmap(struct pid_namespace *pi
- extern struct pid *alloc_pid(struct pid_namespace *ns);
- extern void free_pid(struct pid *pid);
+diff -puN Documentation/w1/masters/00-INDEX~w1-add-1-wire-master-driver-for-imx27-imx31-update Documentation/w1/masters/00-INDEX
+--- a/Documentation/w1/masters/00-INDEX~w1-add-1-wire-master-driver-for-imx27-imx31-update
++++ a/Documentation/w1/masters/00-INDEX
+@@ -4,5 +4,7 @@ ds2482
+ 	- The Maxim/Dallas Semiconductor DS2482 provides 1-wire busses.
+ ds2490
+ 	- The Maxim/Dallas Semiconductor DS2490 builds USB <-> W1 bridges.
++mxc_w1
++	- W1 master controller driver found on Freescale MX2/MX3 SoCs
+ w1-gpio
+ 	- GPIO 1-wire bus master driver.
+diff -puN /dev/null Documentation/w1/masters/mxc-w1
+--- /dev/null
++++ a/Documentation/w1/masters/mxc-w1
+@@ -0,0 +1,11 @@
++Kernel driver mxc_w1
++====================
++
++Supported chips:
++  * Freescale MX27, MX31 and probably other i.MX SoCs
++    Datasheets:
++        http://www.freescale.com/files/32bit/doc/data_sheet/MCIMX31.pdf?fpsp=1
++	http://www.freescale.com/files/dsp/MCIMX27.pdf?fpsp=1
++
++Author: Originally based on Freescale code, prepared for mainline by
++	Sascha Hauer <s.hauer@pengutronix.de>
+diff -puN drivers/w1/masters/mxc_w1.c~w1-add-1-wire-master-driver-for-imx27-imx31-update drivers/w1/masters/mxc_w1.c
+--- a/drivers/w1/masters/mxc_w1.c~w1-add-1-wire-master-driver-for-imx27-imx31-update
++++ a/drivers/w1/masters/mxc_w1.c
+@@ -47,7 +47,7 @@ struct mxc_w1_device {
+ 	void __iomem *regs;
+ 	unsigned int clkdiv;
+ 	struct clk *clk;
+-	struct w1_bus_master *bus_master;
++	struct w1_bus_master bus_master;
+ };
  
--/* ns_of_pid returns the pid namespace in which the specified
-- * pid was allocated.
-+/*
-+ * ns_of_pid() returns the pid namespace in which the specified pid was
-+ * allocated.
-+ *
-+ * NOTE:
-+ * 	ns_of_pid() is expected to be called for a process (task) that has
-+ * 	an attached 'struct pid' (see attach_pid(), detach_pid()) i.e @pid
-+ * 	is expected to be non-NULL. If @pid is NULL, caller should handle
-+ * 	the resulting NULL pid-ns.
+ /*
+@@ -57,10 +57,9 @@ struct mxc_w1_device {
   */
- static inline struct pid_namespace *ns_of_pid(struct pid *pid)
+ static u8 mxc_w1_ds2_reset_bus(void *data)
  {
+-	u8 reg_val, rc = 1;
++	u8 reg_val;
+ 	unsigned int timeout_cnt = 0;
+-
+-	struct mxc_w1_device *dev = (struct mxc_w1_device *)data;
++	struct mxc_w1_device *dev = data;
+ 
+ 	__raw_writeb(0x80, (dev->regs + MXC_W1_CONTROL));
+ 
+@@ -68,10 +67,9 @@ static u8 mxc_w1_ds2_reset_bus(void *dat
+ 		reg_val = __raw_readb(dev->regs + MXC_W1_CONTROL);
+ 
+ 		if (((reg_val >> 7) & 0x1) == 0 ||
+-		    timeout_cnt > MXC_W1_RESET_TIMEOUT) {
+-			rc = 0;
++		    timeout_cnt > MXC_W1_RESET_TIMEOUT)
+ 			break;
+-		} else
++		else
+ 			timeout_cnt++;
+ 
+ 		udelay(100);
+@@ -86,10 +84,11 @@ static u8 mxc_w1_ds2_reset_bus(void *dat
+  */
+ static u8 mxc_w1_ds2_touch_bit(void *data, u8 bit)
+ {
+-	unsigned int timeout_cnt = 400;
+-
+-	struct mxc_w1_device *mdev = (struct mxc_w1_device *)data;
++	struct mxc_w1_device *mdev = data;
+ 	void __iomem *ctrl_addr = mdev->regs + MXC_W1_CONTROL;
++	unsigned int timeout_cnt = 400; /* Takes max. 120us according to
++					 * datasheet.
++					 */
+ 
+ 	__raw_writeb((1 << (5 - bit)), ctrl_addr);
+ 
+@@ -103,7 +102,7 @@ static u8 mxc_w1_ds2_touch_bit(void *dat
+ 	return ((__raw_readb(ctrl_addr)) >> 3) & 0x1;
+ }
+ 
+-static int __devinit mxc_w1_probe(struct platform_device *pdev)
++static int __init mxc_w1_probe(struct platform_device *pdev)
+ {
+ 	struct mxc_w1_device *mdev;
+ 	struct resource *res;
+@@ -113,9 +112,7 @@ static int __devinit mxc_w1_probe(struct
+ 	if (!res)
+ 		return -ENODEV;
+ 
+-	mdev = kzalloc(sizeof(struct mxc_w1_device) +
+-		      sizeof(struct w1_bus_master), GFP_KERNEL);
+-
++	mdev = kzalloc(sizeof(struct mxc_w1_device), GFP_KERNEL);
+ 	if (!mdev)
+ 		return -ENOMEM;
+ 
+@@ -125,7 +122,6 @@ static int __devinit mxc_w1_probe(struct
+ 		goto failed_clk;
+ 	}
+ 
+-	mdev->bus_master = (struct w1_bus_master *)(mdev + 1);
+ 	mdev->clkdiv = (clk_get_rate(mdev->clk) / 1000000) - 1;
+ 
+ 	res = request_mem_region(res->start, resource_size(res),
+@@ -137,18 +133,18 @@ static int __devinit mxc_w1_probe(struct
+ 
+ 	mdev->regs = ioremap(res->start, resource_size(res));
+ 	if (!mdev->regs) {
+-		printk(KERN_ERR"Cannot map frame buffer registers\n");
++		printk(KERN_ERR "Cannot map frame buffer registers\n");
+ 		goto failed_ioremap;
+ 	}
+ 
+ 	clk_enable(mdev->clk);
+ 	__raw_writeb(mdev->clkdiv, mdev->regs + MXC_W1_TIME_DIVIDER);
+ 
+-	mdev->bus_master->data = mdev;
+-	mdev->bus_master->reset_bus = &mxc_w1_ds2_reset_bus;
+-	mdev->bus_master->touch_bit = &mxc_w1_ds2_touch_bit;
++	mdev->bus_master.data = mdev;
++	mdev->bus_master.reset_bus = mxc_w1_ds2_reset_bus;
++	mdev->bus_master.touch_bit = mxc_w1_ds2_touch_bit;
+ 
+-	err = w1_add_master_device(mdev->bus_master);
++	err = w1_add_master_device(&mdev->bus_master);
+ 
+ 	if (err)
+ 		goto failed_add;
+@@ -177,7 +173,7 @@ static int mxc_w1_remove(struct platform
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 
+-	w1_remove_master_device(mdev->bus_master);
++	w1_remove_master_device(&mdev->bus_master);
+ 
+ 	iounmap(mdev->regs);
+ 	release_mem_region(res->start, resource_size(res));
+@@ -192,7 +188,7 @@ static int mxc_w1_remove(struct platform
+ static struct platform_driver mxc_w1_driver = {
+ 	.driver = {
+ 		   .name = "mxc_w1",
+-		   },
++	},
+ 	.probe = mxc_w1_probe,
+ 	.remove = mxc_w1_remove,
+ };
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from s.hauer@pengutronix.de are
 
 origin.patch
-pid-implement-ns_of_pid.patch
-pid-implement-ns_of_pid-update.patch
-pid-generalize-task_active_pid_ns.patch
-mqueue-fix-si_pid-value-in-mqueue-do_notify.patch
-vmcore-remove-saved_max_pfn-check.patch
+w1-add-1-wire-master-driver-for-imx27-imx31.patch
+w1-add-1-wire-master-driver-for-imx27-imx31-update.patch
 
