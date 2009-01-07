@@ -1,192 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - badpage-remove-vma-from-page_remove_rmap.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:14:09 -0800
-Message-ID: <200901072214.n07ME9Y0014112@imap1.linux-foundation.org>
+Subject: - introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:14:48 -0800
+Message-ID: <200901072214.n07MEm6A014674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60156 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45067 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761634AbZAGWO7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:59 -0500
+	by vger.kernel.org with ESMTP id S1761941AbZAGWPM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, balbir@linux.vnet.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     badpage: remove vma from page_remove_rmap
+     mm: introduce get_mm_hiwater_xxx(), fix taskstats->hiwater_xxx accounting
 has been removed from the -mm tree.  Its filename was
-     badpage-remove-vma-from-page_remove_rmap.patch
+     introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: badpage: remove vma from page_remove_rmap
-From: Hugh Dickins <hugh@veritas.com>
+Subject: mm: introduce get_mm_hiwater_xxx(), fix taskstats->hiwater_xxx accounting
+From: Oleg Nesterov <oleg@redhat.com>
 
-Remove page_remove_rmap()'s vma arg, which was only for the Eeek message. 
-And remove the BUG_ON(page_mapcount(page) == 0) from CONFIG_DEBUG_VM's
-page_dup_rmap(): we're trying to be more resilient about that than BUGs.
+xacct_add_tsk() relies on do_exit()->update_hiwater_xxx() and uses
+mm->hiwater_xxx directly, this leads to 2 problems:
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
+- taskstats_user_cmd() can call fill_pid()->xacct_add_tsk() at any
+  moment before the task exits, so we should check the current values of
+  rss/vm anyway.
+
+- do_exit()->update_hiwater_xxx() calls are racy.  An exiting thread can
+  be preempted right before mm->hiwater_xxx = new_val, and another thread
+  can use A_LOT of memory and exit in between.  When the first thread
+  resumes it can be the last thread in the thread group, in that case we
+  report the wrong hiwater_xxx values which do not take A_LOT into
+  account.
+
+Introduce get_mm_hiwater_rss() and get_mm_hiwater_vm() helpers and change
+xacct_add_tsk() to use them.  The first helper will also be used by
+rusage->ru_maxrss accounting.
+
+Kill do_exit()->update_hiwater_xxx() calls.  Unless we are going to
+decrease rss/vm there is no point to update mm->hiwater_xxx, and nobody
+can look at this mm_struct when exit_mmap() actually unmaps the memory.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Hugh Dickins <hugh@veritas.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 +-
- mm/filemap_xip.c     |    2 +-
- mm/fremap.c          |    2 +-
- mm/memory.c          |    4 ++--
- mm/rmap.c            |    8 +++-----
- 5 files changed, 8 insertions(+), 10 deletions(-)
+ include/linux/sched.h |    3 +++
+ kernel/exit.c         |    5 +----
+ kernel/tsacct.c       |    4 ++--
+ mm/mmap.c             |    2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/rmap.h~badpage-remove-vma-from-page_remove_rmap include/linux/rmap.h
---- a/include/linux/rmap.h~badpage-remove-vma-from-page_remove_rmap
-+++ a/include/linux/rmap.h
-@@ -69,7 +69,7 @@ void __anon_vma_link(struct vm_area_stru
- void page_add_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
- void page_add_new_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
- void page_add_file_rmap(struct page *);
--void page_remove_rmap(struct page *, struct vm_area_struct *);
-+void page_remove_rmap(struct page *);
+diff -puN include/linux/sched.h~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting include/linux/sched.h
+--- a/include/linux/sched.h~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting
++++ a/include/linux/sched.h
+@@ -386,6 +386,9 @@ extern void arch_unmap_area_topdown(stru
+ 		(mm)->hiwater_vm = (mm)->total_vm;	\
+ } while (0)
  
- #ifdef CONFIG_DEBUG_VM
- void page_dup_rmap(struct page *page, struct vm_area_struct *vma, unsigned long address);
-diff -puN mm/filemap_xip.c~badpage-remove-vma-from-page_remove_rmap mm/filemap_xip.c
---- a/mm/filemap_xip.c~badpage-remove-vma-from-page_remove_rmap
-+++ a/mm/filemap_xip.c
-@@ -193,7 +193,7 @@ retry:
- 			/* Nuke the page table entry. */
- 			flush_cache_page(vma, address, pte_pfn(*pte));
- 			pteval = ptep_clear_flush_notify(vma, address, pte);
--			page_remove_rmap(page, vma);
-+			page_remove_rmap(page);
- 			dec_mm_counter(mm, file_rss);
- 			BUG_ON(pte_dirty(pteval));
- 			pte_unmap_unlock(pte, ptl);
-diff -puN mm/fremap.c~badpage-remove-vma-from-page_remove_rmap mm/fremap.c
---- a/mm/fremap.c~badpage-remove-vma-from-page_remove_rmap
-+++ a/mm/fremap.c
-@@ -37,7 +37,7 @@ static void zap_pte(struct mm_struct *mm
- 		if (page) {
- 			if (pte_dirty(pte))
- 				set_page_dirty(page);
--			page_remove_rmap(page, vma);
-+			page_remove_rmap(page);
- 			page_cache_release(page);
- 			update_hiwater_rss(mm);
- 			dec_mm_counter(mm, file_rss);
-diff -puN mm/memory.c~badpage-remove-vma-from-page_remove_rmap mm/memory.c
---- a/mm/memory.c~badpage-remove-vma-from-page_remove_rmap
-+++ a/mm/memory.c
-@@ -798,7 +798,7 @@ static unsigned long zap_pte_range(struc
- 					mark_page_accessed(page);
- 				file_rss--;
- 			}
--			page_remove_rmap(page, vma);
-+			page_remove_rmap(page);
- 			if (unlikely(page_mapcount(page) < 0))
- 				print_bad_pte(vma, addr, ptent, page);
- 			tlb_remove_page(tlb, page);
-@@ -2023,7 +2023,7 @@ gotten:
- 			 * mapcount is visible. So transitively, TLBs to
- 			 * old page will be flushed before it can be reused.
- 			 */
--			page_remove_rmap(old_page, vma);
-+			page_remove_rmap(old_page);
- 		}
++#define get_mm_hiwater_rss(mm)	max((mm)->hiwater_rss, get_mm_rss(mm))
++#define get_mm_hiwater_vm(mm)	max((mm)->hiwater_vm, (mm)->total_vm)
++
+ extern void set_dumpable(struct mm_struct *mm, int value);
+ extern int get_dumpable(struct mm_struct *mm);
  
- 		/* Free the old page.. */
-diff -puN mm/rmap.c~badpage-remove-vma-from-page_remove_rmap mm/rmap.c
---- a/mm/rmap.c~badpage-remove-vma-from-page_remove_rmap
-+++ a/mm/rmap.c
-@@ -707,7 +707,6 @@ void page_add_file_rmap(struct page *pag
-  */
- void page_dup_rmap(struct page *page, struct vm_area_struct *vma, unsigned long address)
- {
--	BUG_ON(page_mapcount(page) == 0);
- 	if (PageAnon(page))
- 		__page_check_anon_rmap(page, vma, address);
- 	atomic_inc(&page->_mapcount);
-@@ -717,11 +716,10 @@ void page_dup_rmap(struct page *page, st
- /**
-  * page_remove_rmap - take down pte mapping from a page
-  * @page: page to remove mapping from
-- * @vma: the vm area in which the mapping is removed
-  *
-  * The caller needs to hold the pte lock.
-  */
--void page_remove_rmap(struct page *page, struct vm_area_struct *vma)
-+void page_remove_rmap(struct page *page)
- {
- 	if (atomic_add_negative(-1, &page->_mapcount)) {
- 		/*
-@@ -837,7 +835,7 @@ static int try_to_unmap_one(struct page 
- 		dec_mm_counter(mm, file_rss);
+diff -puN kernel/exit.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting kernel/exit.c
+--- a/kernel/exit.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting
++++ a/kernel/exit.c
+@@ -1051,10 +1051,7 @@ NORET_TYPE void do_exit(long code)
+ 				preempt_count());
  
- 
--	page_remove_rmap(page, vma);
-+	page_remove_rmap(page);
- 	page_cache_release(page);
- 
- out_unmap:
-@@ -952,7 +950,7 @@ static int try_to_unmap_cluster(unsigned
- 		if (pte_dirty(pteval))
- 			set_page_dirty(page);
- 
--		page_remove_rmap(page, vma);
-+		page_remove_rmap(page);
- 		page_cache_release(page);
- 		dec_mm_counter(mm, file_rss);
- 		(*mapcount)--;
+ 	acct_update_integrals(tsk);
+-	if (tsk->mm) {
+-		update_hiwater_rss(tsk->mm);
+-		update_hiwater_vm(tsk->mm);
+-	}
++
+ 	group_dead = atomic_dec_and_test(&tsk->signal->live);
+ 	if (group_dead) {
+ 		hrtimer_cancel(&tsk->signal->real_timer);
+diff -puN kernel/tsacct.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting kernel/tsacct.c
+--- a/kernel/tsacct.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting
++++ a/kernel/tsacct.c
+@@ -92,8 +92,8 @@ void xacct_add_tsk(struct taskstats *sta
+ 	mm = get_task_mm(p);
+ 	if (mm) {
+ 		/* adjust to KB unit */
+-		stats->hiwater_rss   = mm->hiwater_rss * PAGE_SIZE / KB;
+-		stats->hiwater_vm    = mm->hiwater_vm * PAGE_SIZE / KB;
++		stats->hiwater_rss   = get_mm_hiwater_rss(mm) * PAGE_SIZE / KB;
++		stats->hiwater_vm    = get_mm_hiwater_vm(mm)  * PAGE_SIZE / KB;
+ 		mmput(mm);
+ 	}
+ 	stats->read_char	= p->ioac.rchar;
+diff -puN mm/mmap.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting mm/mmap.c
+--- a/mm/mmap.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting
++++ a/mm/mmap.c
+@@ -2102,7 +2102,7 @@ void exit_mmap(struct mm_struct *mm)
+ 	lru_add_drain();
+ 	flush_cache_mm(mm);
+ 	tlb = tlb_gather_mmu(mm, 1);
+-	/* Don't update_hiwater_rss(mm) here, do_exit already did */
++	/* update_hiwater_rss(mm) here? but nobody should be looking */
+ 	/* Use -1 here to ensure all VMAs in the mm are unmapped */
+ 	end = unmap_vmas(&tlb, vma, 0, -1, &nr_accounted, NULL);
+ 	vm_unacct_memory(nr_accounted);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
-mark-complex-bitopsh-inlines-as-__always_inline.patch
-clocksource-pass-clocksource-to-read-callback.patch
-clocksource-pass-clocksource-to-read-callback-sparc-cleanup.patch
-bio-zero-inlined-bio_vec.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-shmemc-fix-division-by-zero.patch
 getrusage-fill-ru_maxrss-value.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-mm-make-get_scan_ratio-safe-for-memcg.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
-memcg-remove-mem_cgroup_cal_reclaim.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-explain-details-and-test-document.patch
-memcg-fix-swap-accounting-leak-v3.patch
-memcg-fix-swap-accounting-leak-doc-fix.patch
-memcg-fix-shmems-swap-accounting.patch
-prio_tree-debugging-patch.patch
+pid-implement-ns_of_pid.patch
+pid-generalize-task_active_pid_ns.patch
+mqueue-fix-si_pid-value-in-mqueue-do_notify.patch
 
