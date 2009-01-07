@@ -1,227 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-remove-called_from-argument.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:18:08 -0800
-Message-ID: <200901072218.n07MI8dO017625@imap1.linux-foundation.org>
+Subject: - ecryptfs-clean-up-ecryptfs_decode_from_filename.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:18:35 -0800
+Message-ID: <200901072218.n07MIZft018046@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41526 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755718AbZAGWTQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:19:16 -0500
+	by vger.kernel.org with ESMTP id S1762033AbZAGWTk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:19:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, dustin.kirkland@gmail.com, sandeen@redhat.com, shaggy@us.ibm.com, tchicks@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: remove called_from argument
+     eCryptfs: Clean up ecryptfs_decode_from_filename()
 has been removed from the -mm tree.  Its filename was
-     kprobes-remove-called_from-argument.patch
+     ecryptfs-clean-up-ecryptfs_decode_from_filename.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: remove called_from argument
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: eCryptfs: Clean up ecryptfs_decode_from_filename()
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Remove called_from argument from kprobes which had been used for
-preventing self-refering of kernel module.  However, since we don't keep
-module's refcount after registering kprobe any more, there is no reason to
-check that.
+Flesh out the comments for ecryptfs_decode_from_filename(). Remove the
+return condition, since it is always 0.
 
-This patch also simplifies registering/unregistering functions because we
-don't need to use __builtin_return_address(0) which was passed to
-called_from.
-
-[ananth@in.ibm.com: build fix]
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Dustin Kirkland <dustin.kirkland@gmail.com>
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Tyler Hicks <tchicks@us.ibm.com>
+Cc: David Kleikamp <shaggy@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |   72 ++++++++-------------------------------------
- 1 file changed, 14 insertions(+), 58 deletions(-)
+ fs/ecryptfs/crypto.c |   51 +++++++++++++++++++----------------------
+ 1 file changed, 24 insertions(+), 27 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-remove-called_from-argument kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-remove-called_from-argument
-+++ a/kernel/kprobes.c
-@@ -644,8 +644,7 @@ static kprobe_opcode_t __kprobes *kprobe
- 	return (kprobe_opcode_t *)(((char *)addr) + p->offset);
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-clean-up-ecryptfs_decode_from_filename fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-clean-up-ecryptfs_decode_from_filename
++++ a/fs/ecryptfs/crypto.c
+@@ -1931,7 +1931,7 @@ static unsigned char *portable_filename_
+ 
+ /* We could either offset on every reverse map or just pad some 0x00's
+  * at the front here */
+-static unsigned char filename_rev_map[] = {
++static const unsigned char filename_rev_map[] = {
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 7 */
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 15 */
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 23 */
+@@ -2012,16 +2012,30 @@ out:
+ 	return;
  }
  
--static int __kprobes __register_kprobe(struct kprobe *p,
--	unsigned long called_from)
-+int __kprobes register_kprobe(struct kprobe *p)
+-int ecryptfs_decode_from_filename(unsigned char *dst, size_t *dst_size,
+-				  const unsigned char *src, size_t src_size)
++/**
++ * ecryptfs_decode_from_filename
++ * @dst: If NULL, this function only sets @dst_size and returns. If
++ *       non-NULL, this function decodes the encoded octets in @src
++ *       into the memory that @dst points to.
++ * @dst_size: Set to the size of the decoded string.
++ * @src: The encoded set of octets to decode.
++ * @src_size: The size of the encoded set of octets to decode.
++ */
++static void
++ecryptfs_decode_from_filename(unsigned char *dst, size_t *dst_size,
++			      const unsigned char *src, size_t src_size)
  {
- 	int ret = 0;
- 	struct kprobe *old_p;
-@@ -670,19 +669,14 @@ static int __kprobes __register_kprobe(s
- 	 */
- 	probed_mod = __module_text_address((unsigned long) p->addr);
- 	if (probed_mod) {
--		struct module *calling_mod;
--		calling_mod = __module_text_address(called_from);
- 		/*
- 		 * We must hold a refcount of the probed module while updating
- 		 * its code to prohibit unexpected unloading.
- 		 */
--		if (calling_mod != probed_mod) {
--			if (unlikely(!try_module_get(probed_mod))) {
--				preempt_enable();
--				return -EINVAL;
--			}
--		} else
--			probed_mod = NULL;
-+		if (unlikely(!try_module_get(probed_mod))) {
-+			preempt_enable();
-+			return -EINVAL;
-+		}
+ 	u8 current_bit_offset = 0;
+ 	size_t src_byte_offset = 0;
+ 	size_t dst_byte_offset = 0;
+-	int rc = 0;
+ 
+ 	if (dst == NULL) {
+-		/* Not exact; conservatively long */
++		/* Not exact; conservatively long. Every block of 4
++		 * encoded characters decodes into a block of 3
++		 * decoded characters. This segment of code provides
++		 * the caller with the maximum amount of allocated
++		 * space that @dst will need to point to in a
++		 * subsequent call. */
+ 		(*dst_size) = (((src_size + 1) * 3) / 4);
+ 		goto out;
  	}
- 	preempt_enable();
- 
-@@ -776,15 +770,14 @@ static void __kprobes __unregister_kprob
+@@ -2055,7 +2069,7 @@ int ecryptfs_decode_from_filename(unsign
  	}
+ 	(*dst_size) = dst_byte_offset;
+ out:
+-	return rc;
++	return;
  }
  
--static int __kprobes __register_kprobes(struct kprobe **kps, int num,
--	unsigned long called_from)
-+int __kprobes register_kprobes(struct kprobe **kps, int num)
- {
- 	int i, ret = 0;
+ /**
+@@ -2208,16 +2222,8 @@ int ecryptfs_decode_and_decrypt_filename
  
- 	if (num <= 0)
- 		return -EINVAL;
- 	for (i = 0; i < num; i++) {
--		ret = __register_kprobe(kps[i], called_from);
-+		ret = register_kprobe(kps[i]);
- 		if (ret < 0) {
- 			if (i > 0)
- 				unregister_kprobes(kps, i);
-@@ -794,26 +787,11 @@ static int __kprobes __register_kprobes(
- 	return ret;
- }
- 
--/*
-- * Registration and unregistration functions for kprobe.
-- */
--int __kprobes register_kprobe(struct kprobe *p)
--{
--	return __register_kprobes(&p, 1,
--				  (unsigned long)__builtin_return_address(0));
--}
--
- void __kprobes unregister_kprobe(struct kprobe *p)
- {
- 	unregister_kprobes(&p, 1);
- }
- 
--int __kprobes register_kprobes(struct kprobe **kps, int num)
--{
--	return __register_kprobes(kps, num,
--				  (unsigned long)__builtin_return_address(0));
--}
--
- void __kprobes unregister_kprobes(struct kprobe **kps, int num)
- {
- 	int i;
-@@ -842,8 +820,7 @@ unsigned long __weak arch_deref_entry_po
- 	return (unsigned long)entry;
- }
- 
--static int __kprobes __register_jprobes(struct jprobe **jps, int num,
--	unsigned long called_from)
-+int __kprobes register_jprobes(struct jprobe **jps, int num)
- {
- 	struct jprobe *jp;
- 	int ret = 0, i;
-@@ -861,7 +838,7 @@ static int __kprobes __register_jprobes(
- 			/* Todo: Verify probepoint is a function entry point */
- 			jp->kp.pre_handler = setjmp_pre_handler;
- 			jp->kp.break_handler = longjmp_break_handler;
--			ret = __register_kprobe(&jp->kp, called_from);
-+			ret = register_kprobe(&jp->kp);
+ 		name += ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX_SIZE;
+ 		name_size -= ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX_SIZE;
+-		rc = ecryptfs_decode_from_filename(NULL, &decoded_name_size,
+-						   name, name_size);
+-		if (rc) {
+-			printk(KERN_ERR "%s: Error attempting to decode "
+-			       "filename; rc = [%d]\n", __func__, rc);
+-			rc = ecryptfs_copy_filename(plaintext_name,
+-						    plaintext_name_size,
+-						    orig_name, orig_name_size);
+-			goto out;
+-		}
++		ecryptfs_decode_from_filename(NULL, &decoded_name_size,
++					      name, name_size);
+ 		decoded_name = kmalloc(decoded_name_size, GFP_KERNEL);
+ 		if (!decoded_name) {
+ 			printk(KERN_ERR "%s: Out of memory whilst attempting "
+@@ -2226,17 +2232,8 @@ int ecryptfs_decode_and_decrypt_filename
+ 			rc = -ENOMEM;
+ 			goto out;
  		}
- 		if (ret < 0) {
- 			if (i > 0)
-@@ -874,8 +851,7 @@ static int __kprobes __register_jprobes(
- 
- int __kprobes register_jprobe(struct jprobe *jp)
- {
--	return __register_jprobes(&jp, 1,
--		(unsigned long)__builtin_return_address(0));
-+	return register_jprobes(&jp, 1);
- }
- 
- void __kprobes unregister_jprobe(struct jprobe *jp)
-@@ -883,12 +859,6 @@ void __kprobes unregister_jprobe(struct 
- 	unregister_jprobes(&jp, 1);
- }
- 
--int __kprobes register_jprobes(struct jprobe **jps, int num)
--{
--	return __register_jprobes(jps, num,
--		(unsigned long)__builtin_return_address(0));
--}
--
- void __kprobes unregister_jprobes(struct jprobe **jps, int num)
- {
- 	int i;
-@@ -951,8 +921,7 @@ static int __kprobes pre_handler_kretpro
- 	return 0;
- }
- 
--static int __kprobes __register_kretprobe(struct kretprobe *rp,
--					  unsigned long called_from)
-+int __kprobes register_kretprobe(struct kretprobe *rp)
- {
- 	int ret = 0;
- 	struct kretprobe_instance *inst;
-@@ -998,21 +967,20 @@ static int __kprobes __register_kretprob
- 
- 	rp->nmissed = 0;
- 	/* Establish function entry probe point */
--	ret = __register_kprobe(&rp->kp, called_from);
-+	ret = register_kprobe(&rp->kp);
- 	if (ret != 0)
- 		free_rp_inst(rp);
- 	return ret;
- }
- 
--static int __kprobes __register_kretprobes(struct kretprobe **rps, int num,
--	unsigned long called_from)
-+int __kprobes register_kretprobes(struct kretprobe **rps, int num)
- {
- 	int ret = 0, i;
- 
- 	if (num <= 0)
- 		return -EINVAL;
- 	for (i = 0; i < num; i++) {
--		ret = __register_kretprobe(rps[i], called_from);
-+		ret = register_kretprobe(rps[i]);
- 		if (ret < 0) {
- 			if (i > 0)
- 				unregister_kretprobes(rps, i);
-@@ -1022,23 +990,11 @@ static int __kprobes __register_kretprob
- 	return ret;
- }
- 
--int __kprobes register_kretprobe(struct kretprobe *rp)
--{
--	return __register_kretprobes(&rp, 1,
--			(unsigned long)__builtin_return_address(0));
--}
--
- void __kprobes unregister_kretprobe(struct kretprobe *rp)
- {
- 	unregister_kretprobes(&rp, 1);
- }
- 
--int __kprobes register_kretprobes(struct kretprobe **rps, int num)
--{
--	return __register_kretprobes(rps, num,
--			(unsigned long)__builtin_return_address(0));
--}
+-		rc = ecryptfs_decode_from_filename(decoded_name,
+-						   &decoded_name_size,
+-						   name, name_size);
+-		if (rc) {
+-			printk(KERN_ERR "%s: Error attempting to decode "
+-			       "filename; rc = [%d]\n", __func__, rc);
+-			rc = ecryptfs_copy_filename(plaintext_name,
+-						    plaintext_name_size,
+-						    orig_name, orig_name_size);
+-			goto out_free;
+-		}
++		ecryptfs_decode_from_filename(decoded_name, &decoded_name_size,
++					      name, name_size);
+ 		rc = ecryptfs_parse_tag_70_packet(plaintext_name,
+ 						  plaintext_name_size,
+ 						  &packet_size,
+_
+
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+
+origin.patch
+notify_change-callers-must-hold-i_mutex.patch
+
