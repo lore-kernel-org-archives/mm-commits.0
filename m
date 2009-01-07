@@ -1,78 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - fs-execc-make-do_coredump-void.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:20:30 -0800
-Message-ID: <200901072220.n07MKU3p019739@imap1.linux-foundation.org>
+Subject: - autofs4-fix-string-validation-check-order.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:18:47 -0800
+Message-ID: <200901072218.n07MIlZH018190@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762983AbZAGWfd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:35:33 -0500
+	by vger.kernel.org with ESMTP id S1763147AbZAGWgI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:36:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangcong@zeuux.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: raven@themaw.net, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/exec.c: make do_coredump() void
+     autofs4: fix string validation check order
 has been removed from the -mm tree.  Its filename was
-     fs-execc-make-do_coredump-void.patch
+     autofs4-fix-string-validation-check-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/exec.c: make do_coredump() void
-From: WANG Cong <wangcong@zeuux.org>
+Subject: autofs4: fix string validation check order
+From: Ian Kent <raven@themaw.net>
 
-No one cares do_coredump()'s return value, and also it seems that it
-is also not necessary. So make it void.
+In function validate_dev_ioctl() we check that the string we've been sent
+is a valid path.  The function that does this check assumes the string is
+NULL terminated but our NULL termination check isn't done until after this
+call.  This patch changes the order of the check.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: WANG Cong <wangcong@zeuux.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Ian Kent <raven@themaw.net>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c               |    4 ++--
- include/linux/binfmts.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ fs/autofs4/dev-ioctl.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN fs/exec.c~fs-execc-make-do_coredump-void fs/exec.c
---- a/fs/exec.c~fs-execc-make-do_coredump-void
-+++ a/fs/exec.c
-@@ -1686,7 +1686,7 @@ int get_dumpable(struct mm_struct *mm)
- 	return (ret >= 2) ? 2 : ret;
- }
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-fix-string-validation-check-order fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-fix-string-validation-check-order
++++ a/fs/autofs4/dev-ioctl.c
+@@ -124,7 +124,7 @@ static inline void free_dev_ioctl(struct
  
--int do_coredump(long signr, int exit_code, struct pt_regs * regs)
-+void do_coredump(long signr, int exit_code, struct pt_regs *regs)
+ /*
+  * Check sanity of parameter control fields and if a path is present
+- * check that it has a "/" and is terminated.
++ * check that it is terminated and contains at least one "/".
+  */
+ static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
  {
- 	struct core_state core_state;
- 	char corename[CORENAME_MAX_SIZE + 1];
-@@ -1842,5 +1842,5 @@ fail_unlock:
- 	put_cred(cred);
- 	coredump_finish(mm);
- fail:
--	return retval;
-+	return;
- }
-diff -puN include/linux/binfmts.h~fs-execc-make-do_coredump-void include/linux/binfmts.h
---- a/include/linux/binfmts.h~fs-execc-make-do_coredump-void
-+++ a/include/linux/binfmts.h
-@@ -107,7 +107,7 @@ extern int setup_arg_pages(struct linux_
- extern int bprm_mm_init(struct linux_binprm *bprm);
- extern int copy_strings_kernel(int argc,char ** argv,struct linux_binprm *bprm);
- extern void install_exec_creds(struct linux_binprm *bprm);
--extern int do_coredump(long signr, int exit_code, struct pt_regs * regs);
-+extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
- extern int set_binfmt(struct linux_binfmt *new);
- extern void free_bprm(struct linux_binprm *);
+@@ -138,15 +138,16 @@ static int validate_dev_ioctl(int cmd, s
+ 	}
  
+ 	if (param->size > sizeof(*param)) {
+-		err = check_name(param->path);
++		err = invalid_str(param->path,
++				 (void *) ((size_t) param + param->size));
+ 		if (err) {
+-			AUTOFS_WARN("invalid path supplied for cmd(0x%08x)",
+-				    cmd);
++			AUTOFS_WARN(
++			  "path string terminator missing for cmd(0x%08x)",
++			  cmd);
+ 			goto out;
+ 		}
+ 
+-		err = invalid_str(param->path,
+-				 (void *) ((size_t) param + param->size));
++		err = check_name(param->path);
+ 		if (err) {
+ 			AUTOFS_WARN("invalid path supplied for cmd(0x%08x)",
+ 				    cmd);
 _
 
-Patches currently in -mm which might be from wangcong@zeuux.org are
+Patches currently in -mm which might be from raven@themaw.net are
 
 origin.patch
 
