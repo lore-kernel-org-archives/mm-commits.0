@@ -1,109 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - swapfile-swapon-randomize-if-nonrot.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:13:30 -0800
-Message-ID: <200901072213.n07MDUko013541@imap1.linux-foundation.org>
+Subject: - mm-reuse_swap_page-replaces-can_share_swap_page.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:12:39 -0800
+Message-ID: <200901072212.n07MCdrV012815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758852AbZAGWN4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:56 -0500
+	by vger.kernel.org with ESMTP id S1757743AbZAGWOK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, James.Bottomley@HansenPartnership.com, djshin90@gmail.com, dwmw2@infradead.org, jens.axboe@oracle.com, joern@logfs.org, kamezawa.hiroyu@jp.fujitsu.com, matthew@wil.cx
+To: hugh@veritas.com, holt@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swapfile: swapon randomize if nonrot
+     mm: reuse_swap_page replaces can_share_swap_page
 has been removed from the -mm tree.  Its filename was
-     swapfile-swapon-randomize-if-nonrot.patch
+     mm-reuse_swap_page-replaces-can_share_swap_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swapfile: swapon randomize if nonrot
+Subject: mm: reuse_swap_page replaces can_share_swap_page
 From: Hugh Dickins <hugh@veritas.com>
 
-Swap allocation has always started from the beginning of the swap area;
-but if we're dealing with a solidstate swap device which can only remap
-blocks within limited zones, that would sooner wear out the first zone.
+A good place to free up old swap is where do_wp_page(), or do_swap_page(),
+is about to redirty the page: the data on disk is then stale and won't be
+read again; and if we do decide to write the page out later, using the
+previous swap location makes an unnecessary disk seek very likely.
 
-Therefore sys_swapon() test whether blk_queue is non-rotational, and if so
-randomize the cluster_next starting position for allocation.
+So give can_share_swap_page() the side-effect of delete_from_swap_cache()
+when it safely can.  And can_share_swap_page() was always a misleading
+name, the more so if it has a side-effect: rename it reuse_swap_page().
 
-If blk_queue is nonrot, note SWP_SOLIDSTATE for later use, and report it
-with an "SS" at the right end of the kernel's "Adding ...  swap" message
-(so that if it's both nonrot and discardable, "SSD" will be shown there). 
-Perhaps something should be shown in /proc/swaps (swapon -s), but we have
-to be more cautious before making any addition to that format.
+Irrelevant cleanup nearby: remove swap_token_default_timeout definition
+from swap.h: it's used nowhere.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Joern Engel <joern@logfs.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Donjun Shin <djshin90@gmail.com>
-Cc: Tejun Heo <teheo@suse.de>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 +
- mm/swapfile.c        |   11 +++++++++--
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ include/linux/swap.h |    6 ++----
+ mm/memory.c          |    4 ++--
+ mm/swapfile.c        |   15 +++++++++++----
+ 3 files changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/swap.h~swapfile-swapon-randomize-if-nonrot include/linux/swap.h
---- a/include/linux/swap.h~swapfile-swapon-randomize-if-nonrot
+diff -puN include/linux/swap.h~mm-reuse_swap_page-replaces-can_share_swap_page include/linux/swap.h
+--- a/include/linux/swap.h~mm-reuse_swap_page-replaces-can_share_swap_page
 +++ a/include/linux/swap.h
-@@ -122,6 +122,7 @@ enum {
- 	SWP_WRITEOK	= (1 << 1),	/* ok to write to this swap?	*/
- 	SWP_DISCARDABLE = (1 << 2),	/* blkdev supports discard */
- 	SWP_DISCARDING	= (1 << 3),	/* now discarding a free cluster */
-+	SWP_SOLIDSTATE	= (1 << 4),	/* blkdev seeks are cheap */
- 					/* add others here before... */
- 	SWP_SCANNING	= (1 << 8),	/* refcount in scan_swap_map */
- };
-diff -puN mm/swapfile.c~swapfile-swapon-randomize-if-nonrot mm/swapfile.c
---- a/mm/swapfile.c~swapfile-swapon-randomize-if-nonrot
-+++ a/mm/swapfile.c
-@@ -16,6 +16,7 @@
- #include <linux/namei.h>
- #include <linux/shm.h>
- #include <linux/blkdev.h>
-+#include <linux/random.h>
- #include <linux/writeback.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-@@ -1806,6 +1807,11 @@ asmlinkage long sys_swapon(const char __
- 		goto bad_swap;
+@@ -304,7 +304,7 @@ extern unsigned int count_swap_pages(int
+ extern sector_t map_swap_page(struct swap_info_struct *, pgoff_t);
+ extern sector_t swapdev_block(int, pgoff_t);
+ extern struct swap_info_struct *get_swap_info_struct(unsigned);
+-extern int can_share_swap_page(struct page *);
++extern int reuse_swap_page(struct page *);
+ extern int remove_exclusive_swap_page(struct page *);
+ extern int remove_exclusive_swap_page_ref(struct page *);
+ struct backing_dev_info;
+@@ -372,8 +372,6 @@ static inline struct page *lookup_swap_c
+ 	return NULL;
+ }
+ 
+-#define can_share_swap_page(p)			(page_mapcount(p) == 1)
+-
+ static inline int add_to_swap_cache(struct page *page, swp_entry_t entry,
+ 							gfp_t gfp_mask)
+ {
+@@ -388,7 +386,7 @@ static inline void delete_from_swap_cach
+ {
+ }
+ 
+-#define swap_token_default_timeout		0
++#define reuse_swap_page(page)	(page_mapcount(page) == 1)
+ 
+ static inline int remove_exclusive_swap_page(struct page *p)
+ {
+diff -puN mm/memory.c~mm-reuse_swap_page-replaces-can_share_swap_page mm/memory.c
+--- a/mm/memory.c~mm-reuse_swap_page-replaces-can_share_swap_page
++++ a/mm/memory.c
+@@ -1861,7 +1861,7 @@ static int do_wp_page(struct mm_struct *
+ 			}
+ 			page_cache_release(old_page);
+ 		}
+-		reuse = can_share_swap_page(old_page);
++		reuse = reuse_swap_page(old_page);
+ 		unlock_page(old_page);
+ 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+ 					(VM_WRITE|VM_SHARED))) {
+@@ -2392,7 +2392,7 @@ static int do_swap_page(struct mm_struct
+ 
+ 	inc_mm_counter(mm, anon_rss);
+ 	pte = mk_pte(page, vma->vm_page_prot);
+-	if (write_access && can_share_swap_page(page)) {
++	if (write_access && reuse_swap_page(page)) {
+ 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
+ 		write_access = 0;
  	}
+diff -puN mm/swapfile.c~mm-reuse_swap_page-replaces-can_share_swap_page mm/swapfile.c
+--- a/mm/swapfile.c~mm-reuse_swap_page-replaces-can_share_swap_page
++++ a/mm/swapfile.c
+@@ -326,17 +326,24 @@ static inline int page_swapcount(struct 
+ }
  
-+	if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
-+		p->flags |= SWP_SOLIDSTATE;
-+		srandom32((u32)get_seconds());
-+		p->cluster_next = 1 + (random32() % p->highest_bit);
+ /*
+- * We can use this swap cache entry directly
+- * if there are no other references to it.
++ * We can write to an anon page without COW if there are no other references
++ * to it.  And as a side-effect, free up its swap: because the old content
++ * on disk will never be read, and seeking back there to write new content
++ * later would only waste time away from clustering.
+  */
+-int can_share_swap_page(struct page *page)
++int reuse_swap_page(struct page *page)
+ {
+ 	int count;
+ 
+ 	VM_BUG_ON(!PageLocked(page));
+ 	count = page_mapcount(page);
+-	if (count <= 1 && PageSwapCache(page))
++	if (count <= 1 && PageSwapCache(page)) {
+ 		count += page_swapcount(page);
++		if (count == 1 && !PageWriteback(page)) {
++			delete_from_swap_cache(page);
++			SetPageDirty(page);
++		}
 +	}
- 	if (discard_swap(p) == 0)
- 		p->flags |= SWP_DISCARDABLE;
+ 	return count == 1;
+ }
  
-@@ -1822,10 +1828,11 @@ asmlinkage long sys_swapon(const char __
- 	total_swap_pages += nr_good_pages;
- 
- 	printk(KERN_INFO "Adding %uk swap on %s.  "
--			"Priority:%d extents:%d across:%lluk%s\n",
-+			"Priority:%d extents:%d across:%lluk %s%s\n",
- 		nr_good_pages<<(PAGE_SHIFT-10), name, p->prio,
- 		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
--		(p->flags & SWP_DISCARDABLE) ? " D" : "");
-+		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
-+		(p->flags & SWP_DISCARDABLE) ? "D" : "");
- 
- 	/* insert swap space into swap_list: */
- 	prev = -1;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
