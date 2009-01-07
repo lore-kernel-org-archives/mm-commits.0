@@ -1,82 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - kmod-fix-varargs-kernel-doc.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:20:05 -0800
-Message-ID: <200901072220.n07MK5mA019369@imap1.linux-foundation.org>
+Subject: - pci-use-pci_ioremap_bar-in-drivers-video.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:19:35 -0800
+Message-ID: <200901072219.n07MJZRs018903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37133 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763342AbZAGWhL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:37:11 -0500
+	by vger.kernel.org with ESMTP id S1762382AbZAGWh3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:37:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kmod: fix varargs kernel-doc
+     pci: use pci_ioremap_bar() in drivers/video
 has been removed from the -mm tree.  Its filename was
-     kmod-fix-varargs-kernel-doc.patch
+     pci-use-pci_ioremap_bar-in-drivers-video.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kmod: fix varargs kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: pci: use pci_ioremap_bar() in drivers/video
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-Fix varargs kernel-doc format in kmod.c:
-Use @... instead of @varargs.
+Use the newly introduced pci_ioremap_bar() function in drivers/video. 
+pci_ioremap_bar() just takes a pci device and a bar number, with the goal
+of making it really hard to get wrong, while also having a central place
+to stick sanity checks.
 
-Warning(kernel/kmod.c:67): Excess function parameter or struct member 'varargs' description in 'request_module'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/aty/aty128fb.c     |    2 +-
+ drivers/video/cyber2000fb.c      |    3 +--
+ drivers/video/geode/gx1fb_core.c |    3 +--
+ drivers/video/geode/gxfb_core.c  |    8 +++-----
+ drivers/video/geode/lxfb_core.c  |    9 +++------
+ drivers/video/gxt4500.c          |    4 ++--
+ 6 files changed, 11 insertions(+), 18 deletions(-)
 
-diff -puN kernel/kmod.c~kmod-fix-varargs-kernel-doc kernel/kmod.c
---- a/kernel/kmod.c~kmod-fix-varargs-kernel-doc
-+++ a/kernel/kmod.c
-@@ -51,8 +51,8 @@ char modprobe_path[KMOD_PATH_LEN] = "/sb
+diff -puN drivers/video/aty/aty128fb.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/aty/aty128fb.c
+--- a/drivers/video/aty/aty128fb.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/aty/aty128fb.c
+@@ -2051,7 +2051,7 @@ static int __devinit aty128_probe(struct
  
- /**
-  * request_module - try to load a kernel module
-- * @fmt:     printf style format string for the name of the module
-- * @varargs: arguements as specified in the format string
-+ * @fmt: printf style format string for the name of the module
-+ * @...: arguments as specified in the format string
-  *
-  * Load a module using the user mode module loader. The function returns
-  * zero on success or a negative errno code on failure. Note that a
+ 	/* Virtualize mmio region */
+ 	info->fix.mmio_start = reg_addr;
+-	par->regbase = ioremap(reg_addr, pci_resource_len(pdev, 2));
++	par->regbase = pci_ioremap_bar(pdev, 2);
+ 	if (!par->regbase)
+ 		goto err_free_info;
+ 
+diff -puN drivers/video/cyber2000fb.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/cyber2000fb.c
+--- a/drivers/video/cyber2000fb.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/cyber2000fb.c
+@@ -1583,8 +1583,7 @@ cyberpro_pci_probe(struct pci_dev *dev, 
+ 		goto failed_release;
+ 
+ 	cfb->dev = dev;
+-	cfb->region = ioremap(pci_resource_start(dev, 0),
+-			      pci_resource_len(dev, 0));
++	cfb->region = pci_ioremap_bar(dev, 0);
+ 	if (!cfb->region)
+ 		goto failed_ioremap;
+ 
+diff -puN drivers/video/geode/gx1fb_core.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/geode/gx1fb_core.c
+--- a/drivers/video/geode/gx1fb_core.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/geode/gx1fb_core.c
+@@ -217,8 +217,7 @@ static int __init gx1fb_map_video_memory
+ 	ret = pci_request_region(dev, 0, "gx1fb (video)");
+ 	if (ret < 0)
+ 		return ret;
+-	par->vid_regs = ioremap(pci_resource_start(dev, 0),
+-				pci_resource_len(dev, 0));
++	par->vid_regs = pci_ioremap_bar(dev, 0);
+ 	if (!par->vid_regs)
+ 		return -ENOMEM;
+ 
+diff -puN drivers/video/geode/gxfb_core.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/geode/gxfb_core.c
+@@ -242,23 +242,21 @@ static int __init gxfb_map_video_memory(
+ 	ret = pci_request_region(dev, 3, "gxfb (video processor)");
+ 	if (ret < 0)
+ 		return ret;
+-	par->vid_regs = ioremap(pci_resource_start(dev, 3),
+-				pci_resource_len(dev, 3));
++	par->vid_regs = pci_ioremap_bar(dev, 3);
+ 	if (!par->vid_regs)
+ 		return -ENOMEM;
+ 
+ 	ret = pci_request_region(dev, 2, "gxfb (display controller)");
+ 	if (ret < 0)
+ 		return ret;
+-	par->dc_regs = ioremap(pci_resource_start(dev, 2), pci_resource_len(dev, 2));
++	par->dc_regs = pci_ioremap_bar(dev, 2);
+ 	if (!par->dc_regs)
+ 		return -ENOMEM;
+ 
+ 	ret = pci_request_region(dev, 1, "gxfb (graphics processor)");
+ 	if (ret < 0)
+ 		return ret;
+-	par->gp_regs = ioremap(pci_resource_start(dev, 1),
+-	pci_resource_len(dev, 1));
++	par->gp_regs = pci_ioremap_bar(dev, 1);
+ 
+ 	if (!par->gp_regs)
+ 		return -ENOMEM;
+diff -puN drivers/video/geode/lxfb_core.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/geode/lxfb_core.c
+--- a/drivers/video/geode/lxfb_core.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/geode/lxfb_core.c
+@@ -379,20 +379,17 @@ static int __init lxfb_map_video_memory(
+ 	if (info->screen_base == NULL)
+ 		return ret;
+ 
+-	par->gp_regs = ioremap(pci_resource_start(dev, 1),
+-				pci_resource_len(dev, 1));
++	par->gp_regs = pci_ioremap_bar(dev, 1);
+ 
+ 	if (par->gp_regs == NULL)
+ 		return ret;
+ 
+-	par->dc_regs = ioremap(pci_resource_start(dev, 2),
+-			       pci_resource_len(dev, 2));
++	par->dc_regs = pci_ioremap_bar(dev, 2);
+ 
+ 	if (par->dc_regs == NULL)
+ 		return ret;
+ 
+-	par->vp_regs = ioremap(pci_resource_start(dev, 3),
+-			       pci_resource_len(dev, 3));
++	par->vp_regs = pci_ioremap_bar(dev, 3);
+ 
+ 	if (par->vp_regs == NULL)
+ 		return ret;
+diff -puN drivers/video/gxt4500.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/gxt4500.c
+--- a/drivers/video/gxt4500.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/gxt4500.c
+@@ -648,7 +648,7 @@ static int __devinit gxt4500_probe(struc
+ 	info->pseudo_palette = par->pseudo_palette;
+ 
+ 	info->fix.mmio_start = reg_phys;
+-	par->regs = ioremap(reg_phys, pci_resource_len(pdev, 0));
++	par->regs = pci_ioremap_bar(pdev, 0);
+ 	if (!par->regs) {
+ 		dev_err(&pdev->dev, "gxt4500: cannot map registers\n");
+ 		goto err_free_all;
+@@ -656,7 +656,7 @@ static int __devinit gxt4500_probe(struc
+ 
+ 	info->fix.smem_start = fb_phys;
+ 	info->fix.smem_len = pci_resource_len(pdev, 1);
+-	info->screen_base = ioremap(fb_phys, pci_resource_len(pdev, 1));
++	info->screen_base = pci_ioremap_bar(pdev, 1);
+ 	if (!info->screen_base) {
+ 		dev_err(&pdev->dev, "gxt4500: cannot map framebuffer\n");
+ 		goto err_unmap_regs;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-leds-add-a-dac124s085-spi-led-driver-fix.patch
-mtd-fix-nettel-printk-formats.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-max3100-spi-uart-driver-select-serial_core.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-jbd-remove-excess-kernel-doc-notation.patch
-w1-add-list-masters-w1-command.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
-fix-similar-typos-to-successfull-v2.patch
-kmemleak-add-documentation-on-the-memory-leak-detector.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
 
