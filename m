@@ -1,353 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - shmem-unify-regular-and-tiny-shmem.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:14:28 -0800
-Message-ID: <200901072214.n07MES3Y014386@imap1.linux-foundation.org>
+Subject: - badpage-kern_alert-bug-instead-of-kern_emerg.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:14:13 -0800
+Message-ID: <200901072214.n07MEDam014199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761634AbZAGWOv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:51 -0500
+	by vger.kernel.org with ESMTP id S1761878AbZAGWO5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, hugh@veritas.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, cl@linux-foundation.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shmem: unify regular and tiny shmem
+     badpage: KERN_ALERT BUG instead of KERN_EMERG
 has been removed from the -mm tree.  Its filename was
-     shmem-unify-regular-and-tiny-shmem.patch
+     badpage-kern_alert-bug-instead-of-kern_emerg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem: unify regular and tiny shmem
-From: Matt Mackall <mpm@selenic.com>
+Subject: badpage: KERN_ALERT BUG instead of KERN_EMERG
+From: Hugh Dickins <hugh@veritas.com>
 
-tiny-shmem shares most of its 130 lines of code with shmem and tends to
-break when particular bits of shmem get modified.  Unifying saves code and
-makes keeping these two in sync much easier.
+bad_page() and rmap Eeek messages have said KERN_EMERG for a few years,
+which I've followed in print_bad_pte().  These are serious system errors,
+on a par with BUGs, but they're not quite emergencies, and we do our best
+to carry on: say KERN_ALERT "BUG: " like the x86 oops does.
 
-before:
-  14367	    392	     24	  14783	   39bf	mm/shmem.o
-    396      72       8     476	    1dc	mm/tiny-shmem.o
+And remove the "Trying to fix it up, but a reboot is needed" line: it's
+not untrue, but I hope the KERN_ALERT "BUG: " conveys as much.
 
-after:
-  14367	    392	     24	  14783	   39bf	mm/shmem.o
-    412	     72       8     492	    1ec	mm/shmem.o tiny
-
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Acked-by: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig    |    4 -
- mm/Makefile     |    4 -
- mm/shmem.c      |   81 ++++++++++++++++++++++++---
- mm/tiny-shmem.c |  134 ----------------------------------------------
- 4 files changed, 72 insertions(+), 151 deletions(-)
+ mm/memory.c     |   15 ++++++++-------
+ mm/page_alloc.c |    9 ++++-----
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN init/Kconfig~shmem-unify-regular-and-tiny-shmem init/Kconfig
---- a/init/Kconfig~shmem-unify-regular-and-tiny-shmem
-+++ a/init/Kconfig
-@@ -838,10 +838,6 @@ config RT_MUTEXES
- 	boolean
- 	select PLIST
+diff -puN mm/memory.c~badpage-kern_alert-bug-instead-of-kern_emerg mm/memory.c
+--- a/mm/memory.c~badpage-kern_alert-bug-instead-of-kern_emerg
++++ a/mm/memory.c
+@@ -397,8 +397,8 @@ static void print_bad_pte(struct vm_area
+ 			return;
+ 		}
+ 		if (nr_unshown) {
+-			printk(KERN_EMERG
+-				"Bad page map: %lu messages suppressed\n",
++			printk(KERN_ALERT
++				"BUG: Bad page map: %lu messages suppressed\n",
+ 				nr_unshown);
+ 			nr_unshown = 0;
+ 		}
+@@ -410,26 +410,27 @@ static void print_bad_pte(struct vm_area
+ 	mapping = vma->vm_file ? vma->vm_file->f_mapping : NULL;
+ 	index = linear_page_index(vma, addr);
  
--config TINY_SHMEM
--	default !SHMEM
--	bool
--
- config BASE_SMALL
- 	int
- 	default 0 if BASE_FULL
-diff -puN mm/Makefile~shmem-unify-regular-and-tiny-shmem mm/Makefile
---- a/mm/Makefile~shmem-unify-regular-and-tiny-shmem
-+++ a/mm/Makefile
-@@ -9,7 +9,7 @@ mmu-$(CONFIG_MMU)	:= fremap.o highmem.o 
+-	printk(KERN_EMERG "Bad page map in process %s  pte:%08llx pmd:%08llx\n",
++	printk(KERN_ALERT
++		"BUG: Bad page map in process %s  pte:%08llx pmd:%08llx\n",
+ 		current->comm,
+ 		(long long)pte_val(pte), (long long)pmd_val(*pmd));
+ 	if (page) {
+-		printk(KERN_EMERG
++		printk(KERN_ALERT
+ 		"page:%p flags:%p count:%d mapcount:%d mapping:%p index:%lx\n",
+ 		page, (void *)page->flags, page_count(page),
+ 		page_mapcount(page), page->mapping, page->index);
+ 	}
+-	printk(KERN_EMERG
++	printk(KERN_ALERT
+ 		"addr:%p vm_flags:%08lx anon_vma:%p mapping:%p index:%lx\n",
+ 		(void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
+ 	/*
+ 	 * Choose text because data symbols depend on CONFIG_KALLSYMS_ALL=y
+ 	 */
+ 	if (vma->vm_ops)
+-		print_symbol(KERN_EMERG "vma->vm_ops->fault: %s\n",
++		print_symbol(KERN_ALERT "vma->vm_ops->fault: %s\n",
+ 				(unsigned long)vma->vm_ops->fault);
+ 	if (vma->vm_file && vma->vm_file->f_op)
+-		print_symbol(KERN_EMERG "vma->vm_file->f_op->mmap: %s\n",
++		print_symbol(KERN_ALERT "vma->vm_file->f_op->mmap: %s\n",
+ 				(unsigned long)vma->vm_file->f_op->mmap);
+ 	dump_stack();
+ 	add_taint(TAINT_BAD_PAGE);
+diff -puN mm/page_alloc.c~badpage-kern_alert-bug-instead-of-kern_emerg mm/page_alloc.c
+--- a/mm/page_alloc.c~badpage-kern_alert-bug-instead-of-kern_emerg
++++ a/mm/page_alloc.c
+@@ -237,8 +237,8 @@ static void bad_page(struct page *page)
+ 			goto out;
+ 		}
+ 		if (nr_unshown) {
+-			printk(KERN_EMERG
+-				"Bad page state: %lu messages suppressed\n",
++			printk(KERN_ALERT
++			      "BUG: Bad page state: %lu messages suppressed\n",
+ 				nr_unshown);
+ 			nr_unshown = 0;
+ 		}
+@@ -247,13 +247,12 @@ static void bad_page(struct page *page)
+ 	if (nr_shown++ == 0)
+ 		resume = jiffies + 60 * HZ;
  
- obj-y			:= bootmem.o filemap.o mempool.o oom_kill.o fadvise.o \
- 			   maccess.o page_alloc.o page-writeback.o pdflush.o \
--			   readahead.o swap.o truncate.o vmscan.o \
-+			   readahead.o swap.o truncate.o vmscan.o shmem.o \
- 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
- 			   page_isolation.o mm_init.o $(mmu-y)
+-	printk(KERN_EMERG "Bad page state in process %s  pfn:%05lx\n",
++	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
+ 		current->comm, page_to_pfn(page));
+-	printk(KERN_EMERG
++	printk(KERN_ALERT
+ 		"page:%p flags:%p count:%d mapcount:%d mapping:%p index:%lx\n",
+ 		page, (void *)page->flags, page_count(page),
+ 		page_mapcount(page), page->mapping, page->index);
+-	printk(KERN_EMERG "Trying to fix it up, but a reboot is needed\n");
  
-@@ -21,9 +21,7 @@ obj-$(CONFIG_HUGETLBFS)	+= hugetlb.o
- obj-$(CONFIG_NUMA) 	+= mempolicy.o
- obj-$(CONFIG_SPARSEMEM)	+= sparse.o
- obj-$(CONFIG_SPARSEMEM_VMEMMAP) += sparse-vmemmap.o
--obj-$(CONFIG_SHMEM) += shmem.o
- obj-$(CONFIG_TMPFS_POSIX_ACL) += shmem_acl.o
--obj-$(CONFIG_TINY_SHMEM) += tiny-shmem.o
- obj-$(CONFIG_SLOB) += slob.o
- obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifier.o
- obj-$(CONFIG_SLAB) += slab.o
-diff -puN mm/shmem.c~shmem-unify-regular-and-tiny-shmem mm/shmem.c
---- a/mm/shmem.c~shmem-unify-regular-and-tiny-shmem
-+++ a/mm/shmem.c
-@@ -14,31 +14,39 @@
-  * Copyright (c) 2004, Luke Kenneth Casson Leighton <lkcl@lkcl.net>
-  * Copyright (c) 2004 Red Hat, Inc., James Morris <jmorris@redhat.com>
-  *
-+ * tiny-shmem:
-+ * Copyright (c) 2004, 2008 Matt Mackall <mpm@selenic.com>
-+ *
-  * This file is released under the GPL.
-  */
- 
-+#include <linux/fs.h>
-+#include <linux/init.h>
-+#include <linux/vfs.h>
-+#include <linux/mount.h>
-+#include <linux/file.h>
-+#include <linux/mm.h>
-+#include <linux/module.h>
-+#include <linux/swap.h>
-+
-+static struct vfsmount *shm_mnt;
-+
-+#ifdef CONFIG_SHMEM
- /*
-  * This virtual memory filesystem is heavily based on the ramfs. It
-  * extends ramfs by the ability to use swap and honor resource limits
-  * which makes it a completely usable filesystem.
-  */
- 
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/fs.h>
- #include <linux/xattr.h>
- #include <linux/exportfs.h>
- #include <linux/generic_acl.h>
--#include <linux/mm.h>
- #include <linux/mman.h>
--#include <linux/file.h>
--#include <linux/swap.h>
- #include <linux/pagemap.h>
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/backing-dev.h>
- #include <linux/shmem_fs.h>
--#include <linux/mount.h>
- #include <linux/writeback.h>
- #include <linux/vfs.h>
- #include <linux/blkdev.h>
-@@ -2485,7 +2493,6 @@ static struct file_system_type tmpfs_fs_
- 	.get_sb		= shmem_get_sb,
- 	.kill_sb	= kill_litter_super,
- };
--static struct vfsmount *shm_mnt;
- 
- static int __init init_tmpfs(void)
- {
-@@ -2524,7 +2531,51 @@ out4:
- 	shm_mnt = ERR_PTR(error);
- 	return error;
- }
--module_init(init_tmpfs)
-+
-+#else /* !CONFIG_SHMEM */
-+
-+/*
-+ * tiny-shmem: simple shmemfs and tmpfs using ramfs code
-+ *
-+ * This is intended for small system where the benefits of the full
-+ * shmem code (swap-backed and resource-limited) are outweighed by
-+ * their complexity. On systems without swap this code should be
-+ * effectively equivalent, but much lighter weight.
-+ */
-+
-+#include <linux/ramfs.h>
-+
-+static struct file_system_type tmpfs_fs_type = {
-+	.name		= "tmpfs",
-+	.get_sb		= ramfs_get_sb,
-+	.kill_sb	= kill_litter_super,
-+};
-+
-+static int __init init_tmpfs(void)
-+{
-+	BUG_ON(register_filesystem(&tmpfs_fs_type) != 0);
-+
-+	shm_mnt = kern_mount(&tmpfs_fs_type);
-+	BUG_ON(IS_ERR(shm_mnt));
-+
-+	return 0;
-+}
-+
-+int shmem_unuse(swp_entry_t entry, struct page *page)
-+{
-+	return 0;
-+}
-+
-+#define shmem_file_operations ramfs_file_operations
-+#define shmem_vm_ops generic_file_vm_ops
-+#define shmem_get_inode ramfs_get_inode
-+#define shmem_acct_size(a, b) 0
-+#define shmem_unacct_size(a, b) do {} while (0)
-+#define SHMEM_MAX_BYTES LLONG_MAX
-+
-+#endif /* CONFIG_SHMEM */
-+
-+/* common code */
- 
- /**
-  * shmem_file_setup - get an unlinked file living in tmpfs
-@@ -2568,12 +2619,20 @@ struct file *shmem_file_setup(char *name
- 	if (!inode)
- 		goto close_file;
- 
-+#ifdef CONFIG_SHMEM
- 	SHMEM_I(inode)->flags = flags & VM_ACCOUNT;
-+#endif
- 	d_instantiate(dentry, inode);
- 	inode->i_size = size;
- 	inode->i_nlink = 0;	/* It is unlinked */
- 	init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,
--			&shmem_file_operations);
-+		  &shmem_file_operations);
-+
-+#ifndef CONFIG_MMU
-+	error = ramfs_nommu_expand_for_mapping(inode, size);
-+	if (error)
-+		goto close_file;
-+#endif
- 	return file;
- 
- close_file:
-@@ -2605,3 +2664,5 @@ int shmem_zero_setup(struct vm_area_stru
- 	vma->vm_ops = &shmem_vm_ops;
- 	return 0;
- }
-+
-+module_init(init_tmpfs)
-diff -puN mm/tiny-shmem.c~shmem-unify-regular-and-tiny-shmem /dev/null
---- a/mm/tiny-shmem.c
-+++ /dev/null
-@@ -1,134 +0,0 @@
--/*
-- * tiny-shmem.c: simple shmemfs and tmpfs using ramfs code
-- *
-- * Matt Mackall <mpm@selenic.com> January, 2004
-- * derived from mm/shmem.c and fs/ramfs/inode.c
-- *
-- * This is intended for small system where the benefits of the full
-- * shmem code (swap-backed and resource-limited) are outweighed by
-- * their complexity. On systems without swap this code should be
-- * effectively equivalent, but much lighter weight.
-- */
--
--#include <linux/fs.h>
--#include <linux/init.h>
--#include <linux/vfs.h>
--#include <linux/mount.h>
--#include <linux/file.h>
--#include <linux/mm.h>
--#include <linux/module.h>
--#include <linux/swap.h>
--#include <linux/ramfs.h>
--
--static struct file_system_type tmpfs_fs_type = {
--	.name		= "tmpfs",
--	.get_sb		= ramfs_get_sb,
--	.kill_sb	= kill_litter_super,
--};
--
--static struct vfsmount *shm_mnt;
--
--static int __init init_tmpfs(void)
--{
--	BUG_ON(register_filesystem(&tmpfs_fs_type) != 0);
--
--	shm_mnt = kern_mount(&tmpfs_fs_type);
--	BUG_ON(IS_ERR(shm_mnt));
--
--	return 0;
--}
--module_init(init_tmpfs)
--
--/**
-- * shmem_file_setup - get an unlinked file living in tmpfs
-- * @name: name for dentry (to be seen in /proc/<pid>/maps
-- * @size: size to be set for the file
-- * @flags: vm_flags
-- */
--struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags)
--{
--	int error;
--	struct file *file;
--	struct inode *inode;
--	struct dentry *dentry, *root;
--	struct qstr this;
--
--	if (IS_ERR(shm_mnt))
--		return (void *)shm_mnt;
--
--	error = -ENOMEM;
--	this.name = name;
--	this.len = strlen(name);
--	this.hash = 0; /* will go */
--	root = shm_mnt->mnt_root;
--	dentry = d_alloc(root, &this);
--	if (!dentry)
--		goto put_memory;
--
--	error = -ENFILE;
--	file = get_empty_filp();
--	if (!file)
--		goto put_dentry;
--
--	error = -ENOSPC;
--	inode = ramfs_get_inode(root->d_sb, S_IFREG | S_IRWXUGO, 0);
--	if (!inode)
--		goto close_file;
--
--	d_instantiate(dentry, inode);
--	inode->i_size = size;
--	inode->i_nlink = 0;	/* It is unlinked */
--	init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,
--			&ramfs_file_operations);
--
--#ifndef CONFIG_MMU
--	error = ramfs_nommu_expand_for_mapping(inode, size);
--	if (error)
--		goto close_file;
--#endif
--	return file;
--
--close_file:
--	put_filp(file);
--put_dentry:
--	dput(dentry);
--put_memory:
--	return ERR_PTR(error);
--}
--EXPORT_SYMBOL_GPL(shmem_file_setup);
--
--/**
-- * shmem_zero_setup - setup a shared anonymous mapping
-- * @vma: the vma to be mmapped is prepared by do_mmap_pgoff
-- */
--int shmem_zero_setup(struct vm_area_struct *vma)
--{
--	struct file *file;
--	loff_t size = vma->vm_end - vma->vm_start;
--
--	file = shmem_file_setup("dev/zero", size, vma->vm_flags);
--	if (IS_ERR(file))
--		return PTR_ERR(file);
--
--	if (vma->vm_file)
--		fput(vma->vm_file);
--	vma->vm_file = file;
--	vma->vm_ops = &generic_file_vm_ops;
--	return 0;
--}
--
--int shmem_unuse(swp_entry_t entry, struct page *page)
--{
--	return 0;
--}
+ 	dump_stack();
+ out:
+_
+
+Patches currently in -mm which might be from hugh@veritas.com are
+
+origin.patch
+linux-next.patch
+mark-complex-bitopsh-inlines-as-__always_inline.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-pass-clocksource-to-read-callback-sparc-cleanup.patch
+bio-zero-inlined-bio_vec.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-shmemc-fix-division-by-zero.patch
+getrusage-fill-ru_maxrss-value.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-explain-details-and-test-document.patch
+memcg-fix-swap-accounting-leak-v3.patch
+memcg-fix-swap-accounting-leak-doc-fix.patch
+memcg-fix-shmems-swap-accounting.patch
+prio_tree-debugging-patch.patch
+
