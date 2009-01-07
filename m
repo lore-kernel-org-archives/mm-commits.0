@@ -1,64 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-fix-calclation-of-active_ratio-build-error-fix.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 15:17:51 -0800
-Message-ID: <200901072317.n07NHpRb002184@imap1.linux-foundation.org>
+Subject: - memcg-fix-swap-accounting-leak-doc-fix.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 15:18:23 -0800
+Message-ID: <200901072318.n07NIOPL002608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39296 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39450 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763521AbZAGXSY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:18:24 -0500
+	by vger.kernel.org with ESMTP id S1755199AbZAGXTI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:19:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix calculation of active_ratio build error fix
+     memcg fix swap accounting leak doc fix
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-calclation-of-active_ratio-build-error-fix.patch
+     memcg-fix-swap-accounting-leak-doc-fix.patch
 
-This patch was dropped because it was folded into memcg-fix-calclation-of-active_ratio.patch
+This patch was dropped because it was folded into memcg-fix-swap-accounting-leak-v3.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix calculation of active_ratio build error fix
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: memcg fix swap accounting leak doc fix
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-fix following build error
+fix for documentation.
 
-	  CC      mm/vmscan.o
-	mm/vmscan.c: In function 'inactive_anon_is_low':
-	mm/vmscan.c:1397: error: too few arguments to function 'mem_cgroup_inactive_anon_is_low'
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com> 
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/controllers/memcg_test.txt |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-calclation-of-active_ratio-build-error-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-calclation-of-active_ratio-build-error-fix
-+++ a/include/linux/memcontrol.h
-@@ -251,7 +251,7 @@ static inline bool mem_cgroup_oom_called
- }
+diff -puN Documentation/controllers/memcg_test.txt~memcg-fix-swap-accounting-leak-doc-fix Documentation/controllers/memcg_test.txt
+--- a/Documentation/controllers/memcg_test.txt~memcg-fix-swap-accounting-leak-doc-fix
++++ a/Documentation/controllers/memcg_test.txt
+@@ -139,10 +139,10 @@ Under below explanation, we assume CONFI
+           ===========================================
+           (3)        +1/+1    +1/+1     +1/+1   +1/+1
+           (4)          -       0/ 0       -     -1/ 0
+-          (5)         0/ 1     0/-1     -1/-1    0/ 0
+-          (6)          -        -         -      0/-1
++          (5)         0/-1     0/ 0     -1/-1    0/ 0
++          (6)          -       0/-1       -      0/-1
+           ===========================================
+-       Result         1/ 1     1/1       1/ 1    1/ 1
++       Result         1/ 1     1/ 1      1/ 1    1/ 1
  
- static inline int
--mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg, struct zone *zone)
-+mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg)
- {
- 	return 1;
- }
+        In any cases, charges to this page should be 1/ 1.
+ 
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-origin.patch
-devices-cgroup-allow-mkfifo.patch
+cgroups-make-cgroup-config-a-submenu.patch
+memcg-introduce-charge-commit-cancel-style-of-functions.patch
+memcg-fix-gfp_mask-of-callers-of-charge.patch
+memcg-simple-migration-handling.patch
+memcg-do-not-recalculate-section-unnecessarily-in-init_section_page_cgroup.patch
+memcg-move-all-acccounts-to-parent-at-rmdir.patch
+memcg-handle-swap-caches.patch
+memcg-memswap-controller-kconfig.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
+memcg-avoid-unnecessary-system-wide-oom-killer.patch
+memcg-fix-reclaim-result-checks.patch
 memcg-revert-gfp-mask-fix.patch
 memcg-check-group-leader-fix.patch
 memcg-memoryswap-controller-fix-limit-check.patch
@@ -77,10 +90,16 @@ memcg-show-reclaim-stat.patch
 memcg-rename-scan-global-lru.patch
 memcg-protect-prev_priority.patch
 memcg-swappiness.patch
-memcg-fix-calclation-of-active_ratio.patch
-memcg-fix-calclation-of-active_ratio-build-error-fix.patch
-memcg-show-real-limit-under-hierarchy-mode.patch
 memcg-explain-details-and-test-document.patch
-ia64-implement-interrupt-enabling-rwlocks-fix.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+memcg-dont-trigger-oom-at-page-migration.patch
+memcg-remove-mem_cgroup_try_charge.patch
+memcg-avoid-dead-lock-caused-by-race-between-oom-and-cpuset_attach.patch
+memcg-change-try_to_free_pages-to-hierarchical_reclaim.patch
+memcg-fix-swap-accounting-leak-v3.patch
+memcg-fix-swap-accounting-leak-doc-fix.patch
+memcg-fix-double-free-and-make-refcnt-sane.patch
+memcg-use-css_tryget-in-memcg.patch
+memcg-use-css_tryget-in-memcg-fix.patch
+memcg-fix-lru-accounting-for-swapcache-v2.patch
+memcg-fix-shmems-swap-accounting.patch
 
