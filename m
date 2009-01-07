@@ -1,118 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:14:59 -0800
-Message-ID: <200901072214.n07MEx5a014827@imap1.linux-foundation.org>
+Subject: - init-properly-placing-noinline-keyword.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:15:03 -0800
+Message-ID: <200901072215.n07MF34T014925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46616 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761940AbZAGWPJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:09 -0500
+	by vger.kernel.org with ESMTP id S1757979AbZAGWPG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, npiggin@suse.de, wassim.dagash@gmail.com, mm-commits@vger.kernel.org
+To: rakib.mullick@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: stop kswapd's infinite loop at high order allocation
+     init: properly placing noinline keyword
 has been removed from the -mm tree.  Its filename was
-     mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2.patch
+     init-properly-placing-noinline-keyword.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: stop kswapd's infinite loop at high order allocation
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: init: properly placing noinline keyword
+From: "Rakib Mullick" <rakib.mullick@gmail.com>
 
-Wassim Dagash reported following kswapd infinite loop problem.
+checkpatch warns about 'static void noinline'.  It wants `static noinline
+void'.
 
-  kswapd runs in some infinite loop trying to swap until order 10 of zone
-  highmem is OK.... kswapd will continue to try to balance order 10 of zone
-  highmem forever (or until someone release a very large chunk of highmem).
+Both are permissible, but the kernel consistently uses `static inline' and
+`static noinline', and consistency is good.  Hence let's keep the
+checkpatch warning and fix up this code site.
 
-For non order-0 allocations, the system may never be balanced due to
-fragmentation but kswapd should not infinitely loop as a result.
-
-Instead, recheck all watermarks at order-0 as they are the most important.
-If watermarks are ok, kswapd will go back to sleep.
-
-[akpm@linux-foundation.org: fix comment]
-Reported-by: wassim dagash <wassim.dagash@gmail.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+[akpm@linux-foundation.org: rewrote changelog]
+Signed-off-by: Md.Rakib H. Mullick <rakib.mullick@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ init/main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2 mm/vmscan.c
---- a/mm/vmscan.c~mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2
-+++ a/mm/vmscan.c
-@@ -1867,6 +1867,23 @@ out:
+diff -puN init/main.c~init-properly-placing-noinline-keyword init/main.c
+--- a/init/main.c~init-properly-placing-noinline-keyword
++++ a/init/main.c
+@@ -447,7 +447,7 @@ static void __init setup_command_line(ch
+  * gcc-3.4 accidentally inlines this function, so use noinline.
+  */
  
- 		try_to_freeze();
- 
-+		/*
-+		 * Fragmentation may mean that the system cannot be
-+		 * rebalanced for high-order allocations in all zones.
-+		 * At this point, if nr_reclaimed < SWAP_CLUSTER_MAX,
-+		 * it means the zones have been fully scanned and are still
-+		 * not balanced. For high-order allocations, there is
-+		 * little point trying all over again as kswapd may
-+		 * infinite loop.
-+		 *
-+		 * Instead, recheck all watermarks at order-0 as they
-+		 * are the most important. If watermarks are ok, kswapd will go
-+		 * back to sleep. High-order users can still perform direct
-+		 * reclaim if they wish.
-+		 */
-+		if (sc.nr_reclaimed < SWAP_CLUSTER_MAX)
-+			order = sc.order = 0;
-+
- 		goto loop_again;
- 	}
- 
+-static void noinline __init_refok rest_init(void)
++static noinline void __init_refok rest_init(void)
+ 	__releases(kernel_lock)
+ {
+ 	int pid;
+@@ -786,7 +786,7 @@ static void run_init_process(char *init_
+ /* This is a non __init function. Force it to be noinline otherwise gcc
+  * makes it inline to init() and it becomes part of init.text section
+  */
+-static int noinline init_post(void)
++static noinline int init_post(void)
+ {
+ 	free_initmem();
+ 	unlock_kernel();
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from rakib.mullick@gmail.com are
 
 origin.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-devices-cgroup-allow-mkfifo.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-mm-make-get_scan_ratio-safe-for-memcg.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
-memcg-remove-mem_cgroup_cal_reclaim.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-fix-calclation-of-active_ratio.patch
-memcg-fix-calclation-of-active_ratio-build-error-fix.patch
-memcg-show-real-limit-under-hierarchy-mode.patch
-memcg-explain-details-and-test-document.patch
-ia64-implement-interrupt-enabling-rwlocks-fix.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+linux-next.patch
 
