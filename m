@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - mm-write_cache_pages-more-terminate-quickly.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:11:43 -0800
-Message-ID: <200901072211.n07MBhwn012030@imap1.linux-foundation.org>
+Subject: - mm-write_cache_pages-cleanups.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:11:37 -0800
+Message-ID: <200901072211.n07MBbi3011893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54055 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754834AbZAGWLx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:11:53 -0500
+	by vger.kernel.org with ESMTP id S1754809AbZAGWLv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:11:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris.mason@oracle.com, david@fromorbit.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, chris.mason@oracle.com, david@fromorbit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: write_cache_pages more terminate quickly
+     mm: write_cache_pages cleanups
 has been removed from the -mm tree.  Its filename was
-     mm-write_cache_pages-more-terminate-quickly.patch
+     mm-write_cache_pages-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: write_cache_pages more terminate quickly
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: write_cache_pages cleanups
+From: Nick Piggin <npiggin@suse.de>
 
-Now that we have the early-termination logic in place, it makes sense to
-bail out early in all other cases where done is set to 1.
+Get rid of some complex expressions from flow control statements, add a
+comment, remove some duplicate code.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -35,74 +35,91 @@ Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/page-writeback.c |   34 ++++++++++++++++++++++------------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-write_cache_pages-more-terminate-quickly mm/page-writeback.c
---- a/mm/page-writeback.c~mm-write_cache_pages-more-terminate-quickly
+diff -puN mm/page-writeback.c~mm-write_cache_pages-cleanups mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-write_cache_pages-cleanups
 +++ a/mm/page-writeback.c
-@@ -983,12 +983,15 @@ continue_unlock:
+@@ -899,11 +899,14 @@ int write_cache_pages(struct address_spa
+ 	}
+ retry:
+ 	done_index = index;
+-	while (!done && (index <= end) &&
+-	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
+-					      PAGECACHE_TAG_DIRTY,
+-					      min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
+-		unsigned i;
++	while (!done && (index <= end)) {
++		int i;
++
++		nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
++			      PAGECACHE_TAG_DIRTY,
++			      min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1);
++		if (nr_pages == 0)
++			break;
+ 
+ 		for (i = 0; i < nr_pages; i++) {
+ 			struct page *page = pvec.pages[i];
+@@ -919,7 +922,16 @@ retry:
+ 			 */
+ 			lock_page(page);
+ 
++			/*
++			 * Page truncated or invalidated. We can freely skip it
++			 * then, even for data integrity operations: the page
++			 * has disappeared concurrently, so there could be no
++			 * real expectation of this data interity operation
++			 * even if there is now a new, dirty page at the same
++			 * pagecache address.
++			 */
+ 			if (unlikely(page->mapping != mapping)) {
++continue_unlock:
+ 				unlock_page(page);
+ 				continue;
+ 			}
+@@ -930,18 +942,15 @@ retry:
+ 				 * end == -1 in that case.
+ 				 */
+ 				done = 1;
+-				unlock_page(page);
+-				continue;
++				goto continue_unlock;
+ 			}
+ 
+ 			if (wbc->sync_mode != WB_SYNC_NONE)
+ 				wait_on_page_writeback(page);
+ 
+ 			if (PageWriteback(page) ||
+-			    !clear_page_dirty_for_io(page)) {
+-				unlock_page(page);
+-				continue;
+-			}
++			    !clear_page_dirty_for_io(page))
++				goto continue_unlock;
+ 
+ 			ret = (*writepage)(page, wbc, data);
+ 			if (unlikely(ret)) {
+@@ -964,7 +973,8 @@ retry:
+  			}
  
  			if (wbc->sync_mode == WB_SYNC_NONE) {
- 				wbc->nr_to_write--;
--				if (wbc->nr_to_write <= 0)
-+				if (wbc->nr_to_write <= 0) {
+-				if (--wbc->nr_to_write <= 0)
++				wbc->nr_to_write--;
++				if (wbc->nr_to_write <= 0)
  					done = 1;
-+					break;
-+				}
  			}
  			if (wbc->nonblocking && bdi_write_congested(bdi)) {
- 				wbc->encountered_congestion = 1;
- 				done = 1;
-+				break;
- 			}
- 		}
- 		pagevec_release(&pvec);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-i-need-old-gcc.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-clocksource-pass-clocksource-to-read-callback-sparc-cleanup.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
+page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
 page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
+radix-tree-gang-set-if-tagged-operation.patch
 reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
