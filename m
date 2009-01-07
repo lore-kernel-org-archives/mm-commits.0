@@ -1,82 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - lib-proportionsc-trivial-sparse-lock-annotation.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:15:29 -0800
-Message-ID: <200901072215.n07MFTj3015289@imap1.linux-foundation.org>
+Subject: - oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:15:12 -0800
+Message-ID: <200901072215.n07MFCuS015041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761958AbZAGWPb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:31 -0500
+	by vger.kernel.org with ESMTP id S1761941AbZAGWPe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: viktor.rosendahl@nokia.com, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib: proportions.c trivial sparse lock annotation
+     oops handling: ensure that any oops is flushed to the mtdoops console
 has been removed from the -mm tree.  Its filename was
-     lib-proportionsc-trivial-sparse-lock-annotation.patch
+     oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: proportions.c trivial sparse lock annotation
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: oops handling: ensure that any oops is flushed to the mtdoops console
+From: Viktor Rosendahl <viktor.rosendahl@nokia.com>
 
-Suppresses sparse warning:
-lib/proportions.c:159:16: warning: context imbalance in 'prop_get_global': wrong count at exit
-lib/proportions.c:159:16:    context 'RCU': wanted 0, got 1
-lib/proportions.c:164:2: warning: context imbalance in 'prop_put_global': unexpected unlock
-lib/proportions.c:164:2:    context 'RCU': wanted 0, got -1
+This used to work unpatched with older kernels, during the development
+phase of mtdoops.  Before commit e3e8a75d2acfc61ebf25524666a0a2c6abb0620c
+a space was printed with console_loglevel set to 15, which probably
+flushed the oops message as a side effect.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+This is another patch from the Nokia N810 kernel.
+
+Signed-off-by: Viktor Rosendahl <viktor.rosendahl@nokia.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/proportions.c |    2 ++
+ lib/bust_spinlocks.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN lib/proportions.c~lib-proportionsc-trivial-sparse-lock-annotation lib/proportions.c
---- a/lib/proportions.c~lib-proportionsc-trivial-sparse-lock-annotation
-+++ a/lib/proportions.c
-@@ -147,6 +147,7 @@ out:
-  * this is used to track the active references.
-  */
- static struct prop_global *prop_get_global(struct prop_descriptor *pd)
-+__acquires(RCU)
- {
- 	int index;
+diff -puN lib/bust_spinlocks.c~oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console lib/bust_spinlocks.c
+--- a/lib/bust_spinlocks.c~oops-handling-ensure-that-any-oops-is-flushed-to-the-mtdoops-console
++++ a/lib/bust_spinlocks.c
+@@ -12,6 +12,7 @@
+ #include <linux/tty.h>
+ #include <linux/wait.h>
+ #include <linux/vt_kern.h>
++#include <linux/console.h>
  
-@@ -160,6 +161,7 @@ static struct prop_global *prop_get_glob
- }
  
- static void prop_put_global(struct prop_descriptor *pd, struct prop_global *pg)
-+__releases(RCU)
- {
- 	rcu_read_unlock();
- }
+ void __attribute__((weak)) bust_spinlocks(int yes)
+@@ -22,6 +23,7 @@ void __attribute__((weak)) bust_spinlock
+ #ifdef CONFIG_VT
+ 		unblank_screen();
+ #endif
++		console_unblank();
+ 		if (--oops_in_progress == 0)
+ 			wake_up_klogd();
+ 	}
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from viktor.rosendahl@nokia.com are
 
 origin.patch
-linux-next.patch
-input-ads7846c-sparse-lock-annotation.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
-ata-replace-byteshifting-with-unaligned-endian-helpers.patch
-usb-use-unaligned-endian-helpers-in-storage-drivers.patch
 
