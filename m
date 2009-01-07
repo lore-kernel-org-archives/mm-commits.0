@@ -1,214 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-add-load-store_endian-api-update.patch added to -mm tree
-Date: Wed, 07 Jan 2009 12:54:02 -0800
-Message-ID: <200901072054.n07Ks2B7013413@imap1.linux-foundation.org>
+Subject: - clocksource-pass-clocksource-to-read-callback-v2.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 13:26:26 -0800
+Message-ID: <200901072126.n07LQQla007363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756537AbZAGUye (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 15:54:34 -0500
+	by vger.kernel.org with ESMTP id S1751854AbZAGV0e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 16:26:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+To: damm@igel.co.jp, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     byteorder: add load/store_{endian} api
-has been added to the -mm tree.  Its filename is
-     byteorder-add-load-store_endian-api-update.patch
+     clocksource: pass clocksource to read() callback V2
+has been removed from the -mm tree.  Its filename was
+     clocksource-pass-clocksource-to-read-callback-v2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into clocksource-pass-clocksource-to-read-callback.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: add load/store_{endian} api
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: clocksource: pass clocksource to read() callback V2
+From: Magnus Damm <damm@igel.co.jp>
 
-load_le16 is a synonym for the existing le16_to_cpup and is added to be
-symmetric with the load_le16_noalign API.  On arches where unaligned
-access is OK, the unaligned calls are replaced with aligned calls.
+Pass clocksource pointer to the read() callback for clocksources.
+This allows us to share the callback between multiple instances.
 
-store_le16 is a new API and is added to be symmetric with the unaligned
-functions.  It is implemented as a macro to allow compile-time
-byteswapping when the value is a constant.  This will also allow use in
-many places currently that are of the form:
-
-*(__le16 *)ptr = cpu_to_le16(foo);
-
-In addition, some drivers/filesystems/arches already provide this API
-privately, which will allow them to be consolidated into this common code.
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/byteorder.h         |   26 ++++++--------------------
- include/linux/byteorder/generic.h |   25 +++++++++++++++++++------
- 2 files changed, 25 insertions(+), 26 deletions(-)
+ arch/sparc/include/asm/timer_64.h |    3 +--
+ arch/sparc/kernel/time_64.c       |   21 +++++++++++++--------
+ kernel/time/clocksource.c         |    8 ++++----
+ 3 files changed, 18 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/byteorder.h~byteorder-add-load-store_endian-api-update include/linux/byteorder.h
---- a/include/linux/byteorder.h~byteorder-add-load-store_endian-api-update
-+++ a/include/linux/byteorder.h
-@@ -292,20 +292,6 @@ static inline __be64 __cpu_to_be64p(cons
- # define cpu_to_be32 __cpu_to_be32
- # define cpu_to_be64 __cpu_to_be64
+diff -puN arch/sparc/include/asm/timer_64.h~clocksource-pass-clocksource-to-read-callback-v2 arch/sparc/include/asm/timer_64.h
+--- a/arch/sparc/include/asm/timer_64.h~clocksource-pass-clocksource-to-read-callback-v2
++++ a/arch/sparc/include/asm/timer_64.h
+@@ -8,10 +8,9 @@
  
--# define load_le16 __le16_to_cpup
--# define load_le32 __le32_to_cpup
--# define load_le64 __le64_to_cpup
--# define load_be16 __be16_to_cpup
--# define load_be32 __be32_to_cpup
--# define load_be64 __be64_to_cpup
--
--# define store_le16(p, val) (*(__le16 *)(p) = cpu_to_le16(val))
--# define store_le32(p, val) (*(__le32 *)(p) = cpu_to_le32(val))
--# define store_le64(p, val) (*(__le64 *)(p) = cpu_to_le64(val))
--# define store_be16(p, val) (*(__be16 *)(p) = cpu_to_be16(val))
--# define store_be32(p, val) (*(__be32 *)(p) = cpu_to_be32(val))
--# define store_be64(p, val) (*(__be64 *)(p) = cpu_to_be64(val))
--
- # define le16_to_cpup __le16_to_cpup
- # define le32_to_cpup __le32_to_cpup
- # define le64_to_cpup __le64_to_cpup
-@@ -354,32 +340,32 @@ static inline __be64 __cpu_to_be64p(cons
+ #include <linux/types.h>
+ #include <linux/init.h>
+-#include <linux/clocksource.h>
  
- static inline void le16_add_cpu(__le16 *var, u16 val)
- {
--	store_le16(var, load_le16(var) + val);
-+	*var = cpu_to_le16(le16_to_cpup(var) + val);
+ struct sparc64_tick_ops {
+-	unsigned long long (*get_tick)(struct clocksource *cs);
++	unsigned long long (*get_tick)();
+ 	int (*add_compare)(unsigned long);
+ 	unsigned long softint_mask;
+ 	void (*disable_irq)(void);
+diff -puN arch/sparc/kernel/time_64.c~clocksource-pass-clocksource-to-read-callback-v2 arch/sparc/kernel/time_64.c
+--- a/arch/sparc/kernel/time_64.c~clocksource-pass-clocksource-to-read-callback-v2
++++ a/arch/sparc/kernel/time_64.c
+@@ -106,7 +106,7 @@ static void tick_init_tick(void)
+ 	tick_disable_irq();
  }
  
- static inline void le32_add_cpu(__le32 *var, u32 val)
+-static unsigned long long tick_get_tick(struct clocksource *cs)
++static unsigned long long tick_get_tick(void)
  {
--	store_le32(var, load_le32(var) + val);
-+	*var = cpu_to_le32(le32_to_cpup(var) + val);
+ 	unsigned long ret;
+ 
+@@ -208,7 +208,7 @@ static void stick_init_tick(void)
+ 	stick_disable_irq();
  }
  
- static inline void le64_add_cpu(__le64 *var, u64 val)
+-static unsigned long long stick_get_tick(struct clocksource *cs)
++static unsigned long long stick_get_tick(void)
  {
--	store_le64(var, load_le64(var) + val);
-+	*var = cpu_to_le64(le64_to_cpup(var) + val);
+ 	unsigned long ret;
+ 
+@@ -352,7 +352,7 @@ static void hbtick_init_tick(void)
+ 	hbtick_disable_irq();
  }
  
- static inline void be16_add_cpu(__be16 *var, u16 val)
+-static unsigned long long hbtick_get_tick(struct clocksource *cs)
++static unsigned long long hbtick_get_tick(void)
  {
--	store_be16(var, load_be16(var) + val);
-+	*var = cpu_to_be16(be16_to_cpup(var) + val);
+ 	return __hbird_read_stick() & ~TICK_PRIV_BIT;
  }
- 
- static inline void be32_add_cpu(__be32 *var, u32 val)
+@@ -799,9 +799,9 @@ void __delay(unsigned long loops)
  {
--	store_be32(var, load_be32(var) + val);
-+	*var = cpu_to_be32(be32_to_cpup(var) + val);
+ 	unsigned long bclock, now;
+ 
+-	bclock = tick_ops->get_tick(&clocksource_tick);
++	bclock = tick_ops->get_tick();
+ 	do {
+-		now = tick_ops->get_tick(&clocksource_tick);
++		now = tick_ops->get_tick();
+ 	} while ((now-bclock) < loops);
  }
- 
- static inline void be64_add_cpu(__be64 *var, u64 val)
- {
--	store_be64(var, load_be64(var) + val);
-+	*var = cpu_to_be64(be64_to_cpup(var) + val);
+ EXPORT_SYMBOL(__delay);
+@@ -812,6 +812,11 @@ void udelay(unsigned long usecs)
  }
+ EXPORT_SYMBOL(udelay);
  
- #endif /* __KERNEL__ */
-diff -puN include/linux/byteorder/generic.h~byteorder-add-load-store_endian-api-update include/linux/byteorder/generic.h
---- a/include/linux/byteorder/generic.h~byteorder-add-load-store_endian-api-update
-+++ a/include/linux/byteorder/generic.h
-@@ -119,6 +119,19 @@
- #define cpu_to_be16s __cpu_to_be16s
- #define be16_to_cpus __be16_to_cpus
- 
-+#define load_le16 __le16_to_cpup
-+#define load_le32 __le32_to_cpup
-+#define load_le64 __le64_to_cpup
-+#define load_be16 __be16_to_cpup
-+#define load_be32 __be32_to_cpup
-+#define load_be64 __be64_to_cpup
-+#define store_le16(p, val) (*(__le16 *)(p) = cpu_to_le16(val))
-+#define store_le32(p, val) (*(__le32 *)(p) = cpu_to_le32(val))
-+#define store_le64(p, val) (*(__le64 *)(p) = cpu_to_le64(val))
-+#define store_be16(p, val) (*(__be16 *)(p) = cpu_to_be16(val))
-+#define store_be32(p, val) (*(__be32 *)(p) = cpu_to_be32(val))
-+#define store_be64(p, val) (*(__be64 *)(p) = cpu_to_be64(val))
++static cycle_t clocksource_tick_read(struct clocksource *cs)
++{
++	return tick_ops->get_tick();
++}
 +
- /*
-  * They have to be macros in order to do the constant folding
-  * correctly - if the argument passed into a inline function
-@@ -142,32 +155,32 @@
- 
- static inline void le16_add_cpu(__le16 *var, u16 val)
+ void __init time_init(void)
  {
--	*var = cpu_to_le16(le16_to_cpu(*var) + val);
-+	store_le16(var, load_le16(var) + val);
- }
+ 	unsigned long freq = sparc64_init_timers();
+@@ -825,7 +830,7 @@ void __init time_init(void)
+ 	clocksource_tick.mult =
+ 		clocksource_hz2mult(freq,
+ 				    clocksource_tick.shift);
+-	clocksource_tick.read = tick_ops->get_tick;
++	clocksource_tick.read = clocksource_tick_read;
  
- static inline void le32_add_cpu(__le32 *var, u32 val)
+ 	printk("clocksource: mult[%x] shift[%d]\n",
+ 	       clocksource_tick.mult, clocksource_tick.shift);
+@@ -849,7 +854,7 @@ void __init time_init(void)
+ 
+ unsigned long long sched_clock(void)
  {
--	*var = cpu_to_le32(le32_to_cpu(*var) + val);
-+	store_le32(var, load_le32(var) + val);
- }
+-	unsigned long ticks = tick_ops->get_tick(&clocksource_tick);
++	unsigned long ticks = tick_ops->get_tick();
  
- static inline void le64_add_cpu(__le64 *var, u64 val)
+ 	return (ticks * timer_ticks_per_nsec_quotient)
+ 		>> SPARC64_NSEC_PER_CYC_SHIFT;
+@@ -857,6 +862,6 @@ unsigned long long sched_clock(void)
+ 
+ int __devinit read_current_timer(unsigned long *timer_val)
  {
--	*var = cpu_to_le64(le64_to_cpu(*var) + val);
-+	store_le64(var, load_le64(var) + val);
+-	*timer_val = tick_ops->get_tick(&clocksource_tick);
++	*timer_val = tick_ops->get_tick();
+ 	return 0;
  }
+diff -puN kernel/time/clocksource.c~clocksource-pass-clocksource-to-read-callback-v2 kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-pass-clocksource-to-read-callback-v2
++++ a/kernel/time/clocksource.c
+@@ -105,12 +105,12 @@ static void clocksource_watchdog(unsigne
  
- static inline void be16_add_cpu(__be16 *var, u16 val)
- {
--	*var = cpu_to_be16(be16_to_cpu(*var) + val);
-+	store_be16(var, load_be16(var) + val);
- }
+ 	resumed = test_and_clear_bit(0, &watchdog_resumed);
  
- static inline void be32_add_cpu(__be32 *var, u32 val)
- {
--	*var = cpu_to_be32(be32_to_cpu(*var) + val);
-+	store_be32(var, load_be32(var) + val);
- }
+-	wdnow = watchdog->read();
++	wdnow = watchdog->read(watchdog);
+ 	wd_nsec = cyc2ns(watchdog, (wdnow - watchdog_last) & watchdog->mask);
+ 	watchdog_last = wdnow;
  
- static inline void be64_add_cpu(__be64 *var, u64 val)
- {
--	*var = cpu_to_be64(be64_to_cpu(*var) + val);
-+	store_be64(var, load_be64(var) + val);
- }
+ 	list_for_each_entry_safe(cs, tmp, &watchdog_list, wd_list) {
+-		csnow = cs->read();
++		csnow = cs->read(cs);
  
- #endif /* _LINUX_BYTEORDER_GENERIC_H */
+ 		if (unlikely(resumed)) {
+ 			cs->wd_last = csnow;
+@@ -171,7 +171,7 @@ static void clocksource_check_watchdog(s
+ 
+ 		list_add(&cs->wd_list, &watchdog_list);
+ 		if (!started && watchdog) {
+-			watchdog_last = watchdog->read();
++			watchdog_last = watchdog->read(watchdog);
+ 			watchdog_timer.expires = jiffies + WATCHDOG_INTERVAL;
+ 			add_timer_on(&watchdog_timer,
+ 				     cpumask_first(cpu_online_mask));
+@@ -192,7 +192,7 @@ static void clocksource_check_watchdog(s
+ 				cse->flags &= ~CLOCK_SOURCE_WATCHDOG;
+ 			/* Start if list is not empty */
+ 			if (!list_empty(&watchdog_list)) {
+-				watchdog_last = watchdog->read();
++				watchdog_last = watchdog->read(watchdog);
+ 				watchdog_timer.expires =
+ 					jiffies + WATCHDOG_INTERVAL;
+ 				add_timer_on(&watchdog_timer,
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from damm@igel.co.jp are
 
 origin.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
 linux-next.patch
-input-ads7846c-sparse-lock-annotation.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-byteorder-add-load-store_endian-api-update.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
-ata-replace-byteshifting-with-unaligned-endian-helpers.patch
-usb-use-unaligned-endian-helpers-in-storage-drivers.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-pass-clocksource-to-read-callback-v2.patch
+clocksource-pass-clocksource-to-read-callback-v2-fix.patch
+clocksource-add-enable-and-disable-callbacks.patch
+irq-free-setup_irq-interrupt-using-free_irq.patch
+vmcore-remove-saved_max_pfn-check.patch
 
