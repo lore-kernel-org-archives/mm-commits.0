@@ -1,90 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - rapidio-remove-excess-kernel-doc-notation.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:20:09 -0800
-Message-ID: <200901072220.n07MK95Q019424@imap1.linux-foundation.org>
+Subject: - edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:20:49 -0800
+Message-ID: <200901072220.n07MKn5L020023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33751 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763383AbZAGWhg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:37:36 -0500
+	by vger.kernel.org with ESMTP id S932214AbZAGWhe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:37:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: kay.sievers@vrfy.org, dougthompson@xmission.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rapidio: remove excess kernel-doc notation
+     edac: struct device: replace bus_id with dev_name(), dev_set_name()
 has been removed from the -mm tree.  Its filename was
-     rapidio-remove-excess-kernel-doc-notation.patch
+     edac-struct-device-replace-bus_id-with-dev_name-dev_set_name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: remove excess kernel-doc notation
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: edac: struct device: replace bus_id with dev_name(), dev_set_name()
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-Remove excess kernel-doc notation from rio header and driver:
+This patch is part of a larger patch series which will remove the "char
+bus_id[20]" name string from struct device.  The device name is managed in
+the kobject anyway, and without any size limitation, and just needlessly
+copied into "struct device".
 
-Warning(include/linux/rio_drv.h:399): Excess function parameter or struct member 'buffer' description in 'rio_get_inb_message'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Acked-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-driver.c |    1 -
- include/linux/rio_drv.h      |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/edac/edac_device.c    |    2 +-
+ drivers/edac/edac_mc.c        |    2 +-
+ drivers/edac/edac_pci.c       |    2 +-
+ drivers/edac/edac_pci_sysfs.c |    6 +++---
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rapidio/rio-driver.c~rapidio-remove-excess-kernel-doc-notation drivers/rapidio/rio-driver.c
---- a/drivers/rapidio/rio-driver.c~rapidio-remove-excess-kernel-doc-notation
-+++ a/drivers/rapidio/rio-driver.c
-@@ -79,7 +79,6 @@ void rio_dev_put(struct rio_dev *rdev)
+diff -puN drivers/edac/edac_device.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name
++++ a/drivers/edac/edac_device.c
+@@ -333,7 +333,7 @@ static int add_edac_dev_to_global_list(s
+ fail0:
+ 	edac_printk(KERN_WARNING, EDAC_MC,
+ 			"%s (%s) %s %s already assigned %d\n",
+-			rover->dev->bus_id, edac_dev_name(rover),
++			dev_name(rover->dev), edac_dev_name(rover),
+ 			rover->mod_name, rover->ctl_name, rover->dev_idx);
+ 	return 1;
  
- /**
-  *  rio_device_probe - Tell if a RIO device structure has a matching RIO device id structure
-- *  @id: the RIO device id structure to match against
-  *  @dev: the RIO device structure to match against
-  *
-  * return 0 and set rio_dev->driver when drv claims rio_dev, else error
-diff -puN include/linux/rio_drv.h~rapidio-remove-excess-kernel-doc-notation include/linux/rio_drv.h
---- a/include/linux/rio_drv.h~rapidio-remove-excess-kernel-doc-notation
-+++ a/include/linux/rio_drv.h
-@@ -391,7 +391,6 @@ static inline int rio_add_inb_buffer(str
-  * rio_get_inb_message - Get A RIO message from an inbound mailbox queue
-  * @mport: Master port containing the inbound mailbox
-  * @mbox: The inbound mailbox number
-- * @buffer: Pointer to the message buffer
-  *
-  * Get a RIO message from an inbound mailbox queue. Returns 0 on success.
-  */
+diff -puN drivers/edac/edac_mc.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name drivers/edac/edac_mc.c
+--- a/drivers/edac/edac_mc.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name
++++ a/drivers/edac/edac_mc.c
+@@ -401,7 +401,7 @@ static int add_mc_to_global_list(struct 
+ 
+ fail0:
+ 	edac_printk(KERN_WARNING, EDAC_MC,
+-		"%s (%s) %s %s already assigned %d\n", p->dev->bus_id,
++		"%s (%s) %s %s already assigned %d\n", dev_name(p->dev),
+ 		edac_dev_name(mci), p->mod_name, p->ctl_name, p->mc_idx);
+ 	return 1;
+ 
+diff -puN drivers/edac/edac_pci.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name drivers/edac/edac_pci.c
+--- a/drivers/edac/edac_pci.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name
++++ a/drivers/edac/edac_pci.c
+@@ -150,7 +150,7 @@ static int add_edac_pci_to_global_list(s
+ fail0:
+ 	edac_printk(KERN_WARNING, EDAC_PCI,
+ 		"%s (%s) %s %s already assigned %d\n",
+-		rover->dev->bus_id, edac_dev_name(rover),
++		dev_name(rover->dev), edac_dev_name(rover),
+ 		rover->mod_name, rover->ctl_name, rover->pci_idx);
+ 	return 1;
+ 
+diff -puN drivers/edac/edac_pci_sysfs.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name drivers/edac/edac_pci_sysfs.c
+--- a/drivers/edac/edac_pci_sysfs.c~edac-struct-device-replace-bus_id-with-dev_name-dev_set_name
++++ a/drivers/edac/edac_pci_sysfs.c
+@@ -569,7 +569,7 @@ static void edac_pci_dev_parity_test(str
+ 
+ 	local_irq_restore(flags);
+ 
+-	debugf4("PCI STATUS= 0x%04x %s\n", status, dev->dev.bus_id);
++	debugf4("PCI STATUS= 0x%04x %s\n", status, dev_name(&dev->dev));
+ 
+ 	/* check the status reg for errors on boards NOT marked as broken
+ 	 * if broken, we cannot trust any of the status bits
+@@ -600,13 +600,13 @@ static void edac_pci_dev_parity_test(str
+ 	}
+ 
+ 
+-	debugf4("PCI HEADER TYPE= 0x%02x %s\n", header_type, dev->dev.bus_id);
++	debugf4("PCI HEADER TYPE= 0x%02x %s\n", header_type, dev_name(&dev->dev));
+ 
+ 	if ((header_type & 0x7F) == PCI_HEADER_TYPE_BRIDGE) {
+ 		/* On bridges, need to examine secondary status register  */
+ 		status = get_pci_parity_status(dev, 1);
+ 
+-		debugf4("PCI SEC_STATUS= 0x%04x %s\n", status, dev->dev.bus_id);
++		debugf4("PCI SEC_STATUS= 0x%04x %s\n", status, dev_name(&dev->dev));
+ 
+ 		/* check the secondary status reg for errors,
+ 		 * on NOT broken boards
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
 origin.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-leds-add-a-dac124s085-spi-led-driver-fix.patch
-mtd-fix-nettel-printk-formats.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-max3100-spi-uart-driver-select-serial_core.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-jbd-remove-excess-kernel-doc-notation.patch
-w1-add-list-masters-w1-command.patch
 linuxpps-core-support.patch
 pps-userland-header-file-for-pps-api.patch
 pps-documentation-programs-and-examples.patch
 pps-linuxpps-clients-support.patch
 ldisc-new-dcd_change-method-for-line-disciplines.patch
 pps-parallel-port-clients-support.patch
-fix-similar-typos-to-successfull-v2.patch
-kmemleak-add-documentation-on-the-memory-leak-detector.patch
 
