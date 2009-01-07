@@ -1,73 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - mm-make-vread-and-vwrite-declaration.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:13:11 -0800
-Message-ID: <200901072213.n07MDBEY013304@imap1.linux-foundation.org>
+Subject: - mm-make-setup_per_zone_inactive_ratio-static.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:13:09 -0800
+Message-ID: <200901072213.n07MD92H013253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44795 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46556 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756731AbZAGWNO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:14 -0500
+	by vger.kernel.org with ESMTP id S1756593AbZAGWNM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: make vread() and vwrite() declaration
+     mm: make setup_per_zone_inactive_ratio() static
 has been removed from the -mm tree.  Its filename was
-     mm-make-vread-and-vwrite-declaration.patch
+     mm-make-setup_per_zone_inactive_ratio-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make vread() and vwrite() declaration
+Subject: mm: make setup_per_zone_inactive_ratio() static
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Sparse output following warnings.
+Sparse output following warning.
 
-mm/vmalloc.c:1436:6: warning: symbol 'vread' was not declared. Should it be static?
-mm/vmalloc.c:1474:6: warning: symbol 'vwrite' was not declared. Should it be static?
+mm/page_alloc.c:4301:6: warning: symbol 'setup_per_zone_inactive_ratio' was not declared. Should it be static?
 
-However, it is used by /dev/kmem. fixed here.
+cleanup here.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c      |    3 ---
- include/linux/vmalloc.h |    4 ++++
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/mem.c~mm-make-vread-and-vwrite-declaration drivers/char/mem.c
---- a/drivers/char/mem.c~mm-make-vread-and-vwrite-declaration
-+++ a/drivers/char/mem.c
-@@ -425,9 +425,6 @@ static ssize_t read_oldmem(struct file *
- }
- #endif
- 
--extern long vread(char *buf, char *addr, unsigned long count);
--extern long vwrite(char *buf, char *addr, unsigned long count);
--
- #ifdef CONFIG_DEVKMEM
- /*
-  * This function reads the *virtual* memory as seen by the kernel.
-diff -puN include/linux/vmalloc.h~mm-make-vread-and-vwrite-declaration include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-make-vread-and-vwrite-declaration
-+++ a/include/linux/vmalloc.h
-@@ -97,6 +97,10 @@ extern void unmap_kernel_range(unsigned 
- extern struct vm_struct *alloc_vm_area(size_t size);
- extern void free_vm_area(struct vm_struct *area);
- 
-+/* for /dev/kmem */
-+extern long vread(char *buf, char *addr, unsigned long count);
-+extern long vwrite(char *buf, char *addr, unsigned long count);
-+
- /*
-  *	Internals.  Dont't use..
+diff -puN mm/page_alloc.c~mm-make-setup_per_zone_inactive_ratio-static mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-make-setup_per_zone_inactive_ratio-static
++++ a/mm/page_alloc.c
+@@ -4314,7 +4314,7 @@ void setup_per_zone_pages_min(void)
+  *    1TB     101        10GB
+  *   10TB     320        32GB
   */
+-void setup_per_zone_inactive_ratio(void)
++static void setup_per_zone_inactive_ratio(void)
+ {
+ 	struct zone *zone;
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
