@@ -1,239 +1,270 @@
 From: akpm@linux-foundation.org
-Subject: - swapfile-swap-allocation-use-discard.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:13:27 -0800
-Message-ID: <200901072213.n07MDReE013490@imap1.linux-foundation.org>
+Subject: - mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:12:42 -0800
+Message-ID: <200901072212.n07MCgo0012898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53080 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46180 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757274AbZAGWNx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:53 -0500
+	by vger.kernel.org with ESMTP id S1757250AbZAGWOC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, James.Bottomley@HansenPartnership.com, djshin90@gmail.com, dwmw2@infradead.org, jens.axboe@oracle.com, joern@logfs.org, kamezawa.hiroyu@jp.fujitsu.com, matthew@wil.cx
+To: hugh@veritas.com, holt@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swapfile: swap allocation use discard
+     mm: try_to_free_swap replaces remove_exclusive_swap_page
 has been removed from the -mm tree.  Its filename was
-     swapfile-swap-allocation-use-discard.patch
+     mm-try_to_free_swap-replaces-remove_exclusive_swap_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swapfile: swap allocation use discard
+Subject: mm: try_to_free_swap replaces remove_exclusive_swap_page
 From: Hugh Dickins <hugh@veritas.com>
 
-When scan_swap_map() finds a free cluster of swap pages to allocate,
-discard the old contents of the cluster if the device supports discard. 
-But don't bother when swap is so fragmented that we allocate single pages.
+remove_exclusive_swap_page(): its problem is in living up to its name.
 
-Be careful about racing allocations made while we're scanning for a
-cluster; and hold up allocations made while we're discarding.
+It doesn't matter if someone else has a reference to the page (raised
+page_count); it doesn't matter if the page is mapped into userspace
+(raised page_mapcount - though that hints it may be worth keeping the
+swap): all that matters is that there be no more references to the swap
+(and no writeback in progress).
+
+swapoff (try_to_unuse) has been removing pages from swapcache for years,
+with no concern for page count or page mapcount, and we used to have a
+comment in lookup_swap_cache() recognizing that: if you go for a page of
+swapcache, you'll get the right page, but it could have been removed from
+swapcache by the time you get page lock.
+
+So, give up asking for exclusivity: get rid of
+remove_exclusive_swap_page(), and remove_exclusive_swap_page_ref() and
+remove_exclusive_swap_page_count() which were spawned for the recent LRU
+work: replace them by the simpler try_to_free_swap() which just checks
+page_swapcount().
+
+Similarly, remove the page_count limitation from free_swap_and_count(),
+but assume that it's worth holding on to the swap if page is mapped and
+swap nowhere near full.  Add a vm_swap_full() test in free_swap_cache()? 
+It would be consistent, but I think we probably have enough for now.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Joern Engel <joern@logfs.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Donjun Shin <djshin90@gmail.com>
-Cc: Tejun Heo <teheo@suse.de>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    3 +
- mm/swapfile.c        |  119 ++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 121 insertions(+), 1 deletion(-)
+ include/linux/swap.h |   10 +----
+ mm/memory.c          |    2 -
+ mm/page_io.c         |    2 -
+ mm/swap.c            |    3 -
+ mm/swap_state.c      |    8 ++--
+ mm/swapfile.c        |   70 +++++++----------------------------------
+ mm/vmscan.c          |    2 -
+ 7 files changed, 22 insertions(+), 75 deletions(-)
 
-diff -puN include/linux/swap.h~swapfile-swap-allocation-use-discard include/linux/swap.h
---- a/include/linux/swap.h~swapfile-swap-allocation-use-discard
+diff -puN include/linux/swap.h~mm-try_to_free_swap-replaces-remove_exclusive_swap_page include/linux/swap.h
+--- a/include/linux/swap.h~mm-try_to_free_swap-replaces-remove_exclusive_swap_page
 +++ a/include/linux/swap.h
-@@ -121,6 +121,7 @@ enum {
- 	SWP_USED	= (1 << 0),	/* is slot in swap_info[] used? */
- 	SWP_WRITEOK	= (1 << 1),	/* ok to write to this swap?	*/
- 	SWP_DISCARDABLE = (1 << 2),	/* blkdev supports discard */
-+	SWP_DISCARDING	= (1 << 3),	/* now discarding a free cluster */
- 					/* add others here before... */
- 	SWP_SCANNING	= (1 << 8),	/* refcount in scan_swap_map */
- };
-@@ -144,6 +145,8 @@ struct swap_info_struct {
- 	unsigned short *swap_map;
- 	unsigned int lowest_bit;
- 	unsigned int highest_bit;
-+	unsigned int lowest_alloc;	/* while preparing discard cluster */
-+	unsigned int highest_alloc;	/* while preparing discard cluster */
- 	unsigned int cluster_next;
- 	unsigned int cluster_nr;
- 	unsigned int pages;
-diff -puN mm/swapfile.c~swapfile-swap-allocation-use-discard mm/swapfile.c
---- a/mm/swapfile.c~swapfile-swap-allocation-use-discard
+@@ -305,8 +305,7 @@ extern sector_t map_swap_page(struct swa
+ extern sector_t swapdev_block(int, pgoff_t);
+ extern struct swap_info_struct *get_swap_info_struct(unsigned);
+ extern int reuse_swap_page(struct page *);
+-extern int remove_exclusive_swap_page(struct page *);
+-extern int remove_exclusive_swap_page_ref(struct page *);
++extern int try_to_free_swap(struct page *);
+ struct backing_dev_info;
+ 
+ /* linux/mm/thrash.c */
+@@ -388,12 +387,7 @@ static inline void delete_from_swap_cach
+ 
+ #define reuse_swap_page(page)	(page_mapcount(page) == 1)
+ 
+-static inline int remove_exclusive_swap_page(struct page *p)
+-{
+-	return 0;
+-}
+-
+-static inline int remove_exclusive_swap_page_ref(struct page *page)
++static inline int try_to_free_swap(struct page *page)
+ {
+ 	return 0;
+ }
+diff -puN mm/memory.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page mm/memory.c
+--- a/mm/memory.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page
++++ a/mm/memory.c
+@@ -2403,7 +2403,7 @@ static int do_swap_page(struct mm_struct
+ 
+ 	swap_free(entry);
+ 	if (vm_swap_full() || (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
+-		remove_exclusive_swap_page(page);
++		try_to_free_swap(page);
+ 	unlock_page(page);
+ 
+ 	if (write_access) {
+diff -puN mm/page_io.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page mm/page_io.c
+--- a/mm/page_io.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page
++++ a/mm/page_io.c
+@@ -98,7 +98,7 @@ int swap_writepage(struct page *page, st
+ 	struct bio *bio;
+ 	int ret = 0, rw = WRITE;
+ 
+-	if (remove_exclusive_swap_page(page)) {
++	if (try_to_free_swap(page)) {
+ 		unlock_page(page);
+ 		goto out;
+ 	}
+diff -puN mm/swap.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page mm/swap.c
+--- a/mm/swap.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page
++++ a/mm/swap.c
+@@ -454,8 +454,7 @@ void pagevec_swap_free(struct pagevec *p
+ 		struct page *page = pvec->pages[i];
+ 
+ 		if (PageSwapCache(page) && trylock_page(page)) {
+-			if (PageSwapCache(page))
+-				remove_exclusive_swap_page_ref(page);
++			try_to_free_swap(page);
+ 			unlock_page(page);
+ 		}
+ 	}
+diff -puN mm/swap_state.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page mm/swap_state.c
+--- a/mm/swap_state.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page
++++ a/mm/swap_state.c
+@@ -195,14 +195,14 @@ void delete_from_swap_cache(struct page 
+  * If we are the only user, then try to free up the swap cache. 
+  * 
+  * Its ok to check for PageSwapCache without the page lock
+- * here because we are going to recheck again inside 
+- * exclusive_swap_page() _with_ the lock. 
++ * here because we are going to recheck again inside
++ * try_to_free_swap() _with_ the lock.
+  * 					- Marcelo
+  */
+ static inline void free_swap_cache(struct page *page)
+ {
+-	if (PageSwapCache(page) && trylock_page(page)) {
+-		remove_exclusive_swap_page(page);
++	if (PageSwapCache(page) && !page_mapped(page) && trylock_page(page)) {
++		try_to_free_swap(page);
+ 		unlock_page(page);
+ 	}
+ }
+diff -puN mm/swapfile.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page mm/swapfile.c
+--- a/mm/swapfile.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page
 +++ a/mm/swapfile.c
-@@ -115,14 +115,62 @@ static int discard_swap(struct swap_info
- 	return err;		/* That will often be -EOPNOTSUPP */
+@@ -348,68 +348,23 @@ int reuse_swap_page(struct page *page)
  }
  
-+/*
-+ * swap allocation tell device that a cluster of swap can now be discarded,
-+ * to allow the swap device to optimize its wear-levelling.
-+ */
-+static void discard_swap_cluster(struct swap_info_struct *si,
-+				 pgoff_t start_page, pgoff_t nr_pages)
-+{
-+	struct swap_extent *se = si->curr_swap_extent;
-+	int found_extent = 0;
-+
-+	while (nr_pages) {
-+		struct list_head *lh;
-+
-+		if (se->start_page <= start_page &&
-+		    start_page < se->start_page + se->nr_pages) {
-+			pgoff_t offset = start_page - se->start_page;
-+			sector_t start_block = se->start_block + offset;
-+			pgoff_t nr_blocks = se->nr_pages - offset;
-+
-+			if (nr_blocks > nr_pages)
-+				nr_blocks = nr_pages;
-+			start_page += nr_blocks;
-+			nr_pages -= nr_blocks;
-+
-+			if (!found_extent++)
-+				si->curr_swap_extent = se;
-+
-+			start_block <<= PAGE_SHIFT - 9;
-+			nr_blocks <<= PAGE_SHIFT - 9;
-+			if (blkdev_issue_discard(si->bdev, start_block,
-+							nr_blocks, GFP_NOIO))
-+				break;
-+		}
-+
-+		lh = se->list.next;
-+		if (lh == &si->extent_list)
-+			lh = lh->next;
-+		se = list_entry(lh, struct swap_extent, list);
-+	}
-+}
-+
-+static int wait_for_discard(void *word)
-+{
-+	schedule();
-+	return 0;
-+}
-+
- #define SWAPFILE_CLUSTER	256
- #define LATENCY_LIMIT		256
- 
- static inline unsigned long scan_swap_map(struct swap_info_struct *si)
+ /*
+- * Work out if there are any other processes sharing this
+- * swap cache page. Free it if you can. Return success.
++ * If swap is getting full, or if there are no more mappings of this page,
++ * then try_to_free_swap is called to free its swap space.
+  */
+-static int remove_exclusive_swap_page_count(struct page *page, int count)
++int try_to_free_swap(struct page *page)
  {
- 	unsigned long offset;
--	unsigned long last_in_cluster;
-+	unsigned long last_in_cluster = 0;
- 	int latency_ration = LATENCY_LIMIT;
-+	int found_free_cluster = 0;
+-	int retval;
+-	struct swap_info_struct * p;
+-	swp_entry_t entry;
+-
+ 	VM_BUG_ON(!PageLocked(page));
  
- 	/*
- 	 * We try to cluster swap pages by allocating them sequentially
-@@ -142,6 +190,19 @@ static inline unsigned long scan_swap_ma
- 			si->cluster_nr = SWAPFILE_CLUSTER - 1;
- 			goto checks;
- 		}
-+		if (si->flags & SWP_DISCARDABLE) {
-+			/*
-+			 * Start range check on racing allocations, in case
-+			 * they overlap the cluster we eventually decide on
-+			 * (we scan without swap_lock to allow preemption).
-+			 * It's hardly conceivable that cluster_nr could be
-+			 * wrapped during our scan, but don't depend on it.
-+			 */
-+			if (si->lowest_alloc)
-+				goto checks;
-+			si->lowest_alloc = si->max;
-+			si->highest_alloc = 0;
-+		}
+ 	if (!PageSwapCache(page))
+ 		return 0;
+ 	if (PageWriteback(page))
+ 		return 0;
+-	if (page_count(page) != count) /* us + cache + ptes */
+-		return 0;
+-
+-	entry.val = page_private(page);
+-	p = swap_info_get(entry);
+-	if (!p)
++	if (page_swapcount(page))
+ 		return 0;
+ 
+-	/* Is the only swap cache user the cache itself? */
+-	retval = 0;
+-	if (p->swap_map[swp_offset(entry)] == 1) {
+-		/* Recheck the page count with the swapcache lock held.. */
+-		spin_lock_irq(&swapper_space.tree_lock);
+-		if ((page_count(page) == count) && !PageWriteback(page)) {
+-			__delete_from_swap_cache(page);
+-			SetPageDirty(page);
+-			retval = 1;
+-		}
+-		spin_unlock_irq(&swapper_space.tree_lock);
+-	}
+-	spin_unlock(&swap_lock);
+-
+-	if (retval) {
+-		swap_free(entry);
+-		page_cache_release(page);
+-	}
+-
+-	return retval;
+-}
+-
+-/*
+- * Most of the time the page should have two references: one for the
+- * process and one for the swap cache.
+- */
+-int remove_exclusive_swap_page(struct page *page)
+-{
+-	return remove_exclusive_swap_page_count(page, 2);
+-}
+-
+-/*
+- * The pageout code holds an extra reference to the page.  That raises
+- * the reference count to test for to 2 for a page that is only in the
+- * swap cache plus 1 for each process that maps the page.
+- */
+-int remove_exclusive_swap_page_ref(struct page *page)
+-{
+-	return remove_exclusive_swap_page_count(page, 2 + page_mapcount(page));
++	delete_from_swap_cache(page);
++	SetPageDirty(page);
++	return 1;
+ }
+ 
+ /*
+@@ -436,13 +391,12 @@ void free_swap_and_cache(swp_entry_t ent
  		spin_unlock(&swap_lock);
- 
- 		offset = si->lowest_bit;
-@@ -156,6 +217,7 @@ static inline unsigned long scan_swap_ma
- 				offset -= SWAPFILE_CLUSTER - 1;
- 				si->cluster_next = offset;
- 				si->cluster_nr = SWAPFILE_CLUSTER - 1;
-+				found_free_cluster = 1;
- 				goto checks;
- 			}
- 			if (unlikely(--latency_ration < 0)) {
-@@ -167,6 +229,7 @@ static inline unsigned long scan_swap_ma
- 		offset = si->lowest_bit;
- 		spin_lock(&swap_lock);
- 		si->cluster_nr = SWAPFILE_CLUSTER - 1;
-+		si->lowest_alloc = 0;
  	}
- 
- checks:
-@@ -191,6 +254,60 @@ checks:
- 	si->swap_map[offset] = 1;
- 	si->cluster_next = offset + 1;
- 	si->flags -= SWP_SCANNING;
-+
-+	if (si->lowest_alloc) {
+ 	if (page) {
+-		int one_user;
+-
+-		one_user = (page_count(page) == 2);
+-		/* Only cache user (+us), or swap space full? Free it! */
+-		/* Also recheck PageSwapCache after page is locked (above) */
 +		/*
-+		 * Only set when SWP_DISCARDABLE, and there's a scan
-+		 * for a free cluster in progress or just completed.
++		 * Not mapped elsewhere, or swap space full? Free it!
++		 * Also recheck PageSwapCache now page is locked (above).
 +		 */
-+		if (found_free_cluster) {
-+			/*
-+			 * To optimize wear-levelling, discard the
-+			 * old data of the cluster, taking care not to
-+			 * discard any of its pages that have already
-+			 * been allocated by racing tasks (offset has
-+			 * already stepped over any at the beginning).
-+			 */
-+			if (offset < si->highest_alloc &&
-+			    si->lowest_alloc <= last_in_cluster)
-+				last_in_cluster = si->lowest_alloc - 1;
-+			si->flags |= SWP_DISCARDING;
-+			spin_unlock(&swap_lock);
-+
-+			if (offset < last_in_cluster)
-+				discard_swap_cluster(si, offset,
-+					last_in_cluster - offset + 1);
-+
-+			spin_lock(&swap_lock);
-+			si->lowest_alloc = 0;
-+			si->flags &= ~SWP_DISCARDING;
-+
-+			smp_mb();	/* wake_up_bit advises this */
-+			wake_up_bit(&si->flags, ilog2(SWP_DISCARDING));
-+
-+		} else if (si->flags & SWP_DISCARDING) {
-+			/*
-+			 * Delay using pages allocated by racing tasks
-+			 * until the whole discard has been issued. We
-+			 * could defer that delay until swap_writepage,
-+			 * but it's easier to keep this self-contained.
-+			 */
-+			spin_unlock(&swap_lock);
-+			wait_on_bit(&si->flags, ilog2(SWP_DISCARDING),
-+				wait_for_discard, TASK_UNINTERRUPTIBLE);
-+			spin_lock(&swap_lock);
-+		} else {
-+			/*
-+			 * Note pages allocated by racing tasks while
-+			 * scan for a free cluster is in progress, so
-+			 * that its final discard can exclude them.
-+			 */
-+			if (offset < si->lowest_alloc)
-+				si->lowest_alloc = offset;
-+			if (offset > si->highest_alloc)
-+				si->highest_alloc = offset;
-+		}
-+	}
- 	return offset;
- 
- scan:
+ 		if (PageSwapCache(page) && !PageWriteback(page) &&
+-					(one_user || vm_swap_full())) {
++				(!page_mapped(page) || vm_swap_full())) {
+ 			delete_from_swap_cache(page);
+ 			SetPageDirty(page);
+ 		}
+diff -puN mm/vmscan.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page mm/vmscan.c
+--- a/mm/vmscan.c~mm-try_to_free_swap-replaces-remove_exclusive_swap_page
++++ a/mm/vmscan.c
+@@ -759,7 +759,7 @@ cull_mlocked:
+ activate_locked:
+ 		/* Not a candidate for swapping, so reclaim swap space. */
+ 		if (PageSwapCache(page) && vm_swap_full())
+-			remove_exclusive_swap_page_ref(page);
++			try_to_free_swap(page);
+ 		VM_BUG_ON(PageActive(page));
+ 		SetPageActive(page);
+ 		pgactivate++;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
