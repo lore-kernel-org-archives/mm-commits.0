@@ -1,75 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - swapfile-remove-swp_active-mask.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:13:15 -0800
-Message-ID: <200901072213.n07MDFca013346@imap1.linux-foundation.org>
+Subject: - mm-try_to_unuse-check-removing-right-swap.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:12:45 -0800
+Message-ID: <200901072212.n07MCj1p012905@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34155 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757264AbZAGWNW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:22 -0500
+	by vger.kernel.org with ESMTP id S1756579AbZAGWNH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: hugh@veritas.com, holt@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swapfile: remove SWP_ACTIVE mask
+     mm: try_to_unuse check removing right swap
 has been removed from the -mm tree.  Its filename was
-     swapfile-remove-swp_active-mask.patch
+     mm-try_to_unuse-check-removing-right-swap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swapfile: remove SWP_ACTIVE mask
+Subject: mm: try_to_unuse check removing right swap
 From: Hugh Dickins <hugh@veritas.com>
 
-Remove the SWP_ACTIVE mask: it just obscures the SWP_WRITEOK flag.
+There's a possible race in try_to_unuse() which Nick Piggin led me to two
+years ago.  Where it does lock_page() after read_swap_cache_async(), what
+if another task removed that page from swapcache just before we locked it?
+
+It would sail though the (*swap_map > 1) tests doing nothing (because it
+could not have been removed from swapcache before its swap references were
+gone), until it reaches the delete_from_swap_cache(page) near the bottom.
+
+Now imagine that this page has been allocated to swap on a different swap
+area while we dropped page lock (perhaps at the top, perhaps in unuse_mm):
+we could wrongly remove from swap cache before the page has been written
+to swap, so a subsequent do_swap_page() would read in stale data from
+swap.
+
+I think this case could not happen before: remove_exclusive_swap_page()
+refused while page count was raised.  But now with reuse_swap_page() and
+try_to_free_swap() removing from swap cache without minding page count, I
+think it could happen - the previous patch argued that it was safe because
+try_to_unuse() already ignored page count, but overlooked that it might be
+breaking the assumptions in try_to_unuse() itself.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 -
- mm/swapfile.c        |    4 ++--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ mm/swapfile.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~swapfile-remove-swp_active-mask include/linux/swap.h
---- a/include/linux/swap.h~swapfile-remove-swp_active-mask
-+++ a/include/linux/swap.h
-@@ -120,7 +120,6 @@ struct swap_extent {
- enum {
- 	SWP_USED	= (1 << 0),	/* is slot in swap_info[] used? */
- 	SWP_WRITEOK	= (1 << 1),	/* ok to write to this swap?	*/
--	SWP_ACTIVE	= (SWP_USED | SWP_WRITEOK),
- 					/* add others here before... */
- 	SWP_SCANNING	= (1 << 8),	/* refcount in scan_swap_map */
- };
-diff -puN mm/swapfile.c~swapfile-remove-swp_active-mask mm/swapfile.c
---- a/mm/swapfile.c~swapfile-remove-swp_active-mask
+diff -puN mm/swapfile.c~mm-try_to_unuse-check-removing-right-swap mm/swapfile.c
+--- a/mm/swapfile.c~mm-try_to_unuse-check-removing-right-swap
 +++ a/mm/swapfile.c
-@@ -1222,7 +1222,7 @@ asmlinkage long sys_swapoff(const char _
- 	spin_lock(&swap_lock);
- 	for (type = swap_list.head; type >= 0; type = swap_info[type].next) {
- 		p = swap_info + type;
--		if ((p->flags & SWP_ACTIVE) == SWP_ACTIVE) {
-+		if (p->flags & SWP_WRITEOK) {
- 			if (p->swap_file->f_mapping == mapping)
- 				break;
+@@ -889,7 +889,16 @@ static int try_to_unuse(unsigned int typ
+ 			lock_page(page);
+ 			wait_on_page_writeback(page);
  		}
-@@ -1674,7 +1674,7 @@ asmlinkage long sys_swapon(const char __
- 	else
- 		p->prio = --least_priority;
- 	p->swap_map = swap_map;
--	p->flags = SWP_ACTIVE;
-+	p->flags |= SWP_WRITEOK;
- 	nr_swap_pages += nr_good_pages;
- 	total_swap_pages += nr_good_pages;
+-		if (PageSwapCache(page))
++
++		/*
++		 * It is conceivable that a racing task removed this page from
++		 * swap cache just before we acquired the page lock at the top,
++		 * or while we dropped it in unuse_mm().  The page might even
++		 * be back in swap cache on another swap area: that we must not
++		 * delete, since it may not have been written out to swap yet.
++		 */
++		if (PageSwapCache(page) &&
++		    likely(page_private(page) == entry.val))
+ 			delete_from_swap_cache(page);
  
+ 		/*
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
