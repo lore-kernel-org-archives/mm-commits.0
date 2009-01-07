@@ -1,154 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:11:04 -0800
-Message-ID: <200901072211.n07MB4NI011376@imap1.linux-foundation.org>
+Subject: - mm-dont-mark_page_accessed-in-fault-path.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:11:06 -0800
+Message-ID: <200901072211.n07MB6NW011382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45773 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751816AbZAGWLQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:11:16 -0500
+	by vger.kernel.org with ESMTP id S1752630AbZAGWLR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:11:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, adobriyan@gmail.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, hannes@saeurebad.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: report the MMU pagesize in /proc/pid/smaps
+     mm: don't mark_page_accessed in fault path
 has been removed from the -mm tree.  Its filename was
-     mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+     mm-dont-mark_page_accessed-in-fault-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: report the MMU pagesize in /proc/pid/smaps
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: mm: don't mark_page_accessed in fault path
+From: Nick Piggin <npiggin@suse.de>
 
-The KernelPageSize entry in /proc/pid/smaps is the pagesize used by the
-kernel to back a VMA.  This matches the size used by the MMU in the
-majority of cases.  However, one counter-example occurs on PPC64 kernels
-whereby a kernel using 64K as a base pagesize may still use 4K pages for
-the MMU on older processor.  To distinguish, this patch reports
-MMUPageSize as the pagesize used by the MMU in /proc/pid/smaps.
+Doing a mark_page_accessed at fault-time, then doing SetPageReferenced at
+unmap-time if the pte is young has a number of problems.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: "KOSAKI Motohiro" <kosaki.motohiro@jp.fujitsu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+mark_page_accessed is supposed to be roughly the equivalent of a young pte
+for unmapped references. Unfortunately it doesn't come with any context:
+after being called, reclaim doesn't know who or why the page was touched.
+
+So calling mark_page_accessed not only adds extra lru or PG_referenced
+manipulations for pages that are already going to have pte_young ptes anyway,
+but it also adds these references which are difficult to work with from the
+context of vma specific references (eg. MADV_SEQUENTIAL pte_young may not
+wish to contribute to the page being referenced).
+
+Then, simply doing SetPageReferenced when zapping a pte and finding it is
+young, is not a really good solution either. SetPageReferenced does not
+correctly promote the page to the active list for example. So after removing
+mark_page_accessed from the fault path, several mmap()+touch+munmap() would
+have a very different result from several read(2) calls for example, which
+is not really desirable.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Johannes Weiner <hannes@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/hugetlb.h |    6 ++++++
- arch/powerpc/mm/hugetlbpage.c      |    7 +++++++
- fs/proc/task_mmu.c                 |    6 ++++--
- include/linux/hugetlb.h            |    3 +++
- mm/hugetlb.c                       |   13 +++++++++++++
- 5 files changed, 33 insertions(+), 2 deletions(-)
+ mm/filemap.c |    1 -
+ mm/memory.c  |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/powerpc/include/asm/hugetlb.h~mm-report-the-mmu-pagesize-in-proc-pid-smaps arch/powerpc/include/asm/hugetlb.h
---- a/arch/powerpc/include/asm/hugetlb.h~mm-report-the-mmu-pagesize-in-proc-pid-smaps
-+++ a/arch/powerpc/include/asm/hugetlb.h
-@@ -18,6 +18,12 @@ pte_t huge_ptep_get_and_clear(struct mm_
- 			      pte_t *ptep);
- 
- /*
-+ * The version of vma_mmu_pagesize() in arch/powerpc/mm/hugetlbpage.c needs
-+ * to override the version in mm/hugetlb.c
-+ */
-+#define vma_mmu_pagesize vma_mmu_pagesize
-+
-+/*
-  * If the arch doesn't supply something else, assume that hugepage
-  * size aligned regions are ok without further preparation.
-  */
-diff -puN arch/powerpc/mm/hugetlbpage.c~mm-report-the-mmu-pagesize-in-proc-pid-smaps arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~mm-report-the-mmu-pagesize-in-proc-pid-smaps
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -512,6 +512,13 @@ unsigned long hugetlb_get_unmapped_area(
- 	return slice_get_unmapped_area(addr, len, flags, mmu_psize, 1, 0);
- }
- 
-+unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
-+{
-+	unsigned int psize = get_slice_psize(vma->vm_mm, vma->vm_start);
-+
-+	return 1UL << mmu_psize_to_shift(psize);
-+}
-+
- /*
-  * Called by asm hashtable.S for doing lazy icache flush
-  */
-diff -puN fs/proc/task_mmu.c~mm-report-the-mmu-pagesize-in-proc-pid-smaps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-report-the-mmu-pagesize-in-proc-pid-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -397,7 +397,8 @@ static int show_smap(struct seq_file *m,
- 		   "Private_Dirty:  %8lu kB\n"
- 		   "Referenced:     %8lu kB\n"
- 		   "Swap:           %8lu kB\n"
--		   "KernelPageSize: %8lu kB\n",
-+		   "KernelPageSize: %8lu kB\n"
-+		   "MMUPageSize:    %8lu kB\n",
- 		   (vma->vm_end - vma->vm_start) >> 10,
- 		   mss.resident >> 10,
- 		   (unsigned long)(mss.pss >> (10 + PSS_SHIFT)),
-@@ -407,7 +408,8 @@ static int show_smap(struct seq_file *m,
- 		   mss.private_dirty >> 10,
- 		   mss.referenced >> 10,
- 		   mss.swap >> 10,
--		   vma_kernel_pagesize(vma) >> 10);
-+		   vma_kernel_pagesize(vma) >> 10,
-+		   vma_mmu_pagesize(vma) >> 10);
- 
- 	if (m->count < m->size)  /* vma is copied successfully */
- 		m->version = (vma != get_gate_vma(task)) ? vma->vm_start : 0;
-diff -puN include/linux/hugetlb.h~mm-report-the-mmu-pagesize-in-proc-pid-smaps include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-report-the-mmu-pagesize-in-proc-pid-smaps
-+++ a/include/linux/hugetlb.h
-@@ -235,6 +235,8 @@ static inline unsigned long huge_page_si
- 
- extern unsigned long vma_kernel_pagesize(struct vm_area_struct *vma);
- 
-+extern unsigned long vma_mmu_pagesize(struct vm_area_struct *vma);
-+
- static inline unsigned long huge_page_mask(struct hstate *h)
- {
- 	return h->mask;
-@@ -276,6 +278,7 @@ struct hstate {};
- #define huge_page_size(h) PAGE_SIZE
- #define huge_page_mask(h) PAGE_MASK
- #define vma_kernel_pagesize(v) PAGE_SIZE
-+#define vma_mmu_pagesize(v) PAGE_SIZE
- #define huge_page_order(h) 0
- #define huge_page_shift(h) PAGE_SHIFT
- static inline unsigned int pages_per_huge_page(struct hstate *h)
-diff -puN mm/hugetlb.c~mm-report-the-mmu-pagesize-in-proc-pid-smaps mm/hugetlb.c
---- a/mm/hugetlb.c~mm-report-the-mmu-pagesize-in-proc-pid-smaps
-+++ a/mm/hugetlb.c
-@@ -236,6 +236,19 @@ unsigned long vma_kernel_pagesize(struct
- }
- 
- /*
-+ * Return the page size being used by the MMU to back a VMA. In the majority
-+ * of cases, the page size used by the kernel matches the MMU size. On
-+ * architectures where it differs, an architecture-specific version of this
-+ * function is required.
-+ */
-+#ifndef vma_mmu_pagesize
-+unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
-+{
-+	return vma_kernel_pagesize(vma);
-+}
-+#endif
-+
-+/*
-  * Flags for MAP_PRIVATE reservations.  These are stored in the bottom
-  * bits of the reservation map pointer, which are always clear due to
-  * alignment.
+diff -puN mm/filemap.c~mm-dont-mark_page_accessed-in-fault-path mm/filemap.c
+--- a/mm/filemap.c~mm-dont-mark_page_accessed-in-fault-path
++++ a/mm/filemap.c
+@@ -1530,7 +1530,6 @@ retry_find:
+ 	/*
+ 	 * Found the page and have a reference on it.
+ 	 */
+-	mark_page_accessed(page);
+ 	ra->prev_pos = (loff_t)page->index << PAGE_CACHE_SHIFT;
+ 	vmf->page = page;
+ 	return ret | VM_FAULT_LOCKED;
+diff -puN mm/memory.c~mm-dont-mark_page_accessed-in-fault-path mm/memory.c
+--- a/mm/memory.c~mm-dont-mark_page_accessed-in-fault-path
++++ a/mm/memory.c
+@@ -768,7 +768,7 @@ static unsigned long zap_pte_range(struc
+ 				if (pte_dirty(ptent))
+ 					set_page_dirty(page);
+ 				if (pte_young(ptent))
+-					SetPageReferenced(page);
++					mark_page_accessed(page);
+ 				file_rss--;
+ 			}
+ 			page_remove_rmap(page, vma);
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+linux-next.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+radix-tree-gang-set-if-tagged-operation.patch
+reiser4.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
