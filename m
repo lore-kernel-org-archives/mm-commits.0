@@ -1,167 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-improve-reclaim-throughput-to-bail-out-patch.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:13:47 -0800
-Message-ID: <200901072213.n07MDlDQ013768@imap1.linux-foundation.org>
+Subject: - mm-add-add_to_swap-stub.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:12:53 -0800
+Message-ID: <200901072212.n07MCrvA013044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759150AbZAGWOa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:30 -0500
+	by vger.kernel.org with ESMTP id S1760273AbZAGWOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, holt@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: improve reclaim throughput to bail out patch
+     mm: add add_to_swap stub
 has been removed from the -mm tree.  Its filename was
-     vmscan-improve-reclaim-throughput-to-bail-out-patch.patch
+     mm-add-add_to_swap-stub.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: improve reclaim throughput to bail out patch
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: add add_to_swap stub
+From: Hugh Dickins <hugh@veritas.com>
 
-The vmscan bail out patch move nr_reclaimed variable to struct
-scan_control.  Unfortunately, indirect access can easily happen cache
-miss.
+If we add a failing stub for add_to_swap(), then we can remove the #ifdef
+CONFIG_SWAP from mm/vmscan.c.
 
-if heavy memory pressure happend, that's ok.
-cache miss already plenty. it is not observable.
+This was intended as a source cleanup, but looking more closely, it turns
+out that the !CONFIG_SWAP case was going to keep_locked for an anonymous
+page, whereas now it goes to the more suitable activate_locked, like the
+CONFIG_SWAP nr_swap_pages 0 case.
 
-but, if memory pressure is lite, performance degression is obserbable.
-
-I compared following three pattern (it was mesured 10 times each)
-
-hackbench 125 process 3000
-hackbench 130 process 3000
-hackbench 135 process 3000
-
-            2.6.28-rc6                       bail-out
-
-	125	130	135		125	130	135
-      ==============================================================
-	71.866	75.86	81.274		93.414	73.254	193.382
-	74.145	78.295	77.27		74.897	75.021	80.17
-	70.305	77.643	75.855		70.134	77.571	79.896
-	74.288	73.986	75.955		77.222	78.48	80.619
-	72.029	79.947	78.312		75.128	82.172	79.708
-	71.499	77.615	77.042		74.177	76.532	77.306
-	76.188	74.471	83.562		73.839	72.43	79.833
-	73.236	75.606	78.743		76.001	76.557	82.726
-	69.427	77.271	76.691		76.236	79.371	103.189
-	72.473	76.978	80.643		69.128	78.932	75.736
-
-avg	72.545	76.767	78.534		76.017	77.03	93.256
-std	1.89	1.71	2.41		6.29	2.79	34.16
-min	69.427	73.986	75.855		69.128	72.43	75.736
-max	76.188	79.947	83.562		93.414	82.172	193.382
-
-about 4-5% degression.
-
-Then, this patch introduces a temporary local variable.
-
-result:
-
-            2.6.28-rc6                       this patch
-
-num	125	130	135		125	130	135
-      ==============================================================
-	71.866	75.86	81.274		67.302	68.269	77.161
-	74.145	78.295	77.27   	72.616	72.712	79.06
-	70.305	77.643	75.855  	72.475	75.712	77.735
-	74.288	73.986	75.955  	69.229	73.062	78.814
-	72.029	79.947	78.312  	71.551	74.392	78.564
-	71.499	77.615	77.042  	69.227	74.31	78.837
-	76.188	74.471	83.562  	70.759	75.256	76.6
-	73.236	75.606	78.743  	69.966	76.001	78.464
-	69.427	77.271	76.691  	69.068	75.218	80.321
-	72.473	76.978	80.643  	72.057	77.151	79.068
-
-avg	72.545	76.767	78.534 		70.425	74.2083	78.462
-std 	1.89	1.71	2.41    	1.66	2.34	1.00
-min 	69.427	73.986	75.855  	67.302	68.269	76.6
-max 	76.188	79.947	83.562  	72.616	77.151	80.321
-
-OK. the degression is disappeared.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/swap.h |    5 +++++
+ mm/vmscan.c          |    2 --
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-improve-reclaim-throughput-to-bail-out-patch mm/vmscan.c
---- a/mm/vmscan.c~vmscan-improve-reclaim-throughput-to-bail-out-patch
-+++ a/mm/vmscan.c
-@@ -1410,6 +1410,8 @@ static void shrink_zone(int priority, st
- 	unsigned long nr_to_scan;
- 	unsigned long percent[2];	/* anon @ 0; file @ 1 */
- 	enum lru_list l;
-+	unsigned long nr_reclaimed = sc->nr_reclaimed;
-+	unsigned long swap_cluster_max = sc->swap_cluster_max;
+diff -puN include/linux/swap.h~mm-add-add_to_swap-stub include/linux/swap.h
+--- a/include/linux/swap.h~mm-add-add_to_swap-stub
++++ a/include/linux/swap.h
+@@ -371,6 +371,11 @@ static inline struct page *lookup_swap_c
+ 	return NULL;
+ }
  
- 	get_scan_ratio(zone, sc, percent);
- 
-@@ -1425,7 +1427,7 @@ static void shrink_zone(int priority, st
- 			}
- 			zone->lru[l].nr_scan += scan;
- 			nr[l] = zone->lru[l].nr_scan;
--			if (nr[l] >= sc->swap_cluster_max)
-+			if (nr[l] >= swap_cluster_max)
- 				zone->lru[l].nr_scan = 0;
- 			else
- 				nr[l] = 0;
-@@ -1444,12 +1446,11 @@ static void shrink_zone(int priority, st
- 					nr[LRU_INACTIVE_FILE]) {
- 		for_each_evictable_lru(l) {
- 			if (nr[l]) {
--				nr_to_scan = min(nr[l],
--					(unsigned long)sc->swap_cluster_max);
-+				nr_to_scan = min(nr[l], swap_cluster_max);
- 				nr[l] -= nr_to_scan;
- 
--				sc->nr_reclaimed += shrink_list(l, nr_to_scan,
--							zone, sc, priority);
-+				nr_reclaimed += shrink_list(l, nr_to_scan,
-+							    zone, sc, priority);
- 			}
- 		}
- 		/*
-@@ -1460,11 +1461,13 @@ static void shrink_zone(int priority, st
- 		 * with multiple processes reclaiming pages, the total
- 		 * freeing target can get unreasonably large.
- 		 */
--		if (sc->nr_reclaimed > sc->swap_cluster_max &&
-+		if (nr_reclaimed > swap_cluster_max &&
- 			priority < DEF_PRIORITY && !current_is_kswapd())
- 			break;
- 	}
- 
-+	sc->nr_reclaimed = nr_reclaimed;
++static inline int add_to_swap(struct page *page)
++{
++	return 0;
++}
 +
- 	/*
- 	 * Even if we did not try to evict anon pages at all, we want to
- 	 * rebalance the anon lru active/inactive ratio.
+ static inline int add_to_swap_cache(struct page *page, swp_entry_t entry,
+ 							gfp_t gfp_mask)
+ {
+diff -puN mm/vmscan.c~mm-add-add_to_swap-stub mm/vmscan.c
+--- a/mm/vmscan.c~mm-add-add_to_swap-stub
++++ a/mm/vmscan.c
+@@ -617,7 +617,6 @@ static unsigned long shrink_page_list(st
+ 					referenced && page_mapping_inuse(page))
+ 			goto activate_locked;
+ 
+-#ifdef CONFIG_SWAP
+ 		/*
+ 		 * Anonymous process memory has backing store?
+ 		 * Try to allocate it some swap space here.
+@@ -629,7 +628,6 @@ static unsigned long shrink_page_list(st
+ 				goto activate_locked;
+ 			may_enter_fs = 1;
+ 		}
+-#endif /* CONFIG_SWAP */
+ 
+ 		mapping = page_mapping(page);
+ 
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
+linux-next.patch
+mark-complex-bitopsh-inlines-as-__always_inline.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-pass-clocksource-to-read-callback-sparc-cleanup.patch
+bio-zero-inlined-bio_vec.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-shmemc-fix-division-by-zero.patch
 getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-devices-cgroup-allow-mkfifo.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-handle-swap-caches.patch
+memcg-handle-swap-caches-build-fix.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
 memcg-revert-gfp-mask-fix.patch
 memcg-check-group-leader-fix.patch
 memcg-memoryswap-controller-fix-limit-check.patch
@@ -173,20 +113,17 @@ mm-add-zone-nr_pages-helper-function.patch
 mm-make-get_scan_ratio-safe-for-memcg.patch
 memcg-add-null-check-to-page_cgroup_zoneinfo.patch
 memcg-add-inactive_anon_is_low.patch
-memcg-add-inactive_anon_is_low-vmscan-style-cleanup.patch
 memcg-add-mem_cgroup_zone_nr_pages.patch
 memcg-add-zone_reclaim_stat.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
 memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
 memcg-remove-mem_cgroup_cal_reclaim.patch
 memcg-show-reclaim-stat.patch
 memcg-rename-scan-global-lru.patch
 memcg-protect-prev_priority.patch
 memcg-swappiness.patch
-memcg-fix-calclation-of-active_ratio.patch
-memcg-fix-calclation-of-active_ratio-build-error-fix.patch
-memcg-show-real-limit-under-hierarchy-mode.patch
 memcg-explain-details-and-test-document.patch
-ia64-implement-interrupt-enabling-rwlocks-fix.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+memcg-fix-swap-accounting-leak-v3.patch
+memcg-fix-swap-accounting-leak-doc-fix.patch
+memcg-fix-shmems-swap-accounting.patch
+prio_tree-debugging-patch.patch
 
