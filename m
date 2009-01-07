@@ -1,79 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - fs-fix-function-param-name-in-kernel-doc.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:16:26 -0800
-Message-ID: <200901072216.n07MGQBf016101@imap1.linux-foundation.org>
+Subject: - allow-times-and-time-system-calls-to-return-small-negative-values.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:15:53 -0800
+Message-ID: <200901072215.n07MFraw015658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55742 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52121 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758337AbZAGWQb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:16:31 -0500
+	by vger.kernel.org with ESMTP id S1760851AbZAGWQ0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:16:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: paulus@samba.org, Joakim.Tjernlund@transmode.se, davem@davemloft.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: fix function param name in kernel-doc
+     Allow times and time system calls to return small negative values
 has been removed from the -mm tree.  Its filename was
-     fs-fix-function-param-name-in-kernel-doc.patch
+     allow-times-and-time-system-calls-to-return-small-negative-values.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: fix function param name in kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Allow times and time system calls to return small negative values
+From: Paul Mackerras <paulus@samba.org>
 
-Fix function parameter name in kernel-doc:
+At the moment, the times() system call will appear to fail for a period
+shortly after boot, while the value it want to return is between -4095 and
+-1.  The same thing will also happen for the time() system call on 32-bit
+platforms some time in 2106 or so.
 
-Warning(linux-2.6.28-git5//fs/block_dev.c:1272): No description found for parameter 'pathname'
-Warning(linux-2.6.28-git5//fs/block_dev.c:1272): Excess function parameter 'path' description in 'lookup_bdev'
+On some platforms, such as x86, this is unavoidable because of the system
+call ABI, but other platforms such as powerpc have a separate error
+indication from the return value, so system calls can in fact return small
+negative values without indicating an error.  On those platforms,
+force_successful_syscall_return() provides a way to indicate that the
+system call return value should not be treated as an error even if it is
+in the range which would normally be taken as a negative error number.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+This adds a force_successful_syscall_return() call to the time() and
+times() system calls plus their 32-bit compat versions, so that they don't
+erroneously indicate an error on those platforms whose system call ABI has
+a separate error indication.  This will not affect anything on other
+platforms.
+
+Joakim Tjernlund added the fix for time() and the compat versions of
+time() and times(), after I did the fix for times().
+
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Signed-off-by: Paul Mackerras <paulus@samba.org>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/compat.c |    5 ++++-
+ kernel/sys.c    |    2 ++
+ kernel/time.c   |    4 +++-
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN fs/block_dev.c~fs-fix-function-param-name-in-kernel-doc fs/block_dev.c
---- a/fs/block_dev.c~fs-fix-function-param-name-in-kernel-doc
-+++ a/fs/block_dev.c
-@@ -1262,7 +1262,7 @@ EXPORT_SYMBOL(ioctl_by_bdev);
+diff -puN kernel/compat.c~allow-times-and-time-system-calls-to-return-small-negative-values kernel/compat.c
+--- a/kernel/compat.c~allow-times-and-time-system-calls-to-return-small-negative-values
++++ a/kernel/compat.c
+@@ -24,6 +24,7 @@
+ #include <linux/migrate.h>
+ #include <linux/posix-timers.h>
+ #include <linux/times.h>
++#include <linux/ptrace.h>
  
- /**
-  * lookup_bdev  - lookup a struct block_device by name
-- * @path:	special file representing the block device
-+ * @pathname:	special file representing the block device
-  *
-  * Get a reference to the blockdevice at @pathname in the current
-  * namespace if possible and return it.  Return ERR_PTR(error)
+ #include <asm/uaccess.h>
+ 
+@@ -229,6 +230,7 @@ asmlinkage long compat_sys_times(struct 
+ 		if (copy_to_user(tbuf, &tmp, sizeof(tmp)))
+ 			return -EFAULT;
+ 	}
++	force_successful_syscall_return();
+ 	return compat_jiffies_to_clock_t(jiffies);
+ }
+ 
+@@ -894,8 +896,9 @@ asmlinkage long compat_sys_time(compat_t
+ 
+ 	if (tloc) {
+ 		if (put_user(i,tloc))
+-			i = -EFAULT;
++			return -EFAULT;
+ 	}
++	force_successful_syscall_return();
+ 	return i;
+ }
+ 
+diff -puN kernel/sys.c~allow-times-and-time-system-calls-to-return-small-negative-values kernel/sys.c
+--- a/kernel/sys.c~allow-times-and-time-system-calls-to-return-small-negative-values
++++ a/kernel/sys.c
+@@ -33,6 +33,7 @@
+ #include <linux/task_io_accounting_ops.h>
+ #include <linux/seccomp.h>
+ #include <linux/cpu.h>
++#include <linux/ptrace.h>
+ 
+ #include <linux/compat.h>
+ #include <linux/syscalls.h>
+@@ -927,6 +928,7 @@ asmlinkage long sys_times(struct tms __u
+ 		if (copy_to_user(tbuf, &tmp, sizeof(struct tms)))
+ 			return -EFAULT;
+ 	}
++	force_successful_syscall_return();
+ 	return (long) jiffies_64_to_clock_t(get_jiffies_64());
+ }
+ 
+diff -puN kernel/time.c~allow-times-and-time-system-calls-to-return-small-negative-values kernel/time.c
+--- a/kernel/time.c~allow-times-and-time-system-calls-to-return-small-negative-values
++++ a/kernel/time.c
+@@ -37,6 +37,7 @@
+ #include <linux/fs.h>
+ #include <linux/slab.h>
+ #include <linux/math64.h>
++#include <linux/ptrace.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+@@ -65,8 +66,9 @@ asmlinkage long sys_time(time_t __user *
+ 
+ 	if (tloc) {
+ 		if (put_user(i,tloc))
+-			i = -EFAULT;
++			return -EFAULT;
+ 	}
++	force_successful_syscall_return();
+ 	return i;
+ }
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from paulus@samba.org are
 
 origin.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-leds-add-a-dac124s085-spi-led-driver-fix.patch
-mtd-fix-nettel-printk-formats.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-max3100-spi-uart-driver-select-serial_core.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-jbd-remove-excess-kernel-doc-notation.patch
-w1-add-list-masters-w1-command.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
-fix-similar-typos-to-successfull-v2.patch
-kmemleak-add-documentation-on-the-memory-leak-detector.patch
+powerpc-change-u64-s64-to-a-long-long-integer-type.patch
+powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
+unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
 
