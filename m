@@ -1,128 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:14:48 -0800
-Message-ID: <200901072214.n07MEm6A014674@imap1.linux-foundation.org>
+Subject: - lib-fix-sparse-shadowed-variable-warning.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:15:25 -0800
+Message-ID: <200901072215.n07MFPBS015234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45067 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59126 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761941AbZAGWPM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:12 -0500
+	by vger.kernel.org with ESMTP id S1761952AbZAGWP1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, balbir@linux.vnet.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: introduce get_mm_hiwater_xxx(), fix taskstats->hiwater_xxx accounting
+     lib: fix sparse shadowed variable warning
 has been removed from the -mm tree.  Its filename was
-     introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting.patch
+     lib-fix-sparse-shadowed-variable-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce get_mm_hiwater_xxx(), fix taskstats->hiwater_xxx accounting
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: lib: fix sparse shadowed variable warning
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-xacct_add_tsk() relies on do_exit()->update_hiwater_xxx() and uses
-mm->hiwater_xxx directly, this leads to 2 problems:
+pos is always set before being used, no need to declare a
+second one inside the if() block.
 
-- taskstats_user_cmd() can call fill_pid()->xacct_add_tsk() at any
-  moment before the task exits, so we should check the current values of
-  rss/vm anyway.
+lib/prio_heap.c:34:7: warning: symbol 'pos' shadows an earlier one
+lib/prio_heap.c:30:6: originally declared here
 
-- do_exit()->update_hiwater_xxx() calls are racy.  An exiting thread can
-  be preempted right before mm->hiwater_xxx = new_val, and another thread
-  can use A_LOT of memory and exit in between.  When the first thread
-  resumes it can be the last thread in the thread group, in that case we
-  report the wrong hiwater_xxx values which do not take A_LOT into
-  account.
-
-Introduce get_mm_hiwater_rss() and get_mm_hiwater_vm() helpers and change
-xacct_add_tsk() to use them.  The first helper will also be used by
-rusage->ru_maxrss accounting.
-
-Kill do_exit()->update_hiwater_xxx() calls.  Unless we are going to
-decrease rss/vm there is no point to update mm->hiwater_xxx, and nobody
-can look at this mm_struct when exit_mmap() actually unmaps the memory.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Hugh Dickins <hugh@veritas.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    3 +++
- kernel/exit.c         |    5 +----
- kernel/tsacct.c       |    4 ++--
- mm/mmap.c             |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ lib/prio_heap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting include/linux/sched.h
---- a/include/linux/sched.h~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting
-+++ a/include/linux/sched.h
-@@ -386,6 +386,9 @@ extern void arch_unmap_area_topdown(stru
- 		(mm)->hiwater_vm = (mm)->total_vm;	\
- } while (0)
+diff -puN lib/prio_heap.c~lib-fix-sparse-shadowed-variable-warning lib/prio_heap.c
+--- a/lib/prio_heap.c~lib-fix-sparse-shadowed-variable-warning
++++ a/lib/prio_heap.c
+@@ -31,7 +31,7 @@ void *heap_insert(struct ptr_heap *heap,
  
-+#define get_mm_hiwater_rss(mm)	max((mm)->hiwater_rss, get_mm_rss(mm))
-+#define get_mm_hiwater_vm(mm)	max((mm)->hiwater_vm, (mm)->total_vm)
-+
- extern void set_dumpable(struct mm_struct *mm, int value);
- extern int get_dumpable(struct mm_struct *mm);
- 
-diff -puN kernel/exit.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting kernel/exit.c
---- a/kernel/exit.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting
-+++ a/kernel/exit.c
-@@ -1051,10 +1051,7 @@ NORET_TYPE void do_exit(long code)
- 				preempt_count());
- 
- 	acct_update_integrals(tsk);
--	if (tsk->mm) {
--		update_hiwater_rss(tsk->mm);
--		update_hiwater_vm(tsk->mm);
--	}
-+
- 	group_dead = atomic_dec_and_test(&tsk->signal->live);
- 	if (group_dead) {
- 		hrtimer_cancel(&tsk->signal->real_timer);
-diff -puN kernel/tsacct.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting kernel/tsacct.c
---- a/kernel/tsacct.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting
-+++ a/kernel/tsacct.c
-@@ -92,8 +92,8 @@ void xacct_add_tsk(struct taskstats *sta
- 	mm = get_task_mm(p);
- 	if (mm) {
- 		/* adjust to KB unit */
--		stats->hiwater_rss   = mm->hiwater_rss * PAGE_SIZE / KB;
--		stats->hiwater_vm    = mm->hiwater_vm * PAGE_SIZE / KB;
-+		stats->hiwater_rss   = get_mm_hiwater_rss(mm) * PAGE_SIZE / KB;
-+		stats->hiwater_vm    = get_mm_hiwater_vm(mm)  * PAGE_SIZE / KB;
- 		mmput(mm);
- 	}
- 	stats->read_char	= p->ioac.rchar;
-diff -puN mm/mmap.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting mm/mmap.c
---- a/mm/mmap.c~introduce-get_mm_hiwater_xxx-fix-taskstats-hiwater_xxx-accounting
-+++ a/mm/mmap.c
-@@ -2102,7 +2102,7 @@ void exit_mmap(struct mm_struct *mm)
- 	lru_add_drain();
- 	flush_cache_mm(mm);
- 	tlb = tlb_gather_mmu(mm, 1);
--	/* Don't update_hiwater_rss(mm) here, do_exit already did */
-+	/* update_hiwater_rss(mm) here? but nobody should be looking */
- 	/* Use -1 here to ensure all VMAs in the mm are unmapped */
- 	end = unmap_vmas(&tlb, vma, 0, -1, &nr_accounted, NULL);
- 	vm_unacct_memory(nr_accounted);
+ 	if (heap->size < heap->max) {
+ 		/* Heap insertion */
+-		int pos = heap->size++;
++		pos = heap->size++;
+ 		while (pos > 0 && heap->gt(p, ptrs[(pos-1)/2])) {
+ 			ptrs[pos] = ptrs[(pos-1)/2];
+ 			pos = (pos-1)/2;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
 linux-next.patch
-getrusage-fill-ru_maxrss-value.patch
-pid-implement-ns_of_pid.patch
-pid-generalize-task_active_pid_ns.patch
-mqueue-fix-si_pid-value-in-mqueue-do_notify.patch
+input-ads7846c-sparse-lock-annotation.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+byteorder-add-load_-store_endian-api.patch
+unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
+unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
+sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
+unaligned-wire-up-h8300-and-m32r-arches.patch
+unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
+unaligned-remove-the-old-implementation.patch
+ata-replace-byteshifting-with-unaligned-endian-helpers.patch
+usb-use-unaligned-endian-helpers-in-storage-drivers.patch
 
