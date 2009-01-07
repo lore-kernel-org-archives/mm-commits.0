@@ -1,54 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-do-not-goto-to-the-next-line.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:20:36 -0800
-Message-ID: <200901072220.n07MKaaS019825@imap1.linux-foundation.org>
+Subject: - pci-use-pci_ioremap_bar-in-drivers-edac.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:20:47 -0800
+Message-ID: <200901072220.n07MKlj8019971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52327 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932521AbZAGWdk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:33:40 -0500
+	by vger.kernel.org with ESMTP id S932601AbZAGWd7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:33:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: den@openvz.org, wangcong@zeuux.org, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc: do not goto to the next line
+     pci: use pci_ioremap_bar() in drivers/edac
 has been removed from the -mm tree.  Its filename was
-     ipc-do-not-goto-to-the-next-line.patch
+     pci-use-pci_ioremap_bar-in-drivers-edac.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: do not goto to the next line
-From: "Denis V. Lunev" <den@openvz.org>
+Subject: pci: use pci_ioremap_bar() in drivers/edac
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Reviewed-by: WANG Cong <wangcong@zeuux.org>
+Use the newly introduced pci_ioremap_bar() function in drivers/edac. 
+pci_ioremap_bar() just takes a pci device and a bar number, with the goal
+of making it really hard to get wrong, while also having a central place
+to stick sanity checks.
+
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Acked-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/edac/i82875p_edac.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN ipc/sem.c~ipc-do-not-goto-to-the-next-line ipc/sem.c
---- a/ipc/sem.c~ipc-do-not-goto-to-the-next-line
-+++ a/ipc/sem.c
-@@ -1216,7 +1216,6 @@ asmlinkage long sys_semtimedop(int semid
- 	if (timeout && jiffies_left == 0)
- 		error = -EAGAIN;
- 	list_del(&queue.list);
--	goto out_unlock_free;
+diff -puN drivers/edac/i82875p_edac.c~pci-use-pci_ioremap_bar-in-drivers-edac drivers/edac/i82875p_edac.c
+--- a/drivers/edac/i82875p_edac.c~pci-use-pci_ioremap_bar-in-drivers-edac
++++ a/drivers/edac/i82875p_edac.c
+@@ -311,9 +311,7 @@ static int i82875p_setup_overfl_dev(stru
+ 	}
  
- out_unlock_free:
- 	sem_unlock(sma);
-_
-
-Patches currently in -mm which might be from den@openvz.org are
-
-origin.patch
-linux-next.patch
-
+ 	/* cache is irrelevant for PCI bus reads/writes */
+-	window = ioremap_nocache(pci_resource_start(dev, 0),
+-				 pci_resource_len(dev, 0));
