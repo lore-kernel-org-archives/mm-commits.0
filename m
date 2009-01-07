@@ -1,90 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-remove-__function__-in-video-driver.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:19:40 -0800
-Message-ID: <200901072219.n07MJeT6018963@imap1.linux-foundation.org>
+Subject: - gpio-pca953x-handles-more-chips-i2c-fault-codes.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:19:33 -0800
+Message-ID: <200901072219.n07MJXrB018900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56255 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40535 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758119AbZAGWUZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:20:25 -0500
+	by vger.kernel.org with ESMTP id S1758119AbZAGWU3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:20:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, bryan.wu@analog.com, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, eric.miao@marvell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin: remove __FUNCTION__ in video driver
+     gpio: pca953x handles more chips, i2c fault codes
 has been removed from the -mm tree.  Its filename was
-     blackfin-remove-__function__-in-video-driver.patch
+     gpio-pca953x-handles-more-chips-i2c-fault-codes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin: remove __FUNCTION__ in video driver
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: gpio: pca953x handles more chips, i2c fault codes
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-__FUNCTION__ is gcc-specific, use __func__
+Minor updates to the pca953x GPIO expander driver: handle several more
+compatible parts, and stop assuming that the I2C layer's return codes are
+garbage (that's now been fixed).
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Bryan Wu <bryan.wu@analog.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Eric Miao <eric.miao@marvell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/bfin-t350mcqb-fb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/gpio/Kconfig   |    7 ++++---
+ drivers/gpio/pca953x.c |   12 +++++++-----
+ 2 files changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/bfin-t350mcqb-fb.c~blackfin-remove-__function__-in-video-driver drivers/video/bfin-t350mcqb-fb.c
---- a/drivers/video/bfin-t350mcqb-fb.c~blackfin-remove-__function__-in-video-driver
-+++ a/drivers/video/bfin-t350mcqb-fb.c
-@@ -255,7 +255,7 @@ static int bfin_t350mcqb_fb_check_var(st
+diff -puN drivers/gpio/Kconfig~gpio-pca953x-handles-more-chips-i2c-fault-codes drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-pca953x-handles-more-chips-i2c-fault-codes
++++ a/drivers/gpio/Kconfig
+@@ -95,7 +95,7 @@ config GPIO_MAX732X
+ 	  number for these GPIOs.
+ 
+ config GPIO_PCA953X
+-	tristate "PCA953x, PCA955x, and MAX7310 I/O ports"
++	tristate "PCA953x, PCA955x, TCA64xx, and MAX7310 I/O ports"
+ 	depends on I2C
+ 	help
+ 	  Say yes here to provide access to several register-oriented
+@@ -104,9 +104,10 @@ config GPIO_PCA953X
+ 
+ 	  4 bits:	pca9536, pca9537
+ 
+-	  8 bits:	max7310, pca9534, pca9538, pca9554, pca9557
++	  8 bits:	max7310, pca9534, pca9538, pca9554, pca9557,
++	  		tca6408
+ 
+-	  16 bits:	pca9535, pca9539, pca9555
++	  16 bits:	pca9535, pca9539, pca9555, tca6416
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called pca953x.
+diff -puN drivers/gpio/pca953x.c~gpio-pca953x-handles-more-chips-i2c-fault-codes drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~gpio-pca953x-handles-more-chips-i2c-fault-codes
++++ a/drivers/gpio/pca953x.c
+@@ -33,7 +33,12 @@ static const struct i2c_device_id pca953
+ 	{ "pca9554", 8, },
+ 	{ "pca9555", 16, },
+ 	{ "pca9557", 8, },
++
+ 	{ "max7310", 8, },
++	{ "pca6107", 8, },
++	{ "tca6408", 8, },
++	{ "tca6416", 16, },
++	/* NYET:  { "tca6424", 24, }, */
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, pca953x_id);
+@@ -47,9 +52,6 @@ struct pca953x_chip {
+ 	struct gpio_chip gpio_chip;
+ };
+ 
+-/* NOTE:  we can't currently rely on fault codes to come from SMBus
+- * calls, so we map all errors to EIO here and return zero otherwise.
+- */
+ static int pca953x_write_reg(struct pca953x_chip *chip, int reg, uint16_t val)
  {
+ 	int ret;
+@@ -61,7 +63,7 @@ static int pca953x_write_reg(struct pca9
  
- 	if (var->bits_per_pixel != LCD_BPP) {
--		pr_debug("%s: depth not supported: %u BPP\n", __FUNCTION__,
-+		pr_debug("%s: depth not supported: %u BPP\n", __func__,
- 			 var->bits_per_pixel);
- 		return -EINVAL;
- 	}
-@@ -264,7 +264,7 @@ static int bfin_t350mcqb_fb_check_var(st
- 	    info->var.xres_virtual != var->xres_virtual ||
- 	    info->var.yres_virtual != var->yres_virtual) {
- 		pr_debug("%s: Resolution not supported: X%u x Y%u \n",
--			 __FUNCTION__, var->xres, var->yres);
-+			 __func__, var->xres, var->yres);
- 		return -EINVAL;
+ 	if (ret < 0) {
+ 		dev_err(&chip->client->dev, "failed writing register\n");
+-		return -EIO;
++		return ret;
  	}
  
-@@ -274,7 +274,7 @@ static int bfin_t350mcqb_fb_check_var(st
+ 	return 0;
+@@ -78,7 +80,7 @@ static int pca953x_read_reg(struct pca95
  
- 	if ((info->fix.line_length * var->yres_virtual) > info->fix.smem_len) {
- 		pr_debug("%s: Memory Limit requested yres_virtual = %u\n",
--			 __FUNCTION__, var->yres_virtual);
-+			 __func__, var->yres_virtual);
- 		return -ENOMEM;
+ 	if (ret < 0) {
+ 		dev_err(&chip->client->dev, "failed reading register\n");
+-		return -EIO;
++		return ret;
  	}
  
+ 	*val = (uint16_t)ret;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
 linux-next.patch
-input-ads7846c-sparse-lock-annotation.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
-ata-replace-byteshifting-with-unaligned-endian-helpers.patch
-usb-use-unaligned-endian-helpers-in-storage-drivers.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
+usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
+usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
+usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
+usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
+usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
 
