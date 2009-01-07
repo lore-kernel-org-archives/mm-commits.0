@@ -1,194 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - samples-mark-static__init__exit-for-initexit-functions.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:15:33 -0800
-Message-ID: <200901072215.n07MFX00015376@imap1.linux-foundation.org>
+Subject: - fs-execc-__bprm_mm_init-clean-up-error-handling.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:15:17 -0800
+Message-ID: <200901072215.n07MFHGK015095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752598AbZAGWPr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:47 -0500
+	by vger.kernel.org with ESMTP id S1761957AbZAGWP3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qhfeng.kernel@gmail.com, gregkh@suse.de, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: lcapitulino@mandriva.com.br, mm-commits@vger.kernel.org
 
 
 The patch titled
-     samples: mark {static|__init|__exit} for {init|exit} functions
+     fs/exec.c:__bprm_mm_init(): clean up error handling
 has been removed from the -mm tree.  Its filename was
-     samples-mark-static__init__exit-for-initexit-functions.patch
+     fs-execc-__bprm_mm_init-clean-up-error-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: samples: mark {static|__init|__exit} for {init|exit} functions
-From: Qinghuang Feng <qhfeng.kernel@gmail.com>
+Subject: fs/exec.c:__bprm_mm_init(): clean up error handling
+From: "Luiz Fernando N. Capitulino" <lcapitulino@mandriva.com.br>
 
-None of these (init|exit) functions is called from other functions which
-is outside the kernel module mechanism or kernel itself, so mark them as
-{static|__init|__exit}.
+Untangle the error unwinding in this function, saving a test of local
+variable `vma'.
 
-Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Luiz Fernando N. Capitulino <lcapitulino@mandriva.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/firmware_class/firmware_sample_driver.c |    2 +-
- samples/kobject/kobject-example.c               |    4 ++--
- samples/kobject/kset-example.c                  |    4 ++--
- samples/markers/marker-example.c                |    4 ++--
- samples/tracepoints/tracepoint-probe-sample.c   |    4 ++--
- samples/tracepoints/tracepoint-probe-sample2.c  |    4 ++--
- samples/tracepoints/tracepoint-sample.c         |    4 ++--
- 7 files changed, 13 insertions(+), 13 deletions(-)
+ fs/exec.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN samples/firmware_class/firmware_sample_driver.c~samples-mark-static__init__exit-for-initexit-functions samples/firmware_class/firmware_sample_driver.c
---- a/samples/firmware_class/firmware_sample_driver.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/firmware_class/firmware_sample_driver.c
-@@ -100,7 +100,7 @@ static void sample_probe_async(void)
- 		       " request_firmware_nowait failed\n");
- }
+diff -puN fs/exec.c~fs-execc-__bprm_mm_init-clean-up-error-handling fs/exec.c
+--- a/fs/exec.c~fs-execc-__bprm_mm_init-clean-up-error-handling
++++ a/fs/exec.c
+@@ -232,13 +232,13 @@ static void flush_arg_page(struct linux_
  
--static int sample_init(void)
-+static int __init sample_init(void)
+ static int __bprm_mm_init(struct linux_binprm *bprm)
  {
- 	device_initialize(&ghost_device);
- 	/* since there is no real hardware insertion I just call the
-diff -puN samples/kobject/kobject-example.c~samples-mark-static__init__exit-for-initexit-functions samples/kobject/kobject-example.c
---- a/samples/kobject/kobject-example.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/kobject/kobject-example.c
-@@ -101,7 +101,7 @@ static struct attribute_group attr_group
+-	int err = -ENOMEM;
++	int err;
+ 	struct vm_area_struct *vma = NULL;
+ 	struct mm_struct *mm = bprm->mm;
  
- static struct kobject *example_kobj;
+ 	bprm->vma = vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
+ 	if (!vma)
+-		goto err;
++		return -ENOMEM;
  
--static int example_init(void)
-+static int __init example_init(void)
- {
- 	int retval;
+ 	down_write(&mm->mmap_sem);
+ 	vma->vm_mm = mm;
+@@ -251,28 +251,20 @@ static int __bprm_mm_init(struct linux_b
+ 	 */
+ 	vma->vm_end = STACK_TOP_MAX;
+ 	vma->vm_start = vma->vm_end - PAGE_SIZE;
+-
+ 	vma->vm_flags = VM_STACK_FLAGS;
+ 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+ 	err = insert_vm_struct(mm, vma);
+-	if (err) {
+-		up_write(&mm->mmap_sem);
++	if (err)
+ 		goto err;
+-	}
  
-@@ -126,7 +126,7 @@ static int example_init(void)
- 	return retval;
- }
- 
--static void example_exit(void)
-+static void __exit example_exit(void)
- {
- 	kobject_put(example_kobj);
- }
-diff -puN samples/kobject/kset-example.c~samples-mark-static__init__exit-for-initexit-functions samples/kobject/kset-example.c
---- a/samples/kobject/kset-example.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/kobject/kset-example.c
-@@ -229,7 +229,7 @@ static void destroy_foo_obj(struct foo_o
- 	kobject_put(&foo->kobj);
- }
- 
--static int example_init(void)
-+static int __init example_init(void)
- {
- 	/*
- 	 * Create a kset with the name of "kset_example",
-@@ -264,7 +264,7 @@ foo_error:
- 	return -EINVAL;
- }
- 
--static void example_exit(void)
-+static void __exit example_exit(void)
- {
- 	destroy_foo_obj(baz_obj);
- 	destroy_foo_obj(bar_obj);
-diff -puN samples/markers/marker-example.c~samples-mark-static__init__exit-for-initexit-functions samples/markers/marker-example.c
---- a/samples/markers/marker-example.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/markers/marker-example.c
-@@ -30,7 +30,7 @@ static struct file_operations mark_ops =
- 	.open = my_open,
- };
- 
--static int example_init(void)
-+static int __init example_init(void)
- {
- 	printk(KERN_ALERT "example init\n");
- 	pentry_example = proc_create("marker-example", 0444, NULL, &mark_ops);
-@@ -39,7 +39,7 @@ static int example_init(void)
+ 	mm->stack_vm = mm->total_vm = 1;
+ 	up_write(&mm->mmap_sem);
+-
+ 	bprm->p = vma->vm_end - sizeof(void *);
+-
  	return 0;
- }
- 
--static void example_exit(void)
-+static void __exit example_exit(void)
- {
- 	printk(KERN_ALERT "example exit\n");
- 	remove_proc_entry("marker-example", NULL);
-diff -puN samples/tracepoints/tracepoint-probe-sample.c~samples-mark-static__init__exit-for-initexit-functions samples/tracepoints/tracepoint-probe-sample.c
---- a/samples/tracepoints/tracepoint-probe-sample.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/tracepoints/tracepoint-probe-sample.c
-@@ -28,7 +28,7 @@ static void probe_subsys_eventb(void)
- 	printk(KERN_INFO "Event B is encountered\n");
- }
- 
--int __init tp_sample_trace_init(void)
-+static int __init tp_sample_trace_init(void)
- {
- 	int ret;
- 
-@@ -42,7 +42,7 @@ int __init tp_sample_trace_init(void)
- 
- module_init(tp_sample_trace_init);
- 
--void __exit tp_sample_trace_exit(void)
-+static void __exit tp_sample_trace_exit(void)
- {
- 	unregister_trace_subsys_eventb(probe_subsys_eventb);
- 	unregister_trace_subsys_event(probe_subsys_event);
-diff -puN samples/tracepoints/tracepoint-probe-sample2.c~samples-mark-static__init__exit-for-initexit-functions samples/tracepoints/tracepoint-probe-sample2.c
---- a/samples/tracepoints/tracepoint-probe-sample2.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/tracepoints/tracepoint-probe-sample2.c
-@@ -18,7 +18,7 @@ static void probe_subsys_event(struct in
- 		inode->i_ino);
- }
- 
--int __init tp_sample_trace_init(void)
-+static int __init tp_sample_trace_init(void)
- {
- 	int ret;
- 
-@@ -30,7 +30,7 @@ int __init tp_sample_trace_init(void)
- 
- module_init(tp_sample_trace_init);
- 
--void __exit tp_sample_trace_exit(void)
-+static void __exit tp_sample_trace_exit(void)
- {
- 	unregister_trace_subsys_event(probe_subsys_event);
- 	tracepoint_synchronize_unregister();
-diff -puN samples/tracepoints/tracepoint-sample.c~samples-mark-static__init__exit-for-initexit-functions samples/tracepoints/tracepoint-sample.c
---- a/samples/tracepoints/tracepoint-sample.c~samples-mark-static__init__exit-for-initexit-functions
-+++ a/samples/tracepoints/tracepoint-sample.c
-@@ -32,7 +32,7 @@ static struct file_operations mark_ops =
- 	.open = my_open,
- };
- 
--static int example_init(void)
-+static int __init example_init(void)
- {
- 	printk(KERN_ALERT "example init\n");
- 	pentry_example = proc_create("tracepoint-example", 0444, NULL,
-@@ -42,7 +42,7 @@ static int example_init(void)
- 	return 0;
- }
- 
--static void example_exit(void)
-+static void __exit example_exit(void)
- {
- 	printk(KERN_ALERT "example exit\n");
- 	remove_proc_entry("tracepoint-example", NULL);
-_
-
-Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
-
-origin.patch
-linux-next.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-ext2-fix-ext2_splice_branch-comments.patch
-
+-
+ err:
+-	if (vma) {
+-		bprm->vma = NULL;
+-		kmem_cache_free(vm_area_cachep, vma);
+-	}
