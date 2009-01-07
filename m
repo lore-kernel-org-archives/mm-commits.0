@@ -1,108 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 15:24:07 -0800
-Message-ID: <200901072324.n07NO7iU007403@imap1.linux-foundation.org>
+Subject: - ia64-implement-interrupt-enabling-rwlocks-fix.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 15:33:02 -0800
+Message-ID: <200901072333.n07NX3eP014690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49494 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47829 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754799AbZAGXYk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:24:40 -0500
+	by vger.kernel.org with ESMTP id S1752994AbZAGXdx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:33:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, a.p.zijlstra@chello.nl, holt@sgi.com, mingo@elte.hu, ptesarik@suse.cz, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes
+     ia64: typo fix of implement interrupt-enabling rwlocks
 has been removed from the -mm tree.  Its filename was
-     romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+     ia64-implement-interrupt-enabling-rwlocks-fix.patch
 
-This patch was dropped because it was folded into romfs-romfs_iget-unsigned-ino-=-0-is-always-true.patch
+This patch was dropped because it was folded into ia64-implement-interrupt-enabling-rwlocks.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ia64: typo fix of implement interrupt-enabling rwlocks
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-ERROR: code indent should use tabs where possible
-#32: FILE: fs/romfs/inode.c:530:
-+        ret = romfs_strnlen(i, ino+ROMFH_SIZE, ROMFS_MAXFN);$
+Applied after: ia64-implement-interrupt-enabling-rwlocks.patch
+==
+Recently, __raw_read_lock_flags and __raw_write_lock_flags for ia64 was implemented.
 
-ERROR: code indent should use tabs where possible
-#33: FILE: fs/romfs/inode.c:531:
-+        if (ret >= 0)$
+But its patch has typo. then following warnings happend.
 
-ERROR: code indent should use tabs where possible
-#34: FILE: fs/romfs/inode.c:532:
-+                ino = ((ROMFH_SIZE+ret+1+ROMFH_PAD)&ROMFH_MASK);$
+  CC      lib/spinlock_debug.o
+lib/spinlock_debug.c: In function '_raw_read_lock':
+lib/spinlock_debug.c:199: warning: passing argument 1 of '__raw_read_lock_flags' from incompatible pointer type
+lib/spinlock_debug.c: In function '_raw_write_lock':
+lib/spinlock_debug.c:274: warning: passing argument 1 of '__raw_write_lock_flags' from incompatible pointer type
 
-total: 3 errors, 0 warnings, 20 lines checked
-
-./patches/romfs-romfs_iget-unsigned-ino-=-0-is-always-true.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: roel kluin <roel.kluin@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Petr Tesarik <ptesarik@suse.cz>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/inode.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/ia64/include/asm/spinlock.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/romfs/inode.c~romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes fs/romfs/inode.c
---- a/fs/romfs/inode.c~romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes
-+++ a/fs/romfs/inode.c
-@@ -527,11 +527,11 @@ romfs_iget(struct super_block *sb, unsig
- 	i->i_uid = i->i_gid = 0;
+diff -puN arch/ia64/include/asm/spinlock.h~ia64-implement-interrupt-enabling-rwlocks-fix arch/ia64/include/asm/spinlock.h
+--- a/arch/ia64/include/asm/spinlock.h~ia64-implement-interrupt-enabling-rwlocks-fix
++++ a/arch/ia64/include/asm/spinlock.h
+@@ -123,7 +123,7 @@ do {											\
+ #ifdef ASM_SUPPORTED
  
-         /* Precalculate the data offset */
--        ret = romfs_strnlen(i, ino+ROMFH_SIZE, ROMFS_MAXFN);
--        if (ret >= 0)
--                ino = ((ROMFH_SIZE+ret+1+ROMFH_PAD)&ROMFH_MASK);
--        else
--                ino = 0;
-+	ret = romfs_strnlen(i, ino + ROMFH_SIZE, ROMFS_MAXFN);
-+	if (ret >= 0)
-+		ino = (ROMFH_SIZE + ret + 1 + ROMFH_PAD) & ROMFH_MASK;
-+	else
-+		ino = 0;
+ static __always_inline void
+-__raw_read_lock_flags(raw_spinlock_t *lock, unsigned long flags)
++__raw_read_lock_flags(raw_rwlock_t *lock, unsigned long flags)
+ {
+ 	__asm__ __volatile__ (
+ 		"tbit.nz p6, p0 = %1,%2\n"
+@@ -174,7 +174,7 @@ do {								\
+ #ifdef ASM_SUPPORTED
  
-         ROMFS_I(i)->i_metasize = ino;
-         ROMFS_I(i)->i_dataoffset = ino+(i->i_ino&ROMFH_MASK);
+ static __always_inline void
+-__raw_write_lock_flags(raw_spinlock_t *lock, unsigned long flags)
++__raw_write_lock_flags(raw_rwlock_t *lock, unsigned long flags)
+ {
+ 	__asm__ __volatile__ (
+ 		"tbit.nz p6, p0 = %1, %2\n"
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch
-memcg-introduce-charge-commit-cancel-style-of-functions.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
-w1-allow-master-io-commands.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-revert-gfp-mask-fix.patch
+memcg-check-group-leader-fix.patch
+memcg-memoryswap-controller-fix-limit-check.patch
+memcg-swapout-refcnt-fix.patch
+memcg-hierarchy-avoid-unnecessary-reclaim.patch
+inactive_anon_is_low-move-to-vmscan.patch
+mm-introduce-zone_reclaim-struct.patch
+mm-add-zone-nr_pages-helper-function.patch
+mm-make-get_scan_ratio-safe-for-memcg.patch
+memcg-add-null-check-to-page_cgroup_zoneinfo.patch
+memcg-add-inactive_anon_is_low.patch
+memcg-add-mem_cgroup_zone_nr_pages.patch
+memcg-add-zone_reclaim_stat.patch
+memcg-remove-mem_cgroup_cal_reclaim.patch
+memcg-show-reclaim-stat.patch
+memcg-rename-scan-global-lru.patch
+memcg-protect-prev_priority.patch
+memcg-swappiness.patch
+memcg-fix-calclation-of-active_ratio.patch
+memcg-show-real-limit-under-hierarchy-mode.patch
+memcg-explain-details-and-test-document.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
+ia64-implement-interrupt-enabling-rwlocks-fix.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
