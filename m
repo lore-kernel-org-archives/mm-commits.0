@@ -1,87 +1,311 @@
 From: akpm@linux-foundation.org
-Subject: - frv-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Tue, 06 Jan 2009 15:58:44 -0800
-Message-ID: <200901062358.n06NwijQ002167@imap1.linux-foundation.org>
+Subject: - loop-add-ioctl-to-resize-a-loop-device.patch removed from -mm tree
+Date: Tue, 06 Jan 2009 16:04:25 -0800
+Message-ID: <200901070004.n0704PJY006823__15861.2894978889$1231286810$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756272AbZAFX7B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 18:59:01 -0500
+	by vger.kernel.org with ESMTP id S1752029AbZAGAEr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2009 19:04:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: hooanon05@yahoo.co.jp, akinobu.mita@gmail.com, hch@lst.de, jens.axboe@oracle.com, kzak@redhat.com, linux-api@vger.kernel.org, tomas@slax.org, util-linux-ng@vger.kernel.org, viro@zeniv
 
 
 The patch titled
-     frv: use the new byteorder headers
+     loop: add ioctl to resize a loop device
 has been removed from the -mm tree.  Its filename was
-     frv-use-the-new-byteorder-headers.patch
+     loop-add-ioctl-to-resize-a-loop-device.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: use the new byteorder headers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: loop: add ioctl to resize a loop device
+From: J. R. Okajima <hooanon05@yahoo.co.jp>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Add the ability to 'resize' the loop device on the fly.
+
+One practical application is a loop file with XFS filesystem, already
+mounted: You can easily enlarge the file (append some bytes) and then call
+ioctl(fd, LOOP_SET_CAPACITY, new); The loop driver will learn about the
+new size and you can use xfs_growfs later on, which will allow you to use
+full capacity of the loop file without the need to unmount.
+
+Test app:
+
+----------------------------------------------------------------------
+/*
+ * Copyright (C) 2005-2008 Junjiro Okajima
+ *
+ * This program, aufs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+/*
+ * $Id: logrow.c,v 1.1 2008/11/17 01:59:40 sfjro Exp $
+ */
+
+#include <linux/fs.h>
+#include <linux/loop.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define _GNU_SOURCE
+#include <getopt.h>
+
+char *me;
+
+void usage(FILE *f)
+{
+	fprintf(f, "%s [options] loop_dev [backend_file]\n"
+		"-s, --set new_size_in_bytes\n"
+		"\twhen backend_file is given, "
+		"it will be expanded too while keeping the original contents\n",
+		me);
+}
+
+struct option opts[] = {
+	{
+		.name		= "set",
+		.has_arg	= 1,
+		.flag		= NULL,
+		.val		= 's'
+	},
+	{
+		.name		= "help",
+		.has_arg	= 0,
+		.flag		= NULL,
+		.val		= 'h'
+	}
+};
+
+void err_size(char *name, __u64 old)
+{
+	fprintf(stderr, "size must be larger than current %s (%llu)\n",
+		name, old);
+}
+
+int main(int argc, char *argv[])
+{
+	int fd, err, c, i, bfd;
+	ssize_t ssz;
+	size_t sz;
+	__u64 old, new, append;
+	char a[BUFSIZ];
+	struct stat st;
+	FILE *out;
+	char *backend, *dev;
+
+	err = EINVAL;
+	out = stderr;
+	me = argv[0];
+	new = 0;
+	while ((c = getopt_long(argc, argv, "s:h", opts, &i)) != -1) {
+		switch (c) {
+		case 's':
+			errno = 0;
+			new = strtoull(optarg, NULL, 0);
+			if (errno) {
+				err = errno;
+				perror(argv[i]);
+				goto out;
+			}
+			break;
+
+		case 'h':
+			err = 0;
+			out = stdout;
+			goto err;
+
+		default:
+			perror(argv[i]);
+			goto err;
+		}
+	}
+
+	if (optind < argc)
+		dev = argv[optind++];
+	else
+		goto err;
+
+	fd = open(dev, O_RDONLY);
+	if (fd < 0) {
+		err = errno;
+		perror(dev);
+		goto out;
+	}
+
+	err = ioctl(fd, BLKGETSIZE64, &old);
+	if (err) {
+		err = errno;
+		perror("ioctl BLKGETSIZE64");
+		goto out;
+	}
+
+	if (!new) {
+		printf("%llu\n", old);
+		goto out;
+	}
+
+	if (new < old) {
+		err = EINVAL;
+		err_size(dev, old);
+		goto out;
+	}
+
+	if (optind < argc) {
+		backend = argv[optind++];
+		bfd = open(backend, O_WRONLY|O_APPEND);
+		if (bfd < 0) {
+			err = errno;
+			perror(backend);
+			goto out;
+		}
+		err = fstat(bfd, &st);
+		if (err) {
+			err = errno;
+			perror(backend);
+			goto out;
+		}
+		if (new < st.st_size) {
+			err = EINVAL;
+			err_size(backend, st.st_size);
+			goto out;
+		}
+		append = new - st.st_size;
+		sz = sizeof(a);
+		while (append > 0) {
+			if (append < sz)
+				sz = append;
+			ssz = write(bfd, a, sz);
+			if (ssz != sz) {
+				err = errno;
+				perror(backend);
+				goto out;
+			}
+			append -= sz;
+		}
+		err = fsync(bfd);
+		if (err) {
+			err = errno;
+			perror(backend);
+			goto out;
+		}
+	}
+
+	err = ioctl(fd, LOOP_SET_CAPACITY, new);
+	if (err) {
+		err = errno;
+		perror("ioctl LOOP_SET_CAPACITY");
+	}
+	goto out;
+
+ err:
+	usage(out);
+ out:
+	return err;
+}
+
+Signed-off-by: J. R. Okajima <hooanon05@yahoo.co.jp>
+Signed-off-by: Tomas Matejicek <tomas@slax.org>
+Cc: <util-linux-ng@vger.kernel.org>
+Cc: Karel Zak <kzak@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-frv/byteorder.h |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/block/loop.c |   26 ++++++++++++++++++++++++++
+ include/linux/loop.h |    1 +
+ 2 files changed, 27 insertions(+)
 
-diff -puN include/asm-frv/byteorder.h~frv-use-the-new-byteorder-headers include/asm-frv/byteorder.h
---- a/include/asm-frv/byteorder.h~frv-use-the-new-byteorder-headers
-+++ a/include/asm-frv/byteorder.h
-@@ -1,13 +1,9 @@
- #ifndef _ASM_BYTEORDER_H
- #define _ASM_BYTEORDER_H
+diff -puN drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device drivers/block/loop.c
+--- a/drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device
++++ a/drivers/block/loop.c
+@@ -1158,6 +1158,28 @@ loop_get_status64(struct loop_device *lo
+ 	return err;
+ }
  
--#include <asm/types.h>
-+#define __BIG_ENDIAN
-+#define __SWAB_64_THRU_32__
++static int loop_set_capacity(struct loop_device *lo, struct block_device *bdev)
++{
++	int err;
++	sector_t sec;
++	loff_t sz;
++
++	err = -ENXIO;
++	if (unlikely(lo->lo_state != Lo_bound))
++		goto out;
++	err = figure_loop_size(lo);
++	if (unlikely(err))
++		goto out;
++	sec = get_capacity(lo->lo_disk);
++	sz = sec << 9;
++	mutex_lock(&bdev->bd_mutex);
++	bd_set_size(bdev, sz);
++	mutex_unlock(&bdev->bd_mutex);
++
++ out:
++	return err;
++}
++
+ static int lo_ioctl(struct block_device *bdev, fmode_t mode,
+ 	unsigned int cmd, unsigned long arg)
+ {
+@@ -1187,6 +1209,9 @@ static int lo_ioctl(struct block_device 
+ 	case LOOP_GET_STATUS64:
+ 		err = loop_get_status64(lo, (struct loop_info64 __user *) arg);
+ 		break;
++	case LOOP_SET_CAPACITY:
++		err = loop_set_capacity(lo, bdev);
++		break;
+ 	default:
+ 		err = lo->ioctl ? lo->ioctl(lo, cmd, arg) : -EINVAL;
+ 	}
+@@ -1332,6 +1357,7 @@ static int lo_compat_ioctl(struct block_
+ 			lo, (struct compat_loop_info __user *) arg);
+ 		mutex_unlock(&lo->lo_ctl_mutex);
+ 		break;
++	case LOOP_SET_CAPACITY:
+ 	case LOOP_CLR_FD:
+ 	case LOOP_GET_STATUS64:
+ 	case LOOP_SET_STATUS64:
+diff -puN include/linux/loop.h~loop-add-ioctl-to-resize-a-loop-device include/linux/loop.h
+--- a/include/linux/loop.h~loop-add-ioctl-to-resize-a-loop-device
++++ a/include/linux/loop.h
+@@ -160,5 +160,6 @@ int loop_unregister_transfer(int number)
+ #define LOOP_SET_STATUS64	0x4C04
+ #define LOOP_GET_STATUS64	0x4C05
+ #define LOOP_CHANGE_FD		0x4C06
++#define LOOP_SET_CAPACITY	0x4C07
  
--#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
--#endif
--
--#include <linux/byteorder/big_endian.h>
-+#include <linux/byteorder.h>
- 
- #endif /* _ASM_BYTEORDER_H */
+ #endif
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from hooanon05@yahoo.co.jp are
 
-origin.patch
-frv-use-the-new-byteorder-headers.patch
-h8300-use-the-new-byteorder-headers.patch
-alpha-use-the-new-byteorder-headers.patch
-lib-fix-sparse-shadowed-variable-warning.patch
-lib-radix_treec-make-percpu-variable-static.patch
-lib-proportionsc-trivial-sparse-lock-annotation.patch
-ibmpex-add-endian-annotation-to-extract_data-helper.patch
-blackfin-remove-__function__-in-video-driver.patch
-fb-carminefb-trivial-annotation-packing-color-register.patch
-linux-next.patch
-input-ads7846c-sparse-lock-annotation.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-byteorder-add-load_-store_endian-api.patch
-unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
-unaligned-wire-up-h8300-and-m32r-arches.patch
-unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
-unaligned-remove-the-old-implementation.patch
-ata-replace-byteshifting-with-unaligned-endian-helpers.patch
-usb-use-unaligned-endian-helpers-in-storage-drivers.patch
+loop-add-ioctl-to-resize-a-loop-device.patch
 
