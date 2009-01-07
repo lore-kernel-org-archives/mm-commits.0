@@ -1,112 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 15:06:54 -0800
-Message-ID: <200901072306.n07N6sWP025592@imap1.linux-foundation.org>
+Subject: - cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 15:07:12 -0800
+Message-ID: <200901072307.n07N7CJq025838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45034 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754431AbZAGXHI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:07:08 -0500
+	by vger.kernel.org with ESMTP id S1762230AbZAGXHX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:07:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gowrishankar.m@in.ibm.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add comment for link_css_set()
+     cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
+     cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
+This patch was dropped because it was folded into cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add comment for link_css_set()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add comment for link_css_set() as Paul Menage sugguested.
+ERROR: do not use assignment in if condition
+#37: FILE: kernel/cgroup.c:2017:
++		if ((pid = task_pid_vnr(tsk)) > 0)
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+total: 1 errors, 0 warnings, 17 lines checked
+
+./patches/cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Gowrishankar M <gowrishankar.m@in.ibm.com>
 Cc: Paul Menage <menage@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/cgroup.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroups-introduce-link_css_set-to-remove-duplicate-code-fix kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-introduce-link_css_set-to-remove-duplicate-code-fix
+diff -puN kernel/cgroup.c~cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes
 +++ a/kernel/cgroup.c
-@@ -384,6 +384,12 @@ static int allocate_cg_links(int count, 
- 	return 0;
- }
- 
-+/**
-+ * link_css_set - a helper function to link a css_set to a cgroup
-+ * @tmp_cg_links: cg_cgroup_link objects allocated by allocate_cg_links()
-+ * @cg: the css_set to be linked
-+ * @cgrp: the destination cgroup
-+ */
- static void link_css_set(struct list_head *tmp_cg_links,
- 			 struct css_set *cg, struct cgroup *cgrp)
- {
+@@ -2014,7 +2014,8 @@ static int pid_array_load(pid_t *pidarra
+ 	while ((tsk = cgroup_iter_next(cgrp, &it))) {
+ 		if (unlikely(n == npids))
+ 			break;
+-		if ((pid = task_pid_vnr(tsk)) > 0)
++		pid = task_pid_vnr(tsk);
++		if (pid > 0)
+ 			pidarray[n++] = pid;
+ 	}
+ 	cgroup_iter_end(cgrp, &it);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cgroups-documentation-updates.patch
-cgroups-remove-some-redundant-null-checks.patch
-ns_cgroup-remove-unused-spinlock.patch
-memcg-fix-a-typo-in-kconfig.patch
-cgroups-make-root_list-contains-active-hierarchies-only.patch
-cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
-cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
-cgroups-make-cgroup_path-rcu-safe.patch
-cgroups-make-cgroup_path-rcu-safe-fixlet.patch
-devices-cgroup-allow-mkfifo.patch
-memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
-memcg-new-force_empty-to-free-pages-under-group.patch
-memcg-new-force_empty-to-free-pages-under-group-fix.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch
+cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
+memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
 memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-handle-swap-caches.patch
-memcg-memswap-controller-kconfig.patch
 memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-synchronized-lru.patch
-memcg-add-mem_cgroup_disabled.patch
-memcg-add-mem_cgroup_disabled-fix.patch
-memory-cgroup-hierarchy-documentation-v4.patch
-memory-cgroup-resource-counters-for-hierarchy-v4.patch
 memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4.patch
 memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
-memory-cgroup-hierarchy-feature-selector-v4.patch
-memory-cgroup-hierarchy-feature-selector-v4-fix.patch
-memcg-avoid-unnecessary-system-wide-oom-killer.patch
 memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-memcg-fix-reclaim-result-checks.patch
-memcg-swapout-refcnt-fix.patch
-memcg-fix-double-free-and-make-refcnt-sane.patch
-memcg-use-css_tryget-in-memcg.patch
-memcg-use-css_tryget-in-memcg-fix.patch
-memcg-fix-lru-accounting-for-swapcache-v2.patch
-memcg-fix-shmems-swap-accounting.patch
-cgroups-add-a-per-subsystem-hierarchy_mutex.patch
-cgroups-use-hierarchy_mutex-in-memory-controller.patch
-cgroups-add-css_tryget.patch
-cpuset-remove-on-stack-cpumask_t-in-cpuset_sprintf_cpulist.patch
-cpuset-remove-on-stack-cpumask_t-in-cpuset_can_attach.patch
-cpuset-convert-cpuset_attach-to-use-cpumask_var_t.patch
-cpuset-dont-allocate-trial-cpuset-on-stack.patch
-cpuset-convert-cpuset-cpus_allowed-to-cpumask_var_t.patch
-cpuset-remove-remaining-pointers-to-cpumask_t.patch
+w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+kmemleak-add-the-base-support-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
