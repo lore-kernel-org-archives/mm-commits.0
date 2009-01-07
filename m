@@ -1,64 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - create-a-div_round_closest-macro-to-do-division-with-rounding.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:15:31 -0800
-Message-ID: <200901072215.n07MFV73015336@imap1.linux-foundation.org>
+Subject: - block-do_mounts-add-device-info-to-mount-message.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:15:14 -0800
+Message-ID: <200901072215.n07MFEl9015071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761943AbZAGWPe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:34 -0500
+	by vger.kernel.org with ESMTP id S1761948AbZAGWPa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djwong@us.ibm.com, mm-commits@vger.kernel.org
+To: cus@fazekas.hu, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Create a DIV_ROUND_CLOSEST macro to do division with rounding
+     do_mounts: add device info to mount message
 has been removed from the -mm tree.  Its filename was
-     create-a-div_round_closest-macro-to-do-division-with-rounding.patch
+     block-do_mounts-add-device-info-to-mount-message.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Create a DIV_ROUND_CLOSEST macro to do division with rounding
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: do_mounts: add device info to mount message
+From: Marton Balint <cus@fazekas.hu>
 
-Create a helper macro to divide two numbers and round the result to the
-nearest whole number.  This is a helper macro for hwmon drivers that want
-to convert incoming sysfs values per standard hwmon practice, though the
-macro itself can be used by anyone.
+In the past, I used the root=...  command line parameter to specify the
+root filesystem to the kernel.  Now it seems that specifying it is not
+necessary.  The kernel detects the root filesystem even if the kernel
+command line is empty.  My root fs is on a raid1 device by the way, and I
+am not using initrd for the boot process.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+If the kernel detects the root filesystem somehow, I think it should print
+out the result of this detection, otherwise I will not know which device
+has the root filesystem.  Or is there an easy way to get this information
+on a running system?  I had a quick look at the /proc and /sys
+filesystems, but haven't found anything useful there.
+
+Signed-off-by: Marton Balint <cus@fazekas.hu>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ init/do_mounts.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kernel.h~create-a-div_round_closest-macro-to-do-division-with-rounding include/linux/kernel.h
---- a/include/linux/kernel.h~create-a-div_round_closest-macro-to-do-division-with-rounding
-+++ a/include/linux/kernel.h
-@@ -48,6 +48,12 @@ extern const char linux_proc_banner[];
- #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
- #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
- #define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
-+#define DIV_ROUND_CLOSEST(x, divisor)(			\
-+{							\
-+	typeof(divisor) __divisor = divisor;		\
-+	(((x) + ((__divisor) / 2)) / (__divisor));	\
-+}							\
-+)
+diff -puN init/do_mounts.c~block-do_mounts-add-device-info-to-mount-message init/do_mounts.c
+--- a/init/do_mounts.c~block-do_mounts-add-device-info-to-mount-message
++++ a/init/do_mounts.c
+@@ -220,10 +220,10 @@ static int __init do_mount_root(char *na
  
- #define _RET_IP_		(unsigned long)__builtin_return_address(0)
- #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
+ 	sys_chdir("/root");
+ 	ROOT_DEV = current->fs->pwd.mnt->mnt_sb->s_dev;
+-	printk("VFS: Mounted root (%s filesystem)%s.\n",
++	printk("VFS: Mounted root (%s filesystem)%s on device %u:%u.\n",
+ 	       current->fs->pwd.mnt->mnt_sb->s_type->name,
+ 	       current->fs->pwd.mnt->mnt_sb->s_flags & MS_RDONLY ?
+-	       " readonly" : "");
++	       " readonly" : "", MAJOR(ROOT_DEV), MINOR(ROOT_DEV));
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from cus@fazekas.hu are
 
 origin.patch
-linux-next.patch
-fakephp-allocate-pci-resources-before-adding-the-device.patch
 
