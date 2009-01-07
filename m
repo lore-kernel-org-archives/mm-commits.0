@@ -1,62 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:17:31 -0800
-Message-ID: <200901072217.n07MHV4T017120@imap1.linux-foundation.org>
+Subject: - random-dont-try-to-look-at-entropy_count-outside-the-lock.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:20:45 -0800
+Message-ID: <200901072220.n07MKjxp019968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46176 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60688 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763121AbZAGWc1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:32:27 -0500
+	by vger.kernel.org with ESMTP id S1763132AbZAGWcv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:32:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qhfeng.kernel@gmail.com, mm-commits@vger.kernel.org
+To: mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/binfmt_misc.c: add terminating newline to /proc/sys/fs/binfmt_misc/status
+     random: don't try to look at entropy_count outside the lock
 has been removed from the -mm tree.  Its filename was
-     fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status.patch
+     random-dont-try-to-look-at-entropy_count-outside-the-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/binfmt_misc.c: add terminating newline to /proc/sys/fs/binfmt_misc/status
-From: Qinghuang Feng <qhfeng.kernel@gmail.com>
+Subject: random: don't try to look at entropy_count outside the lock
+From: Matt Mackall <mpm@selenic.com>
 
-The following is what it looks like before patching.
-It is not much readable.
+As a non-atomic value, it's only safe to look at entropy_count when the
+pool lock is held, so we move the BUG_ON inside the lock for correctness.
 
-user@ubuntu:/proc/sys/fs/binfmt_misc$ cat status
-enableduser@ubuntu:/proc/sys/fs/binfmt_misc$
+Also remove the spurious comment.  It's ok for entropy_count to
+temporarily exceed POOLBITS so long as it's left in a consistent state
+when the lock is released.
 
-Signed-off-by: Qinghuang Feng <qhfeng.kernel@gmail.com>
+This is a more correct, simple, and idiomatic fix for the bug in
+8b76f46a2db.  I've left the reorderings introduced by that patch in place
+as they're harmless, even though they don't properly deal with potential
+atomicity issues.
+
+Signed-off-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/random.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~fs-binfmt_miscc-add-terminating-newline-to-proc-sys-fs-binfmt_misc-status
-+++ a/fs/binfmt_misc.c
-@@ -649,7 +649,7 @@ static const struct file_operations bm_r
- static ssize_t
- bm_status_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
- {
--	char *s = enabled ? "enabled" : "disabled";
-+	char *s = enabled ? "enabled\n" : "disabled\n";
+diff -puN drivers/char/random.c~random-dont-try-to-look-at-entropy_count-outside-the-lock drivers/char/random.c
+--- a/drivers/char/random.c~random-dont-try-to-look-at-entropy_count-outside-the-lock
++++ a/drivers/char/random.c
+@@ -407,7 +407,7 @@ struct entropy_store {
+ 	/* read-write data: */
+ 	spinlock_t lock;
+ 	unsigned add_ptr;
+-	int entropy_count;	/* Must at no time exceed ->POOLBITS! */
++	int entropy_count;
+ 	int input_rotate;
+ };
  
- 	return simple_read_from_buffer(buf, nbytes, ppos, s, strlen(s));
- }
-_
-
-Patches currently in -mm which might be from qhfeng.kernel@gmail.com are
-
-origin.patch
-linux-next.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-ext2-fix-ext2_splice_branch-comments.patch
-
+@@ -767,11 +767,10 @@ static size_t account(struct entropy_sto
+ {
+ 	unsigned long flags;
+ 
+-	BUG_ON(r->entropy_count > r->poolinfo->POOLBITS);
