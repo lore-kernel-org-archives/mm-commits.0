@@ -1,397 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-add-rtc-tx4939-driver-v2.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:19:20 -0800
-Message-ID: <200901072219.n07MJKiF018673@imap1.linux-foundation.org>
+Subject: - twl4030-gpio-cleanup-debounce.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:19:31 -0800
+Message-ID: <200901072219.n07MJVb9018826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44720 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755541AbZAGWUW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:20:22 -0500
+	by vger.kernel.org with ESMTP id S1759091AbZAGWUc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:20:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: add rtc-tx4939 driver
+     twl4030-gpio: cleanup debounce 
 has been removed from the -mm tree.  Its filename was
-     rtc-add-rtc-tx4939-driver-v2.patch
+     twl4030-gpio-cleanup-debounce.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add rtc-tx4939 driver
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: twl4030-gpio: cleanup debounce 
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Add support for RTC in TX4939 SoC.
+Provide a static debounce configuration mechanism for twl4030 GPIOs,
+replacing the previous dynamic one.  The single user of that mechanism was
+for MMC card detect debouncing.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Boards can provide a bitmask saying which GPIOs to debounce (30 msec). 
+It's always enabled for pins with the MMC card-detect/VMMCx link active,
+so most boards won't need to set the debounce mask.
+
+This is a net code shrink, including runtime footprint.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    7 
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-tx4939.c |  317 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 325 insertions(+)
+ drivers/gpio/twl4030-gpio.c |   54 ++++++++++++++--------------------
+ include/linux/i2c/twl4030.h |    9 +----
+ 2 files changed, 26 insertions(+), 37 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-rtc-tx4939-driver-v2 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-rtc-tx4939-driver-v2
-+++ a/drivers/rtc/Kconfig
-@@ -705,4 +705,11 @@ config RTC_DRV_STARFIRE
- 	  If you say Y here you will get support for the RTC found on
- 	  Starfire systems.
+diff -puN drivers/gpio/twl4030-gpio.c~twl4030-gpio-cleanup-debounce drivers/gpio/twl4030-gpio.c
+--- a/drivers/gpio/twl4030-gpio.c~twl4030-gpio-cleanup-debounce
++++ a/drivers/gpio/twl4030-gpio.c
+@@ -202,37 +202,6 @@ static int twl4030_get_gpio_datain(int g
+ 	return ret;
+ }
  
-+config RTC_DRV_TX4939
-+	tristate "TX4939 SoC"
-+	depends on SOC_TX4939
-+	help
-+	  Driver for the internal RTC (Realtime Clock) module found on
-+	  Toshiba TX4939 SoC.
-+
- endif # RTC_CLASS
-diff -puN drivers/rtc/Makefile~rtc-add-rtc-tx4939-driver-v2 drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-rtc-tx4939-driver-v2
-+++ a/drivers/rtc/Makefile
-@@ -68,6 +68,7 @@ obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
- obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
- obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
- obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl4030.o
-+obj-$(CONFIG_RTC_DRV_TX4939)	+= rtc-tx4939.o
- obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
- obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
- obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm8350.o
-diff -puN /dev/null drivers/rtc/rtc-tx4939.c
---- /dev/null
-+++ a/drivers/rtc/rtc-tx4939.c
-@@ -0,0 +1,317 @@
-+/*
-+ * TX4939 internal RTC driver
-+ * Based on RBTX49xx patch from CELF patch archive.
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-+ *
-+ * (C) Copyright TOSHIBA CORPORATION 2005-2007
-+ */
-+#include <linux/rtc.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <asm/txx9/tx4939.h>
-+
-+struct tx4939rtc_plat_data {
-+	struct rtc_device *rtc;
-+	struct tx4939_rtc_reg __iomem *rtcreg;
-+};
-+
-+static struct tx4939rtc_plat_data *get_tx4939rtc_plat_data(struct device *dev)
+-/*
+- * Configure debounce timing value for a GPIO pin on TWL4030
+- */
+-int twl4030_set_gpio_debounce(int gpio, int enable)
+-{
+-	u8 d_bnk = gpio >> 3;
+-	u8 d_msk = BIT(gpio & 0x7);
+-	u8 reg = 0;
+-	u8 base = 0;
+-	int ret = 0;
+-
+-	if (unlikely((gpio >= TWL4030_GPIO_MAX)
+-		|| !(gpio_usage_count & BIT(gpio))))
+-		return -EPERM;
+-
+-	base = REG_GPIO_DEBEN1 + d_bnk;
+-	mutex_lock(&gpio_lock);
+-	ret = gpio_twl4030_read(base);
+-	if (ret >= 0) {
+-		if (enable)
+-			reg = ret | d_msk;
+-		else
+-			reg = ret & ~d_msk;
+-
+-		ret = gpio_twl4030_write(base, reg);
+-	}
+-	mutex_unlock(&gpio_lock);
+-	return ret;
+-}
+-EXPORT_SYMBOL(twl4030_set_gpio_debounce);
+-
+ /*----------------------------------------------------------------------*/
+ 
+ static int twl_request(struct gpio_chip *chip, unsigned offset)
+@@ -405,6 +374,23 @@ static int __devinit gpio_twl4030_pulls(
+ 				REG_GPIOPUPDCTR1, 5);
+ }
+ 
++static int __devinit gpio_twl4030_debounce(u32 debounce, u8 mmc_cd)
 +{
-+	return platform_get_drvdata(to_platform_device(dev));
++	u8		message[4];
++
++	/* 30 msec of debouncing is always used for MMC card detect,
++	 * and is optional for everything else.
++	 */
++	message[1] = (debounce & 0xff) | (mmc_cd & 0x03);
++	debounce >>= 8;
++	message[2] = (debounce & 0xff);
++	debounce >>= 8;
++	message[3] = (debounce & 0x03);
++
++	return twl4030_i2c_write(TWL4030_MODULE_GPIO, message,
++				REG_GPIO_DEBEN1, 3);
 +}
 +
-+static int tx4939_rtc_cmd(struct tx4939_rtc_reg __iomem *rtcreg, int cmd)
-+{
-+	int i = 0;
-+
-+	__raw_writel(cmd, &rtcreg->ctl);
-+	/* This might take 30us (next 32.768KHz clock) */
-+	while (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_BUSY) {
-+		/* timeout on approx. 100us (@ GBUS200MHz) */
-+		if (i++ > 200 * 100)
-+			return -EBUSY;
-+		cpu_relax();
-+	}
-+	return 0;
-+}
-+
-+static int tx4939_rtc_set_mmss(struct device *dev, unsigned long secs)
-+{
-+	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
-+	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
-+	int i, ret;
-+	unsigned char buf[6];
-+
-+	buf[0] = 0;
-+	buf[1] = 0;
-+	buf[2] = secs;
-+	buf[3] = secs >> 8;
-+	buf[4] = secs >> 16;
-+	buf[5] = secs >> 24;
-+	spin_lock_irq(&pdata->rtc->irq_lock);
-+	__raw_writel(0, &rtcreg->adr);
-+	for (i = 0; i < 6; i++)
-+		__raw_writel(buf[i], &rtcreg->dat);
-+	ret = tx4939_rtc_cmd(rtcreg,
-+			     TX4939_RTCCTL_COMMAND_SETTIME |
-+			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
-+	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	return ret;
-+}
-+
-+static int tx4939_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
-+	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
-+	int i, ret;
-+	unsigned long sec;
-+	unsigned char buf[6];
-+
-+	spin_lock_irq(&pdata->rtc->irq_lock);
-+	ret = tx4939_rtc_cmd(rtcreg,
-+			     TX4939_RTCCTL_COMMAND_GETTIME |
-+			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
-+	if (ret) {
-+		spin_unlock_irq(&pdata->rtc->irq_lock);
-+		return ret;
-+	}
-+	__raw_writel(2, &rtcreg->adr);
-+	for (i = 2; i < 6; i++)
-+		buf[i] = __raw_readl(&rtcreg->dat);
-+	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	sec = (buf[5] << 24) | (buf[4] << 16) | (buf[3] << 8) | buf[2];
-+	rtc_time_to_tm(sec, tm);
-+	return rtc_valid_tm(tm);
-+}
-+
-+static int tx4939_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
-+	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
-+	int i, ret;
-+	unsigned long sec;
-+	unsigned char buf[6];
-+
-+	if (alrm->time.tm_sec < 0 ||
-+	    alrm->time.tm_min < 0 ||
-+	    alrm->time.tm_hour < 0 ||
-+	    alrm->time.tm_mday < 0 ||
-+	    alrm->time.tm_mon < 0 ||
-+	    alrm->time.tm_year < 0)
-+		return -EINVAL;
-+	rtc_tm_to_time(&alrm->time, &sec);
-+	buf[0] = 0;
-+	buf[1] = 0;
-+	buf[2] = sec;
-+	buf[3] = sec >> 8;
-+	buf[4] = sec >> 16;
-+	buf[5] = sec >> 24;
-+	spin_lock_irq(&pdata->rtc->irq_lock);
-+	__raw_writel(0, &rtcreg->adr);
-+	for (i = 0; i < 6; i++)
-+		__raw_writel(buf[i], &rtcreg->dat);
-+	ret = tx4939_rtc_cmd(rtcreg, TX4939_RTCCTL_COMMAND_SETALARM |
-+			     (alrm->enabled ? TX4939_RTCCTL_ALME : 0));
-+	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	return ret;
-+}
-+
-+static int tx4939_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
-+	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
-+	int i, ret;
-+	unsigned long sec;
-+	unsigned char buf[6];
-+	u32 ctl;
-+
-+	spin_lock_irq(&pdata->rtc->irq_lock);
-+	ret = tx4939_rtc_cmd(rtcreg,
-+			     TX4939_RTCCTL_COMMAND_GETALARM |
-+			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
-+	if (ret) {
-+		spin_unlock_irq(&pdata->rtc->irq_lock);
-+		return ret;
-+	}
-+	__raw_writel(2, &rtcreg->adr);
-+	for (i = 2; i < 6; i++)
-+		buf[i] = __raw_readl(&rtcreg->dat);
-+	ctl = __raw_readl(&rtcreg->ctl);
-+	alrm->enabled = (ctl & TX4939_RTCCTL_ALME) ? 1 : 0;
-+	alrm->pending = (ctl & TX4939_RTCCTL_ALMD) ? 1 : 0;
-+	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	sec = (buf[5] << 24) | (buf[4] << 16) | (buf[3] << 8) | buf[2];
-+	rtc_time_to_tm(sec, &alrm->time);
-+	return rtc_valid_tm(&alrm->time);
-+}
-+
-+static int tx4939_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
-+{
-+	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
-+
-+	spin_lock_irq(&pdata->rtc->irq_lock);
-+	tx4939_rtc_cmd(pdata->rtcreg,
-+		       TX4939_RTCCTL_COMMAND_NOP |
-+		       (enabled ? TX4939_RTCCTL_ALME : 0));
-+	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	return 0;
-+}
-+
-+static irqreturn_t tx4939_rtc_interrupt(int irq, void *dev_id)
-+{
-+	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev_id);
-+	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
-+	unsigned long events = RTC_IRQF;
-+
-+	spin_lock(&pdata->rtc->irq_lock);
-+	if (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALMD) {
-+		events |= RTC_AF;
-+		tx4939_rtc_cmd(rtcreg, TX4939_RTCCTL_COMMAND_NOP);
-+	}
-+	spin_unlock(&pdata->rtc->irq_lock);
-+	rtc_update_irq(pdata->rtc, 1, events);
-+	return IRQ_HANDLED;
-+}
-+
-+static const struct rtc_class_ops tx4939_rtc_ops = {
-+	.read_time		= tx4939_rtc_read_time,
-+	.read_alarm		= tx4939_rtc_read_alarm,
-+	.set_alarm		= tx4939_rtc_set_alarm,
-+	.set_mmss		= tx4939_rtc_set_mmss,
-+	.alarm_irq_enable	= tx4939_rtc_alarm_irq_enable,
-+};
-+
-+static ssize_t tx4939_rtc_nvram_read(struct kobject *kobj,
-+				     struct bin_attribute *bin_attr,
-+				     char *buf, loff_t pos, size_t size)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
-+	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
-+	ssize_t count;
-+
-+	spin_lock_irq(&pdata->rtc->irq_lock);
-+	for (count = 0; size > 0 && pos < TX4939_RTC_REG_RAMSIZE;
-+	     count++, size--) {
-+		__raw_writel(pos++, &rtcreg->adr);
-+		*buf++ = __raw_readl(&rtcreg->dat);
-+	}
-+	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	return count;
-+}
-+
-+static ssize_t tx4939_rtc_nvram_write(struct kobject *kobj,
-+				      struct bin_attribute *bin_attr,
-+				      char *buf, loff_t pos, size_t size)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
-+	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
-+	ssize_t count;
-+
-+	spin_lock_irq(&pdata->rtc->irq_lock);
-+	for (count = 0; size > 0 && pos < TX4939_RTC_REG_RAMSIZE;
-+	     count++, size--) {
-+		__raw_writel(pos++, &rtcreg->adr);
-+		__raw_writel(*buf++, &rtcreg->dat);
-+	}
-+	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	return count;
-+}
-+
-+static struct bin_attribute tx4939_rtc_nvram_attr = {
-+	.attr = {
-+		.name = "nvram",
-+		.mode = S_IRUGO | S_IWUSR,
-+	},
-+	.size = TX4939_RTC_REG_RAMSIZE,
-+	.read = tx4939_rtc_nvram_read,
-+	.write = tx4939_rtc_nvram_write,
-+};
-+
-+static int __init tx4939_rtc_probe(struct platform_device *pdev)
-+{
-+	struct rtc_device *rtc;
-+	struct tx4939rtc_plat_data *pdata;
-+	struct resource *res;
-+	int irq, ret;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res)
-+		return -ENODEV;
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0)
-+		return -ENODEV;
-+	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return -ENOMEM;
-+	platform_set_drvdata(pdev, pdata);
-+
-+	if (!devm_request_mem_region(&pdev->dev, res->start,
-+				     resource_size(res), pdev->name))
-+		return -EBUSY;
-+	pdata->rtcreg = devm_ioremap(&pdev->dev, res->start,
-+				     resource_size(res));
-+	if (!pdata->rtcreg)
-+		return -EBUSY;
-+
-+	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
-+	if (devm_request_irq(&pdev->dev, irq, tx4939_rtc_interrupt,
-+			     IRQF_DISABLED | IRQF_SHARED,
-+			     pdev->name, &pdev->dev) < 0) {
-+		return -EBUSY;
-+	}
-+	rtc = rtc_device_register(pdev->name, &pdev->dev,
-+				  &tx4939_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
-+	pdata->rtc = rtc;
-+	ret = sysfs_create_bin_file(&pdev->dev.kobj, &tx4939_rtc_nvram_attr);
+ static int gpio_twl4030_remove(struct platform_device *pdev);
+ 
+ static int __devinit gpio_twl4030_probe(struct platform_device *pdev)
+@@ -439,6 +425,12 @@ no_irqs:
+ 				pdata->pullups, pdata->pulldowns,
+ 				ret);
+ 
++	ret = gpio_twl4030_debounce(pdata->debounce, pdata->mmc_cd);
 +	if (ret)
-+		rtc_device_unregister(rtc);
-+	return ret;
-+}
++		dev_dbg(&pdev->dev, "debounce %.03x %.01x --> %d\n",
++				pdata->debounce, pdata->mmc_cd,
++				ret);
 +
-+static int __exit tx4939_rtc_remove(struct platform_device *pdev)
-+{
-+	struct tx4939rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+	struct rtc_device *rtc = pdata->rtc;
+ 	twl_gpiochip.base = pdata->gpio_base;
+ 	twl_gpiochip.ngpio = TWL4030_GPIO_MAX;
+ 	twl_gpiochip.dev = &pdev->dev;
+diff -puN include/linux/i2c/twl4030.h~twl4030-gpio-cleanup-debounce include/linux/i2c/twl4030.h
+--- a/include/linux/i2c/twl4030.h~twl4030-gpio-cleanup-debounce
++++ a/include/linux/i2c/twl4030.h
+@@ -234,6 +234,9 @@ struct twl4030_gpio_platform_data {
+ 	/* gpio-n should control VMMC(n+1) if BIT(n) in mmc_cd is set */
+ 	u8		mmc_cd;
+ 
++	/* if BIT(N) is set, or VMMC(n+1) is linked, debounce GPIO-N */
++	u32		debounce;
 +
-+	spin_lock_irq(&rtc->irq_lock);
-+	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
-+	spin_unlock_irq(&rtc->irq_lock);
-+	sysfs_remove_bin_file(&pdev->dev.kobj, &tx4939_rtc_nvram_attr);
-+	rtc_device_unregister(rtc);
-+	platform_set_drvdata(pdev, NULL);
-+	return 0;
-+}
-+
-+static struct platform_driver tx4939_rtc_driver = {
-+	.remove		= __exit_p(tx4939_rtc_remove),
-+	.driver		= {
-+		.name	= "tx4939rtc",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static int __init tx4939rtc_init(void)
-+{
-+	return platform_driver_probe(&tx4939_rtc_driver, tx4939_rtc_probe);
-+}
-+
-+static void __exit tx4939rtc_exit(void)
-+{
-+	platform_driver_unregister(&tx4939_rtc_driver);
-+}
-+
-+module_init(tx4939rtc_init);
-+module_exit(tx4939rtc_exit);
-+
-+MODULE_AUTHOR("Atsushi Nemoto <anemo@mba.ocn.ne.jp>");
-+MODULE_DESCRIPTION("TX4939 internal RTC driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:tx4939rtc");
+ 	/* For gpio-N, bit (1 << N) in "pullups" is set if that pullup
+ 	 * should be enabled.  Else, if that bit is set in "pulldowns",
+ 	 * that pulldown is enabled.  Don't waste power by letting any
+@@ -307,12 +310,6 @@ int twl4030_sih_setup(int module);
+ #define TWL4030_VAUX3_DEV_GRP		0x1F
+ #define TWL4030_VAUX3_DEDICATED		0x22
+ 
+-/*
+- * Exported TWL4030 GPIO APIs
+- *
+- * WARNING -- use standard GPIO and IRQ calls instead; these will vanish.
+- */
+-int twl4030_set_gpio_debounce(int gpio, int enable);
+ 
+ #if defined(CONFIG_TWL4030_BCI_BATTERY) || \
+ 	defined(CONFIG_TWL4030_BCI_BATTERY_MODULE)
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
 linux-next.patch
-physmap-make-map_info-customizable.patch
-atmel_serial-might-lose-modem-status-change.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
+usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
+usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
+usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
+usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
+usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
 
