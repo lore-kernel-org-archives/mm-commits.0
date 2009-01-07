@@ -1,585 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-driver-for-pxa27x-and-pxa3xx-soc.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:19:00 -0800
-Message-ID: <200901072219.n07MJ0mG018386@imap1.linux-foundation.org>
+Subject: - drivers-rtc-correct-an-error-test.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:19:28 -0800
+Message-ID: <200901072219.n07MJSRE018766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758776AbZAGWUK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:20:10 -0500
+	by vger.kernel.org with ESMTP id S1760872AbZAGWUf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:20:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: robert.jarzmik@free.fr, a.zummo@towertech.it, david-b@pacbell.net, jic23@cam.ac.uk, mm-commits@vger.kernel.org
+To: julia@diku.dk, a.zummo@towertech.it, bryan.wu@analog.com, david-b@pacbell.net, michael.frysinger@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: driver for pxa27x and pxa3xx SoC
+     drivers/rtc: correct an error test
 has been removed from the -mm tree.  Its filename was
-     rtc-driver-for-pxa27x-and-pxa3xx-soc.patch
+     drivers-rtc-correct-an-error-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: driver for pxa27x and pxa3xx SoC
-From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: drivers/rtc: correct an error test
+From: Julia Lawall <julia@diku.dk>
 
-With PXA27x and above, a new RTC hardware block was added in addition to
-the legacy one which is also found on the SA1100 SOC family.  This second
-RTC block is called "wristwatch" and "periodic interrupt" and works
-independently from the other RTC block.
+rtc is clearly does not satisfy IS_ERR at the point where it is tested, so
+I have changed the test to consider the just initialized rtc->rtc_dev.
 
-The driver offers provides :
- - a 1Hz ticking clock
- - a periodic alarm, in the 1Hz to 1000Hz range
- - a one shot alarm
+The semantic match that finds the problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+// <smpl>
+@match exists@
+expression x, E;
+identifier fld;
+position p1,p2;
+@@
+
+(
+x = E;
+|
+x = E
+|
+x@p1->fld
+... when != x = E
+IS_ERR(x@p2)
+... when any
+)
+
+@other_match exists@
+expression match.x, E1, E2;
+position match.p1,match.p2;
+@@
+
+x = E1
+... when != x = E2
+    when != x@p1
+x@p2
+
+@ script:python depends on !other_match@
+p1 << match.p1;
+p2 << match.p2;
+@@
+
+print "* file %s dereference %s test %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Cc: David Brownell <david-b@pacbell.net>
+Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: Mike Frysinger <michael.frysinger@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig   |   11 
- drivers/rtc/Makefile  |    1 
- drivers/rtc/rtc-pxa.c |  493 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 505 insertions(+)
+ drivers/rtc/rtc-bfin.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-driver-for-pxa27x-and-pxa3xx-soc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-driver-for-pxa27x-and-pxa3xx-soc
-+++ a/drivers/rtc/Kconfig
-@@ -669,6 +669,17 @@ config RTC_DRV_PPC
- 	 the RTC. This exposes that functionality through the generic RTC
- 	 class.
+diff -puN drivers/rtc/rtc-bfin.c~drivers-rtc-correct-an-error-test drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~drivers-rtc-correct-an-error-test
++++ a/drivers/rtc/rtc-bfin.c
+@@ -390,7 +390,7 @@ static int __devinit bfin_rtc_probe(stru
  
-+config RTC_DRV_PXA
-+       tristate "PXA27x/PXA3xx"
-+       depends on ARCH_PXA
-+       help
-+         If you say Y here you will get access to the real time clock
-+         built into your PXA27x or PXA3xx CPU.
-+
-+         This RTC driver uses PXA RTC registers available since pxa27x
-+         series (RDxR, RYxR) instead of legacy RCNR, RTAR.
-+
-+
- config RTC_DRV_SUN4V
- 	bool "SUN4V Hypervisor RTC"
- 	depends on SPARC64
-diff -puN drivers/rtc/Makefile~rtc-driver-for-pxa27x-and-pxa3xx-soc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-driver-for-pxa27x-and-pxa3xx-soc
-+++ a/drivers/rtc/Makefile
-@@ -54,6 +54,7 @@ obj-$(CONFIG_RTC_DRV_PL030)	+= rtc-pl030
- obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
- obj-$(CONFIG_RTC_DRV_PARISC)	+= rtc-parisc.o
- obj-$(CONFIG_RTC_DRV_PPC)	+= rtc-ppc.o
-+obj-$(CONFIG_RTC_DRV_PXA)	+= rtc-pxa.o
- obj-$(CONFIG_RTC_DRV_R9701)	+= rtc-r9701.o
- obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
- obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
-diff -puN /dev/null drivers/rtc/rtc-pxa.c
---- /dev/null
-+++ a/drivers/rtc/rtc-pxa.c
-@@ -0,0 +1,493 @@
-+/*
-+ * Real Time Clock interface for XScale PXA27x and PXA3xx
-+ *
-+ * Copyright (C) 2008 Robert Jarzmik
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
-+
-+#include <linux/platform_device.h>
-+#include <linux/module.h>
-+#include <linux/rtc.h>
-+#include <linux/seq_file.h>
-+#include <linux/interrupt.h>
-+
-+#include <asm/io.h>
-+
-+#define TIMER_FREQ		CLOCK_TICK_RATE
-+#define RTC_DEF_DIVIDER		(32768 - 1)
-+#define RTC_DEF_TRIM		0
-+#define MAXFREQ_PERIODIC	1000
-+
-+/*
-+ * PXA Registers and bits definitions
-+ */
-+#define RTSR_PICE	(1 << 15)	/* Periodic interrupt count enable */
-+#define RTSR_PIALE	(1 << 14)	/* Periodic interrupt Alarm enable */
-+#define RTSR_PIAL	(1 << 13)	/* Periodic interrupt detected */
-+#define RTSR_SWALE2	(1 << 11)	/* RTC stopwatch alarm2 enable */
-+#define RTSR_SWAL2	(1 << 10)	/* RTC stopwatch alarm2 detected */
-+#define RTSR_SWALE1	(1 << 9)	/* RTC stopwatch alarm1 enable */
-+#define RTSR_SWAL1	(1 << 8)	/* RTC stopwatch alarm1 detected */
-+#define RTSR_RDALE2	(1 << 7)	/* RTC alarm2 enable */
-+#define RTSR_RDAL2	(1 << 6)	/* RTC alarm2 detected */
-+#define RTSR_RDALE1	(1 << 5)	/* RTC alarm1 enable */
-+#define RTSR_RDAL1	(1 << 4)	/* RTC alarm1 detected */
-+#define RTSR_HZE	(1 << 3)	/* HZ interrupt enable */
-+#define RTSR_ALE	(1 << 2)	/* RTC alarm interrupt enable */
-+#define RTSR_HZ		(1 << 1)	/* HZ rising-edge detected */
-+#define RTSR_AL		(1 << 0)	/* RTC alarm detected */
-+#define RTSR_TRIG_MASK	(RTSR_AL | RTSR_HZ | RTSR_RDAL1 | RTSR_RDAL2\
-+			 | RTSR_SWAL1 | RTSR_SWAL2)
-+#define RYxR_YEAR_S	9
-+#define RYxR_YEAR_MASK	(0xfff << RYxR_YEAR_S)
-+#define RYxR_MONTH_S	5
-+#define RYxR_MONTH_MASK	(0xf << RYxR_MONTH_S)
-+#define RYxR_DAY_MASK	0x1f
-+#define RDxR_HOUR_S	12
-+#define RDxR_HOUR_MASK	(0x1f << RDxR_HOUR_S)
-+#define RDxR_MIN_S	6
-+#define RDxR_MIN_MASK	(0x3f << RDxR_MIN_S)
-+#define RDxR_SEC_MASK	0x3f
-+
-+#define RTSR		0x08
-+#define RTTR		0x0c
-+#define RDCR		0x10
-+#define RYCR		0x14
-+#define RDAR1		0x18
-+#define RYAR1		0x1c
-+#define RTCPICR		0x34
-+#define PIAR		0x38
-+
-+#define rtc_readl(pxa_rtc, reg)	\
-+	__raw_readl((pxa_rtc)->base + (reg))
-+#define rtc_writel(pxa_rtc, reg, value)	\
-+	__raw_writel((value), (pxa_rtc)->base + (reg))
-+
-+struct pxa_rtc {
-+	struct resource	*ress;
-+	void __iomem		*base;
-+	int			irq_1Hz;
-+	int			irq_Alrm;
-+	struct rtc_device	*rtc;
-+	spinlock_t		lock;		/* Protects this structure */
-+	struct rtc_time		rtc_alarm;
-+};
-+
-+static u32 ryxr_calc(struct rtc_time *tm)
-+{
-+	return ((tm->tm_year + 1900) << RYxR_YEAR_S)
-+		| ((tm->tm_mon + 1) << RYxR_MONTH_S)
-+		| tm->tm_mday;
-+}
-+
-+static u32 rdxr_calc(struct rtc_time *tm)
-+{
-+	return (tm->tm_hour << RDxR_HOUR_S) | (tm->tm_min << RDxR_MIN_S)
-+		| tm->tm_sec;
-+}
-+
-+static void tm_calc(u32 rycr, u32 rdcr, struct rtc_time *tm)
-+{
-+	tm->tm_year = ((rycr & RYxR_YEAR_MASK) >> RYxR_YEAR_S) - 1900;
-+	tm->tm_mon = (((rycr & RYxR_MONTH_MASK) >> RYxR_MONTH_S)) - 1;
-+	tm->tm_mday = (rycr & RYxR_DAY_MASK);
-+	tm->tm_hour = (rdcr & RDxR_HOUR_MASK) >> RDxR_HOUR_S;
-+	tm->tm_min = (rdcr & RDxR_MIN_MASK) >> RDxR_MIN_S;
-+	tm->tm_sec = rdcr & RDxR_SEC_MASK;
-+}
-+
-+static void rtsr_clear_bits(struct pxa_rtc *pxa_rtc, u32 mask)
-+{
-+	u32 rtsr;
-+
-+	rtsr = rtc_readl(pxa_rtc, RTSR);
-+	rtsr &= ~RTSR_TRIG_MASK;
-+	rtsr &= ~mask;
-+	rtc_writel(pxa_rtc, RTSR, rtsr);
-+}
-+
-+static void rtsr_set_bits(struct pxa_rtc *pxa_rtc, u32 mask)
-+{
-+	u32 rtsr;
-+
-+	rtsr = rtc_readl(pxa_rtc, RTSR);
-+	rtsr &= ~RTSR_TRIG_MASK;
-+	rtsr |= mask;
-+	rtc_writel(pxa_rtc, RTSR, rtsr);
-+}
-+
-+static irqreturn_t pxa_rtc_irq(int irq, void *dev_id)
-+{
-+	struct platform_device *pdev = to_platform_device(dev_id);
-+	struct pxa_rtc *pxa_rtc = platform_get_drvdata(pdev);
-+	u32 rtsr;
-+	unsigned long events = 0;
-+
-+	spin_lock(&pxa_rtc->lock);
-+
-+	/* clear interrupt sources */
-+	rtsr = rtc_readl(pxa_rtc, RTSR);
-+	rtc_writel(pxa_rtc, RTSR, rtsr);
-+
-+	/* temporary disable rtc interrupts */
-+	rtsr_clear_bits(pxa_rtc, RTSR_RDALE1 | RTSR_PIALE | RTSR_HZE);
-+
-+	/* clear alarm interrupt if it has occurred */
-+	if (rtsr & RTSR_RDAL1)
-+		rtsr &= ~RTSR_RDALE1;
-+
-+	/* update irq data & counter */
-+	if (rtsr & RTSR_RDAL1)
-+		events |= RTC_AF | RTC_IRQF;
-+	if (rtsr & RTSR_HZ)
-+		events |= RTC_UF | RTC_IRQF;
-+	if (rtsr & RTSR_PIAL)
-+		events |= RTC_PF | RTC_IRQF;
-+
-+	rtc_update_irq(pxa_rtc->rtc, 1, events);
-+
-+	/* enable back rtc interrupts */
-+	rtc_writel(pxa_rtc, RTSR, rtsr & ~RTSR_TRIG_MASK);
-+
-+	spin_unlock(&pxa_rtc->lock);
-+	return IRQ_HANDLED;
-+}
-+
-+static int pxa_rtc_open(struct device *dev)
-+{
-+	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-+	int ret;
-+
-+	ret = request_irq(pxa_rtc->irq_1Hz, pxa_rtc_irq, IRQF_DISABLED,
-+			  "rtc 1Hz", dev);
-+	if (ret < 0) {
-+		dev_err(dev, "can't get irq %i, err %d\n", pxa_rtc->irq_1Hz,
-+			ret);
-+		goto err_irq_1Hz;
-+	}
-+	ret = request_irq(pxa_rtc->irq_Alrm, pxa_rtc_irq, IRQF_DISABLED,
-+			  "rtc Alrm", dev);
-+	if (ret < 0) {
-+		dev_err(dev, "can't get irq %i, err %d\n", pxa_rtc->irq_Alrm,
-+			ret);
-+		goto err_irq_Alrm;
-+	}
-+
-+	return 0;
-+
-+err_irq_Alrm:
-+	free_irq(pxa_rtc->irq_1Hz, dev);
-+err_irq_1Hz:
-+	return ret;
-+}
-+
-+static void pxa_rtc_release(struct device *dev)
-+{
-+	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-+
-+	spin_lock_irq(&pxa_rtc->lock);
-+	rtsr_clear_bits(pxa_rtc, RTSR_PIALE | RTSR_RDALE1 | RTSR_HZE);
-+	spin_unlock_irq(&pxa_rtc->lock);
-+
-+	free_irq(pxa_rtc->irq_Alrm, dev);
-+	free_irq(pxa_rtc->irq_1Hz, dev);
-+}
-+
-+static int pxa_periodic_irq_set_freq(struct device *dev, int freq)
-+{
-+	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-+	int period_ms;
-+
-+	if (freq < 1 || freq > MAXFREQ_PERIODIC)
-+		return -EINVAL;
-+
-+	period_ms = 1000 / freq;
-+	rtc_writel(pxa_rtc, PIAR, period_ms);
-+
-+	return 0;
-+}
-+
-+static int pxa_periodic_irq_set_state(struct device *dev, int enabled)
-+{
-+	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-+
-+	if (enabled)
-+		rtsr_set_bits(pxa_rtc, RTSR_PIALE | RTSR_PICE);
-+	else
-+		rtsr_clear_bits(pxa_rtc, RTSR_PIALE | RTSR_PICE);
-+
-+	return 0;
-+}
-+
-+static int pxa_rtc_ioctl(struct device *dev, unsigned int cmd,
-+		unsigned long arg)
-+{
-+	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-+	int ret = 0;
-+
-+	spin_lock_irq(&pxa_rtc->lock);
-+	switch (cmd) {
-+	case RTC_AIE_OFF:
-+		rtsr_clear_bits(pxa_rtc, RTSR_RDALE1);
-+		break;
-+	case RTC_AIE_ON:
-+		rtsr_set_bits(pxa_rtc, RTSR_RDALE1);
-+		break;
-+	case RTC_UIE_OFF:
-+		rtsr_clear_bits(pxa_rtc, RTSR_HZE);
-+		break;
-+	case RTC_UIE_ON:
-+		rtsr_set_bits(pxa_rtc, RTSR_HZE);
-+		break;
-+	default:
-+		ret = -ENOIOCTLCMD;
-+	}
-+
-+	spin_unlock_irq(&pxa_rtc->lock);
-+	return ret;
-+}
-+
-+static int pxa_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-+	u32 rycr, rdcr;
-+
-+	rycr = rtc_readl(pxa_rtc, RYCR);
-+	rdcr = rtc_readl(pxa_rtc, RDCR);
-+
-+	tm_calc(rycr, rdcr, tm);
-+	return 0;
-+}
-+
-+static int pxa_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-+
-+	rtc_writel(pxa_rtc, RYCR, ryxr_calc(tm));
-+	rtc_writel(pxa_rtc, RDCR, rdxr_calc(tm));
-+
-+	return 0;
-+}
-+
-+static int pxa_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-+	u32 rtsr, ryar, rdar;
-+
-+	ryar = rtc_readl(pxa_rtc, RYAR1);
-+	rdar = rtc_readl(pxa_rtc, RDAR1);
-+	tm_calc(ryar, rdar, &alrm->time);
-+
-+	rtsr = rtc_readl(pxa_rtc, RTSR);
-+	alrm->enabled = (rtsr & RTSR_RDALE1) ? 1 : 0;
-+	alrm->pending = (rtsr & RTSR_RDAL1) ? 1 : 0;
-+	return 0;
-+}
-+
-+static int pxa_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-+	u32 rtsr;
-+
-+	spin_lock_irq(&pxa_rtc->lock);
-+
-+	rtc_writel(pxa_rtc, RYAR1, ryxr_calc(&alrm->time));
-+	rtc_writel(pxa_rtc, RDAR1, rdxr_calc(&alrm->time));
-+
-+	rtsr = rtc_readl(pxa_rtc, RTSR);
-+	if (alrm->enabled)
-+		rtsr |= RTSR_RDALE1;
-+	else
-+		rtsr &= ~RTSR_RDALE1;
-+	rtc_writel(pxa_rtc, RTSR, rtsr);
-+
-+	spin_unlock_irq(&pxa_rtc->lock);
-+
-+	return 0;
-+}
-+
-+static int pxa_rtc_proc(struct device *dev, struct seq_file *seq)
-+{
-+	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-+
-+	seq_printf(seq, "trim/divider\t: 0x%08x\n", rtc_readl(pxa_rtc, RTTR));
-+	seq_printf(seq, "update_IRQ\t: %s\n",
-+		   (rtc_readl(pxa_rtc, RTSR) & RTSR_HZE) ? "yes" : "no");
-+	seq_printf(seq, "periodic_IRQ\t: %s\n",
-+		   (rtc_readl(pxa_rtc, RTSR) & RTSR_PIALE) ? "yes" : "no");
-+	seq_printf(seq, "periodic_freq\t: %u\n", rtc_readl(pxa_rtc, PIAR));
-+
-+	return 0;
-+}
-+
-+static const struct rtc_class_ops pxa_rtc_ops = {
-+	.open = pxa_rtc_open,
-+	.release = pxa_rtc_release,
-+	.ioctl = pxa_rtc_ioctl,
-+	.read_time = pxa_rtc_read_time,
-+	.set_time = pxa_rtc_set_time,
-+	.read_alarm = pxa_rtc_read_alarm,
-+	.set_alarm = pxa_rtc_set_alarm,
-+	.proc = pxa_rtc_proc,
-+	.irq_set_state = pxa_periodic_irq_set_state,
-+	.irq_set_freq = pxa_periodic_irq_set_freq,
-+};
-+
-+static int __devinit pxa_rtc_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct pxa_rtc *pxa_rtc;
-+	int ret;
-+	u32 rttr;
-+
-+	ret = -ENOMEM;
-+	pxa_rtc = kzalloc(sizeof(struct pxa_rtc), GFP_KERNEL);
-+	if (!pxa_rtc)
-+		goto err_alloc;
-+
-+	ret = -ENXIO;
-+	pxa_rtc->ress = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!pxa_rtc->ress) {
-+		dev_err(dev, "No I/O memory resource defined\n");
-+		goto err_ress;
-+	}
-+
-+	pxa_rtc->irq_1Hz = platform_get_irq(pdev, 0);
-+	if (pxa_rtc->irq_1Hz < 0) {
-+		dev_err(dev, "No 1Hz IRQ resource defined\n");
-+		goto err_ress;
-+	}
-+	pxa_rtc->irq_Alrm = platform_get_irq(pdev, 1);
-+	if (pxa_rtc->irq_Alrm < 0) {
-+		dev_err(dev, "No alarm IRQ resource defined\n");
-+		goto err_ress;
-+	}
-+
-+	pxa_rtc->rtc = rtc_device_register(pdev->name, &pdev->dev, &pxa_rtc_ops,
-+					   THIS_MODULE);
-+	ret = PTR_ERR(pxa_rtc->rtc);
-+	if (IS_ERR(pxa_rtc->rtc)) {
-+		dev_err(dev, "Failed to register RTC device -> %d\n", ret);
-+		goto err_rtc_reg;
-+	}
-+
-+	spin_lock_init(&pxa_rtc->lock);
-+	platform_set_drvdata(pdev, pxa_rtc);
-+
-+	ret = -ENOMEM;
-+	pxa_rtc->base = ioremap(pxa_rtc->ress->start,
-+				pxa_rtc->ress->end - pxa_rtc->ress->start + 1);
-+	if (!pxa_rtc->base) {
-+		dev_err(&pdev->dev, "Unable to map pxa RTC I/O memory\n");
-+		goto err_map;
-+	}
-+
-+	/*
-+	 * If the clock divider is uninitialized then reset it to the
-+	 * default value to get the 1Hz clock.
-+	 */
-+	if (rtc_readl(pxa_rtc, RTTR) == 0) {
-+		rttr = RTC_DEF_DIVIDER + (RTC_DEF_TRIM << 16);
-+		rtc_writel(pxa_rtc, RTTR, rttr);
-+		dev_warn(dev, "warning: initializing default clock"
-+			 " divider/trim value\n");
-+	}
-+
-+	rtsr_clear_bits(pxa_rtc, RTSR_PIALE | RTSR_RDALE1 | RTSR_HZE);
-+	device_init_wakeup(dev, 1);
-+
-+	return 0;
-+
-+err_map:
-+	platform_set_drvdata(pdev, NULL);
-+	rtc_device_unregister(pxa_rtc->rtc);
-+err_rtc_reg:
-+err_ress:
-+	kfree(pxa_rtc);
-+err_alloc:
-+	return ret;
-+}
-+
-+static int __devexit pxa_rtc_remove(struct platform_device *pdev)
-+{
-+	struct pxa_rtc *pxa_rtc = platform_get_drvdata(pdev);
-+
-+	spin_lock_irq(&pxa_rtc->lock);
-+	iounmap(pxa_rtc->base);
-+	pxa_rtc->base = NULL;
-+	platform_set_drvdata(pdev, NULL);
-+	spin_unlock_irq(&pxa_rtc->lock);
-+
-+	rtc_device_unregister(pxa_rtc->rtc);
-+	kfree(pxa_rtc);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int pxa_rtc_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct pxa_rtc *pxa_rtc = platform_get_drvdata(pdev);
-+
-+	if (device_may_wakeup(&pdev->dev))
-+		enable_irq_wake(pxa_rtc->irq_Alrm);
-+	return 0;
-+}
-+
-+static int pxa_rtc_resume(struct platform_device *pdev)
-+{
-+	struct pxa_rtc *pxa_rtc = platform_get_drvdata(pdev);
-+
-+	if (device_may_wakeup(&pdev->dev))
-+		disable_irq_wake(pxa_rtc->irq_Alrm);
-+	return 0;
-+}
-+#else
-+#define pxa_rtc_suspend	NULL
-+#define pxa_rtc_resume	NULL
-+#endif
-+
-+static struct platform_driver pxa_rtc_driver = {
-+	.probe		= pxa_rtc_probe,
-+	.remove		= __exit_p(pxa_rtc_remove),
-+	.suspend	= pxa_rtc_suspend,
-+	.resume		= pxa_rtc_resume,
-+	.driver		= {
-+		.name		= "pxa-rtc",
-+	},
-+};
-+
-+static int __init pxa_rtc_init(void)
-+{
-+	if (cpu_is_pxa27x() || cpu_is_pxa3xx())
-+		return platform_driver_register(&pxa_rtc_driver);
-+
-+	return -ENODEV;
-+}
-+
-+static void __exit pxa_rtc_exit(void)
-+{
-+	platform_driver_unregister(&pxa_rtc_driver);
-+}
-+
-+module_init(pxa_rtc_init);
-+module_exit(pxa_rtc_exit);
-+
-+MODULE_AUTHOR("Robert Jarzmik");
-+MODULE_DESCRIPTION("PXA27x/PXA3xx Realtime Clock Driver (RTC)");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:pxa-rtc");
+ 	/* Register our RTC with the RTC framework */
+ 	rtc->rtc_dev = rtc_device_register(pdev->name, dev, &bfin_rtc_ops, THIS_MODULE);
+-	if (unlikely(IS_ERR(rtc))) {
++	if (unlikely(IS_ERR(rtc->rtc_dev))) {
+ 		ret = PTR_ERR(rtc->rtc_dev);
+ 		goto err_irq;
+ 	}
 _
 
-Patches currently in -mm which might be from robert.jarzmik@free.fr are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
+linux-next.patch
+powerpc-powermac-add-missing-of_node_put.patch
+net-tipc-bcasth-use-array_size.patch
+net-bridge-netfilter-move-a-dereference-below-a-null-test.patch
+drivers-isdn-hardware-misdn-move-a-dereference-below-a-null-test.patch
+drivers-net-hamradio-6packc-move-a-dereference-below-a-null-test.patch
+drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch
 
