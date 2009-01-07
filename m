@@ -1,61 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - autodetect_raid-add-missing-__init-marking.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:15:35 -0800
-Message-ID: <200901072215.n07MFZmb015379@imap1.linux-foundation.org>
+Subject: - forkc-cleanup-for-copy_sighand.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:15:23 -0800
+Message-ID: <200901072215.n07MFNK5015231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761943AbZAGWPh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:37 -0500
+	by vger.kernel.org with ESMTP id S1752598AbZAGWPm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:15:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, mm-commits@vger.kernel.org
+To: zhaolei@cn.fujitsu.com, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autodetect_raid: add missing __init marking
+     fork.c: cleanup for copy_sighand()
 has been removed from the -mm tree.  Its filename was
-     autodetect_raid-add-missing-__init-marking.patch
+     forkc-cleanup-for-copy_sighand.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autodetect_raid: add missing __init marking
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: fork.c: cleanup for copy_sighand()
+From: Zhaolei <zhaolei@cn.fujitsu.com>
 
-The function autodetect_raid is only used by __init functions, and it refers
-to __initdata, so it needs __init markings.  Fixes this error:
-The function autodetect_raid() references
-the variable __initdata raid_noautodetect.
-This is often because autodetect_raid lacks a __initdata
-annotation or the annotation of raid_noautodetect is wrong.
+Check CLONE_SIGHAND only is enough, because combination of CLONE_THREAD and
+CLONE_SIGHAND is already done in copy_process().
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Impact: cleanup, no functionality changed
+
+Signed-off-by: Zhao Lei <zhaolei@cn.fujitsu.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts_md.c |    2 +-
+ kernel/fork.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/do_mounts_md.c~autodetect_raid-add-missing-__init-marking init/do_mounts_md.c
---- a/init/do_mounts_md.c~autodetect_raid-add-missing-__init-marking
-+++ a/init/do_mounts_md.c
-@@ -271,7 +271,7 @@ static int __init raid_setup(char *str)
- __setup("raid=", raid_setup);
- __setup("md=", md_setup);
- 
--static void autodetect_raid(void)
-+static void __init autodetect_raid(void)
+diff -puN kernel/fork.c~forkc-cleanup-for-copy_sighand kernel/fork.c
+--- a/kernel/fork.c~forkc-cleanup-for-copy_sighand
++++ a/kernel/fork.c
+@@ -758,7 +758,7 @@ static int copy_sighand(unsigned long cl
  {
- 	int fd;
+ 	struct sighand_struct *sig;
  
+-	if (clone_flags & (CLONE_SIGHAND | CLONE_THREAD)) {
++	if (clone_flags & CLONE_SIGHAND) {
+ 		atomic_inc(&current->sighand->count);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from zhaolei@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
 
