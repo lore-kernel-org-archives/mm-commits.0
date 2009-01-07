@@ -1,72 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 15:17:07 -0800
-Message-ID: <200901072317.n07NH7NT001594@imap1.linux-foundation.org>
+Subject: - memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 15:17:04 -0800
+Message-ID: <200901072317.n07NH4bZ001543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763494AbZAGXRo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:17:44 -0500
+	by vger.kernel.org with ESMTP id S1763525AbZAGXRi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:17:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: avoid reclaim_stat oops when disabled
+     memcg: memcg reclaim stat trivial fixes
 has been removed from the -mm tree.  Its filename was
-     memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
+     memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
 
 This patch was dropped because it was folded into memcg-add-zone_reclaim_stat.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: avoid reclaim_stat oops when disabled
-From: Hugh Dickins <hugh@veritas.com>
+Subject: memcg: memcg reclaim stat trivial fixes
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-mem_cgroup_get_reclaim_stat_from_page() oopses in page_cgroup_zoneinfo()
-when you boot with cgroup_disabled=memory: it needs to check for that.
+This patch has three trivial fixes.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+ - rename mem_cgroup_get_reclaim_stat_by_page to mem_cgroup_get_reclaim_stat_from_page
+ - repair silly forgotten "return" in get_reclaim_stat()
+ - make update_zone_reclaim_stat() helper function for cleanup
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    4 +-
+ mm/memcontrol.c            |    3 +-
+ mm/swap.c                  |   48 ++++++++++++++++++-----------------
+ mm/vmscan.c                |    2 -
+ 4 files changed, 30 insertions(+), 27 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix
-+++ a/mm/memcontrol.c
-@@ -473,9 +473,14 @@ struct zone_reclaim_stat *mem_cgroup_get
- struct zone_reclaim_stat *
- mem_cgroup_get_reclaim_stat_from_page(struct page *page)
+diff -puN include/linux/memcontrol.h~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes
++++ a/include/linux/memcontrol.h
+@@ -108,7 +108,7 @@ unsigned long mem_cgroup_zone_nr_pages(s
+ struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
+ 						      struct zone *zone);
+ struct zone_reclaim_stat*
+-mem_cgroup_get_reclaim_stat_by_page(struct page *page);
++mem_cgroup_get_reclaim_stat_from_page(struct page *page);
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ extern int do_swap_account;
+@@ -282,7 +282,7 @@ mem_cgroup_get_reclaim_stat(struct mem_c
+ }
+ 
+ static inline struct zone_reclaim_stat*
+-mem_cgroup_get_reclaim_stat_by_page(struct page *page)
++mem_cgroup_get_reclaim_stat_from_page(struct page *page)
  {
--	struct page_cgroup *pc = lookup_page_cgroup(page);
--	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
-+	struct page_cgroup *pc;
-+	struct mem_cgroup_per_zone *mz;
+ 	return NULL;
+ }
+diff -puN mm/memcontrol.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes
++++ a/mm/memcontrol.c
+@@ -470,7 +470,8 @@ struct zone_reclaim_stat *mem_cgroup_get
+ 	return &mz->reclaim_stat;
+ }
  
-+	if (mem_cgroup_disabled())
-+		return NULL;
+-struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat_by_page(struct page *page)
++struct zone_reclaim_stat *
++mem_cgroup_get_reclaim_stat_from_page(struct page *page)
+ {
+ 	struct page_cgroup *pc = lookup_page_cgroup(page);
+ 	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
+diff -puN mm/swap.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes mm/swap.c
+--- a/mm/swap.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes
++++ a/mm/swap.c
+@@ -151,14 +151,32 @@ void  rotate_reclaimable_page(struct pag
+ 	}
+ }
+ 
++static void update_page_reclaim_stat(struct zone *zone, struct page *page,
++				     int file, int rotated)
++{
++	struct zone_reclaim_stat *reclaim_stat = &zone->reclaim_stat;
++	struct zone_reclaim_stat *memcg_reclaim_stat;
 +
-+	pc = lookup_page_cgroup(page);
-+	mz = page_cgroup_zoneinfo(pc);
- 	if (!mz)
- 		return NULL;
++	memcg_reclaim_stat = mem_cgroup_get_reclaim_stat_from_page(page);
++
++	reclaim_stat->recent_scanned[file]++;
++	if (rotated)
++		reclaim_stat->recent_rotated[file]++;
++
++	if (!memcg_reclaim_stat)
++		return;
++
++	memcg_reclaim_stat->recent_scanned[file]++;
++	if (rotated)
++		memcg_reclaim_stat->recent_rotated[file]++;
++}
++
+ /*
+  * FIXME: speed this up?
+  */
+ void activate_page(struct page *page)
+ {
+ 	struct zone *zone = page_zone(page);
+-	struct zone_reclaim_stat *reclaim_stat = &zone->reclaim_stat;
+-	struct zone_reclaim_stat *memcg_reclaim_stat;
  
+ 	spin_lock_irq(&zone->lru_lock);
+ 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+@@ -171,14 +189,7 @@ void activate_page(struct page *page)
+ 		add_page_to_lru_list(zone, page, lru);
+ 		__count_vm_event(PGACTIVATE);
+ 
+-		reclaim_stat->recent_rotated[!!file]++;
+-		reclaim_stat->recent_scanned[!!file]++;
+-
+-		memcg_reclaim_stat = mem_cgroup_get_reclaim_stat_by_page(page);
+-		if (memcg_reclaim_stat) {
+-			memcg_reclaim_stat->recent_rotated[!!file]++;
+-			memcg_reclaim_stat->recent_scanned[!!file]++;
+-		}
++		update_page_reclaim_stat(zone, page, !!file, 1);
+ 	}
+ 	spin_unlock_irq(&zone->lru_lock);
+ }
+@@ -393,8 +404,6 @@ void ____pagevec_lru_add(struct pagevec 
+ {
+ 	int i;
+ 	struct zone *zone = NULL;
+-	struct zone_reclaim_stat *reclaim_stat = NULL;
+-	struct zone_reclaim_stat *memcg_reclaim_stat = NULL;
+ 
+ 	VM_BUG_ON(is_unevictable_lru(lru));
+ 
+@@ -402,30 +411,23 @@ void ____pagevec_lru_add(struct pagevec 
+ 		struct page *page = pvec->pages[i];
+ 		struct zone *pagezone = page_zone(page);
+ 		int file;
++		int active;
+ 
+ 		if (pagezone != zone) {
+ 			if (zone)
+ 				spin_unlock_irq(&zone->lru_lock);
+ 			zone = pagezone;
+-			reclaim_stat = &zone->reclaim_stat;
+-			memcg_reclaim_stat =
+-				mem_cgroup_get_reclaim_stat_by_page(page);
+ 			spin_lock_irq(&zone->lru_lock);
+ 		}
+ 		VM_BUG_ON(PageActive(page));
+ 		VM_BUG_ON(PageUnevictable(page));
+ 		VM_BUG_ON(PageLRU(page));
+ 		SetPageLRU(page);
++		active = is_active_lru(lru);
+ 		file = is_file_lru(lru);
+-		reclaim_stat->recent_scanned[file]++;
+-		if (memcg_reclaim_stat)
+-			memcg_reclaim_stat->recent_scanned[file]++;
+-		if (is_active_lru(lru)) {
++		if (active)
+ 			SetPageActive(page);
+-			reclaim_stat->recent_rotated[file]++;
+-			if (memcg_reclaim_stat)
+-				memcg_reclaim_stat->recent_rotated[file]++;
+-		}
++		update_page_reclaim_stat(zone, page, file, active);
+ 		add_page_to_lru_list(zone, page, lru);
+ 	}
+ 	if (zone)
+diff -puN mm/vmscan.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes mm/vmscan.c
+--- a/mm/vmscan.c~memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes
++++ a/mm/vmscan.c
+@@ -134,7 +134,7 @@ static struct zone_reclaim_stat *get_rec
+ 						  struct scan_control *sc)
+ {
+ 	if (!scan_global_lru(sc))
+-		mem_cgroup_get_reclaim_stat(sc->mem_cgroup, zone);
++		return mem_cgroup_get_reclaim_stat(sc->mem_cgroup, zone);
+ 
+ 	return &zone->reclaim_stat;
+ }
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-memcg-handle-swap-caches.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
+devices-cgroup-allow-mkfifo.patch
 memcg-revert-gfp-mask-fix.patch
 memcg-check-group-leader-fix.patch
 memcg-memoryswap-controller-fix-limit-check.patch
@@ -80,15 +206,17 @@ memcg-add-null-check-to-page_cgroup_zoneinfo.patch
 memcg-add-inactive_anon_is_low.patch
 memcg-add-mem_cgroup_zone_nr_pages.patch
 memcg-add-zone_reclaim_stat.patch
+memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes.patch
 memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
 memcg-remove-mem_cgroup_cal_reclaim.patch
 memcg-show-reclaim-stat.patch
 memcg-rename-scan-global-lru.patch
 memcg-protect-prev_priority.patch
 memcg-swappiness.patch
+memcg-fix-calclation-of-active_ratio.patch
+memcg-fix-calclation-of-active_ratio-build-error-fix.patch
+memcg-show-real-limit-under-hierarchy-mode.patch
 memcg-explain-details-and-test-document.patch
-memcg-fix-swap-accounting-leak-v3.patch
-memcg-fix-swap-accounting-leak-doc-fix.patch
-memcg-fix-shmems-swap-accounting.patch
-prio_tree-debugging-patch.patch
+ia64-implement-interrupt-enabling-rwlocks-fix.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
