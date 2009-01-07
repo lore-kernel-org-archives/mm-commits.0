@@ -1,135 +1,297 @@
 From: akpm@linux-foundation.org
-Subject: + serial-add-support-for-the-cell-network-processor-nwp-device-update-fix.patch added to -mm tree
-Date: Wed, 07 Jan 2009 00:19:14 -0800
-Message-ID: <200901070819.n078JE32017172@imap1.linux-foundation.org>
+Subject: - serial-add-support-for-the-cell-network-processor-nwp-device-update.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 00:22:19 -0800
+Message-ID: <200901070822.n078MJ43019634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44081 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752205AbZAGITl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 03:19:41 -0500
+	by vger.kernel.org with ESMTP id S1751019AbZAGIXK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 03:23:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, ben@codiert.org, david@gibson.dropbear.id.au, jwboyer@linux.vnet.ibm.com
+To: ben@codiert.org, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, david@gibson.dropbear.id.au, jwboyer@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial-add-support-for-the-cell-network-processor-nwp-device-update-fix
-has been added to the -mm tree.  Its filename is
-     serial-add-support-for-the-cell-network-processor-nwp-device-update-fix.patch
+     serial-add-support-for-the-cell-network-processor-nwp-device update
+has been removed from the -mm tree.  Its filename was
+     serial-add-support-for-the-cell-network-processor-nwp-device-update.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into serial-add-support-for-the-cell-network-processor-nwp-device.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-add-support-for-the-cell-network-processor-nwp-device-update-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: serial-add-support-for-the-cell-network-processor-nwp-device update
+From: Benjamin Krill <ben@codiert.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Krill <ben@codiert.org>
-Cc: David Gibson <david@gibson.dropbear.id.au>
+Signed-off-by: Benjamin Krill <ben@codiert.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/serial_core.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/Kconfig     |   10 +++-
+ drivers/serial/nwpserial.c |   80 ++++++++++++++++++++++++-----------
+ drivers/serial/of_serial.c |    3 -
+ 3 files changed, 68 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/serial_core.h~serial-add-support-for-the-cell-network-processor-nwp-device-update-fix include/linux/serial_core.h
---- a/include/linux/serial_core.h~serial-add-support-for-the-cell-network-processor-nwp-device-update-fix
-+++ a/include/linux/serial_core.h
-@@ -162,7 +162,7 @@
- #define PORT_S3C6400	84
+diff -puN drivers/serial/Kconfig~serial-add-support-for-the-cell-network-processor-nwp-device-update drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~serial-add-support-for-the-cell-network-processor-nwp-device-update
++++ a/drivers/serial/Kconfig
+@@ -1311,7 +1311,15 @@ config SERIAL_OF_PLATFORM_NWPSERIAL
+ 	select SERIAL_CORE_CONSOLE
+ 	select SERIAL_CORE
+ 	help
+-	  This driver supports the nwp serial port.
++	  This driver supports the cell network processor nwp serial
++	  device.
++
++config SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE
++	bool "Console on NWP serial port"
++	depends on SERIAL_OF_PLATFORM_NWPSERIAL=y
++	select SERIAL_CORE_CONSOLE
++	help
++	  Support for Console on the NWP serial ports.
  
- /* NWPSERIAL */
--#define PORT_NWPSERIAL	84
-+#define PORT_NWPSERIAL	85
+ config SERIAL_QE
+ 	tristate "Freescale QUICC Engine serial port support"
+diff -puN drivers/serial/nwpserial.c~serial-add-support-for-the-cell-network-processor-nwp-device-update drivers/serial/nwpserial.c
+--- a/drivers/serial/nwpserial.c~serial-add-support-for-the-cell-network-processor-nwp-device-update
++++ a/drivers/serial/nwpserial.c
+@@ -9,6 +9,7 @@
+  *  2 of the License, or (at your option) any later version.
+  *
+  */
++#include <linux/init.h>
+ #include <linux/console.h>
+ #include <linux/serial.h>
+ #include <linux/serial_reg.h>
+@@ -37,12 +38,27 @@ struct nwpserial_port {
+ static DEFINE_MUTEX(nwpserial_mutex);
+ static struct nwpserial_port nwpserial_ports[NWPSERIAL_NR];
  
- #ifdef __KERNEL__
++static void wait_for_bits(struct nwpserial_port *up, int bits)
++{
++	unsigned int status, tmout = 10000;
++
++	/* Wait up to 10ms for the character(s) to be sent. */
++	do {
++		status = dcr_read(up->dcr_host, UART_LSR);
++
++		if (--tmout == 0)
++			break;
++		udelay(1);
++	} while ((status & bits) != bits);
++}
++
++#ifdef CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE
+ static void nwpserial_console_putchar(struct uart_port *port, int c)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
++	up = container_of(port, struct nwpserial_port, port);
+ 	/* check if tx buffer is full */
+-	while ((dcr_read(up->dcr_host, UART_LSR) & UART_LSR_THRE) == 0)
+-		cpu_relax();
++	wait_for_bits(up, UART_LSR_THRE);
+ 	dcr_write(up->dcr_host, UART_TX, c);
+ 	up->port.icount.tx++;
+ }
+@@ -85,8 +101,12 @@ static struct console nwpserial_console 
+ 	.index		= -1,
+ 	.data		= &nwpserial_reg,
+ };
++#define NWPSERIAL_CONSOLE	(&nwpserial_console)
++#else
++#define NWPSERIAL_CONSOLE	NULL
++#endif /* CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE */
  
+-/*******************************************************************************/
++/**************************************************************************/
+ 
+ static int nwpserial_request_port(struct uart_port *port)
+ {
+@@ -105,7 +125,7 @@ static void nwpserial_config_port(struct
+ 
+ static irqreturn_t nwpserial_interrupt(int irq, void *dev_id)
+ {
+-	struct nwpserial_port *up = dev_id;//container_of(dev_id, struct nwpserial_port, port);
++	struct nwpserial_port *up = dev_id;
+ 	struct tty_struct *tty = up->port.info->port.tty;
+ 	irqreturn_t ret;
+ 	unsigned int iir;
+@@ -137,16 +157,18 @@ out:
+ 
+ static int nwpserial_startup(struct uart_port *port)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
+ 	int err;
+ 
++	up = container_of(port, struct nwpserial_port, port);
++
+ 	/* disable flow control by default */
+ 	up->mcr = dcr_read(up->dcr_host, UART_MCR) & ~UART_MCR_AFE;
+ 	dcr_write(up->dcr_host, UART_MCR, up->mcr);
+ 
+ 	/* register interrupt handler */
+ 	err = request_irq(up->port.irq, nwpserial_interrupt,
+-	                        IRQF_SHARED, "nwpserial", up);
++			IRQF_SHARED, "nwpserial", up);
+ 	if (err) {
+ 		free_irq(up->port.irq, port);
+ 		return err;
+@@ -164,7 +186,8 @@ static int nwpserial_startup(struct uart
+ 
+ static void nwpserial_shutdown(struct uart_port *port)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
++	up = container_of(port, struct nwpserial_port, port);
+ 
+ 	/* disable receiving */
+ 	up->port.ignore_status_mask |= NWPSERIAL_STATUS_RXVALID;
+@@ -177,7 +200,8 @@ static void nwpserial_shutdown(struct ua
+ 	free_irq(up->port.irq, port);
+ }
+ 
+-static int nwpserial_verify_port(struct uart_port *port, struct serial_struct *ser)
++static int nwpserial_verify_port(struct uart_port *port,
++			struct serial_struct *ser)
+ {
+ 	return -EINVAL;
+ }
+@@ -187,17 +211,23 @@ static const char *nwpserial_type(struct
+ 	return port->type == PORT_NWPSERIAL ? "nwpserial" : NULL;
+ }
+ 
+-static void nwpserial_set_termios(struct uart_port *port, struct ktermios *termios,
+-                                struct ktermios *old)
++static void nwpserial_set_termios(struct uart_port *port,
++			struct ktermios *termios, struct ktermios *old)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
++	up = container_of(port, struct nwpserial_port, port);
+ 
+-	up->port.read_status_mask = NWPSERIAL_STATUS_RXVALID | NWPSERIAL_STATUS_TXFULL;
++	up->port.read_status_mask = NWPSERIAL_STATUS_RXVALID
++				| NWPSERIAL_STATUS_TXFULL;
+ 
+ 	up->port.ignore_status_mask = 0;
+ 	/* ignore all characters if CREAD is not set */
+ 	if ((termios->c_cflag & CREAD) == 0)
+ 		up->port.ignore_status_mask |= NWPSERIAL_STATUS_RXVALID;
++
++	/* Copy back the old hardware settings */
++	if (old)
++		tty_termios_copy_hw(termios, old);
+ }
+ 
+ static void nwpserial_break_ctl(struct uart_port *port, int ctl)
+@@ -212,7 +242,8 @@ static void nwpserial_enable_ms(struct u
+ 
+ static void nwpserial_stop_rx(struct uart_port *port)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
++	up = container_of(port, struct nwpserial_port, port);
+ 	/* don't forward any more data (like !CREAD) */
+ 	up->port.ignore_status_mask = NWPSERIAL_STATUS_RXVALID;
+ }
+@@ -220,16 +251,17 @@ static void nwpserial_stop_rx(struct uar
+ static void nwpserial_putchar(struct nwpserial_port *up, unsigned char c)
+ {
+ 	/* check if tx buffer is full */
+-	while ((dcr_read(up->dcr_host, UART_LSR) & UART_LSR_THRE) == 0)
+-		cpu_relax();
++	wait_for_bits(up, UART_LSR_THRE);
+ 	dcr_write(up->dcr_host, UART_TX, c);
+ 	up->port.icount.tx++;
+ }
+ 
+ static void nwpserial_start_tx(struct uart_port *port)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
+-	struct circ_buf *xmit  = &up->port.info->xmit;
++	struct nwpserial_port *up;
++	struct circ_buf *xmit;
++	up = container_of(port, struct nwpserial_port, port);
++	xmit  = &up->port.info->xmit;
+ 
+ 	if (port->x_char) {
+ 		nwpserial_putchar(up, up->port.x_char);
+@@ -259,9 +291,10 @@ static void nwpserial_stop_tx(struct uar
+ 
+ static unsigned int nwpserial_tx_empty(struct uart_port *port)
+ {
+-	struct nwpserial_port *up = container_of(port, struct nwpserial_port, port);
++	struct nwpserial_port *up;
+ 	unsigned long flags;
+ 	int ret;
++	up = container_of(port, struct nwpserial_port, port);
+ 
+ 	spin_lock_irqsave(&up->port.lock, flags);
+ 	ret = dcr_read(up->dcr_host, UART_LSR);
+@@ -296,11 +329,10 @@ static struct uart_driver nwpserial_reg 
+ 	.major       = TTY_MAJOR,
+ 	.minor       = 68,
+ 	.nr          = NWPSERIAL_NR,
+-	.cons        = &nwpserial_console,
++	.cons        = NWPSERIAL_CONSOLE,
+ };
+ 
+-int
+-nwpserial_register_port(struct uart_port *port)
++int nwpserial_register_port(struct uart_port *port)
+ {
+ 	struct nwpserial_port *up = NULL;
+ 	int ret = -1;
+@@ -368,7 +400,7 @@ nwpserial_register_port(struct uart_port
+ 
+ 		up->dcr_host = dcr_map(dn, dcr_base, dcr_len);
+ 		if (!DCR_MAP_OK(up->dcr_host)) {
+-			printk("Cannot map DCR resources for NWPSERIAL");
++			printk(KERN_ERR "Cannot map DCR resources for NWPSERIAL");
+ 			goto out;
+ 		}
+ 	}
+@@ -396,6 +428,7 @@ void nwpserial_unregister_port(int line)
+ }
+ EXPORT_SYMBOL(nwpserial_unregister_port);
+ 
++#ifdef CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE
+ static int __init nwpserial_console_init(void)
+ {
+ 	struct nwpserial_port *up = NULL;
+@@ -441,3 +474,4 @@ static int __init nwpserial_console_init
+ 	return 0;
+ }
+ console_initcall(nwpserial_console_init);
++#endif /* CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE */
+diff -puN drivers/serial/of_serial.c~serial-add-support-for-the-cell-network-processor-nwp-device-update drivers/serial/of_serial.c
+--- a/drivers/serial/of_serial.c~serial-add-support-for-the-cell-network-processor-nwp-device-update
++++ a/drivers/serial/of_serial.c
+@@ -164,7 +164,8 @@ static struct of_device_id __devinitdata
+ 	{ .type = "serial", .compatible = "ns16550",  .data = (void *)PORT_16550, },
+ 	{ .type = "serial", .compatible = "ns16750",  .data = (void *)PORT_16750, },
+ #ifdef CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL
+-	{ .type = "serial", .compatible = "ibm,qpace-nwpserial",  .data = (void *)PORT_NWPSERIAL, },
++	{ .type = "serial", .compatible = "ibm,qpace-nwp-serial",
++					.data = (void *)PORT_NWPSERIAL, },
+ #endif
+ 	{ .type = "serial",			      .data = (void *)PORT_UNKNOWN, },
+ 	{ /* end of list */ },
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ben@codiert.org are
 
 origin.patch
-i-need-old-gcc.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-mm-invoke-oom-killer-from-page-fault-fix-fix-2.patch
-mm-write_cache_pages-more-terminate-quickly.patch
-swapfile-change-discard-pgoff_t-to-sector_t-fix.patch
-fs-truncate-blocks-outside-i_size-after-o_direct-write-error-fix.patch
-vmscan-shrink_active_list-reduce-lru_lock-hold-time.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-mmapc-fix-coding-style-fix.patch
-mm-check-for-no-mmaps-in-exit_mmap-fix.patch
-mm-stop-kswapds-infinite-loop-at-high-order-allocation-take2-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-hugetlb-get-rid-of-redundant-if-operation-fix.patch
-init-properly-placing-noinline-keyword.patch
-add-pr_prefix-to-pr_xyz-macros-checkpatch-fixes.patch
-poll-allow-f_op-poll-to-sleep-take6.patch
-ioc4-automatically-load-sgiioc4-subordinate-module-checkpatch-fixes.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-binfmtsh-include-listh-fix.patch
+serial-add-support-for-the-cell-network-processor-nwp-device.patch
+serial-add-support-for-the-cell-network-processor-nwp-device-update.patch
 serial-add-support-for-the-cell-network-processor-nwp-device-update-fix.patch
-spi_gpio-driver-cleanups.patch
-kprobes-support-probing-module-__exit-function-fix.patch
-kprobes-support-probing-module-__exit-function-fix-2.patch
-rtc-au1000-on-chip-counter0-as-rtc-driver-fix.patch
-minix-fix-add-links-wrong-position-calculation-checkpatch-fixes.patch
-cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup-checkpatch-fixes.patch
-memcg-introduce-charge-commit-cancel-style-of-functions-fix.patch
-memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
-memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
-memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
-fs-execc-make-do_coredump-void-checkpatch-fixes.patch
-edac-struct-device-replace-bus_id-with-dev_name-dev_set_name-checkpatch-fixes.patch
-edac-x38-use-the-architectures-readq-function-fix.patch
-edac-x38-use-the-architectures-readq-function-fix-fix.patch
-dma_alloc_from_coherent-fix-fallback-to-generic-memory.patch
-dma_alloc_coherent-clean-it-up.patch
-parport-ieee1284-use-del_timer_sync-in-parport_wait_event-checkpatch-fixes.patch
-w1-allow-master-io-commands-fix.patch
-romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
-filesystem-freeze-implement-generic-freeze-feature-fix.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-kmemleak-add-the-base-support-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
