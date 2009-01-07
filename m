@@ -1,52 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - remove-obsolete-config_resources_64bit.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:16:16 -0800
-Message-ID: <200901072216.n07MGGFH015958@imap1.linux-foundation.org>
+Subject: - checkpatch-widen-implied-comment-detection-to-allow-multiple-stars.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:16:33 -0800
+Message-ID: <200901072216.n07MGXTq016309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44124 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760927AbZAGWQc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:16:32 -0500
+	by vger.kernel.org with ESMTP id S1761594AbZAGWQm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:16:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, jeremy@goop.org, mm-commits@vger.kernel.org
+To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove obsolete CONFIG_RESOURCES_64BIT
+     checkpatch: widen implied comment detection to allow multiple stars
 has been removed from the -mm tree.  Its filename was
-     remove-obsolete-config_resources_64bit.patch
+     checkpatch-widen-implied-comment-detection-to-allow-multiple-stars.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove obsolete CONFIG_RESOURCES_64BIT
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: checkpatch: widen implied comment detection to allow multiple stars
+From: Andy Whitcroft <apw@shadowen.org>
 
-commit 8308c54d7e312f7a03e2ce2057d0837e6fe3843f ("generic: redefine
-resource_size_t as phys_addr_t") made CONFIG_RESOURCES_64BIT obsolete, but
-didn't remove it. Remove it.
+Some people use double star '**' as a comment continuation, and start
+comments with complete lines of stars.  Widen the implied comment
+detection to pick these up.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    6 ------
- 1 file changed, 6 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/Kconfig~remove-obsolete-config_resources_64bit mm/Kconfig
---- a/mm/Kconfig~remove-obsolete-config_resources_64bit
-+++ a/mm/Kconfig
-@@ -181,12 +181,6 @@ config MIGRATION
- 	  example on NUMA systems to put pages nearer to the processors accessing
- 	  the page.
- 
--config RESOURCES_64BIT
--	bool "64 bit Memory and IO resources (EXPERIMENTAL)" if (!64BIT && EXPERIMENTAL)
--	default 64BIT
--	help
--	  This option allows memory and IO resources to be 64 bit.
+diff -puN scripts/checkpatch.pl~checkpatch-widen-implied-comment-detection-to-allow-multiple-stars scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-widen-implied-comment-detection-to-allow-multiple-stars
++++ a/scripts/checkpatch.pl
+@@ -1109,7 +1109,7 @@ sub process {
+ 			# is the start of a diff block and this line starts
+ 			# ' *' then it is very likely a comment.
+ 			if (!defined $edge &&
+-			    $rawlines[$linenr] =~ m@^.\s* \*(?:\s|$)@)
++			    $rawlines[$linenr] =~ m@^.\s*(?:\*\*+| \*)(?:\s|$)@)
+ 			{
+ 				$in_comment = 1;
+ 			}
+_
+
+Patches currently in -mm which might be from apw@shadowen.org are
+
+origin.patch
+
