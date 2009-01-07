@@ -1,119 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:17:22 -0800
-Message-ID: <200901072217.n07MHMmc017004@imap1.linux-foundation.org>
+Subject: - checkpatch-fix-the-perlcritic-errors.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:17:10 -0800
+Message-ID: <200901072217.n07MHAv7016810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43234 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762119AbZAGWSE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:18:04 -0500
+	by vger.kernel.org with ESMTP id S1758315AbZAGWRm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:17:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npalix@diku.dk, julia@diku.dk, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/macintosh: Add missing of_node_put in therm_adt746x.c
+     checkpatch: fix the perlcritic errors
 has been removed from the -mm tree.  Its filename was
-     drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc.patch
+     checkpatch-fix-the-perlcritic-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/macintosh: Add missing of_node_put in therm_adt746x.c
-From: Nicolas Palix <npalix@diku.dk>
+Subject: checkpatch: fix the perlcritic errors
+From: Andy Whitcroft <apw@canonical.com>
 
-of_node_put is needed before discarding a value received from
-of_find_node_by_name, eg in error handling code or when the device node is
-no longer used.
+Clean up checkpatch using perlcritic.
 
-The semantic match that catches the bug is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@r exists@
-local idexpression struct device_node *n;
-position p1, p2;
-struct device_node *n1;
-statement S;
-identifier f;
-expression E;
-expression *ptr != NULL;
-@@
-
-n@p1 = of_find_node_by_name(...)
-...
-if (!n) S
-... when != of_node_put(n)
-    when != n1 = f(n,...)
-    when != E = n
-    when any
-    when strict
-(
-  return \(0\|<+...n...+>\|ptr\);
-|
-return@p2 ...;
-|
-  of_node_put(n);
-|
-  n1 = f(n,...)
-|
-  E = n
-)
-
-@script:python@
-p1 << r.p1;
-p2 << r.p2;
-@@
-
-print "* file: %s of_find_node_by_name %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
-// </smpl>
-
-Signed-off-by: Nicolas Palix <npalix@diku.dk>
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/therm_adt746x.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN drivers/macintosh/therm_adt746x.c~drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc drivers/macintosh/therm_adt746x.c
---- a/drivers/macintosh/therm_adt746x.c~drivers-macintosh-add-missing-of_node_put-in-therm_adt746xc
-+++ a/drivers/macintosh/therm_adt746x.c
-@@ -554,7 +554,7 @@ thermostat_init(void)
- 	const u32 *prop;
- 	int i = 0, offset = 0;
- 	int err;
--	
-+
- 	np = of_find_node_by_name(NULL, "fan");
- 	if (!np)
- 		return -ENODEV;
-@@ -613,13 +613,13 @@ thermostat_init(void)
- 	}
+diff -puN scripts/checkpatch.pl~checkpatch-fix-the-perlcritic-errors scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-the-perlcritic-errors
++++ a/scripts/checkpatch.pl
+@@ -69,7 +69,9 @@ my $dbg_possible = 0;
+ my $dbg_type = 0;
+ my $dbg_attr = 0;
+ for my $key (keys %debug) {
+-	eval "\${dbg_$key} = '$debug{$key}';"
++	## no critic
++	eval "\${dbg_$key} = '$debug{$key}';";
++	die "$@" if ($@);
+ }
  
- 	of_dev = of_platform_device_create(np, "temperatures", NULL);
--	
-+	of_node_put(np);
-+
- 	if (of_dev == NULL) {
- 		printk(KERN_ERR "Can't register temperatures device !\n");
--		of_node_put(np);
- 		return -ENODEV;
+ if ($terse) {
+@@ -206,9 +208,9 @@ my @dep_includes = ();
+ my @dep_functions = ();
+ my $removal = "Documentation/feature-removal-schedule.txt";
+ if ($tree && -f "$root/$removal") {
+-	open(REMOVE, "<$root/$removal") ||
++	open(my $REMOVE, '<', "$root/$removal") ||
+ 				die "$P: $removal: open failed - $!\n";
+-	while (<REMOVE>) {
++	while (<$REMOVE>) {
+ 		if (/^Check:\s+(.*\S)/) {
+ 			for my $entry (split(/[, ]+/, $1)) {
+ 				if ($entry =~ m@include/(.*)@) {
+@@ -220,17 +222,21 @@ if ($tree && -f "$root/$removal") {
+ 			}
+ 		}
  	}
--	
-+
- 	err = device_create_file(&of_dev->dev, &dev_attr_sensor1_temperature);
- 	err |= device_create_file(&of_dev->dev, &dev_attr_sensor2_temperature);
- 	err |= device_create_file(&of_dev->dev, &dev_attr_sensor1_limit);
++	close($REMOVE);
+ }
+ 
+ my @rawlines = ();
+ my @lines = ();
+ my $vname;
+ for my $filename (@ARGV) {
++	my $FILE;
+ 	if ($file) {
+-		open(FILE, "diff -u /dev/null $filename|") ||
++		open($FILE, '-|', "diff -u /dev/null $filename") ||
+ 			die "$P: $filename: diff failed - $!\n";
++	} elsif ($filename eq '-') {
++		open($FILE, '<&STDIN');
+ 	} else {
+-		open(FILE, "<$filename") ||
++		open($FILE, '<', "$filename") ||
+ 			die "$P: $filename: open failed - $!\n";
+ 	}
+ 	if ($filename eq '-') {
+@@ -238,11 +244,11 @@ for my $filename (@ARGV) {
+ 	} else {
+ 		$vname = $filename;
+ 	}
+-	while (<FILE>) {
++	while (<$FILE>) {
+ 		chomp;
+ 		push(@rawlines, $_);
+ 	}
+-	close(FILE);
++	close($FILE);
+ 	if (!process($filename)) {
+ 		$exit = 1;
+ 	}
 _
 
-Patches currently in -mm which might be from npalix@diku.dk are
+Patches currently in -mm which might be from apw@canonical.com are
 
 origin.patch
-powerpc-powermac-add-missing-of_node_put.patch
+linux-next.patch
 
