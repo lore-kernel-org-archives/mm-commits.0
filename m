@@ -1,142 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - mm-remove-gfp_mask-from-add_to_swap.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:12:51 -0800
-Message-ID: <200901072212.n07MCpkW013009@imap1.linux-foundation.org>
+Subject: - mm-direct-io-starvation-improvement.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:14:33 -0800
+Message-ID: <200901072214.n07MEXjU014480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38010 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43449 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759150AbZAGWOf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:35 -0500
+	by vger.kernel.org with ESMTP id S1760731AbZAGWOm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, holt@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove gfp_mask from add_to_swap
+     mm: direct IO starvation improvement
 has been removed from the -mm tree.  Its filename was
-     mm-remove-gfp_mask-from-add_to_swap.patch
+     mm-direct-io-starvation-improvement.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove gfp_mask from add_to_swap
-From: Hugh Dickins <hugh@veritas.com>
+Subject: mm: direct IO starvation improvement
+From: Nick Piggin <npiggin@suse.de>
 
-Remove gfp_mask argument from add_to_swap(): it's misleading because its
-only caller, shrink_page_list(), is not atomic at that point; and in due
-course (implementing discard) we'll sometimes want to allocate some memory
-with GFP_NOIO (as is used in swap_writepage) when allocating swap.
+Direct IO can invalidate and sync a lot of pagecache pages in the mapping.
+ A 4K direct IO will actually try to sync and/or invalidate the pagecache
+of the entire file, for example (which might be many GB or TB large).
 
-No change to the gfp_mask passed down to add_to_swap_cache(): still use
-__GFP_HIGH without __GFP_WAIT (with nomemalloc and nowarn as before):
-though it's not obvious if that's the best combination to ask for here.
+Improve this by doing range syncs.  Also, memory no longer has to be
+unmapped to catch the dirty bits for syncing, as dirty bits would remain
+coherent due to dirty mmap accounting.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Robin Holt <holt@sgi.com>
+This fixes the immediate DM deadlocks when doing direct IO reads to block
+device with a mounted filesystem, if only by papering over the problem
+somewhat rather than addressing the fsync starvation cases.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
- mm/swap_state.c      |    4 ++--
- mm/vmscan.c          |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ mm/filemap.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/swap.h~mm-remove-gfp_mask-from-add_to_swap include/linux/swap.h
---- a/include/linux/swap.h~mm-remove-gfp_mask-from-add_to_swap
-+++ a/include/linux/swap.h
-@@ -278,7 +278,7 @@ extern void end_swap_bio_read(struct bio
- extern struct address_space swapper_space;
- #define total_swapcache_pages  swapper_space.nrpages
- extern void show_swap_cache_info(void);
--extern int add_to_swap(struct page *, gfp_t);
-+extern int add_to_swap(struct page *);
- extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
- extern void __delete_from_swap_cache(struct page *);
- extern void delete_from_swap_cache(struct page *);
-diff -puN mm/swap_state.c~mm-remove-gfp_mask-from-add_to_swap mm/swap_state.c
---- a/mm/swap_state.c~mm-remove-gfp_mask-from-add_to_swap
-+++ a/mm/swap_state.c
-@@ -128,7 +128,7 @@ void __delete_from_swap_cache(struct pag
-  * Allocate swap space for the page and add the page to the
-  * swap cache.  Caller needs to hold the page lock. 
-  */
--int add_to_swap(struct page * page, gfp_t gfp_mask)
-+int add_to_swap(struct page *page)
- {
- 	swp_entry_t entry;
- 	int err;
-@@ -153,7 +153,7 @@ int add_to_swap(struct page * page, gfp_
- 		 * Add it to the swap cache and mark it dirty
- 		 */
- 		err = add_to_swap_cache(page, entry,
--				gfp_mask|__GFP_NOMEMALLOC|__GFP_NOWARN);
-+				__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN);
+diff -puN mm/filemap.c~mm-direct-io-starvation-improvement mm/filemap.c
+--- a/mm/filemap.c~mm-direct-io-starvation-improvement
++++ a/mm/filemap.c
+@@ -1317,7 +1317,8 @@ generic_file_aio_read(struct kiocb *iocb
+ 			goto out; /* skip atime */
+ 		size = i_size_read(inode);
+ 		if (pos < size) {
+-			retval = filemap_write_and_wait(mapping);
++			retval = filemap_write_and_wait_range(mapping, pos,
++					pos + iov_length(iov, nr_segs) - 1);
+ 			if (!retval) {
+ 				retval = mapping->a_ops->direct_IO(READ, iocb,
+ 							iov, pos, nr_segs);
+@@ -2059,18 +2060,10 @@ generic_file_direct_write(struct kiocb *
+ 	if (count != ocount)
+ 		*nr_segs = iov_shorten((struct iovec *)iov, *nr_segs, count);
  
- 		switch (err) {
- 		case 0:				/* Success */
-diff -puN mm/vmscan.c~mm-remove-gfp_mask-from-add_to_swap mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-gfp_mask-from-add_to_swap
-+++ a/mm/vmscan.c
-@@ -625,7 +625,7 @@ static unsigned long shrink_page_list(st
- 		if (PageAnon(page) && !PageSwapCache(page)) {
- 			if (!(sc->gfp_mask & __GFP_IO))
- 				goto keep_locked;
--			if (!add_to_swap(page, GFP_ATOMIC))
-+			if (!add_to_swap(page))
- 				goto activate_locked;
- 			may_enter_fs = 1;
- 		}
+-	/*
+-	 * Unmap all mmappings of the file up-front.
+-	 *
+-	 * This will cause any pte dirty bits to be propagated into the
+-	 * pageframes for the subsequent filemap_write_and_wait().
+-	 */
+ 	write_len = iov_length(iov, *nr_segs);
+ 	end = (pos + write_len - 1) >> PAGE_CACHE_SHIFT;
+-	if (mapping_mapped(mapping))
+-		unmap_mapping_range(mapping, pos, write_len, 0);
+ 
+-	written = filemap_write_and_wait(mapping);
++	written = filemap_write_and_wait_range(mapping, pos, pos + write_len - 1);
+ 	if (written)
+ 		goto out;
+ 
+@@ -2290,7 +2283,8 @@ generic_file_buffered_write(struct kiocb
+ 	 * the file data here, to try to honour O_DIRECT expectations.
+ 	 */
+ 	if (unlikely(file->f_flags & O_DIRECT) && written)
+-		status = filemap_write_and_wait(mapping);
++		status = filemap_write_and_wait_range(mapping,
++					pos, pos + written - 1);
+ 
+ 	return written ? written : status;
+ }
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
 linux-next.patch
-mark-complex-bitopsh-inlines-as-__always_inline.patch
-clocksource-pass-clocksource-to-read-callback.patch
-clocksource-pass-clocksource-to-read-callback-sparc-cleanup.patch
-bio-zero-inlined-bio_vec.patch
 page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
 page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-shmemc-fix-division-by-zero.patch
-getrusage-fill-ru_maxrss-value.patch
-memcg-handle-swap-caches.patch
-memcg-handle-swap-caches-build-fix.patch
-memcg-swap-cgroup-for-remembering-usage.patch
-memcg-memswap-controller-core.patch
-memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
-memcg-memswap-controller-core-swapcache-fixes.patch
-memcg-revert-gfp-mask-fix.patch
-memcg-check-group-leader-fix.patch
-memcg-memoryswap-controller-fix-limit-check.patch
-memcg-swapout-refcnt-fix.patch
-memcg-hierarchy-avoid-unnecessary-reclaim.patch
-inactive_anon_is_low-move-to-vmscan.patch
-mm-introduce-zone_reclaim-struct.patch
-mm-add-zone-nr_pages-helper-function.patch
-mm-make-get_scan_ratio-safe-for-memcg.patch
-memcg-add-null-check-to-page_cgroup_zoneinfo.patch
-memcg-add-inactive_anon_is_low.patch
-memcg-add-mem_cgroup_zone_nr_pages.patch
-memcg-add-zone_reclaim_stat.patch
-memcg-add-zone_reclaim_stat-reclaim-stat-trivial-fixes-fix.patch
-memcg-remove-mem_cgroup_cal_reclaim.patch
-memcg-show-reclaim-stat.patch
-memcg-rename-scan-global-lru.patch
-memcg-protect-prev_priority.patch
-memcg-swappiness.patch
-memcg-explain-details-and-test-document.patch
-memcg-fix-swap-accounting-leak-v3.patch
-memcg-fix-swap-accounting-leak-doc-fix.patch
-memcg-fix-shmems-swap-accounting.patch
-prio_tree-debugging-patch.patch
+radix-tree-gang-set-if-tagged-operation.patch
+reiser4.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
