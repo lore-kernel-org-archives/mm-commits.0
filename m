@@ -1,127 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - fs-sync_sb_inodes-fix.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:14:41 -0800
-Message-ID: <200901072214.n07MEfkR014582@imap1.linux-foundation.org>
+Subject: - mm-pagecache-gfp-flags-fix.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:14:45 -0800
+Message-ID: <200901072214.n07MEjGp014627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47118 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761627AbZAGWOp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:45 -0500
+	by vger.kernel.org with ESMTP id S1761708AbZAGWOu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:14:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: sync_sb_inodes fix
+     mm: pagecache gfp flags fix
 has been removed from the -mm tree.  Its filename was
-     fs-sync_sb_inodes-fix.patch
+     mm-pagecache-gfp-flags-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: sync_sb_inodes fix
+Subject: mm: pagecache gfp flags fix
 From: Nick Piggin <npiggin@suse.de>
 
-Fix data integrity semantics required by sys_sync, by iterating over all
-inodes and waiting for any writeback pages after the initial writeout. 
-Comments explain the exact problem.
+Frustratingly, gfp_t is really divided into two classes of flags.  One are
+the context dependent ones (can we sleep?  can we enter filesystem?  block
+subsystem?  should we use some extra reserves, etc.).  The other ones are
+the type of memory required and depend on how the algorithm is implemented
+rather than the point at which the memory is allocated (highmem?  dma
+memory?  etc).
+
+Some of the functions which allocate a page and add it to page cache take
+a gfp_t, but sometimes those functions or their callers aren't really
+doing the right thing: when allocating pagecache page, the memory type
+should be mapping_gfp_mask(mapping).  When allocating radix tree nodes,
+the memory type should be kernel mapped (not highmem) memory.  The gfp_t
+argument should only really be needed for context dependent options.
+
+This patch doesn't really solve that tangle in a nice way, but it does
+attempt to fix a couple of bugs.
+
+- find_or_create_page changes its radix-tree allocation to only include
+  the main context dependent flags in order so the pagecache page may be
+  allocated from arbitrary types of memory without affecting the
+  radix-tree.  In practice, slab allocations don't come from highmem
+  anyway, and radix-tree only uses slab allocations.  So there isn't a
+  practical change (unless some fs uses GFP_DMA for pages).
+
+- grab_cache_page_nowait() is changed to allocate radix-tree nodes with
+  GFP_NOFS, because it is not supposed to reenter the filesystem.  This
+  bug could cause lock recursion if a filesystem is not expecting the
+  function to reenter the fs (as-per documentation).
+
+Filesystems should be careful about exactly what semantics they want and
+what they get when fiddling with gfp_t masks to allocate pagecache.  One
+should be as liberal as possible with the type of memory that can be used,
+and same for the the context specific flags.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   60 ++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 53 insertions(+), 7 deletions(-)
+ mm/filemap.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN fs/fs-writeback.c~fs-sync_sb_inodes-fix fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-sync_sb_inodes-fix
-+++ a/fs/fs-writeback.c
-@@ -440,6 +440,7 @@ void generic_sync_sb_inodes(struct super
- 				struct writeback_control *wbc)
- {
- 	const unsigned long start = jiffies;	/* livelock avoidance */
-+	int sync = wbc->sync_mode == WB_SYNC_ALL;
- 
- 	spin_lock(&inode_lock);
- 	if (!wbc->for_kupdate || list_empty(&sb->s_io))
-@@ -516,7 +517,49 @@ void generic_sync_sb_inodes(struct super
- 		if (!list_empty(&sb->s_more_io))
- 			wbc->more_io = 1;
- 	}
--	spin_unlock(&inode_lock);
-+
-+	if (sync) {
-+		struct inode *inode, *old_inode = NULL;
-+
+diff -puN mm/filemap.c~mm-pagecache-gfp-flags-fix mm/filemap.c
+--- a/mm/filemap.c~mm-pagecache-gfp-flags-fix
++++ a/mm/filemap.c
+@@ -741,7 +741,14 @@ repeat:
+ 		page = __page_cache_alloc(gfp_mask);
+ 		if (!page)
+ 			return NULL;
+-		err = add_to_page_cache_lru(page, mapping, index, gfp_mask);
 +		/*
-+		 * Data integrity sync. Must wait for all pages under writeback,
-+		 * because there may have been pages dirtied before our sync
-+		 * call, but which had writeout started before we write it out.
-+		 * In which case, the inode may not be on the dirty list, but
-+		 * we still have to wait for that writeout.
++		 * We want a regular kernel memory (not highmem or DMA etc)
++		 * allocation for the radix tree nodes, but we need to honour
++		 * the context-specific requirements the caller has asked for.
++		 * GFP_RECLAIM_MASK collects those requirements.
 +		 */
-+		list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-+			struct address_space *mapping;
-+
-+			if (inode->i_state & (I_FREEING|I_WILL_FREE))
-+				continue;
-+			mapping = inode->i_mapping;
-+			if (mapping->nrpages == 0)
-+				continue;
-+			__iget(inode);
-+			spin_unlock(&inode_lock);
-+			/*
-+			 * We hold a reference to 'inode' so it couldn't have
-+			 * been removed from s_inodes list while we dropped the
-+			 * inode_lock.  We cannot iput the inode now as we can
-+			 * be holding the last reference and we cannot iput it
-+			 * under inode_lock. So we keep the reference and iput
-+			 * it later.
-+			 */
-+			iput(old_inode);
-+			old_inode = inode;
-+
-+			filemap_fdatawait(mapping);
-+
-+			cond_resched();
-+
-+			spin_lock(&inode_lock);
-+		}
-+		spin_unlock(&inode_lock);
-+		iput(old_inode);
-+	} else
-+		spin_unlock(&inode_lock);
-+
- 	return;		/* Leave any unwritten inodes on s_io */
- }
- EXPORT_SYMBOL_GPL(generic_sync_sb_inodes);
-@@ -596,13 +639,16 @@ void sync_inodes_sb(struct super_block *
- 		.range_start	= 0,
- 		.range_end	= LLONG_MAX,
- 	};
--	unsigned long nr_dirty = global_page_state(NR_FILE_DIRTY);
--	unsigned long nr_unstable = global_page_state(NR_UNSTABLE_NFS);
- 
--	wbc.nr_to_write = nr_dirty + nr_unstable +
--			(inodes_stat.nr_inodes - inodes_stat.nr_unused) +
--			nr_dirty + nr_unstable;
--	wbc.nr_to_write += wbc.nr_to_write / 2;		/* Bit more for luck */
-+	if (!wait) {
-+		unsigned long nr_dirty = global_page_state(NR_FILE_DIRTY);
-+		unsigned long nr_unstable = global_page_state(NR_UNSTABLE_NFS);
-+
-+		wbc.nr_to_write = nr_dirty + nr_unstable +
-+			(inodes_stat.nr_inodes - inodes_stat.nr_unused);
-+	} else
-+		wbc.nr_to_write = LONG_MAX; /* doesn't actually matter */
-+
- 	sync_sb_inodes(sb, &wbc);
- }
- 
++		err = add_to_page_cache_lru(page, mapping, index,
++			(gfp_mask & GFP_RECLAIM_MASK));
+ 		if (unlikely(err)) {
+ 			page_cache_release(page);
+ 			page = NULL;
+@@ -950,7 +957,7 @@ grab_cache_page_nowait(struct address_sp
+ 		return NULL;
+ 	}
+ 	page = __page_cache_alloc(mapping_gfp_mask(mapping) & ~__GFP_FS);
+-	if (page && add_to_page_cache_lru(page, mapping, index, GFP_KERNEL)) {
++	if (page && add_to_page_cache_lru(page, mapping, index, GFP_NOFS)) {
+ 		page_cache_release(page);
+ 		page = NULL;
+ 	}
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
