@@ -1,109 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-improve-fsync-batching-update.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 15:05:20 -0800
-Message-ID: <200901072305.n07N5KAl024265@imap1.linux-foundation.org>
+Subject: - cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 15:06:37 -0800
+Message-ID: <200901072306.n07N6bI2025403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57450 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37416 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761817AbZAGXGO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:06:14 -0500
+	by vger.kernel.org with ESMTP id S1753777AbZAGXHB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:07:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbacik@redhat.com, adilger@sun.com, arjan@infradead.org, linux-ext4@vger.kernel.org, rwheeler@redhat.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     improve jbd fsync batching (update)
+     fix a typo in the code
 has been removed from the -mm tree.  Its filename was
-     jbd-improve-fsync-batching-update.patch
+     cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
 
-This patch was dropped because it was folded into jbd-improve-fsync-batching.patch
+This patch was dropped because it was folded into cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: improve jbd fsync batching (update)
-From: Josef Bacik <jbacik@redhat.com>
+Subject: fix a typo in the code
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-On Mon, Nov 03, 2008 at 12:55:09PM -0800, Andrew Morton wrote:
-> On Mon, 3 Nov 2008 15:24:43 -0500
-> Josef Bacik <jbacik@redhat.com> wrote:
->
-> > > please fix.
-> >
-> > I see you already pulled this into -mm, would you like me to repost with the
-> > same changelog and the patch updated, or just reply to this with the updated
-> > patch?  Thanks,
->
-> Either works for me at this stage.  If it's a replacement then I'll turn
-> it into an incremental so I can see what changed, which takes me about 2.15
-> seconds.
->
-> If it had been a large patch or if it had been under test in someone's
-> tree for a while then a replacement patch would be unwelcome.  But for a
-> small, fresh patch like this one it's no big deal either way.
->
+Fix a typo, pointed out by Paul Menage
 
-Ok here is a replacement patch with the comments as requested, as well as a
-comment for j_last_sync_writer.  Thank you,
-
-Cc: Andreas Dilger <adilger@sun.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ric Wheeler <rwheeler@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/transaction.c |   11 +++++++++++
- include/linux/jbd.h  |    8 ++++++++
- 2 files changed, 19 insertions(+)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jbd/transaction.c~jbd-improve-fsync-batching-update fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-improve-fsync-batching-update
-+++ a/fs/jbd/transaction.c
-@@ -1401,6 +1401,17 @@ int journal_stop(handle_t *handle)
- 	 * on IO anyway.  Speeds up many-threaded, many-dir operations
- 	 * by 30x or more...
- 	 *
-+	 * We try and optimize the sleep time against what the underlying disk
-+	 * can do, instead of having a static sleep time.  This is usefull for
-+	 * the case where our storage is so fast that it is more optimal to go
-+	 * ahead and force a flush and wait for the transaction to be committed
-+	 * than it is to wait for an arbitrary amount of time for new writers to
-+	 * join the transaction.  We acheive this by measuring how long it takes
-+	 * to commit a transaction, and compare it with how long this
-+	 * transaction has been running, and if run time < commit time then we
-+	 * sleep for the delta and commit.  This greatly helps super fast disks
-+	 * that would see slowdowns as more threads started doing fsyncs.
-+	 *
- 	 * But don't do this if this process was the most recent one to
- 	 * perform a synchronous write.  We do this to detect the case where a
- 	 * single process is doing a stream of sync writes.  No point in waiting
-diff -puN include/linux/jbd.h~jbd-improve-fsync-batching-update include/linux/jbd.h
---- a/include/linux/jbd.h~jbd-improve-fsync-batching-update
-+++ a/include/linux/jbd.h
-@@ -803,8 +803,16 @@ struct journal_s
- 	struct buffer_head	**j_wbuf;
- 	int			j_wbufsize;
+diff -puN kernel/cgroup.c~cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix
++++ a/kernel/cgroup.c
+@@ -2521,7 +2521,7 @@ static void __init cgroup_init_subsys(st
+ 	printk(KERN_INFO "Initializing cgroup subsys %s\n", ss->name);
  
-+	/*
-+	 * this is the pid of the last person to run a synchronous operation
-+	 * through the journal.
-+	 */
- 	pid_t			j_last_sync_writer;
- 
-+	/*
-+	 * the average amount of time in nanoseconds it takes to commit a
-+	 * transaction to the disk.  [j_state_lock]
-+	 */
- 	u64			j_average_commit_time;
- 
- 	/*
+ 	/* Create the top cgroup state for this subsystem */
+-	list_add(&ss->sibling, &rootnode.root_list);
++	list_add(&ss->sibling, &rootnode.subsys_list);
+ 	ss->root = &rootnode;
+ 	css = ss->create(ss, dummytop);
+ 	/* We don't handle early failures gracefully */
 _
 
-Patches currently in -mm which might be from jbacik@redhat.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-jbd-improve-fsync-batching.patch
-jbd-improve-fsync-batching-update.patch
+origin.patch
+cgroups-documentation-updates.patch
+cgroups-remove-some-redundant-null-checks.patch
+ns_cgroup-remove-unused-spinlock.patch
+memcg-fix-a-typo-in-kconfig.patch
+cgroups-make-root_list-contains-active-hierarchies-only.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
+cgroups-add-inactive-subsystems-to-rootnodesubsys_list-fix.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
+cgroups-introduce-link_css_set-to-remove-duplicate-code-fix.patch
+cgroups-make-cgroup_path-rcu-safe.patch
+cgroups-make-cgroup_path-rcu-safe-fixlet.patch
+devices-cgroup-allow-mkfifo.patch
+memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
+memcg-new-force_empty-to-free-pages-under-group.patch
+memcg-new-force_empty-to-free-pages-under-group-fix.patch
+memcg-new-force_empty-to-free-pages-under-group-fix-fix.patch
+memcg-handle-swap-caches.patch
+memcg-memswap-controller-kconfig.patch
+memcg-swap-cgroup-for-remembering-usage.patch
+memcg-memswap-controller-core.patch
+memcg-memswap-controller-core-make-resize-limit-hold-mutex.patch
+memcg-memswap-controller-core-swapcache-fixes.patch
+memcg-synchronized-lru.patch
+memcg-add-mem_cgroup_disabled.patch
+memcg-add-mem_cgroup_disabled-fix.patch
+memory-cgroup-hierarchy-documentation-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4.patch
+memory-cgroup-resource-counters-for-hierarchy-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4.patch
+memory-cgroup-hierarchical-reclaim-v4-checkpatch-fixes.patch
+memory-cgroup-hierarchical-reclaim-v4-fix-for-hierarchical-reclaim.patch
+memory-cgroup-hierarchy-feature-selector-v4.patch
+memory-cgroup-hierarchy-feature-selector-v4-fix.patch
+memcg-avoid-unnecessary-system-wide-oom-killer.patch
+memcg-avoid-unnecessary-system-wide-oom-killer-fix.patch
+memcg-fix-reclaim-result-checks.patch
+memcg-swapout-refcnt-fix.patch
+memcg-fix-double-free-and-make-refcnt-sane.patch
+memcg-use-css_tryget-in-memcg.patch
+memcg-use-css_tryget-in-memcg-fix.patch
+memcg-fix-lru-accounting-for-swapcache-v2.patch
+memcg-fix-shmems-swap-accounting.patch
+cgroups-add-a-per-subsystem-hierarchy_mutex.patch
+cgroups-use-hierarchy_mutex-in-memory-controller.patch
+cgroups-add-css_tryget.patch
+cpuset-remove-on-stack-cpumask_t-in-cpuset_sprintf_cpulist.patch
+cpuset-remove-on-stack-cpumask_t-in-cpuset_can_attach.patch
+cpuset-convert-cpuset_attach-to-use-cpumask_var_t.patch
+cpuset-dont-allocate-trial-cpuset-on-stack.patch
+cpuset-convert-cpuset-cpus_allowed-to-cpumask_var_t.patch
+cpuset-remove-remaining-pointers-to-cpumask_t.patch
 
