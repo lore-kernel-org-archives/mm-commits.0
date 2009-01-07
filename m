@@ -1,66 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - add-missing-accounting-calls-to-compat_sys_readvwritev.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:16:08 -0800
-Message-ID: <200901072216.n07MG8oq015822@imap1.linux-foundation.org>
+Subject: - include-linux-interrupth-do-not-include-linux-irqnrh-twice.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:16:24 -0800
+Message-ID: <200901072216.n07MGOvb016098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52889 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760003AbZAGWQ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:16:27 -0500
+	by vger.kernel.org with ESMTP id S1760003AbZAGWQa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:16:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kraxel@redhat.com, balbir@in.ibm.com, jlan@engr.sgi.com, mm-commits@vger.kernel.org
+To: jj@chaosbits.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add missing accounting calls to compat_sys_{readv,writev}
+     include/linux/interrupt.h: do not include linux/irqnr.h twice
 has been removed from the -mm tree.  Its filename was
-     add-missing-accounting-calls-to-compat_sys_readvwritev.patch
+     include-linux-interrupth-do-not-include-linux-irqnrh-twice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add missing accounting calls to compat_sys_{readv,writev}
-From: Gerd Hoffmann <kraxel@redhat.com>
+Subject: include/linux/interrupt.h: do not include linux/irqnr.h twice
+From: Jesper Juhl <jj@chaosbits.net>
 
-Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/interrupt.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/compat.c~add-missing-accounting-calls-to-compat_sys_readvwritev fs/compat.c
---- a/fs/compat.c~add-missing-accounting-calls-to-compat_sys_readvwritev
-+++ a/fs/compat.c
-@@ -1187,6 +1187,9 @@ compat_sys_readv(unsigned long fd, const
- 	ret = compat_do_readv_writev(READ, file, vec, vlen, &file->f_pos);
+diff -puN include/linux/interrupt.h~include-linux-interrupth-do-not-include-linux-irqnrh-twice include/linux/interrupt.h
+--- a/include/linux/interrupt.h~include-linux-interrupth-do-not-include-linux-irqnrh-twice
++++ a/include/linux/interrupt.h
+@@ -14,7 +14,6 @@
+ #include <linux/irqflags.h>
+ #include <linux/smp.h>
+ #include <linux/percpu.h>
+-#include <linux/irqnr.h>
  
- out:
-+	if (ret > 0)
-+		add_rchar(current, ret);
-+	inc_syscr(current);
- 	fput(file);
- 	return ret;
- }
-@@ -1210,6 +1213,9 @@ compat_sys_writev(unsigned long fd, cons
- 	ret = compat_do_readv_writev(WRITE, file, vec, vlen, &file->f_pos);
- 
- out:
-+	if (ret > 0)
-+		add_wchar(current, ret);
-+	inc_syscw(current);
- 	fput(file);
- 	return ret;
- }
+ #include <asm/atomic.h>
+ #include <asm/ptrace.h>
 _
 
-Patches currently in -mm which might be from kraxel@redhat.com are
+Patches currently in -mm which might be from jj@chaosbits.net are
 
 origin.patch
 linux-next.patch
