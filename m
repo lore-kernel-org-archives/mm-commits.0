@@ -1,104 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-update-s390-header-file-paths.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:20:13 -0800
-Message-ID: <200901072220.n07MKDfe019501@imap1.linux-foundation.org>
+Subject: - edac-fix-mpc85xx-and-add-mpc8536-mpc8560.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:20:51 -0800
+Message-ID: <200901072220.n07MKpr5020030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44361 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36936 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932413AbZAGWin (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:38:43 -0500
+	by vger.kernel.org with ESMTP id S1762128AbZAGWmt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:42:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: galak@kernel.crashing.org, djiang@mvista.com, dougthompson@xmission.com, ncase@xes-inc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     documentation: update s390 header file paths
+     edac: fix mpc85xx and add mpc8536 mpc8560
 has been removed from the -mm tree.  Its filename was
-     documentation-update-s390-header-file-paths.patch
+     edac-fix-mpc85xx-and-add-mpc8536-mpc8560.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: update s390 header file paths
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: edac: fix mpc85xx and add mpc8536 mpc8560
+From: Kumar Gala <galak@kernel.crashing.org>
 
-Update Documentation/s390/ files to reflect changed header files
-locations.
+All other compatibles that are uniquely identifying the processor use a
+prefix of the form fsl,mpc85...'.  We add support for it so we can
+deprecate the older 'fsl,85...' that was improperly used here.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Additionally added mpc8536 & mpc8560 to the compatible lists.
+
+This patch is based on Nate's 8572 patch.
+
+Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Acked-by: Dave Jiang <djiang@mvista.com>
+Cc: Nate Case <ncase@xes-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/s390/Debugging390.txt |    2 +-
- Documentation/s390/cds.txt          |    2 +-
- Documentation/s390/s390dbf.txt      |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/edac/mpc85xx_edac.c |   74 ++++++++++++++--------------------
+ 1 file changed, 32 insertions(+), 42 deletions(-)
 
-diff -puN Documentation/s390/Debugging390.txt~documentation-update-s390-header-file-paths Documentation/s390/Debugging390.txt
---- a/Documentation/s390/Debugging390.txt~documentation-update-s390-header-file-paths
-+++ a/Documentation/s390/Debugging390.txt
-@@ -1402,7 +1402,7 @@ Syscalls are implemented on Linux for S3
- possibilities of these as the instruction is made up of a  0xA opcode & the second byte being
- the syscall number. They are traced using the simple command.
- TR SVC  <Optional value or range>
--the syscalls are defined in linux/include/asm-s390/unistd.h
-+the syscalls are defined in linux/arch/s390/include/asm/unistd.h
- e.g. to trace all file opens just do
- TR SVC 5 ( as this is the syscall number of open )
+diff -puN drivers/edac/mpc85xx_edac.c~edac-fix-mpc85xx-and-add-mpc8536-mpc8560 drivers/edac/mpc85xx_edac.c
+--- a/drivers/edac/mpc85xx_edac.c~edac-fix-mpc85xx-and-add-mpc8536-mpc8560
++++ a/drivers/edac/mpc85xx_edac.c
+@@ -630,27 +630,22 @@ static int mpc85xx_l2_err_remove(struct 
+ }
  
-diff -puN Documentation/s390/cds.txt~documentation-update-s390-header-file-paths Documentation/s390/cds.txt
---- a/Documentation/s390/cds.txt~documentation-update-s390-header-file-paths
-+++ a/Documentation/s390/cds.txt
-@@ -98,7 +98,7 @@ platform. Some of the interface routines
- of them can be found on other Linux platforms implementations too.
- Miscellaneous function prototypes, data declarations, and macro definitions
- can be found in the architecture specific C header file
--linux/include/asm-s390/irq.h.
-+linux/arch/s390/include/asm/irq.h.
+ static struct of_device_id mpc85xx_l2_err_of_match[] = {
+-	{
+-	 .compatible = "fsl,8540-l2-cache-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,8541-l2-cache-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,8544-l2-cache-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,8548-l2-cache-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,8555-l2-cache-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,8568-l2-cache-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,mpc8572-l2-cache-controller",
+-	 },
++/* deprecate the fsl,85.. forms in the future, 2.6.30? */
++	{ .compatible = "fsl,8540-l2-cache-controller", },
++	{ .compatible = "fsl,8541-l2-cache-controller", },
++	{ .compatible = "fsl,8544-l2-cache-controller", },
++	{ .compatible = "fsl,8548-l2-cache-controller", },
++	{ .compatible = "fsl,8555-l2-cache-controller", },
++	{ .compatible = "fsl,8568-l2-cache-controller", },
++	{ .compatible = "fsl,mpc8536-l2-cache-controller", },
++	{ .compatible = "fsl,mpc8540-l2-cache-controller", },
++	{ .compatible = "fsl,mpc8541-l2-cache-controller", },
++	{ .compatible = "fsl,mpc8544-l2-cache-controller", },
++	{ .compatible = "fsl,mpc8548-l2-cache-controller", },
++	{ .compatible = "fsl,mpc8555-l2-cache-controller", },
++	{ .compatible = "fsl,mpc8560-l2-cache-controller", },
++	{ .compatible = "fsl,mpc8568-l2-cache-controller", },
++	{ .compatible = "fsl,mpc8572-l2-cache-controller", },
+ 	{},
+ };
  
- Overview of CDS interface concepts
+@@ -967,27 +962,22 @@ static int mpc85xx_mc_err_remove(struct 
+ }
  
-diff -puN Documentation/s390/s390dbf.txt~documentation-update-s390-header-file-paths Documentation/s390/s390dbf.txt
---- a/Documentation/s390/s390dbf.txt~documentation-update-s390-header-file-paths
-+++ a/Documentation/s390/s390dbf.txt
-@@ -2,7 +2,7 @@ S390 Debug Feature
- ==================
+ static struct of_device_id mpc85xx_mc_err_of_match[] = {
+-	{
+-	 .compatible = "fsl,8540-memory-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,8541-memory-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,8544-memory-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,8548-memory-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,8555-memory-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,8568-memory-controller",
+-	 },
+-	{
+-	 .compatible = "fsl,mpc8572-memory-controller",
+-	 },
++/* deprecate the fsl,85.. forms in the future, 2.6.30? */
++	{ .compatible = "fsl,8540-memory-controller", },
++	{ .compatible = "fsl,8541-memory-controller", },
++	{ .compatible = "fsl,8544-memory-controller", },
++	{ .compatible = "fsl,8548-memory-controller", },
++	{ .compatible = "fsl,8555-memory-controller", },
++	{ .compatible = "fsl,8568-memory-controller", },
++	{ .compatible = "fsl,mpc8536-memory-controller", },
++	{ .compatible = "fsl,mpc8540-memory-controller", },
++	{ .compatible = "fsl,mpc8541-memory-controller", },
++	{ .compatible = "fsl,mpc8544-memory-controller", },
++	{ .compatible = "fsl,mpc8548-memory-controller", },
++	{ .compatible = "fsl,mpc8555-memory-controller", },
++	{ .compatible = "fsl,mpc8560-memory-controller", },
++	{ .compatible = "fsl,mpc8568-memory-controller", },
++	{ .compatible = "fsl,mpc8572-memory-controller", },
+ 	{},
+ };
  
- files: arch/s390/kernel/debug.c
--       include/asm-s390/debug.h
-+       arch/s390/include/asm/debug.h
- 
- Description:
- ------------
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from galak@kernel.crashing.org are
 
 origin.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-leds-add-a-dac124s085-spi-led-driver-fix.patch
-mtd-fix-nettel-printk-formats.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-max3100-spi-uart-driver-select-serial_core.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-jbd-remove-excess-kernel-doc-notation.patch
-w1-add-list-masters-w1-command.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
-fix-similar-typos-to-successfull-v2.patch
-kmemleak-add-documentation-on-the-memory-leak-detector.patch
 
