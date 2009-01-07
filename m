@@ -1,113 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - w1-allow-master-io-commands-fix.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 15:23:04 -0800
-Message-ID: <200901072323.n07NN4aN006565@imap1.linux-foundation.org>
+Subject: - romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 15:24:07 -0800
+Message-ID: <200901072324.n07NO7iU007403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752654AbZAGXXI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:23:08 -0500
+	by vger.kernel.org with ESMTP id S1754799AbZAGXYk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 18:24:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, paul.alfille@gmail.com, zbr@ioremap.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1-allow-master-io-commands-fix
+     romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     w1-allow-master-io-commands-fix.patch
+     romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into w1-allow-master-io-commands.patch
+This patch was dropped because it was folded into romfs-romfs_iget-unsigned-ino-=-0-is-always-true.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-allow-master-io-commands-fix
+Subject: romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-reindent switch statements.
+ERROR: code indent should use tabs where possible
+#32: FILE: fs/romfs/inode.c:530:
++        ret = romfs_strnlen(i, ino+ROMFH_SIZE, ROMFS_MAXFN);$
 
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Paul Alfille <paul.alfille@gmail.com>
+ERROR: code indent should use tabs where possible
+#33: FILE: fs/romfs/inode.c:531:
++        if (ret >= 0)$
+
+ERROR: code indent should use tabs where possible
+#34: FILE: fs/romfs/inode.c:532:
++                ino = ((ROMFH_SIZE+ret+1+ROMFH_PAD)&ROMFH_MASK);$
+
+total: 3 errors, 0 warnings, 20 lines checked
+
+./patches/romfs-romfs_iget-unsigned-ino-=-0-is-always-true.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: roel kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_netlink.c |   54 +++++++++++++++++++-------------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+ fs/romfs/inode.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/w1/w1_netlink.c~w1-allow-master-io-commands-fix drivers/w1/w1_netlink.c
---- a/drivers/w1/w1_netlink.c~w1-allow-master-io-commands-fix
-+++ a/drivers/w1/w1_netlink.c
-@@ -140,20 +140,20 @@ static int w1_process_command_io(struct 
- 	int err = 0;
+diff -puN fs/romfs/inode.c~romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes fs/romfs/inode.c
+--- a/fs/romfs/inode.c~romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes
++++ a/fs/romfs/inode.c
+@@ -527,11 +527,11 @@ romfs_iget(struct super_block *sb, unsig
+ 	i->i_uid = i->i_gid = 0;
  
- 	switch (cmd->cmd) {
--		case W1_CMD_TOUCH:
--			w1_touch_block(dev, cmd->data, cmd->len);
--			w1_send_read_reply(msg, hdr, cmd);
--			break;
--		case W1_CMD_READ:
--			w1_read_block(dev, cmd->data, cmd->len);
--			w1_send_read_reply(msg, hdr, cmd);
--			break;
--		case W1_CMD_WRITE:
--			w1_write_block(dev, cmd->data, cmd->len);
--			break;
--		default:
--			err = -1;
--			break;
-+	case W1_CMD_TOUCH:
-+		w1_touch_block(dev, cmd->data, cmd->len);
-+		w1_send_read_reply(msg, hdr, cmd);
-+		break;
-+	case W1_CMD_READ:
-+		w1_read_block(dev, cmd->data, cmd->len);
-+		w1_send_read_reply(msg, hdr, cmd);
-+		break;
-+	case W1_CMD_WRITE:
-+		w1_write_block(dev, cmd->data, cmd->len);
-+		break;
-+	default:
-+		err = -1;
-+		break;
- 	}
+         /* Precalculate the data offset */
+-        ret = romfs_strnlen(i, ino+ROMFH_SIZE, ROMFS_MAXFN);
+-        if (ret >= 0)
+-                ino = ((ROMFH_SIZE+ret+1+ROMFH_PAD)&ROMFH_MASK);
+-        else
+-                ino = 0;
++	ret = romfs_strnlen(i, ino + ROMFH_SIZE, ROMFS_MAXFN);
++	if (ret >= 0)
++		ino = (ROMFH_SIZE + ret + 1 + ROMFH_PAD) & ROMFH_MASK;
++	else
++		ino = 0;
  
- 	return err;
-@@ -187,20 +187,20 @@ static int w1_process_command_master(str
- 	cmd->len = 0;
- 
- 	switch (cmd->cmd) {
--		case W1_CMD_SEARCH:
--		case W1_CMD_ALARM_SEARCH:
--			err = w1_process_search_command(dev, msg,
-+	case W1_CMD_SEARCH:
-+	case W1_CMD_ALARM_SEARCH:
-+		err = w1_process_search_command(dev, msg,
- 				PAGE_SIZE - msg->len - sizeof(struct cn_msg));
--			break;
--		case W1_CMD_READ:
--		case W1_CMD_WRITE:
--		case W1_CMD_TOUCH:
--			err = w1_process_command_io(dev, msg, hdr, cmd);
--			break;
--		default:
--			cmd->res = EINVAL;
--			cn_netlink_send(msg, 0, GFP_KERNEL);
--			break;
-+		break;
-+	case W1_CMD_READ:
-+	case W1_CMD_WRITE:
-+	case W1_CMD_TOUCH:
-+		err = w1_process_command_io(dev, msg, hdr, cmd);
-+		break;
-+	default:
-+		cmd->res = EINVAL;
-+		cn_netlink_send(msg, 0, GFP_KERNEL);
-+		break;
- 	}
- 
- 	kfree(msg);
+         ROMFS_I(i)->i_metasize = ino;
+         ROMFS_I(i)->i_dataoffset = ino+(i->i_ino&ROMFH_MASK);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,7 +86,7 @@ memory-cgroup-resource-counters-for-hierarchy-v4.patch
 memory-cgroup-hierarchical-reclaim-v4.patch
 memcg-avoid-unnecessary-system-wide-oom-killer.patch
 w1-allow-master-io-commands.patch
-w1-allow-master-io-commands-fix.patch
+romfs-romfs_iget-unsigned-ino-=-0-is-always-true.patch
 romfs-romfs_iget-unsigned-ino-=-0-is-always-true-checkpatch-fixes.patch
 filesystem-freeze-implement-generic-freeze-feature-fix.patch
 nilfs2-inode-operations-fix.patch
