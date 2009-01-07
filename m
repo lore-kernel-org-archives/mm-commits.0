@@ -1,91 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:21:14 -0800
-Message-ID: <200901072221.n07MLEgl020416@imap1.linux-foundation.org>
+Subject: - binfmtsh-include-listh.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:17:29 -0800
+Message-ID: <200901072217.n07MHT0J017093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33991 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762450AbZAGW2I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:28:08 -0500
+	by vger.kernel.org with ESMTP id S932213AbZAGWbs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:31:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: h-shimamoto@ct.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/avr32: eliminate NULL test and memset after alloc_bootmem
+     binfmts.h: include list.h
 has been removed from the -mm tree.  Its filename was
-     arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem.patch
+     binfmtsh-include-listh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/avr32: eliminate NULL test and memset after alloc_bootmem
-From: Julia Lawall <julia@diku.dk>
+Subject: binfmts.h: include list.h
+From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 
-As noted by Akinobu Mita in patch b1fceac2b9e04d278316b2faddf276015fc06e3b,
-alloc_bootmem and related functions never return NULL and always return a
-zeroed region of memory.  Thus a NULL test or memset after calls to these
-functions is unnecessary.
+linux_binfmt uses list_head, so list.h is needed.
 
-This was fixed using the following semantic patch.
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-expression E;
-statement S;
-@@
-
-E = \(alloc_bootmem\|alloc_bootmem_low\|alloc_bootmem_pages\|alloc_bootmem_low_pages\|alloc_bootmem_node\|alloc_bootmem_low_pages_node\|alloc_bootmem_pages_node\)(...)
-... when != E
-(
-- BUG_ON (E == NULL);
-|
-- if (E == NULL) S
-)
-
-@@
-expression E,E1;
-@@
-
-E = \(alloc_bootmem\|alloc_bootmem_low\|alloc_bootmem_pages\|alloc_bootmem_low_pages\|alloc_bootmem_node\|alloc_bootmem_low_pages_node\|alloc_bootmem_pages_node\)(...)
-... when != E
-- memset(E,0,E1);
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+[akpm@linux-foundation.org: fix `make headerscheck']
+Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/mm/init.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/binfmts.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/avr32/mm/init.c~arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem arch/avr32/mm/init.c
---- a/arch/avr32/mm/init.c~arch-avr32-eliminate-null-test-and-memset-after-alloc_bootmem
-+++ a/arch/avr32/mm/init.c
-@@ -97,7 +97,6 @@ void __init paging_init(void)
+diff -puN include/linux/binfmts.h~binfmtsh-include-listh include/linux/binfmts.h
+--- a/include/linux/binfmts.h~binfmtsh-include-listh
++++ a/include/linux/binfmts.h
+@@ -18,6 +18,7 @@ struct pt_regs;
+ #define BINPRM_BUF_SIZE 128
  
- 	mem_map = NODE_DATA(0)->node_mem_map;
+ #ifdef __KERNEL__
++#include <linux/list.h>
  
--	memset(zero_page, 0, PAGE_SIZE);
- 	empty_zero_page = virt_to_page(zero_page);
- 	flush_dcache_page(empty_zero_page);
- }
+ #define CORENAME_MAX_SIZE 128
+ 
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
 
 origin.patch
-linux-next.patch
-powerpc-powermac-add-missing-of_node_put.patch
-net-tipc-bcasth-use-array_size.patch
-net-bridge-netfilter-move-a-dereference-below-a-null-test.patch
-drivers-isdn-hardware-misdn-move-a-dereference-below-a-null-test.patch
-drivers-net-hamradio-6packc-move-a-dereference-below-a-null-test.patch
-drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
