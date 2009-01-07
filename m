@@ -1,113 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-how-to-use-doc-section-blocks.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:20:15 -0800
-Message-ID: <200901072220.n07MKFVw019514@imap1.linux-foundation.org>
+Subject: - parport-ieee1284-use-del_timer_sync-in-parport_wait_event.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:21:11 -0800
+Message-ID: <200901072221.n07MLB7O020336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762072AbZAGWVv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:21:51 -0500
+	by vger.kernel.org with ESMTP id S1758495AbZAGWWL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:22:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, johannes@sipsolutions.net, mm-commits@vger.kernel.org
+To: mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     documentation: how to use DOC: section blocks
+     parport: ieee1284: use del_timer_sync() in parport_wait_event()
 has been removed from the -mm tree.  Its filename was
-     documentation-how-to-use-doc-section-blocks.patch
+     parport-ieee1284-use-del_timer_sync-in-parport_wait_event.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: how to use DOC: section blocks
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: parport: ieee1284: use del_timer_sync() in parport_wait_event()
+From: Michael Buesch <mb@bu3sch.de>
 
-Add info on how to use DOC: sections in kernel-doc.  DOC: sections enable
-the addition of inline source file comments that are general in nature
-instead of being specific to a function, struct, union, enum, or typedef.
+Use del_timer_sync() instead of del_timer() to make sure the timer won't
+be running when we return from parport_wait_event(), because this would
+crash due to destruction of timer_list.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+This is untested and just based on a code review.  Just think about the
+following sequence of events:
+
+- add_timer()
+
+- down_interruptible() is interrupted by a signal.
+
+- we enter the timer callback handler on another CPU.
+
+- del_timer(), but the timer callback is still running.
+
+- eturn from parport_wait_even, which destroys the automatic variable
+  "timer" while the callback is running on another CPU.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-doc-nano-HOWTO.txt |   29 ++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ drivers/parport/ieee1284.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-doc-nano-HOWTO.txt~documentation-how-to-use-doc-section-blocks Documentation/kernel-doc-nano-HOWTO.txt
---- a/Documentation/kernel-doc-nano-HOWTO.txt~documentation-how-to-use-doc-section-blocks
-+++ a/Documentation/kernel-doc-nano-HOWTO.txt
-@@ -287,6 +287,32 @@ struct my_struct {
- };
+diff -puN drivers/parport/ieee1284.c~parport-ieee1284-use-del_timer_sync-in-parport_wait_event drivers/parport/ieee1284.c
+--- a/drivers/parport/ieee1284.c~parport-ieee1284-use-del_timer_sync-in-parport_wait_event
++++ a/drivers/parport/ieee1284.c
+@@ -84,7 +84,7 @@ int parport_wait_event (struct parport *
  
+ 	add_timer (&timer);
+ 	ret = down_interruptible (&port->physport->ieee1284.irq);
+-	if (!del_timer (&timer) && !ret)
++	if (!del_timer_sync(&timer) && !ret)
+ 		/* Timed out. */
+ 		ret = 1;
  
-+Including documentation blocks in source files
-+----------------------------------------------
-+
-+To facilitate having source code and comments close together, you can
-+include kernel-doc documentation blocks that are free-form comments
-+instead of being kernel-doc for functions, structures, unions,
-+enums, or typedefs.  This could be used for something like a
-+theory of operation for a driver or library code, for example.
-+
-+This is done by using a DOC: section keyword with a section title.  E.g.:
-+
-+/**
-+ * DOC: Theory of Operation
-+ *
-+ * The whizbang foobar is a dilly of a gizmo.  It can do whatever you
-+ * want it to do, at any time.  It reads your mind.  Here's how it works.
-+ *
-+ * foo bar splat
-+ *
-+ * The only drawback to this gizmo is that is can sometimes damage
-+ * hardware, software, or its subject(s).
-+ */
-+
-+DOC: sections are used in SGML templates files as indicated below.
-+
-+
- How to make new SGML template files
- -----------------------------------
- 
-@@ -307,6 +333,9 @@ exported using EXPORT_SYMBOL.
- !F<filename> <function [functions...]> is replaced by the
- documentation, in <filename>, for the functions listed.
- 
-+!P<filename> <section title> is replaced by the contents of the DOC:
-+section titled <section title> from <filename>.
-+Spaces are allowed in <section title>; do not quote the <section title>.
- 
- Tim.
- */ <twaugh@redhat.com>
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
 origin.patch
-linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-leds-add-a-dac124s085-spi-led-driver-fix.patch
-mtd-fix-nettel-printk-formats.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-max3100-spi-uart-driver-select-serial_core.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-jbd-remove-excess-kernel-doc-notation.patch
-w1-add-list-masters-w1-command.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
-fix-similar-typos-to-successfull-v2.patch
-kmemleak-add-documentation-on-the-memory-leak-detector.patch
 
