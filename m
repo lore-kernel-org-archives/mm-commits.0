@@ -1,57 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - mm-make-scan_all_zones_unevictable_pages-static.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:13:05 -0800
-Message-ID: <200901072213.n07MD5L7013198@imap1.linux-foundation.org>
+Subject: - memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:12:57 -0800
+Message-ID: <200901072212.n07MCvxb013052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756471AbZAGWNI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:08 -0500
+	by vger.kernel.org with ESMTP id S1756635AbZAGWNU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: make scan_all_zones_unevictable_pages() static
+     memcg: reclaim shouldn't change zone->recent_rotated statistics
 has been removed from the -mm tree.  Its filename was
-     mm-make-scan_all_zones_unevictable_pages-static.patch
+     memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make scan_all_zones_unevictable_pages() static
+Subject: memcg: reclaim shouldn't change zone->recent_rotated statistics
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-sparse output following warning.
-
-	mm/vmscan.c:2549:6: warning: symbol 'scan_all_zones_unevictable_pages' was not declared. Should it be static?
-
-cleanup here.
+memcg reclaim shouldn't change zone->recent_rotated statistics.  If
+memcgroup reclaim changes zone statistics, global reclaim can get a bit
+confused.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-make-scan_all_zones_unevictable_pages-static mm/vmscan.c
---- a/mm/vmscan.c~mm-make-scan_all_zones_unevictable_pages-static
+diff -puN mm/vmscan.c~memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics mm/vmscan.c
+--- a/mm/vmscan.c~memcg-reclaim-shouldnt-change-zone-recent_rotated-statistics
 +++ a/mm/vmscan.c
-@@ -2506,7 +2506,7 @@ void scan_zone_unevictable_pages(struct 
-  * that has possibly/probably made some previously unevictable pages
-  * evictable.
-  */
--void scan_all_zones_unevictable_pages(void)
-+static void scan_all_zones_unevictable_pages(void)
- {
- 	struct zone *zone;
+@@ -1246,7 +1246,8 @@ static void shrink_active_list(unsigned 
+ 	 * This helps balance scan pressure between file and anonymous
+ 	 * pages in get_scan_ratio.
+ 	 */
+-	zone->recent_rotated[!!file] += pgmoved;
++	if (scan_global_lru(sc))
++		zone->recent_rotated[!!file] += pgmoved;
  
+ 	/*
+ 	 * Move the pages to the [file or anon] inactive list.
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
