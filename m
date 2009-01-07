@@ -1,72 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - mm-apply_to_range-call-pte-function-with-lazy-updates.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:12:06 -0800
-Message-ID: <200901072212.n07MC6pE012330@imap1.linux-foundation.org>
+Subject: - mm-vmalloc-improve-vmallocinfo.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:12:00 -0800
+Message-ID: <200901072212.n07MC02T012235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37950 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755430AbZAGWMU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:12:20 -0500
+	by vger.kernel.org with ESMTP id S1755367AbZAGWMV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:12:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, hannes@cmpxchg.org, hugh@veritas.com, jeremy.fitzhardinge@citrix.com, nickpiggin@yahoo.com.au, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: glommer@redhat.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/apply_to_range: call pte function with lazy updates
+     mm: vmalloc improve vmallocinfo
 has been removed from the -mm tree.  Its filename was
-     mm-apply_to_range-call-pte-function-with-lazy-updates.patch
+     mm-vmalloc-improve-vmallocinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/apply_to_range: call pte function with lazy updates
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: mm: vmalloc improve vmallocinfo
+From: Glauber Costa <glommer@redhat.com>
 
-Make the pte-level function in apply_to_range be called in lazy mmu mode,
-so that any pagetable modifications can be batched.
+If we do that, output of files like /proc/vmallocinfo will show things
+like "vmalloc_32", "vmalloc_user", or whomever the caller was as the
+caller.  This info is not as useful as the real caller of the allocation.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+So, proposal is to call __vmalloc_node node directly, with matching
+parameters to save the caller information
+
+Signed-off-by: Glauber Costa <glommer@redhat.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/vmalloc.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory.c~mm-apply_to_range-call-pte-function-with-lazy-updates mm/memory.c
---- a/mm/memory.c~mm-apply_to_range-call-pte-function-with-lazy-updates
-+++ a/mm/memory.c
-@@ -1645,6 +1645,8 @@ static int apply_to_pte_range(struct mm_
+diff -puN mm/vmalloc.c~mm-vmalloc-improve-vmallocinfo mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-improve-vmallocinfo
++++ a/mm/vmalloc.c
+@@ -1376,7 +1376,8 @@ void *vmalloc_user(unsigned long size)
+ 	struct vm_struct *area;
+ 	void *ret;
  
- 	BUG_ON(pmd_huge(*pmd));
+-	ret = __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO, PAGE_KERNEL);
++	ret = __vmalloc_node(size, GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO,
++			     PAGE_KERNEL, -1, __builtin_return_address(0));
+ 	if (ret) {
+ 		area = find_vm_area(ret);
+ 		area->flags |= VM_USERMAP;
+@@ -1421,7 +1422,8 @@ EXPORT_SYMBOL(vmalloc_node);
  
-+	arch_enter_lazy_mmu_mode();
-+
- 	token = pmd_pgtable(*pmd);
+ void *vmalloc_exec(unsigned long size)
+ {
+-	return __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL_EXEC);
++	return __vmalloc_node(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL_EXEC,
++			      -1, __builtin_return_address(0));
+ }
  
- 	do {
-@@ -1653,6 +1655,8 @@ static int apply_to_pte_range(struct mm_
- 			break;
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
+ #if defined(CONFIG_64BIT) && defined(CONFIG_ZONE_DMA32)
+@@ -1441,7 +1443,8 @@ void *vmalloc_exec(unsigned long size)
+  */
+ void *vmalloc_32(unsigned long size)
+ {
+-	return __vmalloc(size, GFP_VMALLOC32, PAGE_KERNEL);
++	return __vmalloc_node(size, GFP_VMALLOC32, PAGE_KERNEL,
++			      -1, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(vmalloc_32);
  
-+	arch_leave_lazy_mmu_mode();
-+
- 	if (mm != &init_mm)
- 		pte_unmap_unlock(pte-1, ptl);
- 	return err;
+@@ -1457,7 +1460,8 @@ void *vmalloc_32_user(unsigned long size
+ 	struct vm_struct *area;
+ 	void *ret;
+ 
+-	ret = __vmalloc(size, GFP_VMALLOC32 | __GFP_ZERO, PAGE_KERNEL);
++	ret = __vmalloc_node(size, GFP_VMALLOC32 | __GFP_ZERO, PAGE_KERNEL,
++			     -1, __builtin_return_address(0));
+ 	if (ret) {
+ 		area = find_vm_area(ret);
+ 		area->flags |= VM_USERMAP;
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from glommer@redhat.com are
 
 origin.patch
 linux-next.patch
-drivers-xen-xenbus-xenbus_clientc-cleanup-kerneldoc.patch
-xen-add-xenfs-to-allow-usermode-xen-interaction-fix-xenbus-message-reads.patch
 
