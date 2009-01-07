@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - mm-make-mem_cgroup_resize_limit-static.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 14:13:03 -0800
-Message-ID: <200901072213.n07MD3Oe013195@imap1.linux-foundation.org>
+Subject: - mm-make-maddr-__iomem.patch removed from -mm tree
+Date: Wed, 07 Jan 2009 14:13:01 -0800
+Message-ID: <200901072213.n07MD143013154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756520AbZAGWNG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:06 -0500
+	by vger.kernel.org with ESMTP id S1756471AbZAGWNE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 17:13:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: make mem_cgroup_resize_limit() static
+     mm: make maddr __iomem
 has been removed from the -mm tree.  Its filename was
-     mm-make-mem_cgroup_resize_limit-static.patch
+     mm-make-maddr-__iomem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make mem_cgroup_resize_limit() static
+Subject: mm: make maddr __iomem
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Sparse output following warnings.
+sparse output following warnings.
 
-mm/memcontrol.c:782:5: warning: symbol 'mem_cgroup_resize_limit' was not
-declared.  Should it be static?
+mm/memory.c:2936:8: warning: incorrect type in assignment (different address spaces)
+mm/memory.c:2936:8:    expected void *maddr
+mm/memory.c:2936:8:    got void [noderef] <asn:2>
 
 cleanup here.
 
@@ -37,22 +38,21 @@ Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-make-mem_cgroup_resize_limit-static mm/memcontrol.c
---- a/mm/memcontrol.c~mm-make-mem_cgroup_resize_limit-static
-+++ a/mm/memcontrol.c
-@@ -779,7 +779,8 @@ int mem_cgroup_shrink_usage(struct mm_st
- 	return 0;
- }
- 
--int mem_cgroup_resize_limit(struct mem_cgroup *memcg, unsigned long long val)
-+static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
-+				   unsigned long long val)
+diff -puN mm/memory.c~mm-make-maddr-__iomem mm/memory.c
+--- a/mm/memory.c~mm-make-maddr-__iomem
++++ a/mm/memory.c
+@@ -2966,7 +2966,7 @@ int generic_access_phys(struct vm_area_s
  {
+ 	resource_size_t phys_addr;
+ 	unsigned long prot = 0;
+-	void *maddr;
++	void __iomem *maddr;
+ 	int offset = addr & (PAGE_SIZE-1);
  
- 	int retry_count = MEM_CGROUP_RECLAIM_RETRIES;
+ 	if (follow_phys(vma, addr, write, &prot, &phys_addr))
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
