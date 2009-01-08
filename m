@@ -1,90 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - pid-implement-ns_of_pid.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:50:25 -0800
-Message-ID: <200901082250.n08MoPWA029624@imap1.linux-foundation.org>
+Subject: - mqueue-fix-si_pid-value-in-mqueue-do_notify.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:50:28 -0800
+Message-ID: <200901082250.n08MoSNW029661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45112 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760435AbZAHWwA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:52:00 -0500
+	by vger.kernel.org with ESMTP id S1754823AbZAHWwD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:52:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, Nadia.Derbey@bull.net, bastian@waldi.eu.org, oleg@redhat.com, roland@redhat.com, serue@us.ibm.com, sukadev@linux.vnet.ibm.com, xemul@openvz.org, mm-commits@vger
+To: sukadev@linux.vnet.ibm.com, Nadia.Derbey@bull.net, bastian@waldi.eu.org, ebiederm@xmission.com, oleg@redhat.com, roland@redhat.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger
 
 
 The patch titled
-     pid: implement ns_of_pid
+     mqueue: fix si_pid value in mqueue do_notify()
 has been removed from the -mm tree.  Its filename was
-     pid-implement-ns_of_pid.patch
+     mqueue-fix-si_pid-value-in-mqueue-do_notify.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pid: implement ns_of_pid
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: mqueue: fix si_pid value in mqueue do_notify()
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 
-A current problem with the pid namespace is that it is easy to do pid
-related work after exit_task_namespaces which drops the nsproxy pointer.
+If a process registers for asynchronous notification on a POSIX message
+queue, it gets a signal and a siginfo_t structure when a message arrives
+on the message queue.  The si_pid in the siginfo_t structure is set to the
+PID of the process that sent the message to the message queue.
 
-However if we are doing pid namespace related work we are always operating
-on some struct pid which retains the pid_namespace pointer of the pid
-namespace it was allocated in.
+The principle is the following:
+. when mq_notify(SIGEV_SIGNAL) is called, the caller registers for
+  notification when a msg arrives. The associated pid structure is stroed into
+  inode_info->notify_owner. Let's call this process P1.
+. when mq_send() is called by say P2, P2 sends a signal to P1 to notify
+  him about msg arrival.
 
-So provide ns_of_pid which allows us to find the pid namespace a pid was
-allocated in.
+The way .si_pid is set today is not correct, since it doesn't take into account
+the fact that the process that is sending the message might not be in the
+same namespace as the notified one.
 
-Using this we have the needed infrastructure to do pid namespace related
-work at anytime we have a struct pid, removing the chance of accidentally
-having a NULL pointer dereference when accessing current->nsproxy.
+This patch proposes to set si_pid to the sender's pid into the notify_owner
+namespace.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
 Cc: Bastian Blank <bastian@waldi.eu.org>
 Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ ipc/mqueue.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/pid.h~pid-implement-ns_of_pid include/linux/pid.h
---- a/include/linux/pid.h~pid-implement-ns_of_pid
-+++ a/include/linux/pid.h
-@@ -123,6 +123,24 @@ extern struct pid *alloc_pid(struct pid_
- extern void free_pid(struct pid *pid);
+diff -puN ipc/mqueue.c~mqueue-fix-si_pid-value-in-mqueue-do_notify ipc/mqueue.c
+--- a/ipc/mqueue.c~mqueue-fix-si_pid-value-in-mqueue-do_notify
++++ a/ipc/mqueue.c
+@@ -505,7 +505,8 @@ static void __do_notify(struct mqueue_in
+ 			sig_i.si_errno = 0;
+ 			sig_i.si_code = SI_MESGQ;
+ 			sig_i.si_value = info->notify.sigev_value;
+-			sig_i.si_pid = task_tgid_vnr(current);
++			sig_i.si_pid = task_tgid_nr_ns(current,
++						ns_of_pid(info->notify_owner));
+ 			sig_i.si_uid = current_uid();
  
- /*
-+ * ns_of_pid() returns the pid namespace in which the specified pid was
-+ * allocated.
-+ *
-+ * NOTE:
-+ * 	ns_of_pid() is expected to be called for a process (task) that has
-+ * 	an attached 'struct pid' (see attach_pid(), detach_pid()) i.e @pid
-+ * 	is expected to be non-NULL. If @pid is NULL, caller should handle
-+ * 	the resulting NULL pid-ns.
-+ */
-+static inline struct pid_namespace *ns_of_pid(struct pid *pid)
-+{
-+	struct pid_namespace *ns = NULL;
-+	if (pid)
-+		ns = pid->numbers[pid->level].ns;
-+	return ns;
-+}
-+
-+/*
-  * the helpers to get the pid's id seen from different namespaces
-  *
-  * pid_nr()    : global id, i.e. the id seen from the init namespace;
+ 			kill_pid_info(info->notify.sigev_signo,
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
 
 origin.patch
 
