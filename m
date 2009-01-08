@@ -1,138 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-powermac-add-missing-of_node_put.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:51:31 -0800
-Message-ID: <200901082251.n08MpVaS030627@imap1.linux-foundation.org>
+Subject: - pid-generalize-task_active_pid_ns.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:50:21 -0800
+Message-ID: <200901082250.n08MoLn7029549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51962 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759299AbZAHWvj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:39 -0500
+	by vger.kernel.org with ESMTP id S1763374AbZAHWvq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npalix@diku.dk, julia@diku.dk, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, Nadia.Derbey@bull.net, bastian@waldi.eu.org, oleg@redhat.com, roland@redhat.com, serue@us.ibm.com, sukadev@linux.vnet.ibm.com, xemul@openvz.org, mm-commits@vger
 
 
 The patch titled
-     powerpc/powermac: Add missing of_node_put
+     pid: generalize task_active_pid_ns
 has been removed from the -mm tree.  Its filename was
-     powerpc-powermac-add-missing-of_node_put.patch
+     pid-generalize-task_active_pid_ns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc/powermac: Add missing of_node_put
-From: Nicolas Palix <npalix@diku.dk>
+Subject: pid: generalize task_active_pid_ns
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-of_node_put is needed before discarding a value received from
-of_find_node_by_name, eg in error handling code or when the device
-node is no longer used.
+Currently task_active_pid_ns is not safe to call after a task becomes a
+zombie and exit_task_namespaces is called, as nsproxy becomes NULL.  By
+reading the pid namespace from the pid of the task we can trivially solve
+this problem at the cost of one extra memory read in what should be the
+same cacheline as we read the namespace from.
 
-The semantic match that catches the bug is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
+When moving things around I have made task_active_pid_ns out of line
+because keeping it in pid_namespace.h would require adding includes of
+pid.h and sched.h that I don't think we want.
 
-// <smpl>
-@r exists@
-local idexpression struct device_node *n;
-position p1, p2;
-struct device_node *n1;
-statement S;
-identifier f;
-expression E;
-expression *ptr != NULL;
-@@
+This change does make task_active_pid_ns unsafe to call during
+copy_process until we attach a pid on the task_struct which seems to be a
+reasonable trade off.
 
-n@p1 = of_find_node_by_name(...)
-...
-if (!n) S
-... when != of_node_put(n)
-    when != n1 = f(n,...)
-    when != E = n
-    when any
-    when strict
-(
-  return \(0\|<+...n...+>\|ptr\);
-|
-return@p2 ...;
-|
-  of_node_put(n);
-|
-  n1 = f(n,...)
-|
-  E = n
-)
-
-@script:python@
-p1 << r.p1;
-p2 << r.p2;
-@@
-
-print "* file: %s of_find_node_by_name %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
-// </smpl>
-
-Signed-off-by: Nicolas Palix <npalix@diku.dk>
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Bastian Blank <bastian@waldi.eu.org>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/powermac/pci.c  |    2 ++
- arch/powerpc/platforms/powermac/time.c |    9 ++++++---
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ include/linux/pid_namespace.h |    6 +-----
+ kernel/fork.c                 |    4 ++--
+ kernel/pid.c                  |    6 ++++++
+ 3 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN arch/powerpc/platforms/powermac/pci.c~powerpc-powermac-add-missing-of_node_put arch/powerpc/platforms/powermac/pci.c
---- a/arch/powerpc/platforms/powermac/pci.c~powerpc-powermac-add-missing-of_node_put
-+++ a/arch/powerpc/platforms/powermac/pci.c
-@@ -661,6 +661,7 @@ static void __init init_second_ohare(voi
- 			pci_find_hose_for_OF_device(np);
- 		if (!hose) {
- 			printk(KERN_ERR "Can't find PCI hose for OHare2 !\n");
-+			of_node_put(np);
- 			return;
+diff -puN include/linux/pid_namespace.h~pid-generalize-task_active_pid_ns include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~pid-generalize-task_active_pid_ns
++++ a/include/linux/pid_namespace.h
+@@ -79,11 +79,7 @@ static inline void zap_pid_ns_processes(
+ }
+ #endif /* CONFIG_PID_NS */
+ 
+-static inline struct pid_namespace *task_active_pid_ns(struct task_struct *tsk)
+-{
+-	return tsk->nsproxy->pid_ns;
+-}
+-
++extern struct pid_namespace *task_active_pid_ns(struct task_struct *tsk);
+ void pidhash_init(void);
+ void pidmap_init(void);
+ 
+diff -puN kernel/fork.c~pid-generalize-task_active_pid_ns kernel/fork.c
+--- a/kernel/fork.c~pid-generalize-task_active_pid_ns
++++ a/kernel/fork.c
+@@ -1126,12 +1126,12 @@ static struct task_struct *copy_process(
+ 
+ 	if (pid != &init_struct_pid) {
+ 		retval = -ENOMEM;
+-		pid = alloc_pid(task_active_pid_ns(p));
++		pid = alloc_pid(p->nsproxy->pid_ns);
+ 		if (!pid)
+ 			goto bad_fork_cleanup_io;
+ 
+ 		if (clone_flags & CLONE_NEWPID) {
+-			retval = pid_ns_prepare_proc(task_active_pid_ns(p));
++			retval = pid_ns_prepare_proc(p->nsproxy->pid_ns);
+ 			if (retval < 0)
+ 				goto bad_fork_free_pid;
  		}
- 		early_read_config_word(hose, bus, devfn, PCI_COMMAND, &cmd);
-@@ -669,6 +670,7 @@ static void __init init_second_ohare(voi
- 		early_write_config_word(hose, bus, devfn, PCI_COMMAND, cmd);
- 	}
- 	has_second_ohare = 1;
-+	of_node_put(np);
+diff -puN kernel/pid.c~pid-generalize-task_active_pid_ns kernel/pid.c
+--- a/kernel/pid.c~pid-generalize-task_active_pid_ns
++++ a/kernel/pid.c
+@@ -474,6 +474,12 @@ pid_t task_session_nr_ns(struct task_str
  }
+ EXPORT_SYMBOL(task_session_nr_ns);
  
- /*
-diff -puN arch/powerpc/platforms/powermac/time.c~powerpc-powermac-add-missing-of_node_put arch/powerpc/platforms/powermac/time.c
---- a/arch/powerpc/platforms/powermac/time.c~powerpc-powermac-add-missing-of_node_put
-+++ a/arch/powerpc/platforms/powermac/time.c
-@@ -270,11 +270,11 @@ int __init via_calibrate_decr(void)
- 	if (vias == 0)
- 		vias = of_find_node_by_name(NULL, "via");
- 	if (vias == 0 || of_address_to_resource(vias, 0, &rsrc))
--		return 0;
-+		goto fail;
- 	via = ioremap(rsrc.start, rsrc.end - rsrc.start + 1);
- 	if (via == NULL) {
- 		printk(KERN_ERR "Failed to map VIA for timer calibration !\n");
--		return 0;
-+		goto fail;
- 	}
- 
- 	/* set timer 1 for continuous interrupts */
-@@ -297,8 +297,11 @@ int __init via_calibrate_decr(void)
- 	ppc_tb_freq = (dstart - dend) * 100 / 6;
- 
- 	iounmap(via);
--	
++struct pid_namespace *task_active_pid_ns(struct task_struct *tsk)
++{
++	return ns_of_pid(task_pid(tsk));
++}
++EXPORT_SYMBOL_GPL(task_active_pid_ns);
 +
- 	return 1;
-+fail:
-+	of_node_put(vias);
-+	return 0;
- }
- #endif
- 
+ /*
+  * Used by proc to find the first pid that is greater than or equal to nr.
+  *
 _
 
-Patches currently in -mm which might be from npalix@diku.dk are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
 
