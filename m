@@ -1,247 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-add-mem_cgroup_disabled.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:48:31 -0800
-Message-ID: <200901082248.n08MmVI7027850@imap1.linux-foundation.org>
+Subject: - memory-cgroup-resource-counters-for-hierarchy-v4.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:48:36 -0800
+Message-ID: <200901082248.n08Mmale027930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39455 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751811AbZAHWtN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:49:13 -0500
+	by vger.kernel.org with ESMTP id S1758346AbZAHWtV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:49:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: taka@valinux.co.jp, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.c
 
 
 The patch titled
-     memcg: add mem_cgroup_disabled()
+     memcg: memory cgroup resource counters for hierarchy
 has been removed from the -mm tree.  Its filename was
-     memcg-add-mem_cgroup_disabled.patch
+     memory-cgroup-resource-counters-for-hierarchy-v4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add mem_cgroup_disabled()
-From: Hirokazu Takahashi <taka@valinux.co.jp>
+Subject: memcg: memory cgroup resource counters for hierarchy
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-We check mem_cgroup is disabled or not by checking
-mem_cgroup_subsys.disabled.  I think it has more references than expected,
-now.
+Add support for building hierarchies in resource counters.  Cgroups allows
+us to build a deep hierarchy, but we currently don't link the resource
+counters belonging to the memory controller control groups, in the same
+fashion as the corresponding cgroup entries in the cgroup hierarchy.  This
+patch provides the infrastructure for resource counters that have the same
+hiearchy as their cgroup counter parts.
 
-replacing
-   if (mem_cgroup_subsys.disabled)
-with
-   if (mem_cgroup_disabled())
+These set of patches are based on the resource counter hiearchy patches
+posted by Pavel Emelianov.
 
-give us good look, I think.
+NOTE: Building hiearchies is expensive, deeper hierarchies imply charging
+the all the way up to the root.  It is known that hiearchies are
+expensive, so the user needs to be careful and aware of the trade-offs
+before creating very deep ones.
 
-[kamezawa.hiroyu@jp.fujitsu.com: fix typo]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Paul Menage <menage@google.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   15 ++++++++++++++-
- mm/memcontrol.c            |   28 ++++++++++++++--------------
- mm/page_cgroup.c           |    4 ++--
- 3 files changed, 30 insertions(+), 17 deletions(-)
+ include/linux/res_counter.h |    8 ++++--
+ kernel/res_counter.c        |   42 +++++++++++++++++++++++++++-------
+ mm/memcontrol.c             |   20 ++++++++++------
+ 3 files changed, 53 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-add-mem_cgroup_disabled include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-mem_cgroup_disabled
-+++ a/include/linux/memcontrol.h
-@@ -19,7 +19,7 @@
+diff -puN include/linux/res_counter.h~memory-cgroup-resource-counters-for-hierarchy-v4 include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memory-cgroup-resource-counters-for-hierarchy-v4
++++ a/include/linux/res_counter.h
+@@ -43,6 +43,10 @@ struct res_counter {
+ 	 * the routines below consider this to be IRQ-safe
+ 	 */
+ 	spinlock_t lock;
++	/*
++	 * Parent counter, used for hierarchial resource accounting
++	 */
++	struct res_counter *parent;
+ };
  
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
--
-+#include <linux/cgroup.h>
- struct mem_cgroup;
- struct page_cgroup;
- struct page;
-@@ -87,6 +87,14 @@ extern long mem_cgroup_calc_reclaim(stru
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- extern int do_swap_account;
- #endif
-+
-+static inline bool mem_cgroup_disabled(void)
-+{
-+	if (mem_cgroup_subsys.disabled)
-+		return true;
-+	return false;
-+}
-+
- #else /* CONFIG_CGROUP_MEM_RES_CTLR */
- struct mem_cgroup;
+ /**
+@@ -87,7 +91,7 @@ enum {
+  * helpers for accounting
+  */
  
-@@ -214,6 +222,11 @@ static inline long mem_cgroup_calc_recla
+-void res_counter_init(struct res_counter *counter);
++void res_counter_init(struct res_counter *counter, struct res_counter *parent);
+ 
+ /*
+  * charge - try to consume more resource.
+@@ -103,7 +107,7 @@ void res_counter_init(struct res_counter
+ int __must_check res_counter_charge_locked(struct res_counter *counter,
+ 		unsigned long val);
+ int __must_check res_counter_charge(struct res_counter *counter,
+-		unsigned long val);
++		unsigned long val, struct res_counter **limit_fail_at);
+ 
+ /*
+  * uncharge - tell that some portion of the resource is released
+diff -puN kernel/res_counter.c~memory-cgroup-resource-counters-for-hierarchy-v4 kernel/res_counter.c
+--- a/kernel/res_counter.c~memory-cgroup-resource-counters-for-hierarchy-v4
++++ a/kernel/res_counter.c
+@@ -15,10 +15,11 @@
+ #include <linux/uaccess.h>
+ #include <linux/mm.h>
+ 
+-void res_counter_init(struct res_counter *counter)
++void res_counter_init(struct res_counter *counter, struct res_counter *parent)
  {
+ 	spin_lock_init(&counter->lock);
+ 	counter->limit = (unsigned long long)LLONG_MAX;
++	counter->parent = parent;
+ }
+ 
+ int res_counter_charge_locked(struct res_counter *counter, unsigned long val)
+@@ -34,14 +35,34 @@ int res_counter_charge_locked(struct res
  	return 0;
  }
-+
-+static inline bool mem_cgroup_disabled(void)
-+{
-+	return true;
-+}
- #endif /* CONFIG_CGROUP_MEM_CONT */
  
- #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_disabled mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-mem_cgroup_disabled
-+++ a/mm/memcontrol.c
-@@ -279,7 +279,7 @@ void mem_cgroup_del_lru_list(struct page
- 	struct mem_cgroup *mem;
- 	struct mem_cgroup_per_zone *mz;
- 
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return;
- 	pc = lookup_page_cgroup(page);
- 	/* can happen while we handle swapcache. */
-@@ -302,7 +302,7 @@ void mem_cgroup_rotate_lru_list(struct p
- 	struct mem_cgroup_per_zone *mz;
- 	struct page_cgroup *pc;
- 
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return;
- 
- 	pc = lookup_page_cgroup(page);
-@@ -319,7 +319,7 @@ void mem_cgroup_add_lru_list(struct page
- 	struct page_cgroup *pc;
- 	struct mem_cgroup_per_zone *mz;
- 
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return;
- 	pc = lookup_page_cgroup(page);
- 	/* barrier to sync with "charge" */
-@@ -344,7 +344,7 @@ static void mem_cgroup_lru_fixup(struct 
- void mem_cgroup_move_lists(struct page *page,
- 			   enum lru_list from, enum lru_list to)
+-int res_counter_charge(struct res_counter *counter, unsigned long val)
++int res_counter_charge(struct res_counter *counter, unsigned long val,
++			struct res_counter **limit_fail_at)
  {
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return;
- 	mem_cgroup_del_lru_list(page, from);
- 	mem_cgroup_add_lru_list(page, to);
-@@ -731,7 +731,7 @@ static int mem_cgroup_charge_common(stru
- int mem_cgroup_newpage_charge(struct page *page,
- 			      struct mm_struct *mm, gfp_t gfp_mask)
- {
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return 0;
- 	if (PageCompound(page))
- 		return 0;
-@@ -753,7 +753,7 @@ int mem_cgroup_newpage_charge(struct pag
- int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
- 				gfp_t gfp_mask)
- {
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return 0;
- 	if (PageCompound(page))
- 		return 0;
-@@ -799,7 +799,7 @@ int mem_cgroup_try_charge_swapin(struct 
- 	struct mem_cgroup *mem;
- 	swp_entry_t     ent;
+ 	int ret;
+ 	unsigned long flags;
++	struct res_counter *c, *u;
  
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return 0;
- 
- 	if (!do_swap_account)
-@@ -833,7 +833,7 @@ int mem_cgroup_cache_charge_swapin(struc
- {
- 	int ret = 0;
- 
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return 0;
- 	if (unlikely(!mm))
- 		mm = &init_mm;
-@@ -880,7 +880,7 @@ void mem_cgroup_commit_charge_swapin(str
- {
- 	struct page_cgroup *pc;
- 
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return;
- 	if (!ptr)
- 		return;
-@@ -909,7 +909,7 @@ void mem_cgroup_commit_charge_swapin(str
- 
- void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *mem)
- {
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return;
- 	if (!mem)
- 		return;
-@@ -930,7 +930,7 @@ __mem_cgroup_uncharge_common(struct page
- 	struct mem_cgroup *mem = NULL;
- 	struct mem_cgroup_per_zone *mz;
- 
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return NULL;
- 
- 	if (PageSwapCache(page))
-@@ -1049,7 +1049,7 @@ int mem_cgroup_prepare_migration(struct 
- 	struct mem_cgroup *mem = NULL;
- 	int ret = 0;
- 
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return 0;
- 
- 	pc = lookup_page_cgroup(page);
-@@ -1131,7 +1131,7 @@ int mem_cgroup_shrink_usage(struct mm_st
- 	int progress = 0;
- 	int retry = MEM_CGROUP_RECLAIM_RETRIES;
- 
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return 0;
- 	if (!mm)
- 		return 0;
-@@ -1697,7 +1697,7 @@ static void mem_cgroup_put(struct mem_cg
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- static void __init enable_swap_cgroup(void)
- {
--	if (!mem_cgroup_subsys.disabled && really_do_swap_account)
-+	if (!mem_cgroup_disabled() && really_do_swap_account)
- 		do_swap_account = 1;
+-	spin_lock_irqsave(&counter->lock, flags);
+-	ret = res_counter_charge_locked(counter, val);
+-	spin_unlock_irqrestore(&counter->lock, flags);
++	*limit_fail_at = NULL;
++	local_irq_save(flags);
++	for (c = counter; c != NULL; c = c->parent) {
++		spin_lock(&c->lock);
++		ret = res_counter_charge_locked(c, val);
++		spin_unlock(&c->lock);
++		if (ret < 0) {
++			*limit_fail_at = c;
++			goto undo;
++		}
++	}
++	ret = 0;
++	goto done;
++undo:
++	for (u = counter; u != c; u = u->parent) {
++		spin_lock(&u->lock);
++		res_counter_uncharge_locked(u, val);
++		spin_unlock(&u->lock);
++	}
++done:
++	local_irq_restore(flags);
+ 	return ret;
  }
- #else
-diff -puN mm/page_cgroup.c~memcg-add-mem_cgroup_disabled mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-add-mem_cgroup_disabled
-+++ a/mm/page_cgroup.c
-@@ -74,7 +74,7 @@ void __init page_cgroup_init(void)
  
- 	int nid, fail;
+@@ -56,10 +77,15 @@ void res_counter_uncharge_locked(struct 
+ void res_counter_uncharge(struct res_counter *counter, unsigned long val)
+ {
+ 	unsigned long flags;
++	struct res_counter *c;
  
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return;
+-	spin_lock_irqsave(&counter->lock, flags);
+-	res_counter_uncharge_locked(counter, val);
+-	spin_unlock_irqrestore(&counter->lock, flags);
++	local_irq_save(flags);
++	for (c = counter; c != NULL; c = c->parent) {
++		spin_lock(&c->lock);
++		res_counter_uncharge_locked(c, val);
++		spin_unlock(&c->lock);
++	}
++	local_irq_restore(flags);
+ }
  
- 	for_each_online_node(nid)  {
-@@ -247,7 +247,7 @@ void __init page_cgroup_init(void)
- 	unsigned long pfn;
- 	int fail = 0;
  
--	if (mem_cgroup_subsys.disabled)
-+	if (mem_cgroup_disabled())
- 		return;
+diff -puN mm/memcontrol.c~memory-cgroup-resource-counters-for-hierarchy-v4 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-resource-counters-for-hierarchy-v4
++++ a/mm/memcontrol.c
+@@ -471,6 +471,7 @@ static int __mem_cgroup_try_charge(struc
+ {
+ 	struct mem_cgroup *mem;
+ 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
++	struct res_counter *fail_res;
+ 	/*
+ 	 * We always charge the cgroup the mm_struct belongs to.
+ 	 * The mm_struct's mem_cgroup changes on task migration if the
+@@ -499,11 +500,12 @@ static int __mem_cgroup_try_charge(struc
+ 		int ret;
+ 		bool noswap = false;
  
- 	for (pfn = 0; !fail && pfn < max_pfn; pfn += PAGES_PER_SECTION) {
-_
-
-Patches currently in -mm which might be from taka@valinux.co.jp are
-
-origin.patch
-
+-		ret = res_counter_charge(&mem->res, PAGE_SIZE);
++		ret = res_counter_charge(&mem->res, PAGE_SIZE, &fail_res);
+ 		if (likely(!ret)) {
+ 			if (!do_swap_account)
+ 				break;
+-			ret = res_counter_charge(&mem->memsw, PAGE_SIZE);
++			ret = res_counter_charge(&mem->memsw, PAGE_SIZE,
++							&fail_res);
+ 			if (likely(!ret))
+ 				break;
+ 			/* mem+swap counter fails */
+@@ -1709,22 +1711,26 @@ static void __init enable_swap_cgroup(vo
+ static struct cgroup_subsys_state *
+ mem_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
+ {
+-	struct mem_cgroup *mem;
++	struct mem_cgroup *mem, *parent;
+ 	int node;
+ 
+ 	mem = mem_cgroup_alloc();
+ 	if (!mem)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	res_counter_init(&mem->res);
+-	res_counter_init(&mem->memsw);
