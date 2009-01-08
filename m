@@ -1,192 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-avoid-unnecessary-system-wide-oom-killer.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:48:47 -0800
-Message-ID: <200901082248.n08MmlY1028094@imap1.linux-foundation.org>
+Subject: - memcg-remove-mem_cgroup_cal_reclaim.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:49:18 -0800
+Message-ID: <200901082249.n08MnI16028597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762877AbZAHW7D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:59:03 -0500
+	by vger.kernel.org with ESMTP id S1763266AbZAHW7M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:59:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, jblunck@suse.de, lizf@cn.fujitsu.com, nickpiggin@yahoo.com.au, nishimura@mxp.nes.nec.co.jp, pbadari@us.ibm.com, taka@valinux.co.jp
+To: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kamezawa.hiroyu@redhat.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: avoid unnecessary system-wide-oom-killer
+     memcg: remove mem_cgroup_cal_reclaim()
 has been removed from the -mm tree.  Its filename was
-     memcg-avoid-unnecessary-system-wide-oom-killer.patch
+     memcg-remove-mem_cgroup_cal_reclaim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: avoid unnecessary system-wide-oom-killer
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: remove mem_cgroup_cal_reclaim()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Current mmtom has new oom function as pagefault_out_of_memory().  It's
-added for select bad process rathar than killing current.
+Now, get_scan_ratio() return correct value although memcg reclaim.  Then,
+mem_cgroup_calc_reclaim() can be removed.
 
-When memcg hit limit and calls OOM at page_fault, this handler called and
-system-wide-oom handling happens.  (means kernel panics if panic_on_oom is
-true....)
+So, memcg reclaim get the same capability of anon/file reclaim balancing
+as global reclaim now.
 
-To avoid overkill, check memcg's recent behavior before starting
-system-wide-oom.
-
-And this patch also fixes to guarantee "don't accnout against process with
-TIF_MEMDIE".  This is necessary for smooth OOM.
-
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Jan Blunck <jblunck@suse.de>
-Cc: Hirokazu Takahashi <taka@valinux.co.jp>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 +++++++
- mm/memcontrol.c            |   33 +++++++++++++++++++++++++++++----
- mm/oom_kill.c              |    8 ++++++++
- 3 files changed, 44 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |   10 ----------
+ mm/memcontrol.c            |   21 ---------------------
+ mm/vmscan.c                |   27 ++++++++++-----------------
+ 3 files changed, 10 insertions(+), 48 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-avoid-unnecessary-system-wide-oom-killer include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-avoid-unnecessary-system-wide-oom-killer
+diff -puN include/linux/memcontrol.h~memcg-remove-mem_cgroup_cal_reclaim include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-remove-mem_cgroup_cal_reclaim
 +++ a/include/linux/memcontrol.h
-@@ -102,6 +102,8 @@ static inline bool mem_cgroup_disabled(v
- 	return false;
+@@ -97,9 +97,6 @@ extern void mem_cgroup_note_reclaim_prio
+ 							int priority);
+ extern void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
+ 							int priority);
+-
+-extern long mem_cgroup_calc_reclaim(struct mem_cgroup *mem, struct zone *zone,
+-					int priority, enum lru_list lru);
+ int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg,
+ 				    struct zone *zone);
+ unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
+@@ -244,13 +241,6 @@ static inline void mem_cgroup_record_rec
+ {
  }
  
-+extern bool mem_cgroup_oom_called(struct task_struct *task);
-+
- #else /* CONFIG_CGROUP_MEM_RES_CTLR */
- struct mem_cgroup;
- 
-@@ -234,6 +236,11 @@ static inline bool mem_cgroup_disabled(v
+-static inline long mem_cgroup_calc_reclaim(struct mem_cgroup *mem,
+-					struct zone *zone, int priority,
+-					enum lru_list lru)
+-{
+-	return 0;
+-}
+-
+ static inline bool mem_cgroup_disabled(void)
  {
  	return true;
- }
-+
-+static inline bool mem_cgroup_oom_called(struct task_struct *task)
-+{
-+	return false;
-+}
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/memcontrol.c~memcg-avoid-unnecessary-system-wide-oom-killer mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-avoid-unnecessary-system-wide-oom-killer
+diff -puN mm/memcontrol.c~memcg-remove-mem_cgroup_cal_reclaim mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-mem_cgroup_cal_reclaim
 +++ a/mm/memcontrol.c
-@@ -153,7 +153,7 @@ struct mem_cgroup {
- 	 * Should the accounting and control be hierarchical, per subtree?
- 	 */
- 	bool use_hierarchy;
+@@ -414,27 +414,6 @@ void mem_cgroup_record_reclaim_priority(
+ 	mem->prev_priority = priority;
+ }
+ 
+-/*
+- * Calculate # of pages to be scanned in this priority/zone.
+- * See also vmscan.c
+- *
+- * priority starts from "DEF_PRIORITY" and decremented in each loop.
+- * (see include/linux/mmzone.h)
+- */
 -
-+	unsigned long	last_oom_jiffies;
- 	int		obsolete;
- 	atomic_t	refcnt;
- 	/*
-@@ -615,6 +615,22 @@ static int mem_cgroup_hierarchical_recla
- 	return ret;
- }
+-long mem_cgroup_calc_reclaim(struct mem_cgroup *mem, struct zone *zone,
+-					int priority, enum lru_list lru)
+-{
+-	long nr_pages;
+-	int nid = zone->zone_pgdat->node_id;
+-	int zid = zone_idx(zone);
+-	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(mem, nid, zid);
+-
+-	nr_pages = MEM_CGROUP_ZSTAT(mz, lru);
+-
+-	return (nr_pages >> priority);
+-}
+-
+ int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg, struct zone *zone)
+ {
+ 	unsigned long active;
+diff -puN mm/vmscan.c~memcg-remove-mem_cgroup_cal_reclaim mm/vmscan.c
+--- a/mm/vmscan.c~memcg-remove-mem_cgroup_cal_reclaim
++++ a/mm/vmscan.c
+@@ -1466,30 +1466,23 @@ static void shrink_zone(int priority, st
+ 	get_scan_ratio(zone, sc, percent);
  
-+bool mem_cgroup_oom_called(struct task_struct *task)
-+{
-+	bool ret = false;
-+	struct mem_cgroup *mem;
-+	struct mm_struct *mm;
-+
-+	rcu_read_lock();
-+	mm = task->mm;
-+	if (!mm)
-+		mm = &init_mm;
-+	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
-+	if (mem && time_before(jiffies, mem->last_oom_jiffies + HZ/10))
-+		ret = true;
-+	rcu_read_unlock();
-+	return ret;
-+}
- /*
-  * Unlike exported interface, "oom" parameter is added. if oom==true,
-  * oom-killer can be invoked.
-@@ -626,6 +642,13 @@ static int __mem_cgroup_try_charge(struc
- 	struct mem_cgroup *mem, *mem_over_limit;
- 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
- 	struct res_counter *fail_res;
-+
-+	if (unlikely(test_thread_flag(TIF_MEMDIE))) {
-+		/* Don't account this! */
-+		*memcg = NULL;
-+		return 0;
-+	}
-+
- 	/*
- 	 * We always charge the cgroup the mm_struct belongs to.
- 	 * The mm_struct's mem_cgroup changes on task migration if the
-@@ -694,8 +717,10 @@ static int __mem_cgroup_try_charge(struc
- 			continue;
+ 	for_each_evictable_lru(l) {
+-		if (scan_global_lru(sc)) {
+-			int file = is_file_lru(l);
+-			int scan;
++		int file = is_file_lru(l);
++		int scan;
  
- 		if (!nr_retries--) {
--			if (oom)
-+			if (oom) {
- 				mem_cgroup_out_of_memory(mem, gfp_mask);
-+				mem->last_oom_jiffies = jiffies;
-+			}
- 			goto nomem;
- 		}
+-			scan = zone_page_state(zone, NR_LRU_BASE + l);
+-			if (priority) {
+-				scan >>= priority;
+-				scan = (scan * percent[file]) / 100;
+-			}
++		scan = zone_page_state(zone, NR_LRU_BASE + l);
++		if (priority) {
++			scan >>= priority;
++			scan = (scan * percent[file]) / 100;
++		}
++		if (scan_global_lru(sc)) {
+ 			zone->lru[l].nr_scan += scan;
+ 			nr[l] = zone->lru[l].nr_scan;
+ 			if (nr[l] >= swap_cluster_max)
+ 				zone->lru[l].nr_scan = 0;
+ 			else
+ 				nr[l] = 0;
+-		} else {
+-			/*
+-			 * This reclaim occurs not because zone memory shortage
+-			 * but because memory controller hits its limit.
+-			 * Don't modify zone reclaim related data.
+-			 */
+-			nr[l] = mem_cgroup_calc_reclaim(sc->mem_cgroup, zone,
+-								priority, l);
+-		}
++		} else
++			nr[l] = scan;
  	}
-@@ -832,7 +857,7 @@ static int mem_cgroup_move_parent(struct
  
- 
- 	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false);
--	if (ret)
-+	if (ret || !parent)
- 		return ret;
- 
- 	if (!get_page_unless_zero(page))
-@@ -883,7 +908,7 @@ static int mem_cgroup_charge_common(stru
- 
- 	mem = memcg;
- 	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, true);
--	if (ret)
-+	if (ret || !mem)
- 		return ret;
- 
- 	__mem_cgroup_commit_charge(mem, pc, ctype);
-diff -puN mm/oom_kill.c~memcg-avoid-unnecessary-system-wide-oom-killer mm/oom_kill.c
---- a/mm/oom_kill.c~memcg-avoid-unnecessary-system-wide-oom-killer
-+++ a/mm/oom_kill.c
-@@ -560,6 +560,13 @@ void pagefault_out_of_memory(void)
- 		/* Got some memory back in the last second. */
- 		return;
- 
-+	/*
-+	 * If this is from memcg, oom-killer is already invoked.
-+	 * and not worth to go system-wide-oom.
-+	 */
-+	if (mem_cgroup_oom_called(current))
-+		goto rest_and_return;
-+
- 	if (sysctl_panic_on_oom)
- 		panic("out of memory from page fault. panic_on_oom is selected.\n");
- 
-@@ -571,6 +578,7 @@ void pagefault_out_of_memory(void)
- 	 * Give "p" a good chance of killing itself before we
- 	 * retry to allocate memory.
- 	 */
-+rest_and_return:
- 	if (!test_thread_flag(TIF_MEMDIE))
- 		schedule_timeout_uninterruptible(1);
- }
+ 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
