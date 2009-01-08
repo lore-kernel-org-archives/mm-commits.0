@@ -1,79 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - cpuset-remove-on-stack-cpumask_t-in-cpuset_can_attach.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:50:10 -0800
-Message-ID: <200901082250.n08MoA65029391@imap1.linux-foundation.org>
+Subject: - dcdbas-export-functionality-for-use-in-other-drivers.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:50:34 -0800
+Message-ID: <200901082250.n08MoYiS029727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41309 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763053AbZAHW7E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:59:04 -0500
+	by vger.kernel.org with ESMTP id S1763385AbZAHW7q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:59:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, lizf@cn.fujistu.com, menage@google.com, mingo@elte.hu, rusty@rustcorp.com.au, travis@sgi.com, mm-commits@vger.kernel.org
+To: mjg59@srcf.ucam.org, Matt_Domsch@dell.com, greg@kroah.com, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset: remove on stack cpumask_t in cpuset_can_attach()
+     dcdbas: export functionality for use in other drivers
 has been removed from the -mm tree.  Its filename was
-     cpuset-remove-on-stack-cpumask_t-in-cpuset_can_attach.patch
+     dcdbas-export-functionality-for-use-in-other-drivers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: remove on stack cpumask_t in cpuset_can_attach()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: dcdbas: export functionality for use in other drivers
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-Impact: redue stack usage
+The dcdbas code allows calls to be made into the firmware on Dell systems.
+ Exporting this to other drivers allows them to implement Dell-specific
+functionality in a safe way.
 
-Just use cs->cpus_allowed, and no need to allocate a cpumask_var_t.
-
-Signed-off-by: Li Zefan <lizf@cn.fujistu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Mike Travis <travis@sgi.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/firmware/dcdbas.c |    9 +++++----
+ drivers/firmware/dcdbas.h |    2 ++
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-remove-on-stack-cpumask_t-in-cpuset_can_attach kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-remove-on-stack-cpumask_t-in-cpuset_can_attach
-+++ a/kernel/cpuset.c
-@@ -1311,20 +1311,19 @@ static int cpuset_can_attach(struct cgro
- 			     struct cgroup *cont, struct task_struct *tsk)
- {
- 	struct cpuset *cs = cgroup_cs(cont);
-+	int ret = 0;
- 
- 	if (cpus_empty(cs->cpus_allowed) || nodes_empty(cs->mems_allowed))
- 		return -ENOSPC;
--	if (tsk->flags & PF_THREAD_BOUND) {
--		cpumask_t mask;
- 
-+	if (tsk->flags & PF_THREAD_BOUND) {
- 		mutex_lock(&callback_mutex);
--		mask = cs->cpus_allowed;
-+		if (!cpus_equal(tsk->cpus_allowed, cs->cpus_allowed))
-+			ret = -EINVAL;
- 		mutex_unlock(&callback_mutex);
--		if (!cpus_equal(tsk->cpus_allowed, mask))
--			return -EINVAL;
- 	}
- 
--	return security_task_setscheduler(tsk, 0, NULL);
-+	return ret < 0 ? ret : security_task_setscheduler(tsk, 0, NULL);
+diff -puN drivers/firmware/dcdbas.c~dcdbas-export-functionality-for-use-in-other-drivers drivers/firmware/dcdbas.c
+--- a/drivers/firmware/dcdbas.c~dcdbas-export-functionality-for-use-in-other-drivers
++++ a/drivers/firmware/dcdbas.c
+@@ -238,11 +238,11 @@ static ssize_t host_control_on_shutdown_
  }
  
- static void cpuset_attach(struct cgroup_subsys *ss,
+ /**
+- * smi_request: generate SMI request
++ * dcdbas_smi_request: generate SMI request
+  *
+  * Called with smi_data_lock.
+  */
+-static int smi_request(struct smi_cmd *smi_cmd)
++int dcdbas_smi_request(struct smi_cmd *smi_cmd)
+ {
+ 	cpumask_t old_mask;
+ 	int ret = 0;
+@@ -309,14 +309,14 @@ static ssize_t smi_request_store(struct 
+ 	switch (val) {
+ 	case 2:
+ 		/* Raw SMI */
+-		ret = smi_request(smi_cmd);
++		ret = dcdbas_smi_request(smi_cmd);
+ 		if (!ret)
+ 			ret = count;
+ 		break;
+ 	case 1:
+ 		/* Calling Interface SMI */
+ 		smi_cmd->ebx = (u32) virt_to_phys(smi_cmd->command_buffer);
+-		ret = smi_request(smi_cmd);
++		ret = dcdbas_smi_request(smi_cmd);
+ 		if (!ret)
+ 			ret = count;
+ 		break;
+@@ -333,6 +333,7 @@ out:
+ 	mutex_unlock(&smi_data_lock);
+ 	return ret;
+ }
++EXPORT_SYMBOL(dcdbas_smi_request);
+ 
+ /**
+  * host_control_smi: generate host control SMI
+diff -puN drivers/firmware/dcdbas.h~dcdbas-export-functionality-for-use-in-other-drivers drivers/firmware/dcdbas.h
+--- a/drivers/firmware/dcdbas.h~dcdbas-export-functionality-for-use-in-other-drivers
++++ a/drivers/firmware/dcdbas.h
+@@ -101,5 +101,7 @@ struct apm_cmd {
+ 	} __attribute__ ((packed)) parameters;
+ } __attribute__ ((packed));
+ 
++int dcdbas_smi_request(struct smi_cmd *smi_cmd);
++
+ #endif /* _DCDBAS_H_ */
+ 
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
 origin.patch
-linux-next.patch
+eeepc-laptop-enable-bluetooth-for-asus-eee-901.patch
+misc-add-dell-wmi-driver-for-hotkey-control.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
+video-mbp_nvidia_bl-add-a-debug-switch.patch
+hp-wmi-handle-rfkill_register-failure.patch
 
