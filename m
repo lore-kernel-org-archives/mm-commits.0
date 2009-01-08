@@ -1,74 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:47:40 -0800
-Message-ID: <200901082247.n08MledH027097@imap1.linux-foundation.org>
+Subject: - x86-provide-_sdata-in-the-vmlinux_ldss-files.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:46:10 -0800
+Message-ID: <200901082246.n08MkANQ025699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49602 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37054 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763526AbZAHWvU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:20 -0500
+	by vger.kernel.org with ESMTP id S1756042AbZAHWvY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: remove rcu_read_lock() in cgroupstats_build()
+     x86: provide _sdata in the vmlinux_*.lds.S files
 has been removed from the -mm tree.  Its filename was
-     cgroups-remove-rcu_read_lock-in-cgroupstats_build.patch
+     x86-provide-_sdata-in-the-vmlinux_ldss-files.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: remove rcu_read_lock() in cgroupstats_build()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: x86: provide _sdata in the vmlinux_*.lds.S files
+From: Catalin Marinas <catalin.marinas@arm.com>
 
-cgroup_iter_* do not need rcu_read_lock().
+_sdata is a common symbol defined by many architectures and made available
+to the kernel via asm-generic/sections.h.  Kmemleak uses this symbol when
+scanning the data sections.
 
-In cgroup_enable_task_cg_lists(), do_each_thread() and while_each_thread()
-are protected by RCU, it's OK, for write_lock(&css_set_lock) implies
-rcu_read_lock() in non-RT kernel.
-
-If we need explicit rcu_read_lock(), we should add rcu_read_lock() in
-cgroup_enable_task_cg_lists(), not cgroup_iter_*.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/x86/kernel/vmlinux_32.lds.S |    1 +
+ arch/x86/kernel/vmlinux_64.lds.S |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN kernel/cgroup.c~cgroups-remove-rcu_read_lock-in-cgroupstats_build kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-remove-rcu_read_lock-in-cgroupstats_build
-+++ a/kernel/cgroup.c
-@@ -2055,7 +2055,6 @@ int cgroupstats_build(struct cgroupstats
+diff -puN arch/x86/kernel/vmlinux_32.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files arch/x86/kernel/vmlinux_32.lds.S
+--- a/arch/x86/kernel/vmlinux_32.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files
++++ a/arch/x86/kernel/vmlinux_32.lds.S
+@@ -63,6 +63,7 @@ SECTIONS
  
- 	ret = 0;
- 	cgrp = dentry->d_fsdata;
--	rcu_read_lock();
+   /* writeable */
+   . = ALIGN(PAGE_SIZE);
++  _sdata = .;			/* Start of data section */
+   .data : AT(ADDR(.data) - LOAD_OFFSET) {	/* Data */
+ 	DATA_DATA
+ 	CONSTRUCTORS
+diff -puN arch/x86/kernel/vmlinux_64.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files arch/x86/kernel/vmlinux_64.lds.S
+--- a/arch/x86/kernel/vmlinux_64.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files
++++ a/arch/x86/kernel/vmlinux_64.lds.S
+@@ -53,6 +53,7 @@ SECTIONS
+   RODATA
  
- 	cgroup_iter_start(cgrp, &it);
- 	while ((tsk = cgroup_iter_next(cgrp, &it))) {
-@@ -2080,7 +2079,6 @@ int cgroupstats_build(struct cgroupstats
- 	}
- 	cgroup_iter_end(cgrp, &it);
- 
--	rcu_read_unlock();
- err:
- 	return ret;
- }
+   . = ALIGN(PAGE_SIZE);		/* Align data segment to page size boundary */
++  _sdata = .;			/* Start of data section */
+ 				/* Data */
+   .data : AT(ADDR(.data) - LOAD_OFFSET) {
+ 	DATA_DATA
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
 origin.patch
-linux-next.patch
+x86-provide-_sdata-in-the-vmlinux_ldss-files.patch
+arm-provide-_sdata-and-__bss_stop-in-the-vmlinuxldss-file.patch
+kmemleak-remove-some-of-the-kmemleak-false-positives.patch
+kmemleak-enable-the-building-of-the-memory-leak-detector.patch
+kmemleak-simple-testing-module-for-kmemleak.patch
+kmemleak-add-the-corresponding-maintainers-entry.patch
 
