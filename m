@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-trace-ring_bufferc-use-div_round_up.patch added to -mm tree
-Date: Wed, 07 Jan 2009 21:29:22 -0800
-Message-ID: <200901080529.n085TM7t015825@imap1.linux-foundation.org>
+Subject: + kernel-trace-ring_bufferc-reduce-inlining.patch added to -mm tree
+Date: Wed, 07 Jan 2009 21:29:20 -0800
+Message-ID: <200901080529.n085TKaG015772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751474AbZAHF3g (ORCPT
+	by vger.kernel.org with ESMTP id S1751469AbZAHF3g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 00:29:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org
 
 
 The patch titled
-     kernel/trace/ring_buffer.c: use DIV_ROUND_UP
+     kernel/trace/ring_buffer.c: reduce inlining
 has been added to the -mm tree.  Its filename is
-     kernel-trace-ring_bufferc-use-div_round_up.patch
+     kernel-trace-ring_bufferc-reduce-inlining.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/trace/ring_buffer.c: use DIV_ROUND_UP
+Subject: kernel/trace/ring_buffer.c: reduce inlining
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Instead of open-coding it.
+          text    data     bss     dec     hex filename
+before:  11320     228       8   11556    2d24 kernel/trace/ring_buffer.o
+after:   10592     228       8   10828    2a4c kernel/trace/ring_buffer.o
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Also: free_page(0) is legal.
+
 Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/ring_buffer.c |   17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
+ kernel/trace/ring_buffer.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN kernel/trace/ring_buffer.c~kernel-trace-ring_bufferc-use-div_round_up kernel/trace/ring_buffer.c
---- a/kernel/trace/ring_buffer.c~kernel-trace-ring_bufferc-use-div_round_up
+diff -puN kernel/trace/ring_buffer.c~kernel-trace-ring_bufferc-reduce-inlining kernel/trace/ring_buffer.c
+--- a/kernel/trace/ring_buffer.c~kernel-trace-ring_bufferc-reduce-inlining
 +++ a/kernel/trace/ring_buffer.c
-@@ -123,8 +123,7 @@ void ring_buffer_normalize_time_stamp(in
- EXPORT_SYMBOL_GPL(ring_buffer_normalize_time_stamp);
+@@ -133,7 +133,7 @@ enum {
+ };
  
- #define RB_EVNT_HDR_SIZE (sizeof(struct ring_buffer_event))
--#define RB_ALIGNMENT_SHIFT	2
--#define RB_ALIGNMENT		(1 << RB_ALIGNMENT_SHIFT)
-+#define RB_ALIGNMENT		4U
- #define RB_MAX_SMALL_DATA	28
+ /* inline for ring buffer fast paths */
+-static inline unsigned
++static unsigned
+ rb_event_length(struct ring_buffer_event *event)
+ {
+ 	unsigned length;
+@@ -173,7 +173,7 @@ unsigned ring_buffer_event_length(struct
+ EXPORT_SYMBOL_GPL(ring_buffer_event_length);
  
- enum {
-@@ -151,7 +150,7 @@ rb_event_length(struct ring_buffer_event
+ /* inline for ring buffer fast paths */
+-static inline void *
++static void *
+ rb_event_data(struct ring_buffer_event *event)
+ {
+ 	BUG_ON(event->type != RINGBUF_TYPE_DATA);
+@@ -223,10 +223,9 @@ static void rb_init_page(struct buffer_d
+  * Also stolen from mm/slob.c. Thanks to Mathieu Desnoyers for pointing
+  * this issue out.
+  */
+-static inline void free_buffer_page(struct buffer_page *bpage)
++static void free_buffer_page(struct buffer_page *bpage)
+ {
+-	if (bpage->page)
+-		free_page((unsigned long)bpage->page);
++	free_page((unsigned long)bpage->page);
+ 	kfree(bpage);
+ }
  
- 	case RINGBUF_TYPE_DATA:
- 		if (event->len)
--			length = event->len << RB_ALIGNMENT_SHIFT;
-+			length = event->len / RB_ALIGNMENT;
- 		else
- 			length = event->array[0];
- 		return length + RB_EVNT_HDR_SIZE;
-@@ -931,15 +930,11 @@ rb_update_event(struct ring_buffer_event
- 		break;
+@@ -805,7 +804,7 @@ rb_event_index(struct ring_buffer_event 
+ 	return (addr & ~PAGE_MASK) - (PAGE_SIZE - BUF_PAGE_SIZE);
+ }
  
- 	case RINGBUF_TYPE_TIME_EXTEND:
--		event->len =
--			(RB_LEN_TIME_EXTEND + (RB_ALIGNMENT-1))
--			>> RB_ALIGNMENT_SHIFT;
-+		event->len = DIV_ROUND_UP(RB_LEN_TIME_EXTEND, RB_ALIGNMENT);
- 		break;
+-static inline int
++static int
+ rb_is_commit(struct ring_buffer_per_cpu *cpu_buffer,
+ 	     struct ring_buffer_event *event)
+ {
+@@ -819,7 +818,7 @@ rb_is_commit(struct ring_buffer_per_cpu 
+ 		rb_commit_index(cpu_buffer) == index;
+ }
  
- 	case RINGBUF_TYPE_TIME_STAMP:
--		event->len =
--			(RB_LEN_TIME_STAMP + (RB_ALIGNMENT-1))
--			>> RB_ALIGNMENT_SHIFT;
-+		event->len = DIV_ROUND_UP(RB_LEN_TIME_STAMP, RB_ALIGNMENT);
- 		break;
+-static inline void
++static void
+ rb_set_commit_event(struct ring_buffer_per_cpu *cpu_buffer,
+ 		    struct ring_buffer_event *event)
+ {
+@@ -844,7 +843,7 @@ rb_set_commit_event(struct ring_buffer_p
+ 	local_set(&cpu_buffer->commit_page->page->commit, index);
+ }
  
- 	case RINGBUF_TYPE_DATA:
-@@ -948,9 +943,7 @@ rb_update_event(struct ring_buffer_event
- 			event->len = 0;
- 			event->array[0] = length;
- 		} else
--			event->len =
--				(length + (RB_ALIGNMENT-1))
--				>> RB_ALIGNMENT_SHIFT;
-+			event->len = DIV_ROUND_UP(length, RB_ALIGNMENT);
- 		break;
- 	default:
- 		BUG();
+-static inline void
++static void
+ rb_set_commit_to_write(struct ring_buffer_per_cpu *cpu_buffer)
+ {
+ 	/*
+@@ -890,7 +889,7 @@ static void rb_reset_reader_page(struct 
+ 	cpu_buffer->reader_page->read = 0;
+ }
+ 
+-static inline void rb_inc_iter(struct ring_buffer_iter *iter)
++static void rb_inc_iter(struct ring_buffer_iter *iter)
+ {
+ 	struct ring_buffer_per_cpu *cpu_buffer = iter->cpu_buffer;
+ 
+@@ -920,7 +919,7 @@ static inline void rb_inc_iter(struct ri
+  * and with this, we can determine what to place into the
+  * data field.
+  */
+-static inline void
++static void
+ rb_update_event(struct ring_buffer_event *event,
+ 			 unsigned type, unsigned length)
+ {
+@@ -958,7 +957,7 @@ rb_update_event(struct ring_buffer_event
+ 	}
+ }
+ 
+-static inline unsigned rb_calculate_event_length(unsigned length)
++static unsigned rb_calculate_event_length(unsigned length)
+ {
+ 	struct ring_buffer_event event; /* Used only for sizeof array */
+ 
+@@ -1432,7 +1431,7 @@ int ring_buffer_write(struct ring_buffer
+ }
+ EXPORT_SYMBOL_GPL(ring_buffer_write);
+ 
+-static inline int rb_per_cpu_empty(struct ring_buffer_per_cpu *cpu_buffer)
++static int rb_per_cpu_empty(struct ring_buffer_per_cpu *cpu_buffer)
+ {
+ 	struct buffer_page *reader = cpu_buffer->reader_page;
+ 	struct buffer_page *head = cpu_buffer->head_page;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
