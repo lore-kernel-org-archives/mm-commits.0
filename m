@@ -1,67 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:47:28 -0800
-Message-ID: <200901082247.n08MlSxN026917@imap1.linux-foundation.org>
+Subject: - rtc-ds1307-remove-legacy-probe-checks.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:46:47 -0800
+Message-ID: <200901082246.n08MklgE026298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763508AbZAHWsJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:09 -0500
+	by vger.kernel.org with ESMTP id S1763118AbZAHWs1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: juri.reitel@liewenthal.ee, a.zummo@towertech.it, dbrownell@users.sourceforge.net, giometti@enneenne.com, khali@linux-fr.org, sbarre@sdelcc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: add lock for child->cgroups in cgroup_post_fork()
+     rtc-ds1307: remove legacy probe() checks
 has been removed from the -mm tree.  Its filename was
-     cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork.patch
+     rtc-ds1307-remove-legacy-probe-checks.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: cgroups: add lock for child->cgroups in cgroup_post_fork()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: rtc-ds1307: remove legacy probe() checks
+=46rom: J=FCri Reitel <juri.reitel@liewenthal.ee>
 
-When cgroup_post_fork() is called, child is seen by find_task_by_vpid(),
-so child->cgroups maybe be changed, It'll incorrect.
+Remove RTC register value checks from the rtc-ds1307 probe() function.=20
+They were left over from the legacy style I2C driver, which had to defe=
+nd
+against finding a non-RTC chip when the driver was probed.
 
-child->cgroups<old>'s refcnt is decreased
-child->cgroups<new>'s refcnt is increased
-but child->cg_list is added to child->cgroups<old>'s list.
+Also fix a minor glitch in the alarm support: DS1307 chips don't have
+alarms, so name those methods after one of the chips which actually *do=
+*
+have alarms (DS1337).
 
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Reviewed-by: Paul Menage <menage@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: J=FCri Reitel <juri.reitel@liewenthal.ee>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Sebastien Barre <sbarre@sdelcc.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-ds1307.c |   31 ++++---------------------------
+ 1 file changed, 4 insertions(+), 27 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-add-lock-for-child-cgroups-in-cgroup_post_fork
-+++ a/kernel/cgroup.c
-@@ -2792,8 +2792,10 @@ void cgroup_post_fork(struct task_struct
- {
- 	if (use_task_css_set_links) {
- 		write_lock(&css_set_lock);
-+		task_lock(child);
- 		if (list_empty(&child->cg_list))
- 			list_add(&child->cg_list, &child->cgroups->tasks);
-+		task_unlock(child);
- 		write_unlock(&css_set_lock);
- 	}
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-remove-legacy-probe-check=
+s drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-remove-legacy-probe-checks
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -287,7 +287,7 @@ static int ds1307_set_time(struct device
+ 	return 0;
  }
+=20
+-static int ds1307_read_alarm(struct device *dev, struct rtc_wkalrm *t)
++static int ds1337_read_alarm(struct device *dev, struct rtc_wkalrm *t)
+ {
+ 	struct i2c_client       *client =3D to_i2c_client(dev);
+ 	struct ds1307		*ds1307 =3D i2c_get_clientdata(client);
+@@ -338,7 +338,7 @@ static int ds1307_read_alarm(struct devi
+ 	return 0;
+ }
+=20
+-static int ds1307_set_alarm(struct device *dev, struct rtc_wkalrm *t)
++static int ds1337_set_alarm(struct device *dev, struct rtc_wkalrm *t)
+ {
+ 	struct i2c_client       *client =3D to_i2c_client(dev);
+ 	struct ds1307		*ds1307 =3D i2c_get_clientdata(client);
+@@ -452,8 +452,8 @@ static int ds1307_ioctl(struct device *d
+ static const struct rtc_class_ops ds13xx_rtc_ops =3D {
+ 	.read_time	=3D ds1307_get_time,
+ 	.set_time	=3D ds1307_set_time,
+-	.read_alarm	=3D ds1307_read_alarm,
+-	.set_alarm	=3D ds1307_set_alarm,
++	.read_alarm	=3D ds1337_read_alarm,
++	.set_alarm	=3D ds1337_set_alarm,
+ 	.ioctl		=3D ds1307_ioctl,
+ };
+=20
+@@ -654,22 +654,6 @@ read_rtc:
+ 		break;
+ 	}
+=20
+-	tmp =3D ds1307->regs[DS1307_REG_SECS];
+-	tmp =3D bcd2bin(tmp & 0x7f);
+-	if (tmp > 60)
+-		goto exit_bad;
+-	tmp =3D bcd2bin(ds1307->regs[DS1307_REG_MIN] & 0x7f);
+-	if (tmp > 60)
+-		goto exit_bad;
+-
+-	tmp =3D bcd2bin(ds1307->regs[DS1307_REG_MDAY] & 0x3f);
+-	if (tmp =3D=3D 0 || tmp > 31)
+-		goto exit_bad;
+-
+-	tmp =3D bcd2bin(ds1307->regs[DS1307_REG_MONTH] & 0x1f);
+-	if (tmp =3D=3D 0 || tmp > 12)
+-		goto exit_bad;
+-
+ 	tmp =3D ds1307->regs[DS1307_REG_HOUR];
+ 	switch (ds1307->type) {
+ 	case ds_1340:
+@@ -726,13 +710,6 @@ read_rtc:
+=20
+ 	return 0;
+=20
+-exit_bad:
+-	dev_dbg(&client->dev, "%s: %02x %02x %02x %02x %02x %02x %02x\n",
+-			"bogus register",
+-			ds1307->regs[0], ds1307->regs[1],
+-			ds1307->regs[2], ds1307->regs[3],
+-			ds1307->regs[4], ds1307->regs[5],
+-			ds1307->regs[6]);
+ exit_irq:
+ 	if (ds1307->rtc)
+ 		rtc_device_unregister(ds1307->rtc);
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from juri.reitel@liewenthal.ee =
+are
 
 origin.patch
-linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
