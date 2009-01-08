@@ -1,254 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-improve-fsync-batching.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:46:59 -0800
-Message-ID: <200901082247.n08Ml0Wc026499__37311.8905853063$1231454967$gmane$org@imap1.linux-foundation.org>
+Subject: - cgroups-make-cgroup-config-a-submenu.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:47:16 -0800
+Message-ID: <200901082247.n08MlGfS026733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38165 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763258AbZAHWrq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:47:46 -0500
+	by vger.kernel.org with ESMTP id S1761042AbZAHWsB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbacik@redhat.com, adilger@sun.com, arjan@infradead.org, linux-ext4@vger.kernel.org, rwheeler@redhat.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: improve fsync batching
+     cgroups: make cgroup config a submenu
 has been removed from the -mm tree.  Its filename was
-     jbd-improve-fsync-batching.patch
+     cgroups-make-cgroup-config-a-submenu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: improve fsync batching
-From: Josef Bacik <jbacik@redhat.com>
+Subject: cgroups: make cgroup config a submenu
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-There is a flaw with the way jbd handles fsync batching.  If we fsync() a
-file and we were not the last person to run fsync() on this fs then we
-automatically sleep for 1 jiffie in order to wait for new writers to join
-into the transaction before forcing the commit.  The problem with this is
-that with really fast storage (ie a Clariion) the time it takes to commit
-a transaction to disk is way faster than 1 jiffie in most cases, so
-sleeping means waiting longer with nothing to do than if we just committed
-the transaction and kept going.  Ric Wheeler noticed this when using
-fs_mark with more than 1 thread, the throughput would plummet as he added
-more threads.
+Making CGROUP related configs be a sub-menu.
 
-This patch attempts to fix this problem by recording the average time in
-nanoseconds that it takes to commit a transaction to disk, and what time
-we started the transaction.  If we run an fsync() and we have been running
-for less time than it takes to commit the transaction to disk, we sleep
-for the delta amount of time and then commit to disk.  We acheive
-sub-jiffie sleeping using schedule_hrtimeout.  This means that the wait
-time is auto-tuned to the speed of the underlying disk, instead of having
-this static timeout.  I weighted the average according to somebody's
-comments (Andreas Dilger I think) in order to help normalize random
-outliers where we take way longer or way less time to commit than the
-average.  I also have a min() check in there to make sure we don't sleep
-longer than a jiffie in case our storage is super slow, this was requested
-by Andrew.
+This patch make CGROUP related configs be a sub-menu and makes 1st level
+configs of "General Setup" shorter.
 
-I unfortunately do not have access to a Clariion, so I had to use a
-ramdisk to represent a super fast array.  I tested with a SATA drive with
-barrier=1 to make sure there was no regression with local disks, I tested
-with a 4 way multipathed Apple Xserve RAID array and of course the
-ramdisk.  I ran the following command
+ including following additional changes
+  - add help comment about CGROUPS and GROUP_SCHED.
+  - moved MM_OWNER config to the bottom.
+    (for good indent in menuconfig)
 
-fs_mark -d /mnt/ext3-test -s 4096 -n 2000 -D 64 -t $i
-
-where $i was 2, 4, 8, 16 and 32.  I mkfs'ed the fs each time.  Here are my
-results
-
-type	threads		with patch	without patch
-sata	2		24.6		26.3
-sata	4		49.2		48.1
-sata	8		70.1		67.0
-sata	16		104.0		94.1
-sata	32		153.6		142.7
-
-xserve	2		246.4		222.0
-xserve	4		480.0		440.8
-xserve	8		829.5		730.8
-xserve	16		1172.7		1026.9
-xserve	32		1816.3		1650.5
-
-ramdisk	2		2538.3		1745.6
-ramdisk	4		2942.3		661.9
-ramdisk	8		2882.5		999.8
-ramdisk	16		2738.7		1801.9
-ramdisk	32		2541.9		2394.0
-
-Signed-off-by: Josef Bacik <jbacik@redhat.com>
-Cc: Andreas Dilger <adilger@sun.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ric Wheeler <rwheeler@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/commit.c      |   15 +++++++++++++++
- fs/jbd/transaction.c |   38 +++++++++++++++++++++++++++++++++-----
- include/linux/jbd.h  |   15 +++++++++++++++
- 3 files changed, 63 insertions(+), 5 deletions(-)
+ init/Kconfig |  123 ++++++++++++++++++++++++++-----------------------
+ 1 file changed, 67 insertions(+), 56 deletions(-)
 
-diff -puN fs/jbd/commit.c~jbd-improve-fsync-batching fs/jbd/commit.c
---- a/fs/jbd/commit.c~jbd-improve-fsync-batching
-+++ a/fs/jbd/commit.c
-@@ -306,6 +306,8 @@ void journal_commit_transaction(journal_
- 	int flags;
- 	int err;
- 	unsigned long blocknr;
-+	ktime_t start_time;
-+	u64 commit_time;
- 	char *tagp = NULL;
- 	journal_header_t *header;
- 	journal_block_tag_t *tag = NULL;
-@@ -418,6 +420,7 @@ void journal_commit_transaction(journal_
- 	commit_transaction->t_state = T_FLUSH;
- 	journal->j_committing_transaction = commit_transaction;
- 	journal->j_running_transaction = NULL;
-+	start_time = ktime_get();
- 	commit_transaction->t_log_start = journal->j_head;
- 	wake_up(&journal->j_wait_transaction_locked);
- 	spin_unlock(&journal->j_state_lock);
-@@ -913,6 +916,18 @@ restart_loop:
- 	J_ASSERT(commit_transaction == journal->j_committing_transaction);
- 	journal->j_commit_sequence = commit_transaction->t_tid;
- 	journal->j_committing_transaction = NULL;
-+	commit_time = ktime_to_ns(ktime_sub(ktime_get(), start_time));
-+
-+	/*
-+	 * weight the commit time higher than the average time so we don't
-+	 * react too strongly to vast changes in commit time
-+	 */
-+	if (likely(journal->j_average_commit_time))
-+		journal->j_average_commit_time = (commit_time*3 +
-+				journal->j_average_commit_time) / 4;
-+	else
-+		journal->j_average_commit_time = commit_time;
-+
- 	spin_unlock(&journal->j_state_lock);
+diff -puN init/Kconfig~cgroups-make-cgroup-config-a-submenu init/Kconfig
+--- a/init/Kconfig~cgroups-make-cgroup-config-a-submenu
++++ a/init/Kconfig
+@@ -271,59 +271,6 @@ config LOG_BUF_SHIFT
+ 		     13 =>  8 KB
+ 		     12 =>  4 KB
  
- 	if (commit_transaction->t_checkpoint_list == NULL &&
-diff -puN fs/jbd/transaction.c~jbd-improve-fsync-batching fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-improve-fsync-batching
-+++ a/fs/jbd/transaction.c
-@@ -25,6 +25,7 @@
- #include <linux/timer.h>
- #include <linux/mm.h>
- #include <linux/highmem.h>
-+#include <linux/hrtimer.h>
+-config CGROUPS
+-	bool "Control Group support"
+-	help
+-	  This option will let you use process cgroup subsystems
+-	  such as Cpusets
+-
+-	  Say N if unsure.
+-
+-config CGROUP_DEBUG
+-	bool "Example debug cgroup subsystem"
+-	depends on CGROUPS
+-	default n
+-	help
+-	  This option enables a simple cgroup subsystem that
+-	  exports useful debugging information about the cgroups
+-	  framework
+-
+-	  Say N if unsure
+-
+-config CGROUP_NS
+-        bool "Namespace cgroup subsystem"
+-        depends on CGROUPS
+-        help
+-          Provides a simple namespace cgroup subsystem to
+-          provide hierarchical naming of sets of namespaces,
+-          for instance virtual servers and checkpoint/restart
+-          jobs.
+-
+-config CGROUP_FREEZER
+-        bool "control group freezer subsystem"
+-        depends on CGROUPS
+-        help
+-          Provides a way to freeze and unfreeze all tasks in a
+-	  cgroup.
+-
+-config CGROUP_DEVICE
+-	bool "Device controller for cgroups"
+-	depends on CGROUPS && EXPERIMENTAL
+-	help
+-	  Provides a cgroup implementing whitelists for devices which
+-	  a process in the cgroup can mknod or open.
+-
+-config CPUSETS
+-	bool "Cpuset support"
+-	depends on SMP && CGROUPS
+-	help
+-	  This option will let you create and manage CPUSETs which
+-	  allow dynamically partitioning a system into sets of CPUs and
+-	  Memory Nodes and assigning tasks to run only within those sets.
+-	  This is primarily useful on large SMP or NUMA systems.
+-
+-	  Say N if unsure.
+-
+ #
+ # Architectures with an unreliable sched_clock() should select this:
+ #
+@@ -337,6 +284,8 @@ config GROUP_SCHED
+ 	help
+ 	  This feature lets CPU scheduler recognize task groups and control CPU
+ 	  bandwidth allocation to such task groups.
++	  In order to create a group from arbitrary set of processes, use
++	  CONFIG_CGROUPS. (See Control Group support.)
  
- static void __journal_temp_unlink_buffer(struct journal_head *jh);
+ config FAIR_GROUP_SCHED
+ 	bool "Group scheduling for SCHED_OTHER"
+@@ -379,6 +328,66 @@ config CGROUP_SCHED
  
-@@ -49,6 +50,7 @@ get_transaction(journal_t *journal, tran
- {
- 	transaction->t_journal = journal;
- 	transaction->t_state = T_RUNNING;
-+	transaction->t_start_time = ktime_get();
- 	transaction->t_tid = journal->j_transaction_sequence++;
- 	transaction->t_expires = jiffies + journal->j_commit_interval;
- 	spin_lock_init(&transaction->t_handle_lock);
-@@ -1370,7 +1372,7 @@ int journal_stop(handle_t *handle)
- {
- 	transaction_t *transaction = handle->h_transaction;
- 	journal_t *journal = transaction->t_journal;
--	int old_handle_count, err;
-+	int err;
- 	pid_t pid;
+ endchoice
  
- 	J_ASSERT(journal_current_handle() == handle);
-@@ -1399,6 +1401,17 @@ int journal_stop(handle_t *handle)
- 	 * on IO anyway.  Speeds up many-threaded, many-dir operations
- 	 * by 30x or more...
- 	 *
-+	 * We try and optimize the sleep time against what the underlying disk
-+	 * can do, instead of having a static sleep time.  This is usefull for
-+	 * the case where our storage is so fast that it is more optimal to go
-+	 * ahead and force a flush and wait for the transaction to be committed
-+	 * than it is to wait for an arbitrary amount of time for new writers to
-+	 * join the transaction.  We acheive this by measuring how long it takes
-+	 * to commit a transaction, and compare it with how long this
-+	 * transaction has been running, and if run time < commit time then we
-+	 * sleep for the delta and commit.  This greatly helps super fast disks
-+	 * that would see slowdowns as more threads started doing fsyncs.
-+	 *
- 	 * But don't do this if this process was the most recent one to
- 	 * perform a synchronous write.  We do this to detect the case where a
- 	 * single process is doing a stream of sync writes.  No point in waiting
-@@ -1406,11 +1419,26 @@ int journal_stop(handle_t *handle)
- 	 */
- 	pid = current->pid;
- 	if (handle->h_sync && journal->j_last_sync_writer != pid) {
-+		u64 commit_time, trans_time;
++menu "Control Group support"
++config CGROUPS
++	bool "Control Group support"
++	help
++	  This option add support for grouping sets of processes together, for
++	  use with process control subsystems such as Cpusets, CFS, memory
++	  controls or device isolation.
++	  See
++		- Documentation/cpusets.txt	(Cpusets)
++		- Documentation/scheduler/sched-design-CFS.txt	(CFS)
++		- Documentation/cgroups/ (features for grouping, isolation)
++		- Documentation/controllers/ (features for resource control)
 +
- 		journal->j_last_sync_writer = pid;
--		do {
--			old_handle_count = transaction->t_handle_count;
--			schedule_timeout_uninterruptible(1);
--		} while (old_handle_count != transaction->t_handle_count);
++	  Say N if unsure.
 +
-+		spin_lock(&journal->j_state_lock);
-+		commit_time = journal->j_average_commit_time;
-+		spin_unlock(&journal->j_state_lock);
++config CGROUP_DEBUG
++	bool "Example debug cgroup subsystem"
++	depends on CGROUPS
++	default n
++	help
++	  This option enables a simple cgroup subsystem that
++	  exports useful debugging information about the cgroups
++	  framework
 +
-+		trans_time = ktime_to_ns(ktime_sub(ktime_get(),
-+						   transaction->t_start_time));
++	  Say N if unsure
 +
-+		commit_time = min_t(u64, commit_time,
-+				    1000*jiffies_to_usecs(1));
++config CGROUP_NS
++        bool "Namespace cgroup subsystem"
++        depends on CGROUPS
++        help
++          Provides a simple namespace cgroup subsystem to
++          provide hierarchical naming of sets of namespaces,
++          for instance virtual servers and checkpoint/restart
++          jobs.
 +
-+		if (trans_time < commit_time) {
-+			ktime_t expires = ktime_add_ns(ktime_get(),
-+						       commit_time);
-+			set_current_state(TASK_UNINTERRUPTIBLE);
-+			schedule_hrtimeout(&expires, HRTIMER_MODE_ABS);
-+		}
- 	}
++config CGROUP_FREEZER
++        bool "control group freezer subsystem"
++        depends on CGROUPS
++        help
++          Provides a way to freeze and unfreeze all tasks in a
++	  cgroup.
++
++config CGROUP_DEVICE
++	bool "Device controller for cgroups"
++	depends on CGROUPS && EXPERIMENTAL
++	help
++	  Provides a cgroup implementing whitelists for devices which
++	  a process in the cgroup can mknod or open.
++
++config CPUSETS
++	bool "Cpuset support"
++	depends on SMP && CGROUPS
++	help
++	  This option will let you create and manage CPUSETs which
++	  allow dynamically partitioning a system into sets of CPUs and
++	  Memory Nodes and assigning tasks to run only within those sets.
++	  This is primarily useful on large SMP or NUMA systems.
++
++	  Say N if unsure.
++
+ config CGROUP_CPUACCT
+ 	bool "Simple CPU accounting cgroup subsystem"
+ 	depends on CGROUPS
+@@ -393,9 +402,6 @@ config RESOURCE_COUNTERS
+           infrastructure that works with cgroups
+ 	depends on CGROUPS
  
- 	current->journal_info = NULL;
-diff -puN include/linux/jbd.h~jbd-improve-fsync-batching include/linux/jbd.h
---- a/include/linux/jbd.h~jbd-improve-fsync-batching
-+++ a/include/linux/jbd.h
-@@ -543,6 +543,11 @@ struct transaction_s
- 	unsigned long		t_expires;
- 
- 	/*
-+	 * When this transaction started, in nanoseconds [no locking]
-+	 */
-+	ktime_t			t_start_time;
-+
-+	/*
- 	 * How many handles used this transaction? [t_handle_lock]
- 	 */
- 	int t_handle_count;
-@@ -798,9 +803,19 @@ struct journal_s
- 	struct buffer_head	**j_wbuf;
- 	int			j_wbufsize;
- 
-+	/*
-+	 * this is the pid of the last person to run a synchronous operation
-+	 * through the journal.
-+	 */
- 	pid_t			j_last_sync_writer;
- 
- 	/*
-+	 * the average amount of time in nanoseconds it takes to commit a
-+	 * transaction to the disk.  [j_state_lock]
-+	 */
-+	u64			j_average_commit_time;
-+
-+	/*
- 	 * An opaque pointer to fs-private information.  ext3 puts its
- 	 * superblock pointer here
- 	 */
-_
-
-Patches currently in -mm which might be from jbacik@redhat.com are
-
-origin.patch
-linux-next.patch
-
+-config MM_OWNER
+-	bool
