@@ -1,83 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-dont-inherit-inappropriate-inode-flags-from-parent.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:47:05 -0800
-Message-ID: <200901082247.n08Ml5wg026581__33775.7386071191$1231455194$gmane$org@imap1.linux-foundation.org>
+Subject: - generic-swap-sparc-rename-swap-to-swap_ulong.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:51:10 -0800
+Message-ID: <200901082251.n08MpALc030311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46722 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763029AbZAHWvI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:08 -0500
+	by vger.kernel.org with ESMTP id S1763185AbZAHWvN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: duaneg@dghda.com, adilger@sun.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: don't inherit inappropriate inode flags from parent
+     generic swap(): sparc: rename swap() to swap_ulong()
 has been removed from the -mm tree.  Its filename was
-     ext3-dont-inherit-inappropriate-inode-flags-from-parent.patch
+     generic-swap-sparc-rename-swap-to-swap_ulong.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: don't inherit inappropriate inode flags from parent
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: generic swap(): sparc: rename swap() to swap_ulong()
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-At present INDEX is the only flag that new ext3 inodes do NOT inherit from
-their parent.  In addition prevent the flags DIRTY, ECOMPR, IMAGIC and
-TOPDIR from being inherited.  List inheritable flags explicitly to prevent
-future flags from accidentally being inherited.
+In preparation for the introduction of a generic swap() macro.
 
-This fixes the TOPDIR flag inheritance bug reported at
-http://bugzilla.kernel.org/show_bug.cgi?id=9866.
-
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Acked-by: Andreas Dilger <adilger@sun.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/ialloc.c        |    2 +-
- include/linux/ext3_fs.h |    7 +++++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ arch/sparc/kernel/sun4m_smp.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext3/ialloc.c~ext3-dont-inherit-inappropriate-inode-flags-from-parent fs/ext3/ialloc.c
---- a/fs/ext3/ialloc.c~ext3-dont-inherit-inappropriate-inode-flags-from-parent
-+++ a/fs/ext3/ialloc.c
-@@ -559,7 +559,7 @@ got:
- 	ei->i_dir_start_lookup = 0;
- 	ei->i_disksize = 0;
+diff -puN arch/sparc/kernel/sun4m_smp.c~generic-swap-sparc-rename-swap-to-swap_ulong arch/sparc/kernel/sun4m_smp.c
+--- a/arch/sparc/kernel/sun4m_smp.c~generic-swap-sparc-rename-swap-to-swap_ulong
++++ a/arch/sparc/kernel/sun4m_smp.c
+@@ -54,7 +54,8 @@ extern int __smp4m_processor_id(void);
+ #define SMP_PRINTK(x)
+ #endif
  
--	ei->i_flags = EXT3_I(dir)->i_flags & ~EXT3_INDEX_FL;
-+	ei->i_flags = EXT3_I(dir)->i_flags & EXT3_FL_INHERITED;
- 	if (S_ISLNK(mode))
- 		ei->i_flags &= ~(EXT3_IMMUTABLE_FL|EXT3_APPEND_FL);
- 	/* dirsync only applies to directories */
-diff -puN include/linux/ext3_fs.h~ext3-dont-inherit-inappropriate-inode-flags-from-parent include/linux/ext3_fs.h
---- a/include/linux/ext3_fs.h~ext3-dont-inherit-inappropriate-inode-flags-from-parent
-+++ a/include/linux/ext3_fs.h
-@@ -178,6 +178,13 @@ struct ext3_group_desc
- #define EXT3_FL_USER_VISIBLE		0x0003DFFF /* User visible flags */
- #define EXT3_FL_USER_MODIFIABLE		0x000380FF /* User modifiable flags */
+-static inline unsigned long swap(volatile unsigned long *ptr, unsigned long val)
++static inline unsigned long
++swap_ulong(volatile unsigned long *ptr, unsigned long val)
+ {
+ 	__asm__ __volatile__("swap [%1], %0\n\t" :
+ 			     "=&r" (val), "=&r" (ptr) :
+@@ -90,7 +91,7 @@ void __cpuinit smp4m_callin(void)
+ 	 * to call the scheduler code.
+ 	 */
+ 	/* Allow master to continue. */
+-	swap(&cpu_callin_map[cpuid], 1);
++	swap_ulong(&cpu_callin_map[cpuid], 1);
  
-+/* Flags that should be inherited by new inodes from their parent. */
-+#define EXT3_FL_INHERITED (EXT3_SECRM_FL | EXT3_UNRM_FL | EXT3_COMPR_FL |\
-+			   EXT3_SYNC_FL | EXT3_IMMUTABLE_FL | EXT3_APPEND_FL |\
-+			   EXT3_NODUMP_FL | EXT3_NOATIME_FL | EXT3_COMPRBLK_FL|\
-+			   EXT3_NOCOMPR_FL | EXT3_JOURNAL_DATA_FL |\
-+			   EXT3_NOTAIL_FL | EXT3_DIRSYNC_FL)
-+
- /*
-  * Inode dynamic state flags
-  */
+ 	/* XXX: What's up with all the flushes? */
+ 	local_flush_cache_all();
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
-ext4-dont-inherit-inappropriate-inode-flags-from-parent.patch
-ext4-tighten-restrictions-on-inode-flags.patch
+linux-next.patch
 
