@@ -1,261 +1,275 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-use-css_tryget-in-memcg.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:49:48 -0800
-Message-ID: <200901082249.n08Mnmov029048@imap1.linux-foundation.org>
+Subject: - memcg-swappiness.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:49:27 -0800
+Message-ID: <200901082249.n08MnRYf028724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55970 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34600 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760059AbZAHW6z (ORCPT
+	by vger.kernel.org with ESMTP id S1761150AbZAHW6z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:58:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: use css_tryget in memcg
+     memcg: swappiness
 has been removed from the -mm tree.  Its filename was
-     memcg-use-css_tryget-in-memcg.patch
+     memcg-swappiness.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: use css_tryget in memcg
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: swappiness
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-css_tryget() newly is added and we can know css is alive or not and get
-refcnt of css in very safe way.  ("alive" here means "rmdir/destroy" is
-not called.)
+Currently, /proc/sys/vm/swappiness can change swappiness ratio for global
+reclaim.  However, memcg reclaim doesn't have tuning parameter for itself.
 
-This patch replaces css_get() to css_tryget(), where I cannot explain
-why css_get() is safe. And removes memcg->obsolete flag.
+In general, the optimal swappiness depend on workload.  (e.g.  hpc
+workload need to low swappiness than the others.)
 
-Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Then, per cgroup swappiness improve administrator tunability.
+
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Menage <menage@google.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   98 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 62 insertions(+), 36 deletions(-)
+ Documentation/controllers/memory.txt |    9 ++
+ include/linux/swap.h                 |    3 
+ mm/memcontrol.c                      |   78 ++++++++++++++++++++++---
+ mm/vmscan.c                          |    7 +-
+ 4 files changed, 86 insertions(+), 11 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-use-css_tryget-in-memcg mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-css_tryget-in-memcg
+diff -puN Documentation/controllers/memory.txt~memcg-swappiness Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memcg-swappiness
++++ a/Documentation/controllers/memory.txt
+@@ -314,6 +314,15 @@ will be charged as a new owner of it.
+ 	showing for better debug please see the code for meanings.
+ 
+ 
++5.3 swappiness
++  Similar to /proc/sys/vm/swappiness, but affecting a hierarchy of groups only.
++
++  Following cgroup's swapiness can't be changed.
++  - root cgroup (uses /proc/sys/vm/swappiness).
++  - a cgroup which uses hierarchy and it has child cgroup.
++  - a cgroup which uses hierarchy and not the root of hierarchy.
++
++
+ 6. Hierarchy support
+ 
+ The memory controller supports a deep hierarchy and hierarchical accounting.
+diff -puN include/linux/swap.h~memcg-swappiness include/linux/swap.h
+--- a/include/linux/swap.h~memcg-swappiness
++++ a/include/linux/swap.h
+@@ -214,7 +214,8 @@ static inline void lru_cache_add_active_
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
+-						gfp_t gfp_mask, bool noswap);
++						  gfp_t gfp_mask, bool noswap,
++						  unsigned int swappiness);
+ extern int __isolate_lru_page(struct page *page, int mode, int file);
+ extern unsigned long shrink_all_memory(unsigned long nr_pages);
+ extern int vm_swappiness;
+diff -puN mm/memcontrol.c~memcg-swappiness mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-swappiness
 +++ a/mm/memcontrol.c
-@@ -162,7 +162,6 @@ struct mem_cgroup {
- 	 */
- 	bool use_hierarchy;
- 	unsigned long	last_oom_jiffies;
--	int		obsolete;
+@@ -164,6 +164,9 @@ struct mem_cgroup {
+ 	int		obsolete;
  	atomic_t	refcnt;
  
- 	unsigned int	swappiness;
-@@ -283,6 +282,31 @@ struct mem_cgroup *mem_cgroup_from_task(
- 				struct mem_cgroup, css);
++	unsigned int	swappiness;
++
++
+ 	unsigned int inactive_ratio;
+ 
+ 	/*
+@@ -636,6 +639,22 @@ static bool mem_cgroup_check_under_limit
+ 	return false;
  }
  
-+static struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
++static unsigned int get_swappiness(struct mem_cgroup *memcg)
 +{
-+	struct mem_cgroup *mem = NULL;
-+	/*
-+	 * Because we have no locks, mm->owner's may be being moved to other
-+	 * cgroup. We use css_tryget() here even if this looks
-+	 * pessimistic (rather than adding locks here).
-+	 */
-+	rcu_read_lock();
-+	do {
-+		mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
-+		if (unlikely(!mem))
-+			break;
-+	} while (!css_tryget(&mem->css));
-+	rcu_read_unlock();
-+	return mem;
-+}
++	struct cgroup *cgrp = memcg->css.cgroup;
++	unsigned int swappiness;
 +
-+static bool mem_cgroup_is_obsolete(struct mem_cgroup *mem)
-+{
-+	if (!mem)
-+		return true;
-+	return css_is_removed(&mem->css);
++	/* root ? */
++	if (cgrp->parent == NULL)
++		return vm_swappiness;
++
++	spin_lock(&memcg->reclaim_param_lock);
++	swappiness = memcg->swappiness;
++	spin_unlock(&memcg->reclaim_param_lock);
++
++	return swappiness;
 +}
 +
  /*
-  * Following LRU functions are allowed to be used without PCG_LOCK.
-  * Operations are called by routine of global LRU independently from memcg.
-@@ -622,8 +646,9 @@ mem_cgroup_get_first_node(struct mem_cgr
- {
- 	struct cgroup *cgroup;
- 	struct mem_cgroup *ret;
--	bool obsolete = (root_mem->last_scanned_child &&
--				root_mem->last_scanned_child->obsolete);
-+	bool obsolete;
-+
-+	obsolete = mem_cgroup_is_obsolete(root_mem->last_scanned_child);
- 
- 	/*
- 	 * Scan all children under the mem_cgroup mem
-@@ -636,7 +661,7 @@ mem_cgroup_get_first_node(struct mem_cgr
- 
- 	if (!root_mem->last_scanned_child || obsolete) {
- 
--		if (obsolete)
-+		if (obsolete && root_mem->last_scanned_child)
- 			mem_cgroup_put(root_mem->last_scanned_child);
- 
- 		cgroup = list_first_entry(&root_mem->css.cgroup->children,
-@@ -711,7 +736,7 @@ static int mem_cgroup_hierarchical_recla
- 	next_mem = mem_cgroup_get_first_node(root_mem);
- 
- 	while (next_mem != root_mem) {
--		if (next_mem->obsolete) {
-+		if (mem_cgroup_is_obsolete(next_mem)) {
- 			mem_cgroup_put(next_mem);
- 			cgroup_lock();
- 			next_mem = mem_cgroup_get_first_node(root_mem);
-@@ -769,23 +794,17 @@ static int __mem_cgroup_try_charge(struc
- 	 * thread group leader migrates. It's possible that mm is not
- 	 * set, if so charge the init_mm (happens for pagecache usage).
+  * Dance down the hierarchy if needed to reclaim memory. We remember the
+  * last child we reclaimed from, so that we don't end up penalizing
+@@ -656,7 +675,8 @@ static int mem_cgroup_hierarchical_recla
+ 	 * but there might be left over accounting, even after children
+ 	 * have left.
  	 */
--	if (likely(!*memcg)) {
--		rcu_read_lock();
--		mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
--		if (unlikely(!mem)) {
--			rcu_read_unlock();
--			return 0;
--		}
--		/*
--		 * For every charge from the cgroup, increment reference count
--		 */
--		css_get(&mem->css);
-+	mem = *memcg;
-+	if (likely(!mem)) {
-+		mem = try_get_mem_cgroup_from_mm(mm);
- 		*memcg = mem;
--		rcu_read_unlock();
- 	} else {
--		mem = *memcg;
- 		css_get(&mem->css);
- 	}
-+	if (unlikely(!mem))
-+		return 0;
-+
-+	VM_BUG_ON(mem_cgroup_is_obsolete(mem));
- 
- 	while (1) {
- 		int ret;
-@@ -1072,12 +1091,19 @@ int mem_cgroup_cache_charge(struct page 
- 				MEM_CGROUP_CHARGE_TYPE_SHMEM, NULL);
- }
- 
-+/*
-+ * While swap-in, try_charge -> commit or cancel, the page is locked.
-+ * And when try_charge() successfully returns, one refcnt to memcg without
-+ * struct page_cgroup is aquired. This refcnt will be cumsumed by
-+ * "commit()" or removed by "cancel()"
-+ */
- int mem_cgroup_try_charge_swapin(struct mm_struct *mm,
- 				 struct page *page,
- 				 gfp_t mask, struct mem_cgroup **ptr)
- {
- 	struct mem_cgroup *mem;
- 	swp_entry_t     ent;
-+	int ret;
- 
- 	if (mem_cgroup_disabled())
+-	ret = try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap);
++	ret = try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap,
++					   get_swappiness(root_mem));
+ 	if (mem_cgroup_check_under_limit(root_mem))
  		return 0;
-@@ -1096,10 +1122,15 @@ int mem_cgroup_try_charge_swapin(struct 
- 	ent.val = page_private(page);
- 
- 	mem = lookup_swap_cgroup(ent);
--	if (!mem || mem->obsolete)
-+	if (!mem)
-+		goto charge_cur_mm;
-+	if (!css_tryget(&mem->css))
- 		goto charge_cur_mm;
- 	*ptr = mem;
--	return __mem_cgroup_try_charge(NULL, mask, ptr, true);
-+	ret = __mem_cgroup_try_charge(NULL, mask, ptr, true);
-+	/* drop extra refcnt from tryget */
-+	css_put(&mem->css);
-+	return ret;
- charge_cur_mm:
- 	if (unlikely(!mm))
- 		mm = &init_mm;
-@@ -1130,13 +1161,18 @@ int mem_cgroup_cache_charge_swapin(struc
- 		ent.val = page_private(page);
- 		if (do_swap_account) {
- 			mem = lookup_swap_cgroup(ent);
--			if (mem && mem->obsolete)
--				mem = NULL;
--			if (mem)
--				mm = NULL;
-+			if (mem) {
-+				if (css_tryget(&mem->css))
-+					mm = NULL; /* charge to recorded */
-+				else
-+					mem = NULL; /* charge to current */
-+			}
+ 	if (!root_mem->use_hierarchy)
+@@ -672,7 +692,8 @@ static int mem_cgroup_hierarchical_recla
+ 			cgroup_unlock();
+ 			continue;
  		}
- 		ret = mem_cgroup_charge_common(page, mm, mask,
- 				MEM_CGROUP_CHARGE_TYPE_SHMEM, mem);
-+		/* drop extra refcnt from tryget */
-+		if (mem)
-+			css_put(&mem->css);
- 
- 		if (!ret && do_swap_account) {
- 			/* avoid double counting */
-@@ -1178,7 +1214,6 @@ void mem_cgroup_commit_charge_swapin(str
- 		struct mem_cgroup *memcg;
- 		memcg = swap_cgroup_record(ent, NULL);
- 		if (memcg) {
--			/* If memcg is obsolete, memcg can be != ptr */
- 			res_counter_uncharge(&memcg->memsw, PAGE_SIZE);
- 			mem_cgroup_put(memcg);
- 		}
-@@ -1421,14 +1456,9 @@ int mem_cgroup_shrink_usage(struct mm_st
- 	if (!mm)
- 		return 0;
- 
--	rcu_read_lock();
--	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
--	if (unlikely(!mem)) {
--		rcu_read_unlock();
-+	mem = try_get_mem_cgroup_from_mm(mm);
-+	if (unlikely(!mem))
- 		return 0;
--	}
--	css_get(&mem->css);
--	rcu_read_unlock();
+-		ret = try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap);
++		ret = try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap,
++						   get_swappiness(next_mem));
+ 		if (mem_cgroup_check_under_limit(root_mem))
+ 			return 0;
+ 		cgroup_lock();
+@@ -1400,7 +1421,8 @@ int mem_cgroup_shrink_usage(struct mm_st
+ 	rcu_read_unlock();
  
  	do {
- 		progress = mem_cgroup_hierarchical_reclaim(mem, gfp_mask, true);
-@@ -2086,9 +2116,6 @@ static struct mem_cgroup *mem_cgroup_all
-  * the number of reference from swap_cgroup and free mem_cgroup when
-  * it goes down to 0.
-  *
-- * When mem_cgroup is destroyed, mem->obsolete will be set to 0 and
-- * entry which points to this memcg will be ignore at swapin.
-- *
-  * Removal of cgroup itself succeeds regardless of refs from swap.
-  */
+-		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask, true);
++		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask, true,
++							get_swappiness(mem));
+ 		progress += mem_cgroup_check_under_limit(mem);
+ 	} while (!progress && --retry);
  
-@@ -2174,7 +2201,6 @@ static void mem_cgroup_pre_destroy(struc
- 					struct cgroup *cont)
- {
- 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
--	mem->obsolete = 1;
- 	mem_cgroup_force_empty(mem, false);
+@@ -1468,7 +1490,9 @@ static int mem_cgroup_resize_limit(struc
+ 			break;
+ 
+ 		progress = try_to_free_mem_cgroup_pages(memcg,
+-				GFP_KERNEL, false);
++							GFP_KERNEL,
++							false,
++							get_swappiness(memcg));
+   		if (!progress)			retry_count--;
+ 	}
+ 
+@@ -1512,7 +1536,8 @@ int mem_cgroup_resize_memsw_limit(struct
+ 			break;
+ 
+ 		oldusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
+-		try_to_free_mem_cgroup_pages(memcg, GFP_KERNEL, true);
++		try_to_free_mem_cgroup_pages(memcg, GFP_KERNEL, true,
++					     get_swappiness(memcg));
+ 		curusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
+ 		if (curusage >= oldusage)
+ 			retry_count--;
+@@ -1643,8 +1668,8 @@ try_to_free:
+ 			ret = -EINTR;
+ 			goto out;
+ 		}
+-		progress = try_to_free_mem_cgroup_pages(mem,
+-						  GFP_KERNEL, false);
++		progress = try_to_free_mem_cgroup_pages(mem, GFP_KERNEL,
++						false, get_swappiness(mem));
+ 		if (!progress) {
+ 			nr_retries--;
+ 			/* maybe some writeback is necessary */
+@@ -1864,6 +1889,37 @@ static int mem_control_stat_show(struct 
+ 	return 0;
  }
  
++static u64 mem_cgroup_swappiness_read(struct cgroup *cgrp, struct cftype *cft)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
++
++	return get_swappiness(memcg);
++}
++
++static int mem_cgroup_swappiness_write(struct cgroup *cgrp, struct cftype *cft,
++				       u64 val)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
++	struct mem_cgroup *parent;
++	if (val > 100)
++		return -EINVAL;
++
++	if (cgrp->parent == NULL)
++		return -EINVAL;
++
++	parent = mem_cgroup_from_cont(cgrp->parent);
++	/* If under hierarchy, only empty-root can set this value */
++	if ((parent->use_hierarchy) ||
++	    (memcg->use_hierarchy && !list_empty(&cgrp->children)))
++		return -EINVAL;
++
++	spin_lock(&memcg->reclaim_param_lock);
++	memcg->swappiness = val;
++	spin_unlock(&memcg->reclaim_param_lock);
++
++	return 0;
++}
++
+ 
+ static struct cftype mem_cgroup_files[] = {
+ 	{
+@@ -1902,6 +1958,11 @@ static struct cftype mem_cgroup_files[] 
+ 		.write_u64 = mem_cgroup_hierarchy_write,
+ 		.read_u64 = mem_cgroup_hierarchy_read,
+ 	},
++	{
++		.name = "swappiness",
++		.read_u64 = mem_cgroup_swappiness_read,
++		.write_u64 = mem_cgroup_swappiness_write,
++	},
+ };
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+@@ -2093,6 +2154,9 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	mem->last_scanned_child = NULL;
+ 	spin_lock_init(&mem->reclaim_param_lock);
+ 
++	if (parent)
++		mem->swappiness = get_swappiness(parent);
++
+ 	return &mem->css;
+ free_out:
+ 	for_each_node_state(node, N_POSSIBLE)
+diff -puN mm/vmscan.c~memcg-swappiness mm/vmscan.c
+--- a/mm/vmscan.c~memcg-swappiness
++++ a/mm/vmscan.c
+@@ -1707,14 +1707,15 @@ unsigned long try_to_free_pages(struct z
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ 
+ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
+-						gfp_t gfp_mask,
+-					   bool noswap)
++					   gfp_t gfp_mask,
++					   bool noswap,
++					   unsigned int swappiness)
+ {
+ 	struct scan_control sc = {
+ 		.may_writepage = !laptop_mode,
+ 		.may_swap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+-		.swappiness = vm_swappiness,
++		.swappiness = swappiness,
+ 		.order = 0,
+ 		.mem_cgroup = mem_cont,
+ 		.isolate_pages = mem_cgroup_isolate_pages,
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
