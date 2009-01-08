@@ -1,92 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:47:37 -0800
-Message-ID: <200901082247.n08Mlb0D027043@imap1.linux-foundation.org>
+Subject: - cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:47:48 -0800
+Message-ID: <200901082247.n08MlmZL027218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38676 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35361 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763552AbZAHWsV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:21 -0500
+	by vger.kernel.org with ESMTP id S1763297AbZAHWs1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: gowrishankar.m@in.ibm.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: call find_css_set() safely in cgroup_attach_task()
+     cgroups: skip processes from other namespaces when listing a cgroup
 has been removed from the -mm tree.  Its filename was
-     cgroups-call-find_css_set-safely-in-cgroup_attach_task.patch
+     cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: call find_css_set() safely in cgroup_attach_task()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: cgroups: skip processes from other namespaces when listing a cgroup
+From: Gowrishankar M <gowrishankar.m@in.ibm.com>
 
-In cgroup_attach_task(), tsk maybe exit when we call find_css_set().  and
-find_css_set() will access to invalid css_set.
+Once tasks are populated from system namespace inside cgroup, container
+replaces other namespace task with 0 while listing tasks, inside
+container.
 
-This patch increases the count before get_css_set(), and decreases it
-after find_css_set().
+Though this is expected behaviour from container end, there is no use of
+showing unwanted 0s.
 
-NOTE:
+In this patch, we check if a process is in same namespace before loading
+into pid array.
 
-css_set's refcount is also taskcount, after this patch applied, taskcount
-may be off-by-one WHEN cgroup_lock() is not held.  but I reviewed other
-code which use taskcount, they are still correct.  No regression found by
-reviewing and simply testing.
-
-So I do not use two counters in css_set.  (one counter for taskcount, the
-other for refcount.  like struct mm_struct) If this fix cause regression,
-we will use two counters in css_set.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Gowrishankar M <gowrishankar.m@in.ibm.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ kernel/cgroup.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-call-find_css_set-safely-in-cgroup_attach_task kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-call-find_css_set-safely-in-cgroup_attach_task
+diff -puN kernel/cgroup.c~cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup
 +++ a/kernel/cgroup.c
-@@ -1214,7 +1214,7 @@ int cgroup_attach_task(struct cgroup *cg
- 	int retval = 0;
- 	struct cgroup_subsys *ss;
- 	struct cgroup *oldcgrp;
--	struct css_set *cg = tsk->cgroups;
-+	struct css_set *cg;
- 	struct css_set *newcg;
- 	struct cgroupfs_root *root = cgrp->root;
- 	int subsys_id;
-@@ -1234,11 +1234,16 @@ int cgroup_attach_task(struct cgroup *cg
- 		}
+@@ -2007,14 +2007,16 @@ int cgroup_scan_tasks(struct cgroup_scan
+  */
+ static int pid_array_load(pid_t *pidarray, int npids, struct cgroup *cgrp)
+ {
+-	int n = 0;
++	int n = 0, pid;
+ 	struct cgroup_iter it;
+ 	struct task_struct *tsk;
+ 	cgroup_iter_start(cgrp, &it);
+ 	while ((tsk = cgroup_iter_next(cgrp, &it))) {
+ 		if (unlikely(n == npids))
+ 			break;
+-		pidarray[n++] = task_pid_vnr(tsk);
++		pid = task_pid_vnr(tsk);
++		if (pid > 0)
++			pidarray[n++] = pid;
  	}
- 
-+	task_lock(tsk);
-+	cg = tsk->cgroups;
-+	get_css_set(cg);
-+	task_unlock(tsk);
- 	/*
- 	 * Locate or allocate a new css_set for this task,
- 	 * based on its final set of cgroups
- 	 */
- 	newcg = find_css_set(cg, cgrp);
-+	put_css_set(cg);
- 	if (!newcg)
- 		return -ENOMEM;
- 
+ 	cgroup_iter_end(cgrp, &it);
+ 	return n;
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from gowrishankar.m@in.ibm.com are
 
 origin.patch
-linux-next.patch
 
