@@ -1,131 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-use-generic-percpu-support.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:37:06 -0800
-Message-ID: <200901082237.n08Mb6U0018055@imap1.linux-foundation.org>
+Subject: - kmemleak-add-documentation-on-the-memory-leak-detector.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:45:55 -0800
+Message-ID: <200901082245.n08MjtDL025468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754797AbZAHWh0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:37:26 -0500
+	by vger.kernel.org with ESMTP id S1763403AbZAHWqr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:46:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux-foundation.org, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net, rusty@rustcorp.com.au, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: use generic percpu support
+     kmemleak: add documentation on the memory leak detector
 has been removed from the -mm tree.  Its filename was
-     alpha-use-generic-percpu-support.patch
+     kmemleak-add-documentation-on-the-memory-leak-detector.patch
 
 This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: use generic percpu support
-From: Christoph Lameter <cl@linux-foundation.org>
+Subject: kmemleak: add documentation on the memory leak detector
+From: Catalin Marinas <catalin.marinas@arm.com>
 
-The percpu support for alpha currently expects a percpu variable to be
-passed to SHIFT_PERCPU_PTR.  However, SHIFT_PERCPU_PTR takes a pointer
-and not a variable.  This breaks code that uses SHIFT_PERCPU_PTR on a
-pointer.
+Add the Documentation/kmemleak.txt file with some information about how
+kmemleak works.
 
-Simply switch alpha to use generic cpu.
-
-The purpose of the special percpu code seems to be optmization.  That
-could be done by modifying the per_cpu_var() (and related) macros which
-indeed take a variable as a parameter.
-
-Signed-off-by: Christoph Lameter <cl@linux-foundation.org>
-Cc: Jay Estabrook <jay.estabrook@hp.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/percpu.h |   76 ------------------------------
- 1 file changed, 1 insertion(+), 75 deletions(-)
+ Documentation/kernel-parameters.txt |    4 
+ Documentation/kmemleak.txt          |  142 ++++++++++++++++++++++++++
+ 2 files changed, 146 insertions(+)
 
-diff -puN arch/alpha/include/asm/percpu.h~alpha-use-generic-percpu-support arch/alpha/include/asm/percpu.h
---- a/arch/alpha/include/asm/percpu.h~alpha-use-generic-percpu-support
-+++ a/arch/alpha/include/asm/percpu.h
-@@ -1,78 +1,4 @@
- #ifndef __ALPHA_PERCPU_H
- #define __ALPHA_PERCPU_H
--#include <linux/compiler.h>
--#include <linux/threads.h>
--
--/*
-- * Determine the real variable name from the name visible in the
-- * kernel sources.
-- */
--#define per_cpu_var(var) per_cpu__##var
--
--#ifdef CONFIG_SMP
--
--/*
-- * per_cpu_offset() is the offset that has to be added to a
-- * percpu variable to get to the instance for a certain processor.
-- */
--extern unsigned long __per_cpu_offset[NR_CPUS];
--
--#define per_cpu_offset(x) (__per_cpu_offset[x])
--
--#define __my_cpu_offset per_cpu_offset(raw_smp_processor_id())
--#ifdef CONFIG_DEBUG_PREEMPT
--#define my_cpu_offset per_cpu_offset(smp_processor_id())
--#else
--#define my_cpu_offset __my_cpu_offset
--#endif
--
--#ifndef MODULE
--#define SHIFT_PERCPU_PTR(var, offset) RELOC_HIDE(&per_cpu_var(var), (offset))
--#define PER_CPU_ATTRIBUTES
--#else
--/*
-- * To calculate addresses of locally defined variables, GCC uses 32-bit
-- * displacement from the GP. Which doesn't work for per cpu variables in
-- * modules, as an offset to the kernel per cpu area is way above 4G.
-- *
-- * This forces allocation of a GOT entry for per cpu variable using
-- * ldq instruction with a 'literal' relocation.
-- */
--#define SHIFT_PERCPU_PTR(var, offset) ({		\
--	extern int simple_identifier_##var(void);	\
--	unsigned long __ptr, tmp_gp;			\
--	asm (  "br	%1, 1f		  	      \n\
--	1:	ldgp	%1, 0(%1)	    	      \n\
--		ldq %0, per_cpu__" #var"(%1)\t!literal"		\
--		: "=&r"(__ptr), "=&r"(tmp_gp));		\
--	(typeof(&per_cpu_var(var)))(__ptr + (offset)); })
--
--#define PER_CPU_ATTRIBUTES	__used
--
--#endif /* MODULE */
--
--/*
-- * A percpu variable may point to a discarded regions. The following are
-- * established ways to produce a usable pointer from the percpu variable
-- * offset.
-- */
--#define per_cpu(var, cpu) \
--	(*SHIFT_PERCPU_PTR(var, per_cpu_offset(cpu)))
--#define __get_cpu_var(var) \
--	(*SHIFT_PERCPU_PTR(var, my_cpu_offset))
--#define __raw_get_cpu_var(var) \
--	(*SHIFT_PERCPU_PTR(var, __my_cpu_offset))
--
--#else /* ! SMP */
--
--#define per_cpu(var, cpu)		(*((void)(cpu), &per_cpu_var(var)))
--#define __get_cpu_var(var)		per_cpu_var(var)
--#define __raw_get_cpu_var(var)		per_cpu_var(var)
--
--#define PER_CPU_ATTRIBUTES
--
--#endif /* SMP */
--
--#define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu_var(name)
+diff -puN Documentation/kernel-parameters.txt~kmemleak-add-documentation-on-the-memory-leak-detector Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~kmemleak-add-documentation-on-the-memory-leak-detector
++++ a/Documentation/kernel-parameters.txt
+@@ -1075,6 +1075,10 @@ and is between 256 and 4096 characters. 
+ 			Configure the RouterBoard 532 series on-chip
+ 			Ethernet adapter MAC address.
+ 
++	kmemleak=	[KNL] Boot-time kmemleak enable/disable
++			Valid arguments: on, off
++			Default: on
++
+ 	l2cr=		[PPC]
+ 
+ 	l3cr=		[PPC]
+diff -puN /dev/null Documentation/kmemleak.txt
+--- /dev/null
++++ a/Documentation/kmemleak.txt
+@@ -0,0 +1,142 @@
++Kernel Memory Leak Detector
++===========================
++
++Introduction
++------------
++
++Kmemleak provides a way of detecting possible kernel memory leaks in a
++way similar to a tracing garbage collector
++(http://en.wikipedia.org/wiki/Garbage_collection_%28computer_science%29#Tracing_garbage_collectors),
++with the difference that the orphan objects are not freed but only
++reported via /sys/kernel/debug/kmemleak. A similar method is used by the
++Valgrind tool (memcheck --leak-check) to detect the memory leaks in
++user-space applications.
++
++Usage
++-----
++
++CONFIG_DEBUG_KMEMLEAK in "Kernel hacking" has to be enabled. A kernel
++thread scans the memory every 10 min (by default) and prints any new
++unreferenced objects found. To trigger an intermediate scan and display
++all the possible memory leaks:
++
++  # mount -t debugfs nodev /sys/kernel/debug/
++  # cat /sys/kernel/debug/kmemleak
++
++Note that the orphan objects are listed in the order they were allocated
++and one object at the beginning of the list may cause other subsequent
++objects to be reported as orphan.
++
++Memory scanning parameters can be modified at run-time by writing to the
++/sys/kernel/debug/kmemleak file. The following parameters are supported:
++
++  off		- disable kmemleak (irreversible)
++  stack=on	- enable the task stacks scanning
++  stack=off	- disable the tasks stacks scanning
++  scan=on	- start the automatic memory scanning thread
++  scan=off	- stop the automatic memory scanning thread
++  scan=<secs>	- set the automatic memory scanning period in seconds (0
++		  to disable it)
++
++Kmemleak can also be disabled at boot-time by passing "kmemleak=off" on
++the kernel command line.
++
++Basic Algorithm
++---------------
++
++The memory allocations via kmalloc, vmalloc, kmem_cache_alloc and
++friends are traced and the pointers, together with additional
++information like size and stack trace, are stored in a prio search tree.
++The corresponding freeing function calls are tracked and the pointers
++removed from the kmemleak data structures.
++
++An allocated block of memory is considered orphan if no pointer to its
++start address or to any location inside the block can be found by
++scanning the memory (including saved registers). This means that there
++might be no way for the kernel to pass the address of the allocated
++block to a freeing function and therefore the block is considered a
++memory leak.
++
++The scanning algorithm steps:
++
++  1. mark all objects as white (remaining white objects will later be
++     considered orphan)
++  2. scan the memory starting with the data section and stacks, checking
++     the values against the addresses stored in the prio search tree. If
++     a pointer to a white object is found, the object is added to the
++     gray list
++  3. scan the gray objects for matching addresses (some white objects
++     can become gray and added at the end of the gray list) until the
++     gray set is finished
++  4. the remaining white objects are considered orphan and reported via
++     /sys/kernel/debug/kmemleak
++
++Some allocated memory blocks have pointers stored in the kernel's
++internal data structures and they cannot be detected as orphans. To
++avoid this, kmemleak can also store the number of values pointing to an
++address inside the block address range that need to be found so that the
++block is not considered a leak. One example is __vmalloc().
++
++Kmemleak API
++------------
++
++See the include/linux/kmemleak.h header for the functions prototype.
++
++kmemleak_init		 - initialize kmemleak
++kmemleak_alloc		 - notify of a memory block allocation
++kmemleak_free		 - notify of a memory block freeing
++kmemleak_not_leak	 - mark an object as not a leak
++kmemleak_ignore		 - do not scan or report an object as leak
++kmemleak_scan_area	 - add scan areas inside a memory block
++kmemleak_no_scan	 - do not scan a memory block
++kmemleak_erase		 - erase an old value in a pointer variable
++kmemleak_alloc_recursive - as kmemleak_alloc but checks the recursiveness
++kmemleak_free_recursive	 - as kmemleak_free but checks the recursiveness
++
++Dealing with false positives/negatives
++--------------------------------------
++
++The false negatives are real memory leaks (orphan objects) but not
++reported by kmemleak because values found during the memory scanning
++point to such objects. To reduce the number of false negatives, kmemleak
++provides the kmemleak_ignore, kmemleak_scan_area, kmemleak_no_scan and
++kmemleak_erase functions (see above). The task stacks also increase the
++amount of false negatives and their scanning is not enabled by default.
++
++The false positives are objects wrongly reported as being memory leaks
++(orphan). For objects known not to be leaks, kmemleak provides the
++kmemleak_not_leak function. The kmemleak_ignore could also be used if
++the memory block is known not to contain other pointers and it will no
++longer be scanned.
++
++Some of the reported leaks are only transient, especially on SMP
++systems, because of pointers temporarily stored in CPU registers or
++stacks. Kmemleak defines MSECS_MIN_AGE (defaulting to 1000) representing
++the minimum age of an object to be reported as a memory leak.
++
++Limitations and Drawbacks
++-------------------------
++
++The main drawback is the reduced performance of memory allocation and
++freeing. To avoid other penalties, the memory scanning is only performed
++when the /sys/kernel/debug/kmemleak file is read. Anyway, this tool is
++intended for debugging purposes where the performance might not be the
++most important requirement.
++
++To keep the algorithm simple, kmemleak scans for values pointing to any
++address inside a block's address range. This may lead to an increased
++number of false negatives. However, it is likely that a real memory leak
++will eventually become visible.
++
++Another source of false negatives is the data stored in non-pointer
++values. In a future version, kmemleak could only scan the pointer
++members in the allocated structures. This feature would solve many of
++the false negative cases described above.
++
++The tool can report false positives. These are cases where an allocated
++block doesn't need to be freed (some cases in the init_call functions),
++the pointer is calculated by other methods than the usual container_of
++macro or the pointer is stored in a location not scanned by kmemleak.
++
++Page allocations and ioremap are not tracked. Only the ARM and x86
++architectures are currently supported.
+_
+
+Patches currently in -mm which might be from catalin.marinas@arm.com are
+
+origin.patch
+kmemleak-add-documentation-on-the-memory-leak-detector.patch
+kmemleak-add-the-slab-memory-allocation-freeing-hooks.patch
+kmemleak-add-the-slob-memory-allocation-freeing-hooks.patch
+kmemleak-add-the-slub-memory-allocation-freeing-hooks.patch
+kmemleak-add-the-vmalloc-memory-allocation-freeing-hooks.patch
+kmemleak-add-kmemleak_alloc-callback-from-alloc_large_system_hash.patch
+kmemleak-add-modules-support.patch
+x86-provide-_sdata-in-the-vmlinux_ldss-files.patch
+arm-provide-_sdata-and-__bss_stop-in-the-vmlinuxldss-file.patch
+kmemleak-remove-some-of-the-kmemleak-false-positives.patch
+kmemleak-enable-the-building-of-the-memory-leak-detector.patch
+kmemleak-simple-testing-module-for-kmemleak.patch
+kmemleak-add-the-corresponding-maintainers-entry.patch
+
