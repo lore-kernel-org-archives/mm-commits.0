@@ -1,169 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-introduce-charge-commit-cancel-style-of-functions.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:47:58 -0800
-Message-ID: <200901082247.n08MlwEg027384@imap1.linux-foundation.org>
+Subject: - memcg-move-all-acccounts-to-parent-at-rmdir.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:48:08 -0800
+Message-ID: <200901082248.n08Mm80c027546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58143 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761652AbZAHWsh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:37 -0500
+	by vger.kernel.org with ESMTP id S1759624AbZAHWsw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: introduce charge-commit-cancel style of functions
+     memcg: move all acccounting to parent at rmdir()
 has been removed from the -mm tree.  Its filename was
-     memcg-introduce-charge-commit-cancel-style-of-functions.patch
+     memcg-move-all-acccounts-to-parent-at-rmdir.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: introduce charge-commit-cancel style of functions
+Subject: memcg: move all acccounting to parent at rmdir()
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-There is a small race in do_swap_page().  When the page swapped-in is
-charged, the mapcount can be greater than 0.  But, at the same time some
-process (shares it ) call unmap and make mapcount 1->0 and the page is
-uncharged.
+This patch provides a function to move account information of a page
+between mem_cgroups and rewrite force_empty to make use of this.
 
-      CPUA 			CPUB
-       mapcount == 1.
-   (1) charge if mapcount==0     zap_pte_range()
-                                (2) mapcount 1 => 0.
-			        (3) uncharge(). (success)
-   (4) set page's rmap()
-       mapcount 0=>1
+This moving of page_cgroup is done under
+ - lru_lock of source/destination mem_cgroup is held.
+ - lock_page_cgroup() is held.
 
-Then, this swap page's account is leaked.
+Then, a routine which touches pc->mem_cgroup without lock_page_cgroup()
+should confirm pc->mem_cgroup is still valid or not.  Typical code can be
+following.
 
-For fixing this, I added a new interface.
-  - charge
-   account to res_counter by PAGE_SIZE and try to free pages if necessary.
-  - commit
-   register page_cgroup and add to LRU if necessary.
-  - cancel
-   uncharge PAGE_SIZE because of do_swap_page failure.
+(while page is not under lock_page())
+	mem = pc->mem_cgroup;
+	mz = page_cgroup_zoneinfo(pc)
+	spin_lock_irqsave(&mz->lru_lock);
+	if (pc->mem_cgroup == mem)
+		...../* some list handling */
+	spin_unlock_irqrestore(&mz->lru_lock);
 
-     CPUA
-  (1) charge (always)
-  (2) set page's rmap (mapcount > 0)
-  (3) commit charge was necessary or not after set_pte().
+Of course, better way is
+	lock_page_cgroup(pc);
+	....
+	unlock_page_cgroup(pc);
 
-This protocol uses PCG_USED bit on page_cgroup for avoiding over accounting.
-Usual mem_cgroup_charge_common() does charge -> commit at a time.
+But you should confirm the nest of lock and avoid deadlock.
 
-And this patch also adds following function to clarify all charges.
+If you treats page_cgroup from mem_cgroup's LRU under mz->lru_lock,
+you don't have to worry about what pc->mem_cgroup points to.
+moved pages are added to head of lru, not to tail.
 
-  - mem_cgroup_newpage_charge() ....replacement for mem_cgroup_charge()
-	called against newly allocated anon pages.
+Expected users of this routine is:
+  - force_empty (rmdir)
+  - moving tasks between cgroup (for moving account information.)
+  - hierarchy (maybe useful.)
 
-  - mem_cgroup_charge_migrate_fixup()
-        called only from remove_migration_ptes().
-	we'll have to rewrite this later.(this patch just keeps old behavior)
-	This function will be removed by additional patch to make migration
-	clearer.
+force_empty(rmdir) uses this move_account and move pages to its parent.
+This "move" will not cause OOM (I added "oom" parameter to try_charge().)
 
-Good for clarifying "what we do"
+If the parent is busy (not enough memory), force_empty calls try_to_free_page()
+and reduce usage.
 
-Then, we have 4 following charge points.
-  - newpage
-  - swap-in
-  - add-to-cache.
-  - migration.
+Purpose of this behavior is
+  - Fix "forget all" behavior of force_empty and avoid leak of accounting.
+  - By "moving first, free if necessary", keep pages on memory as much as
+    possible.
 
-[akpm@linux-foundation.org: add missing inline directives to stubs]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Adding a switch to change behavior of force_empty to
+  - free first, move if necessary
+  - free all, if there is mlocked/busy pages, return -EBUSY.
+is under consideration. (I'll add if someone requtests.)
+
+This patch also removes memory.force_empty file, a brutal debug-only interface.
+
 Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Tested-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   36 +++++++-
- mm/memcontrol.c            |  155 ++++++++++++++++++++++++++++-------
- mm/memory.c                |   12 +-
- mm/migrate.c               |    2 
- mm/swapfile.c              |    6 -
- 5 files changed, 170 insertions(+), 41 deletions(-)
+ Documentation/controllers/memory.txt |   12 -
+ mm/memcontrol.c                      |  277 ++++++++++++++++++-------
+ 2 files changed, 214 insertions(+), 75 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-introduce-charge-commit-cancel-style-of-functions include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-introduce-charge-commit-cancel-style-of-functions
-+++ a/include/linux/memcontrol.h
-@@ -27,8 +27,17 @@ struct mm_struct;
+diff -puN Documentation/controllers/memory.txt~memcg-move-all-acccounts-to-parent-at-rmdir Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memcg-move-all-acccounts-to-parent-at-rmdir
++++ a/Documentation/controllers/memory.txt
+@@ -207,12 +207,6 @@ exceeded.
+ The memory.stat file gives accounting information. Now, the number of
+ caches, RSS and Active pages/Inactive pages are shown.
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+-The memory.force_empty gives an interface to drop *all* charges by force.
+-
+-# echo 1 > memory.force_empty
+-
+-will drop all charges in cgroup. Currently, this is maintained for test.
+-
+ 4. Testing
  
--extern int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-+extern int mem_cgroup_newpage_charge(struct page *page, struct mm_struct *mm,
- 				gfp_t gfp_mask);
-+extern int mem_cgroup_charge_migrate_fixup(struct page *page,
-+				struct mm_struct *mm, gfp_t gfp_mask);
-+/* for swap handling */
-+extern int mem_cgroup_try_charge(struct mm_struct *mm,
-+		gfp_t gfp_mask, struct mem_cgroup **ptr);
-+extern void mem_cgroup_commit_charge_swapin(struct page *page,
-+					struct mem_cgroup *ptr);
-+extern void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *ptr);
-+
- extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
- 					gfp_t gfp_mask);
- extern void mem_cgroup_move_lists(struct page *page, enum lru_list lru);
-@@ -71,7 +80,9 @@ extern long mem_cgroup_calc_reclaim(stru
+ Balbir posted lmbench, AIM9, LTP and vmmstress results [10] and [11].
+@@ -242,8 +236,10 @@ reclaimed.
  
+ A cgroup can be removed by rmdir, but as discussed in sections 4.1 and 4.2, a
+ cgroup might have some charge associated with it, even though all
+-tasks have migrated away from it. Such charges are automatically dropped at
+-rmdir() if there are no tasks.
++tasks have migrated away from it.
++Such charges are moved to its parent as much as possible and freed if parent
++is full. Both of RSS and CACHES are moved to parent.
++If both of them are busy, rmdir() returns -EBUSY.
  
- #else /* CONFIG_CGROUP_MEM_RES_CTLR */
--static inline int mem_cgroup_charge(struct page *page,
-+struct mem_cgroup;
-+
-+static inline int mem_cgroup_newpage_charge(struct page *page,
- 					struct mm_struct *mm, gfp_t gfp_mask)
- {
- 	return 0;
-@@ -83,6 +94,27 @@ static inline int mem_cgroup_cache_charg
- 	return 0;
- }
+ 5. TODO
  
-+static inline int mem_cgroup_charge_migrate_fixup(struct page *page,
-+					struct mm_struct *mm, gfp_t gfp_mask)
-+{
-+	return 0;
-+}
-+
-+static inline int mem_cgroup_try_charge(struct mm_struct *mm,
-+				gfp_t gfp_mask, struct mem_cgroup **ptr)
-+{
-+	return 0;
-+}
-+
-+static inline void mem_cgroup_commit_charge_swapin(struct page *page,
-+					  struct mem_cgroup *ptr)
-+{
-+}
-+
-+static inline void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *ptr)
-+{
-+}
-+
- static inline void mem_cgroup_uncharge_page(struct page *page)
- {
- }
-diff -puN mm/memcontrol.c~memcg-introduce-charge-commit-cancel-style-of-functions mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-introduce-charge-commit-cancel-style-of-functions
+diff -puN mm/memcontrol.c~memcg-move-all-acccounts-to-parent-at-rmdir mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-move-all-acccounts-to-parent-at-rmdir
 +++ a/mm/memcontrol.c
-@@ -467,35 +467,31 @@ unsigned long mem_cgroup_isolate_pages(u
+@@ -257,7 +257,7 @@ static void __mem_cgroup_remove_list(str
+ }
+ 
+ static void __mem_cgroup_add_list(struct mem_cgroup_per_zone *mz,
+-				struct page_cgroup *pc)
++				struct page_cgroup *pc, bool hot)
+ {
+ 	int lru = LRU_BASE;
+ 
+@@ -271,7 +271,10 @@ static void __mem_cgroup_add_list(struct
+ 	}
+ 
+ 	MEM_CGROUP_ZSTAT(mz, lru) += 1;
+-	list_add(&pc->lru, &mz->lists[lru]);
++	if (hot)
++		list_add(&pc->lru, &mz->lists[lru]);
++	else
++		list_add_tail(&pc->lru, &mz->lists[lru]);
+ 
+ 	mem_cgroup_charge_statistics(pc->mem_cgroup, pc, true);
+ }
+@@ -467,21 +470,12 @@ unsigned long mem_cgroup_isolate_pages(u
  	return nr_taken;
  }
  
--/*
-- * Charge the memory controller for page usage.
-- * Return
-- * 0 if the charge was successful
-- * < 0 if the cgroup is over its limit
-+
+-
+-/**
+- * mem_cgroup_try_charge - get charge of PAGE_SIZE.
+- * @mm: an mm_struct which is charged against. (when *memcg is NULL)
+- * @gfp_mask: gfp_mask for reclaim.
+- * @memcg: a pointer to memory cgroup which is charged against.
+- *
+- * charge against memory cgroup pointed by *memcg. if *memcg == NULL, estimated
+- * memory cgroup from @mm is got and stored in *memcg.
+- *
+- * Returns 0 if success. -ENOMEM at failure.
++/*
++ * Unlike exported interface, "oom" parameter is added. if oom==true,
++ * oom-killer can be invoked.
+  */
+-
+-int mem_cgroup_try_charge(struct mm_struct *mm,
+-			gfp_t gfp_mask, struct mem_cgroup **memcg)
++static int __mem_cgroup_try_charge(struct mm_struct *mm,
++			gfp_t gfp_mask, struct mem_cgroup **memcg, bool oom)
+ {
+ 	struct mem_cgroup *mem;
+ 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
+@@ -528,7 +522,8 @@ int mem_cgroup_try_charge(struct mm_stru
+ 			continue;
+ 
+ 		if (!nr_retries--) {
+-			mem_cgroup_out_of_memory(mem, gfp_mask);
++			if (oom)
++				mem_cgroup_out_of_memory(mem, gfp_mask);
+ 			goto nomem;
+ 		}
+ 	}
+@@ -538,6 +533,25 @@ nomem:
+ 	return -ENOMEM;
+ }
+ 
 +/**
 + * mem_cgroup_try_charge - get charge of PAGE_SIZE.
 + * @mm: an mm_struct which is charged against. (when *memcg is NULL)
@@ -174,322 +195,304 @@ diff -puN mm/memcontrol.c~memcg-introduce-charge-commit-cancel-style-of-function
 + * memory cgroup from @mm is got and stored in *memcg.
 + *
 + * Returns 0 if success. -ENOMEM at failure.
-  */
--static int mem_cgroup_charge_common(struct page *page, struct mm_struct *mm,
--				gfp_t gfp_mask, enum charge_type ctype,
--				struct mem_cgroup *memcg)
++ * This call can invoke OOM-Killer.
++ */
 +
 +int mem_cgroup_try_charge(struct mm_struct *mm,
-+			gfp_t gfp_mask, struct mem_cgroup **memcg)
- {
- 	struct mem_cgroup *mem;
--	struct page_cgroup *pc;
--	unsigned long nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
--	struct mem_cgroup_per_zone *mz;
--	unsigned long flags;
--
--	pc = lookup_page_cgroup(page);
--	/* can happen at boot */
--	if (unlikely(!pc))
--		return 0;
--	prefetchw(pc);
-+	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
- 	/*
- 	 * We always charge the cgroup the mm_struct belongs to.
- 	 * The mm_struct's mem_cgroup changes on task migration if the
- 	 * thread group leader migrates. It's possible that mm is not
- 	 * set, if so charge the init_mm (happens for pagecache usage).
- 	 */
--
--	if (likely(!memcg)) {
-+	if (likely(!*memcg)) {
- 		rcu_read_lock();
- 		mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
- 		if (unlikely(!mem)) {
-@@ -506,15 +502,17 @@ static int mem_cgroup_charge_common(stru
- 		 * For every charge from the cgroup, increment reference count
- 		 */
- 		css_get(&mem->css);
-+		*memcg = mem;
- 		rcu_read_unlock();
- 	} else {
--		mem = memcg;
--		css_get(&memcg->css);
-+		mem = *memcg;
-+		css_get(&mem->css);
- 	}
- 
-+
- 	while (unlikely(res_counter_charge(&mem->res, PAGE_SIZE))) {
- 		if (!(gfp_mask & __GFP_WAIT))
--			goto out;
-+			goto nomem;
- 
- 		if (try_to_free_mem_cgroup_pages(mem, gfp_mask))
- 			continue;
-@@ -531,18 +529,37 @@ static int mem_cgroup_charge_common(stru
- 
- 		if (!nr_retries--) {
- 			mem_cgroup_out_of_memory(mem, gfp_mask);
--			goto out;
-+			goto nomem;
- 		}
- 	}
-+	return 0;
-+nomem:
-+	css_put(&mem->css);
-+	return -ENOMEM;
++			  gfp_t mask, struct mem_cgroup **memcg)
++{
++	return __mem_cgroup_try_charge(mm, mask, memcg, true);
 +}
 +
-+/*
-+ * commit a charge got by mem_cgroup_try_charge() and makes page_cgroup to be
-+ * USED state. If already USED, uncharge and return.
-+ */
+ /*
+  * commit a charge got by mem_cgroup_try_charge() and makes page_cgroup to be
+  * USED state. If already USED, uncharge and return.
+@@ -571,11 +585,109 @@ static void __mem_cgroup_commit_charge(s
+ 	mz = page_cgroup_zoneinfo(pc);
  
-+static void __mem_cgroup_commit_charge(struct mem_cgroup *mem,
-+				     struct page_cgroup *pc,
-+				     enum charge_type ctype)
-+{
-+	struct mem_cgroup_per_zone *mz;
-+	unsigned long flags;
-+
-+	/* try_charge() can return NULL to *memcg, taking care of it. */
-+	if (!mem)
-+		return;
- 
- 	lock_page_cgroup(pc);
- 	if (unlikely(PageCgroupUsed(pc))) {
- 		unlock_page_cgroup(pc);
- 		res_counter_uncharge(&mem->res, PAGE_SIZE);
- 		css_put(&mem->css);
--
--		goto done;
-+		return;
- 	}
- 	pc->mem_cgroup = mem;
- 	/*
-@@ -557,15 +574,39 @@ static int mem_cgroup_charge_common(stru
- 	__mem_cgroup_add_list(mz, pc);
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_add_list(mz, pc);
++	__mem_cgroup_add_list(mz, pc, true);
  	spin_unlock_irqrestore(&mz->lru_lock, flags);
  	unlock_page_cgroup(pc);
+ }
+ 
++/**
++ * mem_cgroup_move_account - move account of the page
++ * @pc:	page_cgroup of the page.
++ * @from: mem_cgroup which the page is moved from.
++ * @to:	mem_cgroup which the page is moved to. @from != @to.
++ *
++ * The caller must confirm following.
++ * 1. disable irq.
++ * 2. lru_lock of old mem_cgroup(@from) should be held.
++ *
++ * returns 0 at success,
++ * returns -EBUSY when lock is busy or "pc" is unstable.
++ *
++ * This function does "uncharge" from old cgroup but doesn't do "charge" to
++ * new cgroup. It should be done by a caller.
++ */
++
++static int mem_cgroup_move_account(struct page_cgroup *pc,
++	struct mem_cgroup *from, struct mem_cgroup *to)
++{
++	struct mem_cgroup_per_zone *from_mz, *to_mz;
++	int nid, zid;
++	int ret = -EBUSY;
++
++	VM_BUG_ON(!irqs_disabled());
++	VM_BUG_ON(from == to);
++
++	nid = page_cgroup_nid(pc);
++	zid = page_cgroup_zid(pc);
++	from_mz =  mem_cgroup_zoneinfo(from, nid, zid);
++	to_mz =  mem_cgroup_zoneinfo(to, nid, zid);
++
++
++	if (!trylock_page_cgroup(pc))
++		return ret;
++
++	if (!PageCgroupUsed(pc))
++		goto out;
++
++	if (pc->mem_cgroup != from)
++		goto out;
++
++	if (spin_trylock(&to_mz->lru_lock)) {
++		__mem_cgroup_remove_list(from_mz, pc);
++		css_put(&from->css);
++		res_counter_uncharge(&from->res, PAGE_SIZE);
++		pc->mem_cgroup = to;
++		css_get(&to->css);
++		__mem_cgroup_add_list(to_mz, pc, false);
++		ret = 0;
++		spin_unlock(&to_mz->lru_lock);
++	}
++out:
++	unlock_page_cgroup(pc);
++	return ret;
 +}
 +
 +/*
-+ * Charge the memory controller for page usage.
-+ * Return
-+ * 0 if the charge was successful
-+ * < 0 if the cgroup is over its limit
++ * move charges to its parent.
 + */
-+static int mem_cgroup_charge_common(struct page *page, struct mm_struct *mm,
-+				gfp_t gfp_mask, enum charge_type ctype,
-+				struct mem_cgroup *memcg)
-+{
-+	struct mem_cgroup *mem;
-+	struct page_cgroup *pc;
-+	int ret;
- 
--done:
-+	pc = lookup_page_cgroup(page);
-+	/* can happen at boot */
-+	if (unlikely(!pc))
-+		return 0;
-+	prefetchw(pc);
 +
-+	mem = memcg;
-+	ret = mem_cgroup_try_charge(mm, gfp_mask, &mem);
++static int mem_cgroup_move_parent(struct page_cgroup *pc,
++				  struct mem_cgroup *child,
++				  gfp_t gfp_mask)
++{
++	struct cgroup *cg = child->css.cgroup;
++	struct cgroup *pcg = cg->parent;
++	struct mem_cgroup *parent;
++	struct mem_cgroup_per_zone *mz;
++	unsigned long flags;
++	int ret;
++
++	/* Is ROOT ? */
++	if (!pcg)
++		return -EINVAL;
++
++	parent = mem_cgroup_from_cont(pcg);
++
++	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false);
 +	if (ret)
 +		return ret;
 +
-+	__mem_cgroup_commit_charge(mem, pc, ctype);
- 	return 0;
--out:
--	css_put(&mem->css);
--	return -ENOMEM;
- }
- 
--int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask)
-+int mem_cgroup_newpage_charge(struct page *page,
-+			      struct mm_struct *mm, gfp_t gfp_mask)
- {
- 	if (mem_cgroup_subsys.disabled)
- 		return 0;
-@@ -586,6 +627,34 @@ int mem_cgroup_charge(struct page *page,
- 				MEM_CGROUP_CHARGE_TYPE_MAPPED, NULL);
- }
- 
-+/*
-+ * same as mem_cgroup_newpage_charge(), now.
-+ * But what we assume is different from newpage, and this is special case.
-+ * treat this in special function. easy for maintenance.
-+ */
++	mz = mem_cgroup_zoneinfo(child,
++			page_cgroup_nid(pc), page_cgroup_zid(pc));
 +
-+int mem_cgroup_charge_migrate_fixup(struct page *page,
-+				struct mm_struct *mm, gfp_t gfp_mask)
-+{
-+	if (mem_cgroup_subsys.disabled)
-+		return 0;
++	spin_lock_irqsave(&mz->lru_lock, flags);
++	ret = mem_cgroup_move_account(pc, child, parent);
++	spin_unlock_irqrestore(&mz->lru_lock, flags);
 +
-+	if (PageCompound(page))
-+		return 0;
++	/* drop extra refcnt */
++	css_put(&parent->css);
++	/* uncharge if move fails */
++	if (ret)
++		res_counter_uncharge(&parent->res, PAGE_SIZE);
 +
-+	if (page_mapped(page) || (page->mapping && !PageAnon(page)))
-+		return 0;
-+
-+	if (unlikely(!mm))
-+		mm = &init_mm;
-+
-+	return mem_cgroup_charge_common(page, mm, gfp_mask,
-+				MEM_CGROUP_CHARGE_TYPE_MAPPED, NULL);
++	return ret;
 +}
-+
-+
-+
-+
- int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
- 				gfp_t gfp_mask)
- {
-@@ -628,6 +697,30 @@ int mem_cgroup_cache_charge(struct page 
- 				MEM_CGROUP_CHARGE_TYPE_SHMEM, NULL);
- }
- 
-+
-+void mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *ptr)
-+{
-+	struct page_cgroup *pc;
-+
-+	if (mem_cgroup_subsys.disabled)
-+		return;
-+	if (!ptr)
-+		return;
-+	pc = lookup_page_cgroup(page);
-+	__mem_cgroup_commit_charge(ptr, pc, MEM_CGROUP_CHARGE_TYPE_MAPPED);
-+}
-+
-+void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *mem)
-+{
-+	if (mem_cgroup_subsys.disabled)
-+		return;
-+	if (!mem)
-+		return;
-+	res_counter_uncharge(&mem->res, PAGE_SIZE);
-+	css_put(&mem->css);
-+}
-+
 +
  /*
-  * uncharge if !page_mapped(page)
+  * Charge the memory controller for page usage.
+  * Return
+@@ -597,7 +709,7 @@ static int mem_cgroup_charge_common(stru
+ 	prefetchw(pc);
+ 
+ 	mem = memcg;
+-	ret = mem_cgroup_try_charge(mm, gfp_mask, &mem);
++	ret = __mem_cgroup_try_charge(mm, gfp_mask, &mem, true);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -899,46 +1011,52 @@ static int mem_cgroup_resize_limit(struc
+  * This routine traverse page_cgroup in given list and drop them all.
+  * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
   */
-diff -puN mm/memory.c~memcg-introduce-charge-commit-cancel-style-of-functions mm/memory.c
---- a/mm/memory.c~memcg-introduce-charge-commit-cancel-style-of-functions
-+++ a/mm/memory.c
-@@ -2000,7 +2000,7 @@ gotten:
- 	cow_user_page(new_page, old_page, address, vma);
- 	__SetPageUptodate(new_page);
- 
--	if (mem_cgroup_charge(new_page, mm, GFP_KERNEL))
-+	if (mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))
- 		goto oom_free_new;
- 
- 	/*
-@@ -2392,6 +2392,7 @@ static int do_swap_page(struct mm_struct
- 	struct page *page;
- 	swp_entry_t entry;
- 	pte_t pte;
-+	struct mem_cgroup *ptr = NULL;
- 	int ret = 0;
- 
- 	if (!pte_unmap_same(mm, pmd, page_table, orig_pte))
-@@ -2430,7 +2431,7 @@ static int do_swap_page(struct mm_struct
- 	lock_page(page);
- 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
- 
--	if (mem_cgroup_charge(page, mm, GFP_KERNEL)) {
-+	if (mem_cgroup_try_charge(mm, GFP_KERNEL, &ptr) == -ENOMEM) {
- 		ret = VM_FAULT_OOM;
- 		unlock_page(page);
- 		goto out;
-@@ -2460,6 +2461,7 @@ static int do_swap_page(struct mm_struct
- 	flush_icache_page(vma, page);
- 	set_pte_at(mm, address, page_table, pte);
- 	page_add_anon_rmap(page, vma, address);
-+	mem_cgroup_commit_charge_swapin(page, ptr);
- 
- 	swap_free(entry);
- 	if (vm_swap_full() || (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
-@@ -2480,7 +2482,7 @@ unlock:
- out:
- 	return ret;
- out_nomap:
--	mem_cgroup_uncharge_page(page);
-+	mem_cgroup_cancel_charge_swapin(ptr);
- 	pte_unmap_unlock(page_table, ptl);
- 	unlock_page(page);
- 	page_cache_release(page);
-@@ -2510,7 +2512,7 @@ static int do_anonymous_page(struct mm_s
- 		goto oom;
- 	__SetPageUptodate(page);
- 
--	if (mem_cgroup_charge(page, mm, GFP_KERNEL))
-+	if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))
- 		goto oom_free_page;
- 
- 	entry = mk_pte(page, vma->vm_page_prot);
-@@ -2601,7 +2603,7 @@ static int __do_fault(struct mm_struct *
- 				ret = VM_FAULT_OOM;
- 				goto out;
- 			}
--			if (mem_cgroup_charge(page, mm, GFP_KERNEL)) {
-+			if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL)) {
- 				ret = VM_FAULT_OOM;
- 				page_cache_release(page);
- 				goto out;
-diff -puN mm/migrate.c~memcg-introduce-charge-commit-cancel-style-of-functions mm/migrate.c
---- a/mm/migrate.c~memcg-introduce-charge-commit-cancel-style-of-functions
-+++ a/mm/migrate.c
-@@ -133,7 +133,7 @@ static void remove_migration_pte(struct 
- 	 * be reliable, and this charge can actually fail: oh well, we don't
- 	 * make the situation any worse by proceeding as if it had succeeded.
- 	 */
--	mem_cgroup_charge(new, mm, GFP_ATOMIC);
-+	mem_cgroup_charge_migrate_fixup(new, mm, GFP_ATOMIC);
- 
- 	get_page(new);
- 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
-diff -puN mm/swapfile.c~memcg-introduce-charge-commit-cancel-style-of-functions mm/swapfile.c
---- a/mm/swapfile.c~memcg-introduce-charge-commit-cancel-style-of-functions
-+++ a/mm/swapfile.c
-@@ -690,17 +690,18 @@ unsigned int count_swap_pages(int type, 
- static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, swp_entry_t entry, struct page *page)
+-#define FORCE_UNCHARGE_BATCH	(128)
+-static void mem_cgroup_force_empty_list(struct mem_cgroup *mem,
++static int mem_cgroup_force_empty_list(struct mem_cgroup *mem,
+ 			    struct mem_cgroup_per_zone *mz,
+ 			    enum lru_list lru)
  {
-+	struct mem_cgroup *ptr = NULL;
- 	spinlock_t *ptl;
- 	pte_t *pte;
- 	int ret = 1;
+-	struct page_cgroup *pc;
+-	struct page *page;
+-	int count = FORCE_UNCHARGE_BATCH;
++	struct page_cgroup *pc, *busy;
+ 	unsigned long flags;
++	unsigned long loop;
+ 	struct list_head *list;
++	int ret = 0;
  
--	if (mem_cgroup_charge(page, vma->vm_mm, GFP_KERNEL))
-+	if (mem_cgroup_try_charge(vma->vm_mm, GFP_KERNEL, &ptr))
- 		ret = -ENOMEM;
+ 	list = &mz->lists[lru];
  
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	if (unlikely(!pte_same(*pte, swp_entry_to_pte(entry)))) {
- 		if (ret > 0)
--			mem_cgroup_uncharge_page(page);
-+			mem_cgroup_cancel_charge_swapin(ptr);
- 		ret = 0;
- 		goto out;
+-	spin_lock_irqsave(&mz->lru_lock, flags);
+-	while (!list_empty(list)) {
+-		pc = list_entry(list->prev, struct page_cgroup, lru);
+-		page = pc->page;
+-		if (!PageCgroupUsed(pc))
++	loop = MEM_CGROUP_ZSTAT(mz, lru);
++	/* give some margin against EBUSY etc...*/
++	loop += 256;
++	busy = NULL;
++	while (loop--) {
++		ret = 0;
++		spin_lock_irqsave(&mz->lru_lock, flags);
++		if (list_empty(list)) {
++			spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 			break;
+-		get_page(page);
++		}
++		pc = list_entry(list->prev, struct page_cgroup, lru);
++		if (busy == pc) {
++			list_move(&pc->lru, list);
++			busy = 0;
++			spin_unlock_irqrestore(&mz->lru_lock, flags);
++			continue;
++		}
+ 		spin_unlock_irqrestore(&mz->lru_lock, flags);
+-		/*
+-		 * Check if this page is on LRU. !LRU page can be found
+-		 * if it's under page migration.
+-		 */
+-		if (PageLRU(page)) {
+-			__mem_cgroup_uncharge_common(page,
+-					MEM_CGROUP_CHARGE_TYPE_FORCE);
+-			put_page(page);
+-			if (--count <= 0) {
+-				count = FORCE_UNCHARGE_BATCH;
+-				cond_resched();
+-			}
+-		} else {
+-			spin_lock_irqsave(&mz->lru_lock, flags);
++
++		ret = mem_cgroup_move_parent(pc, mem, GFP_HIGHUSER_MOVABLE);
++		if (ret == -ENOMEM)
+ 			break;
+-		}
+-		spin_lock_irqsave(&mz->lru_lock, flags);
++
++		if (ret == -EBUSY || ret == -EINVAL) {
++			/* found lock contention or "pc" is obsolete. */
++			busy = pc;
++			cond_resched();
++		} else
++			busy = NULL;
  	}
-@@ -710,6 +711,7 @@ static int unuse_pte(struct vm_area_stru
- 	set_pte_at(vma->vm_mm, addr, pte,
- 		   pte_mkold(mk_pte(page, vma->vm_page_prot)));
- 	page_add_anon_rmap(page, vma, addr);
-+	mem_cgroup_commit_charge_swapin(page, ptr);
- 	swap_free(entry);
- 	/*
- 	 * Move the page to the active list so it is not
-_
-
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
-
-origin.patch
-
+-	spin_unlock_irqrestore(&mz->lru_lock, flags);
++	if (!ret && !list_empty(list))
++		return -EBUSY;
++	return ret;
+ }
+ 
+ /*
+@@ -947,34 +1065,68 @@ static void mem_cgroup_force_empty_list(
+  */
+ static int mem_cgroup_force_empty(struct mem_cgroup *mem)
+ {
+-	int ret = -EBUSY;
+-	int node, zid;
++	int ret;
++	int node, zid, shrink;
++	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
+ 
+ 	css_get(&mem->css);
+-	/*
+-	 * page reclaim code (kswapd etc..) will move pages between
+-	 * active_list <-> inactive_list while we don't take a lock.
+-	 * So, we have to do loop here until all lists are empty.
+-	 */
++
++	shrink = 0;
++move_account:
+ 	while (mem->res.usage > 0) {
++		ret = -EBUSY;
+ 		if (atomic_read(&mem->css.cgroup->count) > 0)
+ 			goto out;
++
+ 		/* This is for making all *used* pages to be on LRU. */
+ 		lru_add_drain_all();
+-		for_each_node_state(node, N_POSSIBLE)
+-			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
++		ret = 0;
++		for_each_node_state(node, N_POSSIBLE) {
++			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
+ 				struct mem_cgroup_per_zone *mz;
+ 				enum lru_list l;
+ 				mz = mem_cgroup_zoneinfo(mem, node, zid);
+-				for_each_lru(l)
+-					mem_cgroup_force_empty_list(mem, mz, l);
++				for_each_lru(l) {
++					ret = mem_cgroup_force_empty_list(mem,
++								  mz, l);
++					if (ret)
++						break;
++				}
+ 			}
++			if (ret)
++				break;
++		}
++		/* it seems parent cgroup doesn't have enough mem */
++		if (ret == -ENOMEM)
++			goto try_to_free;
+ 		cond_resched();
+ 	}
+ 	ret = 0;
+ out:
+ 	css_put(&mem->css);
+ 	return ret;
++
++try_to_free:
++	/* returns EBUSY if we come here twice. */
++	if (shrink)  {
++		ret = -EBUSY;
++		goto out;
++	}
++	/* try to free all pages in this cgroup */
++	shrink = 1;
++	while (nr_retries && mem->res.usage > 0) {
++		int progress;
++		progress = try_to_free_mem_cgroup_pages(mem,
++						  GFP_HIGHUSER_MOVABLE);
++		if (!progress)
++			nr_retries--;
++
++	}
++	/* try move_account...there may be some *locked* pages. */
++	if (mem->res.usage)
++		goto move_account;
++	ret = 0;
++	goto out;
+ }
+ 
+ static u64 mem_cgroup_read(struct cgroup *cont, struct cftype *cft)
+@@ -1023,11 +1175,6 @@ static int mem_cgroup_reset(struct cgrou
+ 	return 0;
+ }
+ 
+-static int mem_force_empty_write(struct cgroup *cont, unsigned int event)
+-{
+-	return mem_cgroup_force_empty(mem_cgroup_from_cont(cont));
+-}
