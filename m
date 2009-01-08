@@ -1,91 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - topology-fix-sparc64-build.patch removed from -mm tree
-Date: Wed, 07 Jan 2009 16:52:09 -0800
-Message-ID: <200901080052.n080q94O014544@imap1.linux-foundation.org>
+Subject: + core_dump_default_elf_headers-depends-on-elf_core.patch added to -mm tree
+Date: Wed, 07 Jan 2009 19:43:33 -0800
+Message-ID: <200901080343.n083hXSD026154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43803 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753687AbZAHAwR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 19:52:17 -0500
+	by vger.kernel.org with ESMTP id S1751586AbZAHDn6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2009 22:43:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dbrownell@users.sourceforge.net, roland@redhat.com
 
 
 The patch titled
-     topology: Fix sparc64 build
-has been removed from the -mm tree.  Its filename was
-     topology-fix-sparc64-build.patch
+     CORE_DUMP_DEFAULT_ELF_HEADERS depends on ELF_CORE
+has been added to the -mm tree.  Its filename is
+     core_dump_default_elf_headers-depends-on-elf_core.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: topology: Fix sparc64 build
-From: David Miller <davem@davemloft.net>
+Subject: CORE_DUMP_DEFAULT_ELF_HEADERS depends on ELF_CORE
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Due to changeset ba84be2338d3a2b6020d39279335bb06fcd332e1
-("remove linux/hardirq.h from asm-generic/local.h") the
-sparc64 build started failing on drivers/base/topology.c:
+Kernels that don't support ELF coredumps at all surely can't be supporting
+new partial-segment flavored ELF coredumps ...  don't make folk answer
+Kconfig questions about that flavor.
 
-drivers/base/topology.c: In function `show_physical_package_id':
-drivers/base/topology.c:103: error: implicit declaration of function `cpu_data'
-drivers/base/topology.c:103: error: request for member `proc_id' in something not a structure or union
-drivers/base/topology.c: In function `show_core_id':
-drivers/base/topology.c:106: error: request for member `core_id' in something not a structure or union
-
-Adding the obvious fix of including asm/cpudata.h into
-asm/topology.h on sparc64 doesn't fix it, in fact it
-makes things worse because of the header file dependency
-chain:
-
-	linux/gfp.h --> linux/mmzone.h --> linux/topology.h -->
-	asm/topology.h --> asm/cpudata.h --> linux/percpu.h -->
-	linux/slab.h
-
-which results in:
-
-include/linux/slub_def.h: In function `kmalloc_large':
-include/linux/slub_def.h:209: error: implicit declaration of function `__get_free_pages'
-include/linux/slub_def.h:209: error: `__GFP_COMP' undeclared (first use in this function)
-include/linux/slub_def.h:209: error: (Each undeclared identifier is reported only once
-include/linux/slub_def.h:209: error: for each function it appears in.)
-include/linux/slub_def.h:209: warning: cast to pointer from integer of different size
-
-The simplest thing to do is to add yet another one-off hack like
-parts of the guilty changeset did, by putting an explicit
-linux/hardirq.h include into drivers/base/topology.c
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/topology.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/Kconfig.binfmt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/topology.c~topology-fix-sparc64-build drivers/base/topology.c
---- a/drivers/base/topology.c~topology-fix-sparc64-build
-+++ a/drivers/base/topology.c
-@@ -28,6 +28,7 @@
- #include <linux/mm.h>
- #include <linux/cpu.h>
- #include <linux/module.h>
-+#include <linux/hardirq.h>
- #include <linux/topology.h>
- 
- #define define_one_ro(_name) 		\
+diff -puN fs/Kconfig.binfmt~core_dump_default_elf_headers-depends-on-elf_core fs/Kconfig.binfmt
+--- a/fs/Kconfig.binfmt~core_dump_default_elf_headers-depends-on-elf_core
++++ a/fs/Kconfig.binfmt
+@@ -43,7 +43,7 @@ config BINFMT_ELF_FDPIC
+ config CORE_DUMP_DEFAULT_ELF_HEADERS
+ 	bool "Write ELF core dumps with partial segments"
+ 	default n
+-	depends on BINFMT_ELF
++	depends on BINFMT_ELF && ELF_CORE
+ 	help
+ 	  ELF core dump files describe each memory mapping of the crashed
+ 	  process, and can contain or omit the memory contents of each one.
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
+rtc-ds1307-remove-legacy-probe-checks.patch
 linux-next.patch
-net-tipc-bcasth-use-array_size.patch
-unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
-remove-lots-of-double-semicolons.patch
-generic-swap-sparc-rename-swap-to-swap_ulong.patch
-generic-swap-iphase-rename-swap-to-swap_byte_order.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
+usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
+usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
+usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
+usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
+usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
+core_dump_default_elf_headers-depends-on-elf_core.patch
 
