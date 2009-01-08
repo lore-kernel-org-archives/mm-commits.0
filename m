@@ -1,114 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-allocate-s_blockgroup_lock-separately.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:47:03 -0800
-Message-ID: <200901082247.n08Ml3PA026536__28987.2694448151$1231455208$gmane$org@imap1.linux-foundation.org>
+Subject: - memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:48:11 -0800
+Message-ID: <200901082248.n08MmBi0027557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60819 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763448AbZAHWvJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:09 -0500
+	by vger.kernel.org with ESMTP id S1759698AbZAHWvV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, adilger@sun.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: jblunck@suse.de, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: allocate ->s_blockgroup_lock separately
+     memcg: reduce size of mem_cgroup by using nr_cpu_ids
 has been removed from the -mm tree.  Its filename was
-     ext3-allocate-s_blockgroup_lock-separately.patch
+     memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: allocate ->s_blockgroup_lock separately
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: memcg: reduce size of mem_cgroup by using nr_cpu_ids
+From: Jan Blunck <jblunck@suse.de>
 
-As spotted by kmemtrace, struct ext3_sb_info is 17152 bytes on 64-bit
-which makes it a very bad fit for SLAB allocators.  The culprit of the
-wasted memory is ->s_blockgroup_lock which can be as big as 16 KB when
-NR_CPUS >= 32.
+As Jan Blunck <jblunck@suse.de> pointed out, allocating per-cpu stat for
+memcg to the size of NR_CPUS is not good.
 
-To fix that, allocate ->s_blockgroup_lock, which fits nicely in a order 2
-page in the worst case, separately.  This shinks down struct ext3_sb_info
-enough to fit a 1 KB slab cache so now we allocate 16 KB + 1 KB instead of
-32 KB saving 15 KB of memory.
+This patch changes mem_cgroup's cpustat allocation not based on NR_CPUS
+but based on nr_cpu_ids.
 
-Acked-by: Andreas Dilger <adilger@sun.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: <linux-ext4@vger.kernel.org>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c            |   10 +++++++++-
- include/linux/ext3_fs_sb.h |    4 ++--
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-allocate-s_blockgroup_lock-separately fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-allocate-s_blockgroup_lock-separately
-+++ a/fs/ext3/super.c
-@@ -439,6 +439,7 @@ static void ext3_put_super (struct super
- 		ext3_blkdev_remove(sbi);
- 	}
- 	sb->s_fs_info = NULL;
-+	kfree(sbi->s_blockgroup_lock);
- 	kfree(sbi);
- 	return;
+diff -puN mm/memcontrol.c~memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-reduce-size-of-mem_cgroup-by-using-nr_cpu_ids
++++ a/mm/memcontrol.c
+@@ -60,7 +60,7 @@ struct mem_cgroup_stat_cpu {
+ } ____cacheline_aligned_in_smp;
+ 
+ struct mem_cgroup_stat {
+-	struct mem_cgroup_stat_cpu cpustat[NR_CPUS];
++	struct mem_cgroup_stat_cpu cpustat[0];
+ };
+ 
+ /*
+@@ -129,11 +129,10 @@ struct mem_cgroup {
+ 
+ 	int	prev_priority;	/* for recording reclaim priority */
+ 	/*
+-	 * statistics.
++	 * statistics. This must be placed at the end of memcg.
+ 	 */
+ 	struct mem_cgroup_stat stat;
+ };
+-static struct mem_cgroup init_mem_cgroup;
+ 
+ enum charge_type {
+ 	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
+@@ -1293,23 +1292,30 @@ static void free_mem_cgroup_per_zone_inf
+ 	kfree(mem->info.nodeinfo[node]);
  }
-@@ -1546,6 +1547,13 @@ static int ext3_fill_super (struct super
- 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
- 	if (!sbi)
- 		return -ENOMEM;
+ 
++static int mem_cgroup_size(void)
++{
++	int cpustat_size = nr_cpu_ids * sizeof(struct mem_cgroup_stat_cpu);
++	return sizeof(struct mem_cgroup) + cpustat_size;
++}
 +
-+	sbi->s_blockgroup_lock =
-+		kzalloc(sizeof(struct blockgroup_lock), GFP_KERNEL);
-+	if (!sbi->s_blockgroup_lock) {
-+		kfree(sbi);
-+		return -ENOMEM;
-+	}
- 	sb->s_fs_info = sbi;
- 	sbi->s_mount_opt = 0;
- 	sbi->s_resuid = EXT3_DEF_RESUID;
-@@ -1786,7 +1794,7 @@ static int ext3_fill_super (struct super
- 		goto failed_mount;
- 	}
- 
--	bgl_lock_init(&sbi->s_blockgroup_lock);
-+	bgl_lock_init(sbi->s_blockgroup_lock);
- 
- 	for (i = 0; i < db_count; i++) {
- 		block = descriptor_loc(sb, logic_sb_block, i);
-diff -puN include/linux/ext3_fs_sb.h~ext3-allocate-s_blockgroup_lock-separately include/linux/ext3_fs_sb.h
---- a/include/linux/ext3_fs_sb.h~ext3-allocate-s_blockgroup_lock-separately
-+++ a/include/linux/ext3_fs_sb.h
-@@ -60,7 +60,7 @@ struct ext3_sb_info {
- 	struct percpu_counter s_freeblocks_counter;
- 	struct percpu_counter s_freeinodes_counter;
- 	struct percpu_counter s_dirs_counter;
--	struct blockgroup_lock s_blockgroup_lock;
-+	struct blockgroup_lock *s_blockgroup_lock;
- 
- 	/* root of the per fs reservation window tree */
- 	spinlock_t s_rsv_window_lock;
-@@ -86,7 +86,7 @@ struct ext3_sb_info {
- static inline spinlock_t *
- sb_bgl_lock(struct ext3_sb_info *sbi, unsigned int block_group)
+ static struct mem_cgroup *mem_cgroup_alloc(void)
  {
--	return bgl_lock_ptr(&sbi->s_blockgroup_lock, block_group);
-+	return bgl_lock_ptr(sbi->s_blockgroup_lock, block_group);
+ 	struct mem_cgroup *mem;
++	int size = mem_cgroup_size();
+ 
+-	if (sizeof(*mem) < PAGE_SIZE)
+-		mem = kmalloc(sizeof(*mem), GFP_KERNEL);
++	if (size < PAGE_SIZE)
++		mem = kmalloc(size, GFP_KERNEL);
+ 	else
+-		mem = vmalloc(sizeof(*mem));
++		mem = vmalloc(size);
+ 
+ 	if (mem)
+-		memset(mem, 0, sizeof(*mem));
++		memset(mem, 0, size);
+ 	return mem;
  }
  
- #endif	/* _LINUX_EXT3_FS_SB */
+ static void mem_cgroup_free(struct mem_cgroup *mem)
+ {
+-	if (sizeof(*mem) < PAGE_SIZE)
++	if (mem_cgroup_size() < PAGE_SIZE)
+ 		kfree(mem);
+ 	else
+ 		vfree(mem);
+@@ -1322,13 +1328,9 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	struct mem_cgroup *mem;
+ 	int node;
+ 
+-	if (unlikely((cont->parent) == NULL)) {
+-		mem = &init_mem_cgroup;
+-	} else {
+-		mem = mem_cgroup_alloc();
+-		if (!mem)
+-			return ERR_PTR(-ENOMEM);
+-	}
++	mem = mem_cgroup_alloc();
++	if (!mem)
++		return ERR_PTR(-ENOMEM);
+ 
+ 	res_counter_init(&mem->res);
+ 
+@@ -1340,8 +1342,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ free_out:
+ 	for_each_node_state(node, N_POSSIBLE)
+ 		free_mem_cgroup_per_zone_info(mem, node);
+-	if (cont->parent != NULL)
+-		mem_cgroup_free(mem);
++	mem_cgroup_free(mem);
+ 	return ERR_PTR(-ENOMEM);
+ }
+ 
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from jblunck@suse.de are
 
 origin.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-linux-next.patch
-ext4-allocate-s_blockgroup_lock-separately.patch
-nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
-slab-leaks3-default-y.patch
 
