@@ -1,104 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - generic-swap-dcache-use-swap-instead-of-private-do_switch.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:51:24 -0800
-Message-ID: <200901082251.n08MpOOH030511@imap1.linux-foundation.org>
+Subject: - ext3-dont-inherit-inappropriate-inode-flags-from-parent.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:47:05 -0800
+Message-ID: <200901082247.n08Ml5wg026581__33775.7386071191$1231455194$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763577AbZAHWv1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:27 -0500
+	by vger.kernel.org with ESMTP id S1763029AbZAHWvI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: duaneg@dghda.com, adilger@sun.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     generic swap(): dcache: use swap() instead of private do_switch()
+     ext3: don't inherit inappropriate inode flags from parent
 has been removed from the -mm tree.  Its filename was
-     generic-swap-dcache-use-swap-instead-of-private-do_switch.patch
+     ext3-dont-inherit-inappropriate-inode-flags-from-parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic swap(): dcache: use swap() instead of private do_switch()
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: ext3: don't inherit inappropriate inode flags from parent
+From: "Duane Griffin" <duaneg@dghda.com>
 
-Use the new generic implementation.
+At present INDEX is the only flag that new ext3 inodes do NOT inherit from
+their parent.  In addition prevent the flags DIRTY, ECOMPR, IMAGIC and
+TOPDIR from being inherited.  List inheritable flags explicitly to prevent
+future flags from accidentally being inherited.
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+This fixes the TOPDIR flag inheritance bug reported at
+http://bugzilla.kernel.org/show_bug.cgi?id=9866.
+
+Signed-off-by: Duane Griffin <duaneg@dghda.com>
+Acked-by: Andreas Dilger <adilger@sun.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ fs/ext3/ialloc.c        |    2 +-
+ include/linux/ext3_fs.h |    7 +++++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN fs/dcache.c~generic-swap-dcache-use-swap-instead-of-private-do_switch fs/dcache.c
---- a/fs/dcache.c~generic-swap-dcache-use-swap-instead-of-private-do_switch
-+++ a/fs/dcache.c
-@@ -1567,10 +1567,6 @@ void d_rehash(struct dentry * entry)
- 	spin_unlock(&dcache_lock);
- }
+diff -puN fs/ext3/ialloc.c~ext3-dont-inherit-inappropriate-inode-flags-from-parent fs/ext3/ialloc.c
+--- a/fs/ext3/ialloc.c~ext3-dont-inherit-inappropriate-inode-flags-from-parent
++++ a/fs/ext3/ialloc.c
+@@ -559,7 +559,7 @@ got:
+ 	ei->i_dir_start_lookup = 0;
+ 	ei->i_disksize = 0;
  
--#define do_switch(x,y) do { \
--	__typeof__ (x) __tmp = x; \
--	x = y; y = __tmp; } while (0)
--
+-	ei->i_flags = EXT3_I(dir)->i_flags & ~EXT3_INDEX_FL;
++	ei->i_flags = EXT3_I(dir)->i_flags & EXT3_FL_INHERITED;
+ 	if (S_ISLNK(mode))
+ 		ei->i_flags &= ~(EXT3_IMMUTABLE_FL|EXT3_APPEND_FL);
+ 	/* dirsync only applies to directories */
+diff -puN include/linux/ext3_fs.h~ext3-dont-inherit-inappropriate-inode-flags-from-parent include/linux/ext3_fs.h
+--- a/include/linux/ext3_fs.h~ext3-dont-inherit-inappropriate-inode-flags-from-parent
++++ a/include/linux/ext3_fs.h
+@@ -178,6 +178,13 @@ struct ext3_group_desc
+ #define EXT3_FL_USER_VISIBLE		0x0003DFFF /* User visible flags */
+ #define EXT3_FL_USER_MODIFIABLE		0x000380FF /* User modifiable flags */
+ 
++/* Flags that should be inherited by new inodes from their parent. */
++#define EXT3_FL_INHERITED (EXT3_SECRM_FL | EXT3_UNRM_FL | EXT3_COMPR_FL |\
++			   EXT3_SYNC_FL | EXT3_IMMUTABLE_FL | EXT3_APPEND_FL |\
++			   EXT3_NODUMP_FL | EXT3_NOATIME_FL | EXT3_COMPRBLK_FL|\
++			   EXT3_NOCOMPR_FL | EXT3_JOURNAL_DATA_FL |\
++			   EXT3_NOTAIL_FL | EXT3_DIRSYNC_FL)
++
  /*
-  * When switching names, the actual string doesn't strictly have to
-  * be preserved in the target - because we're dropping the target
-@@ -1589,7 +1585,7 @@ static void switch_names(struct dentry *
- 			/*
- 			 * Both external: swap the pointers
- 			 */
--			do_switch(target->d_name.name, dentry->d_name.name);
-+			swap(target->d_name.name, dentry->d_name.name);
- 		} else {
- 			/*
- 			 * dentry:internal, target:external.  Steal target's
-@@ -1620,7 +1616,7 @@ static void switch_names(struct dentry *
- 			return;
- 		}
- 	}
--	do_switch(dentry->d_name.len, target->d_name.len);
-+	swap(dentry->d_name.len, target->d_name.len);
- }
- 
- /*
-@@ -1680,7 +1676,7 @@ already_unhashed:
- 
- 	/* Switch the names.. */
- 	switch_names(dentry, target);
--	do_switch(dentry->d_name.hash, target->d_name.hash);
-+	swap(dentry->d_name.hash, target->d_name.hash);
- 
- 	/* ... and switch the parents */
- 	if (IS_ROOT(dentry)) {
-@@ -1688,7 +1684,7 @@ already_unhashed:
- 		target->d_parent = target;
- 		INIT_LIST_HEAD(&target->d_u.d_child);
- 	} else {
--		do_switch(dentry->d_parent, target->d_parent);
-+		swap(dentry->d_parent, target->d_parent);
- 
- 		/* And add them back to the (new) parent lists */
- 		list_add(&target->d_u.d_child, &target->d_parent->d_subdirs);
-@@ -1789,7 +1785,7 @@ static void __d_materialise_dentry(struc
- 	struct dentry *dparent, *aparent;
- 
- 	switch_names(dentry, anon);
--	do_switch(dentry->d_name.hash, anon->d_name.hash);
-+	swap(dentry->d_name.hash, anon->d_name.hash);
- 
- 	dparent = dentry->d_parent;
- 	aparent = anon->d_parent;
+  * Inode dynamic state flags
+  */
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from duaneg@dghda.com are
 
 origin.patch
-linux-next.patch
+ext4-dont-inherit-inappropriate-inode-flags-from-parent.patch
+ext4-tighten-restrictions-on-inode-flags.patch
 
