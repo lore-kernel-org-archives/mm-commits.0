@@ -1,130 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-add-mem_cgroup_zone_nr_pages.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:49:14 -0800
-Message-ID: <200901082249.n08MnE0N028495@imap1.linux-foundation.org>
+Subject: - elf-implement-at_random-for-glibc-prng-seeding.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:50:31 -0800
+Message-ID: <200901082250.n08MoV9e029694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42675 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763510AbZAHXAJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 18:00:09 -0500
+	by vger.kernel.org with ESMTP id S1763462AbZAHXAG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 18:00:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.com, mm-commits@vger.kernel.org
+To: kees.cook@canonical.com, andi@firstfloor.org, drepper@redhat.com, jakub@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: add mem_cgroup_zone_nr_pages()
+     ELF: implement AT_RANDOM for glibc PRNG seeding
 has been removed from the -mm tree.  Its filename was
-     memcg-add-mem_cgroup_zone_nr_pages.patch
+     elf-implement-at_random-for-glibc-prng-seeding.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add mem_cgroup_zone_nr_pages()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: ELF: implement AT_RANDOM for glibc PRNG seeding
+From: Kees Cook <kees.cook@canonical.com>
 
-Introduce mem_cgroup_zone_nr_pages().  It is called by zone_nr_pages()
-helper function.
+While discussing[1] the need for glibc to have access to random bytes
+during program load, it seems that an earlier attempt to implement
+AT_RANDOM got stalled.  This implements a random 16 byte string, available
+to every ELF program via a new auxv AT_RANDOM vector.
 
-This patch doesn't have any behavior change.
+[1] http://sourceware.org/ml/libc-alpha/2008-10/msg00006.html
 
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Ulrich said:
+
+glibc needs right after startup a bit of random data for internal
+protections (stack canary etc).  What is now in upstream glibc is that we
+always unconditionally open /dev/urandom, read some data, and use it.  For
+every process startup.  That's slow.
+
+...
+
+The solution is to provide a limited amount of random data to the
+starting process in the aux vector.  I suggested 16 bytes and this is
+what the patch implements.  If we need only 16 bytes or less we use the
+data directly.  If we need more we'll use the 16 bytes to see a PRNG.
+This avoids the costly /dev/urandom use and it allows the kernel to use
+the most adequate source of random data for this purpose.  It might not
+be the same pool as that for /dev/urandom.
+
+Concerns were expressed about the depletion of the randomness pool.  But
+this patch doesn't make the situation worse, it doesn't deplete entropy
+more than happens now.
+
+Signed-off-by: Kees Cook <kees.cook@canonical.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   11 +++++++++++
- mm/memcontrol.c            |   12 +++++++++++-
- mm/vmscan.c                |    3 +++
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ fs/binfmt_elf.c        |   12 ++++++++++++
+ include/linux/auxvec.h |    6 +++---
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-add-mem_cgroup_zone_nr_pages include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-mem_cgroup_zone_nr_pages
-+++ a/include/linux/memcontrol.h
-@@ -102,6 +102,9 @@ extern long mem_cgroup_calc_reclaim(stru
- 					int priority, enum lru_list lru);
- int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg,
- 				    struct zone *zone);
-+unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
-+				       struct zone *zone,
-+				       enum lru_list lru);
+diff -puN fs/binfmt_elf.c~elf-implement-at_random-for-glibc-prng-seeding fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~elf-implement-at_random-for-glibc-prng-seeding
++++ a/fs/binfmt_elf.c
+@@ -152,8 +152,10 @@ create_elf_tables(struct linux_binprm *b
+ 	elf_addr_t __user *sp;
+ 	elf_addr_t __user *u_platform;
+ 	elf_addr_t __user *u_base_platform;
++	elf_addr_t __user *u_rand_bytes;
+ 	const char *k_platform = ELF_PLATFORM;
+ 	const char *k_base_platform = ELF_BASE_PLATFORM;
++	unsigned char k_rand_bytes[16];
+ 	int items;
+ 	elf_addr_t *elf_info;
+ 	int ei_index = 0;
+@@ -196,6 +198,15 @@ create_elf_tables(struct linux_binprm *b
+ 			return -EFAULT;
+ 	}
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- extern int do_swap_account;
-@@ -260,6 +263,14 @@ mem_cgroup_inactive_anon_is_low(struct m
- 	return 1;
- }
- 
-+static inline unsigned long
-+mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg, struct zone *zone,
-+			 enum lru_list lru)
-+{
-+	return 0;
-+}
++	/*
++	 * Generate 16 random bytes for userspace PRNG seeding.
++	 */
++	get_random_bytes(k_rand_bytes, sizeof(k_rand_bytes));
++	u_rand_bytes = (elf_addr_t __user *)
++		       STACK_ALLOC(p, sizeof(k_rand_bytes));
++	if (__copy_to_user(u_rand_bytes, k_rand_bytes, sizeof(k_rand_bytes)))
++		return -EFAULT;
 +
-+
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_zone_nr_pages mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-mem_cgroup_zone_nr_pages
-+++ a/mm/memcontrol.c
-@@ -186,7 +186,6 @@ pcg_default_flags[NR_CHARGE_TYPE] = {
- 	0, /* FORCE */
- };
- 
+ 	/* Create the ELF interpreter info */
+ 	elf_info = (elf_addr_t *)current->mm->saved_auxv;
+ 	/* update AT_VECTOR_SIZE_BASE if the number of NEW_AUX_ENT() changes */
+@@ -228,6 +239,7 @@ create_elf_tables(struct linux_binprm *b
+ 	NEW_AUX_ENT(AT_GID, cred->gid);
+ 	NEW_AUX_ENT(AT_EGID, cred->egid);
+  	NEW_AUX_ENT(AT_SECURE, security_bprm_secureexec(bprm));
++	NEW_AUX_ENT(AT_RANDOM, (elf_addr_t)(unsigned long)u_rand_bytes);
+ 	NEW_AUX_ENT(AT_EXECFN, bprm->exec);
+ 	if (k_platform) {
+ 		NEW_AUX_ENT(AT_PLATFORM,
+diff -puN include/linux/auxvec.h~elf-implement-at_random-for-glibc-prng-seeding include/linux/auxvec.h
+--- a/include/linux/auxvec.h~elf-implement-at_random-for-glibc-prng-seeding
++++ a/include/linux/auxvec.h
+@@ -23,16 +23,16 @@
+ #define AT_PLATFORM 15  /* string identifying CPU for optimizations */
+ #define AT_HWCAP  16    /* arch dependent hints at CPU capabilities */
+ #define AT_CLKTCK 17	/* frequency at which times() increments */
 -
- /* for encoding cft->private value on file */
- #define _MEM			(0)
- #define _MEMSWAP		(1)
-@@ -448,6 +447,17 @@ int mem_cgroup_inactive_anon_is_low(stru
- 	return 0;
- }
- 
-+unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
-+				       struct zone *zone,
-+				       enum lru_list lru)
-+{
-+	int nid = zone->zone_pgdat->node_id;
-+	int zid = zone_idx(zone);
-+	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(memcg, nid, zid);
-+
-+	return MEM_CGROUP_ZSTAT(mz, lru);
-+}
-+
- unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
- 					struct list_head *dst,
- 					unsigned long *scanned, int order,
-diff -puN mm/vmscan.c~memcg-add-mem_cgroup_zone_nr_pages mm/vmscan.c
---- a/mm/vmscan.c~memcg-add-mem_cgroup_zone_nr_pages
-+++ a/mm/vmscan.c
-@@ -139,6 +139,9 @@ static struct zone_reclaim_stat *get_rec
- static unsigned long zone_nr_pages(struct zone *zone, struct scan_control *sc,
- 				   enum lru_list lru)
- {
-+	if (!scan_global_lru(sc))
-+		return mem_cgroup_zone_nr_pages(sc->mem_cgroup, zone, lru);
-+
- 	return zone_page_state(zone, NR_LRU_BASE + lru);
- }
- 
-_
-
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
-
-origin.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-ia64-implement-interrupt-enabling-rwlocks.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-
++/* AT_* values 18 through 22 are reserved */
+ #define AT_SECURE 23   /* secure mode boolean */
