@@ -1,115 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-tighten-restrictions-on-inode-flags.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:46:56 -0800
-Message-ID: <200901082246.n08Mkuue026434@imap1.linux-foundation.org>
+Subject: - quota-dont-set-grace-time-when-user-isnt-above-softlimit.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:47:14 -0800
+Message-ID: <200901082247.n08MlEt1026694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37157 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56889 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758344AbZAHWrb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:47:31 -0500
+	by vger.kernel.org with ESMTP id S1763430AbZAHWru (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:47:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: duaneg@dghda.com, adilger@sun.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2: tighten restrictions on inode flags
+     quota: don't set grace time when user isn't above softlimit
 has been removed from the -mm tree.  Its filename was
-     ext2-tighten-restrictions-on-inode-flags.patch
+     quota-dont-set-grace-time-when-user-isnt-above-softlimit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2: tighten restrictions on inode flags
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: quota: don't set grace time when user isn't above softlimit
+From: Jan Kara <jack@suse.cz>
 
-At the moment there are few restrictions on which flags may be set on
-which inodes.  Specifically DIRSYNC may only be set on directories and
-IMMUTABLE and APPEND may not be set on links.  Tighten that to disallow
-TOPDIR being set on non-directories and only NODUMP and NOATIME to be set
-on non-regular file, non-directories.
+do_set_dqblk() allowed SETDQBLK quotactl to set user's grace time even if
+user was not above his softlimit.  This does not make much sence and by
+coincidence causes quota code to omit softlimit warning when user really
+exceeds softlimit.  This patch makes do_set_dqblk() reset user's grace
+time if he has not exceeded softlimit.
 
-Introduces a flags masking function which masks flags based on mode and
-use it during inode creation and when flags are set via the ioctl to
-facilitate future consistency.
-
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Acked-by: Andreas Dilger <adilger@sun.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ialloc.c        |    8 ++------
- fs/ext2/ioctl.c         |    3 +--
- include/linux/ext2_fs.h |   17 +++++++++++++++++
- 3 files changed, 20 insertions(+), 8 deletions(-)
+ fs/dquot.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ext2/ialloc.c~ext2-tighten-restrictions-on-inode-flags fs/ext2/ialloc.c
---- a/fs/ext2/ialloc.c~ext2-tighten-restrictions-on-inode-flags
-+++ a/fs/ext2/ialloc.c
-@@ -565,12 +565,8 @@ got:
- 	inode->i_blocks = 0;
- 	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME_SEC;
- 	memset(ei->i_data, 0, sizeof(ei->i_data));
--	ei->i_flags = EXT2_I(dir)->i_flags & EXT2_FL_INHERITED;
--	if (S_ISLNK(mode))
--		ei->i_flags &= ~(EXT2_IMMUTABLE_FL|EXT2_APPEND_FL);
--	/* dirsync is only applied to directories */
--	if (!S_ISDIR(mode))
--		ei->i_flags &= ~EXT2_DIRSYNC_FL;
-+	ei->i_flags =
-+		ext2_mask_flags(mode, EXT2_I(dir)->i_flags & EXT2_FL_INHERITED);
- 	ei->i_faddr = 0;
- 	ei->i_frag_no = 0;
- 	ei->i_frag_size = 0;
-diff -puN fs/ext2/ioctl.c~ext2-tighten-restrictions-on-inode-flags fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~ext2-tighten-restrictions-on-inode-flags
-+++ a/fs/ext2/ioctl.c
-@@ -50,8 +50,7 @@ long ext2_ioctl(struct file *filp, unsig
- 			goto setflags_out;
- 		}
+diff -puN fs/dquot.c~quota-dont-set-grace-time-when-user-isnt-above-softlimit fs/dquot.c
+--- a/fs/dquot.c~quota-dont-set-grace-time-when-user-isnt-above-softlimit
++++ a/fs/dquot.c
+@@ -2090,10 +2090,12 @@ static int do_set_dqblk(struct dquot *dq
+ 	}
+ 	if (di->dqb_valid & QIF_BTIME) {
+ 		dm->dqb_btime = di->dqb_btime;
++		check_blim = 1;
+ 		__set_bit(DQ_LASTSET_B + QIF_BTIME_B, &dquot->dq_flags);
+ 	}
+ 	if (di->dqb_valid & QIF_ITIME) {
+ 		dm->dqb_itime = di->dqb_itime;
++		check_ilim = 1;
+ 		__set_bit(DQ_LASTSET_B + QIF_ITIME_B, &dquot->dq_flags);
+ 	}
  
--		if (!S_ISDIR(inode->i_mode))
--			flags &= ~EXT2_DIRSYNC_FL;
-+		flags = ext2_mask_flags(inode->i_mode, flags);
- 
- 		mutex_lock(&inode->i_mutex);
- 		/* Is it quota file? Do not allow user to mess with it */
-diff -puN include/linux/ext2_fs.h~ext2-tighten-restrictions-on-inode-flags include/linux/ext2_fs.h
---- a/include/linux/ext2_fs.h~ext2-tighten-restrictions-on-inode-flags
-+++ a/include/linux/ext2_fs.h
-@@ -201,6 +201,23 @@ struct ext2_group_desc
- 			   EXT2_NOCOMP_FL | EXT2_JOURNAL_DATA_FL |\
- 			   EXT2_NOTAIL_FL | EXT2_DIRSYNC_FL)
- 
-+/* Flags that are appropriate for regular files (all but dir-specific ones). */
-+#define EXT2_REG_FLMASK (~(EXT2_DIRSYNC_FL | EXT2_TOPDIR_FL))
-+
-+/* Flags that are appropriate for non-directories/regular files. */
-+#define EXT2_OTHER_FLMASK (EXT2_NODUMP_FL | EXT2_NOATIME_FL)
-+
-+/* Mask out flags that are inappropriate for the given type of inode. */
-+static inline __u32 ext2_mask_flags(umode_t mode, __u32 flags)
-+{
-+	if (S_ISDIR(mode))
-+		return flags;
-+	else if (S_ISREG(mode))
-+		return flags & EXT2_REG_FLMASK;
-+	else
-+		return flags & EXT2_OTHER_FLMASK;
-+}
-+
- /*
-  * ioctl commands
-  */
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-ext4-dont-inherit-inappropriate-inode-flags-from-parent.patch
-ext4-tighten-restrictions-on-inode-flags.patch
+linux-next.patch
 
