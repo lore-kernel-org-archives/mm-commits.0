@@ -1,75 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - x86-provide-_sdata-in-the-vmlinux_ldss-files.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:46:10 -0800
-Message-ID: <200901082246.n08MkANQ025699@imap1.linux-foundation.org>
+Subject: - ext3-allocate-s_blockgroup_lock-separately.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:47:03 -0800
+Message-ID: <200901082247.n08Ml3PA026536__28987.2694448151$1231455208$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37054 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756042AbZAHWvY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:24 -0500
+	by vger.kernel.org with ESMTP id S1763448AbZAHWvJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, adilger@sun.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: provide _sdata in the vmlinux_*.lds.S files
+     ext3: allocate ->s_blockgroup_lock separately
 has been removed from the -mm tree.  Its filename was
-     x86-provide-_sdata-in-the-vmlinux_ldss-files.patch
+     ext3-allocate-s_blockgroup_lock-separately.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: provide _sdata in the vmlinux_*.lds.S files
-From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: ext3: allocate ->s_blockgroup_lock separately
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-_sdata is a common symbol defined by many architectures and made available
-to the kernel via asm-generic/sections.h.  Kmemleak uses this symbol when
-scanning the data sections.
+As spotted by kmemtrace, struct ext3_sb_info is 17152 bytes on 64-bit
+which makes it a very bad fit for SLAB allocators.  The culprit of the
+wasted memory is ->s_blockgroup_lock which can be as big as 16 KB when
+NR_CPUS >= 32.
 
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+To fix that, allocate ->s_blockgroup_lock, which fits nicely in a order 2
+page in the worst case, separately.  This shinks down struct ext3_sb_info
+enough to fit a 1 KB slab cache so now we allocate 16 KB + 1 KB instead of
+32 KB saving 15 KB of memory.
+
+Acked-by: Andreas Dilger <adilger@sun.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux_32.lds.S |    1 +
- arch/x86/kernel/vmlinux_64.lds.S |    1 +
- 2 files changed, 2 insertions(+)
+ fs/ext3/super.c            |   10 +++++++++-
+ include/linux/ext3_fs_sb.h |    4 ++--
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/vmlinux_32.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files arch/x86/kernel/vmlinux_32.lds.S
---- a/arch/x86/kernel/vmlinux_32.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files
-+++ a/arch/x86/kernel/vmlinux_32.lds.S
-@@ -63,6 +63,7 @@ SECTIONS
+diff -puN fs/ext3/super.c~ext3-allocate-s_blockgroup_lock-separately fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-allocate-s_blockgroup_lock-separately
++++ a/fs/ext3/super.c
+@@ -439,6 +439,7 @@ static void ext3_put_super (struct super
+ 		ext3_blkdev_remove(sbi);
+ 	}
+ 	sb->s_fs_info = NULL;
++	kfree(sbi->s_blockgroup_lock);
+ 	kfree(sbi);
+ 	return;
+ }
+@@ -1546,6 +1547,13 @@ static int ext3_fill_super (struct super
+ 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+ 		return -ENOMEM;
++
++	sbi->s_blockgroup_lock =
++		kzalloc(sizeof(struct blockgroup_lock), GFP_KERNEL);
++	if (!sbi->s_blockgroup_lock) {
++		kfree(sbi);
++		return -ENOMEM;
++	}
+ 	sb->s_fs_info = sbi;
+ 	sbi->s_mount_opt = 0;
+ 	sbi->s_resuid = EXT3_DEF_RESUID;
+@@ -1786,7 +1794,7 @@ static int ext3_fill_super (struct super
+ 		goto failed_mount;
+ 	}
  
-   /* writeable */
-   . = ALIGN(PAGE_SIZE);
-+  _sdata = .;			/* Start of data section */
-   .data : AT(ADDR(.data) - LOAD_OFFSET) {	/* Data */
- 	DATA_DATA
- 	CONSTRUCTORS
-diff -puN arch/x86/kernel/vmlinux_64.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files arch/x86/kernel/vmlinux_64.lds.S
---- a/arch/x86/kernel/vmlinux_64.lds.S~x86-provide-_sdata-in-the-vmlinux_ldss-files
-+++ a/arch/x86/kernel/vmlinux_64.lds.S
-@@ -53,6 +53,7 @@ SECTIONS
-   RODATA
+-	bgl_lock_init(&sbi->s_blockgroup_lock);
++	bgl_lock_init(sbi->s_blockgroup_lock);
  
-   . = ALIGN(PAGE_SIZE);		/* Align data segment to page size boundary */
-+  _sdata = .;			/* Start of data section */
- 				/* Data */
-   .data : AT(ADDR(.data) - LOAD_OFFSET) {
- 	DATA_DATA
+ 	for (i = 0; i < db_count; i++) {
+ 		block = descriptor_loc(sb, logic_sb_block, i);
+diff -puN include/linux/ext3_fs_sb.h~ext3-allocate-s_blockgroup_lock-separately include/linux/ext3_fs_sb.h
+--- a/include/linux/ext3_fs_sb.h~ext3-allocate-s_blockgroup_lock-separately
++++ a/include/linux/ext3_fs_sb.h
+@@ -60,7 +60,7 @@ struct ext3_sb_info {
+ 	struct percpu_counter s_freeblocks_counter;
+ 	struct percpu_counter s_freeinodes_counter;
+ 	struct percpu_counter s_dirs_counter;
+-	struct blockgroup_lock s_blockgroup_lock;
++	struct blockgroup_lock *s_blockgroup_lock;
+ 
+ 	/* root of the per fs reservation window tree */
+ 	spinlock_t s_rsv_window_lock;
+@@ -86,7 +86,7 @@ struct ext3_sb_info {
+ static inline spinlock_t *
+ sb_bgl_lock(struct ext3_sb_info *sbi, unsigned int block_group)
+ {
+-	return bgl_lock_ptr(&sbi->s_blockgroup_lock, block_group);
++	return bgl_lock_ptr(sbi->s_blockgroup_lock, block_group);
+ }
+ 
+ #endif	/* _LINUX_EXT3_FS_SB */
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
 origin.patch
-x86-provide-_sdata-in-the-vmlinux_ldss-files.patch
-arm-provide-_sdata-and-__bss_stop-in-the-vmlinuxldss-file.patch
-kmemleak-remove-some-of-the-kmemleak-false-positives.patch
-kmemleak-enable-the-building-of-the-memory-leak-detector.patch
-kmemleak-simple-testing-module-for-kmemleak.patch
-kmemleak-add-the-corresponding-maintainers-entry.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+linux-next.patch
+ext4-allocate-s_blockgroup_lock-separately.patch
+nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
+slab-leaks3-default-y.patch
 
