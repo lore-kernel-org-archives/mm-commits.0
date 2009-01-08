@@ -1,548 +1,330 @@
 From: akpm@linux-foundation.org
-Subject: - misc-add-dell-laptop-driver.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:50:37 -0800
-Message-ID: <200901082250.n08MobWG029780@imap1.linux-foundation.org>
+Subject: - fix-similar-typos-to-successfull-v2.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:51:28 -0800
+Message-ID: <200901082251.n08MpSJK030584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754333AbZAHWwD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:52:03 -0500
+	by vger.kernel.org with ESMTP id S1754983AbZAHWxM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:53:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjg59@srcf.ucam.org, Matt_Domsch@dell.com, hmh@hmh.eng.br, ivdoorn@gmail.com, lenb@kernel.org, mjg@redhat.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: coyli@suse.de, heiko.carstens@de.ibm.com, jeff@garzik.org, jk@ozlabs.org, mfasheh@suse.com, randy.dunlap@oracle.com, rolandd@cisco.com, schwidefsky@de.ibm.com, sri@us.ibm.com, tytso@m
 
 
 The patch titled
-     misc: add dell-laptop driver
+     fix similar typos to successfull
 has been removed from the -mm tree.  Its filename was
-     misc-add-dell-laptop-driver.patch
+     fix-similar-typos-to-successfull-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc: add dell-laptop driver
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: fix similar typos to successfull
+From: Coly Li <coyli@suse.de>
 
-Add a driver for controlling Dell-specific backlight and rfkill interfaces.
-This driver makes use of the dcdbas interface to the Dell firmware to
-allow the backlight and rfkill interfaces on Dell systems to be driven
-through the standardised sysfs interfaces.
+When I review ocfs2 code, find there are 2 typos to "successfull".  After
+doing grep "successfull " in kernel tree, 22 typos found totally -- great
+minds always think alike :)
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Cc: Ivo van Doorn <ivdoorn@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+This patch fixes all the similar typos. Thanks for Randy's ack and comments.
+
+Signed-off-by: Coly Li <coyli@suse.de>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Roland Dreier <rolandd@cisco.com>
+Cc: Jeremy Kerr <jk@ozlabs.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: Sridhar Samudrala <sri@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                |    5 
- drivers/misc/Kconfig       |   12 
- drivers/misc/Makefile      |    1 
- drivers/misc/dell-laptop.c |  436 +++++++++++++++++++++++++++++++++++
- 4 files changed, 454 insertions(+)
+ Documentation/hwmon/abituguru-datasheet   |    4 ++--
+ Documentation/scsi/scsi_fc_transport.txt  |    4 ++--
+ arch/powerpc/platforms/cell/spufs/spufs.h |    2 +-
+ drivers/infiniband/hw/nes/nes_cm.c        |    2 +-
+ drivers/isdn/hardware/eicon/debuglib.h    |    2 +-
+ drivers/isdn/hardware/eicon/os_4bri.c     |    2 +-
+ drivers/isdn/hardware/eicon/os_bri.c      |    2 +-
+ drivers/isdn/hardware/eicon/os_pri.c      |    2 +-
+ drivers/mtd/ubi/kapi.c                    |    2 +-
+ drivers/net/wireless/ath5k/dma.c          |    2 +-
+ drivers/net/wireless/zd1211rw/zd_mac.c    |    2 +-
+ drivers/s390/block/dasd_3990_erp.c        |    2 +-
+ drivers/s390/block/dasd_int.h             |    2 +-
+ drivers/s390/char/tape_3590.c             |    2 +-
+ drivers/s390/cio/cio.c                    |    2 +-
+ drivers/s390/cio/qdio_main.c              |    2 +-
+ fs/ext4/extents.c                         |    2 +-
+ fs/ocfs2/dlmglue.c                        |    4 ++--
+ net/sctp/auth.c                           |    2 +-
+ 19 files changed, 22 insertions(+), 22 deletions(-)
 
-diff -puN MAINTAINERS~misc-add-dell-laptop-driver MAINTAINERS
---- a/MAINTAINERS~misc-add-dell-laptop-driver
-+++ a/MAINTAINERS
-@@ -1358,6 +1358,11 @@ P:	Maciej W. Rozycki
- M:	macro@linux-mips.org
- S:	Maintained
+diff -puN Documentation/hwmon/abituguru-datasheet~fix-similar-typos-to-successfull-v2 Documentation/hwmon/abituguru-datasheet
+--- a/Documentation/hwmon/abituguru-datasheet~fix-similar-typos-to-successfull-v2
++++ a/Documentation/hwmon/abituguru-datasheet
+@@ -121,7 +121,7 @@ Once all bytes have been read data will 
+ test for this. Notice that the number of bytes is bank address dependent see
+ above and below.
  
-+DELL LAPTOP DRIVER
-+P:	Matthew Garrett
-+M:	mjg59@srcf.ucam.org
-+S:	Maintained
-+
- DELL LAPTOP SMM DRIVER
- P:	Massimo Dal Zotto
- M:	dz@debian.org
-diff -puN drivers/misc/Kconfig~misc-add-dell-laptop-driver drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~misc-add-dell-laptop-driver
-+++ a/drivers/misc/Kconfig
-@@ -498,6 +498,18 @@ config SGI_GRU_DEBUG
- 	This option enables addition debugging code for the SGI GRU driver. If
- 	you are unsure, say N.
+-After completing a successfull read it is advised to put the uGuru back in
++After completing a successful read it is advised to put the uGuru back in
+ ready mode, so that it is ready for the next read / write cycle. This way
+ if your program / driver is unloaded and later loaded again the detection
+ algorithm described above will still work.
+@@ -141,7 +141,7 @@ don't ask why this is the way it is.
  
-+config DELL_LAPTOP
-+	tristate "Dell Laptop Extras (EXPERIMENTAL)"
-+	depends on X86
-+	depends on DCDBAS
-+	depends on EXPERIMENTAL
-+	depends on BACKLIGHT_CLASS_DEVICE
-+	depends on RFKILL
-+	default n
-+	---help---
-+	This driver adds support for rfkill and backlight control to Dell
-+	laptops.
-+
- source "drivers/misc/c2port/Kconfig"
+ Once DATA holds 0x01 read CMD it should hold 0xAC now.
  
- endif # MISC_DEVICES
-diff -puN drivers/misc/Makefile~misc-add-dell-laptop-driver drivers/misc/Makefile
---- a/drivers/misc/Makefile~misc-add-dell-laptop-driver
-+++ a/drivers/misc/Makefile
-@@ -18,6 +18,7 @@ obj-$(CONFIG_ICS932S401)	+= ics932s401.o
- obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
- obj-$(CONFIG_LKDTM)		+= lkdtm.o
- obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
-+obj-$(CONFIG_DELL_LAPTOP)	+= dell-laptop.o
- obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
- obj-$(CONFIG_PHANTOM)		+= phantom.o
- obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
-diff -puN /dev/null drivers/misc/dell-laptop.c
---- /dev/null
-+++ a/drivers/misc/dell-laptop.c
-@@ -0,0 +1,436 @@
-+/*
-+ *  Driver for Dell laptop extras
-+ *
-+ *  Copyright (c) Red Hat <mjg@redhat.com>
-+ *
-+ *  Based on documentation in the libsmbios package, Copyright (C) 2005 Dell
-+ *  Inc.
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/backlight.h>
-+#include <linux/err.h>
-+#include <linux/dmi.h>
-+#include <linux/io.h>
-+#include <linux/rfkill.h>
-+#include <linux/power_supply.h>
-+#include <linux/acpi.h>
-+#include "../firmware/dcdbas.h"
-+
-+#define BRIGHTNESS_TOKEN 0x7d
-+
-+/* This structure will be modified by the firmware when we enter
-+ * system management mode, hence the volatiles */
-+
-+struct calling_interface_buffer {
-+	u16 class;
-+	u16 select;
-+	volatile u32 input[4];
-+	volatile u32 output[4];
-+} __packed;
-+
-+struct calling_interface_token {
-+	u16 tokenID;
-+	u16 location;
-+	union {
-+		u16 value;
-+		u16 stringlength;
-+	};
-+};
-+
-+struct calling_interface_structure {
-+	struct dmi_header header;
-+	u16 cmdIOAddress;
-+	u8 cmdIOCode;
-+	u32 supportedCmds;
-+	struct calling_interface_token tokens[];
-+} __packed;
-+
-+static int da_command_address;
-+static int da_command_code;
-+static int da_num_tokens;
-+static struct calling_interface_token *da_tokens;
-+
-+static struct backlight_device *dell_backlight_device;
-+static struct rfkill *wifi_rfkill;
-+static struct rfkill *bluetooth_rfkill;
-+static struct rfkill *wwan_rfkill;
-+
-+static const struct dmi_system_id __initdata dell_device_table[] = {
-+	{
-+		.ident = "Dell laptop",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_CHASSIS_TYPE, "8"),
-+		},
-+	},
-+	{ }
-+};
-+
-+static void parse_da_table(const struct dmi_header *dm)
-+{
-+	/* Final token is a terminator, so we don't want to copy it */
-+	int tokens = (dm->length-11)/sizeof(struct calling_interface_token)-1;
-+	struct calling_interface_structure *table =
-+		container_of(dm, struct calling_interface_structure, header);
-+
-+	/* 4 bytes of table header, plus 7 bytes of Dell header, plus at least
-+	   6 bytes of entry */
-+
-+	if (dm->length < 17)
-+		return;
-+
-+	da_command_address = table->cmdIOAddress;
-+	da_command_code = table->cmdIOCode;
-+
-+	da_tokens = krealloc(da_tokens, (da_num_tokens + tokens) *
-+			     sizeof(struct calling_interface_token),
-+			     GFP_KERNEL);
-+
-+	if (!da_tokens)
-+		return;
-+
-+	memcpy(da_tokens+da_num_tokens, table->tokens,
-+	       sizeof(struct calling_interface_token) * tokens);
-+
-+	da_num_tokens += tokens;
-+}
-+
-+static void find_tokens(const struct dmi_header *dm)
-+{
-+	switch (dm->type) {
-+	case 0xd4: /* Indexed IO */
-+		break;
-+	case 0xd5: /* Protected Area Type 1 */
-+		break;
-+	case 0xd6: /* Protected Area Type 2 */
-+		break;
-+	case 0xda: /* Calling interface */
-+		parse_da_table(dm);
-+		break;
-+	}
-+}
-+
-+static int find_token_location(int tokenid)
-+{
-+	int i;
-+	for (i = 0; i < da_num_tokens; i++) {
-+		if (da_tokens[i].tokenID == tokenid)
-+			return da_tokens[i].location;
-+	}
-+
-+	return -1;
-+}
-+
-+static struct calling_interface_buffer *
-+dell_send_request(struct calling_interface_buffer *buffer, int class,
-+		  int select)
-+{
-+	struct smi_cmd command;
-+
-+	command.magic = SMI_CMD_MAGIC;
-+	command.command_address = da_command_address;
-+	command.command_code = da_command_code;
-+	command.ebx = virt_to_phys(buffer);
-+	command.ecx = 0x42534931;
-+
-+	buffer->class = class;
-+	buffer->select = select;
-+
-+	dcdbas_smi_request(&command);
-+
-+	return buffer;
-+}
-+
-+/* Derived from information in DellWirelessCtl.cpp:
-+   Class 17, select 11 is radio control. It returns an array of 32-bit values.
-+
-+   result[0]: return code
-+   result[1]:
-+     Bit 0:      Hardware switch supported
-+     Bit 1:      Wifi locator supported
-+     Bit 2:      Wifi is supported
-+     Bit 3:      Bluetooth is supported
-+     Bit 4:      WWAN is supported
-+     Bit 5:      Wireless keyboard supported
-+     Bits 6-7:   Reserved
-+     Bit 8:      Wifi is installed
-+     Bit 9:      Bluetooth is installed
-+     Bit 10:     WWAN is installed
-+     Bits 11-15: Reserved
-+     Bit 16:     Hardware switch is on
-+     Bit 17:     Wifi is blocked
-+     Bit 18:     Bluetooth is blocked
-+     Bit 19:     WWAN is blocked
-+     Bits 20-31: Reserved
-+   result[2]: NVRAM size in bytes
-+   result[3]: NVRAM format version number
-+*/
-+
-+static int dell_rfkill_set(int radio, enum rfkill_state state)
-+{
-+	struct calling_interface_buffer buffer;
-+	int disable = (state == RFKILL_STATE_UNBLOCKED) ? 0 : 1;
-+
-+	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
-+	buffer.input[0] = (1 | (radio<<8) | (disable << 16));
-+	dell_send_request(&buffer, 17, 11);
-+
-+	return 0;
-+}
-+
-+static int dell_wifi_set(void *data, enum rfkill_state state)
-+{
-+	return dell_rfkill_set(1, state);
-+}
-+
-+static int dell_bluetooth_set(void *data, enum rfkill_state state)
-+{
-+	return dell_rfkill_set(2, state);
-+}
-+
-+static int dell_wwan_set(void *data, enum rfkill_state state)
-+{
-+	return dell_rfkill_set(3, state);
-+}
-+
-+static int dell_rfkill_get(int bit, enum rfkill_state *state)
-+{
-+	struct calling_interface_buffer buffer;
-+	int status;
-+	int new_state = RFKILL_STATE_HARD_BLOCKED;
-+
-+	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
-+	dell_send_request(&buffer, 17, 11);
-+	status = buffer.output[1];
-+
-+	if (status & (1<<16))
-+		new_state = RFKILL_STATE_SOFT_BLOCKED;
-+
-+	if (status & (1<<bit))
-+		*state = new_state;
-+	else
-+		*state = RFKILL_STATE_UNBLOCKED;
-+
-+	return 0;
-+}
-+
-+static int dell_wifi_get(void *data, enum rfkill_state *state)
-+{
-+	return dell_rfkill_get(17, state);
-+}
-+
-+static int dell_bluetooth_get(void *data, enum rfkill_state *state)
-+{
-+	return dell_rfkill_get(18, state);
-+}
-+
-+static int dell_wwan_get(void *data, enum rfkill_state *state)
-+{
-+	return dell_rfkill_get(19, state);
-+}
-+
-+static int dell_setup_rfkill(void)
-+{
-+	struct calling_interface_buffer buffer;
-+	int status;
-+	int ret;
-+
-+	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
-+	dell_send_request(&buffer, 17, 11);
-+	status = buffer.output[1];
-+
-+	if ((status & (1<<2|1<<8)) == (1<<2|1<<8)) {
-+		wifi_rfkill = rfkill_allocate(NULL, RFKILL_TYPE_WLAN);
-+		if (!wifi_rfkill)
-+			goto err_wifi;
-+		wifi_rfkill->name = "dell-wifi";
-+		wifi_rfkill->toggle_radio = dell_wifi_set;
-+		wifi_rfkill->get_state = dell_wifi_get;
-+		ret = rfkill_register(wifi_rfkill);
-+		if (ret)
-+			goto err_wifi;
-+	}
-+
-+	if ((status & (1<<3|1<<9)) == (1<<3|1<<9)) {
-+		bluetooth_rfkill = rfkill_allocate(NULL, RFKILL_TYPE_BLUETOOTH);
-+		if (!bluetooth_rfkill)
-+			goto err_bluetooth;
-+		bluetooth_rfkill->name = "dell-bluetooth";
-+		bluetooth_rfkill->toggle_radio = dell_bluetooth_set;
-+		bluetooth_rfkill->get_state = dell_bluetooth_get;
-+		ret = rfkill_register(bluetooth_rfkill);
-+		if (ret)
-+			goto err_bluetooth;
-+	}
-+
-+	if ((status & (1<<4|1<<10)) == (1<<4|1<<10)) {
-+		wwan_rfkill = rfkill_allocate(NULL, RFKILL_TYPE_WWAN);
-+		if (!wwan_rfkill)
-+			goto err_wwan;
-+		wwan_rfkill->name = "dell-wwan";
-+		wwan_rfkill->toggle_radio = dell_wwan_set;
-+		wwan_rfkill->get_state = dell_wwan_get;
-+		ret = rfkill_register(wwan_rfkill);
-+		if (ret)
-+			goto err_wwan;
-+	}
-+
-+	return 0;
-+err_wwan:
-+	if (wwan_rfkill)
-+		rfkill_free(wwan_rfkill);
-+	if (bluetooth_rfkill) {
-+		rfkill_unregister(bluetooth_rfkill);
-+		bluetooth_rfkill = NULL;
-+	}
-+err_bluetooth:
-+	if (bluetooth_rfkill)
-+		rfkill_free(bluetooth_rfkill);
-+	if (wifi_rfkill) {
-+		rfkill_unregister(wifi_rfkill);
-+		wifi_rfkill = NULL;
-+	}
-+err_wifi:
-+	if (wifi_rfkill)
-+		rfkill_free(wifi_rfkill);
-+
-+	return ret;
-+}
-+
-+static int dell_send_intensity(struct backlight_device *bd)
-+{
-+	struct calling_interface_buffer buffer;
-+
-+	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
-+	buffer.input[0] = find_token_location(BRIGHTNESS_TOKEN);
-+	buffer.input[1] = bd->props.brightness;
-+
-+	if (buffer.input[0] == -1)
-+		return -ENODEV;
-+
-+	if (power_supply_is_system_supplied() > 0)
-+		dell_send_request(&buffer, 1, 2);
-+	else
-+		dell_send_request(&buffer, 1, 1);
-+
-+	return 0;
-+}
-+
-+static int dell_get_intensity(struct backlight_device *bd)
-+{
-+	struct calling_interface_buffer buffer;
-+
-+	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
-+	buffer.input[0] = find_token_location(BRIGHTNESS_TOKEN);
-+
-+	if (buffer.input[0] == -1)
-+		return -ENODEV;
-+
-+	if (power_supply_is_system_supplied() > 0)
-+		dell_send_request(&buffer, 0, 2);
-+	else
-+		dell_send_request(&buffer, 0, 1);
-+
-+	return buffer.output[1];
-+}
-+
-+static struct backlight_ops dell_ops = {
-+	.get_brightness = dell_get_intensity,
-+	.update_status  = dell_send_intensity,
-+};
-+
-+static int __init dell_init(void)
-+{
-+	struct calling_interface_buffer buffer;
-+	int max_intensity = 0;
-+	int ret;
-+
-+	if (!dmi_check_system(dell_device_table))
-+		return -ENODEV;
-+
-+	dmi_walk(find_tokens);
-+
-+	if (!da_tokens)  {
-+		printk(KERN_INFO "dell-laptop: Unable to find dmi tokens\n");
-+		return -ENODEV;
-+	}
-+
-+	ret = dell_setup_rfkill();
-+
-+	if (ret) {
-+		printk(KERN_WARNING "dell-laptop: Unable to setup rfkill\n");
-+		goto out;
-+	}
-+
-+#ifdef CONFIG_ACPI
-+	/* In the event of an ACPI backlight being available, don't
-+	 * register the platform controller.
-+	 */
-+	if (acpi_video_backlight_support())
-+		return 0;
-+#endif
-+
-+	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
-+	buffer.input[0] = find_token_location(BRIGHTNESS_TOKEN);
-+
-+	if (buffer.input[0] != -1) {
-+		dell_send_request(&buffer, 0, 2);
-+		max_intensity = buffer.output[3];
-+	}
-+
-+	if (max_intensity) {
-+		dell_backlight_device = backlight_device_register(
-+			"dell_backlight",
-+			NULL, NULL,
-+			&dell_ops);
-+
-+		if (IS_ERR(dell_backlight_device)) {
-+			ret = PTR_ERR(dell_backlight_device);
-+			dell_backlight_device = NULL;
-+			goto out;
-+		}
-+
-+		dell_backlight_device->props.max_brightness = max_intensity;
-+		dell_backlight_device->props.brightness =
-+			dell_get_intensity(dell_backlight_device);
-+		backlight_update_status(dell_backlight_device);
-+	}
-+
-+	return 0;
-+out:
-+	if (wifi_rfkill)
-+		rfkill_unregister(wifi_rfkill);
-+	if (bluetooth_rfkill)
-+		rfkill_unregister(bluetooth_rfkill);
-+	if (wwan_rfkill)
-+		rfkill_unregister(wwan_rfkill);
-+	kfree(da_tokens);
-+	return ret;
-+}
-+
-+static void __exit dell_exit(void)
-+{
-+	backlight_device_unregister(dell_backlight_device);
-+	if (wifi_rfkill)
-+		rfkill_unregister(wifi_rfkill);
-+	if (bluetooth_rfkill)
-+		rfkill_unregister(bluetooth_rfkill);
-+	if (wwan_rfkill)
-+		rfkill_unregister(wwan_rfkill);
-+}
-+
-+module_init(dell_init);
-+module_exit(dell_exit);
-+
-+MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
-+MODULE_DESCRIPTION("Dell laptop driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("dmi:*svnDellInc.:*:ct8:*");
+-After completing a successfull write it is advised to put the uGuru back in
++After completing a successful write it is advised to put the uGuru back in
+ ready mode, so that it is ready for the next read / write cycle. This way
+ if your program / driver is unloaded and later loaded again the detection
+ algorithm described above will still work.
+diff -puN Documentation/scsi/scsi_fc_transport.txt~fix-similar-typos-to-successfull-v2 Documentation/scsi/scsi_fc_transport.txt
+--- a/Documentation/scsi/scsi_fc_transport.txt~fix-similar-typos-to-successfull-v2
++++ a/Documentation/scsi/scsi_fc_transport.txt
+@@ -191,7 +191,7 @@ Vport States:
+       This is equivalent to a driver "attach" on an adapter, which is
+       independent of the adapter's link state.
+     - Instantiation of the vport on the FC link via ELS traffic, etc.
+-      This is equivalent to a "link up" and successfull link initialization.
++      This is equivalent to a "link up" and successful link initialization.
+   Further information can be found in the interfaces section below for
+   Vport Creation.
+ 
+@@ -320,7 +320,7 @@ Vport Creation:
+       This is equivalent to a driver "attach" on an adapter, which is
+       independent of the adapter's link state.
+     - Instantiation of the vport on the FC link via ELS traffic, etc.
+-      This is equivalent to a "link up" and successfull link initialization.
++      This is equivalent to a "link up" and successful link initialization.
+ 
+   The LLDD's vport_create() function will not synchronously wait for both
+   parts to be fully completed before returning. It must validate that the
+diff -puN arch/powerpc/platforms/cell/spufs/spufs.h~fix-similar-typos-to-successfull-v2 arch/powerpc/platforms/cell/spufs/spufs.h
+--- a/arch/powerpc/platforms/cell/spufs/spufs.h~fix-similar-typos-to-successfull-v2
++++ a/arch/powerpc/platforms/cell/spufs/spufs.h
+@@ -314,7 +314,7 @@ extern char *isolated_loader;
+  *	we need to call spu_release(ctx) before sleeping, and
+  *	then spu_acquire(ctx) when awoken.
+  *
+- * 	Returns with state_mutex re-acquired when successfull or
++ * 	Returns with state_mutex re-acquired when successful or
+  * 	with -ERESTARTSYS and the state_mutex dropped when interrupted.
+  */
+ 
+diff -puN drivers/infiniband/hw/nes/nes_cm.c~fix-similar-typos-to-successfull-v2 drivers/infiniband/hw/nes/nes_cm.c
+--- a/drivers/infiniband/hw/nes/nes_cm.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/infiniband/hw/nes/nes_cm.c
+@@ -2705,7 +2705,7 @@ int nes_accept(struct iw_cm_id *cm_id, s
+ 			sizeof(struct ietf_mpa_frame));
+ 
+ 
+-	/* notify OF layer that accept event was successfull */
++	/* notify OF layer that accept event was successful */
+ 	cm_id->add_ref(cm_id);
+ 
+ 	cm_event.event = IW_CM_EVENT_ESTABLISHED;
+diff -puN drivers/isdn/hardware/eicon/debuglib.h~fix-similar-typos-to-successfull-v2 drivers/isdn/hardware/eicon/debuglib.h
+--- a/drivers/isdn/hardware/eicon/debuglib.h~fix-similar-typos-to-successfull-v2
++++ a/drivers/isdn/hardware/eicon/debuglib.h
+@@ -235,7 +235,7 @@ typedef void ( * DbgOld) (unsigned short
+ typedef void ( * DbgEv)  (unsigned short, unsigned long, va_list) ;
+ typedef void ( * DbgIrq) (unsigned short, int, char *, va_list) ;
+ typedef struct _DbgHandle_
+-{ char    Registered ; /* driver successfull registered */
++{ char    Registered ; /* driver successfully registered */
+ #define DBG_HANDLE_REG_NEW 0x01  /* this (new) structure    */
+ #define DBG_HANDLE_REG_OLD 0x7f  /* old structure (see below)  */
+  char    Version;  /* version of this structure  */
+diff -puN drivers/isdn/hardware/eicon/os_4bri.c~fix-similar-typos-to-successfull-v2 drivers/isdn/hardware/eicon/os_4bri.c
+--- a/drivers/isdn/hardware/eicon/os_4bri.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/isdn/hardware/eicon/os_4bri.c
+@@ -997,7 +997,7 @@ diva_4bri_start_adapter(PISDN_ADAPTER Io
+ 	diva_xdi_display_adapter_features(IoAdapter->ANum);
+ 
+ 	for (i = 0; i < IoAdapter->tasks; i++) {
+-		DBG_LOG(("A(%d) %s adapter successfull started",
++		DBG_LOG(("A(%d) %s adapter successfully started",
+ 			 IoAdapter->QuadroList->QuadroAdapter[i]->ANum,
+ 			 (IoAdapter->tasks == 1) ? "BRI 2.0" : "4BRI"))
+ 		diva_xdi_didd_register_adapter(IoAdapter->QuadroList->QuadroAdapter[i]->ANum);
+diff -puN drivers/isdn/hardware/eicon/os_bri.c~fix-similar-typos-to-successfull-v2 drivers/isdn/hardware/eicon/os_bri.c
+--- a/drivers/isdn/hardware/eicon/os_bri.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/isdn/hardware/eicon/os_bri.c
+@@ -736,7 +736,7 @@ diva_bri_start_adapter(PISDN_ADAPTER IoA
+ 
+ 	IoAdapter->Properties.Features = (word) features;
+ 	diva_xdi_display_adapter_features(IoAdapter->ANum);
+-	DBG_LOG(("A(%d) BRI adapter successfull started", IoAdapter->ANum))
++	DBG_LOG(("A(%d) BRI adapter successfully started", IoAdapter->ANum))
+ 	    /*
+ 	       Register with DIDD
+ 	     */
+diff -puN drivers/isdn/hardware/eicon/os_pri.c~fix-similar-typos-to-successfull-v2 drivers/isdn/hardware/eicon/os_pri.c
+--- a/drivers/isdn/hardware/eicon/os_pri.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/isdn/hardware/eicon/os_pri.c
+@@ -513,7 +513,7 @@ diva_pri_start_adapter(PISDN_ADAPTER IoA
+ 
+ 	diva_xdi_display_adapter_features(IoAdapter->ANum);
+ 
+-	DBG_LOG(("A(%d) PRI adapter successfull started", IoAdapter->ANum))
++	DBG_LOG(("A(%d) PRI adapter successfully started", IoAdapter->ANum))
+ 	/*
+ 	   Register with DIDD
+ 	 */
+diff -puN drivers/mtd/ubi/kapi.c~fix-similar-typos-to-successfull-v2 drivers/mtd/ubi/kapi.c
+--- a/drivers/mtd/ubi/kapi.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/mtd/ubi/kapi.c
+@@ -564,7 +564,7 @@ EXPORT_SYMBOL_GPL(ubi_leb_unmap);
+  * @dtype: expected data type
+  *
+  * This function maps an un-mapped logical eraseblock @lnum to a physical
+- * eraseblock. This means, that after a successfull invocation of this
++ * eraseblock. This means, that after a successful invocation of this
+  * function the logical eraseblock @lnum will be empty (contain only %0xFF
+  * bytes) and be mapped to a physical eraseblock, even if an unclean reboot
+  * happens.
+diff -puN drivers/net/wireless/ath5k/dma.c~fix-similar-typos-to-successfull-v2 drivers/net/wireless/ath5k/dma.c
+--- a/drivers/net/wireless/ath5k/dma.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/net/wireless/ath5k/dma.c
+@@ -594,7 +594,7 @@ int ath5k_hw_get_isr(struct ath5k_hw *ah
+ 		 * XXX: BMISS interrupts may occur after association.
+ 		 * I found this on 5210 code but it needs testing. If this is
+ 		 * true we should disable them before assoc and re-enable them
+-		 * after a successfull assoc + some jiffies.
++		 * after a successful assoc + some jiffies.
+ 			interrupt_mask &= ~AR5K_INT_BMISS;
+ 		 */
+ 	}
+diff -puN drivers/net/wireless/zd1211rw/zd_mac.c~fix-similar-typos-to-successfull-v2 drivers/net/wireless/zd1211rw/zd_mac.c
+--- a/drivers/net/wireless/zd1211rw/zd_mac.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/net/wireless/zd1211rw/zd_mac.c
+@@ -287,7 +287,7 @@ static void zd_op_stop(struct ieee80211_
+  * @skb - a sk-buffer
+  * @flags: extra flags to set in the TX status info
+  * @ackssi: ACK signal strength
+- * @success - True for successfull transmission of the frame
++ * @success - True for successful transmission of the frame
+  *
+  * This information calls ieee80211_tx_status_irqsafe() if required by the
+  * control information. It copies the control information into the status
+diff -puN drivers/s390/block/dasd_3990_erp.c~fix-similar-typos-to-successfull-v2 drivers/s390/block/dasd_3990_erp.c
+--- a/drivers/s390/block/dasd_3990_erp.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/s390/block/dasd_3990_erp.c
+@@ -2621,7 +2621,7 @@ dasd_3990_erp_action(struct dasd_ccw_req
+ 		}
+ 	}
+ 
+-	/* double-check if current erp/cqr was successfull */
++	/* double-check if current erp/cqr was successful */
+ 	if ((cqr->irb.scsw.cmd.cstat == 0x00) &&
+ 	    (cqr->irb.scsw.cmd.dstat ==
+ 	     (DEV_STAT_CHN_END | DEV_STAT_DEV_END))) {
+diff -puN drivers/s390/block/dasd_int.h~fix-similar-typos-to-successfull-v2 drivers/s390/block/dasd_int.h
+--- a/drivers/s390/block/dasd_int.h~fix-similar-typos-to-successfull-v2
++++ a/drivers/s390/block/dasd_int.h
+@@ -199,7 +199,7 @@ struct dasd_ccw_req {
+ #define DASD_CQR_ERROR		0x82	/* request is completed with error */
+ #define DASD_CQR_CLEAR_PENDING	0x83	/* request is clear pending */
+ #define DASD_CQR_CLEARED	0x84	/* request was cleared */
+-#define DASD_CQR_SUCCESS	0x85	/* request was successfull */
++#define DASD_CQR_SUCCESS	0x85	/* request was successful */
+ 
+ 
+ /* per dasd_ccw_req flags */
+diff -puN drivers/s390/char/tape_3590.c~fix-similar-typos-to-successfull-v2 drivers/s390/char/tape_3590.c
+--- a/drivers/s390/char/tape_3590.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/s390/char/tape_3590.c
+@@ -801,7 +801,7 @@ tape_3590_done(struct tape_device *devic
+ static inline int
+ tape_3590_erp_succeded(struct tape_device *device, struct tape_request *request)
+ {
+-	DBF_EVENT(3, "Error Recovery successfull for %s\n",
++	DBF_EVENT(3, "Error Recovery successful for %s\n",
+ 		  tape_op_verbose[request->op]);
+ 	return tape_3590_done(device, request);
+ }
+diff -puN drivers/s390/cio/cio.c~fix-similar-typos-to-successfull-v2 drivers/s390/cio/cio.c
+--- a/drivers/s390/cio/cio.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/s390/cio/cio.c
+@@ -379,7 +379,7 @@ int cio_commit_config(struct subchannel 
+ 		if (ccode < 0) /* -EIO if msch gets a program check. */
+ 			return ccode;
+ 		switch (ccode) {
+-		case 0: /* successfull */
++		case 0: /* successful */
+ 			if (stsch(sch->schid, &schib) ||
+ 			    !css_sch_is_valid(&schib))
+ 				return -ENODEV;
+diff -puN drivers/s390/cio/qdio_main.c~fix-similar-typos-to-successfull-v2 drivers/s390/cio/qdio_main.c
+--- a/drivers/s390/cio/qdio_main.c~fix-similar-typos-to-successfull-v2
++++ a/drivers/s390/cio/qdio_main.c
+@@ -114,7 +114,7 @@ static inline int qdio_check_ccq(struct 
+  * @count: count of buffers to examine
+  * @auto_ack: automatically acknowledge buffers
+  *
+- * Returns the number of successfull extracted equal buffer states.
++ * Returns the number of successfully extracted equal buffer states.
+  * Stops processing if a state is different from the last buffers state.
+  */
+ static int qdio_do_eqbs(struct qdio_q *q, unsigned char *state,
+diff -puN fs/ext4/extents.c~fix-similar-typos-to-successfull-v2 fs/ext4/extents.c
+--- a/fs/ext4/extents.c~fix-similar-typos-to-successfull-v2
++++ a/fs/ext4/extents.c
+@@ -2536,7 +2536,7 @@ static int ext4_ext_convert_to_initializ
+ 		 */
+ 		newdepth = ext_depth(inode);
+ 		/*
+-		 * update the extent length after successfull insert of the
++		 * update the extent length after successful insert of the
+ 		 * split extent
+ 		 */
+ 		orig_ex.ee_len = cpu_to_le16(ee_len -
+diff -puN fs/ocfs2/dlmglue.c~fix-similar-typos-to-successfull-v2 fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~fix-similar-typos-to-successfull-v2
++++ a/fs/ocfs2/dlmglue.c
+@@ -1324,7 +1324,7 @@ again:
+ 			goto out;
+ 		}
+ 
+-		mlog(0, "lock %s, successfull return from ocfs2_dlm_lock\n",
++		mlog(0, "lock %s, successful return from ocfs2_dlm_lock\n",
+ 		     lockres->l_name);
+ 
+ 		/* At this point we've gone inside the dlm and need to
+@@ -2951,7 +2951,7 @@ static int ocfs2_drop_lock(struct ocfs2_
+ 		ocfs2_dlm_dump_lksb(&lockres->l_lksb);
+ 		BUG();
+ 	}
+-	mlog(0, "lock %s, successfull return from ocfs2_dlm_unlock\n",
++	mlog(0, "lock %s, successful return from ocfs2_dlm_unlock\n",
+ 	     lockres->l_name);
+ 
+ 	ocfs2_wait_on_busy_lock(lockres);
+diff -puN net/sctp/auth.c~fix-similar-typos-to-successfull-v2 net/sctp/auth.c
+--- a/net/sctp/auth.c~fix-similar-typos-to-successfull-v2
++++ a/net/sctp/auth.c
+@@ -489,7 +489,7 @@ int sctp_auth_init_hmacs(struct sctp_end
+ 	return 0;
+ 
+ out_err:
+-	/* Clean up any successfull allocations */
++	/* Clean up any successful allocations */
+ 	sctp_auth_destroy_hmacs(ep->auth_hmacs);
+ 	return -ENOMEM;
+ }
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from coyli@suse.de are
 
 origin.patch
-eeepc-laptop-enable-bluetooth-for-asus-eee-901.patch
-misc-add-dell-wmi-driver-for-hotkey-control.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5.patch
-video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
-video-mbp_nvidia_bl-add-a-debug-switch.patch
-hp-wmi-handle-rfkill_register-failure.patch
 
