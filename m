@@ -1,173 +1,361 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-fix-lru-accounting-for-swapcache-v2.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:49:50 -0800
-Message-ID: <200901082249.n08MnoFl029083@imap1.linux-foundation.org>
+Subject: - memcg-explain-details-and-test-document.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:49:33 -0800
+Message-ID: <200901082249.n08MnXML028815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32983 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44112 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762927AbZAHW64 (ORCPT
+	by vger.kernel.org with ESMTP id S1762969AbZAHW64 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:58:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix LRU accounting for SwapCache
+     memcg: explain details and test document
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-lru-accounting-for-swapcache-v2.patch
+     memcg-explain-details-and-test-document.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix LRU accounting for SwapCache
+Subject: memcg: explain details and test document
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Now, a page can be deleted from SwapCache while do_swap_page(). 
-memcg-fix-swap-accounting-leak-v3.patch handles that, but, LRU handling is
-still broken.  (above behavior broke assumption of memcg-synchronized-lru
-patch.)
+Documentation for implementation details and how to test.
 
-This patch is a fix for LRU handling (especially for per-zone counters).
-At charging SwapCache,
- - Remove page_cgroup from LRU if it's not used.
- - Add page cgroup to LRU if it's not linked to.
+Just an example. feel free to modify, add, remove lines.
 
-Reported-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   61 ++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 51 insertions(+), 10 deletions(-)
+ Documentation/controllers/memcg_test.txt |  311 +++++++++++++++++++++
+ 1 file changed, 311 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-fix-lru-accounting-for-swapcache-v2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-lru-accounting-for-swapcache-v2
-+++ a/mm/memcontrol.c
-@@ -331,8 +331,12 @@ void mem_cgroup_del_lru_list(struct page
- 		return;
- 	pc = lookup_page_cgroup(page);
- 	/* can happen while we handle swapcache. */
--	if (list_empty(&pc->lru))
-+	if (list_empty(&pc->lru) || !pc->mem_cgroup)
- 		return;
-+	/*
-+	 * We don't check PCG_USED bit. It's cleared when the "page" is finally
-+	 * removed from global LRU.
-+	 */
- 	mz = page_cgroup_zoneinfo(pc);
- 	mem = pc->mem_cgroup;
- 	MEM_CGROUP_ZSTAT(mz, lru) -= 1;
-@@ -379,16 +383,44 @@ void mem_cgroup_add_lru_list(struct page
- 	MEM_CGROUP_ZSTAT(mz, lru) += 1;
- 	list_add(&pc->lru, &mz->lists[lru]);
- }
+diff -puN /dev/null Documentation/controllers/memcg_test.txt
+--- /dev/null
++++ a/Documentation/controllers/memcg_test.txt
+@@ -0,0 +1,311 @@
++Memory Resource Controller(Memcg)  Implementation Memo.
++Last Updated: 2008/12/10
++Base Kernel Version: based on 2.6.28-rc7-mm.
 +
- /*
-- * To add swapcache into LRU. Be careful to all this function.
-- * zone->lru_lock shouldn't be held and irq must not be disabled.
-- */
--static void mem_cgroup_lru_fixup(struct page *page)
-+ * At handling SwapCache, pc->mem_cgroup may be changed while it's linked to
-+ * lru because the page may.be reused after it's fully uncharged (because of
-+ * SwapCache behavior).To handle that, unlink page_cgroup from LRU when charge
-+ * it again. This function is only used to charge SwapCache. It's done under
-+ * lock_page and expected that zone->lru_lock is never held.
-+ */
-+static void mem_cgroup_lru_del_before_commit_swapcache(struct page *page)
-+{
-+	unsigned long flags;
-+	struct zone *zone = page_zone(page);
-+	struct page_cgroup *pc = lookup_page_cgroup(page);
++Because VM is getting complex (one of reasons is memcg...), memcg's behavior
++is complex. This is a document for memcg's internal behavior.
++Please note that implementation details can be changed.
 +
-+	spin_lock_irqsave(&zone->lru_lock, flags);
-+	/*
-+	 * Forget old LRU when this page_cgroup is *not* used. This Used bit
-+	 * is guarded by lock_page() because the page is SwapCache.
-+	 */
-+	if (!PageCgroupUsed(pc))
-+		mem_cgroup_del_lru_list(page, page_lru(page));
-+	spin_unlock_irqrestore(&zone->lru_lock, flags);
-+}
++(*) Topics on API should be in Documentation/controllers/memory.txt)
 +
-+static void mem_cgroup_lru_add_after_commit_swapcache(struct page *page)
- {
--	if (!isolate_lru_page(page))
--		putback_lru_page(page);
-+	unsigned long flags;
-+	struct zone *zone = page_zone(page);
-+	struct page_cgroup *pc = lookup_page_cgroup(page);
++0. How to record usage ?
++   2 objects are used.
 +
-+	spin_lock_irqsave(&zone->lru_lock, flags);
-+	/* link when the page is linked to LRU but page_cgroup isn't */
-+	if (PageLRU(page) && list_empty(&pc->lru))
-+		mem_cgroup_add_lru_list(page, page_lru(page));
-+	spin_unlock_irqrestore(&zone->lru_lock, flags);
- }
- 
++   page_cgroup ....an object per page.
++	Allocated at boot or memory hotplug. Freed at memory hot removal.
 +
- void mem_cgroup_move_lists(struct page *page,
- 			   enum lru_list from, enum lru_list to)
- {
-@@ -1168,8 +1200,11 @@ int mem_cgroup_cache_charge_swapin(struc
- 					mem = NULL; /* charge to current */
- 			}
- 		}
-+		/* SwapCache may be still linked to LRU now. */
-+		mem_cgroup_lru_del_before_commit_swapcache(page);
- 		ret = mem_cgroup_charge_common(page, mm, mask,
- 				MEM_CGROUP_CHARGE_TYPE_SHMEM, mem);
-+		mem_cgroup_lru_add_after_commit_swapcache(page);
- 		/* drop extra refcnt from tryget */
- 		if (mem)
- 			css_put(&mem->css);
-@@ -1185,8 +1220,6 @@ int mem_cgroup_cache_charge_swapin(struc
- 	}
- 	if (!locked)
- 		unlock_page(page);
--	/* add this page(page_cgroup) to the LRU we want. */
--	mem_cgroup_lru_fixup(page);
- 
- 	return ret;
- }
-@@ -1201,7 +1234,9 @@ void mem_cgroup_commit_charge_swapin(str
- 	if (!ptr)
- 		return;
- 	pc = lookup_page_cgroup(page);
-+	mem_cgroup_lru_del_before_commit_swapcache(page);
- 	__mem_cgroup_commit_charge(ptr, pc, MEM_CGROUP_CHARGE_TYPE_MAPPED);
-+	mem_cgroup_lru_add_after_commit_swapcache(page);
- 	/*
- 	 * Now swap is on-memory. This means this page may be
- 	 * counted both as mem and swap....double count.
-@@ -1220,7 +1255,7 @@ void mem_cgroup_commit_charge_swapin(str
- 
- 	}
- 	/* add this page(page_cgroup) to the LRU we want. */
--	mem_cgroup_lru_fixup(page);
++   swap_cgroup ... an entry per swp_entry.
++	Allocated at swapon(). Freed at swapoff().
 +
- }
- 
- void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *mem)
-@@ -1288,6 +1323,12 @@ __mem_cgroup_uncharge_common(struct page
- 
- 	mem_cgroup_charge_statistics(mem, pc, false);
- 	ClearPageCgroupUsed(pc);
-+	/*
-+	 * pc->mem_cgroup is not cleared here. It will be accessed when it's
-+	 * freed from LRU. This is safe because uncharged page is expected not
-+	 * to be reused (freed soon). Exception is SwapCache, it's handled by
-+	 * special functions.
-+	 */
- 
- 	mz = page_cgroup_zoneinfo(pc);
- 	unlock_page_cgroup(pc);
++   The page_cgroup has USED bit and double count against a page_cgroup never
++   occurs. swap_cgroup is used only when a charged page is swapped-out.
++
++1. Charge
++
++   a page/swp_entry may be charged (usage += PAGE_SIZE) at
++
++	mem_cgroup_newpage_charge()
++	  Called at new page fault and Copy-On-Write.
++
++	mem_cgroup_try_charge_swapin()
++	  Called at do_swap_page() (page fault on swap entry) and swapoff.
++	  Followed by charge-commit-cancel protocol. (With swap accounting)
++	  At commit, a charge recorded in swap_cgroup is removed.
++
++	mem_cgroup_cache_charge()
++	  Called at add_to_page_cache()
++
++	mem_cgroup_cache_charge_swapin()
++	  Called at shmem's swapin.
++
++	mem_cgroup_prepare_migration()
++	  Called before migration. "extra" charge is done and followed by
++	  charge-commit-cancel protocol.
++	  At commit, charge against oldpage or newpage will be committed.
++
++2. Uncharge
++  a page/swp_entry may be uncharged (usage -= PAGE_SIZE) by
++
++	mem_cgroup_uncharge_page()
++	  Called when an anonymous page is fully unmapped. I.e., mapcount goes
++	  to 0. If the page is SwapCache, uncharge is delayed until
++	  mem_cgroup_uncharge_swapcache().
++
++	mem_cgroup_uncharge_cache_page()
++	  Called when a page-cache is deleted from radix-tree. If the page is
++	  SwapCache, uncharge is delayed until mem_cgroup_uncharge_swapcache().
++
++	mem_cgroup_uncharge_swapcache()
++	  Called when SwapCache is removed from radix-tree. The charge itself
++	  is moved to swap_cgroup. (If mem+swap controller is disabled, no
++	  charge to swap occurs.)
++
++	mem_cgroup_uncharge_swap()
++	  Called when swp_entry's refcnt goes down to 0. A charge against swap
++	  disappears.
++
++	mem_cgroup_end_migration(old, new)
++	At success of migration old is uncharged (if necessary), a charge
++	to new page is committed. At failure, charge to old page is committed.
++
++3. charge-commit-cancel
++	In some case, we can't know this "charge" is valid or not at charging
++	(because of races).
++	To handle such case, there are charge-commit-cancel functions.
++		mem_cgroup_try_charge_XXX
++		mem_cgroup_commit_charge_XXX
++		mem_cgroup_cancel_charge_XXX
++	these are used in swap-in and migration.
++
++	At try_charge(), there are no flags to say "this page is charged".
++	at this point, usage += PAGE_SIZE.
++
++	At commit(), the function checks the page should be charged or not
++	and set flags or avoid charging.(usage -= PAGE_SIZE)
++
++	At cancel(), simply usage -= PAGE_SIZE.
++
++Under below explanation, we assume CONFIG_MEM_RES_CTRL_SWAP=y.
++
++4. Anonymous
++	Anonymous page is newly allocated at
++		  - page fault into MAP_ANONYMOUS mapping.
++		  - Copy-On-Write.
++ 	It is charged right after it's allocated before doing any page table
++	related operations. Of course, it's uncharged when another page is used
++	for the fault address.
++
++	At freeing anonymous page (by exit() or munmap()), zap_pte() is called
++	and pages for ptes are freed one by one.(see mm/memory.c). Uncharges
++	are done at page_remove_rmap() when page_mapcount() goes down to 0.
++
++	Another page freeing is by page-reclaim (vmscan.c) and anonymous
++	pages are swapped out. In this case, the page is marked as
++	PageSwapCache(). uncharge() routine doesn't uncharge the page marked
++	as SwapCache(). It's delayed until __delete_from_swap_cache().
++
++	4.1 Swap-in.
++	At swap-in, the page is taken from swap-cache. There are 2 cases.
++
++	(a) If the SwapCache is newly allocated and read, it has no charges.
++	(b) If the SwapCache has been mapped by processes, it has been
++	    charged already.
++
++	In case (a), we charge it. In case (b), we don't charge it.
++	(But racy state between (a) and (b) exists. We do check it.)
++	At charging, a charge recorded in swap_cgroup is moved to page_cgroup.
++
++	4.2 Swap-out.
++	At swap-out, typical state transition is below.
++
++	(a) add to swap cache. (marked as SwapCache)
++	    swp_entry's refcnt += 1.
++	(b) fully unmapped.
++	    swp_entry's refcnt += # of ptes.
++	(c) write back to swap.
++	(d) delete from swap cache. (remove from SwapCache)
++	    swp_entry's refcnt -= 1.
++
++
++	At (b), the page is marked as SwapCache and not uncharged.
++	At (d), the page is removed from SwapCache and a charge in page_cgroup
++	is moved to swap_cgroup.
++
++	Finally, at task exit,
++	(e) zap_pte() is called and swp_entry's refcnt -=1 -> 0.
++	Here, a charge in swap_cgroup disappears.
++
++5. Page Cache
++   	Page Cache is charged at
++	- add_to_page_cache_locked().
++
++	uncharged at
++	- __remove_from_page_cache().
++
++	The logic is very clear. (About migration, see below)
++	Note: __remove_from_page_cache() is called by remove_from_page_cache()
++	and __remove_mapping().
++
++6. Shmem(tmpfs) Page Cache
++	Memcg's charge/uncharge have special handlers of shmem. The best way
++	to understand shmem's page state transition is to read mm/shmem.c.
++	But brief explanation of the behavior of memcg around shmem will be
++	helpful to understand the logic.
++
++	Shmem's page (just leaf page, not direct/indirect block) can be on
++		- radix-tree of shmem's inode.
++		- SwapCache.
++		- Both on radix-tree and SwapCache. This happens at swap-in
++		  and swap-out,
++
++	It's charged when...
++	- A new page is added to shmem's radix-tree.
++	- A swp page is read. (move a charge from swap_cgroup to page_cgroup)
++	It's uncharged when
++	- A page is removed from radix-tree and not SwapCache.
++	- When SwapCache is removed, a charge is moved to swap_cgroup.
++	- When swp_entry's refcnt goes down to 0, a charge in swap_cgroup
++	  disappears.
++
++7. Page Migration
++   	One of the most complicated functions is page-migration-handler.
++	Memcg has 2 routines. Assume that we are migrating a page's contents
++	from OLDPAGE to NEWPAGE.
++
++	Usual migration logic is..
++	(a) remove the page from LRU.
++	(b) allocate NEWPAGE (migration target)
++	(c) lock by lock_page().
++	(d) unmap all mappings.
++	(e-1) If necessary, replace entry in radix-tree.
++	(e-2) move contents of a page.
++	(f) map all mappings again.
++	(g) pushback the page to LRU.
++	(-) OLDPAGE will be freed.
++
++	Before (g), memcg should complete all necessary charge/uncharge to
++	NEWPAGE/OLDPAGE.
++
++	The point is....
++	- If OLDPAGE is anonymous, all charges will be dropped at (d) because
++          try_to_unmap() drops all mapcount and the page will not be
++	  SwapCache.
++
++	- If OLDPAGE is SwapCache, charges will be kept at (g) because
++	  __delete_from_swap_cache() isn't called at (e-1)
++
++	- If OLDPAGE is page-cache, charges will be kept at (g) because
++	  remove_from_swap_cache() isn't called at (e-1)
++
++	memcg provides following hooks.
++
++	- mem_cgroup_prepare_migration(OLDPAGE)
++	  Called after (b) to account a charge (usage += PAGE_SIZE) against
++	  memcg which OLDPAGE belongs to.
++
++        - mem_cgroup_end_migration(OLDPAGE, NEWPAGE)
++	  Called after (f) before (g).
++	  If OLDPAGE is used, commit OLDPAGE again. If OLDPAGE is already
++	  charged, a charge by prepare_migration() is automatically canceled.
++	  If NEWPAGE is used, commit NEWPAGE and uncharge OLDPAGE.
++
++	  But zap_pte() (by exit or munmap) can be called while migration,
++	  we have to check if OLDPAGE/NEWPAGE is a valid page after commit().
++
++8. LRU
++        Each memcg has its own private LRU. Now, it's handling is under global
++	VM's control (means that it's handled under global zone->lru_lock).
++	Almost all routines around memcg's LRU is called by global LRU's
++	list management functions under zone->lru_lock().
++
++	A special function is mem_cgroup_isolate_pages(). This scans
++	memcg's private LRU and call __isolate_lru_page() to extract a page
++	from LRU.
++	(By __isolate_lru_page(), the page is removed from both of global and
++	 private LRU.)
++
++
++9. Typical Tests.
++
++ Tests for racy cases.
++
++ 9.1 Small limit to memcg.
++	When you do test to do racy case, it's good test to set memcg's limit
++	to be very small rather than GB. Many races found in the test under
++	xKB or xxMB limits.
++	(Memory behavior under GB and Memory behavior under MB shows very
++	 different situation.)
++
++ 9.2 Shmem
++	Historically, memcg's shmem handling was poor and we saw some amount
++	of troubles here. This is because shmem is page-cache but can be
++	SwapCache. Test with shmem/tmpfs is always good test.
++
++ 9.3 Migration
++	For NUMA, migration is an another special case. To do easy test, cpuset
++	is useful. Following is a sample script to do migration.
++
++	mount -t cgroup -o cpuset none /opt/cpuset
++
++	mkdir /opt/cpuset/01
++	echo 1 > /opt/cpuset/01/cpuset.cpus
++	echo 0 > /opt/cpuset/01/cpuset.mems
++	echo 1 > /opt/cpuset/01/cpuset.memory_migrate
++	mkdir /opt/cpuset/02
++	echo 1 > /opt/cpuset/02/cpuset.cpus
++	echo 1 > /opt/cpuset/02/cpuset.mems
++	echo 1 > /opt/cpuset/02/cpuset.memory_migrate
++
++	In above set, when you moves a task from 01 to 02, page migration to
++	node 0 to node 1 will occur. Following is a script to migrate all
++	under cpuset.
++	--
++	move_task()
++	{
++	for pid in $1
++        do
++                /bin/echo $pid >$2/tasks 2>/dev/null
++		echo -n $pid
++		echo -n " "
++        done
++	echo END
++	}
++
++	G1_TASK=`cat ${G1}/tasks`
++	G2_TASK=`cat ${G2}/tasks`
++	move_task "${G1_TASK}" ${G2} &
++	--
++ 9.4 Memory hotplug.
++	memory hotplug test is one of good test.
++	to offline memory, do following.
++	# echo offline > /sys/devices/system/memory/memoryXXX/state
++	(XXX is the place of memory)
++	This is an easy way to test page migration, too.
++
++ 9.5 mkdir/rmdir
++	When using hierarchy, mkdir/rmdir test should be done.
++	Use tests like the following.
++
++	echo 1 >/opt/cgroup/01/memory/use_hierarchy
++	mkdir /opt/cgroup/01/child_a
++	mkdir /opt/cgroup/01/child_b
++
++	set limit to 01.
++	add limit to 01/child_b
++	run jobs under child_a and child_b
++
++	create/delete following groups at random while jobs are running.
++	/opt/cgroup/01/child_a/child_aa
++	/opt/cgroup/01/child_b/child_bb
++	/opt/cgroup/01/child_c
++
++	running new jobs in new group is also good.
++
++ 9.6 Mount with other subsystems.
++	Mounting with other subsystems is a good test because there is a
++	race and lock dependency with other cgroup subsystems.
++
++	example)
++	# mount -t cgroup none /cgroup -t cpuset,memory,cpu,devices
++
++	and do task move, mkdir, rmdir etc...under this.
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
