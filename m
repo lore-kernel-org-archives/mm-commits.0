@@ -1,264 +1,293 @@
 From: akpm@linux-foundation.org
-Subject: - memory-cgroup-hierarchical-reclaim-v4.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:48:39 -0800
-Message-ID: <200901082248.n08MmdHU027988@imap1.linux-foundation.org>
+Subject: - memcg-add-zone_reclaim_stat.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:49:16 -0800
+Message-ID: <200901082249.n08MnGkx028538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56397 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761197AbZAHW7E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:59:04 -0500
+	by vger.kernel.org with ESMTP id S1763269AbZAHW7N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:59:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, xemul@o
+To: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: memory cgroup hierarchical reclaim
+     memcg: add zone_reclaim_stat
 has been removed from the -mm tree.  Its filename was
-     memory-cgroup-hierarchical-reclaim-v4.patch
+     memcg-add-zone_reclaim_stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: memory cgroup hierarchical reclaim
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: memcg: add zone_reclaim_stat
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-This patch introduces hierarchical reclaim.  When an ancestor goes over
-its limit, the charging routine points to the parent that is above its
-limit.  The reclaim process then starts from the last scanned child of the
-ancestor and reclaims until the ancestor goes below its limit.
+Introduce mem_cgroup_per_zone::reclaim_stat member and its statics
+collecting function.
 
-[akpm@linux-foundation.org: coding-style fixes]
-[d-nishimura@mtf.biglobe.ne.jp: mem_cgroup_from_res_counter should handle both mem->res and mem->memsw]
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Now, get_scan_ratio() can calculate correct value on memcg reclaim.
+
+[hugh@veritas.com: avoid reclaim_stat oops when disabled]
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  166 ++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 162 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |   16 ++++++++++++++++
+ mm/memcontrol.c            |   29 +++++++++++++++++++++++++++++
+ mm/swap.c                  |   34 +++++++++++++++++++++++++---------
+ mm/vmscan.c                |   27 +++++++++++++--------------
+ 4 files changed, 83 insertions(+), 23 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-hierarchical-reclaim-v4 mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-hierarchical-reclaim-v4
-+++ a/mm/memcontrol.c
-@@ -143,6 +143,13 @@ struct mem_cgroup {
- 	struct mem_cgroup_lru_info info;
+diff -puN include/linux/memcontrol.h~memcg-add-zone_reclaim_stat include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-zone_reclaim_stat
++++ a/include/linux/memcontrol.h
+@@ -105,6 +105,10 @@ int mem_cgroup_inactive_anon_is_low(stru
+ unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
+ 				       struct zone *zone,
+ 				       enum lru_list lru);
++struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
++						      struct zone *zone);
++struct zone_reclaim_stat*
++mem_cgroup_get_reclaim_stat_from_page(struct page *page);
  
- 	int	prev_priority;	/* for recording reclaim priority */
-+
-+	/*
-+	 * While reclaiming in a hiearchy, we cache the last child we
-+	 * reclaimed from. Protected by cgroup_lock()
-+	 */
-+	struct mem_cgroup *last_scanned_child;
-+
- 	int		obsolete;
- 	atomic_t	refcnt;
- 	/*
-@@ -461,6 +468,149 @@ unsigned long mem_cgroup_isolate_pages(u
- 	return nr_taken;
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ extern int do_swap_account;
+@@ -271,6 +275,18 @@ mem_cgroup_zone_nr_pages(struct mem_cgro
  }
  
-+#define mem_cgroup_from_res_counter(counter, member)	\
-+	container_of(counter, struct mem_cgroup, member)
-+
-+/*
-+ * This routine finds the DFS walk successor. This routine should be
-+ * called with cgroup_mutex held
-+ */
-+static struct mem_cgroup *
-+mem_cgroup_get_next_node(struct mem_cgroup *curr, struct mem_cgroup *root_mem)
+ 
++static inline struct zone_reclaim_stat*
++mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg, struct zone *zone)
 +{
-+	struct cgroup *cgroup, *curr_cgroup, *root_cgroup;
-+
-+	curr_cgroup = curr->css.cgroup;
-+	root_cgroup = root_mem->css.cgroup;
-+
-+	if (!list_empty(&curr_cgroup->children)) {
-+		/*
-+		 * Walk down to children
-+		 */
-+		mem_cgroup_put(curr);
-+		cgroup = list_entry(curr_cgroup->children.next,
-+						struct cgroup, sibling);
-+		curr = mem_cgroup_from_cont(cgroup);
-+		mem_cgroup_get(curr);
-+		goto done;
-+	}
-+
-+visit_parent:
-+	if (curr_cgroup == root_cgroup) {
-+		mem_cgroup_put(curr);
-+		curr = root_mem;
-+		mem_cgroup_get(curr);
-+		goto done;
-+	}
-+
-+	/*
-+	 * Goto next sibling
-+	 */
-+	if (curr_cgroup->sibling.next != &curr_cgroup->parent->children) {
-+		mem_cgroup_put(curr);
-+		cgroup = list_entry(curr_cgroup->sibling.next, struct cgroup,
-+						sibling);
-+		curr = mem_cgroup_from_cont(cgroup);
-+		mem_cgroup_get(curr);
-+		goto done;
-+	}
-+
-+	/*
-+	 * Go up to next parent and next parent's sibling if need be
-+	 */
-+	curr_cgroup = curr_cgroup->parent;
-+	goto visit_parent;
-+
-+done:
-+	root_mem->last_scanned_child = curr;
-+	return curr;
++	return NULL;
 +}
 +
-+/*
-+ * Visit the first child (need not be the first child as per the ordering
-+ * of the cgroup list, since we track last_scanned_child) of @mem and use
-+ * that to reclaim free pages from.
-+ */
-+static struct mem_cgroup *
-+mem_cgroup_get_first_node(struct mem_cgroup *root_mem)
++static inline struct zone_reclaim_stat*
++mem_cgroup_get_reclaim_stat_from_page(struct page *page)
 +{
-+	struct cgroup *cgroup;
-+	struct mem_cgroup *ret;
-+	bool obsolete = (root_mem->last_scanned_child &&
-+				root_mem->last_scanned_child->obsolete);
-+
-+	/*
-+	 * Scan all children under the mem_cgroup mem
-+	 */
-+	cgroup_lock();
-+	if (list_empty(&root_mem->css.cgroup->children)) {
-+		ret = root_mem;
-+		goto done;
-+	}
-+
-+	if (!root_mem->last_scanned_child || obsolete) {
-+
-+		if (obsolete)
-+			mem_cgroup_put(root_mem->last_scanned_child);
-+
-+		cgroup = list_first_entry(&root_mem->css.cgroup->children,
-+				struct cgroup, sibling);
-+		ret = mem_cgroup_from_cont(cgroup);
-+		mem_cgroup_get(ret);
-+	} else
-+		ret = mem_cgroup_get_next_node(root_mem->last_scanned_child,
-+						root_mem);
-+
-+done:
-+	root_mem->last_scanned_child = ret;
-+	cgroup_unlock();
-+	return ret;
++	return NULL;
 +}
 +
-+/*
-+ * Dance down the hierarchy if needed to reclaim memory. We remember the
-+ * last child we reclaimed from, so that we don't end up penalizing
-+ * one child extensively based on its position in the children list.
-+ *
-+ * root_mem is the original ancestor that we've been reclaim from.
-+ */
-+static int mem_cgroup_hierarchical_reclaim(struct mem_cgroup *root_mem,
-+						gfp_t gfp_mask, bool noswap)
+ #endif /* CONFIG_CGROUP_MEM_CONT */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+diff -puN mm/memcontrol.c~memcg-add-zone_reclaim_stat mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-zone_reclaim_stat
++++ a/mm/memcontrol.c
+@@ -103,6 +103,8 @@ struct mem_cgroup_per_zone {
+ 	 */
+ 	struct list_head	lists[NR_LRU_LISTS];
+ 	unsigned long		count[NR_LRU_LISTS];
++
++	struct zone_reclaim_stat reclaim_stat;
+ };
+ /* Macro for accessing counter */
+ #define MEM_CGROUP_ZSTAT(mz, idx)	((mz)->count[(idx)])
+@@ -458,6 +460,33 @@ unsigned long mem_cgroup_zone_nr_pages(s
+ 	return MEM_CGROUP_ZSTAT(mz, lru);
+ }
+ 
++struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
++						      struct zone *zone)
 +{
-+	struct mem_cgroup *next_mem;
-+	int ret = 0;
++	int nid = zone->zone_pgdat->node_id;
++	int zid = zone_idx(zone);
++	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(memcg, nid, zid);
 +
-+	/*
-+	 * Reclaim unconditionally and don't check for return value.
-+	 * We need to reclaim in the current group and down the tree.
-+	 * One might think about checking for children before reclaiming,
-+	 * but there might be left over accounting, even after children
-+	 * have left.
-+	 */
-+	ret = try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap);
-+	if (res_counter_check_under_limit(&root_mem->res))
-+		return 0;
++	return &mz->reclaim_stat;
++}
 +
-+	next_mem = mem_cgroup_get_first_node(root_mem);
++struct zone_reclaim_stat *
++mem_cgroup_get_reclaim_stat_from_page(struct page *page)
++{
++	struct page_cgroup *pc;
++	struct mem_cgroup_per_zone *mz;
 +
-+	while (next_mem != root_mem) {
-+		if (next_mem->obsolete) {
-+			mem_cgroup_put(next_mem);
-+			cgroup_lock();
-+			next_mem = mem_cgroup_get_first_node(root_mem);
-+			cgroup_unlock();
-+			continue;
-+		}
-+		ret = try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap);
-+		if (res_counter_check_under_limit(&root_mem->res))
-+			return 0;
-+		cgroup_lock();
-+		next_mem = mem_cgroup_get_next_node(next_mem, root_mem);
-+		cgroup_unlock();
-+	}
-+	return ret;
++	if (mem_cgroup_disabled())
++		return NULL;
++
++	pc = lookup_page_cgroup(page);
++	mz = page_cgroup_zoneinfo(pc);
++	if (!mz)
++		return NULL;
++
++	return &mz->reclaim_stat;
++}
++
+ unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+ 					struct list_head *dst,
+ 					unsigned long *scanned, int order,
+diff -puN mm/swap.c~memcg-add-zone_reclaim_stat mm/swap.c
+--- a/mm/swap.c~memcg-add-zone_reclaim_stat
++++ a/mm/swap.c
+@@ -151,13 +151,32 @@ void  rotate_reclaimable_page(struct pag
+ 	}
+ }
+ 
++static void update_page_reclaim_stat(struct zone *zone, struct page *page,
++				     int file, int rotated)
++{
++	struct zone_reclaim_stat *reclaim_stat = &zone->reclaim_stat;
++	struct zone_reclaim_stat *memcg_reclaim_stat;
++
++	memcg_reclaim_stat = mem_cgroup_get_reclaim_stat_from_page(page);
++
++	reclaim_stat->recent_scanned[file]++;
++	if (rotated)
++		reclaim_stat->recent_rotated[file]++;
++
++	if (!memcg_reclaim_stat)
++		return;
++
++	memcg_reclaim_stat->recent_scanned[file]++;
++	if (rotated)
++		memcg_reclaim_stat->recent_rotated[file]++;
 +}
 +
  /*
-  * Unlike exported interface, "oom" parameter is added. if oom==true,
-  * oom-killer can be invoked.
-@@ -469,7 +619,7 @@ static int __mem_cgroup_try_charge(struc
- 			gfp_t gfp_mask, struct mem_cgroup **memcg,
- 			bool oom)
+  * FIXME: speed this up?
+  */
+ void activate_page(struct page *page)
  {
--	struct mem_cgroup *mem;
-+	struct mem_cgroup *mem, *mem_over_limit;
- 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
- 	struct res_counter *fail_res;
- 	/*
-@@ -511,12 +661,18 @@ static int __mem_cgroup_try_charge(struc
- 			/* mem+swap counter fails */
- 			res_counter_uncharge(&mem->res, PAGE_SIZE);
- 			noswap = true;
+ 	struct zone *zone = page_zone(page);
+-	struct zone_reclaim_stat *reclaim_stat = &zone->reclaim_stat;
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+@@ -170,8 +189,7 @@ void activate_page(struct page *page)
+ 		add_page_to_lru_list(zone, page, lru);
+ 		__count_vm_event(PGACTIVATE);
+ 
+-		reclaim_stat->recent_rotated[!!file]++;
+-		reclaim_stat->recent_scanned[!!file]++;
++		update_page_reclaim_stat(zone, page, !!file, 1);
+ 	}
+ 	spin_unlock_irq(&zone->lru_lock);
+ }
+@@ -386,7 +404,6 @@ void ____pagevec_lru_add(struct pagevec 
+ {
+ 	int i;
+ 	struct zone *zone = NULL;
+-	struct zone_reclaim_stat *reclaim_stat = NULL;
+ 
+ 	VM_BUG_ON(is_unevictable_lru(lru));
+ 
+@@ -394,24 +411,23 @@ void ____pagevec_lru_add(struct pagevec 
+ 		struct page *page = pvec->pages[i];
+ 		struct zone *pagezone = page_zone(page);
+ 		int file;
++		int active;
+ 
+ 		if (pagezone != zone) {
+ 			if (zone)
+ 				spin_unlock_irq(&zone->lru_lock);
+ 			zone = pagezone;
+-			reclaim_stat = &zone->reclaim_stat;
+ 			spin_lock_irq(&zone->lru_lock);
+ 		}
+ 		VM_BUG_ON(PageActive(page));
+ 		VM_BUG_ON(PageUnevictable(page));
+ 		VM_BUG_ON(PageLRU(page));
+ 		SetPageLRU(page);
++		active = is_active_lru(lru);
+ 		file = is_file_lru(lru);
+-		reclaim_stat->recent_scanned[file]++;
+-		if (is_active_lru(lru)) {
++		if (active)
+ 			SetPageActive(page);
+-			reclaim_stat->recent_rotated[file]++;
 -		}
-+			mem_over_limit = mem_cgroup_from_res_counter(fail_res,
-+									memsw);
-+		} else
-+			/* mem counter fails */
-+			mem_over_limit = mem_cgroup_from_res_counter(fail_res,
-+									res);
++		update_page_reclaim_stat(zone, page, file, active);
+ 		add_page_to_lru_list(zone, page, lru);
+ 	}
+ 	if (zone)
+diff -puN mm/vmscan.c~memcg-add-zone_reclaim_stat mm/vmscan.c
+--- a/mm/vmscan.c~memcg-add-zone_reclaim_stat
++++ a/mm/vmscan.c
+@@ -133,6 +133,9 @@ static DECLARE_RWSEM(shrinker_rwsem);
+ static struct zone_reclaim_stat *get_reclaim_stat(struct zone *zone,
+ 						  struct scan_control *sc)
+ {
++	if (!scan_global_lru(sc))
++		return mem_cgroup_get_reclaim_stat(sc->mem_cgroup, zone);
 +
- 		if (!(gfp_mask & __GFP_WAIT))
- 			goto nomem;
+ 	return &zone->reclaim_stat;
+ }
  
--		if (try_to_free_mem_cgroup_pages(mem, gfp_mask, noswap))
--			continue;
-+		ret = mem_cgroup_hierarchical_reclaim(mem_over_limit, gfp_mask,
-+							noswap);
+@@ -1087,17 +1090,14 @@ static unsigned long shrink_inactive_lis
+ 		__mod_zone_page_state(zone, NR_INACTIVE_ANON,
+ 						-count[LRU_INACTIVE_ANON]);
  
- 		/*
- 		 * try_to_free_mem_cgroup_pages() might not give us a full
-@@ -1732,6 +1888,8 @@ mem_cgroup_create(struct cgroup_subsys *
- 	res_counter_init(&mem->memsw, parent ? &parent->memsw : NULL);
- 
- 
-+	mem->last_scanned_child = NULL;
+-		if (scan_global_lru(sc)) {
++		if (scan_global_lru(sc))
+ 			zone->pages_scanned += nr_scan;
+-			reclaim_stat->recent_scanned[0] +=
+-						      count[LRU_INACTIVE_ANON];
+-			reclaim_stat->recent_scanned[0] +=
+-						      count[LRU_ACTIVE_ANON];
+-			reclaim_stat->recent_scanned[1] +=
+-						      count[LRU_INACTIVE_FILE];
+-			reclaim_stat->recent_scanned[1] +=
+-						      count[LRU_ACTIVE_FILE];
+-		}
 +
- 	return &mem->css;
- free_out:
- 	for_each_node_state(node, N_POSSIBLE)
++		reclaim_stat->recent_scanned[0] += count[LRU_INACTIVE_ANON];
++		reclaim_stat->recent_scanned[0] += count[LRU_ACTIVE_ANON];
++		reclaim_stat->recent_scanned[1] += count[LRU_INACTIVE_FILE];
++		reclaim_stat->recent_scanned[1] += count[LRU_ACTIVE_FILE];
++
+ 		spin_unlock_irq(&zone->lru_lock);
+ 
+ 		nr_scanned += nr_scan;
+@@ -1155,7 +1155,7 @@ static unsigned long shrink_inactive_lis
+ 			SetPageLRU(page);
+ 			lru = page_lru(page);
+ 			add_page_to_lru_list(zone, page, lru);
+-			if (PageActive(page) && scan_global_lru(sc)) {
++			if (PageActive(page)) {
+ 				int file = !!page_is_file_cache(page);
+ 				reclaim_stat->recent_rotated[file]++;
+ 			}
+@@ -1230,8 +1230,8 @@ static void shrink_active_list(unsigned 
+ 	 */
+ 	if (scan_global_lru(sc)) {
+ 		zone->pages_scanned += pgscanned;
+-		reclaim_stat->recent_scanned[!!file] += pgmoved;
+ 	}
++	reclaim_stat->recent_scanned[!!file] += pgmoved;
+ 
+ 	if (file)
+ 		__mod_zone_page_state(zone, NR_ACTIVE_FILE, -pgmoved);
+@@ -1272,8 +1272,7 @@ static void shrink_active_list(unsigned 
+ 	 * This helps balance scan pressure between file and anonymous
+ 	 * pages in get_scan_ratio.
+ 	 */
+-	if (scan_global_lru(sc))
+-		reclaim_stat->recent_rotated[!!file] += pgmoved;
++	reclaim_stat->recent_rotated[!!file] += pgmoved;
+ 
+ 	while (!list_empty(&l_inactive)) {
+ 		page = lru_to_page(&l_inactive);
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
