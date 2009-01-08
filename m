@@ -1,330 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: - fix-similar-typos-to-successfull-v2.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:51:28 -0800
-Message-ID: <200901082251.n08MpSJK030584@imap1.linux-foundation.org>
+Subject: - memcg-fix-calclation-of-active_ratio.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:49:29 -0800
+Message-ID: <200901082249.n08MnTCI028773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59872 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754983AbZAHWxM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:53:12 -0500
+	by vger.kernel.org with ESMTP id S1754333AbZAHW6m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:58:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: coyli@suse.de, heiko.carstens@de.ibm.com, jeff@garzik.org, jk@ozlabs.org, mfasheh@suse.com, randy.dunlap@oracle.com, rolandd@cisco.com, schwidefsky@de.ibm.com, sri@us.ibm.com, tytso@m
+To: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix similar typos to successfull
+     memcg: fix calculation of active_ratio
 has been removed from the -mm tree.  Its filename was
-     fix-similar-typos-to-successfull-v2.patch
+     memcg-fix-calclation-of-active_ratio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix similar typos to successfull
-From: Coly Li <coyli@suse.de>
+Subject: memcg: fix calculation of active_ratio
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-When I review ocfs2 code, find there are 2 typos to "successfull".  After
-doing grep "successfull " in kernel tree, 22 typos found totally -- great
-minds always think alike :)
+Currently, inactive_ratio of memcg is calculated at setting limit. 
+because page_alloc.c does so and current implementation is straightforward
+porting.
 
-This patch fixes all the similar typos. Thanks for Randy's ack and comments.
+However, memcg introduced hierarchy feature recently.  In hierarchy
+restriction, memory limit is not only decided memory.limit_in_bytes of
+current cgroup, but also parent limit and sibling memory usage.
 
-Signed-off-by: Coly Li <coyli@suse.de>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Roland Dreier <rolandd@cisco.com>
-Cc: Jeremy Kerr <jk@ozlabs.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
-Cc: Sridhar Samudrala <sri@us.ibm.com>
+Then, The optimal inactive_ratio is changed frequently.  So, everytime
+calculation is better.
+
+Tested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/hwmon/abituguru-datasheet   |    4 ++--
- Documentation/scsi/scsi_fc_transport.txt  |    4 ++--
- arch/powerpc/platforms/cell/spufs/spufs.h |    2 +-
- drivers/infiniband/hw/nes/nes_cm.c        |    2 +-
- drivers/isdn/hardware/eicon/debuglib.h    |    2 +-
- drivers/isdn/hardware/eicon/os_4bri.c     |    2 +-
- drivers/isdn/hardware/eicon/os_bri.c      |    2 +-
- drivers/isdn/hardware/eicon/os_pri.c      |    2 +-
- drivers/mtd/ubi/kapi.c                    |    2 +-
- drivers/net/wireless/ath5k/dma.c          |    2 +-
- drivers/net/wireless/zd1211rw/zd_mac.c    |    2 +-
- drivers/s390/block/dasd_3990_erp.c        |    2 +-
- drivers/s390/block/dasd_int.h             |    2 +-
- drivers/s390/char/tape_3590.c             |    2 +-
- drivers/s390/cio/cio.c                    |    2 +-
- drivers/s390/cio/qdio_main.c              |    2 +-
- fs/ext4/extents.c                         |    2 +-
- fs/ocfs2/dlmglue.c                        |    4 ++--
- net/sctp/auth.c                           |    2 +-
- 19 files changed, 22 insertions(+), 22 deletions(-)
+ include/linux/memcontrol.h |    5 +-
+ mm/memcontrol.c            |   64 ++++++++++++++++-------------------
+ mm/vmscan.c                |    2 -
+ 3 files changed, 34 insertions(+), 37 deletions(-)
 
-diff -puN Documentation/hwmon/abituguru-datasheet~fix-similar-typos-to-successfull-v2 Documentation/hwmon/abituguru-datasheet
---- a/Documentation/hwmon/abituguru-datasheet~fix-similar-typos-to-successfull-v2
-+++ a/Documentation/hwmon/abituguru-datasheet
-@@ -121,7 +121,7 @@ Once all bytes have been read data will 
- test for this. Notice that the number of bytes is bank address dependent see
- above and below.
+diff -puN include/linux/memcontrol.h~memcg-fix-calclation-of-active_ratio include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-fix-calclation-of-active_ratio
++++ a/include/linux/memcontrol.h
+@@ -97,8 +97,7 @@ extern void mem_cgroup_note_reclaim_prio
+ 							int priority);
+ extern void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
+ 							int priority);
+-int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg,
+-				    struct zone *zone);
++int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg);
+ unsigned long mem_cgroup_zone_nr_pages(struct mem_cgroup *memcg,
+ 				       struct zone *zone,
+ 				       enum lru_list lru);
+@@ -252,7 +251,7 @@ static inline bool mem_cgroup_oom_called
+ }
  
--After completing a successfull read it is advised to put the uGuru back in
-+After completing a successful read it is advised to put the uGuru back in
- ready mode, so that it is ready for the next read / write cycle. This way
- if your program / driver is unloaded and later loaded again the detection
- algorithm described above will still work.
-@@ -141,7 +141,7 @@ don't ask why this is the way it is.
- 
- Once DATA holds 0x01 read CMD it should hold 0xAC now.
- 
--After completing a successfull write it is advised to put the uGuru back in
-+After completing a successful write it is advised to put the uGuru back in
- ready mode, so that it is ready for the next read / write cycle. This way
- if your program / driver is unloaded and later loaded again the detection
- algorithm described above will still work.
-diff -puN Documentation/scsi/scsi_fc_transport.txt~fix-similar-typos-to-successfull-v2 Documentation/scsi/scsi_fc_transport.txt
---- a/Documentation/scsi/scsi_fc_transport.txt~fix-similar-typos-to-successfull-v2
-+++ a/Documentation/scsi/scsi_fc_transport.txt
-@@ -191,7 +191,7 @@ Vport States:
-       This is equivalent to a driver "attach" on an adapter, which is
-       independent of the adapter's link state.
-     - Instantiation of the vport on the FC link via ELS traffic, etc.
--      This is equivalent to a "link up" and successfull link initialization.
-+      This is equivalent to a "link up" and successful link initialization.
-   Further information can be found in the interfaces section below for
-   Vport Creation.
- 
-@@ -320,7 +320,7 @@ Vport Creation:
-       This is equivalent to a driver "attach" on an adapter, which is
-       independent of the adapter's link state.
-     - Instantiation of the vport on the FC link via ELS traffic, etc.
--      This is equivalent to a "link up" and successfull link initialization.
-+      This is equivalent to a "link up" and successful link initialization.
- 
-   The LLDD's vport_create() function will not synchronously wait for both
-   parts to be fully completed before returning. It must validate that the
-diff -puN arch/powerpc/platforms/cell/spufs/spufs.h~fix-similar-typos-to-successfull-v2 arch/powerpc/platforms/cell/spufs/spufs.h
---- a/arch/powerpc/platforms/cell/spufs/spufs.h~fix-similar-typos-to-successfull-v2
-+++ a/arch/powerpc/platforms/cell/spufs/spufs.h
-@@ -314,7 +314,7 @@ extern char *isolated_loader;
-  *	we need to call spu_release(ctx) before sleeping, and
-  *	then spu_acquire(ctx) when awoken.
-  *
-- * 	Returns with state_mutex re-acquired when successfull or
-+ * 	Returns with state_mutex re-acquired when successful or
-  * 	with -ERESTARTSYS and the state_mutex dropped when interrupted.
-  */
- 
-diff -puN drivers/infiniband/hw/nes/nes_cm.c~fix-similar-typos-to-successfull-v2 drivers/infiniband/hw/nes/nes_cm.c
---- a/drivers/infiniband/hw/nes/nes_cm.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/infiniband/hw/nes/nes_cm.c
-@@ -2705,7 +2705,7 @@ int nes_accept(struct iw_cm_id *cm_id, s
- 			sizeof(struct ietf_mpa_frame));
- 
- 
--	/* notify OF layer that accept event was successfull */
-+	/* notify OF layer that accept event was successful */
- 	cm_id->add_ref(cm_id);
- 
- 	cm_event.event = IW_CM_EVENT_ESTABLISHED;
-diff -puN drivers/isdn/hardware/eicon/debuglib.h~fix-similar-typos-to-successfull-v2 drivers/isdn/hardware/eicon/debuglib.h
---- a/drivers/isdn/hardware/eicon/debuglib.h~fix-similar-typos-to-successfull-v2
-+++ a/drivers/isdn/hardware/eicon/debuglib.h
-@@ -235,7 +235,7 @@ typedef void ( * DbgOld) (unsigned short
- typedef void ( * DbgEv)  (unsigned short, unsigned long, va_list) ;
- typedef void ( * DbgIrq) (unsigned short, int, char *, va_list) ;
- typedef struct _DbgHandle_
--{ char    Registered ; /* driver successfull registered */
-+{ char    Registered ; /* driver successfully registered */
- #define DBG_HANDLE_REG_NEW 0x01  /* this (new) structure    */
- #define DBG_HANDLE_REG_OLD 0x7f  /* old structure (see below)  */
-  char    Version;  /* version of this structure  */
-diff -puN drivers/isdn/hardware/eicon/os_4bri.c~fix-similar-typos-to-successfull-v2 drivers/isdn/hardware/eicon/os_4bri.c
---- a/drivers/isdn/hardware/eicon/os_4bri.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/isdn/hardware/eicon/os_4bri.c
-@@ -997,7 +997,7 @@ diva_4bri_start_adapter(PISDN_ADAPTER Io
- 	diva_xdi_display_adapter_features(IoAdapter->ANum);
- 
- 	for (i = 0; i < IoAdapter->tasks; i++) {
--		DBG_LOG(("A(%d) %s adapter successfull started",
-+		DBG_LOG(("A(%d) %s adapter successfully started",
- 			 IoAdapter->QuadroList->QuadroAdapter[i]->ANum,
- 			 (IoAdapter->tasks == 1) ? "BRI 2.0" : "4BRI"))
- 		diva_xdi_didd_register_adapter(IoAdapter->QuadroList->QuadroAdapter[i]->ANum);
-diff -puN drivers/isdn/hardware/eicon/os_bri.c~fix-similar-typos-to-successfull-v2 drivers/isdn/hardware/eicon/os_bri.c
---- a/drivers/isdn/hardware/eicon/os_bri.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/isdn/hardware/eicon/os_bri.c
-@@ -736,7 +736,7 @@ diva_bri_start_adapter(PISDN_ADAPTER IoA
- 
- 	IoAdapter->Properties.Features = (word) features;
- 	diva_xdi_display_adapter_features(IoAdapter->ANum);
--	DBG_LOG(("A(%d) BRI adapter successfull started", IoAdapter->ANum))
-+	DBG_LOG(("A(%d) BRI adapter successfully started", IoAdapter->ANum))
- 	    /*
- 	       Register with DIDD
- 	     */
-diff -puN drivers/isdn/hardware/eicon/os_pri.c~fix-similar-typos-to-successfull-v2 drivers/isdn/hardware/eicon/os_pri.c
---- a/drivers/isdn/hardware/eicon/os_pri.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/isdn/hardware/eicon/os_pri.c
-@@ -513,7 +513,7 @@ diva_pri_start_adapter(PISDN_ADAPTER IoA
- 
- 	diva_xdi_display_adapter_features(IoAdapter->ANum);
- 
--	DBG_LOG(("A(%d) PRI adapter successfull started", IoAdapter->ANum))
-+	DBG_LOG(("A(%d) PRI adapter successfully started", IoAdapter->ANum))
- 	/*
- 	   Register with DIDD
- 	 */
-diff -puN drivers/mtd/ubi/kapi.c~fix-similar-typos-to-successfull-v2 drivers/mtd/ubi/kapi.c
---- a/drivers/mtd/ubi/kapi.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/mtd/ubi/kapi.c
-@@ -564,7 +564,7 @@ EXPORT_SYMBOL_GPL(ubi_leb_unmap);
-  * @dtype: expected data type
-  *
-  * This function maps an un-mapped logical eraseblock @lnum to a physical
-- * eraseblock. This means, that after a successfull invocation of this
-+ * eraseblock. This means, that after a successful invocation of this
-  * function the logical eraseblock @lnum will be empty (contain only %0xFF
-  * bytes) and be mapped to a physical eraseblock, even if an unclean reboot
-  * happens.
-diff -puN drivers/net/wireless/ath5k/dma.c~fix-similar-typos-to-successfull-v2 drivers/net/wireless/ath5k/dma.c
---- a/drivers/net/wireless/ath5k/dma.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/net/wireless/ath5k/dma.c
-@@ -594,7 +594,7 @@ int ath5k_hw_get_isr(struct ath5k_hw *ah
- 		 * XXX: BMISS interrupts may occur after association.
- 		 * I found this on 5210 code but it needs testing. If this is
- 		 * true we should disable them before assoc and re-enable them
--		 * after a successfull assoc + some jiffies.
-+		 * after a successful assoc + some jiffies.
- 			interrupt_mask &= ~AR5K_INT_BMISS;
- 		 */
- 	}
-diff -puN drivers/net/wireless/zd1211rw/zd_mac.c~fix-similar-typos-to-successfull-v2 drivers/net/wireless/zd1211rw/zd_mac.c
---- a/drivers/net/wireless/zd1211rw/zd_mac.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/net/wireless/zd1211rw/zd_mac.c
-@@ -287,7 +287,7 @@ static void zd_op_stop(struct ieee80211_
-  * @skb - a sk-buffer
-  * @flags: extra flags to set in the TX status info
-  * @ackssi: ACK signal strength
-- * @success - True for successfull transmission of the frame
-+ * @success - True for successful transmission of the frame
-  *
-  * This information calls ieee80211_tx_status_irqsafe() if required by the
-  * control information. It copies the control information into the status
-diff -puN drivers/s390/block/dasd_3990_erp.c~fix-similar-typos-to-successfull-v2 drivers/s390/block/dasd_3990_erp.c
---- a/drivers/s390/block/dasd_3990_erp.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/s390/block/dasd_3990_erp.c
-@@ -2621,7 +2621,7 @@ dasd_3990_erp_action(struct dasd_ccw_req
- 		}
- 	}
- 
--	/* double-check if current erp/cqr was successfull */
-+	/* double-check if current erp/cqr was successful */
- 	if ((cqr->irb.scsw.cmd.cstat == 0x00) &&
- 	    (cqr->irb.scsw.cmd.dstat ==
- 	     (DEV_STAT_CHN_END | DEV_STAT_DEV_END))) {
-diff -puN drivers/s390/block/dasd_int.h~fix-similar-typos-to-successfull-v2 drivers/s390/block/dasd_int.h
---- a/drivers/s390/block/dasd_int.h~fix-similar-typos-to-successfull-v2
-+++ a/drivers/s390/block/dasd_int.h
-@@ -199,7 +199,7 @@ struct dasd_ccw_req {
- #define DASD_CQR_ERROR		0x82	/* request is completed with error */
- #define DASD_CQR_CLEAR_PENDING	0x83	/* request is clear pending */
- #define DASD_CQR_CLEARED	0x84	/* request was cleared */
--#define DASD_CQR_SUCCESS	0x85	/* request was successfull */
-+#define DASD_CQR_SUCCESS	0x85	/* request was successful */
- 
- 
- /* per dasd_ccw_req flags */
-diff -puN drivers/s390/char/tape_3590.c~fix-similar-typos-to-successfull-v2 drivers/s390/char/tape_3590.c
---- a/drivers/s390/char/tape_3590.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/s390/char/tape_3590.c
-@@ -801,7 +801,7 @@ tape_3590_done(struct tape_device *devic
  static inline int
- tape_3590_erp_succeded(struct tape_device *device, struct tape_request *request)
+-mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg, struct zone *zone)
++mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg)
  {
--	DBF_EVENT(3, "Error Recovery successfull for %s\n",
-+	DBF_EVENT(3, "Error Recovery successful for %s\n",
- 		  tape_op_verbose[request->op]);
- 	return tape_3590_done(device, request);
+ 	return 1;
  }
-diff -puN drivers/s390/cio/cio.c~fix-similar-typos-to-successfull-v2 drivers/s390/cio/cio.c
---- a/drivers/s390/cio/cio.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/s390/cio/cio.c
-@@ -379,7 +379,7 @@ int cio_commit_config(struct subchannel 
- 		if (ccode < 0) /* -EIO if msch gets a program check. */
- 			return ccode;
- 		switch (ccode) {
--		case 0: /* successfull */
-+		case 0: /* successful */
- 			if (stsch(sch->schid, &schib) ||
- 			    !css_sch_is_valid(&schib))
- 				return -ENODEV;
-diff -puN drivers/s390/cio/qdio_main.c~fix-similar-typos-to-successfull-v2 drivers/s390/cio/qdio_main.c
---- a/drivers/s390/cio/qdio_main.c~fix-similar-typos-to-successfull-v2
-+++ a/drivers/s390/cio/qdio_main.c
-@@ -114,7 +114,7 @@ static inline int qdio_check_ccq(struct 
-  * @count: count of buffers to examine
-  * @auto_ack: automatically acknowledge buffers
-  *
-- * Returns the number of successfull extracted equal buffer states.
-+ * Returns the number of successfully extracted equal buffer states.
-  * Stops processing if a state is different from the last buffers state.
-  */
- static int qdio_do_eqbs(struct qdio_q *q, unsigned char *state,
-diff -puN fs/ext4/extents.c~fix-similar-typos-to-successfull-v2 fs/ext4/extents.c
---- a/fs/ext4/extents.c~fix-similar-typos-to-successfull-v2
-+++ a/fs/ext4/extents.c
-@@ -2536,7 +2536,7 @@ static int ext4_ext_convert_to_initializ
- 		 */
- 		newdepth = ext_depth(inode);
- 		/*
--		 * update the extent length after successfull insert of the
-+		 * update the extent length after successful insert of the
- 		 * split extent
- 		 */
- 		orig_ex.ee_len = cpu_to_le16(ee_len -
-diff -puN fs/ocfs2/dlmglue.c~fix-similar-typos-to-successfull-v2 fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~fix-similar-typos-to-successfull-v2
-+++ a/fs/ocfs2/dlmglue.c
-@@ -1324,7 +1324,7 @@ again:
- 			goto out;
- 		}
+diff -puN mm/memcontrol.c~memcg-fix-calclation-of-active_ratio mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-calclation-of-active_ratio
++++ a/mm/memcontrol.c
+@@ -166,9 +166,6 @@ struct mem_cgroup {
  
--		mlog(0, "lock %s, successfull return from ocfs2_dlm_lock\n",
-+		mlog(0, "lock %s, successful return from ocfs2_dlm_lock\n",
- 		     lockres->l_name);
+ 	unsigned int	swappiness;
  
- 		/* At this point we've gone inside the dlm and need to
-@@ -2951,7 +2951,7 @@ static int ocfs2_drop_lock(struct ocfs2_
- 		ocfs2_dlm_dump_lksb(&lockres->l_lksb);
- 		BUG();
- 	}
--	mlog(0, "lock %s, successfull return from ocfs2_dlm_unlock\n",
-+	mlog(0, "lock %s, successful return from ocfs2_dlm_unlock\n",
- 	     lockres->l_name);
+-
+-	unsigned int inactive_ratio;
+-
+ 	/*
+ 	 * statistics. This must be placed at the end of memcg.
+ 	 */
+@@ -432,15 +429,43 @@ void mem_cgroup_record_reclaim_priority(
+ 	spin_unlock(&mem->reclaim_param_lock);
+ }
  
- 	ocfs2_wait_on_busy_lock(lockres);
-diff -puN net/sctp/auth.c~fix-similar-typos-to-successfull-v2 net/sctp/auth.c
---- a/net/sctp/auth.c~fix-similar-typos-to-successfull-v2
-+++ a/net/sctp/auth.c
-@@ -489,7 +489,7 @@ int sctp_auth_init_hmacs(struct sctp_end
+-int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg, struct zone *zone)
++static int calc_inactive_ratio(struct mem_cgroup *memcg, unsigned long *present_pages)
+ {
+ 	unsigned long active;
+ 	unsigned long inactive;
++	unsigned long gb;
++	unsigned long inactive_ratio;
+ 
+ 	inactive = mem_cgroup_get_all_zonestat(memcg, LRU_INACTIVE_ANON);
+ 	active = mem_cgroup_get_all_zonestat(memcg, LRU_ACTIVE_ANON);
+ 
+-	if (inactive * memcg->inactive_ratio < active)
++	gb = (inactive + active) >> (30 - PAGE_SHIFT);
++	if (gb)
++		inactive_ratio = int_sqrt(10 * gb);
++	else
++		inactive_ratio = 1;
++
++	if (present_pages) {
++		present_pages[0] = inactive;
++		present_pages[1] = active;
++	}
++
++	return inactive_ratio;
++}
++
++int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg)
++{
++	unsigned long active;
++	unsigned long inactive;
++	unsigned long present_pages[2];
++	unsigned long inactive_ratio;
++
++	inactive_ratio = calc_inactive_ratio(memcg, present_pages);
++
++	inactive = present_pages[0];
++	active = present_pages[1];
++
++	if (inactive * inactive_ratio < active)
+ 		return 1;
+ 
  	return 0;
- 
- out_err:
--	/* Clean up any successfull allocations */
-+	/* Clean up any successful allocations */
- 	sctp_auth_destroy_hmacs(ep->auth_hmacs);
- 	return -ENOMEM;
+@@ -1432,29 +1457,6 @@ int mem_cgroup_shrink_usage(struct mm_st
+ 	return 0;
  }
+ 
+-/*
+- * The inactive anon list should be small enough that the VM never has to
+- * do too much work, but large enough that each inactive page has a chance
+- * to be referenced again before it is swapped out.
+- *
+- * this calculation is straightforward porting from
+- * page_alloc.c::setup_per_zone_inactive_ratio().
+- * it describe more detail.
+- */
+-static void mem_cgroup_set_inactive_ratio(struct mem_cgroup *memcg)
+-{
+-	unsigned int gb, ratio;
+-
+-	gb = res_counter_read_u64(&memcg->res, RES_LIMIT) >> 30;
+-	if (gb)
+-		ratio = int_sqrt(10 * gb);
+-	else
+-		ratio = 1;
+-
+-	memcg->inactive_ratio = ratio;
+-
+-}
+-
+ static DEFINE_MUTEX(set_limit_mutex);
+ 
+ static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
+@@ -1496,9 +1498,6 @@ static int mem_cgroup_resize_limit(struc
+   		if (!progress)			retry_count--;
+ 	}
+ 
+-	if (!ret)
+-		mem_cgroup_set_inactive_ratio(memcg);
+-
+ 	return ret;
+ }
+ 
+@@ -1858,7 +1857,7 @@ static int mem_control_stat_show(struct 
+ 	}
+ 
+ #ifdef CONFIG_DEBUG_VM
+-	cb->fill(cb, "inactive_ratio", mem_cont->inactive_ratio);
++	cb->fill(cb, "inactive_ratio", calc_inactive_ratio(mem_cont, NULL));
+ 
+ 	{
+ 		int nid, zid;
+@@ -2150,7 +2149,6 @@ mem_cgroup_create(struct cgroup_subsys *
+ 		res_counter_init(&mem->res, NULL);
+ 		res_counter_init(&mem->memsw, NULL);
+ 	}
+-	mem_cgroup_set_inactive_ratio(mem);
+ 	mem->last_scanned_child = NULL;
+ 	spin_lock_init(&mem->reclaim_param_lock);
+ 
+diff -puN mm/vmscan.c~memcg-fix-calclation-of-active_ratio mm/vmscan.c
+--- a/mm/vmscan.c~memcg-fix-calclation-of-active_ratio
++++ a/mm/vmscan.c
+@@ -1340,7 +1340,7 @@ static int inactive_anon_is_low(struct z
+ 	if (scanning_global_lru(sc))
+ 		low = inactive_anon_is_low_global(zone);
+ 	else
+-		low = mem_cgroup_inactive_anon_is_low(sc->mem_cgroup, zone);
++		low = mem_cgroup_inactive_anon_is_low(sc->mem_cgroup);
+ 	return low;
+ }
+ 
 _
 
-Patches currently in -mm which might be from coyli@suse.de are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
