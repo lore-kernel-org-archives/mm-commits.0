@@ -1,75 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:47:48 -0800
-Message-ID: <200901082247.n08MlmZL027218@imap1.linux-foundation.org>
+Subject: - cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:47:32 -0800
+Message-ID: <200901082247.n08MlW4K026981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35361 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51236 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763297AbZAHWs1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:27 -0500
+	by vger.kernel.org with ESMTP id S1763559AbZAHWsU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gowrishankar.m@in.ibm.com, menage@google.com, mm-commits@vger.kernel.org
+To: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: skip processes from other namespaces when listing a cgroup
+     cgroups: don't put struct cgroupfs_root protected by RCU
 has been removed from the -mm tree.  Its filename was
-     cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup.patch
+     cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: skip processes from other namespaces when listing a cgroup
-From: Gowrishankar M <gowrishankar.m@in.ibm.com>
+Subject: cgroups: don't put struct cgroupfs_root protected by RCU
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-Once tasks are populated from system namespace inside cgroup, container
-replaces other namespace task with 0 while listing tasks, inside
-container.
+We don't access struct cgroupfs_root in fast path, so we should not put
+struct cgroupfs_root protected by RCU
 
-Though this is expected behaviour from container end, there is no use of
-showing unwanted 0s.
+But the comment in struct cgroup_subsys.root confuse us.
 
-In this patch, we check if a process is in same namespace before loading
-into pid array.
+struct cgroup_subsys.root is used in these places:
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Gowrishankar M <gowrishankar.m@in.ibm.com>
-Acked-by: Paul Menage <menage@google.com>
+1 find_css_set(): if (ss->root->subsys_list.next == &ss->sibling)
+2 rebind_subsystems(): if (ss->root != &rootnode)
+                       rcu_assign_pointer(ss->root, root);
+                       rcu_assign_pointer(subsys[i]->root, &rootnode);
+3 cgroup_has_css_refs(): if (ss->root != cgrp->root)
+4 cgroup_init_subsys(): ss->root = &rootnode;
+5 proc_cgroupstats_show(): ss->name, ss->root->subsys_bits,
+                           ss->root->number_of_cgroups, !ss->disabled);
+6 cgroup_clone(): root = subsys->root;
+                  if ((root != subsys->root) ||
+
+All these place we have held cgroup_lock() or we don't dereference to
+struct cgroupfs_root.  It's means wo don't need RCU when use struct
+cgroup_subsys.root, and we should not put struct cgroupfs_root protected
+by RCU.
+
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Reviewed-by: Paul Menage <menage@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/cgroup.h |    1 -
+ kernel/cgroup.c        |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-skip-processes-from-other-namespaces-when-listing-a-cgroup
+diff -puN include/linux/cgroup.h~cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu
++++ a/include/linux/cgroup.h
+@@ -337,7 +337,6 @@ struct cgroup_subsys {
+ #define MAX_CGROUP_TYPE_NAMELEN 32
+ 	const char *name;
+ 
+-	/* Protected by RCU */
+ 	struct cgroupfs_root *root;
+ 
+ 	struct list_head sibling;
+diff -puN kernel/cgroup.c~cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-dont-put-struct-cgroupfs_root-protected-by-rcu
 +++ a/kernel/cgroup.c
-@@ -2007,14 +2007,16 @@ int cgroup_scan_tasks(struct cgroup_scan
-  */
- static int pid_array_load(pid_t *pidarray, int npids, struct cgroup *cgrp)
- {
--	int n = 0;
-+	int n = 0, pid;
- 	struct cgroup_iter it;
- 	struct task_struct *tsk;
- 	cgroup_iter_start(cgrp, &it);
- 	while ((tsk = cgroup_iter_next(cgrp, &it))) {
- 		if (unlikely(n == npids))
- 			break;
--		pidarray[n++] = task_pid_vnr(tsk);
-+		pid = task_pid_vnr(tsk);
-+		if (pid > 0)
-+			pidarray[n++] = pid;
- 	}
- 	cgroup_iter_end(cgrp, &it);
- 	return n;
+@@ -713,7 +713,7 @@ static int rebind_subsystems(struct cgro
+ 			cgrp->subsys[i] = dummytop->subsys[i];
+ 			cgrp->subsys[i]->cgroup = cgrp;
+ 			list_add(&ss->sibling, &root->subsys_list);
+-			rcu_assign_pointer(ss->root, root);
++			ss->root = root;
+ 			if (ss->bind)
+ 				ss->bind(ss, cgrp);
+ 
+@@ -725,7 +725,7 @@ static int rebind_subsystems(struct cgro
+ 				ss->bind(ss, dummytop);
+ 			dummytop->subsys[i]->cgroup = dummytop;
+ 			cgrp->subsys[i] = NULL;
+-			rcu_assign_pointer(subsys[i]->root, &rootnode);
++			subsys[i]->root = &rootnode;
+ 			list_del(&ss->sibling);
+ 		} else if (bit & final_bits) {
+ 			/* Subsystem state should already exist */
 _
 
-Patches currently in -mm which might be from gowrishankar.m@in.ibm.com are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
 origin.patch
+linux-next.patch
 
