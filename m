@@ -1,92 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:47:44 -0800
-Message-ID: <200901082247.n08MliJh027142@imap1.linux-foundation.org>
+Subject: - kmemleak-remove-some-of-the-kmemleak-false-positives.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:46:14 -0800
+Message-ID: <200901082246.n08MkE7j025741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48357 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763514AbZAHWvR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:17 -0500
+	by vger.kernel.org with ESMTP id S1754823AbZAHWvz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:51:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: add inactive subsystems to rootnode.subsys_list
+     kmemleak: remove some of the kmemleak false positives
 has been removed from the -mm tree.  Its filename was
-     cgroups-add-inactive-subsystems-to-rootnodesubsys_list.patch
+     kmemleak-remove-some-of-the-kmemleak-false-positives.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: add inactive subsystems to rootnode.subsys_list
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: kmemleak: remove some of the kmemleak false positives
+From: Catalin Marinas <catalin.marinas@arm.com>
 
-Though for an inactive hierarchy, we have subsys->root == &rootnode, but
-rootnode's subsys_list is always empty.
+There are allocations for which the main pointer cannot be found but they
+are not memory leaks.  This patch fixes some of them.  For more
+information on false positives, see Documentation/kmemleak.txt.
 
-This conflicts with the code in find_css_set():
-
-	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
-		...
-		if (ss->root->subsys_list.next == &ss->sibling) {
-			...
-		}
-	}
-	if (list_empty(&rootnode.subsys_list)) {
-		...
-	}
-
-The above code assumes rootnode.subsys_list links all inactive
-hierarchies.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/char/vt.c      |    7 +++++++
+ include/linux/percpu.h |    5 +++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN kernel/cgroup.c~cgroups-add-inactive-subsystems-to-rootnodesubsys_list kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-add-inactive-subsystems-to-rootnodesubsys_list
-+++ a/kernel/cgroup.c
-@@ -712,7 +712,7 @@ static int rebind_subsystems(struct cgro
- 			BUG_ON(dummytop->subsys[i]->cgroup != dummytop);
- 			cgrp->subsys[i] = dummytop->subsys[i];
- 			cgrp->subsys[i]->cgroup = cgrp;
--			list_add(&ss->sibling, &root->subsys_list);
-+			list_move(&ss->sibling, &root->subsys_list);
- 			ss->root = root;
- 			if (ss->bind)
- 				ss->bind(ss, cgrp);
-@@ -726,7 +726,7 @@ static int rebind_subsystems(struct cgro
- 			dummytop->subsys[i]->cgroup = dummytop;
- 			cgrp->subsys[i] = NULL;
- 			subsys[i]->root = &rootnode;
--			list_del(&ss->sibling);
-+			list_move(&ss->sibling, &rootnode.subsys_list);
- 		} else if (bit & final_bits) {
- 			/* Subsystem state should already exist */
- 			BUG_ON(!cgrp->subsys[i]);
-@@ -2521,6 +2521,7 @@ static void __init cgroup_init_subsys(st
- 	printk(KERN_INFO "Initializing cgroup subsys %s\n", ss->name);
+diff -puN drivers/char/vt.c~kmemleak-remove-some-of-the-kmemleak-false-positives drivers/char/vt.c
+--- a/drivers/char/vt.c~kmemleak-remove-some-of-the-kmemleak-false-positives
++++ a/drivers/char/vt.c
+@@ -104,6 +104,7 @@
+ #include <linux/io.h>
+ #include <asm/system.h>
+ #include <linux/uaccess.h>
++#include <linux/kmemleak.h>
  
- 	/* Create the top cgroup state for this subsystem */
-+	list_add(&ss->sibling, &rootnode.subsys_list);
- 	ss->root = &rootnode;
- 	css = ss->create(ss, dummytop);
- 	/* We don't handle early failures gracefully */
+ #define MAX_NR_CON_DRIVER 16
+ 
+@@ -2879,6 +2880,12 @@ static int __init con_init(void)
+ 	 */
+ 	for (currcons = 0; currcons < MIN_NR_CONSOLES; currcons++) {
+ 		vc_cons[currcons].d = vc = alloc_bootmem(sizeof(struct vc_data));
++		/*
++		 * Kmemleak does not track the memory allocated via
++		 * alloc_bootmem() but this block contains pointers to
++		 * other blocks allocated via kmalloc.
++		 */
++		kmemleak_alloc(vc, sizeof(struct vc_data), 1, GFP_ATOMIC);
+ 		INIT_WORK(&vc_cons[currcons].SAK_work, vc_SAK);
+ 		visual_init(vc, currcons, 1);
+ 		vc->vc_screenbuf = (unsigned short *)alloc_bootmem(vc->vc_screenbuf_size);
+diff -puN include/linux/percpu.h~kmemleak-remove-some-of-the-kmemleak-false-positives include/linux/percpu.h
+--- a/include/linux/percpu.h~kmemleak-remove-some-of-the-kmemleak-false-positives
++++ a/include/linux/percpu.h
+@@ -84,7 +84,12 @@ struct percpu_data {
+ 	void *ptrs[1];
+ };
+ 
++/* pointer disguising messes up the kmemleak objects tracking */
++#ifndef CONFIG_DEBUG_KMEMLEAK
+ #define __percpu_disguise(pdata) (struct percpu_data *)~(unsigned long)(pdata)
++#else
++#define __percpu_disguise(pdata) (struct percpu_data *)(pdata)
++#endif
+ /* 
+  * Use this to get to a cpu's version of the per-cpu object dynamically
+  * allocated. Non-atomic access to the current CPU's version should
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
 origin.patch
-linux-next.patch
+kmemleak-remove-some-of-the-kmemleak-false-positives.patch
+kmemleak-enable-the-building-of-the-memory-leak-detector.patch
+kmemleak-simple-testing-module-for-kmemleak.patch
+kmemleak-add-the-corresponding-maintainers-entry.patch
 
