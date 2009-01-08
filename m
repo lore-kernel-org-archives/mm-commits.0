@@ -1,109 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-use-hierarchy_mutex-in-memory-controller.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:49:58 -0800
-Message-ID: <200901082249.n08MnwhF029194@imap1.linux-foundation.org>
+Subject: - cpuset-remove-remaining-pointers-to-cpumask_t.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:50:19 -0800
+Message-ID: <200901082250.n08MoJbx029537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47227 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760059AbZAHW6x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:58:53 -0500
+	by vger.kernel.org with ESMTP id S1761159AbZAHW66 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:58:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, menage@google.com, mingo@elte.hu, rusty@rustcorp.com.au, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: use hierarchy_mutex in memory controller
+     cpuset: remove remaining pointers to cpumask_t
 has been removed from the -mm tree.  Its filename was
-     cgroups-use-hierarchy_mutex-in-memory-controller.patch
+     cpuset-remove-remaining-pointers-to-cpumask_t.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: use hierarchy_mutex in memory controller
-From: Paul Menage <menage@google.com>
+Subject: cpuset: remove remaining pointers to cpumask_t
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Update the memory controller to use its hierarchy_mutex rather than
-calling cgroup_lock() to protected against cgroup_mkdir()/cgroup_rmdir()
-from occurring in its hierarchy.
+Impact: cleanups, use new cpumask API
 
-Signed-off-by: Paul Menage <menage@google.com>
-Tested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Final trivial cleanups: mainly s/cpumask_t/struct cpumask
+
+Note there is a FIXME in generate_sched_domains(). A future patch will
+change struct cpumask *doms to struct cpumask *doms[].
+(I suppose Rusty will do this.)
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Mike Travis <travis@sgi.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ include/linux/cpuset.h |   10 ++++++----
+ kernel/cpuset.c        |   28 +++++++++++++++-------------
+ 2 files changed, 21 insertions(+), 17 deletions(-)
 
-diff -puN mm/memcontrol.c~cgroups-use-hierarchy_mutex-in-memory-controller mm/memcontrol.c
---- a/mm/memcontrol.c~cgroups-use-hierarchy_mutex-in-memory-controller
-+++ a/mm/memcontrol.c
-@@ -154,7 +154,7 @@ struct mem_cgroup {
+diff -puN include/linux/cpuset.h~cpuset-remove-remaining-pointers-to-cpumask_t include/linux/cpuset.h
+--- a/include/linux/cpuset.h~cpuset-remove-remaining-pointers-to-cpumask_t
++++ a/include/linux/cpuset.h
+@@ -20,8 +20,9 @@ extern int number_of_cpusets;	/* How man
+ extern int cpuset_init_early(void);
+ extern int cpuset_init(void);
+ extern void cpuset_init_smp(void);
+-extern void cpuset_cpus_allowed(struct task_struct *p, cpumask_t *mask);
+-extern void cpuset_cpus_allowed_locked(struct task_struct *p, cpumask_t *mask);
++extern void cpuset_cpus_allowed(struct task_struct *p, struct cpumask *mask);
++extern void cpuset_cpus_allowed_locked(struct task_struct *p,
++				       struct cpumask *mask);
+ extern nodemask_t cpuset_mems_allowed(struct task_struct *p);
+ #define cpuset_current_mems_allowed (current->mems_allowed)
+ void cpuset_init_current_mems_allowed(void);
+@@ -86,12 +87,13 @@ static inline int cpuset_init_early(void
+ static inline int cpuset_init(void) { return 0; }
+ static inline void cpuset_init_smp(void) {}
  
- 	/*
- 	 * While reclaiming in a hiearchy, we cache the last child we
--	 * reclaimed from. Protected by cgroup_lock()
-+	 * reclaimed from. Protected by hierarchy_mutex
- 	 */
- 	struct mem_cgroup *last_scanned_child;
- 	/*
-@@ -615,7 +615,7 @@ unsigned long mem_cgroup_isolate_pages(u
- 
- /*
-  * This routine finds the DFS walk successor. This routine should be
-- * called with cgroup_mutex held
-+ * called with hierarchy_mutex held
-  */
- static struct mem_cgroup *
- mem_cgroup_get_next_node(struct mem_cgroup *curr, struct mem_cgroup *root_mem)
-@@ -685,7 +685,7 @@ mem_cgroup_get_first_node(struct mem_cgr
- 	/*
- 	 * Scan all children under the mem_cgroup mem
- 	 */
--	cgroup_lock();
-+	mutex_lock(&mem_cgroup_subsys.hierarchy_mutex);
- 	if (list_empty(&root_mem->css.cgroup->children)) {
- 		ret = root_mem;
- 		goto done;
-@@ -706,7 +706,7 @@ mem_cgroup_get_first_node(struct mem_cgr
- 
- done:
- 	root_mem->last_scanned_child = ret;
--	cgroup_unlock();
-+	mutex_unlock(&mem_cgroup_subsys.hierarchy_mutex);
- 	return ret;
+-static inline void cpuset_cpus_allowed(struct task_struct *p, cpumask_t *mask)
++static inline void cpuset_cpus_allowed(struct task_struct *p,
++				       struct cpumask *mask)
+ {
+ 	*mask = cpu_possible_map;
  }
+ static inline void cpuset_cpus_allowed_locked(struct task_struct *p,
+-								cpumask_t *mask)
++					      struct cpumask *mask)
+ {
+ 	*mask = cpu_possible_map;
+ }
+diff -puN kernel/cpuset.c~cpuset-remove-remaining-pointers-to-cpumask_t kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-remove-remaining-pointers-to-cpumask_t
++++ a/kernel/cpuset.c
+@@ -289,7 +289,8 @@ static struct file_system_type cpuset_fs
+  * Call with callback_mutex held.
+  */
  
-@@ -770,18 +770,16 @@ static int mem_cgroup_hierarchical_recla
- 	while (next_mem != root_mem) {
- 		if (mem_cgroup_is_obsolete(next_mem)) {
- 			mem_cgroup_put(next_mem);
--			cgroup_lock();
- 			next_mem = mem_cgroup_get_first_node(root_mem);
--			cgroup_unlock();
+-static void guarantee_online_cpus(const struct cpuset *cs, cpumask_t *pmask)
++static void guarantee_online_cpus(const struct cpuset *cs,
++				  struct cpumask *pmask)
+ {
+ 	while (cs && !cpumask_intersects(cs->cpus_allowed, cpu_online_mask))
+ 		cs = cs->parent;
+@@ -610,7 +611,8 @@ update_domain_attr_tree(struct sched_dom
+  *	element of the partition (one sched domain) to be passed to
+  *	partition_sched_domains().
+  */
+-static int generate_sched_domains(cpumask_t **domains,
++/* FIXME: see the FIXME in partition_sched_domains() */
++static int generate_sched_domains(struct cpumask **domains,
+ 			struct sched_domain_attr **attributes)
+ {
+ 	LIST_HEAD(q);		/* queue of cpusets to be scanned */
+@@ -618,10 +620,10 @@ static int generate_sched_domains(cpumas
+ 	struct cpuset **csa;	/* array of all cpuset ptrs */
+ 	int csn;		/* how many cpuset ptrs in csa so far */
+ 	int i, j, k;		/* indices for partition finding loops */
+-	cpumask_t *doms;	/* resulting partition; i.e. sched domains */
++	struct cpumask *doms;	/* resulting partition; i.e. sched domains */
+ 	struct sched_domain_attr *dattr;  /* attributes for custom domains */
+ 	int ndoms = 0;		/* number of sched domains in result */
+-	int nslot;		/* next empty doms[] cpumask_t slot */
++	int nslot;		/* next empty doms[] struct cpumask slot */
+ 
+ 	doms = NULL;
+ 	dattr = NULL;
+@@ -629,7 +631,7 @@ static int generate_sched_domains(cpumas
+ 
+ 	/* Special case for the 99% of systems with one, full, sched domain */
+ 	if (is_sched_load_balance(&top_cpuset)) {
+-		doms = kmalloc(sizeof(cpumask_t), GFP_KERNEL);
++		doms = kmalloc(cpumask_size(), GFP_KERNEL);
+ 		if (!doms)
+ 			goto done;
+ 
+@@ -708,7 +710,7 @@ restart:
+ 	 * Now we know how many domains to create.
+ 	 * Convert <csn, csa> to <ndoms, doms> and populate cpu masks.
+ 	 */
+-	doms = kmalloc(ndoms * sizeof(cpumask_t), GFP_KERNEL);
++	doms = kmalloc(ndoms * cpumask_size(), GFP_KERNEL);
+ 	if (!doms)
+ 		goto done;
+ 
+@@ -720,7 +722,7 @@ restart:
+ 
+ 	for (nslot = 0, i = 0; i < csn; i++) {
+ 		struct cpuset *a = csa[i];
+-		cpumask_t *dp;
++		struct cpumask *dp;
+ 		int apn = a->pn;
+ 
+ 		if (apn < 0) {
+@@ -743,7 +745,7 @@ restart:
  			continue;
  		}
- 		ret = try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap,
- 						   get_swappiness(next_mem));
- 		if (mem_cgroup_check_under_limit(root_mem))
- 			return 0;
--		cgroup_lock();
-+		mutex_lock(&mem_cgroup_subsys.hierarchy_mutex);
- 		next_mem = mem_cgroup_get_next_node(next_mem, root_mem);
--		cgroup_unlock();
-+		mutex_unlock(&mem_cgroup_subsys.hierarchy_mutex);
- 	}
- 	return ret;
- }
+ 
+-		cpus_clear(*dp);
++		cpumask_clear(dp);
+ 		if (dattr)
+ 			*(dattr + nslot) = SD_ATTR_INIT;
+ 		for (j = i; j < csn; j++) {
+@@ -790,7 +792,7 @@ done:
+ static void do_rebuild_sched_domains(struct work_struct *unused)
+ {
+ 	struct sched_domain_attr *attr;
+-	cpumask_t *doms;
++	struct cpumask *doms;
+ 	int ndoms;
+ 
+ 	get_online_cpus();
+@@ -2044,7 +2046,7 @@ static int cpuset_track_online_cpus(stru
+ 				unsigned long phase, void *unused_cpu)
+ {
+ 	struct sched_domain_attr *attr;
+-	cpumask_t *doms;
++	struct cpumask *doms;
+ 	int ndoms;
+ 
+ 	switch (phase) {
+@@ -2114,7 +2116,7 @@ void __init cpuset_init_smp(void)
+ /**
+  * cpuset_cpus_allowed - return cpus_allowed mask from a tasks cpuset.
+  * @tsk: pointer to task_struct from which to obtain cpuset->cpus_allowed.
+- * @pmask: pointer to cpumask_t variable to receive cpus_allowed set.
++ * @pmask: pointer to struct cpumask variable to receive cpus_allowed set.
+  *
+  * Description: Returns the cpumask_var_t cpus_allowed of the cpuset
+  * attached to the specified @tsk.  Guaranteed to return some non-empty
+@@ -2122,7 +2124,7 @@ void __init cpuset_init_smp(void)
+  * tasks cpuset.
+  **/
+ 
+-void cpuset_cpus_allowed(struct task_struct *tsk, cpumask_t *pmask)
++void cpuset_cpus_allowed(struct task_struct *tsk, struct cpumask *pmask)
+ {
+ 	mutex_lock(&callback_mutex);
+ 	cpuset_cpus_allowed_locked(tsk, pmask);
+@@ -2133,7 +2135,7 @@ void cpuset_cpus_allowed(struct task_str
+  * cpuset_cpus_allowed_locked - return cpus_allowed mask from a tasks cpuset.
+  * Must be called with callback_mutex held.
+  **/
+-void cpuset_cpus_allowed_locked(struct task_struct *tsk, cpumask_t *pmask)
++void cpuset_cpus_allowed_locked(struct task_struct *tsk, struct cpumask *pmask)
+ {
+ 	task_lock(tsk);
+ 	guarantee_online_cpus(task_cs(tsk), pmask);
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-add-a-refcount-check-in-dput.patch
+linux-next.patch
 
