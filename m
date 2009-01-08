@@ -1,144 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-remove-some-redundant-null-checks.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:47:22 -0800
-Message-ID: <200901082247.n08MlMAt026832@imap1.linux-foundation.org>
+Subject: - cgroups-introduce-link_css_set-to-remove-duplicate-code.patch removed from -mm tree
+Date: Thu, 08 Jan 2009 14:47:46 -0800
+Message-ID: <200901082247.n08MlkSV027181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763526AbZAHWsQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:16 -0500
+	by vger.kernel.org with ESMTP id S1763552AbZAHWs3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 17:48:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: remove some redundant NULL checks
+     cgroups: introduce link_css_set() to remove duplicate code
 has been removed from the -mm tree.  Its filename was
-     cgroups-remove-some-redundant-null-checks.patch
+     cgroups-introduce-link_css_set-to-remove-duplicate-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: remove some redundant NULL checks
+Subject: cgroups: introduce link_css_set() to remove duplicate code
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-- In cgroup_clone(), if vfs_mkdir() returns successfully,
-  dentry->d_fsdata will be the pointer to the newly created
-  cgroup and won't be NULL.
-
-- a cgroup file's dentry->d_fsdata won't be NULL, guaranteed
-  by cgroup_add_file().
-
-- When walking through the subsystems of a cgroup_fs (using
-  for_each_subsys), cgrp->subsys[ss->subsys_id] won't be NULL,
-  guaranteed by cgroup_create().
-
-(Also remove 2 unused variables in cgroup_rmdir().
+Add a common function link_css_set() to link a css_set to a cgroup.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   29 +++++++----------------------
- 1 file changed, 7 insertions(+), 22 deletions(-)
+ kernel/cgroup.c |   68 ++++++++++++++++++++--------------------------
+ 1 file changed, 30 insertions(+), 38 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-remove-some-redundant-null-checks kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-remove-some-redundant-null-checks
+diff -puN kernel/cgroup.c~cgroups-introduce-link_css_set-to-remove-duplicate-code kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-introduce-link_css_set-to-remove-duplicate-code
 +++ a/kernel/cgroup.c
-@@ -586,7 +586,7 @@ static void cgroup_call_pre_destroy(stru
- {
- 	struct cgroup_subsys *ss;
- 	for_each_subsys(cgrp->root, ss)
--		if (ss->pre_destroy && cgrp->subsys[ss->subsys_id])
-+		if (ss->pre_destroy)
- 			ss->pre_destroy(ss, cgrp);
- 	return;
+@@ -384,6 +384,25 @@ static int allocate_cg_links(int count, 
+ 	return 0;
  }
-@@ -610,10 +610,8 @@ static void cgroup_diput(struct dentry *
- 		/*
- 		 * Release the subsystem state objects.
- 		 */
--		for_each_subsys(cgrp->root, ss) {
--			if (cgrp->subsys[ss->subsys_id])
--				ss->destroy(ss, cgrp);
--		}
-+		for_each_subsys(cgrp->root, ss)
-+			ss->destroy(ss, cgrp);
  
- 		cgrp->root->number_of_cgroups--;
- 		mutex_unlock(&cgroup_mutex);
-@@ -1445,7 +1443,7 @@ static ssize_t cgroup_file_write(struct 
- 	struct cftype *cft = __d_cft(file->f_dentry);
- 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
- 
--	if (!cft || cgroup_is_removed(cgrp))
-+	if (cgroup_is_removed(cgrp))
- 		return -ENODEV;
- 	if (cft->write)
- 		return cft->write(cgrp, cft, file, buf, nbytes, ppos);
-@@ -1490,7 +1488,7 @@ static ssize_t cgroup_file_read(struct f
- 	struct cftype *cft = __d_cft(file->f_dentry);
- 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
- 
--	if (!cft || cgroup_is_removed(cgrp))
-+	if (cgroup_is_removed(cgrp))
- 		return -ENODEV;
- 
- 	if (cft->read)
-@@ -1554,10 +1552,8 @@ static int cgroup_file_open(struct inode
- 	err = generic_file_open(inode, file);
- 	if (err)
- 		return err;
--
- 	cft = __d_cft(file->f_dentry);
--	if (!cft)
--		return -ENODEV;
++/**
++ * link_css_set - a helper function to link a css_set to a cgroup
++ * @tmp_cg_links: cg_cgroup_link objects allocated by allocate_cg_links()
++ * @cg: the css_set to be linked
++ * @cgrp: the destination cgroup
++ */
++static void link_css_set(struct list_head *tmp_cg_links,
++			 struct css_set *cg, struct cgroup *cgrp)
++{
++	struct cg_cgroup_link *link;
 +
- 	if (cft->read_map || cft->read_seq_string) {
- 		struct cgroup_seqfile_state *state =
- 			kzalloc(sizeof(*state), GFP_USER);
-@@ -2463,8 +2459,6 @@ static int cgroup_rmdir(struct inode *un
- 	struct cgroup *cgrp = dentry->d_fsdata;
- 	struct dentry *d;
- 	struct cgroup *parent;
--	struct super_block *sb;
--	struct cgroupfs_root *root;
++	BUG_ON(list_empty(tmp_cg_links));
++	link = list_first_entry(tmp_cg_links, struct cg_cgroup_link,
++				cgrp_link_list);
++	link->cg = cg;
++	list_move(&link->cgrp_link_list, &cgrp->css_sets);
++	list_add(&link->cg_link_list, &cg->cg_links);
++}
++
+ /*
+  * find_css_set() takes an existing cgroup group and a
+  * cgroup object, and returns a css_set object that's
+@@ -399,7 +418,6 @@ static struct css_set *find_css_set(
+ 	int i;
  
- 	/* the vfs holds both inode->i_mutex already */
+ 	struct list_head tmp_cg_links;
+-	struct cg_cgroup_link *link;
  
-@@ -2487,8 +2481,6 @@ static int cgroup_rmdir(struct inode *un
+ 	struct hlist_head *hhead;
  
- 	mutex_lock(&cgroup_mutex);
- 	parent = cgrp->parent;
--	root = cgrp->root;
--	sb = root->sb;
- 
- 	if (atomic_read(&cgrp->count)
- 	    || !list_empty(&cgrp->children)
-@@ -2937,7 +2929,7 @@ int cgroup_clone(struct task_struct *tsk
- 	}
- 
- 	/* Create the cgroup directory, which also creates the cgroup */
--	ret = vfs_mkdir(inode, dentry, S_IFDIR | 0755);
-+	ret = vfs_mkdir(inode, dentry, 0755);
- 	child = __d_cgrp(dentry);
- 	dput(dentry);
- 	if (ret) {
-@@ -2947,13 +2939,6 @@ int cgroup_clone(struct task_struct *tsk
- 		goto out_release;
- 	}
- 
--	if (!child) {
--		printk(KERN_INFO
--		       "Couldn't find new cgroup %s\n", nodename);
--		ret = -ENOMEM;
--		goto out_release;
+@@ -444,26 +462,11 @@ static struct css_set *find_css_set(
+ 		 * only do it for the first subsystem in each
+ 		 * hierarchy
+ 		 */
+-		if (ss->root->subsys_list.next == &ss->sibling) {
+-			BUG_ON(list_empty(&tmp_cg_links));
+-			link = list_entry(tmp_cg_links.next,
+-					  struct cg_cgroup_link,
+-					  cgrp_link_list);
+-			list_del(&link->cgrp_link_list);
+-			list_add(&link->cgrp_link_list, &cgrp->css_sets);
+-			link->cg = res;
+-			list_add(&link->cg_link_list, &res->cg_links);
+-		}
 -	}
+-	if (list_empty(&rootnode.subsys_list)) {
+-		link = list_entry(tmp_cg_links.next,
+-				  struct cg_cgroup_link,
+-				  cgrp_link_list);
+-		list_del(&link->cgrp_link_list);
+-		list_add(&link->cgrp_link_list, &dummytop->css_sets);
+-		link->cg = res;
+-		list_add(&link->cg_link_list, &res->cg_links);
++		if (ss->root->subsys_list.next == &ss->sibling)
++			link_css_set(&tmp_cg_links, res, cgrp);
+ 	}
++	if (list_empty(&rootnode.subsys_list))
++		link_css_set(&tmp_cg_links, res, dummytop);
+ 
+ 	BUG_ON(!list_empty(&tmp_cg_links));
+ 
+@@ -988,7 +991,7 @@ static int cgroup_get_sb(struct file_sys
+ 		root = NULL;
+ 	} else {
+ 		/* New superblock */
+-		struct cgroup *cgrp = &root->top_cgroup;
++		struct cgroup *root_cgrp = &root->top_cgroup;
+ 		struct inode *inode;
+ 		int i;
+ 
+@@ -1029,7 +1032,7 @@ static int cgroup_get_sb(struct file_sys
+ 		list_add(&root->root_list, &roots);
+ 		root_count++;
+ 
+-		sb->s_root->d_fsdata = &root->top_cgroup;
++		sb->s_root->d_fsdata = root_cgrp;
+ 		root->top_cgroup.dentry = sb->s_root;
+ 
+ 		/* Link the top cgroup in this hierarchy into all
+@@ -1040,29 +1043,18 @@ static int cgroup_get_sb(struct file_sys
+ 			struct hlist_node *node;
+ 			struct css_set *cg;
+ 
+-			hlist_for_each_entry(cg, node, hhead, hlist) {
+-				struct cg_cgroup_link *link;
+-
+-				BUG_ON(list_empty(&tmp_cg_links));
+-				link = list_entry(tmp_cg_links.next,
+-						  struct cg_cgroup_link,
+-						  cgrp_link_list);
+-				list_del(&link->cgrp_link_list);
+-				link->cg = cg;
+-				list_add(&link->cgrp_link_list,
+-					 &root->top_cgroup.css_sets);
+-				list_add(&link->cg_link_list, &cg->cg_links);
+-			}
++			hlist_for_each_entry(cg, node, hhead, hlist)
++				link_css_set(&tmp_cg_links, cg, root_cgrp);
+ 		}
+ 		write_unlock(&css_set_lock);
+ 
+ 		free_cg_links(&tmp_cg_links);
+ 
+-		BUG_ON(!list_empty(&cgrp->sibling));
+-		BUG_ON(!list_empty(&cgrp->children));
++		BUG_ON(!list_empty(&root_cgrp->sibling));
++		BUG_ON(!list_empty(&root_cgrp->children));
+ 		BUG_ON(root->number_of_cgroups != 1);
+ 
+-		cgroup_populate_dir(cgrp);
++		cgroup_populate_dir(root_cgrp);
+ 		mutex_unlock(&inode->i_mutex);
+ 		mutex_unlock(&cgroup_mutex);
+ 	}
+_
+
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+
+origin.patch
+linux-next.patch
+
