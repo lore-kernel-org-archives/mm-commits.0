@@ -1,44 +1,53 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: - lis3lv02d-separate-the-core-from-hp-acpi-api.patch removed
- from -mm tree
-Date: Fri, 9 Jan 2009 15:23:17 -0800
-Message-ID: <20090109152317.ca2a2da8.akpm@linux-foundation.org>
-References: <200901091958.n09JwbJs031498@imap1.linux-foundation.org>
-	<20090109230003.GB2223@elf.ucw.cz>
+From: akpm@linux-foundation.org
+Subject: - aerdrv-fix-sanity-check-in-report_resume.patch removed from -mm tree
+Date: Fri, 09 Jan 2009 15:19:53 -0800
+Message-ID: <200901092336.n09NaLKW023603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47439 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932895AbZAIXX6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 18:23:58 -0500
-In-Reply-To: <20090109230003.GB2223@elf.ucw.cz>
+	by vger.kernel.org with ESMTP id S1751661AbZAIXgn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 18:36:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: linux-kernel@vger.kernel.org, eric.piel@tremplin-utc.net, mm-commits@vger.kernel.org
+To: seto.hidetoshi@jp.fujitsu.com, jbarnes@virtuousgeek.org, yanmin.zhang@intel.com, mm-commits@vger.kernel.org
 
-On Sat, 10 Jan 2009 00:00:03 +0100
-Pavel Machek <pavel@suse.cz> wrote:
 
-> > The patch titled
-> >      LIS3LV02D: separate the core from HP ACPI API
-> > has been removed from the -mm tree.  Its filename was
-> >      lis3lv02d-separate-the-core-from-hp-acpi-api.patch
-> > 
-> > This patch was dropped because other changes were merged, which wrecked this patch
-> 
-> I'm confused. The other patch collided with leds/Makefile changes, but
-> this one applies cleanly over Linus' git (updated today)... or am I
-> doing something wrong? Could it still be pushed to Linus?
+The patch titled
+     aerdrv: fix sanity check in report_resume
+has been removed from the -mm tree.  Its filename was
+     aerdrv-fix-sanity-check-in-report_resume.patch
 
-umm, sure, we can try that.
+This patch was dropped because it was withdrawn
 
-Please don't use vague terms like "the other patch".  I assume you're
-referring to lis3lv02d-merge-with-leds-hp-disk.patch?
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
-It has more problems than a simple makefile conflict.  People keep on
-changing stuff in linux-next.  
+------------------------------------------------------
+Subject: aerdrv: fix sanity check in report_resume
+From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 
+What we have to check here before calling that err_handler->resume is
+non-NULL.  It seems that this block has been copy&pasted from
+report_slot_reset.
+
+Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Acked-by: "Zhang, Yanmin" <yanmin.zhang@intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/pci/pcie/aer/aerdrv_core.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff -puN drivers/pci/pcie/aer/aerdrv_core.c~aerdrv-fix-sanity-check-in-report_resume drivers/pci/pcie/aer/aerdrv_core.c
+--- a/drivers/pci/pcie/aer/aerdrv_core.c~aerdrv-fix-sanity-check-in-report_resume
++++ a/drivers/pci/pcie/aer/aerdrv_core.c
+@@ -250,14 +250,14 @@ static void report_resume(struct pci_dev
+ 
+ 	dev->error_state = pci_channel_io_normal;
+ 
+-	if (!dev->driver ||
+-		!dev->driver->err_handler ||
+-		!dev->driver->err_handler->slot_reset)
++	if (!dev->driver)
+ 		return;
