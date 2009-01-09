@@ -1,71 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - leds-ledtrig-timer-on-deactivation-hardware-blinking-should-be-disabled.patch removed from -mm tree
-Date: Fri, 09 Jan 2009 11:58:51 -0800
-Message-ID: <200901091958.n09JwpVk031731@imap1.linux-foundation.org>
+Subject: - nommu-fix-cleanup-handling-in-ramfs_nommu_get_umapped_area.patch removed from -mm tree
+Date: Fri, 09 Jan 2009 11:58:54 -0800
+Message-ID: <200901091958.n09Jwsaa031758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41500 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751571AbZAIT7a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 14:59:30 -0500
+	by vger.kernel.org with ESMTP id S1753236AbZAIT7y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 14:59:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: giometti@linux.it, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, cooloney@kernel.org, gerg@uclinux.org, graf.yang@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds ledtrig-timer: on deactivation hardware blinking should be disabled.
+     NOMMU: Fix cleanup handling in ramfs_nommu_get_umapped_area()
 has been removed from the -mm tree.  Its filename was
-     leds-ledtrig-timer-on-deactivation-hardware-blinking-should-be-disabled.patch
+     nommu-fix-cleanup-handling-in-ramfs_nommu_get_umapped_area.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds ledtrig-timer: on deactivation hardware blinking should be disabled.
-From: Rodolfo Giometti <giometti@linux.it>
+Subject: NOMMU: Fix cleanup handling in ramfs_nommu_get_umapped_area()
+From: David Howells <dhowells@redhat.com>
 
-Signed-off-by: Rodolfo Giometti <giometti@linux.it>
+Fix cleanup handling in ramfs_nommu_get_umapped_area() by only freeing
+the number of pages that find_get_pages() said it had returned (nr)
+rather than attempting to free the number of pages we asked for
+(lpages) - thus avoiding the situation whereby put_page() may be handed
+NULL pointers if find_get_pages() returned fewer pages that were
+requested.
+
+Also avoid a warning about nr being uninitialised and the need for an
+if-statement in the cleanup path by using appropriate gotos.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: Graf Yang <graf.yang@analog.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/ledtrig-timer.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/ramfs/file-nommu.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN drivers/leds/ledtrig-timer.c~leds-ledtrig-timer-on-deactivation-hardware-blinking-should-be-disabled drivers/leds/ledtrig-timer.c
---- a/drivers/leds/ledtrig-timer.c~leds-ledtrig-timer-on-deactivation-hardware-blinking-should-be-disabled
-+++ a/drivers/leds/ledtrig-timer.c
-@@ -199,6 +199,7 @@ err_out:
- static void timer_trig_deactivate(struct led_classdev *led_cdev)
- {
- 	struct timer_trig_data *timer_data = led_cdev->trigger_data;
-+	unsigned long on = 0, off = 0;
+diff -puN fs/ramfs/file-nommu.c~nommu-fix-cleanup-handling-in-ramfs_nommu_get_umapped_area fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~nommu-fix-cleanup-handling-in-ramfs_nommu_get_umapped_area
++++ a/fs/ramfs/file-nommu.c
+@@ -262,11 +262,11 @@ unsigned long ramfs_nommu_get_unmapped_a
+ 	ret = -ENOMEM;
+ 	pages = kzalloc(lpages * sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages)
+-		goto out;
++		goto out_free;
  
- 	if (timer_data) {
- 		device_remove_file(led_cdev->dev, &dev_attr_delay_on);
-@@ -206,6 +207,10 @@ static void timer_trig_deactivate(struct
- 		del_timer_sync(&timer_data->timer);
- 		kfree(timer_data);
- 	}
-+
-+	/* If there is hardware support for blinking, stop it */
-+	if (led_cdev->blink_set)
-+		led_cdev->blink_set(led_cdev, &on, &off);
- }
+ 	nr = find_get_pages(inode->i_mapping, pgoff, lpages, pages);
+ 	if (nr != lpages)
+-		goto out; /* leave if some pages were missing */
++		goto out_free_pages; /* leave if some pages were missing */
  
- static struct led_trigger timer_led_trigger = {
-_
-
-Patches currently in -mm which might be from giometti@linux.it are
-
-origin.patch
-linux-next.patch
-linuxpps-core-support.patch
-linuxpps-core-support-sysfs-not-needed-variables-removed.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
-
+ 	/* check the pages for physical adjacency */
+ 	ptr = pages;
+@@ -274,19 +274,18 @@ unsigned long ramfs_nommu_get_unmapped_a
+ 	page++;
+ 	for (loop = lpages; loop > 1; loop--)
+ 		if (*ptr++ != page++)
+-			goto out;
++			goto out_free_pages;
+ 
+ 	/* okay - all conditions fulfilled */
+ 	ret = (unsigned long) page_address(pages[0]);
+ 
+- out:
+-	if (pages) {
+-		ptr = pages;
+-		for (loop = lpages; loop > 0; loop--)
+-			put_page(*ptr++);
+-		kfree(pages);
+-	}
