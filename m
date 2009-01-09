@@ -1,53 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-trace-ring_bufferc-use-div_round_up-fix.patch removed from -mm tree
-Date: Fri, 09 Jan 2009 12:26:39 -0800
-Message-ID: <200901092026.n09KQdtP023261@imap1.linux-foundation.org>
+Subject: - raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 09 Jan 2009 12:29:25 -0800
+Message-ID: <200901092029.n09KTPoc025675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39278 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43760 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756120AbZAIU1Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 15:27:25 -0500
+	by vger.kernel.org with ESMTP id S1752857AbZAIUjI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 15:39:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, viro@ZenIV.linux.org.ukviro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-trace-ring_bufferc-use-div_round_up-fix
+     raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     kernel-trace-ring_bufferc-use-div_round_up-fix.patch
+     raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into kernel-trace-ring_bufferc-use-div_round_up.patch
+This patch was dropped because it was folded into raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-trace-ring_bufferc-use-div_round_up-fix
+Subject: raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-oops
+ERROR: open brace '{' following struct go on the same line
+#246: FILE: drivers/char/raw.c:249:
++struct raw32_config_request
++{
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+ERROR: code indent should use tabs where possible
+#247: FILE: drivers/char/raw.c:250:
++        compat_int_t^Iraw_minor;$
+
+ERROR: code indent should use tabs where possible
+#248: FILE: drivers/char/raw.c:251:
++        compat_u64^Iblock_major;$
+
+ERROR: code indent should use tabs where possible
+#249: FILE: drivers/char/raw.c:252:
++        compat_u64^Iblock_minor;$
+
+total: 4 errors, 0 warnings, 358 lines checked
+
+./patches/raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/ring_buffer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/raw.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN kernel/trace/ring_buffer.c~kernel-trace-ring_bufferc-use-div_round_up-fix kernel/trace/ring_buffer.c
---- a/kernel/trace/ring_buffer.c~kernel-trace-ring_bufferc-use-div_round_up-fix
-+++ a/kernel/trace/ring_buffer.c
-@@ -150,7 +150,7 @@ rb_event_length(struct ring_buffer_event
+diff -puN drivers/char/raw.c~raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes drivers/char/raw.c
+--- a/drivers/char/raw.c~raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes
++++ a/drivers/char/raw.c
+@@ -245,11 +245,10 @@ static int raw_ctl_ioctl(struct inode *i
+ }
  
- 	case RINGBUF_TYPE_DATA:
- 		if (event->len)
--			length = event->len / RB_ALIGNMENT;
-+			length = event->len * RB_ALIGNMENT;
- 		else
- 			length = event->array[0];
- 		return length + RB_EVNT_HDR_SIZE;
+ #ifdef CONFIG_COMPAT
+-struct raw32_config_request
+-{
+-        compat_int_t	raw_minor;
+-        compat_u64	block_major;
+-        compat_u64	block_minor;
++struct raw32_config_request {
++	compat_int_t	raw_minor;
++	compat_u64	block_major;
++	compat_u64	block_minor;
+ };
+ 
+ static long raw_ctl_compat_ioctl(struct file *file, unsigned int cmd,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +94,7 @@ pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
 smp_call_function_single-be-slightly-less-stupid.patch
 kernel-trace-ring_bufferc-reduce-inlining.patch
 kernel-trace-ring_bufferc-use-div_round_up.patch
-kernel-trace-ring_bufferc-use-div_round_up-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 page_fault-retry-with-nopage_retry-fix.patch
