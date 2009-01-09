@@ -1,115 +1,267 @@
 From: akpm@linux-foundation.org
-Subject: - elf-implement-at_random-for-glibc-prng-seeding.patch removed from -mm tree
-Date: Thu, 08 Jan 2009 14:50:31 -0800
-Message-ID: <200901082250.n08MoV9e029694@imap1.linux-foundation.org>
+Subject: mmotm 2009-01-08-16-35 uploaded
+Date: Thu, 08 Jan 2009 16:36:24 -0800
+Message-ID: <200901090052.n090qmvg003496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58503 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763462AbZAHXAG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 18:00:06 -0500
+	by vger.kernel.org with ESMTP id S1752093AbZAIAwv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jan 2009 19:52:51 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n090qmhN014281
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 8 Jan 2009 16:52:49 -0800
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id n090qmvg003496
+	for <mm-commits@vger.kernel.org>; Thu, 8 Jan 2009 16:52:48 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kees.cook@canonical.com, andi@firstfloor.org, drepper@redhat.com, jakub@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2009-01-08-16-35 has been uploaded to
 
-The patch titled
-     ELF: implement AT_RANDOM for glibc PRNG seeding
-has been removed from the -mm tree.  Its filename was
-     elf-implement-at_random-for-glibc-prng-seeding.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+and will soon be available at
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+   git://git.zen-sources.org/zen/mmotm.git
 
-------------------------------------------------------
-Subject: ELF: implement AT_RANDOM for glibc PRNG seeding
-From: Kees Cook <kees.cook@canonical.com>
+It contains the following patches against 2.6.28:
 
-While discussing[1] the need for glibc to have access to random bytes
-during program load, it seems that an earlier attempt to implement
-AT_RANDOM got stalled.  This implements a random 16 byte string, available
-to every ELF program via a new auxv AT_RANDOM vector.
-
-[1] http://sourceware.org/ml/libc-alpha/2008-10/msg00006.html
-
-Ulrich said:
-
-glibc needs right after startup a bit of random data for internal
-protections (stack canary etc).  What is now in upstream glibc is that we
-always unconditionally open /dev/urandom, read some data, and use it.  For
-every process startup.  That's slow.
-
-...
-
-The solution is to provide a limited amount of random data to the
-starting process in the aux vector.  I suggested 16 bytes and this is
-what the patch implements.  If we need only 16 bytes or less we use the
-data directly.  If we need more we'll use the 16 bytes to see a PRNG.
-This avoids the costly /dev/urandom use and it allows the kernel to use
-the most adequate source of random data for this purpose.  It might not
-be the same pool as that for /dev/urandom.
-
-Concerns were expressed about the depletion of the randomness pool.  But
-this patch doesn't make the situation worse, it doesn't deplete entropy
-more than happens now.
-
-Signed-off-by: Kees Cook <kees.cook@canonical.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/binfmt_elf.c        |   12 ++++++++++++
- include/linux/auxvec.h |    6 +++---
- 2 files changed, 15 insertions(+), 3 deletions(-)
-
-diff -puN fs/binfmt_elf.c~elf-implement-at_random-for-glibc-prng-seeding fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~elf-implement-at_random-for-glibc-prng-seeding
-+++ a/fs/binfmt_elf.c
-@@ -152,8 +152,10 @@ create_elf_tables(struct linux_binprm *b
- 	elf_addr_t __user *sp;
- 	elf_addr_t __user *u_platform;
- 	elf_addr_t __user *u_base_platform;
-+	elf_addr_t __user *u_rand_bytes;
- 	const char *k_platform = ELF_PLATFORM;
- 	const char *k_base_platform = ELF_BASE_PLATFORM;
-+	unsigned char k_rand_bytes[16];
- 	int items;
- 	elf_addr_t *elf_info;
- 	int ei_index = 0;
-@@ -196,6 +198,15 @@ create_elf_tables(struct linux_binprm *b
- 			return -EFAULT;
- 	}
- 
-+	/*
-+	 * Generate 16 random bytes for userspace PRNG seeding.
-+	 */
-+	get_random_bytes(k_rand_bytes, sizeof(k_rand_bytes));
-+	u_rand_bytes = (elf_addr_t __user *)
-+		       STACK_ALLOC(p, sizeof(k_rand_bytes));
-+	if (__copy_to_user(u_rand_bytes, k_rand_bytes, sizeof(k_rand_bytes)))
-+		return -EFAULT;
-+
- 	/* Create the ELF interpreter info */
- 	elf_info = (elf_addr_t *)current->mm->saved_auxv;
- 	/* update AT_VECTOR_SIZE_BASE if the number of NEW_AUX_ENT() changes */
-@@ -228,6 +239,7 @@ create_elf_tables(struct linux_binprm *b
- 	NEW_AUX_ENT(AT_GID, cred->gid);
- 	NEW_AUX_ENT(AT_EGID, cred->egid);
-  	NEW_AUX_ENT(AT_SECURE, security_bprm_secureexec(bprm));
-+	NEW_AUX_ENT(AT_RANDOM, (elf_addr_t)(unsigned long)u_rand_bytes);
- 	NEW_AUX_ENT(AT_EXECFN, bprm->exec);
- 	if (k_platform) {
- 		NEW_AUX_ENT(AT_PLATFORM,
-diff -puN include/linux/auxvec.h~elf-implement-at_random-for-glibc-prng-seeding include/linux/auxvec.h
---- a/include/linux/auxvec.h~elf-implement-at_random-for-glibc-prng-seeding
-+++ a/include/linux/auxvec.h
-@@ -23,16 +23,16 @@
- #define AT_PLATFORM 15  /* string identifying CPU for optimizations */
- #define AT_HWCAP  16    /* arch dependent hints at CPU capabilities */
- #define AT_CLKTCK 17	/* frequency at which times() increments */
--
-+/* AT_* values 18 through 22 are reserved */
- #define AT_SECURE 23   /* secure mode boolean */
+origin.patch
+i-need-old-gcc.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
+acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000.patch
+eeepc-laptop-enable-bluetooth-for-asus-eee-901.patch
+misc-add-dell-wmi-driver-for-hotkey-control.patch
+drivers-acpi-hardware-hwsleepc-fix-warning-msg.patch
+acpi-dock-terminate-eject-request-is-the-dock-is-not-present.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+x86-only-scan-the-root-bus-in-early-pci-quirks.patch
+x86-hpet-allow-force-enable-on-ich10-hpet.patch
+mark-complex-bitopsh-inlines-as-__always_inline.patch
+x86-avoid-theoretical-vmalloc-fault-loop.patch
+kgdb-fix-kernel-doc-error.patch
+pcmcia-pccard-deadlock-fix.patch
+i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-pass-clocksource-to-read-callback-sparc-cleanup.patch
+clocksource-add-enable-and-disable-callbacks.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
+serio_raw-add-support-for-translated-serio_i8042xl-ports.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+i8042-add-blue-fb5601-to-noloop-execption-table.patch
+input-ad7879-touchscreen-driver.patch
+input-mouse-alpsc-handle-touchpoints-buttons-correctly.patch
+input-ads7846c-sparse-lock-annotation.patch
+drivers-input-keyboard-atkbdc-use-function-for-generation-of-keyrelease-events.patch
+drivers-input-keyboard-atkbdc-make-forced_release_keys-static.patch
+drivers-input-keyboard-atkbdc-fujitsu-siemens-amilo-pa-1510-quirks.patch
+input-uvc-the-button-on-the-camera-is-key_camera.patch
+input-allow-certain-ev_abs-events-to-bypass-all-filtering.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-add-a-detailed-multi-touch-finger-data-report-protocol-rev2.patch
+input-keyboard-hilkbdc-fix-crash-when-removing-hilkbd-module.patch
+drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module.patch
+dmar-fix-endless-unknown-dmar-structure-type-loop.patch
+leds-ledtrig-timer-on-deactivation-hardware-blinking-should-be-disabled.patch
+leds-allow-led-drivers-to-use-a-wider-than-0255-range-of-brightness-values.patch
+leds-add-a-dac124s085-spi-led-driver.patch
+leds-add-a-dac124s085-spi-led-driver-fix.patch
+m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+ricoh_mmc-use-suspend-resume_noirq-v2.patch
+physmap-make-map_info-customizable.patch
+jffs2-force-the-jffs2-gc-daemon-to-behave-a-bit-better.patch
+mtd-fix-nettel-printk-formats.patch
+net-tipc-bcasth-use-array_size.patch
+net-bridge-netfilter-move-a-dereference-below-a-null-test.patch
+misdn-indentation-braces-disagree-add-braces.patch
+misdn-one-handmade-array_size-converted.patch
+misdn-indentation-and-braces-disagree-add-braces.patch
+drivers-isdn-hardware-misdn-move-a-dereference-below-a-null-test.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+drivers-net-hamradio-6packc-move-a-dereference-below-a-null-test.patch
+drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch
+netdev-gianfar-add-mii-ioctl-handler.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+3x59x-fix-pci-resource-management.patch
+video-mbp_nvidia_bl-fix-brightness-after-suspend-hibernation.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5.patch
+video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5-fix.patch
+video-mbp_nvidia_bl-add-a-debug-switch.patch
+gpio_free-might-sleep-blackfin-architecture.patch
+ext4-allocate-s_blockgroup_lock-separately.patch
+ext4-dont-inherit-inappropriate-inode-flags-from-parent.patch
+ext4-tighten-restrictions-on-inode-flags.patch
+sunrpc-fix-rdma-dependency.patch
+proc-move-inode-comment-text-file-to-source-file.patch
+pci-msi-bugfix-utilize-for-msi_capability_init.patch
+fakephp-allocate-pci-resources-before-adding-the-device.patch
+aerdrv-fix-sanity-check-in-report_resume.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
+smp_call_function_single-be-slightly-less-stupid.patch
+kernel-trace-ring_bufferc-reduce-inlining.patch
+kernel-trace-ring_bufferc-use-div_round_up.patch
+kernel-trace-ring_bufferc-use-div_round_up-fix.patch
+irq-free-setup_irq-interrupt-using-free_irq.patch
+if-0-ses_match_host.patch
+scsi-replace-__inline-with-inline.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+esp-fix-section-mismatch-warning.patch
+scsi-fix-bad-use-of-udelay-in-atp870uc.patch
+sg_io-dont-perform-unneeded-copy-in-compat-code.patch
+bio-zero-inlined-bio_vec.patch
+radio-si470x-add-usb-id-for-dealextreme-usb-radio.patch
+usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
+usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
+usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
+usb-fsl_qe_udc-fix-qe-usb-controller-initialization.patch
+usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
+usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
+usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic-checkpatch-fixes.patch
+pika-warp-appliance-watchdog-timer.patch
+mm.patch
+core_dump_default_elf_headers-depends-on-elf_core.patch
+nommu-fix-cleanup-handling-in-ramfs_nommu_get_umapped_area.patch
+compiler-gcch-add-more-comments-to-reloc_hide.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+radix-tree-gang-set-if-tagged-operation.patch
+mm-shmemc-fix-division-by-zero.patch
+mm-fix-pdflush-thread-creation-upper-bound.patch
+mm-add-proc-controls-for-pdflush-threads.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+hp-wmi-handle-rfkill_register-failure.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+lis3lv02d-separate-the-core-from-hp-acpi-api.patch
+lis3lv02d-merge-with-leds-hp-disk.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+atmel_serial-might-lose-modem-status-change.patch
+8250_pci-add-support-for-netmos-9835.patch
+max3100-spi-uart-driver.patch
+max3100-spi-uart-driver-fix.patch
+max3100-spi-uart-driver-select-serial_core.patch
+sm501-fix-section-mismatches.patch
+intelfb-support-i854.patch
+hfsplus-identify-journal-info-block-in-volume-header.patch
+hfsplus-fix-journal-detection.patch
+ufs-sector_t-cannot-be-negative.patch
+relay-reset-consumed.patch
+trace-code-and-documentation.patch
+trace-code-and-documentation-merging-documentation-tracetxt-with-documentation-filesystems-relaytxt.patch
+trace-sample.patch
+memstick-annotate-endianness-of-attribute-structs.patch
+byteorder-add-load_-store_endian-api.patch
+unaligned-consolidate-unaligned-headers-add-load_-store_endian_noalign.patch
+unaligned-wire-up-trivial-arches-for-new-common-unaligned-header.patch
+sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
+unaligned-wire-up-h8300-and-m32r-arches.patch
+unaligned-wire-up-arm-arch-overrides-for-unaligned-access.patch
+unaligned-remove-the-old-implementation.patch
+ata-replace-byteshifting-with-unaligned-endian-helpers.patch
+usb-use-unaligned-endian-helpers-in-storage-drivers.patch
+filesystem-freeze-add-error-handling-of-write_super_lockfs-unlockfs.patch
+filesystem-freeze-implement-generic-freeze-feature.patch
+filesystem-freeze-implement-generic-freeze-feature-fix.patch
+filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
+linuxpps-core-support.patch
+linuxpps-core-support-sysfs-not-needed-variables-removed.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
+factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch
+allow-rwlocks-to-re-enable-interrupts.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+nilfs2-cleanup-nilfs_clear_inode.patch
+nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
+nilfs2-insert-explanations-in-gcinode-file.patch
+nilfs2-add-maintainer.patch
+nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-adjust-to-the-new-aops.patch
+reiser4-adjust-to-the-new-aops-fixup.patch
+reiser4-remove-simple_prepare_write-usage.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+releasing-resources-with-children.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
