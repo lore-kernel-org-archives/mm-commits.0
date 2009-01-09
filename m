@@ -1,75 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-fix-nettel-printk-formats.patch removed from -mm tree
-Date: Fri, 09 Jan 2009 12:51:51 -0800
-Message-ID: <200901092051.n09KppSW012402@imap1.linux-foundation.org>
+Subject: - leds-add-a-dac124s085-spi-led-driver.patch removed from -mm tree
+Date: Fri, 09 Jan 2009 12:52:46 -0800
+Message-ID: <200901092052.n09KqkRq013198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37614 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34774 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751081AbZAIUwA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 15:52:00 -0500
+	by vger.kernel.org with ESMTP id S1754356AbZAIUxm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 15:53:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: lg@denx.de, ben-linux@fluff.org, hmh@hmh.eng.br, randy.dunlap@oracle.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: fix nettel printk formats
+     leds: add a dac124s085 SPI LED driver
 has been removed from the -mm tree.  Its filename was
-     mtd-fix-nettel-printk-formats.patch
+     leds-add-a-dac124s085-spi-led-driver.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: fix nettel printk formats
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: leds: add a dac124s085 SPI LED driver
+From: Guennadi Liakhovetski <lg@denx.de>
 
-Fix printk format references:
+A simple LED driver using the DAC124S085 DAC from NatSemi
 
-drivers/mtd/maps/nettel.c:361: warning: format '%d' expects type 'int', but argument 2 has type 'uint64_t'
-
+[randy.dunlap@oracle.com: use header files for interfaces]
+Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/nettel.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/leds/Kconfig           |    7 +
+ drivers/leds/Makefile          |    3 
+ drivers/leds/leds-dac124s085.c |  150 +++++++++++++++++++++++++++++++
+ 3 files changed, 160 insertions(+)
 
-diff -puN drivers/mtd/maps/nettel.c~mtd-fix-nettel-printk-formats drivers/mtd/maps/nettel.c
---- a/drivers/mtd/maps/nettel.c~mtd-fix-nettel-printk-formats
-+++ a/drivers/mtd/maps/nettel.c
-@@ -357,8 +357,8 @@ static int __init nettel_init(void)
- 		*intel1par = 0;
- 	}
+diff -puN drivers/leds/Kconfig~leds-add-a-dac124s085-spi-led-driver drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-add-a-dac124s085-spi-led-driver
++++ a/drivers/leds/Kconfig
+@@ -178,6 +178,13 @@ config LEDS_DA903X
+ 	  This option enables support for on-chip LED drivers found
+ 	  on Dialog Semiconductor DA9030/DA9034 PMICs.
  
--	printk(KERN_NOTICE "SNAPGEAR: Intel flash device size = %dK\n",
--		(intel_mtd->size >> 10));
-+	printk(KERN_NOTICE "SNAPGEAR: Intel flash device size = %lluK\n",
-+		(unsigned long long)(intel_mtd->size >> 10));
++config LEDS_DAC124S085
++	tristate "LED Support for DAC124S085 SPI DAC"
++	depends on LEDS_CLASS && SPI
++	help
++	  This option enables support for DAC124S085 SPI DAC from NatSemi,
++	  which can be used to control up to four LEDs.
++
+ comment "LED Triggers"
  
- 	intel_mtd->owner = THIS_MODULE;
+ config LEDS_TRIGGERS
+diff -puN drivers/leds/Makefile~leds-add-a-dac124s085-spi-led-driver drivers/leds/Makefile
+--- a/drivers/leds/Makefile~leds-add-a-dac124s085-spi-led-driver
++++ a/drivers/leds/Makefile
+@@ -26,6 +26,9 @@ obj-$(CONFIG_LEDS_DA903X)		+= leds-da903
+ obj-$(CONFIG_LEDS_HP_DISK)		+= leds-hp-disk.o
+ obj-$(CONFIG_LEDS_WM8350)		+= leds-wm8350.o
  
++# LED SPI Drivers
++obj-$(CONFIG_LEDS_DAC124S085)		+= leds-dac124s085.o
++
+ # LED Triggers
+ obj-$(CONFIG_LEDS_TRIGGER_TIMER)	+= ledtrig-timer.o
+ obj-$(CONFIG_LEDS_TRIGGER_IDE_DISK)	+= ledtrig-ide-disk.o
+diff -puN /dev/null drivers/leds/leds-dac124s085.c
+--- /dev/null
++++ a/drivers/leds/leds-dac124s085.c
+@@ -0,0 +1,150 @@
++/*
++ * Copyright 2008
++ * Guennadi Liakhovetski, DENX Software Engineering, <lg@denx.de>
++ *
++ * This file is subject to the terms and conditions of version 2 of
++ * the GNU General Public License.  See the file COPYING in the main
++ * directory of this archive for more details.
++ *
++ * LED driver for the DAC124S085 SPI DAC
++ */
++
++#include <linux/gfp.h>
++#include <linux/leds.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
++#include <linux/spinlock.h>
++#include <linux/workqueue.h>
++#include <linux/spi/spi.h>
++
++struct dac124s085_led {
++	struct led_classdev	ldev;
++	struct spi_device	*spi;
++	int			id;
++	int			brightness;
++	char			name[sizeof("dac124s085-3")];
++
++	struct mutex		mutex;
++	struct work_struct	work;
++	spinlock_t		lock;
++};
++
++struct dac124s085 {
++	struct dac124s085_led leds[4];
++};
++
++#define REG_WRITE		(0 << 12)
++#define REG_WRITE_UPDATE	(1 << 12)
++#define ALL_WRITE_UPDATE	(2 << 12)
++#define POWER_DOWN_OUTPUT	(3 << 12)
++
++static void dac124s085_led_work(struct work_struct *work)
++{
++	struct dac124s085_led *led = container_of(work, struct dac124s085_led,
++						  work);
++	u16 word;
++
++	mutex_lock(&led->mutex);
++	word = cpu_to_le16(((led->id) << 14) | REG_WRITE_UPDATE |
++			   (led->brightness & 0xfff));
++	spi_write(led->spi, (const u8 *)&word, sizeof(word));
++	mutex_unlock(&led->mutex);
++}
++
++static void dac124s085_set_brightness(struct led_classdev *ldev,
++				      enum led_brightness brightness)
++{
++	struct dac124s085_led *led = container_of(ldev, struct dac124s085_led,
++						  ldev);
++
++	spin_lock(&led->lock);
++	led->brightness = brightness;
++	schedule_work(&led->work);
++	spin_unlock(&led->lock);
++}
++
++static int dac124s085_probe(struct spi_device *spi)
++{
++	struct dac124s085	*dac;
++	struct dac124s085_led	*led;
++	int i, ret;
++
++	dac = kzalloc(sizeof(*dac), GFP_KERNEL);
++	if (!dac)
++		return -ENOMEM;
++
++	spi->bits_per_word = 16;
++
++	for (i = 0; i < ARRAY_SIZE(dac->leds); i++) {
++		led		= dac->leds + i;
++		led->id		= i;
++		led->brightness	= LED_OFF;
++		led->spi	= spi;
++		snprintf(led->name, sizeof(led->name), "dac124s085-%d", i);
++		spin_lock_init(&led->lock);
++		INIT_WORK(&led->work, dac124s085_led_work);
++		mutex_init(&led->mutex);
++		led->ldev.name = led->name;
++		led->ldev.brightness = LED_OFF;
++		led->ldev.max_brightness = 0xfff;
++		led->ldev.brightness_set = dac124s085_set_brightness;
++		ret = led_classdev_register(&spi->dev, &led->ldev);
++		if (ret < 0)
++			goto eledcr;
++	}
++
++	spi_set_drvdata(spi, dac);
++
++	return 0;
++
++eledcr:
++	while (i--)
++		led_classdev_unregister(&dac->leds[i].ldev);
++
++	spi_set_drvdata(spi, NULL);
++	kfree(dac);
++	return ret;
++}
++
++static int dac124s085_remove(struct spi_device *spi)
++{
++	struct dac124s085	*dac = spi_get_drvdata(spi);
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(dac->leds); i++) {
++		led_classdev_unregister(&dac->leds[i].ldev);
++		cancel_work_sync(&dac->leds[i].work);
++	}
++
++	spi_set_drvdata(spi, NULL);
++	kfree(dac);
++
++	return 0;
++}
++
++static struct spi_driver dac124s085_driver = {
++	.probe		= dac124s085_probe,
++	.remove		= dac124s085_remove,
++	.driver = {
++		.name	= "dac124s085",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init dac124s085_leds_init(void)
++{
++	return spi_register_driver(&dac124s085_driver);
++}
++
++static void __exit dac124s085_leds_exit(void)
++{
++	spi_unregister_driver(&dac124s085_driver);
++}
++
++module_init(dac124s085_leds_init);
++module_exit(dac124s085_leds_exit);
++
++MODULE_AUTHOR("Guennadi Liakhovetski <lg@denx.de>");
++MODULE_DESCRIPTION("DAC124S085 LED driver");
++MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from lg@denx.de are
 
 origin.patch
-linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
 leds-add-a-dac124s085-spi-led-driver.patch
-mtd-fix-nettel-printk-formats.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-max3100-spi-uart-driver-select-serial_core.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
 
