@@ -1,229 +1,279 @@
 From: akpm@linux-foundation.org
-Subject: - sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch removed from -mm tree
-Date: Fri, 09 Jan 2009 16:16:44 -0800
-Message-ID: <200901100033.n0A0XAci007133@imap1.linux-foundation.org>
+Subject: - unaligned-remove-the-old-implementation.patch removed from -mm tree
+Date: Fri, 09 Jan 2009 16:16:56 -0800
+Message-ID: <200901100033.n0A0XMJX007312__26701.6702368439$1231547719$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46107 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754231AbZAJAdd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 19:33:33 -0500
+	by vger.kernel.org with ESMTP id S1754290AbZAJAdn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 19:33:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, lethal@linux-sh.org, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sh: wire up arch overrides for unaligned access on the SH4a
+     unaligned: remove the old implementation
 has been removed from the -mm tree.  Its filename was
-     sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a.patch
+     unaligned-remove-the-old-implementation.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: wire up arch overrides for unaligned access on the SH4a
+Subject: unaligned: remove the old implementation
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: <linux-arch@vger.kernel.org>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/unaligned-sh4a.h |  258 -------------------------
- arch/sh/include/asm/unaligned.h      |   76 +++++--
- 2 files changed, 61 insertions(+), 273 deletions(-)
+ include/linux/unaligned/access_ok.h     |   67 ---------------------
+ include/linux/unaligned/be_byteshift.h  |   70 ----------------------
+ include/linux/unaligned/be_memmove.h    |   36 -----------
+ include/linux/unaligned/be_struct.h     |   36 -----------
+ include/linux/unaligned/generic.h       |   68 ---------------------
+ include/linux/unaligned/le_byteshift.h  |   70 ----------------------
+ include/linux/unaligned/le_memmove.h    |   36 -----------
+ include/linux/unaligned/le_struct.h     |   36 -----------
+ include/linux/unaligned/memmove.h       |   45 --------------
+ include/linux/unaligned/packed_struct.h |   46 --------------
+ 10 files changed, 510 deletions(-)
 
-diff -puN arch/sh/include/asm/unaligned-sh4a.h~sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a /dev/null
---- a/arch/sh/include/asm/unaligned-sh4a.h
+diff -puN include/linux/unaligned/access_ok.h~unaligned-remove-the-old-implementation /dev/null
+--- a/include/linux/unaligned/access_ok.h
 +++ /dev/null
-@@ -1,258 +0,0 @@
--#ifndef __ASM_SH_UNALIGNED_SH4A_H
--#define __ASM_SH_UNALIGNED_SH4A_H
+@@ -1,67 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_ACCESS_OK_H
+-#define _LINUX_UNALIGNED_ACCESS_OK_H
 -
--/*
-- * SH-4A has support for unaligned 32-bit loads, and 32-bit loads only.
-- * Support for 16 and 64-bit accesses are done through shifting and
-- * masking relative to the endianness. Unaligned stores are not supported
-- * by the instruction encoding, so these continue to use the packed
-- * struct.
-- *
-- * The same note as with the movli.l/movco.l pair applies here, as long
-- * as the load is gauranteed to be inlined, nothing else will hook in to
-- * r0 and we get the return value for free.
-- *
-- * NOTE: Due to the fact we require r0 encoding, care should be taken to
-- * avoid mixing these heavily with other r0 consumers, such as the atomic
-- * ops. Failure to adhere to this can result in the compiler running out
-- * of spill registers and blowing up when building at low optimization
-- * levels. See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=34777.
-- */
--#include <linux/types.h>
+-#include <linux/kernel.h>
 -#include <asm/byteorder.h>
--
--static __always_inline u32 __get_unaligned_cpu32(const u8 *p)
--{
--	unsigned long unaligned;
--
--	__asm__ __volatile__ (
--		"movua.l	@%1, %0\n\t"
--		 : "=z" (unaligned)
--		 : "r" (p)
--	);
--
--	return unaligned;
--}
--
--struct __una_u16 { u16 x __attribute__((packed)); };
--struct __una_u32 { u32 x __attribute__((packed)); };
--struct __una_u64 { u64 x __attribute__((packed)); };
--
--static inline u16 __get_unaligned_cpu16(const u8 *p)
--{
--#ifdef __LITTLE_ENDIAN
--	return __get_unaligned_cpu32(p) & 0xffff;
--#else
--	return __get_unaligned_cpu32(p) >> 16;
--#endif
--}
--
--/*
-- * Even though movua.l supports auto-increment on the read side, it can
-- * only store to r0 due to instruction encoding constraints, so just let
-- * the compiler sort it out on its own.
-- */
--static inline u64 __get_unaligned_cpu64(const u8 *p)
--{
--#ifdef __LITTLE_ENDIAN
--	return (u64)__get_unaligned_cpu32(p + 4) << 32 |
--		    __get_unaligned_cpu32(p);
--#else
--	return (u64)__get_unaligned_cpu32(p) << 32 |
--		    __get_unaligned_cpu32(p + 4);
--#endif
--}
 -
 -static inline u16 get_unaligned_le16(const void *p)
 -{
--	return le16_to_cpu(__get_unaligned_cpu16(p));
+-	return le16_to_cpup((__le16 *)p);
 -}
 -
 -static inline u32 get_unaligned_le32(const void *p)
 -{
--	return le32_to_cpu(__get_unaligned_cpu32(p));
+-	return le32_to_cpup((__le32 *)p);
 -}
 -
 -static inline u64 get_unaligned_le64(const void *p)
 -{
--	return le64_to_cpu(__get_unaligned_cpu64(p));
+-	return le64_to_cpup((__le64 *)p);
 -}
 -
 -static inline u16 get_unaligned_be16(const void *p)
 -{
--	return be16_to_cpu(__get_unaligned_cpu16(p));
+-	return be16_to_cpup((__be16 *)p);
 -}
 -
 -static inline u32 get_unaligned_be32(const void *p)
 -{
--	return be32_to_cpu(__get_unaligned_cpu32(p));
+-	return be32_to_cpup((__be32 *)p);
 -}
 -
 -static inline u64 get_unaligned_be64(const void *p)
 -{
--	return be64_to_cpu(__get_unaligned_cpu64(p));
--}
--
--static inline void __put_le16_noalign(u8 *p, u16 val)
--{
--	*p++ = val;
--	*p++ = val >> 8;
--}
--
--static inline void __put_le32_noalign(u8 *p, u32 val)
--{
--	__put_le16_noalign(p, val);
--	__put_le16_noalign(p + 2, val >> 16);
--}
--
--static inline void __put_le64_noalign(u8 *p, u64 val)
--{
--	__put_le32_noalign(p, val);
--	__put_le32_noalign(p + 4, val >> 32);
--}
--
--static inline void __put_be16_noalign(u8 *p, u16 val)
--{
--	*p++ = val >> 8;
--	*p++ = val;
--}
--
--static inline void __put_be32_noalign(u8 *p, u32 val)
--{
--	__put_be16_noalign(p, val >> 16);
--	__put_be16_noalign(p + 2, val);
--}
--
--static inline void __put_be64_noalign(u8 *p, u64 val)
--{
--	__put_be32_noalign(p, val >> 32);
--	__put_be32_noalign(p + 4, val);
+-	return be64_to_cpup((__be64 *)p);
 -}
 -
 -static inline void put_unaligned_le16(u16 val, void *p)
 -{
--#ifdef __LITTLE_ENDIAN
--	((struct __una_u16 *)p)->x = val;
--#else
--	__put_le16_noalign(p, val);
--#endif
+-	*((__le16 *)p) = cpu_to_le16(val);
 -}
 -
 -static inline void put_unaligned_le32(u32 val, void *p)
 -{
--#ifdef __LITTLE_ENDIAN
--	((struct __una_u32 *)p)->x = val;
--#else
--	__put_le32_noalign(p, val);
--#endif
+-	*((__le32 *)p) = cpu_to_le32(val);
 -}
 -
 -static inline void put_unaligned_le64(u64 val, void *p)
 -{
--#ifdef __LITTLE_ENDIAN
--	((struct __una_u64 *)p)->x = val;
--#else
--	__put_le64_noalign(p, val);
--#endif
+-	*((__le64 *)p) = cpu_to_le64(val);
 -}
 -
 -static inline void put_unaligned_be16(u16 val, void *p)
 -{
--#ifdef __BIG_ENDIAN
--	((struct __una_u16 *)p)->x = val;
--#else
--	__put_be16_noalign(p, val);
--#endif
+-	*((__be16 *)p) = cpu_to_be16(val);
 -}
 -
 -static inline void put_unaligned_be32(u32 val, void *p)
 -{
--#ifdef __BIG_ENDIAN
--	((struct __una_u32 *)p)->x = val;
--#else
--	__put_be32_noalign(p, val);
--#endif
+-	*((__be32 *)p) = cpu_to_be32(val);
 -}
 -
 -static inline void put_unaligned_be64(u64 val, void *p)
 -{
--#ifdef __BIG_ENDIAN
--	((struct __una_u64 *)p)->x = val;
--#else
--	__put_be64_noalign(p, val);
--#endif
+-	*((__be64 *)p) = cpu_to_be64(val);
 -}
+-
+-#endif /* _LINUX_UNALIGNED_ACCESS_OK_H */
+diff -puN include/linux/unaligned/be_byteshift.h~unaligned-remove-the-old-implementation /dev/null
+--- a/include/linux/unaligned/be_byteshift.h
++++ /dev/null
+@@ -1,70 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_BE_BYTESHIFT_H
+-#define _LINUX_UNALIGNED_BE_BYTESHIFT_H
+-
+-#include <linux/kernel.h>
+-
+-static inline u16 __get_unaligned_be16(const u8 *p)
+-{
+-	return p[0] << 8 | p[1];
+-}
+-
+-static inline u32 __get_unaligned_be32(const u8 *p)
+-{
+-	return p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3];
+-}
+-
+-static inline u64 __get_unaligned_be64(const u8 *p)
+-{
+-	return (u64)__get_unaligned_be32(p) << 32 |
+-	       __get_unaligned_be32(p + 4);
+-}
+-
+-static inline void __put_unaligned_be16(u16 val, u8 *p)
+-{
+-	*p++ = val >> 8;
+-	*p++ = val;
+-}
+-
+-static inline void __put_unaligned_be32(u32 val, u8 *p)
+-{
+-	__put_unaligned_be16(val >> 16, p);
+-	__put_unaligned_be16(val, p + 2);
+-}
+-
+-static inline void __put_unaligned_be64(u64 val, u8 *p)
+-{
+-	__put_unaligned_be32(val >> 32, p);
+-	__put_unaligned_be32(val, p + 4);
+-}
+-
+-static inline u16 get_unaligned_be16(const void *p)
+-{
+-	return __get_unaligned_be16((const u8 *)p);
+-}
+-
+-static inline u32 get_unaligned_be32(const void *p)
+-{
+-	return __get_unaligned_be32((const u8 *)p);
+-}
+-
+-static inline u64 get_unaligned_be64(const void *p)
+-{
+-	return __get_unaligned_be64((const u8 *)p);
+-}
+-
+-static inline void put_unaligned_be16(u16 val, void *p)
+-{
+-	__put_unaligned_be16(val, p);
+-}
+-
+-static inline void put_unaligned_be32(u32 val, void *p)
+-{
+-	__put_unaligned_be32(val, p);
+-}
+-
+-static inline void put_unaligned_be64(u64 val, void *p)
+-{
+-	__put_unaligned_be64(val, p);
+-}
+-
+-#endif /* _LINUX_UNALIGNED_BE_BYTESHIFT_H */
+diff -puN include/linux/unaligned/be_memmove.h~unaligned-remove-the-old-implementation /dev/null
+--- a/include/linux/unaligned/be_memmove.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_BE_MEMMOVE_H
+-#define _LINUX_UNALIGNED_BE_MEMMOVE_H
+-
+-#include <linux/unaligned/memmove.h>
+-
+-static inline u16 get_unaligned_be16(const void *p)
+-{
+-	return __get_unaligned_memmove16((const u8 *)p);
+-}
+-
+-static inline u32 get_unaligned_be32(const void *p)
+-{
+-	return __get_unaligned_memmove32((const u8 *)p);
+-}
+-
+-static inline u64 get_unaligned_be64(const void *p)
+-{
+-	return __get_unaligned_memmove64((const u8 *)p);
+-}
+-
+-static inline void put_unaligned_be16(u16 val, void *p)
+-{
+-	__put_unaligned_memmove16(val, p);
+-}
+-
+-static inline void put_unaligned_be32(u32 val, void *p)
+-{
+-	__put_unaligned_memmove32(val, p);
+-}
+-
+-static inline void put_unaligned_be64(u64 val, void *p)
+-{
+-	__put_unaligned_memmove64(val, p);
+-}
+-
+-#endif /* _LINUX_UNALIGNED_LE_MEMMOVE_H */
+diff -puN include/linux/unaligned/be_struct.h~unaligned-remove-the-old-implementation /dev/null
+--- a/include/linux/unaligned/be_struct.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_BE_STRUCT_H
+-#define _LINUX_UNALIGNED_BE_STRUCT_H
+-
+-#include <linux/unaligned/packed_struct.h>
+-
+-static inline u16 get_unaligned_be16(const void *p)
+-{
+-	return __get_unaligned_cpu16((const u8 *)p);
+-}
+-
+-static inline u32 get_unaligned_be32(const void *p)
+-{
+-	return __get_unaligned_cpu32((const u8 *)p);
+-}
+-
+-static inline u64 get_unaligned_be64(const void *p)
+-{
+-	return __get_unaligned_cpu64((const u8 *)p);
+-}
+-
+-static inline void put_unaligned_be16(u16 val, void *p)
+-{
+-	__put_unaligned_cpu16(val, p);
+-}
+-
+-static inline void put_unaligned_be32(u32 val, void *p)
+-{
+-	__put_unaligned_cpu32(val, p);
+-}
+-
+-static inline void put_unaligned_be64(u64 val, void *p)
+-{
+-	__put_unaligned_cpu64(val, p);
+-}
+-
+-#endif /* _LINUX_UNALIGNED_BE_STRUCT_H */
+diff -puN include/linux/unaligned/generic.h~unaligned-remove-the-old-implementation /dev/null
+--- a/include/linux/unaligned/generic.h
++++ /dev/null
+@@ -1,68 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_GENERIC_H
+-#define _LINUX_UNALIGNED_GENERIC_H
 -
 -/*
 - * Cause a link-time error if we try an unaligned access other than
@@ -289,108 +339,255 @@ diff -puN arch/sh/include/asm/unaligned-sh4a.h~sh-wire-up-arch-overrides-for-una
 -	}								\
 -	(void)0; })
 -
--#ifdef __LITTLE_ENDIAN
--# define get_unaligned __get_unaligned_le
--# define put_unaligned __put_unaligned_le
--#else
--# define get_unaligned __get_unaligned_be
--# define put_unaligned __put_unaligned_be
--#endif
+-#endif /* _LINUX_UNALIGNED_GENERIC_H */
+diff -puN include/linux/unaligned/le_byteshift.h~unaligned-remove-the-old-implementation /dev/null
+--- a/include/linux/unaligned/le_byteshift.h
++++ /dev/null
+@@ -1,70 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_LE_BYTESHIFT_H
+-#define _LINUX_UNALIGNED_LE_BYTESHIFT_H
 -
--#endif /* __ASM_SH_UNALIGNED_SH4A_H */
-diff -puN arch/sh/include/asm/unaligned.h~sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a arch/sh/include/asm/unaligned.h
---- a/arch/sh/include/asm/unaligned.h~sh-wire-up-arch-overrides-for-unaligned-access-on-the-sh4a
-+++ a/arch/sh/include/asm/unaligned.h
-@@ -1,24 +1,70 @@
- #ifndef _ASM_SH_UNALIGNED_H
- #define _ASM_SH_UNALIGNED_H
- 
-+#include <linux/types.h>
-+#include <asm/byteorder.h>
-+
- #ifdef CONFIG_CPU_SH4A
--/* SH-4A can handle unaligned loads in a relatively neutered fashion. */
--#include <asm/unaligned-sh4a.h>
--#else
--/* Otherwise, SH can't handle unaligned accesses. */
--#ifdef __LITTLE_ENDIAN__
--# include <linux/unaligned/le_struct.h>
--# include <linux/unaligned/be_byteshift.h>
--# include <linux/unaligned/generic.h>
--# define get_unaligned	__get_unaligned_le
--# define put_unaligned	__put_unaligned_le
-+/*
-+ * SH-4A has support for unaligned 32-bit loads, and 32-bit loads only.
-+ * Support for 16 and 64-bit accesses are done through shifting and
-+ * masking relative to the endianness. Unaligned stores are not supported
-+ * by the instruction encoding, so these continue to use the packed
-+ * struct.
-+ *
-+ * The same note as with the movli.l/movco.l pair applies here, as long
-+ * as the load is gauranteed to be inlined, nothing else will hook in to
-+ * r0 and we get the return value for free.
-+ *
-+ * NOTE: Due to the fact we require r0 encoding, care should be taken to
-+ * avoid mixing these heavily with other r0 consumers, such as the atomic
-+ * ops. Failure to adhere to this can result in the compiler running out
-+ * of spill registers and blowing up when building at low optimization
-+ * levels. See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=34777.
-+ */
-+
-+static inline u32 __arch_load_cpu32_noalign(const u8 *p)
-+{
-+	unsigned long unaligned;
-+
-+	__asm__ __volatile__ (
-+		"movua.l	@%1, %0\n\t"
-+		 : "=z" (unaligned)
-+		 : "r" (p)
-+	);
-+
-+	return unaligned;
-+}
-+#define __arch_load_cpu32_noalign __arch_load_cpu32_noalign
-+
-+static inline u16 __arch_load_cpu16_noalign(const u8 *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return __arch_load_cpu32_noalign(p) & 0xffff;
- #else
--# include <linux/unaligned/be_struct.h>
--# include <linux/unaligned/le_byteshift.h>
--# include <linux/unaligned/generic.h>
--# define get_unaligned	__get_unaligned_be
--# define put_unaligned	__put_unaligned_be
-+	return __arch_load_cpu32_noalign(p) >> 16;
- #endif
-+}
-+#define __arch_load_cpu16_noalign __arch_load_cpu16_noalign
-+
-+/*
-+ * Even though movua.l supports auto-increment on the read side, it can
-+ * only store to r0 due to instruction encoding constraints, so just let
-+ * the compiler sort it out on its own.
-+ */
-+static inline u64 __arch_load_cpu64_noalign(const u8 *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return (u64)__arch_load_cpu32_noalign(p + 4) << 32 |
-+		    __arch_load_cpu32_noalign(p);
-+#else
-+	return (u64)__arch_load_cpu32_noalign(p) << 32 |
-+		    __arch_load_cpu32_noalign(p + 4);
- #endif
-+}
-+#define __arch_load_cpu64_noalign __arch_load_cpu64_noalign
-+
-+#endif /* CONFIG_CPU_SH4A */
- 
-+#include <linux/unaligned.h>
- #endif /* _ASM_SH_UNALIGNED_H */
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-origin.patch
-memstick-annotate-endianness-of-attribute-structs.patch
-
+-#include <linux/kernel.h>
+-
+-static inline u16 __get_unaligned_le16(const u8 *p)
+-{
+-	return p[0] | p[1] << 8;
+-}
+-
+-static inline u32 __get_unaligned_le32(const u8 *p)
+-{
+-	return p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
+-}
+-
+-static inline u64 __get_unaligned_le64(const u8 *p)
+-{
+-	return (u64)__get_unaligned_le32(p + 4) << 32 |
+-	       __get_unaligned_le32(p);
+-}
+-
+-static inline void __put_unaligned_le16(u16 val, u8 *p)
+-{
+-	*p++ = val;
+-	*p++ = val >> 8;
+-}
+-
+-static inline void __put_unaligned_le32(u32 val, u8 *p)
+-{
+-	__put_unaligned_le16(val >> 16, p + 2);
+-	__put_unaligned_le16(val, p);
+-}
+-
+-static inline void __put_unaligned_le64(u64 val, u8 *p)
+-{
+-	__put_unaligned_le32(val >> 32, p + 4);
+-	__put_unaligned_le32(val, p);
+-}
+-
+-static inline u16 get_unaligned_le16(const void *p)
+-{
+-	return __get_unaligned_le16((const u8 *)p);
+-}
+-
+-static inline u32 get_unaligned_le32(const void *p)
+-{
+-	return __get_unaligned_le32((const u8 *)p);
+-}
+-
+-static inline u64 get_unaligned_le64(const void *p)
+-{
+-	return __get_unaligned_le64((const u8 *)p);
+-}
+-
+-static inline void put_unaligned_le16(u16 val, void *p)
+-{
+-	__put_unaligned_le16(val, p);
+-}
+-
+-static inline void put_unaligned_le32(u32 val, void *p)
+-{
+-	__put_unaligned_le32(val, p);
+-}
+-
+-static inline void put_unaligned_le64(u64 val, void *p)
+-{
+-	__put_unaligned_le64(val, p);
+-}
+-
+-#endif /* _LINUX_UNALIGNED_LE_BYTESHIFT_H */
+diff -puN include/linux/unaligned/le_memmove.h~unaligned-remove-the-old-implementation /dev/null
+--- a/include/linux/unaligned/le_memmove.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_LE_MEMMOVE_H
+-#define _LINUX_UNALIGNED_LE_MEMMOVE_H
+-
+-#include <linux/unaligned/memmove.h>
+-
+-static inline u16 get_unaligned_le16(const void *p)
+-{
+-	return __get_unaligned_memmove16((const u8 *)p);
+-}
+-
+-static inline u32 get_unaligned_le32(const void *p)
+-{
+-	return __get_unaligned_memmove32((const u8 *)p);
+-}
+-
+-static inline u64 get_unaligned_le64(const void *p)
+-{
+-	return __get_unaligned_memmove64((const u8 *)p);
+-}
+-
+-static inline void put_unaligned_le16(u16 val, void *p)
+-{
+-	__put_unaligned_memmove16(val, p);
+-}
+-
+-static inline void put_unaligned_le32(u32 val, void *p)
+-{
+-	__put_unaligned_memmove32(val, p);
+-}
+-
+-static inline void put_unaligned_le64(u64 val, void *p)
+-{
+-	__put_unaligned_memmove64(val, p);
+-}
+-
+-#endif /* _LINUX_UNALIGNED_LE_MEMMOVE_H */
+diff -puN include/linux/unaligned/le_struct.h~unaligned-remove-the-old-implementation /dev/null
+--- a/include/linux/unaligned/le_struct.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_LE_STRUCT_H
+-#define _LINUX_UNALIGNED_LE_STRUCT_H
+-
+-#include <linux/unaligned/packed_struct.h>
+-
+-static inline u16 get_unaligned_le16(const void *p)
+-{
+-	return __get_unaligned_cpu16((const u8 *)p);
+-}
+-
+-static inline u32 get_unaligned_le32(const void *p)
+-{
+-	return __get_unaligned_cpu32((const u8 *)p);
+-}
+-
+-static inline u64 get_unaligned_le64(const void *p)
+-{
+-	return __get_unaligned_cpu64((const u8 *)p);
+-}
+-
+-static inline void put_unaligned_le16(u16 val, void *p)
+-{
+-	__put_unaligned_cpu16(val, p);
+-}
+-
+-static inline void put_unaligned_le32(u32 val, void *p)
+-{
+-	__put_unaligned_cpu32(val, p);
+-}
+-
+-static inline void put_unaligned_le64(u64 val, void *p)
+-{
+-	__put_unaligned_cpu64(val, p);
+-}
+-
+-#endif /* _LINUX_UNALIGNED_LE_STRUCT_H */
+diff -puN include/linux/unaligned/memmove.h~unaligned-remove-the-old-implementation /dev/null
+--- a/include/linux/unaligned/memmove.h
++++ /dev/null
+@@ -1,45 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_MEMMOVE_H
+-#define _LINUX_UNALIGNED_MEMMOVE_H
+-
+-#include <linux/kernel.h>
+-#include <linux/string.h>
+-
+-/* Use memmove here, so gcc does not insert a __builtin_memcpy. */
+-
+-static inline u16 __get_unaligned_memmove16(const void *p)
+-{
+-	u16 tmp;
+-	memmove(&tmp, p, 2);
+-	return tmp;
+-}
+-
+-static inline u32 __get_unaligned_memmove32(const void *p)
+-{
+-	u32 tmp;
+-	memmove(&tmp, p, 4);
+-	return tmp;
+-}
+-
+-static inline u64 __get_unaligned_memmove64(const void *p)
+-{
+-	u64 tmp;
+-	memmove(&tmp, p, 8);
+-	return tmp;
+-}
+-
+-static inline void __put_unaligned_memmove16(u16 val, void *p)
+-{
+-	memmove(p, &val, 2);
+-}
+-
+-static inline void __put_unaligned_memmove32(u32 val, void *p)
+-{
+-	memmove(p, &val, 4);
+-}
+-
+-static inline void __put_unaligned_memmove64(u64 val, void *p)
+-{
+-	memmove(p, &val, 8);
+-}
+-
+-#endif /* _LINUX_UNALIGNED_MEMMOVE_H */
+diff -puN include/linux/unaligned/packed_struct.h~unaligned-remove-the-old-implementation /dev/null
+--- a/include/linux/unaligned/packed_struct.h
++++ /dev/null
+@@ -1,46 +0,0 @@
+-#ifndef _LINUX_UNALIGNED_PACKED_STRUCT_H
+-#define _LINUX_UNALIGNED_PACKED_STRUCT_H
+-
+-#include <linux/kernel.h>
+-
+-struct __una_u16 { u16 x __attribute__((packed)); };
+-struct __una_u32 { u32 x __attribute__((packed)); };
+-struct __una_u64 { u64 x __attribute__((packed)); };
+-
+-static inline u16 __get_unaligned_cpu16(const void *p)
+-{
+-	const struct __una_u16 *ptr = (const struct __una_u16 *)p;
+-	return ptr->x;
+-}
+-
+-static inline u32 __get_unaligned_cpu32(const void *p)
+-{
+-	const struct __una_u32 *ptr = (const struct __una_u32 *)p;
+-	return ptr->x;
+-}
+-
+-static inline u64 __get_unaligned_cpu64(const void *p)
+-{
+-	const struct __una_u64 *ptr = (const struct __una_u64 *)p;
+-	return ptr->x;
+-}
+-
+-static inline void __put_unaligned_cpu16(u16 val, void *p)
+-{
+-	struct __una_u16 *ptr = (struct __una_u16 *)p;
+-	ptr->x = val;
+-}
+-
+-static inline void __put_unaligned_cpu32(u32 val, void *p)
+-{
+-	struct __una_u32 *ptr = (struct __una_u32 *)p;
+-	ptr->x = val;
+-}
+-
+-static inline void __put_unaligned_cpu64(u64 val, void *p)
+-{
+-	struct __una_u64 *ptr = (struct __una_u64 *)p;
+-	ptr->x = val;
+-}
