@@ -1,96 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: + irda-fix-incomplete-conversation-to-internal-stats.patch added to -mm tree
-Date: Fri, 09 Jan 2009 16:23:09 -0800
-Message-ID: <200901100023.n0A0N9st031030@imap1.linux-foundation.org>
+Subject: - byteorder-add-load_-store_endian-api.patch removed from -mm tree
+Date: Fri, 09 Jan 2009 16:16:30 -0800
+Message-ID: <200901100032.n0A0Wuui006974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757615AbZAJAXM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 19:23:12 -0500
+	by vger.kernel.org with ESMTP id S1751571AbZAJAdQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2009 19:33:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: a.beregalov@gmail.com
+To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     irda: fix incomplete conversation to internal stats
-has been added to the -mm tree.  Its filename is
-     irda-fix-incomplete-conversation-to-internal-stats.patch
+     byteorder: add load_/store_{endian} API
+has been removed from the -mm tree.  Its filename was
+     byteorder-add-load_-store_endian-api.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: irda: fix incomplete conversation to internal stats
-From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: byteorder: add load_/store_{endian} API
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Fix for commit af0490810c (irda: convert to internal stats)
+load_le16 is a synonym for the existing le16_to_cpup and is added to be
+symmetric with the load_le16_noalign API.  On arches where unaligned
+access is OK, the unaligned calls are replaced with aligned calls.
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+store_le16 is a new API and is added to be symmetric with the unaligned
+functions.  It is implemented as a macro to allow compile-time
+byteswapping when the value is a constant.  This will also allow use in
+many places currently that are of the form:
+
+*(__le16 *)ptr = cpu_to_le16(foo);
+
+In addition, some drivers/filesystems/arches already provide this API
+privately, which will allow them to be consolidated into this common code.
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/au1k_ir.c  |    2 +-
- drivers/net/irda/donauboe.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ include/linux/byteorder/generic.h |   25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/irda/au1k_ir.c~irda-fix-incomplete-conversation-to-internal-stats drivers/net/irda/au1k_ir.c
---- a/drivers/net/irda/au1k_ir.c~irda-fix-incomplete-conversation-to-internal-stats
-+++ a/drivers/net/irda/au1k_ir.c
-@@ -594,7 +594,7 @@ static int au1k_irda_rx(struct net_devic
- 			update_rx_stats(dev, flags, count);
- 			skb=alloc_skb(count+1,GFP_ATOMIC);
- 			if (skb == NULL) {
--				aup->stats.rx_dropped++;
-+				aup->netdev->stats.rx_dropped++;
- 				continue;
- 			}
- 			skb_reserve(skb, 1);
-diff -puN drivers/net/irda/donauboe.c~irda-fix-incomplete-conversation-to-internal-stats drivers/net/irda/donauboe.c
---- a/drivers/net/irda/donauboe.c~irda-fix-incomplete-conversation-to-internal-stats
-+++ a/drivers/net/irda/donauboe.c
-@@ -1194,13 +1194,13 @@ toshoboe_interrupt (int irq, void *dev_i
-               txp = txpc;
-               txpc++;
-               txpc %= TX_SLOTS;
--              self->stats.tx_packets++;
-+              self->netdev->stats.tx_packets++;
-               if (self->ring->tx[txpc].control & OBOE_CTL_TX_HW_OWNS)
-                   self->ring->tx[txp].control &= ~OBOE_CTL_TX_RTCENTX;
-             }
--          self->stats.tx_packets--;
-+          self->netdev->stats.tx_packets--;
- #else
--          self->stats.tx_packets++;
-+          self->netdev->stats.tx_packets++;
- #endif
-           toshoboe_start_DMA(self, OBOE_CONFIG0H_ENTX);
-         }
-@@ -1280,7 +1280,7 @@ dumpbufs(self->rx_bufs[self->rxs],len,'<
-                       skb_put (skb, len);
-                       skb_copy_to_linear_data(skb, self->rx_bufs[self->rxs],
- 					      len);
--                      self->stats.rx_packets++;
-+                      self->netdev->stats.rx_packets++;
-                       skb->dev = self->netdev;
-                       skb_reset_mac_header(skb);
-                       skb->protocol = htons (ETH_P_IRDA);
+diff -puN include/linux/byteorder/generic.h~byteorder-add-load_-store_endian-api include/linux/byteorder/generic.h
+--- a/include/linux/byteorder/generic.h~byteorder-add-load_-store_endian-api
++++ a/include/linux/byteorder/generic.h
+@@ -119,6 +119,19 @@
+ #define cpu_to_be16s __cpu_to_be16s
+ #define be16_to_cpus __be16_to_cpus
+ 
++#define load_le16 __le16_to_cpup
++#define load_le32 __le32_to_cpup
++#define load_le64 __le64_to_cpup
++#define load_be16 __be16_to_cpup
++#define load_be32 __be32_to_cpup
++#define load_be64 __be64_to_cpup
++#define store_le16(p, val) (*(__le16 *)(p) = cpu_to_le16(val))
++#define store_le32(p, val) (*(__le32 *)(p) = cpu_to_le32(val))
++#define store_le64(p, val) (*(__le64 *)(p) = cpu_to_le64(val))
++#define store_be16(p, val) (*(__be16 *)(p) = cpu_to_be16(val))
++#define store_be32(p, val) (*(__be32 *)(p) = cpu_to_be32(val))
++#define store_be64(p, val) (*(__be64 *)(p) = cpu_to_be64(val))
++
+ /*
+  * They have to be macros in order to do the constant folding
+  * correctly - if the argument passed into a inline function
+@@ -142,32 +155,32 @@
+ 
+ static inline void le16_add_cpu(__le16 *var, u16 val)
+ {
+-	*var = cpu_to_le16(le16_to_cpu(*var) + val);
++	store_le16(var, load_le16(var) + val);
+ }
+ 
+ static inline void le32_add_cpu(__le32 *var, u32 val)
+ {
+-	*var = cpu_to_le32(le32_to_cpu(*var) + val);
++	store_le32(var, load_le32(var) + val);
+ }
+ 
+ static inline void le64_add_cpu(__le64 *var, u64 val)
+ {
+-	*var = cpu_to_le64(le64_to_cpu(*var) + val);
++	store_le64(var, load_le64(var) + val);
+ }
+ 
+ static inline void be16_add_cpu(__be16 *var, u16 val)
+ {
+-	*var = cpu_to_be16(be16_to_cpu(*var) + val);
++	store_be16(var, load_be16(var) + val);
+ }
+ 
+ static inline void be32_add_cpu(__be32 *var, u32 val)
+ {
+-	*var = cpu_to_be32(be32_to_cpu(*var) + val);
++	store_be32(var, load_be32(var) + val);
+ }
+ 
+ static inline void be64_add_cpu(__be64 *var, u64 val)
+ {
+-	*var = cpu_to_be64(be64_to_cpu(*var) + val);
++	store_be64(var, load_be64(var) + val);
+ }
+ 
+ #endif /* _LINUX_BYTEORDER_GENERIC_H */
 _
 
-Patches currently in -mm which might be from a.beregalov@gmail.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-irda-fix-incomplete-conversation-to-internal-stats.patch
+memstick-annotate-endianness-of-attribute-structs.patch
 
