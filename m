@@ -1,93 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: + lib-idrc-zero-memory-properly-in-idr_remove_all.patch added to -mm tree
-Date: Sat, 10 Jan 2009 01:16:39 -0800
-Message-ID: <200901100916.n0A9Gd5C025630@imap1.linux-foundation.org>
+Subject: - serio_raw-add-support-for-translated-serio_i8042xl-ports.patch removed from -mm tree
+Date: Sun, 11 Jan 2009 00:02:28 -0800
+Message-ID: <200901110802.n0B82Snx006989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48759 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37274 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752332AbZAJJQz (ORCPT
+	by vger.kernel.org with ESMTP id S1751134AbZAKIC7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Jan 2009 04:16:55 -0500
+	Sun, 11 Jan 2009 03:02:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dcm@acm.org, Nadia.Derbey@bull.net, manfred@colorfullife.com, stefanr@s5r6.in-berlin.de
+To: niels.devos@wincor-nixdorf.com, dmitry.torokhov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib/idr.c: zero memory properly in idr_remove_all
-has been added to the -mm tree.  Its filename is
-     lib-idrc-zero-memory-properly-in-idr_remove_all.patch
+     serio_raw: add support for translated (SERIO_I8042XL) ports
+has been removed from the -mm tree.  Its filename was
+     serio_raw-add-support-for-translated-serio_i8042xl-ports.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/idr.c: zero memory properly in idr_remove_all
-From: David Moore <dcm@acm.org>
+Subject: serio_raw: add support for translated (SERIO_I8042XL) ports
+From: "Niels de Vos" <niels.devos@wincor-nixdorf.com>
 
-The idr_remove_all() function returns unused slabs to the kmem cache, but
-needs to zero them first or else they will be uninitialized upon next use.
-This fixes crashes which have been observed in the firewire subsystem.
+serio_raw only binds to non-translated devices. Enable serio_raw to
+bind to normal (translated) keyboards which can have non-standard
+extensions (like POS Keyboards). With this it is possible to send
+commands to the device over /dev/serio_raw<n>.
 
-Signed-off-by: David Moore <dcm@acm.org>
-Tested-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Niels de Vos <niels.devos@wincor-nixdorf.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ drivers/input/serio/serio_raw.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN lib/idr.c~lib-idrc-zero-memory-properly-in-idr_remove_all lib/idr.c
---- a/lib/idr.c~lib-idrc-zero-memory-properly-in-idr_remove_all
-+++ a/lib/idr.c
-@@ -65,6 +65,20 @@ static inline void free_layer(struct idr
- 	call_rcu(&p->rcu_head, idr_layer_rcu_free);
- }
+diff -puN drivers/input/serio/serio_raw.c~serio_raw-add-support-for-translated-serio_i8042xl-ports drivers/input/serio/serio_raw.c
+--- a/drivers/input/serio/serio_raw.c~serio_raw-add-support-for-translated-serio_i8042xl-ports
++++ a/drivers/input/serio/serio_raw.c
+@@ -378,6 +378,12 @@ static struct serio_device_id serio_raw_
+ 		.id	= SERIO_ANY,
+ 		.extra	= SERIO_ANY,
+ 	},
++	{
++		.type   = SERIO_8042_XL,
++		.proto  = SERIO_ANY,
++		.id     = SERIO_ANY,
++		.extra  = SERIO_ANY,
++	},
+ 	{ 0 }
+ };
  
-+static void idr_layer_rcu_free_zero(struct rcu_head *head)
-+{
-+	struct idr_layer *layer;
-+
-+	layer = container_of(head, struct idr_layer, rcu_head);
-+	memset(layer, 0, sizeof(struct idr_layer));
-+	kmem_cache_free(idr_layer_cache, layer);
-+}
-+
-+static inline void free_layer_zero(struct idr_layer *p)
-+{
-+	call_rcu(&p->rcu_head, idr_layer_rcu_free_zero);
-+}
-+
- /* only called when idp->lock is held */
- static void __move_to_free_list(struct idr *idp, struct idr_layer *p)
- {
-@@ -462,7 +476,7 @@ void idr_remove_all(struct idr *idp)
- 		id += 1 << n;
- 		while (n < fls(id)) {
- 			if (p)
--				free_layer(p);
-+				free_layer_zero(p);
- 			n += IDR_BITS;
- 			p = *--paa;
- 		}
 _
 
-Patches currently in -mm which might be from dcm@acm.org are
+Patches currently in -mm which might be from niels.devos@wincor-nixdorf.com are
 
-linux-next.patch
-lib-idrc-zero-memory-properly-in-idr_remove_all.patch
+origin.patch
+serio_raw-add-support-for-translated-serio_i8042xl-ports.patch
 
