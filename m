@@ -1,92 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch removed from -mm tree
-Date: Mon, 12 Jan 2009 11:58:36 -0800
-Message-ID: <200901121958.n0CJwaBJ027792@imap1.linux-foundation.org>
+Subject: - acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch removed from -mm tree
+Date: Mon, 12 Jan 2009 11:58:14 -0800
+Message-ID: <200901121958.n0CJwEYm027440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35797 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35702 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752906AbZALULa (ORCPT
+	by vger.kernel.org with ESMTP id S1752607AbZALUL5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 15:11:30 -0500
+	Mon, 12 Jan 2009 15:11:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, dcbw@redhat.com, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/wireless/libertas: move a dereference below a NULL test
+     acpi: fix ACPI_FADT_S4_RTC_WAKE comment
 has been removed from the -mm tree.  Its filename was
-     drivers-net-wireless-libertas-move-a-dereference-below-a-null-test.patch
+     acpi-fix-acpi_fadt_s4_rtc_wake-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/libertas: move a dereference below a NULL test
-From: Julia Lawall <julia@diku.dk>
+Subject: acpi: fix ACPI_FADT_S4_RTC_WAKE comment
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-In each case, if the NULL test is necessary, then the dereference should be
-moved below the NULL test.  I have also taken advantage of the availability
-of the value of priv->dev in the subsequent calls to netif_stop_queue and
-netif_carrier_off.
+Make the comment for ACPI_FADT_S4_RTC_WAKE match the ACPI spec;
+that bit has nothing to do with status bits.
 
-The semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-type T;
-expression E;
-identifier i,fld;
-statement S;
-@@
-
-- T i = E->fld;
-+ T i;
-  ... when != E
-      when != i
-  if (E == NULL) S
-+ i = E->fld;
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Dan Williams <dcbw@redhat.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas/main.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/acpi/actbl.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/libertas/main.c~drivers-net-wireless-libertas-move-a-dereference-below-a-null-test drivers/net/wireless/libertas/main.c
---- a/drivers/net/wireless/libertas/main.c~drivers-net-wireless-libertas-move-a-dereference-below-a-null-test
-+++ a/drivers/net/wireless/libertas/main.c
-@@ -1369,7 +1369,7 @@ EXPORT_SYMBOL_GPL(lbs_start_card);
- 
- void lbs_stop_card(struct lbs_private *priv)
- {
--	struct net_device *dev = priv->dev;
-+	struct net_device *dev;
- 	struct cmd_ctrl_node *cmdnode;
- 	unsigned long flags;
- 
-@@ -1377,9 +1377,10 @@ void lbs_stop_card(struct lbs_private *p
- 
- 	if (!priv)
- 		goto out;
-+	dev = priv->dev;
- 
--	netif_stop_queue(priv->dev);
--	netif_carrier_off(priv->dev);
-+	netif_stop_queue(dev);
-+	netif_carrier_off(dev);
- 
- 	lbs_debugfs_remove_one(priv);
- 	if (priv->mesh_tlv) {
+diff -puN include/acpi/actbl.h~acpi-fix-acpi_fadt_s4_rtc_wake-comment include/acpi/actbl.h
+--- a/include/acpi/actbl.h~acpi-fix-acpi_fadt_s4_rtc_wake-comment
++++ a/include/acpi/actbl.h
+@@ -245,7 +245,7 @@ struct acpi_table_fadt {
+ #define ACPI_FADT_POWER_BUTTON      (1<<4)	/* 04: Power button is handled as a generic feature */
+ #define ACPI_FADT_SLEEP_BUTTON      (1<<5)	/* 05: Sleep button is handled as a generic feature, or  not present */
+ #define ACPI_FADT_FIXED_RTC         (1<<6)	/* 06: RTC wakeup stat not in fixed register space */
+-#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup stat not possible from S4 */
++#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup possible from S4 */
+ #define ACPI_FADT_32BIT_TIMER       (1<<8)	/* 08: tmr_val is 32 bits 0=24-bits */
+ #define ACPI_FADT_DOCKING_SUPPORTED (1<<9)	/* 09: Docking supported */
+ #define ACPI_FADT_RESET_REGISTER    (1<<10)	/* 10: System reset via the FADT RESET_REG supported */
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 linux-next.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller-update.patch
+usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
+usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
+usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
+usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
+usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
 
