@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pcf50633-rtc-driver.patch added to -mm tree
-Date: Mon, 12 Jan 2009 14:44:47 -0800
-Message-ID: <200901122244.n0CMilxc009273@imap1.linux-foundation.org>
+Subject: + input-pcf50633-input-driver.patch added to -mm tree
+Date: Mon, 12 Jan 2009 14:44:53 -0800
+Message-ID: <200901122244.n0CMirMM009416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43615 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758425AbZALWp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1759723AbZALWpZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 17:45:29 -0500
+	Mon, 12 Jan 2009 17:45:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balajirrao@openmoko.org, a.zummo@towertech.it, andy@openmoko.com
+Cc: balajirrao@openmoko.org, andy@openmoko.com, dmitry.torokhov@gmail.com
 
 
 The patch titled
-     rtc: PCF50633 rtc driver
+     input: PCF50633 input driver
 has been added to the -mm tree.  Its filename is
-     rtc-pcf50633-rtc-driver.patch
+     input-pcf50633-input-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: PCF50633 rtc driver
+Subject: input: PCF50633 input driver
 From: Balaji Rao <balajirrao@openmoko.org>
 
 Signed-off-by: Balaji Rao <balajirrao@openmoko.org>
 Cc: Andy Green <andy@openmoko.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Paul Gortmaker <a.zummo@towertech.it>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig        |    7 
- drivers/rtc/Makefile       |    1 
- drivers/rtc/rtc-pcf50633.c |  344 +++++++++++++++++++++++++++++++++++
- 3 files changed, 352 insertions(+)
+ drivers/input/misc/Kconfig          |    7 +
+ drivers/input/misc/Makefile         |    1 
+ drivers/input/misc/pcf50633-input.c |  132 ++++++++++++++++++++++++++
+ 3 files changed, 140 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-pcf50633-rtc-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-pcf50633-rtc-driver
-+++ a/drivers/rtc/Kconfig
-@@ -502,6 +502,13 @@ config RTC_DRV_WM8350
- 	  This driver can also be built as a module. If so, the module
- 	  will be called "rtc-wm8350".
+diff -puN drivers/input/misc/Kconfig~input-pcf50633-input-driver drivers/input/misc/Kconfig
+--- a/drivers/input/misc/Kconfig~input-pcf50633-input-driver
++++ a/drivers/input/misc/Kconfig
+@@ -220,4 +220,11 @@ config HP_SDC_RTC
+ 	  Say Y here if you want to support the built-in real time clock
+ 	  of the HP SDC controller.
  
-+config RTC_DRV_PCF50633
++config INPUT_PCF50633_PMU
++	tristate "PCF50633 PMU events"
 +	depends on MFD_PCF50633
-+	tristate "NXP PCF50633 RTC"
 +	help
-+	  If you say yes here you get support for the RTC subsystem of the
-+	  NXP PCF50633 used in embedded systems.
++	 Say Y to include support for delivering  PMU events via  input
++	 layer on NXP PCF50633.
 +
- comment "on-CPU RTC drivers"
- 
- config RTC_DRV_OMAP
-diff -puN drivers/rtc/Makefile~rtc-pcf50633-rtc-driver drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-pcf50633-rtc-driver
-+++ a/drivers/rtc/Makefile
-@@ -74,3 +74,4 @@ obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020
- obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
- obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm8350.o
- obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
-+obj-$(CONFIG_RTC_DRV_PCF50633)	+= rtc-pcf50633.o
-diff -puN /dev/null drivers/rtc/rtc-pcf50633.c
+ endif
+diff -puN drivers/input/misc/Makefile~input-pcf50633-input-driver drivers/input/misc/Makefile
+--- a/drivers/input/misc/Makefile~input-pcf50633-input-driver
++++ a/drivers/input/misc/Makefile
+@@ -21,3 +21,4 @@ obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.
+ obj-$(CONFIG_INPUT_UINPUT)		+= uinput.o
+ obj-$(CONFIG_INPUT_APANEL)		+= apanel.o
+ obj-$(CONFIG_INPUT_SGI_BTNS)		+= sgi_btns.o
++obj-$(CONFIG_INPUT_PCF50633_PMU)	+= pcf50633-input.o
+diff -puN /dev/null drivers/input/misc/pcf50633-input.c
 --- /dev/null
-+++ a/drivers/rtc/rtc-pcf50633.c
-@@ -0,0 +1,344 @@
-+/* NXP PCF50633 RTC Driver
++++ a/drivers/input/misc/pcf50633-input.c
+@@ -0,0 +1,132 @@
++/* NXP PCF50633 Input Driver
 + *
 + * (C) 2006-2008 by Openmoko, Inc.
 + * Author: Balaji Rao <balajirrao@openmoko.org>
@@ -99,329 +97,117 @@ diff -puN /dev/null drivers/rtc/rtc-pcf50633.c
 +#include <linux/init.h>
 +#include <linux/device.h>
 +#include <linux/platform_device.h>
-+#include <linux/rtc.h>
-+#include <linux/bcd.h>
-+#include <linux/err.h>
++#include <linux/input.h>
 +
 +#include <linux/mfd/pcf50633/core.h>
 +
-+#define PCF50633_REG_RTCSC	0x59 /* Second */
-+#define PCF50633_REG_RTCMN	0x5a /* Minute */
-+#define PCF50633_REG_RTCHR	0x5b /* Hour */
-+#define PCF50633_REG_RTCWD	0x5c /* Weekday */
-+#define PCF50633_REG_RTCDT	0x5d /* Day */
-+#define PCF50633_REG_RTCMT	0x5e /* Month */
-+#define PCF50633_REG_RTCYR	0x5f /* Year */
-+#define PCF50633_REG_RTCSCA	0x60 /* Alarm Second */
-+#define PCF50633_REG_RTCMNA	0x61 /* Alarm Minute */
-+#define PCF50633_REG_RTCHRA	0x62 /* Alarm Hour */
-+#define PCF50633_REG_RTCWDA	0x63 /* Alarm Weekday */
-+#define PCF50633_REG_RTCDTA	0x64 /* Alarm Day */
-+#define PCF50633_REG_RTCMTA	0x65 /* Alarm Month */
-+#define PCF50633_REG_RTCYRA	0x66 /* Alarm Year */
++#define PCF50633_OOCSTAT_ONKEY	0x01
++#define PCF50633_REG_OOCSTAT	0x12
++#define PCF50633_REG_OOCMODE	0x10
 +
-+enum pcf50633_time_indexes {
-+	PCF50633_TI_SEC,
-+	PCF50633_TI_MIN,
-+	PCF50633_TI_HOUR,
-+	PCF50633_TI_WKDAY,
-+	PCF50633_TI_DAY,
-+	PCF50633_TI_MONTH,
-+	PCF50633_TI_YEAR,
-+	PCF50633_TI_EXTENT /* always last */
-+};
-+
-+struct pcf50633_time {
-+	u_int8_t time[PCF50633_TI_EXTENT];
-+};
-+
-+struct pcf50633_rtc {
-+	int alarm_enabled;
-+	int second_enabled;
-+
++struct pcf50633_input {
 +	struct pcf50633 *pcf;
-+	struct rtc_device *rtc_dev;
++	struct input_dev *input_dev;
 +};
 +
-+static void pcf2rtc_time(struct rtc_time *rtc, struct pcf50633_time *pcf)
++static void
++pcf50633_input_irq(int irq, void *data)
 +{
-+	rtc->tm_sec = bcd2bin(pcf->time[PCF50633_TI_SEC]);
-+	rtc->tm_min = bcd2bin(pcf->time[PCF50633_TI_MIN]);
-+	rtc->tm_hour = bcd2bin(pcf->time[PCF50633_TI_HOUR]);
-+	rtc->tm_wday = bcd2bin(pcf->time[PCF50633_TI_WKDAY]);
-+	rtc->tm_mday = bcd2bin(pcf->time[PCF50633_TI_DAY]);
-+	rtc->tm_mon = bcd2bin(pcf->time[PCF50633_TI_MONTH]);
-+	rtc->tm_year = bcd2bin(pcf->time[PCF50633_TI_YEAR]) + 100;
++	struct pcf50633_input *input;
++	int onkey_released;
++
++	input = data;
++
++	/* We report only one event depending on the key press status */
++	onkey_released = pcf50633_reg_read(input->pcf, PCF50633_REG_OOCSTAT)
++						& PCF50633_OOCSTAT_ONKEY;
++
++	if (irq == PCF50633_IRQ_ONKEYF && !onkey_released)
++		input_report_key(input->input_dev, KEY_POWER, 1);
++	else if (irq == PCF50633_IRQ_ONKEYR && onkey_released)
++		input_report_key(input->input_dev, KEY_POWER, 0);
++
++	input_sync(input->input_dev);
 +}
 +
-+static void rtc2pcf_time(struct pcf50633_time *pcf, struct rtc_time *rtc)
++static int __devinit pcf50633_input_probe(struct platform_device *pdev)
 +{
-+	pcf->time[PCF50633_TI_SEC] = bin2bcd(rtc->tm_sec);
-+	pcf->time[PCF50633_TI_MIN] = bin2bcd(rtc->tm_min);
-+	pcf->time[PCF50633_TI_HOUR] = bin2bcd(rtc->tm_hour);
-+	pcf->time[PCF50633_TI_WKDAY] = bin2bcd(rtc->tm_wday);
-+	pcf->time[PCF50633_TI_DAY] = bin2bcd(rtc->tm_mday);
-+	pcf->time[PCF50633_TI_MONTH] = bin2bcd(rtc->tm_mon);
-+	pcf->time[PCF50633_TI_YEAR] = bin2bcd(rtc->tm_year % 100);
-+}
-+
-+static int
-+pcf50633_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
-+{
-+	struct pcf50633_rtc *rtc = dev_get_drvdata(dev);
-+	int err;
-+
-+	if (enabled)
-+		err = pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_ALARM);
-+	else
-+		err = pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_ALARM);
-+
-+	if (err < 0)
-+		return err;
-+
-+	rtc->alarm_enabled = enabled;
-+
-+	return 0;
-+}
-+
-+static int
-+pcf50633_rtc_update_irq_enable(struct device *dev, unsigned int enabled)
-+{
-+	struct pcf50633_rtc *rtc = dev_get_drvdata(dev);
-+	int err;
-+
-+	if (enabled)
-+		err = pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_SECOND);
-+	else
-+		err = pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_SECOND);
-+
-+	if (err < 0)
-+		return err;
-+
-+	rtc->second_enabled = enabled;
-+
-+	return 0;
-+}
-+
-+static int pcf50633_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct pcf50633_rtc *rtc;
-+	struct pcf50633_time pcf_tm;
++	struct pcf50633_input *input;
++	struct pcf50633_subdev_pdata *pdata = pdev->dev.platform_data;
++	struct input_dev *input_dev;
 +	int ret;
 +
-+	rtc = dev_get_drvdata(dev);
 +
-+	ret = pcf50633_read_block(rtc->pcf, PCF50633_REG_RTCSC,
-+					    PCF50633_TI_EXTENT,
-+					    &pcf_tm.time[0]);
-+	if (ret != PCF50633_TI_EXTENT) {
-+		dev_err(dev, "Failed to read time\n");
-+		return -EIO;
-+	}
-+
-+	dev_dbg(dev, "PCF_TIME: %02x.%02x.%02x %02x:%02x:%02x\n",
-+		pcf_tm.time[PCF50633_TI_DAY],
-+		pcf_tm.time[PCF50633_TI_MONTH],
-+		pcf_tm.time[PCF50633_TI_YEAR],
-+		pcf_tm.time[PCF50633_TI_HOUR],
-+		pcf_tm.time[PCF50633_TI_MIN],
-+		pcf_tm.time[PCF50633_TI_SEC]);
-+
-+	pcf2rtc_time(tm, &pcf_tm);
-+
-+	dev_dbg(dev, "RTC_TIME: %u.%u.%u %u:%u:%u\n",
-+		tm->tm_mday, tm->tm_mon, tm->tm_year,
-+		tm->tm_hour, tm->tm_min, tm->tm_sec);
-+
-+	return rtc_valid_tm(tm);
-+}
-+
-+static int pcf50633_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct pcf50633_rtc *rtc;
-+	struct pcf50633_time pcf_tm;
-+	int second_masked, alarm_masked, ret = 0;
-+
-+	rtc = dev_get_drvdata(dev);
-+
-+	dev_dbg(dev, "RTC_TIME: %u.%u.%u %u:%u:%u\n",
-+		tm->tm_mday, tm->tm_mon, tm->tm_year,
-+		tm->tm_hour, tm->tm_min, tm->tm_sec);
-+
-+	rtc2pcf_time(&pcf_tm, tm);
-+
-+	dev_dbg(dev, "PCF_TIME: %02x.%02x.%02x %02x:%02x:%02x\n",
-+		pcf_tm.time[PCF50633_TI_DAY],
-+		pcf_tm.time[PCF50633_TI_MONTH],
-+		pcf_tm.time[PCF50633_TI_YEAR],
-+		pcf_tm.time[PCF50633_TI_HOUR],
-+		pcf_tm.time[PCF50633_TI_MIN],
-+		pcf_tm.time[PCF50633_TI_SEC]);
-+
-+
-+	second_masked = pcf50633_irq_mask_get(rtc->pcf, PCF50633_IRQ_SECOND);
-+	alarm_masked = pcf50633_irq_mask_get(rtc->pcf, PCF50633_IRQ_ALARM);
-+
-+	if (!second_masked)
-+		pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_SECOND);
-+	if (!alarm_masked)
-+		pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_ALARM);
-+
-+	/* Returns 0 on success */
-+	ret = pcf50633_write_block(rtc->pcf, PCF50633_REG_RTCSC,
-+					     PCF50633_TI_EXTENT,
-+					     &pcf_tm.time[0]);
-+
-+	if (!second_masked)
-+		pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_SECOND);
-+	if (!alarm_masked)
-+		pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_ALARM);
-+
-+	return ret;
-+}
-+
-+static int pcf50633_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct pcf50633_rtc *rtc;
-+	struct pcf50633_time pcf_tm;
-+	int ret = 0;
-+
-+	rtc = dev_get_drvdata(dev);
-+
-+	alrm->enabled = rtc->alarm_enabled;
-+
-+	ret = pcf50633_read_block(rtc->pcf, PCF50633_REG_RTCSCA,
-+				PCF50633_TI_EXTENT, &pcf_tm.time[0]);
-+	if (ret != PCF50633_TI_EXTENT) {
-+		dev_err(dev, "Failed to read time\n");
-+		return -EIO;
-+	}
-+
-+	pcf2rtc_time(&alrm->time, &pcf_tm);
-+
-+	return rtc_valid_tm(&alrm->time);
-+}
-+
-+static int pcf50633_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct pcf50633_rtc *rtc;
-+	struct pcf50633_time pcf_tm;
-+	int alarm_masked, ret = 0;
-+
-+	rtc = dev_get_drvdata(dev);
-+
-+	rtc2pcf_time(&pcf_tm, &alrm->time);
-+
-+	/* do like mktime does and ignore tm_wday */
-+	pcf_tm.time[PCF50633_TI_WKDAY] = 7;
-+
-+	alarm_masked = pcf50633_irq_mask_get(rtc->pcf, PCF50633_IRQ_ALARM);
-+
-+	/* disable alarm interrupt */
-+	if (!alarm_masked)
-+		pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_ALARM);
-+
-+	/* Returns 0 on success */
-+	ret = pcf50633_write_block(rtc->pcf, PCF50633_REG_RTCSCA,
-+				PCF50633_TI_EXTENT, &pcf_tm.time[0]);
-+
-+	if (!alarm_masked)
-+		pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_ALARM);
-+
-+	return ret;
-+}
-+
-+static struct rtc_class_ops pcf50633_rtc_ops = {
-+	.read_time		= pcf50633_rtc_read_time,
-+	.set_time		= pcf50633_rtc_set_time,
-+	.read_alarm		= pcf50633_rtc_read_alarm,
-+	.set_alarm		= pcf50633_rtc_set_alarm,
-+	.alarm_irq_enable 	= pcf50633_rtc_alarm_irq_enable,
-+	.update_irq_enable 	= pcf50633_rtc_update_irq_enable,
-+};
-+
-+static void pcf50633_rtc_irq(int irq, void *data)
-+{
-+	struct pcf50633_rtc *rtc = data;
-+
-+	switch (irq) {
-+	case PCF50633_IRQ_ALARM:
-+		rtc_update_irq(rtc->rtc_dev, 1, RTC_AF | RTC_IRQF);
-+		break;
-+	case PCF50633_IRQ_SECOND:
-+		rtc_update_irq(rtc->rtc_dev, 1, RTC_UF | RTC_IRQF);
-+		break;
-+	}
-+}
-+
-+static int __devinit pcf50633_rtc_probe(struct platform_device *pdev)
-+{
-+	struct pcf50633_subdev_pdata *pdata;
-+	struct pcf50633_rtc *rtc;
-+
-+
-+	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
-+	if (!rtc)
++	input = kzalloc(sizeof(*input), GFP_KERNEL);
++	if (!input)
 +		return -ENOMEM;
 +
-+	pdata = pdev->dev.platform_data;
-+	rtc->pcf = pdata->pcf;
-+	platform_set_drvdata(pdev, rtc);
-+	rtc->rtc_dev = rtc_device_register("pcf50633-rtc", &pdev->dev,
-+				&pcf50633_rtc_ops, THIS_MODULE);
-+
-+	if (IS_ERR(rtc->rtc_dev)) {
-+		kfree(rtc);
-+		return PTR_ERR(rtc->rtc_dev);
++	input_dev = input_allocate_device();
++	if (!input_dev) {
++		kfree(input);
++		return -ENOMEM;
 +	}
 +
-+	pcf50633_register_irq(rtc->pcf, PCF50633_IRQ_ALARM,
-+					pcf50633_rtc_irq, rtc);
-+	pcf50633_register_irq(rtc->pcf, PCF50633_IRQ_SECOND,
-+					pcf50633_rtc_irq, rtc);
++	platform_set_drvdata(pdev, input);
++	input->pcf = pdata->pcf;
++	input->input_dev = input_dev;
++
++	input_dev->name = "PCF50633 PMU events";
++	input_dev->id.bustype = BUS_I2C;
++	input_dev->evbit[0] = BIT(EV_KEY) | BIT(EV_PWR);
++	set_bit(KEY_POWER, input_dev->keybit);
++
++	ret = input_register_device(input_dev);
++	if (ret) {
++		input_free_device(input_dev);
++		kfree(input);
++		return ret;
++	}
++	pcf50633_register_irq(pdata->pcf, PCF50633_IRQ_ONKEYR,
++				pcf50633_input_irq, input);
++	pcf50633_register_irq(pdata->pcf, PCF50633_IRQ_ONKEYF,
++				pcf50633_input_irq, input);
 +
 +	return 0;
 +}
 +
-+static int __devexit pcf50633_rtc_remove(struct platform_device *pdev)
++static int __devexit pcf50633_input_remove(struct platform_device *pdev)
 +{
-+	struct pcf50633_rtc *rtc;
++	struct pcf50633_input *input  = platform_get_drvdata(pdev);
 +
-+	rtc = platform_get_drvdata(pdev);
++	pcf50633_free_irq(input->pcf, PCF50633_IRQ_ONKEYR);
++	pcf50633_free_irq(input->pcf, PCF50633_IRQ_ONKEYF);
 +
-+	pcf50633_free_irq(rtc->pcf, PCF50633_IRQ_ALARM);
-+	pcf50633_free_irq(rtc->pcf, PCF50633_IRQ_SECOND);
-+
-+	rtc_device_unregister(rtc->rtc_dev);
-+	kfree(rtc);
++	input_unregister_device(input->input_dev);
++	kfree(input);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver pcf50633_rtc_driver = {
++static struct platform_driver pcf50633_input_driver = {
 +	.driver = {
-+		.name = "pcf50633-rtc",
++		.name = "pcf50633-input",
 +	},
-+	.probe = pcf50633_rtc_probe,
-+	.remove = __devexit_p(pcf50633_rtc_remove),
++	.probe = pcf50633_input_probe,
++	.remove = __devexit_p(pcf50633_input_remove),
 +};
 +
-+static int __init pcf50633_rtc_init(void)
++static int __init pcf50633_input_init(void)
 +{
-+	return platform_driver_register(&pcf50633_rtc_driver);
++	return platform_driver_register(&pcf50633_input_driver);
 +}
-+module_init(pcf50633_rtc_init);
++module_init(pcf50633_input_init);
 +
-+static void __exit pcf50633_rtc_exit(void)
++static void __exit pcf50633_input_exit(void)
 +{
-+	platform_driver_unregister(&pcf50633_rtc_driver);
++	platform_driver_unregister(&pcf50633_input_driver);
 +}
-+module_exit(pcf50633_rtc_exit);
++module_exit(pcf50633_input_exit);
 +
-+MODULE_DESCRIPTION("PCF50633 RTC driver");
 +MODULE_AUTHOR("Balaji Rao <balajirrao@openmoko.org>");
++MODULE_DESCRIPTION("PCF50633 input driver");
 +MODULE_LICENSE("GPL");
-+
++MODULE_ALIAS("platform:pcf50633-input");
 _
 
 Patches currently in -mm which might be from balajirrao@openmoko.org are
