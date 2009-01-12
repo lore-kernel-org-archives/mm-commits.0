@@ -1,68 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - eeepc-laptop-enable-bluetooth-for-asus-eee-901.patch removed from -mm tree
-Date: Mon, 12 Jan 2009 11:58:16 -0800
-Message-ID: <200901121958.n0CJwGML027483@imap1.linux-foundation.org>
+Subject: - compiler-gcch-add-more-comments-to-reloc_hide.patch removed from -mm tree
+Date: Mon, 12 Jan 2009 11:57:53 -0800
+Message-ID: <200901121957.n0CJvrUU027078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54797 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755412AbZALUNa (ORCPT
+	by vger.kernel.org with ESMTP id S1754923AbZALUOD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 15:13:30 -0500
+	Mon, 12 Jan 2009 15:14:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: santiago@crfreenet.org, corentincj@iksaif.net, lenb@kernel.org, mjg59@srcf.ucam.org, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, cl@linux-foundation.org, mingo@elte.hu, rth@twiddle.net, rusty@rustcorp.com.au, sfr@canb.auug.org.au, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eeepc-laptop: enable Bluetooth for Asus EEE 901
+     compiler-gcc.h: add more comments to RELOC_HIDE
 has been removed from the -mm tree.  Its filename was
-     eeepc-laptop-enable-bluetooth-for-asus-eee-901.patch
+     compiler-gcch-add-more-comments-to-reloc_hide.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eeepc-laptop: enable Bluetooth for Asus EEE 901
-From: Ondrej Zajicek <santiago@crfreenet.org>
+Subject: compiler-gcc.h: add more comments to RELOC_HIDE
+From: Andi Kleen <andi@firstfloor.org>
 
-eeepc-laptop driver has interface for enabling/disabling Bluetooth, but it
-does not work.  This patch fixes it.
+Requested by C. Lameter
 
-Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/eeepc-laptop.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/compiler-gcc.h |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-bluetooth-for-asus-eee-901 drivers/platform/x86/eeepc-laptop.c
---- a/drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-enable-bluetooth-for-asus-eee-901
-+++ a/drivers/platform/x86/eeepc-laptop.c
-@@ -90,7 +90,7 @@ enum {
- };
+diff -puN include/linux/compiler-gcc.h~compiler-gcch-add-more-comments-to-reloc_hide include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-gcch-add-more-comments-to-reloc_hide
++++ a/include/linux/compiler-gcc.h
+@@ -11,9 +11,19 @@
+ /* The "volatile" is due to gcc bugs */
+ #define barrier() __asm__ __volatile__("": : :"memory")
  
- static const char *cm_getv[] = {
--	"WLDG", NULL, NULL, NULL,
-+	"WLDG", "BTHG", NULL, NULL,
- 	"CAMG", NULL, NULL, NULL,
- 	NULL, "PBLG", NULL, NULL,
- 	"CFVG", NULL, NULL, NULL,
-@@ -99,7 +99,7 @@ static const char *cm_getv[] = {
- };
- 
- static const char *cm_setv[] = {
--	"WLDS", NULL, NULL, NULL,
-+	"WLDS", "BTHS", NULL, NULL,
- 	"CAMS", NULL, NULL, NULL,
- 	"SDSP", "PBLS", "HDPS", NULL,
- 	"CFVS", NULL, NULL, NULL,
+-/* This macro obfuscates arithmetic on a variable address so that gcc
+-   shouldn't recognize the original var, and make assumptions about it */
+ /*
++ * This macro obfuscates arithmetic on a variable address so that gcc
++ * shouldn't recognize the original var, and make assumptions about it.
++ *
++ * This is needed because the C standard makes it undefined to do
++ * pointer arithmetic on "objects" outside their boundaries and the
++ * gcc optimizers assume this is the case. In particular they
++ * assume such arithmetic does not wrap.
++ *
++ * A miscompilation has been observed because of this on PPC.
++ * To work around it we hide the relationship of the pointer and the object
++ * using this macro.
++ *
+  * Versions of the ppc64 compiler before 4.1 had a bug where use of
+  * RELOC_HIDE could trash r30. The bug can be worked around by changing
+  * the inline assembly constraint from =g to =r, in this particular
 _
 
-Patches currently in -mm which might be from santiago@crfreenet.org are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
+linux-next.patch
+x86-hpet-allow-force-enable-on-ich10-hpet.patch
+x86-avoid-theoretical-vmalloc-fault-loop.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
 
