@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libfc-uses-select-crc32.patch added to -mm tree
-Date: Mon, 12 Jan 2009 15:00:35 -0800
-Message-ID: <200901122300.n0CN0Zd0023031@imap1.linux-foundation.org>
+Subject: + fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes.patch added to -mm tree
+Date: Mon, 12 Jan 2009 14:59:43 -0800
+Message-ID: <200901122259.n0CMxhn8022289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45721 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758723AbZALXAm (ORCPT
+	by vger.kernel.org with ESMTP id S1756070AbZALXAm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 12 Jan 2009 18:00:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com
+Cc: yinghan@google.com, hugh@veritas.com, mikew@google.com
 
 
 The patch titled
-     libfc: uses/select CRC32
+     fs/exec.c: fix value of vma->vm_pgoff for the stack VMA of 32-bit processes
 has been added to the -mm tree.  Its filename is
-     libfc-uses-select-crc32.patch
+     fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libfc: uses/select CRC32
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: fs/exec.c: fix value of vma->vm_pgoff for the stack VMA of 32-bit processes
+From: Ying Han <yinghan@google.com>
 
-libfc uses crc32 functions, so cause it to be built via select:
+With a 32 bit binary running on a 64 bit system, the /proc/pid/maps for
+the [stack] VMA displays a 64-bit address:
 
-drivers/built-in.o: In function `fc_frame_crc_check':
-(.text+0x75dae): undefined reference to `crc32_le'
-drivers/built-in.o: In function `fc_fcp_recv':
-fc_fcp.c:(.text+0x7b919): undefined reference to `crc32_le'
-fc_fcp.c:(.text+0x7b9d5): undefined reference to `crc32_le'
-fc_fcp.c:(.text+0x7ba54): undefined reference to `crc32_le'
+ff96c000-ff981000 rwxp 7ffffffea000 00:00 0 [stack]
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+This is because vma->vm_pgoff for that VMA is incorrectly being stored in
+units of offset-in-bytes.  It should be stored in units of offset-in-pages.
+
+Signed-off-by: Ying Han <yinghan@google.com>
+Cc: Mike Waychison <mikew@google.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/exec.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/Kconfig~libfc-uses-select-crc32 drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~libfc-uses-select-crc32
-+++ a/drivers/scsi/Kconfig
-@@ -608,6 +608,7 @@ config SCSI_FLASHPOINT
- config LIBFC
- 	tristate "LibFC module"
- 	select SCSI_FC_ATTRS
-+	select CRC32
- 	---help---
- 	  Fibre Channel library module
+diff -puN fs/exec.c~fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes fs/exec.c
+--- a/fs/exec.c~fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes
++++ a/fs/exec.c
+@@ -509,6 +509,7 @@ static int shift_arg_pages(struct vm_are
+ 	unsigned long length = old_end - old_start;
+ 	unsigned long new_start = old_start - shift;
+ 	unsigned long new_end = old_end - shift;
++	unsigned long new_pgoff = new_start >> PAGE_SHIFT;
+ 	struct mmu_gather *tlb;
  
+ 	BUG_ON(new_start > new_end);
+@@ -523,7 +524,7 @@ static int shift_arg_pages(struct vm_are
+ 	/*
+ 	 * cover the whole range: [new_start, old_end)
+ 	 */
+-	vma_adjust(vma, new_start, old_end, vma->vm_pgoff, NULL);
++	vma_adjust(vma, new_start, old_end, new_pgoff, NULL);
+ 
+ 	/*
+ 	 * move the page tables downwards, on failure we rely on
+@@ -556,7 +557,7 @@ static int shift_arg_pages(struct vm_are
+ 	/*
+ 	 * shrink the vma to just the new range.
+ 	 */
+-	vma_adjust(vma, new_start, new_end, vma->vm_pgoff, NULL);
++	vma_adjust(vma, new_start, new_end, new_pgoff, NULL);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from yinghan@google.com are
 
-linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-esp-fix-section-mismatch-warning.patch
-libfc-uses-select-crc32.patch
-max3100-spi-uart-driver.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
+fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
 
