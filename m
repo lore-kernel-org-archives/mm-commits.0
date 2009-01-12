@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-fix-flow-control-bug.patch added to -mm tree
-Date: Mon, 12 Jan 2009 15:25:30 -0800
-Message-ID: <200901122325.n0CNPUje012441@imap1.linux-foundation.org>
+Subject: + nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch added to -mm tree
+Date: Mon, 12 Jan 2009 15:27:12 -0800
+Message-ID: <200901122327.n0CNRCcP013910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753624AbZALX0O (ORCPT
+	by vger.kernel.org with ESMTP id S1753469AbZALX1y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 18:26:14 -0500
+	Mon, 12 Jan 2009 18:27:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: itai.levi.devel@gmail.com, alan@lxorguk.ukuu.org.uk, avictor.za@gmail.com, haavard.skinnemoen@atmel.com
+Cc: penberg@cs.helsinki.fi, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     atmel_serial: fix flow control bug
+     nilfs2: remove nilfs bmap wrapper macros
 has been added to the -mm tree.  Its filename is
-     atmel_serial-fix-flow-control-bug.patch
+     nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: fix flow control bug
-From: Itai Levi <itai.levi.devel@gmail.com>
+Subject: nilfs2: remove nilfs bmap wrapper macros
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Fix the following problem, related to hardware flow control (CTS/RTS):
-Transmitting while CTS line is asserted in DMA mode, due to not checking
-for tx-stopped condition.
+This patch removes bunch of bmap wrapper macros from fs/nilfs/bmap.h.
 
-We found these problems while testing the UARTs with hardware
-flow-control.
-
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Cc: "Andrew Victor" <avictor.za@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/bmap.c |   16 ++++++++--------
+ fs/nilfs2/bmap.h |    7 -------
+ 2 files changed, 8 insertions(+), 15 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-flow-control-bug drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-flow-control-bug
-+++ a/drivers/serial/atmel_serial.c
-@@ -579,7 +579,7 @@ static void atmel_tx_dma(struct uart_por
- 	/* disable PDC transmit */
- 	UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
+diff -puN fs/nilfs2/bmap.c~nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros fs/nilfs2/bmap.c
+--- a/fs/nilfs2/bmap.c~nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros
++++ a/fs/nilfs2/bmap.c
+@@ -100,7 +100,7 @@ static int nilfs_bmap_do_insert(struct n
+ 				bmap, keys, ptrs, NILFS_BMAP_SMALL_HIGH + 1);
+ 			if (n < 0)
+ 				return n;
+-			ret = (*nilfs_bmap_large_convert_and_insert)(
++			ret = nilfs_btree_convert_and_insert(
+ 				bmap, key, ptr, keys, ptrs, n,
+ 				NILFS_BMAP_LARGE_LOW, NILFS_BMAP_LARGE_HIGH);
+ 			if (ret == 0)
+@@ -157,7 +157,7 @@ static int nilfs_bmap_do_delete(struct n
+ 				bmap, keys, ptrs, NILFS_BMAP_LARGE_LOW + 1);
+ 			if (n < 0)
+ 				return n;
+-			ret = (*nilfs_bmap_small_delete_and_convert)(
++			ret = nilfs_direct_delete_and_convert(
+ 				bmap, key, keys, ptrs, n,
+ 				NILFS_BMAP_SMALL_LOW, NILFS_BMAP_SMALL_HIGH);
+ 			if (ret == 0)
+@@ -730,12 +730,12 @@ int nilfs_bmap_read(struct nilfs_bmap *b
+ 	}
  
--	if (!uart_circ_empty(xmit)) {
-+	if (!uart_circ_empty(xmit) && !uart_tx_stopped(port)) {
- 		dma_sync_single_for_device(port->dev,
- 					   pdc->dma_addr,
- 					   pdc->dma_size,
-_
-
-Patches currently in -mm which might be from itai.levi.devel@gmail.com are
-
-atmel_serial-fix-flow-control-bug.patch
-
+ 	return (bmap->b_u.u_flags & NILFS_BMAP_LARGE) ?
+-		nilfs_bmap_large_init(bmap,
+-				      NILFS_BMAP_LARGE_LOW,
+-				      NILFS_BMAP_LARGE_HIGH) :
+-		nilfs_bmap_small_init(bmap,
+-				      NILFS_BMAP_SMALL_LOW,
+-				      NILFS_BMAP_SMALL_HIGH);
++		nilfs_btree_init(bmap,
++				 NILFS_BMAP_LARGE_LOW,
++				 NILFS_BMAP_LARGE_HIGH) :
++		nilfs_direct_init(bmap,
++			   	  NILFS_BMAP_SMALL_LOW,
++				  NILFS_BMAP_SMALL_HIGH);
+ }
+ 
+ /**
+diff -puN fs/nilfs2/bmap.h~nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros fs/nilfs2/bmap.h
+--- a/fs/nilfs2/bmap.h~nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros
++++ a/fs/nilfs2/bmap.h
+@@ -241,11 +241,4 @@ static inline void nilfs_bmap_clear_dirt
+ #define NILFS_BMAP_LARGE_LOW	NILFS_BTREE_ROOT_NCHILDREN_MAX
+ #define NILFS_BMAP_LARGE_HIGH	NILFS_BTREE_KEY_MAX
+ 
+-#define nilfs_bmap_small_init			nilfs_direct_init
+-#define nilfs_bmap_small_convert_and_insert	NULL
+-#define nilfs_bmap_small_delete_and_convert	nilfs_direct_delete_and_convert
+-#define nilfs_bmap_large_init			nilfs_btree_init
+-#define nilfs_bmap_large_convert_and_insert	nilfs_btree_convert_and_insert
+-#define nilfs_bmap_large_delete_and_convert	NULL
