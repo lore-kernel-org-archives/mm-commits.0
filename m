@@ -1,79 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - compiler-gcch-add-more-comments-to-reloc_hide.patch removed from -mm tree
-Date: Mon, 12 Jan 2009 11:57:53 -0800
-Message-ID: <200901121957.n0CJvrUU027078@imap1.linux-foundation.org>
+Subject: - filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch removed from -mm tree
+Date: Mon, 12 Jan 2009 11:58:06 -0800
+Message-ID: <200901121958.n0CJw6mt027334__17789.8727627055$1231791404$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754923AbZALUOD (ORCPT
+	by vger.kernel.org with ESMTP id S1755184AbZALUPG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 15:14:03 -0500
+	Mon, 12 Jan 2009 15:15:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, cl@linux-foundation.org, mingo@elte.hu, rth@twiddle.net, rusty@rustcorp.com.au, sfr@canb.auug.org.au, travis@sgi.com, mm-commits@vger.kernel.org
+To: t-sato@yk.jp.nec.com, agk@redhat.com, david@fromorbit.com, dgc@sgi.com, hch@lst.de, linux-ext4@vger.kernel.org, shaggy@austin.ibm.com, viro@zeniv.linux.org.uk, xfs-masters@oss.sgi.com
 
 
 The patch titled
-     compiler-gcc.h: add more comments to RELOC_HIDE
+     filesystem freeze: remove XFS specific ioctl interfaces for freeze feature
 has been removed from the -mm tree.  Its filename was
-     compiler-gcch-add-more-comments-to-reloc_hide.patch
+     filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: compiler-gcc.h: add more comments to RELOC_HIDE
-From: Andi Kleen <andi@firstfloor.org>
+Subject: filesystem freeze: remove XFS specific ioctl interfaces for freeze feature
+From: Takashi Sato <t-sato@yk.jp.nec.com>
 
-Requested by C. Lameter
+It removes XFS specific ioctl interfaces and request codes
+for freeze feature.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Richard Henderson <rth@twiddle.net>
+This patch has been supplied by David Chinner.
+
+Signed-off-by: Dave Chinner <dgc@sgi.com>
+Signed-off-by: Takashi Sato <t-sato@yk.jp.nec.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: <xfs-masters@oss.sgi.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Alasdair G Kergon <agk@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl.c   |   15 ---------------
+ fs/xfs/linux-2.6/xfs_ioctl32.c |    2 --
+ fs/xfs/xfs_fs.h                |    4 ++--
+ 3 files changed, 2 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~compiler-gcch-add-more-comments-to-reloc_hide include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-gcch-add-more-comments-to-reloc_hide
-+++ a/include/linux/compiler-gcc.h
-@@ -11,9 +11,19 @@
- /* The "volatile" is due to gcc bugs */
- #define barrier() __asm__ __volatile__("": : :"memory")
+diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/linux-2.6/xfs_ioctl.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl.c~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/linux-2.6/xfs_ioctl.c
+@@ -1546,21 +1546,6 @@ xfs_file_ioctl(
+ 		return -error;
+ 	}
  
--/* This macro obfuscates arithmetic on a variable address so that gcc
--   shouldn't recognize the original var, and make assumptions about it */
- /*
-+ * This macro obfuscates arithmetic on a variable address so that gcc
-+ * shouldn't recognize the original var, and make assumptions about it.
-+ *
-+ * This is needed because the C standard makes it undefined to do
-+ * pointer arithmetic on "objects" outside their boundaries and the
-+ * gcc optimizers assume this is the case. In particular they
-+ * assume such arithmetic does not wrap.
-+ *
-+ * A miscompilation has been observed because of this on PPC.
-+ * To work around it we hide the relationship of the pointer and the object
-+ * using this macro.
-+ *
-  * Versions of the ppc64 compiler before 4.1 had a bug where use of
-  * RELOC_HIDE could trash r30. The bug can be worked around by changing
-  * the inline assembly constraint from =g to =r, in this particular
+-	case XFS_IOC_FREEZE:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (inode->i_sb->s_frozen == SB_UNFROZEN)
+-			freeze_bdev(inode->i_sb->s_bdev);
+-		return 0;
+-
+-	case XFS_IOC_THAW:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-		if (inode->i_sb->s_frozen != SB_UNFROZEN)
+-			thaw_bdev(inode->i_sb->s_bdev, inode->i_sb);
+-		return 0;
+-
+ 	case XFS_IOC_GOINGDOWN: {
+ 		__uint32_t in;
+ 
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/linux-2.6/xfs_ioctl32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -632,8 +632,6 @@ xfs_file_compat_ioctl(
+ 	case XFS_IOC_SET_RESBLKS:
+ 	case XFS_IOC_GET_RESBLKS:
+ 	case XFS_IOC_FSGROWFSLOG:
+-	case XFS_IOC_FREEZE:
+-	case XFS_IOC_THAW:
+ 	case XFS_IOC_GOINGDOWN:
+ 	case XFS_IOC_ERROR_INJECTION:
+ 	case XFS_IOC_ERROR_CLEARALL:
+diff -puN fs/xfs/xfs_fs.h~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/xfs_fs.h
+--- a/fs/xfs/xfs_fs.h~filesystem-freeze-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/xfs_fs.h
+@@ -465,8 +465,8 @@ typedef struct xfs_handle {
+ #define XFS_IOC_ERROR_INJECTION	     _IOW ('X', 116, struct xfs_error_injection)
+ #define XFS_IOC_ERROR_CLEARALL	     _IOW ('X', 117, struct xfs_error_injection)
+ /*	XFS_IOC_ATTRCTL_BY_HANDLE -- deprecated 118	 */
+-#define XFS_IOC_FREEZE		     _IOWR('X', 119, int)
+-#define XFS_IOC_THAW		     _IOWR('X', 120, int)
++/*	XFS_IOC_FREEZE		  -- FIFREEZE   119	 */
++/*	XFS_IOC_THAW		  -- FITHAW     120	 */
+ #define XFS_IOC_FSSETDM_BY_HANDLE    _IOW ('X', 121, struct xfs_fsop_setdm_handlereq)
+ #define XFS_IOC_ATTRLIST_BY_HANDLE   _IOW ('X', 122, struct xfs_fsop_attrlist_handlereq)
+ #define XFS_IOC_ATTRMULTI_BY_HANDLE  _IOW ('X', 123, struct xfs_fsop_attrmulti_handlereq)
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from t-sato@yk.jp.nec.com are
 
-linux-next.patch
-x86-hpet-allow-force-enable-on-ich10-hpet.patch
-x86-avoid-theoretical-vmalloc-fault-loop.patch
-nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
 
