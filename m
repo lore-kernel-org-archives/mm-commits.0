@@ -1,197 +1,280 @@
 From: akpm@linux-foundation.org
-Subject: - mark-complex-bitopsh-inlines-as-__always_inline.patch removed from -mm tree
-Date: Mon, 12 Jan 2009 11:51:39 -0800
-Message-ID: <200901121951.n0CJpdXO021749@imap1.linux-foundation.org>
+Subject: - video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5.patch removed from -mm tree
+Date: Mon, 12 Jan 2009 11:53:35 -0800
+Message-ID: <200901121953.n0CJrZOT023403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55683 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41785 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752641AbZALTwi (ORCPT
+	by vger.kernel.org with ESMTP id S1754927AbZALTyj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 14:52:38 -0500
+	Mon, 12 Jan 2009 14:54:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, hpa@zytor.com, hugh@veritas.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: schwalbe@inf.tu-dresden.de, hugang@soulinfo.com, mjg59@srcf.ucam.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mark complex bitops.h inlines as __always_inline
+     video: mbp_nvidia_bl: Add support for MacBook 5, MacBook Air 2, and MacBook Pro 5
 has been removed from the -mm tree.  Its filename was
-     mark-complex-bitopsh-inlines-as-__always_inline.patch
+     video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because of confusion
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mark complex bitops.h inlines as __always_inline
-From: Andi Kleen <andi@firstfloor.org>
+Subject: video: mbp_nvidia_bl: Add support for MacBook 5, MacBook Air 2, and MacBook Pro 5
+From: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
 
-Hugh Dickins noticed that released gcc versions building the kernel with
-CONFIG_OPTIMIZE_INLINING=y don't inline some of the bitops - sometimes
-generating very inefficient pageflag tests, and many instances of
-constant_test_bit().
+This patch adds support for the new Apple models incorporating an Nvidia
+chipset.  Apple still uses the same protocol as on older models, but the
+registers moved to a different address.
 
-Mark all complex x86 bitops that have more than a single asm statement or
-two as always inline to avoid this problem.
+The initial code has been contributed by Hu Gang <hugang@soulinfo.com>.
 
-Probably should be done for other architectures too.
+Changes:
+    * new structure to be passed to the DMI_MATCH function
+    * separated implementation for Intel/Nvidia chipset models
+    * added new entries to the device table (moved down)
+    * used driver_data structure to request resources/access ops
+      where necessary
 
+Known to work on:
+    * MacBook Pro 3
+    * MacBook Pro 4
+    * MacBook Pro 5
 
-One or two instruction bitops should be always inlined, not inlining them
-always generates much worse code than inlining them.  That's easy to prove
-just based on code size: the call overhead is larger than the inlined
-code.
+Known to work with limitations on:
+    * MacBook 5 / MacBook Air 2:
+         Changing brightness within X doesn't work, if using
+         Nvidia's proprietary graphics driver. No fix known yet.
+         Changing brightness on a text console or using the open-source
+         driver does work.
 
-This patch just makes sure they get always inlined by marking those
-explicitely.  There's no reason ever to not inline those, so giving the
-compiler a choice doesn't make sense.
+Known Bugs:
+    * MacBook Pro 5:
+         Initial brightness after bootup is the last recently used
+         brightness (in Mac OSX), while the firmware reports maximum.
+         Impossible to fix.
 
-Even on a compiler with perfect inlining algorithm (which no compiler has)
-that's true and stating that explicitely is correct.
-
-Also to handle inlines in all cases that have code that collapses at
-compile time (e.g.  __builtin_constant_p tests and similar) correctly the
-compiler needs the new "early inlining + optimization" pass that was added
-with gcc 4.4 only.  But 4.4 is not even out yet, so obviously most people
-don't use it.
-
-That is why *_user() for example always needs to be marked
-__always_inline.  This patch just extends it a bit more to more functions
-with the same problem.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/bitops.h      |   15 +++++++++++----
- include/asm-generic/bitops/__ffs.h |    2 +-
- include/asm-generic/bitops/__fls.h |    2 +-
- include/asm-generic/bitops/fls.h   |    2 +-
- include/asm-generic/bitops/fls64.h |    4 ++--
- 5 files changed, 16 insertions(+), 9 deletions(-)
+ drivers/video/backlight/mbp_nvidia_bl.c |  173 ++++++++++++++++------
+ 1 file changed, 133 insertions(+), 40 deletions(-)
 
-diff -puN arch/x86/include/asm/bitops.h~mark-complex-bitopsh-inlines-as-__always_inline arch/x86/include/asm/bitops.h
---- a/arch/x86/include/asm/bitops.h~mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/arch/x86/include/asm/bitops.h
-@@ -3,6 +3,9 @@
+diff -puN drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5 drivers/video/backlight/mbp_nvidia_bl.c
+--- a/drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-add-support-for-macbook-5-macbook-air-2-and-macbook-pro-5
++++ a/drivers/video/backlight/mbp_nvidia_bl.c
+@@ -25,64 +25,164 @@
+ #include <linux/dmi.h>
+ #include <linux/io.h>
  
- /*
-  * Copyright 1992, Linus Torvalds.
-+ *
-+ * Note: inlines with more than a single statement should be marked
-+ * __always_inline to avoid problems with older gcc's inlining heuristics.
-  */
+-static struct dmi_system_id __initdata mbp_device_table[] = {
+-	{
+-		.ident = "3,1",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro3,1"),
+-		},
+-	},
+-	{
+-		.ident = "3,2",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro3,2"),
+-		},
+-	},
+-	{
+-		.ident = "4,1",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro4,1"),
+-		},
+-	},
+-	{ }
++/* Structure to be passed to the DMI_MATCH function. */
++struct dmi_match_data {
++	/* I/O resource to allocate. */
++	struct resource iores;
++	/* Backlight operations structure. */
++	struct backlight_ops backlight_ops;
+ };
  
- #ifndef _LINUX_BITOPS_H
-@@ -53,7 +56,8 @@
-  * Note that @nr may be almost arbitrarily large; this function is not
-  * restricted to acting on a single-word quantity.
-  */
--static inline void set_bit(unsigned int nr, volatile unsigned long *addr)
-+static __always_inline void
-+set_bit(unsigned int nr, volatile unsigned long *addr)
+-static int mbp_send_intensity(struct backlight_device *bd)
++/*
++ * Implementation for MacBooks with Intel chipset.
++ */
++static int intel_chipset_send_intensity(struct backlight_device *bd)
  {
- 	if (IS_IMMEDIATE(nr)) {
- 		asm volatile(LOCK_PREFIX "orb %1,%0"
-@@ -90,7 +94,8 @@ static inline void __set_bit(int nr, vol
-  * you should call smp_mb__before_clear_bit() and/or smp_mb__after_clear_bit()
-  * in order to ensure changes are visible on other processors.
-  */
--static inline void clear_bit(int nr, volatile unsigned long *addr)
-+static __always_inline void
-+clear_bit(int nr, volatile unsigned long *addr)
- {
- 	if (IS_IMMEDIATE(nr)) {
- 		asm volatile(LOCK_PREFIX "andb %1,%0"
-@@ -204,7 +209,8 @@ static inline int test_and_set_bit(int n
-  *
-  * This is the same as test_and_set_bit on x86.
-  */
--static inline int test_and_set_bit_lock(int nr, volatile unsigned long *addr)
-+static __always_inline int
-+test_and_set_bit_lock(int nr, volatile unsigned long *addr)
- {
- 	return test_and_set_bit(nr, addr);
+ 	int intensity = bd->props.brightness;
+ 
+ 	outb(0x04 | (intensity << 4), 0xb3);
+ 	outb(0xbf, 0xb2);
+-
+ 	return 0;
  }
-@@ -300,7 +306,8 @@ static inline int test_and_change_bit(in
- 	return oldbit;
+ 
+-static int mbp_get_intensity(struct backlight_device *bd)
++static int intel_chipset_get_intensity(struct backlight_device *bd)
+ {
+ 	outb(0x03, 0xb3);
+ 	outb(0xbf, 0xb2);
+ 	return inb(0xb3) >> 4;
  }
  
--static inline int constant_test_bit(int nr, const volatile unsigned long *addr)
-+static __always_inline int
-+constant_test_bit(int nr, const volatile unsigned long *addr)
- {
- 	return ((1UL << (nr % BITS_PER_LONG)) &
- 		(((unsigned long *)addr)[nr / BITS_PER_LONG])) != 0;
-diff -puN include/asm-generic/bitops/__ffs.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/__ffs.h
---- a/include/asm-generic/bitops/__ffs.h~mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/__ffs.h
-@@ -9,7 +9,7 @@
-  *
-  * Undefined if no bit exists, so code should check against 0 first.
-  */
--static inline unsigned long __ffs(unsigned long word)
-+static __always_inline unsigned long __ffs(unsigned long word)
- {
- 	int num = 0;
+-static struct backlight_ops mbp_ops = {
+-	.options = BL_CORE_SUSPENDRESUME,
+-	.get_brightness = mbp_get_intensity,
+-	.update_status  = mbp_send_intensity,
++static const struct dmi_match_data intel_chipset_data = {
++	.iores = {
++		.start		= 0xb2,
++		.end		= 0xb3,
++		.name		= "mbp_nvidia_bl",
++		.flags		= IORESOURCE_IO
++	},
++	.backlight_ops		= {
++		.options	= BL_CORE_SUSPENDRESUME,
++		.get_brightness	= intel_chipset_get_intensity,
++		.update_status	= intel_chipset_send_intensity,
++	}
+ };
  
-diff -puN include/asm-generic/bitops/__fls.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/__fls.h
---- a/include/asm-generic/bitops/__fls.h~mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/__fls.h
-@@ -9,7 +9,7 @@
-  *
-  * Undefined if no set bit exists, so code should check against 0 first.
-  */
--static inline unsigned long __fls(unsigned long word)
-+static __always_inline unsigned long __fls(unsigned long word)
++/*
++ * Implementation for MacBooks with Nvidia chipset.
++ */
++static int nvidia_chipset_send_intensity(struct backlight_device *bd)
++{
++	int intensity = bd->props.brightness;
++
++	outb(0x04 | (intensity << 4), 0x52f);
++	outb(0xbf, 0x52e);
++	return 0;
++}
++
++static int nvidia_chipset_get_intensity(struct backlight_device *bd)
++{
++	outb(0x03, 0x52f);
++	outb(0xbf, 0x52e);
++	return inb(0x52f) >> 4;
++}
++
++static const struct dmi_match_data nvidia_chipset_data = {
++	.iores = {
++		.start		= 0x52e,
++		.end		= 0x52f,
++		.name		= "mbp_nvidia_bl",
++		.flags		= IORESOURCE_IO,
++	},
++	.backlight_ops		= {
++		.get_brightness	= nvidia_chipset_get_intensity,
++		.update_status	= nvidia_chipset_send_intensity
++	}
++};
++
++/*
++ * DMI matching.
++ */
++static /* const */ struct dmi_match_data *driver_data;
++
++static int mbp_dmi_match(const struct dmi_system_id *id)
++{
++	driver_data = id->driver_data;
++
++	printk(KERN_INFO "mbp_nvidia_bl: %s detected\n", id->ident);
++	return 1;
++}
++
++static const struct dmi_system_id __initdata mbp_device_table[] = {
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBookPro 3,1",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro3,1"),
++		},
++		.driver_data	= (void *)&intel_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBookPro 3,2",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro3,2"),
++		},
++		.driver_data	= (void *)&intel_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBookPro 4,1",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro4,1"),
++		},
++		.driver_data	= (void *)&intel_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBook 5,1",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBook5,1"),
++		},
++		.driver_data	= (void *)&nvidia_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBookAir 2,1",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir2,1"),
++		},
++		.driver_data	= (void *)&nvidia_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBookPro 5,1",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro5,1"),
++		},
++		.driver_data	= (void *)&nvidia_chipset_data,
++	},
++	{ }
++};
++
++/*
++ * Platform driver implementation.
++ */
+ static int mbp_probe(struct platform_device *pdev)
  {
- 	int num = BITS_PER_LONG - 1;
+ 	struct backlight_device *bd;
  
-diff -puN include/asm-generic/bitops/fls.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/fls.h
---- a/include/asm-generic/bitops/fls.h~mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/fls.h
-@@ -9,7 +9,7 @@
-  * Note fls(0) = 0, fls(1) = 1, fls(0x80000000) = 32.
-  */
+-	bd = backlight_device_register("mbp_backlight", NULL, NULL, &mbp_ops);
++	bd = backlight_device_register("mbp_backlight", NULL, NULL,
++				       &driver_data->backlight_ops);
+ 	if (IS_ERR(bd))
+ 		return PTR_ERR(bd);
  
--static inline int fls(int x)
-+static __always_inline int fls(int x)
- {
- 	int r = 32;
+ 	bd->props.max_brightness = 15;
+-	bd->props.brightness = mbp_get_intensity(bd);
++	bd->props.brightness = bd->ops->get_brightness(bd);
+ 	backlight_update_status(bd);
  
-diff -puN include/asm-generic/bitops/fls64.h~mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/fls64.h
---- a/include/asm-generic/bitops/fls64.h~mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/fls64.h
-@@ -15,7 +15,7 @@
-  * at position 64.
-  */
- #if BITS_PER_LONG == 32
--static inline int fls64(__u64 x)
-+static __always_inline int fls64(__u64 x)
- {
- 	__u32 h = x >> 32;
- 	if (h)
-@@ -23,7 +23,7 @@ static inline int fls64(__u64 x)
- 	return fls(x);
- }
- #elif BITS_PER_LONG == 64
--static inline int fls64(__u64 x)
-+static __always_inline int fls64(__u64 x)
- {
- 	if (x == 0)
- 		return 0;
-_
-
-Patches currently in -mm which might be from andi@firstfloor.org are
-
-linux-next.patch
-x86-hpet-allow-force-enable-on-ich10-hpet.patch
-mark-complex-bitopsh-inlines-as-__always_inline.patch
-x86-avoid-theoretical-vmalloc-fault-loop.patch
-nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
-
+ 	platform_set_drvdata(pdev, bd);
+@@ -129,13 +229,6 @@ static struct platform_driver mbp_driver
+ 	},
+ };
+ 
+-static struct resource mbp_iores = {
+-	.start          = 0xb2,
+-	.end            = 0xb3,
+-	.name           = "mbp_nvidia_bl",
+-	.flags          = IORESOURCE_IO
+-};
