@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-mpt-suppress-debugobjects-warning.patch added to -mm tree
-Date: Mon, 12 Jan 2009 14:19:19 -0800
-Message-ID: <200901122219.n0CMJJv5019597@imap1.linux-foundation.org>
+Subject: + mfd-pcf50633-adc-driver.patch added to -mm tree
+Date: Mon, 12 Jan 2009 14:44:42 -0800
+Message-ID: <200901122244.n0CMigmQ009253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44281 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756120AbZALWTy (ORCPT
+	by vger.kernel.org with ESMTP id S1759735AbZALWpQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 17:19:54 -0500
+	Mon, 12 Jan 2009 17:45:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eparis@parisplace.org, Eric.Moore@lsil.com, James.Bottomley@HansenPartnership.com, tglx@linutronix.de
+Cc: balajirrao@openmoko.org, andy@openmoko.com, jonathan.cameron@gmail.com, sameo@openedhand.com
 
 
 The patch titled
-     scsi: mpt: suppress debugobjects warning
+     mfd: PCF50633 adc driver
 has been added to the -mm tree.  Its filename is
-     scsi-mpt-suppress-debugobjects-warning.patch
+     mfd-pcf50633-adc-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,418 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: mpt: suppress debugobjects warning
-From: "Eric Paris" <eparis@parisplace.org>
+Subject: mfd: PCF50633 adc driver
+From: Balaji Rao <balajirrao@openmoko.org>
 
-ODEBUG: object is on stack, but not annotated
-------------[ cut here ]------------
-WARNING: at lib/debugobjects.c:253 __debug_object_init+0x1f3/0x276()
-Hardware name: VMware Virtual Platform
-Modules linked in: mptspi(+) mptscsih mptbase scsi_transport_spi ext3 jbd mbcache
-Pid: 540, comm: insmod Not tainted 2.6.28-mm1 #2
-Call Trace:
- [<c042c51c>] warn_slowpath+0x74/0x8a
- [<c0469600>] ? start_critical_timing+0x96/0xb7
- [<c060c8ea>] ? _spin_unlock_irqrestore+0x2f/0x3c
- [<c0446fad>] ? trace_hardirqs_off_caller+0x18/0xaf
- [<c044704f>] ? trace_hardirqs_off+0xb/0xd
- [<c060c8ea>] ? _spin_unlock_irqrestore+0x2f/0x3c
- [<c042cb84>] ? release_console_sem+0x1a5/0x1ad
- [<c05013e6>] __debug_object_init+0x1f3/0x276
- [<c0501494>] debug_object_init+0x13/0x17
- [<c0433c56>] init_timer+0x10/0x1a
- [<e08e5b54>] mpt_config+0x1c1/0x2b7 [mptbase]
- [<e08e3b82>] ? kmalloc+0x8/0xa [mptbase]
- [<e08e3b82>] ? kmalloc+0x8/0xa [mptbase]
- [<e08e6fa2>] mpt_do_ioc_recovery+0x950/0x1212 [mptbase]
- [<c04496c2>] ? __lock_acquire+0xa69/0xacc
- [<c060c8f1>] ? _spin_unlock_irqrestore+0x36/0x3c
- [<c060c3af>] ? _spin_unlock_irq+0x22/0x26
- [<c04f2d8b>] ? string+0x2b/0x76
- [<c04f310e>] ? vsnprintf+0x338/0x7b3
- [<c04496c2>] ? __lock_acquire+0xa69/0xacc
- [<c060c8ea>] ? _spin_unlock_irqrestore+0x2f/0x3c
- [<c04496c2>] ? __lock_acquire+0xa69/0xacc
- [<c044897d>] ? debug_check_no_locks_freed+0xeb/0x105
- [<c060c8f1>] ? _spin_unlock_irqrestore+0x36/0x3c
- [<c04488bc>] ? debug_check_no_locks_freed+0x2a/0x105
- [<c0446b8c>] ? lock_release_holdtime+0x43/0x48
- [<c043f742>] ? up_read+0x16/0x29
- [<c05076f8>] ? pci_get_slot+0x66/0x72
- [<e08e89ca>] mpt_attach+0x881/0x9b1 [mptbase]
- [<e091c8e5>] mptspi_probe+0x11/0x354 [mptspi]
+Add basic support for the PCF50633 ADC.  The subtractive mode is not
+supported yet.
 
-Noticing that every caller of mpt_config has its CONFIGPARMS struct
-declared on the stack and thus the &pCfg->timer is always on the stack I
-changed init_timer() to init_timer_on_stack() and it seems to have shut
-up.....
+Since we don't have adc subsystem, it currently lives in drivers/mfd.
 
-Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Balaji Rao <balajirrao@openmoko.org>
+Cc: Andy Green <andy@openmoko.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
+Acked-by: Jonathan Cameron <jonathan.cameron@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mfd/Kconfig              |    7 
+ drivers/mfd/Makefile             |    1 
+ drivers/mfd/pcf50633-adc.c       |  277 +++++++++++++++++++++++++++++
+ include/linux/mfd/pcf50633/adc.h |   72 +++++++
+ 4 files changed, 357 insertions(+)
 
-diff -puN drivers/message/fusion/mptbase.c~scsi-mpt-suppress-debugobjects-warning drivers/message/fusion/mptbase.c
---- a/drivers/message/fusion/mptbase.c~scsi-mpt-suppress-debugobjects-warning
-+++ a/drivers/message/fusion/mptbase.c
-@@ -5934,7 +5934,7 @@ mpt_config(MPT_ADAPTER *ioc, CONFIGPARMS
+diff -puN drivers/mfd/Kconfig~mfd-pcf50633-adc-driver drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~mfd-pcf50633-adc-driver
++++ a/drivers/mfd/Kconfig
+@@ -226,6 +226,13 @@ config MFD_PCF50633
+ 	  facilities, and registers devices for the various functions
+ 	  so that function-specific drivers can bind to them.
  
- 	/* Initalize the timer
- 	 */
--	init_timer(&pCfg->timer);
-+	init_timer_on_stack(&pCfg->timer);
- 	pCfg->timer.data = (unsigned long) ioc;
- 	pCfg->timer.function = mpt_timer_expired;
- 	pCfg->wait_done = 0;
++config PCF50633_ADC
++	tristate "Support for NXP PCF50633 ADC"
++	depends on MFD_PCF50633
++	help
++	 Say yes here if you want to include support for ADC in the
++	 NXP PCF50633 chip.
++
+ endmenu
+ 
+ menu "Multimedia Capabilities Port drivers"
+diff -puN drivers/mfd/Makefile~mfd-pcf50633-adc-driver drivers/mfd/Makefile
+--- a/drivers/mfd/Makefile~mfd-pcf50633-adc-driver
++++ a/drivers/mfd/Makefile
+@@ -39,3 +39,4 @@ obj-$(CONFIG_UCB1400_CORE)	+= ucb1400_co
+ obj-$(CONFIG_PMIC_DA903X)	+= da903x.o
+ 
+ obj-$(CONFIG_MFD_PCF50633)	+= pcf50633-core.o
++obj-$(CONFIG_PCF50633_ADC)	+= pcf50633-adc.o
+diff -puN /dev/null drivers/mfd/pcf50633-adc.c
+--- /dev/null
++++ a/drivers/mfd/pcf50633-adc.c
+@@ -0,0 +1,277 @@
++/* NXP PCF50633 ADC Driver
++ *
++ * (C) 2006-2008 by Openmoko, Inc.
++ * Author: Balaji Rao <balajirrao@openmoko.org>
++ * All rights reserved.
++ *
++ * Broken down from monstrous PCF50633 driver mainly by
++ * Harald Welte, Andy Green and Werner Almesberger
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ *  NOTE: This driver does not yet support subtractive ADC mode, which means
++ *  you can do only one measurement per read request.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/platform_device.h>
++#include <linux/completion.h>
++
++#include <linux/mfd/pcf50633/core.h>
++#include <linux/mfd/pcf50633/adc.h>
++
++struct pcf50633_adc_request {
++	int mux;
++	int avg;
++	int result;
++	void (*callback)(struct pcf50633 *, void *, int);
++	void *callback_param;
++
++	/* Used in case of sync requests */
++	struct completion completion;
++
++};
++
++#define PCF50633_MAX_ADC_FIFO_DEPTH 8
++
++struct pcf50633_adc {
++	struct pcf50633 *pcf;
++
++	/* Private stuff */
++	struct pcf50633_adc_request *queue[PCF50633_MAX_ADC_FIFO_DEPTH];
++	int queue_head;
++	int queue_tail;
++	struct mutex queue_mutex;
++};
++
++static inline struct pcf50633_adc *__to_adc(struct pcf50633 *pcf)
++{
++	return platform_get_drvdata(pcf->adc_pdev);
++}
++
++static void adc_setup(struct pcf50633 *pcf, int channel, int avg)
++{
++	channel &= PCF50633_ADCC1_ADCMUX_MASK;
++
++	/* kill ratiometric, but enable ACCSW biasing */
++	pcf50633_reg_write(pcf, PCF50633_REG_ADCC2, 0x00);
++	pcf50633_reg_write(pcf, PCF50633_REG_ADCC3, 0x01);
++
++	/* start ADC conversion on selected channel */
++	pcf50633_reg_write(pcf, PCF50633_REG_ADCC1, channel | avg |
++		    PCF50633_ADCC1_ADCSTART | PCF50633_ADCC1_RES_10BIT);
++}
++
++static void trigger_next_adc_job_if_any(struct pcf50633 *pcf)
++{
++	struct pcf50633_adc *adc = __to_adc(pcf);
++	int head;
++
++	mutex_lock(&adc->queue_mutex);
++
++	head = adc->queue_head;
++
++	if (!adc->queue[head]) {
++		mutex_unlock(&adc->queue_mutex);
++		return;
++	}
++	mutex_unlock(&adc->queue_mutex);
++
++	adc_setup(pcf, adc->queue[head]->mux, adc->queue[head]->avg);
++}
++
++static int
++adc_enqueue_request(struct pcf50633 *pcf, struct pcf50633_adc_request *req)
++{
++	struct pcf50633_adc *adc = __to_adc(pcf);
++	int head, tail;
++
++	mutex_lock(&adc->queue_mutex);
++
++	head = adc->queue_head;
++	tail = adc->queue_tail;
++
++	if (adc->queue[tail]) {
++		mutex_unlock(&adc->queue_mutex);
++		return -EBUSY;
++	}
++
++	adc->queue[tail] = req;
++	adc->queue_tail = (tail + 1) & (PCF50633_MAX_ADC_FIFO_DEPTH - 1);
++
++	mutex_unlock(&adc->queue_mutex);
++
++	trigger_next_adc_job_if_any(pcf);
++
++	return 0;
++}
++
++static void
++pcf50633_adc_sync_read_callback(struct pcf50633 *pcf, void *param, int result)
++{
++	struct pcf50633_adc_request *req = param;
++
++	req->result = result;
++	complete(&req->completion);
++}
++
++int pcf50633_adc_sync_read(struct pcf50633 *pcf, int mux, int avg)
++{
++	struct pcf50633_adc_request *req;
++
++	/* req is freed when the result is ready, in interrupt handler */
++	req = kzalloc(sizeof(*req), GFP_KERNEL);
++	if (!req)
++		return -ENOMEM;
++
++	req->mux = mux;
++	req->avg = avg;
++	req->callback =  pcf50633_adc_sync_read_callback;
++	req->callback_param = req;
++
++	init_completion(&req->completion);
++	adc_enqueue_request(pcf, req);
++	wait_for_completion(&req->completion);
++
++	return req->result;
++}
++EXPORT_SYMBOL_GPL(pcf50633_adc_sync_read);
++
++int pcf50633_adc_async_read(struct pcf50633 *pcf, int mux, int avg,
++			     void (*callback)(struct pcf50633 *, void *, int),
++			     void *callback_param)
++{
++	struct pcf50633_adc_request *req;
++
++	/* req is freed when the result is ready, in interrupt handler */
++	req = kmalloc(sizeof(*req), GFP_KERNEL);
++	if (!req)
++		return -ENOMEM;
++
++	req->mux = mux;
++	req->avg = avg;
++	req->callback = callback;
++	req->callback_param = callback_param;
++
++	adc_enqueue_request(pcf, req);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pcf50633_adc_async_read);
++
++static int adc_result(struct pcf50633 *pcf)
++{
++	u8 adcs1, adcs3;
++	u16 result;
++
++	adcs1 = pcf50633_reg_read(pcf, PCF50633_REG_ADCS1);
++	adcs3 = pcf50633_reg_read(pcf, PCF50633_REG_ADCS3);
++	result = (adcs1 << 2) | (adcs3 & PCF50633_ADCS3_ADCDAT1L_MASK);
++
++	dev_dbg(pcf->dev, "adc result = %d\n", result);
++
++	return result;
++}
++
++static void pcf50633_adc_irq(int irq, void *data)
++{
++	struct pcf50633_adc *adc = data;
++	struct pcf50633 *pcf = adc->pcf;
++	struct pcf50633_adc_request *req;
++	int head;
++
++	mutex_lock(&adc->queue_mutex);
++	head = adc->queue_head;
++
++	req = adc->queue[head];
++	if (WARN_ON(!req)) {
++		dev_err(pcf->dev, "pcf50633-adc irq: ADC queue empty!\n");
++		mutex_unlock(&adc->queue_mutex);
++		return;
++	}
++	adc->queue[head] = NULL;
++	adc->queue_head = (head + 1) &
++				      (PCF50633_MAX_ADC_FIFO_DEPTH - 1);
++
++	mutex_unlock(&adc->queue_mutex);
++
++	req->callback(pcf, req->callback_param, adc_result(pcf));
++	kfree(req);
++
++	trigger_next_adc_job_if_any(pcf);
++}
++
++static int __devinit pcf50633_adc_probe(struct platform_device *pdev)
++{
++	struct pcf50633_subdev_pdata *pdata = pdev->dev.platform_data;
++	struct pcf50633_adc *adc;
++
++	adc = kzalloc(sizeof(*adc), GFP_KERNEL);
++	if (!adc)
++		return -ENOMEM;
++
++	adc->pcf = pdata->pcf;
++	platform_set_drvdata(pdev, adc);
++
++	pcf50633_register_irq(pdata->pcf, PCF50633_IRQ_ADCRDY,
++					pcf50633_adc_irq, adc);
++
++	mutex_init(&adc->queue_mutex);
++
++	return 0;
++}
++
++static int __devexit pcf50633_adc_remove(struct platform_device *pdev)
++{
++	struct pcf50633_adc *adc = platform_get_drvdata(pdev);
++	int i, head;
++
++	pcf50633_free_irq(adc->pcf, PCF50633_IRQ_ADCRDY);
++
++	mutex_lock(&adc->queue_mutex);
++	head = adc->queue_head;
++
++	if (WARN_ON(adc->queue[head]))
++		dev_err(adc->pcf->dev,
++			"adc driver removed with request pending\n");
++
++	for (i = 0; i < PCF50633_MAX_ADC_FIFO_DEPTH; i++)
++		kfree(adc->queue[i]);
++
++	mutex_unlock(&adc->queue_mutex);
++	kfree(adc);
++
++	return 0;
++}
++
++static struct platform_driver pcf50633_adc_driver = {
++	.driver = {
++		.name = "pcf50633-adc",
++	},
++	.probe = pcf50633_adc_probe,
++	.remove = __devexit_p(pcf50633_adc_remove),
++};
++
++static int __init pcf50633_adc_init(void)
++{
++	return platform_driver_register(&pcf50633_adc_driver);
++}
++module_init(pcf50633_adc_init);
++
++static void __exit pcf50633_adc_exit(void)
++{
++	platform_driver_unregister(&pcf50633_adc_driver);
++}
++module_exit(pcf50633_adc_exit);
++
++MODULE_AUTHOR("Balaji Rao <balajirrao@openmoko.org>");
++MODULE_DESCRIPTION("PCF50633 adc driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:pcf50633-adc");
++
+diff -puN /dev/null include/linux/mfd/pcf50633/adc.h
+--- /dev/null
++++ a/include/linux/mfd/pcf50633/adc.h
+@@ -0,0 +1,72 @@
++/*
++ * adc.h  -- Driver for NXP PCF50633 ADC
++ *
++ * (C) 2006-2008 by Openmoko, Inc.
++ * All rights reserved.
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ */
++
++#ifndef __LINUX_MFD_PCF50633_ADC_H
++#define __LINUX_MFD_PCF50633_ADC_H
++
++#include <linux/mfd/pcf50633/core.h>
++#include <linux/platform_device.h>
++
++/* ADC Registers */
++#define PCF50633_REG_ADCC3		0x52
++#define PCF50633_REG_ADCC2		0x53
++#define PCF50633_REG_ADCC1		0x54
++#define PCF50633_REG_ADCS1		0x55
++#define PCF50633_REG_ADCS2		0x56
++#define PCF50633_REG_ADCS3		0x57
++
++#define PCF50633_ADCC1_ADCSTART		0x01
++#define PCF50633_ADCC1_RES_10BIT	0x02
++#define PCF50633_ADCC1_AVERAGE_NO	0x00
++#define PCF50633_ADCC1_AVERAGE_4	0x04
++#define PCF50633_ADCC1_AVERAGE_8	0x08
++#define PCF50633_ADCC1_AVERAGE_16	0x0c
++#define PCF50633_ADCC1_MUX_BATSNS_RES	0x00
++#define PCF50633_ADCC1_MUX_BATSNS_SUBTR	0x10
++#define PCF50633_ADCC1_MUX_ADCIN2_RES	0x20
++#define PCF50633_ADCC1_MUX_ADCIN2_SUBTR	0x30
++#define PCF50633_ADCC1_MUX_BATTEMP	0x60
++#define PCF50633_ADCC1_MUX_ADCIN1	0x70
++#define PCF50633_ADCC1_AVERAGE_MASK	0x0c
++#define PCF50633_ADCC1_ADCMUX_MASK	0xf0
++
++#define PCF50633_ADCC2_RATIO_NONE	0x00
++#define PCF50633_ADCC2_RATIO_BATTEMP	0x01
++#define PCF50633_ADCC2_RATIO_ADCIN1	0x02
++#define PCF50633_ADCC2_RATIO_BOTH	0x03
++#define PCF50633_ADCC2_RATIOSETTL_100US 0x04
++
++#define PCF50633_ADCC3_ACCSW_EN		0x01
++#define PCF50633_ADCC3_NTCSW_EN		0x04
++#define PCF50633_ADCC3_RES_DIV_TWO	0x10
++#define PCF50633_ADCC3_RES_DIV_THREE	0x00
++
++#define PCF50633_ADCS3_REF_NTCSW	0x00
++#define PCF50633_ADCS3_REF_ACCSW	0x10
++#define PCF50633_ADCS3_REF_2V0		0x20
++#define PCF50633_ADCS3_REF_VISA		0x30
++#define PCF50633_ADCS3_REF_2V0_2	0x70
++#define PCF50633_ADCS3_ADCRDY		0x80
++
++#define PCF50633_ADCS3_ADCDAT1L_MASK	0x03
++#define PCF50633_ADCS3_ADCDAT2L_MASK	0x0c
++#define PCF50633_ADCS3_ADCDAT2L_SHIFT	2
++#define PCF50633_ASCS3_REF_MASK		0x70
++
++extern int
++pcf50633_adc_async_read(struct pcf50633 *pcf, int mux, int avg,
++		void (*callback)(struct pcf50633 *, void *, int),
++		void *callback_param);
++extern int
++pcf50633_adc_sync_read(struct pcf50633 *pcf, int mux, int avg);
++
++#endif /* __LINUX_PCF50633_ADC_H */
 _
 
-Patches currently in -mm which might be from eparis@parisplace.org are
+Patches currently in -mm which might be from balajirrao@openmoko.org are
 
-scsi-mpt-suppress-debugobjects-warning.patch
+mfd-pcf50633-core-driver.patch
+mfd-pcf50633-adc-driver.patch
+mfd-pcf50633-gpio-support.patch
+rtc-pcf50633-rtc-driver.patch
+power_supply-pcf50633-battery-charger-driver.patch
+input-pcf50633-input-driver.patch
+regulator-pcf50633-pmic-driver.patch
 
