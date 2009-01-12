@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-fixes-and-enhancements-for-the-mmc-spi-driver.patch added to -mm tree
-Date: Mon, 12 Jan 2009 15:46:09 -0800
-Message-ID: <200901122346.n0CNk9gt030161@imap1.linux-foundation.org>
+Subject: + mmc-add-modalias-linkage-for-mmc-sd-devices.patch added to -mm tree
+Date: Mon, 12 Jan 2009 15:55:49 -0800
+Message-ID: <200901122355.n0CNtnOY006059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41107 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753995AbZALXq1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754778AbZALXz4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 18:46:27 -0500
+	Mon, 12 Jan 2009 18:55:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wolfgang.mues@auerswald.de, dbrownell@users.sourceforge.net, drzeus-list@drzeus.cx, matt@console-pimps.org
+Cc: apw@canonical.com, drzeus@drzeus.cx
 
 
 The patch titled
-     mmc: fixes and enhancements for the MMC SPI driver
+     mmc: add MODALIAS linkage for MMC/SD devices
 has been added to the -mm tree.  Its filename is
-     mmc-fixes-and-enhancements-for-the-mmc-spi-driver.patch
+     mmc-add-modalias-linkage-for-mmc-sd-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,166 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: fixes and enhancements for the MMC SPI driver
-From: Wolfgang Muees <wolfgang.mues@auerswald.de>
+Subject: mmc: add MODALIAS linkage for MMC/SD devices
+From: Andy Whitcroft <apw@canonical.com>
 
-I have done some fixes and enhancements to the MMC SPI host controller driver.
-Practical results with SD/SDHC cards from different vendors are much better now.
+Currently we are using an explicit udev rule to trigger loading of the
+mmc-block module when an MMC or SD card is detected:
 
-(akpm: awaiting version 2..)
+    SUBSYSTEM=="mmc", RUN+="/sbin/modprobe -Qba mmc-block"
 
-Signed-off-by: Wolfgang Muees <wolfgang.mues@auerswald.de>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+It makes much more sense for the mmc bus driver and the mmc-block module
+to share MODALIAS information so that they are linked automatically.
+
+Add MODALIAS attributes to the uevents as generated, and add the
+corresponding MODULE_ALIAS marks to the mmc-block module so that it is
+automatically loaded by udev.  I have followed the example set by the SCSI
+subsystem in pushing out numeric typed aliases:
+
+	mmc:t-0xNN
+
+Where NN is the MMC type as defined in include/linux/mmc/card.h.  Numeric
+types are used to allow automatic handling of new unknown types in the
+core.  The matches are open on the right to allow additional fields to be
+added as required in the future.
+
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+CcL Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/mmc_spi.c |   72 +++++++++++++++++++++++++++--------
- 1 file changed, 56 insertions(+), 16 deletions(-)
+ drivers/mmc/card/block.c |    3 +++
+ drivers/mmc/core/bus.c   |    5 +++++
+ include/linux/mmc/card.h |   10 +++++++---
+ 3 files changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mmc/host/mmc_spi.c~mmc-fixes-and-enhancements-for-the-mmc-spi-driver drivers/mmc/host/mmc_spi.c
---- a/drivers/mmc/host/mmc_spi.c~mmc-fixes-and-enhancements-for-the-mmc-spi-driver
-+++ a/drivers/mmc/host/mmc_spi.c
-@@ -25,6 +25,7 @@
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+diff -puN drivers/mmc/card/block.c~mmc-add-modalias-linkage-for-mmc-sd-devices drivers/mmc/card/block.c
+--- a/drivers/mmc/card/block.c~mmc-add-modalias-linkage-for-mmc-sd-devices
++++ a/drivers/mmc/card/block.c
+@@ -41,6 +41,9 @@
+ 
+ #include "queue.h"
+ 
++MODULE_ALIAS_MMC_DEVICE(MMC_TYPE_MMC);
++MODULE_ALIAS_MMC_DEVICE(MMC_TYPE_SD);
++
+ /*
+  * max 8 partitions per card
   */
- #include <linux/hrtimer.h>
-+#include <linux/sched.h>
- #include <linux/delay.h>
- #include <linux/bio.h>
- #include <linux/dma-mapping.h>
-@@ -186,9 +187,9 @@ mmc_spi_readbytes(struct mmc_spi_host *h
- static int
- mmc_spi_skip(struct mmc_spi_host *host, ktime_t timeout, unsigned n, u8 byte)
- {
--	u8		*cp = host->data->status;
--
--	timeout = ktime_add(timeout, ktime_get());
-+	u8 *cp = host->data->status;
-+	unsigned long timeout_jiffies = (unsigned long) ((ktime_to_us(timeout) * HZ) / 1000000);
-+	unsigned long starttime = jiffies;
- 
- 	while (1) {
- 		int		status;
-@@ -203,11 +204,13 @@ mmc_spi_skip(struct mmc_spi_host *host, 
- 				return cp[i];
- 		}
- 
--		/* REVISIT investigate msleep() to avoid busy-wait I/O
--		 * in at least some cases.
--		 */
--		if (ktime_to_ns(ktime_sub(ktime_get(), timeout)) > 0)
-+		if ((jiffies - starttime) > timeout_jiffies)
- 			break;
-+		/* If we need long timeouts, we may release the CPU. */
-+		/* We use jiffies here because we want to have a relation between
-+                   elapsed time and the blocking of the scheduler. */
-+		if ((jiffies - starttime) > 1)
-+			schedule();
+diff -puN drivers/mmc/core/bus.c~mmc-add-modalias-linkage-for-mmc-sd-devices drivers/mmc/core/bus.c
+--- a/drivers/mmc/core/bus.c~mmc-add-modalias-linkage-for-mmc-sd-devices
++++ a/drivers/mmc/core/bus.c
+@@ -84,6 +84,11 @@ mmc_bus_uevent(struct device *dev, struc
  	}
- 	return -ETIMEDOUT;
+ 
+ 	retval = add_uevent_var(env, "MMC_NAME=%s", mmc_card_name(card));
++	if (retval)
++		return retval;
++
++	retval = add_uevent_var(env, "MODALIAS=" MMC_DEVICE_MODALIAS_FMT,
++		card->type);
+ 
+ 	return retval;
  }
-@@ -280,7 +283,9 @@ static int mmc_spi_response_get(struct m
- 		 * It'd probably be better to memcpy() the first chunk and
- 		 * avoid extra i/o calls...
- 		 */
--		for (i = 2; i < 9; i++) {
-+		/* Note we check for more than 8 bytes, because in practice,
-+		   some SD cards are slow... */
-+		for (i = 2; i < 16; i++) {
- 			value = mmc_spi_readbytes(host, 1);
- 			if (value < 0)
- 				goto done;
-@@ -609,6 +614,15 @@ mmc_spi_writeblock(struct mmc_spi_host *
- 	struct spi_device	*spi = host->spi;
- 	int			status, i;
- 	struct scratch		*scratch = host->data;
-+	u32			pattern;
-+
-+	/* The MMC framework does a good job of computing timeouts
-+           according to the mmc/sd standard. However, we found that in
-+           SPI mode, there are many cards which need a longer timeout
-+           of 1s after receiving a long stream of write data. */
-+	struct timeval tv = ktime_to_timeval(timeout);
-+	if (tv.tv_sec == 0)
-+		timeout = ktime_set(1,0);
+diff -puN include/linux/mmc/card.h~mmc-add-modalias-linkage-for-mmc-sd-devices include/linux/mmc/card.h
+--- a/include/linux/mmc/card.h~mmc-add-modalias-linkage-for-mmc-sd-devices
++++ a/include/linux/mmc/card.h
+@@ -86,9 +86,9 @@ struct mmc_card {
+ 	struct device		dev;		/* the device */
+ 	unsigned int		rca;		/* relative card address of device */
+ 	unsigned int		type;		/* card type */
+-#define MMC_TYPE_MMC		0		/* MMC card */
+-#define MMC_TYPE_SD		1		/* SD card */
+-#define MMC_TYPE_SDIO		2		/* SDIO card */
++#define MMC_TYPE_MMC		0x00		/* MMC card */
++#define MMC_TYPE_SD		0x01		/* SD card */
++#define MMC_TYPE_SDIO		0x02		/* SDIO card */
+ 	unsigned int		state;		/* (our) card state */
+ #define MMC_STATE_PRESENT	(1<<0)		/* present in sysfs */
+ #define MMC_STATE_READONLY	(1<<1)		/* card is read-only */
+@@ -150,4 +150,8 @@ struct mmc_driver {
+ extern int mmc_register_driver(struct mmc_driver *);
+ extern void mmc_unregister_driver(struct mmc_driver *);
  
- 	if (host->mmc->use_spi_crc)
- 		scratch->crc_val = cpu_to_be16(
-@@ -636,8 +650,23 @@ mmc_spi_writeblock(struct mmc_spi_host *
- 	 * doesn't necessarily tell whether the write operation succeeded;
- 	 * it just says if the transmission was ok and whether *earlier*
- 	 * writes succeeded; see the standard.
--	 */
--	switch (SPI_MMC_RESPONSE_CODE(scratch->status[0])) {
-+	 *
-+	 * In practice, there are (even modern SDHC-)Cards which need
-+	 * some bits to send the response, so we have to cope with this
-+	 * situation and check the response bit-by-bit. Arggh!!!
-+	 */
-+	pattern  = scratch->status[0] << 24;
-+	pattern |= scratch->status[1] << 16;
-+	pattern |= scratch->status[2] << 8;
-+	pattern |= scratch->status[3];
++#define MODULE_ALIAS_MMC_DEVICE(type) \
++	MODULE_ALIAS("mmc:t-" __stringify(type) "*")
++#define MMC_DEVICE_MODALIAS_FMT "mmc:t-0x%02x"
 +
-+	/* left-adjust to leading 0 bit */
-+	while (pattern & 0x80000000)
-+		pattern <<= 1;
-+	/* right-adjust for pattern matching. Code is in bit 4..0 now. */
-+	pattern >>= 27;
-+
-+	switch (pattern) {
- 	case SPI_RESPONSE_ACCEPTED:
- 		status = 0;
- 		break;
-@@ -668,9 +697,9 @@ mmc_spi_writeblock(struct mmc_spi_host *
- 	/* Return when not busy.  If we didn't collect that status yet,
- 	 * we'll need some more I/O.
- 	 */
--	for (i = 1; i < sizeof(scratch->status); i++) {
--		if (scratch->status[i] != 0)
--			return 0;
-+	for (i = 4; i < sizeof(scratch->status); i++) {
-+		if (scratch->status[i] & 0x01)
-+ 			return 0;
- 	}
- 	return mmc_spi_wait_unbusy(host, timeout);
- }
-@@ -743,7 +772,11 @@ mmc_spi_readblock(struct mmc_spi_host *h
- 		return -EIO;
- 	}
- 
--	if (host->mmc->use_spi_crc) {
-+	/* Omitt the CRC check for CID and CSD reads. There are some SDHC
-+	   cards which don't supply a valid CRC after CID reads.
-+	   Note that the CID has it's own CRC7 value inside the data block.
-+	*/
-+	if (host->mmc->use_spi_crc && (t->len == MMC_SPI_BLOCKSIZE)) {
- 		u16 crc = crc_itu_t(0, t->rx_buf, t->len);
- 
- 		be16_to_cpus(&scratch->crc_val);
-@@ -1206,8 +1239,15 @@ static int mmc_spi_probe(struct spi_devi
- 	 * rising edge ... meaning SPI modes 0 or 3.  So either SPI mode
- 	 * should be legit.  We'll use mode 0 since it seems to be a
- 	 * bit less troublesome on some hardware ... unclear why.
--	 */
--	spi->mode = SPI_MODE_0;
-+	 *
-+	 * If the platform_data specifies mode 3, trust the platform_data
-+	 * and use this one. This allows for platforms which do not support
-+	 * mode 0.
-+	 */
-+	if (spi->mode != SPI_MODE_3)
-+		/* set our default */
-+		spi->mode = SPI_MODE_0;
-+
- 	spi->bits_per_word = 8;
- 
- 	status = spi_setup(spi);
+ #endif
 _
 
-Patches currently in -mm which might be from wolfgang.mues@auerswald.de are
+Patches currently in -mm which might be from apw@canonical.com are
 
-mmc-fixes-and-enhancements-for-the-mmc-spi-driver.patch
+mmc-add-modalias-linkage-for-mmc-sd-devices.patch
 
