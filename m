@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-if-should-not-continue-a-preceeding-brace.patch added to -mm tree
-Date: Tue, 13 Jan 2009 14:24:09 -0800
-Message-ID: <200901132224.n0DMO9k5027717@imap1.linux-foundation.org>
+Subject: + checkpatch-struct-seq_operations-should-normally-be-const.patch added to -mm tree
+Date: Tue, 13 Jan 2009 14:24:11 -0800
+Message-ID: <200901132224.n0DMOBXG027720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35185 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755410AbZAMWZA (ORCPT
+	by vger.kernel.org with ESMTP id S1755460AbZAMWZL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 17:25:00 -0500
+	Tue, 13 Jan 2009 17:25:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com
+Cc: apw@canonical.com, mingo@elte.hu
 
 
 The patch titled
-     checkpatch: if should not continue a preceeding brace
+     checkpatch: struct seq_operations should normally be const
 has been added to the -mm tree.  Its filename is
-     checkpatch-if-should-not-continue-a-preceeding-brace.patch
+     checkpatch-struct-seq_operations-should-normally-be-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: if should not continue a preceeding brace
+Subject: checkpatch: struct seq_operations should normally be const
 From: Andy Whitcroft <apw@canonical.com>
 
-We should not be continuing a braced section with an if, for example:
+In the general use case struct seq_operations should be a const object. 
+Check for and warn where it is not.
 
-	if (...) {
-	} if (...) {
-	}
-
-Detect this and suggest adding a newline.
-
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++++
- 1 file changed, 5 insertions(+)
+ scripts/checkpatch.pl |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-if-should-not-continue-a-preceeding-brace scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-if-should-not-continue-a-preceeding-brace
+diff -puN scripts/checkpatch.pl~checkpatch-struct-seq_operations-should-normally-be-const scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-struct-seq_operations-should-normally-be-const
 +++ a/scripts/checkpatch.pl
-@@ -2108,6 +2108,11 @@ sub process {
- 				ERROR("trailing statements should be on next line\n" . $herecurr);
- 			}
+@@ -2527,9 +2527,10 @@ sub process {
+ 			WARN("please use device_initcall() instead of __initcall()\n" . $herecurr);
  		}
-+# if should not continue a brace
-+		if ($line =~ /}\s*if\b/) {
-+			ERROR("trailing statements should be on next line\n" .
+ # check for struct file_operations, ensure they are const.
+-		if ($line =~ /\bstruct\s+file_operations\b/ &&
+-		    $line !~ /\bconst\b/) {
+-			WARN("struct file_operations should normally be const\n" . $herecurr);
++		if ($line !~ /\bconst\b/ &&
++		    $line =~ /\bstruct\s+(file_operations|seq_operations)\b/) {
++			WARN("struct $1 should normally be const\n" .
 +				$herecurr);
-+		}
- # case and default should not have general statements after them
- 		if ($line =~ /^.\s*(?:case\s*.*|default\s*):/g &&
- 		    $line !~ /\G(?:
+ 		}
+ 
+ # use of NR_CPUS is usually wrong
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
