@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmap-remove-needless-lock-and-list-in-vmap.patch added to -mm tree
-Date: Mon, 12 Jan 2009 16:42:59 -0800
-Message-ID: <200901130042.n0D0gxgb014041@imap1.linux-foundation.org>
+Subject: + loop-add-ioctl-to-resize-a-loop-device-security-check-for-loop_set_capacity.patch added to -mm tree
+Date: Mon, 12 Jan 2009 16:45:52 -0800
+Message-ID: <200901130045.n0D0jqxR016553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752479AbZAMAnI (ORCPT
+	by vger.kernel.org with ESMTP id S1752246AbZAMApy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 19:43:08 -0500
+	Mon, 12 Jan 2009 19:45:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, npiggin@suse.de
+Cc: hooanon05@yahoo.co.jp
 
 
 The patch titled
-     vmap: remove needless lock and list in vmap
+     security check for LOOP_SET_CAPACITY
 has been added to the -mm tree.  Its filename is
-     vmap-remove-needless-lock-and-list-in-vmap.patch
+     loop-add-ioctl-to-resize-a-loop-device-security-check-for-loop_set_capacity.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmap: remove needless lock and list in vmap
-From: MinChan Kim <minchan.kim@gmail.com>
+Subject: security check for LOOP_SET_CAPACITY
+From: "J. R. Okajima" <hooanon05@yahoo.co.jp>
 
-vmap's dirty_list is unused.  It's for optimizing flushing.  but Nick
-didn't write the code yet.  so, we don't need it until time as it is
-needed.
+Respoding the comment from Linus Torvalds, LOOP_SET_CAPACITY now
+requires the device file to be opened for write or CAP_SYS_ADMIN.
 
-This patch removes vmap_block's dirty_list and codes related to it.
-
-Signed-off-by: MinChan Kim <minchan.kim@gmail.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: J. R. Okajima <hooanon05@yahoo.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
+ drivers/block/loop.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~vmap-remove-needless-lock-and-list-in-vmap mm/vmalloc.c
---- a/mm/vmalloc.c~vmap-remove-needless-lock-and-list-in-vmap
-+++ a/mm/vmalloc.c
-@@ -653,10 +653,7 @@ struct vmap_block {
- 	DECLARE_BITMAP(alloc_map, VMAP_BBMAP_BITS);
- 	DECLARE_BITMAP(dirty_map, VMAP_BBMAP_BITS);
- 	union {
--		struct {
--			struct list_head free_list;
--			struct list_head dirty_list;
--		};
-+		struct list_head free_list;
- 		struct rcu_head rcu_head;
- 	};
- };
-@@ -723,7 +720,6 @@ static struct vmap_block *new_vmap_block
- 	bitmap_zero(vb->alloc_map, VMAP_BBMAP_BITS);
- 	bitmap_zero(vb->dirty_map, VMAP_BBMAP_BITS);
- 	INIT_LIST_HEAD(&vb->free_list);
--	INIT_LIST_HEAD(&vb->dirty_list);
- 
- 	vb_idx = addr_to_vb_idx(va->va_start);
- 	spin_lock(&vmap_block_tree_lock);
-@@ -754,12 +750,7 @@ static void free_vmap_block(struct vmap_
- 	struct vmap_block *tmp;
- 	unsigned long vb_idx;
- 
--	spin_lock(&vb->vbq->lock);
--	if (!list_empty(&vb->free_list))
--		list_del(&vb->free_list);
--	if (!list_empty(&vb->dirty_list))
--		list_del(&vb->dirty_list);
--	spin_unlock(&vb->vbq->lock);
-+	BUG_ON(!list_empty(&vb->free_list));
- 
- 	vb_idx = addr_to_vb_idx(vb->va->va_start);
- 	spin_lock(&vmap_block_tree_lock);
-@@ -844,11 +835,7 @@ static void vb_free(const void *addr, un
- 
- 	spin_lock(&vb->lock);
- 	bitmap_allocate_region(vb->dirty_map, offset >> PAGE_SHIFT, order);
--	if (!vb->dirty) {
--		spin_lock(&vb->vbq->lock);
--		list_add(&vb->dirty_list, &vb->vbq->dirty);
--		spin_unlock(&vb->vbq->lock);
--	}
-+
- 	vb->dirty += 1UL << order;
- 	if (vb->dirty == VMAP_BBMAP_BITS) {
- 		BUG_ON(vb->free || !list_empty(&vb->free_list));
+diff -puN drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device-security-check-for-loop_set_capacity drivers/block/loop.c
+--- a/drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device-security-check-for-loop_set_capacity
++++ a/drivers/block/loop.c
+@@ -1210,7 +1210,9 @@ static int lo_ioctl(struct block_device 
+ 		err = loop_get_status64(lo, (struct loop_info64 __user *) arg);
+ 		break;
+ 	case LOOP_SET_CAPACITY:
+-		err = loop_set_capacity(lo, bdev);
++		err = -EPERM;
++		if ((mode & FMODE_WRITE) || capable(CAP_SYS_ADMIN))
++			err = loop_set_capacity(lo, bdev);
+ 		break;
+ 	default:
+ 		err = lo->ioctl ? lo->ioctl(lo, cmd, arg) : -EINVAL;
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from hooanon05@yahoo.co.jp are
 
-vmap-remove-needless-lock-and-list-in-vmap.patch
+loop-add-ioctl-to-resize-a-loop-device.patch
+loop-add-ioctl-to-resize-a-loop-device-security-check-for-loop_set_capacity.patch
+loop-add-ioctl-to-resize-a-loop-device-loop_set_capacity-sector_t-may-be-narrow-for-bit-shfit.patch
 
