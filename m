@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + idr-fix-wrong-kernel-doc.patch added to -mm tree
-Date: Tue, 13 Jan 2009 00:26:22 -0800
-Message-ID: <200901130826.n0D8QMYp021752@imap1.linux-foundation.org>
+Subject: + documentation-accounting-getdelaysc-fix-endless-loop.patch added to -mm tree
+Date: Tue, 13 Jan 2009 00:28:30 -0800
+Message-ID: <200901130828.n0D8SUPG023630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755281AbZAMI00 (ORCPT
+	by vger.kernel.org with ESMTP id S1755285AbZAMI2f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 03:26:26 -0500
+	Tue, 13 Jan 2009 03:28:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com
+Cc: meissner@suse.de
 
 
 The patch titled
-     idr: fix wrong kernel-doc
+     Documentation/accounting/getdelays.c: fix endless loop
 has been added to the -mm tree.  Its filename is
-     idr-fix-wrong-kernel-doc.patch
+     documentation-accounting-getdelaysc-fix-endless-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: fix wrong kernel-doc
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: Documentation/accounting/getdelays.c: fix endless loop
+From: Marcus Meissner <meissner@suse.de>
 
-idr_get_new_above() and ida_get_new_above() return an id in the range of
-@staring_id ... 0x7fffffff, not 0 ... 0x7fffffff.
+When no option is passed to getdelays it just hangs, waiting
+for a reply which will never come.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+This patch prints usage() when no output marker is specified.
+
+Signed-off-by: Marcus Meissner <meissner@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/accounting/getdelays.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN lib/idr.c~idr-fix-wrong-kernel-doc lib/idr.c
---- a/lib/idr.c~idr-fix-wrong-kernel-doc
-+++ a/lib/idr.c
-@@ -292,7 +292,7 @@ static int idr_get_new_above_int(struct 
-  * and go back to the idr_pre_get() call.  If the idr is full, it will
-  * return -ENOSPC.
-  *
-- * @id returns a value in the range 0 ... 0x7fffffff
-+ * @id returns a value in the range @starting_id ... 0x7fffffff
-  */
- int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id)
- {
-@@ -723,7 +723,7 @@ EXPORT_SYMBOL(ida_pre_get);
-  * and go back to the ida_pre_get() call.  If the ida is full, it will
-  * return -ENOSPC.
-  *
-- * @p_id returns a value in the range 0 ... 0x7fffffff.
-+ * @p_id returns a value in the range @starting_id ... 0x7fffffff.
-  */
- int ida_get_new_above(struct ida *ida, int starting_id, int *p_id)
- {
+diff -puN Documentation/accounting/getdelays.c~documentation-accounting-getdelaysc-fix-endless-loop Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~documentation-accounting-getdelaysc-fix-endless-loop
++++ a/Documentation/accounting/getdelays.c
+@@ -392,6 +392,10 @@ int main(int argc, char *argv[])
+ 			goto err;
+ 		}
+ 	}
++	if (!maskset && !tid && !containerset) {
++		usage();
++		goto err;
++	}
+ 
+ 	do {
+ 		int i;
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from meissner@suse.de are
 
-cgroups-clean-up-kconfig.patch
-cgroups-consolidate-cgroup-documents.patch
-idr-fix-wrong-kernel-doc.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+documentation-accounting-getdelaysc-fix-endless-loop.patch
 
