@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + synclink_gt-enable-ri-interrupt.patch added to -mm tree
-Date: Tue, 13 Jan 2009 00:11:38 -0800
-Message-ID: <200901130811.n0D8BcLr009207@imap1.linux-foundation.org>
+Subject: + ufs-ensure-fast-symlinks-are-nul-terminated.patch added to -mm tree
+Date: Tue, 13 Jan 2009 00:13:51 -0800
+Message-ID: <200901130813.n0D8DpkV011036@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55132 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751821AbZAMILr (ORCPT
+	by vger.kernel.org with ESMTP id S1758854AbZAMIOV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 03:11:47 -0500
+	Tue, 13 Jan 2009 03:14:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulkf@microgate.com
+Cc: duaneg@dghda.com
 
 
 The patch titled
-     synclink_gt: enable RI interrupt
+     ufs: ensure fast symlinks are NUL-terminated
 has been added to the -mm tree.  Its filename is
-     synclink_gt-enable-ri-interrupt.patch
+     ufs-ensure-fast-symlinks-are-nul-terminated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink_gt: enable RI interrupt
-From: Paul Fulghum <paulkf@microgate.com>
+Subject: ufs: ensure fast symlinks are NUL-terminated
+From: Duane Griffin <duaneg@dghda.com>
 
-- Enable ring indicator interrupt.
+Ensure fast symlink targets are NUL-terminated, even if corrupted
+on-disk.
 
-- Remove vendor specific CVS version tags.
-
-Signed-off-by: Paul Fulghum <paulkf@microgate.com>
+Signed-off-by: Duane Griffin <duaneg@dghda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ fs/ufs/inode.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-enable-ri-interrupt drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-enable-ri-interrupt
-+++ a/drivers/char/synclink_gt.c
-@@ -1,6 +1,4 @@
- /*
-- * $Id: synclink_gt.c,v 4.50 2007/07/25 19:29:25 paulkf Exp $
-- *
-  * Device driver for Microgate SyncLink GT serial adapters.
-  *
-  * written by Paul Fulghum for Microgate Corporation
-@@ -91,7 +89,6 @@
-  * module identification
-  */
- static char *driver_name     = "SyncLink GT";
--static char *driver_version  = "$Revision: 4.50 $";
- static char *tty_driver_name = "synclink_gt";
- static char *tty_dev_prefix  = "ttySLG";
- MODULE_LICENSE("GPL");
-@@ -1309,7 +1306,7 @@ static int read_proc(char *page, char **
- 	off_t	begin = 0;
- 	struct slgt_info *info;
- 
--	len += sprintf(page, "synclink_gt driver:%s\n", driver_version);
-+	len += sprintf(page, "synclink_gt driver\n");
- 
- 	info = slgt_device_list;
- 	while( info ) {
-@@ -2441,7 +2438,7 @@ static void program_hw(struct slgt_info 
- 	info->ri_chkcount = 0;
- 	info->dsr_chkcount = 0;
- 
--	slgt_irq_on(info, IRQ_DCD | IRQ_CTS | IRQ_DSR);
-+	slgt_irq_on(info, IRQ_DCD | IRQ_CTS | IRQ_DSR | IRQ_RI);
- 	get_signals(info);
- 
- 	if (info->netcount ||
-@@ -3576,7 +3573,7 @@ static void slgt_cleanup(void)
- 	struct slgt_info *info;
- 	struct slgt_info *tmp;
- 
--	printk("unload %s %s\n", driver_name, driver_version);
-+	printk(KERN_INFO "unload %s\n", driver_name);
- 
- 	if (serial_driver) {
- 		for (info=slgt_device_list ; info != NULL ; info=info->next_device)
-@@ -3619,7 +3616,7 @@ static int __init slgt_init(void)
- {
- 	int rc;
- 
-- 	printk("%s %s\n", driver_name, driver_version);
-+	printk(KERN_INFO "%s\n", driver_name);
- 
- 	serial_driver = alloc_tty_driver(MAX_DEVICES);
- 	if (!serial_driver) {
-@@ -3650,9 +3647,8 @@ static int __init slgt_init(void)
- 		goto error;
+diff -puN fs/ufs/inode.c~ufs-ensure-fast-symlinks-are-nul-terminated fs/ufs/inode.c
+--- a/fs/ufs/inode.c~ufs-ensure-fast-symlinks-are-nul-terminated
++++ a/fs/ufs/inode.c
+@@ -650,7 +650,8 @@ static int ufs1_read_inode(struct inode 
+ 		       sizeof(ufs_inode->ui_u2.ui_addr));
+ 	} else {
+ 		memcpy(ufsi->i_u1.i_symlink, ufs_inode->ui_u2.ui_symlink,
+-		       sizeof(ufs_inode->ui_u2.ui_symlink));
++		       sizeof(ufs_inode->ui_u2.ui_symlink) - 1);
++		ufsi->i_u1.i_symlink[sizeof(ufs_inode->ui_u2.ui_symlink) - 1] = 0;
  	}
- 
-- 	printk("%s %s, tty major#%d\n",
--		driver_name, driver_version,
--		serial_driver->major);
-+	printk(KERN_INFO "%s, tty major#%d\n",
-+	       driver_name, serial_driver->major);
- 
- 	slgt_device_count = 0;
- 	if ((rc = pci_register_driver(&pci_driver)) < 0) {
+ 	return 0;
+ }
+@@ -698,7 +699,8 @@ static int ufs2_read_inode(struct inode 
+ 		       sizeof(ufs2_inode->ui_u2.ui_addr));
+ 	} else {
+ 		memcpy(ufsi->i_u1.i_symlink, ufs2_inode->ui_u2.ui_symlink,
+-		       sizeof(ufs2_inode->ui_u2.ui_symlink));
++		       sizeof(ufs2_inode->ui_u2.ui_symlink) - 1);
++		ufsi->i_u1.i_symlink[sizeof(ufs2_inode->ui_u2.ui_symlink) - 1] = 0;
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from paulkf@microgate.com are
+Patches currently in -mm which might be from duaneg@dghda.com are
 
-synclink_gt-enable-ri-interrupt.patch
+ext4-dont-inherit-inappropriate-inode-flags-from-parent.patch
+ext4-tighten-restrictions-on-inode-flags.patch
+ufs-validate-maximum-fast-symlink-size-from-superblock.patch
+ufs-dont-truncate-longer-ufs2-fast-symlinks.patch
+ufs-ensure-fast-symlinks-are-nul-terminated.patch
+ufs-copy-symlink-data-into-the-correct-union-member.patch
 
