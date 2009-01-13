@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-cumulative-style-fixes-fix.patch added to -mm tree
-Date: Mon, 12 Jan 2009 19:15:39 -0800
-Message-ID: <200901130315.n0D3FdSW015473@imap1.linux-foundation.org>
+Subject: + bin_elf_fdpic-check-the-return-value-of-clear_user.patch added to -mm tree
+Date: Mon, 12 Jan 2009 19:44:50 -0800
+Message-ID: <200901130344.n0D3ioO9008129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33171 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46595 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757634AbZAMDRp (ORCPT
+	by vger.kernel.org with ESMTP id S1751578AbZAMDpy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 22:17:45 -0500
+	Mon, 12 Jan 2009 22:45:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, andrew@sanpeople.com, ben@simtec.co.uk, dbrownell@users.sourceforge.net, dsaxena@plexity.net, gl@dsa-ac.de, iwamatsu@nigauri.org, kyle@mcmartin.ca, lethal@linux-sh.org, pmironchik@optifacio.net, raph@raphnet.net, rongkai.zhan@windriver.com, rpurdie@rpsys.net, scottwood@freescale.com, yoichi_yuasa@tripeaks.co.jp
+Cc: vapier.adi@gmail.com, cooloney@kernel.org, dhowells@redhat.com, gerg@snapgear.com
 
 
 The patch titled
-     rtc-cumulative-style-fixes-fix
+     bin_elf_fdpic: check the return value of clear_user
 has been added to the -mm tree.  Its filename is
-     rtc-cumulative-style-fixes-fix.patch
+     bin_elf_fdpic-check-the-return-value-of-clear_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-cumulative-style-fixes-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bin_elf_fdpic: check the return value of clear_user
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Andrew Victor <andrew@sanpeople.com>
-Cc: Ben Dooks <ben@simtec.co.uk>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Deepak Saxena <dsaxena@plexity.net>
-Cc: G. Liakhovetski <gl@dsa-ac.de>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Mark Zhan <rongkai.zhan@windriver.com>
-Cc: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Pavel Mironchik <pmironchik@optifacio.net>
-Cc: Raphael Assenat <raph@raphnet.net>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Scott Wood <scottwood@freescale.com>
-Cc: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1302.c |    2 ++
- drivers/rtc/rtc-parisc.c |    2 ++
- drivers/rtc/rtc-sh.c     |    2 ++
- 3 files changed, 6 insertions(+)
+ fs/binfmt_elf_fdpic.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1302.c~rtc-cumulative-style-fixes-fix drivers/rtc/rtc-ds1302.c
---- a/drivers/rtc/rtc-ds1302.c~rtc-cumulative-style-fixes-fix
-+++ a/drivers/rtc/rtc-ds1302.c
-@@ -18,6 +18,8 @@
- #include <linux/io.h>
- #include <linux/bcd.h>
+diff -puN fs/binfmt_elf_fdpic.c~bin_elf_fdpic-check-the-return-value-of-clear_user fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~bin_elf_fdpic-check-the-return-value-of-clear_user
++++ a/fs/binfmt_elf_fdpic.c
+@@ -972,9 +972,12 @@ static int elf_fdpic_map_file_constdisp_
+ 			params->elfhdr_addr = seg->addr;
  
-+#include <asm/rtc.h>
-+
- #define DRV_NAME	"rtc-ds1302"
- #define DRV_VERSION	"0.1.0"
+ 		/* clear any space allocated but not loaded */
+-		if (phdr->p_filesz < phdr->p_memsz)
+-			clear_user((void *) (seg->addr + phdr->p_filesz),
+-				   phdr->p_memsz - phdr->p_filesz);
++		if (phdr->p_filesz < phdr->p_memsz) {
++			ret = clear_user((void *) (seg->addr + phdr->p_filesz),
++					 phdr->p_memsz - phdr->p_filesz);
++			if (ret)
++				return ret;
++		}
  
-diff -puN drivers/rtc/rtc-parisc.c~rtc-cumulative-style-fixes-fix drivers/rtc/rtc-parisc.c
---- a/drivers/rtc/rtc-parisc.c~rtc-cumulative-style-fixes-fix
-+++ a/drivers/rtc/rtc-parisc.c
-@@ -9,6 +9,8 @@
- #include <linux/platform_device.h>
- #include <linux/rtc.h>
+ 		if (mm) {
+ 			if (phdr->p_flags & PF_X) {
+@@ -1014,7 +1017,7 @@ static int elf_fdpic_map_file_by_direct_
+ 	struct elf32_fdpic_loadseg *seg;
+ 	struct elf32_phdr *phdr;
+ 	unsigned long load_addr, delta_vaddr;
+-	int loop, dvset;
++	int loop, dvset, ret;
  
-+#include <asm/rtc.h>
-+
- /* as simple as can be, and no simpler. */
- struct parisc_rtc {
- 	struct rtc_device *rtc;
-diff -puN drivers/rtc/rtc-sh.c~rtc-cumulative-style-fixes-fix drivers/rtc/rtc-sh.c
---- a/drivers/rtc/rtc-sh.c~rtc-cumulative-style-fixes-fix
-+++ a/drivers/rtc/rtc-sh.c
-@@ -26,6 +26,8 @@
- #include <linux/io.h>
- #include <linux/log2.h>
+ 	load_addr = params->load_addr;
+ 	delta_vaddr = 0;
+@@ -1114,7 +1117,9 @@ static int elf_fdpic_map_file_by_direct_
+ 		 * PT_LOAD */
+ 		if (prot & PROT_WRITE && disp > 0) {
+ 			kdebug("clear[%d] ad=%lx sz=%lx", loop, maddr, disp);
+-			clear_user((void __user *) maddr, disp);
++			ret = clear_user((void __user *) maddr, disp);
++			if (ret)
++				return ret;
+ 			maddr += disp;
+ 		}
  
-+#include <asm/rtc.h>
-+
- #define DRV_NAME	"sh-rtc"
- #define DRV_VERSION	"0.2.0"
+@@ -1149,15 +1154,19 @@ static int elf_fdpic_map_file_by_direct_
+ 		if (prot & PROT_WRITE && excess1 > 0) {
+ 			kdebug("clear[%d] ad=%lx sz=%lx",
+ 			       loop, maddr + phdr->p_filesz, excess1);
+-			clear_user((void __user *) maddr + phdr->p_filesz,
+-				   excess1);
++			ret = clear_user((void __user *) maddr + phdr->p_filesz,
++					 excess1);
++			if (ret)
++				return ret;
+ 		}
+ 
+ #else
+ 		if (excess > 0) {
+ 			kdebug("clear[%d] ad=%lx sz=%lx",
+ 			       loop, maddr + phdr->p_filesz, excess);
+-			clear_user((void *) maddr + phdr->p_filesz, excess);
++			ret = clear_user((void *) maddr + phdr->p_filesz, excess);
++			if (ret)
++				return ret;
+ 		}
+ #endif
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
-i-need-old-gcc.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-next-remove-localversion.patch
-clocksource-pass-clocksource-to-read-callback.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-smp_call_function_single-be-slightly-less-stupid.patch
-kernel-trace-ring_bufferc-reduce-inlining.patch
-kernel-trace-ring_bufferc-use-div_round_up.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-rtc-cumulative-style-fixes-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
 
