@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcih-fix-struct-pci_platform_pm_ops-kernel-doc.patch added to -mm tree
-Date: Tue, 13 Jan 2009 00:42:03 -0800
-Message-ID: <200901130842.n0D8g3L7002716@imap1.linux-foundation.org>
+Subject: + edac-add-more-verbose-debug-info.patch added to -mm tree
+Date: Tue, 13 Jan 2009 00:43:24 -0800
+Message-ID: <200901130843.n0D8hO1s003835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37838 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55352 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753608AbZAMImi (ORCPT
+	by vger.kernel.org with ESMTP id S1759479AbZAMIn6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 03:42:38 -0500
+	Tue, 13 Jan 2009 03:43:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, jbarnes@virtuousgeek.org
+Cc: h.mitake@gmail.com, dougthompson@xmission.com
 
 
 The patch titled
-     pci.h: fix struct pci_platform_pm_ops kernel-doc
+     edac: add more verbose debug info
 has been added to the -mm tree.  Its filename is
-     pcih-fix-struct-pci_platform_pm_ops-kernel-doc.patch
+     edac-add-more-verbose-debug-info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci.h: fix struct pci_platform_pm_ops kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: edac: add more verbose debug info
+From: Hitoshi Mitake <h.mitake@gmail.com>
 
-Fix struct pci_platform_pm_ops kernel-doc notation:
+A patch for making a debugging information more verbose for use in
+development debugging.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+By enabling the new option "More verbose debugging", information about
+source file and line number will be added to debugging message.
+
+This is sample output,
+
+EDAC MC0: Giving out device to 'e7xxx_edac' 'E7205': DEV 0000:00:00.0
+EDAC DEBUG: in drivers/edac/edac_pci.c, line at 48: edac_pci_alloc_ctl_info()
+EDAC DEBUG: in drivers/edac/edac_pci.c, line at 334: edac_pci_add_device()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Signed-off-by: Hitoshi Mitake <h.mitake@gmail.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.h |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/edac/Kconfig     |    8 ++++++++
+ drivers/edac/edac_core.h |   15 ++++++++++++++-
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/pci.h~pcih-fix-struct-pci_platform_pm_ops-kernel-doc drivers/pci/pci.h
---- a/drivers/pci/pci.h~pcih-fix-struct-pci_platform_pm_ops-kernel-doc
-+++ a/drivers/pci/pci.h
-@@ -16,21 +16,21 @@ extern int pci_mmap_fits(struct pci_dev 
- #endif
+diff -puN drivers/edac/Kconfig~edac-add-more-verbose-debug-info drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~edac-add-more-verbose-debug-info
++++ a/drivers/edac/Kconfig
+@@ -40,6 +40,14 @@ config EDAC_DEBUG
+ 	  there're four debug levels (x=0,1,2,3 from low to high).
+ 	  Usually you should select 'N'.
  
- /**
-- * Firmware PM callbacks
-+ * struct pci_platform_pm_ops - Firmware PM callbacks
-  *
-- * @is_manageable - returns 'true' if given device is power manageable by the
-- *                  platform firmware
-+ * @is_manageable: returns 'true' if given device is power manageable by the
-+ *                 platform firmware
-  *
-- * @set_state - invokes the platform firmware to set the device's power state
-+ * @set_state: invokes the platform firmware to set the device's power state
-  *
-- * @choose_state - returns PCI power state of given device preferred by the
-- *                 platform; to be used during system-wide transitions from a
-- *                 sleeping state to the working state and vice versa
-+ * @choose_state: returns PCI power state of given device preferred by the
-+ *                platform; to be used during system-wide transitions from a
-+ *                sleeping state to the working state and vice versa
-  *
-- * @can_wakeup - returns 'true' if given device is capable of waking up the
-- *               system from a sleeping state
-+ * @can_wakeup: returns 'true' if given device is capable of waking up the
-+ *              system from a sleeping state
-  *
-- * @sleep_wake - enables/disables the system wake up capability of given device
-+ * @sleep_wake: enables/disables the system wake up capability of given device
-  *
-  * If given platform is generally capable of power managing PCI devices, all of
-  * these callbacks are mandatory.
++config EDAC_DEBUG_VERBOSE
++	bool "More verbose debugging"
++	depends on EDAC_DEBUG
++	help
++	  This option makes debugging information more verbose.
++	  Source file name and line number where debugging message
++	  printed will be added to debugging message.
++
+ config EDAC_MM_EDAC
+ 	tristate "Main Memory EDAC (Error Detection And Correction) reporting"
+ 	default y
+diff -puN drivers/edac/edac_core.h~edac-add-more-verbose-debug-info drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~edac-add-more-verbose-debug-info
++++ a/drivers/edac/edac_core.h
+@@ -49,6 +49,10 @@
+ #define edac_printk(level, prefix, fmt, arg...) \
+ 	printk(level "EDAC " prefix ": " fmt, ##arg)
+ 
++#define edac_printk_verbose(level, prefix, fmt, arg...) \
++	printk(level "EDAC " prefix ": " "in %s, line at %d: " fmt,	\
++	       __FILE__, __LINE__, ##arg)
++
+ #define edac_mc_printk(mci, level, fmt, arg...) \
+ 	printk(level "EDAC MC%d: " fmt, mci->mc_idx, ##arg)
+ 
+@@ -71,11 +75,20 @@
+ #ifdef CONFIG_EDAC_DEBUG
+ extern int edac_debug_level;
+ 
++#ifndef CONFIG_EDAC_DEBUG_VERBOSE
+ #define edac_debug_printk(level, fmt, arg...)                            \
+ 	do {                                                             \
+ 		if (level <= edac_debug_level)                           \
+ 			edac_printk(KERN_DEBUG, EDAC_DEBUG, fmt, ##arg); \
+-	} while(0)
++	} while (0)
++#else  /* CONFIG_EDAC_DEBUG_VERBOSE */
++#define edac_debug_printk(level, fmt, arg...)                            \
++	do {                                                             \
++		if (level <= edac_debug_level)                           \
++			edac_printk_verbose(KERN_DEBUG, EDAC_DEBUG, fmt, \
++					    ##arg);			\
++	} while (0)
++#endif
+ 
+ #define debugf0( ... ) edac_debug_printk(0, __VA_ARGS__ )
+ #define debugf1( ... ) edac_debug_printk(1, __VA_ARGS__ )
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from h.mitake@gmail.com are
 
-update-of-documentation-vmtxt-and-proctxt.patch
-linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-kbuild-fix-kbuildtxt-typos.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-proc-move-inode-comment-text-file-to-source-file.patch
-pci-fix-missing-kernel-doc-and-typos.patch
-pcih-fix-struct-pci_platform_pm_ops-kernel-doc.patch
-esp-fix-section-mismatch-warning.patch
-libfc-uses-select-crc32.patch
-sysrq-documentation-remove-the-redundant-updated-date.patch
-sysrq-documentation-document-why-the-command-header-only-is-shown.patch
-sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg.patch
-jbd-fix-missing-kernel-doc.patch
-resources-fix-parameter-name-and-kernel-doc.patch
-max3100-spi-uart-driver.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
+edac-add-more-verbose-debug-info.patch
 
