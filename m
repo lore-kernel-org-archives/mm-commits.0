@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sys_waitid-return-efault-for-null.patch added to -mm tree
-Date: Tue, 13 Jan 2009 15:25:57 -0800
-Message-ID: <200901132325.n0DNPvE8016165@imap1.linux-foundation.org>
+Subject: + oom_kill-dont-call-for-int_sqrt0.patch added to -mm tree
+Date: Tue, 13 Jan 2009 15:31:17 -0800
+Message-ID: <200901132331.n0DNVHfg020799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34371 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756580AbZAMX1j (ORCPT
+	by vger.kernel.org with ESMTP id S1752835AbZAMXcC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 18:27:39 -0500
+	Tue, 13 Jan 2009 18:32:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, drepper@redhat.com, mtk.manpages@gmail.com, stable@kernel.org, vegard.nossum@gmail.com
+Cc: gorcunov@gmail.com, cl@linux-foundation.org, gorcunov@openvz.org, penberg@cs.helsinki.fi, rientjes@google.com
 
 
 The patch titled
-     sys_waitid: return -EFAULT for NULL
+     oom_kill: don't call for int_sqrt(0)
 has been added to the -mm tree.  Its filename is
-     sys_waitid-return-efault-for-null.patch
+     oom_kill-dont-call-for-int_sqrt0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_waitid: return -EFAULT for NULL
-From: Roland McGrath <roland@redhat.com>
+Subject: oom_kill: don't call for int_sqrt(0)
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-It's always been invalid to call waitid() with a NULL pointer.  It was an
-oversight that it was allowed (and acts like a wait4() call instead).
+There is no need to call for int_sqrt if argument is 0.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: <stable@kernel.org>		[2.6.everything :(]
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/oom_kill.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN kernel/exit.c~sys_waitid-return-efault-for-null kernel/exit.c
---- a/kernel/exit.c~sys_waitid-return-efault-for-null
-+++ a/kernel/exit.c
-@@ -1757,6 +1757,8 @@ asmlinkage long sys_waitid(int which, pi
- 	enum pid_type type;
- 	long ret;
+diff -puN mm/oom_kill.c~oom_kill-dont-call-for-int_sqrt0 mm/oom_kill.c
+--- a/mm/oom_kill.c~oom_kill-dont-call-for-int_sqrt0
++++ a/mm/oom_kill.c
+@@ -55,7 +55,7 @@ static DEFINE_SPINLOCK(zone_scan_lock);
  
-+	if (unlikely(!infop))
-+		return -EFAULT;
- 	if (options & ~(WNOHANG|WNOWAIT|WEXITED|WSTOPPED|WCONTINUED))
- 		return -EINVAL;
- 	if (!(options & (WEXITED|WSTOPPED|WCONTINUED)))
+ unsigned long badness(struct task_struct *p, unsigned long uptime)
+ {
+-	unsigned long points, cpu_time, run_time, s;
++	unsigned long points, cpu_time, run_time;
+ 	struct mm_struct *mm;
+ 	struct task_struct *child;
+ 
+@@ -110,12 +110,10 @@ unsigned long badness(struct task_struct
+ 	else
+ 		run_time = 0;
+ 
+-	s = int_sqrt(cpu_time);
+-	if (s)
+-		points /= s;
+-	s = int_sqrt(int_sqrt(run_time));
+-	if (s)
+-		points /= s;
++	if (cpu_time)
++		points /= int_sqrt(cpu_time);
++	if (run_time)
++		points /= int_sqrt(int_sqrt(run_time));
+ 
+ 	/*
+ 	 * Niced processes are most likely less important, so double
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-sys_waitid-return-efault-for-null.patch
+mm-mminit_validate_memmodel_limits-get-rid-of-redundant-test.patch
+oom_kill-dont-call-for-int_sqrt0.patch
 
