@@ -1,166 +1,256 @@
 From: akpm@linux-foundation.org
-Subject: [merged] smp_call_function_single-be-slightly-less-stupid.patch removed from -mm tree
-Date: Tue, 13 Jan 2009 12:13:30 -0800
-Message-ID: <200901132013.n0DKDUcL012557@imap1.linux-foundation.org>
+Subject: [merged] mfd-pcf50633-gpio-support.patch removed from -mm tree
+Date: Tue, 13 Jan 2009 12:13:11 -0800
+Message-ID: <200901132013.n0DKDBPC012338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50851 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36339 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754952AbZAMUNt (ORCPT
+	by vger.kernel.org with ESMTP id S1753945AbZAMUNa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 15:13:49 -0500
+	Tue, 13 Jan 2009 15:13:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: balajirrao@openmoko.org, andy@openmoko.com, david-b@pacbell.net, sameo@openedhand.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smp_call_function_single(): be slightly less stupid
+     mfd: PCF50633 gpio support
 has been removed from the -mm tree.  Its filename was
-     smp_call_function_single-be-slightly-less-stupid.patch
+     mfd-pcf50633-gpio-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smp_call_function_single(): be slightly less stupid
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mfd: PCF50633 gpio support
+From: Balaji Rao <balajirrao@openmoko.org>
 
-If you do
+What the PCF05633 calls as a 'GPIO' is much more than the GPIO in the linux
+sense and there are only 4 of them - which means, the gpiolib is not used
+here.
 
-	smp_call_function_single(expression-with-side-effects, ...)
-
-then expression-with-side-effects never gets evaluated on UP builds.
-
-As always, implementing it in C is the correct thing to do.
-
-While we're there, uninline it for size and possible header dependency
-reasons.
-
-And create a new kernel/up.c, as a place in which to put
-uniprocessor-specific code and storage.  It should mirror kernel/smp.c.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Balaji Rao <balajirrao@openmoko.org>
+Cc: Andy Green <andy@openmoko.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |   13 +++----------
- kernel/Makefile     |    6 +++++-
- kernel/up.c         |   18 ++++++++++++++++++
- 3 files changed, 26 insertions(+), 11 deletions(-)
+ drivers/mfd/Kconfig               |    7 +
+ drivers/mfd/Makefile              |    1 
+ drivers/mfd/pcf50633-gpio.c       |  118 ++++++++++++++++++++++++++++
+ include/linux/mfd/pcf50633/gpio.h |   52 ++++++++++++
+ 4 files changed, 178 insertions(+)
 
-diff -puN include/linux/smp.h~smp_call_function_single-be-slightly-less-stupid include/linux/smp.h
---- a/include/linux/smp.h~smp_call_function_single-be-slightly-less-stupid
-+++ a/include/linux/smp.h
-@@ -24,6 +24,9 @@ struct call_single_data {
- /* total number of cpus in this system (may exceed NR_CPUS) */
- extern unsigned int total_cpus;
+diff -puN drivers/mfd/Kconfig~mfd-pcf50633-gpio-support drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~mfd-pcf50633-gpio-support
++++ a/drivers/mfd/Kconfig
+@@ -233,6 +233,13 @@ config PCF50633_ADC
+ 	 Say yes here if you want to include support for ADC in the
+ 	 NXP PCF50633 chip.
  
-+int smp_call_function_single(int cpuid, void (*func) (void *info), void *info,
-+				int wait);
++config PCF50633_GPIO
++	tristate "Support for NXP PCF50633 GPIO"
++	depends on MFD_PCF50633
++	help
++	 Say yes here if you want to include support GPIO for pins on
++	 the PCF50633 chip.
 +
- #ifdef CONFIG_SMP
+ endmenu
  
- #include <linux/preempt.h>
-@@ -79,8 +82,6 @@ smp_call_function_mask(cpumask_t mask, v
- 	return 0;
- }
+ menu "Multimedia Capabilities Port drivers"
+diff -puN drivers/mfd/Makefile~mfd-pcf50633-gpio-support drivers/mfd/Makefile
+--- a/drivers/mfd/Makefile~mfd-pcf50633-gpio-support
++++ a/drivers/mfd/Makefile
+@@ -40,3 +40,4 @@ obj-$(CONFIG_PMIC_DA903X)	+= da903x.o
  
--int smp_call_function_single(int cpuid, void (*func) (void *info), void *info,
--				int wait);
- void __smp_call_function_single(int cpuid, struct call_single_data *data);
- 
- /*
-@@ -140,14 +141,6 @@ static inline int up_smp_call_function(v
- static inline void smp_send_reschedule(int cpu) { }
- #define num_booting_cpus()			1
- #define smp_prepare_boot_cpu()			do {} while (0)
--#define smp_call_function_single(cpuid, func, info, wait) \
--({ \
--	WARN_ON(cpuid != 0);	\
--	local_irq_disable();	\
--	(func)(info);		\
--	local_irq_enable();	\
--	0;			\
--})
- #define smp_call_function_mask(mask, func, info, wait) \
- 			(up_smp_call_function(func, info))
- #define smp_call_function_many(mask, func, info, wait) \
-diff -puN kernel/Makefile~smp_call_function_single-be-slightly-less-stupid kernel/Makefile
---- a/kernel/Makefile~smp_call_function_single-be-slightly-less-stupid
-+++ a/kernel/Makefile
-@@ -40,7 +40,11 @@ obj-$(CONFIG_RT_MUTEXES) += rtmutex.o
- obj-$(CONFIG_DEBUG_RT_MUTEXES) += rtmutex-debug.o
- obj-$(CONFIG_RT_MUTEX_TESTER) += rtmutex-tester.o
- obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
--obj-$(CONFIG_USE_GENERIC_SMP_HELPERS) += smp.o
-+ifeq ($(CONFIG_USE_GENERIC_SMP_HELPERS),y)
-+obj-y += smp.o
-+else
-+obj-y += up.o
-+endif
- obj-$(CONFIG_SMP) += spinlock.o
- obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock.o
- obj-$(CONFIG_PROVE_LOCKING) += spinlock.o
-diff -puN /dev/null kernel/up.c
+ obj-$(CONFIG_MFD_PCF50633)	+= pcf50633-core.o
+ obj-$(CONFIG_PCF50633_ADC)	+= pcf50633-adc.o
++obj-$(CONFIG_PCF50633_GPIO)	+= pcf50633-gpio.o
+diff -puN /dev/null drivers/mfd/pcf50633-gpio.c
 --- /dev/null
-+++ a/kernel/up.c
-@@ -0,0 +1,18 @@
-+/*
-+ * Uniprocessor-only support functions.  The counterpart to kernel/smp.c
++++ a/drivers/mfd/pcf50633-gpio.c
+@@ -0,0 +1,118 @@
++/* NXP PCF50633 GPIO Driver
++ *
++ * (C) 2006-2008 by Openmoko, Inc.
++ * Author: Balaji Rao <balajirrao@openmoko.org>
++ * All rights reserved.
++ *
++ * Broken down from monstrous PCF50633 driver mainly by
++ * Harald Welte, Andy Green and Werner Almesberger
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
 + */
 +
 +#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/smp.h>
 +
-+int smp_call_function_single(int cpu, void (*func) (void *info), void *info,
-+				int wait)
++#include <linux/mfd/pcf50633/core.h>
++#include <linux/mfd/pcf50633/gpio.h>
++
++enum pcf50633_regulator_id {
++	PCF50633_REGULATOR_AUTO,
++	PCF50633_REGULATOR_DOWN1,
++	PCF50633_REGULATOR_DOWN2,
++	PCF50633_REGULATOR_LDO1,
++	PCF50633_REGULATOR_LDO2,
++	PCF50633_REGULATOR_LDO3,
++	PCF50633_REGULATOR_LDO4,
++	PCF50633_REGULATOR_LDO5,
++	PCF50633_REGULATOR_LDO6,
++	PCF50633_REGULATOR_HCLDO,
++	PCF50633_REGULATOR_MEMLDO,
++};
++
++#define PCF50633_REG_AUTOOUT	0x1a
++#define PCF50633_REG_DOWN1OUT	0x1e
++#define PCF50633_REG_DOWN2OUT	0x22
++#define PCF50633_REG_MEMLDOOUT	0x26
++#define PCF50633_REG_LDO1OUT	0x2d
++#define PCF50633_REG_LDO2OUT	0x2f
++#define PCF50633_REG_LDO3OUT	0x31
++#define PCF50633_REG_LDO4OUT	0x33
++#define PCF50633_REG_LDO5OUT	0x35
++#define PCF50633_REG_LDO6OUT	0x37
++#define PCF50633_REG_HCLDOOUT	0x39
++
++static const u8 pcf50633_regulator_registers[PCF50633_NUM_REGULATORS] = {
++	[PCF50633_REGULATOR_AUTO]	= PCF50633_REG_AUTOOUT,
++	[PCF50633_REGULATOR_DOWN1]	= PCF50633_REG_DOWN1OUT,
++	[PCF50633_REGULATOR_DOWN2]	= PCF50633_REG_DOWN2OUT,
++	[PCF50633_REGULATOR_MEMLDO]	= PCF50633_REG_MEMLDOOUT,
++	[PCF50633_REGULATOR_LDO1]	= PCF50633_REG_LDO1OUT,
++	[PCF50633_REGULATOR_LDO2]	= PCF50633_REG_LDO2OUT,
++	[PCF50633_REGULATOR_LDO3]	= PCF50633_REG_LDO3OUT,
++	[PCF50633_REGULATOR_LDO4]	= PCF50633_REG_LDO4OUT,
++	[PCF50633_REGULATOR_LDO5]	= PCF50633_REG_LDO5OUT,
++	[PCF50633_REGULATOR_LDO6]	= PCF50633_REG_LDO6OUT,
++	[PCF50633_REGULATOR_HCLDO]	= PCF50633_REG_HCLDOOUT,
++};
++
++int pcf50633_gpio_set(struct pcf50633 *pcf, int gpio, u8 val)
 +{
-+	WARN_ON(cpuid != 0);
-+	local_irq_disable();
-+	(func)(info);
-+	local_irq_enable();
-+	return 0;
++	u8 reg;
++
++	reg = gpio - PCF50633_GPIO1 + PCF50633_REG_GPIO1CFG;
++
++	return pcf50633_reg_set_bit_mask(pcf, reg, 0x07, val);
 +}
-+EXPORT_SYMBOL(smp_call_function_single);
++EXPORT_SYMBOL_GPL(pcf50633_gpio_set);
++
++u8 pcf50633_gpio_get(struct pcf50633 *pcf, int gpio)
++{
++	u8 reg, val;
++
++	reg = gpio - PCF50633_GPIO1 + PCF50633_REG_GPIO1CFG;
++	val = pcf50633_reg_read(pcf, reg) & 0x07;
++
++	return val;
++}
++EXPORT_SYMBOL_GPL(pcf50633_gpio_get);
++
++int pcf50633_gpio_invert_set(struct pcf50633 *pcf, int gpio, int invert)
++{
++	u8 val, reg;
++
++	reg = gpio - PCF50633_GPIO1 + PCF50633_REG_GPIO1CFG;
++	val = !!invert << 3;
++
++	return pcf50633_reg_set_bit_mask(pcf, reg, 1 << 3, val);
++}
++EXPORT_SYMBOL_GPL(pcf50633_gpio_invert_set);
++
++int pcf50633_gpio_invert_get(struct pcf50633 *pcf, int gpio)
++{
++	u8 reg, val;
++
++	reg = gpio - PCF50633_GPIO1 + PCF50633_REG_GPIO1CFG;
++	val = pcf50633_reg_read(pcf, reg);
++
++	return val & (1 << 3);
++}
++EXPORT_SYMBOL_GPL(pcf50633_gpio_invert_get);
++
++int pcf50633_gpio_power_supply_set(struct pcf50633 *pcf,
++					int gpio, int regulator, int on)
++{
++	u8 reg, val, mask;
++
++	/* the *ENA register is always one after the *OUT register */
++	reg = pcf50633_regulator_registers[regulator] + 1;
++
++	val = !!on << (gpio - PCF50633_GPIO1);
++	mask = 1 << (gpio - PCF50633_GPIO1);
++
++	return pcf50633_reg_set_bit_mask(pcf, reg, mask, val);
++}
++EXPORT_SYMBOL_GPL(pcf50633_gpio_power_supply_set);
+diff -puN /dev/null include/linux/mfd/pcf50633/gpio.h
+--- /dev/null
++++ a/include/linux/mfd/pcf50633/gpio.h
+@@ -0,0 +1,52 @@
++/*
++ * gpio.h -- GPIO driver for NXP PCF50633
++ *
++ * (C) 2006-2008 by Openmoko, Inc.
++ * All rights reserved.
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ */
++
++#ifndef __LINUX_MFD_PCF50633_GPIO_H
++#define __LINUX_MFD_PCF50633_GPIO_H
++
++#include <linux/mfd/pcf50633/core.h>
++
++#define PCF50633_GPIO1		1
++#define PCF50633_GPIO2		2
++#define PCF50633_GPIO3		3
++#define PCF50633_GPO		4
++
++#define PCF50633_REG_GPIO1CFG	0x14
++#define PCF50633_REG_GPIO2CFG	0x15
++#define PCF50633_REG_GPIO3CFG	0x16
++#define PCF50633_REG_GPOCFG 	0x17
++
++#define PCF50633_GPOCFG_GPOSEL_MASK	0x07
++
++enum pcf50633_reg_gpocfg {
++	PCF50633_GPOCFG_GPOSEL_0	= 0x00,
++	PCF50633_GPOCFG_GPOSEL_LED_NFET	= 0x01,
++	PCF50633_GPOCFG_GPOSEL_SYSxOK	= 0x02,
++	PCF50633_GPOCFG_GPOSEL_CLK32K	= 0x03,
++	PCF50633_GPOCFG_GPOSEL_ADAPUSB	= 0x04,
++	PCF50633_GPOCFG_GPOSEL_USBxOK	= 0x05,
++	PCF50633_GPOCFG_GPOSEL_ACTPH4	= 0x06,
++	PCF50633_GPOCFG_GPOSEL_1	= 0x07,
++	PCF50633_GPOCFG_GPOSEL_INVERSE	= 0x08,
++};
++
++int pcf50633_gpio_set(struct pcf50633 *pcf, int gpio, u8 val);
++u8 pcf50633_gpio_get(struct pcf50633 *pcf, int gpio);
++
++int pcf50633_gpio_invert_set(struct pcf50633 *, int gpio, int invert);
++int pcf50633_gpio_invert_get(struct pcf50633 *pcf, int gpio);
++
++int pcf50633_gpio_power_supply_set(struct pcf50633 *,
++					int gpio, int regulator, int on);
++#endif /* __LINUX_MFD_PCF50633_GPIO_H */
++
++
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from balajirrao@openmoko.org are
 
 origin.patch
-i-need-old-gcc.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-next-remove-localversion.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-kernel-trace-ring_bufferc-reduce-inlining.patch
-kernel-trace-ring_bufferc-use-div_round_up.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-alpha-fix-vmalloc-breakage-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix-3-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-rtc-cumulative-style-fixes-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
