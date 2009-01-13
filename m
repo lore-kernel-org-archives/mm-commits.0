@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch added to -mm tree
-Date: Tue, 13 Jan 2009 15:03:54 -0800
-Message-ID: <200901132303.n0DN3suS029517@imap1.linux-foundation.org>
+Subject: + revert-mm-vmalloc-use-mutex-for-purge.patch added to -mm tree
+Date: Tue, 13 Jan 2009 15:10:58 -0800
+Message-ID: <200901132310.n0DNAxWZ003162@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41118 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32904 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752369AbZAMXEu (ORCPT
+	by vger.kernel.org with ESMTP id S1757128AbZAMXL7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 18:04:50 -0500
+	Tue, 13 Jan 2009 18:11:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, akpm@linux-foundation.org, gerg@snapgear.com
+Cc: akpm@linux-foundation.org, bdonlan@gmail.com, christophe@saout.de, jeremy@goop.org, mingo@elte.hu, nickpiggin@yahoo.com.au, npiggin@suse.de, torvalds@linux-foundation.org
 
 
 The patch titled
-     nommu: fix a number of issues with the per-MM VMA patch
+     revert "mm: vmalloc use mutex for purge"
 has been added to the -mm tree.  Its filename is
-     nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+     revert-mm-vmalloc-use-mutex-for-purge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,242 +34,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: fix a number of issues with the per-MM VMA patch
-From: David Howells <dhowells@redhat.com>
+Subject: revert "mm: vmalloc use mutex for purge"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a number of issues with the per-MM VMA patch:
+Revert
 
- (1) Make mmap_pages_allocated an atomic_long_t, just in case this is used on
-     a NOMMU system with more than 2G pages.  Makes no difference on a 32-bit
-     system.
+commit e97a630eb0f5b8b380fd67504de6cedebb489003
+Author:     Nick Piggin <npiggin@suse.de>
+AuthorDate: Tue Jan 6 14:39:19 2009 -0800
+Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+CommitDate: Tue Jan 6 15:59:01 2009 -0800
 
- (2) Report vma->vm_pgoff * PAGE_SIZE as a 64-bit value, not a 32-bit value,
-     lest it overflow.
+    mm: vmalloc use mutex for purge
 
- (3) Move the allocation of the vm_area_struct slab back for fork.c.
+Bryan Donlan reports:
 
- (4) Use KMEM_CACHE() for both vm_area_struct and vm_region slabs.
+: After testing 2.6.29-rc1 on xen-x86 with a btrfs root filesystem, I
+: got the OOPS quoted below and a hard freeze shortly after boot.
+: Boot messages and config are attached.
+: 
+: ------------[ cut here ]------------
+: Kernel BUG at c05ef80d [verbose debug info unavailable]
+: invalid opcode: 0000 [#1] SMP
+: last sysfs file: /sys/block/xvdc/size
+: Modules linked in:
+: 
+: Pid: 0, comm: swapper Not tainted (2.6.29-rc1 #6)
+: EIP: 0061:[<c05ef80d>] EFLAGS: 00010087 CPU: 2
+: EIP is at schedule+0x7cd/0x950
+: EAX: d5aeca80 EBX: 00000002 ECX: 00000000 EDX: d4cb9a40
+: ESI: c12f5600 EDI: d4cb9a40 EBP: d6033fa4 ESP: d6033ef4
+:  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0069
+: Process swapper (pid: 0, ti=d6032000 task=d6020b70 task.ti=d6032000)
+: Stack:
+:  000d85bc 00000000 000186a0 00000000 0dd11410 c0105417 c12efe00 0dc367c3
+:  00000011 c0105d46 d5a5d310 deadbeef d4cb9a40 c07cc600 c05f1340 c12e0060
+:  deadbeef d6020b70 d6020d08 00000002 c014377d 00000000 c12f5600 00002c22
+: Call Trace:
+:  [<c0105417>] xen_force_evtchn_callback+0x17/0x30
+:  [<c0105d46>] check_events+0x8/0x12
+:  [<c05f1340>] _spin_unlock_irqrestore+0x20/0x40
+:  [<c014377d>] hrtimer_start_range_ns+0x12d/0x2e0
+:  [<c014c4f6>] tick_nohz_restart_sched_tick+0x146/0x160
+:  [<c0107485>] cpu_idle+0xa5/0xc0
 
- (5) Use BUG_ON() rather than if () BUG().
+and bisected it to this commit.
 
- (6) Make the default validate_nommu_regions() a static inline rather than a
-     #define.
+Let's remove it now while we have a think about the problem.
 
- (7) Make free_page_series()'s objection to pages with a refcount != 1 more
-     informative.
 
- (8) Adjust the __put_nommu_region() banner comment to indicate that the
-     semaphore must be held for writing.
-
- (9) Limit the number of warnings about munmaps of non-mmapped regions.
-
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
+Reported-by: Bryan Donlan <bdonlan@gmail.com>
+Tested-by: Christophe Saout <christophe@saout.de>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c    |    2 -
- fs/proc/task_nommu.c |    4 +--
- include/linux/mm.h   |    2 -
- kernel/fork.c        |    1 
- mm/mmap.c            |    3 --
- mm/nommu.c           |   52 +++++++++++++++++++----------------------
- 6 files changed, 30 insertions(+), 34 deletions(-)
+ mm/vmalloc.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/meminfo.c~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch
-+++ a/fs/proc/meminfo.c
-@@ -120,7 +120,7 @@ static int meminfo_proc_show(struct seq_
- 		K(i.freeram-i.freehigh),
- #endif
- #ifndef CONFIG_MMU
--		K((unsigned long) atomic_read(&mmap_pages_allocated)),
-+		K((unsigned long) atomic_long_read(&mmap_pages_allocated)),
- #endif
- 		K(i.totalswap),
- 		K(i.freeswap),
-diff -puN fs/proc/task_nommu.c~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch
-+++ a/fs/proc/task_nommu.c
-@@ -136,14 +136,14 @@ static int nommu_vma_show(struct seq_fil
- 	}
- 
- 	seq_printf(m,
--		   "%08lx-%08lx %c%c%c%c %08lx %02x:%02x %lu %n",
-+		   "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu %n",
- 		   vma->vm_start,
- 		   vma->vm_end,
- 		   flags & VM_READ ? 'r' : '-',
- 		   flags & VM_WRITE ? 'w' : '-',
- 		   flags & VM_EXEC ? 'x' : '-',
- 		   flags & VM_MAYSHARE ? flags & VM_SHARED ? 'S' : 's' : 'p',
--		   vma->vm_pgoff << PAGE_SHIFT,
-+		   (unsigned long long) vma->vm_pgoff << PAGE_SHIFT,
- 		   MAJOR(dev), MINOR(dev), ino, &len);
- 
- 	if (file) {
-diff -puN include/linux/mm.h~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch include/linux/mm.h
---- a/include/linux/mm.h~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch
-+++ a/include/linux/mm.h
-@@ -1066,7 +1066,7 @@ static inline void setup_per_cpu_pageset
- #endif
- 
- /* nommu.c */
--extern atomic_t mmap_pages_allocated;
-+extern atomic_long_t mmap_pages_allocated;
- 
- /* prio_tree.c */
- void vma_prio_tree_add(struct vm_area_struct *, struct vm_area_struct *old);
-diff -puN kernel/fork.c~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch kernel/fork.c
---- a/kernel/fork.c~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch
-+++ a/kernel/fork.c
-@@ -1489,6 +1489,7 @@ void __init proc_caches_init(void)
- 	mm_cachep = kmem_cache_create("mm_struct",
- 			sizeof(struct mm_struct), ARCH_MIN_MMSTRUCT_ALIGN,
- 			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_NOTRACK, NULL);
-+	vm_area_cachep = KMEM_CACHE(vm_area_struct, SLAB_PANIC);
- 	mmap_init();
- }
- 
-diff -puN mm/mmap.c~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch mm/mmap.c
---- a/mm/mmap.c~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch
-+++ a/mm/mmap.c
-@@ -2478,7 +2478,4 @@ void mm_drop_all_locks(struct mm_struct 
-  */
- void __init mmap_init(void)
+diff -puN mm/vmalloc.c~revert-mm-vmalloc-use-mutex-for-purge mm/vmalloc.c
+--- a/mm/vmalloc.c~revert-mm-vmalloc-use-mutex-for-purge
++++ a/mm/vmalloc.c
+@@ -14,7 +14,6 @@
+ #include <linux/highmem.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+-#include <linux/mutex.h>
+ #include <linux/interrupt.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+@@ -496,7 +495,7 @@ static atomic_t vmap_lazy_nr = ATOMIC_IN
+ static void __purge_vmap_area_lazy(unsigned long *start, unsigned long *end,
+ 					int sync, int force_flush)
  {
--	vm_area_cachep = kmem_cache_create("vm_area_struct",
--			sizeof(struct vm_area_struct), 0,
--			SLAB_PANIC, NULL);
- }
-diff -puN mm/nommu.c~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch mm/nommu.c
---- a/mm/nommu.c~nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch
-+++ a/mm/nommu.c
-@@ -69,7 +69,7 @@ int sysctl_max_map_count = DEFAULT_MAX_M
- int sysctl_nr_trim_pages = 1; /* page trimming behaviour */
- int heap_stack_gap = 0;
+-	static DEFINE_MUTEX(purge_lock);
++	static DEFINE_SPINLOCK(purge_lock);
+ 	LIST_HEAD(valist);
+ 	struct vmap_area *va;
+ 	int nr = 0;
+@@ -507,10 +506,10 @@ static void __purge_vmap_area_lazy(unsig
+ 	 * the case that isn't actually used at the moment anyway.
+ 	 */
+ 	if (!sync && !force_flush) {
+-		if (!mutex_trylock(&purge_lock))
++		if (!spin_trylock(&purge_lock))
+ 			return;
+ 	} else
+-		mutex_lock(&purge_lock);
++		spin_lock(&purge_lock);
  
--atomic_t mmap_pages_allocated;
-+atomic_long_t mmap_pages_allocated;
- 
- EXPORT_SYMBOL(mem_map);
- EXPORT_SYMBOL(num_physpages);
-@@ -445,12 +445,7 @@ asmlinkage unsigned long sys_brk(unsigne
-  */
- void __init mmap_init(void)
- {
--	vm_region_jar = kmem_cache_create("vm_region_jar",
--					  sizeof(struct vm_region), 0,
--					  SLAB_PANIC, NULL);
--	vm_area_cachep = kmem_cache_create("vm_area_struct",
--					   sizeof(struct vm_area_struct), 0,
--					   SLAB_PANIC, NULL);
-+	vm_region_jar = KMEM_CACHE(vm_region, SLAB_PANIC);
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(va, &vmap_area_list, list) {
+@@ -542,7 +541,7 @@ static void __purge_vmap_area_lazy(unsig
+ 			__free_vmap_area(va);
+ 		spin_unlock(&vmap_area_lock);
+ 	}
+-	mutex_unlock(&purge_lock);
++	spin_unlock(&purge_lock);
  }
  
  /*
-@@ -468,27 +463,24 @@ static noinline void validate_nommu_regi
- 		return;
- 
- 	last = rb_entry(lastp, struct vm_region, vm_rb);
--	if (unlikely(last->vm_end <= last->vm_start))
--		BUG();
--	if (unlikely(last->vm_top < last->vm_end))
--		BUG();
-+	BUG_ON(unlikely(last->vm_end <= last->vm_start));
-+	BUG_ON(unlikely(last->vm_top < last->vm_end));
- 
- 	while ((p = rb_next(lastp))) {
- 		region = rb_entry(p, struct vm_region, vm_rb);
- 		last = rb_entry(lastp, struct vm_region, vm_rb);
- 
--		if (unlikely(region->vm_end <= region->vm_start))
--			BUG();
--		if (unlikely(region->vm_top < region->vm_end))
--			BUG();
--		if (unlikely(region->vm_start < last->vm_top))
--			BUG();
-+		BUG_ON(unlikely(region->vm_end <= region->vm_start));
-+		BUG_ON(unlikely(region->vm_top < region->vm_end));
-+		BUG_ON(unlikely(region->vm_start < last->vm_top));
- 
- 		lastp = p;
- 	}
- }
- #else
--#define validate_nommu_regions() do {} while(0)
-+static void validate_nommu_regions(void)
-+{
-+}
- #endif
- 
- /*
-@@ -545,16 +537,17 @@ static void free_page_series(unsigned lo
- 		struct page *page = virt_to_page(from);
- 
- 		kdebug("- free %lx", from);
--		atomic_dec(&mmap_pages_allocated);
-+		atomic_long_dec(&mmap_pages_allocated);
- 		if (page_count(page) != 1)
--			kdebug("free page %p [%d]", page, page_count(page));
-+			kdebug("free page %p: refcount not one: %d",
-+			       page, page_count(page));
- 		put_page(page);
- 	}
- }
- 
- /*
-  * release a reference to a region
-- * - the caller must hold the region semaphore, which this releases
-+ * - the caller must hold the region semaphore for writing, which this releases
-  * - the region may not have been added to the tree yet, in which case vm_top
-  *   will equal vm_start
-  */
-@@ -1078,7 +1071,7 @@ static int do_mmap_private(struct vm_are
- 		goto enomem;
- 
- 	total = 1 << order;
--	atomic_add(total, &mmap_pages_allocated);
-+	atomic_long_add(total, &mmap_pages_allocated);
- 
- 	point = rlen >> PAGE_SHIFT;
- 
-@@ -1089,7 +1082,7 @@ static int do_mmap_private(struct vm_are
- 			order = ilog2(total - point);
- 			n = 1 << order;
- 			kdebug("shave %lu/%lu @%lu", n, total - point, total);
--			atomic_sub(n, &mmap_pages_allocated);
-+			atomic_long_sub(n, &mmap_pages_allocated);
- 			total -= n;
- 			set_page_refcounted(pages + total);
- 			__free_pages(pages + total, order);
-@@ -1518,10 +1511,15 @@ int do_munmap(struct mm_struct *mm, unsi
- 	/* find the first potentially overlapping VMA */
- 	vma = find_vma(mm, start);
- 	if (!vma) {
--		printk(KERN_WARNING
--		       "munmap of memory not mmapped by process %d (%s):"
--		       " 0x%lx-0x%lx\n",
--		       current->pid, current->comm, start, start + len - 1);
-+		static int limit = 0;
-+		if (limit < 5) {
-+			printk(KERN_WARNING
-+			       "munmap of memory not mmapped by process %d"
-+			       " (%s): 0x%lx-0x%lx\n",
-+			       current->pid, current->comm,
-+			       start, start + len - 1);
-+			limit++;
-+		}
- 		return -EINVAL;
- 	}
- 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+alpha-fix-vmalloc-breakage-fix.patch
+hp_accel-do-not-call-acpi-from-invalid-context-fix.patch
+revert-mm-vmalloc-use-mutex-for-purge.patch
+i-need-old-gcc.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+kernel-trace-ring_bufferc-reduce-inlining.patch
+kernel-trace-ring_bufferc-use-div_round_up.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix-3-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
 nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-bin_elf_fdpic-check-the-return-value-of-clear_user.patch
-mutex-subsystem-synchro-test-module.patch
+rtc-cumulative-style-fixes-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
