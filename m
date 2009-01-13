@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-handle-missing-if-open-in-context.patch added to -mm tree
-Date: Tue, 13 Jan 2009 14:24:03 -0800
-Message-ID: <200901132224.n0DMO3Bg027651@imap1.linux-foundation.org>
+Subject: + checkpatch-if-should-not-continue-a-preceeding-brace.patch added to -mm tree
+Date: Tue, 13 Jan 2009 14:24:09 -0800
+Message-ID: <200901132224.n0DMO9k5027717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56359 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35185 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755447AbZAMWYs (ORCPT
+	by vger.kernel.org with ESMTP id S1755410AbZAMWZA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 17:24:48 -0500
+	Tue, 13 Jan 2009 17:25:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com, dhaval@linux.vnet.ibm.com, mingo@elte.hu
+Cc: apw@canonical.com
 
 
 The patch titled
-     checkpatch: handle missing #if open in context
+     checkpatch: if should not continue a preceeding brace
 has been added to the -mm tree.  Its filename is
-     checkpatch-handle-missing-if-open-in-context.patch
+     checkpatch-if-should-not-continue-a-preceeding-brace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: handle missing #if open in context
+Subject: checkpatch: if should not continue a preceeding brace
 From: Andy Whitcroft <apw@canonical.com>
 
-If the #if opening statement is not in the context then the context stack
-can be empty.  Handle this by ensuring there is always a blank entry in
-the stack.
+We should not be continuing a braced section with an if, for example:
+
+	if (...) {
+	} if (...) {
+	}
+
+Detect this and suggest adding a newline.
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
-Tested-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-handle-missing-if-open-in-context scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-handle-missing-if-open-in-context
+diff -puN scripts/checkpatch.pl~checkpatch-if-should-not-continue-a-preceeding-brace scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-if-should-not-continue-a-preceeding-brace
 +++ a/scripts/checkpatch.pl
-@@ -411,13 +411,15 @@ sub ctx_statement_block {
- 
- 	my $type = '';
- 	my $level = 0;
--	my @stack = ([$type, $level]);
-+	my @stack = ();
- 	my $p;
- 	my $c;
- 	my $len = 0;
- 
- 	my $remainder;
- 	while (1) {
-+		@stack = (['', 0]) if ($#stack == -1);
-+
- 		#warn "CSB: blk<$blk> remain<$remain>\n";
- 		# If we are about to drop off the end, pull in more
- 		# context.
+@@ -2108,6 +2108,11 @@ sub process {
+ 				ERROR("trailing statements should be on next line\n" . $herecurr);
+ 			}
+ 		}
++# if should not continue a brace
++		if ($line =~ /}\s*if\b/) {
++			ERROR("trailing statements should be on next line\n" .
++				$herecurr);
++		}
+ # case and default should not have general statements after them
+ 		if ($line =~ /^.\s*(?:case\s*.*|default\s*):/g &&
+ 		    $line !~ /\G(?:
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
