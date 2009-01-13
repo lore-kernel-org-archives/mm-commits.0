@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + loop-add-ioctl-to-resize-a-loop-device.patch added to -mm tree
-Date: Mon, 12 Jan 2009 16:46:24 -0800
-Message-ID: <200901130046.n0D0kOYd016982__30722.7252320901$1231807719$gmane$org@imap1.linux-foundation.org>
+Subject: + gpio-fix-probe-error-return-in-gpio-driver-probes.patch added to -mm tree
+Date: Mon, 12 Jan 2009 16:47:34 -0800
+Message-ID: <200901130047.n0D0lYBL018037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54530 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752241AbZAMArD (ORCPT
+	by vger.kernel.org with ESMTP id S1753033AbZAMAsL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 19:47:03 -0500
+	Mon, 12 Jan 2009 19:48:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hooanon05@yahoo.co.jp, akinobu.mita@gmail.com, hch@lst.de, jens.axboe@oracle.com, kzak@redhat.com, linux-api@vger.kernel.org, tomas@slax.org, util-linux-ng@vger.kernel.org, viro@zeniv.linux.org.uk
+Cc: ben-linux@fluff.org, david-b@pacbell.net
 
 
 The patch titled
-     loop: add ioctl to resize a loop device
+     gpio: fix probe() error return in gpio driver probes
 has been added to the -mm tree.  Its filename is
-     loop-add-ioctl-to-resize-a-loop-device.patch
+     gpio-fix-probe-error-return-in-gpio-driver-probes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,268 +34,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: loop: add ioctl to resize a loop device
-From: J. R. Okajima <hooanon05@yahoo.co.jp>
+Subject: gpio: fix probe() error return in gpio driver probes
+From: Ben Dooks <ben-linux@fluff.org>
 
-Add the ability to 'resize' the loop device on the fly.
+A number of drivers in drivers/gpio return -ENODEV when confronted with
+missing setup parameters such as the platform data.  However, returning
+-ENODEV causes the driver layer to silently ignore the driver as it
+assumes the probe did not find anything and was only speculative.
 
-One practical application is a loop file with XFS filesystem, already
-mounted: You can easily enlarge the file (append some bytes) and then call
-ioctl(fd, LOOP_SET_CAPACITY, new); The loop driver will learn about the
-new size and you can use xfs_growfs later on, which will allow you to use
-full capacity of the loop file without the need to unmount.
+To make life easier to discern why a driver is not being attached, change
+to returning -EINVAL, which is a better description of the fact that the
+driver data was not valid.
 
-Test app:
+Also add a set of dev_dbg() statements to the error paths to provide an
+better explanation of the error as there may be more that one point in the
+driver.
 
-#include <linux/fs.h>
-#include <linux/loop.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#define _GNU_SOURCE
-#include <getopt.h>
-
-char *me;
-
-void usage(FILE *f)
-{
-	fprintf(f, "%s [options] loop_dev [backend_file]\n"
-		"-s, --set new_size_in_bytes\n"
-		"\twhen backend_file is given, "
-		"it will be expanded too while keeping the original contents\n",
-		me);
-}
-
-struct option opts[] = {
-	{
-		.name		= "set",
-		.has_arg	= 1,
-		.flag		= NULL,
-		.val		= 's'
-	},
-	{
-		.name		= "help",
-		.has_arg	= 0,
-		.flag		= NULL,
-		.val		= 'h'
-	}
-};
-
-void err_size(char *name, __u64 old)
-{
-	fprintf(stderr, "size must be larger than current %s (%llu)\n",
-		name, old);
-}
-
-int main(int argc, char *argv[])
-{
-	int fd, err, c, i, bfd;
-	ssize_t ssz;
-	size_t sz;
-	__u64 old, new, append;
-	char a[BUFSIZ];
-	struct stat st;
-	FILE *out;
-	char *backend, *dev;
-
-	err = EINVAL;
-	out = stderr;
-	me = argv[0];
-	new = 0;
-	while ((c = getopt_long(argc, argv, "s:h", opts, &i)) != -1) {
-		switch (c) {
-		case 's':
-			errno = 0;
-			new = strtoull(optarg, NULL, 0);
-			if (errno) {
-				err = errno;
-				perror(argv[i]);
-				goto out;
-			}
-			break;
-
-		case 'h':
-			err = 0;
-			out = stdout;
-			goto err;
-
-		default:
-			perror(argv[i]);
-			goto err;
-		}
-	}
-
-	if (optind < argc)
-		dev = argv[optind++];
-	else
-		goto err;
-
-	fd = open(dev, O_RDONLY);
-	if (fd < 0) {
-		err = errno;
-		perror(dev);
-		goto out;
-	}
-
-	err = ioctl(fd, BLKGETSIZE64, &old);
-	if (err) {
-		err = errno;
-		perror("ioctl BLKGETSIZE64");
-		goto out;
-	}
-
-	if (!new) {
-		printf("%llu\n", old);
-		goto out;
-	}
-
-	if (new < old) {
-		err = EINVAL;
-		err_size(dev, old);
-		goto out;
-	}
-
-	if (optind < argc) {
-		backend = argv[optind++];
-		bfd = open(backend, O_WRONLY|O_APPEND);
-		if (bfd < 0) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-		err = fstat(bfd, &st);
-		if (err) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-		if (new < st.st_size) {
-			err = EINVAL;
-			err_size(backend, st.st_size);
-			goto out;
-		}
-		append = new - st.st_size;
-		sz = sizeof(a);
-		while (append > 0) {
-			if (append < sz)
-				sz = append;
-			ssz = write(bfd, a, sz);
-			if (ssz != sz) {
-				err = errno;
-				perror(backend);
-				goto out;
-			}
-			append -= sz;
-		}
-		err = fsync(bfd);
-		if (err) {
-			err = errno;
-			perror(backend);
-			goto out;
-		}
-	}
-
-	err = ioctl(fd, LOOP_SET_CAPACITY, new);
-	if (err) {
-		err = errno;
-		perror("ioctl LOOP_SET_CAPACITY");
-	}
-	goto out;
-
- err:
-	usage(out);
- out:
-	return err;
-}
-
-Signed-off-by: J. R. Okajima <hooanon05@yahoo.co.jp>
-Signed-off-by: Tomas Matejicek <tomas@slax.org>
-Cc: <util-linux-ng@vger.kernel.org>
-Cc: Karel Zak <kzak@redhat.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: <linux-api@vger.kernel.org>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   26 ++++++++++++++++++++++++++
- include/linux/loop.h |    1 +
- 2 files changed, 27 insertions(+)
+ drivers/gpio/max7301.c  |    6 ++++--
+ drivers/gpio/max732x.c  |    6 ++++--
+ drivers/gpio/mcp23s08.c |    6 ++++--
+ drivers/gpio/pca953x.c  |    6 ++++--
+ drivers/gpio/pcf857x.c  |   12 ++++++++----
+ 5 files changed, 24 insertions(+), 12 deletions(-)
 
-diff -puN drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device drivers/block/loop.c
---- a/drivers/block/loop.c~loop-add-ioctl-to-resize-a-loop-device
-+++ a/drivers/block/loop.c
-@@ -1158,6 +1158,28 @@ loop_get_status64(struct loop_device *lo
- 	return err;
- }
+diff -puN drivers/gpio/max7301.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/max7301.c
+--- a/drivers/gpio/max7301.c~gpio-fix-probe-error-return-in-gpio-driver-probes
++++ a/drivers/gpio/max7301.c
+@@ -217,8 +217,10 @@ static int __devinit max7301_probe(struc
+ 	int i, ret;
  
-+static int loop_set_capacity(struct loop_device *lo, struct block_device *bdev)
-+{
-+	int err;
-+	sector_t sec;
-+	loff_t sz;
-+
-+	err = -ENXIO;
-+	if (unlikely(lo->lo_state != Lo_bound))
-+		goto out;
-+	err = figure_loop_size(lo);
-+	if (unlikely(err))
-+		goto out;
-+	sec = get_capacity(lo->lo_disk);
-+	sz = sec << 9;
-+	mutex_lock(&bdev->bd_mutex);
-+	bd_set_size(bdev, sz);
-+	mutex_unlock(&bdev->bd_mutex);
-+
-+ out:
-+	return err;
-+}
-+
- static int lo_ioctl(struct block_device *bdev, fmode_t mode,
- 	unsigned int cmd, unsigned long arg)
- {
-@@ -1187,6 +1209,9 @@ static int lo_ioctl(struct block_device 
- 	case LOOP_GET_STATUS64:
- 		err = loop_get_status64(lo, (struct loop_info64 __user *) arg);
- 		break;
-+	case LOOP_SET_CAPACITY:
-+		err = loop_set_capacity(lo, bdev);
-+		break;
- 	default:
- 		err = lo->ioctl ? lo->ioctl(lo, cmd, arg) : -EINVAL;
- 	}
-@@ -1332,6 +1357,7 @@ static int lo_compat_ioctl(struct block_
- 			lo, (struct compat_loop_info __user *) arg);
- 		mutex_unlock(&lo->lo_ctl_mutex);
- 		break;
-+	case LOOP_SET_CAPACITY:
- 	case LOOP_CLR_FD:
- 	case LOOP_GET_STATUS64:
- 	case LOOP_SET_STATUS64:
-diff -puN include/linux/loop.h~loop-add-ioctl-to-resize-a-loop-device include/linux/loop.h
---- a/include/linux/loop.h~loop-add-ioctl-to-resize-a-loop-device
-+++ a/include/linux/loop.h
-@@ -160,5 +160,6 @@ int loop_unregister_transfer(int number)
- #define LOOP_SET_STATUS64	0x4C04
- #define LOOP_GET_STATUS64	0x4C05
- #define LOOP_CHANGE_FD		0x4C06
-+#define LOOP_SET_CAPACITY	0x4C07
+ 	pdata = spi->dev.platform_data;
+-	if (!pdata || !pdata->base)
+-		return -ENODEV;
++	if (!pdata || !pdata->base) {
++		dev_dbg(&spi->dev, "incorrect or missing platform data\n");
++		return -EINVAL;
++	}
  
- #endif
+ 	/*
+ 	 * bits_per_word cannot be configured in platform data
+diff -puN drivers/gpio/max732x.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/max732x.c
+--- a/drivers/gpio/max732x.c~gpio-fix-probe-error-return-in-gpio-driver-probes
++++ a/drivers/gpio/max732x.c
+@@ -267,8 +267,10 @@ static int __devinit max732x_probe(struc
+ 	int ret, nr_port;
+ 
+ 	pdata = client->dev.platform_data;
+-	if (pdata == NULL)
+-		return -ENODEV;
++	if (pdata == NULL) {
++		dev_dbg(&client->dev, "no platform data\n");
++		return -EINVAL;
++	}
+ 
+ 	chip = kzalloc(sizeof(struct max732x_chip), GFP_KERNEL);
+ 	if (chip == NULL)
+diff -puN drivers/gpio/mcp23s08.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/mcp23s08.c
+--- a/drivers/gpio/mcp23s08.c~gpio-fix-probe-error-return-in-gpio-driver-probes
++++ a/drivers/gpio/mcp23s08.c
+@@ -310,8 +310,10 @@ static int mcp23s08_probe(struct spi_dev
+ 	unsigned			base;
+ 
+ 	pdata = spi->dev.platform_data;
+-	if (!pdata || !gpio_is_valid(pdata->base))
+-		return -ENODEV;
++	if (!pdata || !gpio_is_valid(pdata->base)) {
++		dev_dbg(&spi->dev, "invalid or missing platform data\n");
++		return -EINVAL;
++	}
+ 
+ 	for (addr = 0; addr < 4; addr++) {
+ 		if (!pdata->chip[addr].is_present)
+diff -puN drivers/gpio/pca953x.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~gpio-fix-probe-error-return-in-gpio-driver-probes
++++ a/drivers/gpio/pca953x.c
+@@ -202,8 +202,10 @@ static int __devinit pca953x_probe(struc
+ 	int ret;
+ 
+ 	pdata = client->dev.platform_data;
+-	if (pdata == NULL)
+-		return -ENODEV;
++	if (pdata == NULL) {
++		dev_dbg(&client->dev, "no platform data\n");
++		return -EINVAL;
++	}
+ 
+ 	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
+ 	if (chip == NULL)
+diff -puN drivers/gpio/pcf857x.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/pcf857x.c
+--- a/drivers/gpio/pcf857x.c~gpio-fix-probe-error-return-in-gpio-driver-probes
++++ a/drivers/gpio/pcf857x.c
+@@ -188,8 +188,10 @@ static int pcf857x_probe(struct i2c_clie
+ 	int				status;
+ 
+ 	pdata = client->dev.platform_data;
+-	if (!pdata)
+-		return -ENODEV;
++	if (!pdata) {
++		dev_dbg(&client->dev, "no platform data\n");
++		return -EINVAL;
++	}
+ 
+ 	/* Allocate, initialize, and register this gpio_chip. */
+ 	gpio = kzalloc(sizeof *gpio, GFP_KERNEL);
+@@ -248,8 +250,10 @@ static int pcf857x_probe(struct i2c_clie
+ 		else
+ 			status = i2c_read_le16(client);
+ 
+-	} else
+-		status = -ENODEV;
++	} else {
++		dev_dbg(&client->dev, "unsupported number of gpios\n");
++		status = -EINVAL;
++	}
+ 
+ 	if (status < 0)
+ 		goto fail;
 _
 
-Patches currently in -mm which might be from hooanon05@yahoo.co.jp are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
-loop-add-ioctl-to-resize-a-loop-device.patch
-loop-add-ioctl-to-resize-a-loop-device-security-check-for-loop_set_capacity.patch
-loop-add-ioctl-to-resize-a-loop-device-loop_set_capacity-sector_t-may-be-narrow-for-bit-shfit.patch
+i2c-incremental-i2c-mpc-driver-fix-for-multi-master-i2c-busses.patch
+sm501-fix-section-mismatches.patch
+mmc-s3cmci-fix-hangup-in-do_pio_write.patch
+gpio-fix-probe-error-return-in-gpio-driver-probes.patch
 
