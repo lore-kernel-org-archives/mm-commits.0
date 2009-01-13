@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-add-more-verbose-debug-info.patch added to -mm tree
-Date: Tue, 13 Jan 2009 00:43:24 -0800
-Message-ID: <200901130843.n0D8hO1s003835@imap1.linux-foundation.org>
+Subject: + fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes-fix.patch added to -mm tree
+Date: Tue, 13 Jan 2009 01:22:17 -0800
+Message-ID: <200901130922.n0D9MHhD004719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55352 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38584 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759479AbZAMIn6 (ORCPT
+	by vger.kernel.org with ESMTP id S1750780AbZAMJWb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 03:43:58 -0500
+	Tue, 13 Jan 2009 04:22:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: h.mitake@gmail.com, dougthompson@xmission.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, hugh@veritas.com, mikew@google.com, yinghan@google.com
 
 
 The patch titled
-     edac: add more verbose debug info
+     fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes-fix
 has been added to the -mm tree.  Its filename is
-     edac-add-more-verbose-debug-info.patch
+     fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: add more verbose debug info
-From: Hitoshi Mitake <h.mitake@gmail.com>
+Subject: fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes-fix
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-A patch for making a debugging information more verbose for use in
-development debugging.
+pgoff is *not* vma->vm_start >> PAGE_SHIFT.
+And no adjustment is necessary (when it maps the same start
+before/after adjust vma.)
 
-By enabling the new option "More verbose debugging", information about
-source file and line number will be added to debugging message.
-
-This is sample output,
-
-EDAC MC0: Giving out device to 'e7xxx_edac' 'E7205': DEV 0000:00:00.0
-EDAC DEBUG: in drivers/edac/edac_pci.c, line at 48: edac_pci_alloc_ctl_info()
-EDAC DEBUG: in drivers/edac/edac_pci.c, line at 334: edac_pci_add_device()
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Signed-off-by: Hitoshi Mitake <h.mitake@gmail.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Mike Waychison <mikew@google.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig     |    8 ++++++++
- drivers/edac/edac_core.h |   15 ++++++++++++++-
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ fs/exec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/Kconfig~edac-add-more-verbose-debug-info drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~edac-add-more-verbose-debug-info
-+++ a/drivers/edac/Kconfig
-@@ -40,6 +40,14 @@ config EDAC_DEBUG
- 	  there're four debug levels (x=0,1,2,3 from low to high).
- 	  Usually you should select 'N'.
+diff -puN fs/exec.c~fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes-fix fs/exec.c
+--- a/fs/exec.c~fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes-fix
++++ a/fs/exec.c
+@@ -509,7 +509,7 @@ static int shift_arg_pages(struct vm_are
+ 	unsigned long length = old_end - old_start;
+ 	unsigned long new_start = old_start - shift;
+ 	unsigned long new_end = old_end - shift;
+-	unsigned long new_pgoff = new_start >> PAGE_SHIFT;
++	unsigned long new_pgoff = vma->vm_pgoff;
+ 	struct mmu_gather *tlb;
  
-+config EDAC_DEBUG_VERBOSE
-+	bool "More verbose debugging"
-+	depends on EDAC_DEBUG
-+	help
-+	  This option makes debugging information more verbose.
-+	  Source file name and line number where debugging message
-+	  printed will be added to debugging message.
-+
- config EDAC_MM_EDAC
- 	tristate "Main Memory EDAC (Error Detection And Correction) reporting"
- 	default y
-diff -puN drivers/edac/edac_core.h~edac-add-more-verbose-debug-info drivers/edac/edac_core.h
---- a/drivers/edac/edac_core.h~edac-add-more-verbose-debug-info
-+++ a/drivers/edac/edac_core.h
-@@ -49,6 +49,10 @@
- #define edac_printk(level, prefix, fmt, arg...) \
- 	printk(level "EDAC " prefix ": " fmt, ##arg)
- 
-+#define edac_printk_verbose(level, prefix, fmt, arg...) \
-+	printk(level "EDAC " prefix ": " "in %s, line at %d: " fmt,	\
-+	       __FILE__, __LINE__, ##arg)
-+
- #define edac_mc_printk(mci, level, fmt, arg...) \
- 	printk(level "EDAC MC%d: " fmt, mci->mc_idx, ##arg)
- 
-@@ -71,11 +75,20 @@
- #ifdef CONFIG_EDAC_DEBUG
- extern int edac_debug_level;
- 
-+#ifndef CONFIG_EDAC_DEBUG_VERBOSE
- #define edac_debug_printk(level, fmt, arg...)                            \
- 	do {                                                             \
- 		if (level <= edac_debug_level)                           \
- 			edac_printk(KERN_DEBUG, EDAC_DEBUG, fmt, ##arg); \
--	} while(0)
-+	} while (0)
-+#else  /* CONFIG_EDAC_DEBUG_VERBOSE */
-+#define edac_debug_printk(level, fmt, arg...)                            \
-+	do {                                                             \
-+		if (level <= edac_debug_level)                           \
-+			edac_printk_verbose(KERN_DEBUG, EDAC_DEBUG, fmt, \
-+					    ##arg);			\
-+	} while (0)
-+#endif
- 
- #define debugf0( ... ) edac_debug_printk(0, __VA_ARGS__ )
- #define debugf1( ... ) edac_debug_printk(1, __VA_ARGS__ )
+ 	BUG_ON(new_start > new_end);
 _
 
-Patches currently in -mm which might be from h.mitake@gmail.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-edac-add-more-verbose-debug-info.patch
+fs-execc-fix-value-of-vma-vm_pgoff-for-the-stack-vma-of-32-bit-processes-fix.patch
+cgroups-consolidate-cgroup-documents.patch
+rtc-cumulative-style-fixes-fix-fix.patch
 
