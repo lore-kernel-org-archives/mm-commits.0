@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + acpi-kconfig-fix-acpi_container-module-name.patch added to -mm tree
-Date: Tue, 13 Jan 2009 13:56:12 -0800
-Message-ID: <200901132156.n0DLuCC3003572@imap1.linux-foundation.org>
+Date: Tue, 13 Jan 2009 13:57:08 -0800
+Message-ID: <200901132157.n0DLv8Na004372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37250 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752732AbZAMV4w (ORCPT
+	by vger.kernel.org with ESMTP id S1754929AbZAMV5r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 16:56:52 -0500
+	Tue, 13 Jan 2009 16:57:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -58,10 +58,10 @@ diff -puN drivers/acpi/Kconfig~acpi-kconfig-fix-acpi_container-module-name drive
  
  config ACPI_HOTPLUG_MEMORY
  	tristate "Memory Hotplug"
-diff -puN /dev/null /dev/null
 _
 
 Patches currently in -mm which might be from tvignaud@mandriva.com are
 
 acpi-kconfig-fix-acpi_container-module-name.patch
+kill-prehistorical-comments-about-usb_ehci_hcd.patch
 
