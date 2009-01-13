@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + audit-execve-record-remove-bogus-newline.patch added to -mm tree
-Date: Tue, 13 Jan 2009 00:08:10 -0800
-Message-ID: <200901130808.n0D88ASD006179@imap1.linux-foundation.org>
+Subject: + sgi-xp-eliminate-false-detection-of-no-heartbeat.patch added to -mm tree
+Date: Tue, 13 Jan 2009 00:09:03 -0800
+Message-ID: <200901130809.n0D893CC006966@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35508 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752356AbZAMII6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752612AbZAMIJc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 03:08:58 -0500
+	Tue, 13 Jan 2009 03:09:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jpirko@redhat.com, eparis@redhat.com, viro@zeniv.linux.org.uk
+Cc: dcn@sgi.com, holt@sgi.com, stable@kernel.org
 
 
 The patch titled
-     audit: EXECVE record: remove bogus newline
+     sgi-xp: eliminate false detection of no heartbeat
 has been added to the -mm tree.  Its filename is
-     audit-execve-record-remove-bogus-newline.patch
+     sgi-xp-eliminate-false-detection-of-no-heartbeat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: audit: EXECVE record: remove bogus newline
-From: Jiri Pirko <jpirko@redhat.com>
+Subject: sgi-xp: eliminate false detection of no heartbeat
+From: Dean Nelson <dcn@sgi.com>
 
-EXECVE records contain a newline after every argument.  auditd converts
-"\n" to " " so you cannot see newlines even in raw logs, but they're there
-nevertheless.  If you're not using auditd, you need to work round them. 
-These '\n' chars are can be easily replaced by spaces when creating record
-in kernel.  Note there is no need for trailing '\n' in an audit record.
+After XPC has been up and running on multiple partitions for any length of
+time, if XPC on one of the partitions is stopped and restarted (either by
+a rmmod/insmod or a system restart), it is possible for the XPCs running
+on the other partitions to falsely detect a lack of heartbeat from the XPC
+that was just restarted.  This false detection will occur if the restarted
+XPC comes up within the five-seconds preceding one of the other XPC's
+heartbeat check (which occurs once every twenty seconds).
 
-record before this patch:
-"type=EXECVE msg=audit(1231421801.566:31): argc=4 a0=\"./test\"\na1=\"a\"\na2=\"b\"\na3=\"c\"\n"
+The detection of no heartbeat results in the detecting XPC deactivating
+from the just restarted XPC.  The only remedy is to restart one of the
+XPCs and hope that one doesn't hit this five-second window on any of the
+other partitions.
 
-record after this patch:
-"type=EXECVE msg=audit(1231421801.566:31): argc=4 a0=\"./test\" a1=\"a\" a2=\"b\" a3=\"c\""
-
-Signed-off-by: Jiri Pirko <jpirko@redhat.com>
-Acked-by: Eric Paris <eparis@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/misc/sgi-xp/xpc_sn2.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/auditsc.c~audit-execve-record-remove-bogus-newline kernel/auditsc.c
---- a/kernel/auditsc.c~audit-execve-record-remove-bogus-newline
-+++ a/kernel/auditsc.c
-@@ -1023,7 +1023,7 @@ static int audit_log_single_execve_arg(s
- {
- 	char arg_num_len_buf[12];
- 	const char __user *tmp_p = p;
--	/* how many digits are in arg_num? 3 is the length of a=\n */
-+	/* how many digits are in arg_num? 3 is the length of " a=" */
- 	size_t arg_num_len = snprintf(arg_num_len_buf, 12, "%d", arg_num) + 3;
- 	size_t len, len_left, to_send;
- 	size_t max_execve_audit_len = MAX_EXECVE_AUDIT_LEN;
-@@ -1109,7 +1109,7 @@ static int audit_log_single_execve_arg(s
- 		 * so we can be sure nothing was lost.
- 		 */
- 		if ((i == 0) && (too_long))
--			audit_log_format(*ab, "a%d_len=%zu ", arg_num,
-+			audit_log_format(*ab, " a%d_len=%zu", arg_num,
- 					 has_cntl ? 2*len : len);
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-eliminate-false-detection-of-no-heartbeat drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-eliminate-false-detection-of-no-heartbeat
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -899,7 +899,7 @@ xpc_update_partition_info_sn2(struct xpc
+ 	dev_dbg(xpc_part, "  remote_vars_pa = 0x%016lx\n",
+ 		part_sn2->remote_vars_pa);
  
- 		/*
-@@ -1129,7 +1129,7 @@ static int audit_log_single_execve_arg(s
- 		buf[to_send] = '\0';
+-	part->last_heartbeat = remote_vars->heartbeat;
++	part->last_heartbeat = remote_vars->heartbeat - 1;
+ 	dev_dbg(xpc_part, "  last_heartbeat = 0x%016lx\n",
+ 		part->last_heartbeat);
  
- 		/* actually log it */
--		audit_log_format(*ab, "a%d", arg_num);
-+		audit_log_format(*ab, " a%d", arg_num);
- 		if (too_long)
- 			audit_log_format(*ab, "[%d]", i);
- 		audit_log_format(*ab, "=");
-@@ -1137,7 +1137,6 @@ static int audit_log_single_execve_arg(s
- 			audit_log_n_hex(*ab, buf, to_send);
- 		else
- 			audit_log_format(*ab, "\"%s\"", buf);
--		audit_log_format(*ab, "\n");
- 
- 		p += to_send;
- 		len_left -= to_send;
-@@ -1165,7 +1164,7 @@ static void audit_log_execve_info(struct
- 
- 	p = (const char __user *)axi->mm->arg_start;
- 
--	audit_log_format(*ab, "argc=%d ", axi->argc);
-+	audit_log_format(*ab, "argc=%d", axi->argc);
- 
- 	/*
- 	 * we need some kernel buffer to hold the userspace args.  Just
 _
 
-Patches currently in -mm which might be from jpirko@redhat.com are
+Patches currently in -mm which might be from dcn@sgi.com are
 
-audit-execve-record-remove-bogus-newline.patch
-getrusage-fill-ru_maxrss-value.patch
+sgi-xp-eliminate-false-detection-of-no-heartbeat.patch
 
