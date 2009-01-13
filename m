@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-allow-parentheses-on-return-handle-array-values.patch added to -mm tree
-Date: Tue, 13 Jan 2009 14:24:07 -0800
-Message-ID: <200901132224.n0DMO7lK027709@imap1.linux-foundation.org>
+Subject: + checkpatch-handle-missing-if-open-in-context.patch added to -mm tree
+Date: Tue, 13 Jan 2009 14:24:03 -0800
+Message-ID: <200901132224.n0DMO3Bg027651@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755440AbZAMWYl (ORCPT
+	by vger.kernel.org with ESMTP id S1755447AbZAMWYs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 17:24:41 -0500
+	Tue, 13 Jan 2009 17:24:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com
+Cc: apw@canonical.com, dhaval@linux.vnet.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     checkpatch: allow parentheses on return handle array values
+     checkpatch: handle missing #if open in context
 has been added to the -mm tree.  Its filename is
-     checkpatch-allow-parentheses-on-return-handle-array-values.patch
+     checkpatch-handle-missing-if-open-in-context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: allow parentheses on return handle array values
+Subject: checkpatch: handle missing #if open in context
 From: Andy Whitcroft <apw@canonical.com>
 
-When we allow return to have surrounding parentheses when containing
-comparison operators we are not correctly handling the case where the
-values contain array sufffixes.  Squash them.
+If the #if opening statement is not in the context then the context stack
+can be empty.  Handle this by ensuring there is always a blank entry in
+the stack.
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Tested-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-parentheses-on-return-handle-array-values scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-parentheses-on-return-handle-array-values
+diff -puN scripts/checkpatch.pl~checkpatch-handle-missing-if-open-in-context scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-handle-missing-if-open-in-context
 +++ a/scripts/checkpatch.pl
-@@ -2016,7 +2016,11 @@ sub process {
+@@ -411,13 +411,15 @@ sub ctx_statement_block {
  
- 			# Flatten any parentheses
- 			$value =~ s/\)\(/\) \(/g;
--			while ($value !~ /(?:$Ident|-?$Constant)\s*$Compare\s*(?:$Ident|-?$Constant)/ && $value =~ s/\([^\(\)]*\)/1/) {
-+			while ($value =~ s/\[[^\{\}]*\]/1/ ||
-+			       $value !~ /(?:$Ident|-?$Constant)\s*
-+					     $Compare\s*
-+					     (?:$Ident|-?$Constant)/x &&
-+			       $value =~ s/\([^\(\)]*\)/1/) {
- 			}
+ 	my $type = '';
+ 	my $level = 0;
+-	my @stack = ([$type, $level]);
++	my @stack = ();
+ 	my $p;
+ 	my $c;
+ 	my $len = 0;
  
- 			if ($value =~ /^(?:$Ident|-?$Constant)$/) {
+ 	my $remainder;
+ 	while (1) {
++		@stack = (['', 0]) if ($#stack == -1);
++
+ 		#warn "CSB: blk<$blk> remain<$remain>\n";
+ 		# If we are about to drop off the end, pull in more
+ 		# context.
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
