@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-add-modalias-linkage-for-mmc-sd-devices.patch added to -mm tree
-Date: Mon, 12 Jan 2009 15:55:49 -0800
-Message-ID: <200901122355.n0CNtnOY006059@imap1.linux-foundation.org>
+Subject: + relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch added to -mm tree
+Date: Mon, 12 Jan 2009 16:37:33 -0800
+Message-ID: <200901130037.n0D0bXdE009433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754778AbZALXz4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756695AbZAMAht (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 18:55:56 -0500
+	Mon, 12 Jan 2009 19:37:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com, drzeus@drzeus.cx
+Cc: root@localdomain.pl, lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com
 
 
 The patch titled
-     mmc: add MODALIAS linkage for MMC/SD devices
+     cgroups: relax ns_can_attach checks to allow attaching to grandchild cgroups
 has been added to the -mm tree.  Its filename is
-     mmc-add-modalias-linkage-for-mmc-sd-devices.patch
+     relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: add MODALIAS linkage for MMC/SD devices
-From: Andy Whitcroft <apw@canonical.com>
+Subject: cgroups: relax ns_can_attach checks to allow attaching to grandchild cgroups
+From: Grzegorz Nosek <root@localdomain.pl>
 
-Currently we are using an explicit udev rule to trigger loading of the
-mmc-block module when an MMC or SD card is detected:
+The ns_proxy cgroup allows moving processes to child cgroups only one
+level deep at a time.  This commit relaxes this restriction and makes it
+possible to attach tasks directly to grandchild cgroups, e.g.:
 
-    SUBSYSTEM=="mmc", RUN+="/sbin/modprobe -Qba mmc-block"
+($pid is in the root cgroup)
+echo $pid > /cgroup/CG1/CG2/tasks
 
-It makes much more sense for the mmc bus driver and the mmc-block module
-to share MODALIAS information so that they are linked automatically.
+Previously this operation would fail with -EPERM and would have to be
+performed as two steps:
+echo $pid > /cgroup/CG1/tasks
+echo $pid > /cgroup/CG1/CG2/tasks
 
-Add MODALIAS attributes to the uevents as generated, and add the
-corresponding MODULE_ALIAS marks to the mmc-block module so that it is
-automatically loaded by udev.  I have followed the example set by the SCSI
-subsystem in pushing out numeric typed aliases:
+Also, the target cgroup no longer needs to be empty to move a task there.
 
-	mmc:t-0xNN
-
-Where NN is the MMC type as defined in include/linux/mmc/card.h.  Numeric
-types are used to allow automatic handling of new unknown types in the
-core.  The matches are open on the right to allow additional fields to be
-added as required in the future.
-
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
-CcL Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Grzegorz Nosek <root@localdomain.pl>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/block.c |    3 +++
- drivers/mmc/core/bus.c   |    5 +++++
- include/linux/mmc/card.h |   10 +++++++---
- 3 files changed, 15 insertions(+), 3 deletions(-)
+ include/linux/cgroup.h |    4 ++--
+ kernel/cgroup.c        |   11 ++++++-----
+ kernel/ns_cgroup.c     |   14 ++++----------
+ 3 files changed, 12 insertions(+), 17 deletions(-)
 
-diff -puN drivers/mmc/card/block.c~mmc-add-modalias-linkage-for-mmc-sd-devices drivers/mmc/card/block.c
---- a/drivers/mmc/card/block.c~mmc-add-modalias-linkage-for-mmc-sd-devices
-+++ a/drivers/mmc/card/block.c
-@@ -41,6 +41,9 @@
+diff -puN include/linux/cgroup.h~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups include/linux/cgroup.h
+--- a/include/linux/cgroup.h~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
++++ a/include/linux/cgroup.h
+@@ -338,8 +338,8 @@ int cgroup_path(const struct cgroup *cgr
  
- #include "queue.h"
+ int cgroup_task_count(const struct cgroup *cgrp);
  
-+MODULE_ALIAS_MMC_DEVICE(MMC_TYPE_MMC);
-+MODULE_ALIAS_MMC_DEVICE(MMC_TYPE_SD);
-+
- /*
-  * max 8 partitions per card
+-/* Return true if the cgroup is a descendant of the current cgroup */
+-int cgroup_is_descendant(const struct cgroup *cgrp);
++/* Return true if cgrp is a descendant of the task's cgroup */
++int cgroup_is_descendant(const struct cgroup *cgrp, struct task_struct *task);
+ 
+ /* Control Group subsystem type. See Documentation/cgroups.txt for details */
+ 
+diff -puN kernel/cgroup.c~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups kernel/cgroup.c
+--- a/kernel/cgroup.c~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
++++ a/kernel/cgroup.c
+@@ -3074,18 +3074,19 @@ int cgroup_clone(struct task_struct *tsk
+ }
+ 
+ /**
+- * cgroup_is_descendant - see if @cgrp is a descendant of current task's cgrp
++ * cgroup_is_descendant - see if @cgrp is a descendant of @task's cgrp
+  * @cgrp: the cgroup in question
++ * @task: the task in question
+  *
+- * See if @cgrp is a descendant of the current task's cgroup in
+- * the appropriate hierarchy.
++ * See if @cgrp is a descendant of @task's cgroup in the appropriate
++ * hierarchy.
+  *
+  * If we are sending in dummytop, then presumably we are creating
+  * the top cgroup in the subsystem.
+  *
+  * Called only by the ns (nsproxy) cgroup.
   */
-diff -puN drivers/mmc/core/bus.c~mmc-add-modalias-linkage-for-mmc-sd-devices drivers/mmc/core/bus.c
---- a/drivers/mmc/core/bus.c~mmc-add-modalias-linkage-for-mmc-sd-devices
-+++ a/drivers/mmc/core/bus.c
-@@ -84,6 +84,11 @@ mmc_bus_uevent(struct device *dev, struc
+-int cgroup_is_descendant(const struct cgroup *cgrp)
++int cgroup_is_descendant(const struct cgroup *cgrp, struct task_struct *task)
+ {
+ 	int ret;
+ 	struct cgroup *target;
+@@ -3095,7 +3096,7 @@ int cgroup_is_descendant(const struct cg
+ 		return 1;
+ 
+ 	get_first_subsys(cgrp, NULL, &subsys_id);
+-	target = task_cgroup(current, subsys_id);
++	target = task_cgroup(task, subsys_id);
+ 	while (cgrp != target && cgrp!= cgrp->top_cgroup)
+ 		cgrp = cgrp->parent;
+ 	ret = (cgrp == target);
+diff -puN kernel/ns_cgroup.c~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups kernel/ns_cgroup.c
+--- a/kernel/ns_cgroup.c~relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups
++++ a/kernel/ns_cgroup.c
+@@ -34,7 +34,7 @@ int ns_cgroup_clone(struct task_struct *
+ 
+ /*
+  * Rules:
+- *   1. you can only enter a cgroup which is a child of your current
++ *   1. you can only enter a cgroup which is a descendant of your current
+  *     cgroup
+  *   2. you can only place another process into a cgroup if
+  *     a. you have CAP_SYS_ADMIN
+@@ -45,21 +45,15 @@ int ns_cgroup_clone(struct task_struct *
+ static int ns_can_attach(struct cgroup_subsys *ss,
+ 		struct cgroup *new_cgroup, struct task_struct *task)
+ {
+-	struct cgroup *orig;
+-
+ 	if (current != task) {
+ 		if (!capable(CAP_SYS_ADMIN))
+ 			return -EPERM;
+ 
+-		if (!cgroup_is_descendant(new_cgroup))
++		if (!cgroup_is_descendant(new_cgroup, current))
+ 			return -EPERM;
  	}
  
- 	retval = add_uevent_var(env, "MMC_NAME=%s", mmc_card_name(card));
-+	if (retval)
-+		return retval;
-+
-+	retval = add_uevent_var(env, "MODALIAS=" MMC_DEVICE_MODALIAS_FMT,
-+		card->type);
- 
- 	return retval;
- }
-diff -puN include/linux/mmc/card.h~mmc-add-modalias-linkage-for-mmc-sd-devices include/linux/mmc/card.h
---- a/include/linux/mmc/card.h~mmc-add-modalias-linkage-for-mmc-sd-devices
-+++ a/include/linux/mmc/card.h
-@@ -86,9 +86,9 @@ struct mmc_card {
- 	struct device		dev;		/* the device */
- 	unsigned int		rca;		/* relative card address of device */
- 	unsigned int		type;		/* card type */
--#define MMC_TYPE_MMC		0		/* MMC card */
--#define MMC_TYPE_SD		1		/* SD card */
--#define MMC_TYPE_SDIO		2		/* SDIO card */
-+#define MMC_TYPE_MMC		0x00		/* MMC card */
-+#define MMC_TYPE_SD		0x01		/* SD card */
-+#define MMC_TYPE_SDIO		0x02		/* SDIO card */
- 	unsigned int		state;		/* (our) card state */
- #define MMC_STATE_PRESENT	(1<<0)		/* present in sysfs */
- #define MMC_STATE_READONLY	(1<<1)		/* card is read-only */
-@@ -150,4 +150,8 @@ struct mmc_driver {
- extern int mmc_register_driver(struct mmc_driver *);
- extern void mmc_unregister_driver(struct mmc_driver *);
- 
-+#define MODULE_ALIAS_MMC_DEVICE(type) \
-+	MODULE_ALIAS("mmc:t-" __stringify(type) "*")
-+#define MMC_DEVICE_MODALIAS_FMT "mmc:t-0x%02x"
-+
- #endif
-_
-
-Patches currently in -mm which might be from apw@canonical.com are
-
-mmc-add-modalias-linkage-for-mmc-sd-devices.patch
-
+-	if (atomic_read(&new_cgroup->count) != 0)
+-		return -EPERM;
