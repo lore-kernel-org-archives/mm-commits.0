@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-add-x86-register-parser-to-markup_oopspl.patch added to -mm tree
-Date: Tue, 13 Jan 2009 15:33:43 -0800
-Message-ID: <200901132333.n0DNXhNl023030@imap1.linux-foundation.org>
+Subject: + scripts-add-x86-64-bit-support-to-the-markup_oopspl-script.patch added to -mm tree
+Date: Tue, 13 Jan 2009 15:33:45 -0800
+Message-ID: <200901132333.n0DNXjuS023037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753792AbZAMXds (ORCPT
+	by vger.kernel.org with ESMTP id S1755240AbZAMXdt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 18:33:48 -0500
+	Tue, 13 Jan 2009 18:33:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: arjan@linux.intel.com, sam@ravnborg.org
 
 
 The patch titled
-     scripts: add x86 register parser to markup_oops.pl
+     scripts: add x86 64 bit support to the markup_oops.pl script
 has been added to the -mm tree.  Its filename is
-     scripts-add-x86-register-parser-to-markup_oopspl.patch
+     scripts-add-x86-64-bit-support-to-the-markup_oopspl-script.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,165 +34,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts: add x86 register parser to markup_oops.pl
+Subject: scripts: add x86 64 bit support to the markup_oops.pl script
 From: Arjan van de Ven <arjan@linux.intel.com>
-
-An oops dump also contains the register values.
-
-This patch parses these for (32 bit) x86, and then annotates the
-disassembly with these values; this helps in analysis of the oops by the
-developer, for example, NULL pointer or other pointer bugs show up clearly
-this way.
 
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/markup_oops.pl |  106 ++++++++++++++++++++++++++++++++++++---
- 1 file changed, 100 insertions(+), 6 deletions(-)
+ scripts/markup_oops.pl |   59 ++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 55 insertions(+), 4 deletions(-)
 
-diff -puN scripts/markup_oops.pl~scripts-add-x86-register-parser-to-markup_oopspl scripts/markup_oops.pl
---- a/scripts/markup_oops.pl~scripts-add-x86-register-parser-to-markup_oopspl
+diff -puN scripts/markup_oops.pl~scripts-add-x86-64-bit-support-to-the-markup_oopspl-script scripts/markup_oops.pl
+--- a/scripts/markup_oops.pl~scripts-add-x86-64-bit-support-to-the-markup_oopspl-script
 +++ a/scripts/markup_oops.pl
-@@ -32,6 +32,78 @@ my $module = "";
- my $func_offset;
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -w
++#!/usr/bin/perl
+ 
+ use File::Basename;
+ 
+@@ -29,7 +29,7 @@ my $filename = $vmlinux_name;
+ my $target = "0";
+ my $function;
+ my $module = "";
+-my $func_offset;
++my $func_offset = 0;
  my $vmaoffset = 0;
  
-+my %regs;
-+
-+
-+sub parse_x86_regs
-+{
-+	my ($line) = @_;
-+	if ($line =~ /EAX: ([0-9a-f]+) EBX: ([0-9a-f]+) ECX: ([0-9a-f]+) EDX: ([0-9a-f]+)/) {
+ my %regs;
+@@ -49,6 +49,39 @@ sub parse_x86_regs
+ 		$regs{"%edi"} = $2;
+ 		$regs{"%esp"} = $4;
+ 	}
++	if ($line =~ /RAX: ([0-9a-f]+) RBX: ([0-9a-f]+) RCX: ([0-9a-f]+)/) {
 +		$regs{"%eax"} = $1;
 +		$regs{"%ebx"} = $2;
 +		$regs{"%ecx"} = $3;
-+		$regs{"%edx"} = $4;
 +	}
-+	if ($line =~ /ESI: ([0-9a-f]+) EDI: ([0-9a-f]+) EBP: ([0-9a-f]+) ESP: ([0-9a-f]+)/) {
-+		$regs{"%esi"} = $1;
-+		$regs{"%edi"} = $2;
-+		$regs{"%esp"} = $4;
++	if ($line =~ /RDX: ([0-9a-f]+) RSI: ([0-9a-f]+) RDI: ([0-9a-f]+)/) {
++		$regs{"%edx"} = $1;
++		$regs{"%esi"} = $2;
++		$regs{"%edi"} = $3;
++	}
++	if ($line =~ /RBP: ([0-9a-f]+) R08: ([0-9a-f]+) R09: ([0-9a-f]+)/) {
++		$regs{"%r08"} = $2;
++		$regs{"%r09"} = $3;
++	}
++	if ($line =~ /R10: ([0-9a-f]+) R11: ([0-9a-f]+) R12: ([0-9a-f]+)/) {
++		$regs{"%r10"} = $1;
++		$regs{"%r11"} = $2;
++		$regs{"%r12"} = $3;
++	}
++	if ($line =~ /R13: ([0-9a-f]+) R14: ([0-9a-f]+) R15: ([0-9a-f]+)/) {
++		$regs{"%r13"} = $1;
++		$regs{"%r14"} = $2;
++		$regs{"%r15"} = $3;
 +	}
 +}
 +
-+sub process_x86_regs
++sub reg_name
 +{
-+	my ($line, $cntr) = @_;
-+	my $str = "";
-+	if (length($line) < 40) {
-+		return ""; # not an asm istruction
-+	}
-+
-+	# find the arguments to the instruction
-+	if ($line =~ /([0-9a-zA-Z\,\%\(\)\-\+]+)$/) {
-+		$lastword = $1;
-+	} else {
-+		return "";
-+	}
-+
-+	# we need to find the registers that get clobbered,
-+	# since their value is no longer relevant for previous
-+	# instructions in the stream.
-+
-+	$clobber = $lastword;
-+	# first, remove all memory operands, they're read only
-+	$clobber =~ s/\([a-z0-9\%\,]+\)//g;
-+	# then, remove everything before the comma, thats the read part
-+	$clobber =~ s/.*\,//g;
-+
-+	# if this is the instruction that faulted, we haven't actually done
-+	# the write yet... nothing is clobbered.
-+	if ($cntr == 0) {
-+		$clobber = "";
-+	}
-+
-+	foreach $reg (keys(%regs)) {
-+		my $val = $regs{$reg};
-+		# first check if we're clobbering this register; if we do
-+		# we print it with a =>, and then delete its value
-+		if ($clobber =~ /$reg/) {
-+			if (length($val) > 0) {
-+				$str = $str . " $reg => $val ";
-+			}
-+			$regs{$reg} = "";
-+			$val = "";
++	my ($reg) = @_;
++	$reg =~ s/r(.)x/e\1x/;
++	$reg =~ s/r(.)i/e\1i/;
++	$reg =~ s/r(.)p/e\1p/;
++	return $reg;
+ }
+ 
+ sub process_x86_regs
+@@ -83,10 +116,18 @@ sub process_x86_regs
+ 	}
+ 
+ 	foreach $reg (keys(%regs)) {
++		my $clobberprime = reg_name($clobber);
++		my $lastwordprime = reg_name($lastword);
+ 		my $val = $regs{$reg};
++		if ($val =~ /^[0]+$/) {
++			$val = "0";
++		} else {
++			$val =~ s/^0*//;
 +		}
-+		# now check if we're reading this register
-+		if ($lastword =~ /$reg/) {
-+			if (length($val) > 0) {
-+				$str = $str . " $reg = $val ";
-+			}
-+		}
-+	}
-+	return $str;
-+}
 +
-+# parse the oops
- while (<STDIN>) {
- 	my $line = $_;
+ 		# first check if we're clobbering this register; if we do
+ 		# we print it with a =>, and then delete its value
+-		if ($clobber =~ /$reg/) {
++		if ($clobber =~ /$reg/ || $clobberprime =~ /$reg/) {
+ 			if (length($val) > 0) {
+ 				$str = $str . " $reg => $val ";
+ 			}
+@@ -94,7 +135,7 @@ sub process_x86_regs
+ 			$val = "";
+ 		}
+ 		# now check if we're reading this register
+-		if ($lastword =~ /$reg/) {
++		if ($lastword =~ /$reg/ || $lastwordprime =~ /$reg/) {
+ 			if (length($val) > 0) {
+ 				$str = $str . " $reg = $val ";
+ 			}
+@@ -109,15 +150,25 @@ while (<STDIN>) {
  	if ($line =~ /EIP: 0060:\[\<([a-z0-9]+)\>\]/) {
-@@ -46,10 +118,11 @@ while (<STDIN>) {
+ 		$target = $1;
+ 	}
++	if ($line =~ /RIP: 0010:\[\<([a-z0-9]+)\>\]/) {
++		$target = $1;
++	}
+ 	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+(0x[0-9a-f]+)\/0x[a-f0-9]/) {
+ 		$function = $1;
+ 		$func_offset = $2;
+ 	}
++	if ($line =~ /RIP: 0010:\[\<[0-9a-f]+\>\]  \[\<[0-9a-f]+\>\] ([a-zA-Z0-9\_]+)\+(0x[0-9a-f]+)\/0x[a-f0-9]/) {
++		$function = $1;
++		$func_offset = $2;
++	}
+ 
+ 	# check if it's a module
  	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+(0x[0-9a-f]+)\/0x[a-f0-9]+\W\[([a-zA-Z0-9\_\-]+)\]/) {
  		$module = $3;
  	}
-+	parse_x86_regs($line);
++	if ($line =~ /RIP: 0010:\[\<[0-9a-f]+\>\]  \[\<[0-9a-f]+\>\] ([a-zA-Z0-9\_]+)\+(0x[0-9a-f]+)\/0x[a-f0-9]+\W\[([a-zA-Z0-9\_\-]+)\]/) {
++		$module = $3;
++	}
+ 	parse_x86_regs($line);
  }
  
- my $decodestart = hex($target) - hex($func_offset);
--my $decodestop = $decodestart + 8192;
-+my $decodestop = hex($target) + 8192;
- if ($target eq "0") {
- 	print "No oops found!\n";
- 	print "Usage: \n";
-@@ -84,6 +157,7 @@ my $counter = 0;
- my $state   = 0;
- my $center  = 0;
- my @lines;
-+my @reglines;
- 
- sub InRange {
- 	my ($address, $target) = @_;
-@@ -188,16 +262,36 @@ while ($finish < $counter) {
- 
- my $i;
- 
--my $fulltext = "";
-+
-+# start annotating the registers in the asm.
-+# this goes from the oopsing point back, so that the annotator
-+# can track (opportunistically) which registers got written and
-+# whos value no longer is relevant.
-+
-+$i = $center;
-+while ($i >= $start) {
-+	$reglines[$i] = process_x86_regs($lines[$i], $center - $i);
-+	$i = $i - 1;
-+}
-+
- $i = $start;
- while ($i < $finish) {
-+	my $line;
- 	if ($i == $center) {
--		$fulltext = $fulltext . "*$lines[$i]     <----- faulting instruction\n";
-+		$line =  "*$lines[$i] ";
- 	} else {
--		$fulltext = $fulltext .  " $lines[$i]\n";
-+		$line =  " $lines[$i] ";
-+	}
-+	print $line;
-+	if (defined($reglines[$i]) && length($reglines[$i]) > 0) {
-+		my $c = 60 - length($line);
-+		while ($c > 0) { print " "; $c = $c - 1; };
-+		print "| $reglines[$i]";
- 	}
-+	if ($i == $center) {
-+		print "<--- faulting instruction";
-+	}
-+	print "\n";
- 	$i = $i +1;
- }
- 
--print $fulltext;
+_
+
+Patches currently in -mm which might be from arjan@linux.intel.com are
+
+origin.patch
+linux-next.patch
+scripts-add-x86-register-parser-to-markup_oopspl.patch
+scripts-add-x86-64-bit-support-to-the-markup_oopspl-script.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+
