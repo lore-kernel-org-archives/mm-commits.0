@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysrq-documentation-document-why-the-command-header-only-is-shown.patch added to -mm tree
-Date: Mon, 12 Jan 2009 20:18:52 -0800
-Message-ID: <200901130418.n0D4IqZZ004711@imap1.linux-foundation.org>
+Subject: + rtc-cumulative-style-fixes-fix-fix.patch added to -mm tree
+Date: Mon, 12 Jan 2009 22:25:36 -0800
+Message-ID: <200901130625.n0D6PaHs015897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56996 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38391 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751370AbZAMETD (ORCPT
+	by vger.kernel.org with ESMTP id S1754200AbZAMG0Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 23:19:03 -0500
+	Tue, 13 Jan 2009 01:26:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com, mj@ucw.cz, randy.dunlap@oracle.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, a.zummo@towertech.it
 
 
 The patch titled
-     sysrq documentation: document why the command header only is shown
+     rtc-cumulative-style-fixes-fix-fix
 has been added to the -mm tree.  Its filename is
-     sysrq-documentation-document-why-the-command-header-only-is-shown.patch
+     rtc-cumulative-style-fixes-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysrq documentation: document why the command header only is shown
-From: Andy Whitcroft <apw@canonical.com>
+Subject: rtc-cumulative-style-fixes-fix-fix
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Document the interactions between loglevel and the sysrq output.  Also
-document how to work round it should output be required on the console.
+This was necessary for hpet* functions.
 
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
-Cc: Martin Mares <mj@ucw.cz>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysrq.txt |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/rtc/rtc-cmos.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/sysrq.txt~sysrq-documentation-document-why-the-command-header-only-is-shown Documentation/sysrq.txt
---- a/Documentation/sysrq.txt~sysrq-documentation-document-why-the-command-header-only-is-shown
-+++ a/Documentation/sysrq.txt
-@@ -212,6 +212,24 @@ within a function called by handle_sysrq
- a lock (you are also in an interrupt handler, which means don't sleep!), so
- you must call __handle_sysrq_nolock instead.
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cumulative-style-fixes-fix-fix drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cumulative-style-fixes-fix-fix
++++ a/drivers/rtc/rtc-cmos.c
+@@ -39,6 +39,7 @@
  
-+*  When I hit a SysRq key combination only the header appears on the console?
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+Sysrq output is subject to the same console loglevel control as all
-+other console output.  This means that if the kernel was booted 'quiet'
-+as is common on distro kernels the output may not appear on the actual
-+console, even though it will appear in the dmesg buffer, and be accessible
-+via the dmesg command and to the consumers of /proc/kmsg.  As a specific
-+exception the header line from the sysrq command is passed to all console
-+consumers as if the current loglevel was maximum.  If only the header
-+is emitted it is almost certain that the kernel loglevel is too low.
-+Should you require the output on the console channel then you will need
-+to temporarily up the console loglevel using alt-sysrq-8 or:
-+
-+    echo 8 > /proc/sysrq-trigger
-+
-+Remember to return the loglevel to normal after triggering the sysrq
-+command you are interested in.
-+
- *  I have more questions, who can I ask?
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- And I'll answer any questions about the registration system you got, also
+ /* this is for "generic access to PC-style RTC" using CMOS_READ/CMOS_WRITE */
+ #include <asm-generic/rtc.h>
++#include <asm/hpet.h>
+ 
+ struct cmos_rtc {
+ 	struct rtc_device	*rtc;
 _
 
-Patches currently in -mm which might be from apw@canonical.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-mmc-add-modalias-linkage-for-mmc-sd-devices.patch
-sysrq-documentation-remove-the-redundant-updated-date.patch
-sysrq-documentation-document-why-the-command-header-only-is-shown.patch
-sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg.patch
+rtc-cumulative-style-fixes-fix-fix.patch
 
