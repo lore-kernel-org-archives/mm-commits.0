@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sysrq-documentation-remove-the-redundant-updated-date.patch added to -mm tree
-Date: Mon, 12 Jan 2009 20:18:50 -0800
-Message-ID: <200901130418.n0D4Io7r004635@imap1.linux-foundation.org>
+Subject: + sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg.patch added to -mm tree
+Date: Mon, 12 Jan 2009 20:18:54 -0800
+Message-ID: <200901130418.n0D4Isu2004718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50524 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751206AbZAMES6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751343AbZAMETC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 23:18:58 -0500
+	Mon, 12 Jan 2009 23:19:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@canonical.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     sysrq documentation: remove the redundant updated date
+     sysrq: add commentary on why we use the console loglevel over using KERN_EMERG
 has been added to the -mm tree.  Its filename is
-     sysrq-documentation-remove-the-redundant-updated-date.patch
+     sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysrq documentation: remove the redundant updated date
+Subject: sysrq: add commentary on why we use the console loglevel over using KERN_EMERG
 From: Andy Whitcroft <apw@canonical.com>
 
-git is maintaining the last update time much more accuratly than the
-internal update time.  Remove it.
+Add an explanitory comment as to why we modify the kernel console loglevel
+rather than simply moving sysrq messages to KERN_EMERG level.
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysrq.txt |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/char/sysrq.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN Documentation/sysrq.txt~sysrq-documentation-remove-the-redundant-updated-date Documentation/sysrq.txt
---- a/Documentation/sysrq.txt~sysrq-documentation-remove-the-redundant-updated-date
-+++ a/Documentation/sysrq.txt
-@@ -1,6 +1,5 @@
- Linux Magic System Request Key Hacks
- Documentation for sysrq.c
--Last update: 2007-AUG-04
+diff -puN drivers/char/sysrq.c~sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg
++++ a/drivers/char/sysrq.c
+@@ -473,6 +473,12 @@ void __handle_sysrq(int key, struct tty_
+ 	unsigned long flags;
  
- *  What is the magic SysRq key?
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 	spin_lock_irqsave(&sysrq_key_table_lock, flags);
++	/*
++	 * Raise the apparent loglevel to maximum so that the sysrq header
++	 * is shown to provide the user with positive feedback.  We do not
++	 * simply emit this at KERN_EMERG as that would change message
++	 * routing in the consumers of /proc/kmsg.
++	 */
+ 	orig_log_level = console_loglevel;
+ 	console_loglevel = 7;
+ 	printk(KERN_INFO "SysRq : ");
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
