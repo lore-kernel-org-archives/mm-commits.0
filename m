@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-fix-probe-error-return-in-gpio-driver-probes.patch added to -mm tree
-Date: Mon, 12 Jan 2009 16:47:34 -0800
-Message-ID: <200901130047.n0D0lYBL018037@imap1.linux-foundation.org>
+Subject: + nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch added to -mm tree
+Date: Mon, 12 Jan 2009 16:50:27 -0800
+Message-ID: <200901130050.n0D0oRNT020482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47523 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753033AbZAMAsL (ORCPT
+	by vger.kernel.org with ESMTP id S1750840AbZAMAuf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jan 2009 19:48:11 -0500
+	Mon, 12 Jan 2009 19:50:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org, david-b@pacbell.net
+Cc: konishi.ryusuke@lab.ntt.co.jp, chris.mason@oracle.com
 
 
 The patch titled
-     gpio: fix probe() error return in gpio driver probes
+     nilfs2: insert checks and hole block allocation in page_mkwrite
 has been added to the -mm tree.  Its filename is
-     gpio-fix-probe-error-return-in-gpio-driver-probes.patch
+     nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,133 +34,198 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: fix probe() error return in gpio driver probes
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: nilfs2: insert checks and hole block allocation in page_mkwrite
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-A number of drivers in drivers/gpio return -ENODEV when confronted with
-missing setup parameters such as the platform data.  However, returning
--ENODEV causes the driver layer to silently ignore the driver as it
-assumes the probe did not find anything and was only speculative.
+This will insert i_size check, a disk capacity check, and hole block
+allocation code in the nilfs_page_mkwrite.
 
-To make life easier to discern why a driver is not being attached, change
-to returning -EINVAL, which is a better description of the fact that the
-driver data was not valid.
+Previously, the hole block allocation was delayed until just before
+writing for mmapped pages.  This accompanies removal of the delayed
+allocation code.
 
-Also add a set of dev_dbg() statements to the error paths to provide an
-better explanation of the error as there may be more that one point in the
-driver.
+This revision uses a page lock instead of i_alloc_sem for safety.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/max7301.c  |    6 ++++--
- drivers/gpio/max732x.c  |    6 ++++--
- drivers/gpio/mcp23s08.c |    6 ++++--
- drivers/gpio/pca953x.c  |    6 ++++--
- drivers/gpio/pcf857x.c  |   12 ++++++++----
- 5 files changed, 24 insertions(+), 12 deletions(-)
+ fs/nilfs2/file.c    |   58 ++++++++++++++++++++++++++++++++++++++++--
+ fs/nilfs2/segment.c |   44 +++----------------------------
+ 2 files changed, 61 insertions(+), 41 deletions(-)
 
-diff -puN drivers/gpio/max7301.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/max7301.c
---- a/drivers/gpio/max7301.c~gpio-fix-probe-error-return-in-gpio-driver-probes
-+++ a/drivers/gpio/max7301.c
-@@ -217,8 +217,10 @@ static int __devinit max7301_probe(struc
- 	int i, ret;
+diff -puN fs/nilfs2/file.c~nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite fs/nilfs2/file.c
+--- a/fs/nilfs2/file.c~nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite
++++ a/fs/nilfs2/file.c
+@@ -75,8 +75,62 @@ nilfs_file_aio_write(struct kiocb *iocb,
  
- 	pdata = spi->dev.platform_data;
--	if (!pdata || !pdata->base)
--		return -ENODEV;
-+	if (!pdata || !pdata->base) {
-+		dev_dbg(&spi->dev, "incorrect or missing platform data\n");
+ static int nilfs_page_mkwrite(struct vm_area_struct *vma, struct page *page)
+ {
+-	if (!(vma->vm_flags & (VM_WRITE | VM_MAYWRITE)))
+-		return -EPERM;
++	struct inode *inode = vma->vm_file->f_dentry->d_inode;
++	struct nilfs_transaction_info ti;
++	int ret;
++
++	if (unlikely(nilfs_near_disk_full(NILFS_SB(inode->i_sb)->s_nilfs)))
++		return -ENOSPC;
++
++	lock_page(page);
++	if (page->mapping != inode->i_mapping ||
++	    page_offset(page) >= i_size_read(inode) || !PageUptodate(page)) {
++		unlock_page(page);
 +		return -EINVAL;
 +	}
- 
- 	/*
- 	 * bits_per_word cannot be configured in platform data
-diff -puN drivers/gpio/max732x.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/max732x.c
---- a/drivers/gpio/max732x.c~gpio-fix-probe-error-return-in-gpio-driver-probes
-+++ a/drivers/gpio/max732x.c
-@@ -267,8 +267,10 @@ static int __devinit max732x_probe(struc
- 	int ret, nr_port;
- 
- 	pdata = client->dev.platform_data;
--	if (pdata == NULL)
--		return -ENODEV;
-+	if (pdata == NULL) {
-+		dev_dbg(&client->dev, "no platform data\n");
-+		return -EINVAL;
++
++	/*
++	 * check to see if the page is mapped already (no holes)
++	 */
++	if (PageMappedToDisk(page)) {
++		unlock_page(page);
++		goto mapped;
 +	}
- 
- 	chip = kzalloc(sizeof(struct max732x_chip), GFP_KERNEL);
- 	if (chip == NULL)
-diff -puN drivers/gpio/mcp23s08.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/mcp23s08.c
---- a/drivers/gpio/mcp23s08.c~gpio-fix-probe-error-return-in-gpio-driver-probes
-+++ a/drivers/gpio/mcp23s08.c
-@@ -310,8 +310,10 @@ static int mcp23s08_probe(struct spi_dev
- 	unsigned			base;
- 
- 	pdata = spi->dev.platform_data;
--	if (!pdata || !gpio_is_valid(pdata->base))
--		return -ENODEV;
-+	if (!pdata || !gpio_is_valid(pdata->base)) {
-+		dev_dbg(&spi->dev, "invalid or missing platform data\n");
-+		return -EINVAL;
++	if (page_has_buffers(page)) {
++		struct buffer_head *bh, *head;
++		int fully_mapped = 1;
++
++		bh = head = page_buffers(page);
++		do {
++			if (!buffer_mapped(bh)) {
++				fully_mapped = 0;
++				break;
++			}
++		} while (bh = bh->b_this_page, bh != head);
++
++		if (fully_mapped) {
++			SetPageMappedToDisk(page);
++			unlock_page(page);
++			goto mapped;
++		}
 +	}
- 
- 	for (addr = 0; addr < 4; addr++) {
- 		if (!pdata->chip[addr].is_present)
-diff -puN drivers/gpio/pca953x.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~gpio-fix-probe-error-return-in-gpio-driver-probes
-+++ a/drivers/gpio/pca953x.c
-@@ -202,8 +202,10 @@ static int __devinit pca953x_probe(struc
- 	int ret;
- 
- 	pdata = client->dev.platform_data;
--	if (pdata == NULL)
--		return -ENODEV;
-+	if (pdata == NULL) {
-+		dev_dbg(&client->dev, "no platform data\n");
-+		return -EINVAL;
++	unlock_page(page);
++
++	/*
++	 * fill hole blocks
++	 */
++	ret = nilfs_transaction_begin(inode->i_sb, &ti, 1);
++	if (unlikely(ret))
++		return ret;
++
++	ret = block_page_mkwrite(vma, page, nilfs_get_block);
++	if (unlikely(ret)) {
++		nilfs_transaction_abort(inode->i_sb);
++		return ret;
 +	}
++	nilfs_transaction_commit(inode->i_sb);
++
++ mapped:
+ 	SetPageChecked(page);
+ 	wait_on_page_writeback(page);
+ 	return 0;
+diff -puN fs/nilfs2/segment.c~nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite
++++ a/fs/nilfs2/segment.c
+@@ -654,42 +654,6 @@ struct nilfs_sc_operations nilfs_sc_dsyn
+ 	.write_node_binfo = NULL,
+ };
  
- 	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
- 	if (chip == NULL)
-diff -puN drivers/gpio/pcf857x.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/pcf857x.c
---- a/drivers/gpio/pcf857x.c~gpio-fix-probe-error-return-in-gpio-driver-probes
-+++ a/drivers/gpio/pcf857x.c
-@@ -188,8 +188,10 @@ static int pcf857x_probe(struct i2c_clie
- 	int				status;
+-static int nilfs_prepare_data_page(struct inode *inode, struct page *page)
+-{
+-	int err = 0;
+-
+-	lock_page(page);
+-	if (!page_has_buffers(page))
+-		create_empty_buffers(page, 1 << inode->i_blkbits, 0);
+-
+-	if (!PageMappedToDisk(page)) {
+-		struct buffer_head *bh, *head;
+-		sector_t blkoff
+-			= page->index << (PAGE_SHIFT - inode->i_blkbits);
+-
+-		int non_mapped = 0;
+-
+-		bh = head = page_buffers(page);
+-		do {
+-			if (!buffer_mapped(bh)) {
+-				if (!buffer_dirty(bh)) {
+-					non_mapped++;
+-					continue;
+-				}
+-				err = nilfs_get_block(inode, blkoff, bh, 1);
+-				if (unlikely(err))
+-					goto out_unlock;
+-			}
+-		} while (blkoff++, (bh = bh->b_this_page) != head);
+-		if (!non_mapped)
+-			SetPageMappedToDisk(page);
+-	}
+-
+- out_unlock:
+-	unlock_page(page);
+-	return err;
+-}
+-
+ static int nilfs_lookup_dirty_data_buffers(struct inode *inode,
+ 					   struct list_head *listp,
+ 					   struct nilfs_sc_info *sci)
+@@ -714,9 +678,11 @@ static int nilfs_lookup_dirty_data_buffe
+ 		struct page *page = pvec.pages[i];
  
- 	pdata = client->dev.platform_data;
--	if (!pdata)
--		return -ENODEV;
-+	if (!pdata) {
-+		dev_dbg(&client->dev, "no platform data\n");
-+		return -EINVAL;
-+	}
+ 		if (mapping->host) {
+-			err = nilfs_prepare_data_page(inode, page);
+-			if (unlikely(err))
+-				break;
++			lock_page(page);
++			if (!page_has_buffers(page))
++				create_empty_buffers(page,
++						     1 << inode->i_blkbits, 0);
++			unlock_page(page);
+ 		}
  
- 	/* Allocate, initialize, and register this gpio_chip. */
- 	gpio = kzalloc(sizeof *gpio, GFP_KERNEL);
-@@ -248,8 +250,10 @@ static int pcf857x_probe(struct i2c_clie
- 		else
- 			status = i2c_read_le16(client);
- 
--	} else
--		status = -ENODEV;
-+	} else {
-+		dev_dbg(&client->dev, "unsupported number of gpios\n");
-+		status = -EINVAL;
-+	}
- 
- 	if (status < 0)
- 		goto fail;
+ 		bh = head = page_buffers(page);
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-i2c-incremental-i2c-mpc-driver-fix-for-multi-master-i2c-busses.patch
-sm501-fix-section-mismatches.patch
-mmc-s3cmci-fix-hangup-in-do_pio_write.patch
-gpio-fix-probe-error-return-in-gpio-driver-probes.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+nilfs2-cleanup-nilfs_clear_inode.patch
+nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
+nilfs2-insert-explanations-in-gcinode-file.patch
+nilfs2-add-maintainer.patch
+nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
+nilfs2-clean-up-indirect-function-calling-conventions.patch
 
