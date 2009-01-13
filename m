@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-might-lose-modem-status-change-fix.patch added to -mm tree
-Date: Tue, 13 Jan 2009 14:06:03 -0800
-Message-ID: <200901132206.n0DM63oQ012129@imap1.linux-foundation.org>
+Subject: + nbd-trivial-cleanups.patch added to -mm tree
+Date: Tue, 13 Jan 2009 14:06:44 -0800
+Message-ID: <200901132206.n0DM6iRM012780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50732 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753324AbZAMWGj (ORCPT
+	by vger.kernel.org with ESMTP id S1754851AbZAMWHS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 17:06:39 -0500
+	Tue, 13 Jan 2009 17:07:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haavard.skinnemoen@atmel.com, anemo@mba.ocn.ne.jp
+Cc: pavel@suse.cz, paul.clements@steeleye.com
 
 
 The patch titled
-     atmel_serial-might-lose-modem-status-change fix
+     nbd: trivial cleanups
 has been added to the -mm tree.  Its filename is
-     atmel_serial-might-lose-modem-status-change-fix.patch
+     nbd-trivial-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial-might-lose-modem-status-change fix
-From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: nbd: trivial cleanups
+From: Pavel Machek <pavel@suse.cz>
 
-...Itai Levi pointed out that we need to initialize
-atmel_port->irq_status as well here. His analysis is as follows:
+Trivial cleanups for nbd: only the return -EIO one really changes code,
+and I've verified all the callers (plus 0 == success, 1 == error
+convention is really ugly).
 
-> Regarding the second part of the patch (which resets irq_status_prev),
-> it turns out that both versions of the patch (mine and Atsushi's)
-> still leave enough room for faulty behavior when opening the port.
->
-> This is because we are not resetting both irq_status_prev and
-> irq_status in atmel_startup() to CSR, which leads faulty behavior in
-> the following sequences:
->
-> First case:
-> 1. closing the port while CTS line = 1 (TX not allowed)
-> 2. setting CTS line = 0 (TX allowed)
-> 3. opening the port
-> 4. transmitting one char
-> 5. Cannot transmit more chars, although CTS line is 0
->
-> Second case:
-> 1. closing the port while CTS line = 0 (TX allowed)
-> 2. setting CTS line = 1 (TX not allowed)
-> 3. opening the port
-> 4. receiving some chars
-> 5. Now we can transmit, although CTS line is 1
->
-> This reason for this is that the tasklet is scheduled as a result of
-> TX or RX interrupts (not a status change!), in steps 4 above. Inside
-> the tasklet, the atmel_port->irq_status (which holds the value from
-> the previous session) is compared to atmel_port->irq_status_prev.
-> Hence, a status-change of the CTS line is faultily detected.
->
-> Both cases were verified on 9260 hardware.
->
-> The solution for this, is to reset both irq_status_prev and irq_status
-> to the value of CSR in atmel_startup().
->
-> Here is my updated patch (you can ignore the first part which you
-> already accepted):
-
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Acked-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/block/nbd.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change-fix drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change-fix
-+++ a/drivers/serial/atmel_serial.c
-@@ -805,6 +805,9 @@ static int atmel_startup(struct uart_por
- 	 */
- 	UART_PUT_IDR(port, -1);
+diff -puN drivers/block/nbd.c~nbd-trivial-cleanups drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-trivial-cleanups
++++ a/drivers/block/nbd.c
+@@ -4,7 +4,7 @@
+  * Note that you can not swap over this thing, yet. Seems to work but
+  * deadlocks sometimes - you can not swap over TCP in general.
+  * 
+- * Copyright 1997-2000 Pavel Machek <pavel@ucw.cz>
++ * Copyright 1997-2000, 2008 Pavel Machek <pavel@suse.cz>
+  * Parts copyright 2001 Steven Whitehouse <steve@chygwyn.com>
+  *
+  * This file is released under GPLv2 or later.
+@@ -276,7 +276,7 @@ static int nbd_send_req(struct nbd_devic
+ 	return 0;
  
-+	atmel_port->irq_status_prev = UART_GET_CSR(port);
-+	atmel_port->irq_status = atmel_port->irq_status_prev;
-+
- 	/*
- 	 * Allocate the IRQ
- 	 */
+ error_out:
+-	return 1;
++	return -EIO;
+ }
+ 
+ static struct request *nbd_find_request(struct nbd_device *lo,
+@@ -465,9 +465,7 @@ static void nbd_handle_req(struct nbd_de
+ 		mutex_unlock(&lo->tx_lock);
+ 		printk(KERN_ERR "%s: Attempted send on closed socket\n",
+ 		       lo->disk->disk_name);
+-		req->errors++;
+-		nbd_end_request(req);
+-		return;
++		goto error_out;
+ 	}
+ 
+ 	lo->active_req = req;
+@@ -529,7 +527,7 @@ static int nbd_thread(void *data)
+  *   { printk( "Warning: Ignoring result!\n"); nbd_end_request( req ); }
+  */
+ 
+-static void do_nbd_request(struct request_queue * q)
++static void do_nbd_request(struct request_queue *q)
+ {
+ 	struct request *req;
+ 	
+@@ -563,7 +561,7 @@ static int nbd_ioctl(struct block_device
+ 	struct nbd_device *lo = bdev->bd_disk->private_data;
+ 	struct file *file;
+ 	int error;
+-	struct request sreq ;
++	struct request sreq;
+ 	struct task_struct *thread;
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
+Patches currently in -mm which might be from pavel@suse.cz are
 
-atmel_serial-fix-flow-control-bug.patch
-atmel_spi-allow-transfer-when-max_speed_hz-=-0.patch
-atmel_serial-might-lose-modem-status-change-fix.patch
+lis3lv02d-merge-with-leds-hp-disk.patch
+maintainers-add-entry-for-freezer.patch
+linux-next.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+nbd-trivial-cleanups.patch
 
