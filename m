@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lxfb-fix-it-for-directfb-usage.patch added to -mm tree
-Date: Tue, 13 Jan 2009 13:49:53 -0800
-Message-ID: <200901132149.n0DLnrRw030602@imap1.linux-foundation.org>
+Subject: + maintainers-add-entry-for-freezer.patch added to -mm tree
+Date: Tue, 13 Jan 2009 13:50:54 -0800
+Message-ID: <200901132150.n0DLosXJ031447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34689 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753568AbZAMVuj (ORCPT
+	by vger.kernel.org with ESMTP id S1752621AbZAMVvc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 16:50:39 -0500
+	Tue, 13 Jan 2009 16:51:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marco-laporta@tiscali.it, dilinger@debian.org, dilinger@queued.net, jordan.crouse@amd.com
+Cc: pavel@suse.cz, rjw@sisk.pl
 
 
 The patch titled
-     lxfb: fix it for DirectFB usage
+     MAINTAINERS: add entry for freezer
 has been added to the -mm tree.  Its filename is
-     lxfb-fix-it-for-directfb-usage.patch
+     maintainers-add-entry-for-freezer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lxfb: fix it for DirectFB usage
-From: "Marco La Porta" <marco-laporta@tiscali.it>
+Subject: MAINTAINERS: add entry for freezer
+From: Pavel Machek <pavel@suse.cz>
 
-I use the Geode LX it in embedded application (e.g.  DirectFB).  With
-DirectFB users like me can write a GUI working without the XServer, and in
-embedded application this is a most important feature.
+Now that people are using freezer for non-suspend/hibernation stuff, it
+should have separate maintainers entry so that it is easier to find.
 
-With DirectFB, original lxfb works only with 8 bbp, and I think the
-problem was the cmap.  DirectDB get/set the cmap thought FBIOGETCMAP/
-FBIOPUTCMAP ioctl calls,
-
-1) I think the cmap must be deallocated when exiting because the mode
-   can be changed and the flow will reach lxfb_set_par, allocating a cmap.
-    I understand this point because DirectFB, on exit, tell me about a bad
-   chunk.
-
-2) I allocate a cmap at probe and deallocate it on exiting, and
-   everything works fine for me.  I do something similar to vesafb,
-   because this driver works with DirectFB, although the screen size is
-   wrong in my hardware.
-
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb_core.c |   30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/video/geode/lxfb_core.c~lxfb-fix-it-for-directfb-usage drivers/video/geode/lxfb_core.c
---- a/drivers/video/geode/lxfb_core.c~lxfb-fix-it-for-directfb-usage
-+++ a/drivers/video/geode/lxfb_core.c
-@@ -280,10 +280,10 @@ static int lxfb_set_par(struct fb_info *
- {
- 	if (info->var.bits_per_pixel > 8) {
- 		info->fix.visual = FB_VISUAL_TRUECOLOR;
--		fb_dealloc_cmap(&info->cmap);
-+		//fb_dealloc_cmap(&info->cmap);
- 	} else {
- 		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
--		fb_alloc_cmap(&info->cmap, 1<<info->var.bits_per_pixel, 0);
-+		//fb_alloc_cmap(&info->cmap, 1<<info->var.bits_per_pixel, 0);
- 	}
+diff -puN MAINTAINERS~maintainers-add-entry-for-freezer MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-entry-for-freezer
++++ a/MAINTAINERS
+@@ -1821,6 +1821,14 @@ M:	hch@infradead.org
+ W:	ftp://ftp.openlinux.org/pub/people/hch/vxfs
+ S:	Maintained
  
- 	info->fix.line_length = lx_get_pitch(info->var.xres,
-@@ -304,6 +304,9 @@ static int lxfb_setcolreg(unsigned regno
- 			   unsigned blue, unsigned transp,
- 			   struct fb_info *info)
- {
++FREEZER
++P:	Pavel Machek
++M:	pavel@suse.cz
++P:	Rafael J. Wysocki
++M:	rjw@sisk.pl
++L:	linux-pm@lists.linux-foundation.org
++S:	Supported
 +
-+
-+
- 	if (info->var.grayscale) {
- 		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
- 		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
-@@ -311,17 +314,16 @@ static int lxfb_setcolreg(unsigned regno
- 
- 	/* Truecolor has hardware independent palette */
- 	if (info->fix.visual == FB_VISUAL_TRUECOLOR) {
--		u32 *pal = info->pseudo_palette;
--		u32 v;
--
--		if (regno >= 16)
--			return -EINVAL;
--
--		v  = chan_to_field(red, &info->var.red);
--		v |= chan_to_field(green, &info->var.green);
--		v |= chan_to_field(blue, &info->var.blue);
-+		if (regno < 16) {
-+			u32 *pal = info->pseudo_palette;
-+			u32 v;
-+
-+			v  = chan_to_field(red, &info->var.red);
-+			v |= chan_to_field(green, &info->var.green);
-+			v |= chan_to_field(blue, &info->var.blue);
- 
--		pal[regno] = v;
-+			pal[regno] = v;
-+		}
- 	} else {
- 		if (regno >= 256)
- 			return -EINVAL;
-@@ -451,6 +453,8 @@ static struct fb_info * __init lxfb_init
- 
- 	info->pseudo_palette	= (void *)par + sizeof(struct lxfb_par);
- 
-+	fb_alloc_cmap(&info->cmap, 256, 0);
-+
- 	info->var.grayscale	= 0;
- 
- 	return info;
-@@ -605,6 +609,8 @@ static void lxfb_remove(struct pci_dev *
- 	pci_release_region(pdev, 3);
- 
- 	pci_set_drvdata(pdev, NULL);
-+
-+	fb_dealloc_cmap(&info->cmap);
- 	framebuffer_release(info);
- }
- 
+ FTRACE
+ P:	Steven Rostedt
+ M:	rostedt@goodmis.org
 _
 
-Patches currently in -mm which might be from marco-laporta@tiscali.it are
+Patches currently in -mm which might be from pavel@suse.cz are
 
-lxfb-fix-it-for-directfb-usage.patch
+lis3lv02d-merge-with-leds-hp-disk.patch
+maintainers-add-entry-for-freezer.patch
+linux-next.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
 
