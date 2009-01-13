@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-kill-prehistorical-comments-about-usb_ehci_hcd.patch added to -mm tree
-Date: Tue, 13 Jan 2009 13:57:49 -0800
-Message-ID: <200901132157.n0DLvnuu004936@imap1.linux-foundation.org>
+Subject: + sd-async-shutdown.patch added to -mm tree
+Date: Tue, 13 Jan 2009 14:02:38 -0800
+Message-ID: <200901132202.n0DM2cGt009150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754781AbZAMV6Y (ORCPT
+	by vger.kernel.org with ESMTP id S1754407AbZAMWCq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 16:58:24 -0500
+	Tue, 13 Jan 2009 17:02:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tvignaud@mandriva.com, greg@kroah.com, stern@rowland.harvard.edu
+Cc: shaohua.li@intel.com, James.Bottomley@HansenPartnership.com, arjan@infradead.org
 
 
 The patch titled
-     usb: kill prehistorical comments about USB_EHCI_HCD
+     sd: async shutdown
 has been added to the -mm tree.  Its filename is
-     usb-kill-prehistorical-comments-about-usb_ehci_hcd.patch
+     sd-async-shutdown.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: kill prehistorical comments about USB_EHCI_HCD
-From: Thierry Vignaud <tvignaud@mandriva.com>
+Subject: sd: async shutdown
+From: Shaohua Li <shaohua.li@intel.com>
 
-Remove old comments about USB_EHCI_HCD.
+sd shutdown is quite slow. It sometimes will take about 1s for shutdown.
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/Kconfig |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/scsi/sd.c |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/host/Kconfig~usb-kill-prehistorical-comments-about-usb_ehci_hcd drivers/usb/host/Kconfig
---- a/drivers/usb/host/Kconfig~usb-kill-prehistorical-comments-about-usb_ehci_hcd
-+++ a/drivers/usb/host/Kconfig
-@@ -24,10 +24,7 @@ config USB_EHCI_HCD
- 	  The Enhanced Host Controller Interface (EHCI) is standard for USB 2.0
- 	  "high speed" (480 Mbit/sec, 60 Mbyte/sec) host controller hardware.
- 	  If your USB host controller supports USB 2.0, you will likely want to
--	  configure this Host Controller Driver.  At the time of this writing, 
--	  the primary implementation of EHCI is a chip from NEC, widely available
--	  in add-on PCI cards, but implementations are in the works from other 
--	  vendors including Intel and Philips.  Motherboard support is appearing.
-+	  configure this Host Controller Driver.
+diff -puN drivers/scsi/sd.c~sd-async-shutdown drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~sd-async-shutdown
++++ a/drivers/scsi/sd.c
+@@ -98,6 +98,7 @@ static int  sd_revalidate_disk(struct ge
+ static int  sd_probe(struct device *);
+ static int  sd_remove(struct device *);
+ static void sd_shutdown(struct device *);
++static void sd_sync_shutdown(struct device *);
+ static int sd_suspend(struct device *, pm_message_t state);
+ static int sd_resume(struct device *);
+ static void sd_rescan(struct device *);
+@@ -1962,7 +1963,7 @@ static int sd_remove(struct device *dev)
  
- 	  EHCI controllers are packaged with "companion" host controllers (OHCI
- 	  or UHCI) to handle USB 1.1 devices connected to root hub ports.  Ports
+ 	device_del(&sdkp->dev);
+ 	del_gendisk(sdkp->disk);
+-	sd_shutdown(dev);
++	sd_sync_shutdown(dev);
+ 
+ 	mutex_lock(&sd_ref_mutex);
+ 	dev_set_drvdata(dev, NULL);
+@@ -2028,8 +2029,9 @@ static int sd_start_stop_device(struct s
+  * the normal SCSI command structure.  Wait for the command to
+  * complete.
+  */
+-static void sd_shutdown(struct device *dev)
++static void sd_async_shutdown(void *data, async_cookie_t cookie)
+ {
++	struct device *dev = data;
+ 	struct scsi_disk *sdkp = scsi_disk_get_from_dev(dev);
+ 
+ 	if (!sdkp)
+@@ -2048,6 +2050,17 @@ static void sd_shutdown(struct device *d
+ 	scsi_disk_put(sdkp);
+ }
+ 
++static void sd_shutdown(struct device *dev)
++{
++	async_schedule(sd_async_shutdown, dev);
++}
++
++static void sd_sync_shutdown(struct device *dev)
++{
++	async_cookie_t cookie = async_schedule(sd_async_shutdown, dev);
++	async_synchronize_cookie(cookie);
++}
++
+ static int sd_suspend(struct device *dev, pm_message_t mesg)
+ {
+ 	struct scsi_disk *sdkp = scsi_disk_get_from_dev(dev);
 _
 
-Patches currently in -mm which might be from tvignaud@mandriva.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
-acpi-kconfig-fix-acpi_container-module-name.patch
-usb-kill-prehistorical-comments-about-usb_ehci_hcd.patch
+linux-next.patch
+synchronize-device-shutdown.patch
+serios-async-shutdown.patch
+sd-async-shutdown.patch
 
