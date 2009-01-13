@@ -1,78 +1,421 @@
 From: akpm@linux-foundation.org
-Subject: [merged] misdn-indentation-braces-disagree-add-braces.patch removed from -mm tree
-Date: Tue, 13 Jan 2009 12:13:23 -0800
-Message-ID: <200901132013.n0DKDN2X012523@imap1.linux-foundation.org>
+Subject: [merged] rtc-pcf50633-rtc-driver.patch removed from -mm tree
+Date: Tue, 13 Jan 2009 12:13:13 -0800
+Message-ID: <200901132013.n0DKDDMK012373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754805AbZAMUNj (ORCPT
+	by vger.kernel.org with ESMTP id S1754049AbZAMUNm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 15:13:39 -0500
+	Tue, 13 Jan 2009 15:13:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ilpo.jarvinen@helsinki.fi, kkeil@suse.de, mm-commits@vger.kernel.org
+To: balajirrao@openmoko.org, a.zummo@towertech.it, andy@openmoko.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     misdn: indentation & braces disagree - add braces
+     rtc: PCF50633 rtc driver
 has been removed from the -mm tree.  Its filename was
-     misdn-indentation-braces-disagree-add-braces.patch
+     rtc-pcf50633-rtc-driver.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misdn: indentation & braces disagree - add braces
-=46rom: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
+Subject: rtc: PCF50633 rtc driver
+From: Balaji Rao <balajirrao@openmoko.org>
 
-Nothing is broken because of this - currently.
-
-Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Balaji Rao <balajirrao@openmoko.org>
+Cc: Andy Green <andy@openmoko.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Paul Gortmaker <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/mISDN/dsp_cmx.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rtc/Kconfig        |    7 
+ drivers/rtc/Makefile       |    1 
+ drivers/rtc/rtc-pcf50633.c |  344 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 352 insertions(+)
 
-diff -puN drivers/isdn/mISDN/dsp_cmx.c~misdn-indentation-braces-disagre=
-e-add-braces drivers/isdn/mISDN/dsp_cmx.c
---- a/drivers/isdn/mISDN/dsp_cmx.c~misdn-indentation-braces-disagree-ad=
-d-braces
-+++ a/drivers/isdn/mISDN/dsp_cmx.c
-@@ -1857,7 +1857,7 @@ dsp_cmx_hdlc(struct dsp *dsp, struct sk_
- 		/* in case of hardware (echo) */
- 		if (dsp->pcm_slot_tx >=3D 0)
- 			return;
--		if (dsp->echo)
-+		if (dsp->echo) {
- 			nskb =3D skb_clone(skb, GFP_ATOMIC);
- 			if (nskb) {
- 				hh =3D mISDN_HEAD_P(nskb);
-@@ -1866,6 +1866,7 @@ dsp_cmx_hdlc(struct dsp *dsp, struct sk_
- 				skb_queue_tail(&dsp->sendq, nskb);
- 				schedule_work(&dsp->workq);
- 			}
-+		}
- 		return;
- 	}
- 	/* in case of hardware conference */
+diff -puN drivers/rtc/Kconfig~rtc-pcf50633-rtc-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-pcf50633-rtc-driver
++++ a/drivers/rtc/Kconfig
+@@ -502,6 +502,13 @@ config RTC_DRV_WM8350
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called "rtc-wm8350".
+ 
++config RTC_DRV_PCF50633
++	depends on MFD_PCF50633
++	tristate "NXP PCF50633 RTC"
++	help
++	  If you say yes here you get support for the RTC subsystem of the
++	  NXP PCF50633 used in embedded systems.
++
+ comment "on-CPU RTC drivers"
+ 
+ config RTC_DRV_OMAP
+diff -puN drivers/rtc/Makefile~rtc-pcf50633-rtc-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-pcf50633-rtc-driver
++++ a/drivers/rtc/Makefile
+@@ -74,3 +74,4 @@ obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020
+ obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
+ obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm8350.o
+ obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
++obj-$(CONFIG_RTC_DRV_PCF50633)	+= rtc-pcf50633.o
+diff -puN /dev/null drivers/rtc/rtc-pcf50633.c
+--- /dev/null
++++ a/drivers/rtc/rtc-pcf50633.c
+@@ -0,0 +1,344 @@
++/* NXP PCF50633 RTC Driver
++ *
++ * (C) 2006-2008 by Openmoko, Inc.
++ * Author: Balaji Rao <balajirrao@openmoko.org>
++ * All rights reserved.
++ *
++ * Broken down from monstrous PCF50633 driver mainly by
++ * Harald Welte, Andy Green and Werner Almesberger
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/bcd.h>
++#include <linux/err.h>
++
++#include <linux/mfd/pcf50633/core.h>
++
++#define PCF50633_REG_RTCSC	0x59 /* Second */
++#define PCF50633_REG_RTCMN	0x5a /* Minute */
++#define PCF50633_REG_RTCHR	0x5b /* Hour */
++#define PCF50633_REG_RTCWD	0x5c /* Weekday */
++#define PCF50633_REG_RTCDT	0x5d /* Day */
++#define PCF50633_REG_RTCMT	0x5e /* Month */
++#define PCF50633_REG_RTCYR	0x5f /* Year */
++#define PCF50633_REG_RTCSCA	0x60 /* Alarm Second */
++#define PCF50633_REG_RTCMNA	0x61 /* Alarm Minute */
++#define PCF50633_REG_RTCHRA	0x62 /* Alarm Hour */
++#define PCF50633_REG_RTCWDA	0x63 /* Alarm Weekday */
++#define PCF50633_REG_RTCDTA	0x64 /* Alarm Day */
++#define PCF50633_REG_RTCMTA	0x65 /* Alarm Month */
++#define PCF50633_REG_RTCYRA	0x66 /* Alarm Year */
++
++enum pcf50633_time_indexes {
++	PCF50633_TI_SEC,
++	PCF50633_TI_MIN,
++	PCF50633_TI_HOUR,
++	PCF50633_TI_WKDAY,
++	PCF50633_TI_DAY,
++	PCF50633_TI_MONTH,
++	PCF50633_TI_YEAR,
++	PCF50633_TI_EXTENT /* always last */
++};
++
++struct pcf50633_time {
++	u_int8_t time[PCF50633_TI_EXTENT];
++};
++
++struct pcf50633_rtc {
++	int alarm_enabled;
++	int second_enabled;
++
++	struct pcf50633 *pcf;
++	struct rtc_device *rtc_dev;
++};
++
++static void pcf2rtc_time(struct rtc_time *rtc, struct pcf50633_time *pcf)
++{
++	rtc->tm_sec = bcd2bin(pcf->time[PCF50633_TI_SEC]);
++	rtc->tm_min = bcd2bin(pcf->time[PCF50633_TI_MIN]);
++	rtc->tm_hour = bcd2bin(pcf->time[PCF50633_TI_HOUR]);
++	rtc->tm_wday = bcd2bin(pcf->time[PCF50633_TI_WKDAY]);
++	rtc->tm_mday = bcd2bin(pcf->time[PCF50633_TI_DAY]);
++	rtc->tm_mon = bcd2bin(pcf->time[PCF50633_TI_MONTH]);
++	rtc->tm_year = bcd2bin(pcf->time[PCF50633_TI_YEAR]) + 100;
++}
++
++static void rtc2pcf_time(struct pcf50633_time *pcf, struct rtc_time *rtc)
++{
++	pcf->time[PCF50633_TI_SEC] = bin2bcd(rtc->tm_sec);
++	pcf->time[PCF50633_TI_MIN] = bin2bcd(rtc->tm_min);
++	pcf->time[PCF50633_TI_HOUR] = bin2bcd(rtc->tm_hour);
++	pcf->time[PCF50633_TI_WKDAY] = bin2bcd(rtc->tm_wday);
++	pcf->time[PCF50633_TI_DAY] = bin2bcd(rtc->tm_mday);
++	pcf->time[PCF50633_TI_MONTH] = bin2bcd(rtc->tm_mon);
++	pcf->time[PCF50633_TI_YEAR] = bin2bcd(rtc->tm_year % 100);
++}
++
++static int
++pcf50633_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
++{
++	struct pcf50633_rtc *rtc = dev_get_drvdata(dev);
++	int err;
++
++	if (enabled)
++		err = pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_ALARM);
++	else
++		err = pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_ALARM);
++
++	if (err < 0)
++		return err;
++
++	rtc->alarm_enabled = enabled;
++
++	return 0;
++}
++
++static int
++pcf50633_rtc_update_irq_enable(struct device *dev, unsigned int enabled)
++{
++	struct pcf50633_rtc *rtc = dev_get_drvdata(dev);
++	int err;
++
++	if (enabled)
++		err = pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_SECOND);
++	else
++		err = pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_SECOND);
++
++	if (err < 0)
++		return err;
++
++	rtc->second_enabled = enabled;
++
++	return 0;
++}
++
++static int pcf50633_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct pcf50633_rtc *rtc;
++	struct pcf50633_time pcf_tm;
++	int ret;
++
++	rtc = dev_get_drvdata(dev);
++
++	ret = pcf50633_read_block(rtc->pcf, PCF50633_REG_RTCSC,
++					    PCF50633_TI_EXTENT,
++					    &pcf_tm.time[0]);
++	if (ret != PCF50633_TI_EXTENT) {
++		dev_err(dev, "Failed to read time\n");
++		return -EIO;
++	}
++
++	dev_dbg(dev, "PCF_TIME: %02x.%02x.%02x %02x:%02x:%02x\n",
++		pcf_tm.time[PCF50633_TI_DAY],
++		pcf_tm.time[PCF50633_TI_MONTH],
++		pcf_tm.time[PCF50633_TI_YEAR],
++		pcf_tm.time[PCF50633_TI_HOUR],
++		pcf_tm.time[PCF50633_TI_MIN],
++		pcf_tm.time[PCF50633_TI_SEC]);
++
++	pcf2rtc_time(tm, &pcf_tm);
++
++	dev_dbg(dev, "RTC_TIME: %u.%u.%u %u:%u:%u\n",
++		tm->tm_mday, tm->tm_mon, tm->tm_year,
++		tm->tm_hour, tm->tm_min, tm->tm_sec);
++
++	return rtc_valid_tm(tm);
++}
++
++static int pcf50633_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct pcf50633_rtc *rtc;
++	struct pcf50633_time pcf_tm;
++	int second_masked, alarm_masked, ret = 0;
++
++	rtc = dev_get_drvdata(dev);
++
++	dev_dbg(dev, "RTC_TIME: %u.%u.%u %u:%u:%u\n",
++		tm->tm_mday, tm->tm_mon, tm->tm_year,
++		tm->tm_hour, tm->tm_min, tm->tm_sec);
++
++	rtc2pcf_time(&pcf_tm, tm);
++
++	dev_dbg(dev, "PCF_TIME: %02x.%02x.%02x %02x:%02x:%02x\n",
++		pcf_tm.time[PCF50633_TI_DAY],
++		pcf_tm.time[PCF50633_TI_MONTH],
++		pcf_tm.time[PCF50633_TI_YEAR],
++		pcf_tm.time[PCF50633_TI_HOUR],
++		pcf_tm.time[PCF50633_TI_MIN],
++		pcf_tm.time[PCF50633_TI_SEC]);
++
++
++	second_masked = pcf50633_irq_mask_get(rtc->pcf, PCF50633_IRQ_SECOND);
++	alarm_masked = pcf50633_irq_mask_get(rtc->pcf, PCF50633_IRQ_ALARM);
++
++	if (!second_masked)
++		pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_SECOND);
++	if (!alarm_masked)
++		pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_ALARM);
++
++	/* Returns 0 on success */
++	ret = pcf50633_write_block(rtc->pcf, PCF50633_REG_RTCSC,
++					     PCF50633_TI_EXTENT,
++					     &pcf_tm.time[0]);
++
++	if (!second_masked)
++		pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_SECOND);
++	if (!alarm_masked)
++		pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_ALARM);
++
++	return ret;
++}
++
++static int pcf50633_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct pcf50633_rtc *rtc;
++	struct pcf50633_time pcf_tm;
++	int ret = 0;
++
++	rtc = dev_get_drvdata(dev);
++
++	alrm->enabled = rtc->alarm_enabled;
++
++	ret = pcf50633_read_block(rtc->pcf, PCF50633_REG_RTCSCA,
++				PCF50633_TI_EXTENT, &pcf_tm.time[0]);
++	if (ret != PCF50633_TI_EXTENT) {
++		dev_err(dev, "Failed to read time\n");
++		return -EIO;
++	}
++
++	pcf2rtc_time(&alrm->time, &pcf_tm);
++
++	return rtc_valid_tm(&alrm->time);
++}
++
++static int pcf50633_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct pcf50633_rtc *rtc;
++	struct pcf50633_time pcf_tm;
++	int alarm_masked, ret = 0;
++
++	rtc = dev_get_drvdata(dev);
++
++	rtc2pcf_time(&pcf_tm, &alrm->time);
++
++	/* do like mktime does and ignore tm_wday */
++	pcf_tm.time[PCF50633_TI_WKDAY] = 7;
++
++	alarm_masked = pcf50633_irq_mask_get(rtc->pcf, PCF50633_IRQ_ALARM);
++
++	/* disable alarm interrupt */
++	if (!alarm_masked)
++		pcf50633_irq_mask(rtc->pcf, PCF50633_IRQ_ALARM);
++
++	/* Returns 0 on success */
++	ret = pcf50633_write_block(rtc->pcf, PCF50633_REG_RTCSCA,
++				PCF50633_TI_EXTENT, &pcf_tm.time[0]);
++
++	if (!alarm_masked)
++		pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_ALARM);
++
++	return ret;
++}
++
++static struct rtc_class_ops pcf50633_rtc_ops = {
++	.read_time		= pcf50633_rtc_read_time,
++	.set_time		= pcf50633_rtc_set_time,
++	.read_alarm		= pcf50633_rtc_read_alarm,
++	.set_alarm		= pcf50633_rtc_set_alarm,
++	.alarm_irq_enable 	= pcf50633_rtc_alarm_irq_enable,
++	.update_irq_enable 	= pcf50633_rtc_update_irq_enable,
++};
++
++static void pcf50633_rtc_irq(int irq, void *data)
++{
++	struct pcf50633_rtc *rtc = data;
++
++	switch (irq) {
++	case PCF50633_IRQ_ALARM:
++		rtc_update_irq(rtc->rtc_dev, 1, RTC_AF | RTC_IRQF);
++		break;
++	case PCF50633_IRQ_SECOND:
++		rtc_update_irq(rtc->rtc_dev, 1, RTC_UF | RTC_IRQF);
++		break;
++	}
++}
++
++static int __devinit pcf50633_rtc_probe(struct platform_device *pdev)
++{
++	struct pcf50633_subdev_pdata *pdata;
++	struct pcf50633_rtc *rtc;
++
++
++	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
++	if (!rtc)
++		return -ENOMEM;
++
++	pdata = pdev->dev.platform_data;
++	rtc->pcf = pdata->pcf;
++	platform_set_drvdata(pdev, rtc);
++	rtc->rtc_dev = rtc_device_register("pcf50633-rtc", &pdev->dev,
++				&pcf50633_rtc_ops, THIS_MODULE);
++
++	if (IS_ERR(rtc->rtc_dev)) {
++		kfree(rtc);
++		return PTR_ERR(rtc->rtc_dev);
++	}
++
++	pcf50633_register_irq(rtc->pcf, PCF50633_IRQ_ALARM,
++					pcf50633_rtc_irq, rtc);
++	pcf50633_register_irq(rtc->pcf, PCF50633_IRQ_SECOND,
++					pcf50633_rtc_irq, rtc);
++
++	return 0;
++}
++
++static int __devexit pcf50633_rtc_remove(struct platform_device *pdev)
++{
++	struct pcf50633_rtc *rtc;
++
++	rtc = platform_get_drvdata(pdev);
++
++	pcf50633_free_irq(rtc->pcf, PCF50633_IRQ_ALARM);
++	pcf50633_free_irq(rtc->pcf, PCF50633_IRQ_SECOND);
++
++	rtc_device_unregister(rtc->rtc_dev);
++	kfree(rtc);
++
++	return 0;
++}
++
++static struct platform_driver pcf50633_rtc_driver = {
++	.driver = {
++		.name = "pcf50633-rtc",
++	},
++	.probe = pcf50633_rtc_probe,
++	.remove = __devexit_p(pcf50633_rtc_remove),
++};
++
++static int __init pcf50633_rtc_init(void)
++{
++	return platform_driver_register(&pcf50633_rtc_driver);
++}
++module_init(pcf50633_rtc_init);
++
++static void __exit pcf50633_rtc_exit(void)
++{
++	platform_driver_unregister(&pcf50633_rtc_driver);
++}
++module_exit(pcf50633_rtc_exit);
++
++MODULE_DESCRIPTION("PCF50633 RTC driver");
++MODULE_AUTHOR("Balaji Rao <balajirrao@openmoko.org>");
++MODULE_LICENSE("GPL");
++
 _
 
-Patches currently in -mm which might be from ilpo.jarvinen@helsinki.fi =
-are
+Patches currently in -mm which might be from balajirrao@openmoko.org are
 
 origin.patch
+linux-next.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
