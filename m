@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-remove-the-bkl-in-ext3-ioctlc.patch added to -mm tree
-Date: Tue, 13 Jan 2009 00:04:03 -0800
-Message-ID: <200901130804.n0D843na002649__16397.1063601368$1231833972$gmane$org@imap1.linux-foundation.org>
+Subject: + audit-execve-record-remove-bogus-newline.patch added to -mm tree
+Date: Tue, 13 Jan 2009 00:08:10 -0800
+Message-ID: <200901130808.n0D88ASD006179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48995 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35508 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755350AbZAMIEN (ORCPT
+	by vger.kernel.org with ESMTP id S1752356AbZAMII6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 03:04:13 -0500
+	Tue, 13 Jan 2009 03:08:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cyrusm@gmx.net, jack@ucw.cz, linux-ext4@vger.kernel.org
+Cc: jpirko@redhat.com, eparis@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ext3: remove the BKL in ext3/ioctl.c
+     audit: EXECVE record: remove bogus newline
 has been added to the -mm tree.  Its filename is
-     ext3-remove-the-bkl-in-ext3-ioctlc.patch
+     audit-execve-record-remove-bogus-newline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,212 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: remove the BKL in ext3/ioctl.c
-From: Cyrus Massoumi <cyrusm@gmx.net>
+Subject: audit: EXECVE record: remove bogus newline
+From: Jiri Pirko <jpirko@redhat.com>
 
-Reformat ext3/ioctl.c to make it look more like ext4/ioctl.c and remove
-the BKL around ext3_ioctl().
+EXECVE records contain a newline after every argument.  auditd converts
+"\n" to " " so you cannot see newlines even in raw logs, but they're there
+nevertheless.  If you're not using auditd, you need to work round them. 
+These '\n' chars are can be easily replaced by spaces when creating record
+in kernel.  Note there is no need for trailing '\n' in an audit record.
 
-Signed-off-by: Cyrus Massoumi <cyrusm@gmx.net>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Jan Kara <jack@ucw.cz>
+record before this patch:
+"type=EXECVE msg=audit(1231421801.566:31): argc=4 a0=\"./test\"\na1=\"a\"\na2=\"b\"\na3=\"c\"\n"
+
+record after this patch:
+"type=EXECVE msg=audit(1231421801.566:31): argc=4 a0=\"./test\" a1=\"a\" a2=\"b\" a3=\"c\""
+
+Signed-off-by: Jiri Pirko <jpirko@redhat.com>
+Acked-by: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/dir.c           |    2 -
- fs/ext3/file.c          |    2 -
- fs/ext3/ioctl.c         |   59 ++++++++++++--------------------------
- include/linux/ext3_fs.h |    5 +--
- 4 files changed, 24 insertions(+), 44 deletions(-)
+ kernel/auditsc.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext3/dir.c~ext3-remove-the-bkl-in-ext3-ioctlc fs/ext3/dir.c
---- a/fs/ext3/dir.c~ext3-remove-the-bkl-in-ext3-ioctlc
-+++ a/fs/ext3/dir.c
-@@ -42,7 +42,7 @@ const struct file_operations ext3_dir_op
- 	.llseek		= generic_file_llseek,
- 	.read		= generic_read_dir,
- 	.readdir	= ext3_readdir,		/* we take BKL. needed?*/
--	.ioctl		= ext3_ioctl,		/* BKL held */
-+	.unlocked_ioctl	= ext3_ioctl,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ext3_compat_ioctl,
- #endif
-diff -puN fs/ext3/file.c~ext3-remove-the-bkl-in-ext3-ioctlc fs/ext3/file.c
---- a/fs/ext3/file.c~ext3-remove-the-bkl-in-ext3-ioctlc
-+++ a/fs/ext3/file.c
-@@ -112,7 +112,7 @@ const struct file_operations ext3_file_o
- 	.write		= do_sync_write,
- 	.aio_read	= generic_file_aio_read,
- 	.aio_write	= ext3_file_write,
--	.ioctl		= ext3_ioctl,
-+	.unlocked_ioctl	= ext3_ioctl,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ext3_compat_ioctl,
- #endif
-diff -puN fs/ext3/ioctl.c~ext3-remove-the-bkl-in-ext3-ioctlc fs/ext3/ioctl.c
---- a/fs/ext3/ioctl.c~ext3-remove-the-bkl-in-ext3-ioctlc
-+++ a/fs/ext3/ioctl.c
-@@ -15,12 +15,11 @@
- #include <linux/mount.h>
- #include <linux/time.h>
- #include <linux/compat.h>
--#include <linux/smp_lock.h>
- #include <asm/uaccess.h>
- 
--int ext3_ioctl (struct inode * inode, struct file * filp, unsigned int cmd,
--		unsigned long arg)
-+long ext3_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+diff -puN kernel/auditsc.c~audit-execve-record-remove-bogus-newline kernel/auditsc.c
+--- a/kernel/auditsc.c~audit-execve-record-remove-bogus-newline
++++ a/kernel/auditsc.c
+@@ -1023,7 +1023,7 @@ static int audit_log_single_execve_arg(s
  {
-+	struct inode *inode = filp->f_dentry->d_inode;
- 	struct ext3_inode_info *ei = EXT3_I(inode);
- 	unsigned int flags;
- 	unsigned short rsv_window_size;
-@@ -39,29 +38,25 @@ int ext3_ioctl (struct inode * inode, st
- 		unsigned int oldflags;
- 		unsigned int jflag;
- 
-+		if (!is_owner_or_cap(inode))
-+			return -EACCES;
-+
-+		if (get_user(flags, (int __user *) arg))
-+			return -EFAULT;
-+
- 		err = mnt_want_write(filp->f_path.mnt);
- 		if (err)
- 			return err;
- 
--		if (!is_owner_or_cap(inode)) {
--			err = -EACCES;
--			goto flags_out;
--		}
--
--		if (get_user(flags, (int __user *) arg)) {
--			err = -EFAULT;
--			goto flags_out;
--		}
--
- 		flags = ext3_mask_flags(inode->i_mode, flags);
- 
- 		mutex_lock(&inode->i_mutex);
-+
- 		/* Is it quota file? Do not allow user to mess with it */
--		if (IS_NOQUOTA(inode)) {
--			mutex_unlock(&inode->i_mutex);
--			err = -EPERM;
-+		err = -EPERM;
-+		if (IS_NOQUOTA(inode))
- 			goto flags_out;
--		}
-+
- 		oldflags = ei->i_flags;
- 
- 		/* The JOURNAL_DATA flag is modifiable only by root */
-@@ -74,11 +69,8 @@ int ext3_ioctl (struct inode * inode, st
- 		 * This test looks nicer. Thanks to Pauline Middelink
+ 	char arg_num_len_buf[12];
+ 	const char __user *tmp_p = p;
+-	/* how many digits are in arg_num? 3 is the length of a=\n */
++	/* how many digits are in arg_num? 3 is the length of " a=" */
+ 	size_t arg_num_len = snprintf(arg_num_len_buf, 12, "%d", arg_num) + 3;
+ 	size_t len, len_left, to_send;
+ 	size_t max_execve_audit_len = MAX_EXECVE_AUDIT_LEN;
+@@ -1109,7 +1109,7 @@ static int audit_log_single_execve_arg(s
+ 		 * so we can be sure nothing was lost.
  		 */
- 		if ((flags ^ oldflags) & (EXT3_APPEND_FL | EXT3_IMMUTABLE_FL)) {
--			if (!capable(CAP_LINUX_IMMUTABLE)) {
--				mutex_unlock(&inode->i_mutex);
--				err = -EPERM;
-+			if (!capable(CAP_LINUX_IMMUTABLE))
- 				goto flags_out;
--			}
- 		}
+ 		if ((i == 0) && (too_long))
+-			audit_log_format(*ab, "a%d_len=%zu ", arg_num,
++			audit_log_format(*ab, " a%d_len=%zu", arg_num,
+ 					 has_cntl ? 2*len : len);
  
  		/*
-@@ -86,17 +78,12 @@ int ext3_ioctl (struct inode * inode, st
- 		 * the relevant capability.
- 		 */
- 		if ((jflag ^ oldflags) & (EXT3_JOURNAL_DATA_FL)) {
--			if (!capable(CAP_SYS_RESOURCE)) {
--				mutex_unlock(&inode->i_mutex);
--				err = -EPERM;
-+			if (!capable(CAP_SYS_RESOURCE))
- 				goto flags_out;
--			}
- 		}
+@@ -1129,7 +1129,7 @@ static int audit_log_single_execve_arg(s
+ 		buf[to_send] = '\0';
  
--
- 		handle = ext3_journal_start(inode, 1);
- 		if (IS_ERR(handle)) {
--			mutex_unlock(&inode->i_mutex);
- 			err = PTR_ERR(handle);
- 			goto flags_out;
- 		}
-@@ -116,15 +103,13 @@ int ext3_ioctl (struct inode * inode, st
- 		err = ext3_mark_iloc_dirty(handle, inode, &iloc);
- flags_err:
- 		ext3_journal_stop(handle);
--		if (err) {
--			mutex_unlock(&inode->i_mutex);
--			return err;
--		}
-+		if (err)
-+			goto flags_out;
+ 		/* actually log it */
+-		audit_log_format(*ab, "a%d", arg_num);
++		audit_log_format(*ab, " a%d", arg_num);
+ 		if (too_long)
+ 			audit_log_format(*ab, "[%d]", i);
+ 		audit_log_format(*ab, "=");
+@@ -1137,7 +1137,6 @@ static int audit_log_single_execve_arg(s
+ 			audit_log_n_hex(*ab, buf, to_send);
+ 		else
+ 			audit_log_format(*ab, "\"%s\"", buf);
+-		audit_log_format(*ab, "\n");
  
- 		if ((jflag ^ oldflags) & (EXT3_JOURNAL_DATA_FL))
- 			err = ext3_change_inode_journal_flag(inode, jflag);
--		mutex_unlock(&inode->i_mutex);
- flags_out:
-+		mutex_unlock(&inode->i_mutex);
- 		mnt_drop_write(filp->f_path.mnt);
- 		return err;
- 	}
-@@ -140,6 +125,7 @@ flags_out:
+ 		p += to_send;
+ 		len_left -= to_send;
+@@ -1165,7 +1164,7 @@ static void audit_log_execve_info(struct
  
- 		if (!is_owner_or_cap(inode))
- 			return -EPERM;
-+
- 		err = mnt_want_write(filp->f_path.mnt);
- 		if (err)
- 			return err;
-@@ -147,6 +133,7 @@ flags_out:
- 			err = -EFAULT;
- 			goto setversion_out;
- 		}
-+
- 		handle = ext3_journal_start(inode, 1);
- 		if (IS_ERR(handle)) {
- 			err = PTR_ERR(handle);
-@@ -299,9 +286,6 @@ group_add_out:
- #ifdef CONFIG_COMPAT
- long ext3_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	struct inode *inode = file->f_path.dentry->d_inode;
--	int ret;
--
- 	/* These are just misnamed, they actually get/put from/to user an int */
- 	switch (cmd) {
- 	case EXT3_IOC32_GETFLAGS:
-@@ -341,9 +325,6 @@ long ext3_compat_ioctl(struct file *file
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
--	lock_kernel();
--	ret = ext3_ioctl(inode, file, cmd, (unsigned long) compat_ptr(arg));
--	unlock_kernel();
--	return ret;
-+	return ext3_ioctl(file, cmd, (unsigned long) compat_ptr(arg));
- }
- #endif
-diff -puN include/linux/ext3_fs.h~ext3-remove-the-bkl-in-ext3-ioctlc include/linux/ext3_fs.h
---- a/include/linux/ext3_fs.h~ext3-remove-the-bkl-in-ext3-ioctlc
-+++ a/include/linux/ext3_fs.h
-@@ -893,9 +893,8 @@ extern int ext3_fiemap(struct inode *ino
- 		       u64 start, u64 len);
+ 	p = (const char __user *)axi->mm->arg_start;
  
- /* ioctl.c */
--extern int ext3_ioctl (struct inode *, struct file *, unsigned int,
--		       unsigned long);
--extern long ext3_compat_ioctl (struct file *, unsigned int, unsigned long);
-+extern long ext3_ioctl(struct file *, unsigned int, unsigned long);
-+extern long ext3_compat_ioctl(struct file *, unsigned int, unsigned long);
+-	audit_log_format(*ab, "argc=%d ", axi->argc);
++	audit_log_format(*ab, "argc=%d", axi->argc);
  
- /* namei.c */
- extern int ext3_orphan_add(handle_t *, struct inode *);
+ 	/*
+ 	 * we need some kernel buffer to hold the userspace args.  Just
 _
 
-Patches currently in -mm which might be from cyrusm@gmx.net are
+Patches currently in -mm which might be from jpirko@redhat.com are
 
-ext3-remove-the-bkl-in-ext3-ioctlc.patch
+audit-execve-record-remove-bogus-newline.patch
+getrusage-fill-ru_maxrss-value.patch
 
