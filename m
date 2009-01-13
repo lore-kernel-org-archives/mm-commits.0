@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serios-async-shutdown.patch added to -mm tree
-Date: Tue, 13 Jan 2009 14:02:36 -0800
-Message-ID: <200901132202.n0DM2a23009143@imap1.linux-foundation.org>
+Subject: + atmel_serial-might-lose-modem-status-change-fix.patch added to -mm tree
+Date: Tue, 13 Jan 2009 14:06:03 -0800
+Message-ID: <200901132206.n0DM63oQ012129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44769 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50732 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754709AbZAMWC5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753324AbZAMWGj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 17:02:57 -0500
+	Tue, 13 Jan 2009 17:06:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, arjan@infradead.org, dtor@mail.ru
+Cc: haavard.skinnemoen@atmel.com, anemo@mba.ocn.ne.jp
 
 
 The patch titled
-     serios: async shutdown
+     atmel_serial-might-lose-modem-status-change fix
 has been added to the -mm tree.  Its filename is
-     serios-async-shutdown.patch
+     atmel_serial-might-lose-modem-status-change-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serios: async shutdown
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: atmel_serial-might-lose-modem-status-change fix
+From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 
-serio shutdown is quite slow. It sometimes will take 0.2s for each port.
+...Itai Levi pointed out that we need to initialize
+atmel_port->irq_status as well here. His analysis is as follows:
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+> Regarding the second part of the patch (which resets irq_status_prev),
+> it turns out that both versions of the patch (mine and Atsushi's)
+> still leave enough room for faulty behavior when opening the port.
+>
+> This is because we are not resetting both irq_status_prev and
+> irq_status in atmel_startup() to CSR, which leads faulty behavior in
+> the following sequences:
+>
+> First case:
+> 1. closing the port while CTS line = 1 (TX not allowed)
+> 2. setting CTS line = 0 (TX allowed)
+> 3. opening the port
+> 4. transmitting one char
+> 5. Cannot transmit more chars, although CTS line is 0
+>
+> Second case:
+> 1. closing the port while CTS line = 0 (TX allowed)
+> 2. setting CTS line = 1 (TX not allowed)
+> 3. opening the port
+> 4. receiving some chars
+> 5. Now we can transmit, although CTS line is 1
+>
+> This reason for this is that the tasklet is scheduled as a result of
+> TX or RX interrupts (not a status change!), in steps 4 above. Inside
+> the tasklet, the atmel_port->irq_status (which holds the value from
+> the previous session) is compared to atmel_port->irq_status_prev.
+> Hence, a status-change of the CTS line is faultily detected.
+>
+> Both cases were verified on 9260 hardware.
+>
+> The solution for this, is to reset both irq_status_prev and irq_status
+> to the value of CSR in atmel_startup().
+>
+> Here is my updated patch (you can ignore the first part which you
+> already accepted):
+
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/serio.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/serial/atmel_serial.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/input/serio/serio.c~serios-async-shutdown drivers/input/serio/serio.c
---- a/drivers/input/serio/serio.c~serios-async-shutdown
-+++ a/drivers/input/serio/serio.c
-@@ -36,6 +36,7 @@
- #include <linux/kthread.h>
- #include <linux/mutex.h>
- #include <linux/freezer.h>
-+#include <linux/async.h>
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change-fix drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change-fix
++++ a/drivers/serial/atmel_serial.c
+@@ -805,6 +805,9 @@ static int atmel_startup(struct uart_por
+ 	 */
+ 	UART_PUT_IDR(port, -1);
  
- MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
- MODULE_DESCRIPTION("Serio abstraction core");
-@@ -798,11 +799,17 @@ static void serio_cleanup(struct serio *
- 	mutex_unlock(&serio->drv_mutex);
- }
- 
-+static void serio_async_shutdown(void *data, async_cookie_t cookie)
-+{
-+	struct serio *serio = data;
-+	serio_cleanup(serio);
-+}
++	atmel_port->irq_status_prev = UART_GET_CSR(port);
++	atmel_port->irq_status = atmel_port->irq_status_prev;
 +
- static void serio_shutdown(struct device *dev)
- {
- 	struct serio *serio = to_serio_port(dev);
- 
--	serio_cleanup(serio);
-+	async_schedule(serio_async_shutdown, serio);
- }
- 
- static void serio_attach_driver(struct serio_driver *drv)
+ 	/*
+ 	 * Allocate the IRQ
+ 	 */
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
 
-linux-next.patch
-synchronize-device-shutdown.patch
-serios-async-shutdown.patch
-sd-async-shutdown.patch
+atmel_serial-fix-flow-control-bug.patch
+atmel_spi-allow-transfer-when-max_speed_hz-=-0.patch
+atmel_serial-might-lose-modem-status-change-fix.patch
 
