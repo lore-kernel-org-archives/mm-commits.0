@@ -1,62 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] m32r-kernel-smpbootc-must-include-linux-cpuh.patch removed from -mm tree
-Date: Tue, 13 Jan 2009 18:40:12 -0800
-Message-ID: <200901140240.n0E2eCNK020885@imap1.linux-foundation.org>
+Subject: + kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n.patch added to -mm tree
+Date: Tue, 13 Jan 2009 19:50:08 -0800
+Message-ID: <200901140350.n0E3o8nA015890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49202 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751531AbZANCkb (ORCPT
+	by vger.kernel.org with ESMTP id S1753188AbZANDua (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Jan 2009 21:40:31 -0500
+	Tue, 13 Jan 2009 22:50:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net, mingo@elte.hu, reif@earthlink.net
 
 
 The patch titled
-     m32r/kernel/smpboot.c must #include <linux/cpu.h>
-has been removed from the -mm tree.  Its filename was
-     m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+     kernel/up.c: omit it if SMP=y, USE_GENERIC_SMP_HELPERS=n
+has been added to the -mm tree.  Its filename is
+     kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r/kernel/smpboot.c must #include <linux/cpu.h>
-From: Adrian Bunk <bunk@kernel.org>
+Subject: kernel/up.c: omit it if SMP=y, USE_GENERIC_SMP_HELPERS=n
+From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/m32r/kernel/smpboot.c: In function 'smp_online':
-arch/m32r/kernel/smpboot.c:501: error: implicit declaration of function 'notify_cpu_starting'
+Fix the sparc build - we were including `up.o' on SMP builds, when
+CONFIG_USE_GENERIC_SMP_HELPERS=n.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Tested-by: Robert Reif <reif@earthlink.net>
+Fixed-by: Robert Reif <reif@earthlink.net>
+Cc: David Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/smpboot.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/m32r/kernel/smpboot.c~m32r-kernel-smpbootc-must-include-linux-cpuh arch/m32r/kernel/smpboot.c
---- a/arch/m32r/kernel/smpboot.c~m32r-kernel-smpbootc-must-include-linux-cpuh
-+++ a/arch/m32r/kernel/smpboot.c
-@@ -49,6 +49,7 @@
- #include <linux/irq.h>
- #include <linux/bootmem.h>
- #include <linux/delay.h>
-+#include <linux/cpu.h>
- 
- #include <asm/io.h>
- #include <asm/pgalloc.h>
+diff -puN kernel/Makefile~kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n kernel/Makefile
+--- a/kernel/Makefile~kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n
++++ a/kernel/Makefile
+@@ -43,8 +43,10 @@ obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
+ ifeq ($(CONFIG_USE_GENERIC_SMP_HELPERS),y)
+ obj-y += smp.o
+ else
++ifneq ($(CONFIG_SMP),y)
+ obj-y += up.o
+ endif
++endif
+ obj-$(CONFIG_SMP) += spinlock.o
+ obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock.o
+ obj-$(CONFIG_PROVE_LOCKING) += spinlock.o
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n.patch
+alpha-fix-vmalloc-breakage-fix.patch
+hp_accel-do-not-call-acpi-from-invalid-context-fix.patch
+revert-mm-vmalloc-use-mutex-for-purge.patch
+i-need-old-gcc.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-m32r-kernel-smpbootc-must-include-linux-cpuh.patch
-if-0-ses_match_host.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+kernel-trace-ring_bufferc-reduce-inlining.patch
+kernel-trace-ring_bufferc-use-div_round_up.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+ext2-update-also-inode-on-disk-when-dir-is-is_dirsync-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix-3-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+rtc-cumulative-style-fixes-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
 reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
