@@ -1,90 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + pnpbios-propagate-kthread_run-error.patch added to -mm tree
-Date: Wed, 14 Jan 2009 15:03:11 -0800
-Message-ID: <200901142303.n0EN3BwO001008@imap1.linux-foundation.org>
+Subject: [failures] resume-wait-for-device-probing-to-finish.patch removed from -mm tree
+Date: Wed, 14 Jan 2009 15:08:46 -0800
+Message-ID: <200901142325.n0ENPJH5020045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50292 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51221 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755530AbZANXDQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755376AbZANXZe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Jan 2009 18:03:16 -0500
+	Wed, 14 Jan 2009 18:25:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: erik@kryo.se, bjorn.helgaas@hp.com
+To: arjan@linux.intel.com, lenb@kernel.org, pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnpbios: propagate kthread_run() error
-has been added to the -mm tree.  Its filename is
-     pnpbios-propagate-kthread_run-error.patch
+     resume: wait for device probing to finish
+has been removed from the -mm tree.  Its filename was
+     resume-wait-for-device-probing-to-finish.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnpbios: propagate kthread_run() error
-From: Erik Ekman <erik@kryo.se>
+Subject: resume: wait for device probing to finish
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-- Error code from kthread_run() is now returned in pnpbios_thread_init()
+The resume code does not currently wait for device probing to finish. 
+Even without async function calls this is dicey and not correct, but with
+async function calls during the boot sequence this is going to get hit
+more...
 
-- Remove variable which always was 0.
+This patch adds the synchronization using the newly introduced helper.
 
-Signed-off-by: Erik Ekman <erik@kryo.se>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpbios/core.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/power/disk.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN drivers/pnp/pnpbios/core.c~pnpbios-propagate-kthread_run-error drivers/pnp/pnpbios/core.c
---- a/drivers/pnp/pnpbios/core.c~pnpbios-propagate-kthread_run-error
-+++ a/drivers/pnp/pnpbios/core.c
-@@ -94,7 +94,6 @@ struct pnp_dev_node_info node_info;
+diff -puN kernel/power/disk.c~resume-wait-for-device-probing-to-finish kernel/power/disk.c
+--- a/kernel/power/disk.c~resume-wait-for-device-probing-to-finish
++++ a/kernel/power/disk.c
+@@ -585,6 +585,12 @@ static int software_resume(void)
+ 	unsigned int flags;
  
- #ifdef CONFIG_HOTPLUG
- 
--static int unloading = 0;
- static struct completion unload_sem;
- 
- /*
-@@ -158,7 +157,7 @@ static int pnp_dock_thread(void *unused)
- 	int docked = -1, d = 0;
- 
- 	set_freezable();
--	while (!unloading) {
-+	while (1) {
- 		int status;
- 
- 		/*
-@@ -586,8 +585,8 @@ static int __init pnpbios_thread_init(vo
- 		struct task_struct *task;
- 		init_completion(&unload_sem);
- 		task = kthread_run(pnp_dock_thread, NULL, "kpnpbiosd");
--		if (!IS_ERR(task))
--			unloading = 0;
-+		if (IS_ERR(task))
-+			return PTR_ERR(task);
- 	}
- #endif
- 	return 0;
+ 	/*
++	 * If the user said "noresume".. bail out early.
++	 */
++	if (noresume)
++		return 0;
++
++	/*
+ 	 * name_to_dev_t() below takes a sysfs buffer mutex when sysfs
+ 	 * is configured into the kernel. Since the regular hibernate
+ 	 * trigger path is via sysfs which takes a buffer mutex before
+@@ -600,6 +606,11 @@ static int software_resume(void)
+ 			mutex_unlock(&pm_mutex);
+ 			return -ENOENT;
+ 		}
++		/*
++		 * Some device discovery might still be in progress; we need
++		 * to wait for this to finish.
++		 */
++		wait_for_device_probe();
+ 		swsusp_resume_device = name_to_dev_t(resume_file);
+ 		pr_debug("PM: Resume from partition %s\n", resume_file);
+ 	} else {
 _
 
-Patches currently in -mm which might be from erik@kryo.se are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
+origin.patch
 linux-next.patch
-pnpbios-fix-warning-if-no-hotplug.patch
-pnpbios-propagate-kthread_run-error.patch
+resume-wait-for-device-probing-to-finish.patch
+scripts-add-x86-register-parser-to-markup_oopspl.patch
+scripts-add-x86-64-bit-support-to-the-markup_oopspl-script.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
 
