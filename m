@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 14 Jan 2009 14:09:04 -0800
-Message-ID: <200901142209.n0EM94FV019032@imap1.linux-foundation.org>
+Subject: + memcg-fix-a-race-when-setting-memoryswappiness.patch added to -mm tree
+Date: Wed, 14 Jan 2009 14:11:38 -0800
+Message-ID: <200901142211.n0EMBcZr021449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34865 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755756AbZANWJS (ORCPT
+	by vger.kernel.org with ESMTP id S1753513AbZANWM0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Jan 2009 17:09:18 -0500
+	Wed, 14 Jan 2009 17:12:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, mikew@google.com, yinghan@google.com
+Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes
+     memcg: fix a race when setting memory.swappiness
 has been added to the -mm tree.  Its filename is
-     proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+     memcg-fix-a-race-when-setting-memoryswappiness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: fix a race when setting memory.swappiness
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-ERROR: spaces required around that '?' (ctx:VxW)
-#29: FILE: fs/proc/task_mmu.c:223:
-+			(!vma->vm_file)? 0 :
- 			               ^
+(suppose: memcg->use_hierarchy == 0 and memcg->swappiness == 60)
 
-total: 1 errors, 0 warnings, 18 lines checked
+echo 10 > /memcg/0/swappiness   |
+  mem_cgroup_swappiness_write() |
+    ...                         | echo 1 > /memcg/0/use_hierarchy
+                                | mkdir /mnt/0/1
+                                |   sub_memcg->swappiness = 60;
+    memcg->swappiness = 10;     |
 
-./patches/proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+In the above scenario, we end up having 2 different swappiness
+values in a single hierarchy.
 
-Please run checkpatch prior to sending patches
+We should hold cgroup_lock() when cheking cgrp->children list.
 
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mike Waychison <mikew@google.com>
-Cc: Ying Han <yinghan@google.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes
-+++ a/fs/proc/task_mmu.c
-@@ -220,7 +220,7 @@ static void show_map_vma(struct seq_file
- 			flags & VM_WRITE ? 'w' : '-',
- 			flags & VM_EXEC ? 'x' : '-',
- 			flags & VM_MAYSHARE ? 's' : 'p',
--			(!vma->vm_file)? 0 :
-+			(!vma->vm_file) ? 0 :
- 				((loff_t)vma->vm_pgoff) << PAGE_SHIFT,
- 			MAJOR(dev), MINOR(dev), ino, &len);
+diff -puN mm/memcontrol.c~memcg-fix-a-race-when-setting-memoryswappiness mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-a-race-when-setting-memoryswappiness
++++ a/mm/memcontrol.c
+@@ -1992,6 +1992,7 @@ static int mem_cgroup_swappiness_write(s
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
+ 	struct mem_cgroup *parent;
++
+ 	if (val > 100)
+ 		return -EINVAL;
+ 
+@@ -1999,15 +2000,22 @@ static int mem_cgroup_swappiness_write(s
+ 		return -EINVAL;
+ 
+ 	parent = mem_cgroup_from_cont(cgrp->parent);
++
++	cgroup_lock();
++
+ 	/* If under hierarchy, only empty-root can set this value */
+ 	if ((parent->use_hierarchy) ||
+-	    (memcg->use_hierarchy && !list_empty(&cgrp->children)))
++	    (memcg->use_hierarchy && !list_empty(&cgrp->children))) {
++		cgroup_unlock();
+ 		return -EINVAL;
++	}
+ 
+ 	spin_lock(&memcg->reclaim_param_lock);
+ 	memcg->swappiness = val;
+ 	spin_unlock(&memcg->reclaim_param_lock);
+ 
++	cgroup_unlock();
++
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n.patch
-alpha-fix-vmalloc-breakage-fix.patch
-revert-mm-vmalloc-use-mutex-for-purge.patch
-kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch
-lib-idrc-use-kmem_cache_zalloc-for-the-idr_layer-cache.patch
-hp_accel-do-not-call-acpi-from-invalid-context-fix.patch
-i-need-old-gcc.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-kernel-trace-ring_bufferc-reduce-inlining.patch
-kernel-trace-ring_bufferc-use-div_round_up.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-ext2-update-also-inode-on-disk-when-dir-is-is_dirsync-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix-3-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-cumulative-style-fixes-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+cgroups-clean-up-kconfig.patch
+cgroups-consolidate-cgroup-documents.patch
+idr-fix-wrong-kernel-doc.patch
+memcg-fix-mem_cgroup_get_reclaim_stat_from_page.patch
+memcg-fix-error-path-of-mem_cgroup_move_parent.patch
+memcg-fix-hierarchical-reclaim.patch
+memcg-make-oom-less-frequently.patch
+memcg-fix-section-mismatch.patch
+memcg-fix-a-race-when-setting-memoryswappiness.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
 
