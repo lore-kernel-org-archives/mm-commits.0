@@ -1,179 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-add-blk_issue_flush-to-syncing-paths.patch added to -mm tree
-Date: Wed, 14 Jan 2009 10:19:05 -0800
-Message-ID: <200901141819.n0EIJ58I015465@imap1.linux-foundation.org>
+Subject: [to-be-updated] atmel_serial-might-lose-modem-status-change-fix.patch removed from -mm tree
+Date: Wed, 14 Jan 2009 10:26:39 -0800
+Message-ID: <200901141826.n0EIQdsc022078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752358AbZANSTj (ORCPT
+	by vger.kernel.org with ESMTP id S1755035AbZANS1T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Jan 2009 13:19:39 -0500
+	Wed, 14 Jan 2009 13:27:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, pavel@suse.cz
+To: haavard.skinnemoen@atmel.com, anemo@mba.ocn.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2: add blk_issue_flush() to syncing paths
-has been added to the -mm tree.  Its filename is
-     ext2-add-blk_issue_flush-to-syncing-paths.patch
+     atmel_serial-might-lose-modem-status-change fix
+has been removed from the -mm tree.  Its filename was
+     atmel_serial-might-lose-modem-status-change-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2: add blk_issue_flush() to syncing paths
-From: Jan Kara <jack@suse.cz>
+Subject: atmel_serial-might-lose-modem-status-change fix
+From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 
-To be really safe that the data hit the platter, we should also flush
-drive's writeback caches on fsync and for O_SYNC files or O_DIRSYNC
-inodes.
+...Itai Levi pointed out that we need to initialize
+atmel_port->irq_status as well here. His analysis is as follows:
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Pavel Machek <pavel@suse.cz>
+> Regarding the second part of the patch (which resets irq_status_prev),
+> it turns out that both versions of the patch (mine and Atsushi's)
+> still leave enough room for faulty behavior when opening the port.
+>
+> This is because we are not resetting both irq_status_prev and
+> irq_status in atmel_startup() to CSR, which leads faulty behavior in
+> the following sequences:
+>
+> First case:
+> 1. closing the port while CTS line = 1 (TX not allowed)
+> 2. setting CTS line = 0 (TX allowed)
+> 3. opening the port
+> 4. transmitting one char
+> 5. Cannot transmit more chars, although CTS line is 0
+>
+> Second case:
+> 1. closing the port while CTS line = 0 (TX allowed)
+> 2. setting CTS line = 1 (TX not allowed)
+> 3. opening the port
+> 4. receiving some chars
+> 5. Now we can transmit, although CTS line is 1
+>
+> This reason for this is that the tasklet is scheduled as a result of
+> TX or RX interrupts (not a status change!), in steps 4 above. Inside
+> the tasklet, the atmel_port->irq_status (which holds the value from
+> the previous session) is compared to atmel_port->irq_status_prev.
+> Hence, a status-change of the CTS line is faultily detected.
+>
+> Both cases were verified on 9260 hardware.
+>
+> The solution for this, is to reset both irq_status_prev and irq_status
+> to the value of CSR in atmel_startup().
+>
+> Here is my updated patch (you can ignore the first part which you
+> already accepted):
+
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c   |    5 ++++-
- fs/ext2/fsync.c |    7 +++++--
- fs/ext2/inode.c |    7 +++++++
- fs/ext2/xattr.c |    6 +++++-
- 4 files changed, 21 insertions(+), 4 deletions(-)
+ drivers/serial/atmel_serial.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/ext2/dir.c~ext2-add-blk_issue_flush-to-syncing-paths fs/ext2/dir.c
---- a/fs/ext2/dir.c~ext2-add-blk_issue_flush-to-syncing-paths
-+++ a/fs/ext2/dir.c
-@@ -25,6 +25,7 @@
- #include <linux/buffer_head.h>
- #include <linux/pagemap.h>
- #include <linux/swap.h>
-+#include <linux/blkdev.h>		/* for blkdev_issue_flush() */
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change-fix drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change-fix
++++ a/drivers/serial/atmel_serial.c
+@@ -805,6 +805,9 @@ static int atmel_startup(struct uart_por
+ 	 */
+ 	UART_PUT_IDR(port, -1);
  
- typedef struct ext2_dir_entry_2 ext2_dirent;
- 
-@@ -97,8 +98,10 @@ static int ext2_commit_chunk(struct page
- 
- 	if (IS_DIRSYNC(dir)) {
- 		err = write_one_page(page, 1);
--		if (!err)
-+		if (!err) {
- 			err = ext2_sync_inode(dir);
-+			blkdev_issue_flush(dir->i_sb->s_bdev, NULL);
-+		}
- 	} else {
- 		unlock_page(page);
- 	}
-diff -puN fs/ext2/fsync.c~ext2-add-blk_issue_flush-to-syncing-paths fs/ext2/fsync.c
---- a/fs/ext2/fsync.c~ext2-add-blk_issue_flush-to-syncing-paths
-+++ a/fs/ext2/fsync.c
-@@ -24,6 +24,7 @@
- 
- #include "ext2.h"
- #include <linux/buffer_head.h>		/* for sync_mapping_buffers() */
-+#include <linux/blkdev.h>		/* for blkdev_issue_flush() */
- 
- 
- /*
-@@ -39,12 +40,14 @@ int ext2_sync_file(struct file *file, st
- 
- 	ret = sync_mapping_buffers(inode->i_mapping);
- 	if (!(inode->i_state & I_DIRTY))
--		return ret;
-+		goto out;
- 	if (datasync && !(inode->i_state & I_DIRTY_DATASYNC))
--		return ret;
-+		goto out;
- 
- 	err = ext2_sync_inode(inode);
- 	if (ret == 0)
- 		ret = err;
-+out:
-+	blkdev_issue_flush(inode->i_sb->s_bdev, NULL);
- 	return ret;
- }
-diff -puN fs/ext2/inode.c~ext2-add-blk_issue_flush-to-syncing-paths fs/ext2/inode.c
---- a/fs/ext2/inode.c~ext2-add-blk_issue_flush-to-syncing-paths
-+++ a/fs/ext2/inode.c
-@@ -33,6 +33,7 @@
- #include <linux/mpage.h>
- #include <linux/fiemap.h>
- #include <linux/namei.h>
-+#include <linux/blkdev.h>	/* for blkdev_issue_flush() */
- #include "ext2.h"
- #include "acl.h"
- #include "xip.h"
-@@ -68,9 +69,14 @@ void ext2_delete_inode (struct inode * i
- 	mark_inode_dirty(inode);
- 	ext2_update_inode(inode, inode_needs_sync(inode));
- 
-+	/* Make sure inode deletion really gets to disk. Disk write caches
-+	 * are flushed either in ext2_truncate() or we do it explicitly */
- 	inode->i_size = 0;
- 	if (inode->i_blocks)
- 		ext2_truncate (inode);
-+	else if (inode_needs_sync(inode))
-+		blkdev_issue_flush(inode->i_sb->s_bdev, NULL);
++	atmel_port->irq_status_prev = UART_GET_CSR(port);
++	atmel_port->irq_status = atmel_port->irq_status_prev;
 +
- 	ext2_free_inode (inode);
- 
- 	return;
-@@ -1106,6 +1112,7 @@ do_indirects:
- 	if (inode_needs_sync(inode)) {
- 		sync_mapping_buffers(inode->i_mapping);
- 		ext2_sync_inode (inode);
-+		blkdev_issue_flush(inode->i_sb->s_bdev, NULL);
- 	} else {
- 		mark_inode_dirty(inode);
- 	}
-diff -puN fs/ext2/xattr.c~ext2-add-blk_issue_flush-to-syncing-paths fs/ext2/xattr.c
---- a/fs/ext2/xattr.c~ext2-add-blk_issue_flush-to-syncing-paths
-+++ a/fs/ext2/xattr.c
-@@ -60,6 +60,7 @@
- #include <linux/mbcache.h>
- #include <linux/quotaops.h>
- #include <linux/rwsem.h>
-+#include <linux/blkdev.h>		/* for blkdev_issue_flush() */
- #include "ext2.h"
- #include "xattr.h"
- #include "acl.h"
-@@ -702,6 +703,7 @@ ext2_xattr_set2(struct inode *inode, str
- 				DQUOT_FREE_BLOCK(inode, 1);
- 			goto cleanup;
- 		}
-+		blkdev_issue_flush(sb->s_bdev, NULL);
- 	} else
- 		mark_inode_dirty(inode);
- 
-@@ -792,8 +794,10 @@ ext2_xattr_delete_inode(struct inode *in
- 			le32_to_cpu(HDR(bh)->h_refcount));
- 		unlock_buffer(bh);
- 		mark_buffer_dirty(bh);
--		if (IS_SYNC(inode))
-+		if (IS_SYNC(inode)) {
- 			sync_dirty_buffer(bh);
-+			blkdev_issue_flush(inode->i_sb->s_bdev, NULL);
-+		}
- 		DQUOT_FREE_BLOCK(inode, 1);
- 	}
- 	EXT2_I(inode)->i_file_acl = 0;
+ 	/*
+ 	 * Allocate the IRQ
+ 	 */
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
 
-linux-next.patch
-ext2-update-also-inode-on-disk-when-dir-is-is_dirsync.patch
-ext2-update-also-inode-on-disk-when-dir-is-is_dirsync-fix.patch
-ext2-add-blk_issue_flush-to-syncing-paths.patch
+atmel_serial-fix-flow-control-bug.patch
+atmel_spi-allow-transfer-when-max_speed_hz-=-0.patch
+atmel_serial-might-lose-modem-status-change-fix.patch
 
