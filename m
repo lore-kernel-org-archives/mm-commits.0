@@ -1,84 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] atmel_serial-might-lose-modem-status-change.patch removed from -mm tree
-Date: Wed, 14 Jan 2009 10:26:42 -0800
-Message-ID: <200901141826.n0EIQgkP022089@imap1.linux-foundation.org>
+Subject: + kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix.patch added to -mm tree
+Date: Wed, 14 Jan 2009 10:29:55 -0800
+Message-ID: <200901141829.n0EITt32024773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36295 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752240AbZANS2h (ORCPT
+	by vger.kernel.org with ESMTP id S1753034AbZANSby (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Jan 2009 13:28:37 -0500
+	Wed, 14 Jan 2009 13:31:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, hskinnemoen@atmel.com, linux@bohmer.net, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mhiramat@redhat.com, ananth@in.ibm.com
 
 
 The patch titled
-     atmel_serial might lose modem status change
-has been removed from the -mm tree.  Its filename was
-     atmel_serial-might-lose-modem-status-change.patch
+     kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix
+has been added to the -mm tree.  Its filename is
+     kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial might lose modem status change
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-I found a problem of handling of modem status of atmel_serial driver.
+Add dummy definitions of kprobe_opcode_t and arch_specific_insn
+when CONFIG_KPROBES=n.
 
-With the commit 1ecc26 ("atmel_serial: split the interrupt handler"),
-handling of modem status signal was splitted into two parts.  The
-atmel_tasklet_func() compares new status with irq_status_prev, but
-irq_status_prev is not correct if signal status was changed while the port
-is closed.
-
-Here is a sequence to cause problem:
-
-1. Remote side sets CTS (and DSR).
-2. Local side close the port.
-3. Local side clears RTS and DTR.
-4. Remote side clears CTS and DSR.
-5. Local side reopen the port.  hw_stopped becomes 1.
-6. Local side sets RTS and DTR.
-7. Remote side sets CTS and DSR.
-
-Then CTS change interrupt can be received, but since CTS bit in
-irq_status_prev and new status is same, uart_handle_cts_change() will not
-be called (so hw_stopped will not be cleared, i.e.  cannot send any data).
-
-I suppose irq_status_prev should be initialized at somewhere in open
-sequence.
-
-Acked-by: Remy Bohmer <linux@bohmer.net>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Marc Pignat <marc.pignat@hevs.ch>
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/kprobes.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change
-+++ a/drivers/serial/atmel_serial.c
-@@ -877,6 +877,9 @@ static int atmel_startup(struct uart_por
- 		}
- 	}
+diff -puN include/linux/kprobes.h~kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix
++++ a/include/linux/kprobes.h
+@@ -50,6 +50,10 @@
+ /* Attach to insert probes on any functions which should be ignored*/
+ #define __kprobes	__attribute__((__section__(".kprobes.text"))) notrace
+ #else /* CONFIG_KPROBES */
++typedef int kprobe_opcode_t;
++struct arch_specific_insn {
++	int dummy;
++};
+ #define __kprobes	notrace
+ #endif /* CONFIG_KPROBES */
  
-+	/* Save current CSR for comparison in atmel_tasklet_func() */
-+	atmel_port->irq_status_prev = UART_GET_CSR(port);
-+
- 	/*
- 	 * Finally, enable the serial port
- 	 */
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
+kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix.patch
 linux-next.patch
-atmel_serial-might-lose-modem-status-change.patch
+kprobes-cleanup-aggr_kprobe-related-code.patch
+kprobes-move-export_symbol_gpl-just-after-function-definitions.patch
+kprobes-cleanup-comment-style-in-kprobesh.patch
+kprobes-rename-kprobe_enabled-to-kprobes_all_disarmed.patch
+kprobes-support-per-kprobe-disabling.patch
+kprobes-support-kretprobe-and-jprobe-per-probe-disabling.patch
 
