@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-idrc-use-kmem_cache_zalloc-for-the-idr_layer-cache.patch added to -mm tree
-Date: Wed, 14 Jan 2009 00:16:21 -0800
-Message-ID: <200901140816.n0E8GLS4016168@imap1.linux-foundation.org>
+Subject: + kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch added to -mm tree
+Date: Wed, 14 Jan 2009 00:17:29 -0800
+Message-ID: <200901140834.n0E8Y1Jm031311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45751 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753089AbZANIRa (ORCPT
+	by vger.kernel.org with ESMTP id S1758161AbZANIe3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Jan 2009 03:17:30 -0500
+	Wed, 14 Jan 2009 03:34:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Nadia.Derbey@bull.net, dcm@acm.org, krh@redhat.com, manfred@colorfullife.com, paulmck@us.ibm.com, penberg@cs.helsinki.fi, stable@kernel.org, stefanr@s5r6.in-berlin.de, torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, ananth@in.ibm.com, mhiramat@redhat.com
 
 
 The patch titled
-     lib/idr.c: use kmem_cache_zalloc() for the idr_layer cache
+     kprobes-fix-module-compilation-error-with-config_kprobes=n-fix
 has been added to the -mm tree.  Its filename is
-     lib-idrc-use-kmem_cache_zalloc-for-the-idr_layer-cache.patch
+     kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/idr.c: use kmem_cache_zalloc() for the idr_layer cache
+Subject: kprobes-fix-module-compilation-error-with-config_kprobes=n-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-David points out that the idr_remove_all() function returns unused slabs
-to the kmem cache, but needs to zero them first or else they will be
-uninitialized upon next use.  This causes crashes which have been observed
-in the firewire subsystem.
+fix build for non-kprobes-supporting architectures.
 
-He fixed this by zeroing the object before freeing it in idr_remove_all().
-
-But we agree that simply removing the constructor and zeroing the object
-at allocation time is simpler than relying upon slab constructor machinery
-and might even be faster.
-
-This problem was introduced by
-
-commit cf481c20c476ad2c0febdace9ce23f5a4db19582
-Author:     Nadia Derbey <Nadia.Derbey@bull.net>
-AuthorDate: Fri Jul 25 01:48:02 2008 -0700
-Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-CommitDate: Fri Jul 25 10:53:42 2008 -0700
-
-    idr: make idr_remove rcu-safe
-
-which was first released in 2.6.27.
-
-There are no known codesites which trigger this bug in 2.6.27 or 2.6.28. 
-The post-2.6.28 firewire changes are the only known triggerer.
-
-There might of course be not-yet-discovered triggerers in 2.6.27 and
-2.6.28, and there might be out-of-tree triggerers which are added to those
-kernel versions.  I'll let the -stable guys decide whether they want to
-backport this fix.
-
-Reported-by: David Moore <dcm@acm.org>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Paul E. McKenney <paulmck@us.ibm.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Kristian Hgsberg <krh@redhat.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: <stable@kernel.org>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Masami Hiramatsu <mhiramat@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ include/linux/kprobes.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/idr.c~lib-idrc-use-kmem_cache_zalloc-for-the-idr_layer-cache lib/idr.c
---- a/lib/idr.c~lib-idrc-use-kmem_cache_zalloc-for-the-idr_layer-cache
-+++ a/lib/idr.c
-@@ -121,7 +121,7 @@ int idr_pre_get(struct idr *idp, gfp_t g
- {
- 	while (idp->id_free_cnt < IDR_FREE_MAX) {
- 		struct idr_layer *new;
--		new = kmem_cache_alloc(idr_layer_cache, gfp_mask);
-+		new = kmem_cache_zalloc(idr_layer_cache, gfp_mask);
- 		if (new == NULL)
- 			return (0);
- 		move_to_free_list(idp, new);
-@@ -623,16 +623,10 @@ void *idr_replace(struct idr *idp, void 
- }
- EXPORT_SYMBOL(idr_replace);
+diff -puN include/linux/kprobes.h~kprobes-fix-module-compilation-error-with-config_kprobes=n-fix include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-fix-module-compilation-error-with-config_kprobes=n-fix
++++ a/include/linux/kprobes.h
+@@ -37,9 +37,9 @@
+ #include <linux/spinlock.h>
+ #include <linux/rcupdate.h>
+ #include <linux/mutex.h>
+-#include <asm/kprobes.h>
  
--static void idr_cache_ctor(void *idr_layer)
--{
--	memset(idr_layer, 0, sizeof(struct idr_layer));
--}
--
- void __init idr_init_cache(void)
- {
- 	idr_layer_cache = kmem_cache_create("idr_layer_cache",
--				sizeof(struct idr_layer), 0, SLAB_PANIC,
--				idr_cache_ctor);
-+				sizeof(struct idr_layer), 0, SLAB_PANIC, NULL);
- }
+ #ifdef CONFIG_KPROBES
++#include <asm/kprobes.h>
  
- /**
+ /* kprobe_status settings */
+ #define KPROBE_HIT_ACTIVE	0x00000001
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +71,7 @@ alpha-fix-vmalloc-breakage-fix.patch
 hp_accel-do-not-call-acpi-from-invalid-context-fix.patch
 revert-mm-vmalloc-use-mutex-for-purge.patch
 lib-idrc-use-kmem_cache_zalloc-for-the-idr_layer-cache.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch
 i-need-old-gcc.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
