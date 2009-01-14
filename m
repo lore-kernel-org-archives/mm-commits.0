@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-convert-leap_year-into-an-inline.patch added to -mm tree
-Date: Wed, 14 Jan 2009 13:26:00 -0800
-Message-ID: <200901142126.n0ELQ0Sp014003@imap1.linux-foundation.org>
+Subject: + rtc-add-platform-driver-for-efi.patch added to -mm tree
+Date: Wed, 14 Jan 2009 13:26:02 -0800
+Message-ID: <200901142126.n0ELQ2mV014065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36153 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760289AbZANV0v (ORCPT
+	by vger.kernel.org with ESMTP id S1760290AbZANV0v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 14 Jan 2009 16:26:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alessandro.zummo@towertech.it, dannf@hp.com, david-b@pacbell.net, eranian@googlemail.com, tony.luck@intel.com
+Cc: dannf@dannf.org, alessandro.zummo@towertech.it, dannf@hp.com, david-b@pacbell.net, eranian@googlemail.com, tony.luck@intel.com
 
 
 The patch titled
-     rtc: convert LEAP_YEAR into an inline
+     rtc: add platform driver for EFI
 has been added to the -mm tree.  Its filename is
-     rtc-convert-leap_year-into-an-inline.patch
+     rtc-add-platform-driver-for-efi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: convert LEAP_YEAR into an inline
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc: add platform driver for EFI
+From: dann frazier <dannf@dannf.org>
 
-- the LEAP_YEAR macro is buggy - it references its arg multiple times. 
-  Fix this by turning it into a C function.
+Munge Stephane Eranian's efirtc.c code into an rtc platform driver
 
-- give it a more approriate name
-
-- Move it to rtc.h so that other .c files can use it, instead of copying it.
-
-Cc: dann frazier <dannf@hp.com>
+Signed-off-by: dann frazier <dannf@hp.com>
 Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Cc: stephane eranian <eranian@googlemail.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
@@ -52,114 +47,321 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-lib.c |    7 +++----
- include/linux/rtc.h   |    6 ++++++
- 2 files changed, 9 insertions(+), 4 deletions(-)
+ arch/ia64/kernel/time.c |   16 ++
+ drivers/rtc/Kconfig     |   10 +
+ drivers/rtc/Makefile    |    1 
+ drivers/rtc/rtc-efi.c   |  237 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 264 insertions(+)
 
-diff -puN drivers/rtc/rtc-lib.c~rtc-convert-leap_year-into-an-inline drivers/rtc/rtc-lib.c
---- a/drivers/rtc/rtc-lib.c~rtc-convert-leap_year-into-an-inline
-+++ a/drivers/rtc/rtc-lib.c
-@@ -26,14 +26,13 @@ static const unsigned short rtc_ydays[2]
+diff -puN arch/ia64/kernel/time.c~rtc-add-platform-driver-for-efi arch/ia64/kernel/time.c
+--- a/arch/ia64/kernel/time.c~rtc-add-platform-driver-for-efi
++++ a/arch/ia64/kernel/time.c
+@@ -20,6 +20,7 @@
+ #include <linux/efi.h>
+ #include <linux/timex.h>
+ #include <linux/clocksource.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/machvec.h>
+ #include <asm/delay.h>
+@@ -405,6 +406,21 @@ static struct irqaction timer_irqaction 
+ 	.name =		"timer"
  };
  
- #define LEAPS_THRU_END_OF(y) ((y)/4 - (y)/100 + (y)/400)
--#define LEAP_YEAR(year) ((!(year % 4) && (year % 100)) || !(year % 400))
- 
- /*
-  * The number of days in the month.
-  */
- int rtc_month_days(unsigned int month, unsigned int year)
- {
--	return rtc_days_in_month[month] + (LEAP_YEAR(year) && month == 1);
-+	return rtc_days_in_month[month] + (is_leap_year(year) && month == 1);
- }
- EXPORT_SYMBOL(rtc_month_days);
- 
-@@ -42,7 +41,7 @@ EXPORT_SYMBOL(rtc_month_days);
-  */
- int rtc_year_days(unsigned int day, unsigned int month, unsigned int year)
- {
--	return rtc_ydays[LEAP_YEAR(year)][month] + day-1;
-+	return rtc_ydays[is_leap_year(year)][month] + day-1;
- }
- EXPORT_SYMBOL(rtc_year_days);
- 
-@@ -66,7 +65,7 @@ void rtc_time_to_tm(unsigned long time, 
- 		- LEAPS_THRU_END_OF(1970 - 1);
- 	if (days < 0) {
- 		year -= 1;
--		days += 365 + LEAP_YEAR(year);
-+		days += 365 + is_leap_year(year);
- 	}
- 	tm->tm_year = year - 1900;
- 	tm->tm_yday = days + 1;
-diff -puN include/linux/rtc.h~rtc-convert-leap_year-into-an-inline include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-convert-leap_year-into-an-inline
-+++ a/include/linux/rtc.h
-@@ -99,6 +99,7 @@ struct rtc_pll_info {
- 
- #ifdef __KERNEL__
- 
-+#include <linux/types.h>
- #include <linux/interrupt.h>
- 
- extern int rtc_month_days(unsigned int month, unsigned int year);
-@@ -232,6 +233,11 @@ int rtc_register(rtc_task_t *task);
- int rtc_unregister(rtc_task_t *task);
- int rtc_control(rtc_task_t *t, unsigned int cmd, unsigned long arg);
- 
-+static inline bool is_leap_year(unsigned int year)
++static struct platform_device rtc_efi_dev = {
++	.name = "rtc-efi",
++	.id = -1,
++};
++
++static int __init rtc_init(void)
 +{
-+	return (!(year % 4) && (year % 100)) || !(year % 400);
++	if (platform_device_register(&rtc_efi_dev) < 0)
++		printk(KERN_ERR "unable to register rtc device...\n");
++
++	/* not necessarily an error */
++	return 0;
++}
++module_init(rtc_init);
++
+ void __init
+ time_init (void)
+ {
+diff -puN drivers/rtc/Kconfig~rtc-add-platform-driver-for-efi drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-platform-driver-for-efi
++++ a/drivers/rtc/Kconfig
+@@ -434,6 +434,16 @@ config RTC_DRV_DS1742
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1742.
+ 
++config RTC_DRV_EFI
++	tristate "EFI RTC"
++	depends on IA64
++	help
++	  If you say yes here you will get support for the EFI
++	  Real Time Clock.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-efi.
++
+ config RTC_DRV_STK17TA8
+ 	tristate "Simtek STK17TA8"
+ 	depends on RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-add-platform-driver-for-efi drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-platform-driver-for-efi
++++ a/drivers/rtc/Makefile
+@@ -35,6 +35,7 @@ obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds15
+ obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
+ obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
+ obj-$(CONFIG_RTC_DRV_DS3234)	+= rtc-ds3234.o
++obj-$(CONFIG_RTC_DRV_EFI)	+= rtc-efi.o
+ obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
+ obj-$(CONFIG_RTC_DRV_FM3130)	+= rtc-fm3130.o
+ obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
+diff -puN /dev/null drivers/rtc/rtc-efi.c
+--- /dev/null
++++ a/drivers/rtc/rtc-efi.c
+@@ -0,0 +1,237 @@
++/*
++ * rtc-efi: RTC Class Driver for EFI-based systems
++ *
++ * Copyright (C) 2009 Hewlett-Packard Development Company, L.P.
++ *
++ * Author: dann frazier <dannf@hp.com>
++ * Based on efirtc.c by Stephane Eranian
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/time.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/efi.h>
++
++#define EFI_ISDST (EFI_TIME_ADJUST_DAYLIGHT|EFI_TIME_IN_DAYLIGHT)
++/*
++ * EFI Epoch is 1/1/1998
++ */
++#define EFI_RTC_EPOCH		1998
++
++#define LEAP_YEAR(year) ((!(year % 4) && (year % 100)) || !(year % 400))
++
++/*
++ * returns day of the year [0-365]
++ */
++static inline int
++compute_yday(efi_time_t *eft)
++{
++	/* efi_time_t.month is in the [1-12] so, we need -1 */
++	return rtc_year_days(eft->day - 1, eft->month - 1, eft->year);
++}
++/*
++ * returns day of the week [0-6] 0=Sunday
++ *
++ * Don't try to provide a year that's before 1998, please !
++ */
++static int
++compute_wday(efi_time_t *eft)
++{
++	int y;
++	int ndays = 0;
++
++	if (eft->year < 1998) {
++		printk(KERN_ERR "efirtc: EFI year < 1998, invalid date\n");
++		return -1;
++	}
++
++	for (y = EFI_RTC_EPOCH; y < eft->year; y++)
++		ndays += 365 + (LEAP_YEAR(y) ? 1 : 0);
++
++	ndays += compute_yday(eft);
++
++	/*
++	 * 4=1/1/1998 was a Thursday
++	 */
++	return (ndays + 4) % 7;
 +}
 +
- #endif /* __KERNEL__ */
- 
- #endif /* _LINUX_RTC_H_ */
++static void
++convert_to_efi_time(struct rtc_time *wtime, efi_time_t *eft)
++{
++	eft->year	= wtime->tm_year + 1900;
++	eft->month	= wtime->tm_mon + 1;
++	eft->day	= wtime->tm_mday;
++	eft->hour	= wtime->tm_hour;
++	eft->minute	= wtime->tm_min;
++	eft->second 	= wtime->tm_sec;
++	eft->nanosecond = 0;
++	eft->daylight	= wtime->tm_isdst ? EFI_ISDST : 0;
++	eft->timezone	= EFI_UNSPECIFIED_TIMEZONE;
++}
++
++static void
++convert_from_efi_time(efi_time_t *eft, struct rtc_time *wtime)
++{
++	memset(wtime, 0, sizeof(*wtime));
++	wtime->tm_sec  = eft->second;
++	wtime->tm_min  = eft->minute;
++	wtime->tm_hour = eft->hour;
++	wtime->tm_mday = eft->day;
++	wtime->tm_mon  = eft->month - 1;
++	wtime->tm_year = eft->year - 1900;
++
++	/* day of the week [0-6], Sunday=0 */
++	wtime->tm_wday = compute_wday(eft);
++
++	/* day in the year [1-365]*/
++	wtime->tm_yday = compute_yday(eft);
++
++
++	switch (eft->daylight & EFI_ISDST) {
++	case EFI_ISDST:
++		wtime->tm_isdst = 1;
++		break;
++	case EFI_TIME_ADJUST_DAYLIGHT:
++		wtime->tm_isdst = 0;
++		break;
++	default:
++		wtime->tm_isdst = -1;
++	}
++}
++
++static int efi_read_alarm(struct device *dev, struct rtc_wkalrm *wkalrm)
++{
++	efi_time_t eft;
++	efi_status_t status;
++
++	/*
++	 * As of EFI v1.10, this call always returns an unsupported status
++	 */
++	status = efi.get_wakeup_time((efi_bool_t *)&wkalrm->enabled,
++				     (efi_bool_t *)&wkalrm->pending, &eft);
++
++	if (status != EFI_SUCCESS)
++		return -EINVAL;
++
++	convert_from_efi_time(&eft, &wkalrm->time);
++
++	return rtc_valid_tm(&wkalrm->time);
++}
++
++static int efi_set_alarm(struct device *dev, struct rtc_wkalrm *wkalrm)
++{
++	efi_time_t eft;
++	efi_status_t status;
++
++	convert_to_efi_time(&wkalrm->time, &eft);
++
++	/*
++	 * XXX Fixme:
++	 * As of EFI 0.92 with the firmware I have on my
++	 * machine this call does not seem to work quite
++	 * right
++	 *
++	 * As of v1.10, this call always returns an unsupported status
++	 */
++	status = efi.set_wakeup_time((efi_bool_t)wkalrm->enabled, &eft);
++
++	printk(KERN_WARNING "write status is %d\n", (int)status);
++
++	return status == EFI_SUCCESS ? 0 : -EINVAL;
++}
++
++static int efi_read_time(struct device *dev, struct rtc_time *tm)
++{
++	efi_status_t status;
++	efi_time_t eft;
++	efi_time_cap_t cap;
++
++	status = efi.get_time(&eft, &cap);
++
++	if (status != EFI_SUCCESS) {
++		/* should never happen */
++		printk(KERN_ERR "efitime: can't read time\n");
++		return -EINVAL;
++	}
++
++	convert_from_efi_time(&eft, tm);
++
++	return rtc_valid_tm(tm);
++}
++
++static int efi_set_time(struct device *dev, struct rtc_time *tm)
++{
++	efi_status_t status;
++	efi_time_t eft;
++
++	convert_to_efi_time(tm, &eft);
++
++	status = efi.set_time(&eft);
++
++	return status == EFI_SUCCESS ? 0 : -EINVAL;
++}
++
++static const struct rtc_class_ops efi_rtc_ops = {
++	.read_time = efi_read_time,
++	.set_time = efi_set_time,
++	.read_alarm = efi_read_alarm,
++	.set_alarm = efi_set_alarm,
++};
++
++static int __init efi_rtc_probe(struct platform_device *dev)
++{
++	struct rtc_device *rtc;
++
++	rtc = rtc_device_register("rtc-efi", &dev->dev, &efi_rtc_ops,
++					THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
++
++	platform_set_drvdata(dev, rtc);
++
++	return 0;
++}
++
++static int __exit efi_rtc_remove(struct platform_device *dev)
++{
++	struct rtc_device *rtc = platform_get_drvdata(dev);
++
++	rtc_device_unregister(rtc);
++
++	return 0;
++}
++
++static struct platform_driver efi_rtc_driver = {
++	.driver = {
++		.name = "rtc-efi",
++		.owner = THIS_MODULE,
++	},
++	.probe = efi_rtc_probe,
++	.remove = __exit_p(efi_rtc_remove),
++};
++
++static int __init efi_rtc_init(void)
++{
++	return platform_driver_probe(&efi_rtc_driver, efi_rtc_probe);
++}
++
++static void __exit efi_rtc_exit(void)
++{
++	platform_driver_unregister(&efi_rtc_driver);
++}
++
++module_init(efi_rtc_init);
++module_exit(efi_rtc_exit);
++
++MODULE_AUTHOR("dann frazier <dannf@hp.com>");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("EFI RTC driver");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dannf@dannf.org are
 
-origin.patch
-kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n.patch
-alpha-fix-vmalloc-breakage-fix.patch
-revert-mm-vmalloc-use-mutex-for-purge.patch
-kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch
-lib-idrc-use-kmem_cache_zalloc-for-the-idr_layer-cache.patch
-hp_accel-do-not-call-acpi-from-invalid-context-fix.patch
-i-need-old-gcc.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-next-remove-localversion.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-kernel-trace-ring_bufferc-reduce-inlining.patch
-kernel-trace-ring_bufferc-use-div_round_up.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-ext2-update-also-inode-on-disk-when-dir-is-is_dirsync-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix-3-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi.patch
 rtc-add-platform-driver-for-efi-fix.patch
-rtc-cumulative-style-fixes-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
