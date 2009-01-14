@@ -1,96 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] atmel_serial-might-lose-modem-status-change-fix.patch removed from -mm tree
-Date: Wed, 14 Jan 2009 10:26:39 -0800
-Message-ID: <200901141826.n0EIQdsc022078@imap1.linux-foundation.org>
+Subject: [to-be-updated] atmel_serial-might-lose-modem-status-change.patch removed from -mm tree
+Date: Wed, 14 Jan 2009 10:26:42 -0800
+Message-ID: <200901141826.n0EIQgkP022089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58540 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36295 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755035AbZANS1T (ORCPT
+	by vger.kernel.org with ESMTP id S1752240AbZANS2h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Jan 2009 13:27:19 -0500
+	Wed, 14 Jan 2009 13:28:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haavard.skinnemoen@atmel.com, anemo@mba.ocn.ne.jp, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, hskinnemoen@atmel.com, linux@bohmer.net, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial-might-lose-modem-status-change fix
+     atmel_serial might lose modem status change
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-might-lose-modem-status-change-fix.patch
+     atmel_serial-might-lose-modem-status-change.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial-might-lose-modem-status-change fix
-From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: atmel_serial might lose modem status change
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-...Itai Levi pointed out that we need to initialize
-atmel_port->irq_status as well here. His analysis is as follows:
+I found a problem of handling of modem status of atmel_serial driver.
 
-> Regarding the second part of the patch (which resets irq_status_prev),
-> it turns out that both versions of the patch (mine and Atsushi's)
-> still leave enough room for faulty behavior when opening the port.
->
-> This is because we are not resetting both irq_status_prev and
-> irq_status in atmel_startup() to CSR, which leads faulty behavior in
-> the following sequences:
->
-> First case:
-> 1. closing the port while CTS line = 1 (TX not allowed)
-> 2. setting CTS line = 0 (TX allowed)
-> 3. opening the port
-> 4. transmitting one char
-> 5. Cannot transmit more chars, although CTS line is 0
->
-> Second case:
-> 1. closing the port while CTS line = 0 (TX allowed)
-> 2. setting CTS line = 1 (TX not allowed)
-> 3. opening the port
-> 4. receiving some chars
-> 5. Now we can transmit, although CTS line is 1
->
-> This reason for this is that the tasklet is scheduled as a result of
-> TX or RX interrupts (not a status change!), in steps 4 above. Inside
-> the tasklet, the atmel_port->irq_status (which holds the value from
-> the previous session) is compared to atmel_port->irq_status_prev.
-> Hence, a status-change of the CTS line is faultily detected.
->
-> Both cases were verified on 9260 hardware.
->
-> The solution for this, is to reset both irq_status_prev and irq_status
-> to the value of CSR in atmel_startup().
->
-> Here is my updated patch (you can ignore the first part which you
-> already accepted):
+With the commit 1ecc26 ("atmel_serial: split the interrupt handler"),
+handling of modem status signal was splitted into two parts.  The
+atmel_tasklet_func() compares new status with irq_status_prev, but
+irq_status_prev is not correct if signal status was changed while the port
+is closed.
 
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Here is a sequence to cause problem:
+
+1. Remote side sets CTS (and DSR).
+2. Local side close the port.
+3. Local side clears RTS and DTR.
+4. Remote side clears CTS and DSR.
+5. Local side reopen the port.  hw_stopped becomes 1.
+6. Local side sets RTS and DTR.
+7. Remote side sets CTS and DSR.
+
+Then CTS change interrupt can be received, but since CTS bit in
+irq_status_prev and new status is same, uart_handle_cts_change() will not
+be called (so hw_stopped will not be cleared, i.e.  cannot send any data).
+
+I suppose irq_status_prev should be initialized at somewhere in open
+sequence.
+
+Acked-by: Remy Bohmer <linux@bohmer.net>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Marc Pignat <marc.pignat@hevs.ch>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/serial/atmel_serial.c |    3 +++
  1 file changed, 3 insertions(+)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change-fix drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change-fix
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change
 +++ a/drivers/serial/atmel_serial.c
-@@ -805,6 +805,9 @@ static int atmel_startup(struct uart_por
- 	 */
- 	UART_PUT_IDR(port, -1);
+@@ -877,6 +877,9 @@ static int atmel_startup(struct uart_por
+ 		}
+ 	}
  
++	/* Save current CSR for comparison in atmel_tasklet_func() */
 +	atmel_port->irq_status_prev = UART_GET_CSR(port);
-+	atmel_port->irq_status = atmel_port->irq_status_prev;
 +
  	/*
- 	 * Allocate the IRQ
+ 	 * Finally, enable the serial port
  	 */
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-atmel_serial-fix-flow-control-bug.patch
-atmel_spi-allow-transfer-when-max_speed_hz-=-0.patch
-atmel_serial-might-lose-modem-status-change-fix.patch
+linux-next.patch
+atmel_serial-might-lose-modem-status-change.patch
 
