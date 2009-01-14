@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-a-race-when-setting-memoryswappiness.patch added to -mm tree
-Date: Wed, 14 Jan 2009 14:11:38 -0800
-Message-ID: <200901142211.n0EMBcZr021449@imap1.linux-foundation.org>
+Subject: + resume-wait-for-device-probing-to-finish.patch added to -mm tree
+Date: Wed, 14 Jan 2009 14:19:13 -0800
+Message-ID: <200901142219.n0EMJDRi027911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34865 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753513AbZANWM0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755741AbZANWT6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Jan 2009 17:12:26 -0500
+	Wed, 14 Jan 2009 17:19:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
+Cc: arjan@linux.intel.com, lenb@kernel.org, pavel@suse.cz, rjw@sisk.pl
 
 
 The patch titled
-     memcg: fix a race when setting memory.swappiness
+     resume: wait for device probing to finish
 has been added to the -mm tree.  Its filename is
-     memcg-fix-a-race-when-setting-memoryswappiness.patch
+     resume-wait-for-device-probing-to-finish.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix a race when setting memory.swappiness
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: resume: wait for device probing to finish
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-(suppose: memcg->use_hierarchy == 0 and memcg->swappiness == 60)
+The resume code does not currently wait for device probing to finish. 
+Even without async function calls this is dicey and not correct, but with
+async function calls during the boot sequence this is going to get hit
+more...
 
-echo 10 > /memcg/0/swappiness   |
-  mem_cgroup_swappiness_write() |
-    ...                         | echo 1 > /memcg/0/use_hierarchy
-                                | mkdir /mnt/0/1
-                                |   sub_memcg->swappiness = 60;
-    memcg->swappiness = 10;     |
+This patch adds the synchronization using the newly introduced helper.
 
-In the above scenario, we end up having 2 different swappiness
-values in a single hierarchy.
-
-We should hold cgroup_lock() when cheking cgrp->children list.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ kernel/power/disk.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-fix-a-race-when-setting-memoryswappiness mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-a-race-when-setting-memoryswappiness
-+++ a/mm/memcontrol.c
-@@ -1992,6 +1992,7 @@ static int mem_cgroup_swappiness_write(s
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
- 	struct mem_cgroup *parent;
+diff -puN kernel/power/disk.c~resume-wait-for-device-probing-to-finish kernel/power/disk.c
+--- a/kernel/power/disk.c~resume-wait-for-device-probing-to-finish
++++ a/kernel/power/disk.c
+@@ -585,6 +585,12 @@ static int software_resume(void)
+ 	unsigned int flags;
+ 
+ 	/*
++	 * If the user said "noresume".. bail out early.
++	 */
++	if (noresume)
++		return 0;
 +
- 	if (val > 100)
- 		return -EINVAL;
- 
-@@ -1999,15 +2000,22 @@ static int mem_cgroup_swappiness_write(s
- 		return -EINVAL;
- 
- 	parent = mem_cgroup_from_cont(cgrp->parent);
-+
-+	cgroup_lock();
-+
- 	/* If under hierarchy, only empty-root can set this value */
- 	if ((parent->use_hierarchy) ||
--	    (memcg->use_hierarchy && !list_empty(&cgrp->children)))
-+	    (memcg->use_hierarchy && !list_empty(&cgrp->children))) {
-+		cgroup_unlock();
- 		return -EINVAL;
-+	}
- 
- 	spin_lock(&memcg->reclaim_param_lock);
- 	memcg->swappiness = val;
- 	spin_unlock(&memcg->reclaim_param_lock);
- 
-+	cgroup_unlock();
-+
- 	return 0;
- }
- 
++	/*
+ 	 * name_to_dev_t() below takes a sysfs buffer mutex when sysfs
+ 	 * is configured into the kernel. Since the regular hibernate
+ 	 * trigger path is via sysfs which takes a buffer mutex before
+@@ -600,6 +606,11 @@ static int software_resume(void)
+ 			mutex_unlock(&pm_mutex);
+ 			return -ENOENT;
+ 		}
++		/*
++		 * Some device discovery might still be in progress; we need
++		 * to wait for this to finish.
++		 */
++		wait_for_device_probe();
+ 		swsusp_resume_device = name_to_dev_t(resume_file);
+ 		pr_debug("PM: Resume from partition %s\n", resume_file);
+ 	} else {
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
-cgroups-clean-up-kconfig.patch
-cgroups-consolidate-cgroup-documents.patch
-idr-fix-wrong-kernel-doc.patch
-memcg-fix-mem_cgroup_get_reclaim_stat_from_page.patch
-memcg-fix-error-path-of-mem_cgroup_move_parent.patch
-memcg-fix-hierarchical-reclaim.patch
-memcg-make-oom-less-frequently.patch
-memcg-fix-section-mismatch.patch
-memcg-fix-a-race-when-setting-memoryswappiness.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+linux-next.patch
+resume-wait-for-device-probing-to-finish.patch
+scripts-add-x86-register-parser-to-markup_oopspl.patch
+scripts-add-x86-64-bit-support-to-the-markup_oopspl-script.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
 
