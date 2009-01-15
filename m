@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-some-inode-attr-fixes.patch added to -mm tree
-Date: Thu, 15 Jan 2009 15:03:39 -0800
-Message-ID: <200901152303.n0FN3dGH008505@imap1.linux-foundation.org>
+Subject: + serial-pnx8xxx_uart-fix-break-signal-handling.patch added to -mm tree
+Date: Thu, 15 Jan 2009 15:05:08 -0800
+Message-ID: <200901152305.n0FN58X2009902@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935578AbZAOXEN (ORCPT
+	by vger.kernel.org with ESMTP id S935795AbZAOXFW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jan 2009 18:04:13 -0500
+	Thu, 15 Jan 2009 18:05:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hooanon05@yahoo.co.jp, shaggy@linux.vnet.ibm.com
+Cc: mischa.jonker@nxp.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     ecryptfs: some inode attr fixes
+     serial: pnx8xxx_uart: Fix break signal handling
 has been added to the -mm tree.  Its filename is
-     ecryptfs-some-inode-attr-fixes.patch
+     serial-pnx8xxx_uart-fix-break-signal-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: some inode attr fixes
-From: J. R. Okajima <hooanon05@yahoo.co.jp>
+Subject: serial: pnx8xxx_uart: Fix break signal handling
+From: Mischa Jonker <mischa.jonker@nxp.com>
 
-- The ecryptfs inode holds a reference to the lower inode, but doesn't
-  increment the reference counter. When a user sets inotify to the
-  ecryptfs inode, it may live without the corresponding dentry. In this
-  case the referecen to the lower inode may be broken.
-  This patch maintains the reference of the lower inode.
+When a break signal is detected, the next character should be ignored.
+This was not implemented correctly for the pnx8xxx_uart driver.
 
-- follow the VFS unlink sequence in ecryptfs_unlink() which is
-  inrementing and decrementing the inode->i_count and the reference
-  counter for the dentry.
+It can be viewed as two separate bugs:
 
-- maintain the link count and ctime in ecryptfs_rmdir() because a user
-  may issue fstat(2) later.
+a) the next character is not ignored while it should;
+b) the status bits 31-8 are copied to the 'ch' variable while they shouldn't.
 
-- remove the unnecessary d_drop()s in ecryptfs_link().
+Both bugs prevent correct break signal handling (and therefore correct
+behaviour of the magic SysRq key).  Bug b) didn't cause too much trouble
+earlier because in most situations the status bits are all zero; for this
+case they unfortunately aren't.
 
-Signed-off-by: J. R. Okajima <hooanon05@yahoo.co.jp>
-Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Signed-off-by: Mischa Jonker <mischa.jonker@nxp.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |   13 +++++++++----
- fs/ecryptfs/super.c |    2 ++
- 2 files changed, 11 insertions(+), 4 deletions(-)
+ drivers/serial/pnx8xxx_uart.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-some-inode-attr-fixes fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-some-inode-attr-fixes
-+++ a/fs/ecryptfs/inode.c
-@@ -467,9 +467,6 @@ out_lock:
- 	unlock_dir(lower_dir_dentry);
- 	dput(lower_new_dentry);
- 	dput(lower_old_dentry);
--	d_drop(lower_old_dentry);
--	d_drop(new_dentry);
--	d_drop(old_dentry);
- 	return rc;
- }
+diff -puN drivers/serial/pnx8xxx_uart.c~serial-pnx8xxx_uart-fix-break-signal-handling drivers/serial/pnx8xxx_uart.c
+--- a/drivers/serial/pnx8xxx_uart.c~serial-pnx8xxx_uart-fix-break-signal-handling
++++ a/drivers/serial/pnx8xxx_uart.c
+@@ -187,7 +187,7 @@ static void pnx8xxx_rx_chars(struct pnx8
+ 	status = FIFO_TO_SM(serial_in(sport, PNX8XXX_FIFO)) |
+ 		 ISTAT_TO_SM(serial_in(sport, PNX8XXX_ISTAT));
+ 	while (status & FIFO_TO_SM(PNX8XXX_UART_FIFO_RXFIFO)) {
+-		ch = serial_in(sport, PNX8XXX_FIFO);
++		ch = serial_in(sport, PNX8XXX_FIFO) & 0xff;
  
-@@ -481,7 +478,10 @@ static int ecryptfs_unlink(struct inode 
- 	struct dentry *lower_dir_dentry;
+ 		sport->port.icount.rx++;
  
- 	lower_dir_dentry = lock_parent(lower_dentry);
-+	dget(lower_dentry);
-+	atomic_inc_return(&lower_dentry->d_inode->i_count);
- 	rc = vfs_unlink(lower_dir_inode, lower_dentry);
-+	dput(lower_dentry);
- 	if (rc) {
- 		printk(KERN_ERR "Error in vfs_unlink; rc = [%d]\n", rc);
- 		goto out_unlock;
-@@ -492,6 +492,7 @@ static int ecryptfs_unlink(struct inode 
- 	dentry->d_inode->i_ctime = dir->i_ctime;
- 	d_drop(dentry);
- out_unlock:
-+	iput(lower_dentry->d_inode);
- 	unlock_dir(lower_dir_dentry);
- 	return rc;
- }
-@@ -577,8 +578,12 @@ static int ecryptfs_rmdir(struct inode *
- 	fsstack_copy_attr_times(dir, lower_dir_dentry->d_inode);
- 	dir->i_nlink = lower_dir_dentry->d_inode->i_nlink;
- 	unlock_dir(lower_dir_dentry);
--	if (!rc)
-+	if (!rc) {
-+		struct inode *inode = dentry->d_inode;
-+		inode->i_nlink = ecryptfs_inode_to_lower(inode)->i_nlink;
-+		inode->i_ctime = dir->i_ctime;
- 		d_drop(dentry);
-+	}
- 	dput(dentry);
- 	return rc;
- }
-diff -puN fs/ecryptfs/super.c~ecryptfs-some-inode-attr-fixes fs/ecryptfs/super.c
---- a/fs/ecryptfs/super.c~ecryptfs-some-inode-attr-fixes
-+++ a/fs/ecryptfs/super.c
-@@ -89,6 +89,7 @@ static void ecryptfs_destroy_inode(struc
- 		}
- 	}
- 	mutex_unlock(&inode_info->lower_file_mutex);
-+	iput(inode_info->wii_inode);
- 	ecryptfs_destroy_crypt_stat(&inode_info->crypt_stat);
- 	kmem_cache_free(ecryptfs_inode_info_cache, inode_info);
- }
-@@ -101,6 +102,7 @@ static void ecryptfs_destroy_inode(struc
-  */
- void ecryptfs_init_inode(struct inode *inode, struct inode *lower_inode)
- {
-+	atomic_inc_return(&lower_inode->i_count);
- 	ecryptfs_set_inode_lower(inode, lower_inode);
- 	inode->i_ino = lower_inode->i_ino;
- 	inode->i_version++;
-_
-
-Patches currently in -mm which might be from hooanon05@yahoo.co.jp are
-
-loop-add-ioctl-to-resize-a-loop-device.patch
-loop-add-ioctl-to-resize-a-loop-device-security-check-for-loop_set_capacity.patch
-loop-add-ioctl-to-resize-a-loop-device-loop_set_capacity-sector_t-may-be-narrow-for-bit-shfit.patch
-ecryptfs-some-inode-attr-fixes.patch
-ecryptfs-some-inode-attr-fixes-fix.patch
-
+@@ -198,9 +198,16 @@ static void pnx8xxx_rx_chars(struct pnx8
+ 		 * out of the main execution path
+ 		 */
+ 		if (status & (FIFO_TO_SM(PNX8XXX_UART_FIFO_RXFE |
+-					PNX8XXX_UART_FIFO_RXPAR) |
++					PNX8XXX_UART_FIFO_RXPAR |
++					PNX8XXX_UART_FIFO_RXBRK) |
+ 			      ISTAT_TO_SM(PNX8XXX_UART_INT_RXOVRN))) {
+-			if (status & FIFO_TO_SM(PNX8XXX_UART_FIFO_RXPAR))
++			if (status & FIFO_TO_SM(PNX8XXX_UART_FIFO_RXBRK)) {
++				status &= ~(FIFO_TO_SM(PNX8XXX_UART_FIFO_RXFE) |
++					FIFO_TO_SM(PNX8XXX_UART_FIFO_RXPAR));
++				sport->port.icount.brk++;
++				if (uart_handle_break(&sport->port))
++					goto ignore_char;
++			} else if (status & FIFO_TO_SM(PNX8XXX_UART_FIFO_RXPAR))
+ 				sport->port.icount.parity++;
+ 			else if (status & FIFO_TO_SM(PNX8XXX_UART_FIFO_RXFE))
+ 				sport->port.icount.frame++;
+@@ -284,14 +291,8 @@ static irqreturn_t pnx8xxx_int(int irq, 
+ 	/* Get the interrupts */
+ 	status  = serial_in(sport, PNX8XXX_ISTAT) & serial_in(sport, PNX8XXX_IEN);
+ 
+-	/* Break signal received */
+-	if (status & PNX8XXX_UART_INT_BREAK) {
+-		sport->port.icount.brk++;
+-		uart_handle_break(&sport->port);
+-	}
