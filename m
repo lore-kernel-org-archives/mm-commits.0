@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pci-pcie-portdrv-fix-allocation-of-interrupts-rev-3.patch added to -mm tree
-Date: Thu, 15 Jan 2009 15:17:27 -0800
-Message-ID: <200901152317.n0FNHSXN020941@imap1.linux-foundation.org>
+Subject: + pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3.patch added to -mm tree
+Date: Thu, 15 Jan 2009 15:17:23 -0800
+Message-ID: <200901152317.n0FNHOmx020899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765095AbZAOXRc (ORCPT
+	by vger.kernel.org with ESMTP id S1758872AbZAOXR3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jan 2009 18:17:32 -0500
+	Thu, 15 Jan 2009 18:17:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rjw@sisk.pl, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     PCI PCIe portdrv: fix allocation of interrupts
+     PCI PCIe portdrv: remove struct pcie_port_service_id
 has been added to the -mm tree.  Its filename is
-     pci-pcie-portdrv-fix-allocation-of-interrupts-rev-3.patch
+     pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,232 +34,255 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCI PCIe portdrv: fix allocation of interrupts
+Subject: PCI PCIe portdrv: remove struct pcie_port_service_id
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-If MSI-X interrupt mode is used by the PCI Express port driver, too many
-vectors are allocated and it is not ensured that the right vectors will be
-used for the right services.  Namely, the PCI Express specification states
-that both PCI Express native PME and PCI Express hotplug will always use
-the same MSI or MSI-X message for signalling interrupts, which implies
-that the same vector will be used by both of them.  Also, the VC service
-does not use interrupts at all.  Moreover, is not clear which of the
-vectors allocated by pci_enable_msix() will be used for PME and hotplug
-and which of them will be used for AER if all of these services are
-configured.
-
-For these reasons, rework the allocation of interrupts for PCI Express
-ports so that at most two vectors are allocated and ensure that the right
-vector will be used for the right purpose.
+The PCI Express port driver uses 'struct pcie_port_service_id' for
+matching port service devices and drivers, but this structure contains
+fields that duplicate information from the port device itself (vendor,
+device, subvendor, subdevice) and fields that are not used by any existing
+port service driver (class, class_mask, drvier_data).  Also, both existing
+port service drivers (AER and PCIe HP) don't even use the vendor and
+device fields for device matching.  Therefore 'struct
+pcie_port_service_id' can be removed altogether and the only useful
+members of it (port_type, service) can be introduced directly into the
+port service device and port service driver structures.  That simplifies
+the code quite a bit and reduces its size.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/portdrv.h      |    2 
- drivers/pci/pcie/portdrv_core.c |  142 +++++++++++++++++++++---------
- include/linux/pcieport_if.h     |   12 +-
- 3 files changed, 114 insertions(+), 42 deletions(-)
+ drivers/pci/hotplug/pciehp_acpi.c  |   13 ++-----------
+ drivers/pci/hotplug/pciehp_core.c  |   12 ++----------
+ drivers/pci/pcie/aer/aerdrv.c      |   16 ++--------------
+ drivers/pci/pcie/aer/aerdrv_core.c |   10 +++++-----
+ drivers/pci/pcie/portdrv.h         |    5 -----
+ drivers/pci/pcie/portdrv_bus.c     |   18 ++++++++++--------
+ drivers/pci/pcie/portdrv_core.c    |    5 +----
+ include/linux/pcieport_if.h        |   17 ++++++++---------
+ 8 files changed, 30 insertions(+), 66 deletions(-)
 
-diff -puN drivers/pci/pcie/portdrv.h~pci-pcie-portdrv-fix-allocation-of-interrupts-rev-3 drivers/pci/pcie/portdrv.h
---- a/drivers/pci/pcie/portdrv.h~pci-pcie-portdrv-fix-allocation-of-interrupts-rev-3
+diff -puN drivers/pci/hotplug/pciehp_acpi.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3 drivers/pci/hotplug/pciehp_acpi.c
+--- a/drivers/pci/hotplug/pciehp_acpi.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3
++++ a/drivers/pci/hotplug/pciehp_acpi.c
+@@ -67,16 +67,6 @@ static int __init parse_detect_mode(void
+ 	return PCIEHP_DETECT_DEFAULT;
+ }
+ 
+-static struct pcie_port_service_id __initdata port_pci_ids[] = {
+-	{
+-		.vendor = PCI_ANY_ID,
+-		.device = PCI_ANY_ID,
+-		.port_type = PCIE_ANY_PORT,
+-		.service_type = PCIE_PORT_SERVICE_HP,
+-		.driver_data =  0,
+-        }, { /* end: all zeroes */ }
+-};
+-
+ static int __initdata dup_slot_id;
+ static int __initdata acpi_slot_detected;
+ static struct list_head __initdata dummy_slots = LIST_HEAD_INIT(dummy_slots);
+@@ -110,7 +100,8 @@ static int __init dummy_probe(struct pci
+ 
+ static struct pcie_port_service_driver __initdata dummy_driver = {
+         .name           = "pciehp_dummy",
+-        .id_table       = port_pci_ids,
++	.port_type	= PCIE_ANY_PORT,
++	.service	= PCIE_PORT_SERVICE_HP,
+         .probe          = dummy_probe,
+ };
+ 
+diff -puN drivers/pci/hotplug/pciehp_core.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3 drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3
++++ a/drivers/pci/hotplug/pciehp_core.c
+@@ -496,18 +496,10 @@ static int pciehp_resume (struct pcie_de
+ }
+ #endif
+ 
+-static struct pcie_port_service_id port_pci_ids[] = { {
+-	.vendor = PCI_ANY_ID,
+-	.device = PCI_ANY_ID,
+-	.port_type = PCIE_ANY_PORT,
+-	.service_type = PCIE_PORT_SERVICE_HP,
+-	.driver_data =	0,
+-	}, { /* end: all zeroes */ }
+-};
+-
+ static struct pcie_port_service_driver hpdriver_portdrv = {
+ 	.name		= PCIE_MODULE_NAME,
+-	.id_table	= &port_pci_ids[0],
++	.port_type	= PCIE_ANY_PORT,
++	.service	= PCIE_PORT_SERVICE_HP,
+ 
+ 	.probe		= pciehp_probe,
+ 	.remove		= pciehp_remove,
+diff -puN drivers/pci/pcie/aer/aerdrv.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3 drivers/pci/pcie/aer/aerdrv.c
+--- a/drivers/pci/pcie/aer/aerdrv.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3
++++ a/drivers/pci/pcie/aer/aerdrv.c
+@@ -48,19 +48,6 @@ static pci_ers_result_t aer_error_detect
+ static void aer_error_resume(struct pci_dev *dev);
+ static pci_ers_result_t aer_root_reset(struct pci_dev *dev);
+ 
+-/*
+- * PCI Express bus's AER Root service driver data structure
+- */
+-static struct pcie_port_service_id aer_id[] = {
+-	{
+-	.vendor 	= PCI_ANY_ID,
+-	.device 	= PCI_ANY_ID,
+-	.port_type 	= PCIE_RC_PORT,
+-	.service_type 	= PCIE_PORT_SERVICE_AER,
+-	},
+-	{ /* end: all zeroes */ }
+-};
+-
+ static struct pci_error_handlers aer_error_handlers = {
+ 	.error_detected = aer_error_detected,
+ 	.resume = aer_error_resume,
+@@ -68,7 +55,8 @@ static struct pci_error_handlers aer_err
+ 
+ static struct pcie_port_service_driver aerdriver = {
+ 	.name		= "aer",
+-	.id_table	= &aer_id[0],
++	.port_type	= PCIE_ANY_PORT,
++	.service	= PCIE_PORT_SERVICE_AER,
+ 
+ 	.probe		= aer_probe,
+ 	.remove		= aer_remove,
+diff -puN drivers/pci/pcie/aer/aerdrv_core.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3 drivers/pci/pcie/aer/aerdrv_core.c
+--- a/drivers/pci/pcie/aer/aerdrv_core.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3
++++ a/drivers/pci/pcie/aer/aerdrv_core.c
+@@ -320,21 +320,21 @@ static int find_aer_service_iter(struct 
+ {
+ 	struct device_driver *driver;
+ 	struct pcie_port_service_driver *service_driver;
+-	struct pcie_device *pcie_dev;
+ 	struct find_aer_service_data *result;
+ 
+ 	result = (struct find_aer_service_data *) data;
+ 
+ 	if (device->bus == &pcie_port_bus_type) {
+-		pcie_dev = to_pcie_device(device);
+-		if (pcie_dev->id.port_type == PCIE_SW_DOWNSTREAM_PORT)
++		struct pcie_port_data *port_data;
++
++		port_data = pci_get_drvdata(to_pcie_device(device)->port);
++		if (port_data->port_type == PCIE_SW_DOWNSTREAM_PORT)
+ 			result->is_downstream = 1;
+ 
+ 		driver = device->driver;
+ 		if (driver) {
+ 			service_driver = to_service_driver(driver);
+-			if (service_driver->id_table->service_type ==
+-					PCIE_PORT_SERVICE_AER) {
++			if (service_driver->service == PCIE_PORT_SERVICE_AER) {
+ 				result->aer_driver = service_driver;
+ 				return 1;
+ 			}
+diff -puN drivers/pci/pcie/portdrv.h~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3 drivers/pci/pcie/portdrv.h
+--- a/drivers/pci/pcie/portdrv.h~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3
 +++ a/drivers/pci/pcie/portdrv.h
-@@ -25,6 +25,8 @@
- #define PCIE_CAPABILITIES_REG		0x2
- #define PCIE_SLOT_CAPABILITIES_REG	0x14
- #define PCIE_PORT_DEVICE_MAXSERVICES	4
-+#define PCIE_PORT_DEVICE_MAXINTERRUPTS	2
-+#define PCIE_PORT_MSI_VECTOR_MASK	0x1f
+@@ -28,11 +28,6 @@
  
  #define get_descriptor_id(type, service) (((type - 4) << 4) | service)
  
-diff -puN drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-fix-allocation-of-interrupts-rev-3 drivers/pci/pcie/portdrv_core.c
---- a/drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-fix-allocation-of-interrupts-rev-3
-+++ a/drivers/pci/pcie/portdrv_core.c
-@@ -31,6 +31,72 @@ static void release_pcie_device(struct d
- }
- 
- /**
-+ * pcie_port_enable_msix - try to set up MSI-X as interrupt mode for given port
-+ * @dev: PCI Express port to handle
-+ * @vectors: Array of interrupt vectors to populate
-+ * @nvec: Number of interrupt vectors to allocate
-+ *
-+ * Return value: 0 on success, error code on failure
-+ */
-+static int pcie_port_enable_msix(struct pci_dev *dev, int *vectors, int nvec)
-+{
-+	struct msix_entry msix_entries[PCIE_PORT_DEVICE_MAXINTERRUPTS] = {
-+		{ 0, },
-+	};
-+	int status, pos, i;
-+	u16 reg16;
-+	u32 reg32;
-+
-+	for (i = 0; i < nvec; i++)
-+		msix_entries[i].entry = i;
-+
-+	status = pci_enable_msix(dev, msix_entries, nvec);
-+	if (status)
-+		return status;
-+
-+	/*
-+	 * The code below follows the PCI Express Base Specification 2.0 clearly
-+	 * stating in Section 6.1.6 that "PME and Hot-Plug Event interrupts
-+	 * (when both are implemented) always share the same MSI or MSI-X
-+	 * vector, as indicated by the Interrupt Message Number field in the PCI
-+	 * Express Capabilities register", where according to Section 7.8.2 of
-+	 * the Specification "For MSI-X, the value in this field indicates which
-+	 * MSI-X Table entry is used to generate the interrupt message."
-+	 */
-+	pos = pci_find_capability(dev, PCI_CAP_ID_EXP);
-+	pci_read_config_word(dev, pos + PCIE_CAPABILITIES_REG, &reg16);
-+	i = (reg16 >> 9) & PCIE_PORT_MSI_VECTOR_MASK;
-+	if (i >= nvec) {
-+		goto Error;
-+	} else {
-+		vectors[PCIE_PORT_SERVICE_PME_SHIFT] = msix_entries[i].vector;
-+		vectors[PCIE_PORT_SERVICE_HP_SHIFT] = msix_entries[i].vector;
-+	}
-+
-+	/*
-+	 * The code below follows Section 7.10.10 of the PCI Express Base
-+	 * Specification 2.0 stating that bits 31-27 of the Root Error Status
-+	 * Register contain a value indicating which of the MSI/MSI-X vectors
-+	 * assigned to the port is going to be used for AER, where "For MSI-X,
-+	 * the value in this register indicates which MSI-X Table entry is used
-+	 * to generate the interrupt message."
-+	 */
-+	pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
-+	pci_read_config_dword(dev, pos + PCI_ERR_ROOT_STATUS, &reg32);
-+	i = (reg32 >> 27) & PCIE_PORT_MSI_VECTOR_MASK;
-+	if (i >= nvec)
-+		goto Error;
-+	else
-+		vectors[PCIE_PORT_SERVICE_AER_SHIFT] = msix_entries[i].vector;
-+
-+	return 0;
-+
-+ Error:
-+	pci_disable_msix(dev);
-+	return -EIO;
-+}
-+
-+/**
-  * assign_interrupt_mode - choose interrupt mode for PCI Express port services
-  *                         (INTx, MSI-X, MSI) and set up vectors
-  * @dev: PCI Express port to handle
-@@ -42,49 +108,49 @@ static void release_pcie_device(struct d
- static int assign_interrupt_mode(struct pci_dev *dev, int *vectors, int mask)
- {
- 	struct pcie_port_data *port_data = pci_get_drvdata(dev);
--	int i, pos, nvec, status = -EINVAL;
--	int interrupt_mode = PCIE_PORT_NO_IRQ;
-+	int nvec, irq, interrupt_mode = PCIE_PORT_NO_IRQ;
-+	int i;
- 
--	/* Set INTx as default */
--	for (i = 0, nvec = 0; i < PCIE_PORT_DEVICE_MAXSERVICES; i++) {
--		if (mask & (1 << i)) 
--			nvec++;
--		vectors[i] = dev->irq;
--	}
--	if (dev->pin)
--		interrupt_mode = PCIE_PORT_INTx_MODE;
-+	/*
-+	 * Determine the number of vectors to allocate.
-+	 *
-+	 * According to the PCI Express specification both PME and PCI Express
-+	 * hotplug always use the same interrupt vector, while AER can use
-+	 * a different one.
-+	 */
-+	nvec = 0;
-+	if (mask & (PCIE_PORT_SERVICE_PME | PCIE_PORT_SERVICE_HP))
-+		nvec++;
-+	if (mask & PCIE_PORT_SERVICE_AER)
-+		nvec++;
-+	if (!nvec)
-+		return PCIE_PORT_NO_IRQ;
- 
- 	/* Check MSI quirk */
- 	if (port_data->port_type == PCIE_RC_PORT && pcie_mch_quirk)
--		return interrupt_mode;
-+		goto Fallback;
-+
-+	/* For nvec > 1 use MSI-X if supported */
-+	if (nvec > 1 && !pcie_port_enable_msix(dev, vectors, nvec)) {
-+		interrupt_mode = PCIE_PORT_MSIX_MODE;
-+		goto Exit;
-+	}
-+
-+	/* We're not going to use MSI-X, so try MSI and fall back to INTx */
-+	if (!pci_enable_msi(dev))
-+		interrupt_mode = PCIE_PORT_MSI_MODE;
-+
-+ Fallback:
-+	if (interrupt_mode == PCIE_PORT_NO_IRQ && dev->pin)
-+		interrupt_mode = PCIE_PORT_INTx_MODE;
-+
-+	irq = interrupt_mode != PCIE_PORT_NO_IRQ ? dev->irq : -1;
-+	for (i = 0; i < PCIE_PORT_DEVICE_MAXSERVICES; i++)
-+		vectors[i] = irq;
-+
-+ Exit:
-+	vectors[PCIE_PORT_SERVICE_VC_SHIFT] = -1;
- 
--	/* Select MSI-X over MSI if supported */		
--	pos = pci_find_capability(dev, PCI_CAP_ID_MSIX);
--	if (pos) {
--		struct msix_entry msix_entries[PCIE_PORT_DEVICE_MAXSERVICES] = 
--			{{0, 0}, {0, 1}, {0, 2}, {0, 3}};
--		status = pci_enable_msix(dev, msix_entries, nvec);
--		if (!status) {
--			int j = 0;
+-struct pcie_port_data {
+-	int port_type;		/* Type of the port */
+-	int port_irq_mode;	/* [0:INTx | 1:MSI | 2:MSI-X] */
+-};
 -
--			interrupt_mode = PCIE_PORT_MSIX_MODE;
--			for (i = 0; i < PCIE_PORT_DEVICE_MAXSERVICES; i++) {
--				if (mask & (1 << i)) 
--					vectors[i] = msix_entries[j++].vector;
--			}
--		}
--	} 
--	if (status) {
--		pos = pci_find_capability(dev, PCI_CAP_ID_MSI);
--		if (pos) {
--			status = pci_enable_msi(dev);
--			if (!status) {
--				interrupt_mode = PCIE_PORT_MSI_MODE;
--				for (i = 0;i < PCIE_PORT_DEVICE_MAXSERVICES;i++)
--					vectors[i] = dev->irq;
--			}
--		}
--	} 
- 	return interrupt_mode;
- }
+ extern struct bus_type pcie_port_bus_type;
+ extern int pcie_port_device_probe(struct pci_dev *dev);
+ extern int pcie_port_device_register(struct pci_dev *dev);
+diff -puN drivers/pci/pcie/portdrv_bus.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3 drivers/pci/pcie/portdrv_bus.c
+--- a/drivers/pci/pcie/portdrv_bus.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3
++++ a/drivers/pci/pcie/portdrv_bus.c
+@@ -26,20 +26,22 @@ EXPORT_SYMBOL_GPL(pcie_port_bus_type);
+ static int pcie_port_bus_match(struct device *dev, struct device_driver *drv)
+ {
+ 	struct pcie_device *pciedev;
++	struct pcie_port_data *port_data;
+ 	struct pcie_port_service_driver *driver;
  
-diff -puN include/linux/pcieport_if.h~pci-pcie-portdrv-fix-allocation-of-interrupts-rev-3 include/linux/pcieport_if.h
---- a/include/linux/pcieport_if.h~pci-pcie-portdrv-fix-allocation-of-interrupts-rev-3
+ 	if (drv->bus != &pcie_port_bus_type || dev->bus != &pcie_port_bus_type)
+ 		return 0;
+-	
++
+ 	pciedev = to_pcie_device(dev);
+ 	driver = to_service_driver(drv);
+-	if (   (driver->id_table->vendor != PCI_ANY_ID && 
+-		driver->id_table->vendor != pciedev->id.vendor) ||
+-	       (driver->id_table->device != PCI_ANY_ID &&
+-		driver->id_table->device != pciedev->id.device) ||	
+-	       (driver->id_table->port_type != PCIE_ANY_PORT &&
+-		driver->id_table->port_type != pciedev->id.port_type) ||
+-		driver->id_table->service_type != pciedev->id.service_type )
++
++	if (driver->service != pciedev->service)
++		return 0;
++
++	port_data = pci_get_drvdata(pciedev->port);
++
++	if (driver->port_type != PCIE_ANY_PORT
++	     && driver->port_type != port_data->port_type)
+ 		return 0;
+ 
+ 	return 1;
+diff -puN drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3 drivers/pci/pcie/portdrv_core.c
+--- a/drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3
++++ a/drivers/pci/pcie/portdrv_core.c
+@@ -140,10 +140,7 @@ static void pcie_device_init(struct pci_
+ 
+ 	dev->port = parent;
+ 	dev->irq = irq;
+-	dev->id.vendor = parent->vendor;
+-	dev->id.device = parent->device;
+-	dev->id.port_type = port_type;
+-	dev->id.service_type = service_type;
++	dev->service = service_type;
+ 
+ 	/* Initialize generic device interface */
+ 	device = &dev->device;
+diff -puN include/linux/pcieport_if.h~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3 include/linux/pcieport_if.h
+--- a/include/linux/pcieport_if.h~pci-pcie-portdrv-remove-struct-pcie_port_service_id-rev-3
 +++ a/include/linux/pcieport_if.h
-@@ -16,10 +16,14 @@
- #define PCIE_ANY_PORT			7
+@@ -27,18 +27,15 @@
+ #define PCIE_PORT_MSI_MODE		1
+ #define PCIE_PORT_MSIX_MODE		2
  
- /* Service Type */
--#define PCIE_PORT_SERVICE_PME		1	/* Power Management Event */
--#define PCIE_PORT_SERVICE_AER		2	/* Advanced Error Reporting */
--#define PCIE_PORT_SERVICE_HP		4	/* Native Hotplug */
--#define PCIE_PORT_SERVICE_VC		8	/* Virtual Channel */
-+#define PCIE_PORT_SERVICE_PME_SHIFT	0	/* Power Management Event */
-+#define PCIE_PORT_SERVICE_PME		(1 << PCIE_PORT_SERVICE_PME_SHIFT)
-+#define PCIE_PORT_SERVICE_AER_SHIFT	1	/* Advanced Error Reporting */
-+#define PCIE_PORT_SERVICE_AER		(1 << PCIE_PORT_SERVICE_AER_SHIFT)
-+#define PCIE_PORT_SERVICE_HP_SHIFT	2	/* Native Hotplug */
-+#define PCIE_PORT_SERVICE_HP		(1 << PCIE_PORT_SERVICE_HP_SHIFT)
-+#define PCIE_PORT_SERVICE_VC_SHIFT	3	/* Virtual Channel */
-+#define PCIE_PORT_SERVICE_VC		(1 << PCIE_PORT_SERVICE_VC_SHIFT)
+-struct pcie_port_service_id {
+-	__u32 vendor, device;		/* Vendor and device ID or PCI_ANY_ID*/
+-	__u32 subvendor, subdevice;	/* Subsystem ID's or PCI_ANY_ID */
+-	__u32 class, class_mask;	/* (class,subclass,prog-if) triplet */
+-	__u32 port_type, service_type;	/* Port Entity */
+-	kernel_ulong_t driver_data;
++struct pcie_port_data {
++	int port_type;		/* Type of the port */
++	int port_irq_mode;	/* [0:INTx | 1:MSI | 2:MSI-X] */
+ };
  
- /* Root/Upstream/Downstream Port's Interrupt Mode */
- #define PCIE_PORT_NO_IRQ		(-1)
+ struct pcie_device {
+ 	int 		irq;	    /* Service IRQ/MSI/MSI-X Vector */
+-	struct pcie_port_service_id id;	/* Service ID */
+-	struct pci_dev	*port;	    /* Root/Upstream/Downstream Port */
++	struct pci_dev *port;	    /* Root/Upstream/Downstream Port */
++	u32		service;    /* Port service this device represents */
+ 	void		*priv_data; /* Service Private Data */
+ 	struct device	device;     /* Generic Device Interface */
+ };
+@@ -67,7 +64,9 @@ struct pcie_port_service_driver {
+ 	/* Link Reset Capability - AER service driver specific */
+ 	pci_ers_result_t (*reset_link) (struct pci_dev *dev);
+ 
+-	const struct pcie_port_service_id *id_table;
++	int port_type;  /* Type of the port this driver can handle */
++	u32 service;    /* Port service this device represents */
++
+ 	struct device_driver driver;
+ };
+ #define to_service_driver(d) \
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
