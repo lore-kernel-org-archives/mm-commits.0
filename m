@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2.patch added to -mm tree
-Date: Thu, 15 Jan 2009 15:17:21 -0800
-Message-ID: <200901152317.n0FNHLKT020817@imap1.linux-foundation.org>
+Subject: + pci-pcie-portdrv-do-not-enable-port-device-before-setting-up-interrupts-rev-2.patch added to -mm tree
+Date: Thu, 15 Jan 2009 15:17:17 -0800
+Message-ID: <200901152317.n0FNHH1x020776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48024 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763655AbZAOXR0 (ORCPT
+	by vger.kernel.org with ESMTP id S1763548AbZAOXRW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jan 2009 18:17:26 -0500
+	Thu, 15 Jan 2009 18:17:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rjw@sisk.pl, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     PCI PCIe portdrv: simplily probe callback of service drivers
+     PCI PCIe portdrv: do not enable port device before setting up interrupts
 has been added to the -mm tree.  Its filename is
-     pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2.patch
+     pci-pcie-portdrv-do-not-enable-port-device-before-setting-up-interrupts-rev-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCI PCIe portdrv: simplily probe callback of service drivers
+Subject: PCI PCIe portdrv: do not enable port device before setting up interrupts
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The second argument of the ->probe() callback in struct
-pcie_port_service_driver is unnecessary and never used.  Remove it.
+The PCI Express port driver calls pci_enable_device() before setting up
+interrupts, which is wrong, because if there is an interrupt pin
+configured for the port, pci_enable_device() will likely set up an
+interrupt link for it.  However, this shouldn't be done if either MSI or
+MSI-X interrupt mode is chosen for the port.
+
+The solution is to call pci_enable_device() after setting up interrupts,
+because in that case the interrupt link won't be set up if MSI or MSI-X
+are enabled.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/pciehp_acpi.c |    3 +--
- drivers/pci/hotplug/pciehp_core.c |    2 +-
- drivers/pci/pcie/aer/aerdrv.c     |    6 ++----
- drivers/pci/pcie/portdrv_core.c   |    2 +-
- include/linux/pcieport_if.h       |    3 +--
- 5 files changed, 6 insertions(+), 10 deletions(-)
+ drivers/pci/pcie/portdrv_core.c |   38 ++++++++++++++++++++++--------
+ drivers/pci/pcie/portdrv_pci.c  |   11 ++------
+ 2 files changed, 31 insertions(+), 18 deletions(-)
 
-diff -puN drivers/pci/hotplug/pciehp_acpi.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2 drivers/pci/hotplug/pciehp_acpi.c
---- a/drivers/pci/hotplug/pciehp_acpi.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2
-+++ a/drivers/pci/hotplug/pciehp_acpi.c
-@@ -82,8 +82,7 @@ static int __initdata acpi_slot_detected
- static struct list_head __initdata dummy_slots = LIST_HEAD_INIT(dummy_slots);
- 
- /* Dummy driver for dumplicate name detection */
--static int __init dummy_probe(struct pcie_device *dev,
--			      const struct pcie_port_service_id *id)
-+static int __init dummy_probe(struct pcie_device *dev)
+diff -puN drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-do-not-enable-port-device-before-setting-up-interrupts-rev-2 drivers/pci/pcie/portdrv_core.c
+--- a/drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-do-not-enable-port-device-before-setting-up-interrupts-rev-2
++++ a/drivers/pci/pcie/portdrv_core.c
+@@ -208,7 +208,7 @@ int pcie_port_device_probe(struct pci_de
+ int pcie_port_device_register(struct pci_dev *dev)
  {
- 	int pos;
- 	u32 slot_cap;
-diff -puN drivers/pci/hotplug/pciehp_core.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2 drivers/pci/hotplug/pciehp_core.c
---- a/drivers/pci/hotplug/pciehp_core.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2
-+++ a/drivers/pci/hotplug/pciehp_core.c
-@@ -399,7 +399,7 @@ static int get_cur_bus_speed(struct hotp
+ 	struct pcie_port_data *port_data;
+-	int status, capabilities, irq_mode, i;
++	int status, capabilities, irq_mode, i, nr_serv;
+ 	int vectors[PCIE_PORT_DEVICE_MAXSERVICES];
+ 	u16 reg16;
+ 
+@@ -229,24 +229,32 @@ int pcie_port_device_register(struct pci
+ 		capabilities |= PCIE_PORT_SERVICE_PME;
+ 
+ 	irq_mode = assign_interrupt_mode(dev, vectors, capabilities);
++	if (irq_mode == PCIE_PORT_NO_IRQ) {
++		/*
++		 * Don't use service devices that require interrupts if there is
++		 * no way to generate them.
++		 */
++		if (!(capabilities & PCIE_PORT_SERVICE_VC)) {
++			status = -ENODEV;
++			goto Error;
++		}
++		capabilities = PCIE_PORT_SERVICE_VC;
++	}
+ 	port_data->port_irq_mode = irq_mode;
+ 
++	status = pci_enable_device(dev);
++	if (status)
++		goto Error;
++	pci_set_master(dev);
++
+ 	/* Allocate child services if any */
+-	for (i = 0; i < PCIE_PORT_DEVICE_MAXSERVICES; i++) {
++	for (i = 0, nr_serv = 0; i < PCIE_PORT_DEVICE_MAXSERVICES; i++) {
+ 		struct pcie_device *child;
+ 		int service = 1 << i;
+ 
+ 		if (!(capabilities & service))
+ 			continue;
+ 
+-		/*
+-		 * Don't use service devices that require interrupts if there is
+-		 * no way to generate them.
+-		 */
+-		if (irq_mode == PCIE_PORT_NO_IRQ
+-		    && service != PCIE_PORT_SERVICE_VC)
+-			continue;
+-
+ 		child = alloc_pcie_device(dev, service, vectors[i]);
+ 		if (!child)
+ 			continue;
+@@ -258,9 +266,19 @@ int pcie_port_device_register(struct pci
+ 		}
+ 
+ 		get_device(&child->device);
++		nr_serv++;
++	}
++	if (!nr_serv) {
++		pci_disable_device(dev);
++		status = -ENODEV;
++		goto Error;
+ 	}
+ 
  	return 0;
++
++ Error:
++	kfree(port_data);
++	return status;
  }
  
--static int pciehp_probe(struct pcie_device *dev, const struct pcie_port_service_id *id)
-+static int pciehp_probe(struct pcie_device *dev)
- {
- 	int rc;
- 	struct controller *ctrl;
-diff -puN drivers/pci/pcie/aer/aerdrv.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2 drivers/pci/pcie/aer/aerdrv.c
---- a/drivers/pci/pcie/aer/aerdrv.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2
-+++ a/drivers/pci/pcie/aer/aerdrv.c
-@@ -38,8 +38,7 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
- MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_LICENSE("GPL");
+ #ifdef CONFIG_PM
+diff -puN drivers/pci/pcie/portdrv_pci.c~pci-pcie-portdrv-do-not-enable-port-device-before-setting-up-interrupts-rev-2 drivers/pci/pcie/portdrv_pci.c
+--- a/drivers/pci/pcie/portdrv_pci.c~pci-pcie-portdrv-do-not-enable-port-device-before-setting-up-interrupts-rev-2
++++ a/drivers/pci/pcie/portdrv_pci.c
+@@ -94,18 +94,13 @@ static int __devinit pcie_portdrv_probe 
+ 	if (status)
+ 		return status;
  
--static int __devinit aer_probe (struct pcie_device *dev,
--	const struct pcie_port_service_id *id );
-+static int __devinit aer_probe (struct pcie_device *dev);
- static void aer_remove(struct pcie_device *dev);
- static int aer_suspend(struct pcie_device *dev, pm_message_t state)
- {return 0;}
-@@ -207,8 +206,7 @@ static void aer_remove(struct pcie_devic
-  *
-  * Invoked when PCI Express bus loads AER service driver.
-  **/
--static int __devinit aer_probe (struct pcie_device *dev,
--				const struct pcie_port_service_id *id )
-+static int __devinit aer_probe (struct pcie_device *dev)
- {
- 	int status;
- 	struct aer_rpc *rpc;
-diff -puN drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2 drivers/pci/pcie/portdrv_core.c
---- a/drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2
-+++ a/drivers/pci/pcie/portdrv_core.c
-@@ -402,7 +402,7 @@ static int pcie_port_probe_service(struc
- 		return -ENODEV;
+-	if (pci_enable_device(dev) < 0) 
+-		return -ENODEV;
+-	
+-	pci_set_master(dev);
+         if (!dev->irq && dev->pin) {
+ 		dev_warn(&dev->dev, "device [%04x:%04x] has invalid IRQ; "
+ 			 "check vendor BIOS\n", dev->vendor, dev->device);
+ 	}
+-	if (pcie_port_device_register(dev)) {
+-		pci_disable_device(dev);
+-		return -ENOMEM;
+-	}
++	status = pcie_port_device_register(dev);
++	if (status)
++		return status;
  
- 	pciedev = to_pcie_device(dev);
--	status = driver->probe(pciedev, driver->id_table);
-+	status = driver->probe(pciedev);
- 	if (!status) {
- 		dev_printk(KERN_DEBUG, dev, "service driver %s loaded\n",
- 			driver->name);
-diff -puN include/linux/pcieport_if.h~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2 include/linux/pcieport_if.h
---- a/include/linux/pcieport_if.h~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2
-+++ a/include/linux/pcieport_if.h
-@@ -56,8 +56,7 @@ static inline void* get_service_data(str
+ 	pcie_portdrv_save_config(dev);
  
- struct pcie_port_service_driver {
- 	const char *name;
--	int (*probe) (struct pcie_device *dev, 
--		const struct pcie_port_service_id *id);
-+	int (*probe) (struct pcie_device *dev);
- 	void (*remove) (struct pcie_device *dev);
- 	int (*suspend) (struct pcie_device *dev, pm_message_t state);
- 	int (*resume) (struct pcie_device *dev);
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
