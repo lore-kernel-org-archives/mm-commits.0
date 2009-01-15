@@ -1,83 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-core-hubc-fix-config_usb_otg=y-build.patch added to -mm tree
-Date: Thu, 15 Jan 2009 09:50:12 -0800
-Message-ID: <200901151750.n0FHoCNC027753@imap1.linux-foundation.org>
+Subject: [merged] kbuild-fix-kbuildtxt-typos.patch removed from -mm tree
+Date: Thu, 15 Jan 2009 11:57:37 -0800
+Message-ID: <200901151957.n0FJvbfq007530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763472AbZAORuq (ORCPT
+	by vger.kernel.org with ESMTP id S1753893AbZAOT6W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jan 2009 12:50:46 -0500
+	Thu, 15 Jan 2009 14:58:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, felipe.balbi@nokia.com, greg@kroah.com, rmk@arm.linux.org.uk, stern@rowland.harvard.edu, tony@atomide.com
+To: randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/core/hub.c: fix CONFIG_USB_OTG=y build
-has been added to the -mm tree.  Its filename is
-     drivers-usb-core-hubc-fix-config_usb_otg=y-build.patch
+     kbuild: fix kbuild.txt typos
+has been removed from the -mm tree.  Its filename was
+     kbuild-fix-kbuildtxt-typos.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/core/hub.c: fix CONFIG_USB_OTG=y build
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: kbuild: fix kbuild.txt typos
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Carry out the PM-routine interface change in the USB OTG pathway.  This
-was omitted from the earlier interface-change patch by mistake.
+Fix typos in the new kbuild.txt file.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/kbuild/kbuild.txt |   29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN drivers/usb/core/hub.c~drivers-usb-core-hubc-fix-config_usb_otg=y-build drivers/usb/core/hub.c
---- a/drivers/usb/core/hub.c~drivers-usb-core-hubc-fix-config_usb_otg=y-build
-+++ a/drivers/usb/core/hub.c
-@@ -1554,7 +1554,7 @@ static int usb_configure_device_otg(stru
- 		 * (Includes HNP test device.)
- 		 */
- 		if (udev->bus->b_hnp_enable || udev->bus->is_b_host) {
--			err = usb_port_suspend(udev);
-+			err = usb_port_suspend(udev, PMSG_SUSPEND);
- 			if (err < 0)
- 				dev_dbg(&udev->dev, "HNP fail, %d\n", err);
- 		}
+diff -puN Documentation/kbuild/kbuild.txt~kbuild-fix-kbuildtxt-typos Documentation/kbuild/kbuild.txt
+--- a/Documentation/kbuild/kbuild.txt~kbuild-fix-kbuildtxt-typos
++++ a/Documentation/kbuild/kbuild.txt
+@@ -3,7 +3,7 @@ Environment variables
+ KCPPFLAGS
+ --------------------------------------------------
+ Additional options to pass when preprocessing. The preprocessing options
+-will be used in all cases where kbuild do preprocessing including
++will be used in all cases where kbuild does preprocessing including
+ building C files and assembler files.
+ 
+ KAFLAGS
+@@ -16,7 +16,7 @@ Additional options to the C compiler.
+ 
+ KBUILD_VERBOSE
+ --------------------------------------------------
+-Set the kbuild verbosity. Can be assinged same values as "V=...".
++Set the kbuild verbosity. Can be assigned same values as "V=...".
+ See make help for the full list.
+ Setting "V=..." takes precedence over KBUILD_VERBOSE.
+ 
+@@ -35,14 +35,14 @@ KBUILD_OUTPUT
+ --------------------------------------------------
+ Specify the output directory when building the kernel.
+ The output directory can also be specificed using "O=...".
+-Setting "O=..." takes precedence over KBUILD_OUTPUT
++Setting "O=..." takes precedence over KBUILD_OUTPUT.
+ 
+ ARCH
+ --------------------------------------------------
+ Set ARCH to the architecture to be built.
+ In most cases the name of the architecture is the same as the
+ directory name found in the arch/ directory.
+-But some architectures suach as x86 and sparc has aliases.
++But some architectures such as x86 and sparc have aliases.
+ x86: i386 for 32 bit, x86_64 for 64 bit
+ sparc: sparc for 32 bit, sparc64 for 64 bit
+ 
+@@ -63,7 +63,7 @@ CF is often used on the command-line lik
+ INSTALL_PATH
+ --------------------------------------------------
+ INSTALL_PATH specifies where to place the updated kernel and system map
+-images. Default is /boot, but you can set it to other values
++images. Default is /boot, but you can set it to other values.
+ 
+ 
+ MODLIB
+@@ -90,7 +90,7 @@ INSTALL_MOD_STRIP will used as the optio
+ 
+ INSTALL_FW_PATH
+ --------------------------------------------------
+-INSTALL_FW_PATH specify where to install the firmware blobs.
++INSTALL_FW_PATH specifies where to install the firmware blobs.
+ The default value is:
+ 
+     $(INSTALL_MOD_PATH)/lib/firmware
+@@ -99,7 +99,7 @@ The value can be overridden in which cas
+ 
+ INSTALL_HDR_PATH
+ --------------------------------------------------
+-INSTALL_HDR_PATH specify where to install user space headers when
++INSTALL_HDR_PATH specifies where to install user space headers when
+ executing "make headers_*".
+ The default value is:
+ 
+@@ -112,22 +112,23 @@ The value can be overridden in which cas
+ 
+ KBUILD_MODPOST_WARN
+ --------------------------------------------------
+-KBUILD_MODPOST_WARN can be set to avoid error out in case of undefined
+-symbols in the final module linking stage.
++KBUILD_MODPOST_WARN can be set to avoid errors in case of undefined
++symbols in the final module linking stage. It changes such errors
++into warnings.
+ 
+-KBUILD_MODPOST_FINAL
++KBUILD_MODPOST_NOFINAL
+ --------------------------------------------------
+ KBUILD_MODPOST_NOFINAL can be set to skip the final link of modules.
+-This is solely usefull to speed up test compiles.
++This is solely useful to speed up test compiles.
+ 
+ KBUILD_EXTRA_SYMBOLS
+ --------------------------------------------------
+-For modules use symbols from another modules.
++For modules that use symbols from other modules.
+ See more details in modules.txt.
+ 
+ ALLSOURCE_ARCHS
+ --------------------------------------------------
+-For tags/TAGS/cscope targets, you can specify more than one archs
+-to be included in the databases, separated by blankspace. e.g.
++For tags/TAGS/cscope targets, you can specify more than one arch
++to be included in the databases, separated by blank space. E.g.:
+ 
+     $ make ALLSOURCE_ARCHS="x86 mips arm" tags
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-rtc-tw4030-add-alarm-update-interfaces-v2.patch
-rtc-rtc-twl4030-dont-mask-alarm-interrupts-on-shutdown.patch
-drivers-usb-core-hubc-fix-config_usb_otg=y-build.patch
+update-of-documentation-vmtxt-and-proctxt.patch
+sysrq-documentation-remove-the-redundant-updated-date.patch
+sysrq-documentation-document-why-the-command-header-only-is-shown.patch
+sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg.patch
+jbd-fix-missing-kernel-doc.patch
+resources-fix-parameter-name-and-kernel-doc.patch
 linux-next.patch
-mmc-fixes-and-enhancements-for-the-mmc-spi-driver.patch
-usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
-usb-driver-for-freescale-quicc-engine-usb-host-controller-update.patch
-usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
-usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
-usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
-usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
-usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
+kgdb-fix-kernel-doc-error.patch
+auditsc-fix-kernel-doc-notation.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+sunrpc-fix-rdma-dependency.patch
+pci-fix-missing-kernel-doc-and-typos.patch
+pcih-fix-struct-pci_platform_pm_ops-kernel-doc.patch
+esp-fix-section-mismatch-warning.patch
+9p-disallow-rdma-if-rdma-cm-isnt-available.patch
+max3100-spi-uart-driver.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
 
