@@ -1,164 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kbuild-fix-kbuildtxt-typos.patch removed from -mm tree
-Date: Thu, 15 Jan 2009 11:57:37 -0800
-Message-ID: <200901151957.n0FJvbfq007530@imap1.linux-foundation.org>
+Subject: [merged] kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n.patch removed from -mm tree
+Date: Thu, 15 Jan 2009 11:57:34 -0800
+Message-ID: <200901151957.n0FJvYmS007527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753893AbZAOT6W (ORCPT
+	by vger.kernel.org with ESMTP id S1753893AbZAOT61 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jan 2009 14:58:22 -0500
+	Thu, 15 Jan 2009 14:58:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, mingo@elte.hu, reif@earthlink.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: fix kbuild.txt typos
+     kernel/up.c: omit it if SMP=y, USE_GENERIC_SMP_HELPERS=n
 has been removed from the -mm tree.  Its filename was
-     kbuild-fix-kbuildtxt-typos.patch
+     kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: fix kbuild.txt typos
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: kernel/up.c: omit it if SMP=y, USE_GENERIC_SMP_HELPERS=n
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix typos in the new kbuild.txt file.
+Fix the sparc build - we were including `up.o' on SMP builds, when
+CONFIG_USE_GENERIC_SMP_HELPERS=n.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Tested-by: Robert Reif <reif@earthlink.net>
+Fixed-by: Robert Reif <reif@earthlink.net>
+Cc: David Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kbuild/kbuild.txt |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ kernel/Makefile |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/kbuild/kbuild.txt~kbuild-fix-kbuildtxt-typos Documentation/kbuild/kbuild.txt
---- a/Documentation/kbuild/kbuild.txt~kbuild-fix-kbuildtxt-typos
-+++ a/Documentation/kbuild/kbuild.txt
-@@ -3,7 +3,7 @@ Environment variables
- KCPPFLAGS
- --------------------------------------------------
- Additional options to pass when preprocessing. The preprocessing options
--will be used in all cases where kbuild do preprocessing including
-+will be used in all cases where kbuild does preprocessing including
- building C files and assembler files.
- 
- KAFLAGS
-@@ -16,7 +16,7 @@ Additional options to the C compiler.
- 
- KBUILD_VERBOSE
- --------------------------------------------------
--Set the kbuild verbosity. Can be assinged same values as "V=...".
-+Set the kbuild verbosity. Can be assigned same values as "V=...".
- See make help for the full list.
- Setting "V=..." takes precedence over KBUILD_VERBOSE.
- 
-@@ -35,14 +35,14 @@ KBUILD_OUTPUT
- --------------------------------------------------
- Specify the output directory when building the kernel.
- The output directory can also be specificed using "O=...".
--Setting "O=..." takes precedence over KBUILD_OUTPUT
-+Setting "O=..." takes precedence over KBUILD_OUTPUT.
- 
- ARCH
- --------------------------------------------------
- Set ARCH to the architecture to be built.
- In most cases the name of the architecture is the same as the
- directory name found in the arch/ directory.
--But some architectures suach as x86 and sparc has aliases.
-+But some architectures such as x86 and sparc have aliases.
- x86: i386 for 32 bit, x86_64 for 64 bit
- sparc: sparc for 32 bit, sparc64 for 64 bit
- 
-@@ -63,7 +63,7 @@ CF is often used on the command-line lik
- INSTALL_PATH
- --------------------------------------------------
- INSTALL_PATH specifies where to place the updated kernel and system map
--images. Default is /boot, but you can set it to other values
-+images. Default is /boot, but you can set it to other values.
- 
- 
- MODLIB
-@@ -90,7 +90,7 @@ INSTALL_MOD_STRIP will used as the optio
- 
- INSTALL_FW_PATH
- --------------------------------------------------
--INSTALL_FW_PATH specify where to install the firmware blobs.
-+INSTALL_FW_PATH specifies where to install the firmware blobs.
- The default value is:
- 
-     $(INSTALL_MOD_PATH)/lib/firmware
-@@ -99,7 +99,7 @@ The value can be overridden in which cas
- 
- INSTALL_HDR_PATH
- --------------------------------------------------
--INSTALL_HDR_PATH specify where to install user space headers when
-+INSTALL_HDR_PATH specifies where to install user space headers when
- executing "make headers_*".
- The default value is:
- 
-@@ -112,22 +112,23 @@ The value can be overridden in which cas
- 
- KBUILD_MODPOST_WARN
- --------------------------------------------------
--KBUILD_MODPOST_WARN can be set to avoid error out in case of undefined
--symbols in the final module linking stage.
-+KBUILD_MODPOST_WARN can be set to avoid errors in case of undefined
-+symbols in the final module linking stage. It changes such errors
-+into warnings.
- 
--KBUILD_MODPOST_FINAL
-+KBUILD_MODPOST_NOFINAL
- --------------------------------------------------
- KBUILD_MODPOST_NOFINAL can be set to skip the final link of modules.
--This is solely usefull to speed up test compiles.
-+This is solely useful to speed up test compiles.
- 
- KBUILD_EXTRA_SYMBOLS
- --------------------------------------------------
--For modules use symbols from another modules.
-+For modules that use symbols from other modules.
- See more details in modules.txt.
- 
- ALLSOURCE_ARCHS
- --------------------------------------------------
--For tags/TAGS/cscope targets, you can specify more than one archs
--to be included in the databases, separated by blankspace. e.g.
-+For tags/TAGS/cscope targets, you can specify more than one arch
-+to be included in the databases, separated by blank space. E.g.:
- 
-     $ make ALLSOURCE_ARCHS="x86 mips arm" tags
+diff -puN kernel/Makefile~kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n kernel/Makefile
+--- a/kernel/Makefile~kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n
++++ a/kernel/Makefile
+@@ -40,9 +40,8 @@ obj-$(CONFIG_RT_MUTEXES) += rtmutex.o
+ obj-$(CONFIG_DEBUG_RT_MUTEXES) += rtmutex-debug.o
+ obj-$(CONFIG_RT_MUTEX_TESTER) += rtmutex-tester.o
+ obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
+-ifeq ($(CONFIG_USE_GENERIC_SMP_HELPERS),y)
+-obj-y += smp.o
+-else
++obj-$(CONFIG_USE_GENERIC_SMP_HELPERS) += smp.o
++ifneq ($(CONFIG_SMP),y)
+ obj-y += up.o
+ endif
+ obj-$(CONFIG_SMP) += spinlock.o
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-update-of-documentation-vmtxt-and-proctxt.patch
-sysrq-documentation-remove-the-redundant-updated-date.patch
-sysrq-documentation-document-why-the-command-header-only-is-shown.patch
-sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg.patch
-jbd-fix-missing-kernel-doc.patch
-resources-fix-parameter-name-and-kernel-doc.patch
+alpha-fix-vmalloc-breakage-fix.patch
+revert-mm-vmalloc-use-mutex-for-purge.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch
+lib-idrc-use-kmem_cache_zalloc-for-the-idr_layer-cache.patch
+hp_accel-do-not-call-acpi-from-invalid-context-fix.patch
+i-need-old-gcc.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-pci-fix-missing-kernel-doc-and-typos.patch
-pcih-fix-struct-pci_platform_pm_ops-kernel-doc.patch
-esp-fix-section-mismatch-warning.patch
-9p-disallow-rdma-if-rdma-cm-isnt-available.patch
-max3100-spi-uart-driver.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
+next-remove-localversion.patch
+arch-ia64-kernel-ia64_ksymsc-dont-export-copy_page-twice.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+drivers-ata-pata_alic-s-isa_bridge-ali_isa_bridge-to-fix-alpha-build.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+kernel-trace-ring_bufferc-reduce-inlining.patch
+kernel-trace-ring_bufferc-use-div_round_up.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+ext2-update-also-inode-on-disk-when-dir-is-is_dirsync-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix-3-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
