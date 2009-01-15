@@ -1,66 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: + serial-add-supraexpress-336i-pnp-voice-modem-fix.patch added to -mm tree
-Date: Thu, 15 Jan 2009 15:26:07 -0800
-Message-ID: <200901152326.n0FNQ7jC028667@imap1.linux-foundation.org>
+Subject: [to-be-updated] ecryptfs-some-inode-attr-fixes-fix.patch removed from -mm tree
+Date: Thu, 15 Jan 2009 15:52:08 -0800
+Message-ID: <200901152352.n0FNq8Zp020227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42494 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761024AbZAOX0n (ORCPT
+	by vger.kernel.org with ESMTP id S935108AbZAOXwc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jan 2009 18:26:43 -0500
+	Thu, 15 Jan 2009 18:52:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, daniel.gagnon@yahoo.com
+To: akpm@linux-foundation.org, hooanon05@yahoo.co.jp, shaggy@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial-add-supraexpress-336i-pnp-voice-modem-fix
-has been added to the -mm tree.  Its filename is
-     serial-add-supraexpress-336i-pnp-voice-modem-fix.patch
+     ecryptfs-some-inode-attr-fixes-fix
+has been removed from the -mm tree.  Its filename was
+     ecryptfs-some-inode-attr-fixes-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-add-supraexpress-336i-pnp-voice-modem-fix
+Subject: ecryptfs-some-inode-attr-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-argh.  Fix my fix for Daniel's MUA-munched whitespace.
+s/atomic_inc_return/atomic_inc/
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Daniel Gagnon <daniel.gagnon@yahoo.com>
+Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Cc: J. R. Okajima <hooanon05@yahoo.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pnp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ecryptfs/inode.c |    2 +-
+ fs/ecryptfs/super.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/8250_pnp.c~serial-add-supraexpress-336i-pnp-voice-modem-fix drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~serial-add-supraexpress-336i-pnp-voice-modem-fix
-+++ a/drivers/serial/8250_pnp.c
-@@ -270,8 +270,8 @@ static const struct pnp_device_id pnp_de
- 	{       "RSS0250",              0       },
- 	/* SupraExpress 28.8 Data/Fax PnP modem */
- 	{	"SUP1310",		0	},
-- 	/* SupraExpress 336i PnP Voice Modem */
-- 	{       "SUP1381",              0       },
-+	/* SupraExpress 336i PnP Voice Modem */
-+	{       "SUP1381",              0       },
- 	/* SupraExpress 33.6 Data/Fax PnP modem */
- 	{	"SUP1421",		0	},
- 	/* SupraExpress 33.6 Data/Fax PnP modem */
+diff -puN fs/ecryptfs/inode.c~ecryptfs-some-inode-attr-fixes-fix fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-some-inode-attr-fixes-fix
++++ a/fs/ecryptfs/inode.c
+@@ -479,7 +479,7 @@ static int ecryptfs_unlink(struct inode 
+ 
+ 	lower_dir_dentry = lock_parent(lower_dentry);
+ 	dget(lower_dentry);
+-	atomic_inc_return(&lower_dentry->d_inode->i_count);
++	atomic_inc(&lower_dentry->d_inode->i_count);
+ 	rc = vfs_unlink(lower_dir_inode, lower_dentry);
+ 	dput(lower_dentry);
+ 	if (rc) {
+diff -puN fs/ecryptfs/super.c~ecryptfs-some-inode-attr-fixes-fix fs/ecryptfs/super.c
+--- a/fs/ecryptfs/super.c~ecryptfs-some-inode-attr-fixes-fix
++++ a/fs/ecryptfs/super.c
+@@ -102,7 +102,7 @@ static void ecryptfs_destroy_inode(struc
+  */
+ void ecryptfs_init_inode(struct inode *inode, struct inode *lower_inode)
+ {
+-	atomic_inc_return(&lower_inode->i_count);
++	atomic_inc(&lower_inode->i_count);
+ 	ecryptfs_set_inode_lower(inode, lower_inode);
+ 	inode->i_ino = lower_inode->i_ino;
+ 	inode->i_version++;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
