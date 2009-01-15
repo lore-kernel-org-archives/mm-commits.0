@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-of-linux-typesh-is-preferred-over-asm-typesh.patch added to -mm tree
-Date: Wed, 14 Jan 2009 17:11:10 -0800
-Message-ID: <200901150111.n0F1BAnW013668@imap1.linux-foundation.org>
+Subject: + arch-ia64-kernel-ia64_ksymsc-dont-export-copy_page-twice.patch added to -mm tree
+Date: Wed, 14 Jan 2009 17:05:11 -0800
+Message-ID: <200901150121.n0F1LiDc022782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37688 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752821AbZAOBL1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750752AbZAOBWc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Jan 2009 20:11:27 -0500
+	Wed, 14 Jan 2009 20:22:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jaswinder@infradead.org, jaswinderrajput@gmail.com, mingo@elte.hu, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, prarit@redhat.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     include of <linux/types.h> is preferred over <asm/types.h>
+     arch/ia64/kernel/ia64_ksyms.c: don't export copy_page twice
 has been added to the -mm tree.  Its filename is
-     include-of-linux-typesh-is-preferred-over-asm-typesh.patch
+     arch-ia64-kernel-ia64_ksymsc-dont-export-copy_page-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,220 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include of <linux/types.h> is preferred over <asm/types.h>
-From: Jaswinder Singh Rajput <jaswinder@infradead.org>
+Subject: arch/ia64/kernel/ia64_ksyms.c: don't export copy_page twice
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Impact: fix 15 make headers_check warnings:
+Revert linux-next's
 
-include of <linux/types.h> is preferred over <asm/types.h>
+commit 7aed50e09223e7623c7ab826efd53f097bed2f73
+Author:     Prarit Bhargava <prarit@redhat.com>
+AuthorDate: Sat Jan 10 02:25:44 2009 +0000
+Commit:     David Howells <dhowells@redhat.com>
+CommitDate: Sat Jan 10 02:25:44 2009 +0000
 
-Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+    CacheFiles: Add missing copy_page export for ia64
+
+arch/ia64/kernel/ia64_ksyms.c:65: error: redefinition of '__kcrctab_copy_page'
+arch/ia64/kernel/ia64_ksyms.c:43: error: previous definition of '__kcrctab_copy_page' was here
+arch/ia64/kernel/ia64_ksyms.c:65: error: redefinition of '__kstrtab_copy_page'
+arch/ia64/kernel/ia64_ksyms.c:43: error: previous definition of '__kstrtab_copy_page' was here
+arch/ia64/kernel/ia64_ksyms.c:65: error: redefinition of '__ksymtab_copy_page'
+arch/ia64/kernel/ia64_ksyms.c:43: error: previous definition of '__ksymtab_copy_page' was here
+
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/agpgart.h      |    1 -
- include/linux/atm_idt77105.h |    2 +-
- include/linux/capi.h         |    2 +-
- include/linux/connector.h    |    2 +-
- include/linux/cyclades.h     |    2 --
- include/linux/fb.h           |    2 +-
- include/linux/if_pppol2tp.h  |    2 +-
- include/linux/if_pppox.h     |    2 +-
- include/linux/input.h        |    2 +-
- include/linux/joystick.h     |    2 +-
- include/linux/kvm.h          |    2 +-
- include/linux/loop.h         |    2 +-
- include/linux/matroxfb.h     |    2 +-
- include/linux/phantom.h      |    2 +-
- include/linux/radeonfb.h     |    2 +-
- 15 files changed, 13 insertions(+), 16 deletions(-)
+ arch/ia64/kernel/ia64_ksyms.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/agpgart.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/agpgart.h
---- a/include/linux/agpgart.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/agpgart.h
-@@ -52,7 +52,6 @@
+diff -puN arch/ia64/kernel/ia64_ksyms.c~arch-ia64-kernel-ia64_ksymsc-dont-export-copy_page-twice arch/ia64/kernel/ia64_ksyms.c
+--- a/arch/ia64/kernel/ia64_ksyms.c~arch-ia64-kernel-ia64_ksymsc-dont-export-copy_page-twice
++++ a/arch/ia64/kernel/ia64_ksyms.c
+@@ -40,7 +40,6 @@ EXPORT_SYMBOL(__do_clear_user);
+ EXPORT_SYMBOL(__strlen_user);
+ EXPORT_SYMBOL(__strncpy_from_user);
+ EXPORT_SYMBOL(__strnlen_user);
+-EXPORT_SYMBOL(copy_page);
  
- #ifndef __KERNEL__
- #include <linux/types.h>
--#include <asm/types.h>
- 
- struct agp_version {
- 	__u16 major;
-diff -puN include/linux/atm_idt77105.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/atm_idt77105.h
---- a/include/linux/atm_idt77105.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/atm_idt77105.h
-@@ -7,7 +7,7 @@
- #ifndef LINUX_ATM_IDT77105_H
- #define LINUX_ATM_IDT77105_H
- 
--#include <asm/types.h>
-+#include <linux/types.h>
- #include <linux/atmioc.h>
- #include <linux/atmdev.h>
- 
-diff -puN include/linux/capi.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/capi.h
---- a/include/linux/capi.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/capi.h
-@@ -12,7 +12,7 @@
- #ifndef __LINUX_CAPI_H__
- #define __LINUX_CAPI_H__
- 
--#include <asm/types.h>
-+#include <linux/types.h>
- #include <linux/ioctl.h>
- #ifndef __KERNEL__
- #include <linux/kernelcapi.h>
-diff -puN include/linux/connector.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/connector.h
---- a/include/linux/connector.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/connector.h
-@@ -22,7 +22,7 @@
- #ifndef __CONNECTOR_H
- #define __CONNECTOR_H
- 
--#include <asm/types.h>
-+#include <linux/types.h>
- 
- #define CN_IDX_CONNECTOR		0xffffffff
- #define CN_VAL_CONNECTOR		0xffffffff
-diff -puN include/linux/cyclades.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/cyclades.h
---- a/include/linux/cyclades.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/cyclades.h
-@@ -150,8 +150,6 @@ struct CYZ_BOOT_CTRL {
-  *	architectures and compilers.
-  */
- 
--#include <asm/types.h>
--
- typedef __u64  ucdouble;		/* 64 bits, unsigned */
- typedef __u32  uclong;			/* 32 bits, unsigned */
- typedef __u16  ucshort;		/* 16 bits, unsigned */
-diff -puN include/linux/fb.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/fb.h
---- a/include/linux/fb.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/fb.h
-@@ -1,7 +1,7 @@
- #ifndef _LINUX_FB_H
- #define _LINUX_FB_H
- 
--#include <asm/types.h>
-+#include <linux/types.h>
- #include <linux/i2c.h>
- 
- struct dentry;
-diff -puN include/linux/if_pppol2tp.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/if_pppol2tp.h
---- a/include/linux/if_pppol2tp.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/if_pppol2tp.h
-@@ -15,7 +15,7 @@
- #ifndef __LINUX_IF_PPPOL2TP_H
- #define __LINUX_IF_PPPOL2TP_H
- 
--#include <asm/types.h>
-+#include <linux/types.h>
- 
- #ifdef __KERNEL__
- #include <linux/in.h>
-diff -puN include/linux/if_pppox.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/if_pppox.h
---- a/include/linux/if_pppox.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/if_pppox.h
-@@ -17,7 +17,7 @@
- #define __LINUX_IF_PPPOX_H
- 
- 
--#include <asm/types.h>
-+#include <linux/types.h>
- #include <asm/byteorder.h>
- 
- #ifdef  __KERNEL__
-diff -puN include/linux/input.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/input.h
---- a/include/linux/input.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/input.h
-@@ -16,7 +16,7 @@
- #include <sys/time.h>
- #include <sys/ioctl.h>
- #include <sys/types.h>
--#include <asm/types.h>
-+#include <linux/types.h>
- #endif
- 
- /*
-diff -puN include/linux/joystick.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/joystick.h
---- a/include/linux/joystick.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/joystick.h
-@@ -27,7 +27,7 @@
-  * Vojtech Pavlik, Ucitelska 1576, Prague 8, 182 00 Czech Republic
-  */
- 
--#include <asm/types.h>
-+#include <linux/types.h>
- #include <linux/input.h>
- 
- /*
-diff -puN include/linux/kvm.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/kvm.h
---- a/include/linux/kvm.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/kvm.h
-@@ -7,7 +7,7 @@
-  * Note: you must update KVM_API_VERSION if you change this interface.
-  */
- 
--#include <asm/types.h>
-+#include <linux/types.h>
- #include <linux/compiler.h>
- #include <linux/ioctl.h>
- #include <asm/kvm.h>
-diff -puN include/linux/loop.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/loop.h
---- a/include/linux/loop.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/loop.h
-@@ -80,7 +80,7 @@ enum {
- };
- 
- #include <asm/posix_types.h>	/* for __kernel_old_dev_t */
--#include <asm/types.h>		/* for __u64 */
-+#include <linux/types.h>	/* for __u64 */
- 
- /* Backwards compatibility version */
- struct loop_info {
-diff -puN include/linux/matroxfb.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/matroxfb.h
---- a/include/linux/matroxfb.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/matroxfb.h
-@@ -2,7 +2,7 @@
- #define __LINUX_MATROXFB_H__
- 
- #include <asm/ioctl.h>
--#include <asm/types.h>
-+#include <linux/types.h>
- #include <linux/videodev2.h>
- 
- struct matroxioc_output_mode {
-diff -puN include/linux/phantom.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/phantom.h
---- a/include/linux/phantom.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/phantom.h
-@@ -10,7 +10,7 @@
- #ifndef __PHANTOM_H
- #define __PHANTOM_H
- 
--#include <asm/types.h>
-+#include <linux/types.h>
- 
- /* PHN_(G/S)ET_REG param */
- struct phm_reg {
-diff -puN include/linux/radeonfb.h~include-of-linux-typesh-is-preferred-over-asm-typesh include/linux/radeonfb.h
---- a/include/linux/radeonfb.h~include-of-linux-typesh-is-preferred-over-asm-typesh
-+++ a/include/linux/radeonfb.h
-@@ -2,7 +2,7 @@
- #define __LINUX_RADEONFB_H__
- 
- #include <asm/ioctl.h>
--#include <asm/types.h>
-+#include <linux/types.h>
- 
- #define ATY_RADEON_LCD_ON	0x00000001
- #define ATY_RADEON_CRT_ON	0x00000002
+ /* from arch/ia64/lib */
+ extern void __divsi3(void);
 _
 
-Patches currently in -mm which might be from jaswinder@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-include-of-linux-typesh-is-preferred-over-asm-typesh.patch
+kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n.patch
+alpha-fix-vmalloc-breakage-fix.patch
+revert-mm-vmalloc-use-mutex-for-purge.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch
+lib-idrc-use-kmem_cache_zalloc-for-the-idr_layer-cache.patch
+hp_accel-do-not-call-acpi-from-invalid-context-fix.patch
+i-need-old-gcc.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
+next-remove-localversion.patch
+arch-ia64-kernel-ia64_ksymsc-dont-export-copy_page-twice.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+drivers-ata-pata_alic-s-isa_bridge-ali_isa_bridge-to-fix-alpha-build.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+kernel-trace-ring_bufferc-reduce-inlining.patch
+kernel-trace-ring_bufferc-use-div_round_up.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+ext2-update-also-inode-on-disk-when-dir-is-is_dirsync-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix-3-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
