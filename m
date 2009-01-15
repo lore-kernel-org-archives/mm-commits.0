@@ -1,65 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n.patch removed from -mm tree
-Date: Thu, 15 Jan 2009 11:57:34 -0800
-Message-ID: <200901151957.n0FJvYmS007527@imap1.linux-foundation.org>
+Subject: - alpha-fix-vmalloc-breakage-fix.patch removed from -mm tree
+Date: Thu, 15 Jan 2009 12:07:43 -0800
+Message-ID: <200901152007.n0FK7hBD016373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753893AbZAOT61 (ORCPT
+	by vger.kernel.org with ESMTP id S932533AbZAOUIR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jan 2009 14:58:27 -0500
+	Thu, 15 Jan 2009 15:08:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, mingo@elte.hu, reif@earthlink.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, ink@jurassic.park.msu.ru, npiggin@suse.de, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/up.c: omit it if SMP=y, USE_GENERIC_SMP_HELPERS=n
+     alpha-fix-vmalloc-breakage-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n.patch
+     alpha-fix-vmalloc-breakage-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into alpha-fix-vmalloc-breakage.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/up.c: omit it if SMP=y, USE_GENERIC_SMP_HELPERS=n
+Subject: alpha-fix-vmalloc-breakage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix the sparc build - we were including `up.o' on SMP builds, when
-CONFIG_USE_GENERIC_SMP_HELPERS=n.
+remove unneeded check (per Johannes)
 
-Tested-by: Robert Reif <reif@earthlink.net>
-Fixed-by: Robert Reif <reif@earthlink.net>
-Cc: David Miller <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN kernel/Makefile~kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n kernel/Makefile
---- a/kernel/Makefile~kernel-upc-omit-it-if-smp=y-use_generic_smp_helpers=n
-+++ a/kernel/Makefile
-@@ -40,9 +40,8 @@ obj-$(CONFIG_RT_MUTEXES) += rtmutex.o
- obj-$(CONFIG_DEBUG_RT_MUTEXES) += rtmutex-debug.o
- obj-$(CONFIG_RT_MUTEX_TESTER) += rtmutex-tester.o
- obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
--ifeq ($(CONFIG_USE_GENERIC_SMP_HELPERS),y)
--obj-y += smp.o
--else
-+obj-$(CONFIG_USE_GENERIC_SMP_HELPERS) += smp.o
-+ifneq ($(CONFIG_SMP),y)
- obj-y += up.o
- endif
- obj-$(CONFIG_SMP) += spinlock.o
+diff -puN mm/vmalloc.c~alpha-fix-vmalloc-breakage-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~alpha-fix-vmalloc-breakage-fix
++++ a/mm/vmalloc.c
+@@ -1002,8 +1002,6 @@ void __init vmalloc_init(void)
+ 	/* Import existing vmlist entries. */
+ 	for (tmp = vmlist; tmp; tmp = tmp->next) {
+ 		va = alloc_bootmem(sizeof(struct vmap_area));
+-		if (!va)
+-			break;
+ 		va->flags = tmp->flags | VM_VM_AREA;
+ 		va->va_start = (unsigned long)tmp->addr;
+ 		va->va_end = va->va_start + tmp->size;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+alpha-fix-vmalloc-breakage.patch
 alpha-fix-vmalloc-breakage-fix.patch
 revert-mm-vmalloc-use-mutex-for-purge.patch
 kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch
