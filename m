@@ -1,68 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 12:33:51 -0800
-Message-ID: <200901162033.n0GKXp9j002884@imap1.linux-foundation.org>
+Subject: + cgroups-use-hierarchy-mutex-in-creation-failure-path.patch added to -mm tree
+Date: Fri, 16 Jan 2009 13:02:48 -0800
+Message-ID: <200901162102.n0GL2mkl031134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37458 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51228 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753540AbZAPUjT (ORCPT
+	by vger.kernel.org with ESMTP id S1754277AbZAPVDR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 15:39:19 -0500
+	Fri, 16 Jan 2009 16:03:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhiramat@redhat.com, ananth@in.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix
-has been removed from the -mm tree.  Its filename was
-     kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix.patch
+     cgroups: use hierarchy mutex in creation failure path
+has been added to the -mm tree.  Its filename is
+     cgroups-use-hierarchy-mutex-in-creation-failure-path.patch
 
-This patch was dropped because it was folded into kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: cgroups: use hierarchy mutex in creation failure path
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Add dummy definitions of kprobe_opcode_t and arch_specific_insn
-when CONFIG_KPROBES=n.
+Now, cgrp->sibling is handled under hierarchy mutex.
+error route should do so, too.
 
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kprobes.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/cgroup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/kprobes.h~kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix
-+++ a/include/linux/kprobes.h
-@@ -50,6 +50,10 @@
- /* Attach to insert probes on any functions which should be ignored*/
- #define __kprobes	__attribute__((__section__(".kprobes.text"))) notrace
- #else /* CONFIG_KPROBES */
-+typedef int kprobe_opcode_t;
-+struct arch_specific_insn {
-+	int dummy;
-+};
- #define __kprobes	notrace
- #endif /* CONFIG_KPROBES */
+diff -puN kernel/cgroup.c~cgroups-use-hierarchy-mutex-in-creation-failure-path kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-use-hierarchy-mutex-in-creation-failure-path
++++ a/kernel/cgroup.c
+@@ -2434,7 +2434,9 @@ static long cgroup_create(struct cgroup 
  
+  err_remove:
+ 
++	cgroup_lock_hierarchy(root);
+ 	list_del(&cgrp->sibling);
++	cgroup_unlock_hierarchy(root);
+ 	root->number_of_cgroups--;
+ 
+  err_destroy:
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
-kprobes-fix-module-compilation-error-with-config_kprobes=n-fix-fix.patch
-linux-next.patch
-kprobes-cleanup-aggr_kprobe-related-code.patch
-kprobes-move-export_symbol_gpl-just-after-function-definitions.patch
-kprobes-cleanup-comment-style-in-kprobesh.patch
-kprobes-rename-kprobe_enabled-to-kprobes_all_disarmed.patch
-kprobes-support-per-kprobe-disabling.patch
-kprobes-support-kretprobe-and-jprobe-per-probe-disabling.patch
+origin.patch
+cgroups-use-hierarchy-mutex-in-creation-failure-path.patch
+memcg-get-put-parents-at-create-free.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 
