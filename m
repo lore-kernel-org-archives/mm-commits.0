@@ -1,67 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-nautilus-fix-hang-on-boot.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 11:17:39 -0800
-Message-ID: <200901161917.n0GJHdDT026241@imap1.linux-foundation.org>
+Subject: [merged] 8250_pci-add-support-for-netmos-9835.patch removed from -mm tree
+Date: Fri, 16 Jan 2009 11:18:37 -0800
+Message-ID: <200901161918.n0GJIbww027246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38045 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54486 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765924AbZAPTVA (ORCPT
+	by vger.kernel.org with ESMTP id S937421AbZAPTVz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 14:21:00 -0500
+	Fri, 16 Jan 2009 14:21:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: nautilus - fix hang on boot
+     8250_pci: add support for netmos 9835
 has been removed from the -mm tree.  Its filename was
-     alpha-nautilus-fix-hang-on-boot.patch
+     8250_pci-add-support-for-netmos-9835.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: nautilus - fix hang on boot
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: 8250_pci: add support for netmos 9835
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Recently introduced generic pci_common_swizzle() relies on bus->self
-being NULL for the root PCI bus. But on nautilus bus->self points to
-the host bridge device, which is necessary as we do a root bus sizing
-on this system. As a result, pci_common_swizzle() loops infinitely.
-This worked until 2.6.29-rc1 because the alpha-specific swizzle routine
-checked for bus->parent == NULL (instead of bus->self).
+Most of netmos 9835 hardware is handled by parport-serial.  IBM introduces
+a device which doesn't have any parallel ports and have screwed subdevice
+PCI id (not corresponding to port numbers).
 
-Fixed by clearing bus->self after bus sizing is done.
+Handle this device (9710:9835 1014:0299) properly.
 
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/sys_nautilus.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/serial/8250_pci.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN arch/alpha/kernel/sys_nautilus.c~alpha-nautilus-fix-hang-on-boot arch/alpha/kernel/sys_nautilus.c
---- a/arch/alpha/kernel/sys_nautilus.c~alpha-nautilus-fix-hang-on-boot
-+++ a/arch/alpha/kernel/sys_nautilus.c
-@@ -245,6 +245,10 @@ nautilus_init_pci(void)
- 		IRONGATE0->pci_mem = pci_mem;
+diff -puN drivers/serial/8250_pci.c~8250_pci-add-support-for-netmos-9835 drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250_pci-add-support-for-netmos-9835
++++ a/drivers/serial/8250_pci.c
+@@ -600,6 +600,10 @@ static int pci_netmos_init(struct pci_de
+ 	/* subdevice 0x00PS means <P> parallel, <S> serial */
+ 	unsigned int num_serial = dev->subsystem_device & 0xf;
  
- 	pci_bus_assign_resources(bus);
++	if (dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
++			dev->subsystem_device == 0x0299)
++		return 0;
 +
-+	/* pci_common_swizzle() relies on bus->self being NULL
-+	   for the root bus, so just clear it. */
-+	bus->self = NULL;
- 	pci_fixup_irqs(alpha_mv.pci_swizzle, alpha_mv.pci_map_irq);
- }
+ 	if (num_serial == 0)
+ 		return -ENODEV;
+ 	return num_serial;
+@@ -3094,6 +3098,10 @@ static struct pci_device_id serial_pci_t
+ 		0,
+ 		pbn_b0_8_115200 },
  
++	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9835,
++		PCI_VENDOR_ID_IBM, 0x0299,
++		0, 0, pbn_b0_bt_2_115200 },
++
+ 	/*
+ 	 * These entries match devices with class COMMUNICATION_SERIAL,
+ 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
 _
 
-Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-make-sure-nobodys-leaking-resources.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
