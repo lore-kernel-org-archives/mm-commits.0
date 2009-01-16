@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + time-schedc-tick_nohz_update_jiffies-should-be-static.patch added to -mm tree
-Date: Thu, 15 Jan 2009 16:02:46 -0800
-Message-ID: <200901160002.n0G02k7j030098@imap1.linux-foundation.org>
+Subject: + mmc-add-extended-csd-as-a-device-attribute.patch added to -mm tree
+Date: Thu, 15 Jan 2009 16:06:01 -0800
+Message-ID: <200901160006.n0G061N2000589@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48779 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935780AbZAPAD3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754037AbZAPAGK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jan 2009 19:03:29 -0500
+	Thu, 15 Jan 2009 19:06:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jaswinder@infradead.org, jaswinderrajput@gmail.com, mingo@elte.hu, tglx@linutronix.de
+Cc: ext-adrian.hunter@nokia.com, drzeus-list@drzeus.cx
 
 
 The patch titled
-     time-sched.c: tick_nohz_update_jiffies should be static
+     mmc: add Extended CSD as a device attribute
 has been added to the -mm tree.  Its filename is
-     time-schedc-tick_nohz_update_jiffies-should-be-static.patch
+     mmc-add-extended-csd-as-a-device-attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: time-sched.c: tick_nohz_update_jiffies should be static
-From: Jaswinder Singh Rajput <jaswinder@infradead.org>
+Subject: mmc: add Extended CSD as a device attribute
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
 
-Impact: cleanup, reduce kernel size a bit, avoid sparse warning
-
-Fixes sparse warning:
- kernel/time/tick-sched.c:137:6: warning: symbol 'tick_nohz_update_jiffies' was not declared. Should it be static?
-
-Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/core/mmc.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff -puN kernel/time/tick-sched.c~time-schedc-tick_nohz_update_jiffies-should-be-static kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~time-schedc-tick_nohz_update_jiffies-should-be-static
-+++ a/kernel/time/tick-sched.c
-@@ -134,7 +134,7 @@ __setup("nohz=", setup_tick_nohz);
-  * value. We do this unconditionally on any cpu, as we don't know whether the
-  * cpu, which has the update task assigned is in a long sleep.
-  */
--void tick_nohz_update_jiffies(void)
-+static void tick_nohz_update_jiffies(void)
- {
- 	int cpu = smp_processor_id();
- 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
+diff -puN drivers/mmc/core/mmc.c~mmc-add-extended-csd-as-a-device-attribute drivers/mmc/core/mmc.c
+--- a/drivers/mmc/core/mmc.c~mmc-add-extended-csd-as-a-device-attribute
++++ a/drivers/mmc/core/mmc.c
+@@ -259,6 +259,34 @@ MMC_DEV_ATTR(name, "%s\n", card->cid.pro
+ MMC_DEV_ATTR(oemid, "0x%04x\n", card->cid.oemid);
+ MMC_DEV_ATTR(serial, "0x%08x\n", card->cid.serial);
+ 
++static ssize_t mmc_ext_csd_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct mmc_card *card = container_of(dev, struct mmc_card, dev);
++	ssize_t n = 0;
++	u8 *ext_csd;
++	int err, i;
++
++	ext_csd = kmalloc(512, GFP_KERNEL);
++	if (!ext_csd)
++		return 0;
++
++	mmc_claim_host(card->host);
++	err = mmc_send_ext_csd(card, ext_csd);
++	mmc_release_host(card->host);
++
++	if (!err) {
++		for (i = 511; i >= 0; i--)
++			n += sprintf(buf + n, "%02x", (unsigned)ext_csd[i]);
++		n += sprintf(buf + n, "\n");
++	}
++
++	kfree(ext_csd);
++
++	return n;
++}
++
++static DEVICE_ATTR(ext_csd, S_IRUGO, mmc_ext_csd_show, NULL);
++
+ static struct attribute *mmc_std_attrs[] = {
+ 	&dev_attr_cid.attr,
+ 	&dev_attr_csd.attr,
+@@ -269,6 +297,7 @@ static struct attribute *mmc_std_attrs[]
+ 	&dev_attr_name.attr,
+ 	&dev_attr_oemid.attr,
+ 	&dev_attr_serial.attr,
++	&dev_attr_ext_csd.attr,
+ 	NULL,
+ };
+ 
 _
 
-Patches currently in -mm which might be from jaswinder@infradead.org are
+Patches currently in -mm which might be from ext-adrian.hunter@nokia.com are
 
-origin.patch
-include-of-linux-typesh-is-preferred-over-asm-typesh.patch
-linux-next.patch
-time-schedc-tick_nohz_update_jiffies-should-be-static.patch
-capabilityh-externs-make-no-sense-in-userspace.patch
+mmc-add-extended-csd-as-a-device-attribute.patch
 
