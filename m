@@ -1,98 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-a-race-when-setting-memoryswappiness.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 11:18:00 -0800
-Message-ID: <200901161918.n0GJI04N026587@imap1.linux-foundation.org>
+Subject: [merged] sis900-generate-fake-mac-address-if-the-hardware-doesnt-have-one.patch removed from -mm tree
+Date: Fri, 16 Jan 2009 11:18:13 -0800
+Message-ID: <200901161918.n0GJIDDV026798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53829 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761953AbZAPTSh (ORCPT
+	by vger.kernel.org with ESMTP id S936745AbZAPTSm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 14:18:37 -0500
+	Fri, 16 Jan 2009 14:18:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: venza@brownhat.org, davem@davemloft.net, shemminger@vyatta.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix a race when setting memory.swappiness
+     sis900: generate fake MAC address if the hardware doesn't have one
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-a-race-when-setting-memoryswappiness.patch
+     sis900-generate-fake-mac-address-if-the-hardware-doesnt-have-one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix a race when setting memory.swappiness
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: sis900: generate fake MAC address if the hardware doesn't have one
+From: Daniele Venzano <venza@brownhat.org>
 
-(suppose: memcg->use_hierarchy == 0 and memcg->swappiness == 60)
+Modify the sis900 driver when the MAC address read from the hardware is
+invalid.  As suggested, the patch now generates a random address so that
+the user can go on and use the hardware.  In any case a message is also
+shown to warn on the unexpected condition.
 
-echo 10 > /memcg/0/swappiness   |
-  mem_cgroup_swappiness_write() |
-    ...                         | echo 1 > /memcg/0/use_hierarchy
-                                | mkdir /mnt/0/1
-                                |   sub_memcg->swappiness = 60;
-    memcg->swappiness = 10;     |
+This seems to happen with newer HW implementation of the sis900 chipset,
+since this never came up before.
 
-In the above scenario, we end up having 2 different swappiness
-values in a single hierarchy.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10201
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11649
 
-We should hold cgroup_lock() when cheking cgrp->children list.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: Daniele Venzano <venza@brownhat.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Hemminger <shemminger@vyatta.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/net/sis900.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-a-race-when-setting-memoryswappiness mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-a-race-when-setting-memoryswappiness
-+++ a/mm/memcontrol.c
-@@ -1992,6 +1992,7 @@ static int mem_cgroup_swappiness_write(s
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
- 	struct mem_cgroup *parent;
-+
- 	if (val > 100)
- 		return -EINVAL;
+diff -puN drivers/net/sis900.c~sis900-generate-fake-mac-address-if-the-hardware-doesnt-have-one drivers/net/sis900.c
+--- a/drivers/net/sis900.c~sis900-generate-fake-mac-address-if-the-hardware-doesnt-have-one
++++ a/drivers/net/sis900.c
+@@ -509,10 +509,10 @@ static int __devinit sis900_probe(struct
+ 	else
+ 		ret = sis900_get_mac_addr(pci_dev, net_dev);
  
-@@ -1999,15 +2000,22 @@ static int mem_cgroup_swappiness_write(s
- 		return -EINVAL;
+-	if (ret == 0) {
+-		printk(KERN_WARNING "%s: Cannot read MAC address.\n", dev_name);
+-		ret = -ENODEV;
+-		goto err_unmap_rx;
++	if (!ret || !is_valid_ether_addr(net_dev->dev_addr)) {
++		random_ether_addr(net_dev->dev_addr);
++		printk(KERN_WARNING "%s: Unreadable or invalid MAC address,"
++				"using random generated one\n", dev_name);
+ 	}
  
- 	parent = mem_cgroup_from_cont(cgrp->parent);
-+
-+	cgroup_lock();
-+
- 	/* If under hierarchy, only empty-root can set this value */
- 	if ((parent->use_hierarchy) ||
--	    (memcg->use_hierarchy && !list_empty(&cgrp->children)))
-+	    (memcg->use_hierarchy && !list_empty(&cgrp->children))) {
-+		cgroup_unlock();
- 		return -EINVAL;
-+	}
- 
- 	spin_lock(&memcg->reclaim_param_lock);
- 	memcg->swappiness = val;
- 	spin_unlock(&memcg->reclaim_param_lock);
- 
-+	cgroup_unlock();
-+
- 	return 0;
- }
- 
+ 	/* 630ET : set the mii access mode as software-mode */
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from venza@brownhat.org are
 
 origin.patch
-memcg-get-put-parents-at-create-free.patch
-linux-next.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
 
