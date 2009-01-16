@@ -1,156 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gpio-fix-probe-error-return-in-gpio-driver-probes.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 11:16:18 -0800
-Message-ID: <200901161916.n0GJGIve024777@imap1.linux-foundation.org>
+Subject: [merged] rtc-tw4030-add-alarm-update-interfaces-v2.patch removed from -mm tree
+Date: Fri, 16 Jan 2009 11:16:36 -0800
+Message-ID: <200901161916.n0GJGad4025147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936615AbZAPTRS (ORCPT
+	by vger.kernel.org with ESMTP id S932951AbZAPTRR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 14:17:18 -0500
+	Fri, 16 Jan 2009 14:17:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben-linux@fluff.org, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: a.zummo@towertech.it, dbrownell@users.sourceforge.net, sameo@openedhand.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: fix probe() error return in gpio driver probes
+     rtc: tw4030 add alarm/update interfaces
 has been removed from the -mm tree.  Its filename was
-     gpio-fix-probe-error-return-in-gpio-driver-probes.patch
+     rtc-tw4030-add-alarm-update-interfaces-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: fix probe() error return in gpio driver probes
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: rtc: tw4030 add alarm/update interfaces
+From: Alessandro Zummo <a.zummo@towertech.it>
 
-A number of drivers in drivers/gpio return -ENODEV when confronted with
-missing setup parameters such as the platform data.  However, returning
--ENODEV causes the driver layer to silently ignore the driver as it
-assumes the probe did not find anything and was only speculative.
+- implement alarm_irq_enable
+- return correct error code when registering fails
 
-To make life easier to discern why a driver is not being attached, change
-to returning -EINVAL, which is a better description of the fact that the
-driver data was not valid.
-
-Also add a set of dev_dbg() statements to the error paths to provide an
-better explanation of the error as there may be more that one point in the
-driver.
-
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Cc: David Brownell <david-b@pacbell.net>
+[dbrownell@users.sourceforge.net: build fixes, force 1/sec irqs]
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
+Cc: rtc-linux@googlegroups.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/max7301.c  |    6 ++++--
- drivers/gpio/max732x.c  |    6 ++++--
- drivers/gpio/mcp23s08.c |    6 ++++--
- drivers/gpio/pca953x.c  |    6 ++++--
- drivers/gpio/pcf857x.c  |   12 ++++++++----
- 5 files changed, 24 insertions(+), 12 deletions(-)
+ drivers/rtc/rtc-twl4030.c |   44 ++++++++----------------------------
+ 1 file changed, 10 insertions(+), 34 deletions(-)
 
-diff -puN drivers/gpio/max7301.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/max7301.c
---- a/drivers/gpio/max7301.c~gpio-fix-probe-error-return-in-gpio-driver-probes
-+++ a/drivers/gpio/max7301.c
-@@ -217,8 +217,10 @@ static int __devinit max7301_probe(struc
- 	int i, ret;
+diff -puN drivers/rtc/rtc-twl4030.c~rtc-tw4030-add-alarm-update-interfaces-v2 drivers/rtc/rtc-twl4030.c
+--- a/drivers/rtc/rtc-twl4030.c~rtc-tw4030-add-alarm-update-interfaces-v2
++++ a/drivers/rtc/rtc-twl4030.c
+@@ -120,7 +120,7 @@ static int twl4030_rtc_write_u8(u8 data,
+ static unsigned char rtc_irq_bits;
  
- 	pdata = spi->dev.platform_data;
--	if (!pdata || !pdata->base)
--		return -ENODEV;
-+	if (!pdata || !pdata->base) {
-+		dev_dbg(&spi->dev, "incorrect or missing platform data\n");
-+		return -EINVAL;
-+	}
- 
- 	/*
- 	 * bits_per_word cannot be configured in platform data
-diff -puN drivers/gpio/max732x.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/max732x.c
---- a/drivers/gpio/max732x.c~gpio-fix-probe-error-return-in-gpio-driver-probes
-+++ a/drivers/gpio/max732x.c
-@@ -267,8 +267,10 @@ static int __devinit max732x_probe(struc
- 	int ret, nr_port;
- 
- 	pdata = client->dev.platform_data;
--	if (pdata == NULL)
--		return -ENODEV;
-+	if (pdata == NULL) {
-+		dev_dbg(&client->dev, "no platform data\n");
-+		return -EINVAL;
-+	}
- 
- 	chip = kzalloc(sizeof(struct max732x_chip), GFP_KERNEL);
- 	if (chip == NULL)
-diff -puN drivers/gpio/mcp23s08.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/mcp23s08.c
---- a/drivers/gpio/mcp23s08.c~gpio-fix-probe-error-return-in-gpio-driver-probes
-+++ a/drivers/gpio/mcp23s08.c
-@@ -310,8 +310,10 @@ static int mcp23s08_probe(struct spi_dev
- 	unsigned			base;
- 
- 	pdata = spi->dev.platform_data;
--	if (!pdata || !gpio_is_valid(pdata->base))
--		return -ENODEV;
-+	if (!pdata || !gpio_is_valid(pdata->base)) {
-+		dev_dbg(&spi->dev, "invalid or missing platform data\n");
-+		return -EINVAL;
-+	}
- 
- 	for (addr = 0; addr < 4; addr++) {
- 		if (!pdata->chip[addr].is_present)
-diff -puN drivers/gpio/pca953x.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~gpio-fix-probe-error-return-in-gpio-driver-probes
-+++ a/drivers/gpio/pca953x.c
-@@ -202,8 +202,10 @@ static int __devinit pca953x_probe(struc
+ /*
+- * Enable timer and/or alarm interrupts.
++ * Enable 1/second update and/or alarm interrupts.
+  */
+ static int set_rtc_irq_bit(unsigned char bit)
+ {
+@@ -128,6 +128,7 @@ static int set_rtc_irq_bit(unsigned char
  	int ret;
  
- 	pdata = client->dev.platform_data;
--	if (pdata == NULL)
--		return -ENODEV;
-+	if (pdata == NULL) {
-+		dev_dbg(&client->dev, "no platform data\n");
-+		return -EINVAL;
-+	}
+ 	val = rtc_irq_bits | bit;
++	val &= ~BIT_RTC_INTERRUPTS_REG_EVERY_M;
+ 	ret = twl4030_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
+ 	if (ret == 0)
+ 		rtc_irq_bits = val;
+@@ -136,7 +137,7 @@ static int set_rtc_irq_bit(unsigned char
+ }
  
- 	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
- 	if (chip == NULL)
-diff -puN drivers/gpio/pcf857x.c~gpio-fix-probe-error-return-in-gpio-driver-probes drivers/gpio/pcf857x.c
---- a/drivers/gpio/pcf857x.c~gpio-fix-probe-error-return-in-gpio-driver-probes
-+++ a/drivers/gpio/pcf857x.c
-@@ -188,8 +188,10 @@ static int pcf857x_probe(struct i2c_clie
- 	int				status;
+ /*
+- * Disable timer and/or alarm interrupts.
++ * Disable update and/or alarm interrupts.
+  */
+ static int mask_rtc_irq_bit(unsigned char bit)
+ {
+@@ -151,7 +152,7 @@ static int mask_rtc_irq_bit(unsigned cha
+ 	return ret;
+ }
  
- 	pdata = client->dev.platform_data;
--	if (!pdata)
--		return -ENODEV;
-+	if (!pdata) {
-+		dev_dbg(&client->dev, "no platform data\n");
-+		return -EINVAL;
-+	}
+-static inline int twl4030_rtc_alarm_irq_set_state(int enabled)
++static int twl4030_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
+ {
+ 	int ret;
  
- 	/* Allocate, initialize, and register this gpio_chip. */
- 	gpio = kzalloc(sizeof *gpio, GFP_KERNEL);
-@@ -248,8 +250,10 @@ static int pcf857x_probe(struct i2c_clie
- 		else
- 			status = i2c_read_le16(client);
+@@ -163,7 +164,7 @@ static inline int twl4030_rtc_alarm_irq_
+ 	return ret;
+ }
  
--	} else
--		status = -ENODEV;
-+	} else {
-+		dev_dbg(&client->dev, "unsupported number of gpios\n");
-+		status = -EINVAL;
-+	}
+-static inline int twl4030_rtc_irq_set_state(int enabled)
++static int twl4030_rtc_update_irq_enable(struct device *dev, unsigned enabled)
+ {
+ 	int ret;
  
- 	if (status < 0)
- 		goto fail;
-_
-
-Patches currently in -mm which might be from ben-linux@fluff.org are
-
-origin.patch
-i2c-incremental-i2c-mpc-driver-fix-for-multi-master-i2c-busses.patch
-sm501-fix-section-mismatches.patch
-mmc-s3cmci-fix-hangup-in-do_pio_write.patch
-
+@@ -292,7 +293,7 @@ static int twl4030_rtc_set_alarm(struct 
+ 	unsigned char alarm_data[ALL_TIME_REGS + 1];
+ 	int ret;
+ 
+-	ret = twl4030_rtc_alarm_irq_set_state(0);
++	ret = twl4030_rtc_alarm_irq_enable(dev, 0);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -312,35 +313,11 @@ static int twl4030_rtc_set_alarm(struct 
+ 	}
+ 
+ 	if (alm->enabled)
+-		ret = twl4030_rtc_alarm_irq_set_state(1);
++		ret = twl4030_rtc_alarm_irq_enable(dev, 1);
+ out:
+ 	return ret;
+ }
+ 
+-#ifdef	CONFIG_RTC_INTF_DEV
+-
+-static int twl4030_rtc_ioctl(struct device *dev, unsigned int cmd,
+-			     unsigned long arg)
+-{
+-	switch (cmd) {
+-	case RTC_AIE_OFF:
+-		return twl4030_rtc_alarm_irq_set_state(0);
+-	case RTC_AIE_ON:
+-		return twl4030_rtc_alarm_irq_set_state(1);
+-	case RTC_UIE_OFF:
+-		return twl4030_rtc_irq_set_state(0);
+-	case RTC_UIE_ON:
+-		return twl4030_rtc_irq_set_state(1);
+-
+-	default:
+-		return -ENOIOCTLCMD;
+-	}
+-}
+-
+-#else
+-#define	twl4030_rtc_ioctl	NULL
+-#endif
+-
+ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
+ {
+ 	unsigned long events = 0;
+@@ -400,11 +377,12 @@ out:
+ }
+ 
+ static struct rtc_class_ops twl4030_rtc_ops = {
+-	.ioctl		= twl4030_rtc_ioctl,
+ 	.read_time	= twl4030_rtc_read_time,
+ 	.set_time	= twl4030_rtc_set_time,
+ 	.read_alarm	= twl4030_rtc_read_alarm,
+ 	.set_alarm	= twl4030_rtc_set_alarm,
++	.alarm_irq_enable = twl4030_rtc_alarm_irq_enable,
++	.update_irq_enable = twl4030_rtc_update_irq_enable,
+ };
+ 
+ /*----------------------------------------------------------------------*/
+@@ -422,7 +400,7 @@ static int __devinit twl4030_rtc_probe(s
+ 	rtc = rtc_device_register(pdev->name,
+ 				  &pdev->dev, &twl4030_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+-		ret = -EINVAL;
++		ret = PTR_ERR(rtc);
+ 		dev_err(&pdev->dev, "can't register RTC device, err %ld\n",
+ 			PTR_ERR(rtc));
+ 		goto out0;
+@@ -432,7 +410,6 @@ static int __devinit twl4030_rtc_probe(s
+ 	platform_set_drvdata(pdev, rtc);
+ 
+ 	ret = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
+-
+ 	if (ret < 0)
+ 		goto out1;
+ 
+@@ -475,7 +452,6 @@ static int __devinit twl4030_rtc_probe(s
+ 
+ 	return ret;
+ 
