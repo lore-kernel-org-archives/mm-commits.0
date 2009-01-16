@@ -1,128 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 09:15:01 -0800
-Message-ID: <200901161715.n0GHF1na004521@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 16 Jan 2009 11:15:02 -0800
+Message-ID: <200901161915.n0GJF2t9023532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35562 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36039 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757271AbZAPRPu (ORCPT
+	by vger.kernel.org with ESMTP id S937213AbZAPTPW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 12:15:50 -0500
+	Fri, 16 Jan 2009 14:15:22 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n0GJF2Kr024355
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2009 11:15:03 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, t-sato@yk.jp.nec.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     filesystem-freeze: allow SysRq-emergency-sync to thaw frozen filesystems
-has been removed from the -mm tree.  Its filename was
-     filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: filesystem-freeze: allow SysRq-emergency-sync to thaw frozen filesystems
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Now that the filesystem freeze operation has been elevated to the VFS, and
-is just an ioctl away, some sort of safety net for unintentionally frozen
-root filesystems may be in order.
-
-The timeout thaw originally proposed did not get merged, but perhaps
-something like this would be useful in emergencies.
-
-This doesn't have to piggyback on the existing emergency sync sysrq, but
-it seems like a reasonable, simple addition to me.
-
-I've tested this on a non-root fs with multiple (nested) freezers, as well
-as on a system rendered unresponsive due to a frozen root fs.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Takashi Sato <t-sato@yk.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysrq.txt     |    3 ++-
- drivers/char/sysrq.c        |    1 +
- fs/buffer.c                 |   23 +++++++++++++++++++++++
- include/linux/buffer_head.h |    1 +
- 4 files changed, 27 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN Documentation/sysrq.txt~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems Documentation/sysrq.txt
---- a/Documentation/sysrq.txt~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems
-+++ a/Documentation/sysrq.txt
-@@ -100,7 +100,8 @@ On all -  write a character to /proc/sys
+diff -puN mm/vmalloc.c~linux-next-git-rejects mm/vmalloc.c
+--- a/mm/vmalloc.c~linux-next-git-rejects
++++ a/mm/vmalloc.c
+@@ -23,11 +23,8 @@
+ #include <linux/rbtree.h>
+ #include <linux/radix-tree.h>
+ #include <linux/rcupdate.h>
+-<<<<<<< HEAD:mm/vmalloc.c
+ #include <linux/bootmem.h>
+-=======
+ #include <linux/kmemleak.h>
+->>>>>>> FETCH_HEAD:mm/vmalloc.c
  
- 'r'     - Turns off keyboard raw mode and sets it to XLATE.
- 
--'s'     - Will attempt to sync all mounted filesystems.
-+'s'     - Will attempt to sync all mounted filesystems, and unfreeze
-+	  any frozen fileystems.
- 
- 't'     - Will dump a list of current tasks and their information to your
-           console.
-diff -puN drivers/char/sysrq.c~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems
-+++ a/drivers/char/sysrq.c
-@@ -151,6 +151,7 @@ static struct sysrq_key_op sysrq_reboot_
- 
- static void sysrq_handle_sync(int key, struct tty_struct *tty)
- {
-+	emergency_thaw();
- 	emergency_sync();
- }
- static struct sysrq_key_op sysrq_sync_op = {
-diff -puN fs/buffer.c~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems fs/buffer.c
---- a/fs/buffer.c~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems
-+++ a/fs/buffer.c
-@@ -258,6 +258,29 @@ struct super_block *freeze_bdev(struct b
- }
- EXPORT_SYMBOL(freeze_bdev);
- 
-+void do_thaw(unsigned long unused)
-+{
-+	struct super_block *sb;
-+	char b[BDEVNAME_SIZE];
-+
-+	list_for_each_entry(sb, &super_blocks, s_list) {
-+		while (sb->s_bdev && !thaw_bdev(sb->s_bdev, sb))
-+			printk(KERN_WARNING "Emergency Thaw on %s\n",
-+			       bdevname(sb->s_bdev, b));
-+	}
-+	printk(KERN_WARNING "Emergency Thaw complete\n");
-+}
-+
-+/**
-+ * emergency_thaw -- force thaw every filesystem
-+ *
-+ * Used for emergency unfreeze of all filesystems via SysRq
-+ */
-+void emergency_thaw(void)
-+{
-+	pdflush_operation(do_thaw, 0);
-+}
-+
- /**
-  * thaw_bdev  -- unlock filesystem
-  * @bdev:	blockdevice to unlock
-diff -puN include/linux/buffer_head.h~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems
-+++ a/include/linux/buffer_head.h
-@@ -171,6 +171,7 @@ void __wait_on_buffer(struct buffer_head
- wait_queue_head_t *bh_waitq_head(struct buffer_head *bh);
- int fsync_bdev(struct block_device *);
- struct super_block *freeze_bdev(struct block_device *);
-+void emergency_thaw(void);
- int thaw_bdev(struct block_device *, struct super_block *);
- int fsync_super(struct super_block *);
- int fsync_no_super(struct block_device *);
+ #include <asm/atomic.h>
+ #include <asm/uaccess.h>
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch
+i-need-old-gcc.patch
 linux-next.patch
-filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+arch-ia64-kernel-ia64_ksymsc-dont-export-copy_page-twice.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+drivers-ata-pata_alic-s-isa_bridge-ali_isa_bridge-to-fix-alpha-build.patch
+drivers-net-mlx4-profilec-fix-min-warning.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+regulator-minor-cleanup-of-virtual-consumer-fix.patch
+kernel-trace-ring_bufferc-reduce-inlining.patch
+kernel-trace-ring_bufferc-use-div_round_up.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+ext2-update-also-inode-on-disk-when-dir-is-is_dirsync.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+serial-add-supraexpress-336i-pnp-voice-modem-fix.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix-3-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
