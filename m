@@ -1,123 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-get-put-parents-at-create-free.patch added to -mm tree
-Date: Thu, 15 Jan 2009 18:12:47 -0800
-Message-ID: <200901160212.n0G2Cles021566@imap1.linux-foundation.org>
+Subject: [to-be-updated] filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems.patch removed from -mm tree
+Date: Fri, 16 Jan 2009 09:15:01 -0800
+Message-ID: <200901161715.n0GHF1na004521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763475AbZAPCNC (ORCPT
+	by vger.kernel.org with ESMTP id S1757271AbZAPRPu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jan 2009 21:13:02 -0500
+	Fri, 16 Jan 2009 12:15:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, xemul@openvz.org
+To: sandeen@redhat.com, t-sato@yk.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: get/put parents at create/free
-has been added to the -mm tree.  Its filename is
-     memcg-get-put-parents-at-create-free.patch
+     filesystem-freeze: allow SysRq-emergency-sync to thaw frozen filesystems
+has been removed from the -mm tree.  Its filename was
+     filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: get/put parents at create/free
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: filesystem-freeze: allow SysRq-emergency-sync to thaw frozen filesystems
+From: Eric Sandeen <sandeen@redhat.com>
 
-The lifetime of struct cgroup and struct mem_cgroup is different and
-mem_cgroup has its own reference count for handling references from
-swap_cgroup.
+Now that the filesystem freeze operation has been elevated to the VFS, and
+is just an ioctl away, some sort of safety net for unintentionally frozen
+root filesystems may be in order.
 
-This causes strange problem that the parent mem_cgroup dies while child
-mem_cgroup alive, and this problem causes a bug in case of
-use_hierarchy==1 because res_counter_uncharge climbs up the tree.
+The timeout thaw originally proposed did not get merged, but perhaps
+something like this would be useful in emergencies.
 
-This patch is for avoiding it by getting the parent at create, and putting
-it at freeing.
+This doesn't have to piggyback on the existing emergency sync sysrq, but
+it seems like a reasonable, simple addition to me.
 
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Reviewed-by; KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+I've tested this on a non-root fs with multiple (nested) freezers, as well
+as on a system rendered unresponsive due to a frozen root fs.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Takashi Sato <t-sato@yk.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ Documentation/sysrq.txt     |    3 ++-
+ drivers/char/sysrq.c        |    1 +
+ fs/buffer.c                 |   23 +++++++++++++++++++++++
+ include/linux/buffer_head.h |    1 +
+ 4 files changed, 27 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-get-put-parents-at-create-free mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-get-put-parents-at-create-free
-+++ a/mm/memcontrol.c
-@@ -202,6 +202,8 @@ pcg_default_flags[NR_CHARGE_TYPE] = {
+diff -puN Documentation/sysrq.txt~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems Documentation/sysrq.txt
+--- a/Documentation/sysrq.txt~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems
++++ a/Documentation/sysrq.txt
+@@ -100,7 +100,8 @@ On all -  write a character to /proc/sys
  
- static void mem_cgroup_get(struct mem_cgroup *mem);
- static void mem_cgroup_put(struct mem_cgroup *mem);
-+static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem);
-+static void mem_cgroup_get_parent(struct mem_cgroup *mem);
+ 'r'     - Turns off keyboard raw mode and sets it to XLATE.
  
- static void mem_cgroup_charge_statistics(struct mem_cgroup *mem,
- 					 struct page_cgroup *pc,
-@@ -2193,10 +2195,28 @@ static void mem_cgroup_get(struct mem_cg
+-'s'     - Will attempt to sync all mounted filesystems.
++'s'     - Will attempt to sync all mounted filesystems, and unfreeze
++	  any frozen fileystems.
  
- static void mem_cgroup_put(struct mem_cgroup *mem)
+ 't'     - Will dump a list of current tasks and their information to your
+           console.
+diff -puN drivers/char/sysrq.c~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems
++++ a/drivers/char/sysrq.c
+@@ -151,6 +151,7 @@ static struct sysrq_key_op sysrq_reboot_
+ 
+ static void sysrq_handle_sync(int key, struct tty_struct *tty)
  {
--	if (atomic_dec_and_test(&mem->refcnt))
-+	if (atomic_dec_and_test(&mem->refcnt)) {
-+		struct mem_cgroup *parent = parent_mem_cgroup(mem);
- 		__mem_cgroup_free(mem);
-+		if (parent)
-+			mem_cgroup_put(parent);
-+	}
-+}
-+
-+static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem)
-+{
-+	if (!mem->res.parent)
-+		return NULL;
-+	return mem_cgroup_from_res_counter(mem->res.parent, res);
++	emergency_thaw();
+ 	emergency_sync();
  }
+ static struct sysrq_key_op sysrq_sync_op = {
+diff -puN fs/buffer.c~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems fs/buffer.c
+--- a/fs/buffer.c~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems
++++ a/fs/buffer.c
+@@ -258,6 +258,29 @@ struct super_block *freeze_bdev(struct b
+ }
+ EXPORT_SYMBOL(freeze_bdev);
  
-+static void mem_cgroup_get_parent(struct mem_cgroup *mem)
++void do_thaw(unsigned long unused)
 +{
-+	struct mem_cgroup *parent = parent_mem_cgroup(mem);
++	struct super_block *sb;
++	char b[BDEVNAME_SIZE];
 +
-+	if (parent)
-+		mem_cgroup_get(parent);
++	list_for_each_entry(sb, &super_blocks, s_list) {
++		while (sb->s_bdev && !thaw_bdev(sb->s_bdev, sb))
++			printk(KERN_WARNING "Emergency Thaw on %s\n",
++			       bdevname(sb->s_bdev, b));
++	}
++	printk(KERN_WARNING "Emergency Thaw complete\n");
 +}
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- static void __init enable_swap_cgroup(void)
-@@ -2245,6 +2265,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 	if (parent)
- 		mem->swappiness = get_swappiness(parent);
- 	atomic_set(&mem->refcnt, 1);
-+	mem_cgroup_get_parent(mem);
- 	return &mem->css;
- free_out:
- 	__mem_cgroup_free(mem);
++
++/**
++ * emergency_thaw -- force thaw every filesystem
++ *
++ * Used for emergency unfreeze of all filesystems via SysRq
++ */
++void emergency_thaw(void)
++{
++	pdflush_operation(do_thaw, 0);
++}
++
+ /**
+  * thaw_bdev  -- unlock filesystem
+  * @bdev:	blockdevice to unlock
+diff -puN include/linux/buffer_head.h~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems
++++ a/include/linux/buffer_head.h
+@@ -171,6 +171,7 @@ void __wait_on_buffer(struct buffer_head
+ wait_queue_head_t *bh_waitq_head(struct buffer_head *bh);
+ int fsync_bdev(struct block_device *);
+ struct super_block *freeze_bdev(struct block_device *);
++void emergency_thaw(void);
+ int thaw_bdev(struct block_device *, struct super_block *);
+ int fsync_super(struct super_block *);
+ int fsync_no_super(struct block_device *);
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-memcg-fix-mem_cgroup_get_reclaim_stat_from_page.patch
-memcg-fix-error-path-of-mem_cgroup_move_parent.patch
-memcg-fix-hierarchical-reclaim.patch
-memcg-make-oom-less-frequently.patch
-memcg-fix-a-race-when-setting-memoryswappiness.patch
-memcg-get-put-parents-at-create-free.patch
+linux-next.patch
+filesystem-freeze-allow-sysrq-emergency-sync-to-thaw-frozen-filesystems.patch
 
