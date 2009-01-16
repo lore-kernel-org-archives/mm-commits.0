@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-fix-request-related-issue.patch added to -mm tree
-Date: Fri, 16 Jan 2009 14:24:11 -0800
-Message-ID: <200901162224.n0GMOBZ4012627@imap1.linux-foundation.org>
+Subject: + memcg-fix-refcnt-handling-at-swapoff.patch added to -mm tree
+Date: Fri, 16 Jan 2009 14:25:38 -0800
+Message-ID: <200901162225.n0GMPcxp014028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752634AbZAPWYZ (ORCPT
+	by vger.kernel.org with ESMTP id S1759009AbZAPWZv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 17:24:25 -0500
+	Fri, 16 Jan 2009 17:25:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: damm@igel.co.jp, dbrownell@users.sourceforge.net, stable@kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     gpiolib: fix request related issue
+     memcg: fix refcnt handling at swapoff
 has been added to the -mm tree.  Its filename is
-     gpiolib-fix-request-related-issue.patch
+     memcg-fix-refcnt-handling-at-swapoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: fix request related issue
-From: Magnus Damm <damm@igel.co.jp>
+Subject: memcg: fix refcnt handling at swapoff
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Fix request-already-requested handling in gpio_request().
+Now, at swapoff, even while try_charge() fails, commit is executed.  This
+is a bug which turns the refcnt of cgroup_subsys_state negative.
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: <stable@kernel.org>		[2.6.28.x]
+Reported-by: Li Zefan <lizf@cn.fujitsu.com>
+Tested-by: Li Zefan <lizf@cn.fujitsu.com>
+Tested-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/swapfile.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpiolib-fix-request-related-issue drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-fix-request-related-issue
-+++ a/drivers/gpio/gpiolib.c
-@@ -789,6 +789,7 @@ int gpio_request(unsigned gpio, const ch
- 	} else {
- 		status = -EBUSY;
- 		module_put(chip->owner);
-+		goto done;
- 	}
+diff -puN mm/swapfile.c~memcg-fix-refcnt-handling-at-swapoff mm/swapfile.c
+--- a/mm/swapfile.c~memcg-fix-refcnt-handling-at-swapoff
++++ a/mm/swapfile.c
+@@ -698,8 +698,10 @@ static int unuse_pte(struct vm_area_stru
+ 	pte_t *pte;
+ 	int ret = 1;
  
- 	if (chip->request) {
+-	if (mem_cgroup_try_charge_swapin(vma->vm_mm, page, GFP_KERNEL, &ptr))
++	if (mem_cgroup_try_charge_swapin(vma->vm_mm, page, GFP_KERNEL, &ptr)) {
+ 		ret = -ENOMEM;
++		goto out_nolock;
++	}
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	if (unlikely(!pte_same(*pte, swp_entry_to_pte(entry)))) {
+@@ -723,6 +725,7 @@ static int unuse_pte(struct vm_area_stru
+ 	activate_page(page);
+ out:
+ 	pte_unmap_unlock(pte, ptl);
++out_nolock:
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from damm@igel.co.jp are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-gpiolib-fix-request-related-issue.patch
-linux-next.patch
-early-platform-drivers-v2.patch
-clocksource-pass-clocksource-to-read-callback.patch
-clocksource-add-enable-and-disable-callbacks.patch
-irq-free-setup_irq-interrupt-using-free_irq.patch
+cgroups-use-hierarchy-mutex-in-creation-failure-path.patch
+memcg-get-put-parents-at-create-free.patch
+memcg-get-put-parents-at-create-free-fix.patch
+memcg-fix-refcnt-handling-at-swapoff.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 
