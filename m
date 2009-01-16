@@ -1,164 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-clean-up-kconfig.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 11:16:49 -0800
-Message-ID: <200901161916.n0GJGnmU025379@imap1.linux-foundation.org>
+Subject: [merged] checkpatch-handle-missing-if-open-in-context.patch removed from -mm tree
+Date: Fri, 16 Jan 2009 11:17:08 -0800
+Message-ID: <200901161917.n0GJH8Zo025718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936608AbZAPTRS (ORCPT
+	by vger.kernel.org with ESMTP id S936615AbZAPTRg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 14:17:18 -0500
+	Fri, 16 Jan 2009 14:17:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, menage@google.com, mm-commits@vger.kernel.org
+To: apw@canonical.com, dhaval@linux.vnet.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: clean up Kconfig
+     checkpatch: handle missing #if open in context
 has been removed from the -mm tree.  Its filename was
-     cgroups-clean-up-kconfig.patch
+     checkpatch-handle-missing-if-open-in-context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: clean up Kconfig
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: checkpatch: handle missing #if open in context
+From: Andy Whitcroft <apw@canonical.com>
 
-- move CONFIG_PROC_PID_CPUSET into cgroup menu
-- move MM_OWNER to the bottom for better menu indent
-- fix typos
-- use tabs not spaces
+If the #if opening statement is not in the context then the context stack
+can be empty.  Handle this by ensuring there is always a blank entry in
+the stack.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Tested-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   56 ++++++++++++++++++++++++-------------------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
+ scripts/checkpatch.pl |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN init/Kconfig~cgroups-clean-up-kconfig init/Kconfig
---- a/init/Kconfig~cgroups-clean-up-kconfig
-+++ a/init/Kconfig
-@@ -328,11 +328,10 @@ config CGROUP_SCHED
+diff -puN scripts/checkpatch.pl~checkpatch-handle-missing-if-open-in-context scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-handle-missing-if-open-in-context
++++ a/scripts/checkpatch.pl
+@@ -411,13 +411,15 @@ sub ctx_statement_block {
  
- endchoice
+ 	my $type = '';
+ 	my $level = 0;
+-	my @stack = ([$type, $level]);
++	my @stack = ();
+ 	my $p;
+ 	my $c;
+ 	my $len = 0;
  
--menu "Control Group support"
--config CGROUPS
--	bool "Control Group support"
-+menuconfig CGROUPS
-+	boolean "Control Group support"
- 	help
--	  This option add support for grouping sets of processes together, for
-+	  This option adds support for grouping sets of processes together, for
- 	  use with process control subsystems such as Cpusets, CFS, memory
- 	  controls or device isolation.
- 	  See
-@@ -343,6 +342,8 @@ config CGROUPS
- 
- 	  Say N if unsure.
- 
-+if CGROUPS
+ 	my $remainder;
+ 	while (1) {
++		@stack = (['', 0]) if ($#stack == -1);
 +
- config CGROUP_DEBUG
- 	bool "Example debug cgroup subsystem"
- 	depends on CGROUPS
-@@ -350,24 +351,24 @@ config CGROUP_DEBUG
- 	help
- 	  This option enables a simple cgroup subsystem that
- 	  exports useful debugging information about the cgroups
--	  framework
-+	  framework.
- 
--	  Say N if unsure
-+	  Say N if unsure.
- 
- config CGROUP_NS
--        bool "Namespace cgroup subsystem"
--        depends on CGROUPS
--        help
--          Provides a simple namespace cgroup subsystem to
--          provide hierarchical naming of sets of namespaces,
--          for instance virtual servers and checkpoint/restart
--          jobs.
-+	bool "Namespace cgroup subsystem"
-+	depends on CGROUPS
-+	help
-+	  Provides a simple namespace cgroup subsystem to
-+	  provide hierarchical naming of sets of namespaces,
-+	  for instance virtual servers and checkpoint/restart
-+	  jobs.
- 
- config CGROUP_FREEZER
--        bool "control group freezer subsystem"
--        depends on CGROUPS
--        help
--          Provides a way to freeze and unfreeze all tasks in a
-+	bool "Freezer cgroup subsystem"
-+	depends on CGROUPS
-+	help
-+	  Provides a way to freeze and unfreeze all tasks in a
- 	  cgroup.
- 
- config CGROUP_DEVICE
-@@ -388,18 +389,23 @@ config CPUSETS
- 
- 	  Say N if unsure.
- 
-+config PROC_PID_CPUSET
-+	bool "Include legacy /proc/<pid>/cpuset file"
-+	depends on CPUSETS
-+	default y
-+
- config CGROUP_CPUACCT
- 	bool "Simple CPU accounting cgroup subsystem"
- 	depends on CGROUPS
- 	help
- 	  Provides a simple Resource Controller for monitoring the
--	  total CPU consumed by the tasks in a cgroup
-+	  total CPU consumed by the tasks in a cgroup.
- 
- config RESOURCE_COUNTERS
- 	bool "Resource counters"
- 	help
- 	  This option enables controller independent resource accounting
--          infrastructure that works with cgroups
-+	  infrastructure that works with cgroups.
- 	depends on CGROUPS
- 
- config CGROUP_MEM_RES_CTLR
-@@ -425,9 +431,6 @@ config CGROUP_MEM_RES_CTLR
- 	  This config option also selects MM_OWNER config option, which
- 	  could in turn add some fork/exit overhead.
- 
--config MM_OWNER
--	bool
--
- config CGROUP_MEM_RES_CTLR_SWAP
- 	bool "Memory Resource Controller Swap Extension(EXPERIMENTAL)"
- 	depends on CGROUP_MEM_RES_CTLR && SWAP && EXPERIMENTAL
-@@ -444,8 +447,10 @@ config CGROUP_MEM_RES_CTLR_SWAP
- 	  there will be no overhead from this. Even when you set this config=y,
- 	  if boot option "noswapaccount" is set, swap will not be accounted.
- 
-+endif # CGROUPS
- 
--endmenu
-+config MM_OWNER
-+	bool
- 
- config SYSFS_DEPRECATED
- 	bool
-@@ -483,11 +488,6 @@ config SYSFS_DEPRECATED_V2
- 	  if the original kernel, that came with your distribution, has
- 	  this option set to N.
- 
--config PROC_PID_CPUSET
--	bool "Include legacy /proc/<pid>/cpuset file"
--	depends on CPUSETS
--	default y
+ 		#warn "CSB: blk<$blk> remain<$remain>\n";
+ 		# If we are about to drop off the end, pull in more
+ 		# context.
+_
+
+Patches currently in -mm which might be from apw@canonical.com are
+
+origin.patch
+mmc-add-modalias-linkage-for-mmc-sd-devices.patch
+
