@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch added to -mm tree
-Date: Fri, 16 Jan 2009 14:22:02 -0800
-Message-ID: <200901162222.n0GMM2V7010600@imap1.linux-foundation.org>
+Subject: + pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch added to -mm tree
+Date: Fri, 16 Jan 2009 14:22:00 -0800
+Message-ID: <200901162222.n0GMM0ke010553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56358 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35238 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932426AbZAPWWY (ORCPT
+	by vger.kernel.org with ESMTP id S932260AbZAPWWX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 17:22:24 -0500
+	Fri, 16 Jan 2009 17:22:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, Louis.Rilling@kerlabs.com, ebiederm@xmission.com, roland@redhat.com, sukadev@linux.vnet.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, Louis.Rilling@kerlabs.com, ebiederm@xmission.com, oleg@redhat.com, roland@redhat.com, sukadev@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     pids: improve get_task_pid() to fix the unsafe sys_wait4()->task_pgrp()
+     pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix
 has been added to the -mm tree.  Its filename is
-     pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
+     pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids: improve get_task_pid() to fix the unsafe sys_wait4()->task_pgrp()
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-sys_wait4() does get_pid(task_pgrp(current)), this is not safe.  We can
-add rcu lock/unlock around, but we already have get_task_pid() which can
-be improved to handle the special pids in more reliable manner.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Louis Rilling <Louis.Rilling@kerlabs.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Louis Rilling <Louis.Rilling@kerlabs.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 Cc: Roland McGrath <roland@redhat.com>
+Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- kernel/pid.c  |    2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ include/linux/sched.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN kernel/exit.c~pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp kernel/exit.c
---- a/kernel/exit.c~pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp
-+++ a/kernel/exit.c
-@@ -1819,7 +1819,7 @@ SYSCALL_DEFINE4(wait4, pid_t, upid, int 
- 		pid = find_get_pid(-upid);
- 	} else if (upid == 0) {
- 		type = PIDTYPE_PGID;
--		pid = get_pid(task_pgrp(current));
-+		pid = get_task_pid(current, PIDTYPE_PGID);
- 	} else /* upid > 0 */ {
- 		type = PIDTYPE_PID;
- 		pid = find_get_pid(upid);
-diff -puN kernel/pid.c~pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp kernel/pid.c
---- a/kernel/pid.c~pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp
-+++ a/kernel/pid.c
-@@ -403,6 +403,8 @@ struct pid *get_task_pid(struct task_str
+diff -puN include/linux/sched.h~pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix include/linux/sched.h
+--- a/include/linux/sched.h~pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix
++++ a/include/linux/sched.h
+@@ -1453,9 +1453,7 @@ static inline struct pid *task_tgid(stru
+  * Without tasklist or rcu lock it is not safe to dereference
+  * the result of task_pgrp/task_session even if task == current,
+  * we can race with another thread doing sys_setsid/sys_setpgid.
+- *
+  */
+-
+ static inline struct pid *task_pgrp(struct task_struct *task)
  {
- 	struct pid *pid;
- 	rcu_read_lock();
-+	if (type != PIDTYPE_PID)
-+		task = task->group_leader;
- 	pid = get_pid(task->pids[type].pid);
- 	rcu_read_unlock();
- 	return pid;
+ 	return task->group_leader->pids[PIDTYPE_PGID].pid;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-getrusage-fill-ru_maxrss-value.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
+origin.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
+i-need-old-gcc.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+drivers-net-mlx4-profilec-fix-min-warning.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+regulator-minor-cleanup-of-virtual-consumer-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix-3-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
 pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
