@@ -1,70 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sgi-xp-eliminate-false-detection-of-no-heartbeat.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 11:16:44 -0800
-Message-ID: <200901161916.n0GJGiUD025251@imap1.linux-foundation.org>
+Subject: [merged] regulator-minor-cleanup-of-virtual-consumer.patch removed from -mm tree
+Date: Fri, 16 Jan 2009 11:18:16 -0800
+Message-ID: <200901161918.n0GJIGY2026863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758122AbZAPTYV (ORCPT
+	by vger.kernel.org with ESMTP id S1757781AbZAPTZM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 14:24:21 -0500
+	Fri, 16 Jan 2009 14:25:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcn@sgi.com, holt@sgi.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-xp: eliminate false detection of no heartbeat
+     regulator: minor cleanup of virtual consumer
 has been removed from the -mm tree.  Its filename was
-     sgi-xp-eliminate-false-detection-of-no-heartbeat.patch
+     regulator-minor-cleanup-of-virtual-consumer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: eliminate false detection of no heartbeat
-From: Dean Nelson <dcn@sgi.com>
+Subject: regulator: minor cleanup of virtual consumer
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-After XPC has been up and running on multiple partitions for any length of
-time, if XPC on one of the partitions is stopped and restarted (either by
-a rmmod/insmod or a system restart), it is possible for the XPCs running
-on the other partitions to falsely detect a lack of heartbeat from the XPC
-that was just restarted.  This false detection will occur if the restarted
-XPC comes up within the five-seconds preceding one of the other XPC's
-heartbeat check (which occurs once every twenty seconds).
+Minor cleanup to the regulator set_mode sysfs support: switch to
+sysfs_streq() in set_mode(), which is also a code shrink.  Use the same
+strings that get_mode() uses, shrinking data too.
 
-The detection of no heartbeat results in the detecting XPC deactivating
-from the just restarted XPC.  The only remedy is to restart one of the
-XPCs and hope that one doesn't hit this five-second window on any of the
-other partitions.
-
-Signed-off-by: Dean Nelson <dcn@sgi.com>
-Signed-off-by: Robin Holt <holt@sgi.com>
-Cc: <stable@kernel.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc_sn2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/regulator/virtual.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-eliminate-false-detection-of-no-heartbeat drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-eliminate-false-detection-of-no-heartbeat
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -899,7 +899,7 @@ xpc_update_partition_info_sn2(struct xpc
- 	dev_dbg(xpc_part, "  remote_vars_pa = 0x%016lx\n",
- 		part_sn2->remote_vars_pa);
+diff -puN drivers/regulator/virtual.c~regulator-minor-cleanup-of-virtual-consumer drivers/regulator/virtual.c
+--- a/drivers/regulator/virtual.c~regulator-minor-cleanup-of-virtual-consumer
++++ a/drivers/regulator/virtual.c
+@@ -226,13 +226,13 @@ static ssize_t set_mode(struct device *d
+ 	unsigned int mode;
+ 	int ret;
  
--	part->last_heartbeat = remote_vars->heartbeat;
-+	part->last_heartbeat = remote_vars->heartbeat - 1;
- 	dev_dbg(xpc_part, "  last_heartbeat = 0x%016lx\n",
- 		part->last_heartbeat);
- 
+-	if (strncmp(buf, "fast", strlen("fast")) == 0)
++	if (sysfs_streq(buf, "fast\n") == 0)
+ 		mode = REGULATOR_MODE_FAST;
+-	else if (strncmp(buf, "normal", strlen("normal")) == 0)
++	else if (sysfs_streq(buf, "normal\n") == 0)
+ 		mode = REGULATOR_MODE_NORMAL;
+-	else if (strncmp(buf, "idle", strlen("idle")) == 0)
++	else if (sysfs_streq(buf, "idle\n") == 0)
+ 		mode = REGULATOR_MODE_IDLE;
+-	else if (strncmp(buf, "standby", strlen("standby")) == 0)
++	else if (sysfs_streq(buf, "standby\n") == 0)
+ 		mode = REGULATOR_MODE_STANDBY;
+ 	else {
+ 		dev_err(dev, "Configuring invalid mode\n");
 _
 
-Patches currently in -mm which might be from dcn@sgi.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
 linux-next.patch
+mmc-fixes-and-enhancements-for-the-mmc-spi-driver.patch
+regulator-minor-cleanup-of-virtual-consumer-fix.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller.patch
+usb-driver-for-freescale-quicc-engine-usb-host-controller-update.patch
+usb-fsl_qe_udc-fix-oops-on-qe-udc-probe-failure.patch
+usb-fsl_qe_udc-fix-recursive-locking-bug-in-ch9getstatus.patch
+usb-fsl_qe_udc-fix-disconnects-reporting-during-bus-reset.patch
+usb-fsl_qe_udc-fix-muram-corruption-by-disabled-endpoints.patch
+usb-fsl_qe_udc-fix-stalled-tx-requests-bug.patch
 
