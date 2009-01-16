@@ -1,70 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-make-pte_alloc_one_kernel-inline.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 11:17:46 -0800
-Message-ID: <200901161917.n0GJHkhg026350@imap1.linux-foundation.org>
+Subject: [merged] nbd-do-not-allow-two-clients-at-the-same-time.patch removed from -mm tree
+Date: Fri, 16 Jan 2009 11:17:06 -0800
+Message-ID: <200901161917.n0GJH62P025671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47309 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58193 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758352AbZAPTWh (ORCPT
+	by vger.kernel.org with ESMTP id S937436AbZAPTX1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 14:22:37 -0500
+	Fri, 16 Jan 2009 14:23:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: pavel@suse.cz, paul.clements@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: make pte_alloc_one_kernel() inline
+     nbd: do not allow two clients at the same time
 has been removed from the -mm tree.  Its filename was
-     alpha-make-pte_alloc_one_kernel-inline.patch
+     nbd-do-not-allow-two-clients-at-the-same-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: make pte_alloc_one_kernel() inline
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: nbd: do not allow two clients at the same time
+From: Pavel Machek <pavel@suse.cz>
 
-As it's just a single call to __get_free_page().
+Two nbd-clients at same time are bad idea, and cause WARN_ON from nbd in
+2.6.28-rc7 from sysfs_add_one.  This simply prevents that from happening.
 
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+To reproduce:
+
+ cat /dev/zero | head -c 10000000 > /tmp/delme.fstest.fs
+ nbd-server 9100 -l /anyone.can.connect > /tmp/delme.fstest.fs &
+ sleep 1
+ nbd-client localhost 9100 /dev/nd0 &
+ nbd-client localhost 9100 /dev/nd0 &
+
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Acked-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/pgalloc.h |    7 ++++++-
- arch/alpha/mm/init.c             |    7 -------
- 2 files changed, 6 insertions(+), 8 deletions(-)
+ drivers/block/nbd.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/alpha/include/asm/pgalloc.h~alpha-make-pte_alloc_one_kernel-inline arch/alpha/include/asm/pgalloc.h
---- a/arch/alpha/include/asm/pgalloc.h~alpha-make-pte_alloc_one_kernel-inline
-+++ a/arch/alpha/include/asm/pgalloc.h
-@@ -50,7 +50,12 @@ pmd_free(struct mm_struct *mm, pmd_t *pm
- 	free_page((unsigned long)pmd);
+diff -puN drivers/block/nbd.c~nbd-do-not-allow-two-clients-at-the-same-time drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-do-not-allow-two-clients-at-the-same-time
++++ a/drivers/block/nbd.c
+@@ -406,6 +406,7 @@ static int nbd_do_it(struct nbd_device *
+ 	ret = sysfs_create_file(&disk_to_dev(lo->disk)->kobj, &pid_attr.attr);
+ 	if (ret) {
+ 		printk(KERN_ERR "nbd: sysfs_create_file failed!");
++		lo->pid = 0;
+ 		return ret;
+ 	}
+ 
+@@ -413,6 +414,7 @@ static int nbd_do_it(struct nbd_device *
+ 		nbd_end_request(req);
+ 
+ 	sysfs_remove_file(&disk_to_dev(lo->disk)->kobj, &pid_attr.attr);
++	lo->pid = 0;
+ 	return 0;
  }
  
--extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm, unsigned long addr);
-+static inline pte_t *
-+pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
-+{
-+	pte_t *pte = (pte_t *)__get_free_page(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO);
-+	return pte;
-+}
- 
- static inline void
- pte_free_kernel(struct mm_struct *mm, pte_t *pte)
-diff -puN arch/alpha/mm/init.c~alpha-make-pte_alloc_one_kernel-inline arch/alpha/mm/init.c
---- a/arch/alpha/mm/init.c~alpha-make-pte_alloc_one_kernel-inline
-+++ a/arch/alpha/mm/init.c
-@@ -59,13 +59,6 @@ pgd_alloc(struct mm_struct *mm)
- 	return ret;
- }
- 
--pte_t *
--pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
--{
--	pte_t *pte = (pte_t *)__get_free_page(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO);
--	return pte;
--}
+@@ -648,6 +650,8 @@ static int nbd_ioctl(struct block_device
+ 		set_capacity(lo->disk, lo->bytesize >> 9);
+ 		return 0;
+ 	case NBD_DO_IT:
++		if (lo->pid)
++			return -EBUSY;
+ 		if (!lo->file)
+ 			return -EINVAL;
+ 		thread = kthread_create(nbd_thread, lo, lo->disk->disk_name);
+_
+
+Patches currently in -mm which might be from pavel@suse.cz are
+
+origin.patch
+linux-next.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+resume-wait-for-device-probing-to-finish.patch
+ext2-add-blk_issue_flush-to-syncing-paths.patch
+nbd-trivial-cleanups.patch
+
