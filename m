@@ -1,63 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 11:16:34 -0800
-Message-ID: <200901161916.n0GJGYxB025076@imap1.linux-foundation.org>
+Subject: [merged] edac-add-maintainers-entry-for-i5400-edac-driver.patch removed from -mm tree
+Date: Fri, 16 Jan 2009 11:16:30 -0800
+Message-ID: <200901161916.n0GJGULP024962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758763AbZAPTQ5 (ORCPT
+	by vger.kernel.org with ESMTP id S932915AbZAPTRI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 14:16:57 -0500
+	Fri, 16 Jan 2009 14:17:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@canonical.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mchehab@infradead.org, norsk5@yahoo.com, woodard@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysrq: add commentary on why we use the console loglevel over using KERN_EMERG
+     edac: add MAINTAINERS entry for i5400 EDAC driver
 has been removed from the -mm tree.  Its filename was
-     sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg.patch
+     edac-add-maintainers-entry-for-i5400-edac-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysrq: add commentary on why we use the console loglevel over using KERN_EMERG
-From: Andy Whitcroft <apw@canonical.com>
+Subject: edac: add MAINTAINERS entry for i5400 EDAC driver
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 
-Add an explanitory comment as to why we modify the kernel console loglevel
-rather than simply moving sysrq messages to KERN_EMERG level.
+i5400 EDAC driver were added upstream by those changesets:
 
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+920c8df6ac678fdb8c49a6ce2e47a98e62757d77
+8375d4909aee4c18798f373ecf24a79f040f75fc
+
+Update MAINTAINERS entry for this file to correspond to the driver
+maintainer.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Ben Woodard <woodard@redhat.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/char/sysrq.c~sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~sysrq-add-commentary-on-why-we-use-the-console-loglevel-over-using-kern_emerg
-+++ a/drivers/char/sysrq.c
-@@ -473,6 +473,12 @@ void __handle_sysrq(int key, struct tty_
- 	unsigned long flags;
+diff -puN MAINTAINERS~edac-add-maintainers-entry-for-i5400-edac-driver MAINTAINERS
+--- a/MAINTAINERS~edac-add-maintainers-entry-for-i5400-edac-driver
++++ a/MAINTAINERS
+@@ -1581,6 +1581,13 @@ L:	bluesmoke-devel@lists.sourceforge.net
+ W:	bluesmoke.sourceforge.net
+ S:	Maintained
  
- 	spin_lock_irqsave(&sysrq_key_table_lock, flags);
-+	/*
-+	 * Raise the apparent loglevel to maximum so that the sysrq header
-+	 * is shown to provide the user with positive feedback.  We do not
-+	 * simply emit this at KERN_EMERG as that would change message
-+	 * routing in the consumers of /proc/kmsg.
-+	 */
- 	orig_log_level = console_loglevel;
- 	console_loglevel = 7;
- 	printk(KERN_INFO "SysRq : ");
++EDAC-I5400
++P:	Mauro Carvalho Chehab
++M:	mchehab@redhat.com
++L:	bluesmoke-devel@lists.sourceforge.net
++W:	bluesmoke.sourceforge.net
++S:	Maintained
++
+ EDAC-I82975X
+ P:	Ranganathan Desikan
+ P:	Arvind R.
 _
 
-Patches currently in -mm which might be from apw@canonical.com are
+Patches currently in -mm which might be from mchehab@infradead.org are
 
 origin.patch
-mmc-add-modalias-linkage-for-mmc-sd-devices.patch
 
