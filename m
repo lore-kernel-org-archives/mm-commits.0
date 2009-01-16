@@ -1,75 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jbd-fix-missing-kernel-doc.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 11:16:58 -0800
-Message-ID: <200901161916.n0GJGw0Q025532@imap1.linux-foundation.org>
+Subject: [merged] kernel-trace-ring_bufferc-use-div_round_up.patch removed from -mm tree
+Date: Fri, 16 Jan 2009 11:18:21 -0800
+Message-ID: <200901161918.n0GJIL9g026930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53859 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49170 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754155AbZAPTTB (ORCPT
+	by vger.kernel.org with ESMTP id S1765828AbZAPTSu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 14:19:01 -0500
+	Fri, 16 Jan 2009 14:18:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: fix missing kernel-doc
+     kernel/trace/ring_buffer.c: use DIV_ROUND_UP
 has been removed from the -mm tree.  Its filename was
-     jbd-fix-missing-kernel-doc.patch
+     kernel-trace-ring_bufferc-use-div_round_up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: fix missing kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: kernel/trace/ring_buffer.c: use DIV_ROUND_UP
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix jbd header file kernel-doc notation:
+Instead of open-coding it.
 
-Warning(linux-2.6.28-git13//include/linux/jbd.h:823): No description found for parameter 'j_average_commit_time'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jbd.h |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/trace/ring_buffer.c |   17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/jbd.h~jbd-fix-missing-kernel-doc include/linux/jbd.h
---- a/include/linux/jbd.h~jbd-fix-missing-kernel-doc
-+++ a/include/linux/jbd.h
-@@ -614,6 +614,8 @@ struct transaction_s
-  * @j_wbufsize: maximum number of buffer_heads allowed in j_wbuf, the
-  *	number that will fit in j_blocksize
-  * @j_last_sync_writer: most recent pid which did a synchronous write
-+ * @j_average_commit_time: the average amount of time in nanoseconds it
-+ *	takes to commit a transaction to the disk.
-  * @j_private: An opaque pointer to fs-private information.
-  */
+diff -puN kernel/trace/ring_buffer.c~kernel-trace-ring_bufferc-use-div_round_up kernel/trace/ring_buffer.c
+--- a/kernel/trace/ring_buffer.c~kernel-trace-ring_bufferc-use-div_round_up
++++ a/kernel/trace/ring_buffer.c
+@@ -123,8 +123,7 @@ void ring_buffer_normalize_time_stamp(in
+ EXPORT_SYMBOL_GPL(ring_buffer_normalize_time_stamp);
  
+ #define RB_EVNT_HDR_SIZE (sizeof(struct ring_buffer_event))
+-#define RB_ALIGNMENT_SHIFT	2
+-#define RB_ALIGNMENT		(1 << RB_ALIGNMENT_SHIFT)
++#define RB_ALIGNMENT		4U
+ #define RB_MAX_SMALL_DATA	28
+ 
+ enum {
+@@ -151,7 +150,7 @@ rb_event_length(struct ring_buffer_event
+ 
+ 	case RINGBUF_TYPE_DATA:
+ 		if (event->len)
+-			length = event->len << RB_ALIGNMENT_SHIFT;
++			length = event->len * RB_ALIGNMENT;
+ 		else
+ 			length = event->array[0];
+ 		return length + RB_EVNT_HDR_SIZE;
+@@ -937,15 +936,11 @@ rb_update_event(struct ring_buffer_event
+ 		break;
+ 
+ 	case RINGBUF_TYPE_TIME_EXTEND:
+-		event->len =
+-			(RB_LEN_TIME_EXTEND + (RB_ALIGNMENT-1))
+-			>> RB_ALIGNMENT_SHIFT;
++		event->len = DIV_ROUND_UP(RB_LEN_TIME_EXTEND, RB_ALIGNMENT);
+ 		break;
+ 
+ 	case RINGBUF_TYPE_TIME_STAMP:
+-		event->len =
+-			(RB_LEN_TIME_STAMP + (RB_ALIGNMENT-1))
+-			>> RB_ALIGNMENT_SHIFT;
++		event->len = DIV_ROUND_UP(RB_LEN_TIME_STAMP, RB_ALIGNMENT);
+ 		break;
+ 
+ 	case RINGBUF_TYPE_DATA:
+@@ -954,9 +949,7 @@ rb_update_event(struct ring_buffer_event
+ 			event->len = 0;
+ 			event->array[0] = length;
+ 		} else
+-			event->len =
+-				(length + (RB_ALIGNMENT-1))
+-				>> RB_ALIGNMENT_SHIFT;
++			event->len = DIV_ROUND_UP(length, RB_ALIGNMENT);
+ 		break;
+ 	default:
+ 		BUG();
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-oom-documentation-update.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n-fix.patch
+i-need-old-gcc.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-pci-fix-missing-kernel-doc-and-typos.patch
-pcih-fix-struct-pci_platform_pm_ops-kernel-doc.patch
-esp-fix-section-mismatch-warning.patch
-max3100-spi-uart-driver.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+drivers-net-mlx4-profilec-fix-min-warning.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+regulator-minor-cleanup-of-virtual-consumer-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix-3-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
