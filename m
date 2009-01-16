@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-mark-wm835x-usb_slv_500ma-bit-as-accessible.patch added to -mm tree
-Date: Thu, 15 Jan 2009 16:02:11 -0800
-Message-ID: <200901160002.n0G02BPx029560@imap1.linux-foundation.org>
+Subject: + time-schedc-tick_nohz_update_jiffies-should-be-static.patch added to -mm tree
+Date: Thu, 15 Jan 2009 16:02:46 -0800
+Message-ID: <200901160002.n0G02k7j030098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37582 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765119AbZAPACg (ORCPT
+	by vger.kernel.org with ESMTP id S935780AbZAPAD3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jan 2009 19:02:36 -0500
+	Thu, 15 Jan 2009 19:03:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com
+Cc: jaswinder@infradead.org, jaswinderrajput@gmail.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     mfd: mark WM835x USB_SLV_500MA bit as accessible
+     time-sched.c: tick_nohz_update_jiffies should be static
 has been added to the -mm tree.  Its filename is
-     mfd-mark-wm835x-usb_slv_500ma-bit-as-accessible.patch
+     time-schedc-tick_nohz_update_jiffies-should-be-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mfd: mark WM835x USB_SLV_500MA bit as accessible
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: time-sched.c: tick_nohz_update_jiffies should be static
+From: Jaswinder Singh Rajput <jaswinder@infradead.org>
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Impact: cleanup, reduce kernel size a bit, avoid sparse warning
+
+Fixes sparse warning:
+ kernel/time/tick-sched.c:137:6: warning: symbol 'tick_nohz_update_jiffies' was not declared. Should it be static?
+
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/wm8350-regmap.c |    2 +-
+ kernel/time/tick-sched.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mfd/wm8350-regmap.c~mfd-mark-wm835x-usb_slv_500ma-bit-as-accessible drivers/mfd/wm8350-regmap.c
---- a/drivers/mfd/wm8350-regmap.c~mfd-mark-wm835x-usb_slv_500ma-bit-as-accessible
-+++ a/drivers/mfd/wm8350-regmap.c
-@@ -3188,7 +3188,7 @@ const struct wm8350_reg_access wm8350_re
- 	{ 0x7CFF, 0x0C00, 0x7FFF }, /* R1   - ID */
- 	{ 0x0000, 0x0000, 0x0000 }, /* R2 */
- 	{ 0xBE3B, 0xBE3B, 0x8000 }, /* R3   - System Control 1 */
--	{ 0xFCF7, 0xFCF7, 0xF800 }, /* R4   - System Control 2 */
-+	{ 0xFEF7, 0xFEF7, 0xF800 }, /* R4   - System Control 2 */
- 	{ 0x80FF, 0x80FF, 0x8000 }, /* R5   - System Hibernate */
- 	{ 0xFB0E, 0xFB0E, 0x0000 }, /* R6   - Interface Control */
- 	{ 0x0000, 0x0000, 0x0000 }, /* R7 */
+diff -puN kernel/time/tick-sched.c~time-schedc-tick_nohz_update_jiffies-should-be-static kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~time-schedc-tick_nohz_update_jiffies-should-be-static
++++ a/kernel/time/tick-sched.c
+@@ -134,7 +134,7 @@ __setup("nohz=", setup_tick_nohz);
+  * value. We do this unconditionally on any cpu, as we don't know whether the
+  * cpu, which has the update task assigned is in a long sleep.
+  */
+-void tick_nohz_update_jiffies(void)
++static void tick_nohz_update_jiffies(void)
+ {
+ 	int cpu = smp_processor_id();
+ 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from jaswinder@infradead.org are
 
 origin.patch
+include-of-linux-typesh-is-preferred-over-asm-typesh.patch
 linux-next.patch
-mfd-mark-wm835x-usb_slv_500ma-bit-as-accessible.patch
-mfd-initialise-wm8350-interrupts-earlier.patch
-rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
+time-schedc-tick_nohz_update_jiffies-should-be-static.patch
+capabilityh-externs-make-no-sense-in-userspace.patch
 
