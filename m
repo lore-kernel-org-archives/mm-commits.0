@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-get-put-parents-at-create-free.patch removed from -mm tree
-Date: Fri, 16 Jan 2009 13:03:25 -0800
-Message-ID: <200901162103.n0GL3PoL031704@imap1.linux-foundation.org>
+Subject: + memcg-get-put-parents-at-create-free.patch added to -mm tree
+Date: Fri, 16 Jan 2009 14:11:13 -0800
+Message-ID: <200901162211.n0GMBDeG032497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35687 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758475AbZAPVD6 (ORCPT
+	by vger.kernel.org with ESMTP id S1762480AbZAPWLu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Jan 2009 16:03:58 -0500
+	Fri, 16 Jan 2009 17:11:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, xemul@openvz.org
 
 
 The patch titled
      memcg: get/put parents at create/free
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      memcg-get-put-parents-at-create-free.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -106,4 +116,5 @@ Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
 origin.patch
 memcg-get-put-parents-at-create-free.patch
+memcg-get-put-parents-at-create-free-fix.patch
 
