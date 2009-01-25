@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hrtimers-retrigger_next_event-needs-local-irqs-disabled.patch added to -mm tree
-Date: Sat, 24 Jan 2009 18:42:31 -0800
-Message-ID: <200901250242.n0P2gVAr024877@imap1.linux-foundation.org>
+Subject: [withdrawn] hrtimers-retrigger_next_event-needs-local-irqs-disabled.patch removed from -mm tree
+Date: Sun, 25 Jan 2009 00:31:30 -0800
+Message-ID: <200901250831.n0P8VU8U008772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37072 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48075 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753971AbZAYCnb (ORCPT
+	by vger.kernel.org with ESMTP id S1751383AbZAYIca (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 24 Jan 2009 21:43:31 -0500
+	Sun, 25 Jan 2009 03:32:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, maciej.rutecki@gmail.com, mingo@elte.hu, rjw@sisk.pl, rusty@rustcorp.com.au, tglx@linutronix.de
+To: akpm@linux-foundation.org, maciej.rutecki@gmail.com, mingo@elte.hu, rjw@sisk.pl, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      hrtimers: retrigger_next_event() needs local irqs disabled
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      hrtimers-retrigger_next_event-needs-local-irqs-disabled.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
