@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2.patch removed from -mm tree
-Date: Mon, 26 Jan 2009 11:04:25 -0800
-Message-ID: <200901261904.n0QJ4P3w029946@imap1.linux-foundation.org>
+Subject: [merged] pci-pcie-portdrv-use-driver-data-to-simplify-code.patch removed from -mm tree
+Date: Mon, 26 Jan 2009 11:04:22 -0800
+Message-ID: <200901261904.n0QJ4MSS029801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753370AbZAZTFP (ORCPT
+	by vger.kernel.org with ESMTP id S1753556AbZAZTFP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 26 Jan 2009 14:05:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,120 +15,272 @@ To: rjw@sisk.pl, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCI PCIe portdrv: aviod using service devices with wrong interrupts
+     PCI PCIe portdrv: use driver data to simplify code
 has been removed from the -mm tree.  Its filename was
-     pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2.patch
+     pci-pcie-portdrv-use-driver-data-to-simplify-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCI PCIe portdrv: aviod using service devices with wrong interrupts
+Subject: PCI PCIe portdrv: use driver data to simplify code
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The PCI Express port driver should not attempt to register service devices
-that require the ability to generate interrupts if generating interrupts
-is not possible.  Namely, if the port has no interrupt pin configured and
-we cannot set up MSI or MSI-X for it, there is no way it can generate
-interrupts and in such a case the port services that rely on interrupts
-(PME, PCIe HP, AER) should not be enabled for it.
+PCI Express port driver extension, as defined by struct
+pcie_port_device_ext in portdrv.h, is allocated and initialized, but never
+used (it also is never freed).  Extend it to hold the PCI Express port
+type as well as the port interrupt mode, change its name and use it to
+simplify the code in portdrv_core.c .
+
+Additionally, remove the redundant interrupt_mode member of struct
+pcie_device defined in include/linux/pcieport_if.h .
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/portdrv_core.c |   41 ++++++++++++++++++++----------
+ drivers/pci/pcie/portdrv.h      |    5 -
+ drivers/pci/pcie/portdrv_core.c |   95 +++++++++++-------------------
  include/linux/pcieport_if.h     |    1 
- 2 files changed, 29 insertions(+), 13 deletions(-)
+ 3 files changed, 39 insertions(+), 62 deletions(-)
 
-diff -puN drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2 drivers/pci/pcie/portdrv_core.c
---- a/drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2
-+++ a/drivers/pci/pcie/portdrv_core.c
-@@ -43,7 +43,7 @@ static int assign_interrupt_mode(struct 
- {
- 	struct pcie_port_data *port_data = pci_get_drvdata(dev);
- 	int i, pos, nvec, status = -EINVAL;
--	int interrupt_mode = PCIE_PORT_INTx_MODE;
-+	int interrupt_mode = PCIE_PORT_NO_IRQ;
+diff -puN drivers/pci/pcie/portdrv.h~pci-pcie-portdrv-use-driver-data-to-simplify-code drivers/pci/pcie/portdrv.h
+--- a/drivers/pci/pcie/portdrv.h~pci-pcie-portdrv-use-driver-data-to-simplify-code
++++ a/drivers/pci/pcie/portdrv.h
+@@ -28,8 +28,9 @@
  
- 	/* Set INTx as default */
- 	for (i = 0, nvec = 0; i < PCIE_PORT_DEVICE_MAXSERVICES; i++) {
-@@ -51,7 +51,9 @@ static int assign_interrupt_mode(struct 
- 			nvec++;
- 		vectors[i] = dev->irq;
+ #define get_descriptor_id(type, service) (((type - 4) << 4) | service)
+ 
+-struct pcie_port_device_ext {
+-	int interrupt_mode;	/* [0:INTx | 1:MSI | 2:MSI-X] */
++struct pcie_port_data {
++	int port_type;		/* Type of the port */
++	int port_irq_mode;	/* [0:INTx | 1:MSI | 2:MSI-X] */
+ };
+ 
+ extern struct bus_type pcie_port_bus_type;
+diff -puN drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-use-driver-data-to-simplify-code drivers/pci/pcie/portdrv_core.c
+--- a/drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-use-driver-data-to-simplify-code
++++ a/drivers/pci/pcie/portdrv_core.c
+@@ -15,10 +15,9 @@
+ #include <linux/slab.h>
+ #include <linux/pcieport_if.h>
+ 
++#include "../pci.h"
+ #include "portdrv.h"
+ 
+-extern int pcie_mch_quirk;	/* MSI-quirk Indicator */
+-
+ /**
+  * release_pcie_device - free PCI Express port service device structure
+  * @dev: Port service device to release
+@@ -31,28 +30,6 @@ static void release_pcie_device(struct d
+ 	kfree(to_pcie_device(dev));			
+ }
+ 
+-static int is_msi_quirked(struct pci_dev *dev)
+-{
+-	int port_type, quirk = 0;
+-	u16 reg16;
+-
+-	pci_read_config_word(dev, 
+-		pci_find_capability(dev, PCI_CAP_ID_EXP) + 
+-		PCIE_CAPABILITIES_REG, &reg16);
+-	port_type = (reg16 >> 4) & PORT_TYPE_MASK;
+-	switch(port_type) {
+-	case PCIE_RC_PORT:
+-		if (pcie_mch_quirk == 1)
+-			quirk = 1;
+-		break;
+-	case PCIE_SW_UPSTREAM_PORT:
+-	case PCIE_SW_DOWNSTREAM_PORT:
+-	default:
+-		break;	
+-	}
+-	return quirk;
+-}
+-
+ /**
+  * assign_interrupt_mode - choose interrupt mode for PCI Express port services
+  *                         (INTx, MSI-X, MSI) and set up vectors
+@@ -64,6 +41,7 @@ static int is_msi_quirked(struct pci_dev
+  */
+ static int assign_interrupt_mode(struct pci_dev *dev, int *vectors, int mask)
+ {
++	struct pcie_port_data *port_data = pci_get_drvdata(dev);
+ 	int i, pos, nvec, status = -EINVAL;
+ 	int interrupt_mode = PCIE_PORT_INTx_MODE;
+ 
+@@ -75,7 +53,7 @@ static int assign_interrupt_mode(struct 
  	}
--	
-+	if (dev->pin)
-+		interrupt_mode = PCIE_PORT_INTx_MODE;
-+
+ 	
  	/* Check MSI quirk */
- 	if (port_data->port_type == PCIE_RC_PORT && pcie_mch_quirk)
+-	if (is_msi_quirked(dev))
++	if (port_data->port_type == PCIE_RC_PORT && pcie_mch_quirk)
  		return interrupt_mode;
-@@ -141,7 +143,7 @@ static void pcie_device_init(struct pci_
+ 
+ 	/* Select MSI-X over MSI if supported */		
+@@ -132,13 +110,11 @@ static int get_port_device_capability(st
+ 			pos + PCIE_SLOT_CAPABILITIES_REG, &reg32);
+ 		if (reg32 & SLOT_HP_CAPABLE_MASK)
+ 			services |= PCIE_PORT_SERVICE_HP;
+-	} 
+-	/* PME Capable - root port capability */
+-	if (((reg16 >> 4) & PORT_TYPE_MASK) == PCIE_RC_PORT)
+-		services |= PCIE_PORT_SERVICE_PME;
+-
++	}
++	/* AER capable */
+ 	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR))
+ 		services |= PCIE_PORT_SERVICE_AER;
++	/* VC support */
+ 	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_VC))
+ 		services |= PCIE_PORT_SERVICE_VC;
+ 
+@@ -152,15 +128,15 @@ static int get_port_device_capability(st
+  * @port_type: Type of the port
+  * @service_type: Type of service to associate with the service device
+  * @irq: Interrupt vector to associate with the service device
+- * @irq_mode: Interrupt mode of the service (INTx, MSI-X, MSI)
+  */
+ static void pcie_device_init(struct pci_dev *parent, struct pcie_device *dev, 
+-	int port_type, int service_type, int irq, int irq_mode)
++	int service_type, int irq)
+ {
++	struct pcie_port_data *port_data = pci_get_drvdata(parent);
+ 	struct device *device;
++	int port_type = port_data->port_type;
+ 
+ 	dev->port = parent;
+-	dev->interrupt_mode = irq_mode;
+ 	dev->irq = irq;
  	dev->id.vendor = parent->vendor;
  	dev->id.device = parent->device;
- 	dev->id.port_type = port_type;
--	dev->id.service_type = (1 << service_type);
-+	dev->id.service_type = service_type;
+@@ -185,10 +161,9 @@ static void pcie_device_init(struct pci_
+  * @port_type: Type of the port
+  * @service_type: Type of service to associate with the service device
+  * @irq: Interrupt vector to associate with the service device
+- * @irq_mode: Interrupt mode of the service (INTx, MSI-X, MSI)
+  */
+ static struct pcie_device* alloc_pcie_device(struct pci_dev *parent,
+-	int port_type, int service_type, int irq, int irq_mode)
++	int service_type, int irq)
+ {
+ 	struct pcie_device *device;
  
- 	/* Initialize generic device interface */
- 	device = &dev->device;
-@@ -232,19 +234,32 @@ int pcie_port_device_register(struct pci
+@@ -196,7 +171,7 @@ static struct pcie_device* alloc_pcie_de
+ 	if (!device)
+ 		return NULL;
+ 
+-	pcie_device_init(parent, device, port_type, service_type, irq,irq_mode);
++	pcie_device_init(parent, device, service_type, irq);
+ 	return device;
+ }
+ 
+@@ -230,39 +205,36 @@ int pcie_port_device_probe(struct pci_de
+  */
+ int pcie_port_device_register(struct pci_dev *dev)
+ {
+-	struct pcie_port_device_ext *p_ext;
+-	int status, type, capabilities, irq_mode, i;
++	struct pcie_port_data *port_data;
++	int status, capabilities, irq_mode, i;
+ 	int vectors[PCIE_PORT_DEVICE_MAXSERVICES];
+ 	u16 reg16;
+ 
+-	/* Allocate port device extension */
+-	if (!(p_ext = kmalloc(sizeof(struct pcie_port_device_ext), GFP_KERNEL)))
++	port_data = kzalloc(sizeof(*port_data), GFP_KERNEL);
++	if (!port_data)
+ 		return -ENOMEM;
+-
+-	pci_set_drvdata(dev, p_ext);
++	pci_set_drvdata(dev, port_data);
+ 
+ 	/* Get port type */
+ 	pci_read_config_word(dev,
+ 		pci_find_capability(dev, PCI_CAP_ID_EXP) +
+ 		PCIE_CAPABILITIES_REG, &reg16);
+-	type = (reg16 >> 4) & PORT_TYPE_MASK;
++	port_data->port_type = (reg16 >> 4) & PORT_TYPE_MASK;
+ 
+-	/* Now get port services */
+ 	capabilities = get_port_device_capability(dev);
++	/* Root ports are capable of generating PME too */
++	if (port_data->port_type == PCIE_RC_PORT)
++		capabilities |= PCIE_PORT_SERVICE_PME;
++
+ 	irq_mode = assign_interrupt_mode(dev, vectors, capabilities);
+-	p_ext->interrupt_mode = irq_mode;
++	port_data->port_irq_mode = irq_mode;
+ 
  	/* Allocate child services if any */
  	for (i = 0; i < PCIE_PORT_DEVICE_MAXSERVICES; i++) {
  		struct pcie_device *child;
-+		int service = 1 << i;
  
--		if (capabilities & (1 << i)) {
--			child = alloc_pcie_device(dev, i, vectors[i]);
--			if (child) {
--				status = device_register(&child->device);
--				if (status) {
--					kfree(child);
--					continue;
--				}
--				get_device(&child->device);
--			}
-+		if (!(capabilities & service))
-+			continue;
+ 		if (capabilities & (1 << i)) {
+-			child = alloc_pcie_device(
+-				dev, 		/* parent */
+-				type,		/* port type */
+-				i,		/* service type */
+-				vectors[i],	/* irq */
+-				irq_mode	/* interrupt mode */);
++			child = alloc_pcie_device(dev, i, vectors[i]);
+ 			if (child) {
+ 				status = device_register(&child->device);
+ 				if (status) {
+@@ -349,25 +321,30 @@ static int remove_iter(struct device *de
+  */
+ void pcie_port_device_remove(struct pci_dev *dev)
+ {
+-	struct device *device;
+-	unsigned long device_addr;
+-	int interrupt_mode = PCIE_PORT_INTx_MODE;
++	struct pcie_port_data *port_data = pci_get_drvdata(dev);
+ 	int status;
+ 
+ 	do {
++		unsigned long device_addr;
 +
-+		/*
-+		 * Don't use service devices that require interrupts if there is
-+		 * no way to generate them.
-+		 */
-+		if (irq_mode == PCIE_PORT_NO_IRQ
-+		    && service != PCIE_PORT_SERVICE_VC)
-+			continue;
-+
-+		child = alloc_pcie_device(dev, service, vectors[i]);
-+		if (!child)
-+			continue;
-+
-+		status = device_register(&child->device);
-+		if (status) {
-+			kfree(child);
-+			continue;
+ 		status = device_for_each_child(&dev->dev, &device_addr, remove_iter);
+ 		if (status) {
+-			device = (struct device*)device_addr;
+-			interrupt_mode = (to_pcie_device(device))->interrupt_mode;
++			struct device *device = (struct device*)device_addr;
+ 			put_device(device);
+ 			device_unregister(device);
  		}
+ 	} while (status);
+-	/* Switch to INTx by default if MSI enabled */
+-	if (interrupt_mode == PCIE_PORT_MSIX_MODE)
 +
-+		get_device(&child->device);
- 	}
++	switch (port_data->port_irq_mode) {
++	case PCIE_PORT_MSIX_MODE:
+ 		pci_disable_msix(dev);
+-	else if (interrupt_mode == PCIE_PORT_MSI_MODE)
++		break;
++	case PCIE_PORT_MSI_MODE:
+ 		pci_disable_msi(dev);
++		break;
++	}
 +
- 	return 0;
++	kfree(port_data);
  }
  
-diff -puN include/linux/pcieport_if.h~pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2 include/linux/pcieport_if.h
---- a/include/linux/pcieport_if.h~pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2
+ /**
+diff -puN include/linux/pcieport_if.h~pci-pcie-portdrv-use-driver-data-to-simplify-code include/linux/pcieport_if.h
+--- a/include/linux/pcieport_if.h~pci-pcie-portdrv-use-driver-data-to-simplify-code
 +++ a/include/linux/pcieport_if.h
-@@ -22,6 +22,7 @@
- #define PCIE_PORT_SERVICE_VC		8	/* Virtual Channel */
+@@ -36,7 +36,6 @@ struct pcie_port_service_id {
  
- /* Root/Upstream/Downstream Port's Interrupt Mode */
-+#define PCIE_PORT_NO_IRQ		(-1)
- #define PCIE_PORT_INTx_MODE		0
- #define PCIE_PORT_MSI_MODE		1
- #define PCIE_PORT_MSIX_MODE		2
+ struct pcie_device {
+ 	int 		irq;	    /* Service IRQ/MSI/MSI-X Vector */
+-	int 		interrupt_mode;	/* [0:INTx | 1:MSI | 2:MSI-X] */	
+ 	struct pcie_port_service_id id;	/* Service ID */
+ 	struct pci_dev	*port;	    /* Root/Upstream/Downstream Port */
+ 	void		*priv_data; /* Service Private Data */
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
