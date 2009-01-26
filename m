@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-parisc-remove-struct-parisc_rtc.patch added to -mm tree
-Date: Mon, 26 Jan 2009 13:49:57 -0800
-Message-ID: <200901262149.n0QLnvIH003894@imap1.linux-foundation.org>
+Subject: + rtc-parisc-rename-p-pointer-to-rtc.patch added to -mm tree
+Date: Mon, 26 Jan 2009 13:50:09 -0800
+Message-ID: <200901262150.n0QLo9wj004252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34290 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753838AbZAZVu6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753527AbZAZVu6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 26 Jan 2009 16:50:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dannf@hp.com, a.zummo@towertech.it, grundler@parisc-linux.org, kyle@mcmartin
 
 
 The patch titled
-     rtc-parisc: remove struct parisc_rtc
+     rtc-parisc: rename p pointer to rtc
 has been added to the -mm tree.  Its filename is
-     rtc-parisc-remove-struct-parisc_rtc.patch
+     rtc-parisc-rename-p-pointer-to-rtc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-parisc: remove struct parisc_rtc
+Subject: rtc-parisc: rename p pointer to rtc
 From: dann frazier <dannf@hp.com>
-
-parisc_rtc now only includes an rtc_device pointer, so let's
-just use the rtc_device type directly.
 
 Signed-off-by: dann frazier <dannf@hp.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -48,58 +45,44 @@ Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-parisc.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ drivers/rtc/rtc-parisc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-parisc.c~rtc-parisc-remove-struct-parisc_rtc drivers/rtc/rtc-parisc.c
---- a/drivers/rtc/rtc-parisc.c~rtc-parisc-remove-struct-parisc_rtc
+diff -puN drivers/rtc/rtc-parisc.c~rtc-parisc-rename-p-pointer-to-rtc drivers/rtc/rtc-parisc.c
+--- a/drivers/rtc/rtc-parisc.c~rtc-parisc-rename-p-pointer-to-rtc
 +++ a/drivers/rtc/rtc-parisc.c
-@@ -11,11 +11,6 @@
+@@ -38,23 +38,23 @@ static const struct rtc_class_ops parisc
  
- #include <asm/rtc.h>
- 
--/* as simple as can be, and no simpler. */
--struct parisc_rtc {
--	struct rtc_device *rtc;
--};
--
- static int parisc_get_time(struct device *dev, struct rtc_time *tm)
+ static int __init parisc_rtc_probe(struct platform_device *dev)
  {
- 	unsigned long ret;
-@@ -47,16 +42,16 @@ static const struct rtc_class_ops parisc
+-	struct rtc_device *p;
++	struct rtc_device *rtc;
  
- static int __devinit parisc_rtc_probe(struct platform_device *dev)
- {
--	struct parisc_rtc *p;
-+	struct rtc_device *p;
+-	p = rtc_device_register("rtc-parisc", &dev->dev, &parisc_rtc_ops,
+-				THIS_MODULE);
+-	if (IS_ERR(p))
+-		return PTR_ERR(p);
++	rtc = rtc_device_register("rtc-parisc", &dev->dev, &parisc_rtc_ops,
++				  THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
  
- 	p = kzalloc(sizeof (*p), GFP_KERNEL);
- 	if (!p)
- 		return -ENOMEM;
- 
--	p->rtc = rtc_device_register("rtc-parisc", &dev->dev, &parisc_rtc_ops,
--					THIS_MODULE);
--	if (IS_ERR(p->rtc)) {
--		int err = PTR_ERR(p->rtc);
-+	p = rtc_device_register("rtc-parisc", &dev->dev, &parisc_rtc_ops,
-+				THIS_MODULE);
-+	if (IS_ERR(p)) {
-+		int err = PTR_ERR(p);
- 		kfree(p);
- 		return err;
- 	}
-@@ -68,9 +63,9 @@ static int __devinit parisc_rtc_probe(st
- 
- static int __devexit parisc_rtc_remove(struct platform_device *dev)
- {
--	struct parisc_rtc *p = platform_get_drvdata(dev);
-+	struct rtc_device *p = platform_get_drvdata(dev);
- 
--	rtc_device_unregister(p->rtc);
-+	rtc_device_unregister(p);
- 	kfree(p);
+-	platform_set_drvdata(dev, p);
++	platform_set_drvdata(dev, rtc);
  
  	return 0;
+ }
+ 
+ static int __exit parisc_rtc_remove(struct platform_device *dev)
+ {
+-	struct rtc_device *p = platform_get_drvdata(dev);
++	struct rtc_device *rtc = platform_get_drvdata(dev);
+ 
+-	rtc_device_unregister(p);
++	rtc_device_unregister(rtc);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from dannf@hp.com are
