@@ -1,182 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mark-complex-bitopsh-inlines-as-__always_inline.patch removed from -mm tree
-Date: Mon, 26 Jan 2009 11:03:55 -0800
-Message-ID: <200901261903.n0QJ3tk3029304@imap1.linux-foundation.org>
+Subject: [merged] pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2.patch removed from -mm tree
+Date: Mon, 26 Jan 2009 11:04:25 -0800
+Message-ID: <200901261904.n0QJ4P3w029946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52806 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754051AbZAZTE6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753370AbZAZTFP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jan 2009 14:04:58 -0500
+	Mon, 26 Jan 2009 14:05:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, hpa@zytor.com, hugh@veritas.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: mark complex bitops.h inlines as __always_inline
+     PCI PCIe portdrv: aviod using service devices with wrong interrupts
 has been removed from the -mm tree.  Its filename was
-     x86-mark-complex-bitopsh-inlines-as-__always_inline.patch
+     pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: mark complex bitops.h inlines as __always_inline
-From: Andi Kleen <andi@firstfloor.org>
+Subject: PCI PCIe portdrv: aviod using service devices with wrong interrupts
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Hugh Dickins noticed that older gcc versions when the kernel is built for
-code size didn't inline some of the bitops.
+The PCI Express port driver should not attempt to register service devices
+that require the ability to generate interrupts if generating interrupts
+is not possible.  Namely, if the port has no interrupt pin configured and
+we cannot set up MSI or MSI-X for it, there is no way it can generate
+interrupts and in such a case the port services that rely on interrupts
+(PME, PCIe HP, AER) should not be enabled for it.
 
-Mark all complex x86 bitops that have more than a single asm statement or
-two as always inline to avoid this problem.
-
-Probably should be done for other architectures too.
-
-Ingo then found a better fix that only requires a single line change, but
-it unfortunately only works on gcc 4.3.
-
-But unfortunately on older gccs the original patch still makes a large
-difference with CONFIG_OPTIMIZE_INLINING.
-
-e.g.  with gcc 4.1 and defconfig like build:
-
-6116998 1138540  883788 8139326  7c323e vmlinux-oi-with-patch
-6137043 1138540  883788 8159371  7c808b vmlinux-optimize-inlining
-
-~20k difference.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/bitops.h      |   14 ++++++++++----
- include/asm-generic/bitops/__ffs.h |    2 +-
- include/asm-generic/bitops/__fls.h |    2 +-
- include/asm-generic/bitops/fls.h   |    2 +-
- include/asm-generic/bitops/fls64.h |    4 ++--
- 5 files changed, 15 insertions(+), 9 deletions(-)
+ drivers/pci/pcie/portdrv_core.c |   41 ++++++++++++++++++++----------
+ include/linux/pcieport_if.h     |    1 
+ 2 files changed, 29 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/include/asm/bitops.h~x86-mark-complex-bitopsh-inlines-as-__always_inline arch/x86/include/asm/bitops.h
---- a/arch/x86/include/asm/bitops.h~x86-mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/arch/x86/include/asm/bitops.h
-@@ -3,6 +3,9 @@
+diff -puN drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2 drivers/pci/pcie/portdrv_core.c
+--- a/drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2
++++ a/drivers/pci/pcie/portdrv_core.c
+@@ -43,7 +43,7 @@ static int assign_interrupt_mode(struct 
+ {
+ 	struct pcie_port_data *port_data = pci_get_drvdata(dev);
+ 	int i, pos, nvec, status = -EINVAL;
+-	int interrupt_mode = PCIE_PORT_INTx_MODE;
++	int interrupt_mode = PCIE_PORT_NO_IRQ;
  
- /*
-  * Copyright 1992, Linus Torvalds.
-+ *
-+ * Note: inlines with more than a single statement should be marked
-+ * __always_inline to avoid problems with older gcc's inlining heuristics.
-  */
+ 	/* Set INTx as default */
+ 	for (i = 0, nvec = 0; i < PCIE_PORT_DEVICE_MAXSERVICES; i++) {
+@@ -51,7 +51,9 @@ static int assign_interrupt_mode(struct 
+ 			nvec++;
+ 		vectors[i] = dev->irq;
+ 	}
+-	
++	if (dev->pin)
++		interrupt_mode = PCIE_PORT_INTx_MODE;
++
+ 	/* Check MSI quirk */
+ 	if (port_data->port_type == PCIE_RC_PORT && pcie_mch_quirk)
+ 		return interrupt_mode;
+@@ -141,7 +143,7 @@ static void pcie_device_init(struct pci_
+ 	dev->id.vendor = parent->vendor;
+ 	dev->id.device = parent->device;
+ 	dev->id.port_type = port_type;
+-	dev->id.service_type = (1 << service_type);
++	dev->id.service_type = service_type;
  
- #ifndef _LINUX_BITOPS_H
-@@ -53,7 +56,8 @@
-  * Note that @nr may be almost arbitrarily large; this function is not
-  * restricted to acting on a single-word quantity.
-  */
--static inline void set_bit(unsigned int nr, volatile unsigned long *addr)
-+static __always_inline void
-+set_bit(unsigned int nr, volatile unsigned long *addr)
- {
- 	if (IS_IMMEDIATE(nr)) {
- 		asm volatile(LOCK_PREFIX "orb %1,%0"
-@@ -90,7 +94,8 @@ static inline void __set_bit(int nr, vol
-  * you should call smp_mb__before_clear_bit() and/or smp_mb__after_clear_bit()
-  * in order to ensure changes are visible on other processors.
-  */
--static inline void clear_bit(int nr, volatile unsigned long *addr)
-+static __always_inline void
-+clear_bit(int nr, volatile unsigned long *addr)
- {
- 	if (IS_IMMEDIATE(nr)) {
- 		asm volatile(LOCK_PREFIX "andb %1,%0"
-@@ -204,7 +209,8 @@ static inline int test_and_set_bit(int n
-  *
-  * This is the same as test_and_set_bit on x86.
-  */
--static inline int test_and_set_bit_lock(int nr, volatile unsigned long *addr)
-+static __always_inline int
-+test_and_set_bit_lock(int nr, volatile unsigned long *addr)
- {
- 	return test_and_set_bit(nr, addr);
+ 	/* Initialize generic device interface */
+ 	device = &dev->device;
+@@ -232,19 +234,32 @@ int pcie_port_device_register(struct pci
+ 	/* Allocate child services if any */
+ 	for (i = 0; i < PCIE_PORT_DEVICE_MAXSERVICES; i++) {
+ 		struct pcie_device *child;
++		int service = 1 << i;
+ 
+-		if (capabilities & (1 << i)) {
+-			child = alloc_pcie_device(dev, i, vectors[i]);
+-			if (child) {
+-				status = device_register(&child->device);
+-				if (status) {
+-					kfree(child);
+-					continue;
+-				}
+-				get_device(&child->device);
+-			}
++		if (!(capabilities & service))
++			continue;
++
++		/*
++		 * Don't use service devices that require interrupts if there is
++		 * no way to generate them.
++		 */
++		if (irq_mode == PCIE_PORT_NO_IRQ
++		    && service != PCIE_PORT_SERVICE_VC)
++			continue;
++
++		child = alloc_pcie_device(dev, service, vectors[i]);
++		if (!child)
++			continue;
++
++		status = device_register(&child->device);
++		if (status) {
++			kfree(child);
++			continue;
+ 		}
++
++		get_device(&child->device);
+ 	}
++
+ 	return 0;
  }
-@@ -300,7 +306,7 @@ static inline int test_and_change_bit(in
- 	return oldbit;
- }
  
--static inline int constant_test_bit(unsigned int nr, const volatile unsigned long *addr)
-+static __always_inline int constant_test_bit(unsigned int nr, const volatile unsigned long *addr)
- {
- 	return ((1UL << (nr % BITS_PER_LONG)) &
- 		(((unsigned long *)addr)[nr / BITS_PER_LONG])) != 0;
-diff -puN include/asm-generic/bitops/__ffs.h~x86-mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/__ffs.h
---- a/include/asm-generic/bitops/__ffs.h~x86-mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/__ffs.h
-@@ -9,7 +9,7 @@
-  *
-  * Undefined if no bit exists, so code should check against 0 first.
-  */
--static inline unsigned long __ffs(unsigned long word)
-+static __always_inline unsigned long __ffs(unsigned long word)
- {
- 	int num = 0;
+diff -puN include/linux/pcieport_if.h~pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2 include/linux/pcieport_if.h
+--- a/include/linux/pcieport_if.h~pci-pcie-portdrv-aviod-using-service-devices-with-wrong-interrupts-rev-2
++++ a/include/linux/pcieport_if.h
+@@ -22,6 +22,7 @@
+ #define PCIE_PORT_SERVICE_VC		8	/* Virtual Channel */
  
-diff -puN include/asm-generic/bitops/__fls.h~x86-mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/__fls.h
---- a/include/asm-generic/bitops/__fls.h~x86-mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/__fls.h
-@@ -9,7 +9,7 @@
-  *
-  * Undefined if no set bit exists, so code should check against 0 first.
-  */
--static inline unsigned long __fls(unsigned long word)
-+static __always_inline unsigned long __fls(unsigned long word)
- {
- 	int num = BITS_PER_LONG - 1;
- 
-diff -puN include/asm-generic/bitops/fls.h~x86-mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/fls.h
---- a/include/asm-generic/bitops/fls.h~x86-mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/fls.h
-@@ -9,7 +9,7 @@
-  * Note fls(0) = 0, fls(1) = 1, fls(0x80000000) = 32.
-  */
- 
--static inline int fls(int x)
-+static __always_inline int fls(int x)
- {
- 	int r = 32;
- 
-diff -puN include/asm-generic/bitops/fls64.h~x86-mark-complex-bitopsh-inlines-as-__always_inline include/asm-generic/bitops/fls64.h
---- a/include/asm-generic/bitops/fls64.h~x86-mark-complex-bitopsh-inlines-as-__always_inline
-+++ a/include/asm-generic/bitops/fls64.h
-@@ -15,7 +15,7 @@
-  * at position 64.
-  */
- #if BITS_PER_LONG == 32
--static inline int fls64(__u64 x)
-+static __always_inline int fls64(__u64 x)
- {
- 	__u32 h = x >> 32;
- 	if (h)
-@@ -23,7 +23,7 @@ static inline int fls64(__u64 x)
- 	return fls(x);
- }
- #elif BITS_PER_LONG == 64
--static inline int fls64(__u64 x)
-+static __always_inline int fls64(__u64 x)
- {
- 	if (x == 0)
- 		return 0;
+ /* Root/Upstream/Downstream Port's Interrupt Mode */
++#define PCIE_PORT_NO_IRQ		(-1)
+ #define PCIE_PORT_INTx_MODE		0
+ #define PCIE_PORT_MSI_MODE		1
+ #define PCIE_PORT_MSIX_MODE		2
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 linux-next.patch
-x86-simplify-highmem-related-kconfig-entries.patch
-nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+resume-wait-for-device-probing-to-finish.patch
+shrink_slab-handle-bad-shrinkers.patch
 
