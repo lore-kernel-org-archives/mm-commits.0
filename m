@@ -1,128 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2.patch removed from -mm tree
-Date: Mon, 26 Jan 2009 11:04:31 -0800
-Message-ID: <200901261904.n0QJ4VLZ030008@imap1.linux-foundation.org>
+Subject: [merged] i386-fix-assumed-to-be-contiguous-leaf-page-tables-for-kmap_atomic-region.patch removed from -mm tree
+Date: Mon, 26 Jan 2009 11:03:58 -0800
+Message-ID: <200901261903.n0QJ3wEq029323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49155 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753637AbZAZTFX (ORCPT
+	by vger.kernel.org with ESMTP id S1754090AbZAZTE6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jan 2009 14:05:23 -0500
+	Mon, 26 Jan 2009 14:04:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, andi@firstfloor.org, hpa@zytor.com, mingo@elte.hu, npiggin@suse.de, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCI PCIe portdrv: simplily probe callback of service drivers
+     i386: fix assumed to be contiguous leaf page tables  for kmap_atomic region
 has been removed from the -mm tree.  Its filename was
-     pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2.patch
+     i386-fix-assumed-to-be-contiguous-leaf-page-tables-for-kmap_atomic-region.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCI PCIe portdrv: simplily probe callback of service drivers
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: i386: fix assumed to be contiguous leaf page tables  for kmap_atomic region
+From: "Jan Beulich" <jbeulich@novell.com>
 
-The second argument of the ->probe() callback in struct
-pcie_port_service_driver is unnecessary and never used.  Remove it.
+Debugging and original patch from Nick Piggin <npiggin@suse.de>
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+The early fixmap pmd entry inserted at the very top of the KVA is causing the
+subsequent fixmap mapping code to not provide physically linear pte pages over
+the kmap atomic portion of the fixmap (which relies on said property to
+calculate pte addresses).
+
+This has caused weird boot failures in kmap_atomic much later in the boot
+process (initial userspace faults) on a 32-bit PAE system with a larger number
+of CPUs (smaller CPU counts tend not to run over into the next page so don't
+show up the problem).
+
+Solve this by attempting to clear out the page table, and copy any of its
+entries to the new one. Also, add a bug if a nonlinear condition is encounted
+and can't be resolved, which might save some hours of debugging if this fragile
+scheme ever breaks again...
+
+Once we have such logic, we can also use it to eliminate the early ioremap
+trickery around the page table setup for the fixmap area.  This also fixes
+potential issues with FIX_* entries sharing the leaf page table with the
+early ioremap ones getting discarded by early_ioremap_clear() and not
+restored by early_ioremap_reset().  It at once eliminates the temporary
+(and configuration, namely NR_CPUS, dependent) unavailability of early
+fixed mappings during the time the fixmap area page tables get
+constructed.
+
+Finally, also replace the hard coded calculation of the initial table space
+needed for the fixmap area with a proper one, allowing kernels configured for
+large CPU counts to actually boot.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/pciehp_acpi.c |    3 +--
- drivers/pci/hotplug/pciehp_core.c |    2 +-
- drivers/pci/pcie/aer/aerdrv.c     |    6 ++----
- drivers/pci/pcie/portdrv_core.c   |    2 +-
- include/linux/pcieport_if.h       |    3 +--
- 5 files changed, 6 insertions(+), 10 deletions(-)
+ arch/x86/include/asm/io.h |    1 
+ arch/x86/mm/init_32.c     |   46 +++++++++++++++++++++++++++++++++---
+ arch/x86/mm/ioremap.c     |   25 -------------------
+ 3 files changed, 43 insertions(+), 29 deletions(-)
 
-diff -puN drivers/pci/hotplug/pciehp_acpi.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2 drivers/pci/hotplug/pciehp_acpi.c
---- a/drivers/pci/hotplug/pciehp_acpi.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2
-+++ a/drivers/pci/hotplug/pciehp_acpi.c
-@@ -82,8 +82,7 @@ static int __initdata acpi_slot_detected
- static struct list_head __initdata dummy_slots = LIST_HEAD_INIT(dummy_slots);
+diff -puN arch/x86/include/asm/io.h~i386-fix-assumed-to-be-contiguous-leaf-page-tables-for-kmap_atomic-region arch/x86/include/asm/io.h
+--- a/arch/x86/include/asm/io.h~i386-fix-assumed-to-be-contiguous-leaf-page-tables-for-kmap_atomic-region
++++ a/arch/x86/include/asm/io.h
+@@ -99,7 +99,6 @@ extern void __iomem *ioremap_wc(unsigned
+  * A boot-time mapping is currently limited to at most 16 pages.
+  */
+ extern void early_ioremap_init(void);
+-extern void early_ioremap_clear(void);
+ extern void early_ioremap_reset(void);
+ extern void __iomem *early_ioremap(unsigned long offset, unsigned long size);
+ extern void __iomem *early_memremap(unsigned long offset, unsigned long size);
+diff -puN arch/x86/mm/init_32.c~i386-fix-assumed-to-be-contiguous-leaf-page-tables-for-kmap_atomic-region arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~i386-fix-assumed-to-be-contiguous-leaf-page-tables-for-kmap_atomic-region
++++ a/arch/x86/mm/init_32.c
+@@ -154,6 +154,11 @@ page_table_range_init(unsigned long star
+ 	unsigned long vaddr;
+ 	pgd_t *pgd;
+ 	pmd_t *pmd;
++#ifdef CONFIG_HIGHMEM
++	pte_t *lastpte = NULL;
++	int pmd_idx_kmap_begin = fix_to_virt(FIX_KMAP_END) >> PMD_SHIFT;
++	int pmd_idx_kmap_end = fix_to_virt(FIX_KMAP_BEGIN) >> PMD_SHIFT;
++#endif
  
- /* Dummy driver for dumplicate name detection */
--static int __init dummy_probe(struct pcie_device *dev,
--			      const struct pcie_port_service_id *id)
-+static int __init dummy_probe(struct pcie_device *dev)
- {
- 	int pos;
- 	u32 slot_cap;
-diff -puN drivers/pci/hotplug/pciehp_core.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2 drivers/pci/hotplug/pciehp_core.c
---- a/drivers/pci/hotplug/pciehp_core.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2
-+++ a/drivers/pci/hotplug/pciehp_core.c
-@@ -399,7 +399,7 @@ static int get_cur_bus_speed(struct hotp
- 	return 0;
+ 	vaddr = start;
+ 	pgd_idx = pgd_index(vaddr);
+@@ -165,7 +170,43 @@ page_table_range_init(unsigned long star
+ 		pmd = pmd + pmd_index(vaddr);
+ 		for (; (pmd_idx < PTRS_PER_PMD) && (vaddr != end);
+ 							pmd++, pmd_idx++) {
+-			one_page_table_init(pmd);
++			pte_t *pte;
++
++			pte = one_page_table_init(pmd);
++#ifdef CONFIG_HIGHMEM
++			/*
++			 * Something (early fixmap) may already have put a pte
++			 * page here, which causes the page table allocation
++			 * to become nonlinear. Attempt to fix it, and if it
++			 * is still nonlinear then we have to bug.
++			 */
++			if (pmd_idx_kmap_begin != pmd_idx_kmap_end
++			    && (vaddr >> PMD_SHIFT) >= pmd_idx_kmap_begin
++			    && (vaddr >> PMD_SHIFT) <= pmd_idx_kmap_end
++			    && ((__pa(pte) >> PAGE_SHIFT) < table_start
++				|| (__pa(pte) >> PAGE_SHIFT) >= table_end)) {
++				pte_t *newpte;
++				int i;
++
++				BUG_ON(after_init_bootmem);
++				newpte = alloc_low_page();
++				for (i = 0; i < PTRS_PER_PTE; i++)
++					set_pte(newpte + i, pte[i]);
++
++				paravirt_alloc_pte(&init_mm,
++						   __pa(newpte) >> PAGE_SHIFT);
++				set_pmd(pmd, __pmd(__pa(newpte)|_PAGE_TABLE));
++				BUG_ON(newpte != pte_offset_kernel(pmd, 0));
++				__flush_tlb_all();
++
++				paravirt_release_pte(__pa(pte) >> PAGE_SHIFT);
++				pte = newpte;
++			}
++			BUG_ON(vaddr < fix_to_virt(FIX_KMAP_BEGIN - 1)
++			       && vaddr > fix_to_virt(FIX_KMAP_END)
++			       && lastpte && lastpte + PTRS_PER_PTE != pte);
++			lastpte = pte;
++#endif
+ 
+ 			vaddr += PMD_SIZE;
+ 		}
+@@ -508,7 +549,6 @@ static void __init early_ioremap_page_ta
+ 	 * Fixed mappings, only the page table structure has to be
+ 	 * created - mappings will be set by set_fixmap():
+ 	 */
+-	early_ioremap_clear();
+ 	vaddr = __fix_to_virt(__end_of_fixed_addresses - 1) & PMD_MASK;
+ 	end = (FIXADDR_TOP + PMD_SIZE - 1) & PMD_MASK;
+ 	page_table_range_init(vaddr, end, pgd_base);
+@@ -801,7 +841,7 @@ static void __init find_early_table_spac
+ 	tables += PAGE_ALIGN(ptes * sizeof(pte_t));
+ 
+ 	/* for fixmap */
+-	tables += PAGE_SIZE * 2;
++	tables += PAGE_ALIGN(__end_of_fixed_addresses * sizeof(pte_t));
+ 
+ 	/*
+ 	 * RED-PEN putting page tables only on node 0 could
+diff -puN arch/x86/mm/ioremap.c~i386-fix-assumed-to-be-contiguous-leaf-page-tables-for-kmap_atomic-region arch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~i386-fix-assumed-to-be-contiguous-leaf-page-tables-for-kmap_atomic-region
++++ a/arch/x86/mm/ioremap.c
+@@ -557,34 +557,9 @@ void __init early_ioremap_init(void)
+ 	}
  }
  
--static int pciehp_probe(struct pcie_device *dev, const struct pcie_port_service_id *id)
-+static int pciehp_probe(struct pcie_device *dev)
+-void __init early_ioremap_clear(void)
+-{
+-	pmd_t *pmd;
+-
+-	if (early_ioremap_debug)
+-		printk(KERN_INFO "early_ioremap_clear()\n");
+-
+-	pmd = early_ioremap_pmd(fix_to_virt(FIX_BTMAP_BEGIN));
+-	pmd_clear(pmd);
+-	paravirt_release_pte(__pa(bm_pte) >> PAGE_SHIFT);
+-	__flush_tlb_all();
+-}
+-
+ void __init early_ioremap_reset(void)
  {
- 	int rc;
- 	struct controller *ctrl;
-diff -puN drivers/pci/pcie/aer/aerdrv.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2 drivers/pci/pcie/aer/aerdrv.c
---- a/drivers/pci/pcie/aer/aerdrv.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2
-+++ a/drivers/pci/pcie/aer/aerdrv.c
-@@ -38,8 +38,7 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
- MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_LICENSE("GPL");
- 
--static int __devinit aer_probe (struct pcie_device *dev,
--	const struct pcie_port_service_id *id );
-+static int __devinit aer_probe (struct pcie_device *dev);
- static void aer_remove(struct pcie_device *dev);
- static int aer_suspend(struct pcie_device *dev, pm_message_t state)
- {return 0;}
-@@ -207,8 +206,7 @@ static void aer_remove(struct pcie_devic
-  *
-  * Invoked when PCI Express bus loads AER service driver.
-  **/
--static int __devinit aer_probe (struct pcie_device *dev,
--				const struct pcie_port_service_id *id )
-+static int __devinit aer_probe (struct pcie_device *dev)
- {
- 	int status;
- 	struct aer_rpc *rpc;
-diff -puN drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2 drivers/pci/pcie/portdrv_core.c
---- a/drivers/pci/pcie/portdrv_core.c~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2
-+++ a/drivers/pci/pcie/portdrv_core.c
-@@ -402,7 +402,7 @@ static int pcie_port_probe_service(struc
- 		return -ENODEV;
- 
- 	pciedev = to_pcie_device(dev);
--	status = driver->probe(pciedev, driver->id_table);
-+	status = driver->probe(pciedev);
- 	if (!status) {
- 		dev_printk(KERN_DEBUG, dev, "service driver %s loaded\n",
- 			driver->name);
-diff -puN include/linux/pcieport_if.h~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2 include/linux/pcieport_if.h
---- a/include/linux/pcieport_if.h~pci-pcie-portdrv-simplily-probe-callback-of-service-drivers-rev-2
-+++ a/include/linux/pcieport_if.h
-@@ -56,8 +56,7 @@ static inline void* get_service_data(str
- 
- struct pcie_port_service_driver {
- 	const char *name;
--	int (*probe) (struct pcie_device *dev, 
--		const struct pcie_port_service_id *id);
-+	int (*probe) (struct pcie_device *dev);
- 	void (*remove) (struct pcie_device *dev);
- 	int (*suspend) (struct pcie_device *dev, pm_message_t state);
- 	int (*resume) (struct pcie_device *dev);
-_
-
-Patches currently in -mm which might be from rjw@sisk.pl are
-
-linux-next.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-resume-wait-for-device-probing-to-finish.patch
-shrink_slab-handle-bad-shrinkers.patch
-
+-	enum fixed_addresses idx;
+-	unsigned long addr, phys;
+-	pte_t *pte;
