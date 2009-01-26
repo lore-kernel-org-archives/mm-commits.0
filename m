@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-parisc-use-platform_driver_probe.patch added to -mm tree
-Date: Mon, 26 Jan 2009 13:50:01 -0800
-Message-ID: <200901262150.n0QLo1Jt004052@imap1.linux-foundation.org>
+Subject: + ads7846-pin-change-interrupt-support.patch added to -mm tree
+Date: Mon, 26 Jan 2009 15:05:06 -0800
+Message-ID: <200901262305.n0QN56Cp030285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35199 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56668 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753527AbZAZVvD (ORCPT
+	by vger.kernel.org with ESMTP id S1751621AbZAZXFs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jan 2009 16:51:03 -0500
+	Mon, 26 Jan 2009 18:05:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dannf@hp.com, a.zummo@towertech.it, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx
+Cc: mroth@nessie.de, dtor@mail.ru, imre.deak@nokia.com
 
 
 The patch titled
-     rtc-parisc: use platform_driver_probe
+     ads7846: pin change interrupt support
 has been added to the -mm tree.  Its filename is
-     rtc-parisc-use-platform_driver_probe.patch
+     ads7846-pin-change-interrupt-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-parisc: use platform_driver_probe
-From: dann frazier <dannf@hp.com>
+Subject: ads7846: pin change interrupt support
+From: Michael Roth <mroth@nessie.de>
 
-This isn't a hotpluggable device, so call platform_driver_probe
-directly in parisc_rtc_init
+Some SoC supports only pin change interrupts on GPIO pins used as irq
+lines.
 
-Signed-off-by: dann frazier <dannf@hp.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
+The ads7846 core is not affected from the additional irqs on the rising
+edge because the code accounts touch bounce anyway by kicking in a timer
+and disabling the irq after the first request and reenabling the irq after
+a timeout when there is no longer pen down detected.
+
+Signed-off-by: Michael Roth <mroth@nessie.de>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Imre Deak <imre.deak@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-parisc.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/input/touchscreen/ads7846.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-parisc.c~rtc-parisc-use-platform_driver_probe drivers/rtc/rtc-parisc.c
---- a/drivers/rtc/rtc-parisc.c~rtc-parisc-use-platform_driver_probe
-+++ a/drivers/rtc/rtc-parisc.c
-@@ -40,19 +40,14 @@ static const struct rtc_class_ops parisc
- 	.set_time = parisc_set_time,
- };
+diff -puN drivers/input/touchscreen/ads7846.c~ads7846-pin-change-interrupt-support drivers/input/touchscreen/ads7846.c
+--- a/drivers/input/touchscreen/ads7846.c~ads7846-pin-change-interrupt-support
++++ a/drivers/input/touchscreen/ads7846.c
+@@ -1133,9 +1133,15 @@ static int __devinit ads7846_probe(struc
  
--static int __devinit parisc_rtc_probe(struct platform_device *dev)
-+static int __init parisc_rtc_probe(struct platform_device *dev)
- {
- 	struct rtc_device *p;
- 
--	p = kzalloc(sizeof (*p), GFP_KERNEL);
--	if (!p)
--		return -ENOMEM;
--
- 	p = rtc_device_register("rtc-parisc", &dev->dev, &parisc_rtc_ops,
- 				THIS_MODULE);
- 	if (IS_ERR(p)) {
- 		int err = PTR_ERR(p);
--		kfree(p);
- 		return err;
+ 	if (request_irq(spi->irq, ads7846_irq, IRQF_TRIGGER_FALLING,
+ 			spi->dev.driver->name, ts)) {
+-		dev_dbg(&spi->dev, "irq %d busy?\n", spi->irq);
+-		err = -EBUSY;
+-		goto err_free_gpio;
++		dev_info(&spi->dev,
++			"trying pin change workaround on irq %d\n", spi->irq);
++		if (request_irq(spi->irq, ads7846_irq,
++				IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
++				spi->dev.driver->name, ts)) {
++			dev_dbg(&spi->dev, "irq %d busy?\n", spi->irq);
++			err = -EBUSY;
++			goto err_free_gpio;
++		}
  	}
  
-@@ -61,12 +56,11 @@ static int __devinit parisc_rtc_probe(st
- 	return 0;
- }
- 
--static int __devexit parisc_rtc_remove(struct platform_device *dev)
-+static int __exit parisc_rtc_remove(struct platform_device *dev)
- {
- 	struct rtc_device *p = platform_get_drvdata(dev);
- 
- 	rtc_device_unregister(p);
--	kfree(p);
- 
- 	return 0;
- }
-@@ -82,7 +76,7 @@ static struct platform_driver parisc_rtc
- 
- static int __init parisc_rtc_init(void)
- {
--	return platform_driver_register(&parisc_rtc_driver);
-+	return platform_driver_probe(&parisc_rtc_driver, parisc_rtc_probe);
- }
- 
- static void __exit parisc_rtc_fini(void)
+ 	err = ads784x_hwmon_register(spi, ts);
 _
 
-Patches currently in -mm which might be from dannf@hp.com are
+Patches currently in -mm which might be from mroth@nessie.de are
 
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-parisc-add-a-missing-include-for-linux-rtch.patch
-rtc-parisc-remove-redundant-locking.patch
-rtc-parisc-remove-struct-parisc_rtc.patch
-rtc-parisc-use-rtc_valid_tm-in-parisc_get_time.patch
-rtc-parisc-use-platform_driver_probe.patch
-rtc-parisc-declare-rtc_parisc_dev-as-static.patch
-rtc-parisc-remove-unnecessary-ret-variable.patch
-rtc-parisc-remove-a-couple-unnecessary-variables.patch
-rtc-parisc-rename-p-pointer-to-rtc.patch
+ads7846-pin-change-interrupt-support.patch
 
