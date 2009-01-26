@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-parisc-rename-p-pointer-to-rtc.patch added to -mm tree
-Date: Mon, 26 Jan 2009 13:50:09 -0800
-Message-ID: <200901262150.n0QLo9wj004252@imap1.linux-foundation.org>
+Subject: + rtc-parisc-use-rtc_valid_tm-in-parisc_get_time.patch added to -mm tree
+Date: Mon, 26 Jan 2009 13:49:59 -0800
+Message-ID: <200901262149.n0QLnxGU004030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48298 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753527AbZAZVu6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752516AbZAZVvD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jan 2009 16:50:58 -0500
+	Mon, 26 Jan 2009 16:51:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dannf@hp.com, a.zummo@towertech.it, grundler@parisc-linux.org, kyle@mcmartin
 
 
 The patch titled
-     rtc-parisc: rename p pointer to rtc
+     rtc-parisc: use rtc_valid_tm() in parisc_get_time
 has been added to the -mm tree.  Its filename is
-     rtc-parisc-rename-p-pointer-to-rtc.patch
+     rtc-parisc-use-rtc_valid_tm-in-parisc_get_time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-parisc: rename p pointer to rtc
+Subject: rtc-parisc: use rtc_valid_tm() in parisc_get_time
 From: dann frazier <dannf@hp.com>
+
+Use the return value of rtc_valid_tm() instead of just returning 0.
 
 Signed-off-by: dann frazier <dannf@hp.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -45,44 +47,21 @@ Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-parisc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-parisc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-parisc.c~rtc-parisc-rename-p-pointer-to-rtc drivers/rtc/rtc-parisc.c
---- a/drivers/rtc/rtc-parisc.c~rtc-parisc-rename-p-pointer-to-rtc
+diff -puN drivers/rtc/rtc-parisc.c~rtc-parisc-use-rtc_valid_tm-in-parisc_get_time drivers/rtc/rtc-parisc.c
+--- a/drivers/rtc/rtc-parisc.c~rtc-parisc-use-rtc_valid_tm-in-parisc_get_time
 +++ a/drivers/rtc/rtc-parisc.c
-@@ -38,23 +38,23 @@ static const struct rtc_class_ops parisc
+@@ -20,7 +20,7 @@ static int parisc_get_time(struct device
+ 	if (ret & RTC_BATT_BAD)
+ 		return -EOPNOTSUPP;
  
- static int __init parisc_rtc_probe(struct platform_device *dev)
- {
--	struct rtc_device *p;
-+	struct rtc_device *rtc;
- 
--	p = rtc_device_register("rtc-parisc", &dev->dev, &parisc_rtc_ops,
--				THIS_MODULE);
--	if (IS_ERR(p))
--		return PTR_ERR(p);
-+	rtc = rtc_device_register("rtc-parisc", &dev->dev, &parisc_rtc_ops,
-+				  THIS_MODULE);
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
- 
--	platform_set_drvdata(dev, p);
-+	platform_set_drvdata(dev, rtc);
- 
- 	return 0;
+-	return 0;
++	return rtc_valid_tm(tm);
  }
  
- static int __exit parisc_rtc_remove(struct platform_device *dev)
- {
--	struct rtc_device *p = platform_get_drvdata(dev);
-+	struct rtc_device *rtc = platform_get_drvdata(dev);
- 
--	rtc_device_unregister(p);
-+	rtc_device_unregister(rtc);
- 
- 	return 0;
- }
+ static int parisc_set_time(struct device *dev, struct rtc_time *tm)
 _
 
 Patches currently in -mm which might be from dannf@hp.com are
