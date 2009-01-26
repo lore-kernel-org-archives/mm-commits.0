@@ -1,95 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] regulator-minor-cleanup-of-virtual-consumer-fix.patch removed from -mm tree
-Date: Mon, 26 Jan 2009 11:04:37 -0800
-Message-ID: <200901261904.n0QJ4bZE030171@imap1.linux-foundation.org>
+Subject: [merged] pci-fix-missing-kernel-doc-and-typos.patch removed from -mm tree
+Date: Mon, 26 Jan 2009 11:04:18 -0800
+Message-ID: <200901261904.n0QJ4ITT029757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38854 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751798AbZAZTHg (ORCPT
+	by vger.kernel.org with ESMTP id S1751691AbZAZTIY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jan 2009 14:07:36 -0500
+	Mon, 26 Jan 2009 14:08:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, dbrownell@users.sourceforge.net, lrg@slimlogic.co.uk, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     regulator-minor-cleanup-of-virtual-consumer-fix
+     pci: fix missing kernel-doc and typos
 has been removed from the -mm tree.  Its filename was
-     regulator-minor-cleanup-of-virtual-consumer-fix.patch
+     pci-fix-missing-kernel-doc-and-typos.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator-minor-cleanup-of-virtual-consumer-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pci: fix missing kernel-doc and typos
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Fix pci kernel-doc parameter missing notation, correct
+function name, and fix typo:
+
+Warning(linux-2.6.28-git10//drivers/pci/pci.c:1511): No description found for parameter 'exclusive'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/virtual.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/pci/pci.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/regulator/virtual.c~regulator-minor-cleanup-of-virtual-consumer-fix drivers/regulator/virtual.c
---- a/drivers/regulator/virtual.c~regulator-minor-cleanup-of-virtual-consumer-fix
-+++ a/drivers/regulator/virtual.c
-@@ -226,6 +226,10 @@ static ssize_t set_mode(struct device *d
- 	unsigned int mode;
- 	int ret;
+diff -puN drivers/pci/pci.c~pci-fix-missing-kernel-doc-and-typos drivers/pci/pci.c
+--- a/drivers/pci/pci.c~pci-fix-missing-kernel-doc-and-typos
++++ a/drivers/pci/pci.c
+@@ -1493,16 +1493,21 @@ void pci_release_region(struct pci_dev *
+ }
  
-+	/*
-+	 * sysfs_streq() doesn't need the \n's, but we add them so the strings
-+	 * will be shared with show_mode(), above.
-+	 */
- 	if (sysfs_streq(buf, "fast\n") == 0)
- 		mode = REGULATOR_MODE_FAST;
- 	else if (sysfs_streq(buf, "normal\n") == 0)
+ /**
+- *	pci_request_region - Reserved PCI I/O and memory resource
++ *	__pci_request_region - Reserved PCI I/O and memory resource
+  *	@pdev: PCI device whose resources are to be reserved
+  *	@bar: BAR to be reserved
+  *	@res_name: Name to be associated with resource.
++ *	@exclusive: whether the region access is exclusive or not
+  *
+  *	Mark the PCI region associated with PCI device @pdev BR @bar as
+  *	being reserved by owner @res_name.  Do not access any
+  *	address inside the PCI regions unless this call returns
+  *	successfully.
+  *
++ *	If @exclusive is set, then the region is marked so that userspace
++ *	is explicitly not allowed to map the resource via /dev/mem or
++ * 	sysfs MMIO access.
++ *
+  *	Returns 0 on success, or %EBUSY on error.  A warning
+  *	message is also printed on failure.
+  */
+@@ -1541,12 +1546,12 @@ err_out:
+ }
+ 
+ /**
+- *	pci_request_region - Reserved PCI I/O and memory resource
++ *	pci_request_region - Reserve PCI I/O and memory resource
+  *	@pdev: PCI device whose resources are to be reserved
+  *	@bar: BAR to be reserved
+- *	@res_name: Name to be associated with resource.
++ *	@res_name: Name to be associated with resource
+  *
+- *	Mark the PCI region associated with PCI device @pdev BR @bar as
++ *	Mark the PCI region associated with PCI device @pdev BAR @bar as
+  *	being reserved by owner @res_name.  Do not access any
+  *	address inside the PCI regions unless this call returns
+  *	successfully.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
-kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
-i-need-old-gcc.patch
+oom-documentation-update.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-x86-optimise-x86s-do_page_fault-c-entry-point-for-the-page-fault-path.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix-3-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+kgdb-fix-kernel-doc-error.patch
+auditsc-fix-kernel-doc-notation.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+sunrpc-fix-rdma-dependency.patch
+esp-fix-section-mismatch-warning.patch
+max3100-spi-uart-driver.patch
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+pps-parallel-port-clients-support.patch
 
