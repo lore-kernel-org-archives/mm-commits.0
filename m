@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + export-get_task_comm.patch added to -mm tree
-Date: Mon, 26 Jan 2009 21:17:00 -0800
-Message-ID: <200901270517.n0R5H0nO028366@imap1.linux-foundation.org>
+Subject: + mm-get_nid_for_pfn-returns-int.patch added to -mm tree
+Date: Mon, 26 Jan 2009 22:34:01 -0800
+Message-ID: <200901270634.n0R6Y15q024866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60668 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753536AbZA0FR4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751213AbZA0GeG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 00:17:56 -0500
+	Tue, 27 Jan 2009 01:34:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, lirc@bartelmus.de
+Cc: roel.kluin@gmail.com, garyhade@us.ibm.com
 
 
 The patch titled
-     export get_task_comm()
+     mm: get_nid_for_pfn() returns int
 has been added to the -mm tree.  Its filename is
-     export-get_task_comm.patch
+     mm-get_nid_for_pfn-returns-int.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: export get_task_comm()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: get_nid_for_pfn() returns int
+From: Roel Kluin <roel.kluin@gmail.com>
 
-task_struct.comm[] is useful for debugging and driver developers want to
-use this information easily.  Direct access to task_struct.comm[] is a bit
-racy, so export the official accessor.
+get_nid_for_pfn() returns int
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Gary Hade <garyhade@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/node.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~export-get_task_comm fs/exec.c
---- a/fs/exec.c~export-get_task_comm
-+++ a/fs/exec.c
-@@ -943,6 +943,7 @@ char *get_task_comm(char *buf, struct ta
- 	task_unlock(tsk);
- 	return buf;
- }
-+EXPORT_SYMBOL_GPL(get_task_comm);
+diff -puN drivers/base/node.c~mm-get_nid_for_pfn-returns-int drivers/base/node.c
+--- a/drivers/base/node.c~mm-get_nid_for_pfn-returns-int
++++ a/drivers/base/node.c
+@@ -303,7 +303,7 @@ int unregister_mem_sect_under_nodes(stru
+ 	sect_start_pfn = section_nr_to_pfn(mem_blk->phys_index);
+ 	sect_end_pfn = sect_start_pfn + PAGES_PER_SECTION - 1;
+ 	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
+-		unsigned int nid;
++		int nid;
  
- void set_task_comm(struct task_struct *tsk, char *buf)
- {
+ 		nid = get_nid_for_pfn(pfn);
+ 		if (nid < 0)
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-get_mm_hiwater_xxx-trivial-s-define-inline.patch
-export-get_task_comm.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-ia64-implement-interrupt-enabling-rwlocks.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+paride-pgc-xs-confusion.patch
+mm-get_nid_for_pfn-returns-int.patch
+ufs-sector_t-cannot-be-negative.patch
 
