@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch added to -mm tree
-Date: Tue, 27 Jan 2009 00:12:35 -0800
-Message-ID: <200901270812.n0R8CZX4014969@imap1.linux-foundation.org>
+Subject: + kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists.patch added to -mm tree
+Date: Tue, 27 Jan 2009 00:12:33 -0800
+Message-ID: <200901270812.n0R8CXs9014924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46328 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754037AbZA0IM6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753855AbZA0IM4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 03:12:58 -0500
+	Tue, 27 Jan 2009 03:12:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, horms@verge.net.au, nhorman@tuxdriver.com, vgoyal@redhat.com
+Cc: nhorman@tuxdriver.com, horms@verge.net.au, vgoyal@redhat.com
 
 
 The patch titled
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
+     kexec: add dmesg log symbols to /proc/vmcoreinfo lists
 has been added to the -mm tree.  Its filename is
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kexec: add dmesg log symbols to /proc/vmcoreinfo lists
+From: Neil Horman <nhorman@tuxdriver.com>
 
-- switch didnt-need-to-be-a-macro to inline
+It would be nice to be able to extract the dmesg log from a vmcore file
+without needing to keep the debug symbols for the running kernel handy all
+the time.  We have a facility to do this in /proc/vmcore.  This patch adds
+the log_buf and log_end symbols to the vmcoreinfo area so that tools (like
+makedumpfile) can easily extract the dmesg logs from a vmcore image.
 
-- Remove unneeded ifdefs (we already did that in the header)
-
-- repair bouncy enter key
-
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
 Cc: Simon Horman <horms@verge.net.au>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    5 ++++-
- kernel/kexec.c         |    2 --
- kernel/printk.c        |    1 -
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/kernel.h |    2 ++
+ kernel/kexec.c         |    3 +++
+ kernel/printk.c        |    8 ++++++++
+ 3 files changed, 13 insertions(+)
 
-diff -puN include/linux/kernel.h~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix include/linux/kernel.h
---- a/include/linux/kernel.h~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
+diff -puN include/linux/kernel.h~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists include/linux/kernel.h
+--- a/include/linux/kernel.h~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists
 +++ a/include/linux/kernel.h
-@@ -254,7 +254,10 @@ static inline int printk_ratelimit(void)
+@@ -242,6 +242,7 @@ extern struct ratelimit_state printk_rat
+ extern int printk_ratelimit(void);
+ extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
+ 				   unsigned int interval_msec);
++void log_buf_kexec_setup(void);
+ #else
+ static inline int vprintk(const char *s, va_list args)
+ 	__attribute__ ((format (printf, 1, 0)));
+@@ -253,6 +254,7 @@ static inline int printk_ratelimit(void)
  static inline bool printk_timed_ratelimit(unsigned long *caller_jiffies, \
  					  unsigned int interval_msec)	\
  		{ return false; }
--#define log_buf_kexec_setup() do {} while(0)
-+
-+static inline void log_buf_kexec_setup(void)
-+{
-+}
++#define log_buf_kexec_setup() do {} while(0)
  #endif
  
  extern int printk_needs_cpu(int cpu);
-diff -puN kernel/kexec.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix kernel/kexec.c
---- a/kernel/kexec.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
+diff -puN kernel/kexec.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists kernel/kexec.c
+--- a/kernel/kexec.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists
 +++ a/kernel/kexec.c
-@@ -1409,9 +1409,7 @@ static int __init crash_save_vmcoreinfo_
+@@ -1409,6 +1409,9 @@ static int __init crash_save_vmcoreinfo_
  	VMCOREINFO_OFFSET(list_head, prev);
  	VMCOREINFO_OFFSET(vm_struct, addr);
  	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
--#ifdef CONFIG_PRINTK
- 	log_buf_kexec_setup();
--#endif
++#ifdef CONFIG_PRINTK
++	log_buf_kexec_setup();
++#endif
  	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
  	VMCOREINFO_NUMBER(NR_FREE_PAGES);
  	VMCOREINFO_NUMBER(PG_lru);
-diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix kernel/printk.c
---- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
+diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists kernel/printk.c
+--- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists
 +++ a/kernel/printk.c
-@@ -143,7 +143,6 @@ void log_buf_kexec_setup(void)
- 	VMCOREINFO_SYMBOL(log_end);
- }
+@@ -32,6 +32,7 @@
+ #include <linux/security.h>
+ #include <linux/bootmem.h>
+ #include <linux/syscalls.h>
++#include <linux/kexec.h>
  
--
+ #include <asm/uaccess.h>
+ 
+@@ -136,6 +137,13 @@ static char *log_buf = __log_buf;
+ static int log_buf_len = __LOG_BUF_LEN;
+ static unsigned logged_chars; /* Number of chars produced since last read+clear operation */
+ 
++void log_buf_kexec_setup(void)
++{
++	VMCOREINFO_SYMBOL(log_buf);
++	VMCOREINFO_SYMBOL(log_end);
++}
++
++
  static int __init log_buf_len_setup(char *str)
  {
  	unsigned size = memparse(str, &str);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nhorman@tuxdriver.com are
 
-origin.patch
-kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
-i-need-old-gcc.patch
 linux-next.patch
-next-remove-localversion.patch
-acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
