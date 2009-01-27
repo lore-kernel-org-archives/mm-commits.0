@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-further-changes-from-macro-to-inline-function-in-fsh.patch added to -mm tree
-Date: Tue, 27 Jan 2009 12:55:16 -0800
-Message-ID: <200901272055.n0RKtGOi005410@imap1.linux-foundation.org>
+Subject: + acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read.patch added to -mm tree
+Date: Tue, 27 Jan 2009 13:05:16 -0800
+Message-ID: <200901272105.n0RL5HVm017707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35449 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751856AbZA0U4z (ORCPT
+	by vger.kernel.org with ESMTP id S1756111AbZA0VGF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 15:56:55 -0500
+	Tue, 27 Jan 2009 16:06:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: swhiteho@redhat.com, randy.dunlap@oracle.com, viro@zeniv.linux.org.uk
+Cc: hmacht@suse.de, Li@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, marvin@mydatex.cz, rui.zhang@intel.com, shaohua.li@intel.com, stable@kernel.org
 
 
 The patch titled
-     vfs: further changes from macro to inline function in fs.h
+     acpi: dock: don't evaluate _STA on every show_docked sysfs read
 has been added to the -mm tree.  Its filename is
-     vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
+     acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: further changes from macro to inline function in fs.h
-From: Steven Whitehouse <swhiteho@redhat.com>
+Subject: acpi: dock: don't evaluate _STA on every show_docked sysfs read
+From: Holger Macht <hmacht@suse.de>
 
-There is a second set of macros for when CONFIG_FILE_LOCKING is not set. 
-This patch updates those to become inline functions as well.
+Some devices trigger a DEVICE_CHECK on every evalutation of _STA.  This
+can also be seen in commit 8b59560a3baf2e7c24e0fb92ea5d09eca92805db (ACPI:
+dock: avoid check _STA method).  If an undock is processed, the dock
+driver sends a uevent and userspace might read the show_docked property in
+sysfs.  This causes an evaluation of _STA of the particular device which
+causes the dock driver to immediately dock again.
 
-Signed-off-by: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+In any case, evaluation of _STA (show_docked) does not necessarily mean
+that we are docked, so check with the internal device structure.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=12360
+
+Signed-off-by: Holger Macht <hmacht@suse.de>
+Reported-by: Daniel Smolik <marvin@mydatex.cz>
+Cc: Len Brown <lenb@kernel.org>
+Cc: <Li@suse.de>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   45 ++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 38 insertions(+), 7 deletions(-)
+ drivers/acpi/dock.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/fs.h~vfs-further-changes-from-macro-to-inline-function-in-fsh include/linux/fs.h
---- a/include/linux/fs.h~vfs-further-changes-from-macro-to-inline-function-in-fsh
-+++ a/include/linux/fs.h
-@@ -1816,13 +1816,44 @@ static inline int break_lease(struct ino
- 	return 0;
- }
- #else /* !CONFIG_FILE_LOCKING */
--#define locks_mandatory_locked(a) ({ 0; })
--#define locks_mandatory_area(a, b, c, d, e) ({ 0; })
--#define __mandatory_lock(a) ({ 0; })
--#define mandatory_lock(a) ({ 0; })
--#define locks_verify_locked(a) ({ 0; })
--#define locks_verify_truncate(a, b, c) ({ 0; })
--#define break_lease(a, b) ({ 0; })
-+static inline int locks_mandatory_locked(struct inode *inode)
-+{
-+	return 0;
-+}
+diff -puN drivers/acpi/dock.c~acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read
++++ a/drivers/acpi/dock.c
+@@ -855,10 +855,14 @@ fdd_out:
+ static ssize_t show_docked(struct device *dev,
+ 			   struct device_attribute *attr, char *buf)
+ {
++	struct acpi_device *tmp;
 +
-+static inline int locks_mandatory_area(int rw, struct inode *inode,
-+				       struct file *filp, loff_t offset,
-+				       size_t count)
-+{
-+	return 0;
-+}
-+
-+static inline int __mandatory_lock(struct inode *inode)
-+{
-+	return 0;
-+}
-+
-+static inline int mandatory_lock(struct inode *inode)
-+{
-+	return 0;
-+}
-+
-+static inline int locks_verify_locked(struct inode *inode)
-+{
-+	return 0;
-+}
-+
-+static inline int locks_verify_truncate(struct inode *inode, struct file *filp,
-+					size_t size)
-+{
-+	return 0;
-+}
-+
-+static inline int break_lease(struct inode *inode, unsigned int mode)
-+{
-+	return 0;
-+}
-+
- #endif /* CONFIG_FILE_LOCKING */
+ 	struct dock_station *dock_station = *((struct dock_station **)
+ 		dev->platform_data);
+-	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
  
- /* fs/open.c */
++	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
++		return snprintf(buf, PAGE_SIZE, "1\n");
++	return snprintf(buf, PAGE_SIZE, "0\n");
+ }
+ static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
+ 
 _
 
-Patches currently in -mm which might be from swhiteho@redhat.com are
+Patches currently in -mm which might be from hmacht@suse.de are
 
-linux-next.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
+acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read.patch
+acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch
 
