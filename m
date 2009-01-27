@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-efs-return-f_fsid-for-statfs2.patch added to -mm tree
-Date: Tue, 27 Jan 2009 00:00:10 -0800
-Message-ID: <200901270800.n0R80AvJ032341@imap1.linux-foundation.org>
+Subject: + fs-hpfs-return-f_fsid-for-statfs2.patch added to -mm tree
+Date: Tue, 27 Jan 2009 00:00:15 -0800
+Message-ID: <200901270800.n0R80FAO032449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46134 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751596AbZA0IAq (ORCPT
+	by vger.kernel.org with ESMTP id S1751968AbZA0IAv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 03:00:46 -0500
+	Tue, 27 Jan 2009 03:00:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: coly.li@suse.de
+Cc: coly.li@suse.de, mikulas@artax.karlin.mff.cuni.cz
 
 
 The patch titled
-     fs/efs: return f_fsid for statfs(2)
+     fs/hpfs: return f_fsid for statfs(2)
 has been added to the -mm tree.  Its filename is
-     fs-efs-return-f_fsid-for-statfs2.patch
+     fs-hpfs-return-f_fsid-for-statfs2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/efs: return f_fsid for statfs(2)
+Subject: fs/hpfs: return f_fsid for statfs(2)
 From: Coly Li <coly.li@suse.de>
 
-Make efs return f_fsid info for statfs(2), and do a little variable
-renaming in efs_statfs().
+Make hpfs return f_fsid info for statfs(2).
 
 Signed-off-by: Coly Li <coly.li@suse.de>
+Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/super.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ fs/hpfs/super.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/efs/super.c~fs-efs-return-f_fsid-for-statfs2 fs/efs/super.c
---- a/fs/efs/super.c~fs-efs-return-f_fsid-for-statfs2
-+++ a/fs/efs/super.c
-@@ -329,18 +329,22 @@ out_no_fs:
- }
+diff -puN fs/hpfs/super.c~fs-hpfs-return-f_fsid-for-statfs2 fs/hpfs/super.c
+--- a/fs/hpfs/super.c~fs-hpfs-return-f_fsid-for-statfs2
++++ a/fs/hpfs/super.c
+@@ -136,6 +136,7 @@ static int hpfs_statfs(struct dentry *de
+ {
+ 	struct super_block *s = dentry->d_sb;
+ 	struct hpfs_sb_info *sbi = hpfs_sb(s);
++	u64 id = huge_encode_dev(s->s_bdev->bd_dev);
+ 	lock_kernel();
  
- static int efs_statfs(struct dentry *dentry, struct kstatfs *buf) {
--	struct efs_sb_info *sb = SUPER_INFO(dentry->d_sb);
-+	struct super_block *sb = dentry->d_sb;
-+	struct efs_sb_info *sbi = SUPER_INFO(sb);
-+	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
- 
- 	buf->f_type    = EFS_SUPER_MAGIC;	/* efs magic number */
- 	buf->f_bsize   = EFS_BLOCKSIZE;		/* blocksize */
--	buf->f_blocks  = sb->total_groups *	/* total data blocks */
--			(sb->group_size - sb->inode_blocks);
--	buf->f_bfree   = sb->data_free;		/* free data blocks */
--	buf->f_bavail  = sb->data_free;		/* free blocks for non-root */
--	buf->f_files   = sb->total_groups *	/* total inodes */
--			sb->inode_blocks *
-+	buf->f_blocks  = sbi->total_groups *	/* total data blocks */
-+			(sbi->group_size - sbi->inode_blocks);
-+	buf->f_bfree   = sbi->data_free;	/* free data blocks */
-+	buf->f_bavail  = sbi->data_free;	/* free blocks for non-root */
-+	buf->f_files   = sbi->total_groups *	/* total inodes */
-+			sbi->inode_blocks *
- 			(EFS_BLOCKSIZE / sizeof(struct efs_dinode));
--	buf->f_ffree   = sb->inode_free;	/* free inodes */
-+	buf->f_ffree   = sbi->inode_free;	/* free inodes */
+ 	/*if (sbi->sb_n_free == -1) {*/
+@@ -149,6 +150,8 @@ static int hpfs_statfs(struct dentry *de
+ 	buf->f_bavail = sbi->sb_n_free;
+ 	buf->f_files = sbi->sb_dirband_size / 4;
+ 	buf->f_ffree = sbi->sb_n_free_dnodes;
 +	buf->f_fsid.val[0] = (u32)id;
 +	buf->f_fsid.val[1] = (u32)(id >> 32);
- 	buf->f_namelen = EFS_MAXNAMELEN;	/* max filename length */
+ 	buf->f_namelen = 254;
  
- 	return 0;
+ 	unlock_kernel();
 _
 
 Patches currently in -mm which might be from coly.li@suse.de are
