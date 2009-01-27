@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hpfs-return-f_fsid-for-statfs2.patch added to -mm tree
-Date: Tue, 27 Jan 2009 00:00:15 -0800
-Message-ID: <200901270800.n0R80FAO032449@imap1.linux-foundation.org>
+Subject: + fs-befs-return-f_fsid-for-statfs2.patch added to -mm tree
+Date: Tue, 27 Jan 2009 00:00:07 -0800
+Message-ID: <200901270800.n0R807Du032314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56921 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751968AbZA0IAv (ORCPT
+	by vger.kernel.org with ESMTP id S1751697AbZA0IAr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 03:00:51 -0500
+	Tue, 27 Jan 2009 03:00:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: coly.li@suse.de, mikulas@artax.karlin.mff.cuni.cz
+Cc: coly.li@suse.de, rathamahata@php4.ru
 
 
 The patch titled
-     fs/hpfs: return f_fsid for statfs(2)
+     fs/befs: return f_fsid for statfs(2)
 has been added to the -mm tree.  Its filename is
-     fs-hpfs-return-f_fsid-for-statfs2.patch
+     fs-befs-return-f_fsid-for-statfs2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/hpfs: return f_fsid for statfs(2)
+Subject: fs/befs: return f_fsid for statfs(2)
 From: Coly Li <coly.li@suse.de>
 
-Make hpfs return f_fsid info for statfs(2).
+Make befs return f_fsid info for statfs(2).
 
 Signed-off-by: Coly Li <coly.li@suse.de>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Cc: Sergey S. Kostyliov <rathamahata@php4.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/super.c |    3 +++
+ fs/befs/linuxvfs.c |    3 +++
  1 file changed, 3 insertions(+)
 
-diff -puN fs/hpfs/super.c~fs-hpfs-return-f_fsid-for-statfs2 fs/hpfs/super.c
---- a/fs/hpfs/super.c~fs-hpfs-return-f_fsid-for-statfs2
-+++ a/fs/hpfs/super.c
-@@ -136,6 +136,7 @@ static int hpfs_statfs(struct dentry *de
+diff -puN fs/befs/linuxvfs.c~fs-befs-return-f_fsid-for-statfs2 fs/befs/linuxvfs.c
+--- a/fs/befs/linuxvfs.c~fs-befs-return-f_fsid-for-statfs2
++++ a/fs/befs/linuxvfs.c
+@@ -900,6 +900,7 @@ static int
+ befs_statfs(struct dentry *dentry, struct kstatfs *buf)
  {
- 	struct super_block *s = dentry->d_sb;
- 	struct hpfs_sb_info *sbi = hpfs_sb(s);
-+	u64 id = huge_encode_dev(s->s_bdev->bd_dev);
- 	lock_kernel();
+ 	struct super_block *sb = dentry->d_sb;
++	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
  
- 	/*if (sbi->sb_n_free == -1) {*/
-@@ -149,6 +150,8 @@ static int hpfs_statfs(struct dentry *de
- 	buf->f_bavail = sbi->sb_n_free;
- 	buf->f_files = sbi->sb_dirband_size / 4;
- 	buf->f_ffree = sbi->sb_n_free_dnodes;
+ 	befs_debug(sb, "---> befs_statfs()");
+ 
+@@ -910,6 +911,8 @@ befs_statfs(struct dentry *dentry, struc
+ 	buf->f_bavail = buf->f_bfree;
+ 	buf->f_files = 0;	/* UNKNOWN */
+ 	buf->f_ffree = 0;	/* UNKNOWN */
 +	buf->f_fsid.val[0] = (u32)id;
 +	buf->f_fsid.val[1] = (u32)(id >> 32);
- 	buf->f_namelen = 254;
+ 	buf->f_namelen = BEFS_NAME_LEN;
  
- 	unlock_kernel();
+ 	befs_debug(sb, "<--- befs_statfs()");
 _
 
 Patches currently in -mm which might be from coly.li@suse.de are
