@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xpc-ensure-flags-are-updated-before-bte_copy-update.patch added to -mm tree
-Date: Tue, 27 Jan 2009 15:26:11 -0800
-Message-ID: <200901272326.n0RNQBlo029856@imap1.linux-foundation.org>
+Subject: + sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch added to -mm tree
+Date: Tue, 27 Jan 2009 15:44:48 -0800
+Message-ID: <200901272344.n0RNimk7020287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753186AbZA0X0V (ORCPT
+	by vger.kernel.org with ESMTP id S1753461AbZA0XpX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 18:26:21 -0500
+	Tue, 27 Jan 2009 18:45:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: holt@sgi.com, dcn@sgi.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, cornelia.huck@de.ibm.com, ebiederm@aristanetworks.com, gregkh@suse.de, tj@kernel.org, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     sgi-xpc-ensure-flags-are-updated-before-bte_copy update
+     sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix
 has been added to the -mm tree.  Its filename is
-     sgi-xpc-ensure-flags-are-updated-before-bte_copy-update.patch
+     sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xpc-ensure-flags-are-updated-before-bte_copy update
-From: Robin Holt <holt@sgi.com>
+Subject: sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The clearing of the msg->flags needs a barrier between it and the notify
-of the channel threads that the messages are cleaned and ready for use.
-
-I also modified all the *mb() operations to be prefixed with smp_ as
-they all are really only needed when running with multiple cpus.
-
-Signed-off-by: Robin Holt <holt@sgi.com>
-Signed-off-by: Dean Nelson <dcn@sgi.com>
-Cc: <stable@kernel.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Eric W. Biederman <ebiederm@aristanetworks.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc_sn2.c |   10 +++++-----
- drivers/misc/sgi-xp/xpc_uv.c  |    2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ fs/sysfs/inode.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xpc-ensure-flags-are-updated-before-bte_copy-update drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xpc-ensure-flags-are-updated-before-bte_copy-update
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -1836,7 +1836,7 @@ xpc_process_msg_chctl_flags_sn2(struct x
- 		 */
- 		xpc_clear_remote_msgqueue_flags_sn2(ch);
+diff -puN fs/sysfs/inode.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix fs/sysfs/inode.c
+--- a/fs/sysfs/inode.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix
++++ a/fs/sysfs/inode.c
+@@ -215,6 +215,13 @@ struct inode * sysfs_get_inode(struct sy
+ 	return inode;
+ }
  
--		wmb();	/* ensure flags have been cleared before bte_copy */
-+		smp_wmb(); /* ensure flags have been cleared before bte_copy */
- 		ch_sn2->w_remote_GP.put = ch_sn2->remote_GP.put;
- 
- 		dev_dbg(xpc_chan, "w_remote_GP.put changed to %ld, partid=%d, "
-@@ -1935,7 +1935,7 @@ xpc_get_deliverable_payload_sn2(struct x
- 			break;
- 
- 		get = ch_sn2->w_local_GP.get;
--		rmb();	/* guarantee that .get loads before .put */
-+		smp_rmb();	/* guarantee that .get loads before .put */
- 		if (get == ch_sn2->w_remote_GP.put)
- 			break;
- 
-@@ -2054,7 +2054,7 @@ xpc_allocate_msg_sn2(struct xpc_channel 
- 	while (1) {
- 
- 		put = ch_sn2->w_local_GP.put;
--		rmb();	/* guarantee that .put loads before .get */
-+		smp_rmb();	/* guarantee that .put loads before .get */
- 		if (put - ch_sn2->w_remote_GP.get < ch->local_nentries) {
- 
- 			/* There are available message entries. We need to try
-@@ -2187,7 +2187,7 @@ xpc_send_payload_sn2(struct xpc_channel 
- 	 * The preceding store of msg->flags must occur before the following
- 	 * load of local_GP->put.
- 	 */
--	mb();
-+	smp_mb();
- 
- 	/* see if the message is next in line to be sent, if so send it */
- 
-@@ -2288,7 +2288,7 @@ xpc_received_payload_sn2(struct xpc_chan
- 	 * The preceding store of msg->flags must occur before the following
- 	 * load of local_GP->get.
- 	 */
--	mb();
-+	smp_mb();
- 
- 	/*
- 	 * See if this message is next in line to be acknowledged as having
-diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xpc-ensure-flags-are-updated-before-bte_copy-update drivers/misc/sgi-xp/xpc_uv.c
---- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xpc-ensure-flags-are-updated-before-bte_copy-update
-+++ a/drivers/misc/sgi-xp/xpc_uv.c
-@@ -1423,7 +1423,7 @@ xpc_send_payload_uv(struct xpc_channel *
- 		atomic_inc(&ch->n_to_notify);
- 
- 		msg_slot->key = key;
--		wmb(); /* a non-NULL func must hit memory after the key */
-+		smp_wmb(); /* a non-NULL func must hit memory after the key */
- 		msg_slot->func = func;
- 
- 		if (ch->flags & XPC_C_DISCONNECTING) {
++/*
++ * The sysfs_dirent serves as both an inode and a directory entry for sysfs.
++ * To prevent the sysfs inode numbers from being freed prematurely we take a
++ * reference to sysfs_dirent from the sysfs inode.  A
++ * super_operations.delete_inode() implementation is needed to drop that
++ * reference upon inode destruction.
++ */
+ void sysfs_delete_inode(struct inode *inode)
+ {
+ 	struct sysfs_dirent *sd  = inode->i_private;
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sgi-xpc-ensure-flags-are-updated-before-bte_copy.patch
-sgi-xpc-ensure-flags-are-updated-before-bte_copy-update.patch
-sgi-xpc-remove-null-pointer-dereference.patch
-sgi-xpc-fixup-stale-dbug_on-statements.patch
-factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch
-allow-rwlocks-to-re-enable-interrupts.patch
-ia64-implement-interrupt-enabling-rwlocks.patch
+origin.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
+i-need-old-gcc.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+clocksource-pass-clocksource-to-read-callback.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
