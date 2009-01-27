@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-romfs-return-f_fsid-for-statfs2.patch added to -mm tree
-Date: Tue, 27 Jan 2009 00:00:26 -0800
-Message-ID: <200901270800.n0R80QSN032723@imap1.linux-foundation.org>
+Subject: + fs-reiserfs-return-f_fsid-for-statfs2.patch added to -mm tree
+Date: Tue, 27 Jan 2009 00:00:25 -0800
+Message-ID: <200901270800.n0R80Ppf032664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60784 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754511AbZA0IGX (ORCPT
+	by vger.kernel.org with ESMTP id S1752331AbZA0IGw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 03:06:23 -0500
+	Tue, 27 Jan 2009 03:06:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: coly.li@suse.de
 
 
 The patch titled
-     fs/romfs: return f_fsid for statfs(2)
+     fs/reiserfs: return f_fsid for statfs(2)
 has been added to the -mm tree.  Its filename is
-     fs-romfs-return-f_fsid-for-statfs2.patch
+     fs-reiserfs-return-f_fsid-for-statfs2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/romfs: return f_fsid for statfs(2)
+Subject: fs/reiserfs: return f_fsid for statfs(2)
 From: Coly Li <coly.li@suse.de>
 
-Make romfs return f_fsid info for statfs(2).
+Make reiserfs3 return f_fsid info for statfs(2).
 
 Signed-off-by: Coly Li <coly.li@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/inode.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/reiserfs/super.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/romfs/inode.c~fs-romfs-return-f_fsid-for-statfs2 fs/romfs/inode.c
---- a/fs/romfs/inode.c~fs-romfs-return-f_fsid-for-statfs2
-+++ a/fs/romfs/inode.c
-@@ -186,11 +186,17 @@ outnobh:
- static int
- romfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+diff -puN fs/reiserfs/super.c~fs-reiserfs-return-f_fsid-for-statfs2 fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~fs-reiserfs-return-f_fsid-for-statfs2
++++ a/fs/reiserfs/super.c
+@@ -1881,7 +1881,9 @@ error:
+ 
+ static int reiserfs_statfs(struct dentry *dentry, struct kstatfs *buf)
  {
+-	struct reiserfs_super_block *rs = SB_DISK_SUPER_BLOCK(dentry->d_sb);
 +	struct super_block *sb = dentry->d_sb;
++	struct reiserfs_super_block *rs = SB_DISK_SUPER_BLOCK(sb);
 +	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
-+
- 	buf->f_type = ROMFS_MAGIC;
- 	buf->f_bsize = ROMBSIZE;
- 	buf->f_bfree = buf->f_bavail = buf->f_ffree;
- 	buf->f_blocks = (romfs_maxsize(dentry->d_sb)+ROMBSIZE-1)>>ROMBSBITS;
- 	buf->f_namelen = ROMFS_MAXFN;
+ 
+ 	buf->f_namelen = (REISERFS_MAX_NAME(s->s_blocksize));
+ 	buf->f_bfree = sb_free_blocks(rs);
+@@ -1890,6 +1892,9 @@ static int reiserfs_statfs(struct dentry
+ 	buf->f_bsize = dentry->d_sb->s_blocksize;
+ 	/* changed to accommodate gcc folks. */
+ 	buf->f_type = REISERFS_SUPER_MAGIC;
 +	buf->f_fsid.val[0] = (u32)id;
 +	buf->f_fsid.val[1] = (u32)(id >> 32);
 +
