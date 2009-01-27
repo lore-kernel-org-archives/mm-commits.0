@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hfs-return-f_fsid-for-statfs2.patch added to -mm tree
-Date: Tue, 27 Jan 2009 00:00:12 -0800
-Message-ID: <200901270800.n0R80CuU032349@imap1.linux-foundation.org>
+Subject: + fs-hfsplus-return-f_fsid-for-statfs2.patch added to -mm tree
+Date: Tue, 27 Jan 2009 00:00:13 -0800
+Message-ID: <200901270800.n0R80DMx032394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752122AbZA0IBD (ORCPT
+	by vger.kernel.org with ESMTP id S1752122AbZA0IBB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 03:01:03 -0500
+	Tue, 27 Jan 2009 03:01:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: coly.li@suse.de, zippel@linux-m68k.org
 
 
 The patch titled
-     fs/hfs: return f_fsid for statfs(2)
+     fs/hfsplus: return f_fsid for statfs(2)
 has been added to the -mm tree.  Its filename is
-     fs-hfs-return-f_fsid-for-statfs2.patch
+     fs-hfsplus-return-f_fsid-for-statfs2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/hfs: return f_fsid for statfs(2)
+Subject: fs/hfsplus: return f_fsid for statfs(2)
 From: Coly Li <coly.li@suse.de>
 
-Make hfs return f_fsid info for statfs(2).
+Make hfsplus return f_fsid info for statfs(2).
 
 Signed-off-by: Coly Li <coly.li@suse.de>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/super.c |    3 +++
+ fs/hfsplus/super.c |    3 +++
  1 file changed, 3 insertions(+)
 
-diff -puN fs/hfs/super.c~fs-hfs-return-f_fsid-for-statfs2 fs/hfs/super.c
---- a/fs/hfs/super.c~fs-hfs-return-f_fsid-for-statfs2
-+++ a/fs/hfs/super.c
-@@ -82,6 +82,7 @@ static void hfs_put_super(struct super_b
- static int hfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+diff -puN fs/hfsplus/super.c~fs-hfsplus-return-f_fsid-for-statfs2 fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~fs-hfsplus-return-f_fsid-for-statfs2
++++ a/fs/hfsplus/super.c
+@@ -229,6 +229,7 @@ static void hfsplus_put_super(struct sup
+ static int hfsplus_statfs(struct dentry *dentry, struct kstatfs *buf)
  {
  	struct super_block *sb = dentry->d_sb;
 +	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
  
- 	buf->f_type = HFS_SUPER_MAGIC;
+ 	buf->f_type = HFSPLUS_SUPER_MAGIC;
  	buf->f_bsize = sb->s_blocksize;
-@@ -90,6 +91,8 @@ static int hfs_statfs(struct dentry *den
+@@ -237,6 +238,8 @@ static int hfsplus_statfs(struct dentry 
  	buf->f_bavail = buf->f_bfree;
- 	buf->f_files = HFS_SB(sb)->fs_ablocks;
- 	buf->f_ffree = HFS_SB(sb)->free_ablocks;
+ 	buf->f_files = 0xFFFFFFFF;
+ 	buf->f_ffree = 0xFFFFFFFF - HFSPLUS_SB(sb).next_cnid;
 +	buf->f_fsid.val[0] = (u32)id;
 +	buf->f_fsid.val[1] = (u32)(id >> 32);
- 	buf->f_namelen = HFS_NAMELEN;
+ 	buf->f_namelen = HFSPLUS_MAX_STRLEN;
  
  	return 0;
 _
