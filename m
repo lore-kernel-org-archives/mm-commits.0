@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-get_nid_for_pfn-returns-int.patch added to -mm tree
-Date: Mon, 26 Jan 2009 22:34:01 -0800
-Message-ID: <200901270634.n0R6Y15q024866@imap1.linux-foundation.org>
+Subject: + dvb-negative-internal-sub_range-wont-get-noticed.patch added to -mm tree
+Date: Mon, 26 Jan 2009 22:40:48 -0800
+Message-ID: <200901270640.n0R6emcD000600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60668 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751213AbZA0GeG (ORCPT
+	by vger.kernel.org with ESMTP id S1751655AbZA0Gk5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 01:34:06 -0500
+	Tue, 27 Jan 2009 01:40:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, garyhade@us.ibm.com
+Cc: roel.kluin@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     mm: get_nid_for_pfn() returns int
+     dvb: negative internal->sub_range won't get noticed
 has been added to the -mm tree.  Its filename is
-     mm-get_nid_for_pfn-returns-int.patch
+     dvb-negative-internal-sub_range-wont-get-noticed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: get_nid_for_pfn() returns int
+Subject: dvb: negative internal->sub_range won't get noticed
 From: Roel Kluin <roel.kluin@gmail.com>
 
-get_nid_for_pfn() returns int
+internal->sub_range is unsigned, a negative won't get noticed.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Gary Hade <garyhade@us.ibm.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb/frontends/stb0899_algo.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/base/node.c~mm-get_nid_for_pfn-returns-int drivers/base/node.c
---- a/drivers/base/node.c~mm-get_nid_for_pfn-returns-int
-+++ a/drivers/base/node.c
-@@ -303,7 +303,7 @@ int unregister_mem_sect_under_nodes(stru
- 	sect_start_pfn = section_nr_to_pfn(mem_blk->phys_index);
- 	sect_end_pfn = sect_start_pfn + PAGES_PER_SECTION - 1;
- 	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
--		unsigned int nid;
-+		int nid;
+diff -puN drivers/media/dvb/frontends/stb0899_algo.c~dvb-negative-internal-sub_range-wont-get-noticed drivers/media/dvb/frontends/stb0899_algo.c
+--- a/drivers/media/dvb/frontends/stb0899_algo.c~dvb-negative-internal-sub_range-wont-get-noticed
++++ a/drivers/media/dvb/frontends/stb0899_algo.c
+@@ -467,13 +467,14 @@ static void next_sub_range(struct stb089
  
- 		nid = get_nid_for_pfn(pfn);
- 		if (nid < 0)
-_
-
-Patches currently in -mm which might be from roel.kluin@gmail.com are
-
-linux-next.patch
-paride-pgc-xs-confusion.patch
-mm-get_nid_for_pfn-returns-int.patch
-ufs-sector_t-cannot-be-negative.patch
-
+ 	if (internal->sub_dir > 0) {
+ 		old_sub_range = internal->sub_range;
+-		internal->sub_range = MIN((internal->srch_range / 2) -
++		if (internal->tuner_offst + internal->sub_range / 2 >=
++				internal->srch_range / 2)
++			internal->sub_range = 0;
++		else
++			internal->sub_range = MIN((internal->srch_range / 2) -
+ 					  (internal->tuner_offst + internal->sub_range / 2),
+ 					   internal->sub_range);
+ 
+-		if (internal->sub_range < 0)
+-			internal->sub_range = 0;
