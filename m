@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-isofs-return-f_fsid-for-statfs2.patch added to -mm tree
-Date: Tue, 27 Jan 2009 00:00:16 -0800
-Message-ID: <200901270800.n0R80GHk032508@imap1.linux-foundation.org>
+Subject: + fs-qnx4-return-f_fsid-for-statfs2.patch added to -mm tree
+Date: Tue, 27 Jan 2009 00:00:23 -0800
+Message-ID: <200901270800.n0R80NsL032609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41378 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752093AbZA0IHy (ORCPT
+	by vger.kernel.org with ESMTP id S1751492AbZA0IIW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 03:07:54 -0500
+	Tue, 27 Jan 2009 03:08:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: coly.li@suse.de, jack@ucw.cz
+Cc: coly.li@suse.de, al@alarsen.net
 
 
 The patch titled
-     fs/isofs: return f_fsid for statfs(2)
+     fs/qnx4: return f_fsid for statfs(2)
 has been added to the -mm tree.  Its filename is
-     fs-isofs-return-f_fsid-for-statfs2.patch
+     fs-qnx4-return-f_fsid-for-statfs2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/isofs: return f_fsid for statfs(2)
+Subject: fs/qnx4: return f_fsid for statfs(2)
 From: Coly Li <coly.li@suse.de>
 
-Make isofs return f_fsid info for statfs(2).
+Make qnx4 file system return f_fsid info for statfs(2).
 
 Signed-off-by: Coly Li <coly.li@suse.de>
-Cc: Jan Kara <jack@ucw.cz>
+Acked-by: Anders Larsen <al@alarsen.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/inode.c |    3 +++
+ fs/qnx4/inode.c |    3 +++
  1 file changed, 3 insertions(+)
 
-diff -puN fs/isofs/inode.c~fs-isofs-return-f_fsid-for-statfs2 fs/isofs/inode.c
---- a/fs/isofs/inode.c~fs-isofs-return-f_fsid-for-statfs2
-+++ a/fs/isofs/inode.c
-@@ -923,6 +923,7 @@ out_freesbi:
- static int isofs_statfs (struct dentry *dentry, struct kstatfs *buf)
+diff -puN fs/qnx4/inode.c~fs-qnx4-return-f_fsid-for-statfs2 fs/qnx4/inode.c
+--- a/fs/qnx4/inode.c~fs-qnx4-return-f_fsid-for-statfs2
++++ a/fs/qnx4/inode.c
+@@ -282,6 +282,7 @@ unsigned long qnx4_block_map( struct ino
+ static int qnx4_statfs(struct dentry *dentry, struct kstatfs *buf)
  {
  	struct super_block *sb = dentry->d_sb;
 +	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
  
- 	buf->f_type = ISOFS_SUPER_MAGIC;
- 	buf->f_bsize = sb->s_blocksize;
-@@ -932,6 +933,8 @@ static int isofs_statfs (struct dentry *
- 	buf->f_bavail = 0;
- 	buf->f_files = ISOFS_SB(sb)->s_ninodes;
- 	buf->f_ffree = 0;
+ 	lock_kernel();
+ 
+@@ -291,6 +292,8 @@ static int qnx4_statfs(struct dentry *de
+ 	buf->f_bfree   = qnx4_count_free_blocks(sb);
+ 	buf->f_bavail  = buf->f_bfree;
+ 	buf->f_namelen = QNX4_NAME_MAX;
 +	buf->f_fsid.val[0] = (u32)id;
 +	buf->f_fsid.val[1] = (u32)(id >> 32);
- 	buf->f_namelen = NAME_MAX;
- 	return 0;
- }
+ 
+ 	unlock_kernel();
+ 
 _
 
 Patches currently in -mm which might be from coly.li@suse.de are
