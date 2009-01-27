@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-rbtx4939-add-mtd-support-fix.patch added to -mm tree
-Date: Tue, 27 Jan 2009 13:19:49 -0800
-Message-ID: <200901272119.n0RLJn5v003097@imap1.linux-foundation.org>
+Subject: + mtd-rbtx4939-map-driver.patch added to -mm tree
+Date: Tue, 27 Jan 2009 13:19:54 -0800
+Message-ID: <200901272119.n0RLJsHG003261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752044AbZA0VUe (ORCPT
+	by vger.kernel.org with ESMTP id S1752663AbZA0VUn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 16:20:34 -0500
+	Tue, 27 Jan 2009 16:20:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, anemo@mba.ocn.ne.jp, dwmw2@infradead.org, ralf@linux-mips.org
+Cc: anemo@mba.ocn.ne.jp, dwmw2@infradead.org, ralf@linux-mips.org
 
 
 The patch titled
-     mtd-rbtx4939-add-mtd-support-fix
+     mtd: RBTX4939 map driver
 has been added to the -mm tree.  Its filename is
-     mtd-rbtx4939-add-mtd-support-fix.patch
+     mtd-rbtx4939-map-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,265 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd-rbtx4939-add-mtd-support-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mtd: RBTX4939 map driver
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Use min_t.
+This is a map driver for NOR flash chips on RBTX4939 board.
 
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/txx9/rbtx4939/setup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/maps/Kconfig          |    6 
+ drivers/mtd/maps/Makefile         |    1 
+ drivers/mtd/maps/rbtx4939-flash.c |  205 ++++++++++++++++++++++++++++
+ 3 files changed, 212 insertions(+)
 
-diff -puN arch/mips/txx9/rbtx4939/setup.c~mtd-rbtx4939-add-mtd-support-fix arch/mips/txx9/rbtx4939/setup.c
---- a/arch/mips/txx9/rbtx4939/setup.c~mtd-rbtx4939-add-mtd-support-fix
-+++ a/arch/mips/txx9/rbtx4939/setup.c
-@@ -335,7 +335,7 @@ static void rbtx4939_flash_copy_from(str
- 		/* BOOT Mode: USER ROM1 / USER ROM2 */
- 		shift = bdipsw & 3;
- 		while (len) {
--			curlen = min((unsigned long)len,
-+			curlen = min_t(unsigned long, len,
- 				     0x400000 -	(from & (0x400000 - 1)));
- 			memcpy(to,
- 			       (void *)((from & ~0xc00000) |
-@@ -351,7 +351,7 @@ static void rbtx4939_flash_copy_from(str
- 	if (bdipsw == 0) {
- 		/* BOOT Mode: Monitor ROM */
- 		while (len) {
--			curlen = min((unsigned long)len,
-+			curlen = min_t(unsigned long, len,
- 				     0x400000 - (from & (0x400000 - 1)));
- 			memcpy(to, (void *)(from ^ 0x400000), curlen);
- 			len -= curlen;
+diff -puN drivers/mtd/maps/Kconfig~mtd-rbtx4939-map-driver drivers/mtd/maps/Kconfig
+--- a/drivers/mtd/maps/Kconfig~mtd-rbtx4939-map-driver
++++ a/drivers/mtd/maps/Kconfig
+@@ -542,6 +542,12 @@ config MTD_INTEL_VR_NOR
+ 	  Map driver for a NOR flash bank located on the Expansion Bus of the
+ 	  Intel Vermilion Range chipset.
+ 
++config MTD_RBTX4939
++	tristate "Map driver for RBTX4939 board"
++	depends on TOSHIBA_RBTX4939 && MTD_CFI && MTD_COMPLEX_MAPPINGS
++	help
++	  Map driver for NOR flash chips on RBTX4939 board.
++
+ config MTD_PLATRAM
+ 	tristate "Map driver for platform device RAM (mtd-ram)"
+ 	select MTD_RAM
+diff -puN drivers/mtd/maps/Makefile~mtd-rbtx4939-map-driver drivers/mtd/maps/Makefile
+--- a/drivers/mtd/maps/Makefile~mtd-rbtx4939-map-driver
++++ a/drivers/mtd/maps/Makefile
+@@ -61,3 +61,4 @@ obj-$(CONFIG_MTD_PLATRAM)	+= plat-ram.o
+ obj-$(CONFIG_MTD_OMAP_NOR)	+= omap_nor.o
+ obj-$(CONFIG_MTD_INTEL_VR_NOR)	+= intel_vr_nor.o
+ obj-$(CONFIG_MTD_BFIN_ASYNC)	+= bfin-async-flash.o
++obj-$(CONFIG_MTD_RBTX4939)	+= rbtx4939-flash.o
+diff -puN /dev/null drivers/mtd/maps/rbtx4939-flash.c
+--- /dev/null
++++ a/drivers/mtd/maps/rbtx4939-flash.c
+@@ -0,0 +1,205 @@
++/*
++ * rbtx4939-flash (based on physmap.c)
++ *
++ * This is a simplified physmap driver with map_init callback function.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Copyright (C) 2009 Atsushi Nemoto <anemo@mba.ocn.ne.jp>
++ */
++
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/device.h>
++#include <linux/platform_device.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/map.h>
++#include <linux/mtd/partitions.h>
++#include <asm/txx9/rbtx4939.h>
++
++struct rbtx4939_flash_info {
++	struct mtd_info *mtd;
++	struct map_info map;
++#ifdef CONFIG_MTD_PARTITIONS
++	int nr_parts;
++#endif
++};
++
++static int rbtx4939_flash_remove(struct platform_device *dev)
++{
++	struct rbtx4939_flash_info *info;
++
++	info = platform_get_drvdata(dev);
++	if (!info)
++		return 0;
++	platform_set_drvdata(dev, NULL);
++
++	if (info->mtd) {
++#ifdef CONFIG_MTD_PARTITIONS
++		struct rbtx4939_flash_data *pdata = dev->dev.platform_data;
++
++		if (info->nr_parts || pdata->nr_parts)
++			del_mtd_partitions(info->mtd);
++		else
++			del_mtd_device(info->mtd);
++#else
++		del_mtd_device(info->mtd);
++#endif
++		map_destroy(info->mtd);
++	}
++	return 0;
++}
++
++static const char *rom_probe_types[] = { "cfi_probe", "jedec_probe", NULL };
++#ifdef CONFIG_MTD_PARTITIONS
++static const char *part_probe_types[] = { "cmdlinepart", NULL };
++#endif
++
++static int rbtx4939_flash_probe(struct platform_device *dev)
++{
++	struct rbtx4939_flash_data *pdata;
++	struct rbtx4939_flash_info *info;
++	struct resource *res;
++	const char **probe_type;
++	int err = 0;
++	unsigned long size;
++#ifdef CONFIG_MTD_PARTITIONS
++	struct mtd_partition *parts;
++#endif
++
++	pdata = dev->dev.platform_data;
++	if (!pdata)
++		return -ENODEV;
++
++	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++	info = devm_kzalloc(&dev->dev, sizeof(struct rbtx4939_flash_info),
++			    GFP_KERNEL);
++	if (!info)
++		return -ENOMEM;
++
++	platform_set_drvdata(dev, info);
++
++	size = resource_size(res);
++	pr_notice("rbtx4939 platform flash device: %pR\n", res);
++
++	if (!devm_request_mem_region(&dev->dev, res->start, size,
++				     dev_name(&dev->dev)))
++		return -EBUSY;
++
++	info->map.name = dev_name(&dev->dev);
++	info->map.phys = res->start;
++	info->map.size = size;
++	info->map.bankwidth = pdata->width;
++
++	info->map.virt = devm_ioremap(&dev->dev, info->map.phys, size);
++	if (!info->map.virt)
++		return -EBUSY;
++
++	if (pdata->map_init)
++		(*pdata->map_init)(&info->map);
++	else
++		simple_map_init(&info->map);
++
++	probe_type = rom_probe_types;
++	for (; !info->mtd && *probe_type; probe_type++)
++		info->mtd = do_map_probe(*probe_type, &info->map);
++	if (!info->mtd) {
++		dev_err(&dev->dev, "map_probe failed\n");
++		err = -ENXIO;
++		goto err_out;
++	}
++	info->mtd->owner = THIS_MODULE;
++	if (err)
++		goto err_out;
++
++#ifdef CONFIG_MTD_PARTITIONS
++	err = parse_mtd_partitions(info->mtd, part_probe_types, &parts, 0);
++	if (err > 0) {
++		add_mtd_partitions(info->mtd, parts, err);
++		return 0;
++	}
++
++	if (pdata->nr_parts) {
++		pr_notice("Using rbtx4939 partition information\n");
++		add_mtd_partitions(info->mtd, pdata->parts, pdata->nr_parts);
++		return 0;
++	}
++#endif
++
++	add_mtd_device(info->mtd);
++	return 0;
++
++err_out:
++	rbtx4939_flash_remove(dev);
++	return err;
++}
++
++#ifdef CONFIG_PM
++static int rbtx4939_flash_suspend(struct platform_device *dev,
++				  pm_message_t state)
++{
++	struct rbtx4939_flash_info *info = platform_get_drvdata(dev);
++
++	if (info->mtd->suspend)
++		return info->mtd->suspend(info->mtd);
++	return 0;
++}
++
++static int rbtx4939_flash_resume(struct platform_device *dev)
++{
++	struct rbtx4939_flash_info *info = platform_get_drvdata(dev);
++
++	if (info->mtd->resume)
++		info->mtd->resume(info->mtd);
++	return 0;
++}
++
++static void rbtx4939_flash_shutdown(struct platform_device *dev)
++{
++	struct rbtx4939_flash_info *info = platform_get_drvdata(dev);
++
++	if (info->mtd->suspend && info->mtd->resume)
++		if (info->mtd->suspend(info->mtd) == 0)
++			info->mtd->resume(info->mtd);
++}
++#else
++#define rbtx4939_flash_suspend NULL
++#define rbtx4939_flash_resume NULL
++#define rbtx4939_flash_shutdown NULL
++#endif
++
++static struct platform_driver rbtx4939_flash_driver = {
++	.probe		= rbtx4939_flash_probe,
++	.remove		= rbtx4939_flash_remove,
++	.suspend	= rbtx4939_flash_suspend,
++	.resume		= rbtx4939_flash_resume,
++	.shutdown	= rbtx4939_flash_shutdown,
++	.driver		= {
++		.name	= "rbtx4939-flash",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init rbtx4939_flash_init(void)
++{
++	return platform_driver_register(&rbtx4939_flash_driver);
++}
++
++static void __exit rbtx4939_flash_exit(void)
++{
++	platform_driver_unregister(&rbtx4939_flash_driver);
++}
++
++module_init(rbtx4939_flash_init);
++module_exit(rbtx4939_flash_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("RBTX4939 MTD map driver");
++MODULE_ALIAS("platform:rbtx4939-flash");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
-kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
-i-need-old-gcc.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
+mtd-txx9-add-ndfmc-support.patch
+mtd-rbtx4939-add-mtd-support.patch
 mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mtd-txx9-soc-nand-flash-memory-controller-driver.patch
+mtd-rbtx4939-map-driver.patch
+atmel_serial-might-lose-modem-status-change.patch
 
