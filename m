@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ufs-return-f_fsid-for-statfs2.patch added to -mm tree
-Date: Tue, 27 Jan 2009 00:00:32 -0800
-Message-ID: <200901270800.n0R80W2t000313@imap1.linux-foundation.org>
+Subject: + kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch added to -mm tree
+Date: Tue, 27 Jan 2009 00:12:35 -0800
+Message-ID: <200901270812.n0R8CZX4014969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59622 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752311AbZA0IKM (ORCPT
+	by vger.kernel.org with ESMTP id S1754037AbZA0IM6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 03:10:12 -0500
+	Tue, 27 Jan 2009 03:12:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: coly.li@suse.de, dushistov@mail.ru
+Cc: akpm@linux-foundation.org, horms@verge.net.au, nhorman@tuxdriver.com, vgoyal@redhat.com
 
 
 The patch titled
-     fs/ufs: return f_fsid for statfs(2)
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
 has been added to the -mm tree.  Its filename is
-     fs-ufs-return-f_fsid-for-statfs2.patch
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ufs: return f_fsid for statfs(2)
-From: Coly Li <coly.li@suse.de>
+Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make ufs return f_fsid info for statfs(2).
+- switch didnt-need-to-be-a-macro to inline
 
-Signed-off-by: Coly Li <coly.li@suse.de>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
+- Remove unneeded ifdefs (we already did that in the header)
+
+- repair bouncy enter key
+
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/kernel.h |    5 ++++-
+ kernel/kexec.c         |    2 --
+ kernel/printk.c        |    1 -
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ufs/super.c~fs-ufs-return-f_fsid-for-statfs2 fs/ufs/super.c
---- a/fs/ufs/super.c~fs-ufs-return-f_fsid-for-statfs2
-+++ a/fs/ufs/super.c
-@@ -1268,6 +1268,7 @@ static int ufs_statfs(struct dentry *den
- 	struct ufs_super_block_first *usb1;
- 	struct ufs_super_block_second *usb2;
- 	struct ufs_super_block_third *usb3;
-+	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
+diff -puN include/linux/kernel.h~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix include/linux/kernel.h
+--- a/include/linux/kernel.h~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
++++ a/include/linux/kernel.h
+@@ -254,7 +254,10 @@ static inline int printk_ratelimit(void)
+ static inline bool printk_timed_ratelimit(unsigned long *caller_jiffies, \
+ 					  unsigned int interval_msec)	\
+ 		{ return false; }
+-#define log_buf_kexec_setup() do {} while(0)
++
++static inline void log_buf_kexec_setup(void)
++{
++}
+ #endif
  
- 	lock_kernel();
+ extern int printk_needs_cpu(int cpu);
+diff -puN kernel/kexec.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix kernel/kexec.c
+--- a/kernel/kexec.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
++++ a/kernel/kexec.c
+@@ -1409,9 +1409,7 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_OFFSET(list_head, prev);
+ 	VMCOREINFO_OFFSET(vm_struct, addr);
+ 	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
+-#ifdef CONFIG_PRINTK
+ 	log_buf_kexec_setup();
+-#endif
+ 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
+ 	VMCOREINFO_NUMBER(NR_FREE_PAGES);
+ 	VMCOREINFO_NUMBER(PG_lru);
+diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix kernel/printk.c
+--- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix
++++ a/kernel/printk.c
+@@ -143,7 +143,6 @@ void log_buf_kexec_setup(void)
+ 	VMCOREINFO_SYMBOL(log_end);
+ }
  
-@@ -1290,6 +1291,8 @@ static int ufs_statfs(struct dentry *den
- 		? (buf->f_bfree - (((long)buf->f_blocks / 100) * uspi->s_minfree)) : 0;
- 	buf->f_files = uspi->s_ncg * uspi->s_ipg;
- 	buf->f_namelen = UFS_MAXNAMLEN;
-+	buf->f_fsid.val[0] = (u32)id;
-+	buf->f_fsid.val[1] = (u32)(id >> 32);
- 
- 	unlock_kernel();
- 
+-
+ static int __init log_buf_len_setup(char *str)
+ {
+ 	unsigned size = memparse(str, &str);
 _
 
-Patches currently in -mm which might be from coly.li@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-adfs-return-f_fsid-for-statfs2.patch
-fs-affs-return-f_fsid-for-statfs2.patch
-fs-befs-return-f_fsid-for-statfs2.patch
-fs-cramfs-return-f_fsid-for-statfs2.patch
-fs-efs-return-f_fsid-for-statfs2.patch
-fs-fat-return-f_fsid-for-statfs2.patch
-fs-hfs-return-f_fsid-for-statfs2.patch
-fs-hfsplus-return-f_fsid-for-statfs2.patch
-fs-hpfs-return-f_fsid-for-statfs2.patch
-fs-isofs-return-f_fsid-for-statfs2.patch
-fs-jfs-return-f_fsid-for-statfs2.patch
-fs-minix-return-f_fsid-for-statfs2.patch
-fs-omfs-return-f_fsid-for-statfs2.patch
-fs-qnx4-return-f_fsid-for-statfs2.patch
-fs-reiserfs-return-f_fsid-for-statfs2.patch
-fs-romfs-return-f_fsid-for-statfs2.patch
-fs-squashfs-return-f_fsid-for-statfs2.patch
-fs-sysv-return-f_fsid-for-statfs2.patch
-fs-udf-return-f_fsid-for-statfs2.patch
-fs-ufs-return-f_fsid-for-statfs2.patch
+origin.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
+i-need-old-gcc.patch
+linux-next.patch
+next-remove-localversion.patch
+acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
