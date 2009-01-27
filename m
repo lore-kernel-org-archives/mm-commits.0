@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hibernation-introduce-system_entering_hibernation.patch added to -mm tree
-Date: Mon, 26 Jan 2009 21:07:15 -0800
-Message-ID: <200901270507.n0R57FWD016419@imap1.linux-foundation.org>
+Subject: + sata-piix-blacklist-system-that-spins-off-disks-during-acpi-power-off.patch added to -mm tree
+Date: Mon, 26 Jan 2009 21:07:26 -0800
+Message-ID: <200901270507.n0R57QqW016641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751348AbZA0FIF (ORCPT
+	by vger.kernel.org with ESMTP id S1751723AbZA0FIJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 00:08:05 -0500
+	Tue, 27 Jan 2009 00:08:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rjw@sisk.pl, alan@lxorguk.ukuu.org.uk, elendil@planet.nl, fweisbec@gmail.com
 
 
 The patch titled
-     hibernation: introduce system_entering_hibernation
+     sata piix: Blacklist system that spins off disks during ACPI power off
 has been added to the -mm tree.  Its filename is
-     hibernation-introduce-system_entering_hibernation.patch
+     sata-piix-blacklist-system-that-spins-off-disks-during-acpi-power-off.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hibernation: introduce system_entering_hibernation
+Subject: sata piix: Blacklist system that spins off disks during ACPI power off
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Introduce boolean function system_entering_hibernation() returning 'true'
-during the last phase of hibernation, in which devices are being put into
-low power states and the sleep state (for example, ACPI S4) is finally
-entered.
+Some notebooks from HP have the problem that their BIOSes attempt to spin
+down hard drives before entering ACPI system states S4 and S5.  This leads
+to a yo-yo effect during system power-off shutdown and the last phase of
+hibernation when the disk is first spun down by the kernel and then almost
+immediately turned on and off by the BIOS.  This, in turn, may result in
+shortening the disk's life times.
 
-Some device drivers need such a function to check if the system is in the
-final phase of hibernation.  In particular, some SATA drivers are going to
-use it for blacklisting systems in which the disks should not be spun down
-during the last phase of hibernation (the BIOS will do that anyway).
+To prevent this from happening we can blacklist the affected systems using
+DMI information.
+
+Blacklist HP 2510p that uses the ata_piix driver.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
@@ -57,63 +59,60 @@ Tested-by: Frans Pop <elendil@planet.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/suspend.h |    2 ++
- kernel/power/disk.c     |   10 ++++++++++
- 2 files changed, 12 insertions(+)
+ drivers/ata/ata_piix.c |   34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff -puN include/linux/suspend.h~hibernation-introduce-system_entering_hibernation include/linux/suspend.h
---- a/include/linux/suspend.h~hibernation-introduce-system_entering_hibernation
-+++ a/include/linux/suspend.h
-@@ -237,6 +237,7 @@ extern int hibernate_nvs_alloc(void);
- extern void hibernate_nvs_free(void);
- extern void hibernate_nvs_save(void);
- extern void hibernate_nvs_restore(void);
-+extern bool system_entering_hibernation(void);
- #else /* CONFIG_HIBERNATION */
- static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
- static inline void swsusp_set_page_free(struct page *p) {}
-@@ -252,6 +253,7 @@ static inline int hibernate_nvs_alloc(vo
- static inline void hibernate_nvs_free(void) {}
- static inline void hibernate_nvs_save(void) {}
- static inline void hibernate_nvs_restore(void) {}
-+static inline bool system_entering_hibernation(void) { return false; }
- #endif /* CONFIG_HIBERNATION */
- 
- #ifdef CONFIG_PM_SLEEP
-diff -puN kernel/power/disk.c~hibernation-introduce-system_entering_hibernation kernel/power/disk.c
---- a/kernel/power/disk.c~hibernation-introduce-system_entering_hibernation
-+++ a/kernel/power/disk.c
-@@ -71,6 +71,14 @@ void hibernation_set_ops(struct platform
- 	mutex_unlock(&pm_mutex);
+diff -puN drivers/ata/ata_piix.c~sata-piix-blacklist-system-that-spins-off-disks-during-acpi-power-off drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~sata-piix-blacklist-system-that-spins-off-disks-during-acpi-power-off
++++ a/drivers/ata/ata_piix.c
+@@ -1387,6 +1387,32 @@ static void piix_iocfg_bit18_quirk(struc
+ 	}
  }
  
-+static bool entering_platform_hibernation;
-+
-+bool system_entering_hibernation(void)
++static bool piix_broken_system_poweroff(struct pci_dev *pdev)
 +{
-+	return entering_platform_hibernation;
-+}
-+EXPORT_SYMBOL(system_entering_hibernation);
++	static const struct dmi_system_id broken_systems[] = {
++		{
++			.ident = "HP Compaq 2510p",
++			.matches = {
++				DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++				DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq 2510p"),
++			},
++			/* PCI slot number of the controller */
++			.driver_data = (void *)0x1FUL,
++		},
 +
- #ifdef CONFIG_PM_DEBUG
- static void hibernation_debug_sleep(void)
- {
-@@ -411,6 +419,7 @@ int hibernation_platform_enter(void)
- 	if (error)
- 		goto Close;
++		{ }	/* terminate list */
++	};
++	const struct dmi_system_id *dmi = dmi_first_match(broken_systems);
++
++	if (dmi) {
++		unsigned long slot = (unsigned long)dmi->driver_data;
++		/* apply the quirk only to on-board controllers */
++		return slot == PCI_SLOT(pdev->devfn);
++	}
++
++	return false;
++}
++
+ /**
+  *	piix_init_one - Register PIIX ATA PCI device with kernel services
+  *	@pdev: PCI device to register
+@@ -1422,6 +1448,14 @@ static int __devinit piix_init_one(struc
+ 	if (!in_module_init)
+ 		return -ENODEV;
  
-+	entering_platform_hibernation = true;
- 	suspend_console();
- 	error = device_suspend(PMSG_HIBERNATE);
- 	if (error) {
-@@ -445,6 +454,7 @@ int hibernation_platform_enter(void)
-  Finish:
- 	hibernation_ops->finish();
-  Resume_devices:
-+	entering_platform_hibernation = false;
- 	device_resume(PMSG_RESTORE);
- 	resume_console();
-  Close:
++	if (piix_broken_system_poweroff(pdev)) {
++		piix_port_info[ent->driver_data].flags |=
++				ATA_FLAG_NO_POWEROFF_SPINDOWN |
++					ATA_FLAG_NO_HIBERNATE_SPINDOWN;
++		dev_info(&pdev->dev, "quirky BIOS, skipping spindown "
++				"on poweroff and hibernation\n");
++	}
++
+ 	port_info[0] = piix_port_info[ent->driver_data];
+ 	port_info[1] = piix_port_info[ent->driver_data];
+ 
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
