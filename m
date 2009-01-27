@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-incorrect-url-given-in-drivers-video-kconfig.patch added to -mm tree
-Date: Mon, 26 Jan 2009 19:34:31 -0800
-Message-ID: <200901270334.n0R3YVIC000944@imap1.linux-foundation.org>
+Subject: + pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch added to -mm tree
+Date: Mon, 26 Jan 2009 19:39:07 -0800
+Message-ID: <200901270339.n0R3d709006546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751885AbZA0Dei (ORCPT
+	by vger.kernel.org with ESMTP id S1752331AbZA0Dji (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jan 2009 22:34:38 -0500
+	Mon, 26 Jan 2009 22:39:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alex.buell@munted.org.uk
+Cc: oleg@redhat.com, andi@firstfloor.org, corbet@lwn.net, stable@kernel.org, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     fbdev: incorrect URL given in drivers/video/Kconfig
+     pipe_rdwr_fasync: fix the error handling to prevent the leak/crash
 has been added to the -mm tree.  Its filename is
-     fbdev-incorrect-url-given-in-drivers-video-kconfig.patch
+     pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: incorrect URL given in drivers/video/Kconfig
-From: Alex Buell <alex.buell@munted.org.uk>
+Subject: pipe_rdwr_fasync: fix the error handling to prevent the leak/crash
+From: Oleg Nesterov <oleg@redhat.com>
 
+If the second fasync_helper() fails, pipe_rdwr_fasync() returns the error
+but leaves the file on ->fasync_readers.
 
+This was always wrong, but since 233e70f4228e78eb2f80dc6650f65d3ae3dbf17c
+"saner FASYNC handling on file close" we have the new problem.  Because in
+this case setfl() doesn't set FASYNC bit, __fput() will not do
+->fasync(0), and we leak fasync_struct with ->fa_file pointing to the
+freed file.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: <stable@kernel.org>		[2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/pipe.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/Kconfig~fbdev-incorrect-url-given-in-drivers-video-kconfig drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-incorrect-url-given-in-drivers-video-kconfig
-+++ a/drivers/video/Kconfig
-@@ -41,7 +41,7 @@ menuconfig FB
- 	  You need an utility program called fbset to make full use of frame
- 	  buffer devices. Please read <file:Documentation/fb/framebuffer.txt>
- 	  and the Framebuffer-HOWTO at
--	  <http://www.tahallah.demon.co.uk/programming/prog.html> for more
-+	  <http://www.munted.org.uk/programming/Framebuffer-HOWTO-1.2.html> for more
- 	  information.
+diff -puN fs/pipe.c~pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash fs/pipe.c
+--- a/fs/pipe.c~pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash
++++ a/fs/pipe.c
+@@ -699,12 +699,13 @@ pipe_rdwr_fasync(int fd, struct file *fi
+ 	int retval;
  
- 	  Say Y here and to the driver for your graphics board below if you
-_
-
-Patches currently in -mm which might be from alex.buell@munted.org.uk are
-
-fbdev-incorrect-url-given-in-drivers-video-kconfig.patch
-
+ 	mutex_lock(&inode->i_mutex);
+-
+ 	retval = fasync_helper(fd, filp, on, &pipe->fasync_readers);
+ 
+-	if (retval >= 0)
++	if (retval >= 0) {
+ 		retval = fasync_helper(fd, filp, on, &pipe->fasync_writers);
