@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2.patch added to -mm tree
-Date: Mon, 26 Jan 2009 23:05:50 -0800
-Message-ID: <200901270705.n0R75org031023@imap1.linux-foundation.org>
+Subject: + jbd-fix-oops-in-jbd_journal_init_inode-on-corrupted-fs.patch added to -mm tree
+Date: Mon, 26 Jan 2009 23:34:33 -0800
+Message-ID: <200901270734.n0R7YXCj001118__6731.85254349864$1233041815$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751743AbZA0HGQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751307AbZA0HfN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 02:06:16 -0500
+	Tue, 27 Jan 2009 02:35:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: jack@suse.cz, dmaciejak@fortinet.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     memcg: NULL pointer dereference at rmdir on some NUMA systems
+     jbd: fix oops in jbd_journal_init_inode() on corrupted fs
 has been added to the -mm tree.  Its filename is
-     memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2.patch
+     jbd-fix-oops-in-jbd_journal_init_inode-on-corrupted-fs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: NULL pointer dereference at rmdir on some NUMA systems
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: jbd: fix oops in jbd_journal_init_inode() on corrupted fs
+From: Jan Kara <jack@suse.cz>
 
-N_POSSIBLE doesn't means there is memory...and force_empty can
-visit invalid node which have no pgdat.
+On 32-bit system with CONFIG_LBD getblk can fail because provided block
+number is too big. Make JBD gracefully handle that.
 
-To visit all valid nodes, N_HIGH_MEMORY should be used.
-
-Reported-by: Li Zefan <lizf@cn.fujitsu.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <dmaciejak@fortinet.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jbd/journal.c |   34 ++++++++++++++++++++++++----------
+ 1 file changed, 24 insertions(+), 10 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2
-+++ a/mm/memcontrol.c
-@@ -1685,7 +1685,7 @@ move_account:
- 		/* This is for making all *used* pages to be on LRU. */
- 		lru_add_drain_all();
- 		ret = 0;
--		for_each_node_state(node, N_POSSIBLE) {
-+		for_each_node_state(node, N_HIGH_MEMORY) {
- 			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
- 				enum lru_list l;
- 				for_each_lru(l) {
+diff -puN fs/jbd/journal.c~jbd-fix-oops-in-jbd_journal_init_inode-on-corrupted-fs fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-fix-oops-in-jbd_journal_init_inode-on-corrupted-fs
++++ a/fs/jbd/journal.c
+@@ -632,6 +632,8 @@ struct journal_head *journal_get_descrip
+ 		return NULL;
+ 
+ 	bh = __getblk(journal->j_dev, blocknr, journal->j_blocksize);
++	if (!bh)
++		return NULL;
+ 	lock_buffer(bh);
+ 	memset(bh->b_data, 0, journal->j_blocksize);
+ 	set_buffer_uptodate(bh);
+@@ -728,9 +730,7 @@ journal_t * journal_init_dev(struct bloc
+ 	if (!journal->j_wbuf) {
+ 		printk(KERN_ERR "%s: Cant allocate bhs for commit thread\n",
+ 			__func__);
+-		kfree(journal);
+-		journal = NULL;
+-		goto out;
++		goto out_err;
+ 	}
+ 	journal->j_dev = bdev;
+ 	journal->j_fs_dev = fs_dev;
+@@ -738,11 +738,19 @@ journal_t * journal_init_dev(struct bloc
+ 	journal->j_maxlen = len;
+ 
+ 	bh = __getblk(journal->j_dev, start, journal->j_blocksize);
+-	J_ASSERT(bh != NULL);
++	if (!bh) {
++		printk(KERN_ERR
++		       "%s: Cannot get buffer for journal superblock\n",
++		       __func__);
++		goto out_err;
++	}
+ 	journal->j_sb_buffer = bh;
+ 	journal->j_superblock = (journal_superblock_t *)bh->b_data;
+-out:
++
+ 	return journal;
++out_err:
++	kfree(journal);
++	return NULL;
+ }
+ 
+ /**
+@@ -782,8 +790,7 @@ journal_t * journal_init_inode (struct i
+ 	if (!journal->j_wbuf) {
+ 		printk(KERN_ERR "%s: Cant allocate bhs for commit thread\n",
+ 			__func__);
+-		kfree(journal);
+-		return NULL;
++		goto out_err;
+ 	}
+ 
+ 	err = journal_bmap(journal, 0, &blocknr);
+@@ -791,16 +798,23 @@ journal_t * journal_init_inode (struct i
+ 	if (err) {
+ 		printk(KERN_ERR "%s: Cannnot locate journal superblock\n",
+ 		       __func__);
+-		kfree(journal);
+-		return NULL;
++		goto out_err;
+ 	}
+ 
+ 	bh = __getblk(journal->j_dev, blocknr, journal->j_blocksize);
+-	J_ASSERT(bh != NULL);
++	if (!bh) {
++		printk(KERN_ERR
++		       "%s: Cannot get buffer for journal superblock\n",
++		       __func__);
++		goto out_err;
++	}
+ 	journal->j_sb_buffer = bh;
+ 	journal->j_superblock = (journal_superblock_t *)bh->b_data;
+ 
+ 	return journal;
++out_err:
++	kfree(journal);
++	return NULL;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-cgroups-use-hierarchy-mutex-in-creation-failure-path.patch
-memcg-get-put-parents-at-create-free.patch
-memcg-get-put-parents-at-create-free-fix.patch
-memcg-fix-refcnt-handling-at-swapoff.patch
-memcg-update-document-to-mention-swapoff-should-be-test.patch
-memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+linux-next.patch
+ext2-add-blk_issue_flush-to-syncing-paths.patch
+jbd-fix-oops-in-jbd_journal_init_inode-on-corrupted-fs.patch
 
