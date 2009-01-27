@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-qnx4-return-f_fsid-for-statfs2.patch added to -mm tree
-Date: Tue, 27 Jan 2009 00:00:23 -0800
-Message-ID: <200901270800.n0R80NsL032609@imap1.linux-foundation.org>
+Subject: + fs-sysv-return-f_fsid-for-statfs2.patch added to -mm tree
+Date: Tue, 27 Jan 2009 00:00:29 -0800
+Message-ID: <200901270800.n0R80TWo000305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40132 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751492AbZA0IIW (ORCPT
+	by vger.kernel.org with ESMTP id S1751492AbZA0IIz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 03:08:22 -0500
+	Tue, 27 Jan 2009 03:08:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: coly.li@suse.de, al@alarsen.net
+Cc: coly.li@suse.de, hch@infradead.org
 
 
 The patch titled
-     fs/qnx4: return f_fsid for statfs(2)
+     fs/sysv: return f_fsid for statfs(2)
 has been added to the -mm tree.  Its filename is
-     fs-qnx4-return-f_fsid-for-statfs2.patch
+     fs-sysv-return-f_fsid-for-statfs2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/qnx4: return f_fsid for statfs(2)
+Subject: fs/sysv: return f_fsid for statfs(2)
 From: Coly Li <coly.li@suse.de>
 
-Make qnx4 file system return f_fsid info for statfs(2).
+Make sysv file system return f_fsid info for statfs(2).
 
 Signed-off-by: Coly Li <coly.li@suse.de>
-Acked-by: Anders Larsen <al@alarsen.net>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/qnx4/inode.c |    3 +++
+ fs/sysv/inode.c |    3 +++
  1 file changed, 3 insertions(+)
 
-diff -puN fs/qnx4/inode.c~fs-qnx4-return-f_fsid-for-statfs2 fs/qnx4/inode.c
---- a/fs/qnx4/inode.c~fs-qnx4-return-f_fsid-for-statfs2
-+++ a/fs/qnx4/inode.c
-@@ -282,6 +282,7 @@ unsigned long qnx4_block_map( struct ino
- static int qnx4_statfs(struct dentry *dentry, struct kstatfs *buf)
+diff -puN fs/sysv/inode.c~fs-sysv-return-f_fsid-for-statfs2 fs/sysv/inode.c
+--- a/fs/sysv/inode.c~fs-sysv-return-f_fsid-for-statfs2
++++ a/fs/sysv/inode.c
+@@ -90,6 +90,7 @@ static int sysv_statfs(struct dentry *de
  {
  	struct super_block *sb = dentry->d_sb;
+ 	struct sysv_sb_info *sbi = SYSV_SB(sb);
 +	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
  
- 	lock_kernel();
- 
-@@ -291,6 +292,8 @@ static int qnx4_statfs(struct dentry *de
- 	buf->f_bfree   = qnx4_count_free_blocks(sb);
- 	buf->f_bavail  = buf->f_bfree;
- 	buf->f_namelen = QNX4_NAME_MAX;
+ 	buf->f_type = sb->s_magic;
+ 	buf->f_bsize = sb->s_blocksize;
+@@ -98,6 +99,8 @@ static int sysv_statfs(struct dentry *de
+ 	buf->f_files = sbi->s_ninodes;
+ 	buf->f_ffree = sysv_count_free_inodes(sb);
+ 	buf->f_namelen = SYSV_NAMELEN;
 +	buf->f_fsid.val[0] = (u32)id;
 +	buf->f_fsid.val[1] = (u32)(id >> 32);
- 
- 	unlock_kernel();
+ 	return 0;
+ }
  
 _
 
