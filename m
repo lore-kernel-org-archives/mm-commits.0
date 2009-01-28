@@ -1,121 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hibernation-introduce-system_entering_hibernation.patch removed from -mm tree
-Date: Wed, 28 Jan 2009 15:28:46 -0800
-Message-ID: <200901282328.n0SNSk48006653@imap1.linux-foundation.org>
+Subject: [merged] fix-longstanding-error-storage-size-of-__mod_dmi_device_table-isnt-known.patch removed from -mm tree
+Date: Wed, 28 Jan 2009 15:29:01 -0800
+Message-ID: <200901282329.n0SNT1Dg007022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44897 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58923 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757555AbZA1X3q (ORCPT
+	by vger.kernel.org with ESMTP id S1757490AbZA1X3g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jan 2009 18:29:46 -0500
+	Wed, 28 Jan 2009 18:29:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, alan@lxorguk.ukuu.org.uk, elendil@planet.nl, fweisbec@gmail.com, jeff@garzik.org, maciej.rutecki@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hibernation: introduce system_entering_hibernation
+     Fix longstanding "error: storage size of '__mod_dmi_device_table' isn't known"
 has been removed from the -mm tree.  Its filename was
-     hibernation-introduce-system_entering_hibernation.patch
+     fix-longstanding-error-storage-size-of-__mod_dmi_device_table-isnt-known.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hibernation: introduce system_entering_hibernation
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: Fix longstanding "error: storage size of '__mod_dmi_device_table' isn't known"
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Introduce boolean function system_entering_hibernation() returning 'true'
-during the last phase of hibernation, in which devices are being put into
-low power states and the sleep state (for example, ACPI S4) is finally
-entered.
+Needs human-understandable changelog.
 
-Some device drivers need such a function to check if the system is in the
-final phase of hibernation.  In particular, some SATA drivers are going to
-use it for blacklisting systems in which the disks should not be spun down
-during the last phase of hibernation (the BIOS will do that anyway).
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Tested-by: Maciej Rutecki <maciej.rutecki@gmail.com>
-Tested-by: Frans Pop <elendil@planet.nl>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/suspend.h |    2 ++
- kernel/power/disk.c     |   10 ++++++++++
- 2 files changed, 12 insertions(+)
+ include/linux/mod_devicetable.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/linux/suspend.h~hibernation-introduce-system_entering_hibernation include/linux/suspend.h
---- a/include/linux/suspend.h~hibernation-introduce-system_entering_hibernation
-+++ a/include/linux/suspend.h
-@@ -237,6 +237,7 @@ extern int hibernate_nvs_alloc(void);
- extern void hibernate_nvs_free(void);
- extern void hibernate_nvs_save(void);
- extern void hibernate_nvs_restore(void);
-+extern bool system_entering_hibernation(void);
- #else /* CONFIG_HIBERNATION */
- static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
- static inline void swsusp_set_page_free(struct page *p) {}
-@@ -252,6 +253,7 @@ static inline int hibernate_nvs_alloc(vo
- static inline void hibernate_nvs_free(void) {}
- static inline void hibernate_nvs_save(void) {}
- static inline void hibernate_nvs_restore(void) {}
-+static inline bool system_entering_hibernation(void) { return false; }
- #endif /* CONFIG_HIBERNATION */
+diff -puN include/linux/mod_devicetable.h~fix-longstanding-error-storage-size-of-__mod_dmi_device_table-isnt-known include/linux/mod_devicetable.h
+--- a/include/linux/mod_devicetable.h~fix-longstanding-error-storage-size-of-__mod_dmi_device_table-isnt-known
++++ a/include/linux/mod_devicetable.h
+@@ -443,6 +443,13 @@ struct dmi_system_id {
+ 	struct dmi_strmatch matches[4];
+ 	void *driver_data;
+ };
++/*
++ * struct dmi_device_id appears during expansion of
++ * "MODULE_DEVICE_TABLE(dmi, x)". Compiler doesn't look inside it
++ * but this is enough for gcc 3.4.6 to error out:
++ *	error: storage size of '__mod_dmi_device_table' isn't known
++ */
++#define dmi_device_id dmi_system_id
+ #endif
  
- #ifdef CONFIG_PM_SLEEP
-diff -puN kernel/power/disk.c~hibernation-introduce-system_entering_hibernation kernel/power/disk.c
---- a/kernel/power/disk.c~hibernation-introduce-system_entering_hibernation
-+++ a/kernel/power/disk.c
-@@ -71,6 +71,14 @@ void hibernation_set_ops(struct platform
- 	mutex_unlock(&pm_mutex);
- }
- 
-+static bool entering_platform_hibernation;
-+
-+bool system_entering_hibernation(void)
-+{
-+	return entering_platform_hibernation;
-+}
-+EXPORT_SYMBOL(system_entering_hibernation);
-+
- #ifdef CONFIG_PM_DEBUG
- static void hibernation_debug_sleep(void)
- {
-@@ -411,6 +419,7 @@ int hibernation_platform_enter(void)
- 	if (error)
- 		goto Close;
- 
-+	entering_platform_hibernation = true;
- 	suspend_console();
- 	error = device_suspend(PMSG_HIBERNATE);
- 	if (error) {
-@@ -445,6 +454,7 @@ int hibernation_platform_enter(void)
-  Finish:
- 	hibernation_ops->finish();
-  Resume_devices:
-+	entering_platform_hibernation = false;
- 	device_resume(PMSG_RESTORE);
- 	resume_console();
-  Close:
+ #define DMI_MATCH(a, b)	{ a, b }
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 linux-next.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-resume-wait-for-device-probing-to-finish.patch
-misc-dell-laptop-should-depend-on-power_supply.patch
-fbmem-copy_from-to_user-with-mutex-held-v3.patch
-sata-ahci-blacklist-system-that-spins-off-disks-during-acpi-power-off.patch
-shrink_slab-handle-bad-shrinkers.patch
+sm501-fix-section-mismatches.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+seq_file-move-traverse-so-it-can-be-used-from-seq_read.patch
+seq_file-properly-cope-with-pread.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
