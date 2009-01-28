@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-gru-add-definitions-of-x86_64-gru-mmrs.patch added to -mm tree
-Date: Tue, 27 Jan 2009 16:24:48 -0800
-Message-ID: <200901280024.n0S0Omc7004427@imap1.linux-foundation.org>
+Subject: + sgi-gru-asid-context-management-bug-fixes.patch added to -mm tree
+Date: Tue, 27 Jan 2009 16:25:06 -0800
+Message-ID: <200901280025.n0S0P6Td004778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751772AbZA1AZN (ORCPT
+	by vger.kernel.org with ESMTP id S1751702AbZA1AZJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 19:25:13 -0500
+	Tue, 27 Jan 2009 19:25:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: steiner@sgi.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: steiner@sgi.com
 
 
 The patch titled
-     sgi-gru: add definitions of x86_64 GRU MMRs
+     sgi-gru: aSID (context management) bug fixes
 has been added to the -mm tree.  Its filename is
-     sgi-gru-add-definitions-of-x86_64-gru-mmrs.patch
+     sgi-gru-asid-context-management-bug-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,188 +34,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: add definitions of x86_64 GRU MMRs
+Subject: sgi-gru: aSID (context management) bug fixes
 From: Jack Steiner <steiner@sgi.com>
 
-Add definitions for x86_64 GRU MMRs.
+This patch fixes bugs related to ASID (context id) management in the GRU
+driver.  These changes are all internal to the SGI GRU driver and have no
+effect on the base kernel.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uv/uv_mmrs.h |  153 ++++++++++++++++++++++++++++
- 1 file changed, 153 insertions(+)
+ drivers/misc/sgi-gru/grufile.c |    1 +
+ drivers/misc/sgi-gru/grumain.c |   13 +++++++++----
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/include/asm/uv/uv_mmrs.h~sgi-gru-add-definitions-of-x86_64-gru-mmrs arch/x86/include/asm/uv/uv_mmrs.h
---- a/arch/x86/include/asm/uv/uv_mmrs.h~sgi-gru-add-definitions-of-x86_64-gru-mmrs
-+++ a/arch/x86/include/asm/uv/uv_mmrs.h
-@@ -1,3 +1,4 @@
-+
- /*
-  * This file is subject to the terms and conditions of the GNU General Public
-  * License.  See the file "COPYING" in the main directory of this archive
-@@ -243,6 +244,158 @@ union uvh_event_occurred0_u {
- #define UVH_EVENT_OCCURRED0_ALIAS_32 0x005f0
+diff -puN drivers/misc/sgi-gru/grufile.c~sgi-gru-asid-context-management-bug-fixes drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~sgi-gru-asid-context-management-bug-fixes
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -286,6 +286,7 @@ static void gru_init_chiplet(struct gru_
+ 	gru->gs_blade_id = bid;
+ 	gru->gs_cbr_map = (GRU_CBR_AU == 64) ? ~0 : (1UL << GRU_CBR_AU) - 1;
+ 	gru->gs_dsr_map = (1UL << GRU_DSR_AU) - 1;
++	gru->gs_asid_limit = MAX_ASID;
+ 	gru_tgh_flush_init(gru);
+ 	gru_dbg(grudev, "bid %d, nid %d, gid %d, vaddr %p (0x%lx)\n",
+ 		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
+diff -puN drivers/misc/sgi-gru/grumain.c~sgi-gru-asid-context-management-bug-fixes drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~sgi-gru-asid-context-management-bug-fixes
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -79,7 +79,6 @@ static int gru_wrap_asid(struct gru_stat
+ 	gru_dbg(grudev, "gid %d\n", gru->gs_gid);
+ 	STAT(asid_wrap);
+ 	gru->gs_asid_gen++;
+-	gru_flush_all_tlb(gru);
+ 	return MIN_ASID;
+ }
  
- /* ========================================================================= */
-+/*                         UVH_GR0_TLB_INT0_CONFIG                           */
-+/* ========================================================================= */
-+#define UVH_GR0_TLB_INT0_CONFIG 0x61b00UL
-+
-+#define UVH_GR0_TLB_INT0_CONFIG_VECTOR_SHFT 0
-+#define UVH_GR0_TLB_INT0_CONFIG_VECTOR_MASK 0x00000000000000ffUL
-+#define UVH_GR0_TLB_INT0_CONFIG_DM_SHFT 8
-+#define UVH_GR0_TLB_INT0_CONFIG_DM_MASK 0x0000000000000700UL
-+#define UVH_GR0_TLB_INT0_CONFIG_DESTMODE_SHFT 11
-+#define UVH_GR0_TLB_INT0_CONFIG_DESTMODE_MASK 0x0000000000000800UL
-+#define UVH_GR0_TLB_INT0_CONFIG_STATUS_SHFT 12
-+#define UVH_GR0_TLB_INT0_CONFIG_STATUS_MASK 0x0000000000001000UL
-+#define UVH_GR0_TLB_INT0_CONFIG_P_SHFT 13
-+#define UVH_GR0_TLB_INT0_CONFIG_P_MASK 0x0000000000002000UL
-+#define UVH_GR0_TLB_INT0_CONFIG_T_SHFT 15
-+#define UVH_GR0_TLB_INT0_CONFIG_T_MASK 0x0000000000008000UL
-+#define UVH_GR0_TLB_INT0_CONFIG_M_SHFT 16
-+#define UVH_GR0_TLB_INT0_CONFIG_M_MASK 0x0000000000010000UL
-+#define UVH_GR0_TLB_INT0_CONFIG_APIC_ID_SHFT 32
-+#define UVH_GR0_TLB_INT0_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
-+
-+union uvh_gr0_tlb_int0_config_u {
-+    unsigned long	v;
-+    struct uvh_gr0_tlb_int0_config_s {
-+	unsigned long	vector_  :  8;  /* RW */
-+	unsigned long	dm       :  3;  /* RW */
-+	unsigned long	destmode :  1;  /* RW */
-+	unsigned long	status   :  1;  /* RO */
-+	unsigned long	p        :  1;  /* RO */
-+	unsigned long	rsvd_14  :  1;  /*    */
-+	unsigned long	t        :  1;  /* RO */
-+	unsigned long	m        :  1;  /* RW */
-+	unsigned long	rsvd_17_31: 15;  /*    */
-+	unsigned long	apic_id  : 32;  /* RW */
-+    } s;
-+};
-+
-+/* ========================================================================= */
-+/*                         UVH_GR0_TLB_INT1_CONFIG                           */
-+/* ========================================================================= */
-+#define UVH_GR0_TLB_INT1_CONFIG 0x61b40UL
-+
-+#define UVH_GR0_TLB_INT1_CONFIG_VECTOR_SHFT 0
-+#define UVH_GR0_TLB_INT1_CONFIG_VECTOR_MASK 0x00000000000000ffUL
-+#define UVH_GR0_TLB_INT1_CONFIG_DM_SHFT 8
-+#define UVH_GR0_TLB_INT1_CONFIG_DM_MASK 0x0000000000000700UL
-+#define UVH_GR0_TLB_INT1_CONFIG_DESTMODE_SHFT 11
-+#define UVH_GR0_TLB_INT1_CONFIG_DESTMODE_MASK 0x0000000000000800UL
-+#define UVH_GR0_TLB_INT1_CONFIG_STATUS_SHFT 12
-+#define UVH_GR0_TLB_INT1_CONFIG_STATUS_MASK 0x0000000000001000UL
-+#define UVH_GR0_TLB_INT1_CONFIG_P_SHFT 13
-+#define UVH_GR0_TLB_INT1_CONFIG_P_MASK 0x0000000000002000UL
-+#define UVH_GR0_TLB_INT1_CONFIG_T_SHFT 15
-+#define UVH_GR0_TLB_INT1_CONFIG_T_MASK 0x0000000000008000UL
-+#define UVH_GR0_TLB_INT1_CONFIG_M_SHFT 16
-+#define UVH_GR0_TLB_INT1_CONFIG_M_MASK 0x0000000000010000UL
-+#define UVH_GR0_TLB_INT1_CONFIG_APIC_ID_SHFT 32
-+#define UVH_GR0_TLB_INT1_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
-+
-+union uvh_gr0_tlb_int1_config_u {
-+    unsigned long	v;
-+    struct uvh_gr0_tlb_int1_config_s {
-+	unsigned long	vector_  :  8;  /* RW */
-+	unsigned long	dm       :  3;  /* RW */
-+	unsigned long	destmode :  1;  /* RW */
-+	unsigned long	status   :  1;  /* RO */
-+	unsigned long	p        :  1;  /* RO */
-+	unsigned long	rsvd_14  :  1;  /*    */
-+	unsigned long	t        :  1;  /* RO */
-+	unsigned long	m        :  1;  /* RW */
-+	unsigned long	rsvd_17_31: 15;  /*    */
-+	unsigned long	apic_id  : 32;  /* RW */
-+    } s;
-+};
-+
-+/* ========================================================================= */
-+/*                         UVH_GR1_TLB_INT0_CONFIG                           */
-+/* ========================================================================= */
-+#define UVH_GR1_TLB_INT0_CONFIG 0x61f00UL
-+
-+#define UVH_GR1_TLB_INT0_CONFIG_VECTOR_SHFT 0
-+#define UVH_GR1_TLB_INT0_CONFIG_VECTOR_MASK 0x00000000000000ffUL
-+#define UVH_GR1_TLB_INT0_CONFIG_DM_SHFT 8
-+#define UVH_GR1_TLB_INT0_CONFIG_DM_MASK 0x0000000000000700UL
-+#define UVH_GR1_TLB_INT0_CONFIG_DESTMODE_SHFT 11
-+#define UVH_GR1_TLB_INT0_CONFIG_DESTMODE_MASK 0x0000000000000800UL
-+#define UVH_GR1_TLB_INT0_CONFIG_STATUS_SHFT 12
-+#define UVH_GR1_TLB_INT0_CONFIG_STATUS_MASK 0x0000000000001000UL
-+#define UVH_GR1_TLB_INT0_CONFIG_P_SHFT 13
-+#define UVH_GR1_TLB_INT0_CONFIG_P_MASK 0x0000000000002000UL
-+#define UVH_GR1_TLB_INT0_CONFIG_T_SHFT 15
-+#define UVH_GR1_TLB_INT0_CONFIG_T_MASK 0x0000000000008000UL
-+#define UVH_GR1_TLB_INT0_CONFIG_M_SHFT 16
-+#define UVH_GR1_TLB_INT0_CONFIG_M_MASK 0x0000000000010000UL
-+#define UVH_GR1_TLB_INT0_CONFIG_APIC_ID_SHFT 32
-+#define UVH_GR1_TLB_INT0_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
-+
-+union uvh_gr1_tlb_int0_config_u {
-+    unsigned long	v;
-+    struct uvh_gr1_tlb_int0_config_s {
-+	unsigned long	vector_  :  8;  /* RW */
-+	unsigned long	dm       :  3;  /* RW */
-+	unsigned long	destmode :  1;  /* RW */
-+	unsigned long	status   :  1;  /* RO */
-+	unsigned long	p        :  1;  /* RO */
-+	unsigned long	rsvd_14  :  1;  /*    */
-+	unsigned long	t        :  1;  /* RO */
-+	unsigned long	m        :  1;  /* RW */
-+	unsigned long	rsvd_17_31: 15;  /*    */
-+	unsigned long	apic_id  : 32;  /* RW */
-+    } s;
-+};
-+
-+/* ========================================================================= */
-+/*                         UVH_GR1_TLB_INT1_CONFIG                           */
-+/* ========================================================================= */
-+#define UVH_GR1_TLB_INT1_CONFIG 0x61f40UL
-+
-+#define UVH_GR1_TLB_INT1_CONFIG_VECTOR_SHFT 0
-+#define UVH_GR1_TLB_INT1_CONFIG_VECTOR_MASK 0x00000000000000ffUL
-+#define UVH_GR1_TLB_INT1_CONFIG_DM_SHFT 8
-+#define UVH_GR1_TLB_INT1_CONFIG_DM_MASK 0x0000000000000700UL
-+#define UVH_GR1_TLB_INT1_CONFIG_DESTMODE_SHFT 11
-+#define UVH_GR1_TLB_INT1_CONFIG_DESTMODE_MASK 0x0000000000000800UL
-+#define UVH_GR1_TLB_INT1_CONFIG_STATUS_SHFT 12
-+#define UVH_GR1_TLB_INT1_CONFIG_STATUS_MASK 0x0000000000001000UL
-+#define UVH_GR1_TLB_INT1_CONFIG_P_SHFT 13
-+#define UVH_GR1_TLB_INT1_CONFIG_P_MASK 0x0000000000002000UL
-+#define UVH_GR1_TLB_INT1_CONFIG_T_SHFT 15
-+#define UVH_GR1_TLB_INT1_CONFIG_T_MASK 0x0000000000008000UL
-+#define UVH_GR1_TLB_INT1_CONFIG_M_SHFT 16
-+#define UVH_GR1_TLB_INT1_CONFIG_M_MASK 0x0000000000010000UL
-+#define UVH_GR1_TLB_INT1_CONFIG_APIC_ID_SHFT 32
-+#define UVH_GR1_TLB_INT1_CONFIG_APIC_ID_MASK 0xffffffff00000000UL
-+
-+union uvh_gr1_tlb_int1_config_u {
-+    unsigned long	v;
-+    struct uvh_gr1_tlb_int1_config_s {
-+	unsigned long	vector_  :  8;  /* RW */
-+	unsigned long	dm       :  3;  /* RW */
-+	unsigned long	destmode :  1;  /* RW */
-+	unsigned long	status   :  1;  /* RO */
-+	unsigned long	p        :  1;  /* RO */
-+	unsigned long	rsvd_14  :  1;  /*    */
-+	unsigned long	t        :  1;  /* RO */
-+	unsigned long	m        :  1;  /* RW */
-+	unsigned long	rsvd_17_31: 15;  /*    */
-+	unsigned long	apic_id  : 32;  /* RW */
-+    } s;
-+};
-+
-+/* ========================================================================= */
- /*                               UVH_INT_CMPB                                */
- /* ========================================================================= */
- #define UVH_INT_CMPB 0x22080UL
+@@ -93,6 +92,7 @@ static int gru_reset_asid_limit(struct g
+ 	limit = MAX_ASID;
+ 	if (asid >= limit)
+ 		asid = gru_wrap_asid(gru);
++	gru_flush_all_tlb(gru);
+ 	gid = gru->gs_gid;
+ again:
+ 	for (i = 0; i < GRU_NUM_CCH; i++) {
+@@ -131,12 +131,10 @@ static int gru_assign_asid(struct gru_st
+ {
+ 	int asid;
+ 
+-	spin_lock(&gru->gs_asid_lock);
+ 	gru->gs_asid += ASID_INC;
+ 	asid = gru->gs_asid;
+ 	if (asid >= gru->gs_asid_limit)
+ 		asid = gru_reset_asid_limit(gru, asid);
+-	spin_unlock(&gru->gs_asid_lock);
+ 
+ 	gru_dbg(grudev, "gid %d, asid 0x%x\n", gru->gs_gid, asid);
+ 	return asid;
+@@ -227,7 +225,9 @@ static int gru_load_mm_tracker(struct gr
+ 	spin_lock(&gms->ms_asid_lock);
+ 	asid = asids->mt_asid;
+ 
+-	if (asid == 0 || asids->mt_asid_gen != gru->gs_asid_gen) {
++	spin_lock(&gru->gs_asid_lock);
++	if (asid == 0 || (asids->mt_ctxbitmap == 0 && asids->mt_asid_gen !=
++			  gru->gs_asid_gen)) {
+ 		asid = gru_assign_asid(gru);
+ 		asids->mt_asid = asid;
+ 		asids->mt_asid_gen = gru->gs_asid_gen;
+@@ -235,6 +235,7 @@ static int gru_load_mm_tracker(struct gr
+ 	} else {
+ 		STAT(asid_reuse);
+ 	}
++	spin_unlock(&gru->gs_asid_lock);
+ 
+ 	BUG_ON(asids->mt_ctxbitmap & ctxbitmap);
+ 	asids->mt_ctxbitmap |= ctxbitmap;
+@@ -259,10 +260,12 @@ static void gru_unload_mm_tracker(struct
+ 	asids = &gms->ms_asids[gru->gs_gid];
+ 	ctxbitmap = (1 << gts->ts_ctxnum);
+ 	spin_lock(&gms->ms_asid_lock);
++	spin_lock(&gru->gs_asid_lock);
+ 	BUG_ON((asids->mt_ctxbitmap & ctxbitmap) != ctxbitmap);
+ 	asids->mt_ctxbitmap ^= ctxbitmap;
+ 	gru_dbg(grudev, "gid %d, gts %p, gms %p, ctxnum 0x%d, asidmap 0x%lx\n",
+ 		gru->gs_gid, gts, gms, gts->ts_ctxnum, gms->ms_asidmap[0]);
++	spin_unlock(&gru->gs_asid_lock);
+ 	spin_unlock(&gms->ms_asid_lock);
+ }
+ 
+@@ -412,6 +415,7 @@ static void gru_free_gru_context(struct 
+ 	__clear_bit(gts->ts_ctxnum, &gru->gs_context_map);
+ 	gts->ts_ctxnum = NULLCTX;
+ 	gts->ts_gru = NULL;
++	gts->ts_blade = -1;
+ 	spin_unlock(&gru->gs_lock);
+ 
+ 	gts_drop(gts);
+@@ -731,6 +735,7 @@ again:
+ 		}
+ 		reserve_gru_resources(gru, gts);
+ 		gts->ts_gru = gru;
++		gts->ts_blade = gru->gs_blade_id;
+ 		gts->ts_ctxnum =
+ 		    find_first_zero_bit(&gru->gs_context_map, GRU_NUM_CCH);
+ 		BUG_ON(gts->ts_ctxnum == GRU_NUM_CCH);
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
