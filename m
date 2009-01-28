@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-gru-add-statistics-to-the-gru-context-management-functions.patch added to -mm tree
-Date: Tue, 27 Jan 2009 16:25:02 -0800
-Message-ID: <200901280025.n0S0P22F004727@imap1.linux-foundation.org>
+Subject: + sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions.patch added to -mm tree
+Date: Tue, 27 Jan 2009 16:25:00 -0800
+Message-ID: <200901280025.n0S0P09l004714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751716AbZA1AZG (ORCPT
+	by vger.kernel.org with ESMTP id S1751518AbZA1AZE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 19:25:06 -0500
+	Tue, 27 Jan 2009 19:25:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     sgi-gru: add statistics to the GRU context management functions
+     sgi-gru: change GRU CCH commands from inline functions to outofline functions
 has been added to the -mm tree.  Its filename is
-     sgi-gru-add-statistics-to-the-gru-context-management-functions.patch
+     sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,427 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: add statistics to the GRU context management functions
+Subject: sgi-gru: change GRU CCH commands from inline functions to outofline functions
 From: Jack Steiner <steiner@sgi.com>
 
-Add statistics to the GRU context management functions.
+Change the GRU instructions that manage contexts from inline functions to
+out-of-line functions.  This simplifies adding statistics & error checking
+to these functions.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/gruhandles.c |   12 ++++++++
- drivers/misc/sgi-gru/gruprocfs.c  |   39 ++++++++++++++++++++++++++++
- drivers/misc/sgi-gru/grutables.h  |    8 +++++
- 3 files changed, 59 insertions(+)
+ drivers/misc/sgi-gru/Makefile     |    2 
+ drivers/misc/sgi-gru/gruhandles.c |  197 ++++++++++++++++++++++++++++
+ drivers/misc/sgi-gru/gruhandles.h |  174 ++----------------------
+ drivers/misc/sgi-gru/grutables.h  |    3 
+ 4 files changed, 217 insertions(+), 159 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/gruhandles.c~sgi-gru-add-statistics-to-the-gru-context-management-functions drivers/misc/sgi-gru/gruhandles.c
---- a/drivers/misc/sgi-gru/gruhandles.c~sgi-gru-add-statistics-to-the-gru-context-management-functions
+diff -puN drivers/misc/sgi-gru/Makefile~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions drivers/misc/sgi-gru/Makefile
+--- a/drivers/misc/sgi-gru/Makefile~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions
++++ a/drivers/misc/sgi-gru/Makefile
+@@ -3,5 +3,5 @@ ifdef CONFIG_SGI_GRU_DEBUG
+ endif
+ 
+ obj-$(CONFIG_SGI_GRU) := gru.o
+-gru-y := grufile.o grumain.o grufault.o grutlbpurge.o gruprocfs.o grukservices.o
++gru-y := grufile.o grumain.o grufault.o grutlbpurge.o gruprocfs.o grukservices.o gruhandles.o
+ 
+diff -puN /dev/null drivers/misc/sgi-gru/gruhandles.c
+--- /dev/null
 +++ a/drivers/misc/sgi-gru/gruhandles.c
-@@ -35,6 +35,16 @@
- /* Extract the status field from a kernel handle */
- #define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
- 
-+struct mcs_op_statistic mcs_op_statistics[mcsop_last];
+@@ -0,0 +1,197 @@
++/*
++ *              GRU KERNEL MCS INSTRUCTIONS
++ *
++ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ */
 +
-+static void update_mcs_stats(enum mcs_op op, unsigned long clks)
++#include <linux/kernel.h>
++#include "gru.h"
++#include "grulib.h"
++#include "grutables.h"
++
++/* 10 sec */
++#ifdef CONFIG_IA64
++#include <asm/processor.h>
++#define GRU_OPERATION_TIMEOUT	(((cycles_t) local_cpu_data->itc_freq)*10)
++#else
++#include <asm/tsc.h>
++#define GRU_OPERATION_TIMEOUT	((cycles_t) tsc_khz*10*1000)
++#endif
++
++/* Extract the status field from a kernel handle */
++#define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
++
++static void start_instruction(void *h)
 +{
-+	atomic_long_inc(&mcs_op_statistics[op].count);
-+	atomic_long_add(clks, &mcs_op_statistics[op].total);
-+	if (mcs_op_statistics[op].max < clks)
-+		mcs_op_statistics[op].max = clks;
++	unsigned long *w0 = h;
++
++	wmb();		/* setting CMD bit must be last */
++	*w0 = *w0 | 1;
++	gru_flush_cache(h);
 +}
 +
- static void start_instruction(void *h)
- {
- 	unsigned long *w0 = h;
-@@ -57,6 +67,8 @@ static int wait_instruction_complete(voi
- 		if (GRU_OPERATION_TIMEOUT < (get_cycles() - start_time))
- 			panic("GRU %p is malfunctioning\n", h);
- 	}
-+	if (gru_options & OPT_STATS)
-+		update_mcs_stats(opc, get_cycles() - start_time);
- 	return status;
- }
- 
-diff -puN drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-add-statistics-to-the-gru-context-management-functions drivers/misc/sgi-gru/gruprocfs.c
---- a/drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-add-statistics-to-the-gru-context-management-functions
-+++ a/drivers/misc/sgi-gru/gruprocfs.c
-@@ -122,6 +122,30 @@ static ssize_t statistics_write(struct f
- 	return count;
- }
- 
-+static int mcs_statistics_show(struct seq_file *s, void *p)
++static int wait_instruction_complete(void *h, enum mcs_op opc)
 +{
-+	int op;
-+	unsigned long total, count, max;
-+	static char *id[] = {"cch_allocate", "cch_start", "cch_interrupt",
-+		"cch_interrupt_sync", "cch_deallocate", "tgh_invalidate"};
++	int status;
++	cycles_t start_time = get_cycles();
 +
-+	for (op = 0; op < mcsop_last; op++) {
-+		count = atomic_long_read(&mcs_op_statistics[op].count);
-+		total = atomic_long_read(&mcs_op_statistics[op].total);
-+		max = mcs_op_statistics[op].max;
-+		seq_printf(s, "%-20s%12ld%12ld%12ld\n", id[op], count,
-+			   count ? total / count : 0, max);
++	while (1) {
++		cpu_relax();
++		status = GET_MSEG_HANDLE_STATUS(h);
++		if (status != CCHSTATUS_ACTIVE)
++			break;
++		if (GRU_OPERATION_TIMEOUT < (get_cycles() - start_time))
++			panic("GRU %p is malfunctioning\n", h);
 +	}
-+	return 0;
++	return status;
 +}
 +
-+static ssize_t mcs_statistics_write(struct file *file,
-+			const char __user *userbuf, size_t count, loff_t *data)
++#if defined CONFIG_IA64
++static void cch_allocate_set_asids(
++		  struct gru_context_configuration_handle *cch, int asidval)
 +{
-+	memset(mcs_op_statistics, 0, sizeof(mcs_op_statistics));
-+	return count;
-+}
++	int i;
 +
- static int options_show(struct seq_file *s, void *p)
- {
- 	seq_printf(s, "0x%lx\n", gru_options);
-@@ -137,6 +161,7 @@ static ssize_t options_write(struct file
- 	if (copy_from_user
- 	    (buf, userbuf, count < sizeof(buf) ? count : sizeof(buf)))
- 		return -EFAULT;
-+	buf[count - 1] = '\0';
- 	if (!strict_strtoul(buf, 10, &val))
- 		gru_options = val;
- 
-@@ -233,6 +258,11 @@ static int statistics_open(struct inode 
- 	return single_open(file, statistics_show, NULL);
- }
- 
-+static int mcs_statistics_open(struct inode *inode, struct file *file)
++	for (i = 0; i < 8; i++) {
++		cch->asid[i] = (asidval++);
++#if 0
++		/* ZZZ hugepages not supported yet */
++		if (i == RGN_HPAGE)
++			cch->sizeavail[i] = GRU_SIZEAVAIL(hpage_shift);
++		else
++#endif
++			cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT);
++	}
++}
++#elif defined CONFIG_X86_64
++static void cch_allocate_set_asids(
++		  struct gru_context_configuration_handle *cch, int asidval)
 +{
-+	return single_open(file, mcs_statistics_show, NULL);
++	int i;
++
++	for (i = 0; i < 8; i++) {
++		cch->asid[i] = asidval++;
++		cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT) |
++			GRU_SIZEAVAIL(21);
++	}
++}
++#endif
++
++int cch_allocate(struct gru_context_configuration_handle *cch,
++			       int asidval, unsigned long cbrmap,
++			       unsigned long dsrmap)
++{
++	cch_allocate_set_asids(cch, asidval);
++	cch->dsr_allocation_map = dsrmap;
++	cch->cbr_allocation_map = cbrmap;
++	cch->opc = CCHOP_ALLOCATE;
++	start_instruction(cch);
++	return wait_instruction_complete(cch, cchop_allocate);
 +}
 +
- static int options_open(struct inode *inode, struct file *file)
- {
- 	return single_open(file, options_show, NULL);
-@@ -257,6 +287,14 @@ static const struct file_operations stat
- 	.release 	= single_release,
++int cch_start(struct gru_context_configuration_handle *cch)
++{
++	cch->opc = CCHOP_START;
++	start_instruction(cch);
++	return wait_instruction_complete(cch, cchop_start);
++}
++
++int cch_interrupt(struct gru_context_configuration_handle *cch)
++{
++	cch->opc = CCHOP_INTERRUPT;
++	start_instruction(cch);
++	return wait_instruction_complete(cch, cchop_interrupt);
++}
++
++int cch_deallocate(struct gru_context_configuration_handle *cch)
++{
++	cch->opc = CCHOP_DEALLOCATE;
++	start_instruction(cch);
++	return wait_instruction_complete(cch, cchop_deallocate);
++}
++
++int cch_interrupt_sync(struct gru_context_configuration_handle
++				     *cch)
++{
++	cch->opc = CCHOP_INTERRUPT_SYNC;
++	start_instruction(cch);
++	return wait_instruction_complete(cch, cchop_interrupt_sync);
++}
++
++int tgh_invalidate(struct gru_tlb_global_handle *tgh,
++				 unsigned long vaddr, unsigned long vaddrmask,
++				 int asid, int pagesize, int global, int n,
++				 unsigned short ctxbitmap)
++{
++	tgh->vaddr = vaddr;
++	tgh->asid = asid;
++	tgh->pagesize = pagesize;
++	tgh->n = n;
++	tgh->global = global;
++	tgh->vaddrmask = vaddrmask;
++	tgh->ctxbitmap = ctxbitmap;
++	tgh->opc = TGHOP_TLBINV;
++	start_instruction(tgh);
++	return wait_instruction_complete(tgh, tghop_invalidate);
++}
++
++void tfh_write_only(struct gru_tlb_fault_handle *tfh,
++				  unsigned long pfn, unsigned long vaddr,
++				  int asid, int dirty, int pagesize)
++{
++	tfh->fillasid = asid;
++	tfh->fillvaddr = vaddr;
++	tfh->pfn = pfn;
++	tfh->dirty = dirty;
++	tfh->pagesize = pagesize;
++	tfh->opc = TFHOP_WRITE_ONLY;
++	start_instruction(tfh);
++}
++
++void tfh_write_restart(struct gru_tlb_fault_handle *tfh,
++				     unsigned long paddr, int gaa,
++				     unsigned long vaddr, int asid, int dirty,
++				     int pagesize)
++{
++	tfh->fillasid = asid;
++	tfh->fillvaddr = vaddr;
++	tfh->pfn = paddr >> GRU_PADDR_SHIFT;
++	tfh->gaa = gaa;
++	tfh->dirty = dirty;
++	tfh->pagesize = pagesize;
++	tfh->opc = TFHOP_WRITE_RESTART;
++	start_instruction(tfh);
++}
++
++void tfh_restart(struct gru_tlb_fault_handle *tfh)
++{
++	tfh->opc = TFHOP_RESTART;
++	start_instruction(tfh);
++}
++
++void tfh_user_polling_mode(struct gru_tlb_fault_handle *tfh)
++{
++	tfh->opc = TFHOP_USER_POLLING_MODE;
++	start_instruction(tfh);
++}
++
++void tfh_exception(struct gru_tlb_fault_handle *tfh)
++{
++	tfh->opc = TFHOP_EXCEPTION;
++	start_instruction(tfh);
++}
++
+diff -puN drivers/misc/sgi-gru/gruhandles.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions drivers/misc/sgi-gru/gruhandles.h
+--- a/drivers/misc/sgi-gru/gruhandles.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions
++++ a/drivers/misc/sgi-gru/gruhandles.h
+@@ -495,164 +495,22 @@ enum gru_cbr_state {
+ /* minimum TLB purge count to ensure a full purge */
+ #define GRUMAXINVAL		1024UL
+ 
++int cch_allocate(struct gru_context_configuration_handle *cch,
++       int asidval, unsigned long cbrmap, unsigned long dsrmap);
+ 
+-/* Extract the status field from a kernel handle */
+-#define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
+-
+-static inline void start_instruction(void *h)
+-{
+-	unsigned long *w0 = h;
+-
+-	wmb();		/* setting CMD bit must be last */
+-	*w0 = *w0 | 1;
+-	gru_flush_cache(h);
+-}
+-
+-static inline int wait_instruction_complete(void *h)
+-{
+-	int status;
+-
+-	do {
+-		cpu_relax();
+-		barrier();
+-		status = GET_MSEG_HANDLE_STATUS(h);
+-	} while (status == CCHSTATUS_ACTIVE);
+-	return status;
+-}
+-
+-#if defined CONFIG_IA64
+-static inline void cch_allocate_set_asids(
+-		  struct gru_context_configuration_handle *cch, int asidval)
+-{
+-	int i;
+-
+-	for (i = 0; i <= RGN_HPAGE; i++) {  /*  assume HPAGE is last region */
+-		cch->asid[i] = (asidval++);
+-#if 0
+-		/* ZZZ hugepages not supported yet */
+-		if (i == RGN_HPAGE)
+-			cch->sizeavail[i] = GRU_SIZEAVAIL(hpage_shift);
+-		else
+-#endif
+-			cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT);
+-	}
+-}
+-#elif defined CONFIG_X86_64
+-static inline void cch_allocate_set_asids(
+-		  struct gru_context_configuration_handle *cch, int asidval)
+-{
+-	int i;
+-
+-	for (i = 0; i < 8; i++) {
+-		cch->asid[i] = asidval++;
+-		cch->sizeavail[i] = GRU_SIZEAVAIL(PAGE_SHIFT) |
+-			GRU_SIZEAVAIL(21);
+-	}
+-}
+-#endif
+-
+-static inline int cch_allocate(struct gru_context_configuration_handle *cch,
+-			       int asidval, unsigned long cbrmap,
+-			       unsigned long dsrmap)
+-{
+-	cch_allocate_set_asids(cch, asidval);
+-	cch->dsr_allocation_map = dsrmap;
+-	cch->cbr_allocation_map = cbrmap;
+-	cch->opc = CCHOP_ALLOCATE;
+-	start_instruction(cch);
+-	return wait_instruction_complete(cch);
+-}
+-
+-static inline int cch_start(struct gru_context_configuration_handle *cch)
+-{
+-	cch->opc = CCHOP_START;
+-	start_instruction(cch);
+-	return wait_instruction_complete(cch);
+-}
+-
+-static inline int cch_interrupt(struct gru_context_configuration_handle *cch)
+-{
+-	cch->opc = CCHOP_INTERRUPT;
+-	start_instruction(cch);
+-	return wait_instruction_complete(cch);
+-}
+-
+-static inline int cch_deallocate(struct gru_context_configuration_handle *cch)
+-{
+-	cch->opc = CCHOP_DEALLOCATE;
+-	start_instruction(cch);
+-	return wait_instruction_complete(cch);
+-}
+-
+-static inline int cch_interrupt_sync(struct gru_context_configuration_handle
+-				     *cch)
+-{
+-	cch->opc = CCHOP_INTERRUPT_SYNC;
+-	start_instruction(cch);
+-	return wait_instruction_complete(cch);
+-}
+-
+-static inline int tgh_invalidate(struct gru_tlb_global_handle *tgh,
+-				 unsigned long vaddr, unsigned long vaddrmask,
+-				 int asid, int pagesize, int global, int n,
+-				 unsigned short ctxbitmap)
+-{
+-	tgh->vaddr = vaddr;
+-	tgh->asid = asid;
+-	tgh->pagesize = pagesize;
+-	tgh->n = n;
+-	tgh->global = global;
+-	tgh->vaddrmask = vaddrmask;
+-	tgh->ctxbitmap = ctxbitmap;
+-	tgh->opc = TGHOP_TLBINV;
+-	start_instruction(tgh);
+-	return wait_instruction_complete(tgh);
+-}
+-
+-static inline void tfh_write_only(struct gru_tlb_fault_handle *tfh,
+-				  unsigned long pfn, unsigned long vaddr,
+-				  int asid, int dirty, int pagesize)
+-{
+-	tfh->fillasid = asid;
+-	tfh->fillvaddr = vaddr;
+-	tfh->pfn = pfn;
+-	tfh->dirty = dirty;
+-	tfh->pagesize = pagesize;
+-	tfh->opc = TFHOP_WRITE_ONLY;
+-	start_instruction(tfh);
+-}
+-
+-static inline void tfh_write_restart(struct gru_tlb_fault_handle *tfh,
+-				     unsigned long paddr, int gaa,
+-				     unsigned long vaddr, int asid, int dirty,
+-				     int pagesize)
+-{
+-	tfh->fillasid = asid;
+-	tfh->fillvaddr = vaddr;
+-	tfh->pfn = paddr >> GRU_PADDR_SHIFT;
+-	tfh->gaa = gaa;
+-	tfh->dirty = dirty;
+-	tfh->pagesize = pagesize;
+-	tfh->opc = TFHOP_WRITE_RESTART;
+-	start_instruction(tfh);
+-}
+-
+-static inline void tfh_restart(struct gru_tlb_fault_handle *tfh)
+-{
+-	tfh->opc = TFHOP_RESTART;
+-	start_instruction(tfh);
+-}
+-
+-static inline void tfh_user_polling_mode(struct gru_tlb_fault_handle *tfh)
+-{
+-	tfh->opc = TFHOP_USER_POLLING_MODE;
+-	start_instruction(tfh);
+-}
+-
+-static inline void tfh_exception(struct gru_tlb_fault_handle *tfh)
+-{
+-	tfh->opc = TFHOP_EXCEPTION;
+-	start_instruction(tfh);
+-}
++int cch_start(struct gru_context_configuration_handle *cch);
++int cch_interrupt(struct gru_context_configuration_handle *cch);
++int cch_deallocate(struct gru_context_configuration_handle *cch);
++int cch_interrupt_sync(struct gru_context_configuration_handle *cch);
++int tgh_invalidate(struct gru_tlb_global_handle *tgh, unsigned long vaddr,
++	unsigned long vaddrmask, int asid, int pagesize, int global, int n,
++	unsigned short ctxbitmap);
++void tfh_write_only(struct gru_tlb_fault_handle *tfh, unsigned long pfn,
++	unsigned long vaddr, int asid, int dirty, int pagesize);
++void tfh_write_restart(struct gru_tlb_fault_handle *tfh, unsigned long paddr,
++	int gaa, unsigned long vaddr, int asid, int dirty, int pagesize);
++void tfh_restart(struct gru_tlb_fault_handle *tfh);
++void tfh_user_polling_mode(struct gru_tlb_fault_handle *tfh);
++void tfh_exception(struct gru_tlb_fault_handle *tfh);
+ 
+ #endif /* __GRUHANDLES_H__ */
+diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -239,6 +239,9 @@ struct gru_stats_s {
+ 
  };
  
-+static const struct file_operations mcs_statistics_fops = {
-+	.open 		= mcs_statistics_open,
-+	.read 		= seq_read,
-+	.write 		= mcs_statistics_write,
-+	.llseek 	= seq_lseek,
-+	.release 	= single_release,
-+};
-+
- static const struct file_operations options_fops = {
- 	.open 		= options_open,
- 	.read 		= seq_read,
-@@ -285,6 +323,7 @@ static struct proc_entry {
- 	struct proc_dir_entry *entry;
- } proc_files[] = {
- 	{"statistics", 0644, &statistics_fops},
-+	{"mcs_statistics", 0644, &mcs_statistics_fops},
- 	{"debug_options", 0644, &options_fops},
- 	{"cch_status", 0444, &cch_fops},
- 	{"gru_status", 0444, &gru_fops},
-diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-add-statistics-to-the-gru-context-management-functions drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-add-statistics-to-the-gru-context-management-functions
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -242,6 +242,14 @@ struct gru_stats_s {
- enum mcs_op {cchop_allocate, cchop_start, cchop_interrupt, cchop_interrupt_sync,
- 	cchop_deallocate, tghop_invalidate, mcsop_last};
- 
-+struct mcs_op_statistic {
-+	atomic_long_t	count;
-+	atomic_long_t	total;
-+	unsigned long	max;
-+};
-+
-+extern struct mcs_op_statistic mcs_op_statistics[mcsop_last];
++enum mcs_op {cchop_allocate, cchop_start, cchop_interrupt, cchop_interrupt_sync,
++	cchop_deallocate, tghop_invalidate, mcsop_last};
 +
  #define OPT_DPRINT	1
  #define OPT_STATS	2
