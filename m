@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-gru-add-support-for-a-user-to-explicitly-unload-a-gru-context.patch added to -mm tree
-Date: Tue, 27 Jan 2009 16:25:04 -0800
-Message-ID: <200901280025.n0S0P4RS004731@imap1.linux-foundation.org>
+Subject: + sgi-gru-add-statistics-to-the-gru-context-management-functions.patch added to -mm tree
+Date: Tue, 27 Jan 2009 16:25:02 -0800
+Message-ID: <200901280025.n0S0P22F004727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751730AbZA1AZI (ORCPT
+	by vger.kernel.org with ESMTP id S1751716AbZA1AZG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 19:25:08 -0500
+	Tue, 27 Jan 2009 19:25:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     sgi-gru: add support for a user to explicitly unload a GRU context
+     sgi-gru: add statistics to the GRU context management functions
 has been added to the -mm tree.  Its filename is
-     sgi-gru-add-support-for-a-user-to-explicitly-unload-a-gru-context.patch
+     sgi-gru-add-statistics-to-the-gru-context-management-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: add support for a user to explicitly unload a GRU context
+Subject: sgi-gru: add statistics to the GRU context management functions
 From: Jack Steiner <steiner@sgi.com>
 
-Add support for a user to explicitly unload a GRU context.
+Add statistics to the GRU context management functions.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c |   36 ++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ drivers/misc/sgi-gru/gruhandles.c |   12 ++++++++
+ drivers/misc/sgi-gru/gruprocfs.c  |   39 ++++++++++++++++++++++++++++
+ drivers/misc/sgi-gru/grutables.h  |    8 +++++
+ 3 files changed, 59 insertions(+)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~sgi-gru-add-support-for-a-user-to-explicitly-unload-a-gru-context drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~sgi-gru-add-support-for-a-user-to-explicitly-unload-a-gru-context
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -32,6 +32,7 @@
- #include <linux/device.h>
- #include <linux/io.h>
- #include <linux/uaccess.h>
-+#include <linux/security.h>
- #include <asm/pgtable.h>
- #include "gru.h"
- #include "grutables.h"
-@@ -575,6 +576,38 @@ int gru_get_exception_detail(unsigned lo
- /*
-  * User request to unload a context. Content is saved for possible reload.
-  */
-+static int gru_unload_all_contexts(void)
-+{
-+	struct gru_thread_state *gts;
-+	struct gru_state *gru;
-+	int maxgid, gid, ctxnum;
-+	int nodesperblade;
+diff -puN drivers/misc/sgi-gru/gruhandles.c~sgi-gru-add-statistics-to-the-gru-context-management-functions drivers/misc/sgi-gru/gruhandles.c
+--- a/drivers/misc/sgi-gru/gruhandles.c~sgi-gru-add-statistics-to-the-gru-context-management-functions
++++ a/drivers/misc/sgi-gru/gruhandles.c
+@@ -35,6 +35,16 @@
+ /* Extract the status field from a kernel handle */
+ #define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
+ 
++struct mcs_op_statistic mcs_op_statistics[mcsop_last];
 +
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+	if (num_online_nodes() > 1 &&
-+			(uv_node_to_blade_id(1) == uv_node_to_blade_id(0)))
-+		nodesperblade = 2;
-+	else
-+		nodesperblade = 1;
-+	maxgid = GRU_CHIPLETS_PER_BLADE * num_online_nodes() / nodesperblade;
-+	for (gid = 0; gid < maxgid; gid++) {
-+		gru = GID_TO_GRU(gid);
-+		spin_lock(&gru->gs_lock);
-+		for (ctxnum = 0; ctxnum < GRU_NUM_CCH; ctxnum++) {
-+			gts = gru->gs_gts[ctxnum];
-+			if (gts && mutex_trylock(&gts->ts_ctxlock)) {
-+				spin_unlock(&gru->gs_lock);
-+				gru_unload_context(gts, 1);
-+				gru_unlock_gts(gts);
-+				spin_lock(&gru->gs_lock);
-+			}
-+		}
-+		spin_unlock(&gru->gs_lock);
++static void update_mcs_stats(enum mcs_op op, unsigned long clks)
++{
++	atomic_long_inc(&mcs_op_statistics[op].count);
++	atomic_long_add(clks, &mcs_op_statistics[op].total);
++	if (mcs_op_statistics[op].max < clks)
++		mcs_op_statistics[op].max = clks;
++}
++
+ static void start_instruction(void *h)
+ {
+ 	unsigned long *w0 = h;
+@@ -57,6 +67,8 @@ static int wait_instruction_complete(voi
+ 		if (GRU_OPERATION_TIMEOUT < (get_cycles() - start_time))
+ 			panic("GRU %p is malfunctioning\n", h);
+ 	}
++	if (gru_options & OPT_STATS)
++		update_mcs_stats(opc, get_cycles() - start_time);
+ 	return status;
+ }
+ 
+diff -puN drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-add-statistics-to-the-gru-context-management-functions drivers/misc/sgi-gru/gruprocfs.c
+--- a/drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-add-statistics-to-the-gru-context-management-functions
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -122,6 +122,30 @@ static ssize_t statistics_write(struct f
+ 	return count;
+ }
+ 
++static int mcs_statistics_show(struct seq_file *s, void *p)
++{
++	int op;
++	unsigned long total, count, max;
++	static char *id[] = {"cch_allocate", "cch_start", "cch_interrupt",
++		"cch_interrupt_sync", "cch_deallocate", "tgh_invalidate"};
++
++	for (op = 0; op < mcsop_last; op++) {
++		count = atomic_long_read(&mcs_op_statistics[op].count);
++		total = atomic_long_read(&mcs_op_statistics[op].total);
++		max = mcs_op_statistics[op].max;
++		seq_printf(s, "%-20s%12ld%12ld%12ld\n", id[op], count,
++			   count ? total / count : 0, max);
 +	}
 +	return 0;
 +}
 +
- int gru_user_unload_context(unsigned long arg)
- {
- 	struct gru_thread_state *gts;
-@@ -586,6 +619,9 @@ int gru_user_unload_context(unsigned lon
- 
- 	gru_dbg(grudev, "gseg 0x%lx\n", req.gseg);
- 
-+	if (!req.gseg)
-+		return gru_unload_all_contexts();
++static ssize_t mcs_statistics_write(struct file *file,
++			const char __user *userbuf, size_t count, loff_t *data)
++{
++	memset(mcs_op_statistics, 0, sizeof(mcs_op_statistics));
++	return count;
++}
 +
- 	gts = gru_find_lock_gts(req.gseg);
- 	if (!gts)
- 		return -EINVAL;
+ static int options_show(struct seq_file *s, void *p)
+ {
+ 	seq_printf(s, "0x%lx\n", gru_options);
+@@ -137,6 +161,7 @@ static ssize_t options_write(struct file
+ 	if (copy_from_user
+ 	    (buf, userbuf, count < sizeof(buf) ? count : sizeof(buf)))
+ 		return -EFAULT;
++	buf[count - 1] = '\0';
+ 	if (!strict_strtoul(buf, 10, &val))
+ 		gru_options = val;
+ 
+@@ -233,6 +258,11 @@ static int statistics_open(struct inode 
+ 	return single_open(file, statistics_show, NULL);
+ }
+ 
++static int mcs_statistics_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, mcs_statistics_show, NULL);
++}
++
+ static int options_open(struct inode *inode, struct file *file)
+ {
+ 	return single_open(file, options_show, NULL);
+@@ -257,6 +287,14 @@ static const struct file_operations stat
+ 	.release 	= single_release,
+ };
+ 
++static const struct file_operations mcs_statistics_fops = {
++	.open 		= mcs_statistics_open,
++	.read 		= seq_read,
++	.write 		= mcs_statistics_write,
++	.llseek 	= seq_lseek,
++	.release 	= single_release,
++};
++
+ static const struct file_operations options_fops = {
+ 	.open 		= options_open,
+ 	.read 		= seq_read,
+@@ -285,6 +323,7 @@ static struct proc_entry {
+ 	struct proc_dir_entry *entry;
+ } proc_files[] = {
+ 	{"statistics", 0644, &statistics_fops},
++	{"mcs_statistics", 0644, &mcs_statistics_fops},
+ 	{"debug_options", 0644, &options_fops},
+ 	{"cch_status", 0444, &cch_fops},
+ 	{"gru_status", 0444, &gru_fops},
+diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-add-statistics-to-the-gru-context-management-functions drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-add-statistics-to-the-gru-context-management-functions
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -242,6 +242,14 @@ struct gru_stats_s {
+ enum mcs_op {cchop_allocate, cchop_start, cchop_interrupt, cchop_interrupt_sync,
+ 	cchop_deallocate, tghop_invalidate, mcsop_last};
+ 
++struct mcs_op_statistic {
++	atomic_long_t	count;
++	atomic_long_t	total;
++	unsigned long	max;
++};
++
++extern struct mcs_op_statistic mcs_op_statistics[mcsop_last];
++
+ #define OPT_DPRINT	1
+ #define OPT_STATS	2
+ #define GRU_QUICKLOOK	4
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
