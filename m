@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-gru-restructure-the-gru-vtop-functions.patch added to -mm tree
-Date: Tue, 27 Jan 2009 16:25:08 -0800
-Message-ID: <200901280025.n0S0P8VQ004876@imap1.linux-foundation.org>
+Subject: + sgi-gru-macro-for-scanning-all-gru-chiplets.patch added to -mm tree
+Date: Tue, 27 Jan 2009 16:25:13 -0800
+Message-ID: <200901280025.n0S0PD9O004943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751798AbZA1AZM (ORCPT
+	by vger.kernel.org with ESMTP id S1751813AbZA1AZS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 19:25:12 -0500
+	Tue, 27 Jan 2009 19:25:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     sgi-gru: restructure the GRU vtop functions
+     sgi-gru: macro for scanning all gru chiplets
 has been added to the -mm tree.  Its filename is
-     sgi-gru-restructure-the-gru-vtop-functions.patch
+     sgi-gru-macro-for-scanning-all-gru-chiplets.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,124 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: restructure the GRU vtop functions
+Subject: sgi-gru: macro for scanning all gru chiplets
 From: Jack Steiner <steiner@sgi.com>
 
-Restructure the GRU vtop functions in preparation for future changes. 
-This patch simply moves code around & does not change the algorithm.
+Add macro for scanning all active GRU chiplets.  Maximum chiplet id is
+saved during GRU initialization.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c |   68 +++++++++++++++++++-----------
- 1 file changed, 44 insertions(+), 24 deletions(-)
+ drivers/misc/sgi-gru/grufault.c  |   11 ++---------
+ drivers/misc/sgi-gru/grufile.c   |    3 +++
+ drivers/misc/sgi-gru/gruprocfs.c |    4 ++--
+ drivers/misc/sgi-gru/grutables.h |    9 +++++++--
+ 4 files changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~sgi-gru-restructure-the-gru-vtop-functions drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~sgi-gru-restructure-the-gru-vtop-functions
+diff -puN drivers/misc/sgi-gru/grufault.c~sgi-gru-macro-for-scanning-all-gru-chiplets drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~sgi-gru-macro-for-scanning-all-gru-chiplets
 +++ a/drivers/misc/sgi-gru/grufault.c
-@@ -267,6 +267,44 @@ err:
- 	return 1;
- }
- 
-+static int gru_vtop(struct gru_thread_state *gts, unsigned long vaddr,
-+		    int write, int atomic, unsigned long *gpa, int *pageshift)
-+{
-+	struct mm_struct *mm = gts->ts_mm;
-+	struct vm_area_struct *vma;
-+	unsigned long paddr;
-+	int ret, ps;
-+
-+	vma = find_vma(mm, vaddr);
-+	if (!vma)
-+		goto inval;
-+
-+	/*
-+	 * Atomic lookup is faster & usually works even if called in non-atomic
-+	 * context.
-+	 */
-+	rmb();	/* Must/check ms_range_active before loading PTEs */
-+	ret = atomic_pte_lookup(vma, vaddr, write, &paddr, &ps);
-+	if (ret) {
-+		if (atomic)
-+			goto upm;
-+		if (non_atomic_pte_lookup(vma, vaddr, write, &paddr, &ps))
-+			goto inval;
-+	}
-+	if (is_gru_paddr(paddr))
-+		goto inval;
-+	paddr = paddr & ~((1UL << ps) - 1);
-+	*gpa = uv_soc_phys_ram_to_gpa(paddr);
-+	*pageshift = ps;
-+	return 0;
-+
-+inval:
-+	return -1;
-+upm:
-+	return -2;
-+}
-+
-+
- /*
-  * Drop a TLB entry into the GRU. The fault is described by info in an TFH.
-  *	Input:
-@@ -281,10 +319,8 @@ static int gru_try_dropin(struct gru_thr
- 			  struct gru_tlb_fault_handle *tfh,
- 			  unsigned long __user *cb)
+@@ -600,18 +600,11 @@ static int gru_unload_all_contexts(void)
  {
--	struct mm_struct *mm = gts->ts_mm;
--	struct vm_area_struct *vma;
--	int pageshift, asid, write, ret;
--	unsigned long paddr, gpa, vaddr;
-+	int pageshift = 0, asid, write, ret, atomic = !cb;
-+	unsigned long gpa = 0, vaddr = 0;
+ 	struct gru_thread_state *gts;
+ 	struct gru_state *gru;
+-	int maxgid, gid, ctxnum;
+-	int nodesperblade;
++	int gid, ctxnum;
  
- 	/*
- 	 * NOTE: The GRU contains magic hardware that eliminates races between
-@@ -318,28 +354,12 @@ static int gru_try_dropin(struct gru_thr
- 	if (atomic_read(&gts->ts_gms->ms_range_active))
- 		goto failactive;
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+-	if (num_online_nodes() > 1 &&
+-			(uv_node_to_blade_id(1) == uv_node_to_blade_id(0)))
+-		nodesperblade = 2;
+-	else
+-		nodesperblade = 1;
+-	maxgid = GRU_CHIPLETS_PER_BLADE * num_online_nodes() / nodesperblade;
+-	for (gid = 0; gid < maxgid; gid++) {
++	foreach_gid(gid) {
+ 		gru = GID_TO_GRU(gid);
+ 		spin_lock(&gru->gs_lock);
+ 		for (ctxnum = 0; ctxnum < GRU_NUM_CCH; ctxnum++) {
+diff -puN drivers/misc/sgi-gru/grufile.c~sgi-gru-macro-for-scanning-all-gru-chiplets drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~sgi-gru-macro-for-scanning-all-gru-chiplets
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -59,6 +59,7 @@
+ struct gru_blade_state *gru_base[GRU_MAX_BLADES] __read_mostly;
+ unsigned long gru_start_paddr __read_mostly;
+ unsigned long gru_end_paddr __read_mostly;
++unsigned int gru_max_gids __read_mostly;
+ struct gru_stats_s gru_stats;
  
--	vma = find_vma(mm, vaddr);
--	if (!vma)
--		goto failinval;
--
--	/*
--	 * Atomic lookup is faster & usually works even if called in non-atomic
--	 * context.
--	 */
--	rmb();	/* Must/check ms_range_active before loading PTEs */
--	ret = atomic_pte_lookup(vma, vaddr, write, &paddr, &pageshift);
--	if (ret) {
--		if (!cb)
--			goto failupm;
--		if (non_atomic_pte_lookup(vma, vaddr, write, &paddr,
--					  &pageshift))
--			goto failinval;
--	}
--	if (is_gru_paddr(paddr))
-+	ret = gru_vtop(gts, vaddr, write, atomic, &gpa, &pageshift);
-+	if (ret == -1)
- 		goto failinval;
-+	if (ret == -2)
-+		goto failupm;
+ /* Guaranteed user available resources on each node */
+@@ -288,6 +289,8 @@ static void gru_init_chiplet(struct gru_
+ 	gru->gs_dsr_map = (1UL << GRU_DSR_AU) - 1;
+ 	gru->gs_asid_limit = MAX_ASID;
+ 	gru_tgh_flush_init(gru);
++	if (gru->gs_gid >= gru_max_gids)
++		gru_max_gids = gru->gs_gid + 1;
+ 	gru_dbg(grudev, "bid %d, nid %d, gid %d, vaddr %p (0x%lx)\n",
+ 		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
+ 		gru->gs_gru_base_paddr);
+diff -puN drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-macro-for-scanning-all-gru-chiplets drivers/misc/sgi-gru/gruprocfs.c
+--- a/drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-macro-for-scanning-all-gru-chiplets
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -226,7 +226,7 @@ static void seq_stop(struct seq_file *fi
  
--	paddr = paddr & ~((1UL << pageshift) - 1);
--	gpa = uv_soc_phys_ram_to_gpa(paddr);
- 	gru_cb_set_istatus_active(cb);
- 	tfh_write_restart(tfh, gpa, GAA_RAM, vaddr, asid, write,
- 			  GRU_PAGESIZE(pageshift));
+ static void *seq_start(struct seq_file *file, loff_t *gid)
+ {
+-	if (*gid < GRU_MAX_GRUS)
++	if (*gid < gru_max_gids)
+ 		return gid;
+ 	return NULL;
+ }
+@@ -234,7 +234,7 @@ static void *seq_start(struct seq_file *
+ static void *seq_next(struct seq_file *file, void *data, loff_t *gid)
+ {
+ 	(*gid)++;
+-	if (*gid < GRU_MAX_GRUS)
++	if (*gid < gru_max_gids)
+ 		return gid;
+ 	return NULL;
+ }
+diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-macro-for-scanning-all-gru-chiplets drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-macro-for-scanning-all-gru-chiplets
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -153,6 +153,7 @@
+ extern struct gru_stats_s gru_stats;
+ extern struct gru_blade_state *gru_base[];
+ extern unsigned long gru_start_paddr, gru_end_paddr;
++extern unsigned int gru_max_gids;
+ 
+ #define GRU_MAX_BLADES		MAX_NUMNODES
+ #define GRU_MAX_GRUS		(GRU_MAX_BLADES * GRU_CHIPLETS_PER_BLADE)
+@@ -406,12 +407,12 @@ struct gru_state {
+ 							   gru segments (64) */
+ 	void			*gs_gru_base_vaddr;	/* Virtual address of
+ 							   gru segments (64) */
+-	unsigned char		gs_gid;			/* unique GRU number */
++	unsigned short		gs_gid;			/* unique GRU number */
++	unsigned short		gs_blade_id;		/* blade of GRU */
+ 	unsigned char		gs_tgh_local_shift;	/* used to pick TGH for
+ 							   local flush */
+ 	unsigned char		gs_tgh_first_remote;	/* starting TGH# for
+ 							   remote flush */
+-	unsigned short		gs_blade_id;		/* blade of GRU */
+ 	spinlock_t		gs_asid_lock;		/* lock used for
+ 							   assigning asids */
+ 	spinlock_t		gs_lock;		/* lock used for
+@@ -506,6 +507,10 @@ struct gru_blade_state {
+ 			(i) < GRU_CHIPLETS_PER_BLADE;			\
+ 			(i)++, (gru)++)
+ 
++/* Scan all GRUs */
++#define foreach_gid(gid)						\
++	for ((gid) = 0; (gid) < gru_max_gids; (gid)++)
++
+ /* Scan all active GTSs on a gru. Note: must hold ss_lock to use this macro. */
+ #define for_each_gts_on_gru(gts, gru, ctxnum)				\
+ 	for ((ctxnum) = 0; (ctxnum) < GRU_NUM_CCH; (ctxnum)++)		\
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
