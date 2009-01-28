@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver.patch added to -mm tree
-Date: Tue, 27 Jan 2009 16:25:15 -0800
-Message-ID: <200901280025.n0S0PFdk004998@imap1.linux-foundation.org>
+Subject: + sgi-gru-add-macros-for-using-the-uv-hub-to-send-interrupts.patch added to -mm tree
+Date: Tue, 27 Jan 2009 16:24:54 -0800
+Message-ID: <200901280024.n0S0OsnU004508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59297 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751826AbZA1AZY (ORCPT
+	by vger.kernel.org with ESMTP id S1751851AbZA1AZX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 19:25:24 -0500
+	Tue, 27 Jan 2009 19:25:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: steiner@sgi.com
+Cc: steiner@sgi.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     sgi-gru: fix bugs related to module unload of the GRU driver
+     sgi-gru: add macros for using the UV hub to send interrupts
 has been added to the -mm tree.  Its filename is
-     sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver.patch
+     sgi-gru-add-macros-for-using-the-uv-hub-to-send-interrupts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: fix bugs related to module unload of the GRU driver
+Subject: sgi-gru: add macros for using the UV hub to send interrupts
 From: Jack Steiner <steiner@sgi.com>
 
-Fix bugs related to module unload of the GRU driver.
+Add macros for using the UV hub to send interrupts.  Change the IPI code
+to use these macros.  These macros will also be used in additional patches
+that will follow.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufile.c      |    5 ++++-
- drivers/misc/sgi-gru/grukservices.c |   19 +++++++++++++++++++
- drivers/misc/sgi-gru/grutables.h    |    1 +
- 3 files changed, 24 insertions(+), 1 deletion(-)
+ arch/ia64/include/asm/uv/uv_hub.h |    6 ++++++
+ arch/x86/include/asm/uv/uv_hub.h  |   12 ++++++++++++
+ arch/x86/kernel/genx2apic_uv_x.c  |    9 ++-------
+ 3 files changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufile.c~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -452,7 +452,7 @@ exit1:
- 
- static void __exit gru_exit(void)
- {
--	int i, bid;
-+	int i, bid, gid;
- 	int order = get_order(sizeof(struct gru_state) *
- 			      GRU_CHIPLETS_PER_BLADE);
- 
-@@ -462,6 +462,9 @@ static void __exit gru_exit(void)
- 	for (i = 0; i < GRU_CHIPLETS_PER_BLADE; i++)
- 		free_irq(IRQ_GRU + i, NULL);
- 
-+	foreach_gid(gid)
-+		gru_kservices_exit(GID_TO_GRU(gid));
-+
- 	for (bid = 0; bid < GRU_MAX_BLADES; bid++)
- 		free_pages((unsigned long)gru_base[bid], order);
- 
-diff -puN drivers/misc/sgi-gru/grukservices.c~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -690,3 +690,22 @@ int gru_kservices_init(struct gru_state 
- 		quicktest(gru);
- 	return 0;
+diff -puN arch/ia64/include/asm/uv/uv_hub.h~sgi-gru-add-macros-for-using-the-uv-hub-to-send-interrupts arch/ia64/include/asm/uv/uv_hub.h
+--- a/arch/ia64/include/asm/uv/uv_hub.h~sgi-gru-add-macros-for-using-the-uv-hub-to-send-interrupts
++++ a/arch/ia64/include/asm/uv/uv_hub.h
+@@ -305,5 +305,11 @@ static inline int uv_num_possible_blades
+ 	return 1;
  }
-+
-+void gru_kservices_exit(struct gru_state *gru)
+ 
++static inline void uv_hub_send_ipi(int pnode, int apicid, int vector)
 +{
-+	struct gru_context_configuration_handle *cch;
-+	struct gru_blade_state *bs;
-+
-+	bs = gru->gs_blade;
-+	if (gru != &bs->bs_grus[1])
-+		return;
-+
-+	cch = get_cch(gru->gs_gru_base_vaddr, KERNEL_CTXNUM);
-+	lock_cch_handle(cch);
-+	if (cch_interrupt_sync(cch))
-+		BUG();
-+	if (cch_deallocate(cch))
-+		BUG();
-+	unlock_cch_handle(cch);
++	/* not currently needed on ia64 */
 +}
 +
-diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -600,6 +600,7 @@ extern void gru_unload_context(struct gr
- extern void gts_drop(struct gru_thread_state *gts);
- extern void gru_tgh_flush_init(struct gru_state *gru);
- extern int gru_kservices_init(struct gru_state *gru);
-+extern void gru_kservices_exit(struct gru_state *gru);
- extern irqreturn_t gru_intr(int irq, void *dev_id);
- extern int gru_handle_user_call_os(unsigned long address);
- extern int gru_user_flush_tlb(unsigned long arg);
++
+ #endif /* __ASM_IA64_UV_HUB__ */
+ 
+diff -puN arch/x86/include/asm/uv/uv_hub.h~sgi-gru-add-macros-for-using-the-uv-hub-to-send-interrupts arch/x86/include/asm/uv/uv_hub.h
+--- a/arch/x86/include/asm/uv/uv_hub.h~sgi-gru-add-macros-for-using-the-uv-hub-to-send-interrupts
++++ a/arch/x86/include/asm/uv/uv_hub.h
+@@ -16,6 +16,7 @@
+ #include <linux/timer.h>
+ #include <asm/types.h>
+ #include <asm/percpu.h>
++#include <asm/uv/uv_mmrs.h>
+ 
+ 
+ /*
+@@ -401,4 +402,15 @@ static inline void uv_set_cpu_scir_bits(
+ 	}
+ }
+ 
++static inline void uv_hub_send_ipi(int pnode, int apicid, int vector)
++{
++	unsigned long val;
++
++	val = (1UL << UVH_IPI_INT_SEND_SHFT) |
++			((apicid & 0x3f) << UVH_IPI_INT_APIC_ID_SHFT) |
++			(vector << UVH_IPI_INT_VECTOR_SHFT);
++	uv_write_global_mmr64(pnode, UVH_IPI_INT, val);
++}
++
++
+ #endif /* _ASM_X86_UV_UV_HUB_H */
+diff -puN arch/x86/kernel/genx2apic_uv_x.c~sgi-gru-add-macros-for-using-the-uv-hub-to-send-interrupts arch/x86/kernel/genx2apic_uv_x.c
+--- a/arch/x86/kernel/genx2apic_uv_x.c~sgi-gru-add-macros-for-using-the-uv-hub-to-send-interrupts
++++ a/arch/x86/kernel/genx2apic_uv_x.c
+@@ -114,17 +114,12 @@ int uv_wakeup_secondary(int phys_apicid,
+ 
+ static void uv_send_IPI_one(int cpu, int vector)
+ {
+-	unsigned long val, apicid, lapicid;
++	unsigned long apicid;
+ 	int pnode;
+ 
+ 	apicid = per_cpu(x86_cpu_to_apicid, cpu);
+-	lapicid = apicid & 0x3f;		/* ZZZ macro needed */
+ 	pnode = uv_apicid_to_pnode(apicid);
+-	val =
+-	    (1UL << UVH_IPI_INT_SEND_SHFT) | (lapicid <<
+-					      UVH_IPI_INT_APIC_ID_SHFT) |
+-	    (vector << UVH_IPI_INT_VECTOR_SHFT);
+-	uv_write_global_mmr64(pnode, UVH_IPI_INT, val);
++	uv_hub_send_ipi(pnode, apicid, vector);
+ }
+ 
+ static void uv_send_IPI_mask(const struct cpumask *mask, int vector)
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
