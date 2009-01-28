@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-gru-misc-gru-cleanup.patch added to -mm tree
-Date: Tue, 27 Jan 2009 16:24:56 -0800
-Message-ID: <200901280024.n0S0OviV004557@imap1.linux-foundation.org>
+Subject: + sgi-gru-improvements-to-gru-debug-messages-statistics.patch added to -mm tree
+Date: Tue, 27 Jan 2009 16:24:58 -0800
+Message-ID: <200901280024.n0S0Ow0Q004647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47752 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751518AbZA1AZA (ORCPT
+	by vger.kernel.org with ESMTP id S1751666AbZA1AZC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 19:25:00 -0500
+	Tue, 27 Jan 2009 19:25:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     sgi-gru: misc GRU cleanup
+     sgi-gru: improvements to GRU debug messages & statistics
 has been added to the -mm tree.  Its filename is
-     sgi-gru-misc-gru-cleanup.patch
+     sgi-gru-improvements-to-gru-debug-messages-statistics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,369 +34,268 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru: misc GRU cleanup
+Subject: sgi-gru: improvements to GRU debug messages & statistics
 From: Jack Steiner <steiner@sgi.com>
 
-Misc trivial GRU drivers fixes:
-	- fix long lines
-	- eliminate extra whitespace
-	- eliminate compiler warning
-	- better validation of invalidate user parameters
-	- bug fix for GRU TLB flush (not the cpu TLB flush)
-
-These changes are all internal to the SGI GRU driver and have no effect
-on the base kernel.
+Improvements to GRU debug messages & statistics.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/gru_instructions.h |   22 ++++++++++---------
- drivers/misc/sgi-gru/grufault.c         |   19 ++++++++++------
- drivers/misc/sgi-gru/grufile.c          |   25 +++++++++++++---------
- drivers/misc/sgi-gru/gruhandles.h       |    2 -
- drivers/misc/sgi-gru/grukservices.c     |    4 +--
- drivers/misc/sgi-gru/grumain.c          |    6 ++---
- drivers/misc/sgi-gru/grutables.h        |   15 +++++++------
- drivers/misc/sgi-gru/grutlbpurge.c      |    5 +---
- 8 files changed, 55 insertions(+), 43 deletions(-)
+ drivers/misc/sgi-gru/grufault.c     |    5 ++
+ drivers/misc/sgi-gru/grufile.c      |    2 -
+ drivers/misc/sgi-gru/grukservices.c |    4 +-
+ drivers/misc/sgi-gru/grumain.c      |   48 ++++++++++++++------------
+ drivers/misc/sgi-gru/gruprocfs.c    |    2 +
+ drivers/misc/sgi-gru/grutables.h    |    2 +
+ drivers/misc/sgi-gru/grutlbpurge.c  |    2 -
+ 7 files changed, 38 insertions(+), 27 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/gru_instructions.h~sgi-gru-misc-gru-cleanup drivers/misc/sgi-gru/gru_instructions.h
---- a/drivers/misc/sgi-gru/gru_instructions.h~sgi-gru-misc-gru-cleanup
-+++ a/drivers/misc/sgi-gru/gru_instructions.h
-@@ -19,8 +19,11 @@
- #ifndef __GRU_INSTRUCTIONS_H__
- #define __GRU_INSTRUCTIONS_H__
- 
--#define gru_flush_cache_hook(p)
--#define gru_emulator_wait_hook(p, w)
-+extern int gru_check_status_proc(void *cb);
-+extern int gru_wait_proc(void *cb);
-+extern void gru_wait_abort_proc(void *cb);
-+
-+
- 
- /*
-  * Architecture dependent functions
-@@ -29,16 +32,16 @@
- #if defined(CONFIG_IA64)
- #include <linux/compiler.h>
- #include <asm/intrinsics.h>
--#define __flush_cache(p)		ia64_fc(p)
-+#define __flush_cache(p)		ia64_fc((unsigned long)p)
- /* Use volatile on IA64 to ensure ordering via st4.rel */
--#define gru_ordered_store_int(p,v)					\
-+#define gru_ordered_store_int(p, v)					\
- 		do {							\
- 			barrier();					\
- 			*((volatile int *)(p)) = v; /* force st.rel */	\
- 		} while (0)
- #elif defined(CONFIG_X86_64)
- #define __flush_cache(p)		clflush(p)
--#define gru_ordered_store_int(p,v)					\
-+#define gru_ordered_store_int(p, v)					\
- 		do {							\
- 			barrier();					\
- 			*(int *)p = v;					\
-@@ -558,20 +561,19 @@ extern int gru_get_cb_exception_detail(v
- 
- #define GRU_EXC_STR_SIZE		256
- 
--extern int gru_check_status_proc(void *cb);
--extern int gru_wait_proc(void *cb);
--extern void gru_wait_abort_proc(void *cb);
- 
- /*
-  * Control block definition for checking status
-  */
- struct gru_control_block_status {
- 	unsigned int	icmd		:1;
--	unsigned int	unused1		:31;
-+	unsigned int	ima		:3;
-+	unsigned int	reserved0	:4;
-+	unsigned int	unused1		:24;
- 	unsigned int	unused2		:24;
- 	unsigned int	istatus		:2;
- 	unsigned int	isubstatus	:4;
--	unsigned int	inused3		:2;
-+	unsigned int	unused3		:2;
- };
- 
- /* Get CB status */
-diff -puN drivers/misc/sgi-gru/grufault.c~sgi-gru-misc-gru-cleanup drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~sgi-gru-misc-gru-cleanup
+diff -puN drivers/misc/sgi-gru/grufault.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~sgi-gru-improvements-to-gru-debug-messages-statistics
 +++ a/drivers/misc/sgi-gru/grufault.c
-@@ -368,6 +368,7 @@ failupm:
- 
- failfmm:
- 	/* FMM state on UPM call */
-+	gru_flush_cache(tfh);
- 	STAT(tlb_dropin_fail_fmm);
- 	gru_dbg(grudev, "FAILED fmm tfh: 0x%p, state %d\n", tfh, tfh->state);
- 	return 0;
-@@ -497,10 +498,8 @@ int gru_handle_user_call_os(unsigned lon
- 	if (!gts)
- 		return -EINVAL;
- 
--	if (ucbnum >= gts->ts_cbr_au_count * GRU_CBR_AU_SIZE) {
--		ret = -EINVAL;
-+	if (ucbnum >= gts->ts_cbr_au_count * GRU_CBR_AU_SIZE)
- 		goto exit;
--	}
- 
- 	/*
- 	 * If force_unload is set, the UPM TLB fault is phony. The task
-@@ -508,6 +507,10 @@ int gru_handle_user_call_os(unsigned lon
- 	 * unload the context. The task will page fault and assign a new
+@@ -449,6 +449,7 @@ irqreturn_t gru_intr(int irq, void *dev_
+ 			up_read(&gts->ts_mm->mmap_sem);
+ 		} else {
+ 			tfh_user_polling_mode(tfh);
++			STAT(intr_mm_lock_failed);
+ 		}
+ 	}
+ 	return IRQ_HANDLED;
+@@ -508,8 +509,10 @@ int gru_handle_user_call_os(unsigned lon
  	 * context.
  	 */
-+	if (gts->ts_tgid_owner == current->tgid && gts->ts_blade >= 0 &&
-+				gts->ts_blade != uv_numa_blade_id())
-+		gts->ts_force_unload = 1;
-+
+ 	if (gts->ts_tgid_owner == current->tgid && gts->ts_blade >= 0 &&
+-				gts->ts_blade != uv_numa_blade_id())
++				gts->ts_blade != uv_numa_blade_id()) {
++		STAT(call_os_offnode_reference);
+ 		gts->ts_force_unload = 1;
++	}
+ 
  	ret = -EAGAIN;
  	cbrnum = thread_cbr_number(gts, ucbnum);
- 	if (gts->ts_force_unload) {
-@@ -541,11 +544,13 @@ int gru_get_exception_detail(unsigned lo
- 	if (!gts)
- 		return -EINVAL;
- 
--	if (gts->ts_gru) {
--		ucbnum = get_cb_number((void *)excdet.cb);
-+	ucbnum = get_cb_number((void *)excdet.cb);
-+	if (ucbnum >= gts->ts_cbr_au_count * GRU_CBR_AU_SIZE) {
-+		ret = -EINVAL;
-+	} else if (gts->ts_gru) {
- 		cbrnum = thread_cbr_number(gts, ucbnum);
- 		cbe = get_cbe_by_index(gts->ts_gru, cbrnum);
--		prefetchw(cbe);		/* Harmless on hardware, required for emulator */
-+		prefetchw(cbe);/* Harmless on hardware, required for emulator */
- 		excdet.opc = cbe->opccpy;
- 		excdet.exopc = cbe->exopccpy;
- 		excdet.ecause = cbe->ecause;
-@@ -609,7 +614,7 @@ int gru_user_flush_tlb(unsigned long arg
- 	if (!gts)
- 		return -EINVAL;
- 
--	gru_flush_tlb_range(gts->ts_gms, req.vaddr, req.vaddr + req.len);
-+	gru_flush_tlb_range(gts->ts_gms, req.vaddr, req.len);
- 	gru_unlock_gts(gts);
- 
- 	return 0;
-diff -puN drivers/misc/sgi-gru/grufile.c~sgi-gru-misc-gru-cleanup drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~sgi-gru-misc-gru-cleanup
+diff -puN drivers/misc/sgi-gru/grufile.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~sgi-gru-improvements-to-gru-debug-messages-statistics
 +++ a/drivers/misc/sgi-gru/grufile.c
-@@ -57,7 +57,8 @@
- #include <asm/uv/uv_mmrs.h>
- 
- struct gru_blade_state *gru_base[GRU_MAX_BLADES] __read_mostly;
--unsigned long gru_start_paddr, gru_end_paddr __read_mostly;
-+unsigned long gru_start_paddr __read_mostly;
-+unsigned long gru_end_paddr __read_mostly;
- struct gru_stats_s gru_stats;
- 
- /* Guaranteed user available resources on each node */
-@@ -113,7 +114,7 @@ static int gru_file_mmap(struct file *fi
- 		return -EPERM;
- 
- 	if (vma->vm_start & (GRU_GSEG_PAGESIZE - 1) ||
--	    			vma->vm_end & (GRU_GSEG_PAGESIZE - 1))
-+				vma->vm_end & (GRU_GSEG_PAGESIZE - 1))
- 		return -EINVAL;
- 
- 	vma->vm_flags |=
-@@ -307,7 +308,7 @@ static int gru_init_tables(unsigned long
- 	for_each_online_node(nid) {
- 		bid = uv_node_to_blade_id(nid);
- 		pnode = uv_node_to_pnode(nid);
--		if (gru_base[bid])
-+		if (bid < 0 || gru_base[bid])
- 			continue;
- 		page = alloc_pages_node(nid, GFP_KERNEL, order);
- 		if (!page)
-@@ -320,11 +321,11 @@ static int gru_init_tables(unsigned long
- 		dsrbytes = 0;
- 		cbrs = 0;
- 		for (gru = gru_base[bid]->bs_grus, chip = 0;
--		     		chip < GRU_CHIPLETS_PER_BLADE;
-+				chip < GRU_CHIPLETS_PER_BLADE;
- 				chip++, gru++) {
- 			paddr = gru_chiplet_paddr(gru_base_paddr, pnode, chip);
- 			vaddr = gru_chiplet_vaddr(gru_base_vaddr, pnode, chip);
--			gru_init_chiplet(gru, paddr, vaddr, bid, nid, chip);
-+			gru_init_chiplet(gru, paddr, vaddr, nid, bid, chip);
- 			n = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
- 			cbrs = max(cbrs, n);
- 			n = hweight64(gru->gs_dsr_map) * GRU_DSR_AU_BYTES;
-@@ -382,26 +383,26 @@ static int __init gru_init(void)
- 	void *gru_start_vaddr;
- 
- 	if (!IS_UV())
--		return 0;
-+		return -ENODEV;
- 
- #if defined CONFIG_IA64
- 	gru_start_paddr = 0xd000000000UL; /* ZZZZZZZZZZZZZZZZZZZ fixme */
- #else
- 	gru_start_paddr = uv_read_local_mmr(UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR) &
- 				0x7fffffffffffUL;
--
- #endif
- 	gru_start_vaddr = __va(gru_start_paddr);
--	gru_end_paddr = gru_start_paddr + MAX_NUMNODES * GRU_SIZE;
-+	gru_end_paddr = gru_start_paddr + GRU_MAX_BLADES * GRU_SIZE;
- 	printk(KERN_INFO "GRU space: 0x%lx - 0x%lx\n",
- 	       gru_start_paddr, gru_end_paddr);
- 	irq = get_base_irq();
- 	for (chip = 0; chip < GRU_CHIPLETS_PER_BLADE; chip++) {
- 		ret = request_irq(irq + chip, gru_intr, 0, id, NULL);
--		/* TODO: fix irq handling on x86. For now ignore failures because
-+		/* TODO: fix irq handling on x86. For now ignore failure because
- 		 * interrupts are not required & not yet fully supported */
- 		if (ret) {
--			printk("!!!WARNING: GRU ignoring request failure!!!\n");
-+			printk(KERN_WARNING
-+			       "!!!WARNING: GRU ignoring request failure!!!\n");
- 			ret = 0;
- 		}
- 		if (ret) {
-@@ -481,7 +482,11 @@ struct vm_operations_struct gru_vm_ops =
- 	.fault		= gru_fault,
- };
- 
-+#ifndef MODULE
- fs_initcall(gru_init);
-+#else
-+module_init(gru_init);
-+#endif
- module_exit(gru_exit);
- 
- module_param(gru_options, ulong, 0644);
-diff -puN drivers/misc/sgi-gru/gruhandles.h~sgi-gru-misc-gru-cleanup drivers/misc/sgi-gru/gruhandles.h
---- a/drivers/misc/sgi-gru/gruhandles.h~sgi-gru-misc-gru-cleanup
-+++ a/drivers/misc/sgi-gru/gruhandles.h
-@@ -489,7 +489,7 @@ enum gru_cbr_state {
-  * 	 64m			26	8
-  * 	...
-  */
--#define GRU_PAGESIZE(sh)	((((sh) > 20 ? (sh) + 2: (sh)) >> 1) - 6)
-+#define GRU_PAGESIZE(sh)	((((sh) > 20 ? (sh) + 2 : (sh)) >> 1) - 6)
- #define GRU_SIZEAVAIL(sh)	(1UL << GRU_PAGESIZE(sh))
- 
- /* minimum TLB purge count to ensure a full purge */
-diff -puN drivers/misc/sgi-gru/grukservices.c~sgi-gru-misc-gru-cleanup drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~sgi-gru-misc-gru-cleanup
+@@ -287,7 +287,7 @@ static void gru_init_chiplet(struct gru_
+ 	gru->gs_cbr_map = (GRU_CBR_AU == 64) ? ~0 : (1UL << GRU_CBR_AU) - 1;
+ 	gru->gs_dsr_map = (1UL << GRU_DSR_AU) - 1;
+ 	gru_tgh_flush_init(gru);
+-	gru_dbg(grudev, "bid %d, nid %d, gru %x, vaddr %p (0x%lx)\n",
++	gru_dbg(grudev, "bid %d, nid %d, gid %d, vaddr %p (0x%lx)\n",
+ 		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
+ 		gru->gs_gru_base_paddr);
+ 	gru_kservices_init(gru);
+diff -puN drivers/misc/sgi-gru/grukservices.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grukservices.c
+--- a/drivers/misc/sgi-gru/grukservices.c~sgi-gru-improvements-to-gru-debug-messages-statistics
 +++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -122,7 +122,7 @@ int gru_get_cb_exception_detail(void *cb
- 	struct gru_control_block_extended *cbe;
- 
- 	cbe = get_cbe(GRUBASE(cb), get_cb_number(cb));
--	prefetchw(cbe);         /* Harmless on hardware, required for emulator */
-+	prefetchw(cbe);	/* Harmless on hardware, required for emulator */
- 	excdet->opc = cbe->opccpy;
- 	excdet->exopc = cbe->exopccpy;
- 	excdet->ecause = cbe->ecause;
-@@ -437,7 +437,7 @@ static int send_message_failure(void *cb
- 		break;
- 	case CBSS_PUT_NACKED:
- 		STAT(mesq_send_put_nacked);
--		m =mq + (gru_get_amo_value_head(cb) << 6);
-+		m = mq + (gru_get_amo_value_head(cb) << 6);
- 		gru_vstore(cb, m, gru_get_tri(mesg), XTYPE_CL, lines, 1, IMA);
- 		if (gru_wait(cb) == CBS_IDLE)
- 			ret = MQE_OK;
-diff -puN drivers/misc/sgi-gru/grumain.c~sgi-gru-misc-gru-cleanup drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~sgi-gru-misc-gru-cleanup
+@@ -663,12 +663,12 @@ int gru_kservices_init(struct gru_state 
+ 	err = cch_allocate(cch, 0, cbr_map, dsr_map);
+ 	if (err) {
+ 		gru_dbg(grudev,
+-			"Unable to allocate kernel CCH: gru %d, err %d\n",
++			"Unable to allocate kernel CCH: gid %d, err %d\n",
+ 			gru->gs_gid, err);
+ 		BUG();
+ 	}
+ 	if (cch_start(cch)) {
+-		gru_dbg(grudev, "Unable to start kernel CCH: gru %d, err %d\n",
++		gru_dbg(grudev, "Unable to start kernel CCH: gid %d, err %d\n",
+ 			gru->gs_gid, err);
+ 		BUG();
+ 	}
+diff -puN drivers/misc/sgi-gru/grumain.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~sgi-gru-improvements-to-gru-debug-messages-statistics
 +++ a/drivers/misc/sgi-gru/grumain.c
-@@ -432,8 +432,8 @@ static inline long gru_copy_handle(void 
- 	return GRU_HANDLE_BYTES;
- }
- 
--static void gru_prefetch_context(void *gseg, void *cb, void *cbe, unsigned long cbrmap,
--				unsigned long length)
-+static void gru_prefetch_context(void *gseg, void *cb, void *cbe,
-+				unsigned long cbrmap, unsigned long length)
+@@ -76,7 +76,7 @@ int gru_cpu_fault_map_id(void)
+ /* Hit the asid limit. Start over */
+ static int gru_wrap_asid(struct gru_state *gru)
  {
- 	int i, scr;
+-	gru_dbg(grudev, "gru %p\n", gru);
++	gru_dbg(grudev, "gid %d\n", gru->gs_gid);
+ 	STAT(asid_wrap);
+ 	gru->gs_asid_gen++;
+ 	gru_flush_all_tlb(gru);
+@@ -88,7 +88,7 @@ static int gru_reset_asid_limit(struct g
+ {
+ 	int i, gid, inuse_asid, limit;
  
-@@ -773,8 +773,8 @@ int gru_fault(struct vm_area_struct *vma
- 		return VM_FAULT_SIGBUS;
- 
- again:
--	preempt_disable();
- 	mutex_lock(&gts->ts_ctxlock);
-+	preempt_disable();
- 	if (gts->ts_gru) {
- 		if (gts->ts_gru->gs_blade_id != uv_numa_blade_id()) {
- 			STAT(migrated_nopfn_unload);
-diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-misc-gru-cleanup drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-misc-gru-cleanup
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -278,13 +278,12 @@ struct gru_stats_s {
- /* Generate a GRU asid value from a GRU base asid & a virtual address. */
- #if defined CONFIG_IA64
- #define VADDR_HI_BIT		64
--#define GRUREGION(addr)		((addr) >> (VADDR_HI_BIT - 3) & 3)
- #elif defined CONFIG_X86_64
- #define VADDR_HI_BIT		48
--#define GRUREGION(addr)		(0)		/* ZZZ could do better */
- #else
- #error "Unsupported architecture"
- #endif
-+#define GRUREGION(addr)		((addr) >> (VADDR_HI_BIT - 3) & 3)
- #define GRUASID(asid, addr)	((asid) + GRUREGION(addr))
- 
- /*------------------------------------------------------------------------------
-@@ -297,12 +296,12 @@ struct gru_state;
-  * This structure is pointed to from the mmstruct via the notifier pointer.
-  * There is one of these per address space.
-  */
--struct gru_mm_tracker {
--	unsigned int		mt_asid_gen;	/* ASID wrap count */
--	int			mt_asid;	/* current base ASID for gru */
--	unsigned short		mt_ctxbitmap;	/* bitmap of contexts using
-+struct gru_mm_tracker {				/* pack to reduce size */
-+	unsigned int		mt_asid_gen:24;	/* ASID wrap count */
-+	unsigned int		mt_asid:24;	/* current base ASID for gru */
-+	unsigned short		mt_ctxbitmap:16;/* bitmap of contexts using
- 						   asid */
--};
-+} __attribute__ ((packed));
- 
- struct gru_mm_struct {
- 	struct mmu_notifier	ms_notifier;
-@@ -359,6 +358,8 @@ struct gru_thread_state {
- 						   required for contest */
- 	unsigned char		ts_cbr_au_count;/* Number of CBR resources
- 						   required for contest */
-+	char			ts_blade;	/* If >= 0, migrate context if
-+						   ref from diferent blade */
- 	char			ts_force_unload;/* force context to be unloaded
- 						   after migration */
- 	char			ts_cbr_idx[GRU_CBR_AU];/* CBR numbers of each
-diff -puN drivers/misc/sgi-gru/grutlbpurge.c~sgi-gru-misc-gru-cleanup drivers/misc/sgi-gru/grutlbpurge.c
---- a/drivers/misc/sgi-gru/grutlbpurge.c~sgi-gru-misc-gru-cleanup
-+++ a/drivers/misc/sgi-gru/grutlbpurge.c
-@@ -187,7 +187,7 @@ void gru_flush_tlb_range(struct gru_mm_s
- 	"  FLUSH gruid %d, asid 0x%x, num %ld, cbmap 0x%x\n",
- 				gid, asid, num, asids->mt_ctxbitmap);
- 			tgh = get_lock_tgh_handle(gru);
--			tgh_invalidate(tgh, start, 0, asid, grupagesize, 0,
-+			tgh_invalidate(tgh, start, ~0, asid, grupagesize, 0,
- 				       num - 1, asids->mt_ctxbitmap);
- 			get_unlock_tgh_handle(tgh);
- 		} else {
-@@ -212,9 +212,8 @@ void gru_flush_all_tlb(struct gru_state 
- 
- 	gru_dbg(grudev, "gru %p, gid %d\n", gru, gru->gs_gid);
- 	tgh = get_lock_tgh_handle(gru);
--	tgh_invalidate(tgh, 0, ~0, 0, 1, 1, GRUMAXINVAL - 1, 0);
-+	tgh_invalidate(tgh, 0, ~0, 0, 1, 1, GRUMAXINVAL - 1, 0xffff);
- 	get_unlock_tgh_handle(tgh);
--	preempt_enable();
+-	gru_dbg(grudev, "gru %p, asid 0x%x\n", gru, asid);
++	gru_dbg(grudev, "gid %d, asid 0x%x\n", gru->gs_gid, asid);
+ 	STAT(asid_next);
+ 	limit = MAX_ASID;
+ 	if (asid >= limit)
+@@ -99,8 +99,9 @@ again:
+ 		if (!gru->gs_gts[i])
+ 			continue;
+ 		inuse_asid = gru->gs_gts[i]->ts_gms->ms_asids[gid].mt_asid;
+-		gru_dbg(grudev, "gru %p, inuse_asid 0x%x, cxtnum %d, gts %p\n",
+-			gru, inuse_asid, i, gru->gs_gts[i]);
++		gru_dbg(grudev, "gid %d, gts %p, gms %p, inuse 0x%x, cxt %d\n",
++			gru->gs_gid, gru->gs_gts[i], gru->gs_gts[i]->ts_gms,
++			inuse_asid, i);
+ 		if (inuse_asid == asid) {
+ 			asid += ASID_INC;
+ 			if (asid >= limit) {
+@@ -120,8 +121,8 @@ again:
+ 	}
+ 	gru->gs_asid_limit = limit;
+ 	gru->gs_asid = asid;
+-	gru_dbg(grudev, "gru %p, new asid 0x%x, new_limit 0x%x\n", gru, asid,
+-		limit);
++	gru_dbg(grudev, "gid %d, new asid 0x%x, new_limit 0x%x\n", gru->gs_gid,
++					asid, limit);
+ 	return asid;
  }
  
- /*
+@@ -137,7 +138,7 @@ static int gru_assign_asid(struct gru_st
+ 		asid = gru_reset_asid_limit(gru, asid);
+ 	spin_unlock(&gru->gs_asid_lock);
+ 
+-	gru_dbg(grudev, "gru %p, asid 0x%x\n", gru, asid);
++	gru_dbg(grudev, "gid %d, asid 0x%x\n", gru->gs_gid, asid);
+ 	return asid;
+ }
+ 
+@@ -215,11 +216,12 @@ static int check_gru_resources(struct gr
+  * TLB manangment requires tracking all GRU chiplets that have loaded a GSEG
+  * context.
+  */
+-static int gru_load_mm_tracker(struct gru_state *gru, struct gru_mm_struct *gms,
+-			       int ctxnum)
++static int gru_load_mm_tracker(struct gru_state *gru,
++					struct gru_thread_state *gts)
+ {
++	struct gru_mm_struct *gms = gts->ts_gms;
+ 	struct gru_mm_tracker *asids = &gms->ms_asids[gru->gs_gid];
+-	unsigned short ctxbitmap = (1 << ctxnum);
++	unsigned short ctxbitmap = (1 << gts->ts_ctxnum);
+ 	int asid;
+ 
+ 	spin_lock(&gms->ms_asid_lock);
+@@ -241,24 +243,26 @@ static int gru_load_mm_tracker(struct gr
+ 	spin_unlock(&gms->ms_asid_lock);
+ 
+ 	gru_dbg(grudev,
+-		"gru %x, gms %p, ctxnum 0x%d, asid 0x%x, asidmap 0x%lx\n",
+-		gru->gs_gid, gms, ctxnum, asid, gms->ms_asidmap[0]);
++		"gid %d, gts %p, gms %p, ctxnum %d, asid 0x%x, asidmap 0x%lx\n",
++		gru->gs_gid, gts, gms, gts->ts_ctxnum, asid,
++		gms->ms_asidmap[0]);
+ 	return asid;
+ }
+ 
+ static void gru_unload_mm_tracker(struct gru_state *gru,
+-				  struct gru_mm_struct *gms, int ctxnum)
++					struct gru_thread_state *gts)
+ {
++	struct gru_mm_struct *gms = gts->ts_gms;
+ 	struct gru_mm_tracker *asids;
+ 	unsigned short ctxbitmap;
+ 
+ 	asids = &gms->ms_asids[gru->gs_gid];
+-	ctxbitmap = (1 << ctxnum);
++	ctxbitmap = (1 << gts->ts_ctxnum);
+ 	spin_lock(&gms->ms_asid_lock);
+ 	BUG_ON((asids->mt_ctxbitmap & ctxbitmap) != ctxbitmap);
+ 	asids->mt_ctxbitmap ^= ctxbitmap;
+-	gru_dbg(grudev, "gru %x, gms %p, ctxnum 0x%d, asidmap 0x%lx\n",
+-		gru->gs_gid, gms, ctxnum, gms->ms_asidmap[0]);
++	gru_dbg(grudev, "gid %d, gts %p, gms %p, ctxnum 0x%d, asidmap 0x%lx\n",
++		gru->gs_gid, gts, gms, gts->ts_ctxnum, gms->ms_asidmap[0]);
+ 	spin_unlock(&gms->ms_asid_lock);
+ }
+ 
+@@ -399,7 +403,7 @@ static void gru_free_gru_context(struct 
+ 	struct gru_state *gru;
+ 
+ 	gru = gts->ts_gru;
+-	gru_dbg(grudev, "gts %p, gru %p\n", gts, gru);
++	gru_dbg(grudev, "gts %p, gid %d\n", gts, gru->gs_gid);
+ 
+ 	spin_lock(&gru->gs_lock);
+ 	gru->gs_gts[gts->ts_ctxnum] = NULL;
+@@ -500,12 +504,12 @@ void gru_unload_context(struct gru_threa
+ 	zap_vma_ptes(gts->ts_vma, UGRUADDR(gts), GRU_GSEG_PAGESIZE);
+ 	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
+ 
++	gru_dbg(grudev, "gts %p\n", gts);
+ 	lock_cch_handle(cch);
+ 	if (cch_interrupt_sync(cch))
+ 		BUG();
+-	gru_dbg(grudev, "gts %p\n", gts);
+ 
+-	gru_unload_mm_tracker(gru, gts->ts_gms, gts->ts_ctxnum);
++	gru_unload_mm_tracker(gru, gts);
+ 	if (savestate)
+ 		gru_unload_context_data(gts->ts_gdata, gru->gs_gru_base_vaddr,
+ 					ctxnum, gts->ts_cbr_map,
+@@ -534,7 +538,7 @@ static void gru_load_context(struct gru_
+ 	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
+ 
+ 	lock_cch_handle(cch);
+-	asid = gru_load_mm_tracker(gru, gts->ts_gms, gts->ts_ctxnum);
++	asid = gru_load_mm_tracker(gru, gts);
+ 	cch->tfm_fault_bit_enable =
+ 	    (gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
+ 	     || gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
+@@ -688,7 +692,7 @@ static void gru_steal_context(struct gru
+ 		STAT(steal_context_failed);
+ 	}
+ 	gru_dbg(grudev,
+-		"stole gru %x, ctxnum %d from gts %p. Need cb %d, ds %d;"
++		"stole gid %d, ctxnum %d from gts %p. Need cb %d, ds %d;"
+ 		" avail cb %ld, ds %ld\n",
+ 		gru->gs_gid, ctxnum, ngts, cbr, dsr, hweight64(gru->gs_cbr_map),
+ 		hweight64(gru->gs_dsr_map));
+@@ -737,7 +741,7 @@ again:
+ 
+ 		STAT(assign_context);
+ 		gru_dbg(grudev,
+-			"gseg %p, gts %p, gru %x, ctx %d, cbr %d, dsr %d\n",
++			"gseg %p, gts %p, gid %d, ctx %d, cbr %d, dsr %d\n",
+ 			gseg_virtual_address(gts->ts_gru, gts->ts_ctxnum), gts,
+ 			gts->ts_gru->gs_gid, gts->ts_ctxnum,
+ 			gts->ts_cbr_au_count, gts->ts_dsr_au_count);
+diff -puN drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/gruprocfs.c
+--- a/drivers/misc/sgi-gru/gruprocfs.c~sgi-gru-improvements-to-gru-debug-messages-statistics
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -62,7 +62,9 @@ static int statistics_show(struct seq_fi
+ 	printstat(s, asid_wrap);
+ 	printstat(s, asid_reuse);
+ 	printstat(s, intr);
++	printstat(s, intr_mm_lock_failed);
+ 	printstat(s, call_os);
++	printstat(s, call_os_offnode_reference);
+ 	printstat(s, call_os_check_for_bug);
+ 	printstat(s, call_os_wait_queue);
+ 	printstat(s, user_flush_tlb);
+diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-improvements-to-gru-debug-messages-statistics
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -184,7 +184,9 @@ struct gru_stats_s {
+ 	atomic_long_t asid_wrap;
+ 	atomic_long_t asid_reuse;
+ 	atomic_long_t intr;
++	atomic_long_t intr_mm_lock_failed;
+ 	atomic_long_t call_os;
++	atomic_long_t call_os_offnode_reference;
+ 	atomic_long_t call_os_check_for_bug;
+ 	atomic_long_t call_os_wait_queue;
+ 	atomic_long_t user_flush_tlb;
+diff -puN drivers/misc/sgi-gru/grutlbpurge.c~sgi-gru-improvements-to-gru-debug-messages-statistics drivers/misc/sgi-gru/grutlbpurge.c
+--- a/drivers/misc/sgi-gru/grutlbpurge.c~sgi-gru-improvements-to-gru-debug-messages-statistics
++++ a/drivers/misc/sgi-gru/grutlbpurge.c
+@@ -210,7 +210,7 @@ void gru_flush_all_tlb(struct gru_state 
+ {
+ 	struct gru_tlb_global_handle *tgh;
+ 
+-	gru_dbg(grudev, "gru %p, gid %d\n", gru, gru->gs_gid);
++	gru_dbg(grudev, "gid %d\n", gru->gs_gid);
+ 	tgh = get_lock_tgh_handle(gru);
+ 	tgh_invalidate(tgh, 0, ~0, 0, 1, 1, GRUMAXINVAL - 1, 0xffff);
+ 	get_unlock_tgh_handle(tgh);
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
