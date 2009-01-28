@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-unify-some-pmd_-functions.patch added to -mm tree
-Date: Tue, 27 Jan 2009 17:40:24 -0800
-Message-ID: <200901280140.n0S1eOVD031805@imap1.linux-foundation.org>
+Subject: + kvm-unbork.patch added to -mm tree
+Date: Wed, 28 Jan 2009 02:12:31 -0800
+Message-ID: <200901281012.n0SACVBd005599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751930AbZA1BlQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751365AbZA1KOc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 20:41:16 -0500
+	Wed, 28 Jan 2009 05:14:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: righi.andrea@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, takata@linux-m32r.org, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, agraf@suse.de, avi@redhat.com, mtosatti@redhat.com
 
 
 The patch titled
-     mm: unify some pmd_*() functions
+     kvm-unbork
 has been added to the -mm tree.  Its filename is
-     mm-unify-some-pmd_-functions.patch
+     kvm-unbork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,178 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: unify some pmd_*() functions
-From: Andrea Righi <righi.andrea@gmail.com>
+Subject: kvm-unbork
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Unify all the identical implementations of pmd_free(), __pmd_free_tlb(),
-pmd_alloc_one(), pmd_addr_end() in include/asm-generic/pgtable-nopmd.h
+that'll fix it, lol.
 
-Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Please perform regular i386 testing?
+
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Alexander Graf <agraf@suse.de>
+Cc: Avi Kivity <avi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/motorola_pgalloc.h |    4 +-
- arch/m68k/include/asm/sun3_pgalloc.h     |   10 -----
- include/asm-frv/pgalloc.h                |    9 -----
- include/asm-generic/pgtable-nopmd.h      |   36 ++++++++++++++++++---
- include/asm-m32r/pgalloc.h               |    9 -----
- 5 files changed, 37 insertions(+), 31 deletions(-)
+ arch/x86/kvm/lapic.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/m68k/include/asm/motorola_pgalloc.h~mm-unify-some-pmd_-functions arch/m68k/include/asm/motorola_pgalloc.h
---- a/arch/m68k/include/asm/motorola_pgalloc.h~mm-unify-some-pmd_-functions
-+++ a/arch/m68k/include/asm/motorola_pgalloc.h
-@@ -67,17 +67,19 @@ static inline pmd_t *pmd_alloc_one(struc
- {
- 	return get_pointer_table();
- }
-+#define pmd_alloc_one pmd_alloc_one
+diff -puN arch/x86/kvm/lapic.c~kvm-unbork arch/x86/kvm/lapic.c
+--- a/arch/x86/kvm/lapic.c~kvm-unbork
++++ a/arch/x86/kvm/lapic.c
+@@ -525,7 +525,6 @@ static u32 apic_get_tmcct(struct kvm_lap
+ 	if (ktime_to_ns(remaining) < 0)
+ 		remaining = ktime_set(0, 0);
  
- static inline int pmd_free(struct mm_struct *mm, pmd_t *pmd)
- {
- 	return free_pointer_table(pmd);
- }
-+#define pmd_free pmd_free
+-	ns = ktime_to_ns(remaining) % apic->timer.period;
+ 	tmcct = div64_u64(ns, (APIC_BUS_CYCLE_NS * apic->timer.divide_count));
  
- static inline int __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd)
- {
- 	return free_pointer_table(pmd);
- }
--
-+#define __pmd_free_tlb __pmd_free_tlb
- 
- static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
- {
-diff -puN arch/m68k/include/asm/sun3_pgalloc.h~mm-unify-some-pmd_-functions arch/m68k/include/asm/sun3_pgalloc.h
---- a/arch/m68k/include/asm/sun3_pgalloc.h~mm-unify-some-pmd_-functions
-+++ a/arch/m68k/include/asm/sun3_pgalloc.h
-@@ -18,8 +18,7 @@
- 
- extern const char bad_pmd_string[];
- 
--#define pmd_alloc_one(mm,address)       ({ BUG(); ((pmd_t *)2); })
--
-+#define pmd_alloc_one pmd_alloc_one_bug
- 
- static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
- {
-@@ -75,13 +74,6 @@ static inline void pmd_populate(struct m
- }
- #define pmd_pgtable(pmd) pmd_page(pmd)
- 
--/*
-- * allocating and freeing a pmd is trivial: the 1-entry pmd is
-- * inside the pgd, so has no extra memory associated with it.
-- */
--#define pmd_free(mm, x)			do { } while (0)
--#define __pmd_free_tlb(tlb, x)		do { } while (0)
--
- static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
- {
-         free_page((unsigned long) pgd);
-diff -puN include/asm-frv/pgalloc.h~mm-unify-some-pmd_-functions include/asm-frv/pgalloc.h
---- a/include/asm-frv/pgalloc.h~mm-unify-some-pmd_-functions
-+++ a/include/asm-frv/pgalloc.h
-@@ -55,14 +55,7 @@ do {							\
- 	tlb_remove_page((tlb),(pte));			\
- } while (0)
- 
--/*
-- * allocating and freeing a pmd is trivial: the 1-entry pmd is
-- * inside the pgd, so has no extra memory associated with it.
-- * (In the PAE case we free the pmds as part of the pgd.)
-- */
--#define pmd_alloc_one(mm, addr)		({ BUG(); ((pmd_t *) 2); })
--#define pmd_free(mm, x)			do { } while (0)
--#define __pmd_free_tlb(tlb,x)		do { } while (0)
-+#define pmd_alloc_one pmd_alloc_one_bug
- 
- #endif /* CONFIG_MMU */
- 
-diff -puN include/asm-generic/pgtable-nopmd.h~mm-unify-some-pmd_-functions include/asm-generic/pgtable-nopmd.h
---- a/include/asm-generic/pgtable-nopmd.h~mm-unify-some-pmd_-functions
-+++ a/include/asm-generic/pgtable-nopmd.h
-@@ -4,6 +4,7 @@
- #ifndef __ASSEMBLY__
- 
- #include <asm-generic/pgtable-nopud.h>
-+#include <asm/bug.h>
- 
- struct mm_struct;
- 
-@@ -54,15 +55,40 @@ static inline pmd_t * pmd_offset(pud_t *
- /*
-  * allocating and freeing a pmd is trivial: the 1-entry pmd is
-  * inside the pud, so has no extra memory associated with it.
-+ * (In the PAE case we free the pmds as part of the pgd.)
-  */
--#define pmd_alloc_one(mm, address)		NULL
-+#ifndef pmd_alloc_one
-+static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
-+{
-+	return NULL;
-+}
-+#define pmd_alloc_one pmd_alloc_one
-+#endif
-+static inline pmd_t *pmd_alloc_one_bug(struct mm_struct *mm, unsigned long addr)
-+{
-+	BUG();
-+	return (pmd_t *)(2);
-+}
-+#ifndef pmd_free
- static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
- {
- }
--#define __pmd_free_tlb(tlb, x)			do { } while (0)
--
--#undef  pmd_addr_end
--#define pmd_addr_end(addr, end)			(end)
-+#define pmd_free pmd_free
-+#endif
-+#ifndef __pmd_free_tlb
-+struct mmu_gather;
-+static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd)
-+{
-+}
-+#define __pmd_free_tlb __pmd_free_tlb
-+#endif
-+#ifndef pmd_addr_end
-+static inline unsigned long pmd_addr_end(unsigned long addr, unsigned long end)
-+{
-+	return end;
-+}
-+#define pmd_addr_end pmd_addr_end
-+#endif
- 
- #endif /* __ASSEMBLY__ */
- 
-diff -puN include/asm-m32r/pgalloc.h~mm-unify-some-pmd_-functions include/asm-m32r/pgalloc.h
---- a/include/asm-m32r/pgalloc.h~mm-unify-some-pmd_-functions
-+++ a/include/asm-m32r/pgalloc.h
-@@ -60,15 +60,8 @@ static inline void pte_free(struct mm_st
- 
- #define __pte_free_tlb(tlb, pte)	pte_free((tlb)->mm, (pte))
- 
--/*
-- * allocating and freeing a pmd is trivial: the 1-entry pmd is
-- * inside the pgd, so has no extra memory associated with it.
-- * (In the PAE case we free the pmds as part of the pgd.)
-- */
-+#define pmd_alloc_one pmd_alloc_one_bug
- 
--#define pmd_alloc_one(mm, addr)		({ BUG(); ((pmd_t *)2); })
--#define pmd_free(mm, x)			do { } while (0)
--#define __pmd_free_tlb(tlb, x)		do { } while (0)
- #define pgd_populate(mm, pmd, pte)	BUG()
- 
- #define check_pgt_cache()	do { } while (0)
+ 	return tmcct;
 _
 
-Patches currently in -mm which might be from righi.andrea@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fbmem-copy_from-to_user-with-mutex-held-v3.patch
-mm-unify-some-pmd_-functions.patch
+origin.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
+i-need-old-gcc.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+kvm-unbork.patch
+acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+clocksource-pass-clocksource-to-read-callback.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
