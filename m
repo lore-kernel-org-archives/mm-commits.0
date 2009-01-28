@@ -1,127 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: + hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch added to -mm tree
-Date: Wed, 28 Jan 2009 11:26:20 -0800
-Message-ID: <200901281926.n0SJQK8i000314@imap1.linux-foundation.org>
+Subject: [merged] sata-piix-blacklist-system-that-spins-off-disks-during-acpi-power-off.patch removed from -mm tree
+Date: Wed, 28 Jan 2009 15:28:58 -0800
+Message-ID: <200901282328.n0SNSw53006896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751346AbZA1T1S (ORCPT
+	by vger.kernel.org with ESMTP id S1757125AbZA1X34 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jan 2009 14:27:18 -0500
+	Wed, 28 Jan 2009 18:29:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Larry.Finger@lwfinger.net, deller@gmx.de, elendil@planet.nl, lenb@kernel.org, mjg@redhat.com
+To: rjw@sisk.pl, alan@lxorguk.ukuu.org.uk, elendil@planet.nl, fweisbec@gmail.com, jeff@garzik.org, maciej.rutecki@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hp-wmi: fix error path in hp_wmi_bios_setup()
-has been added to the -mm tree.  Its filename is
-     hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
+     sata piix: Blacklist system that spins off disks during ACPI power off
+has been removed from the -mm tree.  Its filename was
+     sata-piix-blacklist-system-that-spins-off-disks-during-acpi-power-off.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp-wmi: fix error path in hp_wmi_bios_setup()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sata piix: Blacklist system that spins off disks during ACPI power off
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The error-path code can call rfkill_unregister() with a pointer which does
-not contain the result of a call to rfkill_register().  It goes BUG().
+Some notebooks from HP have the problem that their BIOSes attempt to spin
+down hard drives before entering ACPI system states S4 and S5.  This leads
+to a yo-yo effect during system power-off shutdown and the last phase of
+hibernation when the disk is first spun down by the kernel and then almost
+immediately turned on and off by the BIOS.  This, in turn, may result in
+shortening the disk's life times.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=12560.
+To prevent this from happening we can blacklist the affected systems using
+DMI information.
 
-Cc: Frans Pop <elendil@planet.nl>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg@redhat.com>
-Reported-by: Helge Deller <deller@gmx.de>
+Blacklist HP 2510p that uses the ata_piix driver.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Tested-by: Maciej Rutecki <maciej.rutecki@gmail.com>
+Tested-by: Frans Pop <elendil@planet.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/hp-wmi.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/ata/ata_piix.c |   34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff -puN drivers/platform/x86/hp-wmi.c~hp-wmi-fix-error-path-in-hp_wmi_bios_setup drivers/platform/x86/hp-wmi.c
---- a/drivers/platform/x86/hp-wmi.c~hp-wmi-fix-error-path-in-hp_wmi_bios_setup
-+++ a/drivers/platform/x86/hp-wmi.c
-@@ -458,9 +458,11 @@ static int __init hp_wmi_bios_setup(stru
+diff -puN drivers/ata/ata_piix.c~sata-piix-blacklist-system-that-spins-off-disks-during-acpi-power-off drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~sata-piix-blacklist-system-that-spins-off-disks-during-acpi-power-off
++++ a/drivers/ata/ata_piix.c
+@@ -1387,6 +1387,32 @@ static void piix_iocfg_bit18_quirk(struc
+ 	}
+ }
  
- 	return 0;
- register_wwan_err:
--	rfkill_unregister(bluetooth_rfkill);
-+	if (bluetooth_rfkill)
-+		rfkill_unregister(bluetooth_rfkill);
- register_bluetooth_error:
--	rfkill_unregister(wifi_rfkill);
-+	if (wifi_rfkill)
-+		rfkill_unregister(wifi_rfkill);
- add_sysfs_error:
- 	cleanup_sysfs(device);
- 	return err;
++static bool piix_broken_system_poweroff(struct pci_dev *pdev)
++{
++	static const struct dmi_system_id broken_systems[] = {
++		{
++			.ident = "HP Compaq 2510p",
++			.matches = {
++				DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++				DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq 2510p"),
++			},
++			/* PCI slot number of the controller */
++			.driver_data = (void *)0x1FUL,
++		},
++
++		{ }	/* terminate list */
++	};
++	const struct dmi_system_id *dmi = dmi_first_match(broken_systems);
++
++	if (dmi) {
++		unsigned long slot = (unsigned long)dmi->driver_data;
++		/* apply the quirk only to on-board controllers */
++		return slot == PCI_SLOT(pdev->devfn);
++	}
++
++	return false;
++}
++
+ /**
+  *	piix_init_one - Register PIIX ATA PCI device with kernel services
+  *	@pdev: PCI device to register
+@@ -1422,6 +1448,14 @@ static int __devinit piix_init_one(struc
+ 	if (!in_module_init)
+ 		return -ENODEV;
+ 
++	if (piix_broken_system_poweroff(pdev)) {
++		piix_port_info[ent->driver_data].flags |=
++				ATA_FLAG_NO_POWEROFF_SPINDOWN |
++					ATA_FLAG_NO_HIBERNATE_SPINDOWN;
++		dev_info(&pdev->dev, "quirky BIOS, skipping spindown "
++				"on poweroff and hibernation\n");
++	}
++
+ 	port_info[0] = piix_port_info[ent->driver_data];
+ 	port_info[1] = piix_port_info[ent->driver_data];
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
-i-need-old-gcc.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-kvm-unbork.patch
-acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
 drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
 drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-clocksource-pass-clocksource-to-read-callback.patch
-mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
-hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+resume-wait-for-device-probing-to-finish.patch
+misc-dell-laptop-should-depend-on-power_supply.patch
+fbmem-copy_from-to_user-with-mutex-held-v3.patch
+sata-ahci-blacklist-system-that-spins-off-disks-during-acpi-power-off.patch
 shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
