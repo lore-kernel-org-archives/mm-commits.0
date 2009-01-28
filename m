@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-unbork.patch added to -mm tree
-Date: Wed, 28 Jan 2009 02:12:31 -0800
-Message-ID: <200901281012.n0SACVBd005599@imap1.linux-foundation.org>
+Subject: + sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix.patch added to -mm tree
+Date: Wed, 28 Jan 2009 02:16:43 -0800
+Message-ID: <200901281016.n0SAGh5f010752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35933 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751365AbZA1KOc (ORCPT
+	by vger.kernel.org with ESMTP id S1750718AbZA1KRJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jan 2009 05:14:32 -0500
+	Wed, 28 Jan 2009 05:17:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agraf@suse.de, avi@redhat.com, mtosatti@redhat.com
+Cc: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, steiner@sgi.com, tglx@linutronix.de
 
 
 The patch titled
-     kvm-unbork
+     sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix
 has been added to the -mm tree.  Its filename is
-     kvm-unbork.patch
+     sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm-unbork
+Subject: sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-that'll fix it, lol.
+i386:
 
-Please perform regular i386 testing?
+arch/x86/include/asm/uv/uv_mmrs.h:409: error: width of 'real_time_cmpb' exceeds its type
+arch/x86/include/asm/uv/uv_mmrs.h:425: error: width of 'real_time_cmpc' exceeds its type
+arch/x86/include/asm/uv/uv_mmrs.h:441: error: width of 'real_time_cmpd' exceeds its type
+arch/x86/include/asm/uv/uv_mmrs.h:491: error: width of 'address' exceeds its type
 
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Alexander Graf <agraf@suse.de>
-Cc: Avi Kivity <avi@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/lapic.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/kernel/io_apic.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/x86/kvm/lapic.c~kvm-unbork arch/x86/kvm/lapic.c
---- a/arch/x86/kvm/lapic.c~kvm-unbork
-+++ a/arch/x86/kvm/lapic.c
-@@ -525,7 +525,6 @@ static u32 apic_get_tmcct(struct kvm_lap
- 	if (ktime_to_ns(remaining) < 0)
- 		remaining = ktime_set(0, 0);
+diff -puN arch/x86/kernel/io_apic.c~sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix arch/x86/kernel/io_apic.c
+--- a/arch/x86/kernel/io_apic.c~sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix
++++ a/arch/x86/kernel/io_apic.c
+@@ -59,8 +59,11 @@
+ #include <asm/setup.h>
+ #include <asm/irq_remapping.h>
+ #include <asm/hpet.h>
++
++#ifdef CONFIG_X86_64
+ #include <asm/uv/uv_hub.h>
+ #include <asm/uv/uv_irq.h>
++#endif
  
--	ns = ktime_to_ns(remaining) % apic->timer.period;
- 	tmcct = div64_u64(ns, (APIC_BUS_CYCLE_NS * apic->timer.divide_count));
- 
- 	return tmcct;
+ #include <mach_ipi.h>
+ #include <mach_apic.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
