@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + spi_mpc83xx-rework-chip-selects-handling.patch added to -mm tree
-Date: Tue, 27 Jan 2009 17:10:26 -0800
-Message-ID: <200901280110.n0S1AQHC027774@imap1.linux-foundation.org>
+Subject: + powerpc-add-mmc-spi-slot-bindings.patch added to -mm tree
+Date: Tue, 27 Jan 2009 17:10:31 -0800
+Message-ID: <200901280110.n0S1AVDI027838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55006 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751348AbZA1BKi (ORCPT
+	by vger.kernel.org with ESMTP id S1751615AbZA1BKw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 20:10:38 -0500
+	Tue, 27 Jan 2009 20:10:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: avorontsov@ru.mvista.com, benh@kernel.crashing.org, david-b@pacbell.net, gal
 
 
 The patch titled
-     spi_mpc83xx: rework chip selects handling
+     powerpc: add mmc-spi-slot bindings
 has been added to the -mm tree.  Its filename is
-     spi_mpc83xx-rework-chip-selects-handling.patch
+     powerpc-add-mmc-spi-slot-bindings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_mpc83xx: rework chip selects handling
+Subject: powerpc: add mmc-spi-slot bindings
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-The main purpose of this patch is to pass 'struct spi_device' to the chip
-select handling routines.  This is needed so that we could implement
-full-fledged OpenFirmware support for this driver.
+The bindings describes a case where MMC/SD/SDIO slot directly connected to
+a SPI bus.  Such setups are widely used on embedded PowerPC boards.
 
-While at it, also:
-- Replace two {de,activate}_cs routines by single cs_contol().
-- Don't duplicate platform data callbacks in mpc83xx_spi struct.
+The patch also adds the mmc-spi-slot entry to the OpenFirmware modalias
+table.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: David Brownell <david-b@pacbell.net>
@@ -53,191 +51,48 @@ Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/83xx/mpc832x_rdb.c |   16 ++++------------
- arch/powerpc/sysdev/fsl_soc.c             |   14 ++++++--------
- arch/powerpc/sysdev/fsl_soc.h             |    5 +++--
- drivers/spi/spi_mpc83xx.c                 |   20 +++++++-------------
- include/linux/fsl_devices.h               |    5 +++--
- 5 files changed, 23 insertions(+), 37 deletions(-)
+ Documentation/powerpc/dts-bindings/mmc-spi-slot.txt |   23 ++++++++++
+ drivers/of/base.c                                   |    1 
+ 2 files changed, 24 insertions(+)
 
-diff -puN arch/powerpc/platforms/83xx/mpc832x_rdb.c~spi_mpc83xx-rework-chip-selects-handling arch/powerpc/platforms/83xx/mpc832x_rdb.c
---- a/arch/powerpc/platforms/83xx/mpc832x_rdb.c~spi_mpc83xx-rework-chip-selects-handling
-+++ a/arch/powerpc/platforms/83xx/mpc832x_rdb.c
-@@ -39,16 +39,10 @@
- #endif
- 
- #ifdef CONFIG_QUICC_ENGINE
--static void mpc83xx_spi_activate_cs(u8 cs, u8 polarity)
-+static void mpc83xx_spi_cs_control(struct spi_device *spi, bool on)
- {
--	pr_debug("%s %d %d\n", __func__, cs, polarity);
--	par_io_data_set(3, 13, polarity);
--}
--
--static void mpc83xx_spi_deactivate_cs(u8 cs, u8 polarity)
--{
--	pr_debug("%s %d %d\n", __func__, cs, polarity);
--	par_io_data_set(3, 13, !polarity);
-+	pr_debug("%s %d %d\n", __func__, spi->chip_select, on);
-+	par_io_data_set(3, 13, on);
- }
- 
- static struct mmc_spi_platform_data mpc832x_mmc_pdata = {
-@@ -74,9 +68,7 @@ static int __init mpc832x_spi_init(void)
- 	par_io_config_pin(3, 14, 2, 0, 0, 0); /* SD_INSERT, I */
- 	par_io_config_pin(3, 15, 2, 0, 0, 0); /* SD_PROTECT,I */
- 
--	return fsl_spi_init(&mpc832x_spi_boardinfo, 1,
--			    mpc83xx_spi_activate_cs,
--			    mpc83xx_spi_deactivate_cs);
-+	return fsl_spi_init(&mpc832x_spi_boardinfo, 1, mpc83xx_spi_cs_control);
- }
- machine_device_initcall(mpc832x_rdb, mpc832x_spi_init);
- #endif /* CONFIG_QUICC_ENGINE */
-diff -puN arch/powerpc/sysdev/fsl_soc.c~spi_mpc83xx-rework-chip-selects-handling arch/powerpc/sysdev/fsl_soc.c
---- a/arch/powerpc/sysdev/fsl_soc.c~spi_mpc83xx-rework-chip-selects-handling
-+++ a/arch/powerpc/sysdev/fsl_soc.c
-@@ -416,8 +416,8 @@ arch_initcall(fsl_usb_of_init);
- static int __init of_fsl_spi_probe(char *type, char *compatible, u32 sysclk,
- 				   struct spi_board_info *board_infos,
- 				   unsigned int num_board_infos,
--				   void (*activate_cs)(u8 cs, u8 polarity),
--				   void (*deactivate_cs)(u8 cs, u8 polarity))
-+				   void (*cs_control)(struct spi_device *dev,
-+						      bool on))
- {
- 	struct device_node *np;
- 	unsigned int i = 0;
-@@ -429,8 +429,7 @@ static int __init of_fsl_spi_probe(char 
- 		struct resource res[2];
- 		struct platform_device *pdev;
- 		struct fsl_spi_platform_data pdata = {
--			.activate_cs = activate_cs,
--			.deactivate_cs = deactivate_cs,
-+			.cs_control = cs_control,
- 		};
- 
- 		memset(res, 0, sizeof(res));
-@@ -497,8 +496,7 @@ next:
- 
- int __init fsl_spi_init(struct spi_board_info *board_infos,
- 			unsigned int num_board_infos,
--			void (*activate_cs)(u8 cs, u8 polarity),
--			void (*deactivate_cs)(u8 cs, u8 polarity))
-+			void (*cs_control)(struct spi_device *spi, bool on))
- {
- 	u32 sysclk = -1;
- 	int ret;
-@@ -514,10 +512,10 @@ int __init fsl_spi_init(struct spi_board
- 	}
- 
- 	ret = of_fsl_spi_probe(NULL, "fsl,spi", sysclk, board_infos,
--			       num_board_infos, activate_cs, deactivate_cs);
-+			       num_board_infos, cs_control);
- 	if (!ret)
- 		of_fsl_spi_probe("spi", "fsl_spi", sysclk, board_infos,
--				 num_board_infos, activate_cs, deactivate_cs);
-+				 num_board_infos, cs_control);
- 
- 	return spi_register_board_info(board_infos, num_board_infos);
- }
-diff -puN arch/powerpc/sysdev/fsl_soc.h~spi_mpc83xx-rework-chip-selects-handling arch/powerpc/sysdev/fsl_soc.h
---- a/arch/powerpc/sysdev/fsl_soc.h~spi_mpc83xx-rework-chip-selects-handling
-+++ a/arch/powerpc/sysdev/fsl_soc.h
-@@ -4,6 +4,8 @@
- 
- #include <asm/mmu.h>
- 
-+struct spi_device;
+diff -puN /dev/null Documentation/powerpc/dts-bindings/mmc-spi-slot.txt
+--- /dev/null
++++ a/Documentation/powerpc/dts-bindings/mmc-spi-slot.txt
+@@ -0,0 +1,23 @@
++MMC/SD/SDIO slot directly connected to a SPI bus
 +
- extern phys_addr_t get_immrbase(void);
- #if defined(CONFIG_CPM2) || defined(CONFIG_QUICC_ENGINE) || defined(CONFIG_8xx)
- extern u32 get_brgfreq(void);
-@@ -19,8 +21,7 @@ struct device_node;
- 
- extern int fsl_spi_init(struct spi_board_info *board_infos,
- 			unsigned int num_board_infos,
--			void (*activate_cs)(u8 cs, u8 polarity),
--			void (*deactivate_cs)(u8 cs, u8 polarity));
-+			void (*cs_control)(struct spi_device *spi, bool on));
- 
- extern void fsl_rstcr_restart(char *cmd);
- 
-diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-rework-chip-selects-handling drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-rework-chip-selects-handling
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -89,9 +89,6 @@ struct mpc83xx_spi {
- 
- 	bool qe_mode;
- 
--	void (*activate_cs) (u8 cs, u8 polarity);
--	void (*deactivate_cs) (u8 cs, u8 polarity);
--
- 	u8 busy;
- 
- 	struct workqueue_struct *workqueue;
-@@ -153,15 +150,14 @@ MPC83XX_SPI_TX_BUF(u32)
- 
- static void mpc83xx_spi_chipselect(struct spi_device *spi, int value)
- {
--	struct mpc83xx_spi *mpc83xx_spi;
--	u8 pol = spi->mode & SPI_CS_HIGH ? 1 : 0;
-+	struct mpc83xx_spi *mpc83xx_spi = spi_master_get_devdata(spi->master);
-+	struct fsl_spi_platform_data *pdata = spi->dev.parent->platform_data;
-+	bool pol = spi->mode & SPI_CS_HIGH;
- 	struct spi_mpc83xx_cs	*cs = spi->controller_state;
- 
--	mpc83xx_spi = spi_master_get_devdata(spi->master);
--
- 	if (value == BITBANG_CS_INACTIVE) {
--		if (mpc83xx_spi->deactivate_cs)
--			mpc83xx_spi->deactivate_cs(spi->chip_select, pol);
-+		if (pdata->cs_control)
-+			pdata->cs_control(spi, !pol);
- 	}
- 
- 	if (value == BITBANG_CS_ACTIVE) {
-@@ -186,8 +182,8 @@ static void mpc83xx_spi_chipselect(struc
- 			mpc83xx_spi_write_reg(mode, regval);
- 			local_irq_restore(flags);
- 		}
--		if (mpc83xx_spi->activate_cs)
--			mpc83xx_spi->activate_cs(spi->chip_select, pol);
-+		if (pdata->cs_control)
-+			pdata->cs_control(spi, pol);
- 	}
- }
- 
-@@ -582,8 +578,6 @@ static int __init mpc83xx_spi_probe(stru
- 	master->cleanup = mpc83xx_spi_cleanup;
- 
- 	mpc83xx_spi = spi_master_get_devdata(master);
--	mpc83xx_spi->activate_cs = pdata->activate_cs;
--	mpc83xx_spi->deactivate_cs = pdata->deactivate_cs;
- 	mpc83xx_spi->qe_mode = pdata->qe_mode;
- 	mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
- 	mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
-diff -puN include/linux/fsl_devices.h~spi_mpc83xx-rework-chip-selects-handling include/linux/fsl_devices.h
---- a/include/linux/fsl_devices.h~spi_mpc83xx-rework-chip-selects-handling
-+++ a/include/linux/fsl_devices.h
-@@ -95,14 +95,15 @@ struct fsl_usb2_platform_data {
- #define FSL_USB2_PORT0_ENABLED	0x00000001
- #define FSL_USB2_PORT1_ENABLED	0x00000002
- 
-+struct spi_device;
++Required properties:
++- compatible : should be "mmc-spi-slot".
++- reg : should specify SPI address (chip-select number).
++- spi-max-frequency : maximum frequency for this device (Hz).
++- voltage-ranges : two cells are required, first cell specifies minimum
++  slot voltage (mV), second cell specifies maximum slot voltage (mV).
++  Several ranges could be specified.
++- gpios : (optional) may specify GPIOs in this order: Card-Detect GPIO,
++  Write-Protect GPIO.
 +
- struct fsl_spi_platform_data {
- 	u32 	initial_spmode;	/* initial SPMODE value */
- 	u16	bus_num;
- 	bool	qe_mode;
- 	/* board specific information */
- 	u16	max_chipselect;
--	void	(*activate_cs)(u8 cs, u8 polarity);
--	void	(*deactivate_cs)(u8 cs, u8 polarity);
-+	void	(*cs_control)(struct spi_device *spi, bool on);
- 	u32	sysclk;
++Example:
++
++	mmc-slot@0 {
++		compatible = "fsl,mpc8323rdb-mmc-slot",
++			     "mmc-spi-slot";
++		reg = <0>;
++		gpios = <&qe_pio_d 14 1
++			 &qe_pio_d 15 0>;
++		voltage-ranges = <3300 3300>;
++		spi-max-frequency = <50000000>;
++	};
+diff -puN drivers/of/base.c~powerpc-add-mmc-spi-slot-bindings drivers/of/base.c
+--- a/drivers/of/base.c~powerpc-add-mmc-spi-slot-bindings
++++ a/drivers/of/base.c
+@@ -446,6 +446,7 @@ struct of_modalias_table {
+ };
+ static struct of_modalias_table of_modalias_table[] = {
+ 	{ "fsl,mcu-mpc8349emitx", "mcu-mpc8349emitx" },
++	{ "mmc-spi-slot", "mmc_spi" },
  };
  
+ /**
 _
 
 Patches currently in -mm which might be from avorontsov@ru.mvista.com are
