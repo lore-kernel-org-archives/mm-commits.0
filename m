@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch added to -mm tree
-Date: Tue, 27 Jan 2009 15:44:46 -0800
-Message-ID: <200901272344.n0RNik4u020270@imap1.linux-foundation.org>
+Subject: + fix-longstanding-error-storage-size-of-__mod_dmi_device_table-isnt-known.patch added to -mm tree
+Date: Tue, 27 Jan 2009 16:00:30 -0800
+Message-ID: <200901280000.n0S00UYI006993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59898 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39541 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751598AbZA0XpX (ORCPT
+	by vger.kernel.org with ESMTP id S1751516AbZA1ABX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jan 2009 18:45:23 -0500
+	Tue, 27 Jan 2009 19:01:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@aristanetworks.com, cornelia.huck@de.ibm.com, gregkh@suse.de, tj@kernel.org, viro@ZenIV.linux.org.uk
+Cc: adobriyan@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     sysfs: reference sysfs_dirent from sysfs inodes
+     Fix longstanding "error: storage size of '__mod_dmi_device_table' isn't known"
 has been added to the -mm tree.  Its filename is
-     sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+     fix-longstanding-error-storage-size-of-__mod_dmi_device_table-isnt-known.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: reference sysfs_dirent from sysfs inodes
-From: Eric W. Biederman <ebiederm@aristanetworks.com>
+Subject: Fix longstanding "error: storage size of '__mod_dmi_device_table' isn't known"
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-The sysfs_dirent serves as both an inode and a directory entry
-for sysfs.  To prevent the sysfs inode numbers from being freed
-prematurely hold a reference to sysfs_dirent from the sysfs inode.
+Needs human-understandable changelog.
 
-Signed-off-by: Eric W. Biederman <ebiederm@aristanetworks.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/inode.c |   10 ++++++++++
- fs/sysfs/mount.c |    1 +
- fs/sysfs/sysfs.h |    1 +
- 3 files changed, 12 insertions(+)
+ include/linux/mod_devicetable.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/sysfs/inode.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes fs/sysfs/inode.c
---- a/fs/sysfs/inode.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes
-+++ a/fs/sysfs/inode.c
-@@ -147,6 +147,7 @@ static void sysfs_init_inode(struct sysf
- {
- 	struct bin_attribute *bin_attr;
- 
-+	inode->i_private = sysfs_get(sd);
- 	inode->i_mapping->a_ops = &sysfs_aops;
- 	inode->i_mapping->backing_dev_info = &sysfs_backing_dev_info;
- 	inode->i_op = &sysfs_inode_operations;
-@@ -214,6 +215,15 @@ struct inode * sysfs_get_inode(struct sy
- 	return inode;
- }
- 
-+void sysfs_delete_inode(struct inode *inode)
-+{
-+	struct sysfs_dirent *sd  = inode->i_private;
-+
-+	truncate_inode_pages(&inode->i_data, 0);
-+	clear_inode(inode);
-+	sysfs_put(sd);
-+}
-+
- int sysfs_hash_and_remove(struct sysfs_dirent *dir_sd, const char *name)
- {
- 	struct sysfs_addrm_cxt acxt;
-diff -puN fs/sysfs/mount.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes fs/sysfs/mount.c
---- a/fs/sysfs/mount.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes
-+++ a/fs/sysfs/mount.c
-@@ -29,6 +29,7 @@ struct kmem_cache *sysfs_dir_cachep;
- static const struct super_operations sysfs_ops = {
- 	.statfs		= simple_statfs,
- 	.drop_inode	= generic_delete_inode,
-+	.delete_inode	= sysfs_delete_inode,
+diff -puN include/linux/mod_devicetable.h~fix-longstanding-error-storage-size-of-__mod_dmi_device_table-isnt-known include/linux/mod_devicetable.h
+--- a/include/linux/mod_devicetable.h~fix-longstanding-error-storage-size-of-__mod_dmi_device_table-isnt-known
++++ a/include/linux/mod_devicetable.h
+@@ -443,6 +443,13 @@ struct dmi_system_id {
+ 	struct dmi_strmatch matches[4];
+ 	void *driver_data;
  };
++/*
++ * struct dmi_device_id appears during expansion of
++ * "MODULE_DEVICE_TABLE(dmi, x)". Compiler doesn't look inside it
++ * but this is enough for gcc 3.4.6 to error out:
++ *	error: storage size of '__mod_dmi_device_table' isn't known
++ */
++#define dmi_device_id dmi_system_id
+ #endif
  
- struct sysfs_dirent sysfs_root = {
-diff -puN fs/sysfs/sysfs.h~sysfs-reference-sysfs_dirent-from-sysfs-inodes fs/sysfs/sysfs.h
---- a/fs/sysfs/sysfs.h~sysfs-reference-sysfs_dirent-from-sysfs-inodes
-+++ a/fs/sysfs/sysfs.h
-@@ -145,6 +145,7 @@ static inline void __sysfs_put(struct sy
-  * inode.c
-  */
- struct inode *sysfs_get_inode(struct sysfs_dirent *sd);
-+void sysfs_delete_inode(struct inode *inode);
- int sysfs_setattr(struct dentry *dentry, struct iattr *iattr);
- int sysfs_hash_and_remove(struct sysfs_dirent *dir_sd, const char *name);
- int sysfs_inode_init(void);
+ #define DMI_MATCH(a, b)	{ a, b }
 _
 
-Patches currently in -mm which might be from ebiederm@aristanetworks.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+origin.patch
 linux-next.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+sm501-fix-section-mismatches.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+seq_file-move-traverse-so-it-can-be-used-from-seq_read.patch
+seq_file-properly-cope-with-pread.patch
+fix-longstanding-error-storage-size-of-__mod_dmi_device_table-isnt-known.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
