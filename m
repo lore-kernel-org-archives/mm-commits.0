@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + early-platform-driver-v3.patch added to -mm tree
-Date: Wed, 28 Jan 2009 16:51:59 -0800
-Message-ID: <200901290051.n0T0pxI9011602@imap1.linux-foundation.org>
+Subject: + early-platform-driver-v3-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 28 Jan 2009 16:53:37 -0800
+Message-ID: <200901290053.n0T0rcuD013673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752253AbZA2Awk (ORCPT
+	by vger.kernel.org with ESMTP id S1754136AbZA2AyF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jan 2009 19:52:40 -0500
+	Wed, 28 Jan 2009 19:54:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: damm@igel.co.jp, david-b@pacbell.net, greg@kroah.com, htejun@gmail.com, kay.sievers@vrfy.org, lethal@linux-sh.org
+Cc: akpm@linux-foundation.org, damm@igel.co.jp, david-b@pacbell.net, greg@kroah.com, htejun@gmail.com, kay.sievers@vrfy.org, lethal@linux-sh.org
 
 
 The patch titled
-     early platform driver V3
+     early-platform-driver-v3-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     early-platform-driver-v3.patch
+     early-platform-driver-v3-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,463 +34,151 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: early platform driver V3
-From: Magnus Damm <damm@igel.co.jp>
+Subject: early-platform-driver-v3-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-V3 of the early platform driver implementation.
+ERROR: space required before the open parenthesis '('
+#227: FILE: drivers/base/platform.c:1091:
++			if(pd->id == id)
 
-Platform drivers are great for embedded platforms because we can separate
-driver configuration from the actual driver.  So base addresses,
-interrupts and other configuration can be kept with the processor or board
-code, and the platform driver can be reused by many different platforms.
+ERROR: space required before the open parenthesis '('
+#245: FILE: drivers/base/platform.c:1109:
++			if(pd->id >= id)
 
-For early devices we have nothing today.  For instance, to configure early
-timers and early serial ports we cannot use platform devices.  This
-because the setup order during boot.  Timers are needed before the
-platform driver core code is available.  The same goes for early printk
-support.  Early in this case means before initcalls.
+ERROR: code indent should use tabs where possible
+#307: FILE: drivers/base/platform.c:1171:
++^I^I        else$
 
-These early drivers today have their configuration either hard coded or
-they receive it using some special configuration method.  This is working
-quite well, but if we want to support both regular kernel modules and
-early devices then we need to have two ways of configuring the same
-driver.  A single way would be better.
+WARNING: suspect code indent for conditional statements (16, 25)
+#337: FILE: drivers/base/platform.c:1201:
++		if (k < 0)
++			 break;
 
-The early platform driver patch is basically a set of functions that allow
-drivers to register themselves and architecture code to locate them and
-probe.  Registration happens through early_param().  The time for the
-probe is decided by the architecture code.
+WARNING: suspect code indent for conditional statements (16, 25)
+#342: FILE: drivers/base/platform.c:1206:
++		if (user_only)
++			 break;
 
-See Documentation/driver-model/platform.txt for more details.
+total: 3 errors, 2 warnings, 382 lines checked
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
+./patches/early-platform-driver-v3.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Brownell <david-b@pacbell.net>
 Cc: Greg KH <greg@kroah.com>
 Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Magnus Damm <damm@igel.co.jp>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/driver-model/platform.txt |   59 +++++
- drivers/base/platform.c                 |  239 ++++++++++++++++++++++
- include/linux/init.h                    |    1 
- include/linux/platform_device.h         |   42 +++
- init/main.c                             |    7 
- 5 files changed, 347 insertions(+), 1 deletion(-)
+ drivers/base/platform.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/driver-model/platform.txt~early-platform-driver-v3 Documentation/driver-model/platform.txt
---- a/Documentation/driver-model/platform.txt~early-platform-driver-v3
-+++ a/Documentation/driver-model/platform.txt
-@@ -169,3 +169,62 @@ three different ways to find such a matc
-       be probed later if another device registers.  (Which is OK, since
-       this interface is only for use with non-hotpluggable devices.)
- 
-+
-+Early Platform Devices and Drivers
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The early platform interfaces provide platform data to platform device
-+drivers early on during the system boot. The code is built on top of the
-+early_param() command line parsing and can be executed very early on.
-+
-+Example: "earlyprintk" class early serial console in 6 steps
-+
-+1. Registering early platform device data
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The architecture code registers platform device data using the function
-+early_platform_add_devices(). In the case of early serial console this
-+should be hardware configuration for the serial port. Devices registered
-+at this point will later on be matched against early platform drivers.
-+
-+2. Parsing kernel command line
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The architecture code calls parse_early_param() to parse the kernel
-+command line. This will execute all matching early_param() callbacks.
-+User specified early platform devices will be registered at this point.
-+For the early serial console case the user can specify port on the
-+kernel command line as "earlyprintk=serial.0" where "earlyprintk" is
-+the class string, "serial" is the name of the platfrom driver and
-+0 is the platform device id. If the id is -1 then the dot and the
-+id can be omitted.
-+
-+3. Installing early platform drivers belonging to a certain class
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The architecture code may optionally force registration of all early
-+platform drivers belonging to a certain class using the function
-+early_platform_driver_register_all(). User specified devices from
-+step 2 have priority over these. This step is omitted by the serial
-+driver example since the early serial driver code should be disabled
-+unless the user has specified port on the kernel command line.
-+
-+4. Early platform driver registration
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+Compiled-in platform drivers making use of early_platform_init() are
-+automatically registered during step 2 or 3. The serial driver example
-+should use early_platform_init("earlyprintk", &platform_driver).
-+
-+5. Probing of early platform drivers belonging to a certain class
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The architecture code calls early_platform_driver_probe() to match
-+registered early platform devices associated with a certain class with
-+registered early platform drivers. Matched devices will get probed().
-+This step can be executed at any point during the early boot. As soon
-+as possible may be good for the serial port case.
-+
-+6. Inside the early platform driver probe()
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The driver code needs to take special care during early boot, especially
-+when it comes to memory allocation and interrupt registration. The code
-+in the probe() function can use is_early_platform_device() to check if
-+it is called at early platform device or at the regular platform device
-+time. The early serial driver performs register_console() at this point.
-+
-+For further information, see <linux/platform_device.h>.
-diff -puN drivers/base/platform.c~early-platform-driver-v3 drivers/base/platform.c
---- a/drivers/base/platform.c~early-platform-driver-v3
+diff -puN drivers/base/platform.c~early-platform-driver-v3-checkpatch-fixes drivers/base/platform.c
+--- a/drivers/base/platform.c~early-platform-driver-v3-checkpatch-fixes
 +++ a/drivers/base/platform.c
-@@ -956,6 +956,8 @@ int __init platform_bus_init(void)
- {
- 	int error;
+@@ -1088,7 +1088,7 @@ early_platform_match(struct early_platfo
  
-+	early_platform_cleanup();
-+
- 	error = device_register(&platform_bus);
- 	if (error)
- 		return error;
-@@ -986,3 +988,240 @@ u64 dma_get_required_mask(struct device 
- }
- EXPORT_SYMBOL_GPL(dma_get_required_mask);
- #endif
-+
-+static __initdata LIST_HEAD(early_platform_driver_list);
-+static __initdata LIST_HEAD(early_platform_device_list);
-+
-+/**
-+ * early_platform_driver_register
-+ * @edrv: early_platform driver structure
-+ * @buf: string passed from early_param()
-+ */
-+int __init early_platform_driver_register(struct early_platform_driver *epdrv,
-+					  char *buf)
-+{
-+	unsigned long index;
-+	int n;
-+
-+	/* Simply add the driver to the end of the global list.
-+	 * Drivers will by default be put on the list in compiled-in order.
-+	 */
-+	if (!epdrv->list.next) {
-+		INIT_LIST_HEAD(&epdrv->list);
-+		list_add_tail(&epdrv->list, &early_platform_driver_list);
-+	}
-+
-+	/* If the user has specified device then make sure the driver
-+	 * gets prioritized. The driver of the last device specified on
-+	 * command line will be put first on the list.
-+	 */
-+	n = strlen(epdrv->pdrv->driver.name);
-+	if (buf && !strncmp(buf, epdrv->pdrv->driver.name, n)) {
-+		list_move(&epdrv->list, &early_platform_driver_list);
-+
-+		if (!strcmp(buf, epdrv->pdrv->driver.name))
-+			epdrv->requested_id = -1;
-+		else if (buf[n] == '.' && strict_strtoul(&buf[n + 1], 10,
-+							 &index) == 0)
-+			epdrv->requested_id = index;
-+		else
-+			epdrv->requested_id = EARLY_PLATFORM_ID_ERROR;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * early_platform_add_devices - add a numbers of early platform devices
-+ * @devs: array of early platform devices to add
-+ * @num: number of early platform devices in array
-+ */
-+void __init early_platform_add_devices(struct platform_device **devs, int num)
-+{
-+	struct device *dev;
-+	int i;
-+
-+	/* simply add the devices to list */
-+	for (i = 0; i < num; i++) {
-+		dev = &devs[i]->dev;
-+
-+		if (!dev->devres_head.next) {
-+			INIT_LIST_HEAD(&dev->devres_head);
-+			list_add_tail(&dev->devres_head,
-+				      &early_platform_device_list);
-+		}
-+	}
-+}
-+
-+/**
-+ * early_platform_driver_register_all
-+ * @class_str: string to identify early platform driver class
-+ */
-+void __init early_platform_driver_register_all(char *class_str)
-+{
-+	/* The "class_str" parameter may or may not be present on the kernel
-+	 * command line. If it is present then there may be more than one
-+	 * matching parameter.
-+	 *
-+	 * Since we register our early platform drivers using early_param()
-+	 * we need to make sure that they also get registered in the case
-+	 * when the parameter is missing from the kernel command line.
-+	 *
-+	 * We use parse_early_options() to make sure the early_param() gets
-+	 * called at least once. The early_param() may be called more than
-+	 * once since the name of the preferred device may be specified on
-+	 * the kernel command line. early_platform_driver_register() handles
-+	 * this case for us.
-+	 */
-+	parse_early_options(class_str);
-+}
-+
-+/**
-+ * early_platform_match
-+ * @edrv: early platform driver structure
-+ * @id: id to match against
-+ */
-+static  __init struct platform_device *
-+early_platform_match(struct early_platform_driver *epdrv, int id)
-+{
-+	struct platform_device *pd;
-+
-+	list_for_each_entry(pd, &early_platform_device_list, dev.devres_head)
-+		if (platform_match(&pd->dev, &epdrv->pdrv->driver))
-+			if(pd->id == id)
-+				return pd;
-+
-+	return NULL;
-+}
-+
-+/**
-+ * early_platform_left
-+ * @edrv: early platform driver structure
-+ * @id: return true if id or above exists
-+ */
-+static  __init int early_platform_left(struct early_platform_driver *epdrv,
-+				       int id)
-+{
-+	struct platform_device *pd;
-+
-+	list_for_each_entry(pd, &early_platform_device_list, dev.devres_head)
-+		if (platform_match(&pd->dev, &epdrv->pdrv->driver))
-+			if(pd->id >= id)
-+				return 1;
-+
-+	return 0;
-+}
-+
-+/**
-+ * early_platform_driver_probe_id
-+ * @class_str: string to identify early platform driver class
-+ * @id: id to match against
-+ * @nr_probe: number of platform devices to successfully probe before exiting
-+ */
-+static int __init early_platform_driver_probe_id(char *class_str,
-+						 int id,
-+						 int nr_probe)
-+{
-+	struct early_platform_driver *epdrv;
-+	struct platform_device *match;
-+	int match_id;
-+	int n = 0;
-+	int left = 0;
-+
-+	list_for_each_entry(epdrv, &early_platform_driver_list, list) {
-+		/* only use drivers matching our class_str */
-+		if (strcmp(class_str, epdrv->class_str))
-+			continue;
-+
-+		if (id == -2) {
-+			match_id = epdrv->requested_id;
-+			left = 1;
-+
-+		} else {
-+			match_id = id;
-+			left += early_platform_left(epdrv, id);
-+
-+			/* skip requested id */
-+			switch (epdrv->requested_id) {
-+			case EARLY_PLATFORM_ID_ERROR:
-+			case EARLY_PLATFORM_ID_UNSET:
-+				break;
-+			default:
-+				if (epdrv->requested_id == id)
-+					match_id = EARLY_PLATFORM_ID_UNSET;
-+			}
-+		}
-+
-+		switch (match_id) {
-+		case EARLY_PLATFORM_ID_ERROR:
-+			pr_warning("%s: unable to parse %s parameter\n",
-+				   class_str, epdrv->pdrv->driver.name);
-+			/* fall-through */
-+		case EARLY_PLATFORM_ID_UNSET:
-+			match = NULL;
-+			break;
-+		default:
-+			match = early_platform_match(epdrv, match_id);
-+		}
-+
-+		if (match) {
-+			if (epdrv->pdrv->probe(match))
-+				pr_warning("%s: unable to probe %s early.\n",
-+					   class_str, match->name);
-+		        else
-+				n++;
-+		}
-+
-+		if (n >= nr_probe)
-+			break;
-+	}
-+
-+	if (left)
-+		return n;
-+	else
-+		return -ENODEV;
-+}
-+
-+/**
-+ * early_platform_driver_probe
-+ * @class_str: string to identify early platform driver class
-+ * @nr_probe: number of platform devices to successfully probe before exiting
-+ * @user_only: only probe user specified early platform devices
-+ */
-+int __init early_platform_driver_probe(char *class_str,
-+				       int nr_probe,
-+				       int user_only)
-+{
-+	int k, n, i;
-+
-+	n = 0;
-+	for (i = -2; n < nr_probe; i++) {
-+		k = early_platform_driver_probe_id(class_str, i, nr_probe - n);
-+
-+		if (k < 0)
-+			 break;
-+
-+		n += k;
-+
-+		if (user_only)
-+			 break;
-+	}
-+
-+	return n;
-+}
-+
-+/**
-+ * early_platform_cleanup - clean up early platform code
-+ */
-+void __init early_platform_cleanup(void)
-+{
-+	struct platform_device *pd, *pd2;
-+
-+	/* clean up the devres list used to chain devices */
-+	list_for_each_entry_safe(pd, pd2, &early_platform_device_list,
-+				 dev.devres_head) {
-+		list_del(&pd->dev.devres_head);
-+		memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
-+	}
-+}
-+
-diff -puN include/linux/init.h~early-platform-driver-v3 include/linux/init.h
---- a/include/linux/init.h~early-platform-driver-v3
-+++ a/include/linux/init.h
-@@ -248,6 +248,7 @@ struct obs_kernel_param {
+ 	list_for_each_entry(pd, &early_platform_device_list, dev.devres_head)
+ 		if (platform_match(&pd->dev, &epdrv->pdrv->driver))
+-			if(pd->id == id)
++			if (pd->id == id)
+ 				return pd;
  
- /* Relies on boot_command_line being set */
- void __init parse_early_param(void);
-+void __init parse_early_options(char *cmdline);
- #endif /* __ASSEMBLY__ */
+ 	return NULL;
+@@ -1106,7 +1106,7 @@ static  __init int early_platform_left(s
  
- /**
-diff -puN include/linux/platform_device.h~early-platform-driver-v3 include/linux/platform_device.h
---- a/include/linux/platform_device.h~early-platform-driver-v3
-+++ a/include/linux/platform_device.h
-@@ -70,4 +70,46 @@ extern int platform_driver_probe(struct 
- #define platform_get_drvdata(_dev)	dev_get_drvdata(&(_dev)->dev)
- #define platform_set_drvdata(_dev,data)	dev_set_drvdata(&(_dev)->dev, (data))
+ 	list_for_each_entry(pd, &early_platform_device_list, dev.devres_head)
+ 		if (platform_match(&pd->dev, &epdrv->pdrv->driver))
+-			if(pd->id >= id)
++			if (pd->id >= id)
+ 				return 1;
  
-+/* early platform driver interface */
-+struct early_platform_driver {
-+	const char *class_str;
-+	struct platform_driver *pdrv;
-+	struct list_head list;
-+	int requested_id;
-+};
-+
-+#define EARLY_PLATFORM_ID_UNSET -2
-+#define EARLY_PLATFORM_ID_ERROR -3
-+
-+extern int early_platform_driver_register(struct early_platform_driver *epdrv,
-+					  char *buf);
-+extern void early_platform_add_devices(struct platform_device **devs, int num);
-+
-+static inline int is_early_platform_device(struct platform_device *pdev)
-+{
-+	return !pdev->dev.driver;
-+}
-+
-+extern void early_platform_driver_register_all(char *class_str);
-+extern int early_platform_driver_probe(char *class_str,
-+				       int nr_probe, int user_only);
-+extern void early_platform_cleanup(void);
-+
-+
-+#ifndef MODULE
-+#define early_platform_init(class_string, platform_driver)		\
-+static __initdata struct early_platform_driver early_driver = {		\
-+	.class_str = class_string,					\
-+	.pdrv = platform_driver,					\
-+	.requested_id = EARLY_PLATFORM_ID_UNSET,			\
-+};									\
-+static int __init early_platform_driver_setup_func(char *buf)		\
-+{									\
-+	return early_platform_driver_register(&early_driver, buf);	\
-+}									\
-+early_param(class_string, early_platform_driver_setup_func)
-+#else /* MODULE */
-+#define early_platform_init(class_string, platform_driver)
-+#endif /* MODULE */
-+
- #endif /* _PLATFORM_DEVICE_H_ */
-diff -puN init/main.c~early-platform-driver-v3 init/main.c
---- a/init/main.c~early-platform-driver-v3
-+++ a/init/main.c
-@@ -494,6 +494,11 @@ static int __init do_early_param(char *p
  	return 0;
- }
+@@ -1168,7 +1168,7 @@ static int __init early_platform_driver_
+ 			if (epdrv->pdrv->probe(match))
+ 				pr_warning("%s: unable to probe %s early.\n",
+ 					   class_str, match->name);
+-		        else
++			else
+ 				n++;
+ 		}
  
-+void __init parse_early_options(char *cmdline)
-+{
-+	parse_args("early options", cmdline, NULL, 0, do_early_param);
-+}
-+
- /* Arch code calls this early on, or if not, just before other parsing. */
- void __init parse_early_param(void)
- {
-@@ -505,7 +510,7 @@ void __init parse_early_param(void)
+@@ -1199,12 +1199,12 @@ int __init early_platform_driver_probe(c
+ 		k = early_platform_driver_probe_id(class_str, i, nr_probe - n);
  
- 	/* All fall through to do_early_param. */
- 	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
--	parse_args("early options", tmp_cmdline, NULL, 0, do_early_param);
-+	parse_early_options(tmp_cmdline);
- 	done = 1;
- }
+ 		if (k < 0)
+-			 break;
++			break;
  
+ 		n += k;
+ 
+ 		if (user_only)
+-			 break;
++			break;
+ 	}
+ 
+ 	return n;
 _
 
-Patches currently in -mm which might be from damm@igel.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-gpiolib-fix-request-related-issue.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
+i-need-old-gcc.patch
 linux-next.patch
-early-platform-driver-v3.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+kvm-unbork.patch
+acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
 clocksource-pass-clocksource-to-read-callback.patch
-clocksource-add-enable-and-disable-callbacks.patch
-irq-free-setup_irq-interrupt-using-free_irq.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
+mm-mmapc-avoid-referencing-a-freed-vma-in-mmap_region.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
