@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wait-prevent-exclusive-waiter-starvation.patch added to -mm tree
-Date: Wed, 28 Jan 2009 23:41:25 -0800
-Message-ID: <200901290741.n0T7fPNN024006@imap1.linux-foundation.org>
+Subject: + wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 28 Jan 2009 23:42:24 -0800
+Message-ID: <200901290742.n0T7gOdA025159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42217 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752253AbZA2Hma (ORCPT
+	by vger.kernel.org with ESMTP id S1752507AbZA2HnE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 02:42:30 -0500
+	Thu, 29 Jan 2009 02:43:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, a.p.zijlstra@chello.nl, cel@citi.umich.edu, chris.mason@oracle.com, matthew@wil.cx, mingo@elte.hu, nickpiggin@yahoo.com.au, oleg@redhat.com
+Cc: akpm@linux-foundation.org, hannes@cmpxchg.org
 
 
 The patch titled
-     wait: prevent exclusive waiter starvation
+     wait-prevent-exclusive-waiter-starvation-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     wait-prevent-exclusive-waiter-starvation.patch
+     wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,197 +34,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait: prevent exclusive waiter starvation
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: wait-prevent-exclusive-waiter-starvation-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-With exclusive waiters, every process woken up through the wait queue must
-ensure that the next waiter down the line is woken when it has finished.
+ERROR: do not use assignment in if condition
+#175: FILE: kernel/wait.c:228:
++		if (!(ret = action(q->key.flags)))
 
-Interruptible waiters don't do that when aborting due to a signal.  And if
-an aborting waiter is concurrently woken up through the waitqueue, noone
-will ever wake up the next waiter.
+total: 1 errors, 0 warnings, 127 lines checked
 
-This has been observed with __wait_on_bit_lock() used by
-lock_page_killable(): the first contender on the queue was aborting when
-the actual lock holder woke it up concurrently.  The aborted contender
-didn't acquire the lock and therefor never did an unlock followed by
-waking up the next waiter.
+./patches/wait-prevent-exclusive-waiter-starvation.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Add abort_exclusive_wait() which removes the process' wait descriptor from
-the waitqueue, iff still queued, or wakes up the next waiter otherwise. 
-It does so under the waitqueue lock.  Racing with a wake up means the
-aborting process is either already woken (removed from the queue) and will
-wake up the next waiter, or it will remove itself from the queue and the
-concurrent wake up will apply to the next waiter after it.
+Please run checkpatch prior to sending patches
 
-Use abort_exclusive_wait() in __wait_event_interruptible_exclusive() and
-__wait_on_bit_lock() when they were interrupted by other means than a wake
-up through the queue.
-
-Reported-by: Chris Mason <chris.mason@oracle.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Mentored-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Chuck Lever <cel@citi.umich.edu>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   11 ++++++-
- kernel/sched.c       |    4 +-
- kernel/wait.c        |   58 ++++++++++++++++++++++++++++++++++++-----
- 3 files changed, 62 insertions(+), 11 deletions(-)
+ kernel/wait.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/wait.h~wait-prevent-exclusive-waiter-starvation include/linux/wait.h
---- a/include/linux/wait.h~wait-prevent-exclusive-waiter-starvation
-+++ a/include/linux/wait.h
-@@ -132,6 +132,8 @@ static inline void __remove_wait_queue(w
- 	list_del(&old->task_list);
- }
- 
-+void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
-+			int nr_exclusive, int sync, void *key);
- void __wake_up(wait_queue_head_t *q, unsigned int mode, int nr, void *key);
- extern void __wake_up_locked(wait_queue_head_t *q, unsigned int mode);
- extern void __wake_up_sync(wait_queue_head_t *q, unsigned int mode, int nr);
-@@ -333,16 +335,19 @@ do {									\
- 	for (;;) {							\
- 		prepare_to_wait_exclusive(&wq, &__wait,			\
- 					TASK_INTERRUPTIBLE);		\
--		if (condition)						\
-+		if (condition) {					\
-+			finish_wait(&wq, &__wait);			\
- 			break;						\
-+		}							\
- 		if (!signal_pending(current)) {				\
- 			schedule();					\
- 			continue;					\
- 		}							\
- 		ret = -ERESTARTSYS;					\
-+		abort_exclusive_wait(&wq, &__wait, 			\
-+				TASK_INTERRUPTIBLE, NULL);		\
- 		break;							\
- 	}								\
--	finish_wait(&wq, &__wait);					\
- } while (0)
- 
- #define wait_event_interruptible_exclusive(wq, condition)		\
-@@ -431,6 +436,8 @@ extern long interruptible_sleep_on_timeo
- void prepare_to_wait(wait_queue_head_t *q, wait_queue_t *wait, int state);
- void prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait, int state);
- void finish_wait(wait_queue_head_t *q, wait_queue_t *wait);
-+void abort_exclusive_wait(wait_queue_head_t *q, wait_queue_t *wait,
-+			unsigned int mode, void *key);
- int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
- int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
- 
-diff -puN kernel/sched.c~wait-prevent-exclusive-waiter-starvation kernel/sched.c
---- a/kernel/sched.c~wait-prevent-exclusive-waiter-starvation
-+++ a/kernel/sched.c
-@@ -4843,8 +4843,8 @@ EXPORT_SYMBOL(default_wake_function);
-  * started to run but is not in state TASK_RUNNING. try_to_wake_up() returns
-  * zero in this (rare) case, and we handle it by continuing to scan the queue.
-  */
--static void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
--			     int nr_exclusive, int sync, void *key)
-+void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
-+			int nr_exclusive, int sync, void *key)
- {
- 	wait_queue_t *curr, *next;
- 
-diff -puN kernel/wait.c~wait-prevent-exclusive-waiter-starvation kernel/wait.c
---- a/kernel/wait.c~wait-prevent-exclusive-waiter-starvation
+diff -puN kernel/wait.c~wait-prevent-exclusive-waiter-starvation-checkpatch-fixes kernel/wait.c
+--- a/kernel/wait.c~wait-prevent-exclusive-waiter-starvation-checkpatch-fixes
 +++ a/kernel/wait.c
-@@ -91,6 +91,15 @@ prepare_to_wait_exclusive(wait_queue_hea
- }
- EXPORT_SYMBOL(prepare_to_wait_exclusive);
- 
-+/*
-+ * finish_wait - clean up after waiting in a queue
-+ * @q: waitqueue waited on
-+ * @wait: wait descriptor
-+ *
-+ * Sets current thread back to running state and removes
-+ * the wait descriptor from the given waitqueue if still
-+ * queued.
-+ */
- void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
- {
- 	unsigned long flags;
-@@ -117,6 +126,39 @@ void finish_wait(wait_queue_head_t *q, w
- }
- EXPORT_SYMBOL(finish_wait);
- 
-+/*
-+ * abort_exclusive_wait - abort exclusive waiting in a queue
-+ * @q: waitqueue waited on
-+ * @wait: wait descriptor
-+ * @state: runstate of the waiter to be woken
-+ * @key: key to identify a wait bit queue or %NULL
-+ *
-+ * Sets current thread back to running state and removes
-+ * the wait descriptor from the given waitqueue if still
-+ * queued.
-+ *
-+ * Wakes up the next waiter if the caller is concurrently
-+ * woken up through the queue.
-+ *
-+ * This prevents waiter starvation where an exclusive waiter
-+ * aborts and is woken up concurrently and noone wakes up
-+ * the next waiter.
-+ */
-+void abort_exclusive_wait(wait_queue_head_t *q, wait_queue_t *wait,
-+			unsigned int mode, void *key)
-+{
-+	unsigned long flags;
-+
-+	__set_current_state(TASK_RUNNING);
-+	spin_lock_irqsave(&q->lock, flags);
-+	if (!list_empty(&wait->task_list))
-+		list_del_init(&wait->task_list);
-+	else if (waitqueue_active(q))
-+		__wake_up_common(q, mode, 1, 0, key);
-+	spin_unlock_irqrestore(&q->lock, flags);
-+}
-+EXPORT_SYMBOL(abort_exclusive_wait);
-+
- int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
- {
- 	int ret = default_wake_function(wait, mode, sync, key);
-@@ -177,17 +219,19 @@ int __sched
- __wait_on_bit_lock(wait_queue_head_t *wq, struct wait_bit_queue *q,
- 			int (*action)(void *), unsigned mode)
- {
--	int ret = 0;
--
- 	do {
-+		int ret;
-+
+@@ -225,7 +225,8 @@ __wait_on_bit_lock(wait_queue_head_t *wq
  		prepare_to_wait_exclusive(wq, &q->wait, mode);
--		if (test_bit(q->key.bit_nr, q->key.flags)) {
--			if ((ret = (*action)(q->key.flags)))
--				break;
--		}
-+		if (!test_bit(q->key.bit_nr, q->key.flags))
-+			continue;
-+		if (!(ret = action(q->key.flags)))
-+			continue;
-+		abort_exclusive_wait(wq, &q->wait, mode, &q->key);
-+		return ret;
- 	} while (test_and_set_bit(q->key.bit_nr, q->key.flags));
- 	finish_wait(wq, &q->wait);
--	return ret;
-+	return 0;
- }
- EXPORT_SYMBOL(__wait_on_bit_lock);
- 
+ 		if (!test_bit(q->key.bit_nr, q->key.flags))
+ 			continue;
+-		if (!(ret = action(q->key.flags)))
++		ret = action(q->key.flags);
++		if (!ret)
+ 			continue;
+ 		abort_exclusive_wait(wq, &q->wait, mode, &q->key);
+ 		return ret;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
+i-need-old-gcc.patch
 linux-next.patch
-wait-prevent-exclusive-waiter-starvation.patch
-powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+kvm-unbork.patch
+acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
+wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
+mm-mmapc-avoid-referencing-a-freed-vma-in-mmap_region.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
