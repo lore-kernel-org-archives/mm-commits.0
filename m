@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sfc-modify-allocation-error-message.patch added to -mm tree
-Date: Wed, 28 Jan 2009 17:04:33 -0800
-Message-ID: <200901290104.n0T14Xe9027131@imap1.linux-foundation.org>
+Subject: + futex-comment-requeue-key-reference-semantics.patch added to -mm tree
+Date: Wed, 28 Jan 2009 17:06:08 -0800
+Message-ID: <200901290106.n0T168hN029088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751756AbZA2BFH (ORCPT
+	by vger.kernel.org with ESMTP id S1753168AbZA2BG5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jan 2009 20:05:07 -0500
+	Wed, 28 Jan 2009 20:06:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, bhutchings@solarflare.com
+Cc: dvhltc@us.ibm.com, a.p.zijlstra@chello.nl, mingo@elte.hu, nickpiggin@yahoo.com.au, rusty@rustcorp.com.au
 
 
 The patch titled
-     sfc: modify allocation error message
+     futex: comment requeue key reference semantics
 has been added to the -mm tree.  Its filename is
-     sfc-modify-allocation-error-message.patch
+     futex-comment-requeue-key-reference-semantics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sfc: modify allocation error message
-From: Mike Travis <travis@sgi.com>
+Subject: futex: comment requeue key reference semantics
+From: Darren Hart <dvhltc@us.ibm.com>
 
-Change error message when alloc_cpumask_var fails.
+We've tripped over the futex_requeue drop_count refering to key2
+instead of key1.  The code is actually correct, but is non-intuitive. 
+This patch adds an explicit comment explaining the requeue.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Acked-by: Ben Hutchings <bhutchings@solarflare.com>
+Signed-off-by: Darren Hart <dvhltc@us.ibm.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sfc/efx.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/futex.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/sfc/efx.c~sfc-modify-allocation-error-message drivers/net/sfc/efx.c
---- a/drivers/net/sfc/efx.c~sfc-modify-allocation-error-message
-+++ a/drivers/net/sfc/efx.c
-@@ -857,9 +857,9 @@ static int efx_wanted_rx_queues(void)
- 	int count;
- 	int cpu;
+diff -puN kernel/futex.c~futex-comment-requeue-key-reference-semantics kernel/futex.c
+--- a/kernel/futex.c~futex-comment-requeue-key-reference-semantics
++++ a/kernel/futex.c
+@@ -927,7 +927,12 @@ out_unlock:
+ 	if (hb1 != hb2)
+ 		spin_unlock(&hb2->lock);
  
--	if (!alloc_cpumask_var(&core_mask, GFP_KERNEL)) {
-+	if (unlikely(!alloc_cpumask_var(&core_mask, GFP_KERNEL))) {
- 		printk(KERN_WARNING
--		       "efx.c: allocation failure, irq balancing hobbled\n");
-+		       "sfc: RSS disabled due to allocation failure\n");
- 		return 1;
- 	}
+-	/* drop_futex_key_refs() must be called outside the spinlocks. */
++	/*
++	 * drop_futex_key_refs() must be called outside the spinlocks. During
++	 * the requeue we moved futex_q's from the hash bucket at key1 to the
++	 * one at key2 and updated their key pointer.  We no longer need to
++	 * hold the references to key1.
++	 */
+ 	while (--drop_count >= 0)
+ 		drop_futex_key_refs(&key1);
  
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from dvhltc@us.ibm.com are
 
-linux-next.patch
-sfc-modify-allocation-error-message.patch
-sysrq-include-interrupth-instead-of-irqh.patch
+futex-comment-requeue-key-reference-semantics.patch
 
