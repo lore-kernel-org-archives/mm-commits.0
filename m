@@ -1,121 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix.patch removed from -mm tree
-Date: Thu, 29 Jan 2009 00:38:48 -0800
-Message-ID: <200901290838.n0T8cnhl029193@imap1.linux-foundation.org>
+Subject: + ptrace-kill-__ptrace_detach-fix-exit_state-check.patch added to -mm tree
+Date: Thu, 29 Jan 2009 00:43:49 -0800
+Message-ID: <200901290843.n0T8hn74002853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36051 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40340 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752728AbZA2IjD (ORCPT
+	by vger.kernel.org with ESMTP id S1752522AbZA2Iof (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 03:39:03 -0500
+	Thu, 29 Jan 2009 03:44:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, steiner@sgi.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@redhat.com, dvlasenk@redhat.com, jmarchan@redhat.com, roland@redhat.com
 
 
 The patch titled
-     sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix
-has been removed from the -mm tree.  Its filename was
-     sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix.patch
+     ptrace: kill __ptrace_detach(), fix ->exit_state check
+has been added to the -mm tree.  Its filename is
+     ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ptrace: kill __ptrace_detach(), fix ->exit_state check
+From: Oleg Nesterov <oleg@redhat.com>
 
-i386:
+Move the code from __ptrace_detach() to its single caller and kill this
+helper.
 
-arch/x86/include/asm/uv/uv_mmrs.h:409: error: width of 'real_time_cmpb' exceeds its type
-arch/x86/include/asm/uv/uv_mmrs.h:425: error: width of 'real_time_cmpc' exceeds its type
-arch/x86/include/asm/uv/uv_mmrs.h:441: error: width of 'real_time_cmpd' exceeds its type
-arch/x86/include/asm/uv/uv_mmrs.h:491: error: width of 'address' exceeds its type
+Also, fix the ->exit_state check, we shouldn't wake up EXIT_DEAD tasks. 
+Actually, I think task_is_stopped_or_traced() makes more sense, but this
+needs another patch.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/io_apic.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/ptrace.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/io_apic.c~sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix arch/x86/kernel/io_apic.c
---- a/arch/x86/kernel/io_apic.c~sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix
-+++ a/arch/x86/kernel/io_apic.c
-@@ -59,8 +59,11 @@
- #include <asm/setup.h>
- #include <asm/irq_remapping.h>
- #include <asm/hpet.h>
-+
-+#ifdef CONFIG_X86_64
- #include <asm/uv/uv_hub.h>
- #include <asm/uv/uv_irq.h>
-+#endif
+diff -puN kernel/ptrace.c~ptrace-kill-__ptrace_detach-fix-exit_state-check kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-kill-__ptrace_detach-fix-exit_state-check
++++ a/kernel/ptrace.c
+@@ -235,16 +235,6 @@ out:
+ 	return retval;
+ }
  
- #include <mach_ipi.h>
- #include <mach_apic.h>
+-static inline void __ptrace_detach(struct task_struct *child, unsigned int data)
+-{
+-	child->exit_code = data;
+-	/* .. re-parent .. */
+-	__ptrace_unlink(child);
+-	/* .. and wake it up. */
+-	if (child->exit_state != EXIT_ZOMBIE)
+-		wake_up_process(child);
+-}
+-
+ int ptrace_detach(struct task_struct *child, unsigned int data)
+ {
+ 	if (!valid_signal(data))
+@@ -254,10 +244,16 @@ int ptrace_detach(struct task_struct *ch
+ 	ptrace_disable(child);
+ 	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+ 
+-	write_lock_irq(&tasklist_lock);
+ 	/* protect against de_thread()->release_task() */
+-	if (child->ptrace)
+-		__ptrace_detach(child, data);
++	write_lock_irq(&tasklist_lock);
++	if (child->ptrace) {
++		child->exit_code = data;
++
++		__ptrace_unlink(child);
++
++		if (!child->exit_state)
++			wake_up_process(child);
++	}
+ 	write_unlock_irq(&tasklist_lock);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
-i-need-old-gcc.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-kvm-unbork.patch
-acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-early-platform-driver-v3-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
-hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
-wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
-mm-mmapc-avoid-referencing-a-freed-vma-in-mmap_region.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix.patch
+wait-prevent-exclusive-waiter-starvation.patch
+pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch
+get_mm_hiwater_xxx-trivial-s-define-inline.patch
+getrusage-fill-ru_maxrss-value.patch
+ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
+ptrace-simplify-ptrace_exit-ignoring_children-path.patch
+ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
+ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
+kthread-dont-looking-for-a-task-in-create_kthread-2.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
 pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
+pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
+pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
 
