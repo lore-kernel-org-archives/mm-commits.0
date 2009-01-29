@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-sata_silc-needs-dmih.patch added to -mm tree
-Date: Thu, 29 Jan 2009 14:19:49 -0800
-Message-ID: <200901292236.n0TMaffW016932@imap1.linux-foundation.org>
+Subject: + fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch added to -mm tree
+Date: Thu, 29 Jan 2009 14:28:55 -0800
+Message-ID: <200901292245.n0TMjl3W028116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753373AbZA2Wgw (ORCPT
+	by vger.kernel.org with ESMTP id S1754318AbZA2WqB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 17:36:52 -0500
+	Thu, 29 Jan 2009 17:46:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, yinghai@kernel.org
 
 
 The patch titled
-     drivers/ata/sata_sil.c needs dmi.h
+     fix "sparseirq: use kstat_irqs_cpu on non-x86 architectures too"
 has been added to the -mm tree.  Its filename is
-     drivers-ata-sata_silc-needs-dmih.patch
+     fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ata/sata_sil.c needs dmi.h
+Subject: fix "sparseirq: use kstat_irqs_cpu on non-x86 architectures too"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
+Repair 0b0f0b1c2c87de299df6f92a8ffc0a73bd1bb960
 
-drivers/ata/sata_sil.c: In function 'sil_broken_system_poweroff':
-drivers/ata/sata_sil.c:713: error: implicit declaration of function 'dmi_first_match'
+arch/alpha/kernel/irq.c: In function 'show_interrupts':
+arch/alpha/kernel/irq.c:93: error: 'i' undeclared (first use in this function)
+arch/alpha/kernel/irq.c:93: error: (Each undeclared identifier is reported only once
+arch/alpha/kernel/irq.c:93: error: for each function it appears in.)
 
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_sil.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/alpha/kernel/irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_sil.c~drivers-ata-sata_silc-needs-dmih drivers/ata/sata_sil.c
---- a/drivers/ata/sata_sil.c~drivers-ata-sata_silc-needs-dmih
-+++ a/drivers/ata/sata_sil.c
-@@ -38,6 +38,7 @@
- #include <linux/module.h>
- #include <linux/pci.h>
- #include <linux/init.h>
-+#include <linux/dmi.h>
- #include <linux/blkdev.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
+diff -puN arch/alpha/kernel/irq.c~fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too arch/alpha/kernel/irq.c
+--- a/arch/alpha/kernel/irq.c~fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too
++++ a/arch/alpha/kernel/irq.c
+@@ -90,7 +90,7 @@ show_interrupts(struct seq_file *p, void
+ 		seq_printf(p, "%10u ", kstat_irqs(irq));
+ #else
+ 		for_each_online_cpu(j)
+-			seq_printf(p, "%10u ", kstat_irqs_cpu(i, j));
++			seq_printf(p, "%10u ", kstat_irqs_cpu(irq, j));
+ #endif
+ 		seq_printf(p, " %14s", irq_desc[irq].chip->typename);
+ 		seq_printf(p, "  %c%s",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +78,7 @@ linux-next.patch
 next-remove-localversion.patch
 linux-next-git-rejects.patch
 kvm-unbork.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
 acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
 x86-define-arch_want_frame_pointers-fix.patch
