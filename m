@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-kill-__ptrace_detach-fix-exit_state-check.patch added to -mm tree
-Date: Thu, 29 Jan 2009 00:43:49 -0800
-Message-ID: <200901290843.n0T8hn74002853@imap1.linux-foundation.org>
+Subject: + ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch added to -mm tree
+Date: Thu, 29 Jan 2009 00:43:53 -0800
+Message-ID: <200901290843.n0T8hrJh002987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40340 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51269 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752522AbZA2Iof (ORCPT
+	by vger.kernel.org with ESMTP id S1752118AbZA2Ioi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 03:44:35 -0500
+	Thu, 29 Jan 2009 03:44:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, dvlasenk@redhat.com, jmarchan@redhat.com, roland@redhat.com
 
 
 The patch titled
-     ptrace: kill __ptrace_detach(), fix ->exit_state check
+     ptrace: reintroduce __ptrace_detach() as a callee of ptrace_exit()
 has been added to the -mm tree.  Its filename is
-     ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
+     ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: kill __ptrace_detach(), fix ->exit_state check
+Subject: ptrace: reintroduce __ptrace_detach() as a callee of ptrace_exit()
 From: Oleg Nesterov <oleg@redhat.com>
 
-Move the code from __ptrace_detach() to its single caller and kill this
-helper.
+No functional changes, preparation for the next patch.
 
-Also, fix the ->exit_state check, we shouldn't wake up EXIT_DEAD tasks. 
-Actually, I think task_is_stopped_or_traced() makes more sense, but this
-needs another patch.
+Move the "should we release this child" logic into the separate handler,
+__ptrace_detach().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Jerome Marchand <jmarchan@redhat.com>
@@ -51,49 +49,90 @@ Cc: Denys Vlasenko <dvlasenk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ kernel/exit.c |   63 +++++++++++++++++++++++++-----------------------
+ 1 file changed, 34 insertions(+), 29 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-kill-__ptrace_detach-fix-exit_state-check kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-kill-__ptrace_detach-fix-exit_state-check
-+++ a/kernel/ptrace.c
-@@ -235,16 +235,6 @@ out:
- 	return retval;
+diff -puN kernel/exit.c~ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit kernel/exit.c
+--- a/kernel/exit.c~ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit
++++ a/kernel/exit.c
+@@ -737,6 +737,39 @@ static int ignoring_children(struct sigh
+ 		sigh->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDWAIT;
  }
  
--static inline void __ptrace_detach(struct task_struct *child, unsigned int data)
--{
--	child->exit_code = data;
--	/* .. re-parent .. */
--	__ptrace_unlink(child);
--	/* .. and wake it up. */
--	if (child->exit_state != EXIT_ZOMBIE)
--		wake_up_process(child);
--}
--
- int ptrace_detach(struct task_struct *child, unsigned int data)
- {
- 	if (!valid_signal(data))
-@@ -254,10 +244,16 @@ int ptrace_detach(struct task_struct *ch
- 	ptrace_disable(child);
- 	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
- 
--	write_lock_irq(&tasklist_lock);
- 	/* protect against de_thread()->release_task() */
--	if (child->ptrace)
--		__ptrace_detach(child, data);
-+	write_lock_irq(&tasklist_lock);
-+	if (child->ptrace) {
-+		child->exit_code = data;
++/* Returns nonzero if the tracee should be released. */
++int __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
++{
++	__ptrace_unlink(p);
 +
-+		__ptrace_unlink(child);
-+
-+		if (!child->exit_state)
-+			wake_up_process(child);
++	if (p->exit_state != EXIT_ZOMBIE)
++		return 0;
++	/*
++	 * If it's a zombie, our attachedness prevented normal
++	 * parent notification or self-reaping.  Do notification
++	 * now if it would have happened earlier.  If it should
++	 * reap itself, add it to the @dead list.  We can't call
++	 * release_task() here because we already hold tasklist_lock.
++	 *
++	 * If it's our own child, there is no notification to do.
++	 * But if our normal children self-reap, then this child
++	 * was prevented by ptrace and we must reap it now.
++	 */
++	if (!task_detached(p) && thread_group_empty(p)) {
++		if (!same_thread_group(p->real_parent, tracer))
++			do_notify_parent(p, p->exit_signal);
++		else if (ignoring_children(tracer->sighand))
++			p->exit_signal = -1;
 +	}
- 	write_unlock_irq(&tasklist_lock);
++
++	if (!task_detached(p))
++		return 0;
++
++	/* Mark it as in the process of being reaped. */
++	p->exit_state = EXIT_DEAD;
++	return 1;
++}
++
+ /*
+  * Detach all tasks we were using ptrace on.
+  * Any that need to be release_task'd are put on the @dead list.
+@@ -748,36 +781,8 @@ static void ptrace_exit(struct task_stru
+ 	struct task_struct *p, *n;
  
- 	return 0;
+ 	list_for_each_entry_safe(p, n, &parent->ptraced, ptrace_entry) {
+-		__ptrace_unlink(p);
+-
+-		if (p->exit_state != EXIT_ZOMBIE)
+-			continue;
+-
+-		/*
+-		 * If it's a zombie, our attachedness prevented normal
+-		 * parent notification or self-reaping.  Do notification
+-		 * now if it would have happened earlier.  If it should
+-		 * reap itself, add it to the @dead list.  We can't call
+-		 * release_task() here because we already hold tasklist_lock.
+-		 *
+-		 * If it's our own child, there is no notification to do.
+-		 * But if our normal children self-reap, then this child
+-		 * was prevented by ptrace and we must reap it now.
+-		 */
+-		if (!task_detached(p) && thread_group_empty(p)) {
+-			if (!same_thread_group(p->real_parent, parent))
+-				do_notify_parent(p, p->exit_signal);
+-			else if (ignoring_children(parent->sighand))
+-				p->exit_signal = -1;
+-		}
+-
+-		if (task_detached(p)) {
+-			/*
+-			 * Mark it as in the process of being reaped.
+-			 */
+-			p->exit_state = EXIT_DEAD;
++		if (__ptrace_detach(parent, p))
+ 			list_add(&p->ptrace_entry, dead);
+-		}
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
