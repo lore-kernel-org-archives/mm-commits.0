@@ -1,80 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: + mm-unify-some-pmd_-functions-fix-for-m68k-sun3.patch added to -mm tree
-Date: Thu, 29 Jan 2009 14:04:23 -0800
-Message-ID: <200901292204.n0TM4N0H009202@imap1.linux-foundation.org>
+Subject: [folded] sgi-xpc-ensure-flags-are-updated-before-bte_copy-update.patch removed from -mm tree
+Date: Thu, 29 Jan 2009 14:22:53 -0800
+Message-ID: <200901292222.n0TMMr9C031998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44896 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37472 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751738AbZA2WEj (ORCPT
+	by vger.kernel.org with ESMTP id S1759738AbZA2WXU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 17:04:39 -0500
+	Thu, 29 Jan 2009 17:23:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: righi.andrea@gmail.com, geert@linux-m68k.org
+To: holt@sgi.com, dcn@sgi.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: unify some pmd_*() functions fix for m68k sun3
-has been added to the -mm tree.  Its filename is
-     mm-unify-some-pmd_-functions-fix-for-m68k-sun3.patch
+     sgi-xpc-ensure-flags-are-updated-before-bte_copy update
+has been removed from the -mm tree.  Its filename was
+     sgi-xpc-ensure-flags-are-updated-before-bte_copy-update.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into sgi-xpc-ensure-flags-are-updated-before-bte_copy.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: unify some pmd_*() functions fix for m68k sun3
-From: Andrea Righi <righi.andrea@gmail.com>
+Subject: sgi-xpc-ensure-flags-are-updated-before-bte_copy update
+From: Robin Holt <holt@sgi.com>
 
-sun3_defconfig fails with:
+The clearing of the msg->flags needs a barrier between it and the notify
+of the channel threads that the messages are cleaned and ready for use.
 
-    CC      mm/memory.o
-  mm/memory.c: In function 'free_pmd_range':
-  mm/memory.c:176: error: implicit declaration of function '__pmd_free_tlb'
-  mm/memory.c: In function '__pmd_alloc':
-  mm/memory.c:2903: error: implicit declaration of function 'pmd_alloc_one_bug'
-  mm/memory.c:2903: warning: initialization makes pointer from integer without a cast
-  mm/memory.c:2917: error: implicit declaration of function 'pmd_free'
-  make[3]: *** [mm/memory.o] Error 1
+I also modified all the *mb() operations to be prefixed with smp_ as
+they all are really only needed when running with multiple cpus.
 
-Add the missing include.
-
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/sun3_pgalloc.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/misc/sgi-xp/xpc_sn2.c |   10 +++++-----
+ drivers/misc/sgi-xp/xpc_uv.c  |    2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/m68k/include/asm/sun3_pgalloc.h~mm-unify-some-pmd_-functions-fix-for-m68k-sun3 arch/m68k/include/asm/sun3_pgalloc.h
---- a/arch/m68k/include/asm/sun3_pgalloc.h~mm-unify-some-pmd_-functions-fix-for-m68k-sun3
-+++ a/arch/m68k/include/asm/sun3_pgalloc.h
-@@ -11,6 +11,7 @@
- #define _SUN3_PGALLOC_H
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xpc-ensure-flags-are-updated-before-bte_copy-update drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xpc-ensure-flags-are-updated-before-bte_copy-update
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -1836,7 +1836,7 @@ xpc_process_msg_chctl_flags_sn2(struct x
+ 		 */
+ 		xpc_clear_remote_msgqueue_flags_sn2(ch);
  
- #include <asm/tlb.h>
-+#include <asm-generic/pgtable-nopmd.h>
+-		wmb();	/* ensure flags have been cleared before bte_copy */
++		smp_wmb(); /* ensure flags have been cleared before bte_copy */
+ 		ch_sn2->w_remote_GP.put = ch_sn2->remote_GP.put;
  
- /* FIXME - when we get this compiling */
- /* erm, now that it's compiling, what do we do with it? */
+ 		dev_dbg(xpc_chan, "w_remote_GP.put changed to %ld, partid=%d, "
+@@ -1935,7 +1935,7 @@ xpc_get_deliverable_payload_sn2(struct x
+ 			break;
+ 
+ 		get = ch_sn2->w_local_GP.get;
+-		rmb();	/* guarantee that .get loads before .put */
++		smp_rmb();	/* guarantee that .get loads before .put */
+ 		if (get == ch_sn2->w_remote_GP.put)
+ 			break;
+ 
+@@ -2054,7 +2054,7 @@ xpc_allocate_msg_sn2(struct xpc_channel 
+ 	while (1) {
+ 
+ 		put = ch_sn2->w_local_GP.put;
+-		rmb();	/* guarantee that .put loads before .get */
++		smp_rmb();	/* guarantee that .put loads before .get */
+ 		if (put - ch_sn2->w_remote_GP.get < ch->local_nentries) {
+ 
+ 			/* There are available message entries. We need to try
+@@ -2187,7 +2187,7 @@ xpc_send_payload_sn2(struct xpc_channel 
+ 	 * The preceding store of msg->flags must occur before the following
+ 	 * load of local_GP->put.
+ 	 */
+-	mb();
++	smp_mb();
+ 
+ 	/* see if the message is next in line to be sent, if so send it */
+ 
+@@ -2288,7 +2288,7 @@ xpc_received_payload_sn2(struct xpc_chan
+ 	 * The preceding store of msg->flags must occur before the following
+ 	 * load of local_GP->get.
+ 	 */
+-	mb();
++	smp_mb();
+ 
+ 	/*
+ 	 * See if this message is next in line to be acknowledged as having
+diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xpc-ensure-flags-are-updated-before-bte_copy-update drivers/misc/sgi-xp/xpc_uv.c
+--- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xpc-ensure-flags-are-updated-before-bte_copy-update
++++ a/drivers/misc/sgi-xp/xpc_uv.c
+@@ -1423,7 +1423,7 @@ xpc_send_payload_uv(struct xpc_channel *
+ 		atomic_inc(&ch->n_to_notify);
+ 
+ 		msg_slot->key = key;
+-		wmb(); /* a non-NULL func must hit memory after the key */
++		smp_wmb(); /* a non-NULL func must hit memory after the key */
+ 		msg_slot->func = func;
+ 
+ 		if (ch->flags & XPC_C_DISCONNECTING) {
 _
 
-Patches currently in -mm which might be from righi.andrea@gmail.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
-fbmem-copy_from-to_user-with-mutex-held-v3.patch
-mm-unify-some-pmd_-functions.patch
-mm-unify-some-pmd_-functions-fix.patch
-mm-unify-some-pmd_-functions-fix-for-m68k-sun3.patch
+sgi-xpc-ensure-flags-are-updated-before-bte_copy.patch
+sgi-xpc-ensure-flags-are-updated-before-bte_copy-update.patch
+sgi-xpc-remove-null-pointer-dereference.patch
+sgi-xpc-fixup-stale-dbug_on-statements.patch
+factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch
+allow-rwlocks-to-re-enable-interrupts.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
 
