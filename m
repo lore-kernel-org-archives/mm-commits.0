@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix.patch added to -mm tree
-Date: Wed, 28 Jan 2009 16:31:46 -0800
-Message-ID: <200901290031.n0T0Vk75019294@imap1.linux-foundation.org>
+Subject: + kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch added to -mm tree
+Date: Wed, 28 Jan 2009 16:31:19 -0800
+Message-ID: <200901290031.n0T0VJXI018691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49223 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763998AbZA2Acs (ORCPT
+	by vger.kernel.org with ESMTP id S1763977AbZA2AcI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jan 2009 19:32:48 -0500
+	Wed, 28 Jan 2009 19:32:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux-foundation.org, menage@google.com, miaox@cn.fujitsu.com, nickpiggin@yahoo.com.au, randy.dunlap@oracle.com
+Cc: akpm@linux-foundation.org, horms@verge.net.au, nhorman@tuxdriver.com, randy.dunlap@oracle.com, vgoyal@redhat.com
 
 
 The patch titled
-     cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix
 has been added to the -mm tree.  Its filename is
-     cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix.patch
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix
+Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 ++
+ kernel/printk.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN init/main.c~cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix init/main.c
---- a/init/main.c~cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix
-+++ a/init/main.c
-@@ -873,7 +873,9 @@ static int __init kernel_init(void * unu
- 	 */
- 	init_pid_ns.child_reaper = current;
+diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix kernel/printk.c
+--- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix
++++ a/kernel/printk.c
+@@ -137,11 +137,13 @@ static char *log_buf = __log_buf;
+ static int log_buf_len = __LOG_BUF_LEN;
+ static unsigned logged_chars; /* Number of chars produced since last read+clear operation */
  
-+#ifdef CONFIG_CPUSETS
- 	current->mems_allowed = node_possible_map;
++#ifdef CONFIG_KEXEC
+ void log_buf_kexec_setup(void)
+ {
+ 	VMCOREINFO_SYMBOL(log_buf);
+ 	VMCOREINFO_SYMBOL(log_end);
+ }
 +#endif
  
- 	cad_pid = task_pid(current);
- 
+ static int __init log_buf_len_setup(char *str)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
