@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-bcm5974-prepare-for-a-new-trackpad-header-type.patch added to -mm tree
-Date: Thu, 29 Jan 2009 00:33:44 -0800
-Message-ID: <200901290833.n0T8Xira022948@imap1.linux-foundation.org>
+Subject: + input-bcm5974-add-support-for-the-macbook-5-unibody.patch added to -mm tree
+Date: Thu, 29 Jan 2009 00:33:48 -0800
+Message-ID: <200901290833.n0T8Xm0u023016@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752372AbZA2Ieg (ORCPT
+	by vger.kernel.org with ESMTP id S1751798AbZA2Ifq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 03:34:36 -0500
+	Thu, 29 Jan 2009 03:35:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se, dtor@mail.ru
+Cc: rydberg@euromail.se, dmlary@gmail.com, dtor@mail.ru
 
 
 The patch titled
-     input: bcm5974: Prepare for a new trackpad header type
+     input: bcm5974: Add support for the Macbook 5 (Unibody)
 has been added to the -mm tree.  Its filename is
-     input-bcm5974-prepare-for-a-new-trackpad-header-type.patch
+     input-bcm5974-add-support-for-the-macbook-5-unibody.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,137 +34,139 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: bcm5974: Prepare for a new trackpad header type
+Subject: input: bcm5974: Add support for the Macbook 5 (Unibody)
 From: "Henrik Rydberg" <rydberg@euromail.se>
 
-The new unibody Macbooks are equipped with an integrated button and
-trackpad.  The package header of the trackpad interface has changed to
-also contain information about the integrated button.  This patch performs
-the necessary preparations to allow for the new package header.
+Add support for the new unibody Macbook, with physically integrated button
+and trackpad.  A new button, BTN_TOOL_PRESS, is introduced to allow for
+non-trivial handling of this device in user space.
 
 Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Tested-by: David M. Lary <dmlary@gmail.com>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/bcm5974.c |   42 +++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 19 deletions(-)
+ drivers/input/mouse/bcm5974.c |   42 ++++++++++++++++++++++++++++++--
+ include/linux/input.h         |    1 
+ 2 files changed, 41 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-prepare-for-a-new-trackpad-header-type drivers/input/mouse/bcm5974.c
---- a/drivers/input/mouse/bcm5974.c~input-bcm5974-prepare-for-a-new-trackpad-header-type
+diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-add-support-for-the-macbook-5-unibody drivers/input/mouse/bcm5974.c
+--- a/drivers/input/mouse/bcm5974.c~input-bcm5974-add-support-for-the-macbook-5-unibody
 +++ a/drivers/input/mouse/bcm5974.c
-@@ -96,13 +96,14 @@ struct bt_data {
- 	u8 rel_y;		/* relative y coordinate */
+@@ -51,6 +51,10 @@
+ #define USB_DEVICE_ID_APPLE_WELLSPRING2_ANSI	0x0230
+ #define USB_DEVICE_ID_APPLE_WELLSPRING2_ISO	0x0231
+ #define USB_DEVICE_ID_APPLE_WELLSPRING2_JIS	0x0232
++/* Macbook5,1 (unibody), aka wellspring3 */
++#define USB_DEVICE_ID_APPLE_WELLSPRING3_ANSI	0x0236
++#define USB_DEVICE_ID_APPLE_WELLSPRING3_ISO	0x0237
++#define USB_DEVICE_ID_APPLE_WELLSPRING3_JIS	0x0238
+ 
+ #define BCM5974_DEVICE(prod) {					\
+ 	.match_flags = (USB_DEVICE_ID_MATCH_DEVICE |		\
+@@ -72,6 +76,10 @@ static const struct usb_device_id bcm597
+ 	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING2_ANSI),
+ 	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING2_ISO),
+ 	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING2_JIS),
++	/* Macbook5,1 */
++	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING3_ANSI),
++	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING3_ISO),
++	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING3_JIS),
+ 	/* Terminating entry */
+ 	{}
+ };
+@@ -98,11 +106,19 @@ struct bt_data {
+ 
+ /* trackpad header types */
+ enum tp_type {
+-	TYPE1			/* plain trackpad */
++	TYPE1,			/* plain trackpad */
++	TYPE2			/* button integrated in trackpad */
  };
  
--/* trackpad header structure */
--struct tp_header {
--	u8 unknown1[16];	/* constants, timers, etc */
--	u8 fingers;		/* number of fingers on trackpad */
--	u8 unknown2[9];		/* constants, timers, etc */
-+/* trackpad header types */
-+enum tp_type {
-+	TYPE1			/* plain trackpad */
- };
- 
-+/* trackpad finger data offsets */
-+#define FINGER_TYPE1		26
+ /* trackpad finger data offsets */
+ #define FINGER_TYPE1		26
++#define FINGER_TYPE2		30
 +
++/* trackpad button data offsets */
++#define BUTTON_TYPE2		15
++
++/* integrated button capability by configuration */
++#define HAS_INTEGRATED_BUTTON(c)	(c->tp_type == TYPE2)
+ 
  /* trackpad finger structure */
  struct tp_finger {
- 	__le16 origin;		/* zero when switching track finger */
-@@ -119,11 +120,9 @@ struct tp_finger {
- 	__le16 multi;		/* one finger: varies, more fingers: constant */
- };
- 
--/* trackpad data structure, empirically at least ten fingers */
--struct tp_data {
--	struct tp_header header;
--	struct tp_finger finger[16];
--};
-+/* trackpad finger data size, empirically at least ten fingers */
-+#define SIZEOF_FINGER		sizeof(struct tp_finger)
-+#define SIZEOF_ALL_FINGERS	(16 * SIZEOF_FINGER)
- 
- /* device-specific parameters */
- struct bcm5974_param {
-@@ -139,6 +138,8 @@ struct bcm5974_config {
- 	int bt_ep;		/* the endpoint of the button interface */
- 	int bt_datalen;		/* data length of the button interface */
- 	int tp_ep;		/* the endpoint of the trackpad interface */
-+	enum tp_type tp_type;	/* type of trackpad interface */
-+	int tp_offset;		/* offset to trackpad finger data */
- 	int tp_datalen;		/* data length of the trackpad interface */
- 	struct bcm5974_param p;	/* finger pressure limits */
- 	struct bcm5974_param w;	/* finger width limits */
-@@ -158,7 +159,7 @@ struct bcm5974 {
- 	struct urb *bt_urb;		/* button usb request block */
- 	struct bt_data *bt_data;	/* button transferred data */
- 	struct urb *tp_urb;		/* trackpad usb request block */
--	struct tp_data *tp_data;	/* trackpad transferred data */
-+	u8 *tp_data;			/* trackpad transferred data */
- 	int fingers;			/* number of fingers on trackpad */
- };
- 
-@@ -184,7 +185,7 @@ static const struct bcm5974_config bcm59
- 		USB_DEVICE_ID_APPLE_WELLSPRING_ISO,
- 		USB_DEVICE_ID_APPLE_WELLSPRING_JIS,
- 		0x84, sizeof(struct bt_data),
--		0x81, sizeof(struct tp_data),
-+		0x81, TYPE1, FINGER_TYPE1, FINGER_TYPE1 + SIZEOF_ALL_FINGERS,
- 		{ DIM_PRESSURE, DIM_PRESSURE / SN_PRESSURE, 0, 256 },
- 		{ DIM_WIDTH, DIM_WIDTH / SN_WIDTH, 0, 2048 },
- 		{ DIM_X, DIM_X / SN_COORD, -4824, 5342 },
-@@ -195,7 +196,7 @@ static const struct bcm5974_config bcm59
- 		USB_DEVICE_ID_APPLE_WELLSPRING2_ISO,
- 		USB_DEVICE_ID_APPLE_WELLSPRING2_JIS,
- 		0x84, sizeof(struct bt_data),
--		0x81, sizeof(struct tp_data),
-+		0x81, TYPE1, FINGER_TYPE1, FINGER_TYPE1 + SIZEOF_ALL_FINGERS,
- 		{ DIM_PRESSURE, DIM_PRESSURE / SN_PRESSURE, 0, 256 },
- 		{ DIM_WIDTH, DIM_WIDTH / SN_WIDTH, 0, 2048 },
+@@ -202,6 +218,17 @@ static const struct bcm5974_config bcm59
  		{ DIM_X, DIM_X / SN_COORD, -4824, 4824 },
-@@ -276,18 +277,20 @@ static int report_bt_state(struct bcm597
- static int report_tp_state(struct bcm5974 *dev, int size)
- {
- 	const struct bcm5974_config *c = &dev->cfg;
--	const struct tp_finger *f = dev->tp_data->finger;
-+	const struct tp_finger *f;
+ 		{ DIM_Y, DIM_Y / SN_COORD, -172, 4290 }
+ 	},
++	{
++		USB_DEVICE_ID_APPLE_WELLSPRING3_ANSI,
++		USB_DEVICE_ID_APPLE_WELLSPRING3_ISO,
++		USB_DEVICE_ID_APPLE_WELLSPRING3_JIS,
++		0x84, sizeof(struct bt_data),
++		0x81, TYPE2, FINGER_TYPE2, FINGER_TYPE2 + SIZEOF_ALL_FINGERS,
++		{ DIM_PRESSURE, DIM_PRESSURE / SN_PRESSURE, 0, 300 },
++		{ DIM_WIDTH, DIM_WIDTH / SN_WIDTH, 0, 2048 },
++		{ DIM_X, DIM_X / SN_COORD, -4460, 5166 },
++		{ DIM_Y, DIM_Y / SN_COORD, -75, 6700 }
++	},
+ 	{}
+ };
+ 
+@@ -259,6 +286,8 @@ static void setup_events_to_report(struc
+ 	__set_bit(BTN_TOOL_DOUBLETAP, input_dev->keybit);
+ 	__set_bit(BTN_TOOL_TRIPLETAP, input_dev->keybit);
+ 	__set_bit(BTN_TOOL_QUADTAP, input_dev->keybit);
++	if (HAS_INTEGRATED_BUTTON(cfg))
++		__set_bit(BTN_TOOL_PRESS, input_dev->keybit);
+ 	__set_bit(BTN_LEFT, input_dev->keybit);
+ }
+ 
+@@ -281,7 +310,7 @@ static int report_tp_state(struct bcm597
+ 	const struct tp_finger *f;
  	struct input_dev *input = dev->input;
--	const int fingers = (size - 26) / 28;
--	int raw_p, raw_w, raw_x, raw_y;
-+	int raw_p, raw_w, raw_x, raw_y, raw_n;
- 	int ptest = 0, origin = 0, nmin = 0, nmax = 0;
+ 	int raw_p, raw_w, raw_x, raw_y, raw_n;
+-	int ptest = 0, origin = 0, nmin = 0, nmax = 0;
++	int ptest = 0, origin = 0, ibt = 0, nmin = 0, nmax = 0;
  	int abs_p = 0, abs_w = 0, abs_x = 0, abs_y = 0;
  
--	if (size < 26 || (size - 26) % 28 != 0)
-+	if (size < c->tp_offset || (size - c->tp_offset) % SIZEOF_FINGER != 0)
- 		return -EIO;
+ 	if (size < c->tp_offset || (size - c->tp_offset) % SIZEOF_FINGER != 0)
+@@ -303,6 +332,10 @@ static int report_tp_state(struct bcm597
  
-+	f = (const struct tp_finger *)(dev->tp_data + c->tp_offset);
-+	raw_n = (size - c->tp_offset) / SIZEOF_FINGER;
+ 		ptest = int2bound(&c->p, raw_p);
+ 		origin = raw2int(f->origin);
 +
- 	/* always track the first finger; when detached, start over */
--	if (fingers) {
-+	if (raw_n) {
- 		raw_p = raw2int(f->force_major);
- 		raw_w = raw2int(f->size_major);
- 		raw_x = raw2int(f->abs_x);
-@@ -307,12 +310,13 @@ static int report_tp_state(struct bcm597
- 		abs_w = int2bound(&c->w, raw_w);
- 		abs_x = int2bound(&c->x, raw_x - c->x.devmin);
- 		abs_y = int2bound(&c->y, c->y.devmax - raw_y);
--		for (; f != dev->tp_data->finger + fingers; f++) {
-+		while (raw_n--) {
- 			ptest = int2bound(&c->p, raw2int(f->force_major));
- 			if (ptest > PRESSURE_LOW)
- 				nmax++;
- 			if (ptest > PRESSURE_HIGH)
- 				nmin++;
-+			f++;
- 		}
++		/* set the integrated button if applicable */
++		if (c->tp_type == TYPE2)
++			ibt = raw2int(dev->tp_data[BUTTON_TYPE2]);
  	}
  
+ 	/* while tracking finger still valid, count all fingers */
+@@ -346,6 +379,11 @@ static int report_tp_state(struct bcm597
+ 
+ 	}
+ 
++	if (HAS_INTEGRATED_BUTTON(c)) {
++		input_report_key(input, BTN_TOOL_PRESS, ibt);
++		input_report_key(input, BTN_LEFT, ibt);
++	}
++
+ 	input_sync(input);
+ 
+ 	return 0;
+diff -puN include/linux/input.h~input-bcm5974-add-support-for-the-macbook-5-unibody include/linux/input.h
+--- a/include/linux/input.h~input-bcm5974-add-support-for-the-macbook-5-unibody
++++ a/include/linux/input.h
+@@ -440,6 +440,7 @@ struct input_absinfo {
+ #define BTN_TOOL_FINGER		0x145
+ #define BTN_TOOL_MOUSE		0x146
+ #define BTN_TOOL_LENS		0x147
++#define BTN_TOOL_PRESS		0x148	/* The trackpad is a physical button */
+ #define BTN_TOUCH		0x14a
+ #define BTN_STYLUS		0x14b
+ #define BTN_STYLUS2		0x14c
 _
 
 Patches currently in -mm which might be from rydberg@euromail.se are
