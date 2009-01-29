@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intel-agp-fix-a-panic-with-1m-of-shared-memory-no-gtt-entries.patch added to -mm tree
-Date: Thu, 29 Jan 2009 00:21:22 -0800
-Message-ID: <200901290821.n0T8LMhP007856@imap1.linux-foundation.org>
+Subject: + do_wp_page-fix-regression-with-execute-in-place.patch added to -mm tree
+Date: Thu, 29 Jan 2009 00:25:18 -0800
+Message-ID: <200901290825.n0T8PISW012609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52582 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752766AbZA2IVc (ORCPT
+	by vger.kernel.org with ESMTP id S1751869AbZA2IZg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 03:21:32 -0500
+	Thu, 29 Jan 2009 03:25:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lkundrak@v3.sk, airlied@linux.ie, eric@anholt.net
+Cc: cotte@de.ibm.com, heiko.carstens@de.ibm.com, npiggin@suse.de, stable@kernel.org, torvalds@linux-foundation.org
 
 
 The patch titled
-     intel-agp: fix a panic with 1M of shared memory, no GTT entries
+     do_wp_page: fix regression with execute in place
 has been added to the -mm tree.  Its filename is
-     intel-agp-fix-a-panic-with-1m-of-shared-memory-no-gtt-entries.patch
+     do_wp_page-fix-regression-with-execute-in-place.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel-agp: fix a panic with 1M of shared memory, no GTT entries
-From: Lubomir Rintel <lkundrak@v3.sk>
+Subject: do_wp_page: fix regression with execute in place
+From: Carsten Otte <cotte@de.ibm.com>
 
-When GTT size is equal to amount of video memory, the amount of GTT
-entries is computed lower than zero, which is invalid and leads to
-off-by-one error in intel_i915_configure()
+Fix do_wp_page for VM_MIXEDMAP mappings.
 
-Originally posted here:
-http://bugzilla.kernel.org/show_bug.cgi?id=12539
-http://bugzilla.redhat.com/show_bug.cgi?id=445592
+In the case where pfn_valid returns 0 for a pfn at the beginning of
+do_wp_page and the mapping is not shared writable, the code branches to
+label `gotten:' with old_page == NULL.
 
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
-Cc: Lubomir Rintel <lkundrak@v3.sk>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Eric Anholt <eric@anholt.net>
+In case the vma is locked (vma->vm_flags & VM_LOCKED), lock_page,
+clear_page_mlock, and unlock_page try to access the old_page.
+
+This patch checks whether old_page is valid before it is dereferenced.
+
+The regression was introduced by
+
+commit b291f000393f5a0b679012b39d79fbc85c018233
+Author:     Nick Piggin <npiggin@suse.de>
+AuthorDate: Sat Oct 18 20:26:44 2008 -0700
+Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+CommitDate: Mon Oct 20 08:52:30 2008 -0700
+
+    mlock: mlocked pages are unevictable
+
+
+Signed-off-by: Carsten Otte <cotte@de.ibm.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: <stable@kernel.org>		[2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel-agp-fix-a-panic-with-1m-of-shared-memory-no-gtt-entries drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel-agp-fix-a-panic-with-1m-of-shared-memory-no-gtt-entries
-+++ a/drivers/char/agp/intel-agp.c
-@@ -633,13 +633,15 @@ static void intel_i830_init_gtt_entries(
- 			break;
- 		}
- 	}
--	if (gtt_entries > 0)
-+	if (gtt_entries > 0) {
- 		dev_info(&agp_bridge->dev->dev, "detected %dK %s memory\n",
- 		       gtt_entries / KB(1), local ? "local" : "stolen");
--	else
-+		gtt_entries /= KB(4);
-+	} else {
- 		dev_info(&agp_bridge->dev->dev,
- 		       "no pre-allocated video memory detected\n");
--	gtt_entries /= KB(4);
-+		gtt_entries = 0;
-+	}
- 
- 	intel_private.gtt_entries = gtt_entries;
- }
+diff -puN mm/memory.c~do_wp_page-fix-regression-with-execute-in-place mm/memory.c
+--- a/mm/memory.c~do_wp_page-fix-regression-with-execute-in-place
++++ a/mm/memory.c
+@@ -1999,7 +1999,7 @@ gotten:
+ 	 * Don't let another task, with possibly unlocked vma,
+ 	 * keep the mlocked page.
+ 	 */
+-	if (vma->vm_flags & VM_LOCKED) {
++	if ((vma->vm_flags & VM_LOCKED) && old_page) {
+ 		lock_page(old_page);	/* for LRU manipulation */
+ 		clear_page_mlock(old_page);
+ 		unlock_page(old_page);
 _
 
-Patches currently in -mm which might be from lkundrak@v3.sk are
+Patches currently in -mm which might be from cotte@de.ibm.com are
 
-intel-agp-fix-a-panic-with-1m-of-shared-memory-no-gtt-entries.patch
+linux-next.patch
+do_wp_page-fix-regression-with-execute-in-place.patch
 
