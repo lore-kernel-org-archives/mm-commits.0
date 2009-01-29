@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + input-bcm5974-add-quad-finger-tapping.patch added to -mm tree
-Date: Thu, 29 Jan 2009 00:33:46 -0800
-Message-ID: <200901290833.n0T8Xk0M022995@imap1.linux-foundation.org>
+Subject: + input-bcm5974-augmented-debug-information.patch added to -mm tree
+Date: Thu, 29 Jan 2009 00:33:50 -0800
+Message-ID: <200901290833.n0T8XowS023099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51741 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752372AbZA2IeY (ORCPT
+	by vger.kernel.org with ESMTP id S1753104AbZA2Iea (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 03:34:24 -0500
+	Thu, 29 Jan 2009 03:34:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rydberg@euromail.se, dtor@mail.ru
 
 
 The patch titled
-     input: bcm5974: Add quad-finger tapping
+     input: bcm5974: Augmented debug information
 has been added to the -mm tree.  Its filename is
-     input-bcm5974-add-quad-finger-tapping.patch
+     input-bcm5974-augmented-debug-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: bcm5974: Add quad-finger tapping
+Subject: input: bcm5974: Augmented debug information
 From: "Henrik Rydberg" <rydberg@euromail.se>
 
-The integrated button on the new unibody Macbooks presents a need to
-report explicit four-finger actions.  Evidently, the finger pressing the
-button is also touching the trackpad, so in order to fully support
-three-finger actions, the driver must be able to report four-finger
-actions.  This patch adds a new button, BTN_TOOL_QUADTAP, which achieves
-this.
+Add more button and finger data to the debug output.
 
 Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/bcm5974.c |    4 +++-
- include/linux/input.h         |    1 +
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/input/mouse/bcm5974.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-add-quad-finger-tapping drivers/input/mouse/bcm5974.c
---- a/drivers/input/mouse/bcm5974.c~input-bcm5974-add-quad-finger-tapping
+diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-augmented-debug-information drivers/input/mouse/bcm5974.c
+--- a/drivers/input/mouse/bcm5974.c~input-bcm5974-augmented-debug-information
 +++ a/drivers/input/mouse/bcm5974.c
-@@ -258,6 +258,7 @@ static void setup_events_to_report(struc
- 	__set_bit(BTN_TOOL_FINGER, input_dev->keybit);
- 	__set_bit(BTN_TOOL_DOUBLETAP, input_dev->keybit);
- 	__set_bit(BTN_TOOL_TRIPLETAP, input_dev->keybit);
-+	__set_bit(BTN_TOOL_QUADTAP, input_dev->keybit);
- 	__set_bit(BTN_LEFT, input_dev->keybit);
- }
+@@ -297,6 +297,11 @@ static int report_bt_state(struct bcm597
+ 	if (size != sizeof(struct bt_data))
+ 		return -EIO;
  
-@@ -328,7 +329,8 @@ static int report_tp_state(struct bcm597
- 	input_report_key(input, BTN_TOUCH, dev->fingers > 0);
- 	input_report_key(input, BTN_TOOL_FINGER, dev->fingers == 1);
- 	input_report_key(input, BTN_TOOL_DOUBLETAP, dev->fingers == 2);
--	input_report_key(input, BTN_TOOL_TRIPLETAP, dev->fingers > 2);
-+	input_report_key(input, BTN_TOOL_TRIPLETAP, dev->fingers == 3);
-+	input_report_key(input, BTN_TOOL_QUADTAP, dev->fingers > 3);
++	dprintk(7,
++		"bcm5974: button data: %x %x %x %x\n",
++		dev->bt_data->unknown1, dev->bt_data->button,
++		dev->bt_data->rel_x, dev->bt_data->rel_y);
++
+ 	input_report_key(dev->input, BTN_LEFT, dev->bt_data->button);
+ 	input_sync(dev->input);
  
- 	input_report_abs(input, ABS_PRESSURE, abs_p);
- 	input_report_abs(input, ABS_TOOL_WIDTH, abs_w);
-diff -puN include/linux/input.h~input-bcm5974-add-quad-finger-tapping include/linux/input.h
---- a/include/linux/input.h~input-bcm5974-add-quad-finger-tapping
-+++ a/include/linux/input.h
-@@ -445,6 +445,7 @@ struct input_absinfo {
- #define BTN_STYLUS2		0x14c
- #define BTN_TOOL_DOUBLETAP	0x14d
- #define BTN_TOOL_TRIPLETAP	0x14e
-+#define BTN_TOOL_QUADTAP	0x14f	/* Four fingers on trackpad */
+@@ -327,8 +332,8 @@ static int report_tp_state(struct bcm597
+ 		raw_y = raw2int(f->abs_y);
  
- #define BTN_WHEEL		0x150
- #define BTN_GEAR_DOWN		0x150
+ 		dprintk(9,
+-			"bcm5974: raw: p: %+05d w: %+05d x: %+05d y: %+05d\n",
+-			raw_p, raw_w, raw_x, raw_y);
++			"bcm5974: raw: p: %+05d w: %+05d x: %+05d y: %+05d "
++			"n: %d\n", raw_p, raw_w, raw_x, raw_y, raw_n);
+ 
+ 		ptest = int2bound(&c->p, raw_p);
+ 		origin = raw2int(f->origin);
+@@ -374,8 +379,8 @@ static int report_tp_state(struct bcm597
+ 
+ 		dprintk(8,
+ 			"bcm5974: abs: p: %+05d w: %+05d x: %+05d y: %+05d "
+-			"nmin: %d nmax: %d n: %d\n",
+-			abs_p, abs_w, abs_x, abs_y, nmin, nmax, dev->fingers);
++			"nmin: %d nmax: %d n: %d ibt: %d\n", abs_p, abs_w,
++			abs_x, abs_y, nmin, nmax, dev->fingers, ibt);
+ 
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from rydberg@euromail.se are
