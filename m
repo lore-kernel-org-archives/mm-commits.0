@@ -1,56 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix.patch removed from -mm tree
-Date: Thu, 29 Jan 2009 01:36:12 -0800
-Message-ID: <200901290936.n0T9aC4s001685@imap1.linux-foundation.org>
+Subject: [folded] cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 29 Jan 2009 01:36:19 -0800
+Message-ID: <200901290936.n0T9aJBF001847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753517AbZA2Jg0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753607AbZA2Jg1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 04:36:26 -0500
+	Thu, 29 Jan 2009 04:36:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux-foundation.org, menage@google.com, miaox@cn.fujitsu.com, nickpiggin@yahoo.com.au, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux-foundation.org, menage@google.com, miaox@cn.fujitsu.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix
+     cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix.patch
+     cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix
+Subject: cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
+
+ERROR: space required after that ',' (ctx:VxO)
+#365: FILE: kernel/cpuset.c:1323:
++		guarantee_online_mems(cs,&tsk->mems_allowed);
+ 		                        ^
+
+ERROR: space required before that '&' (ctx:OxV)
+#365: FILE: kernel/cpuset.c:1323:
++		guarantee_online_mems(cs,&tsk->mems_allowed);
+ 		                         ^
+
+total: 2 errors, 0 warnings, 458 lines checked
+
+./patches/cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Miao Xie <miaox@cn.fujitsu.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Paul Menage <menage@google.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/cpuset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/main.c~cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix init/main.c
---- a/init/main.c~cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix
-+++ a/init/main.c
-@@ -873,7 +873,9 @@ static int __init kernel_init(void * unu
- 	 */
- 	init_pid_ns.child_reaper = current;
- 
-+#ifdef CONFIG_CPUSETS
- 	current->mems_allowed = node_possible_map;
-+#endif
- 
- 	cad_pid = task_pid(current);
- 
+diff -puN kernel/cpuset.c~cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes
++++ a/kernel/cpuset.c
+@@ -1320,7 +1320,7 @@ static void cpuset_attach(struct cgroup_
+ 	} else {
+ 		mutex_lock(&callback_mutex);
+ 		guarantee_online_cpus(cs, cpus_attach);
+-		guarantee_online_mems(cs,&tsk->mems_allowed);
++		guarantee_online_mems(cs, &tsk->mems_allowed);
+ 		mutex_unlock(&callback_mutex);
+ 	}
+ 	err = set_cpus_allowed_ptr(tsk, cpus_attach);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,8 +104,8 @@ mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
 proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 rtc-convert-leap_year-into-an-inline.patch
 rtc-add-platform-driver-for-efi-fix.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
 cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-checkpatch-fixes.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix.patch
 pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
 nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
