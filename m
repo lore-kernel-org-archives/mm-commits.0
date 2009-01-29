@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reiserfs-return-f_fsid-for-statfs2-v2.patch added to -mm tree
-Date: Wed, 28 Jan 2009 23:29:17 -0800
-Message-ID: <200901290729.n0T7THc6009228@imap1.linux-foundation.org>
+Subject: + fs-jfs-return-f_fsid-for-statfs2-v3.patch added to -mm tree
+Date: Wed, 28 Jan 2009 23:31:04 -0800
+Message-ID: <200901290731.n0T7V4lv011369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37657 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33267 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752305AbZA2H3X (ORCPT
+	by vger.kernel.org with ESMTP id S1755609AbZA2HbP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 02:29:23 -0500
+	Thu, 29 Jan 2009 02:31:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: coly.li@suse.de
+Cc: coly.li@suse.de, shaggy@austin.ibm.com
 
 
 The patch titled
-     fs/reiserfs: return f_fsid for statfs(2), v2
+     fs/jfs: return f_fsid for statfs(2), v3
 has been added to the -mm tree.  Its filename is
-     fs-reiserfs-return-f_fsid-for-statfs2-v2.patch
+     fs-jfs-return-f_fsid-for-statfs2-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/reiserfs: return f_fsid for statfs(2), v2
+Subject: fs/jfs: return f_fsid for statfs(2), v3
 From: Coly Li <coly.li@suse.de>
 
-This patch makes reiserfs3 return f_fsid info for statfs(2).  By Andreas'
-suggestion, this patch populates a persistent f_fsid between boots/mounts
-with help of on-disk uuid record.
+Make jfs return f_fsid info for statfs(2).  By Andreas' suggestion, this
+patch populates a persistent f_fsid between boots/mounts with help of
+on-disk uuid record.
 
 Signed-off-by: Coly Li <coly.li@suse.de>
+Acked-by: Dave Kleikamp <shaggy@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/super.c |   10 +++++-----
+ fs/jfs/super.c |   10 +++++-----
  1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/reiserfs/super.c~fs-reiserfs-return-f_fsid-for-statfs2-v2 fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~fs-reiserfs-return-f_fsid-for-statfs2-v2
-+++ a/fs/reiserfs/super.c
-@@ -27,6 +27,7 @@
- #include <linux/mnt_namespace.h>
- #include <linux/mount.h>
- #include <linux/namei.h>
+diff -puN fs/jfs/super.c~fs-jfs-return-f_fsid-for-statfs2-v3 fs/jfs/super.c
+--- a/fs/jfs/super.c~fs-jfs-return-f_fsid-for-statfs2-v3
++++ a/fs/jfs/super.c
+@@ -29,6 +29,7 @@
+ #include <linux/posix_acl.h>
+ #include <linux/buffer_head.h>
+ #include <linux/exportfs.h>
 +#include <linux/crc32.h>
+ #include <asm/uaccess.h>
+ #include <linux/seq_file.h>
  
- struct file_system_type reiserfs_fs_type;
+@@ -143,10 +144,8 @@ static void jfs_destroy_inode(struct ino
  
-@@ -1881,9 +1882,7 @@ error:
- 
- static int reiserfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+ static int jfs_statfs(struct dentry *dentry, struct kstatfs *buf)
  {
 -	struct super_block *sb = dentry->d_sb;
--	struct reiserfs_super_block *rs = SB_DISK_SUPER_BLOCK(sb);
+-	struct jfs_sb_info *sbi = JFS_SBI(sb);
++	struct jfs_sb_info *sbi = JFS_SBI(dentry->d_sb);
+ 	s64 maxinodes;
 -	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
-+	struct reiserfs_super_block *rs = SB_DISK_SUPER_BLOCK(dentry->d_sb);
+ 	struct inomap *imap = JFS_IP(sbi->ipimap)->i_imap;
  
- 	buf->f_namelen = (REISERFS_MAX_NAME(s->s_blocksize));
- 	buf->f_bfree = sb_free_blocks(rs);
-@@ -1892,8 +1891,9 @@ static int reiserfs_statfs(struct dentry
- 	buf->f_bsize = dentry->d_sb->s_blocksize;
- 	/* changed to accommodate gcc folks. */
- 	buf->f_type = REISERFS_SUPER_MAGIC;
+ 	jfs_info("In jfs_statfs");
+@@ -170,8 +169,9 @@ static int jfs_statfs(struct dentry *den
+ 	buf->f_files = maxinodes;
+ 	buf->f_ffree = maxinodes - (atomic_read(&imap->im_numinos) -
+ 				    atomic_read(&imap->im_numfree));
 -	buf->f_fsid.val[0] = (u32)id;
 -	buf->f_fsid.val[1] = (u32)(id >> 32);
-+	buf->f_fsid.val[0] = (u32)crc32_le(0, rs->s_uuid, sizeof(rs->s_uuid)/2);
-+	buf->f_fsid.val[1] = (u32)crc32_le(0, rs->s_uuid + sizeof(rs->s_uuid)/2,
-+				sizeof(rs->s_uuid)/2);
++	buf->f_fsid.val[0] = (u32)crc32_le(0, sbi->uuid, sizeof(sbi->uuid)/2);
++	buf->f_fsid.val[1] = (u32)crc32_le(0, sbi->uuid + sizeof(sbi->uuid)/2,
++					sizeof(sbi->uuid)/2);
  
+ 	buf->f_namelen = JFS_NAME_MAX;
  	return 0;
- }
 _
 
 Patches currently in -mm which might be from coly.li@suse.de are
@@ -97,6 +99,7 @@ fs-hfsplus-return-f_fsid-for-statfs2.patch
 fs-hpfs-return-f_fsid-for-statfs2.patch
 fs-isofs-return-f_fsid-for-statfs2.patch
 fs-jfs-return-f_fsid-for-statfs2.patch
+fs-jfs-return-f_fsid-for-statfs2-v3.patch
 fs-minix-return-f_fsid-for-statfs2.patch
 fs-omfs-return-f_fsid-for-statfs2.patch
 fs-qnx4-return-f_fsid-for-statfs2.patch
