@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-jfs-return-f_fsid-for-statfs2-v3.patch added to -mm tree
-Date: Wed, 28 Jan 2009 23:31:04 -0800
-Message-ID: <200901290731.n0T7V4lv011369@imap1.linux-foundation.org>
+Subject: + wait-prevent-exclusive-waiter-starvation.patch added to -mm tree
+Date: Wed, 28 Jan 2009 23:41:25 -0800
+Message-ID: <200901290741.n0T7fPNN024006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755609AbZA2HbP (ORCPT
+	by vger.kernel.org with ESMTP id S1752253AbZA2Hma (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 02:31:15 -0500
+	Thu, 29 Jan 2009 02:42:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: coly.li@suse.de, shaggy@austin.ibm.com
+Cc: hannes@cmpxchg.org, a.p.zijlstra@chello.nl, cel@citi.umich.edu, chris.mason@oracle.com, matthew@wil.cx, mingo@elte.hu, nickpiggin@yahoo.com.au, oleg@redhat.com
 
 
 The patch titled
-     fs/jfs: return f_fsid for statfs(2), v3
+     wait: prevent exclusive waiter starvation
 has been added to the -mm tree.  Its filename is
-     fs-jfs-return-f_fsid-for-statfs2-v3.patch
+     wait-prevent-exclusive-waiter-starvation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,197 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/jfs: return f_fsid for statfs(2), v3
-From: Coly Li <coly.li@suse.de>
+Subject: wait: prevent exclusive waiter starvation
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Make jfs return f_fsid info for statfs(2).  By Andreas' suggestion, this
-patch populates a persistent f_fsid between boots/mounts with help of
-on-disk uuid record.
+With exclusive waiters, every process woken up through the wait queue must
+ensure that the next waiter down the line is woken when it has finished.
 
-Signed-off-by: Coly Li <coly.li@suse.de>
-Acked-by: Dave Kleikamp <shaggy@austin.ibm.com>
+Interruptible waiters don't do that when aborting due to a signal.  And if
+an aborting waiter is concurrently woken up through the waitqueue, noone
+will ever wake up the next waiter.
+
+This has been observed with __wait_on_bit_lock() used by
+lock_page_killable(): the first contender on the queue was aborting when
+the actual lock holder woke it up concurrently.  The aborted contender
+didn't acquire the lock and therefor never did an unlock followed by
+waking up the next waiter.
+
+Add abort_exclusive_wait() which removes the process' wait descriptor from
+the waitqueue, iff still queued, or wakes up the next waiter otherwise. 
+It does so under the waitqueue lock.  Racing with a wake up means the
+aborting process is either already woken (removed from the queue) and will
+wake up the next waiter, or it will remove itself from the queue and the
+concurrent wake up will apply to the next waiter after it.
+
+Use abort_exclusive_wait() in __wait_event_interruptible_exclusive() and
+__wait_on_bit_lock() when they were interrupted by other means than a wake
+up through the queue.
+
+Reported-by: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Mentored-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Chuck Lever <cel@citi.umich.edu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/super.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/wait.h |   11 ++++++-
+ kernel/sched.c       |    4 +-
+ kernel/wait.c        |   58 ++++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 62 insertions(+), 11 deletions(-)
 
-diff -puN fs/jfs/super.c~fs-jfs-return-f_fsid-for-statfs2-v3 fs/jfs/super.c
---- a/fs/jfs/super.c~fs-jfs-return-f_fsid-for-statfs2-v3
-+++ a/fs/jfs/super.c
-@@ -29,6 +29,7 @@
- #include <linux/posix_acl.h>
- #include <linux/buffer_head.h>
- #include <linux/exportfs.h>
-+#include <linux/crc32.h>
- #include <asm/uaccess.h>
- #include <linux/seq_file.h>
+diff -puN include/linux/wait.h~wait-prevent-exclusive-waiter-starvation include/linux/wait.h
+--- a/include/linux/wait.h~wait-prevent-exclusive-waiter-starvation
++++ a/include/linux/wait.h
+@@ -132,6 +132,8 @@ static inline void __remove_wait_queue(w
+ 	list_del(&old->task_list);
+ }
  
-@@ -143,10 +144,8 @@ static void jfs_destroy_inode(struct ino
++void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
++			int nr_exclusive, int sync, void *key);
+ void __wake_up(wait_queue_head_t *q, unsigned int mode, int nr, void *key);
+ extern void __wake_up_locked(wait_queue_head_t *q, unsigned int mode);
+ extern void __wake_up_sync(wait_queue_head_t *q, unsigned int mode, int nr);
+@@ -333,16 +335,19 @@ do {									\
+ 	for (;;) {							\
+ 		prepare_to_wait_exclusive(&wq, &__wait,			\
+ 					TASK_INTERRUPTIBLE);		\
+-		if (condition)						\
++		if (condition) {					\
++			finish_wait(&wq, &__wait);			\
+ 			break;						\
++		}							\
+ 		if (!signal_pending(current)) {				\
+ 			schedule();					\
+ 			continue;					\
+ 		}							\
+ 		ret = -ERESTARTSYS;					\
++		abort_exclusive_wait(&wq, &__wait, 			\
++				TASK_INTERRUPTIBLE, NULL);		\
+ 		break;							\
+ 	}								\
+-	finish_wait(&wq, &__wait);					\
+ } while (0)
  
- static int jfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+ #define wait_event_interruptible_exclusive(wq, condition)		\
+@@ -431,6 +436,8 @@ extern long interruptible_sleep_on_timeo
+ void prepare_to_wait(wait_queue_head_t *q, wait_queue_t *wait, int state);
+ void prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait, int state);
+ void finish_wait(wait_queue_head_t *q, wait_queue_t *wait);
++void abort_exclusive_wait(wait_queue_head_t *q, wait_queue_t *wait,
++			unsigned int mode, void *key);
+ int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
+ int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
+ 
+diff -puN kernel/sched.c~wait-prevent-exclusive-waiter-starvation kernel/sched.c
+--- a/kernel/sched.c~wait-prevent-exclusive-waiter-starvation
++++ a/kernel/sched.c
+@@ -4843,8 +4843,8 @@ EXPORT_SYMBOL(default_wake_function);
+  * started to run but is not in state TASK_RUNNING. try_to_wake_up() returns
+  * zero in this (rare) case, and we handle it by continuing to scan the queue.
+  */
+-static void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
+-			     int nr_exclusive, int sync, void *key)
++void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
++			int nr_exclusive, int sync, void *key)
  {
--	struct super_block *sb = dentry->d_sb;
--	struct jfs_sb_info *sbi = JFS_SBI(sb);
-+	struct jfs_sb_info *sbi = JFS_SBI(dentry->d_sb);
- 	s64 maxinodes;
--	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
- 	struct inomap *imap = JFS_IP(sbi->ipimap)->i_imap;
+ 	wait_queue_t *curr, *next;
  
- 	jfs_info("In jfs_statfs");
-@@ -170,8 +169,9 @@ static int jfs_statfs(struct dentry *den
- 	buf->f_files = maxinodes;
- 	buf->f_ffree = maxinodes - (atomic_read(&imap->im_numinos) -
- 				    atomic_read(&imap->im_numfree));
--	buf->f_fsid.val[0] = (u32)id;
--	buf->f_fsid.val[1] = (u32)(id >> 32);
-+	buf->f_fsid.val[0] = (u32)crc32_le(0, sbi->uuid, sizeof(sbi->uuid)/2);
-+	buf->f_fsid.val[1] = (u32)crc32_le(0, sbi->uuid + sizeof(sbi->uuid)/2,
-+					sizeof(sbi->uuid)/2);
+diff -puN kernel/wait.c~wait-prevent-exclusive-waiter-starvation kernel/wait.c
+--- a/kernel/wait.c~wait-prevent-exclusive-waiter-starvation
++++ a/kernel/wait.c
+@@ -91,6 +91,15 @@ prepare_to_wait_exclusive(wait_queue_hea
+ }
+ EXPORT_SYMBOL(prepare_to_wait_exclusive);
  
- 	buf->f_namelen = JFS_NAME_MAX;
- 	return 0;
++/*
++ * finish_wait - clean up after waiting in a queue
++ * @q: waitqueue waited on
++ * @wait: wait descriptor
++ *
++ * Sets current thread back to running state and removes
++ * the wait descriptor from the given waitqueue if still
++ * queued.
++ */
+ void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
+ {
+ 	unsigned long flags;
+@@ -117,6 +126,39 @@ void finish_wait(wait_queue_head_t *q, w
+ }
+ EXPORT_SYMBOL(finish_wait);
+ 
++/*
++ * abort_exclusive_wait - abort exclusive waiting in a queue
++ * @q: waitqueue waited on
++ * @wait: wait descriptor
++ * @state: runstate of the waiter to be woken
++ * @key: key to identify a wait bit queue or %NULL
++ *
++ * Sets current thread back to running state and removes
++ * the wait descriptor from the given waitqueue if still
++ * queued.
++ *
++ * Wakes up the next waiter if the caller is concurrently
++ * woken up through the queue.
++ *
++ * This prevents waiter starvation where an exclusive waiter
++ * aborts and is woken up concurrently and noone wakes up
++ * the next waiter.
++ */
++void abort_exclusive_wait(wait_queue_head_t *q, wait_queue_t *wait,
++			unsigned int mode, void *key)
++{
++	unsigned long flags;
++
++	__set_current_state(TASK_RUNNING);
++	spin_lock_irqsave(&q->lock, flags);
++	if (!list_empty(&wait->task_list))
++		list_del_init(&wait->task_list);
++	else if (waitqueue_active(q))
++		__wake_up_common(q, mode, 1, 0, key);
++	spin_unlock_irqrestore(&q->lock, flags);
++}
++EXPORT_SYMBOL(abort_exclusive_wait);
++
+ int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
+ {
+ 	int ret = default_wake_function(wait, mode, sync, key);
+@@ -177,17 +219,19 @@ int __sched
+ __wait_on_bit_lock(wait_queue_head_t *wq, struct wait_bit_queue *q,
+ 			int (*action)(void *), unsigned mode)
+ {
+-	int ret = 0;
+-
+ 	do {
++		int ret;
++
+ 		prepare_to_wait_exclusive(wq, &q->wait, mode);
+-		if (test_bit(q->key.bit_nr, q->key.flags)) {
+-			if ((ret = (*action)(q->key.flags)))
+-				break;
+-		}
++		if (!test_bit(q->key.bit_nr, q->key.flags))
++			continue;
++		if (!(ret = action(q->key.flags)))
++			continue;
++		abort_exclusive_wait(wq, &q->wait, mode, &q->key);
++		return ret;
+ 	} while (test_and_set_bit(q->key.bit_nr, q->key.flags));
+ 	finish_wait(wq, &q->wait);
+-	return ret;
++	return 0;
+ }
+ EXPORT_SYMBOL(__wait_on_bit_lock);
+ 
 _
 
-Patches currently in -mm which might be from coly.li@suse.de are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-fs-adfs-return-f_fsid-for-statfs2.patch
-fs-affs-return-f_fsid-for-statfs2.patch
-fs-befs-return-f_fsid-for-statfs2.patch
-fs-cramfs-return-f_fsid-for-statfs2.patch
-fs-efs-return-f_fsid-for-statfs2.patch
-fs-fat-return-f_fsid-for-statfs2.patch
-fs-hfs-return-f_fsid-for-statfs2.patch
-fs-hfsplus-return-f_fsid-for-statfs2.patch
-fs-hpfs-return-f_fsid-for-statfs2.patch
-fs-isofs-return-f_fsid-for-statfs2.patch
-fs-jfs-return-f_fsid-for-statfs2.patch
-fs-jfs-return-f_fsid-for-statfs2-v3.patch
-fs-minix-return-f_fsid-for-statfs2.patch
-fs-omfs-return-f_fsid-for-statfs2.patch
-fs-qnx4-return-f_fsid-for-statfs2.patch
-fs-reiserfs-return-f_fsid-for-statfs2.patch
-fs-reiserfs-return-f_fsid-for-statfs2-v2.patch
-fs-romfs-return-f_fsid-for-statfs2.patch
-fs-squashfs-return-f_fsid-for-statfs2.patch
-fs-sysv-return-f_fsid-for-statfs2.patch
-fs-udf-return-f_fsid-for-statfs2.patch
-fs-ufs-return-f_fsid-for-statfs2.patch
+linux-next.patch
+wait-prevent-exclusive-waiter-starvation.patch
+powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
 
