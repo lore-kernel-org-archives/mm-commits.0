@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + input-bcm5974-augmented-debug-information.patch added to -mm tree
-Date: Thu, 29 Jan 2009 00:33:50 -0800
-Message-ID: <200901290833.n0T8XowS023099@imap1.linux-foundation.org>
+Subject: + input-bcm5974-prepare-for-a-new-trackpad-header-type.patch added to -mm tree
+Date: Thu, 29 Jan 2009 00:33:44 -0800
+Message-ID: <200901290833.n0T8Xira022948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42947 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753104AbZA2Iea (ORCPT
+	by vger.kernel.org with ESMTP id S1752372AbZA2Ieg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 03:34:30 -0500
+	Thu, 29 Jan 2009 03:34:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rydberg@euromail.se, dtor@mail.ru
 
 
 The patch titled
-     input: bcm5974: Augmented debug information
+     input: bcm5974: Prepare for a new trackpad header type
 has been added to the -mm tree.  Its filename is
-     input-bcm5974-augmented-debug-information.patch
+     input-bcm5974-prepare-for-a-new-trackpad-header-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: bcm5974: Augmented debug information
+Subject: input: bcm5974: Prepare for a new trackpad header type
 From: "Henrik Rydberg" <rydberg@euromail.se>
 
-Add more button and finger data to the debug output.
+The new unibody Macbooks are equipped with an integrated button and
+trackpad.  The package header of the trackpad interface has changed to
+also contain information about the integrated button.  This patch performs
+the necessary preparations to allow for the new package header.
 
 Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/bcm5974.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ drivers/input/mouse/bcm5974.c |   42 +++++++++++++++++---------------
+ 1 file changed, 23 insertions(+), 19 deletions(-)
 
-diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-augmented-debug-information drivers/input/mouse/bcm5974.c
---- a/drivers/input/mouse/bcm5974.c~input-bcm5974-augmented-debug-information
+diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-prepare-for-a-new-trackpad-header-type drivers/input/mouse/bcm5974.c
+--- a/drivers/input/mouse/bcm5974.c~input-bcm5974-prepare-for-a-new-trackpad-header-type
 +++ a/drivers/input/mouse/bcm5974.c
-@@ -297,6 +297,11 @@ static int report_bt_state(struct bcm597
- 	if (size != sizeof(struct bt_data))
+@@ -96,13 +96,14 @@ struct bt_data {
+ 	u8 rel_y;		/* relative y coordinate */
+ };
+ 
+-/* trackpad header structure */
+-struct tp_header {
+-	u8 unknown1[16];	/* constants, timers, etc */
+-	u8 fingers;		/* number of fingers on trackpad */
+-	u8 unknown2[9];		/* constants, timers, etc */
++/* trackpad header types */
++enum tp_type {
++	TYPE1			/* plain trackpad */
+ };
+ 
++/* trackpad finger data offsets */
++#define FINGER_TYPE1		26
++
+ /* trackpad finger structure */
+ struct tp_finger {
+ 	__le16 origin;		/* zero when switching track finger */
+@@ -119,11 +120,9 @@ struct tp_finger {
+ 	__le16 multi;		/* one finger: varies, more fingers: constant */
+ };
+ 
+-/* trackpad data structure, empirically at least ten fingers */
+-struct tp_data {
+-	struct tp_header header;
+-	struct tp_finger finger[16];
+-};
++/* trackpad finger data size, empirically at least ten fingers */
++#define SIZEOF_FINGER		sizeof(struct tp_finger)
++#define SIZEOF_ALL_FINGERS	(16 * SIZEOF_FINGER)
+ 
+ /* device-specific parameters */
+ struct bcm5974_param {
+@@ -139,6 +138,8 @@ struct bcm5974_config {
+ 	int bt_ep;		/* the endpoint of the button interface */
+ 	int bt_datalen;		/* data length of the button interface */
+ 	int tp_ep;		/* the endpoint of the trackpad interface */
++	enum tp_type tp_type;	/* type of trackpad interface */
++	int tp_offset;		/* offset to trackpad finger data */
+ 	int tp_datalen;		/* data length of the trackpad interface */
+ 	struct bcm5974_param p;	/* finger pressure limits */
+ 	struct bcm5974_param w;	/* finger width limits */
+@@ -158,7 +159,7 @@ struct bcm5974 {
+ 	struct urb *bt_urb;		/* button usb request block */
+ 	struct bt_data *bt_data;	/* button transferred data */
+ 	struct urb *tp_urb;		/* trackpad usb request block */
+-	struct tp_data *tp_data;	/* trackpad transferred data */
++	u8 *tp_data;			/* trackpad transferred data */
+ 	int fingers;			/* number of fingers on trackpad */
+ };
+ 
+@@ -184,7 +185,7 @@ static const struct bcm5974_config bcm59
+ 		USB_DEVICE_ID_APPLE_WELLSPRING_ISO,
+ 		USB_DEVICE_ID_APPLE_WELLSPRING_JIS,
+ 		0x84, sizeof(struct bt_data),
+-		0x81, sizeof(struct tp_data),
++		0x81, TYPE1, FINGER_TYPE1, FINGER_TYPE1 + SIZEOF_ALL_FINGERS,
+ 		{ DIM_PRESSURE, DIM_PRESSURE / SN_PRESSURE, 0, 256 },
+ 		{ DIM_WIDTH, DIM_WIDTH / SN_WIDTH, 0, 2048 },
+ 		{ DIM_X, DIM_X / SN_COORD, -4824, 5342 },
+@@ -195,7 +196,7 @@ static const struct bcm5974_config bcm59
+ 		USB_DEVICE_ID_APPLE_WELLSPRING2_ISO,
+ 		USB_DEVICE_ID_APPLE_WELLSPRING2_JIS,
+ 		0x84, sizeof(struct bt_data),
+-		0x81, sizeof(struct tp_data),
++		0x81, TYPE1, FINGER_TYPE1, FINGER_TYPE1 + SIZEOF_ALL_FINGERS,
+ 		{ DIM_PRESSURE, DIM_PRESSURE / SN_PRESSURE, 0, 256 },
+ 		{ DIM_WIDTH, DIM_WIDTH / SN_WIDTH, 0, 2048 },
+ 		{ DIM_X, DIM_X / SN_COORD, -4824, 4824 },
+@@ -276,18 +277,20 @@ static int report_bt_state(struct bcm597
+ static int report_tp_state(struct bcm5974 *dev, int size)
+ {
+ 	const struct bcm5974_config *c = &dev->cfg;
+-	const struct tp_finger *f = dev->tp_data->finger;
++	const struct tp_finger *f;
+ 	struct input_dev *input = dev->input;
+-	const int fingers = (size - 26) / 28;
+-	int raw_p, raw_w, raw_x, raw_y;
++	int raw_p, raw_w, raw_x, raw_y, raw_n;
+ 	int ptest = 0, origin = 0, nmin = 0, nmax = 0;
+ 	int abs_p = 0, abs_w = 0, abs_x = 0, abs_y = 0;
+ 
+-	if (size < 26 || (size - 26) % 28 != 0)
++	if (size < c->tp_offset || (size - c->tp_offset) % SIZEOF_FINGER != 0)
  		return -EIO;
  
-+	dprintk(7,
-+		"bcm5974: button data: %x %x %x %x\n",
-+		dev->bt_data->unknown1, dev->bt_data->button,
-+		dev->bt_data->rel_x, dev->bt_data->rel_y);
++	f = (const struct tp_finger *)(dev->tp_data + c->tp_offset);
++	raw_n = (size - c->tp_offset) / SIZEOF_FINGER;
 +
- 	input_report_key(dev->input, BTN_LEFT, dev->bt_data->button);
- 	input_sync(dev->input);
- 
-@@ -327,8 +332,8 @@ static int report_tp_state(struct bcm597
- 		raw_y = raw2int(f->abs_y);
- 
- 		dprintk(9,
--			"bcm5974: raw: p: %+05d w: %+05d x: %+05d y: %+05d\n",
--			raw_p, raw_w, raw_x, raw_y);
-+			"bcm5974: raw: p: %+05d w: %+05d x: %+05d y: %+05d "
-+			"n: %d\n", raw_p, raw_w, raw_x, raw_y, raw_n);
- 
- 		ptest = int2bound(&c->p, raw_p);
- 		origin = raw2int(f->origin);
-@@ -374,8 +379,8 @@ static int report_tp_state(struct bcm597
- 
- 		dprintk(8,
- 			"bcm5974: abs: p: %+05d w: %+05d x: %+05d y: %+05d "
--			"nmin: %d nmax: %d n: %d\n",
--			abs_p, abs_w, abs_x, abs_y, nmin, nmax, dev->fingers);
-+			"nmin: %d nmax: %d n: %d ibt: %d\n", abs_p, abs_w,
-+			abs_x, abs_y, nmin, nmax, dev->fingers, ibt);
- 
+ 	/* always track the first finger; when detached, start over */
+-	if (fingers) {
++	if (raw_n) {
+ 		raw_p = raw2int(f->force_major);
+ 		raw_w = raw2int(f->size_major);
+ 		raw_x = raw2int(f->abs_x);
+@@ -307,12 +310,13 @@ static int report_tp_state(struct bcm597
+ 		abs_w = int2bound(&c->w, raw_w);
+ 		abs_x = int2bound(&c->x, raw_x - c->x.devmin);
+ 		abs_y = int2bound(&c->y, c->y.devmax - raw_y);
+-		for (; f != dev->tp_data->finger + fingers; f++) {
++		while (raw_n--) {
+ 			ptest = int2bound(&c->p, raw2int(f->force_major));
+ 			if (ptest > PRESSURE_LOW)
+ 				nmax++;
+ 			if (ptest > PRESSURE_HIGH)
+ 				nmin++;
++			f++;
+ 		}
  	}
  
 _
