@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hp-wmi-set-initial-docking-state.patch added to -mm tree
-Date: Wed, 28 Jan 2009 17:03:06 -0800
-Message-ID: <200901290103.n0T136qF025245@imap1.linux-foundation.org>
+Subject: + sfc-modify-allocation-error-message.patch added to -mm tree
+Date: Wed, 28 Jan 2009 17:04:33 -0800
+Message-ID: <200901290104.n0T14Xe9027131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757909AbZA2BDt (ORCPT
+	by vger.kernel.org with ESMTP id S1751756AbZA2BFH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jan 2009 20:03:49 -0500
+	Wed, 28 Jan 2009 20:05:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: elendil@planet.nl, mjg59@srcf.ucam.org
+Cc: travis@sgi.com, bhutchings@solarflare.com
 
 
 The patch titled
-     hp-wmi: set initial docking state
+     sfc: modify allocation error message
 has been added to the -mm tree.  Its filename is
-     hp-wmi-set-initial-docking-state.patch
+     sfc-modify-allocation-error-message.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp-wmi: set initial docking state
-From: Frans Pop <elendil@planet.nl>
+Subject: sfc: modify allocation error message
+From: Mike Travis <travis@sgi.com>
 
-If the initial state is not set when the input device is set up, the first
-docking event after the module is loaded will be lost.
+Change error message when alloc_cpumask_var fails.
 
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Acked-by: Ben Hutchings <bhutchings@solarflare.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/hp-wmi.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/net/sfc/efx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/hp-wmi.c~hp-wmi-set-initial-docking-state drivers/platform/x86/hp-wmi.c
---- a/drivers/platform/x86/hp-wmi.c~hp-wmi-set-initial-docking-state
-+++ a/drivers/platform/x86/hp-wmi.c
-@@ -382,6 +382,11 @@ static int __init hp_wmi_input_setup(voi
- 		case KE_SW:
- 			set_bit(EV_SW, hp_wmi_input_dev->evbit);
- 			set_bit(key->keycode, hp_wmi_input_dev->swbit);
-+
-+			/* Set initial dock state */
-+			input_report_switch(hp_wmi_input_dev, key->keycode,
-+					    hp_wmi_dock_state());
-+			input_sync(hp_wmi_input_dev);
- 			break;
- 		}
+diff -puN drivers/net/sfc/efx.c~sfc-modify-allocation-error-message drivers/net/sfc/efx.c
+--- a/drivers/net/sfc/efx.c~sfc-modify-allocation-error-message
++++ a/drivers/net/sfc/efx.c
+@@ -857,9 +857,9 @@ static int efx_wanted_rx_queues(void)
+ 	int count;
+ 	int cpu;
+ 
+-	if (!alloc_cpumask_var(&core_mask, GFP_KERNEL)) {
++	if (unlikely(!alloc_cpumask_var(&core_mask, GFP_KERNEL))) {
+ 		printk(KERN_WARNING
+-		       "efx.c: allocation failure, irq balancing hobbled\n");
++		       "sfc: RSS disabled due to allocation failure\n");
+ 		return 1;
  	}
+ 
 _
 
-Patches currently in -mm which might be from elendil@planet.nl are
+Patches currently in -mm which might be from travis@sgi.com are
 
-hp-wmi-fix-regressions-caused-by-missing-if-statement.patch
-hp-wmi-set-initial-docking-state.patch
-input-keyboard-hilkbdc-fix-crash-when-removing-hilkbd-module.patch
-drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module.patch
-hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
-sata-ahci-blacklist-system-that-spins-off-disks-during-acpi-power-off.patch
+linux-next.patch
+sfc-modify-allocation-error-message.patch
+sysrq-include-interrupth-instead-of-irqh.patch
 
