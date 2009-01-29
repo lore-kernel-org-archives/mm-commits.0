@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + do_wp_page-fix-regression-with-execute-in-place.patch added to -mm tree
-Date: Thu, 29 Jan 2009 00:25:18 -0800
-Message-ID: <200901290825.n0T8PISW012609@imap1.linux-foundation.org>
+Subject: + input-bcm5974-add-quad-finger-tapping.patch added to -mm tree
+Date: Thu, 29 Jan 2009 00:33:46 -0800
+Message-ID: <200901290833.n0T8Xk0M022995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57484 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751869AbZA2IZg (ORCPT
+	by vger.kernel.org with ESMTP id S1752372AbZA2IeY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 03:25:36 -0500
+	Thu, 29 Jan 2009 03:34:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cotte@de.ibm.com, heiko.carstens@de.ibm.com, npiggin@suse.de, stable@kernel.org, torvalds@linux-foundation.org
+Cc: rydberg@euromail.se, dtor@mail.ru
 
 
 The patch titled
-     do_wp_page: fix regression with execute in place
+     input: bcm5974: Add quad-finger tapping
 has been added to the -mm tree.  Its filename is
-     do_wp_page-fix-regression-with-execute-in-place.patch
+     input-bcm5974-add-quad-finger-tapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_wp_page: fix regression with execute in place
-From: Carsten Otte <cotte@de.ibm.com>
+Subject: input: bcm5974: Add quad-finger tapping
+From: "Henrik Rydberg" <rydberg@euromail.se>
 
-Fix do_wp_page for VM_MIXEDMAP mappings.
+The integrated button on the new unibody Macbooks presents a need to
+report explicit four-finger actions.  Evidently, the finger pressing the
+button is also touching the trackpad, so in order to fully support
+three-finger actions, the driver must be able to report four-finger
+actions.  This patch adds a new button, BTN_TOOL_QUADTAP, which achieves
+this.
 
-In the case where pfn_valid returns 0 for a pfn at the beginning of
-do_wp_page and the mapping is not shared writable, the code branches to
-label `gotten:' with old_page == NULL.
-
-In case the vma is locked (vma->vm_flags & VM_LOCKED), lock_page,
-clear_page_mlock, and unlock_page try to access the old_page.
-
-This patch checks whether old_page is valid before it is dereferenced.
-
-The regression was introduced by
-
-commit b291f000393f5a0b679012b39d79fbc85c018233
-Author:     Nick Piggin <npiggin@suse.de>
-AuthorDate: Sat Oct 18 20:26:44 2008 -0700
-Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-CommitDate: Mon Oct 20 08:52:30 2008 -0700
-
-    mlock: mlocked pages are unevictable
-
-
-Signed-off-by: Carsten Otte <cotte@de.ibm.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: <stable@kernel.org>		[2.6.28.x]
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/mouse/bcm5974.c |    4 +++-
+ include/linux/input.h         |    1 +
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~do_wp_page-fix-regression-with-execute-in-place mm/memory.c
---- a/mm/memory.c~do_wp_page-fix-regression-with-execute-in-place
-+++ a/mm/memory.c
-@@ -1999,7 +1999,7 @@ gotten:
- 	 * Don't let another task, with possibly unlocked vma,
- 	 * keep the mlocked page.
- 	 */
--	if (vma->vm_flags & VM_LOCKED) {
-+	if ((vma->vm_flags & VM_LOCKED) && old_page) {
- 		lock_page(old_page);	/* for LRU manipulation */
- 		clear_page_mlock(old_page);
- 		unlock_page(old_page);
+diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-add-quad-finger-tapping drivers/input/mouse/bcm5974.c
+--- a/drivers/input/mouse/bcm5974.c~input-bcm5974-add-quad-finger-tapping
++++ a/drivers/input/mouse/bcm5974.c
+@@ -258,6 +258,7 @@ static void setup_events_to_report(struc
+ 	__set_bit(BTN_TOOL_FINGER, input_dev->keybit);
+ 	__set_bit(BTN_TOOL_DOUBLETAP, input_dev->keybit);
+ 	__set_bit(BTN_TOOL_TRIPLETAP, input_dev->keybit);
++	__set_bit(BTN_TOOL_QUADTAP, input_dev->keybit);
+ 	__set_bit(BTN_LEFT, input_dev->keybit);
+ }
+ 
+@@ -328,7 +329,8 @@ static int report_tp_state(struct bcm597
+ 	input_report_key(input, BTN_TOUCH, dev->fingers > 0);
+ 	input_report_key(input, BTN_TOOL_FINGER, dev->fingers == 1);
+ 	input_report_key(input, BTN_TOOL_DOUBLETAP, dev->fingers == 2);
+-	input_report_key(input, BTN_TOOL_TRIPLETAP, dev->fingers > 2);
++	input_report_key(input, BTN_TOOL_TRIPLETAP, dev->fingers == 3);
++	input_report_key(input, BTN_TOOL_QUADTAP, dev->fingers > 3);
+ 
+ 	input_report_abs(input, ABS_PRESSURE, abs_p);
+ 	input_report_abs(input, ABS_TOOL_WIDTH, abs_w);
+diff -puN include/linux/input.h~input-bcm5974-add-quad-finger-tapping include/linux/input.h
+--- a/include/linux/input.h~input-bcm5974-add-quad-finger-tapping
++++ a/include/linux/input.h
+@@ -445,6 +445,7 @@ struct input_absinfo {
+ #define BTN_STYLUS2		0x14c
+ #define BTN_TOOL_DOUBLETAP	0x14d
+ #define BTN_TOOL_TRIPLETAP	0x14e
++#define BTN_TOOL_QUADTAP	0x14f	/* Four fingers on trackpad */
+ 
+ #define BTN_WHEEL		0x150
+ #define BTN_GEAR_DOWN		0x150
 _
 
-Patches currently in -mm which might be from cotte@de.ibm.com are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
-linux-next.patch
-do_wp_page-fix-regression-with-execute-in-place.patch
+hwmon-applesmc-add-support-for-macpro-3-temperature-sensors.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+input-bcm5974-prepare-for-a-new-trackpad-header-type.patch
+input-bcm5974-add-quad-finger-tapping.patch
+input-bcm5974-add-support-for-the-macbook-5-unibody.patch
+input-bcm5974-augmented-debug-information.patch
+input-allow-certain-ev_abs-events-to-bypass-all-filtering.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-add-a-detailed-multi-touch-finger-data-report-protocol-rev2.patch
 
