@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-bcm5974-add-support-for-the-macbook-5-unibody.patch added to -mm tree
-Date: Thu, 29 Jan 2009 00:33:48 -0800
-Message-ID: <200901290833.n0T8Xm0u023016@imap1.linux-foundation.org>
+Subject: + sgi-gru-exclude-uv-definitions-on-32-bit-x86.patch added to -mm tree
+Date: Thu, 29 Jan 2009 00:38:35 -0800
+Message-ID: <200901290838.n0T8cZdb028855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751798AbZA2Ifq (ORCPT
+	by vger.kernel.org with ESMTP id S1752622AbZA2Iiy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 03:35:46 -0500
+	Thu, 29 Jan 2009 03:38:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se, dmlary@gmail.com, dtor@mail.ru
+Cc: steiner@sgi.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     input: bcm5974: Add support for the Macbook 5 (Unibody)
+     sgi-gru: exclude UV definitions on 32-bit x86
 has been added to the -mm tree.  Its filename is
-     input-bcm5974-add-support-for-the-macbook-5-unibody.patch
+     sgi-gru-exclude-uv-definitions-on-32-bit-x86.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,150 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: bcm5974: Add support for the Macbook 5 (Unibody)
-From: "Henrik Rydberg" <rydberg@euromail.se>
+Subject: sgi-gru: exclude UV definitions on 32-bit x86
+From: Jack Steiner <steiner@sgi.com>
 
-Add support for the new unibody Macbook, with physically integrated button
-and trackpad.  A new button, BTN_TOOL_PRESS, is introduced to allow for
-non-trivial handling of this device in user space.
+Eliminate compile errors on 32-bit X86 caused by UV.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Tested-by: David M. Lary <dmlary@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/bcm5974.c |   42 ++++++++++++++++++++++++++++++--
- include/linux/input.h         |    1 
- 2 files changed, 41 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/uv/uv_hub.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-add-support-for-the-macbook-5-unibody drivers/input/mouse/bcm5974.c
---- a/drivers/input/mouse/bcm5974.c~input-bcm5974-add-support-for-the-macbook-5-unibody
-+++ a/drivers/input/mouse/bcm5974.c
-@@ -51,6 +51,10 @@
- #define USB_DEVICE_ID_APPLE_WELLSPRING2_ANSI	0x0230
- #define USB_DEVICE_ID_APPLE_WELLSPRING2_ISO	0x0231
- #define USB_DEVICE_ID_APPLE_WELLSPRING2_JIS	0x0232
-+/* Macbook5,1 (unibody), aka wellspring3 */
-+#define USB_DEVICE_ID_APPLE_WELLSPRING3_ANSI	0x0236
-+#define USB_DEVICE_ID_APPLE_WELLSPRING3_ISO	0x0237
-+#define USB_DEVICE_ID_APPLE_WELLSPRING3_JIS	0x0238
+diff -puN arch/x86/include/asm/uv/uv_hub.h~sgi-gru-exclude-uv-definitions-on-32-bit-x86 arch/x86/include/asm/uv/uv_hub.h
+--- a/arch/x86/include/asm/uv/uv_hub.h~sgi-gru-exclude-uv-definitions-on-32-bit-x86
++++ a/arch/x86/include/asm/uv/uv_hub.h
+@@ -11,6 +11,7 @@
+ #ifndef _ASM_X86_UV_UV_HUB_H
+ #define _ASM_X86_UV_UV_HUB_H
  
- #define BCM5974_DEVICE(prod) {					\
- 	.match_flags = (USB_DEVICE_ID_MATCH_DEVICE |		\
-@@ -72,6 +76,10 @@ static const struct usb_device_id bcm597
- 	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING2_ANSI),
- 	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING2_ISO),
- 	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING2_JIS),
-+	/* Macbook5,1 */
-+	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING3_ANSI),
-+	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING3_ISO),
-+	BCM5974_DEVICE(USB_DEVICE_ID_APPLE_WELLSPRING3_JIS),
- 	/* Terminating entry */
- 	{}
- };
-@@ -98,11 +106,19 @@ struct bt_data {
- 
- /* trackpad header types */
- enum tp_type {
--	TYPE1			/* plain trackpad */
-+	TYPE1,			/* plain trackpad */
-+	TYPE2			/* button integrated in trackpad */
- };
- 
- /* trackpad finger data offsets */
- #define FINGER_TYPE1		26
-+#define FINGER_TYPE2		30
-+
-+/* trackpad button data offsets */
-+#define BUTTON_TYPE2		15
-+
-+/* integrated button capability by configuration */
-+#define HAS_INTEGRATED_BUTTON(c)	(c->tp_type == TYPE2)
- 
- /* trackpad finger structure */
- struct tp_finger {
-@@ -202,6 +218,17 @@ static const struct bcm5974_config bcm59
- 		{ DIM_X, DIM_X / SN_COORD, -4824, 4824 },
- 		{ DIM_Y, DIM_Y / SN_COORD, -172, 4290 }
- 	},
-+	{
-+		USB_DEVICE_ID_APPLE_WELLSPRING3_ANSI,
-+		USB_DEVICE_ID_APPLE_WELLSPRING3_ISO,
-+		USB_DEVICE_ID_APPLE_WELLSPRING3_JIS,
-+		0x84, sizeof(struct bt_data),
-+		0x81, TYPE2, FINGER_TYPE2, FINGER_TYPE2 + SIZEOF_ALL_FINGERS,
-+		{ DIM_PRESSURE, DIM_PRESSURE / SN_PRESSURE, 0, 300 },
-+		{ DIM_WIDTH, DIM_WIDTH / SN_WIDTH, 0, 2048 },
-+		{ DIM_X, DIM_X / SN_COORD, -4460, 5166 },
-+		{ DIM_Y, DIM_Y / SN_COORD, -75, 6700 }
-+	},
- 	{}
- };
- 
-@@ -259,6 +286,8 @@ static void setup_events_to_report(struc
- 	__set_bit(BTN_TOOL_DOUBLETAP, input_dev->keybit);
- 	__set_bit(BTN_TOOL_TRIPLETAP, input_dev->keybit);
- 	__set_bit(BTN_TOOL_QUADTAP, input_dev->keybit);
-+	if (HAS_INTEGRATED_BUTTON(cfg))
-+		__set_bit(BTN_TOOL_PRESS, input_dev->keybit);
- 	__set_bit(BTN_LEFT, input_dev->keybit);
++#ifdef CONFIG_X86_64
+ #include <linux/numa.h>
+ #include <linux/percpu.h>
+ #include <linux/timer.h>
+@@ -401,4 +402,5 @@ static inline void uv_set_cpu_scir_bits(
+ 	}
  }
  
-@@ -281,7 +310,7 @@ static int report_tp_state(struct bcm597
- 	const struct tp_finger *f;
- 	struct input_dev *input = dev->input;
- 	int raw_p, raw_w, raw_x, raw_y, raw_n;
--	int ptest = 0, origin = 0, nmin = 0, nmax = 0;
-+	int ptest = 0, origin = 0, ibt = 0, nmin = 0, nmax = 0;
- 	int abs_p = 0, abs_w = 0, abs_x = 0, abs_y = 0;
- 
- 	if (size < c->tp_offset || (size - c->tp_offset) % SIZEOF_FINGER != 0)
-@@ -303,6 +332,10 @@ static int report_tp_state(struct bcm597
- 
- 		ptest = int2bound(&c->p, raw_p);
- 		origin = raw2int(f->origin);
-+
-+		/* set the integrated button if applicable */
-+		if (c->tp_type == TYPE2)
-+			ibt = raw2int(dev->tp_data[BUTTON_TYPE2]);
- 	}
- 
- 	/* while tracking finger still valid, count all fingers */
-@@ -346,6 +379,11 @@ static int report_tp_state(struct bcm597
- 
- 	}
- 
-+	if (HAS_INTEGRATED_BUTTON(c)) {
-+		input_report_key(input, BTN_TOOL_PRESS, ibt);
-+		input_report_key(input, BTN_LEFT, ibt);
-+	}
-+
- 	input_sync(input);
- 
- 	return 0;
-diff -puN include/linux/input.h~input-bcm5974-add-support-for-the-macbook-5-unibody include/linux/input.h
---- a/include/linux/input.h~input-bcm5974-add-support-for-the-macbook-5-unibody
-+++ a/include/linux/input.h
-@@ -440,6 +440,7 @@ struct input_absinfo {
- #define BTN_TOOL_FINGER		0x145
- #define BTN_TOOL_MOUSE		0x146
- #define BTN_TOOL_LENS		0x147
-+#define BTN_TOOL_PRESS		0x148	/* The trackpad is a physical button */
- #define BTN_TOUCH		0x14a
- #define BTN_STYLUS		0x14b
- #define BTN_STYLUS2		0x14c
++#endif /* CONFIG_X86_64 */
+ #endif /* _ASM_X86_UV_UV_HUB_H */
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from steiner@sgi.com are
 
-hwmon-applesmc-add-support-for-macpro-3-temperature-sensors.patch
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
-input-bcm5974-prepare-for-a-new-trackpad-header-type.patch
-input-bcm5974-add-quad-finger-tapping.patch
-input-bcm5974-add-support-for-the-macbook-5-unibody.patch
-input-bcm5974-augmented-debug-information.patch
-input-allow-certain-ev_abs-events-to-bypass-all-filtering.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-input-add-a-detailed-multi-touch-finger-data-report-protocol-rev2.patch
+sgi-gru-exclude-uv-definitions-on-32-bit-x86.patch
+sgi-gru-add-definitions-of-x86_64-gru-mmrs.patch
+sgi-gru-add-definitions-of-x86_64-gru-mmrs-fix.patch
+sgi-gru-add-definitions-of-ia64-gru-mmrs.patch
+sgi-gru-add-macros-for-using-the-uv-hub-to-send-interrupts.patch
+sgi-gru-misc-gru-cleanup.patch
+sgi-gru-improvements-to-gru-debug-messages-statistics.patch
+sgi-gru-change-gru-cch-commands-from-inline-functions-to-outofline-functions.patch
+sgi-gru-add-statistics-to-the-gru-context-management-functions.patch
+sgi-gru-add-support-for-a-user-to-explicitly-unload-a-gru-context.patch
+sgi-gru-asid-context-management-bug-fixes.patch
+sgi-gru-restructure-the-gru-vtop-functions.patch
+sgi-gru-add-support-to-the-gru-driver-for-message-queue-interrupts.patch
+sgi-gru-macro-for-scanning-all-gru-chiplets.patch
+sgi-gru-fix-bugs-related-to-module-unload-of-the-gru-driver.patch
+sgi-gru-support-multiple-pagesizes-in-gru.patch
 
