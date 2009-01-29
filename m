@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-general-listsopenfabricsorg-is-moderated.patch added to -mm tree
-Date: Wed, 28 Jan 2009 23:26:54 -0800
-Message-ID: <200901290726.n0T7Qs6W006307@imap1.linux-foundation.org>
+Subject: + fs-reiserfs-return-f_fsid-for-statfs2-v2.patch added to -mm tree
+Date: Wed, 28 Jan 2009 23:29:17 -0800
+Message-ID: <200901290729.n0T7THc6009228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751461AbZA2H10 (ORCPT
+	by vger.kernel.org with ESMTP id S1752305AbZA2H3X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 02:27:26 -0500
+	Thu, 29 Jan 2009 02:29:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, rolandd@cisco.com
+Cc: coly.li@suse.de
 
 
 The patch titled
-     maintainers: general@lists.openfabrics.org is moderated
+     fs/reiserfs: return f_fsid for statfs(2), v2
 has been added to the -mm tree.  Its filename is
-     maintainers-general-listsopenfabricsorg-is-moderated.patch
+     fs-reiserfs-return-f_fsid-for-statfs2-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maintainers: general@lists.openfabrics.org is moderated
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: fs/reiserfs: return f_fsid for statfs(2), v2
+From: Coly Li <coly.li@suse.de>
 
-I got the "list is moderated message," so add it here.
+This patch makes reiserfs3 return f_fsid info for statfs(2).  By Andreas'
+suggestion, this patch populates a persistent f_fsid between boots/mounts
+with help of on-disk uuid record.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Coly Li <coly.li@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/super.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-general-listsopenfabricsorg-is-moderated MAINTAINERS
---- a/MAINTAINERS~maintainers-general-listsopenfabricsorg-is-moderated
-+++ a/MAINTAINERS
-@@ -2212,7 +2212,7 @@ P:	Sean Hefty
- M:	sean.hefty@intel.com
- P:	Hal Rosenstock
- M:	hal.rosenstock@gmail.com
--L:	general@lists.openfabrics.org
-+L:	general@lists.openfabrics.org (moderated for non-subscribers)
- W:	http://www.openib.org/
- T:	git kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git
- S:	Supported
+diff -puN fs/reiserfs/super.c~fs-reiserfs-return-f_fsid-for-statfs2-v2 fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~fs-reiserfs-return-f_fsid-for-statfs2-v2
++++ a/fs/reiserfs/super.c
+@@ -27,6 +27,7 @@
+ #include <linux/mnt_namespace.h>
+ #include <linux/mount.h>
+ #include <linux/namei.h>
++#include <linux/crc32.h>
+ 
+ struct file_system_type reiserfs_fs_type;
+ 
+@@ -1881,9 +1882,7 @@ error:
+ 
+ static int reiserfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+ {
+-	struct super_block *sb = dentry->d_sb;
+-	struct reiserfs_super_block *rs = SB_DISK_SUPER_BLOCK(sb);
+-	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
++	struct reiserfs_super_block *rs = SB_DISK_SUPER_BLOCK(dentry->d_sb);
+ 
+ 	buf->f_namelen = (REISERFS_MAX_NAME(s->s_blocksize));
+ 	buf->f_bfree = sb_free_blocks(rs);
+@@ -1892,8 +1891,9 @@ static int reiserfs_statfs(struct dentry
+ 	buf->f_bsize = dentry->d_sb->s_blocksize;
+ 	/* changed to accommodate gcc folks. */
+ 	buf->f_type = REISERFS_SUPER_MAGIC;
+-	buf->f_fsid.val[0] = (u32)id;
+-	buf->f_fsid.val[1] = (u32)(id >> 32);
++	buf->f_fsid.val[0] = (u32)crc32_le(0, rs->s_uuid, sizeof(rs->s_uuid)/2);
++	buf->f_fsid.val[1] = (u32)crc32_le(0, rs->s_uuid + sizeof(rs->s_uuid)/2,
++				sizeof(rs->s_uuid)/2);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from coly.li@suse.de are
 
-oom-documentation-update.patch
-linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-sunrpc-fix-rdma-dependency.patch
-esp-fix-section-mismatch-warning.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-maintainers-general-listsopenfabricsorg-is-moderated.patch
-max3100-spi-uart-driver.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-linuxpps-core-support.patch
-pps-userland-header-file-for-pps-api.patch
-pps-documentation-programs-and-examples.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-pps-parallel-port-clients-support.patch
+fs-adfs-return-f_fsid-for-statfs2.patch
+fs-affs-return-f_fsid-for-statfs2.patch
+fs-befs-return-f_fsid-for-statfs2.patch
+fs-cramfs-return-f_fsid-for-statfs2.patch
+fs-efs-return-f_fsid-for-statfs2.patch
+fs-fat-return-f_fsid-for-statfs2.patch
+fs-hfs-return-f_fsid-for-statfs2.patch
+fs-hfsplus-return-f_fsid-for-statfs2.patch
+fs-hpfs-return-f_fsid-for-statfs2.patch
+fs-isofs-return-f_fsid-for-statfs2.patch
+fs-jfs-return-f_fsid-for-statfs2.patch
+fs-minix-return-f_fsid-for-statfs2.patch
+fs-omfs-return-f_fsid-for-statfs2.patch
+fs-qnx4-return-f_fsid-for-statfs2.patch
+fs-reiserfs-return-f_fsid-for-statfs2.patch
+fs-reiserfs-return-f_fsid-for-statfs2-v2.patch
+fs-romfs-return-f_fsid-for-statfs2.patch
+fs-squashfs-return-f_fsid-for-statfs2.patch
+fs-sysv-return-f_fsid-for-statfs2.patch
+fs-udf-return-f_fsid-for-statfs2.patch
+fs-ufs-return-f_fsid-for-statfs2.patch
 
