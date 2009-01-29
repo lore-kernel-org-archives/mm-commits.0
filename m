@@ -1,115 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-get-put-parents-at-create-free-fix.patch removed from -mm tree
-Date: Thu, 29 Jan 2009 14:23:14 -0800
-Message-ID: <200901292223.n0TMNFpH032478@imap1.linux-foundation.org>
+Subject: + drivers-ata-sata_silc-needs-dmih.patch added to -mm tree
+Date: Thu, 29 Jan 2009 14:19:49 -0800
+Message-ID: <200901292236.n0TMaffW016932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33704 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752479AbZA2WXr (ORCPT
+	by vger.kernel.org with ESMTP id S1753373AbZA2Wgw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jan 2009 17:23:47 -0500
+	Thu, 29 Jan 2009 17:36:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     memcg-get-put-parents-at-create-free fix
-has been removed from the -mm tree.  Its filename was
-     memcg-get-put-parents-at-create-free-fix.patch
+     drivers/ata/sata_sil.c needs dmi.h
+has been added to the -mm tree.  Its filename is
+     drivers-ata-sata_silc-needs-dmih.patch
 
-This patch was dropped because it was folded into memcg-get-put-parents-at-create-free.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-get-put-parents-at-create-free fix
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: drivers/ata/sata_sil.c needs dmi.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Andrew suggested that it's strange to add a little helper function for get(),
-while put() is open-code.
+alpha:
 
-This patch also adds a few comments.
+drivers/ata/sata_sil.c: In function 'sil_broken_system_poweroff':
+drivers/ata/sata_sil.c:713: error: implicit declaration of function 'dmi_first_match'
 
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Reviewed-by; KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/ata/sata_sil.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memcontrol.c~memcg-get-put-parents-at-create-free-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-get-put-parents-at-create-free-fix
-+++ a/mm/memcontrol.c
-@@ -203,7 +203,6 @@ pcg_default_flags[NR_CHARGE_TYPE] = {
- static void mem_cgroup_get(struct mem_cgroup *mem);
- static void mem_cgroup_put(struct mem_cgroup *mem);
- static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem);
--static void mem_cgroup_get_parent(struct mem_cgroup *mem);
- 
- static void mem_cgroup_charge_statistics(struct mem_cgroup *mem,
- 					 struct page_cgroup *pc,
-@@ -2203,6 +2202,9 @@ static void mem_cgroup_put(struct mem_cg
- 	}
- }
- 
-+/*
-+ * Returns the parent mem_cgroup in memcgroup hierarchy with hierarchy enabled.
-+ */
- static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem)
- {
- 	if (!mem->res.parent)
-@@ -2210,14 +2212,6 @@ static struct mem_cgroup *parent_mem_cgr
- 	return mem_cgroup_from_res_counter(mem->res.parent, res);
- }
- 
--static void mem_cgroup_get_parent(struct mem_cgroup *mem)
--{
--	struct mem_cgroup *parent = parent_mem_cgroup(mem);
--
--	if (parent)
--		mem_cgroup_get(parent);
--}
--
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- static void __init enable_swap_cgroup(void)
- {
-@@ -2255,6 +2249,13 @@ mem_cgroup_create(struct cgroup_subsys *
- 	if (parent && parent->use_hierarchy) {
- 		res_counter_init(&mem->res, &parent->res);
- 		res_counter_init(&mem->memsw, &parent->memsw);
-+		/*
-+		 * We increment refcnt of the parent to ensure that we can
-+		 * safely access it on res_counter_charge/uncharge.
-+		 * This refcnt will be decremented when freeing this
-+		 * mem_cgroup(see mem_cgroup_put).
-+		 */
-+		mem_cgroup_get(parent);
- 	} else {
- 		res_counter_init(&mem->res, NULL);
- 		res_counter_init(&mem->memsw, NULL);
-@@ -2265,7 +2266,6 @@ mem_cgroup_create(struct cgroup_subsys *
- 	if (parent)
- 		mem->swappiness = get_swappiness(parent);
- 	atomic_set(&mem->refcnt, 1);
--	mem_cgroup_get_parent(mem);
- 	return &mem->css;
- free_out:
- 	__mem_cgroup_free(mem);
+diff -puN drivers/ata/sata_sil.c~drivers-ata-sata_silc-needs-dmih drivers/ata/sata_sil.c
+--- a/drivers/ata/sata_sil.c~drivers-ata-sata_silc-needs-dmih
++++ a/drivers/ata/sata_sil.c
+@@ -38,6 +38,7 @@
+ #include <linux/module.h>
+ #include <linux/pci.h>
+ #include <linux/init.h>
++#include <linux/dmi.h>
+ #include <linux/blkdev.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-get-put-parents-at-create-free.patch
-memcg-get-put-parents-at-create-free-fix.patch
-memcg-fix-refcnt-handling-at-swapoff.patch
-memcg-update-document-to-mention-swapoff-should-be-test.patch
-memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2.patch
-migration-migrate_vmas-should-check-vma.patch
+kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
+drivers-gpu-drm-i915-intel_lvdsc-fix-locking-snafu.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
+wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
+i-need-old-gcc.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+kvm-unbork.patch
+acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+mm-mmapc-avoid-referencing-a-freed-vma-in-mmap_region.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch
+drivers-ata-sata_silc-needs-dmih.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
