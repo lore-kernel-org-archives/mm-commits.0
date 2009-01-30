@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-pointer-type-star-may-have-modifiers-following.patch added to -mm tree
-Date: Fri, 30 Jan 2009 13:53:50 -0800
-Message-ID: <200901302153.n0ULrpUx031287@imap1.linux-foundation.org>
+Subject: + checkpatch-correctly-handle-type-spacing-in-the-face-of-modifiers.patch added to -mm tree
+Date: Fri, 30 Jan 2009 13:53:49 -0800
+Message-ID: <200901302153.n0ULrn8V031244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34314 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754415AbZA3Vxy (ORCPT
+	by vger.kernel.org with ESMTP id S1753373AbZA3Vxw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 16:53:54 -0500
+	Fri, 30 Jan 2009 16:53:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@canonical.com
 
 
 The patch titled
-     checkpatch: pointer type star may have modifiers following
+     checkpatch: correctly handle type spacing in the face of modifiers
 has been added to the -mm tree.  Its filename is
-     checkpatch-pointer-type-star-may-have-modifiers-following.patch
+     checkpatch-correctly-handle-type-spacing-in-the-face-of-modifiers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: pointer type star may have modifiers following
+Subject: checkpatch: correctly handle type spacing in the face of modifiers
 From: Andy Whitcroft <apw@canonical.com>
 
-We may have any modifier following a pointer type star.  Handle this:
+We need to handle interspersed modifiers in the middle of pointer types,
+for example:
 
-	void * __user * __user foo;
+	void * __user * __user bar;
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -48,23 +49,27 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  scripts/checkpatch.pl |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-pointer-type-star-may-have-modifiers-following scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-pointer-type-star-may-have-modifiers-following
+diff -puN scripts/checkpatch.pl~checkpatch-correctly-handle-type-spacing-in-the-face-of-modifiers scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-correctly-handle-type-spacing-in-the-face-of-modifiers
 +++ a/scripts/checkpatch.pl
-@@ -1886,11 +1886,11 @@ sub process {
- 					if ($ctx !~ /[WEBC]x./ && $ca !~ /(?:\)|!|~|\*|-|\&|\||\+\+|\-\-|\{)$/) {
- 						ERROR("space required before that '$op' $at\n" . $hereptr);
- 					}
--					if ($op eq '*' && $cc =~/\s*const\b/) {
-+					if ($op eq '*' && $cc =~/\s*$Modifier\b/) {
- 						# A unary '*' may be const
+@@ -1658,7 +1658,7 @@ sub process {
  
- 					} elsif ($ctx =~ /.xW/) {
--						ERROR("space prohibited after that '$op' $at\n" . $hereptr);
-+						ERROR("Aspace prohibited after that '$op' $at\n" . $hereptr);
- 					}
+ # * goes on variable not on type
+ 		# (char*[ const])
+-		if ($line =~ m{\($NonptrType(\s*\*[\s\*]*(?:$Modifier\s*)*)\)}) {
++		if ($line =~ m{\($NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)\)}) {
+ 			my ($from, $to) = ($1, $1);
  
- 				# unary ++ and unary -- are allowed no space on one side.
+ 			# Should start with a space.
+@@ -1673,7 +1673,7 @@ sub process {
+ 			if ($from ne $to) {
+ 				ERROR("\"(foo$from)\" should be \"(foo$to)\"\n" .  $herecurr);
+ 			}
+-		} elsif ($line =~ m{\b$NonptrType(\s*\*[\s\*]*(?:$Modifier\s*)?)($Ident)}) {
++		} elsif ($line =~ m{\b$NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)($Ident)}) {
+ 			my ($from, $to, $ident) = ($1, $1, $2);
+ 
+ 			# Should start with a space.
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
