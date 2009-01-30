@@ -1,90 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] libata-sff-32bit-pio-use-16bit-on-slop.patch removed from -mm tree
-Date: Fri, 30 Jan 2009 09:10:59 -0800
-Message-ID: <200901301710.n0UHAxg3003354@imap1.linux-foundation.org>
+Subject: [merged] sgi-xpc-fixup-stale-dbug_on-statements.patch removed from -mm tree
+Date: Fri, 30 Jan 2009 11:13:38 -0800
+Message-ID: <200901301913.n0UJDcOQ026353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752297AbZA3RLM (ORCPT
+	by vger.kernel.org with ESMTP id S1752470AbZA3TOL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 12:11:12 -0500
+	Fri, 30 Jan 2009 14:14:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: holt@sgi.com, dcn@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata sff: 32bit PIO use 16bit on slop
+     sgi-xpc: fix up stale DBUG_ON statements
 has been removed from the -mm tree.  Its filename was
-     libata-sff-32bit-pio-use-16bit-on-slop.patch
+     sgi-xpc-fixup-stale-dbug_on-statements.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata sff: 32bit PIO use 16bit on slop
-From: Hugh Dickins <hugh@veritas.com>
+Subject: sgi-xpc: fix up stale DBUG_ON statements
+From: Robin Holt <holt@sgi.com>
 
-871af1210f13966ab911ed2166e4ab2ce775b99d libata: Add 32bit PIO support
-causes errors on a four-year-old ata_piix Dell Precision 670.  Using 16bit
-PIO instead of 32bit PIO on the odd 1, 2 or 3 chars fixes that.
+Clean up the stale DBUG_ON checks and add a couple new ones.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-sff.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ drivers/misc/sgi-xp/xpc_channel.c |    3 ---
+ drivers/misc/sgi-xp/xpc_sn2.c     |   15 +++++++++++----
+ 2 files changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ata/libata-sff.c~libata-sff-32bit-pio-use-16bit-on-slop drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~libata-sff-32bit-pio-use-16bit-on-slop
-+++ a/drivers/ata/libata-sff.c
-@@ -774,17 +774,21 @@ unsigned int ata_sff_data_xfer32(struct 
- 		iowrite32_rep(data_addr, buf, words);
+diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xpc-fixup-stale-dbug_on-statements drivers/misc/sgi-xp/xpc_channel.c
+--- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xpc-fixup-stale-dbug_on-statements
++++ a/drivers/misc/sgi-xp/xpc_channel.c
+@@ -49,9 +49,6 @@ xpc_process_connect(struct xpc_channel *
  
- 	if (unlikely(slop)) {
--		__le32 pad;
-+		unsigned char slop_buf[4];
-+		unsigned char *trailing_buf = buf + buflen - slop;
-+
-+		words = (slop + 1) >> 1;
- 		if (rw == READ) {
--			pad = cpu_to_le32(ioread32(ap->ioaddr.data_addr));
--			memcpy(buf + buflen - slop, &pad, slop);
-+			ioread16_rep(data_addr, slop_buf, words);
-+			memcpy(trailing_buf, slop_buf, slop);
- 		} else {
--			memcpy(&pad, buf + buflen - slop, slop);
--			iowrite32(le32_to_cpu(pad), ap->ioaddr.data_addr);
-+			memcpy(slop_buf, trailing_buf, slop);
-+			slop_buf[slop] = 0;
-+			iowrite16_rep(data_addr, slop_buf, words);
- 		}
--		words++;
+ 		if (ch->flags & (XPC_C_CONNECTED | XPC_C_DISCONNECTING))
+ 			return;
+-
+-		DBUG_ON(ch->local_msgqueue == NULL);
+-		DBUG_ON(ch->remote_msgqueue == NULL);
  	}
--	return words << 2;
-+
-+	return buflen + (slop & 1);
- }
- EXPORT_SYMBOL_GPL(ata_sff_data_xfer32);
  
+ 	if (!(ch->flags & XPC_C_OPENREPLY)) {
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xpc-fixup-stale-dbug_on-statements drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xpc-fixup-stale-dbug_on-statements
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -1106,8 +1106,6 @@ xpc_process_activate_IRQ_rcvd_sn2(void)
+ 	int n_IRQs_expected;
+ 	int n_IRQs_detected;
+ 
+-	DBUG_ON(xpc_activate_IRQ_rcvd == 0);
+-
+ 	spin_lock_irqsave(&xpc_activate_IRQ_rcvd_lock, irq_flags);
+ 	n_IRQs_expected = xpc_activate_IRQ_rcvd;
+ 	xpc_activate_IRQ_rcvd = 0;
+@@ -1726,6 +1724,7 @@ xpc_clear_local_msgqueue_flags_sn2(struc
+ 		msg = (struct xpc_msg_sn2 *)((u64)ch_sn2->local_msgqueue +
+ 					     (get % ch->local_nentries) *
+ 					     ch->entry_size);
++		DBUG_ON(!(msg->flags & XPC_M_SN2_READY));
+ 		msg->flags = 0;
+ 	} while (++get < ch_sn2->remote_GP.get);
+ }
+@@ -1740,11 +1739,18 @@ xpc_clear_remote_msgqueue_flags_sn2(stru
+ 	struct xpc_msg_sn2 *msg;
+ 	s64 put;
+ 
+-	put = ch_sn2->w_remote_GP.put;
++	/* flags are zeroed when the buffer is allocated */
++	if (ch_sn2->remote_GP.put < ch->remote_nentries)
++		return;
++
++	put = max(ch_sn2->w_remote_GP.put, ch->remote_nentries);
+ 	do {
+ 		msg = (struct xpc_msg_sn2 *)((u64)ch_sn2->remote_msgqueue +
+ 					     (put % ch->remote_nentries) *
+ 					     ch->entry_size);
++		DBUG_ON(!(msg->flags & XPC_M_SN2_READY));
++		DBUG_ON(!(msg->flags & XPC_M_SN2_DONE));
++		DBUG_ON(msg->number != put - ch->remote_nentries);
+ 		msg->flags = 0;
+ 	} while (++put < ch_sn2->remote_GP.put);
+ }
+@@ -2280,8 +2286,9 @@ xpc_received_payload_sn2(struct xpc_chan
+ 	dev_dbg(xpc_chan, "msg=0x%p, msg_number=%ld, partid=%d, channel=%d\n",
+ 		(void *)msg, msg_number, ch->partid, ch->number);
+ 
+-	DBUG_ON((((u64)msg - (u64)ch->remote_msgqueue) / ch->entry_size) !=
++	DBUG_ON((((u64)msg - (u64)ch->sn.sn2.remote_msgqueue) / ch->entry_size) !=
+ 		msg_number % ch->remote_nentries);
++	DBUG_ON(!(msg->flags & XPC_M_SN2_READY));
+ 	DBUG_ON(msg->flags & XPC_M_SN2_DONE);
+ 
+ 	msg->flags |= XPC_M_SN2_DONE;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
-shm-fix-shmctlshm_info-lockup-with-config_shmem.patch
-clocksource-pass-clocksource-to-read-callback.patch
-mm-mmapc-avoid-referencing-a-freed-vma-in-mmap_region.patch
-libata-sff-32bit-pio-use-16bit-on-slop.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-mm-shmemc-fix-division-by-zero.patch
-get_mm_hiwater_xxx-trivial-s-define-inline.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-getrusage-fill-ru_maxrss-value.patch
-prio_tree-debugging-patch.patch
+origin.patch
+factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch
+allow-rwlocks-to-re-enable-interrupts.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
 
