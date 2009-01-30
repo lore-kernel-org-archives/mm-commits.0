@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-tty-switch-usb-serial-to-proc_fops.patch added to -mm tree
-Date: Fri, 30 Jan 2009 12:53:46 -0800
-Message-ID: <200901302053.n0UKrkae021408@imap1.linux-foundation.org>
+Subject: + proc-tty-switch-synclink_gt-to-proc_fops.patch added to -mm tree
+Date: Fri, 30 Jan 2009 12:53:37 -0800
+Message-ID: <200901302053.n0UKrbGL021117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54934 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59685 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752898AbZA3U4B (ORCPT
+	by vger.kernel.org with ESMTP id S1754920AbZA3U4D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 15:56:01 -0500
+	Fri, 30 Jan 2009 15:56:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     proc tty: switch usb-serial to ->proc_fops
+     proc tty: switch synclink_gt to ->proc_fops
 has been added to the -mm tree.  Its filename is
-     proc-tty-switch-usb-serial-to-proc_fops.patch
+     proc-tty-switch-synclink_gt-to-proc_fops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch usb-serial to ->proc_fops
+Subject: proc tty: switch synclink_gt to ->proc_fops
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
@@ -42,114 +42,165 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/usb-serial.c |   58 +++++++++++++-----------------
- 1 file changed, 27 insertions(+), 31 deletions(-)
+ drivers/char/synclink_gt.c |   74 ++++++++++++++++-------------------
+ 1 file changed, 34 insertions(+), 40 deletions(-)
 
-diff -puN drivers/usb/serial/usb-serial.c~proc-tty-switch-usb-serial-to-proc_fops drivers/usb/serial/usb-serial.c
---- a/drivers/usb/serial/usb-serial.c~proc-tty-switch-usb-serial-to-proc_fops
-+++ a/drivers/usb/serial/usb-serial.c
-@@ -26,6 +26,7 @@
- #include <linux/tty_flip.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
+diff -puN drivers/char/synclink_gt.c~proc-tty-switch-synclink_gt-to-proc_fops drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~proc-tty-switch-synclink_gt-to-proc_fops
++++ a/drivers/char/synclink_gt.c
+@@ -60,6 +60,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/ioport.h>
+ #include <linux/mm.h>
 +#include <linux/seq_file.h>
- #include <linux/spinlock.h>
- #include <linux/mutex.h>
- #include <linux/list.h>
-@@ -416,57 +417,52 @@ static int serial_break(struct tty_struc
- 	return 0;
+ #include <linux/slab.h>
+ #include <linux/netdevice.h>
+ #include <linux/vmalloc.h>
+@@ -154,7 +155,6 @@ static void tx_hold(struct tty_struct *t
+ static void tx_release(struct tty_struct *tty);
+ 
+ static int  ioctl(struct tty_struct *tty, struct file *file, unsigned int cmd, unsigned long arg);
+-static int  read_proc(char *page, char **start, off_t off, int count,int *eof, void *data);
+ static int  chars_in_buffer(struct tty_struct *tty);
+ static void throttle(struct tty_struct * tty);
+ static void unthrottle(struct tty_struct * tty);
+@@ -1229,13 +1229,12 @@ static long slgt_compat_ioctl(struct tty
+ /*
+  * proc fs support
+  */
+-static inline int line_info(char *buf, struct slgt_info *info)
++static inline void line_info(struct seq_file *m, struct slgt_info *info)
+ {
+ 	char stat_buf[30];
+-	int ret;
+ 	unsigned long flags;
+ 
+-	ret = sprintf(buf, "%s: IO=%08X IRQ=%d MaxFrameSize=%u\n",
++	seq_printf(m, "%s: IO=%08X IRQ=%d MaxFrameSize=%u\n",
+ 		      info->device_name, info->phys_reg_addr,
+ 		      info->irq_level, info->max_frame_size);
+ 
+@@ -1260,75 +1259,70 @@ static inline int line_info(char *buf, s
+ 		strcat(stat_buf, "|RI");
+ 
+ 	if (info->params.mode != MGSL_MODE_ASYNC) {
+-		ret += sprintf(buf+ret, "\tHDLC txok:%d rxok:%d",
++		seq_printf(m, "\tHDLC txok:%d rxok:%d",
+ 			       info->icount.txok, info->icount.rxok);
+ 		if (info->icount.txunder)
+-			ret += sprintf(buf+ret, " txunder:%d", info->icount.txunder);
++			seq_printf(m, " txunder:%d", info->icount.txunder);
+ 		if (info->icount.txabort)
+-			ret += sprintf(buf+ret, " txabort:%d", info->icount.txabort);
++			seq_printf(m, " txabort:%d", info->icount.txabort);
+ 		if (info->icount.rxshort)
+-			ret += sprintf(buf+ret, " rxshort:%d", info->icount.rxshort);
++			seq_printf(m, " rxshort:%d", info->icount.rxshort);
+ 		if (info->icount.rxlong)
+-			ret += sprintf(buf+ret, " rxlong:%d", info->icount.rxlong);
++			seq_printf(m, " rxlong:%d", info->icount.rxlong);
+ 		if (info->icount.rxover)
+-			ret += sprintf(buf+ret, " rxover:%d", info->icount.rxover);
++			seq_printf(m, " rxover:%d", info->icount.rxover);
+ 		if (info->icount.rxcrc)
+-			ret += sprintf(buf+ret, " rxcrc:%d", info->icount.rxcrc);
++			seq_printf(m, " rxcrc:%d", info->icount.rxcrc);
+ 	} else {
+-		ret += sprintf(buf+ret, "\tASYNC tx:%d rx:%d",
++		seq_printf(m, "\tASYNC tx:%d rx:%d",
+ 			       info->icount.tx, info->icount.rx);
+ 		if (info->icount.frame)
+-			ret += sprintf(buf+ret, " fe:%d", info->icount.frame);
++			seq_printf(m, " fe:%d", info->icount.frame);
+ 		if (info->icount.parity)
+-			ret += sprintf(buf+ret, " pe:%d", info->icount.parity);
++			seq_printf(m, " pe:%d", info->icount.parity);
+ 		if (info->icount.brk)
+-			ret += sprintf(buf+ret, " brk:%d", info->icount.brk);
++			seq_printf(m, " brk:%d", info->icount.brk);
+ 		if (info->icount.overrun)
+-			ret += sprintf(buf+ret, " oe:%d", info->icount.overrun);
++			seq_printf(m, " oe:%d", info->icount.overrun);
+ 	}
+ 
+ 	/* Append serial signal status to end */
+-	ret += sprintf(buf+ret, " %s\n", stat_buf+1);
++	seq_printf(m, " %s\n", stat_buf+1);
+ 
+-	ret += sprintf(buf+ret, "\ttxactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
++	seq_printf(m, "\ttxactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
+ 		       info->tx_active,info->bh_requested,info->bh_running,
+ 		       info->pending_bh);
+-
+-	return ret;
  }
  
--static int serial_read_proc(char *page, char **start, off_t off, int count,
--							int *eof, void *data)
-+static int serial_proc_show(struct seq_file *m, void *v)
+ /* Called to print information about devices
+  */
+-static int read_proc(char *page, char **start, off_t off, int count,
+-		     int *eof, void *data)
++static int synclink_gt_proc_show(struct seq_file *m, void *v)
  {
- 	struct usb_serial *serial;
--	int length = 0;
- 	int i;
--	off_t begin = 0;
- 	char tmp[40];
+-	int len = 0, l;
+-	off_t	begin = 0;
+ 	struct slgt_info *info;
  
- 	dbg("%s", __func__);
--	length += sprintf(page, "usbserinfo:1.0 driver:2.0\n");
--	for (i = 0; i < SERIAL_TTY_MINORS && length < PAGE_SIZE; ++i) {
-+	seq_puts(m, "usbserinfo:1.0 driver:2.0\n");
-+	for (i = 0; i < SERIAL_TTY_MINORS; ++i) {
- 		serial = usb_serial_get_by_index(i);
- 		if (serial == NULL)
- 			continue;
+-	len += sprintf(page, "synclink_gt driver\n");
++	seq_puts(m, "synclink_gt driver\n");
  
--		length += sprintf(page+length, "%d:", i);
-+		seq_printf(m, "%d:", i);
- 		if (serial->type->driver.owner)
--			length += sprintf(page+length, " module:%s",
-+			seq_printf(m, " module:%s",
- 				module_name(serial->type->driver.owner));
--		length += sprintf(page+length, " name:\"%s\"",
-+		seq_printf(m, " name:\"%s\"",
- 				serial->type->description);
--		length += sprintf(page+length, " vendor:%04x product:%04x",
-+		seq_printf(m, " vendor:%04x product:%04x",
- 			le16_to_cpu(serial->dev->descriptor.idVendor),
- 			le16_to_cpu(serial->dev->descriptor.idProduct));
--		length += sprintf(page+length, " num_ports:%d",
--							serial->num_ports);
--		length += sprintf(page+length, " port:%d",
--							i - serial->minor + 1);
-+		seq_printf(m, " num_ports:%d", serial->num_ports);
-+		seq_printf(m, " port:%d", i - serial->minor + 1);
- 		usb_make_path(serial->dev, tmp, sizeof(tmp));
--		length += sprintf(page+length, " path:%s", tmp);
-+		seq_printf(m, " path:%s", tmp);
- 
--		length += sprintf(page+length, "\n");
--		if ((length + begin) > (off + count)) {
--			usb_serial_put(serial);
+ 	info = slgt_device_list;
+ 	while( info ) {
+-		l = line_info(page + len, info);
+-		len += l;
+-		if (len+begin > off+count)
 -			goto done;
+-		if (len+begin < off) {
+-			begin += len;
+-			len = 0;
 -		}
--		if ((length + begin) < off) {
--			begin += length;
--			length = 0;
--		}
-+		seq_putc(m, '\n');
- 		usb_serial_put(serial);
++		line_info(m, info);
+ 		info = info->next_device;
  	}
++	return 0;
++}
+ 
 -	*eof = 1;
 -done:
--	if (off >= (length + begin))
+-	if (off >= len+begin)
 -		return 0;
 -	*start = page + (off-begin);
--	return (count < begin+length-off) ? count : begin+length-off;
-+	return 0;
+-	return ((count < begin+len-off) ? count : begin+len-off);
++static int synclink_gt_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, synclink_gt_proc_show, NULL);
  }
  
-+static int serial_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, serial_proc_show, NULL);
-+}
-+
-+static const struct file_operations serial_proc_fops = {
++static const struct file_operations synclink_gt_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= serial_proc_open,
++	.open		= synclink_gt_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
 +
- static int serial_tiocmget(struct tty_struct *tty, struct file *file)
- {
- 	struct usb_serial_port *port = tty->driver_data;
-@@ -1101,9 +1097,9 @@ static const struct tty_operations seria
- 	.unthrottle =		serial_unthrottle,
- 	.break_ctl =		serial_break,
- 	.chars_in_buffer =	serial_chars_in_buffer,
--	.read_proc =		serial_read_proc,
- 	.tiocmget =		serial_tiocmget,
- 	.tiocmset =		serial_tiocmset,
-+	.proc_fops =		&serial_proc_fops,
+ /*
+  * return count of bytes in transmit buffer
+  */
+@@ -3562,13 +3556,13 @@ static const struct tty_operations ops =
+ 	.send_xchar = send_xchar,
+ 	.break_ctl = set_break,
+ 	.wait_until_sent = wait_until_sent,
+- 	.read_proc = read_proc,
+ 	.set_termios = set_termios,
+ 	.stop = tx_hold,
+ 	.start = tx_release,
+ 	.hangup = hangup,
+ 	.tiocmget = tiocmget,
+ 	.tiocmset = tiocmset,
++	.proc_fops = &synclink_gt_proc_fops,
  };
  
- struct tty_driver *usb_serial_tty_driver;
+ static void slgt_cleanup(void)
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
