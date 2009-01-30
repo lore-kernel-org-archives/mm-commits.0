@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-tty-switch-ia64-simserial-to-proc_fops.patch added to -mm tree
-Date: Fri, 30 Jan 2009 12:53:52 -0800
-Message-ID: <200901302053.n0UKrrNl021531@imap1.linux-foundation.org>
+Subject: + proc-tty-switch-stallion-to-proc_fops.patch added to -mm tree
+Date: Fri, 30 Jan 2009 12:53:33 -0800
+Message-ID: <200901302053.n0UKrXLY021089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754415AbZA3UyD (ORCPT
+	by vger.kernel.org with ESMTP id S1754822AbZA3UyM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 15:54:03 -0500
+	Fri, 30 Jan 2009 15:54:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     proc tty: switch ia64 simserial to ->proc_fops
+     proc tty: switch stallion to ->proc_fops
 has been added to the -mm tree.  Its filename is
-     proc-tty-switch-ia64-simserial-to-proc_fops.patch
+     proc-tty-switch-stallion-to-proc_fops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch ia64 simserial to ->proc_fops
+Subject: proc tty: switch stallion to ->proc_fops
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
@@ -42,89 +42,209 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/sim/simserial.c |   47 ++++++++++++++++-----------------
- 1 file changed, 23 insertions(+), 24 deletions(-)
+ drivers/char/stallion.c |  124 +++++++++++++++-----------------------
+ 1 file changed, 49 insertions(+), 75 deletions(-)
 
-diff -puN arch/ia64/hp/sim/simserial.c~proc-tty-switch-ia64-simserial-to-proc_fops arch/ia64/hp/sim/simserial.c
---- a/arch/ia64/hp/sim/simserial.c~proc-tty-switch-ia64-simserial-to-proc_fops
-+++ a/arch/ia64/hp/sim/simserial.c
-@@ -24,6 +24,7 @@
- #include <linux/major.h>
- #include <linux/fcntl.h>
- #include <linux/mm.h>
+diff -puN drivers/char/stallion.c~proc-tty-switch-stallion-to-proc_fops drivers/char/stallion.c
+--- a/drivers/char/stallion.c~proc-tty-switch-stallion-to-proc_fops
++++ a/drivers/char/stallion.c
+@@ -32,6 +32,7 @@
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+ #include <linux/serial.h>
 +#include <linux/seq_file.h>
- #include <linux/slab.h>
- #include <linux/capability.h>
- #include <linux/console.h>
-@@ -848,38 +849,36 @@ static int rs_open(struct tty_struct *tt
-  * /proc fs routines....
+ #include <linux/cd1400.h>
+ #include <linux/sc26198.h>
+ #include <linux/comstats.h>
+@@ -1379,52 +1380,47 @@ static void stl_sendxchar(struct tty_str
+ 		stl_putchar(tty, ch);
+ }
+ 
+-/*****************************************************************************/
+-
+-#define	MAXLINE		80
+-
+-/*
+- *	Format info for a specified port. The line is deliberately limited
+- *	to 80 characters. (If it is too long it will be truncated, if too
+- *	short then padded with spaces).
+- */
+-
+-static int stl_portinfo(struct stlport *portp, int portnr, char *pos)
++static void stl_portinfo(struct seq_file *m, struct stlport *portp, int portnr)
+ {
+-	char	*sp;
+-	int	sigs, cnt;
++	int	sigs;
++	char sep;
+ 
+-	sp = pos;
+-	sp += sprintf(sp, "%d: uart:%s tx:%d rx:%d",
++	seq_printf(m, "%d: uart:%s tx:%d rx:%d",
+ 		portnr, (portp->hwid == 1) ? "SC26198" : "CD1400",
+ 		(int) portp->stats.txtotal, (int) portp->stats.rxtotal);
+ 
+ 	if (portp->stats.rxframing)
+-		sp += sprintf(sp, " fe:%d", (int) portp->stats.rxframing);
++		seq_printf(m, " fe:%d", (int) portp->stats.rxframing);
+ 	if (portp->stats.rxparity)
+-		sp += sprintf(sp, " pe:%d", (int) portp->stats.rxparity);
++		seq_printf(m, " pe:%d", (int) portp->stats.rxparity);
+ 	if (portp->stats.rxbreaks)
+-		sp += sprintf(sp, " brk:%d", (int) portp->stats.rxbreaks);
++		seq_printf(m, " brk:%d", (int) portp->stats.rxbreaks);
+ 	if (portp->stats.rxoverrun)
+-		sp += sprintf(sp, " oe:%d", (int) portp->stats.rxoverrun);
++		seq_printf(m, " oe:%d", (int) portp->stats.rxoverrun);
+ 
+ 	sigs = stl_getsignals(portp);
+-	cnt = sprintf(sp, "%s%s%s%s%s ",
+-		(sigs & TIOCM_RTS) ? "|RTS" : "",
+-		(sigs & TIOCM_CTS) ? "|CTS" : "",
+-		(sigs & TIOCM_DTR) ? "|DTR" : "",
+-		(sigs & TIOCM_CD) ? "|DCD" : "",
+-		(sigs & TIOCM_DSR) ? "|DSR" : "");
+-	*sp = ' ';
+-	sp += cnt;
+-
+-	for (cnt = sp - pos; cnt < (MAXLINE - 1); cnt++)
+-		*sp++ = ' ';
+-	if (cnt >= MAXLINE)
+-		pos[(MAXLINE - 2)] = '+';
+-	pos[(MAXLINE - 1)] = '\n';
+-
+-	return MAXLINE;
++	sep = ' ';
++	if (sigs & TIOCM_RTS) {
++		seq_printf(m, "%c%s", sep, "RTS");
++		sep = '|';
++	}
++	if (sigs & TIOCM_CTS) {
++		seq_printf(m, "%c%s", sep, "CTS");
++		sep = '|';
++	}
++	if (sigs & TIOCM_DTR) {
++		seq_printf(m, "%c%s", sep, "DTR");
++		sep = '|';
++	}
++	if (sigs & TIOCM_CD) {
++		seq_printf(m, "%c%s", sep, "DCD");
++		sep = '|';
++	}
++	if (sigs & TIOCM_DSR) {
++		seq_printf(m, "%c%s", sep, "DSR");
++		sep = '|';
++	}
++	seq_putc(m, '\n');
+ }
+ 
+ /*****************************************************************************/
+@@ -1433,30 +1429,17 @@ static int stl_portinfo(struct stlport *
+  *	Port info, read from the /proc file system.
   */
  
--static inline int line_info(char *buf, struct serial_state *state)
-+static inline void line_info(struct seq_file *m, struct serial_state *state)
+-static int stl_readproc(char *page, char **start, off_t off, int count, int *eof, void *data)
++static int stl_proc_show(struct seq_file *m, void *v)
  {
--	return sprintf(buf, "%d: uart:%s port:%lX irq:%d\n",
-+	seq_printf(m, "%d: uart:%s port:%lX irq:%d\n",
- 		       state->line, uart_config[state->type].name,
- 		       state->port, state->irq);
- }
+ 	struct stlbrd	*brdp;
+ 	struct stlpanel	*panelp;
+ 	struct stlport	*portp;
+ 	unsigned int	brdnr, panelnr, portnr;
+-	int		totalport, curoff, maxoff;
+-	char		*pos;
+-
+-	pr_debug("stl_readproc(page=%p,start=%p,off=%lx,count=%d,eof=%p,"
+-		"data=%p\n", page, start, off, count, eof, data);
++	int		totalport;
  
--static int rs_read_proc(char *page, char **start, off_t off, int count,
--		 int *eof, void *data)
-+static int rs_proc_show(struct seq_file *m, void *v)
- {
--	int i, len = 0, l;
--	off_t	begin = 0;
-+	int i;
+-	pos = page;
+ 	totalport = 0;
+-	curoff = 0;
  
--	len += sprintf(page, "simserinfo:1.0 driver:%s\n", serial_version);
--	for (i = 0; i < NR_PORTS && len < 4000; i++) {
--		l = line_info(page + len, &rs_table[i]);
--		len += l;
--		if (len+begin > off+count)
--			goto done;
--		if (len+begin < off) {
--			begin += len;
--			len = 0;
--		}
+-	if (off == 0) {
+-		pos += sprintf(pos, "%s: version %s", stl_drvtitle,
+-			stl_drvversion);
+-		while (pos < (page + MAXLINE - 1))
+-			*pos++ = ' ';
+-		*pos++ = '\n';
 -	}
--	*eof = 1;
--done:
--	if (off >= len+begin)
--		return 0;
--	*start = page + (begin-off);
--	return ((count < begin+len-off) ? count : begin+len-off);
-+	seq_printf(m, "simserinfo:1.0 driver:%s\n", serial_version);
-+	for (i = 0; i < NR_PORTS; i++)
-+		line_info(m, &rs_table[i]);
+-	curoff =  MAXLINE;
++	seq_printf(m, "%s: version %s\n", stl_drvtitle, stl_drvversion);
+ 
+ /*
+  *	We scan through for each board, panel and port. The offset is
+@@ -1469,46 +1452,37 @@ static int stl_readproc(char *page, char
+ 		if (brdp->state == 0)
+ 			continue;
+ 
+-		maxoff = curoff + (brdp->nrports * MAXLINE);
+-		if (off >= maxoff) {
+-			curoff = maxoff;
+-			continue;
+-		}
+-
+ 		totalport = brdnr * STL_MAXPORTS;
+ 		for (panelnr = 0; panelnr < brdp->nrpanels; panelnr++) {
+ 			panelp = brdp->panels[panelnr];
+ 			if (panelp == NULL)
+ 				continue;
+ 
+-			maxoff = curoff + (panelp->nrports * MAXLINE);
+-			if (off >= maxoff) {
+-				curoff = maxoff;
+-				totalport += panelp->nrports;
+-				continue;
+-			}
+-
+ 			for (portnr = 0; portnr < panelp->nrports; portnr++,
+ 			    totalport++) {
+ 				portp = panelp->ports[portnr];
+ 				if (portp == NULL)
+ 					continue;
+-				if (off >= (curoff += MAXLINE))
+-					continue;
+-				if ((pos - page + MAXLINE) > count)
+-					goto stl_readdone;
+-				pos += stl_portinfo(portp, totalport, pos);
++				stl_portinfo(m, portp, totalport);
+ 			}
+ 		}
+ 	}
 +	return 0;
++}
+ 
+-	*eof = 1;
+-
+-stl_readdone:
+-	*start = page;
+-	return pos - page;
++static int stl_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, stl_proc_show, NULL);
  }
  
-+static int rs_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, rs_proc_show, NULL);
-+}
-+
-+static const struct file_operations rs_proc_fops = {
++static const struct file_operations stl_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= rs_proc_open,
++	.open		= stl_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
 +
- /*
-  * ---------------------------------------------------------------------
-  * rs_init() and friends
-@@ -917,7 +916,7 @@ static const struct tty_operations hp_op
- 	.start = rs_start,
- 	.hangup = rs_hangup,
- 	.wait_until_sent = rs_wait_until_sent,
--	.read_proc = rs_read_proc,
-+	.proc_fops = &rs_proc_fops,
- };
+ /*****************************************************************************/
  
  /*
+@@ -2566,9 +2540,9 @@ static const struct tty_operations stl_o
+ 	.break_ctl = stl_breakctl,
+ 	.wait_until_sent = stl_waituntilsent,
+ 	.send_xchar = stl_sendxchar,
+-	.read_proc = stl_readproc,
+ 	.tiocmget = stl_tiocmget,
+ 	.tiocmset = stl_tiocmset,
++	.proc_fops = &stl_proc_fops,
+ };
+ 
+ static const struct tty_port_operations stl_port_ops = {
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
