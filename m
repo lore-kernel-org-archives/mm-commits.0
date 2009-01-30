@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-tty-switch-sdio_uart-to-proc_fops.patch added to -mm tree
-Date: Fri, 30 Jan 2009 12:53:42 -0800
-Message-ID: <200901302053.n0UKrgS5021302@imap1.linux-foundation.org>
+Subject: + proc-tty-switch-amiserial-to-proc_fops.patch added to -mm tree
+Date: Fri, 30 Jan 2009 12:53:50 -0800
+Message-ID: <200901302053.n0UKrpnm021448@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33674 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754697AbZA3UyV (ORCPT
+	by vger.kernel.org with ESMTP id S1754107AbZA3Uy1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 15:54:21 -0500
+	Fri, 30 Jan 2009 15:54:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     proc tty: switch sdio_uart to ->proc_fops
+     proc tty: switch amiserial to ->proc_fops
 has been added to the -mm tree.  Its filename is
-     proc-tty-switch-sdio_uart-to-proc_fops.patch
+     proc-tty-switch-amiserial-to-proc_fops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch sdio_uart to ->proc_fops
+Subject: proc tty: switch amiserial to ->proc_fops
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
@@ -42,125 +42,127 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/sdio_uart.c |   62 +++++++++++++++------------------
- 1 file changed, 30 insertions(+), 32 deletions(-)
+ drivers/char/amiserial.c |   60 ++++++++++++++++---------------------
+ 1 file changed, 27 insertions(+), 33 deletions(-)
 
-diff -puN drivers/mmc/card/sdio_uart.c~proc-tty-switch-sdio_uart-to-proc_fops drivers/mmc/card/sdio_uart.c
---- a/drivers/mmc/card/sdio_uart.c~proc-tty-switch-sdio_uart-to-proc_fops
-+++ a/drivers/mmc/card/sdio_uart.c
-@@ -30,6 +30,7 @@
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/mutex.h>
+diff -puN drivers/char/amiserial.c~proc-tty-switch-amiserial-to-proc_fops drivers/char/amiserial.c
+--- a/drivers/char/amiserial.c~proc-tty-switch-amiserial-to-proc_fops
++++ a/drivers/char/amiserial.c
+@@ -79,6 +79,7 @@ static char *serial_version = "4.30";
+ #include <linux/ptrace.h>
+ #include <linux/ioport.h>
+ #include <linux/mm.h>
 +#include <linux/seq_file.h>
- #include <linux/serial_reg.h>
- #include <linux/circ_buf.h>
- #include <linux/gfp.h>
-@@ -933,67 +934,64 @@ static int sdio_uart_tiocmset(struct tty
- 	return result;
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/bitops.h>
+@@ -1825,14 +1826,13 @@ static int rs_open(struct tty_struct *tt
+  * /proc fs routines....
+  */
+ 
+-static inline int line_info(char *buf, struct serial_state *state)
++static inline void line_info(struct seq_file *m, struct serial_state *state)
+ {
+ 	struct async_struct *info = state->info, scr_info;
+ 	char	stat_buf[30], control, status;
+-	int	ret;
+ 	unsigned long flags;
+ 
+-	ret = sprintf(buf, "%d: uart:amiga_builtin",state->line);
++	seq_printf(m, "%d: uart:amiga_builtin",state->line);
+ 
+ 	/*
+ 	 * Figure out the current RS-232 lines
+@@ -1864,55 +1864,49 @@ static inline int line_info(char *buf, s
+ 		strcat(stat_buf, "|CD");
+ 
+ 	if (info->quot) {
+-		ret += sprintf(buf+ret, " baud:%d",
+-			       state->baud_base / info->quot);
++		seq_printf(m, " baud:%d", state->baud_base / info->quot);
+ 	}
+ 
+-	ret += sprintf(buf+ret, " tx:%d rx:%d",
+-		      state->icount.tx, state->icount.rx);
++	seq_printf(m, " tx:%d rx:%d", state->icount.tx, state->icount.rx);
+ 
+ 	if (state->icount.frame)
+-		ret += sprintf(buf+ret, " fe:%d", state->icount.frame);
++		seq_printf(m, " fe:%d", state->icount.frame);
+ 
+ 	if (state->icount.parity)
+-		ret += sprintf(buf+ret, " pe:%d", state->icount.parity);
++		seq_printf(m, " pe:%d", state->icount.parity);
+ 
+ 	if (state->icount.brk)
+-		ret += sprintf(buf+ret, " brk:%d", state->icount.brk);
++		seq_printf(m, " brk:%d", state->icount.brk);
+ 
+ 	if (state->icount.overrun)
+-		ret += sprintf(buf+ret, " oe:%d", state->icount.overrun);
++		seq_printf(m, " oe:%d", state->icount.overrun);
+ 
+ 	/*
+ 	 * Last thing is the RS-232 status lines
+ 	 */
+-	ret += sprintf(buf+ret, " %s\n", stat_buf+1);
+-	return ret;
++	seq_printf(m, " %s\n", stat_buf+1);
  }
  
--static int sdio_uart_read_proc(char *page, char **start, off_t off,
--			       int count, int *eof, void *data)
-+static int sdio_uart_proc_show(struct seq_file *m, void *v)
+-static int rs_read_proc(char *page, char **start, off_t off, int count,
+-			int *eof, void *data)
++static int rs_proc_show(struct seq_file *m, void *v)
  {
--	int i, len = 0;
--	off_t begin = 0;
-+	int i;
- 
--	len += sprintf(page, "serinfo:1.0 driver%s%s revision:%s\n",
-+	seq_printf(m, "serinfo:1.0 driver%s%s revision:%s\n",
- 		       "", "", "");
--	for (i = 0; i < UART_NR && len < PAGE_SIZE - 96; i++) {
-+	for (i = 0; i < UART_NR; i++) {
- 		struct sdio_uart_port *port = sdio_uart_port_get(i);
- 		if (port) {
--			len += sprintf(page+len, "%d: uart:SDIO", i);
-+			seq_printf(m, "%d: uart:SDIO", i);
- 			if(capable(CAP_SYS_ADMIN)) {
--				len += sprintf(page + len, " tx:%d rx:%d",
-+				seq_printf(m, " tx:%d rx:%d",
- 					       port->icount.tx, port->icount.rx);
- 				if (port->icount.frame)
--					len += sprintf(page + len, " fe:%d",
-+					seq_printf(m, " fe:%d",
- 						       port->icount.frame);
- 				if (port->icount.parity)
--					len += sprintf(page + len, " pe:%d",
-+					seq_printf(m, " pe:%d",
- 						       port->icount.parity);
- 				if (port->icount.brk)
--					len += sprintf(page + len, " brk:%d",
-+					seq_printf(m, " brk:%d",
- 						       port->icount.brk);
- 				if (port->icount.overrun)
--					len += sprintf(page + len, " oe:%d",
-+					seq_printf(m, " oe:%d",
- 						       port->icount.overrun);
- 				if (port->icount.cts)
--					len += sprintf(page + len, " cts:%d",
-+					seq_printf(m, " cts:%d",
- 						       port->icount.cts);
- 				if (port->icount.dsr)
--					len += sprintf(page + len, " dsr:%d",
-+					seq_printf(m, " dsr:%d",
- 						       port->icount.dsr);
- 				if (port->icount.rng)
--					len += sprintf(page + len, " rng:%d",
-+					seq_printf(m, " rng:%d",
- 						       port->icount.rng);
- 				if (port->icount.dcd)
--					len += sprintf(page + len, " dcd:%d",
-+					seq_printf(m, " dcd:%d",
- 						       port->icount.dcd);
- 			}
--			strcat(page, "\n");
--			len++;
- 			sdio_uart_port_put(port);
--		}
--
--		if (len + begin > off + count)
--			goto done;
--		if (len + begin < off) {
--			begin += len;
--			len = 0;
-+			seq_putc(m, '\n');
- 		}
- 	}
--	*eof = 1;
+-	int len = 0, l;
+-	off_t	begin = 0;
++	seq_printf(m, "serinfo:1.0 driver:%s\n", serial_version);
++	line_info(m, &rs_table[0]);
 +	return 0;
 +}
  
+-	len += sprintf(page, "serinfo:1.0 driver:%s\n", serial_version);
+-	l = line_info(page + len, &rs_table[0]);
+-	len += l;
+-	if (len+begin > off+count)
+-	  goto done;
+-	if (len+begin < off) {
+-	  begin += len;
+-	  len = 0;
+-	}
+-	*eof = 1;
 -done:
--	if (off >= len + begin)
+-	if (off >= len+begin)
 -		return 0;
--	*start = page + (off - begin);
--	return (count < begin + len - off) ? count : (begin + len - off);
-+static int sdio_uart_proc_open(struct inode *inode, struct file *file)
+-	*start = page + (off-begin);
+-	return ((count < begin+len-off) ? count : begin+len-off);
++static int rs_proc_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, sdio_uart_proc_show, NULL);
++	return single_open(file, rs_proc_show, NULL);
  }
  
-+static const struct file_operations sdio_uart_proc_fops = {
++static const struct file_operations rs_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= sdio_uart_proc_open,
++	.open		= rs_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
 +
- static const struct tty_operations sdio_uart_ops = {
- 	.open			= sdio_uart_open,
- 	.close			= sdio_uart_close,
-@@ -1007,7 +1005,7 @@ static const struct tty_operations sdio_
- 	.break_ctl		= sdio_uart_break_ctl,
- 	.tiocmget		= sdio_uart_tiocmget,
- 	.tiocmset		= sdio_uart_tiocmset,
--	.read_proc		= sdio_uart_read_proc,
-+	.proc_fops		= &sdio_uart_proc_fops,
+ /*
+  * ---------------------------------------------------------------------
+  * rs_init() and friends
+@@ -1951,9 +1945,9 @@ static const struct tty_operations seria
+ 	.break_ctl = rs_break,
+ 	.send_xchar = rs_send_xchar,
+ 	.wait_until_sent = rs_wait_until_sent,
+-	.read_proc = rs_read_proc,
+ 	.tiocmget = rs_tiocmget,
+ 	.tiocmset = rs_tiocmset,
++	.proc_fops = &rs_proc_fops,
  };
  
- static struct tty_driver *sdio_uart_tty_driver;
+ /*
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
