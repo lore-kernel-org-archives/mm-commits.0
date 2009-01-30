@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + eeepc-should-depend-on-input.patch added to -mm tree
-Date: Fri, 30 Jan 2009 12:21:49 -0800
-Message-ID: <200901302021.n0UKLnOo013996@imap1.linux-foundation.org>
+Subject: + tags-fix-config-symbols-generation.patch added to -mm tree
+Date: Fri, 30 Jan 2009 12:22:25 -0800
+Message-ID: <200901302022.n0UKMPtN014715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53249 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754160AbZA3UWI (ORCPT
+	by vger.kernel.org with ESMTP id S1754069AbZA3UWc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 15:22:08 -0500
+	Fri, 30 Jan 2009 15:22:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, lenb@kernel.org, mingo@elte.hu
+Cc: adobriyan@gmail.com, sam@ravnborg.org
 
 
 The patch titled
-     eeepc: should depend on INPUT
+     tags: fix config symbols generation
 has been added to the -mm tree.  Its filename is
-     eeepc-should-depend-on-input.patch
+     tags-fix-config-symbols-generation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eeepc: should depend on INPUT
+Subject: tags: fix config symbols generation
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Otherwise with INPUT=m, EEEPC_LAPTOP=y one gets
+commit 4f628248a578585472e19e4cba2c604643af8c6c aka "kbuild: reintroduce
+ALLSOURCE_ARCHS support for tags/cscope" breaks tags generation for
+Kconfig symbols.
 
-drivers/built-in.o: In function `input_sync':
-eeepc-laptop.c:(.text+0x18ce51): undefined reference to `input_event'
-drivers/built-in.o: In function `input_report_key':
-eeepc-laptop.c:(.text+0x18ce73): undefined reference to `input_event'
-drivers/built-in.o: In function `eeepc_hotk_check':
-eeepc-laptop.c:(.text+0x18d05f): undefined reference to `input_allocate_device'
-eeepc-laptop.c:(.text+0x18d10f): undefined reference to `input_register_device'
-eeepc-laptop.c:(.text+0x18d131): undefined reference to `input_free_device'
-drivers/built-in.o: In function `eeepc_backlight_exit':
-eeepc-laptop.c:(.text+0x18d546): undefined reference to `input_unregister_device'
+Steps to reproduce:
+
+	make tags
+	vi -t PROC_FS
+
+It should jump to 'config PROC_FS' line.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/tags.sh |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/Kconfig~eeepc-should-depend-on-input drivers/platform/x86/Kconfig
---- a/drivers/platform/x86/Kconfig~eeepc-should-depend-on-input
-+++ a/drivers/platform/x86/Kconfig
-@@ -314,6 +314,7 @@ config INTEL_MENLOW
- config EEEPC_LAPTOP
- 	tristate "Eee PC Hotkey Driver (EXPERIMENTAL)"
- 	depends on ACPI
-+	depends on INPUT
- 	depends on EXPERIMENTAL
- 	select BACKLIGHT_CLASS_DEVICE
- 	select HWMON
+diff -puN scripts/tags.sh~tags-fix-config-symbols-generation scripts/tags.sh
+--- a/scripts/tags.sh~tags-fix-config-symbols-generation
++++ a/scripts/tags.sh
+@@ -76,7 +76,10 @@ all_sources()
+ 
+ all_kconfigs()
+ {
+-	find_sources $ALLSOURCE_ARCHS 'Kconfig*'
++	for arch in $ALLSOURCE_ARCHS; do
++		find_sources $arch 'Kconfig*'
++	done
++	find_other_sources 'Kconfig*'
+ }
+ 
+ all_defconfigs()
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
@@ -78,6 +79,7 @@ seq_file-move-traverse-so-it-can-be-used-from-seq_read.patch
 seq_file-properly-cope-with-pread.patch
 linux-next.patch
 eeepc-should-depend-on-input.patch
+tags-fix-config-symbols-generation.patch
 sm501-fix-section-mismatches.patch
 mpt-remove-unused-struct-mpt_proc_entry_t.patch
 softirq-introduce-statistics-for-softirq.patch
