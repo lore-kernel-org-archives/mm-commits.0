@@ -1,122 +1,615 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwmon-applesmc-add-support-for-macpro-3-temperature-sensors.patch removed from -mm tree
-Date: Fri, 30 Jan 2009 11:14:20 -0800
-Message-ID: <200901301914.n0UJEKns027221@imap1.linux-foundation.org>
+Subject: [merged] alpha-use-syscall-wrappers.patch removed from -mm tree
+Date: Fri, 30 Jan 2009 11:14:03 -0800
+Message-ID: <200901301914.n0UJE3Y4026882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53170 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753293AbZA3TO4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753385AbZA3TPJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 14:14:56 -0500
+	Fri, 30 Jan 2009 14:15:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bramesh@vt.edu, rydberg@euromail.se, mm-commits@vger.kernel.org
+To: ink@jurassic.park.msu.ru, heiko.carstens@de.ibm.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: applesmc: add support for MacPro 3 temperature sensors
+     alpha: use syscall wrappers
 has been removed from the -mm tree.  Its filename was
-     hwmon-applesmc-add-support-for-macpro-3-temperature-sensors.patch
+     alpha-use-syscall-wrappers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: applesmc: add support for MacPro 3 temperature sensors
-From: Bharath Ramesh <bramesh@vt.edu>
+Subject: alpha: use syscall wrappers
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-MacPro 3 have more temperature sensors than the previous MacPro's also the
-sensor THTG has been removed.  This patch add supports for the newer
-temperature sensors in the MacPro3.
+Convert OSF syscalls and add alpha specific SYSCALL_ALIAS() macro.
 
-Signed-off-by: Bharath Ramesh <bramesh@vt.edu>
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |   30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+ arch/alpha/Kconfig          |    1 
+ arch/alpha/kernel/entry.S   |    2 
+ arch/alpha/kernel/osf_sys.c |  113 +++++++++++++++-------------------
+ arch/alpha/kernel/signal.c  |   18 ++---
+ arch/alpha/kernel/systbls.S |   52 +++++++--------
+ include/linux/syscalls.h    |    5 +
+ 6 files changed, 92 insertions(+), 99 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-macpro-3-temperature-sensors drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-macpro-3-temperature-sensors
-+++ a/drivers/hwmon/applesmc.c
-@@ -83,7 +83,7 @@
- /*
-  * Temperature sensors keys (sp78 - 2 bytes).
+diff -puN arch/alpha/Kconfig~alpha-use-syscall-wrappers arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~alpha-use-syscall-wrappers
++++ a/arch/alpha/Kconfig
+@@ -8,6 +8,7 @@ config ALPHA
+ 	select HAVE_AOUT
+ 	select HAVE_IDE
+ 	select HAVE_OPROFILE
++	select HAVE_SYSCALL_WRAPPERS
+ 	help
+ 	  The Alpha is a 64-bit general-purpose processor designed and
+ 	  marketed by the Digital Equipment Corporation of blessed memory,
+diff -puN arch/alpha/kernel/entry.S~alpha-use-syscall-wrappers arch/alpha/kernel/entry.S
+--- a/arch/alpha/kernel/entry.S~alpha-use-syscall-wrappers
++++ a/arch/alpha/kernel/entry.S
+@@ -933,7 +933,7 @@ sys_execve:
+ osf_sigprocmask:
+ 	.prologue 0
+ 	mov	$sp, $18
+-	jmp	$31, do_osf_sigprocmask
++	jmp	$31, sys_osf_sigprocmask
+ .end osf_sigprocmask
+ 
+ 	.align	4
+diff -puN arch/alpha/kernel/osf_sys.c~alpha-use-syscall-wrappers arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~alpha-use-syscall-wrappers
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -54,8 +54,7 @@ extern int do_pipe(int *);
+  * identical to OSF as we don't return 0 on success, but doing otherwise
+  * would require changes to libc.  Hopefully this is good enough.
   */
--static const char* temperature_sensors_sets[][36] = {
-+static const char *temperature_sensors_sets[][41] = {
- /* Set 0: Macbook Pro */
- 	{ "TA0P", "TB0T", "TC0D", "TC0P", "TG0H", "TG0P", "TG0T", "Th0H",
- 	  "Th1H", "Tm0P", "Ts0P", "Ts1P", NULL },
-@@ -135,6 +135,13 @@ static const char* temperature_sensors_s
- 	{ "TB0T", "TB1S", "TB1T", "TB2S", "TB2T", "TC0D", "TN0D", "TTF0",
- 	  "TV0P", "TVFP", "TW0P", "Th0P", "Tp0P", "Tp1P", "TpFP", "Ts0P",
- 	  "Ts0S", NULL },
-+/* Set 16: Mac Pro 3,1 (2 x Quad-Core) */
-+	{ "TA0P", "TCAG", "TCAH", "TCBG", "TCBH", "TC0C", "TC0D", "TC0P",
-+	  "TC1C", "TC1D", "TC2C", "TC2D", "TC3C", "TC3D", "TH0P", "TH1P",
-+	  "TH2P", "TH3P", "TMAP", "TMAS", "TMBS", "TM0P", "TM0S", "TM1P",
-+	  "TM1S", "TM2P", "TM2S", "TM3S", "TM8P", "TM8S", "TM9P", "TM9S",
-+	  "TN0C", "TN0D", "TN0H", "TS0C", "Tp0C", "Tp1C", "Tv0S", "Tv1S",
-+	  NULL },
+-asmlinkage unsigned long
+-osf_brk(unsigned long brk)
++SYSCALL_DEFINE1(osf_brk, unsigned long, brk)
+ {
+ 	unsigned long retval = sys_brk(brk);
+ 	if (brk && brk != retval)
+@@ -66,9 +65,9 @@ osf_brk(unsigned long brk)
+ /*
+  * This is pure guess-work..
+  */
+-asmlinkage int
+-osf_set_program_attributes(unsigned long text_start, unsigned long text_len,
+-			   unsigned long bss_start, unsigned long bss_len)
++SYSCALL_DEFINE4(osf_set_program_attributes, unsigned long, text_start,
++		unsigned long, text_len, unsigned long, bss_start,
++		unsigned long, bss_len)
+ {
+ 	struct mm_struct *mm;
+ 
+@@ -146,9 +145,9 @@ Efault:
+ 	return -EFAULT;
+ }
+ 
+-asmlinkage int
+-osf_getdirentries(unsigned int fd, struct osf_dirent __user *dirent,
+-		  unsigned int count, long __user *basep)
++SYSCALL_DEFINE4(osf_getdirentries, unsigned int, fd,
++		struct osf_dirent __user *, dirent, unsigned int, count,
++		long __user *, basep)
+ {
+ 	int error;
+ 	struct file *file;
+@@ -177,9 +176,9 @@ osf_getdirentries(unsigned int fd, struc
+ 
+ #undef NAME_OFFSET
+ 
+-asmlinkage unsigned long
+-osf_mmap(unsigned long addr, unsigned long len, unsigned long prot,
+-	 unsigned long flags, unsigned long fd, unsigned long off)
++SYSCALL_DEFINE6(osf_mmap, unsigned long, addr, unsigned long, len,
++		unsigned long, prot, unsigned long, flags, unsigned long, fd,
++		unsigned long, off)
+ {
+ 	struct file *file = NULL;
+ 	unsigned long ret = -EBADF;
+@@ -254,8 +253,8 @@ do_osf_statfs(struct dentry * dentry, st
+ 	return error;	
+ }
+ 
+-asmlinkage int
+-osf_statfs(char __user *pathname, struct osf_statfs __user *buffer, unsigned long bufsiz)
++SYSCALL_DEFINE3(osf_statfs, char __user *, pathname,
++		struct osf_statfs __user *, buffer, unsigned long, bufsiz)
+ {
+ 	struct path path;
+ 	int retval;
+@@ -268,8 +267,8 @@ osf_statfs(char __user *pathname, struct
+ 	return retval;
+ }
+ 
+-asmlinkage int
+-osf_fstatfs(unsigned long fd, struct osf_statfs __user *buffer, unsigned long bufsiz)
++SYSCALL_DEFINE3(osf_fstatfs, unsigned long, fd,
++		struct osf_statfs __user *, buffer, unsigned long, bufsiz)
+ {
+ 	struct file *file;
+ 	int retval;
+@@ -368,8 +367,8 @@ osf_procfs_mount(char *dirname, struct p
+ 	return do_mount("", dirname, "proc", flags, NULL);
+ }
+ 
+-asmlinkage int
+-osf_mount(unsigned long typenr, char __user *path, int flag, void __user *data)
++SYSCALL_DEFINE4(osf_mount, unsigned long, typenr, char __user *, path,
++		int, flag, void __user *, data)
+ {
+ 	int retval = -EINVAL;
+ 	char *name;
+@@ -399,8 +398,7 @@ osf_mount(unsigned long typenr, char __u
+ 	return retval;
+ }
+ 
+-asmlinkage int
+-osf_utsname(char __user *name)
++SYSCALL_DEFINE1(osf_utsname, char __user *, name)
+ {
+ 	int error;
+ 
+@@ -423,14 +421,12 @@ osf_utsname(char __user *name)
+ 	return error;
+ }
+ 
+-asmlinkage unsigned long
+-sys_getpagesize(void)
++SYSCALL_DEFINE0(getpagesize)
+ {
+ 	return PAGE_SIZE;
+ }
+ 
+-asmlinkage unsigned long
+-sys_getdtablesize(void)
++SYSCALL_DEFINE0(getdtablesize)
+ {
+ 	return sysctl_nr_open;
+ }
+@@ -438,8 +434,7 @@ sys_getdtablesize(void)
+ /*
+  * For compatibility with OSF/1 only.  Use utsname(2) instead.
+  */
+-asmlinkage int
+-osf_getdomainname(char __user *name, int namelen)
++SYSCALL_DEFINE2(osf_getdomainname, char __user *, name, int, namelen)
+ {
+ 	unsigned len;
+ 	int i;
+@@ -527,8 +522,8 @@ enum pl_code {
+ 	PL_DEL = 5, PL_FDEL = 6
  };
  
- /* List of keys used to read/write fan speeds */
-@@ -1153,6 +1160,16 @@ static SENSOR_DEVICE_ATTR(temp34_input, 
- 					applesmc_show_temperature, NULL, 33);
- static SENSOR_DEVICE_ATTR(temp35_input, S_IRUGO,
- 					applesmc_show_temperature, NULL, 34);
-+static SENSOR_DEVICE_ATTR(temp36_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 35);
-+static SENSOR_DEVICE_ATTR(temp37_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 36);
-+static SENSOR_DEVICE_ATTR(temp38_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 37);
-+static SENSOR_DEVICE_ATTR(temp39_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 38);
-+static SENSOR_DEVICE_ATTR(temp40_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 39);
+-asmlinkage long
+-osf_proplist_syscall(enum pl_code code, union pl_args __user *args)
++SYSCALL_DEFINE2(osf_proplist_syscall, enum pl_code, code,
++		union pl_args __user *, args)
+ {
+ 	long error;
+ 	int __user *min_buf_size_ptr;
+@@ -567,8 +562,8 @@ osf_proplist_syscall(enum pl_code code, 
+ 	return error;
+ }
  
- static struct attribute *temperature_attributes[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
-@@ -1190,6 +1207,11 @@ static struct attribute *temperature_att
- 	&sensor_dev_attr_temp33_input.dev_attr.attr,
- 	&sensor_dev_attr_temp34_input.dev_attr.attr,
- 	&sensor_dev_attr_temp35_input.dev_attr.attr,
-+	&sensor_dev_attr_temp36_input.dev_attr.attr,
-+	&sensor_dev_attr_temp37_input.dev_attr.attr,
-+	&sensor_dev_attr_temp38_input.dev_attr.attr,
-+	&sensor_dev_attr_temp39_input.dev_attr.attr,
-+	&sensor_dev_attr_temp40_input.dev_attr.attr,
- 	NULL
+-asmlinkage int
+-osf_sigstack(struct sigstack __user *uss, struct sigstack __user *uoss)
++SYSCALL_DEFINE2(osf_sigstack, struct sigstack __user *, uss,
++		struct sigstack __user *, uoss)
+ {
+ 	unsigned long usp = rdusp();
+ 	unsigned long oss_sp = current->sas_ss_sp + current->sas_ss_size;
+@@ -608,8 +603,7 @@ osf_sigstack(struct sigstack __user *uss
+ 	return error;
+ }
+ 
+-asmlinkage long
+-osf_sysinfo(int command, char __user *buf, long count)
++SYSCALL_DEFINE3(osf_sysinfo, int, command, char __user *, buf, long, count)
+ {
+ 	char *sysinfo_table[] = {
+ 		utsname()->sysname,
+@@ -647,9 +641,8 @@ osf_sysinfo(int command, char __user *bu
+ 	return err;
+ }
+ 
+-asmlinkage unsigned long
+-osf_getsysinfo(unsigned long op, void __user *buffer, unsigned long nbytes,
+-	       int __user *start, void __user *arg)
++SYSCALL_DEFINE5(osf_getsysinfo, unsigned long, op, void __user *, buffer,
++		unsigned long, nbytes, int __user *, start, void __user *, arg)
+ {
+ 	unsigned long w;
+ 	struct percpu_struct *cpu;
+@@ -705,9 +698,8 @@ osf_getsysinfo(unsigned long op, void __
+ 	return -EOPNOTSUPP;
+ }
+ 
+-asmlinkage unsigned long
+-osf_setsysinfo(unsigned long op, void __user *buffer, unsigned long nbytes,
+-	       int __user *start, void __user *arg)
++SYSCALL_DEFINE5(osf_setsysinfo, unsigned long, op, void __user *, buffer,
++		unsigned long, nbytes, int __user *, start, void __user *, arg)
+ {
+ 	switch (op) {
+ 	case SSI_IEEE_FP_CONTROL: {
+@@ -880,8 +872,8 @@ jiffies_to_timeval32(unsigned long jiffi
+ 	value->tv_sec = jiffies / HZ;
+ }
+ 
+-asmlinkage int
+-osf_gettimeofday(struct timeval32 __user *tv, struct timezone __user *tz)
++SYSCALL_DEFINE2(osf_gettimeofday, struct timeval32 __user *, tv,
++		struct timezone __user *, tz)
+ {
+ 	if (tv) {
+ 		struct timeval ktv;
+@@ -896,8 +888,8 @@ osf_gettimeofday(struct timeval32 __user
+ 	return 0;
+ }
+ 
+-asmlinkage int
+-osf_settimeofday(struct timeval32 __user *tv, struct timezone __user *tz)
++SYSCALL_DEFINE2(osf_settimeofday, struct timeval32 __user *, tv,
++		struct timezone __user *, tz)
+ {
+ 	struct timespec kts;
+ 	struct timezone ktz;
+@@ -916,8 +908,7 @@ osf_settimeofday(struct timeval32 __user
+ 	return do_sys_settimeofday(tv ? &kts : NULL, tz ? &ktz : NULL);
+ }
+ 
+-asmlinkage int
+-osf_getitimer(int which, struct itimerval32 __user *it)
++SYSCALL_DEFINE2(osf_getitimer, int, which, struct itimerval32 __user *, it)
+ {
+ 	struct itimerval kit;
+ 	int error;
+@@ -929,8 +920,8 @@ osf_getitimer(int which, struct itimerva
+ 	return error;
+ }
+ 
+-asmlinkage int
+-osf_setitimer(int which, struct itimerval32 __user *in, struct itimerval32 __user *out)
++SYSCALL_DEFINE3(osf_setitimer, int, which, struct itimerval32 __user *, in,
++		struct itimerval32 __user *, out)
+ {
+ 	struct itimerval kin, kout;
+ 	int error;
+@@ -952,8 +943,8 @@ osf_setitimer(int which, struct itimerva
+ 
+ }
+ 
+-asmlinkage int
+-osf_utimes(char __user *filename, struct timeval32 __user *tvs)
++SYSCALL_DEFINE2(osf_utimes, char __user *, filename,
++		struct timeval32 __user *, tvs)
+ {
+ 	struct timespec tv[2];
+ 
+@@ -979,9 +970,8 @@ osf_utimes(char __user *filename, struct
+ #define MAX_SELECT_SECONDS \
+ 	((unsigned long) (MAX_SCHEDULE_TIMEOUT / HZ)-1)
+ 
+-asmlinkage int
+-osf_select(int n, fd_set __user *inp, fd_set __user *outp, fd_set __user *exp,
+-	   struct timeval32 __user *tvp)
++SYSCALL_DEFINE5(osf_select, int, n, fd_set __user *, inp, fd_set __user *, outp,
++		fd_set __user *, exp, struct timeval32 __user *, tvp)
+ {
+ 	struct timespec end_time, *to = NULL;
+ 	if (tvp) {
+@@ -1026,8 +1016,7 @@ struct rusage32 {
+ 	long	ru_nivcsw;		/* involuntary " */
  };
  
-@@ -1312,6 +1334,8 @@ static __initdata struct dmi_match_data 
- 	{ .accelerometer = 0, .light = 0, .temperature_set = 14 },
- /* MacBook Air 2,1: accelerometer, backlight and temperature set 15 */
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 15 },
-+/* MacPro3,1: temperature set 16 */
-+	{ .accelerometer = 0, .light = 0, .temperature_set = 16 },
+-asmlinkage int
+-osf_getrusage(int who, struct rusage32 __user *ru)
++SYSCALL_DEFINE2(osf_getrusage, int, who, struct rusage32 __user *, ru)
+ {
+ 	struct rusage32 r;
+ 
+@@ -1053,9 +1042,8 @@ osf_getrusage(int who, struct rusage32 _
+ 	return copy_to_user(ru, &r, sizeof(r)) ? -EFAULT : 0;
+ }
+ 
+-asmlinkage long
+-osf_wait4(pid_t pid, int __user *ustatus, int options,
+-	  struct rusage32 __user *ur)
++SYSCALL_DEFINE4(osf_wait4, pid_t, pid, int __user *, ustatus, int, options,
++		struct rusage32 __user *, ur)
+ {
+ 	struct rusage r;
+ 	long ret, err;
+@@ -1101,8 +1089,8 @@ osf_wait4(pid_t pid, int __user *ustatus
+  * seems to be a timeval pointer, and I suspect the second
+  * one is the time remaining.. Ho humm.. No documentation.
+  */
+-asmlinkage int
+-osf_usleep_thread(struct timeval32 __user *sleep, struct timeval32 __user *remain)
++SYSCALL_DEFINE2(osf_usleep_thread, struct timeval32 __user *, sleep,
++		struct timeval32 __user *, remain)
+ {
+ 	struct timeval tmp;
+ 	unsigned long ticks;
+@@ -1155,8 +1143,7 @@ struct timex32 {
+ 	int  :32; int  :32; int  :32; int  :32;
  };
  
- /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-@@ -1369,6 +1393,10 @@ static __initdata struct dmi_system_id a
- 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacPro2") },
- 		&applesmc_dmi_data[4]},
-+	{ applesmc_dmi_match, "Apple MacPro3", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME, "MacPro3") },
-+		&applesmc_dmi_data[16]},
- 	{ applesmc_dmi_match, "Apple MacPro", {
- 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacPro") },
+-asmlinkage int
+-sys_old_adjtimex(struct timex32 __user *txc_p)
++SYSCALL_DEFINE1(old_adjtimex, struct timex32 __user *, txc_p)
+ {
+         struct timex txc;
+ 	int ret;
+@@ -1267,8 +1254,8 @@ osf_fix_iov_len(const struct iovec __use
+ 	return 0;
+ }
+ 
+-asmlinkage ssize_t
+-osf_readv(unsigned long fd, const struct iovec __user * vector, unsigned long count)
++SYSCALL_DEFINE3(osf_readv, unsigned long, fd,
++		const struct iovec __user *, vector, unsigned long, count)
+ {
+ 	if (unlikely(personality(current->personality) == PER_OSF4))
+ 		if (osf_fix_iov_len(vector, count))
+@@ -1276,8 +1263,8 @@ osf_readv(unsigned long fd, const struct
+ 	return sys_readv(fd, vector, count);
+ }
+ 
+-asmlinkage ssize_t
+-osf_writev(unsigned long fd, const struct iovec __user * vector, unsigned long count)
++SYSCALL_DEFINE3(osf_writev, unsigned long, fd,
++		const struct iovec __user *, vector, unsigned long, count)
+ {
+ 	if (unlikely(personality(current->personality) == PER_OSF4))
+ 		if (osf_fix_iov_len(vector, count))
+diff -puN arch/alpha/kernel/signal.c~alpha-use-syscall-wrappers arch/alpha/kernel/signal.c
+--- a/arch/alpha/kernel/signal.c~alpha-use-syscall-wrappers
++++ a/arch/alpha/kernel/signal.c
+@@ -19,6 +19,7 @@
+ #include <linux/tty.h>
+ #include <linux/binfmts.h>
+ #include <linux/bitops.h>
++#include <linux/syscalls.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/sigcontext.h>
+@@ -51,8 +52,8 @@ static void do_signal(struct pt_regs *, 
+  * Note that we don't need to acquire the kernel lock for SMP
+  * operation, as all of this is local to this thread.
+  */
+-asmlinkage unsigned long
+-do_osf_sigprocmask(int how, unsigned long newmask, struct pt_regs *regs)
++SYSCALL_DEFINE3(osf_sigprocmask, int, how, unsigned long, newmask,
++		struct pt_regs *, regs)
+ {
+ 	unsigned long oldmask = -EINVAL;
+ 
+@@ -81,9 +82,9 @@ do_osf_sigprocmask(int how, unsigned lon
+ 	return oldmask;
+ }
+ 
+-asmlinkage int 
+-osf_sigaction(int sig, const struct osf_sigaction __user *act,
+-	      struct osf_sigaction __user *oact)
++SYSCALL_DEFINE3(osf_sigaction, int, sig,
++		const struct osf_sigaction __user *, act,
++		struct osf_sigaction __user *, oact)
+ {
+ 	struct k_sigaction new_ka, old_ka;
+ 	int ret;
+@@ -112,10 +113,9 @@ osf_sigaction(int sig, const struct osf_
+ 	return ret;
+ }
+ 
+-asmlinkage long
+-sys_rt_sigaction(int sig, const struct sigaction __user *act,
+-		 struct sigaction __user *oact,
+-		 size_t sigsetsize, void __user *restorer)
++SYSCALL_DEFINE5(rt_sigaction, int, sig, const struct sigaction __user *, act,
++		struct sigaction __user *, oact,
++		size_t, sigsetsize, void __user *, restorer)
+ {
+ 	struct k_sigaction new_ka, old_ka;
+ 	int ret;
+diff -puN arch/alpha/kernel/systbls.S~alpha-use-syscall-wrappers arch/alpha/kernel/systbls.S
+--- a/arch/alpha/kernel/systbls.S~alpha-use-syscall-wrappers
++++ a/arch/alpha/kernel/systbls.S
+@@ -17,7 +17,7 @@ sys_call_table:
+ 	.quad sys_write
+ 	.quad alpha_ni_syscall			/* 5 */
+ 	.quad sys_close
+-	.quad osf_wait4
++	.quad sys_osf_wait4
+ 	.quad alpha_ni_syscall
+ 	.quad sys_link
+ 	.quad sys_unlink			/* 10 */
+@@ -27,11 +27,11 @@ sys_call_table:
+ 	.quad sys_mknod
+ 	.quad sys_chmod				/* 15 */
+ 	.quad sys_chown
+-	.quad osf_brk
++	.quad sys_osf_brk
+ 	.quad alpha_ni_syscall
+ 	.quad sys_lseek
+ 	.quad sys_getxpid			/* 20 */
+-	.quad osf_mount
++	.quad sys_osf_mount
+ 	.quad sys_umount
+ 	.quad sys_setuid
+ 	.quad sys_getxuid
+@@ -53,7 +53,7 @@ sys_call_table:
+ 	.quad alpha_ni_syscall			/* 40 */
+ 	.quad sys_dup
+ 	.quad sys_alpha_pipe
+-	.quad osf_set_program_attributes
++	.quad sys_osf_set_program_attributes
+ 	.quad alpha_ni_syscall
+ 	.quad sys_open				/* 45 */
+ 	.quad alpha_ni_syscall
+@@ -81,7 +81,7 @@ sys_call_table:
+ 	.quad sys_newlstat
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall			/* 70 */
+-	.quad osf_mmap
++	.quad sys_osf_mmap
+ 	.quad alpha_ni_syscall
+ 	.quad sys_munmap
+ 	.quad sys_mprotect
+@@ -94,17 +94,17 @@ sys_call_table:
+ 	.quad sys_setgroups			/* 80 */
+ 	.quad alpha_ni_syscall
+ 	.quad sys_setpgid
+-	.quad osf_setitimer
++	.quad sys_osf_setitimer
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall			/* 85 */
+-	.quad osf_getitimer
++	.quad sys_osf_getitimer
+ 	.quad sys_gethostname
+ 	.quad sys_sethostname
+ 	.quad sys_getdtablesize
+ 	.quad sys_dup2				/* 90 */
+ 	.quad sys_newfstat
+ 	.quad sys_fcntl
+-	.quad osf_select
++	.quad sys_osf_select
+ 	.quad sys_poll
+ 	.quad sys_fsync				/* 95 */
+ 	.quad sys_setpriority
+@@ -123,22 +123,22 @@ sys_call_table:
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall			/* 110 */
+ 	.quad sys_sigsuspend
+-	.quad osf_sigstack
++	.quad sys_osf_sigstack
+ 	.quad sys_recvmsg
+ 	.quad sys_sendmsg
+ 	.quad alpha_ni_syscall			/* 115 */
+-	.quad osf_gettimeofday
+-	.quad osf_getrusage
++	.quad sys_osf_gettimeofday
++	.quad sys_osf_getrusage
+ 	.quad sys_getsockopt
+ 	.quad alpha_ni_syscall
+ #ifdef CONFIG_OSF4_COMPAT
+-	.quad osf_readv				/* 120 */
+-	.quad osf_writev
++	.quad sys_osf_readv			/* 120 */
++	.quad sys_osf_writev
+ #else
+ 	.quad sys_readv				/* 120 */
+ 	.quad sys_writev
+ #endif
+-	.quad osf_settimeofday
++	.quad sys_osf_settimeofday
+ 	.quad sys_fchown
+ 	.quad sys_fchmod
+ 	.quad sys_recvfrom			/* 125 */
+@@ -154,7 +154,7 @@ sys_call_table:
+ 	.quad sys_socketpair			/* 135 */
+ 	.quad sys_mkdir
+ 	.quad sys_rmdir
+-	.quad osf_utimes
++	.quad sys_osf_utimes
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall			/* 140 */
+ 	.quad sys_getpeername
+@@ -172,16 +172,16 @@ sys_call_table:
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall			/* 155 */
+-	.quad osf_sigaction
++	.quad sys_osf_sigaction
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+-	.quad osf_getdirentries
+-	.quad osf_statfs			/* 160 */
+-	.quad osf_fstatfs
++	.quad sys_osf_getdirentries
++	.quad sys_osf_statfs			/* 160 */
++	.quad sys_osf_fstatfs
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+-	.quad osf_getdomainname			/* 165 */
++	.quad sys_osf_getdomainname		/* 165 */
+ 	.quad sys_setdomainname
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+@@ -224,7 +224,7 @@ sys_call_table:
+ 	.quad sys_semctl
+ 	.quad sys_semget			/* 205 */
+ 	.quad sys_semop
+-	.quad osf_utsname
++	.quad sys_osf_utsname
+ 	.quad sys_lchown
+ 	.quad sys_shmat
+ 	.quad sys_shmctl			/* 210 */
+@@ -258,23 +258,23 @@ sys_call_table:
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall			/* 240 */
+-	.quad osf_sysinfo
++	.quad sys_osf_sysinfo
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+-	.quad osf_proplist_syscall
++	.quad sys_osf_proplist_syscall
+ 	.quad alpha_ni_syscall			/* 245 */
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall			/* 250 */
+-	.quad osf_usleep_thread
++	.quad sys_osf_usleep_thread
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+ 	.quad sys_sysfs
+ 	.quad alpha_ni_syscall			/* 255 */
+-	.quad osf_getsysinfo
+-	.quad osf_setsysinfo
++	.quad sys_osf_getsysinfo
++	.quad sys_osf_setsysinfo
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall
+ 	.quad alpha_ni_syscall			/* 260 */
+diff -puN include/linux/syscalls.h~alpha-use-syscall-wrappers include/linux/syscalls.h
+--- a/include/linux/syscalls.h~alpha-use-syscall-wrappers
++++ a/include/linux/syscalls.h
+@@ -108,9 +108,14 @@ struct old_linux_dirent;
+ 	asm ("\t.globl " #alias "\n\t.set " #alias ", " #name "\n"	\
+ 	     "\t.globl ." #alias "\n\t.set ." #alias ", ." #name)
+ #else
++#ifdef CONFIG_ALPHA
++#define SYSCALL_ALIAS(alias, name)					\
++	asm ( #alias " = " #name "\n\t.globl " #alias)
++#else
+ #define SYSCALL_ALIAS(alias, name)					\
+ 	asm ("\t.globl " #alias "\n\t.set " #alias ", " #name)
+ #endif
++#endif
+ 
+ #ifdef CONFIG_HAVE_SYSCALL_WRAPPERS
+ 
 _
 
-Patches currently in -mm which might be from bramesh@vt.edu are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
 origin.patch
+mm-unify-some-pmd_-functions-fix.patch
+make-sure-nobodys-leaking-resources.patch
 
