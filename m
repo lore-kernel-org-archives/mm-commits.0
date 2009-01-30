@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-correctly-handle-type-spacing-in-the-face-of-modifiers.patch added to -mm tree
-Date: Fri, 30 Jan 2009 13:53:49 -0800
-Message-ID: <200901302153.n0ULrn8V031244@imap1.linux-foundation.org>
+Subject: + checkpatch-do-not-warn-about-p0-patches-when-checking-files.patch added to -mm tree
+Date: Fri, 30 Jan 2009 13:53:46 -0800
+Message-ID: <200901302153.n0ULrk6J031114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59909 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753373AbZA3Vxw (ORCPT
+	by vger.kernel.org with ESMTP id S1753373AbZA3Vxu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 16:53:52 -0500
+	Fri, 30 Jan 2009 16:53:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@canonical.com
 
 
 The patch titled
-     checkpatch: correctly handle type spacing in the face of modifiers
+     checkpatch: do not warn about -p0 patches when checking files
 has been added to the -mm tree.  Its filename is
-     checkpatch-correctly-handle-type-spacing-in-the-face-of-modifiers.patch
+     checkpatch-do-not-warn-about-p0-patches-when-checking-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: correctly handle type spacing in the face of modifiers
+Subject: checkpatch: do not warn about -p0 patches when checking files
 From: Andy Whitcroft <apw@canonical.com>
 
-We need to handle interspersed modifiers in the middle of pointer types,
-for example:
-
-	void * __user * __user bar;
+We are triggering the -p0 check for our own diffs generated using --file
+command line option.  Suppress this check for files.
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-correctly-handle-type-spacing-in-the-face-of-modifiers scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-correctly-handle-type-spacing-in-the-face-of-modifiers
+diff -puN scripts/checkpatch.pl~checkpatch-do-not-warn-about-p0-patches-when-checking-files scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-do-not-warn-about-p0-patches-when-checking-files
 +++ a/scripts/checkpatch.pl
-@@ -1658,7 +1658,7 @@ sub process {
+@@ -1240,7 +1240,8 @@ sub process {
+ 			$realfile =~ s@^([^/]*)/@@;
  
- # * goes on variable not on type
- 		# (char*[ const])
--		if ($line =~ m{\($NonptrType(\s*\*[\s\*]*(?:$Modifier\s*)*)\)}) {
-+		if ($line =~ m{\($NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)\)}) {
- 			my ($from, $to) = ($1, $1);
- 
- 			# Should start with a space.
-@@ -1673,7 +1673,7 @@ sub process {
- 			if ($from ne $to) {
- 				ERROR("\"(foo$from)\" should be \"(foo$to)\"\n" .  $herecurr);
+ 			$p1_prefix = $1;
+-			if ($tree && $p1_prefix ne '' && -e "$root/$p1_prefix") {
++			if (!$file && $tree && $p1_prefix ne '' &&
++			    -e "$root/$p1_prefix") {
+ 				WARN("patch prefix '$p1_prefix' exists, appears to be a -p0 patch\n");
  			}
--		} elsif ($line =~ m{\b$NonptrType(\s*\*[\s\*]*(?:$Modifier\s*)?)($Ident)}) {
-+		} elsif ($line =~ m{\b$NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)($Ident)}) {
- 			my ($from, $to, $ident) = ($1, $1, $2);
  
- 			# Should start with a space.
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
