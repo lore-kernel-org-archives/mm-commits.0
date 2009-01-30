@@ -1,116 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kprobes-fix-module-compilation-error-with-config_kprobes=n.patch removed from -mm tree
-Date: Fri, 30 Jan 2009 11:13:40 -0800
-Message-ID: <200901301913.n0UJDeob026359@imap1.linux-foundation.org>
+Subject: [merged] memcg-get-put-parents-at-create-free.patch removed from -mm tree
+Date: Fri, 30 Jan 2009 11:13:45 -0800
+Message-ID: <200901301913.n0UJDjci026566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51512 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752906AbZA3TO1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753113AbZA3TO2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 14:14:27 -0500
+	Fri, 30 Jan 2009 14:14:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhiramat@redhat.com, ananth@in.ibm.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: fix module compilation error with CONFIG_KPROBES=n
+     memcg: get/put parents at create/free
 has been removed from the -mm tree.  Its filename was
-     kprobes-fix-module-compilation-error-with-config_kprobes=n.patch
+     memcg-get-put-parents-at-create-free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: fix module compilation error with CONFIG_KPROBES=n
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: memcg: get/put parents at create/free
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Define kprobes related data structures even if CONFIG_KPROBES is not set. 
-This fixes compilation errors which occur if CONFIG_KPROBES is not set, in
-kprobe using modules.
+The lifetime of struct cgroup and struct mem_cgroup is different and
+mem_cgroup has its own reference count for handling references from
+swap_cgroup.
 
-[akpm@linux-foundation.org: fix build for non-kprobes-supporting architectures]
-Reviewed-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+This causes strange problem that the parent mem_cgroup dies while child
+mem_cgroup alive, and this problem causes a bug in case of
+use_hierarchy==1 because res_counter_uncharge climbs up the tree.
+
+This patch is for avoiding it by getting the parent at create, and putting
+it at freeing.
+
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Reviewed-by; KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kprobes.h |   47 +++++++++++++++++++++-----------------
- 1 file changed, 26 insertions(+), 21 deletions(-)
+ mm/memcontrol.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kprobes.h~kprobes-fix-module-compilation-error-with-config_kprobes=n include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-fix-module-compilation-error-with-config_kprobes=n
-+++ a/include/linux/kprobes.h
-@@ -49,6 +49,13 @@
+diff -puN mm/memcontrol.c~memcg-get-put-parents-at-create-free mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-get-put-parents-at-create-free
++++ a/mm/memcontrol.c
+@@ -202,6 +202,7 @@ pcg_default_flags[NR_CHARGE_TYPE] = {
  
- /* Attach to insert probes on any functions which should be ignored*/
- #define __kprobes	__attribute__((__section__(".kprobes.text"))) notrace
-+#else /* CONFIG_KPROBES */
-+typedef int kprobe_opcode_t;
-+struct arch_specific_insn {
-+	int dummy;
-+};
-+#define __kprobes	notrace
-+#endif /* CONFIG_KPROBES */
+ static void mem_cgroup_get(struct mem_cgroup *mem);
+ static void mem_cgroup_put(struct mem_cgroup *mem);
++static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem);
  
- struct kprobe;
- struct pt_regs;
-@@ -131,23 +138,6 @@ struct jprobe {
- /* For backward compatibility with old code using JPROBE_ENTRY() */
- #define JPROBE_ENTRY(handler)	(handler)
+ static void mem_cgroup_charge_statistics(struct mem_cgroup *mem,
+ 					 struct page_cgroup *pc,
+@@ -2193,10 +2194,23 @@ static void mem_cgroup_get(struct mem_cg
  
--DECLARE_PER_CPU(struct kprobe *, current_kprobe);
--DECLARE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
--
--#ifdef CONFIG_KRETPROBES
--extern void arch_prepare_kretprobe(struct kretprobe_instance *ri,
--				   struct pt_regs *regs);
--extern int arch_trampoline_kprobe(struct kprobe *p);
--#else /* CONFIG_KRETPROBES */
--static inline void arch_prepare_kretprobe(struct kretprobe *rp,
--					struct pt_regs *regs)
--{
--}
--static inline int arch_trampoline_kprobe(struct kprobe *p)
--{
--	return 0;
--}
--#endif /* CONFIG_KRETPROBES */
- /*
-  * Function-return probe -
-  * Note:
-@@ -188,6 +178,25 @@ struct kprobe_blackpoint {
- 	unsigned long range;
- };
+ static void mem_cgroup_put(struct mem_cgroup *mem)
+ {
+-	if (atomic_dec_and_test(&mem->refcnt))
++	if (atomic_dec_and_test(&mem->refcnt)) {
++		struct mem_cgroup *parent = parent_mem_cgroup(mem);
+ 		__mem_cgroup_free(mem);
++		if (parent)
++			mem_cgroup_put(parent);
++	}
+ }
  
-+#ifdef CONFIG_KPROBES
-+DECLARE_PER_CPU(struct kprobe *, current_kprobe);
-+DECLARE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
-+
-+#ifdef CONFIG_KRETPROBES
-+extern void arch_prepare_kretprobe(struct kretprobe_instance *ri,
-+				   struct pt_regs *regs);
-+extern int arch_trampoline_kprobe(struct kprobe *p);
-+#else /* CONFIG_KRETPROBES */
-+static inline void arch_prepare_kretprobe(struct kretprobe *rp,
-+					struct pt_regs *regs)
++/*
++ * Returns the parent mem_cgroup in memcgroup hierarchy with hierarchy enabled.
++ */
++static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem)
 +{
++	if (!mem->res.parent)
++		return NULL;
++	return mem_cgroup_from_res_counter(mem->res.parent, res);
 +}
-+static inline int arch_trampoline_kprobe(struct kprobe *p)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_KRETPROBES */
-+
- extern struct kretprobe_blackpoint kretprobe_blacklist[];
  
- static inline void kretprobe_assert(struct kretprobe_instance *ri,
-@@ -264,10 +273,6 @@ void recycle_rp_inst(struct kretprobe_in
- 
- #else /* CONFIG_KPROBES */
- 
--#define __kprobes	notrace
--struct jprobe;
--struct kretprobe;
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ static void __init enable_swap_cgroup(void)
+@@ -2235,6 +2249,13 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	if (parent && parent->use_hierarchy) {
+ 		res_counter_init(&mem->res, &parent->res);
+ 		res_counter_init(&mem->memsw, &parent->memsw);
++		/*
++		 * We increment refcnt of the parent to ensure that we can
++		 * safely access it on res_counter_charge/uncharge.
++		 * This refcnt will be decremented when freeing this
++		 * mem_cgroup(see mem_cgroup_put).
++		 */
++		mem_cgroup_get(parent);
+ 	} else {
+ 		res_counter_init(&mem->res, NULL);
+ 		res_counter_init(&mem->memsw, NULL);
+_
+
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+
+origin.patch
+migration-migrate_vmas-should-check-vma.patch
+
