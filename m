@@ -1,98 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-fix-lock-inconsistency-in-cgroup_clone.patch removed from -mm tree
-Date: Fri, 30 Jan 2009 11:14:12 -0800
-Message-ID: <200901301914.n0UJEC7r027042@imap1.linux-foundation.org>
+Subject: [merged] alpha-fix-the-bug-macro.patch removed from -mm tree
+Date: Fri, 30 Jan 2009 11:14:10 -0800
+Message-ID: <200901301914.n0UJEA5b027004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753371AbZA3TOy (ORCPT
+	by vger.kernel.org with ESMTP id S1753190AbZA3TOq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 14:14:54 -0500
+	Fri, 30 Jan 2009 14:14:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: fix lock inconsistency in cgroup_clone()
+     alpha: fix the BUG() macro
 has been removed from the -mm tree.  Its filename was
-     cgroups-fix-lock-inconsistency-in-cgroup_clone.patch
+     alpha-fix-the-bug-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix lock inconsistency in cgroup_clone()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: alpha: fix the BUG() macro
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-I fixed a bug in cgroup_clone() in Linus' tree ni commit 7b574b7
-("cgroups: fix a race between cgroup_clone and umount") without noticing
-there was a cleanup patch in -mm tree that should be rebased (now commit
-104cbd5, "cgroups: use task_lock() for access tsk->cgroups safe in
-cgroup_clone()"), thus resulted in lock inconsistency.
+The commit "alpha: teach the compiler that BUG doesn't return"
+(ed6b9b97f42c091630335bfb71a2931e6f86388b) moved the asm code into inline
+function which takes __FILE__ and __LINE__ as arguments.  This violates
+asm constrains there ("i" - an immediate operand with constant value), so
+that compile may result in warning or error, depending on compiler
+version.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+Just adding an infinite loop to the BUG() is sufficient.
+
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ arch/alpha/include/asm/bug.h |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-fix-lock-inconsistency-in-cgroup_clone kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-lock-inconsistency-in-cgroup_clone
-+++ a/kernel/cgroup.c
-@@ -2993,20 +2993,21 @@ int cgroup_clone(struct task_struct *tsk
- 		mutex_unlock(&cgroup_mutex);
- 		return 0;
- 	}
--	task_lock(tsk);
--	cg = tsk->cgroups;
--	parent = task_cgroup(tsk, subsys->subsys_id);
+diff -puN arch/alpha/include/asm/bug.h~alpha-fix-the-bug-macro arch/alpha/include/asm/bug.h
+--- a/arch/alpha/include/asm/bug.h~alpha-fix-the-bug-macro
++++ a/arch/alpha/include/asm/bug.h
+@@ -8,17 +8,12 @@
  
- 	/* Pin the hierarchy */
--	if (!atomic_inc_not_zero(&parent->root->sb->s_active)) {
-+	if (!atomic_inc_not_zero(&root->sb->s_active)) {
- 		/* We race with the final deactivate_super() */
- 		mutex_unlock(&cgroup_mutex);
- 		return 0;
- 	}
- 
- 	/* Keep the cgroup alive */
-+	task_lock(tsk);
-+	parent = task_cgroup(tsk, subsys->subsys_id);
-+	cg = tsk->cgroups;
- 	get_css_set(cg);
- 	task_unlock(tsk);
-+
- 	mutex_unlock(&cgroup_mutex);
- 
- 	/* Now do the VFS work to create a cgroup */
-@@ -3045,7 +3046,7 @@ int cgroup_clone(struct task_struct *tsk
- 		mutex_unlock(&inode->i_mutex);
- 		put_css_set(cg);
- 
--		deactivate_super(parent->root->sb);
-+		deactivate_super(root->sb);
- 		/* The cgroup is still accessible in the VFS, but
- 		 * we're not going to try to rmdir() it at this
- 		 * point. */
-@@ -3071,7 +3072,7 @@ int cgroup_clone(struct task_struct *tsk
- 	mutex_lock(&cgroup_mutex);
- 	put_css_set(cg);
- 	mutex_unlock(&cgroup_mutex);
--	deactivate_super(parent->root->sb);
-+	deactivate_super(root->sb);
- 	return ret;
- }
- 
-_
-
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
-
-origin.patch
-linux-next.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
-
+ /* ??? Would be nice to use .gprel32 here, but we can't be sure that the
+    function loaded the GP, so this could fail in modules.  */
+-static inline void ATTRIB_NORET __BUG(const char *file, int line)
+-{
+-	__asm__ __volatile__(
+-		"call_pal %0  # bugchk\n\t"
+-		".long %1\n\t.8byte %2"
+-		       : : "i" (PAL_bugchk), "i"(line), "i"(file));
+-	for ( ; ; )
+-		;
+-}
