@@ -1,109 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-get-put-parents-at-create-free.patch removed from -mm tree
-Date: Fri, 30 Jan 2009 11:13:45 -0800
-Message-ID: <200901301913.n0UJDjci026566@imap1.linux-foundation.org>
+Subject: [merged] oom-documentation-update.patch removed from -mm tree
+Date: Fri, 30 Jan 2009 11:13:42 -0800
+Message-ID: <200901301913.n0UJDgp6026396@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753113AbZA3TO2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752852AbZA3TOZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 14:14:28 -0500
+	Fri, 30 Jan 2009 14:14:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: zbr@ioremap.net, randy.dunlap@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: get/put parents at create/free
+     mm: OOM documentation update
 has been removed from the -mm tree.  Its filename was
-     memcg-get-put-parents-at-create-free.patch
+     oom-documentation-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: get/put parents at create/free
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: mm: OOM documentation update
+From: Evgeniy Polyakov <zbr@ioremap.net>
 
-The lifetime of struct cgroup and struct mem_cgroup is different and
-mem_cgroup has its own reference count for handling references from
-swap_cgroup.
-
-This causes strange problem that the parent mem_cgroup dies while child
-mem_cgroup alive, and this problem causes a bug in case of
-use_hierarchy==1 because res_counter_uncharge climbs up the tree.
-
-This patch is for avoiding it by getting the parent at create, and putting
-it at freeing.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Reviewed-by; KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ Documentation/filesystems/proc.txt |   28 +++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-get-put-parents-at-create-free mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-get-put-parents-at-create-free
-+++ a/mm/memcontrol.c
-@@ -202,6 +202,7 @@ pcg_default_flags[NR_CHARGE_TYPE] = {
+diff -puN Documentation/filesystems/proc.txt~oom-documentation-update Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~oom-documentation-update
++++ a/Documentation/filesystems/proc.txt
+@@ -2027,6 +2027,34 @@ increase the likelihood of this process 
+ values are in the range -16 to +15, plus the special value -17, which disables
+ oom-killing altogether for this process.
  
- static void mem_cgroup_get(struct mem_cgroup *mem);
- static void mem_cgroup_put(struct mem_cgroup *mem);
-+static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem);
++The process to be killed in an out-of-memory situation is selected among all others
++based on its badness score. This value equals the original memory size of the process
++and is then updated according to its CPU time (utime + stime) and the
++run time (uptime - start time). The longer it runs the smaller is the score.
++Badness score is divided by the square root of the CPU time and then by
++the double square root of the run time.
++
++Swapped out tasks are killed first. Half of each child's memory size is added to
++the parent's score if they do not share the same memory. Thus forking servers
++are the prime candidates to be killed. Having only one 'hungry' child will make
++parent less preferable than the child.
++
++/proc/<pid>/oom_score shows process' current badness score.
++
++The following heuristics are then applied:
++ * if the task was reniced, its score doubles
++ * superuser or direct hardware access tasks (CAP_SYS_ADMIN, CAP_SYS_RESOURCE
++ 	or CAP_SYS_RAWIO) have their score divided by 4
++ * if oom condition happened in one cpuset and checked task does not belong
++ 	to it, its score is divided by 8
++ * the resulting score is multiplied by two to the power of oom_adj, i.e.
++	points <<= oom_adj when it is positive and
++	points >>= -(oom_adj) otherwise
++
++The task with the highest badness score is then selected and its children
++are killed, process itself will be killed in an OOM situation when it does
++not have children or some of them disabled oom like described above.
++
+ 2.13 /proc/<pid>/oom_score - Display current oom-killer score
+ -------------------------------------------------------------
  
- static void mem_cgroup_charge_statistics(struct mem_cgroup *mem,
- 					 struct page_cgroup *pc,
-@@ -2193,10 +2194,23 @@ static void mem_cgroup_get(struct mem_cg
- 
- static void mem_cgroup_put(struct mem_cgroup *mem)
- {
--	if (atomic_dec_and_test(&mem->refcnt))
-+	if (atomic_dec_and_test(&mem->refcnt)) {
-+		struct mem_cgroup *parent = parent_mem_cgroup(mem);
- 		__mem_cgroup_free(mem);
-+		if (parent)
-+			mem_cgroup_put(parent);
-+	}
- }
- 
-+/*
-+ * Returns the parent mem_cgroup in memcgroup hierarchy with hierarchy enabled.
-+ */
-+static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem)
-+{
-+	if (!mem->res.parent)
-+		return NULL;
-+	return mem_cgroup_from_res_counter(mem->res.parent, res);
-+}
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- static void __init enable_swap_cgroup(void)
-@@ -2235,6 +2249,13 @@ mem_cgroup_create(struct cgroup_subsys *
- 	if (parent && parent->use_hierarchy) {
- 		res_counter_init(&mem->res, &parent->res);
- 		res_counter_init(&mem->memsw, &parent->memsw);
-+		/*
-+		 * We increment refcnt of the parent to ensure that we can
-+		 * safely access it on res_counter_charge/uncharge.
-+		 * This refcnt will be decremented when freeing this
-+		 * mem_cgroup(see mem_cgroup_put).
-+		 */
-+		mem_cgroup_get(parent);
- 	} else {
- 		res_counter_init(&mem->res, NULL);
- 		res_counter_init(&mem->memsw, NULL);
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from zbr@ioremap.net are
 
 origin.patch
-migration-migrate_vmas-should-check-vma.patch
+linux-next.patch
 
