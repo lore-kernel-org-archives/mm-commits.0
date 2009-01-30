@@ -1,87 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-update-document-to-mention-swapoff-should-be-test.patch removed from -mm tree
-Date: Fri, 30 Jan 2009 11:13:53 -0800
-Message-ID: <200901301913.n0UJDr7u026663@imap1.linux-foundation.org>
+Subject: [merged] fbdev-incorrect-url-given-in-drivers-video-kconfig.patch removed from -mm tree
+Date: Fri, 30 Jan 2009 11:13:59 -0800
+Message-ID: <200901301913.n0UJDxm3026786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57185 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753031AbZA3TR3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753479AbZA3TRW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 14:17:29 -0500
+	Fri, 30 Jan 2009 14:17:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: alex.buell@munted.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: update document to mention that swapoff should be tested
+     fbdev: incorrect URL given in drivers/video/Kconfig
 has been removed from the -mm tree.  Its filename was
-     memcg-update-document-to-mention-swapoff-should-be-test.patch
+     fbdev-incorrect-url-given-in-drivers-video-kconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: update document to mention that swapoff should be tested
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: fbdev: incorrect URL given in drivers/video/Kconfig
+From: Alex Buell <alex.buell@munted.org.uk>
 
-Considering the recently found problem "memcg: fix refcnt handling at
-swapoff", it's better to mention swapoff behavior in the memcg_test
-document.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memcg_test.txt |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ drivers/video/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/cgroups/memcg_test.txt~memcg-update-document-to-mention-swapoff-should-be-test Documentation/cgroups/memcg_test.txt
---- a/Documentation/cgroups/memcg_test.txt~memcg-update-document-to-mention-swapoff-should-be-test
-+++ a/Documentation/cgroups/memcg_test.txt
-@@ -1,6 +1,6 @@
- Memory Resource Controller(Memcg)  Implementation Memo.
--Last Updated: 2008/12/15
--Base Kernel Version: based on 2.6.28-rc8-mm.
-+Last Updated: 2009/1/19
-+Base Kernel Version: based on 2.6.29-rc2.
+diff -puN drivers/video/Kconfig~fbdev-incorrect-url-given-in-drivers-video-kconfig drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-incorrect-url-given-in-drivers-video-kconfig
++++ a/drivers/video/Kconfig
+@@ -41,7 +41,7 @@ menuconfig FB
+ 	  You need an utility program called fbset to make full use of frame
+ 	  buffer devices. Please read <file:Documentation/fb/framebuffer.txt>
+ 	  and the Framebuffer-HOWTO at
+-	  <http://www.tahallah.demon.co.uk/programming/prog.html> for more
++	  <http://www.munted.org.uk/programming/Framebuffer-HOWTO-1.2.html> for more
+ 	  information.
  
- Because VM is getting complex (one of reasons is memcg...), memcg's behavior
- is complex. This is a document for memcg's internal behavior.
-@@ -340,3 +340,23 @@ Under below explanation, we assume CONFI
- 	# mount -t cgroup none /cgroup -t cpuset,memory,cpu,devices
- 
- 	and do task move, mkdir, rmdir etc...under this.
-+
-+ 9.7 swapoff.
-+	Besides management of swap is one of complicated parts of memcg,
-+	call path of swap-in at swapoff is not same as usual swap-in path..
-+	It's worth to be tested explicitly.
-+
-+	For example, test like following is good.
-+	(Shell-A)
-+	# mount -t cgroup none /cgroup -t memory
-+	# mkdir /cgroup/test
-+	# echo 40M > /cgroup/test/memory.limit_in_bytes
-+	# echo 0 > /cgroup/test/tasks
-+	Run malloc(100M) program under this. You'll see 60M of swaps.
-+	(Shell-B)
-+	# move all tasks in /cgroup/test to /cgroup
-+	# /sbin/swapoff -a
-+	# rmdir /test/cgroup
-+	# kill malloc task.
-+
-+	Of course, tmpfs v.s. swapoff test should be tested, too.
+ 	  Say Y here and to the driver for your graphics board below if you
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from alex.buell@munted.org.uk are
 
 origin.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 
