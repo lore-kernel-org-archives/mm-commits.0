@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-fix-compilation-somewhat.patch added to -mm tree
-Date: Fri, 30 Jan 2009 13:17:47 -0800
-Message-ID: <200901302117.n0ULHmPC018811@imap1.linux-foundation.org>
+Subject: + input-bcm5974-declare-alignment-usage.patch added to -mm tree
+Date: Fri, 30 Jan 2009 13:19:21 -0800
+Message-ID: <200901302119.n0ULJM5H020744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753051AbZA3VRw (ORCPT
+	by vger.kernel.org with ESMTP id S1754160AbZA3VTm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 16:17:52 -0500
+	Fri, 30 Jan 2009 16:19:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, zankel@tensilica.com
+Cc: rydberg@euromail.se, dtor@mail.ru
 
 
 The patch titled
-     xtensa: fix compilation somewhat
+     input: bcm5974: declare alignment usage
 has been added to the -mm tree.  Its filename is
-     xtensa-fix-compilation-somewhat.patch
+     input-bcm5974-declare-alignment-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: fix compilation somewhat
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: input: bcm5974: declare alignment usage
+From: "Henrik Rydberg" <rydberg@euromail.se>
 
-* ->put_char changes
-* HIGHMEM is bogus it seems, there is no kmap_atomic() et al
-* some includes
+Add struct alignment information and add comments to ensure all access of
+finger data is two-byte aligned.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Chris Zankel <zankel@tensilica.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/Kconfig                 |    3 ---
- arch/xtensa/kernel/setup.c          |    2 ++
- arch/xtensa/kernel/traps.c          |    1 +
- arch/xtensa/mm/fault.c              |    1 +
- arch/xtensa/platforms/iss/console.c |    6 ++----
- 5 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/input/mouse/bcm5974.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN arch/xtensa/Kconfig~xtensa-fix-compilation-somewhat arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~xtensa-fix-compilation-somewhat
-+++ a/arch/xtensa/Kconfig
-@@ -103,9 +103,6 @@ config MATH_EMULATION
- 	help
- 	Can we use information of configuration file?
+diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-declare-alignment-usage drivers/input/mouse/bcm5974.c
+--- a/drivers/input/mouse/bcm5974.c~input-bcm5974-declare-alignment-usage
++++ a/drivers/input/mouse/bcm5974.c
+@@ -110,17 +110,17 @@ enum tp_type {
+ 	TYPE2			/* button integrated in trackpad */
+ };
  
--config HIGHMEM
--	bool "High memory support"
--
- endmenu
+-/* trackpad finger data offsets */
+-#define FINGER_TYPE1		26
+-#define FINGER_TYPE2		30
++/* trackpad finger data offsets, le16-aligned */
++#define FINGER_TYPE1		(13 * sizeof(__le16))
++#define FINGER_TYPE2		(15 * sizeof(__le16))
  
- menu "Platform options"
-diff -puN arch/xtensa/kernel/setup.c~xtensa-fix-compilation-somewhat arch/xtensa/kernel/setup.c
---- a/arch/xtensa/kernel/setup.c~xtensa-fix-compilation-somewhat
-+++ a/arch/xtensa/kernel/setup.c
-@@ -44,6 +44,8 @@
- #include <asm/setup.h>
- #include <asm/param.h>
+-/* trackpad button data offsets */
++/* trackpad button data offsets, u8-aligned */
+ #define BUTTON_TYPE2		15
  
-+#include <platform/hardware.h>
-+
- #if defined(CONFIG_VGA_CONSOLE) || defined(CONFIG_DUMMY_CONSOLE)
- struct screen_info screen_info = { 0, 24, 0, 0, 0, 80, 0, 0, 0, 24, 1, 16};
- #endif
-diff -puN arch/xtensa/kernel/traps.c~xtensa-fix-compilation-somewhat arch/xtensa/kernel/traps.c
---- a/arch/xtensa/kernel/traps.c~xtensa-fix-compilation-somewhat
-+++ a/arch/xtensa/kernel/traps.c
-@@ -30,6 +30,7 @@
- #include <linux/stringify.h>
- #include <linux/kallsyms.h>
- #include <linux/delay.h>
-+#include <linux/hardirq.h>
+ /* integrated button capability by configuration */
+ #define HAS_INTEGRATED_BUTTON(c)	(c->tp_type == TYPE2)
  
- #include <asm/ptrace.h>
- #include <asm/timex.h>
-diff -puN arch/xtensa/mm/fault.c~xtensa-fix-compilation-somewhat arch/xtensa/mm/fault.c
---- a/arch/xtensa/mm/fault.c~xtensa-fix-compilation-somewhat
-+++ a/arch/xtensa/mm/fault.c
-@@ -14,6 +14,7 @@
+-/* trackpad finger structure */
++/* trackpad finger structure, le16-aligned */
+ struct tp_finger {
+ 	__le16 origin;		/* zero when switching track finger */
+ 	__le16 abs_x;		/* absolute x coodinate */
+@@ -134,7 +134,7 @@ struct tp_finger {
+ 	__le16 force_minor;	/* trackpad force, minor axis? */
+ 	__le16 unused[3];	/* zeros */
+ 	__le16 multi;		/* one finger: varies, more fingers: constant */
+-};
++} __attribute__((packed,aligned(2)));
  
- #include <linux/mm.h>
- #include <linux/module.h>
-+#include <linux/hardirq.h>
- #include <asm/mmu_context.h>
- #include <asm/cacheflush.h>
- #include <asm/hardirq.h>
-diff -puN arch/xtensa/platforms/iss/console.c~xtensa-fix-compilation-somewhat arch/xtensa/platforms/iss/console.c
---- a/arch/xtensa/platforms/iss/console.c~xtensa-fix-compilation-somewhat
-+++ a/arch/xtensa/platforms/iss/console.c
-@@ -141,16 +141,14 @@ static void rs_poll(unsigned long priv)
- }
+ /* trackpad finger data size, empirically at least ten fingers */
+ #define SIZEOF_FINGER		sizeof(struct tp_finger)
+@@ -321,6 +321,7 @@ static int report_tp_state(struct bcm597
+ 	if (size < c->tp_offset || (size - c->tp_offset) % SIZEOF_FINGER != 0)
+ 		return -EIO;
  
++	/* finger data, le16-aligned */
+ 	f = (const struct tp_finger *)(dev->tp_data + c->tp_offset);
+ 	raw_n = (size - c->tp_offset) / SIZEOF_FINGER;
  
--static void rs_put_char(struct tty_struct *tty, unsigned char ch)
-+static int rs_put_char(struct tty_struct *tty, unsigned char ch)
- {
- 	char buf[2];
- 
--	if (!tty)
--		return;
--
- 	buf[0] = ch;
- 	buf[1] = '\0';		/* Is this NULL necessary? */
- 	__simc (SYS_write, 1, (unsigned long) buf, 1, 0, 0);
-+	return 1;
- }
- 
- static void rs_flush_chars(struct tty_struct *tty)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
-seq_file-move-traverse-so-it-can-be-used-from-seq_read.patch
-seq_file-properly-cope-with-pread.patch
-linux-next.patch
-eeepc-should-depend-on-input.patch
-tags-fix-config-symbols-generation.patch
-sm501-fix-section-mismatches.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-proc-tty-add-struct-tty_operations-proc_fops.patch
-proc-tty-switch-cyclades-to-proc_fops.patch
-proc-tty-switch-ip2-to-proc_fops.patch
-proc-tty-switch-istallion-to-proc_fops.patch
-proc-tty-switch-synclink_cs-to-proc_fops.patch
-proc-tty-switch-stallion-to-proc_fops.patch
-proc-tty-switch-synclink-to-proc_fops.patch
-proc-tty-switch-synclink_gt-to-proc_fops.patch
-proc-tty-switch-synclinkmp-to-proc_fops.patch
-proc-tty-switch-sdio_uart-to-proc_fops.patch
-proc-tty-switch-serial_core-to-proc_fops.patch
-proc-tty-switch-usb-serial-to-proc_fops.patch
-proc-tty-switch-ircomm-to-proc_fops.patch
-proc-tty-switch-amiserial-to-proc_fops.patch
-proc-tty-switch-ia64-simserial-to-proc_fops.patch
-proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
-proc-tty-remove-struct-tty_operations-read_proc.patch
-xtensa-fix-compilation-somewhat.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
+origin.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+input-bcm5974-prepare-for-a-new-trackpad-header-type.patch
+input-bcm5974-add-quad-finger-tapping.patch
+input-bcm5974-add-support-for-the-macbook-5-unibody.patch
+input-bcm5974-augmented-debug-information.patch
+input-bcm5974-declare-alignment-usage.patch
+input-allow-certain-ev_abs-events-to-bypass-all-filtering.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+input-add-a-detailed-multi-touch-finger-data-report-protocol-rev2.patch
 
