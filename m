@@ -1,95 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-compile-fixes.patch removed from -mm tree
-Date: Fri, 30 Jan 2009 11:14:07 -0800
-Message-ID: <200901301914.n0UJE7EN027001@imap1.linux-foundation.org>
+Subject: [merged] cgroups-add-cpu_relax-calls-in-css_tryget-and-cgroup_clear_css_refs.patch removed from -mm tree
+Date: Fri, 30 Jan 2009 11:14:14 -0800
+Message-ID: <200901301914.n0UJEEg7027159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56038 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753242AbZA3TOq (ORCPT
+	by vger.kernel.org with ESMTP id S1753278AbZA3TOu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 14:14:46 -0500
+	Fri, 30 Jan 2009 14:14:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, fujita.tomonori@lab.ntt.co.jp, rth@twiddle.net, mm-commits@vger.kernel.org
+To: menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: compile fixes
+     cgroups: add cpu_relax() calls in css_tryget() and cgroup_clear_css_refs()
 has been removed from the -mm tree.  Its filename was
-     alpha-compile-fixes.patch
+     cgroups-add-cpu_relax-calls-in-css_tryget-and-cgroup_clear_css_refs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: compile fixes
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: cgroups: add cpu_relax() calls in css_tryget() and cgroup_clear_css_refs()
+From: Paul Menage <menage@google.com>
 
-- jensen build: fix conflicting declarations for pci_alloc_consistent()
-  and undefined virt_to_phys();
+css_tryget() and cgroup_clear_css_refs() contain polling loops; these
+loops should have cpu_relax calls in them to reduce cross-cache traffic.
 
-- SMP: arch/alpha/kernel/smp.c:124: warning: passing argument 2
-       of '__cpu_test_and_set' discards qualifiers from pointer target type
-  Interestingly, this only happens with gcc-4.2; gcc <= 4.1 and gcc-4.3
-  are OK. Fixed with extra assignment.
-
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Signed-off-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/dma-mapping.h |    2 ++
- arch/alpha/kernel/pci-noop.c         |    3 ++-
- arch/alpha/kernel/smp.c              |    3 ++-
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ include/linux/cgroup.h |    1 +
+ kernel/cgroup.c        |    7 +++++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/include/asm/dma-mapping.h~alpha-compile-fixes arch/alpha/include/asm/dma-mapping.h
---- a/arch/alpha/include/asm/dma-mapping.h~alpha-compile-fixes
-+++ a/arch/alpha/include/asm/dma-mapping.h
-@@ -29,6 +29,8 @@
- 
- #else	/* no PCI - no IOMMU. */
- 
-+#include <asm/io.h>	/* for virt_to_phys() */
-+
- struct scatterlist;
- void *dma_alloc_coherent(struct device *dev, size_t size,
- 			 dma_addr_t *dma_handle, gfp_t gfp);
-diff -puN arch/alpha/kernel/pci-noop.c~alpha-compile-fixes arch/alpha/kernel/pci-noop.c
---- a/arch/alpha/kernel/pci-noop.c~alpha-compile-fixes
-+++ a/arch/alpha/kernel/pci-noop.c
-@@ -109,7 +109,8 @@ sys_pciconfig_write(unsigned long bus, u
- /* Stubs for the routines in pci_iommu.c: */
- 
- void *
--pci_alloc_consistent(struct pci_dev *pdev, size_t size, dma_addr_t *dma_addrp)
-+__pci_alloc_consistent(struct pci_dev *pdev, size_t size,
-+		       dma_addr_t *dma_addrp, gfp_t gfp)
- {
- 	return NULL;
- }
-diff -puN arch/alpha/kernel/smp.c~alpha-compile-fixes arch/alpha/kernel/smp.c
---- a/arch/alpha/kernel/smp.c~alpha-compile-fixes
-+++ a/arch/alpha/kernel/smp.c
-@@ -120,8 +120,9 @@ void __cpuinit
- smp_callin(void)
- {
- 	int cpuid = hard_smp_processor_id();
-+	cpumask_t mask = cpu_online_map;
- 
--	if (cpu_test_and_set(cpuid, cpu_online_map)) {
-+	if (cpu_test_and_set(cpuid, mask)) {
- 		printk("??, cpu 0x%x already present??\n", cpuid);
- 		BUG();
+diff -puN include/linux/cgroup.h~cgroups-add-cpu_relax-calls-in-css_tryget-and-cgroup_clear_css_refs include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-add-cpu_relax-calls-in-css_tryget-and-cgroup_clear_css_refs
++++ a/include/linux/cgroup.h
+@@ -99,6 +99,7 @@ static inline bool css_tryget(struct cgr
+ 	while (!atomic_inc_not_zero(&css->refcnt)) {
+ 		if (test_bit(CSS_REMOVED, &css->flags))
+ 			return false;
++		cpu_relax();
  	}
+ 	return true;
+ }
+diff -puN kernel/cgroup.c~cgroups-add-cpu_relax-calls-in-css_tryget-and-cgroup_clear_css_refs kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-add-cpu_relax-calls-in-css_tryget-and-cgroup_clear_css_refs
++++ a/kernel/cgroup.c
+@@ -2509,7 +2509,7 @@ static int cgroup_clear_css_refs(struct 
+ 	for_each_subsys(cgrp->root, ss) {
+ 		struct cgroup_subsys_state *css = cgrp->subsys[ss->subsys_id];
+ 		int refcnt;
+-		do {
++		while (1) {
+ 			/* We can only remove a CSS with a refcnt==1 */
+ 			refcnt = atomic_read(&css->refcnt);
+ 			if (refcnt > 1) {
+@@ -2523,7 +2523,10 @@ static int cgroup_clear_css_refs(struct 
+ 			 * css_tryget() to spin until we set the
+ 			 * CSS_REMOVED bits or abort
+ 			 */
+-		} while (atomic_cmpxchg(&css->refcnt, refcnt, 0) != refcnt);
++			if (atomic_cmpxchg(&css->refcnt, refcnt, 0) == refcnt)
++				break;
++			cpu_relax();
++		}
+ 	}
+  done:
+ 	for_each_subsys(cgrp->root, ss) {
 _
 
-Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
+Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
-mm-unify-some-pmd_-functions-fix.patch
-make-sure-nobodys-leaking-resources.patch
+linux-next.patch
+cgroups-fix-cgrouph-comments.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
+add-a-refcount-check-in-dput.patch
 
