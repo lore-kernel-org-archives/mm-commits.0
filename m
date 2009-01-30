@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-use-ipv6_addr_equal-for-address-comparison.patch added to -mm tree
-Date: Fri, 30 Jan 2009 12:07:19 -0800
-Message-ID: <200901302007.n0UK7JPu028404@imap1.linux-foundation.org>
+Subject: + mfd-improve-diagnostics-for-wm8350-id-register-probe.patch added to -mm tree
+Date: Fri, 30 Jan 2009 12:11:30 -0800
+Message-ID: <200901302011.n0UKBU9t001188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754107AbZA3UIr (ORCPT
+	by vger.kernel.org with ESMTP id S1753036AbZA3UMD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 15:08:47 -0500
+	Fri, 30 Jan 2009 15:12:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com, smfrench@gmail.com
+Cc: broonie@opensource.wolfsonmicro.com
 
 
 The patch titled
-     cifs: use ipv6_addr_equal for address comparison
+     mfd: improve diagnostics for WM8350 ID register probe
 has been added to the -mm tree.  Its filename is
-     cifs-use-ipv6_addr_equal-for-address-comparison.patch
+     mfd-improve-diagnostics-for-wm8350-id-register-probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: use ipv6_addr_equal for address comparison
-From: Jeff Layton <jlayton@redhat.com>
+Subject: mfd: improve diagnostics for WM8350 ID register probe
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Cc: Steve French <smfrench@gmail.com>
+Check the return value of the device I/O functions when reading the ID
+registers so we can provide a more useful diagnostic when we're having
+trouble talking to the device.
+
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/connect.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mfd/wm8350-core.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
-diff -puN fs/cifs/connect.c~cifs-use-ipv6_addr_equal-for-address-comparison fs/cifs/connect.c
---- a/fs/cifs/connect.c~cifs-use-ipv6_addr_equal-for-address-comparison
-+++ a/fs/cifs/connect.c
-@@ -23,7 +23,6 @@
- #include <linux/string.h>
- #include <linux/list.h>
- #include <linux/wait.h>
--#include <linux/ipv6.h>
- #include <linux/pagemap.h>
- #include <linux/ctype.h>
- #include <linux/utsname.h>
-@@ -35,6 +34,7 @@
- #include <linux/freezer.h>
- #include <asm/uaccess.h>
- #include <asm/processor.h>
-+#include <net/ipv6.h>
- #include "cifspdu.h"
- #include "cifsglob.h"
- #include "cifsproto.h"
-@@ -1379,8 +1379,8 @@ cifs_find_tcp_session(struct sockaddr_st
- 		     server->addr.sockAddr.sin_addr.s_addr))
- 			continue;
- 		else if (addr->ss_family == AF_INET6 &&
--			 memcmp(&server->addr.sockAddr6.sin6_addr,
--				&addr6->sin6_addr, sizeof(addr6->sin6_addr)))
-+			 !ipv6_addr_equal(&server->addr.sockAddr6.sin6_addr,
-+					  &addr6->sin6_addr))
- 			continue;
+diff -puN drivers/mfd/wm8350-core.c~mfd-improve-diagnostics-for-wm8350-id-register-probe drivers/mfd/wm8350-core.c
+--- a/drivers/mfd/wm8350-core.c~mfd-improve-diagnostics-for-wm8350-id-register-probe
++++ a/drivers/mfd/wm8350-core.c
+@@ -1297,14 +1297,29 @@ static void wm8350_client_dev_register(s
+ int wm8350_device_init(struct wm8350 *wm8350, int irq,
+ 		       struct wm8350_platform_data *pdata)
+ {
+-	int ret = -EINVAL;
++	int ret;
+ 	u16 id1, id2, mask_rev;
+ 	u16 cust_id, mode, chip_rev;
  
- 		++server->srv_count;
+ 	/* get WM8350 revision and config mode */
+-	wm8350->read_dev(wm8350, WM8350_RESET_ID, sizeof(id1), &id1);
+-	wm8350->read_dev(wm8350, WM8350_ID, sizeof(id2), &id2);
+-	wm8350->read_dev(wm8350, WM8350_REVISION, sizeof(mask_rev), &mask_rev);
++	ret = wm8350->read_dev(wm8350, WM8350_RESET_ID, sizeof(id1), &id1);
++	if (ret != 0) {
++		dev_err(wm8350->dev, "Failed to read ID: %d\n", ret);
++		goto err;
++	}
++
++	ret = wm8350->read_dev(wm8350, WM8350_ID, sizeof(id2), &id2);
++	if (ret != 0) {
++		dev_err(wm8350->dev, "Failed to read ID: %d\n", ret);
++		goto err;
++	}
++
++	ret = wm8350->read_dev(wm8350, WM8350_REVISION, sizeof(mask_rev),
++			       &mask_rev);
++	if (ret != 0) {
++		dev_err(wm8350->dev, "Failed to read revision: %d\n", ret);
++		goto err;
++	}
+ 
+ 	id1 = be16_to_cpu(id1);
+ 	id2 = be16_to_cpu(id2);
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
 origin.patch
 linux-next.patch
-cifs-use-ipv6_addr_equal-for-address-comparison.patch
+mfd-improve-diagnostics-for-wm8350-id-register-probe.patch
+mfd-initialise-wm8350-interrupts-earlier.patch
+mfd-mark-wm835x-usb_slv_500ma-bit-as-accessible.patch
+rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
 
