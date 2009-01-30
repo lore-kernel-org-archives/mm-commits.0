@@ -1,65 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2.patch removed from -mm tree
-Date: Fri, 30 Jan 2009 11:14:01 -0800
-Message-ID: <200901301914.n0UJE1pc026824@imap1.linux-foundation.org>
+Subject: [merged] alpha-compile-fixes.patch removed from -mm tree
+Date: Fri, 30 Jan 2009 11:14:07 -0800
+Message-ID: <200901301914.n0UJE7EN027001@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36719 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753030AbZA3TOh (ORCPT
+	by vger.kernel.org with ESMTP id S1753242AbZA3TOq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 14:14:37 -0500
+	Fri, 30 Jan 2009 14:14:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: ink@jurassic.park.msu.ru, fujita.tomonori@lab.ntt.co.jp, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: NULL pointer dereference at rmdir on some NUMA systems
+     alpha: compile fixes
 has been removed from the -mm tree.  Its filename was
-     memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2.patch
+     alpha-compile-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: NULL pointer dereference at rmdir on some NUMA systems
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: alpha: compile fixes
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-N_POSSIBLE doesn't means there is memory...and force_empty can
-visit invalid node which have no pgdat.
+- jensen build: fix conflicting declarations for pci_alloc_consistent()
+  and undefined virt_to_phys();
 
-To visit all valid nodes, N_HIGH_MEMORY should be used.
+- SMP: arch/alpha/kernel/smp.c:124: warning: passing argument 2
+       of '__cpu_test_and_set' discards qualifiers from pointer target type
+  Interestingly, this only happens with gcc-4.2; gcc <= 4.1 and gcc-4.3
+  are OK. Fixed with extra assignment.
 
-Reported-by: Li Zefan <lizf@cn.fujitsu.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/alpha/include/asm/dma-mapping.h |    2 ++
+ arch/alpha/kernel/pci-noop.c         |    3 ++-
+ arch/alpha/kernel/smp.c              |    3 ++-
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2
-+++ a/mm/memcontrol.c
-@@ -1685,7 +1685,7 @@ move_account:
- 		/* This is for making all *used* pages to be on LRU. */
- 		lru_add_drain_all();
- 		ret = 0;
--		for_each_node_state(node, N_POSSIBLE) {
-+		for_each_node_state(node, N_HIGH_MEMORY) {
- 			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
- 				enum lru_list l;
- 				for_each_lru(l) {
+diff -puN arch/alpha/include/asm/dma-mapping.h~alpha-compile-fixes arch/alpha/include/asm/dma-mapping.h
+--- a/arch/alpha/include/asm/dma-mapping.h~alpha-compile-fixes
++++ a/arch/alpha/include/asm/dma-mapping.h
+@@ -29,6 +29,8 @@
+ 
+ #else	/* no PCI - no IOMMU. */
+ 
++#include <asm/io.h>	/* for virt_to_phys() */
++
+ struct scatterlist;
+ void *dma_alloc_coherent(struct device *dev, size_t size,
+ 			 dma_addr_t *dma_handle, gfp_t gfp);
+diff -puN arch/alpha/kernel/pci-noop.c~alpha-compile-fixes arch/alpha/kernel/pci-noop.c
+--- a/arch/alpha/kernel/pci-noop.c~alpha-compile-fixes
++++ a/arch/alpha/kernel/pci-noop.c
+@@ -109,7 +109,8 @@ sys_pciconfig_write(unsigned long bus, u
+ /* Stubs for the routines in pci_iommu.c: */
+ 
+ void *
+-pci_alloc_consistent(struct pci_dev *pdev, size_t size, dma_addr_t *dma_addrp)
++__pci_alloc_consistent(struct pci_dev *pdev, size_t size,
++		       dma_addr_t *dma_addrp, gfp_t gfp)
+ {
+ 	return NULL;
+ }
+diff -puN arch/alpha/kernel/smp.c~alpha-compile-fixes arch/alpha/kernel/smp.c
+--- a/arch/alpha/kernel/smp.c~alpha-compile-fixes
++++ a/arch/alpha/kernel/smp.c
+@@ -120,8 +120,9 @@ void __cpuinit
+ smp_callin(void)
+ {
+ 	int cpuid = hard_smp_processor_id();
++	cpumask_t mask = cpu_online_map;
+ 
+-	if (cpu_test_and_set(cpuid, cpu_online_map)) {
++	if (cpu_test_and_set(cpuid, mask)) {
+ 		printk("??, cpu 0x%x already present??\n", cpuid);
+ 		BUG();
+ 	}
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
 origin.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-unify-some-pmd_-functions-fix.patch
+make-sure-nobodys-leaking-resources.patch
 
