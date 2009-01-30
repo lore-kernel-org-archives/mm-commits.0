@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kthreads-rework-kthread_stop.patch added to -mm tree
-Date: Fri, 30 Jan 2009 13:49:22 -0800
-Message-ID: <200901302149.n0ULnMNI025676@imap1.linux-foundation.org>
+Subject: + kthreads-move-sched-realeted-initialization-from-kthreadd-context.patch added to -mm tree
+Date: Fri, 30 Jan 2009 13:49:12 -0800
+Message-ID: <200901302149.n0ULnCKP025468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50321 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754710AbZA3VvC (ORCPT
+	by vger.kernel.org with ESMTP id S1754813AbZA3VvE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 16:51:02 -0500
+	Fri, 30 Jan 2009 16:51:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, ebiederm@xmission.com, hch@lst.de, mingo@elte.hu, rusty@rus
 
 
 The patch titled
-     kthreads: rework kthread_stop()
+     kthreads: move sched-realeted initialization from kthreadd context
 has been added to the -mm tree.  Its filename is
-     kthreads-rework-kthread_stop.patch
+     kthreads-move-sched-realeted-initialization-from-kthreadd-context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthreads: rework kthread_stop()
+Subject: kthreads: move sched-realeted initialization from kthreadd context
 From: Oleg Nesterov <oleg@redhat.com>
 
-Based on Eric's patch which in turn was based on my patch.
+kthreadd is the single thread which implements ths "create" request, move
+sched_setscheduler/etc from create_kthread() to kthread_create() to
+improve the scalability.
 
-kthread_stop() has the nasty problems:
-
-- it runs unpredictably long with the global semaphore held.
-
-- it deadlocks if kthread itself does kthread_stop() before it obeys
-  the kthread_should_stop() request.
-
-- it is not useable if kthread exits on its own, see for example the
-  ugly "wait_to_die:" hack in migration_thread()
-
-- it is not possible to just tell kthread it should stop, we must always
-  wait for its exit.
-
-With this patch kthread() allocates all neccesary data (struct kthread) on
-its own stack, globals kthread_stop_xxx are deleted.  ->vfork_done is used
-as a pointer into "struct kthread", this means kthread_stop() can easily
-wait for kthread's exit.
+We should be careful with sched_setscheduler(), use _nochek helper.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -67,126 +53,49 @@ Cc: Vitaliy Gusev <vgusev@openvz.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |   69 ++++++++++++++++++---------------------------
- 1 file changed, 28 insertions(+), 41 deletions(-)
+ kernel/kthread.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN kernel/kthread.c~kthreads-rework-kthread_stop kernel/kthread.c
---- a/kernel/kthread.c~kthreads-rework-kthread_stop
+diff -puN kernel/kthread.c~kthreads-move-sched-realeted-initialization-from-kthreadd-context kernel/kthread.c
+--- a/kernel/kthread.c~kthreads-move-sched-realeted-initialization-from-kthreadd-context
 +++ a/kernel/kthread.c
-@@ -39,17 +39,13 @@ struct kthread_create_info
- 	struct list_head list;
- };
- 
--struct kthread_stop_info
--{
--	struct task_struct *k;
--	int err;
--	struct completion done;
-+struct kthread {
-+	int should_stop;
-+	struct completion exited;
- };
- 
--/* Thread stopping is done by setthing this var: lock serializes
-- * multiple kthread_stop calls. */
--static DEFINE_MUTEX(kthread_stop_lock);
--static struct kthread_stop_info kthread_stop_info;
-+#define to_kthread(tsk)	\
-+	container_of((tsk)->vfork_done, struct kthread, exited)
- 
- /**
-  * kthread_should_stop - should this kthread return now?
-@@ -60,20 +56,22 @@ static struct kthread_stop_info kthread_
-  */
- int kthread_should_stop(void)
- {
--	return (kthread_stop_info.k == current);
-+	return to_kthread(current)->should_stop;
- }
- EXPORT_SYMBOL(kthread_should_stop);
- 
- static int kthread(void *_create)
- {
-+	/* Copy data: it's on kthread's stack */
- 	struct kthread_create_info *create = _create;
--	int (*threadfn)(void *data);
--	void *data;
--	int ret = -EINTR;
-+	int (*threadfn)(void *data) = create->threadfn;
-+	void *data = create->data;
-+	struct kthread self;
-+	int ret;
- 
--	/* Copy data: it's on kthread's stack */
--	threadfn = create->threadfn;
--	data = create->data;
-+	self.should_stop = 0;
-+	init_completion(&self.exited);
-+	current->vfork_done = &self.exited;
- 
- 	/* OK, tell user we're spawned, wait for stop or wakeup */
- 	__set_current_state(TASK_UNINTERRUPTIBLE);
-@@ -81,15 +79,12 @@ static int kthread(void *_create)
+@@ -102,15 +102,7 @@ static void create_kthread(struct kthrea
+ 	if (pid < 0) {
+ 		create->result = ERR_PTR(pid);
+ 	} else {
+-		struct sched_param param = { .sched_priority = 0 };
+ 		wait_for_completion(&create->started);
+-		/*
+-		 * root may have changed our (kthreadd's) priority or CPU mask.
+-		 * The kernel thread should not inherit these properties.
+-		 */
+-		sched_setscheduler(create->result, SCHED_NORMAL, &param);
+-		set_user_nice(create->result, KTHREAD_NICE_LEVEL);
+-		set_cpus_allowed_ptr(create->result, CPU_MASK_ALL_PTR);
+ 	}
  	complete(&create->done);
- 	schedule();
- 
--	if (!kthread_should_stop())
-+	ret = -EINTR;
-+	if (!self.should_stop)
- 		ret = threadfn(data);
- 
--	/* It might have exited on its own, w/o kthread_stop.  Check. */
--	if (kthread_should_stop()) {
--		kthread_stop_info.err = ret;
--		complete(&kthread_stop_info.done);
--	}
--	return 0;
-+	/* we can't just return, we must preserve "self" on stack */
-+	do_exit(ret);
  }
+@@ -154,11 +146,20 @@ struct task_struct *kthread_create(int (
+ 	wait_for_completion(&create.done);
  
- static void create_kthread(struct kthread_create_info *create)
-@@ -199,30 +194,22 @@ EXPORT_SYMBOL(kthread_bind);
-  */
- int kthread_stop(struct task_struct *k)
- {
-+	struct kthread *kthread;
- 	int ret;
- 
--	mutex_lock(&kthread_stop_lock);
--
--	/* It could exit after stop_info.k set, but before wake_up_process. */
-+	trace_sched_kthread_stop(k);
- 	get_task_struct(k);
- 
--	trace_sched_kthread_stop(k);
-+	kthread = to_kthread(k);
-+	barrier(); /* it might have exited */
-+	if (k->vfork_done != NULL) {
-+		kthread->should_stop = 1;
-+		wake_up_process(k);
-+		wait_for_completion(&kthread->exited);
-+	}
-+	ret = k->exit_code;
- 
--	/* Must init completion *before* thread sees kthread_stop_info.k */
--	init_completion(&kthread_stop_info.done);
--	smp_wmb();
--
--	/* Now set kthread_should_stop() to true, and wake it up. */
--	kthread_stop_info.k = k;
--	wake_up_process(k);
- 	put_task_struct(k);
--
--	/* Once it dies, reset stop ptr, gather result and we're done. */
--	wait_for_completion(&kthread_stop_info.done);
--	kthread_stop_info.k = NULL;
--	ret = kthread_stop_info.err;
--	mutex_unlock(&kthread_stop_lock);
--
- 	trace_sched_kthread_stop_ret(ret);
- 
- 	return ret;
+ 	if (!IS_ERR(create.result)) {
++		struct sched_param param = { .sched_priority = 0 };
+ 		va_list args;
++
+ 		va_start(args, namefmt);
+ 		vsnprintf(create.result->comm, sizeof(create.result->comm),
+ 			  namefmt, args);
+ 		va_end(args);
++		/*
++		 * root may have changed our (kthreadd's) priority or CPU mask.
++		 * The kernel thread should not inherit these properties.
++		 */
++		sched_setscheduler_nocheck(create.result, SCHED_NORMAL, &param);
++		set_user_nice(create.result, KTHREAD_NICE_LEVEL);
++		set_cpus_allowed_ptr(create.result, CPU_MASK_ALL_PTR);
+ 	}
+ 	return create.result;
+ }
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
