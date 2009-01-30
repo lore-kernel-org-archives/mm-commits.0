@@ -1,83 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-documentation-update.patch removed from -mm tree
-Date: Fri, 30 Jan 2009 11:13:42 -0800
-Message-ID: <200901301913.n0UJDgp6026396@imap1.linux-foundation.org>
+Subject: [merged] memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2.patch removed from -mm tree
+Date: Fri, 30 Jan 2009 11:14:01 -0800
+Message-ID: <200901301914.n0UJE1pc026824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53826 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36719 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752852AbZA3TOZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753030AbZA3TOh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 14:14:25 -0500
+	Fri, 30 Jan 2009 14:14:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zbr@ioremap.net, randy.dunlap@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: OOM documentation update
+     memcg: NULL pointer dereference at rmdir on some NUMA systems
 has been removed from the -mm tree.  Its filename was
-     oom-documentation-update.patch
+     memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: OOM documentation update
-From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: memcg: NULL pointer dereference at rmdir on some NUMA systems
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+N_POSSIBLE doesn't means there is memory...and force_empty can
+visit invalid node which have no pgdat.
+
+To visit all valid nodes, N_HIGH_MEMORY should be used.
+
+Reported-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   28 +++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~oom-documentation-update Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~oom-documentation-update
-+++ a/Documentation/filesystems/proc.txt
-@@ -2027,6 +2027,34 @@ increase the likelihood of this process 
- values are in the range -16 to +15, plus the special value -17, which disables
- oom-killing altogether for this process.
- 
-+The process to be killed in an out-of-memory situation is selected among all others
-+based on its badness score. This value equals the original memory size of the process
-+and is then updated according to its CPU time (utime + stime) and the
-+run time (uptime - start time). The longer it runs the smaller is the score.
-+Badness score is divided by the square root of the CPU time and then by
-+the double square root of the run time.
-+
-+Swapped out tasks are killed first. Half of each child's memory size is added to
-+the parent's score if they do not share the same memory. Thus forking servers
-+are the prime candidates to be killed. Having only one 'hungry' child will make
-+parent less preferable than the child.
-+
-+/proc/<pid>/oom_score shows process' current badness score.
-+
-+The following heuristics are then applied:
-+ * if the task was reniced, its score doubles
-+ * superuser or direct hardware access tasks (CAP_SYS_ADMIN, CAP_SYS_RESOURCE
-+ 	or CAP_SYS_RAWIO) have their score divided by 4
-+ * if oom condition happened in one cpuset and checked task does not belong
-+ 	to it, its score is divided by 8
-+ * the resulting score is multiplied by two to the power of oom_adj, i.e.
-+	points <<= oom_adj when it is positive and
-+	points >>= -(oom_adj) otherwise
-+
-+The task with the highest badness score is then selected and its children
-+are killed, process itself will be killed in an OOM situation when it does
-+not have children or some of them disabled oom like described above.
-+
- 2.13 /proc/<pid>/oom_score - Display current oom-killer score
- -------------------------------------------------------------
- 
+diff -puN mm/memcontrol.c~memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-null-pointer-dereference-at-rmdir-on-some-numa-systems-v2
++++ a/mm/memcontrol.c
+@@ -1685,7 +1685,7 @@ move_account:
+ 		/* This is for making all *used* pages to be on LRU. */
+ 		lru_add_drain_all();
+ 		ret = 0;
+-		for_each_node_state(node, N_POSSIBLE) {
++		for_each_node_state(node, N_HIGH_MEMORY) {
+ 			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
+ 				enum lru_list l;
+ 				for_each_lru(l) {
 _
 
-Patches currently in -mm which might be from zbr@ioremap.net are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 
