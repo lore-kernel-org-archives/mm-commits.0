@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-tty-switch-synclink-to-proc_fops.patch added to -mm tree
-Date: Fri, 30 Jan 2009 12:53:35 -0800
-Message-ID: <200901302053.n0UKrZ8h021112@imap1.linux-foundation.org>
+Subject: + proc-tty-switch-sdio_uart-to-proc_fops.patch added to -mm tree
+Date: Fri, 30 Jan 2009 12:53:42 -0800
+Message-ID: <200901302053.n0UKrgS5021302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59599 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752625AbZA3UyR (ORCPT
+	by vger.kernel.org with ESMTP id S1754697AbZA3UyV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 15:54:17 -0500
+	Fri, 30 Jan 2009 15:54:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     proc tty: switch synclink to ->proc_fops
+     proc tty: switch sdio_uart to ->proc_fops
 has been added to the -mm tree.  Its filename is
-     proc-tty-switch-synclink-to-proc_fops.patch
+     proc-tty-switch-sdio_uart-to-proc_fops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch synclink to ->proc_fops
+Subject: proc tty: switch sdio_uart to ->proc_fops
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
@@ -42,190 +42,125 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink.c |   98 +++++++++++++++-----------------------
- 1 file changed, 39 insertions(+), 59 deletions(-)
+ drivers/mmc/card/sdio_uart.c |   62 +++++++++++++++------------------
+ 1 file changed, 30 insertions(+), 32 deletions(-)
 
-diff -puN drivers/char/synclink.c~proc-tty-switch-synclink-to-proc_fops drivers/char/synclink.c
---- a/drivers/char/synclink.c~proc-tty-switch-synclink-to-proc_fops
-+++ a/drivers/char/synclink.c
-@@ -79,6 +79,7 @@
- #include <linux/ptrace.h>
- #include <linux/ioport.h>
- #include <linux/mm.h>
+diff -puN drivers/mmc/card/sdio_uart.c~proc-tty-switch-sdio_uart-to-proc_fops drivers/mmc/card/sdio_uart.c
+--- a/drivers/mmc/card/sdio_uart.c~proc-tty-switch-sdio_uart-to-proc_fops
++++ a/drivers/mmc/card/sdio_uart.c
+@@ -30,6 +30,7 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/mutex.h>
 +#include <linux/seq_file.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/netdevice.h>
-@@ -3459,18 +3460,17 @@ cleanup:			
-  * /proc fs routines....
-  */
+ #include <linux/serial_reg.h>
+ #include <linux/circ_buf.h>
+ #include <linux/gfp.h>
+@@ -933,67 +934,64 @@ static int sdio_uart_tiocmset(struct tty
+ 	return result;
+ }
  
--static inline int line_info(char *buf, struct mgsl_struct *info)
-+static inline void line_info(struct seq_file *m, struct mgsl_struct *info)
+-static int sdio_uart_read_proc(char *page, char **start, off_t off,
+-			       int count, int *eof, void *data)
++static int sdio_uart_proc_show(struct seq_file *m, void *v)
  {
- 	char	stat_buf[30];
--	int	ret;
- 	unsigned long flags;
+-	int i, len = 0;
+-	off_t begin = 0;
++	int i;
  
- 	if (info->bus_type == MGSL_BUS_TYPE_PCI) {
--		ret = sprintf(buf, "%s:PCI io:%04X irq:%d mem:%08X lcr:%08X",
-+		seq_printf(m, "%s:PCI io:%04X irq:%d mem:%08X lcr:%08X",
- 			info->device_name, info->io_base, info->irq_level,
- 			info->phys_memory_base, info->phys_lcr_base);
- 	} else {
--		ret = sprintf(buf, "%s:(E)ISA io:%04X irq:%d dma:%d",
-+		seq_printf(m, "%s:(E)ISA io:%04X irq:%d dma:%d",
- 			info->device_name, info->io_base, 
- 			info->irq_level, info->dma_level);
- 	}
-@@ -3497,37 +3497,37 @@ static inline int line_info(char *buf, s
- 
- 	if (info->params.mode == MGSL_MODE_HDLC ||
- 	    info->params.mode == MGSL_MODE_RAW ) {
--		ret += sprintf(buf+ret, " HDLC txok:%d rxok:%d",
-+		seq_printf(m, " HDLC txok:%d rxok:%d",
- 			      info->icount.txok, info->icount.rxok);
- 		if (info->icount.txunder)
--			ret += sprintf(buf+ret, " txunder:%d", info->icount.txunder);
-+			seq_printf(m, " txunder:%d", info->icount.txunder);
- 		if (info->icount.txabort)
--			ret += sprintf(buf+ret, " txabort:%d", info->icount.txabort);
-+			seq_printf(m, " txabort:%d", info->icount.txabort);
- 		if (info->icount.rxshort)
--			ret += sprintf(buf+ret, " rxshort:%d", info->icount.rxshort);	
-+			seq_printf(m, " rxshort:%d", info->icount.rxshort);
- 		if (info->icount.rxlong)
--			ret += sprintf(buf+ret, " rxlong:%d", info->icount.rxlong);
-+			seq_printf(m, " rxlong:%d", info->icount.rxlong);
- 		if (info->icount.rxover)
--			ret += sprintf(buf+ret, " rxover:%d", info->icount.rxover);
-+			seq_printf(m, " rxover:%d", info->icount.rxover);
- 		if (info->icount.rxcrc)
--			ret += sprintf(buf+ret, " rxcrc:%d", info->icount.rxcrc);
-+			seq_printf(m, " rxcrc:%d", info->icount.rxcrc);
- 	} else {
--		ret += sprintf(buf+ret, " ASYNC tx:%d rx:%d",
-+		seq_printf(m, " ASYNC tx:%d rx:%d",
- 			      info->icount.tx, info->icount.rx);
- 		if (info->icount.frame)
--			ret += sprintf(buf+ret, " fe:%d", info->icount.frame);
-+			seq_printf(m, " fe:%d", info->icount.frame);
- 		if (info->icount.parity)
--			ret += sprintf(buf+ret, " pe:%d", info->icount.parity);
-+			seq_printf(m, " pe:%d", info->icount.parity);
- 		if (info->icount.brk)
--			ret += sprintf(buf+ret, " brk:%d", info->icount.brk);	
-+			seq_printf(m, " brk:%d", info->icount.brk);
- 		if (info->icount.overrun)
--			ret += sprintf(buf+ret, " oe:%d", info->icount.overrun);
-+			seq_printf(m, " oe:%d", info->icount.overrun);
- 	}
- 	
- 	/* Append serial signal status to end */
--	ret += sprintf(buf+ret, " %s\n", stat_buf+1);
-+	seq_printf(m, " %s\n", stat_buf+1);
- 	
--	ret += sprintf(buf+ret, "txactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
-+	seq_printf(m, "txactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
- 	 info->tx_active,info->bh_requested,info->bh_running,
- 	 info->pending_bh);
- 	 
-@@ -3544,60 +3544,40 @@ static inline int line_info(char *buf, s
- 	u16 Tmr = usc_InReg( info, TMR );
- 	u16 Tccr = usc_InReg( info, TCCR );
- 	u16 Ccar = inw( info->io_base + CCAR );
--	ret += sprintf(buf+ret, "tcsr=%04X tdmr=%04X ticr=%04X rcsr=%04X rdmr=%04X\n"
-+	seq_printf(m, "tcsr=%04X tdmr=%04X ticr=%04X rcsr=%04X rdmr=%04X\n"
-                         "ricr=%04X icr =%04X dccr=%04X tmr=%04X tccr=%04X ccar=%04X\n",
- 	 		Tcsr,Tdmr,Ticr,Rscr,Rdmr,Ricr,Icr,Dccr,Tmr,Tccr,Ccar );
- 	}
- 	spin_unlock_irqrestore(&info->irq_spinlock,flags);
--	
--	return ret;
--	
--}	/* end of line_info() */
-+}
- 
--/* mgsl_read_proc()
-- * 
-- * Called to print information about devices
-- * 
-- * Arguments:
-- * 	page	page of memory to hold returned info
-- * 	start	
-- * 	off
-- * 	count
-- * 	eof
-- * 	data
-- * 	
-- * Return Value:
-- */
--static int mgsl_read_proc(char *page, char **start, off_t off, int count,
--		 int *eof, void *data)
-+/* Called to print information about devices */
-+static int mgsl_proc_show(struct seq_file *m, void *v)
- {
--	int len = 0, l;
--	off_t	begin = 0;
- 	struct mgsl_struct *info;
- 	
--	len += sprintf(page, "synclink driver:%s\n", driver_version);
-+	seq_printf(m, "synclink driver:%s\n", driver_version);
- 	
- 	info = mgsl_device_list;
- 	while( info ) {
--		l = line_info(page + len, info);
--		len += l;
--		if (len+begin > off+count)
+-	len += sprintf(page, "serinfo:1.0 driver%s%s revision:%s\n",
++	seq_printf(m, "serinfo:1.0 driver%s%s revision:%s\n",
+ 		       "", "", "");
+-	for (i = 0; i < UART_NR && len < PAGE_SIZE - 96; i++) {
++	for (i = 0; i < UART_NR; i++) {
+ 		struct sdio_uart_port *port = sdio_uart_port_get(i);
+ 		if (port) {
+-			len += sprintf(page+len, "%d: uart:SDIO", i);
++			seq_printf(m, "%d: uart:SDIO", i);
+ 			if(capable(CAP_SYS_ADMIN)) {
+-				len += sprintf(page + len, " tx:%d rx:%d",
++				seq_printf(m, " tx:%d rx:%d",
+ 					       port->icount.tx, port->icount.rx);
+ 				if (port->icount.frame)
+-					len += sprintf(page + len, " fe:%d",
++					seq_printf(m, " fe:%d",
+ 						       port->icount.frame);
+ 				if (port->icount.parity)
+-					len += sprintf(page + len, " pe:%d",
++					seq_printf(m, " pe:%d",
+ 						       port->icount.parity);
+ 				if (port->icount.brk)
+-					len += sprintf(page + len, " brk:%d",
++					seq_printf(m, " brk:%d",
+ 						       port->icount.brk);
+ 				if (port->icount.overrun)
+-					len += sprintf(page + len, " oe:%d",
++					seq_printf(m, " oe:%d",
+ 						       port->icount.overrun);
+ 				if (port->icount.cts)
+-					len += sprintf(page + len, " cts:%d",
++					seq_printf(m, " cts:%d",
+ 						       port->icount.cts);
+ 				if (port->icount.dsr)
+-					len += sprintf(page + len, " dsr:%d",
++					seq_printf(m, " dsr:%d",
+ 						       port->icount.dsr);
+ 				if (port->icount.rng)
+-					len += sprintf(page + len, " rng:%d",
++					seq_printf(m, " rng:%d",
+ 						       port->icount.rng);
+ 				if (port->icount.dcd)
+-					len += sprintf(page + len, " dcd:%d",
++					seq_printf(m, " dcd:%d",
+ 						       port->icount.dcd);
+ 			}
+-			strcat(page, "\n");
+-			len++;
+ 			sdio_uart_port_put(port);
+-		}
+-
+-		if (len + begin > off + count)
 -			goto done;
--		if (len+begin < off) {
+-		if (len + begin < off) {
 -			begin += len;
 -			len = 0;
--		}
-+		line_info(m, info);
- 		info = info->next_device;
++			seq_putc(m, '\n');
+ 		}
  	}
+-	*eof = 1;
 +	return 0;
 +}
  
--	*eof = 1;
 -done:
--	if (off >= len+begin)
+-	if (off >= len + begin)
 -		return 0;
--	*start = page + (off-begin);
--	return ((count < begin+len-off) ? count : begin+len-off);
--	
--}	/* end of mgsl_read_proc() */
-+static int mgsl_proc_open(struct inode *inode, struct file *file)
+-	*start = page + (off - begin);
+-	return (count < begin + len - off) ? count : (begin + len - off);
++static int sdio_uart_proc_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, mgsl_proc_show, NULL);
-+}
-+
-+static const struct file_operations mgsl_proc_fops = {
++	return single_open(file, sdio_uart_proc_show, NULL);
+ }
+ 
++static const struct file_operations sdio_uart_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= mgsl_proc_open,
++	.open		= sdio_uart_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
- 
- /* mgsl_allocate_dma_buffers()
-  * 
-@@ -4335,13 +4315,13 @@ static const struct tty_operations mgsl_
- 	.send_xchar = mgsl_send_xchar,
- 	.break_ctl = mgsl_break,
- 	.wait_until_sent = mgsl_wait_until_sent,
-- 	.read_proc = mgsl_read_proc,
- 	.set_termios = mgsl_set_termios,
- 	.stop = mgsl_stop,
- 	.start = mgsl_start,
- 	.hangup = mgsl_hangup,
- 	.tiocmget = tiocmget,
- 	.tiocmset = tiocmset,
-+	.proc_fops = &mgsl_proc_fops,
++
+ static const struct tty_operations sdio_uart_ops = {
+ 	.open			= sdio_uart_open,
+ 	.close			= sdio_uart_close,
+@@ -1007,7 +1005,7 @@ static const struct tty_operations sdio_
+ 	.break_ctl		= sdio_uart_break_ctl,
+ 	.tiocmget		= sdio_uart_tiocmget,
+ 	.tiocmset		= sdio_uart_tiocmset,
+-	.read_proc		= sdio_uart_read_proc,
++	.proc_fops		= &sdio_uart_proc_fops,
  };
  
- /*
+ static struct tty_driver *sdio_uart_tty_driver;
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
