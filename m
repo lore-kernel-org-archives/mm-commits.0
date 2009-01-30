@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-tty-switch-xtensa-iss-console-to-proc_fops.patch added to -mm tree
-Date: Fri, 30 Jan 2009 12:53:54 -0800
-Message-ID: <200901302053.n0UKrsUu021620@imap1.linux-foundation.org>
+Subject: + proc-tty-switch-istallion-to-proc_fops.patch added to -mm tree
+Date: Fri, 30 Jan 2009 12:53:25 -0800
+Message-ID: <200901302053.n0UKrPRQ020902@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55421 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34682 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753984AbZA3UyE (ORCPT
+	by vger.kernel.org with ESMTP id S1754710AbZA3UyF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 15:54:04 -0500
+	Fri, 30 Jan 2009 15:54:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     proc tty: switch xtensa iss console to ->proc_fops
+     proc tty: switch istallion to ->proc_fops
 has been added to the -mm tree.  Its filename is
-     proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
+     proc-tty-switch-istallion-to-proc_fops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch xtensa iss console to ->proc_fops
+Subject: proc tty: switch istallion to ->proc_fops
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
@@ -42,66 +42,216 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/platforms/iss/console.c |   29 ++++++++++++++------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ drivers/char/istallion.c |  121 +++++++++++++++----------------------
+ 1 file changed, 52 insertions(+), 69 deletions(-)
 
-diff -puN arch/xtensa/platforms/iss/console.c~proc-tty-switch-xtensa-iss-console-to-proc_fops arch/xtensa/platforms/iss/console.c
---- a/arch/xtensa/platforms/iss/console.c~proc-tty-switch-xtensa-iss-console-to-proc_fops
-+++ a/arch/xtensa/platforms/iss/console.c
-@@ -18,6 +18,7 @@
- #include <linux/mm.h>
- #include <linux/major.h>
- #include <linux/param.h>
-+#include <linux/seq_file.h>
+diff -puN drivers/char/istallion.c~proc-tty-switch-istallion-to-proc_fops drivers/char/istallion.c
+--- a/drivers/char/istallion.c~proc-tty-switch-istallion-to-proc_fops
++++ a/drivers/char/istallion.c
+@@ -24,6 +24,7 @@
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
  #include <linux/serial.h>
- #include <linux/serialP.h>
++#include <linux/seq_file.h>
+ #include <linux/cdk.h>
+ #include <linux/comstats.h>
+ #include <linux/istallion.h>
+@@ -613,7 +614,6 @@ static int	stli_breakctl(struct tty_stru
+ static void	stli_waituntilsent(struct tty_struct *tty, int timeout);
+ static void	stli_sendxchar(struct tty_struct *tty, char ch);
+ static void	stli_hangup(struct tty_struct *tty);
+-static int	stli_portinfo(struct stlibrd *brdp, struct stliport *portp, int portnr, char *pos);
  
-@@ -178,22 +179,24 @@ static void rs_wait_until_sent(struct tt
- 	/* Stub, once again.. */
+ static int	stli_brdinit(struct stlibrd *brdp);
+ static int	stli_startbrd(struct stlibrd *brdp);
+@@ -1893,20 +1893,10 @@ static void stli_sendxchar(struct tty_st
+ 	stli_cmdwait(brdp, portp, A_PORTCTRL, &actrl, sizeof(asyctrl_t), 0);
  }
  
--static int rs_read_proc(char *page, char **start, off_t off, int count,
--			int *eof, void *data)
-+static int rs_proc_show(struct seq_file *m, void *v)
+-/*****************************************************************************/
+-
+-#define	MAXLINE		80
+-
+-/*
+- *	Format info for a specified port. The line is deliberately limited
+- *	to 80 characters. (If it is too long it will be truncated, if too
+- *	short then padded with spaces).
+- */
+-
+-static int stli_portinfo(struct stlibrd *brdp, struct stliport *portp, int portnr, char *pos)
++static void stli_portinfo(struct seq_file *m, struct stlibrd *brdp, struct stliport *portp, int portnr)
  {
--	int len = 0;
--	off_t begin = 0;
+-	char *sp, *uart;
+-	int rc, cnt;
++	char *uart;
++	int rc;
+ 
+ 	rc = stli_portcmdstats(NULL, portp);
+ 
+@@ -1918,44 +1908,50 @@ static int stli_portinfo(struct stlibrd 
+ 		default:uart = "CD1400"; break;
+ 		}
+ 	}
 -
--	len += sprintf(page, "serinfo:1.0 driver:%s\n", serial_version);
--	*eof = 1;
+-	sp = pos;
+-	sp += sprintf(sp, "%d: uart:%s ", portnr, uart);
++	seq_printf(m, "%d: uart:%s ", portnr, uart);
+ 
+ 	if ((brdp->state & BST_STARTED) && (rc >= 0)) {
+-		sp += sprintf(sp, "tx:%d rx:%d", (int) stli_comstats.txtotal,
++		char sep;
++
++		seq_printf(m, "tx:%d rx:%d", (int) stli_comstats.txtotal,
+ 			(int) stli_comstats.rxtotal);
+ 
+ 		if (stli_comstats.rxframing)
+-			sp += sprintf(sp, " fe:%d",
++			seq_printf(m, " fe:%d",
+ 				(int) stli_comstats.rxframing);
+ 		if (stli_comstats.rxparity)
+-			sp += sprintf(sp, " pe:%d",
++			seq_printf(m, " pe:%d",
+ 				(int) stli_comstats.rxparity);
+ 		if (stli_comstats.rxbreaks)
+-			sp += sprintf(sp, " brk:%d",
++			seq_printf(m, " brk:%d",
+ 				(int) stli_comstats.rxbreaks);
+ 		if (stli_comstats.rxoverrun)
+-			sp += sprintf(sp, " oe:%d",
++			seq_printf(m, " oe:%d",
+ 				(int) stli_comstats.rxoverrun);
+ 
+-		cnt = sprintf(sp, "%s%s%s%s%s ",
+-			(stli_comstats.signals & TIOCM_RTS) ? "|RTS" : "",
+-			(stli_comstats.signals & TIOCM_CTS) ? "|CTS" : "",
+-			(stli_comstats.signals & TIOCM_DTR) ? "|DTR" : "",
+-			(stli_comstats.signals & TIOCM_CD) ? "|DCD" : "",
+-			(stli_comstats.signals & TIOCM_DSR) ? "|DSR" : "");
+-		*sp = ' ';
+-		sp += cnt;
+-	}
 -
--	if (off >= len + begin)
--		return 0;
-+	seq_printf(m, "serinfo:1.0 driver:%s\n", serial_version);
+-	for (cnt = (sp - pos); (cnt < (MAXLINE - 1)); cnt++)
+-		*sp++ = ' ';
+-	if (cnt >= MAXLINE)
+-		pos[(MAXLINE - 2)] = '+';
+-	pos[(MAXLINE - 1)] = '\n';
+-
+-	return(MAXLINE);
++		sep = ' ';
++		if (stli_comstats.signals & TIOCM_RTS) {
++			seq_printf(m, "%c%s", sep, "RTS");
++			sep = '|';
++		}
++		if (stli_comstats.signals & TIOCM_CTS) {
++			seq_printf(m, "%c%s", sep, "CTS");
++			sep = '|';
++		}
++		if (stli_comstats.signals & TIOCM_DTR) {
++			seq_printf(m, "%c%s", sep, "DTR");
++			sep = '|';
++		}
++		if (stli_comstats.signals & TIOCM_CD) {
++			seq_printf(m, "%c%s", sep, "DCD");
++			sep = '|';
++		}
++		if (stli_comstats.signals & TIOCM_DSR) {
++			seq_printf(m, "%c%s", sep, "DSR");
++			sep = '|';
++		}
++	}
++	seq_putc(m, '\n');
+ }
+ 
+ /*****************************************************************************/
+@@ -1964,26 +1960,15 @@ static int stli_portinfo(struct stlibrd 
+  *	Port info, read from the /proc file system.
+  */
+ 
+-static int stli_readproc(char *page, char **start, off_t off, int count, int *eof, void *data)
++static int stli_proc_show(struct seq_file *m, void *v)
+ {
+ 	struct stlibrd *brdp;
+ 	struct stliport *portp;
+ 	unsigned int brdnr, portnr, totalport;
+-	int curoff, maxoff;
+-	char *pos;
+ 
+-	pos = page;
+ 	totalport = 0;
+-	curoff = 0;
+ 
+-	if (off == 0) {
+-		pos += sprintf(pos, "%s: version %s", stli_drvtitle,
+-			stli_drvversion);
+-		while (pos < (page + MAXLINE - 1))
+-			*pos++ = ' ';
+-		*pos++ = '\n';
+-	}
+-	curoff =  MAXLINE;
++	seq_printf(m, "%s: version %s\n", stli_drvtitle, stli_drvversion);
+ 
+ /*
+  *	We scan through for each board, panel and port. The offset is
+@@ -1996,33 +1981,31 @@ static int stli_readproc(char *page, cha
+ 		if (brdp->state == 0)
+ 			continue;
+ 
+-		maxoff = curoff + (brdp->nrports * MAXLINE);
+-		if (off >= maxoff) {
+-			curoff = maxoff;
+-			continue;
+-		}
+-
+ 		totalport = brdnr * STL_MAXPORTS;
+ 		for (portnr = 0; (portnr < brdp->nrports); portnr++,
+ 		    totalport++) {
+ 			portp = brdp->ports[portnr];
+ 			if (portp == NULL)
+ 				continue;
+-			if (off >= (curoff += MAXLINE))
+-				continue;
+-			if ((pos - page + MAXLINE) > count)
+-				goto stli_readdone;
+-			pos += stli_portinfo(brdp, portp, totalport, pos);
++			stli_portinfo(m, brdp, portp, totalport);
+ 		}
+ 	}
 +	return 0;
 +}
  
--	*start = page + (off - begin);
--	return ((count < begin + len - off) ? count : begin + len - off);
-+static int rs_proc_open(struct inode *inode, struct file *file)
+-	*eof = 1;
+-
+-stli_readdone:
+-	*start = page;
+-	return(pos - page);
++static int stli_proc_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, rs_proc_show, NULL);
++	return single_open(file, stli_proc_show, NULL);
  }
  
-+static const struct file_operations rs_proc_fops = {
++static const struct file_operations stli_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= rs_proc_open,
++	.open		= stli_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
++
+ /*****************************************************************************/
  
- static struct tty_operations serial_ops = {
- 	.open = rs_open,
-@@ -205,7 +208,7 @@ static struct tty_operations serial_ops 
- 	.chars_in_buffer = rs_chars_in_buffer,
- 	.hangup = rs_hangup,
- 	.wait_until_sent = rs_wait_until_sent,
--	.read_proc = rs_read_proc
-+	.proc_fops = &rs_proc_fops,
+ /*
+@@ -4427,9 +4410,9 @@ static const struct tty_operations stli_
+ 	.break_ctl = stli_breakctl,
+ 	.wait_until_sent = stli_waituntilsent,
+ 	.send_xchar = stli_sendxchar,
+-	.read_proc = stli_readproc,
+ 	.tiocmget = stli_tiocmget,
+ 	.tiocmset = stli_tiocmset,
++	.proc_fops = &stli_proc_fops,
  };
  
- int __init rs_init(void)
+ static const struct tty_port_operations stli_port_ops = {
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
