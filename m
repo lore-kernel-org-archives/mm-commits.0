@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kthreads-simplify-migration_thread-exit-path.patch added to -mm tree
-Date: Fri, 30 Jan 2009 13:49:26 -0800
-Message-ID: <200901302149.n0ULnRvX025726@imap1.linux-foundation.org>
+Subject: + kthreads-rework-kthread_stop.patch added to -mm tree
+Date: Fri, 30 Jan 2009 13:49:22 -0800
+Message-ID: <200901302149.n0ULnMNI025676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50321 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754710AbZA3Vu5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754710AbZA3VvC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 16:50:57 -0500
+	Fri, 30 Jan 2009 16:51:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, ebiederm@xmission.com, hch@lst.de, mingo@elte.hu, rusty@rus
 
 
 The patch titled
-     kthreads: simplify migration_thread() exit path
+     kthreads: rework kthread_stop()
 has been added to the -mm tree.  Its filename is
-     kthreads-simplify-migration_thread-exit-path.patch
+     kthreads-rework-kthread_stop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthreads: simplify migration_thread() exit path
+Subject: kthreads: rework kthread_stop()
 From: Oleg Nesterov <oleg@redhat.com>
 
-Now that kthread_stop() can be used even if the task has already exited,
-we can kill the "wait_to_die:" loop in migration_thread().  But we must
-pin rq->migration_thread after creation.
+Based on Eric's patch which in turn was based on my patch.
 
-Actually, I don't think CPU_UP_CANCELED or CPU_DEAD should wait for
-->migration_thread exit.  Perhaps we can simplify this code a bit more. 
-migration_call() can set ->should_stop and forget about this thread.  But
-we need a new helper in kthred.c for that.
+kthread_stop() has the nasty problems:
+
+- it runs unpredictably long with the global semaphore held.
+
+- it deadlocks if kthread itself does kthread_stop() before it obeys
+  the kthread_should_stop() request.
+
+- it is not useable if kthread exits on its own, see for example the
+  ugly "wait_to_die:" hack in migration_thread()
+
+- it is not possible to just tell kthread it should stop, we must always
+  wait for its exit.
+
+With this patch kthread() allocates all neccesary data (struct kthread) on
+its own stack, globals kthread_stop_xxx are deleted.  ->vfork_done is used
+as a pointer into "struct kthread", this means kthread_stop() can easily
+wait for kthread's exit.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -56,62 +67,126 @@ Cc: Vitaliy Gusev <vgusev@openvz.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ kernel/kthread.c |   69 ++++++++++++++++++---------------------------
+ 1 file changed, 28 insertions(+), 41 deletions(-)
 
-diff -puN kernel/sched.c~kthreads-simplify-migration_thread-exit-path kernel/sched.c
---- a/kernel/sched.c~kthreads-simplify-migration_thread-exit-path
-+++ a/kernel/sched.c
-@@ -6359,7 +6359,7 @@ static int migration_thread(void *data)
+diff -puN kernel/kthread.c~kthreads-rework-kthread_stop kernel/kthread.c
+--- a/kernel/kthread.c~kthreads-rework-kthread_stop
++++ a/kernel/kthread.c
+@@ -39,17 +39,13 @@ struct kthread_create_info
+ 	struct list_head list;
+ };
  
- 		if (cpu_is_offline(cpu)) {
- 			spin_unlock_irq(&rq->lock);
--			goto wait_to_die;
-+			break;
- 		}
+-struct kthread_stop_info
+-{
+-	struct task_struct *k;
+-	int err;
+-	struct completion done;
++struct kthread {
++	int should_stop;
++	struct completion exited;
+ };
  
- 		if (rq->active_balance) {
-@@ -6385,16 +6385,7 @@ static int migration_thread(void *data)
- 		complete(&req->done);
- 	}
- 	__set_current_state(TASK_RUNNING);
--	return 0;
+-/* Thread stopping is done by setthing this var: lock serializes
+- * multiple kthread_stop calls. */
+-static DEFINE_MUTEX(kthread_stop_lock);
+-static struct kthread_stop_info kthread_stop_info;
++#define to_kthread(tsk)	\
++	container_of((tsk)->vfork_done, struct kthread, exited)
  
--wait_to_die:
--	/* Wait for kthread_stop */
--	set_current_state(TASK_INTERRUPTIBLE);
--	while (!kthread_should_stop()) {
--		schedule();
--		set_current_state(TASK_INTERRUPTIBLE);
+ /**
+  * kthread_should_stop - should this kthread return now?
+@@ -60,20 +56,22 @@ static struct kthread_stop_info kthread_
+  */
+ int kthread_should_stop(void)
+ {
+-	return (kthread_stop_info.k == current);
++	return to_kthread(current)->should_stop;
+ }
+ EXPORT_SYMBOL(kthread_should_stop);
+ 
+ static int kthread(void *_create)
+ {
++	/* Copy data: it's on kthread's stack */
+ 	struct kthread_create_info *create = _create;
+-	int (*threadfn)(void *data);
+-	void *data;
+-	int ret = -EINTR;
++	int (*threadfn)(void *data) = create->threadfn;
++	void *data = create->data;
++	struct kthread self;
++	int ret;
+ 
+-	/* Copy data: it's on kthread's stack */
+-	threadfn = create->threadfn;
+-	data = create->data;
++	self.should_stop = 0;
++	init_completion(&self.exited);
++	current->vfork_done = &self.exited;
+ 
+ 	/* OK, tell user we're spawned, wait for stop or wakeup */
+ 	__set_current_state(TASK_UNINTERRUPTIBLE);
+@@ -81,15 +79,12 @@ static int kthread(void *_create)
+ 	complete(&create->done);
+ 	schedule();
+ 
+-	if (!kthread_should_stop())
++	ret = -EINTR;
++	if (!self.should_stop)
+ 		ret = threadfn(data);
+ 
+-	/* It might have exited on its own, w/o kthread_stop.  Check. */
+-	if (kthread_should_stop()) {
+-		kthread_stop_info.err = ret;
+-		complete(&kthread_stop_info.done);
 -	}
--	__set_current_state(TASK_RUNNING);
- 	return 0;
+-	return 0;
++	/* we can't just return, we must preserve "self" on stack */
++	do_exit(ret);
  }
  
-@@ -6800,6 +6791,7 @@ migration_call(struct notifier_block *nf
- 		rq = task_rq_lock(p, &flags);
- 		__setscheduler(rq, p, SCHED_FIFO, MAX_RT_PRIO-1);
- 		task_rq_unlock(rq, &flags);
-+		get_task_struct(p);
- 		cpu_rq(cpu)->migration_thread = p;
- 		break;
+ static void create_kthread(struct kthread_create_info *create)
+@@ -199,30 +194,22 @@ EXPORT_SYMBOL(kthread_bind);
+  */
+ int kthread_stop(struct task_struct *k)
+ {
++	struct kthread *kthread;
+ 	int ret;
  
-@@ -6828,6 +6820,7 @@ migration_call(struct notifier_block *nf
- 		kthread_bind(cpu_rq(cpu)->migration_thread,
- 			     cpumask_any(cpu_online_mask));
- 		kthread_stop(cpu_rq(cpu)->migration_thread);
-+		put_task_struct(cpu_rq(cpu)->migration_thread);
- 		cpu_rq(cpu)->migration_thread = NULL;
- 		break;
+-	mutex_lock(&kthread_stop_lock);
+-
+-	/* It could exit after stop_info.k set, but before wake_up_process. */
++	trace_sched_kthread_stop(k);
+ 	get_task_struct(k);
  
-@@ -6837,6 +6830,7 @@ migration_call(struct notifier_block *nf
- 		migrate_live_tasks(cpu);
- 		rq = cpu_rq(cpu);
- 		kthread_stop(rq->migration_thread);
-+		put_task_struct(rq->migration_thread);
- 		rq->migration_thread = NULL;
- 		/* Idle task back to normal (off runqueue, low prio) */
- 		spin_lock_irq(&rq->lock);
+-	trace_sched_kthread_stop(k);
++	kthread = to_kthread(k);
++	barrier(); /* it might have exited */
++	if (k->vfork_done != NULL) {
++		kthread->should_stop = 1;
++		wake_up_process(k);
++		wait_for_completion(&kthread->exited);
++	}
++	ret = k->exit_code;
+ 
+-	/* Must init completion *before* thread sees kthread_stop_info.k */
+-	init_completion(&kthread_stop_info.done);
+-	smp_wmb();
+-
+-	/* Now set kthread_should_stop() to true, and wake it up. */
+-	kthread_stop_info.k = k;
+-	wake_up_process(k);
+ 	put_task_struct(k);
+-
+-	/* Once it dies, reset stop ptr, gather result and we're done. */
+-	wait_for_completion(&kthread_stop_info.done);
+-	kthread_stop_info.k = NULL;
+-	ret = kthread_stop_info.err;
+-	mutex_unlock(&kthread_stop_lock);
+-
+ 	trace_sched_kthread_stop_ret(ret);
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
