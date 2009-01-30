@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kthreads-move-sched-realeted-initialization-from-kthreadd-context.patch added to -mm tree
-Date: Fri, 30 Jan 2009 13:49:12 -0800
-Message-ID: <200901302149.n0ULnCKP025468@imap1.linux-foundation.org>
+Subject: + mtd-physmap-fix-wrong-free-and-del_mtd_partitiondevice.patch added to -mm tree
+Date: Fri, 30 Jan 2009 13:51:57 -0800
+Message-ID: <200901302151.n0ULpvsp028838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36134 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53007 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754813AbZA3VvE (ORCPT
+	by vger.kernel.org with ESMTP id S1753373AbZA3VwL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 16:51:04 -0500
+	Fri, 30 Jan 2009 16:52:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, ebiederm@xmission.com, hch@lst.de, mingo@elte.hu, rusty@rustcorp.com.au, vgusev@openvz.org, xemul@openvz.org
+Cc: anemo@mba.ocn.ne.jp, dwmw2@infradead.org, matthias@kaehlcke.net
 
 
 The patch titled
-     kthreads: move sched-realeted initialization from kthreadd context
+     mtd: physmap: fix wrong free and del_mtd_{partition,device}
 has been added to the -mm tree.  Its filename is
-     kthreads-move-sched-realeted-initialization-from-kthreadd-context.patch
+     mtd-physmap-fix-wrong-free-and-del_mtd_partitiondevice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthreads: move sched-realeted initialization from kthreadd context
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: mtd: physmap: fix wrong free and del_mtd_{partition,device}
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-kthreadd is the single thread which implements ths "create" request, move
-sched_setscheduler/etc from create_kthread() to kthread_create() to
-improve the scalability.
+commit 176bf2e0f10ecf1d20a97db3bd5bb2e6ba0b5668 ("physmap: fix leak of
+memory returned by parse_mtd_partitions") deals with a memory leak and
+frees the pointer array of mtd_partition after the call to
+add_mtd_partitions().  the problem is that mtd_table[x]->name still points
+to the freed memory.
 
-We should be careful with sched_setscheduler(), use _nochek helper.
+Aldo physmap_flash_remove() should call del_mtd_partitions() or
+del_mtd_device() only once.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Vitaliy Gusev <vgusev@openvz.org
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Reported-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Tested-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/mtd/maps/physmap.c |   38 +++++++++++++++++------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
-diff -puN kernel/kthread.c~kthreads-move-sched-realeted-initialization-from-kthreadd-context kernel/kthread.c
---- a/kernel/kthread.c~kthreads-move-sched-realeted-initialization-from-kthreadd-context
-+++ a/kernel/kthread.c
-@@ -102,15 +102,7 @@ static void create_kthread(struct kthrea
- 	if (pid < 0) {
- 		create->result = ERR_PTR(pid);
- 	} else {
--		struct sched_param param = { .sched_priority = 0 };
- 		wait_for_completion(&create->started);
--		/*
--		 * root may have changed our (kthreadd's) priority or CPU mask.
--		 * The kernel thread should not inherit these properties.
--		 */
--		sched_setscheduler(create->result, SCHED_NORMAL, &param);
--		set_user_nice(create->result, KTHREAD_NICE_LEVEL);
--		set_cpus_allowed_ptr(create->result, CPU_MASK_ALL_PTR);
- 	}
- 	complete(&create->done);
- }
-@@ -154,11 +146,20 @@ struct task_struct *kthread_create(int (
- 	wait_for_completion(&create.done);
+diff -puN drivers/mtd/maps/physmap.c~mtd-physmap-fix-wrong-free-and-del_mtd_partitiondevice drivers/mtd/maps/physmap.c
+--- a/drivers/mtd/maps/physmap.c~mtd-physmap-fix-wrong-free-and-del_mtd_partitiondevice
++++ a/drivers/mtd/maps/physmap.c
+@@ -29,6 +29,7 @@ struct physmap_flash_info {
+ 	struct map_info		map[MAX_RESOURCES];
+ #ifdef CONFIG_MTD_PARTITIONS
+ 	int			nr_parts;
++	struct mtd_partition	*parts;
+ #endif
+ };
  
- 	if (!IS_ERR(create.result)) {
-+		struct sched_param param = { .sched_priority = 0 };
- 		va_list args;
+@@ -45,25 +46,26 @@ static int physmap_flash_remove(struct p
+ 
+ 	physmap_data = dev->dev.platform_data;
+ 
+-#ifdef CONFIG_MTD_CONCAT
+-	if (info->cmtd != info->mtd[0]) {
++#ifdef CONFIG_MTD_PARTITIONS
++	if (info->nr_parts) {
++		del_mtd_partitions(info->cmtd);
++		kfree(info->parts);
++	} else if (physmap_data->nr_parts)
++		del_mtd_partitions(info->cmtd);
++	else
+ 		del_mtd_device(info->cmtd);
++#else
++	del_mtd_device(info->cmtd);
++#endif
 +
- 		va_start(args, namefmt);
- 		vsnprintf(create.result->comm, sizeof(create.result->comm),
- 			  namefmt, args);
- 		va_end(args);
-+		/*
-+		 * root may have changed our (kthreadd's) priority or CPU mask.
-+		 * The kernel thread should not inherit these properties.
-+		 */
-+		sched_setscheduler_nocheck(create.result, SCHED_NORMAL, &param);
-+		set_user_nice(create.result, KTHREAD_NICE_LEVEL);
-+		set_cpus_allowed_ptr(create.result, CPU_MASK_ALL_PTR);
++#ifdef CONFIG_MTD_CONCAT
++	if (info->cmtd != info->mtd[0])
+ 		mtd_concat_destroy(info->cmtd);
+-	}
+ #endif
+ 
+ 	for (i = 0; i < MAX_RESOURCES; i++) {
+-		if (info->mtd[i] != NULL) {
+-#ifdef CONFIG_MTD_PARTITIONS
+-			if (info->nr_parts || physmap_data->nr_parts)
+-				del_mtd_partitions(info->mtd[i]);
+-			else
+-				del_mtd_device(info->mtd[i]);
+-#else
+-			del_mtd_device(info->mtd[i]);
+-#endif
++		if (info->mtd[i] != NULL)
+ 			map_destroy(info->mtd[i]);
+-		}
  	}
- 	return create.result;
+ 	return 0;
  }
+@@ -86,9 +88,6 @@ static int physmap_flash_probe(struct pl
+ 	int err = 0;
+ 	int i;
+ 	int devices_found = 0;
+-#ifdef CONFIG_MTD_PARTITIONS
+-	struct mtd_partition *parts;
+-#endif
+ 
+ 	physmap_data = dev->dev.platform_data;
+ 	if (physmap_data == NULL)
+@@ -167,10 +166,11 @@ static int physmap_flash_probe(struct pl
+ 		goto err_out;
+ 
+ #ifdef CONFIG_MTD_PARTITIONS
+-	err = parse_mtd_partitions(info->cmtd, part_probe_types, &parts, 0);
++	err = parse_mtd_partitions(info->cmtd, part_probe_types,
++				&info->parts, 0);
+ 	if (err > 0) {
+-		add_mtd_partitions(info->cmtd, parts, err);
+-		kfree(parts);
++		add_mtd_partitions(info->cmtd, info->parts, err);
++		info->nr_parts = err;
+ 		return 0;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-origin.patch
-wait-prevent-exclusive-waiter-starvation.patch
 linux-next.patch
-pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch
-get_mm_hiwater_xxx-trivial-s-define-inline.patch
-getrusage-fill-ru_maxrss-value.patch
-ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
-ptrace-simplify-ptrace_exit-ignoring_children-path.patch
-ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
-ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
-reparent_thread-dont-call-kill_orphaned_pgrp-if-task_detached.patch
-reparent_thread-fix-the-is-it-traced-check.patch
-reparent_thread-fix-a-zombie-leak-if-sbin-init-ignores-sigchld.patch
-forget_original_parent-cleanup-ptrace-pathes.patch
-kthread-dont-looking-for-a-task-in-create_kthread-2.patch
-kthreads-move-sched-realeted-initialization-from-kthreadd-context.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+mtd-txx9-add-ndfmc-support.patch
+mtd-rbtx4939-add-mtd-support.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+mtd-txx9-soc-nand-flash-memory-controller-driver.patch
+mtd-rbtx4939-map-driver.patch
+mtd-physmap-fix-wrong-free-and-del_mtd_partitiondevice.patch
+atmel_serial-might-lose-modem-status-change.patch
 
