@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch added to -mm tree
-Date: Fri, 30 Jan 2009 12:47:57 -0800
-Message-ID: <200901302047.n0UKlwtF014048@imap1.linux-foundation.org>
+Subject: + ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch added to -mm tree
+Date: Fri, 30 Jan 2009 12:48:57 -0800
+Message-ID: <200901302048.n0UKmvKb015341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751618AbZA3Usn (ORCPT
+	by vger.kernel.org with ESMTP id S1752514AbZA3Ut4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 15:48:43 -0500
+	Fri, 30 Jan 2009 15:49:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, dvlasenk@redhat.com, jmarchan@redhat.com, roland@redhat.com
 
 
 The patch titled
-     ptrace-simplify-ptrace_exit-ignoring_children-pathpatch fix
+     ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit fix
 has been added to the -mm tree.  Its filename is
-     ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
+     ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace-simplify-ptrace_exit-ignoring_children-pathpatch fix
+Subject: ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit fix
 From: Oleg Nesterov <oleg@redhat.com>
 
-Somehow I didn't even try to think about false _negative_, and it is
-possible without ->siglock.
-
-If we race with sigaction() which changes ->action[SIGCHLD]
-
-	from:	{ .sa_handler = SIG_IGN, .sa_flags = 0 }
-	to:	{ .sa_handler = handler, .sa_flags = SA_NOCLDWAIT }
-
-we can read the stores out of order, and ignoring_children() may
-return the wrong "false". Nothing really bad can happen, and the
-race is mostly theoretical, but still this is not right.
-
-[PATCH 2/4] ptrace: simplify ptrace_exit()->ignoring_children() path
-
-In order to avoid the unnecessary ignoring_children() calls, ptrace_exit()
-uses "int ign" to cache the returned value.
-
-This makes sense because ptrace_exit() works with the list of tracees, but
-the next patche changes this code to work with individual threads.
-
-Remove this optimization, I don't think it is common to exit with a lot of
-attached EXIT_ZOMBIE tracees. And this makes the code a bit simpler.
-
-Also remove _irqsave/_irqrestore, this code always runs with irqs disabled.
+Re-diff + update the comments.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Jerome Marchand <jmarchan@redhat.com>
@@ -69,32 +46,22 @@ Cc: Denys Vlasenko <dvlasenk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ kernel/exit.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix kernel/exit.c
---- a/kernel/exit.c~ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix
+diff -puN kernel/exit.c~ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix kernel/exit.c
+--- a/kernel/exit.c~ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix
 +++ a/kernel/exit.c
-@@ -729,12 +729,16 @@ static void exit_mm(struct task_struct *
- }
- 
- /*
-- * Return nonzero if childs should reap themselves.
-+ * Called with irqs disabled, returns true if childs should reap themselves.
-  */
- static int ignoring_children(struct sighand_struct *sigh)
- {
--	return	sigh->action[SIGCHLD-1].sa.sa_handler == SIG_IGN ||
--		sigh->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDWAIT;
-+	int ret;
-+	spin_lock(&sigh->siglock);
-+	ret = (sigh->action[SIGCHLD-1].sa.sa_handler == SIG_IGN) ||
-+	      (sigh->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDWAIT);
-+	spin_unlock(&sigh->siglock);
-+	return ret;
- }
- 
- /*
+@@ -752,8 +752,7 @@ int __ptrace_detach(struct task_struct *
+ 	 * If it's a zombie, our attachedness prevented normal
+ 	 * parent notification or self-reaping.  Do notification
+ 	 * now if it would have happened earlier.  If it should
+-	 * reap itself, add it to the @dead list.  We can't call
+-	 * release_task() here because we already hold tasklist_lock.
++	 * reap itself we return true.
+ 	 *
+ 	 * If it's our own child, there is no notification to do.
+ 	 * But if our normal children self-reap, then this child
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -109,6 +76,7 @@ ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
 ptrace-simplify-ptrace_exit-ignoring_children-path.patch
 ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
 ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
+ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
 ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
 reparent_thread-dont-call-kill_orphaned_pgrp-if-task_detached.patch
 reparent_thread-fix-the-is-it-traced-check.patch
