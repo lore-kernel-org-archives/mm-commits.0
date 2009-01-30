@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-tty-switch-synclinkmp-to-proc_fops.patch added to -mm tree
-Date: Fri, 30 Jan 2009 12:53:39 -0800
-Message-ID: <200901302053.n0UKre7V021205@imap1.linux-foundation.org>
+Subject: + rtc-wm8350-retries-will-reach-1.patch added to -mm tree
+Date: Fri, 30 Jan 2009 13:13:15 -0800
+Message-ID: <200901302113.n0ULDFni013153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34566 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754900AbZA3U4D (ORCPT
+	by vger.kernel.org with ESMTP id S1752539AbZA3VNa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jan 2009 15:56:03 -0500
+	Fri, 30 Jan 2009 16:13:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk
+Cc: roel.kluin@gmail.com, a.zummo@towertech.it, broonie@opensource.wolfsonmicro.com
 
 
 The patch titled
-     proc tty: switch synclinkmp to ->proc_fops
+     rtc-wm8350: retries will reach -1
 has been added to the -mm tree.  Its filename is
-     proc-tty-switch-synclinkmp-to-proc_fops.patch
+     rtc-wm8350-retries-will-reach-1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,203 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc tty: switch synclinkmp to ->proc_fops
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: rtc-wm8350: retries will reach -1
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+With a postfix decrement retries will reach -1 rather than 0, so the
+warning and error-out will not occur.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclinkmp.c |   74 ++++++++++++++++--------------------
- 1 file changed, 34 insertions(+), 40 deletions(-)
+ drivers/rtc/rtc-wm8350.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/synclinkmp.c~proc-tty-switch-synclinkmp-to-proc_fops drivers/char/synclinkmp.c
---- a/drivers/char/synclinkmp.c~proc-tty-switch-synclinkmp-to-proc_fops
-+++ a/drivers/char/synclinkmp.c
-@@ -50,6 +50,7 @@
- #include <linux/ptrace.h>
- #include <linux/ioport.h>
- #include <linux/mm.h>
-+#include <linux/seq_file.h>
- #include <linux/slab.h>
- #include <linux/netdevice.h>
- #include <linux/vmalloc.h>
-@@ -520,7 +521,6 @@ static void tx_hold(struct tty_struct *t
- static void tx_release(struct tty_struct *tty);
+diff -puN drivers/rtc/rtc-wm8350.c~rtc-wm8350-retries-will-reach-1 drivers/rtc/rtc-wm8350.c
+--- a/drivers/rtc/rtc-wm8350.c~rtc-wm8350-retries-will-reach-1
++++ a/drivers/rtc/rtc-wm8350.c
+@@ -122,7 +122,7 @@ static int wm8350_rtc_settime(struct dev
+ 	do {
+ 		rtc_ctrl = wm8350_reg_read(wm8350, WM8350_RTC_TIME_CONTROL);
+ 		schedule_timeout_uninterruptible(msecs_to_jiffies(1));
+-	} while (retries-- && !(rtc_ctrl & WM8350_RTC_STS));
++	} while (--retries && !(rtc_ctrl & WM8350_RTC_STS));
  
- static int  ioctl(struct tty_struct *tty, struct file *file, unsigned int cmd, unsigned long arg);
--static int  read_proc(char *page, char **start, off_t off, int count,int *eof, void *data);
- static int  chars_in_buffer(struct tty_struct *tty);
- static void throttle(struct tty_struct * tty);
- static void unthrottle(struct tty_struct * tty);
-@@ -1354,13 +1354,12 @@ static int ioctl(struct tty_struct *tty,
-  * /proc fs routines....
-  */
+ 	if (!retries) {
+ 		dev_err(dev, "timed out on set confirmation\n");
+@@ -437,7 +437,7 @@ static int wm8350_rtc_probe(struct platf
+ 		do {
+ 			timectl = wm8350_reg_read(wm8350,
+ 						  WM8350_RTC_TIME_CONTROL);
+-		} while (timectl & WM8350_RTC_STS && retries--);
++		} while (timectl & WM8350_RTC_STS && --retries);
  
--static inline int line_info(char *buf, SLMP_INFO *info)
-+static inline void line_info(struct seq_file *m, SLMP_INFO *info)
- {
- 	char	stat_buf[30];
--	int	ret;
- 	unsigned long flags;
- 
--	ret = sprintf(buf, "%s: SCABase=%08x Mem=%08X StatusControl=%08x LCR=%08X\n"
-+	seq_printf(m, "%s: SCABase=%08x Mem=%08X StatusControl=%08x LCR=%08X\n"
- 		       "\tIRQ=%d MaxFrameSize=%u\n",
- 		info->device_name,
- 		info->phys_sca_base,
-@@ -1391,75 +1390,70 @@ static inline int line_info(char *buf, S
- 		strcat(stat_buf, "|RI");
- 
- 	if (info->params.mode == MGSL_MODE_HDLC) {
--		ret += sprintf(buf+ret, "\tHDLC txok:%d rxok:%d",
-+		seq_printf(m, "\tHDLC txok:%d rxok:%d",
- 			      info->icount.txok, info->icount.rxok);
- 		if (info->icount.txunder)
--			ret += sprintf(buf+ret, " txunder:%d", info->icount.txunder);
-+			seq_printf(m, " txunder:%d", info->icount.txunder);
- 		if (info->icount.txabort)
--			ret += sprintf(buf+ret, " txabort:%d", info->icount.txabort);
-+			seq_printf(m, " txabort:%d", info->icount.txabort);
- 		if (info->icount.rxshort)
--			ret += sprintf(buf+ret, " rxshort:%d", info->icount.rxshort);
-+			seq_printf(m, " rxshort:%d", info->icount.rxshort);
- 		if (info->icount.rxlong)
--			ret += sprintf(buf+ret, " rxlong:%d", info->icount.rxlong);
-+			seq_printf(m, " rxlong:%d", info->icount.rxlong);
- 		if (info->icount.rxover)
--			ret += sprintf(buf+ret, " rxover:%d", info->icount.rxover);
-+			seq_printf(m, " rxover:%d", info->icount.rxover);
- 		if (info->icount.rxcrc)
--			ret += sprintf(buf+ret, " rxlong:%d", info->icount.rxcrc);
-+			seq_printf(m, " rxlong:%d", info->icount.rxcrc);
- 	} else {
--		ret += sprintf(buf+ret, "\tASYNC tx:%d rx:%d",
-+		seq_printf(m, "\tASYNC tx:%d rx:%d",
- 			      info->icount.tx, info->icount.rx);
- 		if (info->icount.frame)
--			ret += sprintf(buf+ret, " fe:%d", info->icount.frame);
-+			seq_printf(m, " fe:%d", info->icount.frame);
- 		if (info->icount.parity)
--			ret += sprintf(buf+ret, " pe:%d", info->icount.parity);
-+			seq_printf(m, " pe:%d", info->icount.parity);
- 		if (info->icount.brk)
--			ret += sprintf(buf+ret, " brk:%d", info->icount.brk);
-+			seq_printf(m, " brk:%d", info->icount.brk);
- 		if (info->icount.overrun)
--			ret += sprintf(buf+ret, " oe:%d", info->icount.overrun);
-+			seq_printf(m, " oe:%d", info->icount.overrun);
- 	}
- 
- 	/* Append serial signal status to end */
--	ret += sprintf(buf+ret, " %s\n", stat_buf+1);
-+	seq_printf(m, " %s\n", stat_buf+1);
- 
--	ret += sprintf(buf+ret, "\ttxactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
-+	seq_printf(m, "\ttxactive=%d bh_req=%d bh_run=%d pending_bh=%x\n",
- 	 info->tx_active,info->bh_requested,info->bh_running,
- 	 info->pending_bh);
--
--	return ret;
- }
- 
- /* Called to print information about devices
-  */
--static int read_proc(char *page, char **start, off_t off, int count,
--	      int *eof, void *data)
-+static int synclinkmp_proc_show(struct seq_file *m, void *v)
- {
--	int len = 0, l;
--	off_t	begin = 0;
- 	SLMP_INFO *info;
- 
--	len += sprintf(page, "synclinkmp driver:%s\n", driver_version);
-+	seq_printf(m, "synclinkmp driver:%s\n", driver_version);
- 
- 	info = synclinkmp_device_list;
- 	while( info ) {
--		l = line_info(page + len, info);
--		len += l;
--		if (len+begin > off+count)
--			goto done;
--		if (len+begin < off) {
--			begin += len;
--			len = 0;
--		}
-+		line_info(m, info);
- 		info = info->next_device;
- 	}
-+	return 0;
-+}
- 
--	*eof = 1;
--done:
--	if (off >= len+begin)
--		return 0;
--	*start = page + (off-begin);
--	return ((count < begin+len-off) ? count : begin+len-off);
-+static int synclinkmp_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, synclinkmp_proc_show, NULL);
- }
- 
-+static const struct file_operations synclinkmp_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= synclinkmp_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
- /* Return the count of bytes in transmit buffer
-  */
- static int chars_in_buffer(struct tty_struct *tty)
-@@ -3905,13 +3899,13 @@ static const struct tty_operations ops =
- 	.send_xchar = send_xchar,
- 	.break_ctl = set_break,
- 	.wait_until_sent = wait_until_sent,
-- 	.read_proc = read_proc,
- 	.set_termios = set_termios,
- 	.stop = tx_hold,
- 	.start = tx_release,
- 	.hangup = hangup,
- 	.tiocmget = tiocmget,
- 	.tiocmset = tiocmset,
-+	.proc_fops = &synclinkmp_proc_fops,
- };
- 
- 
+ 		if (retries == 0) {
+ 			dev_err(&pdev->dev, "failed to start: timeout\n");
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-seq_file-move-traverse-so-it-can-be-used-from-seq_read.patch
-seq_file-properly-cope-with-pread.patch
+origin.patch
 linux-next.patch
-eeepc-should-depend-on-input.patch
-tags-fix-config-symbols-generation.patch
-sm501-fix-section-mismatches.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-proc-tty-add-struct-tty_operations-proc_fops.patch
-proc-tty-switch-cyclades-to-proc_fops.patch
-proc-tty-switch-ip2-to-proc_fops.patch
-proc-tty-switch-istallion-to-proc_fops.patch
-proc-tty-switch-synclink_cs-to-proc_fops.patch
-proc-tty-switch-stallion-to-proc_fops.patch
-proc-tty-switch-synclink-to-proc_fops.patch
-proc-tty-switch-synclink_gt-to-proc_fops.patch
-proc-tty-switch-synclinkmp-to-proc_fops.patch
-proc-tty-switch-sdio_uart-to-proc_fops.patch
-proc-tty-switch-serial_core-to-proc_fops.patch
-proc-tty-switch-usb-serial-to-proc_fops.patch
-proc-tty-switch-ircomm-to-proc_fops.patch
-proc-tty-switch-amiserial-to-proc_fops.patch
-proc-tty-switch-ia64-simserial-to-proc_fops.patch
-proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
-proc-tty-remove-struct-tty_operations-read_proc.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
+drm-fix-lock_test_with_return-macro.patch
+dvb-negative-internal-sub_range-wont-get-noticed.patch
+paride-pgc-xs-confusion.patch
+virtio-fix-bad_ring-start_us-and-end_use-macros.patch
+mm-get_nid_for_pfn-returns-int.patch
+alpha-fix-macros.patch
+rtc-wm8350-retries-will-reach-1.patch
+ufs-sector_t-cannot-be-negative.patch
 
