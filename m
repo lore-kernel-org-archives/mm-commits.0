@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-dont-use-in_atomic-in-gfp_any.patch added to -mm tree
-Date: Fri, 30 Jan 2009 22:16:26 -0800
-Message-ID: <200901310616.n0V6GQa7026034@imap1.linux-foundation.org>
+Subject: + documentation-connector-cn_testc-dont-use-gfp_any.patch added to -mm tree
+Date: Fri, 30 Jan 2009 22:17:45 -0800
+Message-ID: <200901310617.n0V6HjgW027642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751066AbZAaGQd (ORCPT
+	by vger.kernel.org with ESMTP id S1751111AbZAaGSH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 31 Jan 2009 01:16:33 -0500
+	Sat, 31 Jan 2009 01:18:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, davem@davemloft.net
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, davem@davemloft.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     net: dont' use in_atomic() in gfp_any()
+     Documentation/connector/cn_test.c: don't use gfp_any()
 has been added to the -mm tree.  Its filename is
-     net-dont-use-in_atomic-in-gfp_any.patch
+     documentation-connector-cn_testc-dont-use-gfp_any.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net: dont' use in_atomic() in gfp_any()
+Subject: Documentation/connector/cn_test.c: don't use gfp_any()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-The problem is that in_atomic() will return false inside spinlocks if
-CONFIG_PREEMPT=n.  This will lead to deadlockable GFP_KERNEL allocations
-from spinlocked regions.
+cn_test_timer_func() is a timer handler and can never use GFP_KERNEL -
+there's no point in using gfp_any() here.
 
-Secondly, if CONFIG_PREEMPT=y, this bug solves itself because networking
-will instead use GFP_ATOMIC from thi callsite.  Hence we won't get the
-migth_sleep() debugging warnings which would have informed us of the buggy
-callsites.
+Also, use setup_timer().
 
-Solve both these problems by switching to in_interrupt().  Now, if someone
-runs a gfp_any() allocation from inside spinlock we will get the warning
-if CONFIG_PREEMPT=y.
-
-I reviewed all callsites and most of them were too complex for my little
-brain and none of them documented their interface requirements.  I have no
-idea what this patch will do.
-
-Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/sock.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/connector/cn_test.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/net/sock.h~net-dont-use-in_atomic-in-gfp_any include/net/sock.h
---- a/include/net/sock.h~net-dont-use-in_atomic-in-gfp_any
-+++ a/include/net/sock.h
-@@ -1308,7 +1308,7 @@ static inline int sock_writeable(const s
+diff -puN Documentation/connector/cn_test.c~documentation-connector-cn_testc-dont-use-gfp_any Documentation/connector/cn_test.c
+--- a/Documentation/connector/cn_test.c~documentation-connector-cn_testc-dont-use-gfp_any
++++ a/Documentation/connector/cn_test.c
+@@ -137,7 +137,7 @@ static void cn_test_timer_func(unsigned 
  
- static inline gfp_t gfp_any(void)
- {
--	return in_atomic() ? GFP_ATOMIC : GFP_KERNEL;
-+	return in_interrupt() ? GFP_ATOMIC : GFP_KERNEL;
- }
+ 		memcpy(m + 1, data, m->len);
  
- static inline long sock_rcvtimeo(const struct sock *sk, int noblock)
+-		cn_netlink_send(m, 0, gfp_any());
++		cn_netlink_send(m, 0, GFP_ATOMIC);
+ 		kfree(m);
+ 	}
+ 
+@@ -160,10 +160,8 @@ static int cn_test_init(void)
+ 		goto err_out;
+ 	}
+ 
+-	init_timer(&cn_test_timer);
+-	cn_test_timer.function = cn_test_timer_func;
++	setup_timer(&cn_test_timer, cn_test_timer_func, 0);
+ 	cn_test_timer.expires = jiffies + HZ;
+-	cn_test_timer.data = 0;
+ 	add_timer(&cn_test_timer);
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
