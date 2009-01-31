@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-connector-cn_testc-dont-use-gfp_any.patch added to -mm tree
-Date: Fri, 30 Jan 2009 22:17:45 -0800
-Message-ID: <200901310617.n0V6HjgW027642@imap1.linux-foundation.org>
+Subject: + drivers-video-uvesafbc-dont-use-gfp_any.patch added to -mm tree
+Date: Fri, 30 Jan 2009 22:18:00 -0800
+Message-ID: <200901310618.n0V6I0Vj027995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43168 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751111AbZAaGSH (ORCPT
+	by vger.kernel.org with ESMTP id S1751066AbZAaGSU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 31 Jan 2009 01:18:07 -0500
+	Sat, 31 Jan 2009 01:18:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, andi@firstfloor.org, davem@davemloft.net, johnpol
 
 
 The patch titled
-     Documentation/connector/cn_test.c: don't use gfp_any()
+     drivers/video/uvesafb.c: don't use gfp_any()
 has been added to the -mm tree.  Its filename is
-     documentation-connector-cn_testc-dont-use-gfp_any.patch
+     drivers-video-uvesafbc-dont-use-gfp_any.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/connector/cn_test.c: don't use gfp_any()
+Subject: drivers/video/uvesafb.c: don't use gfp_any()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-cn_test_timer_func() is a timer handler and can never use GFP_KERNEL -
-there's no point in using gfp_any() here.
-
-Also, use setup_timer().
+GFP_KERNEL is legal here - we don't need to use gfp_any().
 
 Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -48,33 +45,21 @@ Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/connector/cn_test.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/video/uvesafb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/connector/cn_test.c~documentation-connector-cn_testc-dont-use-gfp_any Documentation/connector/cn_test.c
---- a/Documentation/connector/cn_test.c~documentation-connector-cn_testc-dont-use-gfp_any
-+++ a/Documentation/connector/cn_test.c
-@@ -137,7 +137,7 @@ static void cn_test_timer_func(unsigned 
+diff -puN drivers/video/uvesafb.c~drivers-video-uvesafbc-dont-use-gfp_any drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~drivers-video-uvesafbc-dont-use-gfp_any
++++ a/drivers/video/uvesafb.c
+@@ -189,7 +189,7 @@ static int uvesafb_exec(struct uvesafb_k
+ 	uvfb_tasks[seq] = task;
+ 	mutex_unlock(&uvfb_lock);
  
- 		memcpy(m + 1, data, m->len);
- 
--		cn_netlink_send(m, 0, gfp_any());
-+		cn_netlink_send(m, 0, GFP_ATOMIC);
- 		kfree(m);
- 	}
- 
-@@ -160,10 +160,8 @@ static int cn_test_init(void)
- 		goto err_out;
- 	}
- 
--	init_timer(&cn_test_timer);
--	cn_test_timer.function = cn_test_timer_func;
-+	setup_timer(&cn_test_timer, cn_test_timer_func, 0);
- 	cn_test_timer.expires = jiffies + HZ;
--	cn_test_timer.data = 0;
- 	add_timer(&cn_test_timer);
- 
- 	return 0;
+-	err = cn_netlink_send(m, 0, gfp_any());
++	err = cn_netlink_send(m, 0, GFP_KERNEL);
+ 	if (err == -ESRCH) {
+ 		/*
+ 		 * Try to start the userspace helper if sending
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
