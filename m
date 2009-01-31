@@ -1,65 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-uvesafbc-dont-use-gfp_any.patch added to -mm tree
-Date: Fri, 30 Jan 2009 22:18:00 -0800
-Message-ID: <200901310618.n0V6I0Vj027995@imap1.linux-foundation.org>
+Subject: [failures] acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch removed from -mm tree
+Date: Sat, 31 Jan 2009 00:52:38 -0800
+Message-ID: <200901310852.n0V8qcrZ032013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49977 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40044 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751066AbZAaGSU (ORCPT
+	by vger.kernel.org with ESMTP id S1751556AbZAaIxH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 31 Jan 2009 01:18:20 -0500
+	Sat, 31 Jan 2009 03:53:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, davem@davemloft.net, johnpol@2ka.mipt.ru
+To: akpm@linux-foundation.org, Li@suse.de, hmacht@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, marvin@mydatex.cz, rui.zhang@intel.com, shaohua.li@intel.com, stable@kernel.orgm
 
 
 The patch titled
-     drivers/video/uvesafb.c: don't use gfp_any()
-has been added to the -mm tree.  Its filename is
-     drivers-video-uvesafbc-dont-use-gfp_any.patch
+     acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification
+has been removed from the -mm tree.  Its filename was
+     acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/uvesafb.c: don't use gfp_any()
+Subject: acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification
 From: Andrew Morton <akpm@linux-foundation.org>
 
-GFP_KERNEL is legal here - we don't need to use gfp_any().
+s/snprintf/strcpy/
 
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andi Kleen <andi@firstfloor.org>
+Cc: <Li@suse.de>
+Cc: <stable@kernel.org>
+Cc: Daniel Smolik <marvin@mydatex.cz>
+Cc: Holger Macht <hmacht@suse.de>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/dock.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/uvesafb.c~drivers-video-uvesafbc-dont-use-gfp_any drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~drivers-video-uvesafbc-dont-use-gfp_any
-+++ a/drivers/video/uvesafb.c
-@@ -189,7 +189,7 @@ static int uvesafb_exec(struct uvesafb_k
- 	uvfb_tasks[seq] = task;
- 	mutex_unlock(&uvfb_lock);
+diff -puN drivers/acpi/dock.c~acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification
++++ a/drivers/acpi/dock.c
+@@ -861,8 +861,8 @@ static ssize_t show_docked(struct device
+ 		dev->platform_data);
  
--	err = cn_netlink_send(m, 0, gfp_any());
-+	err = cn_netlink_send(m, 0, GFP_KERNEL);
- 	if (err == -ESRCH) {
- 		/*
- 		 * Try to start the userspace helper if sending
+ 	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
+-		return snprintf(buf, PAGE_SIZE, "1\n");
+-	return snprintf(buf, PAGE_SIZE, "0\n");
++		return strcpy(buf, "1\n");
++	return strcpy(buf, "0\n");
+ }
+ static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
