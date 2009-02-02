@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + intel_iommu-default-to-off.patch added to -mm tree
-Date: Mon, 02 Feb 2009 15:21:34 -0800
-Message-ID: <200902022321.n12NLYKK023821@imap1.linux-foundation.org>
+Subject: + mtd-remove-eol-from-module_description.patch added to -mm tree
+Date: Mon, 02 Feb 2009 15:22:36 -0800
+Message-ID: <200902022322.n12NMaCc025152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43515 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752786AbZBBXXW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 18:23:22 -0500
+	by vger.kernel.org with ESMTP id S1752725AbZBBX0r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 18:26:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kyle@redhat.com, dwmw2@infradead.org, jbarnes@virtuousgeek.org, markmc@redhat.com, stable@kernel.org, suresh.b.siddha@intel.com
+Cc: niels.devos@wincor-nixdorf.com, dwmw2@infradead.org
 
 
 The patch titled
-     intel_iommu: default to off
+     MTD: remove EOL from MODULE_DESCRIPTION
 has been added to the -mm tree.  Its filename is
-     intel_iommu-default-to-off.patch
+     mtd-remove-eol-from-module_description.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel_iommu: default to off
-From: Kyle McMartin <kyle@redhat.com>
+Subject: MTD: remove EOL from MODULE_DESCRIPTION
+From: Niels de Vos <niels.devos@wincor-nixdorf.com>
 
-Due to reports of data corruption due to aborted DMA when using the intel
-iommu code, disable it by default and provide a command line parameter
-"intel_iommu=on" to turn it back on again.
+There is no need to have a "\n" on a MODULE_DESCRIPTION, remove it.
 
-Signed-off-by: Kyle McMartin <kyle@redhat.com>
-Cc: Mark McLoughlin <markmc@redhat.com>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Niels de Vos <niels.devos@wincor-nixdorf.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: <stable@kernel.org>		[2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/intel-iommu.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/mtd/nand/diskonchip.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/intel-iommu.c~intel_iommu-default-to-off drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~intel_iommu-default-to-off
-+++ a/drivers/pci/intel-iommu.c
-@@ -268,7 +268,7 @@ static long list_size;
+diff -puN drivers/mtd/nand/diskonchip.c~mtd-remove-eol-from-module_description drivers/mtd/nand/diskonchip.c
+--- a/drivers/mtd/nand/diskonchip.c~mtd-remove-eol-from-module_description
++++ a/drivers/mtd/nand/diskonchip.c
+@@ -1773,4 +1773,4 @@ module_exit(cleanup_nanddoc);
  
- static void domain_remove_dev_info(struct dmar_domain *domain);
- 
--int dmar_disabled;
-+int dmar_disabled = 1;
- static int __initdata dmar_map_gfx = 1;
- static int dmar_forcedac;
- static int intel_iommu_strict;
-@@ -284,9 +284,12 @@ static int __init intel_iommu_setup(char
- 	if (!str)
- 		return -EINVAL;
- 	while (*str) {
--		if (!strncmp(str, "off", 3)) {
-+		if (!strncmp(str, "on", 2)) {
-+			dmar_disabled = 0;
-+			printk(KERN_INFO "Intel-IOMMU: enabled\n");
-+		} else if (!strncmp(str, "off", 3)) {
- 			dmar_disabled = 1;
--			printk(KERN_INFO"Intel-IOMMU: disabled\n");
-+			printk(KERN_INFO "Intel-IOMMU: disabled\n");
- 		} else if (!strncmp(str, "igfx_off", 8)) {
- 			dmar_map_gfx = 0;
- 			printk(KERN_INFO
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("David Woodhouse <dwmw2@infradead.org>");
+-MODULE_DESCRIPTION("M-Systems DiskOnChip 2000, Millennium and Millennium Plus device driver\n");
++MODULE_DESCRIPTION("M-Systems DiskOnChip 2000, Millennium and Millennium Plus device driver");
 _
 
-Patches currently in -mm which might be from kyle@redhat.com are
+Patches currently in -mm which might be from niels.devos@wincor-nixdorf.com are
 
-intel_iommu-default-to-off.patch
+mtd-remove-eol-from-module_description.patch
 
