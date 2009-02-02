@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-jfs-return-f_fsid-for-statfs2.patch removed from -mm tree
-Date: Mon, 02 Feb 2009 11:37:13 -0800
-Message-ID: <200902021937.n12JbDD2013930@imap1.linux-foundation.org>
+Subject: [merged] fs-jfs-return-f_fsid-for-statfs2-v3.patch removed from -mm tree
+Date: Mon, 02 Feb 2009 11:37:15 -0800
+Message-ID: <200902021937.n12JbFaA013933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48758 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53832 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752855AbZBBTrA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 14:47:00 -0500
+	by vger.kernel.org with ESMTP id S1752166AbZBBTrR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 14:47:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: coly.li@suse.de, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/jfs: return f_fsid for statfs(2)
+     fs/jfs: return f_fsid for statfs(2), v3
 has been removed from the -mm tree.  Its filename was
-     fs-jfs-return-f_fsid-for-statfs2.patch
+     fs-jfs-return-f_fsid-for-statfs2-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/jfs: return f_fsid for statfs(2)
+Subject: fs/jfs: return f_fsid for statfs(2), v3
 From: Coly Li <coly.li@suse.de>
 
 Make jfs return f_fsid info for statfs(2).  By Andreas' suggestion, this
@@ -35,30 +35,41 @@ Acked-by: Dave Kleikamp <shaggy@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/super.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/jfs/super.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/jfs/super.c~fs-jfs-return-f_fsid-for-statfs2 fs/jfs/super.c
---- a/fs/jfs/super.c~fs-jfs-return-f_fsid-for-statfs2
+diff -puN fs/jfs/super.c~fs-jfs-return-f_fsid-for-statfs2-v3 fs/jfs/super.c
+--- a/fs/jfs/super.c~fs-jfs-return-f_fsid-for-statfs2-v3
 +++ a/fs/jfs/super.c
-@@ -143,8 +143,10 @@ static void jfs_destroy_inode(struct ino
+@@ -29,6 +29,7 @@
+ #include <linux/posix_acl.h>
+ #include <linux/buffer_head.h>
+ #include <linux/exportfs.h>
++#include <linux/crc32.h>
+ #include <asm/uaccess.h>
+ #include <linux/seq_file.h>
+ 
+@@ -143,10 +144,8 @@ static void jfs_destroy_inode(struct ino
  
  static int jfs_statfs(struct dentry *dentry, struct kstatfs *buf)
  {
--	struct jfs_sb_info *sbi = JFS_SBI(dentry->d_sb);
-+	struct super_block *sb = dentry->d_sb;
-+	struct jfs_sb_info *sbi = JFS_SBI(sb);
+-	struct super_block *sb = dentry->d_sb;
+-	struct jfs_sb_info *sbi = JFS_SBI(sb);
++	struct jfs_sb_info *sbi = JFS_SBI(dentry->d_sb);
  	s64 maxinodes;
-+	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
+-	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
  	struct inomap *imap = JFS_IP(sbi->ipimap)->i_imap;
  
  	jfs_info("In jfs_statfs");
-@@ -168,6 +170,8 @@ static int jfs_statfs(struct dentry *den
+@@ -170,8 +169,9 @@ static int jfs_statfs(struct dentry *den
  	buf->f_files = maxinodes;
  	buf->f_ffree = maxinodes - (atomic_read(&imap->im_numinos) -
  				    atomic_read(&imap->im_numfree));
-+	buf->f_fsid.val[0] = (u32)id;
-+	buf->f_fsid.val[1] = (u32)(id >> 32);
+-	buf->f_fsid.val[0] = (u32)id;
+-	buf->f_fsid.val[1] = (u32)(id >> 32);
++	buf->f_fsid.val[0] = (u32)crc32_le(0, sbi->uuid, sizeof(sbi->uuid)/2);
++	buf->f_fsid.val[1] = (u32)crc32_le(0, sbi->uuid + sizeof(sbi->uuid)/2,
++					sizeof(sbi->uuid)/2);
  
  	buf->f_namelen = JFS_NAME_MAX;
  	return 0;
