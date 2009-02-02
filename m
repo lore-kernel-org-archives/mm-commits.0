@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-fix.patch added to -mm tree
-Date: Mon, 02 Feb 2009 14:04:26 -0800
-Message-ID: <200902022204.n12M4Q26017316@imap1.linux-foundation.org>
+Subject: + input-ad7879-touchscreen-driver-dont-use-bus_id.patch added to -mm tree
+Date: Mon, 02 Feb 2009 14:13:18 -0800
+Message-ID: <200902022213.n12MDI1U029183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754183AbZBBWFg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 17:05:36 -0500
+	by vger.kernel.org with ESMTP id S1751198AbZBBWOA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 17:14:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, sandeen@redhat.com, t-sato@yk.jp.nec.com
+Cc: randy.dunlap@oracle.com, cooloney@kernel.org, dmitry.torokhov@gmail.com, michael.hennerich@analog.com
 
 
 The patch titled
-     sysrq: emergency thaw only if CONFIG_BLOCK enabled
+     touchscreen/ad787x: don't use bus_id
 has been added to the -mm tree.  Its filename is
-     filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-fix.patch
+     input-ad7879-touchscreen-driver-dont-use-bus_id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysrq: emergency thaw only if CONFIG_BLOCK enabled
+Subject: touchscreen/ad787x: don't use bus_id
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-sysrq's new emergency_thaw_all() is only available when CONFIG_BLOCK=y:
-
-drivers/char/sysrq.c:351: error: implicit declaration of function 'emergency_thaw_all'
+drivers/input/touchscreen/ad7879.c:421: error: 'struct device' has no member named 'bus_id'
+drivers/input/touchscreen/ad7877.c:716: error: 'struct device' has no member named 'bus_id'
+drivers/input/touchscreen/ad7877.c:743: error: 'struct device' has no member named 'bus_id'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Takashi Sato <t-sato@yk.jp.nec.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Bryan Wu <cooloney@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/input/touchscreen/ad7877.c |    6 +++---
+ drivers/input/touchscreen/ad7879.c |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/sysrq.c~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-fix drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-fix
-+++ a/drivers/char/sysrq.c
-@@ -346,6 +346,7 @@ static struct sysrq_key_op sysrq_moom_op
- 	.enable_mask	= SYSRQ_ENABLE_SIGNAL,
- };
+diff -puN drivers/input/touchscreen/ad7877.c~input-ad7879-touchscreen-driver-dont-use-bus_id drivers/input/touchscreen/ad7877.c
+--- a/drivers/input/touchscreen/ad7877.c~input-ad7879-touchscreen-driver-dont-use-bus_id
++++ a/drivers/input/touchscreen/ad7877.c
+@@ -713,7 +713,7 @@ static int __devinit ad7877_probe(struct
+ 	ts->averaging = pdata->averaging;
+ 	ts->pen_down_acc_interval = pdata->pen_down_acc_interval;
  
-+#ifdef CONFIG_BLOCK
- static void sysrq_handle_thaw(int key, struct tty_struct *tty)
- {
- 	emergency_thaw_all();
-@@ -356,6 +357,7 @@ static struct sysrq_key_op sysrq_thaw_op
- 	.action_msg	= "Emergency Thaw of all frozen filesystems",
- 	.enable_mask	= SYSRQ_ENABLE_SIGNAL,
- };
-+#endif
+-	snprintf(ts->phys, sizeof(ts->phys), "%s/inputX", spi->dev.bus_id);
++	snprintf(ts->phys, sizeof(ts->phys), "%s/inputX", dev_name(&spi->dev));
  
- static void sysrq_handle_kill(int key, struct tty_struct *tty)
- {
-@@ -409,7 +411,11 @@ static struct sysrq_key_op *sysrq_key_ta
- 	NULL,				/* g */
- 	NULL,				/* h - reserved for help */
- 	&sysrq_kill_op,			/* i */
-+#ifdef CONFIG_BLOCK
- 	&sysrq_thaw_op,			/* j */
-+#else
-+	NULL,				/* j */
-+#endif
- 	&sysrq_SAK_op,			/* k */
- #ifdef CONFIG_SMP
- 	&sysrq_showallcpus_op,		/* l */
+ 	input_dev->name = "AD7877 Touchscreen";
+ 	input_dev->phys = ts->phys;
+@@ -740,8 +740,8 @@ static int __devinit ad7877_probe(struct
+ 	verify = ad7877_read(spi, AD7877_REG_SEQ1);
+ 
+ 	if (verify != AD7877_MM_SEQUENCE){
+-		dev_err(&spi->dev, "%s: Failed to probe %s\n", spi->dev.bus_id,
+-			 input_dev->name);
++		dev_err(&spi->dev, "%s: Failed to probe %s\n",
++			dev_name(&spi->dev), input_dev->name);
+ 		err = -ENODEV;
+ 		goto err_free_mem;
+ 	}
+diff -puN drivers/input/touchscreen/ad7879.c~input-ad7879-touchscreen-driver-dont-use-bus_id drivers/input/touchscreen/ad7879.c
+--- a/drivers/input/touchscreen/ad7879.c~input-ad7879-touchscreen-driver-dont-use-bus_id
++++ a/drivers/input/touchscreen/ad7879.c
+@@ -418,7 +418,7 @@ static int __devinit ad7879_construct(bu
+ 	else
+ 		ts->gpio_init = AD7879_GPIO_EN | AD7879_GPIODIR;
+ 
+-	snprintf(ts->phys, sizeof(ts->phys), "%s/inputX", bus->dev.bus_id);
++	snprintf(ts->phys, sizeof(ts->phys), "%s/inputX", dev_name(&bus->dev));
+ 
+ 	input_dev->name = "AD7879 Touchscreen";
+ 	input_dev->phys = ts->phys;
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -89,6 +95,7 @@ maintainers-general-listsopenfabricsorg-is-moderated.patch
 linux-next.patch
 kgdb-fix-kernel-doc-error.patch
 auditsc-fix-kernel-doc-notation.patch
+input-ad7879-touchscreen-driver-dont-use-bus_id.patch
 es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
 e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 esp-fix-section-mismatch-warning.patch
