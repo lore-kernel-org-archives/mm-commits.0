@@ -1,72 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kthread-dont-looking-for-a-task-in-create_kthread-2.patch removed from -mm tree
-Date: Mon, 02 Feb 2009 11:37:11 -0800
-Message-ID: <200902021937.n12JbBBN013927@imap1.linux-foundation.org>
+Subject: [merged] fs-udf-return-f_fsid-for-statfs2.patch removed from -mm tree
+Date: Mon, 02 Feb 2009 11:37:17 -0800
+Message-ID: <200902021937.n12JbH7d013944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54124 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753276AbZBBTio (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 14:38:44 -0500
+	by vger.kernel.org with ESMTP id S1752855AbZBBTqd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 14:46:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgusev@openvz.org, hch@lst.de, oleg@redhat.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: coly.li@suse.de, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kthread: don't look for a task in create_kthread()
+     fs/udf: return f_fsid for statfs(2)
 has been removed from the -mm tree.  Its filename was
-     kthread-dont-looking-for-a-task-in-create_kthread-2.patch
+     fs-udf-return-f_fsid-for-statfs2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthread: don't look for a task in create_kthread()
-From: Vitaliy Gusev <vgusev@openvz.org>
+Subject: fs/udf: return f_fsid for statfs(2)
+From: Coly Li <coly.li@suse.de>
 
-Remove the unnecessary find_task_by_pid_ns().  kthread() can just use
-"current" to get the same result.
+Make udf return f_fsid info for statfs(2).
 
-Signed-off-by: Vitaliy Gusev <vgusev@openvz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Coly Li <coly.li@suse.de>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/udf/super.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kthread.c~kthread-dont-looking-for-a-task-in-create_kthread-2 kernel/kthread.c
---- a/kernel/kthread.c~kthread-dont-looking-for-a-task-in-create_kthread-2
-+++ a/kernel/kthread.c
-@@ -78,6 +78,7 @@ static int kthread(void *_create)
+diff -puN fs/udf/super.c~fs-udf-return-f_fsid-for-statfs2 fs/udf/super.c
+--- a/fs/udf/super.c~fs-udf-return-f_fsid-for-statfs2
++++ a/fs/udf/super.c
+@@ -2127,6 +2127,7 @@ static int udf_statfs(struct dentry *den
+ 	struct super_block *sb = dentry->d_sb;
+ 	struct udf_sb_info *sbi = UDF_SB(sb);
+ 	struct logicalVolIntegrityDescImpUse *lvidiu;
++	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
  
- 	/* OK, tell user we're spawned, wait for stop or wakeup */
- 	__set_current_state(TASK_UNINTERRUPTIBLE);
-+	create->result = current;
- 	complete(&create->started);
- 	schedule();
+ 	if (sbi->s_lvid_bh != NULL)
+ 		lvidiu = udf_sb_lvidiu(sbi);
+@@ -2142,8 +2143,9 @@ static int udf_statfs(struct dentry *den
+ 					  le32_to_cpu(lvidiu->numDirs)) : 0)
+ 			+ buf->f_bfree;
+ 	buf->f_ffree = buf->f_bfree;
+-	/* __kernel_fsid_t f_fsid */
+ 	buf->f_namelen = UDF_NAME_LEN - 2;
++	buf->f_fsid.val[0] = (u32)id;
++	buf->f_fsid.val[1] = (u32)(id >> 32);
  
-@@ -103,9 +104,6 @@ static void create_kthread(struct kthrea
- 	} else {
- 		struct sched_param param = { .sched_priority = 0 };
- 		wait_for_completion(&create->started);
--		read_lock(&tasklist_lock);
--		create->result = find_task_by_pid_ns(pid, &init_pid_ns);
--		read_unlock(&tasklist_lock);
- 		/*
- 		 * root may have changed our (kthreadd's) priority or CPU mask.
- 		 * The kernel thread should not inherit these properties.
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from vgusev@openvz.org are
+Patches currently in -mm which might be from coly.li@suse.de are
 
 linux-next.patch
-kthreads-move-sched-realeted-initialization-from-kthreadd-context.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
+fs-adfs-return-f_fsid-for-statfs2.patch
+fs-affs-return-f_fsid-for-statfs2.patch
+fs-befs-return-f_fsid-for-statfs2.patch
+fs-cramfs-return-f_fsid-for-statfs2.patch
+fs-efs-return-f_fsid-for-statfs2.patch
+fs-fat-return-f_fsid-for-statfs2.patch
+fs-hfs-return-f_fsid-for-statfs2.patch
+fs-hfsplus-return-f_fsid-for-statfs2.patch
+fs-hpfs-return-f_fsid-for-statfs2.patch
+fs-isofs-return-f_fsid-for-statfs2.patch
+fs-minix-return-f_fsid-for-statfs2.patch
+fs-omfs-return-f_fsid-for-statfs2.patch
+fs-qnx4-return-f_fsid-for-statfs2.patch
+fs-reiserfs-return-f_fsid-for-statfs2.patch
+fs-reiserfs-return-f_fsid-for-statfs2-v2.patch
+fs-romfs-return-f_fsid-for-statfs2.patch
+fs-squashfs-return-f_fsid-for-statfs2.patch
+fs-sysv-return-f_fsid-for-statfs2.patch
+fs-ufs-return-f_fsid-for-statfs2.patch
 
