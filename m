@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-the-missing-linux-alpha-port-mailling-list.patch added to -mm tree
-Date: Mon, 02 Feb 2009 12:48:30 -0800
-Message-ID: <200902022048.n12KmUZo012286@imap1.linux-foundation.org>
+Subject: + do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 02 Feb 2009 12:48:26 -0800
+Message-ID: <200902022048.n12KmQO6012245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56517 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754005AbZBBUtF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 15:49:05 -0500
+	by vger.kernel.org with ESMTP id S1754531AbZBBUtJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 15:49:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: crquan@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: akpm@linux-foundation.org, crquan@gmail.com, ink@jurassic.park.msu.ru, jens.axboe@oracle.com, rth@twiddle.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     MAINTAINERS: add the missing linux alpha port mailling list
+     do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     maintainers-add-the-missing-linux-alpha-port-mailling-list.patch
+     do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add the missing linux alpha port mailling list
-From: Cheng Renquan <crquan@gmail.com>
+Subject: do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Cheng Renquan <crquan@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
+WARNING: externs should be avoided in .c files
+#42: FILE: arch/alpha/kernel/osf_sys.c:49:
++extern int do_pipe_flags(int *, int);
+
+total: 0 errors, 1 warnings, 36 lines checked
+
+./patches/do_pipe-drop-its-last-user-in-arch-alpha.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Cheng Renquan <crquan@gmail.com>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ arch/alpha/kernel/osf_sys.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-the-missing-linux-alpha-port-mailling-list MAINTAINERS
---- a/MAINTAINERS~maintainers-add-the-missing-linux-alpha-port-mailling-list
-+++ a/MAINTAINERS
-@@ -357,6 +357,7 @@ S:	Odd Fixes for 2.4; Maintained for 2.6
- P:	Ivan Kokshaysky
- M:	ink@jurassic.park.msu.ru
- S:	Maintained for 2.4; PCI support for 2.6.
-+L:	linux-alpha@vger.kernel.org
+diff -puN arch/alpha/kernel/osf_sys.c~do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -14,6 +14,7 @@
+ #include <linux/sched.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
++#include <linux/fs.h>
+ #include <linux/smp.h>
+ #include <linux/smp_lock.h>
+ #include <linux/stddef.h>
+@@ -46,8 +47,6 @@
+ #include <asm/hwrpb.h>
+ #include <asm/processor.h>
  
- AMD GEODE CS5536 USB DEVICE CONTROLLER DRIVER
- P:	Thomas Dahlmann
+-extern int do_pipe_flags(int *, int);
+-
+ /*
+  * Brk needs to return an error.  Still support Linux's brk(0) query idiom,
+  * which OSF programs just shouldn't be doing.  We're still not quite
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+kernel-asyncc-fix-printk-warnings.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
+wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
+i-need-old-gcc.patch
 linux-next.patch
-do_pipe-drop-its-last-user-in-arch-alpha.patch
+next-remove-localversion.patch
+kvm-unbork.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-maintainers-add-the-missing-linux-alpha-port-mailling-list.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
