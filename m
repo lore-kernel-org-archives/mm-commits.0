@@ -1,74 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] nfs-nfs-and-nfsd-should-depend-upon-config_file_locking.patch removed from -mm tree
-Date: Mon, 02 Feb 2009 11:35:05 -0800
-Message-ID: <200902021935.n12JZ6J4011034@imap1.linux-foundation.org>
+Subject: [merged] fakephp-allocate-pci-resources-before-adding-the-device.patch removed from -mm tree
+Date: Mon, 02 Feb 2009 11:37:00 -0800
+Message-ID: <200902021937.n12Jb0pW013688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59235 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43416 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752808AbZBBTf3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 14:35:29 -0500
+	by vger.kernel.org with ESMTP id S1752809AbZBBThH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 14:37:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mkatiyar@gmail.com, bfields@fieldses.org, chuck.lever@oracle.com, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: djwong@us.ibm.com, achiang@hp.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs: nfs and nfsd should depend upon CONFIG_FILE_LOCKING
+     fakephp: allocate PCI resources before adding the device
 has been removed from the -mm tree.  Its filename was
-     nfs-nfs-and-nfsd-should-depend-upon-config_file_locking.patch
+     fakephp-allocate-pci-resources-before-adding-the-device.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfs: nfs and nfsd should depend upon CONFIG_FILE_LOCKING
-From: Manish Katiyar <mkatiyar@gmail.com>
+Subject: fakephp: allocate PCI resources before adding the device
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-fs/nfsd/nfs4state.c:1657: warning: unused variable 'flp'
+For PCI devices, pci_bus_assign_resources() must be called to set up the
+pci_device->resource array before pci_bus_add_devices() can be called,
+else attempts to load drivers results in BAR collision errors where there
+are none.  This is not done in fakephp, so devices can be "unplugged" but
+scanning the parent bus won't bring the devices back due to resource
+unallocation.
 
-Bruce said "I don't believe we want to support a .config with NFS or NFSD
-turned on but CONFIG_FILE_LOCKING off".  No reason was given.
+Move the pci_bus_add_device-calling logic into pci_rescan_bus and preface
+it with a call to pci_bus_assign_resources so that we only have to
+(re)allocate resources once per bus where a new device is found.
 
-Enable NFS_FS and NFSD only when FILE_LOCKING is enabled.
-
-Signed-off-by: Manish Katiyar <mkatiyar@gmail.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Acked-by: Alex Chiang <achiang@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pci/hotplug/fakephp.c |   42 +++++++++++++++++++-------------
+ 1 file changed, 26 insertions(+), 16 deletions(-)
 
-diff -puN fs/Kconfig~nfs-nfs-and-nfsd-should-depend-upon-config_file_locking fs/Kconfig
---- a/fs/Kconfig~nfs-nfs-and-nfsd-should-depend-upon-config_file_locking
-+++ a/fs/Kconfig
-@@ -253,6 +253,7 @@ if NETWORK_FILESYSTEMS
- config NFS_FS
- 	tristate "NFS client support"
- 	depends on INET
-+	depends on FILE_LOCKING
- 	select LOCKD
- 	select SUNRPC
- 	select NFS_ACL_SUPPORT if NFS_V3_ACL
-@@ -349,6 +350,7 @@ config NFS_FSCACHE
- config NFSD
- 	tristate "NFS server support"
- 	depends on INET
-+	depends on FILE_LOCKING
- 	select LOCKD
- 	select SUNRPC
- 	select EXPORTFS
+diff -puN drivers/pci/hotplug/fakephp.c~fakephp-allocate-pci-resources-before-adding-the-device drivers/pci/hotplug/fakephp.c
+--- a/drivers/pci/hotplug/fakephp.c~fakephp-allocate-pci-resources-before-adding-the-device
++++ a/drivers/pci/hotplug/fakephp.c
+@@ -195,13 +195,13 @@ static void remove_slot_worker(struct wo
+  * Tries hard not to re-enable already existing devices;
+  * also handles scanning of subfunctions.
+  */
+-static void pci_rescan_slot(struct pci_dev *temp)
++static int pci_rescan_slot(struct pci_dev *temp)
+ {
+ 	struct pci_bus *bus = temp->bus;
+ 	struct pci_dev *dev;
+ 	int func;
+-	int retval;
+ 	u8 hdr_type;
++	int count = 0;
+ 
+ 	if (!pci_read_config_byte(temp, PCI_HEADER_TYPE, &hdr_type)) {
+ 		temp->hdr_type = hdr_type & 0x7f;
+@@ -213,17 +213,12 @@ static void pci_rescan_slot(struct pci_d
+ 				dbg("New device on %s function %x:%x\n",
+ 					bus->name, temp->devfn >> 3,
+ 					temp->devfn & 7);
+-				retval = pci_bus_add_device(dev);
+-				if (retval)
+-					dev_err(&dev->dev, "error adding "
+-						"device, continuing.\n");
+-				else
+-					add_slot(dev);
++				count++;
+ 			}
+ 		}
+ 		/* multifunction device? */
+ 		if (!(hdr_type & 0x80))
+-			return;
++			return count;
+ 
+ 		/* continue scanning for other functions */
+ 		for (func = 1, temp->devfn++; func < 8; func++, temp->devfn++) {
+@@ -239,16 +234,13 @@ static void pci_rescan_slot(struct pci_d
+ 					dbg("New device on %s function %x:%x\n",
+ 						bus->name, temp->devfn >> 3,
+ 						temp->devfn & 7);
+-					retval = pci_bus_add_device(dev);
+-					if (retval)
+-						dev_err(&dev->dev, "error adding "
+-							"device, continuing.\n");
+-					else
+-						add_slot(dev);
++					count++;
+ 				}
+ 			}
+ 		}
+ 	}
++
++	return count;
+ }
+ 
+ 
+@@ -262,6 +254,8 @@ static void pci_rescan_bus(const struct 
+ {
+ 	unsigned int devfn;
+ 	struct pci_dev *dev;
++	int retval;
++	int found = 0;
+ 	dev = alloc_pci_dev();
+ 	if (!dev)
+ 		return;
+@@ -270,7 +264,23 @@ static void pci_rescan_bus(const struct 
+ 	dev->sysdata = bus->sysdata;
+ 	for (devfn = 0; devfn < 0x100; devfn += 8) {
+ 		dev->devfn = devfn;
+-		pci_rescan_slot(dev);
++		found += pci_rescan_slot(dev);
++	}
++
++	if (found) {
++		pci_bus_assign_resources(bus);
++		list_for_each_entry(dev, &bus->devices, bus_list) {
++			/* Skip already-added devices */
++			if (dev->is_added)
++					continue;
++			retval = pci_bus_add_device(dev);
++			if (retval)
++				dev_err(&dev->dev,
++					"Error adding device, continuing\n");
++			else
++				add_slot(dev);
++		}
++		pci_bus_add_devices(bus);
+ 	}
+ 	kfree(dev);
+ }
 _
 
-Patches currently in -mm which might be from mkatiyar@gmail.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
-origin.patch
-rtc-ds1390-fix-compilation-warnings-in-drivers-rtc-rtc-ds1390c.patch
 linux-next.patch
-nfs-nfs-and-nfsd-should-depend-upon-config_file_locking.patch
 
