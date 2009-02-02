@@ -1,61 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xfs-dont-reallocate-sxp-variable-passed-into-xfs_swapext.patch removed from -mm tree
-Date: Mon, 02 Feb 2009 11:37:05 -0800
-Message-ID: <200902021937.n12Jb5kQ013705@imap1.linux-foundation.org>
+Subject: [merged] kmalloc-return-null-instead-of-link-failure.patch removed from -mm tree
+Date: Mon, 02 Feb 2009 11:37:07 -0800
+Message-ID: <200902021937.n12Jb7hR013741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756776AbZBBTh4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 14:37:56 -0500
+	by vger.kernel.org with ESMTP id S1753244AbZBBTiP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 14:38:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@sandeen.net, felixb@sgi.com, hch@lst.de, pm@debian.org, xfs-masters@oss.sgi.com, mm-commits@vger.kernel.org
+To: jeffm@suse.com, cl@linux-foundation.org, heiko.carstens@de.ibm.com, mpm@selenic.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi, schwidefsky@de.ibm.com, stable@kernel.org, mm-com
 
 
 The patch titled
-     xfs: don't reallocate sxp variable passed into xfs_swapext
+     kmalloc: return NULL instead of link failure
 has been removed from the -mm tree.  Its filename was
-     xfs-dont-reallocate-sxp-variable-passed-into-xfs_swapext.patch
+     kmalloc-return-null-instead-of-link-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: don't reallocate sxp variable passed into xfs_swapext
-From: Eric Sandeen <sandeen@sandeen.net>
+Subject: kmalloc: return NULL instead of link failure
+From: Jeff Mahoney <jeffm@suse.com>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=12538, "xfs_fsr fails
-on 2.6.29-rc kernels"
+The SLAB kmalloc with a constant value isn't consistent with the other
+implementations because it bails out with __you_cannot_kmalloc_that_much
+rather than returning NULL and properly allowing the caller to fall back
+to vmalloc or take other action.  This doesn't happen with a non-constant
+value or with SLOB or SLUB.
 
-Regression caused by 743bb4650da9e2595d6cedd01c680b5b9398c74a ("[XFS] Move
-copy_from_user calls out of ioctl helpers into ioctl switch").
+Starting with 2.6.28, I've been seeing build failures on s390x.  This is
+due to init_section_page_cgroup trying to allocate 2.5MB when the max size
+for a kmalloc on s390x is 2MB.
 
-This was an embarrasing mistake, reallocating the sxp pointer passed in
-from the main ioctl switch.
+It's failing because the value is constant.  The workarounds at the call
+size are ugly and the caller shouldn't have to change behavior depending
+on what the backend of the API is.
 
-Signed-off-by: Eric Sandeen <sandeen@sandeen.net
-Reported-by: Paul Martin <pm@debian.org>
-Tested-by: Paul Martin <pm@debian.org>
-Reviewed-by Felix Blyakher <felixb@sgi.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: <xfs-masters@oss.sgi.com>
+So, this patch eliminates the link failure and returns NULL like the other
+implementations.
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: <stable@kernel.org>		[2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_dfrag.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ include/linux/slab_def.h |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN fs/xfs/xfs_dfrag.c~xfs-dont-reallocate-sxp-variable-passed-into-xfs_swapext fs/xfs/xfs_dfrag.c
---- a/fs/xfs/xfs_dfrag.c~xfs-dont-reallocate-sxp-variable-passed-into-xfs_swapext
-+++ a/fs/xfs/xfs_dfrag.c
-@@ -55,17 +55,11 @@ xfs_swapext(
- 	struct file	*file, *target_file;
- 	int		error = 0;
- 
--	sxp = kmem_alloc(sizeof(xfs_swapext_t), KM_MAYFAIL);
--	if (!sxp) {
--		error = XFS_ERROR(ENOMEM);
--		goto out;
--	}
+diff -puN include/linux/slab_def.h~kmalloc-return-null-instead-of-link-failure include/linux/slab_def.h
+--- a/include/linux/slab_def.h~kmalloc-return-null-instead-of-link-failure
++++ a/include/linux/slab_def.h
+@@ -43,10 +43,7 @@ static inline void *kmalloc(size_t size,
+ 			i++;
+ #include <linux/kmalloc_sizes.h>
+ #undef CACHE
+-		{
+-			extern void __you_cannot_kmalloc_that_much(void);
+-			__you_cannot_kmalloc_that_much();
+-		}
++		return NULL;
+ found:
+ #ifdef CONFIG_ZONE_DMA
+ 		if (flags & GFP_DMA)
+@@ -77,10 +74,7 @@ static inline void *kmalloc_node(size_t 
+ 			i++;
+ #include <linux/kmalloc_sizes.h>
+ #undef CACHE
+-		{
+-			extern void __you_cannot_kmalloc_that_much(void);
+-			__you_cannot_kmalloc_that_much();
+-		}
++		return NULL;
+ found:
+ #ifdef CONFIG_ZONE_DMA
+ 		if (flags & GFP_DMA)
+_
+
+Patches currently in -mm which might be from jeffm@suse.com are
+
+linux-next.patch
+x86-define-arch_want_frame_pointers.patch
+x86-define-arch_want_frame_pointers-fix.patch
+
