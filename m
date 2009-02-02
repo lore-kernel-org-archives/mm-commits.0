@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 02 Feb 2009 12:48:26 -0800
-Message-ID: <200902022048.n12KmQO6012245@imap1.linux-foundation.org>
+Subject: + preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls.patch added to -mm tree
+Date: Mon, 02 Feb 2009 13:35:39 -0800
+Message-ID: <200902022135.n12LZdx6010816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754531AbZBBUtJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 15:49:09 -0500
+	by vger.kernel.org with ESMTP id S1755363AbZBBVgZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 16:36:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, crquan@gmail.com, ink@jurassic.park.msu.ru, jens.axboe@oracle.com, rth@twiddle.net, viro@zeniv.linux.org.uk
+Cc: ralf@linux-mips.org, arnd@arndb.de, kraxel@redhat.com, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes
+     preadv/pwritev: MIPS: Add preadv(2) and pwritev(2) syscalls.
 has been added to the -mm tree.  Its filename is
-     do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+     preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,113 +33,148 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: preadv/pwritev: MIPS: Add preadv(2) and pwritev(2) syscalls.
+From: Ralf Baechle <ralf@linux-mips.org>
 
-WARNING: externs should be avoided in .c files
-#42: FILE: arch/alpha/kernel/osf_sys.c:49:
-+extern int do_pipe_flags(int *, int);
-
-total: 0 errors, 1 warnings, 36 lines checked
-
-./patches/do_pipe-drop-its-last-user-in-arch-alpha.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Cheng Renquan <crquan@gmail.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Richard Henderson <rth@twiddle.net>
+Cc: <linux-api@vger.kernel.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/osf_sys.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/mips/include/asm/unistd.h |   18 ++++++++++++------
+ arch/mips/kernel/scall32-o32.S |    2 ++
+ arch/mips/kernel/scall64-64.S  |    2 ++
+ arch/mips/kernel/scall64-n32.S |    2 ++
+ arch/mips/kernel/scall64-o32.S |    2 ++
+ 5 files changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN arch/alpha/kernel/osf_sys.c~do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes arch/alpha/kernel/osf_sys.c
---- a/arch/alpha/kernel/osf_sys.c~do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes
-+++ a/arch/alpha/kernel/osf_sys.c
-@@ -14,6 +14,7 @@
- #include <linux/sched.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
-+#include <linux/fs.h>
- #include <linux/smp.h>
- #include <linux/smp_lock.h>
- #include <linux/stddef.h>
-@@ -46,8 +47,6 @@
- #include <asm/hwrpb.h>
- #include <asm/processor.h>
+diff -puN arch/mips/include/asm/unistd.h~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls arch/mips/include/asm/unistd.h
+--- a/arch/mips/include/asm/unistd.h~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls
++++ a/arch/mips/include/asm/unistd.h
+@@ -350,16 +350,18 @@
+ #define __NR_dup3			(__NR_Linux + 327)
+ #define __NR_pipe2			(__NR_Linux + 328)
+ #define __NR_inotify_init1		(__NR_Linux + 329)
++#define __NR_preadv			(__NR_Linux + 330)
++#define __NR_pwritev			(__NR_Linux + 331)
  
--extern int do_pipe_flags(int *, int);
--
  /*
-  * Brk needs to return an error.  Still support Linux's brk(0) query idiom,
-  * which OSF programs just shouldn't be doing.  We're still not quite
+  * Offset of the last Linux o32 flavoured syscall
+  */
+-#define __NR_Linux_syscalls		329
++#define __NR_Linux_syscalls		331
+ 
+ #endif /* _MIPS_SIM == _MIPS_SIM_ABI32 */
+ 
+ #define __NR_O32_Linux			4000
+-#define __NR_O32_Linux_syscalls		329
++#define __NR_O32_Linux_syscalls		331
+ 
+ #if _MIPS_SIM == _MIPS_SIM_ABI64
+ 
+@@ -656,16 +658,18 @@
+ #define __NR_dup3			(__NR_Linux + 286)
+ #define __NR_pipe2			(__NR_Linux + 287)
+ #define __NR_inotify_init1		(__NR_Linux + 288)
++#define __NR_preadv			(__NR_Linux + 289)
++#define __NR_pwritev			(__NR_Linux + 290)
+ 
+ /*
+  * Offset of the last Linux 64-bit flavoured syscall
+  */
+-#define __NR_Linux_syscalls		288
++#define __NR_Linux_syscalls		290
+ 
+ #endif /* _MIPS_SIM == _MIPS_SIM_ABI64 */
+ 
+ #define __NR_64_Linux			5000
+-#define __NR_64_Linux_syscalls		288
++#define __NR_64_Linux_syscalls		290
+ 
+ #if _MIPS_SIM == _MIPS_SIM_NABI32
+ 
+@@ -966,16 +970,18 @@
+ #define __NR_dup3			(__NR_Linux + 290)
+ #define __NR_pipe2			(__NR_Linux + 291)
+ #define __NR_inotify_init1		(__NR_Linux + 292)
++#define __NR_preadv			(__NR_Linux + 293)
++#define __NR_pwritev			(__NR_Linux + 294)
+ 
+ /*
+  * Offset of the last N32 flavoured syscall
+  */
+-#define __NR_Linux_syscalls		292
++#define __NR_Linux_syscalls		294
+ 
+ #endif /* _MIPS_SIM == _MIPS_SIM_NABI32 */
+ 
+ #define __NR_N32_Linux			6000
+-#define __NR_N32_Linux_syscalls		292
++#define __NR_N32_Linux_syscalls		294
+ 
+ #ifdef __KERNEL__
+ 
+diff -puN arch/mips/kernel/scall32-o32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls arch/mips/kernel/scall32-o32.S
+--- a/arch/mips/kernel/scall32-o32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls
++++ a/arch/mips/kernel/scall32-o32.S
+@@ -650,6 +650,8 @@ einval:	li	v0, -ENOSYS
+ 	sys	sys_dup3		3
+ 	sys	sys_pipe2		2
+ 	sys	sys_inotify_init1	1
++	sys	sys_preadv		6	/* 4330 */
++	sys	sys_pwritev		6
+ 	.endm
+ 
+ 	/* We pre-compute the number of _instruction_ bytes needed to
+diff -puN arch/mips/kernel/scall64-64.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls arch/mips/kernel/scall64-64.S
+--- a/arch/mips/kernel/scall64-64.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls
++++ a/arch/mips/kernel/scall64-64.S
+@@ -487,4 +487,6 @@ sys_call_table:
+ 	PTR	sys_dup3
+ 	PTR	sys_pipe2
+ 	PTR	sys_inotify_init1
++	PTR	sys_preadv
++	PTR	sys_pwritev			/* 5390 */
+ 	.size	sys_call_table,.-sys_call_table
+diff -puN arch/mips/kernel/scall64-n32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls arch/mips/kernel/scall64-n32.S
+--- a/arch/mips/kernel/scall64-n32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls
++++ a/arch/mips/kernel/scall64-n32.S
+@@ -413,4 +413,6 @@ EXPORT(sysn32_call_table)
+ 	PTR	sys_dup3			/* 5290 */
+ 	PTR	sys_pipe2
+ 	PTR	sys_inotify_init1
++	PTR	sys_preadv
++	PTR	sys_pwritev
+ 	.size	sysn32_call_table,.-sysn32_call_table
+diff -puN arch/mips/kernel/scall64-o32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls arch/mips/kernel/scall64-o32.S
+--- a/arch/mips/kernel/scall64-o32.S~preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls
++++ a/arch/mips/kernel/scall64-o32.S
+@@ -533,4 +533,6 @@ sys_call_table:
+ 	PTR	sys_dup3
+ 	PTR	sys_pipe2
+ 	PTR	sys_inotify_init1
++	PTR	compat_sys_preadv		/* 4330 */
++	PTR	compat_sys_pwritev
+ 	.size	sys_call_table,.-sys_call_table
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-kernel-asyncc-fix-printk-warnings.patch
-revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
-hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
-wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
-i-need-old-gcc.patch
 linux-next.patch
-next-remove-localversion.patch
-kvm-unbork.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect-checkpatch-fixes.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-early-platform-driver-v3-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-txx9-add-ndfmc-support.patch
+mtd-rbtx4939-add-mtd-support.patch
 mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-ata-sata_silc-needs-dmih.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mtd-txx9-soc-nand-flash-memory-controller-driver.patch
+mtd-rbtx4939-map-driver.patch
+mm-unify-some-pmd_-functions-fix.patch
+preadv-pwritev-create-compat_readv.patch
+preadv-pwritev-create-compat_writev.patch
+preadv-pwritev-add-preadv-and-pwritev-system-calls.patch
+preadv-pwritev-mips-add-preadv2-and-pwritev2-syscalls.patch
+preadv-pwritev-switch-compat-readv-preadv-writev-pwritev-from-fget-to-fget_light.patch
 
