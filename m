@@ -1,63 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-udf-return-f_fsid-for-statfs2.patch removed from -mm tree
-Date: Mon, 02 Feb 2009 11:37:17 -0800
-Message-ID: <200902021937.n12JbH7d013944@imap1.linux-foundation.org>
+Subject: [merged] fs-jfs-return-f_fsid-for-statfs2.patch removed from -mm tree
+Date: Mon, 02 Feb 2009 11:37:13 -0800
+Message-ID: <200902021937.n12JbDD2013930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48621 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752855AbZBBTqd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 14:46:33 -0500
+	by vger.kernel.org with ESMTP id S1752855AbZBBTrA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 14:47:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: coly.li@suse.de, jack@suse.cz, mm-commits@vger.kernel.org
+To: coly.li@suse.de, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/udf: return f_fsid for statfs(2)
+     fs/jfs: return f_fsid for statfs(2)
 has been removed from the -mm tree.  Its filename was
-     fs-udf-return-f_fsid-for-statfs2.patch
+     fs-jfs-return-f_fsid-for-statfs2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/udf: return f_fsid for statfs(2)
+Subject: fs/jfs: return f_fsid for statfs(2)
 From: Coly Li <coly.li@suse.de>
 
-Make udf return f_fsid info for statfs(2).
+Make jfs return f_fsid info for statfs(2).  By Andreas' suggestion, this
+patch populates a persistent f_fsid between boots/mounts with help of
+on-disk uuid record.
 
 Signed-off-by: Coly Li <coly.li@suse.de>
-Cc: Jan Kara <jack@suse.cz>
+Acked-by: Dave Kleikamp <shaggy@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/super.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/jfs/super.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/udf/super.c~fs-udf-return-f_fsid-for-statfs2 fs/udf/super.c
---- a/fs/udf/super.c~fs-udf-return-f_fsid-for-statfs2
-+++ a/fs/udf/super.c
-@@ -2127,6 +2127,7 @@ static int udf_statfs(struct dentry *den
- 	struct super_block *sb = dentry->d_sb;
- 	struct udf_sb_info *sbi = UDF_SB(sb);
- 	struct logicalVolIntegrityDescImpUse *lvidiu;
-+	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
+diff -puN fs/jfs/super.c~fs-jfs-return-f_fsid-for-statfs2 fs/jfs/super.c
+--- a/fs/jfs/super.c~fs-jfs-return-f_fsid-for-statfs2
++++ a/fs/jfs/super.c
+@@ -143,8 +143,10 @@ static void jfs_destroy_inode(struct ino
  
- 	if (sbi->s_lvid_bh != NULL)
- 		lvidiu = udf_sb_lvidiu(sbi);
-@@ -2142,8 +2143,9 @@ static int udf_statfs(struct dentry *den
- 					  le32_to_cpu(lvidiu->numDirs)) : 0)
- 			+ buf->f_bfree;
- 	buf->f_ffree = buf->f_bfree;
--	/* __kernel_fsid_t f_fsid */
- 	buf->f_namelen = UDF_NAME_LEN - 2;
+ static int jfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+ {
+-	struct jfs_sb_info *sbi = JFS_SBI(dentry->d_sb);
++	struct super_block *sb = dentry->d_sb;
++	struct jfs_sb_info *sbi = JFS_SBI(sb);
+ 	s64 maxinodes;
++	u64 id = huge_encode_dev(sb->s_bdev->bd_dev);
+ 	struct inomap *imap = JFS_IP(sbi->ipimap)->i_imap;
+ 
+ 	jfs_info("In jfs_statfs");
+@@ -168,6 +170,8 @@ static int jfs_statfs(struct dentry *den
+ 	buf->f_files = maxinodes;
+ 	buf->f_ffree = maxinodes - (atomic_read(&imap->im_numinos) -
+ 				    atomic_read(&imap->im_numfree));
 +	buf->f_fsid.val[0] = (u32)id;
 +	buf->f_fsid.val[1] = (u32)(id >> 32);
  
+ 	buf->f_namelen = JFS_NAME_MAX;
  	return 0;
- }
 _
 
 Patches currently in -mm which might be from coly.li@suse.de are
