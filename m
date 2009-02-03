@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-oom-killer-under-memcg-fix2.patch added to -mm tree
-Date: Tue, 03 Feb 2009 15:03:16 -0800
-Message-ID: <200902032320.n13NKEeD012054@imap1.linux-foundation.org>
+Subject: + cirrusfb-convert-printks-to-dev_foo-fix.patch added to -mm tree
+Date: Tue, 03 Feb 2009 15:19:39 -0800
+Message-ID: <200902032336.n13Nab6Z001692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32897 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60040 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752271AbZBCX22 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:28:28 -0500
+	by vger.kernel.org with ESMTP id S1750866AbZBCXhS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:37:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
+Cc: akpm@linux-foundation.org, geert@linux-m68k.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     memcg-fix-oom-killer-under-memcg-fix2
+     cirrusfb-convert-printks-to-dev_foo-fix
 has been added to the -mm tree.  Its filename is
-     memcg-fix-oom-killer-under-memcg-fix2.patch
+     cirrusfb-convert-printks-to-dev_foo-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-oom-killer-under-memcg-fix2
+Subject: cirrusfb-convert-printks-to-dev_foo-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+drivers/video/cirrusfb.c: In function 'cirrusfb_pci_register':
+drivers/video/cirrusfb.c:2137: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'resource_size_t'
+drivers/video/cirrusfb.c:2140: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'resource_size_t'
+
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/cirrusfb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-oom-killer-under-memcg-fix2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-oom-killer-under-memcg-fix2
-+++ a/mm/memcontrol.c
-@@ -297,7 +297,7 @@ static struct mem_cgroup *try_get_mem_cg
- 	struct mem_cgroup *mem = NULL;
+diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix
++++ a/drivers/video/cirrusfb.c
+@@ -2135,10 +2135,10 @@ static int __devinit cirrusfb_pci_regist
+ 	cinfo->btype = btype = (enum cirrus_board) ent->driver_data;
  
- 	if (!mm)
--		return;
-+		return NULL;
- 	/*
- 	 * Because we have no locks, mm->owner's may be being moved to other
- 	 * cgroup. We use css_tryget() here even if this looks
+ 	dev_dbg(info->device,
+-		" Found PCI device, base address 0 is 0x%x, btype set to %d\n",
+-		pdev->resource[0].start, btype);
+-	dev_dbg(info->device,
+-		" base address 1 is 0x%x\n", pdev->resource[1].start);
++		" Found PCI device, base address 0 is 0x%Lx, btype set to %d\n",
++		(unsigned long long)pdev->resource[0].start, btype);
++	dev_dbg(info->device, " base address 1 is 0x%Lx\n",
++		(unsigned long long)pdev->resource[1].start);
+ 
+ 	if (isPReP) {
+ 		pci_write_config_dword(pdev, PCI_BASE_ADDRESS_0, 0x00000000);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +76,7 @@ revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
 hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
 wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
 i-need-old-gcc.patch
+i2c-fix-compiler-noise.patch
 linux-next.patch
 next-remove-localversion.patch
 linux-next-git-rejects.patch
@@ -103,6 +110,7 @@ epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkp
 rtc-convert-leap_year-into-an-inline.patch
 rtc-add-platform-driver-for-efi-fix.patch
 drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
 memcg-fix-oom-killer-under-memcg-fix2.patch
 memcg-fix-oom-killer-under-memcg-fix.patch
 memcg-show-memcg-information-during-oom-fix2.patch
