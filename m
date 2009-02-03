@@ -1,23 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + atmel-mci-fix-initialization-of-dma-slave-data.patch added to -mm tree
-Date: Mon, 02 Feb 2009 16:29:44 -0800
-Message-ID: <200902030029.n130Tik7018089@imap1.linux-foundation.org>
+Subject: + pm-wait-for-console-in-resume.patch added to -mm tree
+Date: Mon, 02 Feb 2009 16:38:14 -0800
+Message-ID: <200902030038.n130cFw6029500@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38867 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753470AbZBCAgD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 19:36:03 -0500
+	by vger.kernel.org with ESMTP id S1752103AbZBCAie (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 19:38:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dan.j.williams@intel.com, anemo@mba.ocn.ne.jp, hskinnemoen@atmel.com
+Cc: arve@android.com, alan@lxorguk.ukuu.org.uk, pavel@ucw.cz, rjw@sisk.pl, swetland@google.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     atmel-mci: fix initialization of dma slave data
+     pm: wait for console in resume
 has been added to the -mm tree.  Its filename is
-     atmel-mci-fix-initialization-of-dma-slave-data.patch
+     pm-wait-for-console-in-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,135 +28,61 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: atmel-mci: fix initialization of dma slave data
-From: Dan Williams <dan.j.williams@intel.com>
+Subject: pm: wait for console in resume
+=46rom: Arve Hj=F8nnev=E5g <arve@android.com>
 
-The conversion of atmel-mci to dma_request_channel missed the
-initialization of the channel dma_slave information.  The filter_fn passed
-to dma_request_channel is responsible for initializing the channel's
-private data.  This implementation has the additional benefit of enabling
-a generic client-channel data passing mechanism.
+Avoids later waking up to a blinking cursor if the device woke up and
+returned to sleep before the console switch happened.
 
-Reviewed-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Brian Swetland <swetland@google.com>
+Signed-off-by: Arve Hj=F8nnev=E5g <arve@android.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmaengine.c      |    2 ++
- drivers/dma/dw_dmac.c        |    5 ++---
- drivers/dma/dw_dmac_regs.h   |    2 --
- drivers/mmc/host/atmel-mci.c |    5 +++--
- include/linux/dmaengine.h    |    2 ++
- 5 files changed, 9 insertions(+), 7 deletions(-)
+ kernel/power/console.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/dma/dmaengine.c~atmel-mci-fix-initialization-of-dma-slave-data drivers/dma/dmaengine.c
---- a/drivers/dma/dmaengine.c~atmel-mci-fix-initialization-of-dma-slave-data
-+++ a/drivers/dma/dmaengine.c
-@@ -518,6 +518,7 @@ struct dma_chan *__dma_request_channel(d
- 				       dma_chan_name(chan), err);
- 			else
- 				break;
-+			chan->private = NULL;
- 			chan = NULL;
- 		}
+diff -puN kernel/power/console.c~pm-wait-for-console-in-resume kernel/p=
+ower/console.c
+--- a/kernel/power/console.c~pm-wait-for-console-in-resume
++++ a/kernel/power/console.c
+@@ -78,6 +78,12 @@ void pm_restore_console(void)
  	}
-@@ -536,6 +537,7 @@ void dma_release_channel(struct dma_chan
- 	WARN_ONCE(chan->client_count != 1,
- 		  "chan reference count %d != 1\n", chan->client_count);
- 	dma_chan_put(chan);
-+	chan->private = NULL;
- 	mutex_unlock(&dma_list_mutex);
- }
- EXPORT_SYMBOL_GPL(dma_release_channel);
-diff -puN drivers/dma/dw_dmac.c~atmel-mci-fix-initialization-of-dma-slave-data drivers/dma/dw_dmac.c
---- a/drivers/dma/dw_dmac.c~atmel-mci-fix-initialization-of-dma-slave-data
-+++ a/drivers/dma/dw_dmac.c
-@@ -560,7 +560,7 @@ dwc_prep_slave_sg(struct dma_chan *chan,
- 		unsigned long flags)
- {
- 	struct dw_dma_chan	*dwc = to_dw_dma_chan(chan);
--	struct dw_dma_slave	*dws = dwc->dws;
-+	struct dw_dma_slave	*dws = chan->private;
- 	struct dw_desc		*prev;
- 	struct dw_desc		*first;
- 	u32			ctllo;
-@@ -790,7 +790,7 @@ static int dwc_alloc_chan_resources(stru
- 	cfghi = DWC_CFGH_FIFO_MODE;
- 	cfglo = 0;
- 
--	dws = dwc->dws;
-+	dws = chan->private;
- 	if (dws) {
- 		/*
- 		 * We need controller-specific data to set up slave
-@@ -866,7 +866,6 @@ static void dwc_free_chan_resources(stru
- 	spin_lock_bh(&dwc->lock);
- 	list_splice_init(&dwc->free_list, &list);
- 	dwc->descs_allocated = 0;
--	dwc->dws = NULL;
- 
- 	/* Disable interrupts */
- 	channel_clear_bit(dw, MASK.XFER, dwc->mask);
-diff -puN drivers/dma/dw_dmac_regs.h~atmel-mci-fix-initialization-of-dma-slave-data drivers/dma/dw_dmac_regs.h
---- a/drivers/dma/dw_dmac_regs.h~atmel-mci-fix-initialization-of-dma-slave-data
-+++ a/drivers/dma/dw_dmac_regs.h
-@@ -139,8 +139,6 @@ struct dw_dma_chan {
- 	struct list_head	queue;
- 	struct list_head	free_list;
- 
--	struct dw_dma_slave	*dws;
--
- 	unsigned int		descs_allocated;
- };
- 
-diff -puN drivers/mmc/host/atmel-mci.c~atmel-mci-fix-initialization-of-dma-slave-data drivers/mmc/host/atmel-mci.c
---- a/drivers/mmc/host/atmel-mci.c~atmel-mci-fix-initialization-of-dma-slave-data
-+++ a/drivers/mmc/host/atmel-mci.c
-@@ -1548,9 +1548,10 @@ static bool filter(struct dma_chan *chan
- {
- 	struct dw_dma_slave *dws = slave;
- 
--	if (dws->dma_dev == chan->device->dev)
-+	if (dws->dma_dev == chan->device->dev) {
-+		chan->private = dws;
- 		return true;
--	else
-+	} else
- 		return false;
+ 	set_console(orig_fgconsole);
+ 	release_console_sem();
++
++	if (vt_waitactive(orig_fgconsole)) {
++		pr_debug("Resume: Can't switch VCs.");
++		return;
++	}
++
+ 	kmsg_redirect =3D orig_kmsg;
  }
  #endif
-diff -puN include/linux/dmaengine.h~atmel-mci-fix-initialization-of-dma-slave-data include/linux/dmaengine.h
---- a/include/linux/dmaengine.h~atmel-mci-fix-initialization-of-dma-slave-data
-+++ a/include/linux/dmaengine.h
-@@ -121,6 +121,7 @@ struct dma_chan_percpu {
-  * @local: per-cpu pointer to a struct dma_chan_percpu
-  * @client-count: how many clients are using this channel
-  * @table_count: number of appearances in the mem-to-mem allocation table
-+ * @private: private data for certain client-channel associations
-  */
- struct dma_chan {
- 	struct dma_device *device;
-@@ -134,6 +135,7 @@ struct dma_chan {
- 	struct dma_chan_percpu *local;
- 	int client_count;
- 	int table_count;
-+	void *private;
- };
- 
- /**
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from arve@android.com are
 
-linux-next.patch
-atmel-mci-fix-initialization-of-dma-slave-data.patch
+origin.patch
+pm-wait-for-console-in-resume.patch
+pm-fix-suspend_console-resume_console-to-use-only-one-semaphore.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
