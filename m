@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-show-memcg-information-during-oom.patch added to -mm tree
-Date: Tue, 03 Feb 2009 14:46:57 -0800
-Message-ID: <200902032246.n13MkwjM032033@imap1.linux-foundation.org>
+Subject: + sunrpc-fix-rdma-dependencies.patch added to -mm tree
+Date: Tue, 03 Feb 2009 14:47:38 -0800
+Message-ID: <200902032247.n13MlcfE000485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48990 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752105AbZBCWrO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:47:14 -0500
+	by vger.kernel.org with ESMTP id S1751447AbZBCWr4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:47:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
+Cc: randy.dunlap@oracle.com, bfields@fieldses.org, davem@davemloft.net, neilb@suse.de, rolandd@cisco.com
 
 
 The patch titled
-     memcg: show memcg information during OOM
+     sunrpc: fix rdma dependencies
 has been added to the -mm tree.  Its filename is
-     memcg-show-memcg-information-during-oom.patch
+     sunrpc-fix-rdma-dependencies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,158 +33,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: show memcg information during OOM
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: sunrpc: fix rdma dependencies
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add RSS and swap to OOM output from memcg
+Fix sunrpc/rdma build dependencies.
+Survives 12 build combinations of INET, IPV6, SUNRPC,
+INFINIBAND, and INFINIBAND_ADDR_TRANS.
 
-Display memcg values like failcnt, usage and limit when an OOM occurs due
-to memcg.
+ERROR: "rdma_destroy_id" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
+ERROR: "rdma_connect" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
+ERROR: "rdma_destroy_qp" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
+ERROR: "rdma_create_id" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
+ERROR: "rdma_create_qp" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
+ERROR: "rdma_resolve_route" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
+ERROR: "rdma_disconnect" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
+ERROR: "rdma_resolve_addr" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
+ERROR: "rdma_accept" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
+ERROR: "rdma_destroy_id" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
+ERROR: "rdma_listen" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
+ERROR: "rdma_create_id" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
+ERROR: "rdma_create_qp" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
+ERROR: "rdma_bind_addr" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
+ERROR: "rdma_disconnect" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
 
-Thanks to Johannes Weiner, Li Zefan, David Rientjes, Kamezawa Hiroyuki,
-Daisuke Nishimura and KOSAKI Motohiro for review.
-
-Sample output
--------------
-
-Task in /a/x killed as a result of limit of /a
-memory: usage 1048576kB, limit 1048576kB, failcnt 4183
-memory+swap: usage 1400964kB, limit 9007199254740991kB, failcnt 0
-
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: J. Bruce Fields <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Dave Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++
- mm/memcontrol.c            |   63 +++++++++++++++++++++++++++++++++++
- mm/oom_kill.c              |    1 
- 3 files changed, 70 insertions(+)
+ net/sunrpc/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcg-show-memcg-information-during-oom include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-show-memcg-information-during-oom
-+++ a/include/linux/memcontrol.h
-@@ -104,6 +104,8 @@ struct zone_reclaim_stat *mem_cgroup_get
- 						      struct zone *zone);
- struct zone_reclaim_stat*
- mem_cgroup_get_reclaim_stat_from_page(struct page *page);
-+extern void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
-+					struct task_struct *p);
+diff -puN net/sunrpc/Kconfig~sunrpc-fix-rdma-dependencies net/sunrpc/Kconfig
+--- a/net/sunrpc/Kconfig~sunrpc-fix-rdma-dependencies
++++ a/net/sunrpc/Kconfig
+@@ -6,7 +6,7 @@ config SUNRPC_GSS
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- extern int do_swap_account;
-@@ -270,6 +272,10 @@ mem_cgroup_get_reclaim_stat_from_page(st
- 	return NULL;
- }
- 
-+void mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
-+{
-+}
-+
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/memcontrol.c~memcg-show-memcg-information-during-oom mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-show-memcg-information-during-oom
-+++ a/mm/memcontrol.c
-@@ -27,6 +27,7 @@
- #include <linux/backing-dev.h>
- #include <linux/bit_spinlock.h>
- #include <linux/rcupdate.h>
-+#include <linux/limits.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
- #include <linux/swap.h>
-@@ -721,6 +722,68 @@ static int mem_cgroup_count_children_cb(
- 	(*val)++;
- 	return 0;
- }
-+
-+/**
-+ * mem_cgroup_print_mem_info: Called from OOM with tasklist_lock held in
-+ * read mode.
-+ * @memcg: The memory cgroup that went over limit
-+ * @p: Task that is going to be killed
-+ *
-+ * NOTE: @memcg and @p's mem_cgroup can be different when hierarchy is
-+ * enabled
-+ */
-+void mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
-+{
-+	struct cgroup *task_cgrp;
-+	struct cgroup *mem_cgrp;
-+	/*
-+	 * Need a buffer on stack, can't rely on allocations. The code relies
-+	 * on the assumption that OOM is serialized for memory controller.
-+	 * If this assumption is broken, revisit this code.
-+	 */
-+	static char task_memcg_name[PATH_MAX];
-+	static char memcg_name[PATH_MAX];
-+	int ret;
-+
-+	if (!memcg)
-+		return;
-+
-+	mem_cgrp = memcg->css.cgroup;
-+	task_cgrp = mem_cgroup_from_task(p)->css.cgroup;
-+
-+	rcu_read_lock();
-+	ret = cgroup_path(task_cgrp, task_memcg_name, PATH_MAX);
-+	if (ret < 0) {
-+		/*
-+		 * Unfortunately, we are unable to convert to a useful name
-+		 * But we'll still print out the usage information
-+		 */
-+		rcu_read_unlock();
-+		goto done;
-+	}
-+	ret = cgroup_path(mem_cgrp, memcg_name, PATH_MAX);
-+	 if (ret < 0) {
-+		rcu_read_unlock();
-+		goto done;
-+	}
-+
-+	rcu_read_unlock();
-+
-+	printk(KERN_INFO "Task in %s killed as a result of limit of %s\n",
-+			task_memcg_name, memcg_name);
-+done:
-+
-+	printk(KERN_INFO "memory: usage %llukB, limit %llukB, failcnt %llu\n",
-+		res_counter_read_u64(&memcg->res, RES_USAGE) >> 10,
-+		res_counter_read_u64(&memcg->res, RES_LIMIT) >> 10,
-+		res_counter_read_u64(&memcg->res, RES_FAILCNT));
-+	printk(KERN_INFO "memory+swap: usage %llukB, limit %llukB, "
-+		"failcnt %llu\n",
-+		res_counter_read_u64(&memcg->memsw, RES_USAGE) >> 10,
-+		res_counter_read_u64(&memcg->memsw, RES_LIMIT) >> 10,
-+		res_counter_read_u64(&memcg->memsw, RES_FAILCNT));
-+}
-+
- /*
-  * This function returns the number of memcg under hierarchy tree. Returns
-  * 1(self count) if no children.
-diff -puN mm/oom_kill.c~memcg-show-memcg-information-during-oom mm/oom_kill.c
---- a/mm/oom_kill.c~memcg-show-memcg-information-during-oom
-+++ a/mm/oom_kill.c
-@@ -394,6 +394,7 @@ static int oom_kill_process(struct task_
- 		cpuset_print_task_mems_allowed(current);
- 		task_unlock(current);
- 		dump_stack();
-+		mem_cgroup_print_oom_info(mem, current);
- 		show_mem();
- 		if (sysctl_oom_dump_tasks)
- 			dump_tasks(mem);
+ config SUNRPC_XPRT_RDMA
+ 	tristate
+-	depends on SUNRPC && INFINIBAND && EXPERIMENTAL
++	depends on SUNRPC && INFINIBAND && INFINIBAND_ADDR_TRANS && EXPERIMENTAL
+ 	default SUNRPC && INFINIBAND
+ 	help
+ 	  This option allows the NFS client and server to support
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+maintainers-general-listsopenfabricsorg-is-moderated.patch
+atyfb-fix-config_-namespace-violations.patch
 linux-next.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix.patch
+uv-fix-header-struct-usage.patch
+kgdb-fix-kernel-doc-error.patch
+auditsc-fix-kernel-doc-notation.patch
+input-ad7879-touchscreen-driver-dont-use-bus_id.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+esp-fix-section-mismatch-warning.patch
+vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
+vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
+max3100-spi-uart-driver.patch
+sunrpc-fix-rdma-dependencies.patch
+filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
+atyfb-fix-header-file-trailing-whitespace.patch
+documentation-ignore-byproducts-from-latex.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+linuxpps-core-support.patch
 
