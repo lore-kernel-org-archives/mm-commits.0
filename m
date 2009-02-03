@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-fix-frequent-ebusy-at-rmdir.patch added to -mm tree
-Date: Tue, 03 Feb 2009 14:25:45 -0800
-Message-ID: <200902032225.n13MPjYX003527@imap1.linux-foundation.org>
+Subject: + memcg-use-css-id.patch added to -mm tree
+Date: Tue, 03 Feb 2009 14:30:12 -0800
+Message-ID: <200902032230.n13MUDnQ009617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753006AbZBCW0k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:26:40 -0500
+	by vger.kernel.org with ESMTP id S1751500AbZBCWbB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:31:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
 
 
 The patch titled
-     cgroup: fix frequent -EBUSY at rmdir
+     memcg: use CSS ID
 has been added to the -mm tree.  Its filename is
-     cgroup-fix-frequent-ebusy-at-rmdir.patch
+     memcg-use-css-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,242 +33,359 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: fix frequent -EBUSY at rmdir
+Subject: memcg: use CSS ID
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-In following situation, with memory subsystem,
+Assigning CSS ID for each memcg and use css_get_next() for scanning hierarchy.
 
-	/groupA use_hierarchy==1
-		/01 some tasks
-		/02 some tasks
-		/03 some tasks
-		/04 empty
+	Assume folloing tree.
 
-When tasks under 01/02/03 hit limit on /groupA, hierarchical reclaim
-is triggered and the kernel walks tree under groupA. In this case,
-rmdir /groupA/04 fails with -EBUSY frequently because of temporal
-refcnt from the kernel.
+	group_A (ID=3)
+		/01 (ID=4)
+		   /0A (ID=7)
+		/02 (ID=10)
+	group_B (ID=5)
+	and task in group_A/01/0A hits limit at group_A.
 
-In general. cgroup can be rmdir'd if there are no children groups and
-no tasks. Frequent fails of rmdir() is not useful to users.
-(And the reason for -EBUSY is unknown to users.....in most cases)
+	reclaim will be done in following order (round-robin).
+	group_A(3) -> group_A/01 (4) -> group_A/01/0A (7) -> group_A/02(10)
+	-> group_A -> .....
 
-This patch tries to modify above behavior, by
-	- retries if css_refcnt is got by someone.
-	- add "return value" to pre_destroy() and allows subsystem to
-	  say "we're really busy!"
+	Round robin by ID. The last visited cgroup is recorded and restart
+	from it when it start reclaim again.
+	(More smart algorithm can be implemented..)
+
+	No cgroup_mutex or hierarchy_mutex is required.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |    6 +-
- include/linux/cgroup.h            |    6 +-
- kernel/cgroup.c                   |   81 +++++++++++++++++++++++-----
- mm/memcontrol.c                   |    5 +
- 4 files changed, 79 insertions(+), 19 deletions(-)
+ mm/memcontrol.c |  220 +++++++++++++++++-----------------------------
+ 1 file changed, 82 insertions(+), 138 deletions(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroup-fix-frequent-ebusy-at-rmdir Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroup-fix-frequent-ebusy-at-rmdir
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -478,11 +478,13 @@ cgroup->parent is still valid. (Note - c
- newly-created cgroup if an error occurs after this subsystem's
- create() method has been called for the new cgroup).
- 
--void pre_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp);
-+int pre_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp);
- 
- Called before checking the reference count on each subsystem. This may
- be useful for subsystems which have some extra references even if
--there are not tasks in the cgroup.
-+there are not tasks in the cgroup. If pre_destroy() returns error code,
-+rmdir() will fail with it. From this behavior, pre_destroy() can be
-+called multiple times against a cgroup.
- 
- int can_attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
- 	       struct task_struct *task)
-diff -puN include/linux/cgroup.h~cgroup-fix-frequent-ebusy-at-rmdir include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-fix-frequent-ebusy-at-rmdir
-+++ a/include/linux/cgroup.h
-@@ -135,6 +135,10 @@ enum {
- 	CGRP_RELEASABLE,
- 	/* Control Group requires release notifications to userspace */
- 	CGRP_NOTIFY_ON_RELEASE,
-+	/*
-+	 * A thread in rmdir() is wating for this cgroup.
-+	 */
-+	CGRP_WAIT_ON_RMDIR,
- };
- 
- struct cgroup {
-@@ -360,7 +364,7 @@ int cgroup_is_descendant(const struct cg
- struct cgroup_subsys {
- 	struct cgroup_subsys_state *(*create)(struct cgroup_subsys *ss,
- 						  struct cgroup *cgrp);
--	void (*pre_destroy)(struct cgroup_subsys *ss, struct cgroup *cgrp);
-+	int (*pre_destroy)(struct cgroup_subsys *ss, struct cgroup *cgrp);
- 	void (*destroy)(struct cgroup_subsys *ss, struct cgroup *cgrp);
- 	int (*can_attach)(struct cgroup_subsys *ss,
- 			  struct cgroup *cgrp, struct task_struct *tsk);
-diff -puN kernel/cgroup.c~cgroup-fix-frequent-ebusy-at-rmdir kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-fix-frequent-ebusy-at-rmdir
-+++ a/kernel/cgroup.c
-@@ -622,13 +622,18 @@ static struct inode *cgroup_new_inode(mo
-  * Call subsys's pre_destroy handler.
-  * This is called before css refcnt check.
-  */
--static void cgroup_call_pre_destroy(struct cgroup *cgrp)
-+static int cgroup_call_pre_destroy(struct cgroup *cgrp)
- {
- 	struct cgroup_subsys *ss;
-+	int ret = 0;
-+
- 	for_each_subsys(cgrp->root, ss)
--		if (ss->pre_destroy)
--			ss->pre_destroy(ss, cgrp);
--	return;
-+		if (ss->pre_destroy) {
-+			ret = ss->pre_destroy(ss, cgrp);
-+			if (ret)
-+				break;
-+		}
-+	return ret;
+diff -puN mm/memcontrol.c~memcg-use-css-id mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-css-id
++++ a/mm/memcontrol.c
+@@ -95,6 +95,15 @@ static s64 mem_cgroup_read_stat(struct m
+ 	return ret;
  }
  
- static void free_cgroup_rcu(struct rcu_head *obj)
-@@ -722,6 +727,22 @@ static void cgroup_d_remove_dir(struct d
- 	remove_dir(dentry);
- }
- 
-+/*
-+ * A queue for waiters to do rmdir() cgroup. A tasks will sleep when
-+ * cgroup->count == 0 && list_empty(&cgroup->children) && subsys has some
-+ * reference to css->refcnt. In general, this refcnt is expected to goes down
-+ * to zero, soon.
-+ *
-+ * CGRP_WAIT_ON_RMDIR flag is modified under cgroup's inode->i_mutex;
-+ */
-+DECLARE_WAIT_QUEUE_HEAD(cgroup_rmdir_waitq);
-+
-+static void cgroup_wakeup_rmdir_waiters(const struct cgroup *cgrp)
++static s64 mem_cgroup_local_usage(struct mem_cgroup_stat *stat)
 +{
-+	if (unlikely(test_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags)))
-+		wake_up_all(&cgroup_rmdir_waitq);
++	s64 ret;
++
++	ret = mem_cgroup_read_stat(stat, MEM_CGROUP_STAT_CACHE);
++	ret += mem_cgroup_read_stat(stat, MEM_CGROUP_STAT_RSS);
++	return ret;
 +}
 +
- static int rebind_subsystems(struct cgroupfs_root *root,
- 			      unsigned long final_bits)
- {
-@@ -1316,6 +1337,12 @@ int cgroup_attach_task(struct cgroup *cg
- 	set_bit(CGRP_RELEASABLE, &oldcgrp->flags);
- 	synchronize_rcu();
- 	put_css_set(cg);
-+
-+	/*
-+	 * wake up rmdir() waiter. the rmdir should fail since the cgroup
-+	 * is no longer empty.
-+	 */
-+	cgroup_wakeup_rmdir_waiters(cgrp);
- 	return 0;
- }
+ /*
+  * per-zone information in memory controller.
+  */
+@@ -154,9 +163,9 @@ struct mem_cgroup {
  
-@@ -2607,9 +2634,11 @@ static int cgroup_rmdir(struct inode *un
- 	struct cgroup *cgrp = dentry->d_fsdata;
- 	struct dentry *d;
- 	struct cgroup *parent;
-+	DEFINE_WAIT(wait);
-+	int ret;
- 
- 	/* the vfs holds both inode->i_mutex already */
--
-+again:
- 	mutex_lock(&cgroup_mutex);
- 	if (atomic_read(&cgrp->count) != 0) {
- 		mutex_unlock(&cgroup_mutex);
-@@ -2625,17 +2654,39 @@ static int cgroup_rmdir(struct inode *un
- 	 * Call pre_destroy handlers of subsys. Notify subsystems
- 	 * that rmdir() request comes.
+ 	/*
+ 	 * While reclaiming in a hiearchy, we cache the last child we
+-	 * reclaimed from. Protected by hierarchy_mutex
++	 * reclaimed from.
  	 */
--	cgroup_call_pre_destroy(cgrp);
-+	ret = cgroup_call_pre_destroy(cgrp);
-+	if (ret)
-+		return ret;
+-	struct mem_cgroup *last_scanned_child;
++	int last_scanned_child;
+ 	/*
+ 	 * Should the accounting and control be hierarchical, per subtree?
+ 	 */
+@@ -629,103 +638,6 @@ unsigned long mem_cgroup_isolate_pages(u
+ #define mem_cgroup_from_res_counter(counter, member)	\
+ 	container_of(counter, struct mem_cgroup, member)
  
- 	mutex_lock(&cgroup_mutex);
- 	parent = cgrp->parent;
+-/*
+- * This routine finds the DFS walk successor. This routine should be
+- * called with hierarchy_mutex held
+- */
+-static struct mem_cgroup *
+-__mem_cgroup_get_next_node(struct mem_cgroup *curr, struct mem_cgroup *root_mem)
+-{
+-	struct cgroup *cgroup, *curr_cgroup, *root_cgroup;
 -
--	if (atomic_read(&cgrp->count)
--	    || !list_empty(&cgrp->children)
--	    || !cgroup_clear_css_refs(cgrp)) {
-+	if (atomic_read(&cgrp->count) || !list_empty(&cgrp->children)) {
- 		mutex_unlock(&cgroup_mutex);
- 		return -EBUSY;
- 	}
-+	/*
-+	 * css_put/get is provided for subsys to grab refcnt to css. In typical
-+	 * case, subsystem has no reference after pre_destroy(). But, under
-+	 * hierarchy management, some *temporal* refcnt can be hold.
-+	 * To avoid returning -EBUSY to a user, waitqueue is used. If subsys
-+	 * is really busy, it should return -EBUSY at pre_destroy(). wake_up
-+	 * is called when css_put() is called and refcnt goes down to 0.
-+	 */
-+	set_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
-+	prepare_to_wait(&cgroup_rmdir_waitq, &wait, TASK_INTERRUPTIBLE);
-+
-+	if (!cgroup_clear_css_refs(cgrp)) {
-+		mutex_unlock(&cgroup_mutex);
-+		schedule();
-+		finish_wait(&cgroup_rmdir_waitq, &wait);
-+		clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
-+		if (signal_pending(current))
-+			return -EINTR;
-+		goto again;
-+	}
-+	/* NO css_tryget() can success after here. */
-+	finish_wait(&cgroup_rmdir_waitq, &wait);
-+	clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
- 
- 	spin_lock(&release_list_lock);
- 	set_bit(CGRP_REMOVED, &cgrp->flags);
-@@ -3192,10 +3243,12 @@ void __css_put(struct cgroup_subsys_stat
+-	curr_cgroup = curr->css.cgroup;
+-	root_cgroup = root_mem->css.cgroup;
+-
+-	if (!list_empty(&curr_cgroup->children)) {
+-		/*
+-		 * Walk down to children
+-		 */
+-		cgroup = list_entry(curr_cgroup->children.next,
+-						struct cgroup, sibling);
+-		curr = mem_cgroup_from_cont(cgroup);
+-		goto done;
+-	}
+-
+-visit_parent:
+-	if (curr_cgroup == root_cgroup) {
+-		/* caller handles NULL case */
+-		curr = NULL;
+-		goto done;
+-	}
+-
+-	/*
+-	 * Goto next sibling
+-	 */
+-	if (curr_cgroup->sibling.next != &curr_cgroup->parent->children) {
+-		cgroup = list_entry(curr_cgroup->sibling.next, struct cgroup,
+-						sibling);
+-		curr = mem_cgroup_from_cont(cgroup);
+-		goto done;
+-	}
+-
+-	/*
+-	 * Go up to next parent and next parent's sibling if need be
+-	 */
+-	curr_cgroup = curr_cgroup->parent;
+-	goto visit_parent;
+-
+-done:
+-	return curr;
+-}
+-
+-/*
+- * Visit the first child (need not be the first child as per the ordering
+- * of the cgroup list, since we track last_scanned_child) of @mem and use
+- * that to reclaim free pages from.
+- */
+-static struct mem_cgroup *
+-mem_cgroup_get_next_node(struct mem_cgroup *root_mem)
+-{
+-	struct cgroup *cgroup;
+-	struct mem_cgroup *orig, *next;
+-	bool obsolete;
+-
+-	/*
+-	 * Scan all children under the mem_cgroup mem
+-	 */
+-	mutex_lock(&mem_cgroup_subsys.hierarchy_mutex);
+-
+-	orig = root_mem->last_scanned_child;
+-	obsolete = mem_cgroup_is_obsolete(orig);
+-
+-	if (list_empty(&root_mem->css.cgroup->children)) {
+-		/*
+-		 * root_mem might have children before and last_scanned_child
+-		 * may point to one of them. We put it later.
+-		 */
+-		if (orig)
+-			VM_BUG_ON(!obsolete);
+-		next = NULL;
+-		goto done;
+-	}
+-
+-	if (!orig || obsolete) {
+-		cgroup = list_first_entry(&root_mem->css.cgroup->children,
+-				struct cgroup, sibling);
+-		next = mem_cgroup_from_cont(cgroup);
+-	} else
+-		next = __mem_cgroup_get_next_node(orig, root_mem);
+-
+-done:
+-	if (next)
+-		mem_cgroup_get(next);
+-	root_mem->last_scanned_child = next;
+-	if (orig)
+-		mem_cgroup_put(orig);
+-	mutex_unlock(&mem_cgroup_subsys.hierarchy_mutex);
+-	return (next) ? next : root_mem;
+-}
+-
+ static bool mem_cgroup_check_under_limit(struct mem_cgroup *mem)
  {
- 	struct cgroup *cgrp = css->cgroup;
- 	rcu_read_lock();
--	if ((atomic_dec_return(&css->refcnt) == 1) &&
--	    notify_on_release(cgrp)) {
--		set_bit(CGRP_RELEASABLE, &cgrp->flags);
--		check_for_release(cgrp);
-+	if (atomic_dec_return(&css->refcnt) == 1) {
-+		if (notify_on_release(cgrp)) {
-+			set_bit(CGRP_RELEASABLE, &cgrp->flags);
-+			check_for_release(cgrp);
-+		}
-+		cgroup_wakeup_rmdir_waiters(cgrp);
- 	}
- 	rcu_read_unlock();
- }
-diff -puN mm/memcontrol.c~cgroup-fix-frequent-ebusy-at-rmdir mm/memcontrol.c
---- a/mm/memcontrol.c~cgroup-fix-frequent-ebusy-at-rmdir
-+++ a/mm/memcontrol.c
-@@ -2272,11 +2272,12 @@ free_out:
- 	return ERR_PTR(-ENOMEM);
+ 	if (do_swap_account) {
+@@ -755,46 +667,79 @@ static unsigned int get_swappiness(struc
  }
  
--static void mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
-+static int mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
- 					struct cgroup *cont)
+ /*
+- * Dance down the hierarchy if needed to reclaim memory. We remember the
+- * last child we reclaimed from, so that we don't end up penalizing
+- * one child extensively based on its position in the children list.
++ * Visit the first child (need not be the first child as per the ordering
++ * of the cgroup list, since we track last_scanned_child) of @mem and use
++ * that to reclaim free pages from.
++ */
++static struct mem_cgroup *
++mem_cgroup_select_victim(struct mem_cgroup *root_mem)
++{
++	struct mem_cgroup *ret = NULL;
++	struct cgroup_subsys_state *css;
++	int nextid, found;
++
++	if (!root_mem->use_hierarchy) {
++		css_get(&root_mem->css);
++		ret = root_mem;
++	}
++
++	while (!ret) {
++		rcu_read_lock();
++		nextid = root_mem->last_scanned_child + 1;
++		css = css_get_next(&mem_cgroup_subsys, nextid, &root_mem->css,
++				   &found);
++		if (css && css_tryget(css))
++			ret = container_of(css, struct mem_cgroup, css);
++
++		rcu_read_unlock();
++		/* Updates scanning parameter */
++		spin_lock(&root_mem->reclaim_param_lock);
++		if (!css) {
++			/* this means start scan from ID:1 */
++			root_mem->last_scanned_child = 0;
++		} else
++			root_mem->last_scanned_child = found;
++		spin_unlock(&root_mem->reclaim_param_lock);
++	}
++
++	return ret;
++}
++
++/*
++ * Scan the hierarchy if needed to reclaim memory. We remember the last child
++ * we reclaimed from, so that we don't end up penalizing one child extensively
++ * based on its position in the children list.
+  *
+  * root_mem is the original ancestor that we've been reclaim from.
++ *
++ * We give up and return to the caller when we visit root_mem twice.
++ * (other groups can be removed while we're walking....)
+  */
+ static int mem_cgroup_hierarchical_reclaim(struct mem_cgroup *root_mem,
+ 						gfp_t gfp_mask, bool noswap)
+ {
+-	struct mem_cgroup *next_mem;
+-	int ret = 0;
+-
+-	/*
+-	 * Reclaim unconditionally and don't check for return value.
+-	 * We need to reclaim in the current group and down the tree.
+-	 * One might think about checking for children before reclaiming,
+-	 * but there might be left over accounting, even after children
+-	 * have left.
+-	 */
+-	ret += try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap,
+-					   get_swappiness(root_mem));
+-	if (mem_cgroup_check_under_limit(root_mem))
+-		return 1;	/* indicate reclaim has succeeded */
+-	if (!root_mem->use_hierarchy)
+-		return ret;
+-
+-	next_mem = mem_cgroup_get_next_node(root_mem);
+-
+-	while (next_mem != root_mem) {
+-		if (mem_cgroup_is_obsolete(next_mem)) {
+-			next_mem = mem_cgroup_get_next_node(root_mem);
++	struct mem_cgroup *victim;
++	int ret, total = 0;
++	int loop = 0;
++
++	while (loop < 2) {
++		victim = mem_cgroup_select_victim(root_mem);
++		if (victim == root_mem)
++			loop++;
++		if (!mem_cgroup_local_usage(&victim->stat)) {
++			/* this cgroup's local usage == 0 */
++			css_put(&victim->css);
+ 			continue;
+ 		}
+-		ret += try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap,
+-						   get_swappiness(next_mem));
++		/* we use swappiness of local cgroup */
++		ret = try_to_free_mem_cgroup_pages(victim, gfp_mask, noswap,
++						   get_swappiness(victim));
++		css_put(&victim->css);
++		total += ret;
+ 		if (mem_cgroup_check_under_limit(root_mem))
+-			return 1;	/* indicate reclaim has succeeded */
+-		next_mem = mem_cgroup_get_next_node(root_mem);
++			return 1 + total;
+ 	}
+-	return ret;
++	return total;
+ }
+ 
+ bool mem_cgroup_oom_called(struct task_struct *task)
+@@ -1324,8 +1269,8 @@ __mem_cgroup_uncharge_common(struct page
+ 	res_counter_uncharge(&mem->res, PAGE_SIZE);
+ 	if (do_swap_account && (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
+ 		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
+-
+ 	mem_cgroup_charge_statistics(mem, pc, false);
++
+ 	ClearPageCgroupUsed(pc);
+ 	/*
+ 	 * pc->mem_cgroup is not cleared here. It will be accessed when it's
+@@ -2178,6 +2123,8 @@ static void __mem_cgroup_free(struct mem
+ {
+ 	int node;
+ 
++	free_css_id(&mem_cgroup_subsys, &mem->css);
++
+ 	for_each_node_state(node, N_POSSIBLE)
+ 		free_mem_cgroup_per_zone_info(mem, node);
+ 
+@@ -2228,11 +2175,12 @@ static struct cgroup_subsys_state * __re
+ mem_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
+ {
+ 	struct mem_cgroup *mem, *parent;
++	long error = -ENOMEM;
+ 	int node;
+ 
+ 	mem = mem_cgroup_alloc();
+ 	if (!mem)
+-		return ERR_PTR(-ENOMEM);
++		return ERR_PTR(error);
+ 
+ 	for_each_node_state(node, N_POSSIBLE)
+ 		if (alloc_mem_cgroup_per_zone_info(mem, node))
+@@ -2260,7 +2208,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 		res_counter_init(&mem->res, NULL);
+ 		res_counter_init(&mem->memsw, NULL);
+ 	}
+-	mem->last_scanned_child = NULL;
++	mem->last_scanned_child = 0;
+ 	spin_lock_init(&mem->reclaim_param_lock);
+ 
+ 	if (parent)
+@@ -2269,7 +2217,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	return &mem->css;
+ free_out:
+ 	__mem_cgroup_free(mem);
+-	return ERR_PTR(-ENOMEM);
++	return ERR_PTR(error);
+ }
+ 
+ static int mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
+@@ -2284,12 +2232,7 @@ static void mem_cgroup_destroy(struct cg
+ 				struct cgroup *cont)
  {
  	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
--	mem_cgroup_force_empty(mem, false);
-+
-+	return mem_cgroup_force_empty(mem, false);
+-	struct mem_cgroup *last_scanned_child = mem->last_scanned_child;
+ 
+-	if (last_scanned_child) {
+-		VM_BUG_ON(!mem_cgroup_is_obsolete(last_scanned_child));
+-		mem_cgroup_put(last_scanned_child);
+-	}
+ 	mem_cgroup_put(mem);
  }
  
- static void mem_cgroup_destroy(struct cgroup_subsys *ss,
+@@ -2328,6 +2271,7 @@ struct cgroup_subsys mem_cgroup_subsys =
+ 	.populate = mem_cgroup_populate,
+ 	.attach = mem_cgroup_move_task,
+ 	.early_init = 0,
++	.use_id = 1,
+ };
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
