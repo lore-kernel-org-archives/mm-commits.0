@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sunrpc-fix-rdma-dependencies.patch added to -mm tree
-Date: Tue, 03 Feb 2009 14:47:38 -0800
-Message-ID: <200902032247.n13MlcfE000485@imap1.linux-foundation.org>
+Subject: + memcg-show-memcg-information-during-oom-fix2.patch added to -mm tree
+Date: Tue, 03 Feb 2009 14:58:44 -0800
+Message-ID: <200902032315.n13NFhwl005856@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751447AbZBCWr4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:47:56 -0500
+	by vger.kernel.org with ESMTP id S1751485AbZBCXQc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:16:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, bfields@fieldses.org, davem@davemloft.net, neilb@suse.de, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
 
 
 The patch titled
-     sunrpc: fix rdma dependencies
+     memcg-show-memcg-information-during-oom-fix2
 has been added to the -mm tree.  Its filename is
-     sunrpc-fix-rdma-dependencies.patch
+     memcg-show-memcg-information-during-oom-fix2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sunrpc: fix rdma dependencies
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: memcg-show-memcg-information-during-oom-fix2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix sunrpc/rdma build dependencies.
-Survives 12 build combinations of INET, IPV6, SUNRPC,
-INFINIBAND, and INFINIBAND_ADDR_TRANS.
+make compiler happier.
 
-ERROR: "rdma_destroy_id" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_connect" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_destroy_qp" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_create_id" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_create_qp" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_resolve_route" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_disconnect" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_resolve_addr" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_accept" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_destroy_id" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_listen" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_create_id" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_create_qp" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_bind_addr" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_disconnect" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: J. Bruce Fields <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Dave Miller <davem@davemloft.net>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN net/sunrpc/Kconfig~sunrpc-fix-rdma-dependencies net/sunrpc/Kconfig
---- a/net/sunrpc/Kconfig~sunrpc-fix-rdma-dependencies
-+++ a/net/sunrpc/Kconfig
-@@ -6,7 +6,7 @@ config SUNRPC_GSS
+diff -puN include/linux/memcontrol.h~memcg-show-memcg-information-during-oom-fix2 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-show-memcg-information-during-oom-fix2
++++ a/include/linux/memcontrol.h
+@@ -272,7 +272,8 @@ mem_cgroup_get_reclaim_stat_from_page(st
+ 	return NULL;
+ }
  
- config SUNRPC_XPRT_RDMA
- 	tristate
--	depends on SUNRPC && INFINIBAND && EXPERIMENTAL
-+	depends on SUNRPC && INFINIBAND && INFINIBAND_ADDR_TRANS && EXPERIMENTAL
- 	default SUNRPC && INFINIBAND
- 	help
- 	  This option allows the NFS client and server to support
+-void mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
++static inline void
++mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
+ {
+ }
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-maintainers-general-listsopenfabricsorg-is-moderated.patch
-atyfb-fix-config_-namespace-violations.patch
+kernel-asyncc-fix-printk-warnings.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
+wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
+i-need-old-gcc.patch
 linux-next.patch
-uv-fix-header-struct-usage.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver-dont-use-bus_id.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-sunrpc-fix-rdma-dependencies.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-documentation-ignore-byproducts-from-latex.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+kvm-unbork.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-linuxpps-core-support.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
