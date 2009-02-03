@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch added to -mm tree
-Date: Tue, 03 Feb 2009 02:58:20 -0800
-Message-ID: <200902031058.n13AwKIC016640@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch added to -mm tree
+Date: Tue, 03 Feb 2009 02:58:05 -0800
+Message-ID: <200902031058.n13Aw5Lc016306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48818 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751982AbZBCK6t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 05:58:49 -0500
+	by vger.kernel.org with ESMTP id S1752006AbZBCK64 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 05:58:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, davej@redhat.com, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com
 
 
 The patch titled
-     arch/x86/kernel/cpu/mcheck/mce_amd_64.c: avoid using work_on_cpu()
+     arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid using work_on_cpu()
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+     arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/cpu/mcheck/mce_amd_64.c: avoid using work_on_cpu()
+Subject: arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid using work_on_cpu()
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Atttempting to rid us of the problematic work_on_cpu().  Just use
@@ -41,140 +41,99 @@ smp_call_fuction_single() here.
 
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Dave Jones <davej@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/mce_amd_64.c |   47 ++++++++++++++--------
- 1 file changed, 31 insertions(+), 16 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   24 ++++++++-----------
+ 1 file changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce_amd_64.c~arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu arch/x86/kernel/cpu/mcheck/mce_amd_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_amd_64.c~arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu
-+++ a/arch/x86/kernel/cpu/mcheck/mce_amd_64.c
-@@ -90,7 +90,8 @@ struct thresh_restart {
+diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu
++++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -150,7 +150,8 @@ struct drv_cmd {
+ 	u32 val;
  };
  
- /* must be called with correct cpu affinity */
--static long threshold_restart_bank(void *_tr)
-+/* Called via smp_call_function_single() */
-+static void threshold_restart_bank(void *_tr)
+-static long do_drv_read(void *_cmd)
++/* Called via smp_call_function_single(), on the target CPU */
++static void do_drv_read(void *_cmd)
  {
- 	struct thresh_restart *tr = _tr;
- 	u32 mci_misc_hi, mci_misc_lo;
-@@ -117,7 +118,6 @@ static long threshold_restart_bank(void 
- 
- 	mci_misc_hi |= MASK_COUNT_EN_HI;
- 	wrmsr(tr->b->address, mci_misc_lo, mci_misc_hi);
+ 	struct drv_cmd *cmd = _cmd;
+ 	u32 h;
+@@ -167,10 +168,10 @@ static long do_drv_read(void *_cmd)
+ 	default:
+ 		break;
+ 	}
 -	return 0;
  }
  
- /* cpu init entry point, called from mce.c with preempt off */
-@@ -283,7 +283,7 @@ static ssize_t store_interrupt_enable(st
- 	tr.b = b;
- 	tr.reset = 0;
- 	tr.old_limit = 0;
--	work_on_cpu(b->cpu, threshold_restart_bank, &tr);
-+	smp_call_function_single(b->cpu, threshold_restart_bank, &tr, 1);
- 
- 	return end - buf;
- }
-@@ -305,23 +305,32 @@ static ssize_t store_threshold_limit(str
- 	tr.b = b;
- 	tr.reset = 0;
- 
--	work_on_cpu(b->cpu, threshold_restart_bank, &tr);
-+	smp_call_function_single(b->cpu, threshold_restart_bank, &tr, 1);
- 
- 	return end - buf;
- }
- 
--static long local_error_count(void *_b)
-+struct threshold_block_cross_cpu {
-+	struct threshold_block *tb;
-+	long retval;
-+};
-+
-+static void local_error_count_handler(void *_tbcc)
+-static long do_drv_write(void *_cmd)
++/* Called via smp_call_function_single(), on the target CPU */
++static void do_drv_write(void *_cmd)
  {
--	struct threshold_block *b = _b;
-+	struct threshold_block_cross_cpu *tbcc = _tbcc;
-+	struct threshold_block *b = tbcc->tb;
- 	u32 low, high;
- 
- 	rdmsr(b->address, low, high);
--	return (high & 0xFFF) - (THRESHOLD_MAX - b->threshold_limit);
-+	tbcc->retval = (high & 0xFFF) - (THRESHOLD_MAX - b->threshold_limit);
+ 	struct drv_cmd *cmd = _cmd;
+ 	u32 lo, hi;
+@@ -189,23 +190,21 @@ static long do_drv_write(void *_cmd)
+ 	default:
+ 		break;
+ 	}
+-	return 0;
  }
  
- static ssize_t show_error_count(struct threshold_block *b, char *buf)
+ static void drv_read(struct drv_cmd *cmd)
  {
--	return sprintf(buf, "%lx\n", work_on_cpu(b->cpu, local_error_count, b));
-+	struct threshold_block_cross_cpu tbcc = { .tb = b, };
-+
-+	smp_call_function_single(b->cpu, local_error_count_handler, &tbcc, 1);
-+	return sprintf(buf, "%lx\n", tbcc.retval);
+ 	cmd->val = 0;
+ 
+-	work_on_cpu(cpumask_any(cmd->mask), do_drv_read, cmd);
++	smp_call_function_single(cpumask_any(cmd->mask), do_drv_read, cmd, 1);
  }
  
- static ssize_t store_error_count(struct threshold_block *b,
-@@ -329,7 +338,7 @@ static ssize_t store_error_count(struct 
+ static void drv_write(struct drv_cmd *cmd)
  {
- 	struct thresh_restart tr = { .b = b, .reset = 1, .old_limit = 0 };
+-	unsigned int i;
++	unsigned int cpu;
  
--	work_on_cpu(b->cpu, threshold_restart_bank, &tr);
-+	smp_call_function_single(b->cpu, threshold_restart_bank, &tr, 1);
- 	return 1;
+-	for_each_cpu(i, cmd->mask) {
+-		work_on_cpu(i, do_drv_write, cmd);
+-	}
++	for_each_cpu(cpu, cmd->mask)
++		smp_call_function_single(cpu, do_drv_write, cmd, 1);
  }
  
-@@ -386,6 +395,13 @@ static struct kobj_type threshold_ktype 
- 	.default_attrs = default_attrs,
+ static u32 get_cur_val(const struct cpumask *mask)
+@@ -250,7 +249,8 @@ struct perf_cur {
  };
  
-+struct rdmsr_safe_on_cpu_cross_cpu {
-+	unsigned msr;
-+	u32 *low;
-+	u32 *high;
-+	int retval;
-+};
-+
- static __cpuinit int allocate_threshold_blocks(unsigned int cpu,
- 					       unsigned int bank,
- 					       unsigned int block,
-@@ -398,7 +414,7 @@ static __cpuinit int allocate_threshold_
- 	if ((bank >= NR_BANKS) || (block >= NR_BLOCKS))
- 		return 0;
  
--	if (rdmsr_safe(address, &low, &high))
-+	if (rdmsr_safe_on_cpu(cpu, address, &low, &high))
- 		return 0;
- 
- 	if (!(high & MASK_VALID_HI)) {
-@@ -462,12 +478,11 @@ out_free:
- 	return err;
- }
- 
--static __cpuinit long local_allocate_threshold_blocks(void *_bank)
-+static __cpuinit long
-+local_allocate_threshold_blocks(int cpu, unsigned int bank)
+-static long read_measured_perf_ctrs(void *_cur)
++/* Called via smp_call_function_single(), on the target CPU */
++static void read_measured_perf_ctrs(void *_cur)
  {
--	unsigned int *bank = _bank;
+ 	struct perf_cur *cur = _cur;
+ 
+@@ -259,8 +259,6 @@ static long read_measured_perf_ctrs(void
+ 
+ 	wrmsr(MSR_IA32_APERF, 0, 0);
+ 	wrmsr(MSR_IA32_MPERF, 0, 0);
 -
--	return allocate_threshold_blocks(smp_processor_id(), *bank, 0,
--					 MSR_IA32_MC0_MISC + *bank * 4);
-+	return allocate_threshold_blocks(cpu, bank, 0,
-+					 MSR_IA32_MC0_MISC + bank * 4);
+-	return 0;
  }
  
- /* symlinks sibling shared banks to first core.  first core owns dir/files. */
-@@ -530,7 +545,7 @@ static __cpuinit int threshold_create_ba
+ /*
+@@ -283,7 +281,7 @@ static unsigned int get_measured_perf(st
+ 	unsigned int perf_percent;
+ 	unsigned int retval;
  
- 	per_cpu(threshold_banks, cpu)[bank] = b;
+-	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &cur))
++	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &cur, 1))
+ 		return 0;
  
--	err = work_on_cpu(cpu, local_allocate_threshold_blocks, &bank);
-+	err = local_allocate_threshold_blocks(cpu, bank);
- 	if (err)
- 		goto out_free;
- 
+ #ifdef __i386__
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
