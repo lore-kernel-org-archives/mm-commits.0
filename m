@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-css-id-support.patch added to -mm tree
-Date: Tue, 03 Feb 2009 14:25:40 -0800
-Message-ID: <200902032225.n13MPePn003496@imap1.linux-foundation.org>
+Subject: + cgroup-fix-frequent-ebusy-at-rmdir.patch added to -mm tree
+Date: Tue, 03 Feb 2009 14:25:45 -0800
+Message-ID: <200902032225.n13MPjYX003527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42722 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752224AbZBCW0e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:26:34 -0500
+	by vger.kernel.org with ESMTP id S1753006AbZBCW0k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:26:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, mena
 
 
 The patch titled
-     cgroup: CSS ID support
+     cgroup: fix frequent -EBUSY at rmdir
 has been added to the -mm tree.  Its filename is
-     cgroup-css-id-support.patch
+     cgroup-fix-frequent-ebusy-at-rmdir.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: CSS ID support
+Subject: cgroup: fix frequent -EBUSY at rmdir
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Patch for Per-CSS(Cgroup Subsys State) ID and private hierarchy code.
+In following situation, with memory subsystem,
 
-This patch attaches unique ID to each css and provides following.
+	/groupA use_hierarchy==1
+		/01 some tasks
+		/02 some tasks
+		/03 some tasks
+		/04 empty
 
- - css_lookup(subsys, id)
-   returns pointer to struct cgroup_subysys_state of id.
- - css_get_next(subsys, id, rootid, depth, foundid)
-   returns the next css under "root" by scanning
+When tasks under 01/02/03 hit limit on /groupA, hierarchical reclaim
+is triggered and the kernel walks tree under groupA. In this case,
+rmdir /groupA/04 fails with -EBUSY frequently because of temporal
+refcnt from the kernel.
 
-When cgroup_subsys->use_id is set, an id for css is maintained.
+In general. cgroup can be rmdir'd if there are no children groups and
+no tasks. Frequent fails of rmdir() is not useful to users.
+(And the reason for -EBUSY is unknown to users.....in most cases)
 
-The cgroup framework only parepares
-	- css_id of root css for subsys
-	- id is automatically attached at creation of css.
-	- id is *not* freed automatically. Because the cgroup framework
-	  don't know lifetime of cgroup_subsys_state.
-	  free_css_id() function is provided. This must be called by subsys.
-
-There are several reasons to develop this.
-	- Saving space .... For example, memcg's swap_cgroup is array of
-	  pointers to cgroup. But it is not necessary to be very fast.
-	  By replacing pointers(8bytes per ent) to ID (2byes per ent), we can
-	  reduce much amount of memory usage.
-
-	- Scanning without lock.
-	  CSS_ID provides "scan id under this ROOT" function. By this, scanning
-	  css under root can be written without locks.
-	  ex)
-	  do {
-		rcu_read_lock();
-		next = cgroup_get_next(subsys, id, root, &found);
-		/* check sanity of next here */
-		css_tryget();
-		rcu_read_unlock();
-		id = found + 1
-	 } while(...)
-
-Characteristics:
-	- Each css has unique ID under subsys.
-	- Lifetime of ID is controlled by subsys.
-	- css ID contains "ID" and "Depth in hierarchy" and stack of hierarchy
-	- Allowed ID is 1-65535, ID 0 is UNUSED ID.
-
-Design Choices:
-	- scan-by-ID v.s. scan-by-tree-walk.
-	  As /proc's pid scan does, scan-by-ID is robust when scanning is done
-	  by following kind of routine.
-	  scan -> rest a while(release a lock) -> conitunue from interrupted
-	  memcg's hierarchical reclaim does this.
-
-	- When subsys->use_id is set, # of css in the system is limited to
-	  65535.
+This patch tries to modify above behavior, by
+	- retries if css_refcnt is got by someone.
+	- add "return value" to pre_destroy() and allows subsystem to
+	  say "we're really busy!"
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -97,526 +66,209 @@ Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   50 ++++++
- include/linux/idr.h    |    1 
- kernel/cgroup.c        |  289 ++++++++++++++++++++++++++++++++++++++-
- lib/idr.c              |   46 ++++++
- 4 files changed, 385 insertions(+), 1 deletion(-)
+ Documentation/cgroups/cgroups.txt |    6 +-
+ include/linux/cgroup.h            |    6 +-
+ kernel/cgroup.c                   |   81 +++++++++++++++++++++++-----
+ mm/memcontrol.c                   |    5 +
+ 4 files changed, 79 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroup-css-id-support include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-css-id-support
+diff -puN Documentation/cgroups/cgroups.txt~cgroup-fix-frequent-ebusy-at-rmdir Documentation/cgroups/cgroups.txt
+--- a/Documentation/cgroups/cgroups.txt~cgroup-fix-frequent-ebusy-at-rmdir
++++ a/Documentation/cgroups/cgroups.txt
+@@ -478,11 +478,13 @@ cgroup->parent is still valid. (Note - c
+ newly-created cgroup if an error occurs after this subsystem's
+ create() method has been called for the new cgroup).
+ 
+-void pre_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp);
++int pre_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp);
+ 
+ Called before checking the reference count on each subsystem. This may
+ be useful for subsystems which have some extra references even if
+-there are not tasks in the cgroup.
++there are not tasks in the cgroup. If pre_destroy() returns error code,
++rmdir() will fail with it. From this behavior, pre_destroy() can be
++called multiple times against a cgroup.
+ 
+ int can_attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
+ 	       struct task_struct *task)
+diff -puN include/linux/cgroup.h~cgroup-fix-frequent-ebusy-at-rmdir include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup-fix-frequent-ebusy-at-rmdir
 +++ a/include/linux/cgroup.h
-@@ -15,6 +15,7 @@
- #include <linux/cgroupstats.h>
- #include <linux/prio_heap.h>
- #include <linux/rwsem.h>
-+#include <linux/idr.h>
- 
- #ifdef CONFIG_CGROUPS
- 
-@@ -22,6 +23,7 @@ struct cgroupfs_root;
- struct cgroup_subsys;
- struct inode;
- struct cgroup;
-+struct css_id;
- 
- extern int cgroup_init_early(void);
- extern int cgroup_init(void);
-@@ -63,6 +65,8 @@ struct cgroup_subsys_state {
- 	atomic_t refcnt;
- 
- 	unsigned long flags;
-+	/* ID for this css, if possible */
-+	struct css_id *id;
- };
- 
- /* bits in struct cgroup_subsys_state flags field */
-@@ -373,6 +377,11 @@ struct cgroup_subsys {
- 	int active;
- 	int disabled;
- 	int early_init;
+@@ -135,6 +135,10 @@ enum {
+ 	CGRP_RELEASABLE,
+ 	/* Control Group requires release notifications to userspace */
+ 	CGRP_NOTIFY_ON_RELEASE,
 +	/*
-+	 * True if this subsys uses ID. ID is not available before cgroup_init()
-+	 * (not available in early_init time.)
++	 * A thread in rmdir() is wating for this cgroup.
 +	 */
-+	bool use_id;
- #define MAX_CGROUP_TYPE_NAMELEN 32
- 	const char *name;
- 
-@@ -394,6 +403,9 @@ struct cgroup_subsys {
- 	 */
- 	struct cgroupfs_root *root;
- 	struct list_head sibling;
-+	/* used when use_id == true */
-+	struct idr idr;
-+	spinlock_t id_lock;
++	CGRP_WAIT_ON_RMDIR,
  };
  
- #define SUBSYS(_x) extern struct cgroup_subsys _x ## _subsys;
-@@ -449,6 +461,44 @@ void cgroup_iter_end(struct cgroup *cgrp
- int cgroup_scan_tasks(struct cgroup_scanner *scan);
- int cgroup_attach_task(struct cgroup *, struct task_struct *);
- 
-+/*
-+ * CSS ID is ID for cgroup_subsys_state structs under subsys. This only works
-+ * if cgroup_subsys.use_id == true. It can be used for looking up and scanning.
-+ * CSS ID is assigned at cgroup allocation (create) automatically
-+ * and removed when subsys calls free_css_id() function. This is because
-+ * the lifetime of cgroup_subsys_state is subsys's matter.
-+ *
-+ * Looking up and scanning function should be called under rcu_read_lock().
-+ * Taking cgroup_mutex()/hierarchy_mutex() is not necessary for following calls.
-+ * But the css returned by this routine can be "not populated yet" or "being
-+ * destroyed". The caller should check css and cgroup's status.
-+ */
-+
-+/*
-+ * Typically Called at ->destroy(), or somewhere the subsys frees
-+ * cgroup_subsys_state.
-+ */
-+void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css);
-+
-+/* Find a cgroup_subsys_state which has given ID */
-+
-+struct cgroup_subsys_state *css_lookup(struct cgroup_subsys *ss, int id);
-+
-+/*
-+ * Get a cgroup whose id is greater than or equal to id under tree of root.
-+ * Returning a cgroup_subsys_state or NULL.
-+ */
-+struct cgroup_subsys_state *css_get_next(struct cgroup_subsys *ss, int id,
-+		struct cgroup_subsys_state *root, int *foundid);
-+
-+/* Returns true if root is ancestor of cg */
-+bool css_is_ancestor(struct cgroup_subsys_state *cg,
-+		     struct cgroup_subsys_state *root);
-+
-+/* Get id and depth of css */
-+unsigned short css_id(struct cgroup_subsys_state *css);
-+unsigned short css_depth(struct cgroup_subsys_state *css);
-+
- #else /* !CONFIG_CGROUPS */
- 
- static inline int cgroup_init_early(void) { return 0; }
-diff -puN include/linux/idr.h~cgroup-css-id-support include/linux/idr.h
---- a/include/linux/idr.h~cgroup-css-id-support
-+++ a/include/linux/idr.h
-@@ -106,6 +106,7 @@ int idr_get_new(struct idr *idp, void *p
- int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id);
- int idr_for_each(struct idr *idp,
- 		 int (*fn)(int id, void *p, void *data), void *data);
-+void *idr_get_next(struct idr *idp, int *nextid);
- void *idr_replace(struct idr *idp, void *ptr, int id);
- void idr_remove(struct idr *idp, int id);
- void idr_remove_all(struct idr *idp);
-diff -puN kernel/cgroup.c~cgroup-css-id-support kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-css-id-support
+ struct cgroup {
+@@ -360,7 +364,7 @@ int cgroup_is_descendant(const struct cg
+ struct cgroup_subsys {
+ 	struct cgroup_subsys_state *(*create)(struct cgroup_subsys *ss,
+ 						  struct cgroup *cgrp);
+-	void (*pre_destroy)(struct cgroup_subsys *ss, struct cgroup *cgrp);
++	int (*pre_destroy)(struct cgroup_subsys *ss, struct cgroup *cgrp);
+ 	void (*destroy)(struct cgroup_subsys *ss, struct cgroup *cgrp);
+ 	int (*can_attach)(struct cgroup_subsys *ss,
+ 			  struct cgroup *cgrp, struct task_struct *tsk);
+diff -puN kernel/cgroup.c~cgroup-fix-frequent-ebusy-at-rmdir kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-fix-frequent-ebusy-at-rmdir
 +++ a/kernel/cgroup.c
-@@ -94,7 +94,6 @@ struct cgroupfs_root {
- 	char release_agent_path[PATH_MAX];
- };
- 
--
- /*
-  * The "rootnode" hierarchy is the "dummy hierarchy", reserved for the
-  * subsystems that are otherwise unattached - it never has more than a
-@@ -102,6 +101,39 @@ struct cgroupfs_root {
+@@ -622,13 +622,18 @@ static struct inode *cgroup_new_inode(mo
+  * Call subsys's pre_destroy handler.
+  * This is called before css refcnt check.
   */
- static struct cgroupfs_root rootnode;
+-static void cgroup_call_pre_destroy(struct cgroup *cgrp)
++static int cgroup_call_pre_destroy(struct cgroup *cgrp)
+ {
+ 	struct cgroup_subsys *ss;
++	int ret = 0;
++
+ 	for_each_subsys(cgrp->root, ss)
+-		if (ss->pre_destroy)
+-			ss->pre_destroy(ss, cgrp);
+-	return;
++		if (ss->pre_destroy) {
++			ret = ss->pre_destroy(ss, cgrp);
++			if (ret)
++				break;
++		}
++	return ret;
+ }
+ 
+ static void free_cgroup_rcu(struct rcu_head *obj)
+@@ -722,6 +727,22 @@ static void cgroup_d_remove_dir(struct d
+ 	remove_dir(dentry);
+ }
  
 +/*
-+ * CSS ID -- ID per subsys's Cgroup Subsys State(CSS). used only when
-+ * cgroup_subsys->use_id != 0.
++ * A queue for waiters to do rmdir() cgroup. A tasks will sleep when
++ * cgroup->count == 0 && list_empty(&cgroup->children) && subsys has some
++ * reference to css->refcnt. In general, this refcnt is expected to goes down
++ * to zero, soon.
++ *
++ * CGRP_WAIT_ON_RMDIR flag is modified under cgroup's inode->i_mutex;
 + */
-+#define CSS_ID_MAX	(65535)
-+struct css_id {
-+	/*
-+	 * The css to which this ID points. This pointer is set to valid value
-+	 * after cgroup is populated. If cgroup is removed, this will be NULL.
-+	 * This pointer is expected to be RCU-safe because destroy()
-+	 * is called after synchronize_rcu(). But for safe use, css_is_removed()
-+	 * css_tryget() should be used for avoiding race.
-+	 */
-+	struct cgroup_subsys_state *css;
-+	/*
-+	 * ID of this css.
-+	 */
-+	unsigned short id;
-+	/*
-+	 * Depth in hierarchy which this ID belongs to.
-+	 */
-+	unsigned short depth;
-+	/*
-+	 * ID is freed by RCU. (and lookup routine is RCU safe.)
-+	 */
-+	struct rcu_head rcu_head;
-+	/*
-+	 * Hierarchy of CSS ID belongs to.
-+	 */
-+	unsigned short stack[0]; /* Array of Length (depth+1) */
-+};
++DECLARE_WAIT_QUEUE_HEAD(cgroup_rmdir_waitq);
 +
++static void cgroup_wakeup_rmdir_waiters(const struct cgroup *cgrp)
++{
++	if (unlikely(test_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags)))
++		wake_up_all(&cgroup_rmdir_waitq);
++}
 +
- /* The list of hierarchy roots */
- 
- static LIST_HEAD(roots);
-@@ -185,6 +217,8 @@ struct cg_cgroup_link {
- static struct css_set init_css_set;
- static struct cg_cgroup_link init_css_set_link;
- 
-+static int cgroup_subsys_init_idr(struct cgroup_subsys *ss);
-+
- /* css_set_lock protects the list of css_set objects, and the
-  * chain of tasks off each css_set.  Nests outside task->alloc_lock
-  * due to cgroup_iter_start() */
-@@ -567,6 +601,9 @@ static struct backing_dev_info cgroup_ba
- 	.capabilities	= BDI_CAP_NO_ACCT_AND_WRITEBACK,
- };
- 
-+static int alloc_css_id(struct cgroup_subsys *ss,
-+			struct cgroup *parent, struct cgroup *child);
-+
- static struct inode *cgroup_new_inode(mode_t mode, struct super_block *sb)
+ static int rebind_subsystems(struct cgroupfs_root *root,
+ 			      unsigned long final_bits)
  {
- 	struct inode *inode = new_inode(sb);
-@@ -2326,6 +2363,17 @@ static int cgroup_populate_dir(struct cg
- 		if (ss->populate && (err = ss->populate(ss, cgrp)) < 0)
- 			return err;
- 	}
-+	/* This cgroup is ready now */
-+	for_each_subsys(cgrp->root, ss) {
-+		struct cgroup_subsys_state *css = cgrp->subsys[ss->subsys_id];
-+		/*
-+		 * Update id->css pointer and make this css visible from
-+		 * CSS ID functions. This pointer will be dereferened
-+		 * from RCU-read-side without locks.
-+		 */
-+		if (css->id)
-+			rcu_assign_pointer(css->id->css, css);
-+	}
- 
+@@ -1316,6 +1337,12 @@ int cgroup_attach_task(struct cgroup *cg
+ 	set_bit(CGRP_RELEASABLE, &oldcgrp->flags);
+ 	synchronize_rcu();
+ 	put_css_set(cg);
++
++	/*
++	 * wake up rmdir() waiter. the rmdir should fail since the cgroup
++	 * is no longer empty.
++	 */
++	cgroup_wakeup_rmdir_waiters(cgrp);
  	return 0;
  }
-@@ -2337,6 +2385,7 @@ static void init_cgroup_css(struct cgrou
- 	css->cgroup = cgrp;
- 	atomic_set(&css->refcnt, 1);
- 	css->flags = 0;
-+	css->id = NULL;
- 	if (cgrp == dummytop)
- 		set_bit(CSS_ROOT, &css->flags);
- 	BUG_ON(cgrp->subsys[ss->subsys_id]);
-@@ -2412,6 +2461,10 @@ static long cgroup_create(struct cgroup 
- 			goto err_destroy;
- 		}
- 		init_cgroup_css(css, ss, cgrp);
-+		if (ss->use_id)
-+			if (alloc_css_id(ss, parent, cgrp))
-+				goto err_destroy;
-+		/* At error, ->destroy() callback has to free assigned ID. */
- 	}
  
- 	cgroup_lock_hierarchy(root);
-@@ -2706,6 +2759,8 @@ int __init cgroup_init(void)
- 		struct cgroup_subsys *ss = subsys[i];
- 		if (!ss->early_init)
- 			cgroup_init_subsys(ss);
-+		if (ss->use_id)
-+			cgroup_subsys_init_idr(ss);
- 	}
+@@ -2607,9 +2634,11 @@ static int cgroup_rmdir(struct inode *un
+ 	struct cgroup *cgrp = dentry->d_fsdata;
+ 	struct dentry *d;
+ 	struct cgroup *parent;
++	DEFINE_WAIT(wait);
++	int ret;
  
- 	/* Add init_css_set to the hash table */
-@@ -3240,3 +3295,235 @@ static int __init cgroup_disable(char *s
- 	return 1;
- }
- __setup("cgroup_disable=", cgroup_disable);
-+
-+/*
-+ * Functons for CSS ID.
-+ */
-+
-+/*
-+ *To get ID other than 0, this should be called when !cgroup_is_removed().
-+ */
-+unsigned short css_id(struct cgroup_subsys_state *css)
-+{
-+	struct css_id *cssid = rcu_dereference(css->id);
-+
-+	if (cssid)
-+		return cssid->id;
-+	return 0;
-+}
-+
-+unsigned short css_depth(struct cgroup_subsys_state *css)
-+{
-+	struct css_id *cssid = rcu_dereference(css->id);
-+
-+	if (cssid)
-+		return cssid->depth;
-+	return 0;
-+}
-+
-+bool css_is_ancestor(struct cgroup_subsys_state *child,
-+		    struct cgroup_subsys_state *root)
-+{
-+	struct css_id *child_id = rcu_dereference(child->id);
-+	struct css_id *root_id = rcu_dereference(root->id);
-+
-+	if (!child_id || !root_id || (child_id->depth < root_id->depth))
-+		return false;
-+	return child_id->stack[root_id->depth] == root_id->id;
-+}
-+
-+static void __free_css_id_cb(struct rcu_head *head)
-+{
-+	struct css_id *id;
-+
-+	id = container_of(head, struct css_id, rcu_head);
-+	kfree(id);
-+}
-+
-+void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css)
-+{
-+	struct css_id *id = css->id;
-+	/* When this is called before css_id initialization, id can be NULL */
-+	if (!id)
-+		return;
-+
-+	BUG_ON(!ss->use_id);
-+
-+	rcu_assign_pointer(id->css, NULL);
-+	rcu_assign_pointer(css->id, NULL);
-+	spin_lock(&ss->id_lock);
-+	idr_remove(&ss->idr, id->id);
-+	spin_unlock(&ss->id_lock);
-+	call_rcu(&id->rcu_head, __free_css_id_cb);
-+}
-+
-+/*
-+ * This is called by init or create(). Then, calls to this function are
-+ * always serialized (By cgroup_mutex() at create()).
-+ */
-+
-+static struct css_id *get_new_cssid(struct cgroup_subsys *ss, int depth)
-+{
-+	struct css_id *newid;
-+	int myid, error, size;
-+
-+	BUG_ON(!ss->use_id);
-+
-+	size = sizeof(*newid) + sizeof(unsigned short) * (depth + 1);
-+	newid = kzalloc(size, GFP_KERNEL);
-+	if (!newid)
-+		return ERR_PTR(-ENOMEM);
-+	/* get id */
-+	if (unlikely(!idr_pre_get(&ss->idr, GFP_KERNEL))) {
-+		error = -ENOMEM;
-+		goto err_out;
-+	}
-+	spin_lock(&ss->id_lock);
-+	/* Don't use 0. allocates an ID of 1-65535 */
-+	error = idr_get_new_above(&ss->idr, newid, 1, &myid);
-+	spin_unlock(&ss->id_lock);
-+
-+	/* Returns error when there are no free spaces for new ID.*/
-+	if (error) {
-+		error = -ENOSPC;
-+		goto err_out;
-+	}
-+	if (myid > CSS_ID_MAX)
-+		goto remove_idr;
-+
-+	newid->id = myid;
-+	newid->depth = depth;
-+	return newid;
-+remove_idr:
-+	error = -ENOSPC;
-+	spin_lock(&ss->id_lock);
-+	idr_remove(&ss->idr, myid);
-+	spin_unlock(&ss->id_lock);
-+err_out:
-+	kfree(newid);
-+	return ERR_PTR(error);
-+
-+}
-+
-+static int __init cgroup_subsys_init_idr(struct cgroup_subsys *ss)
-+{
-+	struct css_id *newid;
-+	struct cgroup_subsys_state *rootcss;
-+
-+	spin_lock_init(&ss->id_lock);
-+	idr_init(&ss->idr);
-+
-+	rootcss = init_css_set.subsys[ss->subsys_id];
-+	newid = get_new_cssid(ss, 0);
-+	if (IS_ERR(newid))
-+		return PTR_ERR(newid);
-+
-+	newid->stack[0] = newid->id;
-+	newid->css = rootcss;
-+	rootcss->id = newid;
-+	return 0;
-+}
-+
-+static int alloc_css_id(struct cgroup_subsys *ss, struct cgroup *parent,
-+			struct cgroup *child)
-+{
-+	int subsys_id, i, depth = 0;
-+	struct cgroup_subsys_state *parent_css, *child_css;
-+	struct css_id *child_id, *parent_id = NULL;
-+
-+	subsys_id = ss->subsys_id;
-+	parent_css = parent->subsys[subsys_id];
-+	child_css = child->subsys[subsys_id];
-+	depth = css_depth(parent_css) + 1;
-+	parent_id = parent_css->id;
-+
-+	child_id = get_new_cssid(ss, depth);
-+	if (IS_ERR(child_id))
-+		return PTR_ERR(child_id);
-+
-+	for (i = 0; i < depth; i++)
-+		child_id->stack[i] = parent_id->stack[i];
-+	child_id->stack[depth] = child_id->id;
+ 	/* the vfs holds both inode->i_mutex already */
+-
++again:
+ 	mutex_lock(&cgroup_mutex);
+ 	if (atomic_read(&cgrp->count) != 0) {
+ 		mutex_unlock(&cgroup_mutex);
+@@ -2625,17 +2654,39 @@ static int cgroup_rmdir(struct inode *un
+ 	 * Call pre_destroy handlers of subsys. Notify subsystems
+ 	 * that rmdir() request comes.
+ 	 */
+-	cgroup_call_pre_destroy(cgrp);
++	ret = cgroup_call_pre_destroy(cgrp);
++	if (ret)
++		return ret;
+ 
+ 	mutex_lock(&cgroup_mutex);
+ 	parent = cgrp->parent;
+-
+-	if (atomic_read(&cgrp->count)
+-	    || !list_empty(&cgrp->children)
+-	    || !cgroup_clear_css_refs(cgrp)) {
++	if (atomic_read(&cgrp->count) || !list_empty(&cgrp->children)) {
+ 		mutex_unlock(&cgroup_mutex);
+ 		return -EBUSY;
+ 	}
 +	/*
-+	 * child_id->css pointer will be set after this cgroup is available
-+	 * see cgroup_populate_dir()
++	 * css_put/get is provided for subsys to grab refcnt to css. In typical
++	 * case, subsystem has no reference after pre_destroy(). But, under
++	 * hierarchy management, some *temporal* refcnt can be hold.
++	 * To avoid returning -EBUSY to a user, waitqueue is used. If subsys
++	 * is really busy, it should return -EBUSY at pre_destroy(). wake_up
++	 * is called when css_put() is called and refcnt goes down to 0.
 +	 */
-+	rcu_assign_pointer(child_css->id, child_id);
++	set_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
++	prepare_to_wait(&cgroup_rmdir_waitq, &wait, TASK_INTERRUPTIBLE);
 +
-+	return 0;
-+}
-+
-+/**
-+ * css_lookup - lookup css by id
-+ * @ss: cgroup subsys to be looked into.
-+ * @id: the id
-+ *
-+ * Returns pointer to cgroup_subsys_state if there is valid one with id.
-+ * NULL if not. Should be called under rcu_read_lock()
-+ */
-+struct cgroup_subsys_state *css_lookup(struct cgroup_subsys *ss, int id)
-+{
-+	struct css_id *cssid = NULL;
-+
-+	BUG_ON(!ss->use_id);
-+	cssid = idr_find(&ss->idr, id);
-+
-+	if (unlikely(!cssid))
-+		return NULL;
-+
-+	return rcu_dereference(cssid->css);
-+}
-+
-+/**
-+ * css_get_next - lookup next cgroup under specified hierarchy.
-+ * @ss: pointer to subsystem
-+ * @id: current position of iteration.
-+ * @root: pointer to css. search tree under this.
-+ * @foundid: position of found object.
-+ *
-+ * Search next css under the specified hierarchy of rootid. Calling under
-+ * rcu_read_lock() is necessary. Returns NULL if it reaches the end.
-+ */
-+struct cgroup_subsys_state *
-+css_get_next(struct cgroup_subsys *ss, int id,
-+	     struct cgroup_subsys_state *root, int *foundid)
-+{
-+	struct cgroup_subsys_state *ret = NULL;
-+	struct css_id *tmp;
-+	int tmpid;
-+	int rootid = css_id(root);
-+	int depth = css_depth(root);
-+
-+	if (!rootid)
-+		return NULL;
-+
-+	BUG_ON(!ss->use_id);
-+	rcu_read_lock();
-+	/* fill start point for scan */
-+	tmpid = id;
-+	while (1) {
-+		/*
-+		 * scan next entry from bitmap(tree), tmpid is updated after
-+		 * idr_get_next().
-+		 */
-+		spin_lock(&ss->id_lock);
-+		tmp = idr_get_next(&ss->idr, &tmpid);
-+		spin_unlock(&ss->id_lock);
-+
-+		if (!tmp)
-+			break;
-+		if (tmp->depth >= depth && tmp->stack[depth] == rootid) {
-+			ret = rcu_dereference(tmp->css);
-+			if (ret) {
-+				*foundid = tmpid;
-+				break;
-+			}
-+		}
-+		/* continue to scan from next id */
-+		tmpid = tmpid + 1;
++	if (!cgroup_clear_css_refs(cgrp)) {
++		mutex_unlock(&cgroup_mutex);
++		schedule();
++		finish_wait(&cgroup_rmdir_waitq, &wait);
++		clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
++		if (signal_pending(current))
++			return -EINTR;
++		goto again;
 +	}
-+
-+	rcu_read_unlock();
-+	return ret;
-+}
-+
-diff -puN lib/idr.c~cgroup-css-id-support lib/idr.c
---- a/lib/idr.c~cgroup-css-id-support
-+++ a/lib/idr.c
-@@ -579,6 +579,52 @@ int idr_for_each(struct idr *idp,
- EXPORT_SYMBOL(idr_for_each);
++	/* NO css_tryget() can success after here. */
++	finish_wait(&cgroup_rmdir_waitq, &wait);
++	clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
  
- /**
-+ * idr_get_next - lookup next object of id to given id.
-+ * @idp: idr handle
-+ * @id:  pointer to lookup key
-+ *
-+ * Returns pointer to registered object with id, which is next number to
-+ * given id.
-+ */
-+
-+void *idr_get_next(struct idr *idp, int *nextidp)
-+{
-+	struct idr_layer *p, *pa[MAX_LEVEL];
-+	struct idr_layer **paa = &pa[0];
-+	int id = *nextidp;
-+	int n, max;
-+
-+	/* find first ent */
-+	n = idp->layers * IDR_BITS;
-+	max = 1 << n;
-+	p = rcu_dereference(idp->top);
-+	if (!p)
-+		return NULL;
-+
-+	while (id < max) {
-+		while (n > 0 && p) {
-+			n -= IDR_BITS;
-+			*paa++ = p;
-+			p = rcu_dereference(p->ary[(id >> n) & IDR_MASK]);
+ 	spin_lock(&release_list_lock);
+ 	set_bit(CGRP_REMOVED, &cgrp->flags);
+@@ -3192,10 +3243,12 @@ void __css_put(struct cgroup_subsys_stat
+ {
+ 	struct cgroup *cgrp = css->cgroup;
+ 	rcu_read_lock();
+-	if ((atomic_dec_return(&css->refcnt) == 1) &&
+-	    notify_on_release(cgrp)) {
+-		set_bit(CGRP_RELEASABLE, &cgrp->flags);
+-		check_for_release(cgrp);
++	if (atomic_dec_return(&css->refcnt) == 1) {
++		if (notify_on_release(cgrp)) {
++			set_bit(CGRP_RELEASABLE, &cgrp->flags);
++			check_for_release(cgrp);
 +		}
++		cgroup_wakeup_rmdir_waiters(cgrp);
+ 	}
+ 	rcu_read_unlock();
+ }
+diff -puN mm/memcontrol.c~cgroup-fix-frequent-ebusy-at-rmdir mm/memcontrol.c
+--- a/mm/memcontrol.c~cgroup-fix-frequent-ebusy-at-rmdir
++++ a/mm/memcontrol.c
+@@ -2272,11 +2272,12 @@ free_out:
+ 	return ERR_PTR(-ENOMEM);
+ }
+ 
+-static void mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
++static int mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
+ 					struct cgroup *cont)
+ {
+ 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
+-	mem_cgroup_force_empty(mem, false);
 +
-+		if (p) {
-+			*nextidp = id;
-+			return p;
-+		}
-+
-+		id += 1 << n;
-+		while (n < fls(id)) {
-+			n += IDR_BITS;
-+			p = *--paa;
-+		}
-+	}
-+	return NULL;
-+}
-+
-+
-+
-+/**
-  * idr_replace - replace pointer for given id
-  * @idp: idr handle
-  * @ptr: pointer you want associated with the id
++	return mem_cgroup_force_empty(mem, false);
+ }
+ 
+ static void mem_cgroup_destroy(struct cgroup_subsys *ss,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
