@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_spi-fix-handling-of-chipselect-after-spi-transfer.patch added to -mm tree
-Date: Mon, 02 Feb 2009 16:31:00 -0800
-Message-ID: <200902030031.n130V0DL019865@imap1.linux-foundation.org>
+Subject: + atmel-mci-fix-initialization-of-dma-slave-data.patch added to -mm tree
+Date: Mon, 02 Feb 2009 16:29:44 -0800
+Message-ID: <200902030029.n130Tik7018089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46718 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38867 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752103AbZBCAbm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 19:31:42 -0500
+	by vger.kernel.org with ESMTP id S1753470AbZBCAgD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 19:36:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael@heimpold.de, david-b@pacbell.net, hskinnemoen@atmel.com, mhei@heimpold.de
+Cc: dan.j.williams@intel.com, anemo@mba.ocn.ne.jp, hskinnemoen@atmel.com
 
 
 The patch titled
-     atmel_spi: fix handling of chipselect after SPI transfer
+     atmel-mci: fix initialization of dma slave data
 has been added to the -mm tree.  Its filename is
-     atmel_spi-fix-handling-of-chipselect-after-spi-transfer.patch
+     atmel-mci-fix-initialization-of-dma-slave-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_spi: fix handling of chipselect after SPI transfer
-From: Michael Heimpold <michael@heimpold.de>
+Subject: atmel-mci: fix initialization of dma slave data
+From: Dan Williams <dan.j.williams@intel.com>
 
-According to include/linux/spi/spi.h chipselect should stay active after a
-SPI transfer or after a SPI message unless modified by
-spi_transfer.cs_change != 0.
+The conversion of atmel-mci to dma_request_channel missed the
+initialization of the channel dma_slave information.  The filter_fn passed
+to dma_request_channel is responsible for initializing the channel's
+private data.  This implementation has the additional benefit of enabling
+a generic client-channel data passing mechanism.
 
-The current atmel driver passes this field to atmel_spi_msg_done as a
-parameter with oppositional meaning: "cs_change" -> "stay" (see
-atmel_spi_interrupt).
-
-This patch fixes this behaviour by adapting the called function and its
-callers.  IMHO this solution is better than an one line fix of inverting
-the function's argument as the meaning of the field remains throughout the
-hole stack.
-
-Signed-off-by: Michael Heimpold <mhei@heimpold.de>
+Reviewed-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/dma/dmaengine.c      |    2 ++
+ drivers/dma/dw_dmac.c        |    5 ++---
+ drivers/dma/dw_dmac_regs.h   |    2 --
+ drivers/mmc/host/atmel-mci.c |    5 +++--
+ include/linux/dmaengine.h    |    2 ++
+ 5 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-fix-handling-of-chipselect-after-spi-transfer drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-fix-handling-of-chipselect-after-spi-transfer
-+++ a/drivers/spi/atmel_spi.c
-@@ -385,9 +385,9 @@ static void atmel_spi_dma_unmap_xfer(str
- 
- static void
- atmel_spi_msg_done(struct spi_master *master, struct atmel_spi *as,
--		struct spi_message *msg, int status, int stay)
-+		struct spi_message *msg, int status, int cs_change)
+diff -puN drivers/dma/dmaengine.c~atmel-mci-fix-initialization-of-dma-slave-data drivers/dma/dmaengine.c
+--- a/drivers/dma/dmaengine.c~atmel-mci-fix-initialization-of-dma-slave-data
++++ a/drivers/dma/dmaengine.c
+@@ -518,6 +518,7 @@ struct dma_chan *__dma_request_channel(d
+ 				       dma_chan_name(chan), err);
+ 			else
+ 				break;
++			chan->private = NULL;
+ 			chan = NULL;
+ 		}
+ 	}
+@@ -536,6 +537,7 @@ void dma_release_channel(struct dma_chan
+ 	WARN_ONCE(chan->client_count != 1,
+ 		  "chan reference count %d != 1\n", chan->client_count);
+ 	dma_chan_put(chan);
++	chan->private = NULL;
+ 	mutex_unlock(&dma_list_mutex);
+ }
+ EXPORT_SYMBOL_GPL(dma_release_channel);
+diff -puN drivers/dma/dw_dmac.c~atmel-mci-fix-initialization-of-dma-slave-data drivers/dma/dw_dmac.c
+--- a/drivers/dma/dw_dmac.c~atmel-mci-fix-initialization-of-dma-slave-data
++++ a/drivers/dma/dw_dmac.c
+@@ -560,7 +560,7 @@ dwc_prep_slave_sg(struct dma_chan *chan,
+ 		unsigned long flags)
  {
--	if (!stay || status < 0)
-+	if (cs_change || status < 0)
- 		cs_deactivate(as, msg->spi);
- 	else
- 		as->stay = msg->spi;
-@@ -482,7 +482,7 @@ atmel_spi_interrupt(int irq, void *dev_i
- 		/* Clear any overrun happening while cleaning up */
- 		spi_readl(as, SR);
+ 	struct dw_dma_chan	*dwc = to_dw_dma_chan(chan);
+-	struct dw_dma_slave	*dws = dwc->dws;
++	struct dw_dma_slave	*dws = chan->private;
+ 	struct dw_desc		*prev;
+ 	struct dw_desc		*first;
+ 	u32			ctllo;
+@@ -790,7 +790,7 @@ static int dwc_alloc_chan_resources(stru
+ 	cfghi = DWC_CFGH_FIFO_MODE;
+ 	cfglo = 0;
  
--		atmel_spi_msg_done(master, as, msg, -EIO, 0);
-+		atmel_spi_msg_done(master, as, msg, -EIO, 1);
- 	} else if (pending & (SPI_BIT(RXBUFF) | SPI_BIT(ENDRX))) {
- 		ret = IRQ_HANDLED;
+-	dws = dwc->dws;
++	dws = chan->private;
+ 	if (dws) {
+ 		/*
+ 		 * We need controller-specific data to set up slave
+@@ -866,7 +866,6 @@ static void dwc_free_chan_resources(stru
+ 	spin_lock_bh(&dwc->lock);
+ 	list_splice_init(&dwc->free_list, &list);
+ 	dwc->descs_allocated = 0;
+-	dwc->dws = NULL;
  
+ 	/* Disable interrupts */
+ 	channel_clear_bit(dw, MASK.XFER, dwc->mask);
+diff -puN drivers/dma/dw_dmac_regs.h~atmel-mci-fix-initialization-of-dma-slave-data drivers/dma/dw_dmac_regs.h
+--- a/drivers/dma/dw_dmac_regs.h~atmel-mci-fix-initialization-of-dma-slave-data
++++ a/drivers/dma/dw_dmac_regs.h
+@@ -139,8 +139,6 @@ struct dw_dma_chan {
+ 	struct list_head	queue;
+ 	struct list_head	free_list;
+ 
+-	struct dw_dma_slave	*dws;
+-
+ 	unsigned int		descs_allocated;
+ };
+ 
+diff -puN drivers/mmc/host/atmel-mci.c~atmel-mci-fix-initialization-of-dma-slave-data drivers/mmc/host/atmel-mci.c
+--- a/drivers/mmc/host/atmel-mci.c~atmel-mci-fix-initialization-of-dma-slave-data
++++ a/drivers/mmc/host/atmel-mci.c
+@@ -1548,9 +1548,10 @@ static bool filter(struct dma_chan *chan
+ {
+ 	struct dw_dma_slave *dws = slave;
+ 
+-	if (dws->dma_dev == chan->device->dev)
++	if (dws->dma_dev == chan->device->dev) {
++		chan->private = dws;
+ 		return true;
+-	else
++	} else
+ 		return false;
+ }
+ #endif
+diff -puN include/linux/dmaengine.h~atmel-mci-fix-initialization-of-dma-slave-data include/linux/dmaengine.h
+--- a/include/linux/dmaengine.h~atmel-mci-fix-initialization-of-dma-slave-data
++++ a/include/linux/dmaengine.h
+@@ -121,6 +121,7 @@ struct dma_chan_percpu {
+  * @local: per-cpu pointer to a struct dma_chan_percpu
+  * @client-count: how many clients are using this channel
+  * @table_count: number of appearances in the mem-to-mem allocation table
++ * @private: private data for certain client-channel associations
+  */
+ struct dma_chan {
+ 	struct dma_device *device;
+@@ -134,6 +135,7 @@ struct dma_chan {
+ 	struct dma_chan_percpu *local;
+ 	int client_count;
+ 	int table_count;
++	void *private;
+ };
+ 
+ /**
 _
 
-Patches currently in -mm which might be from michael@heimpold.de are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-atmel_spi-fix-handling-of-chipselect-after-spi-transfer.patch
+linux-next.patch
+atmel-mci-fix-initialization-of-dma-slave-data.patch
 
