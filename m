@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch added to -mm tree
-Date: Tue, 03 Feb 2009 02:57:58 -0800
-Message-ID: <200902031057.n13Avwip016192@imap1.linux-foundation.org>
+Subject: + work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch added to -mm tree
+Date: Tue, 03 Feb 2009 02:58:24 -0800
+Message-ID: <200902031058.n13AwOoK016719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752841AbZBCK6W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 05:58:22 -0500
+	by vger.kernel.org with ESMTP id S1751707AbZBCK6m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 05:58:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu, rusty@rustcorp.com.au
 
 
 The patch titled
-     arch/x86/kernel/acpi/cstate.c: avoid using work_on_cpu()
+     work_on_cpu(): rewrite it to create a kernel thread on demand
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+     work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,127 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/acpi/cstate.c: avoid using work_on_cpu()
+Subject: work_on_cpu(): rewrite it to create a kernel thread on demand
 From: Andrew Morton <akpm@linux-foundation.org>
 
-A series of patches which
+The various implemetnations and proposed implemetnations of work_on_cpu()
+are vulnerable to various deadlocks because they all used queues of some
+form.
 
-- removes all but one callers of work_on_cpu() by switching then to
-  smp_call_function_single()
+Unrelated pieces of kernel code thus gained dependencies wherein if one
+work_on_cpu() caller holds a lock which some other work_on_cpu() callback
+also takes, the kernel could rarely deadlock.
 
-- converts work_on_cpu() to create a kernel thread on depend, thus
-  avoidin the various deadlock scenarios which we keep on experiencing and
-  thinking up.
+Fix this by creating a short-lived kernel thread for each work_on_cpu()
+invokation.
 
-All cheerfully untested.
+This is not terribly fast, but the only current caller of work_on_cpu() is
+pci_call_probe().
 
-
-This patch:
-
-Atttempting to rid us of the problematic work_on_cpu().  Just use
-smp_call_fuction_single() here.
+It would be nice to find some other way of doing the node-local
+allocations in the PCI probe code so that we can zap work_on_cpu()
+altogether.  The code there is rather nasty.  I can't think of anything
+simple at this time...
 
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/cstate.c |   36 +++++++++++++++++++++-----------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ kernel/workqueue.c |   36 +++++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
 
-diff -puN arch/x86/kernel/acpi/cstate.c~arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu arch/x86/kernel/acpi/cstate.c
---- a/arch/x86/kernel/acpi/cstate.c~arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu
-+++ a/arch/x86/kernel/acpi/cstate.c
-@@ -61,6 +61,12 @@ struct cstate_entry {
- };
- static struct cstate_entry *cpu_cstate_entry;	/* per CPU ptr */
- 
-+/* Used for the cross-CPU calls */
-+struct acpi_processor_cx_cross_cpu {
-+	struct acpi_processor_cx *cx;
-+	long retval;
-+};
-+
- static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
- 
- #define MWAIT_SUBSTATE_MASK	(0xf)
-@@ -75,10 +81,10 @@ static short mwait_supported[ACPI_PROCES
- 
- #define NATIVE_CSTATE_BEYOND_HALT	(2)
- 
--static long acpi_processor_ffh_cstate_probe_cpu(void *_cx)
-+static void acpi_processor_ffh_cstate_probe_cpu(void *_cxcc)
- {
--	struct acpi_processor_cx *cx = _cx;
--	long retval;
-+	struct acpi_processor_cx_cross_cpu *cxcc = _cxcc;
-+	struct acpi_processor_cx *cx = cxcc->cx;
- 	unsigned int eax, ebx, ecx, edx;
- 	unsigned int edx_part;
- 	unsigned int cstate_type; /* C-state type and not ACPI C-state type */
-@@ -92,16 +98,16 @@ static long acpi_processor_ffh_cstate_pr
- 	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
- 	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
- 
--	retval = 0;
-+	cxcc->retval = 0;
- 	if (num_cstate_subtype < (cx->address & MWAIT_SUBSTATE_MASK)) {
--		retval = -1;
-+		cxcc->retval = -1;
- 		goto out;
- 	}
- 
- 	/* mwait ecx extensions INTERRUPT_BREAK should be supported for C2/C3 */
- 	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
- 	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK)) {
--		retval = -1;
-+		cxcc->retval = -1;
- 		goto out;
- 	}
- 
-@@ -115,7 +121,7 @@ static long acpi_processor_ffh_cstate_pr
- 			ACPI_CX_DESC_LEN, "ACPI FFH INTEL MWAIT 0x%x",
- 			cx->address);
- out:
--	return retval;
-+	return;
+diff -puN kernel/workqueue.c~work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand kernel/workqueue.c
+--- a/kernel/workqueue.c~work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand
++++ a/kernel/workqueue.c
+@@ -985,20 +985,20 @@ undo:
  }
  
- int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-@@ -123,6 +129,7 @@ int acpi_processor_ffh_cstate_probe(unsi
+ #ifdef CONFIG_SMP
+-static struct workqueue_struct *work_on_cpu_wq __read_mostly;
+ 
+ struct work_for_cpu {
+-	struct work_struct work;
++	struct completion completion;
+ 	long (*fn)(void *);
+ 	void *arg;
+ 	long ret;
+ };
+ 
+-static void do_work_for_cpu(struct work_struct *w)
++static int do_work_for_cpu(void *_wfc)
  {
- 	struct cstate_entry *percpu_entry;
- 	struct cpuinfo_x86 *c = &cpu_data(cpu);
-+	struct acpi_processor_cx_cross_cpu cxcc = { .cx = cx, };
- 	long retval;
+-	struct work_for_cpu *wfc = container_of(w, struct work_for_cpu, work);
+-
++	struct work_for_cpu *wfc = _wfc;
+ 	wfc->ret = wfc->fn(wfc->arg);
++	complete(&wfc->completion);
++	return 0;
+ }
  
- 	if (!cpu_cstate_entry || c->cpuid_level < CPUID_MWAIT_LEAF)
-@@ -135,13 +142,18 @@ int acpi_processor_ffh_cstate_probe(unsi
- 	percpu_entry->states[cx->index].eax = 0;
- 	percpu_entry->states[cx->index].ecx = 0;
- 
--	/* Make sure we are running on right CPU */
-+	/* Run acpi_processor_ffh_cstate_probe_cpu() on the target CPU */
- 
--	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
-+	retval = smp_call_function_single(cpu,
-+				acpi_processor_ffh_cstate_probe_cpu, cx, 1);
- 	if (retval == 0) {
--		/* Use the hint in CST */
--		percpu_entry->states[cx->index].eax = cx->address;
--		percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
-+		retval = cxcc.retval;
-+		if (retval == 0) {
-+			/* Use the hint in CST */
-+			percpu_entry->states[cx->index].eax = cx->address;
-+			percpu_entry->states[cx->index].ecx =
-+					MWAIT_ECX_INTERRUPT_BREAK;
-+		}
- 	}
- 	return retval;
+ /**
+@@ -1009,17 +1009,23 @@ static void do_work_for_cpu(struct work_
+  *
+  * This will return the value @fn returns.
+  * It is up to the caller to ensure that the cpu doesn't go offline.
++ * The caller must not hold any locks which would prevent @fn from completing.
+  */
+ long work_on_cpu(unsigned int cpu, long (*fn)(void *), void *arg)
+ {
+-	struct work_for_cpu wfc;
+-
+-	INIT_WORK(&wfc.work, do_work_for_cpu);
+-	wfc.fn = fn;
+-	wfc.arg = arg;
+-	queue_work_on(cpu, work_on_cpu_wq, &wfc.work);
+-	flush_work(&wfc.work);
+-
++	struct task_struct *sub_thread;
++	struct work_for_cpu wfc = {
++		.completion = COMPLETION_INITIALIZER_ONSTACK(wfc.completion),
++		.fn = fn,
++		.arg = arg,
++	};
++
++	sub_thread = kthread_create(do_work_for_cpu, &wfc, "work_for_cpu");
++	if (IS_ERR(sub_thread))
++		return PTR_ERR(sub_thread);
++	kthread_bind(sub_thread, cpu);
++	wake_up_process(sub_thread);
++	wait_for_completion(&wfc.completion);
+ 	return wfc.ret;
+ }
+ EXPORT_SYMBOL_GPL(work_on_cpu);
+@@ -1035,8 +1041,4 @@ void __init init_workqueues(void)
+ 	hotcpu_notifier(workqueue_cpu_callback, 0);
+ 	keventd_wq = create_workqueue("events");
+ 	BUG_ON(!keventd_wq);
+-#ifdef CONFIG_SMP
+-	work_on_cpu_wq = create_workqueue("work_on_cpu");
+-	BUG_ON(!work_on_cpu_wq);
+-#endif
  }
 _
 
