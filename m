@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pci-constify-pci_bus_assign_resources.patch added to -mm tree
-Date: Tue, 03 Feb 2009 15:43:55 -0800
-Message-ID: <200902040000.n1400rJR001766@imap1.linux-foundation.org>
+Subject: + pci-constify-pci_bus_add_devices.patch added to -mm tree
+Date: Tue, 03 Feb 2009 15:45:26 -0800
+Message-ID: <200902040002.n1402OSF003804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42402 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751274AbZBDAAz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 19:00:55 -0500
+	by vger.kernel.org with ESMTP id S1751577AbZBDAC0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 19:02:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     pci: constify pci_bus_assign_resources()
+     pci: constify pci_bus_add_devices()
 has been added to the -mm tree.  Its filename is
-     pci-constify-pci_bus_assign_resources.patch
+     pci-constify-pci_bus_add_devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: constify pci_bus_assign_resources()
+Subject: pci: constify pci_bus_add_devices()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pci/hotplug/fakephp.c: In function 'pci_rescan_bus':
-drivers/pci/hotplug/fakephp.c:271: warning: passing argument 1 of 'pci_bus_assign_resources' discards qualifiers from pointer target type
+drivers/pci/hotplug/fakephp.c:283: warning: passing argument 1 of 'pci_bus_add_devices' discards qualifiers from pointer target type
 
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/setup-bus.c |    2 +-
- include/linux/pci.h     |    2 +-
+ drivers/pci/bus.c   |    2 +-
+ include/linux/pci.h |    2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/setup-bus.c~pci-constify-pci_bus_assign_resources drivers/pci/setup-bus.c
---- a/drivers/pci/setup-bus.c~pci-constify-pci_bus_assign_resources
-+++ a/drivers/pci/setup-bus.c
-@@ -495,7 +495,7 @@ void __ref pci_bus_size_bridges(struct p
- }
- EXPORT_SYMBOL(pci_bus_size_bridges);
- 
--void __ref pci_bus_assign_resources(struct pci_bus *bus)
-+void __ref pci_bus_assign_resources(const struct pci_bus *bus)
+diff -puN drivers/pci/bus.c~pci-constify-pci_bus_add_devices drivers/pci/bus.c
+--- a/drivers/pci/bus.c~pci-constify-pci_bus_add_devices
++++ a/drivers/pci/bus.c
+@@ -133,7 +133,7 @@ int pci_bus_add_child(struct pci_bus *bu
+  *
+  * Call hotplug for each new devices.
+  */
+-void pci_bus_add_devices(struct pci_bus *bus)
++void pci_bus_add_devices(const struct pci_bus *bus)
  {
- 	struct pci_bus *b;
  	struct pci_dev *dev;
-diff -puN include/linux/pci.h~pci-constify-pci_bus_assign_resources include/linux/pci.h
---- a/include/linux/pci.h~pci-constify-pci_bus_assign_resources
+ 	struct pci_bus *child;
+diff -puN include/linux/pci.h~pci-constify-pci_bus_add_devices include/linux/pci.h
+--- a/include/linux/pci.h~pci-constify-pci_bus_add_devices
 +++ a/include/linux/pci.h
-@@ -708,7 +708,7 @@ ssize_t pci_write_vpd(struct pci_dev *de
- int pci_vpd_truncate(struct pci_dev *dev, size_t size);
+@@ -528,7 +528,7 @@ void pcibios_update_irq(struct pci_dev *
+ /* Generic PCI functions used internally */
  
- /* Helper functions for low-level code (drivers/pci/setup-[bus,res].c) */
--void pci_bus_assign_resources(struct pci_bus *bus);
-+void pci_bus_assign_resources(const struct pci_bus *bus);
- void pci_bus_size_bridges(struct pci_bus *bus);
- int pci_claim_resource(struct pci_dev *, int);
- void pci_assign_unassigned_resources(void);
+ extern struct pci_bus *pci_find_bus(int domain, int busnr);
+-void pci_bus_add_devices(struct pci_bus *bus);
++void pci_bus_add_devices(const struct pci_bus *bus);
+ struct pci_bus *pci_scan_bus_parented(struct device *parent, int bus,
+ 				      struct pci_ops *ops, void *sysdata);
+ static inline struct pci_bus * __devinit pci_scan_bus(int bus, struct pci_ops *ops,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -146,4 +145,5 @@ undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_add_devices.patch
 
