@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch added to -mm tree
-Date: Tue, 03 Feb 2009 00:15:04 -0800
-Message-ID: <200902030815.n138F4Pn025273@imap1.linux-foundation.org>
+Subject: + epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch added to -mm tree
+Date: Tue, 03 Feb 2009 00:15:12 -0800
+Message-ID: <200902030815.n138FCWB025501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52536 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751690AbZBCIQF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 03:16:05 -0500
+	by vger.kernel.org with ESMTP id S1752084AbZBCIQL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 03:16:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: davidel@xmailserver.org, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, ming
 
 
 The patch titled
-     epoll keyed wakeups: introduce new *_poll() wakeup macros
+     epoll keyed wakeups: make tty use keyed wakeups
 has been added to the -mm tree.  Its filename is
-     epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
+     epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll keyed wakeups: introduce new *_poll() wakeup macros
+Subject: epoll keyed wakeups: make tty use keyed wakeups
 From: Davide Libenzi <davidel@xmailserver.org>
 
-Introduce new wakeup macros that allow passing an event mask to the wakeup
-targets.  They exactly mimic their non-_poll() counterpart, with the added
-event mask passing capability.  I did add only the ones currently
-requested, avoiding the _nr() and _all() for the moment.
+Introduce keyed event wakeups inside the TTY code.
 
 Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
@@ -50,49 +47,85 @@ Cc: William Lee Irwin III <wli@movementarian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ drivers/char/tty_io.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/wait.h~epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros include/linux/wait.h
---- a/include/linux/wait.h~epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros
-+++ a/include/linux/wait.h
-@@ -158,6 +158,18 @@ wait_queue_head_t *bit_waitqueue(void *,
- #define wake_up_interruptible_all(x)	__wake_up(x, TASK_INTERRUPTIBLE, 0, NULL)
- #define wake_up_interruptible_sync(x)	__wake_up_sync((x), TASK_INTERRUPTIBLE, 1)
+diff -puN drivers/char/tty_io.c~epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups
++++ a/drivers/char/tty_io.c
+@@ -464,7 +464,7 @@ void tty_wakeup(struct tty_struct *tty)
+ 			tty_ldisc_deref(ld);
+ 		}
+ 	}
+-	wake_up_interruptible(&tty->write_wait);
++	wake_up_interruptible_poll(&tty->write_wait, POLLOUT);
+ }
  
-+/*
-+ * Wakeup macros to be used to report events to the targets.
-+ */
-+#define wake_up_poll(x, m)				\
-+	__wake_up(x, TASK_NORMAL, 1, (void *) (m))
-+#define wake_up_locked_poll(x, m)				\
-+	__wake_up_locked_key((x), TASK_NORMAL, (void *) (m))
-+#define wake_up_interruptible_poll(x, m)			\
-+	__wake_up(x, TASK_INTERRUPTIBLE, 1, (void *) (m))
-+#define wake_up_interruptible_sync_poll(x, m)				\
-+	__wake_up_sync_key((x), TASK_INTERRUPTIBLE, 1, (void *) (m))
-+
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- /*
-  * macro to avoid include hell
-@@ -170,8 +182,17 @@ do {									\
- 	wake_up_locked(x); 						\
- 	spin_unlock_irqrestore(&(x)->lock, flags);			\
- } while (0)
-+#define wake_up_nested_poll(x, m, s)					\
-+do {									\
-+	unsigned long flags;						\
-+									\
-+	spin_lock_irqsave_nested(&(x)->lock, flags, (s));		\
-+	wake_up_locked_poll(x, m);					\
-+	spin_unlock_irqrestore(&(x)->lock, flags);			\
-+} while (0)
- #else
- #define wake_up_nested(x, s)		wake_up(x)
-+#define wake_up_nested_poll(x, m, s)	wake_up_poll(x, m)
- #endif
+ EXPORT_SYMBOL_GPL(tty_wakeup);
+@@ -587,8 +587,8 @@ static void do_tty_hangup(struct work_st
+ 	 * FIXME: Once we trust the LDISC code better we can wait here for
+ 	 * ldisc completion and fix the driver call race
+ 	 */
+-	wake_up_interruptible(&tty->write_wait);
+-	wake_up_interruptible(&tty->read_wait);
++	wake_up_interruptible_poll(&tty->write_wait, POLLOUT);
++	wake_up_interruptible_poll(&tty->read_wait, POLLIN);
+ 	/*
+ 	 * Shutdown the current line discipline, and reset it to
+ 	 * N_TTY.
+@@ -879,7 +879,7 @@ void stop_tty(struct tty_struct *tty)
+ 	if (tty->link && tty->link->packet) {
+ 		tty->ctrl_status &= ~TIOCPKT_START;
+ 		tty->ctrl_status |= TIOCPKT_STOP;
+-		wake_up_interruptible(&tty->link->read_wait);
++		wake_up_interruptible_poll(&tty->link->read_wait, POLLIN);
+ 	}
+ 	spin_unlock_irqrestore(&tty->ctrl_lock, flags);
+ 	if (tty->ops->stop)
+@@ -913,7 +913,7 @@ void start_tty(struct tty_struct *tty)
+ 	if (tty->link && tty->link->packet) {
+ 		tty->ctrl_status &= ~TIOCPKT_STOP;
+ 		tty->ctrl_status |= TIOCPKT_START;
+-		wake_up_interruptible(&tty->link->read_wait);
++		wake_up_interruptible_poll(&tty->link->read_wait, POLLIN);
+ 	}
+ 	spin_unlock_irqrestore(&tty->ctrl_lock, flags);
+ 	if (tty->ops->start)
+@@ -970,7 +970,7 @@ static ssize_t tty_read(struct file *fil
+ void tty_write_unlock(struct tty_struct *tty)
+ {
+ 	mutex_unlock(&tty->atomic_write_lock);
+-	wake_up_interruptible(&tty->write_wait);
++	wake_up_interruptible_poll(&tty->write_wait, POLLOUT);
+ }
  
- #define __wait_event(wq, condition) 					\
+ int tty_write_lock(struct tty_struct *tty, int ndelay)
+@@ -1623,21 +1623,21 @@ void tty_release_dev(struct file *filp)
+ 
+ 		if (tty_closing) {
+ 			if (waitqueue_active(&tty->read_wait)) {
+-				wake_up(&tty->read_wait);
++				wake_up_poll(&tty->read_wait, POLLIN);
+ 				do_sleep++;
+ 			}
+ 			if (waitqueue_active(&tty->write_wait)) {
+-				wake_up(&tty->write_wait);
++				wake_up_poll(&tty->write_wait, POLLOUT);
+ 				do_sleep++;
+ 			}
+ 		}
+ 		if (o_tty_closing) {
+ 			if (waitqueue_active(&o_tty->read_wait)) {
+-				wake_up(&o_tty->read_wait);
++				wake_up_poll(&o_tty->read_wait, POLLIN);
+ 				do_sleep++;
+ 			}
+ 			if (waitqueue_active(&o_tty->write_wait)) {
+-				wake_up(&o_tty->write_wait);
++				wake_up_poll(&o_tty->write_wait, POLLOUT);
+ 				do_sleep++;
+ 			}
+ 		}
 _
 
 Patches currently in -mm which might be from davidel@xmailserver.org are
