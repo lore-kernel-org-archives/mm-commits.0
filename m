@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-use-css-id.patch added to -mm tree
-Date: Tue, 03 Feb 2009 14:30:12 -0800
-Message-ID: <200902032230.n13MUDnQ009617@imap1.linux-foundation.org>
+Subject: + memcg-hierarchical-stat.patch added to -mm tree
+Date: Tue, 03 Feb 2009 14:30:16 -0800
+Message-ID: <200902032230.n13MUGG4009621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46277 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751500AbZBCWbB (ORCPT
+	by vger.kernel.org with ESMTP id S1751788AbZBCWbB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:31:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
+Cc: kamzawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
 
 
 The patch titled
-     memcg: use CSS ID
+     memcg: hierarchical stat
 has been added to the -mm tree.  Its filename is
-     memcg-use-css-id.patch
+     memcg-hierarchical-stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: use CSS ID
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: hierarchical stat
+From: KAMEZAWA Hiroyuki <kamzawa.hiroyu@jp.fujitsu.com>
 
-Assigning CSS ID for each memcg and use css_get_next() for scanning hierarchy.
+Clean up memory.stat file routine and show "total" hierarchical stat.
 
-	Assume folloing tree.
-
-	group_A (ID=3)
-		/01 (ID=4)
-		   /0A (ID=7)
-		/02 (ID=10)
-	group_B (ID=5)
-	and task in group_A/01/0A hits limit at group_A.
-
-	reclaim will be done in following order (round-robin).
-	group_A(3) -> group_A/01 (4) -> group_A/01/0A (7) -> group_A/02(10)
-	-> group_A -> .....
-
-	Round robin by ID. The last visited cgroup is recorded and restart
-	from it when it start reclaim again.
-	(More smart algorithm can be implemented..)
-
-	No cgroup_mutex or hierarchy_mutex is required.
+This patch does
+  - renamed get_all_zonestat to be get_local_zonestat.
+  - remove old mem_cgroup_stat_desc, which is only for per-cpu stat.
+  - add mcs_stat to cover both of per-cpu/per-lru stat.
+  - add "total" stat of hierarchy (*)
+  - add a callback system to scan all memcg under a root.
+== "total" is added.
+[kamezawa@localhost ~]$ cat /opt/cgroup/xxx/memory.stat
+cache 0
+rss 0
+pgpgin 0
+pgpgout 0
+inactive_anon 0
+active_anon 0
+inactive_file 0
+active_file 0
+unevictable 0
+hierarchical_memory_limit 50331648
+hierarchical_memsw_limit 9223372036854775807
+total_cache 65536
+total_rss 192512
+total_pgpgin 218
+total_pgpgout 155
+total_inactive_anon 0
+total_active_anon 135168
+total_inactive_file 61440
+total_active_file 4096
+total_unevictable 0
+==
+(*) maybe the user can do calc hierarchical stat by his own program
+   in userland but if it can be written in clean way, it's worth to be
+   shown, I think.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -66,337 +80,220 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  220 +++++++++++++++++-----------------------------
- 1 file changed, 82 insertions(+), 138 deletions(-)
+ mm/memcontrol.c |  160 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 119 insertions(+), 41 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-use-css-id mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-css-id
+diff -puN mm/memcontrol.c~memcg-hierarchical-stat mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-hierarchical-stat
 +++ a/mm/memcontrol.c
-@@ -95,6 +95,15 @@ static s64 mem_cgroup_read_stat(struct m
- 	return ret;
+@@ -256,7 +256,7 @@ page_cgroup_zoneinfo(struct page_cgroup 
+ 	return mem_cgroup_zoneinfo(mem, nid, zid);
  }
  
-+static s64 mem_cgroup_local_usage(struct mem_cgroup_stat *stat)
-+{
-+	s64 ret;
-+
-+	ret = mem_cgroup_read_stat(stat, MEM_CGROUP_STAT_CACHE);
-+	ret += mem_cgroup_read_stat(stat, MEM_CGROUP_STAT_RSS);
-+	return ret;
-+}
-+
- /*
-  * per-zone information in memory controller.
-  */
-@@ -154,9 +163,9 @@ struct mem_cgroup {
- 
- 	/*
- 	 * While reclaiming in a hiearchy, we cache the last child we
--	 * reclaimed from. Protected by hierarchy_mutex
-+	 * reclaimed from.
- 	 */
--	struct mem_cgroup *last_scanned_child;
-+	int last_scanned_child;
- 	/*
- 	 * Should the accounting and control be hierarchical, per subtree?
- 	 */
-@@ -629,103 +638,6 @@ unsigned long mem_cgroup_isolate_pages(u
- #define mem_cgroup_from_res_counter(counter, member)	\
- 	container_of(counter, struct mem_cgroup, member)
- 
--/*
-- * This routine finds the DFS walk successor. This routine should be
-- * called with hierarchy_mutex held
-- */
--static struct mem_cgroup *
--__mem_cgroup_get_next_node(struct mem_cgroup *curr, struct mem_cgroup *root_mem)
--{
--	struct cgroup *cgroup, *curr_cgroup, *root_cgroup;
--
--	curr_cgroup = curr->css.cgroup;
--	root_cgroup = root_mem->css.cgroup;
--
--	if (!list_empty(&curr_cgroup->children)) {
--		/*
--		 * Walk down to children
--		 */
--		cgroup = list_entry(curr_cgroup->children.next,
--						struct cgroup, sibling);
--		curr = mem_cgroup_from_cont(cgroup);
--		goto done;
--	}
--
--visit_parent:
--	if (curr_cgroup == root_cgroup) {
--		/* caller handles NULL case */
--		curr = NULL;
--		goto done;
--	}
--
--	/*
--	 * Goto next sibling
--	 */
--	if (curr_cgroup->sibling.next != &curr_cgroup->parent->children) {
--		cgroup = list_entry(curr_cgroup->sibling.next, struct cgroup,
--						sibling);
--		curr = mem_cgroup_from_cont(cgroup);
--		goto done;
--	}
--
--	/*
--	 * Go up to next parent and next parent's sibling if need be
--	 */
--	curr_cgroup = curr_cgroup->parent;
--	goto visit_parent;
--
--done:
--	return curr;
--}
--
--/*
-- * Visit the first child (need not be the first child as per the ordering
-- * of the cgroup list, since we track last_scanned_child) of @mem and use
-- * that to reclaim free pages from.
-- */
--static struct mem_cgroup *
--mem_cgroup_get_next_node(struct mem_cgroup *root_mem)
--{
--	struct cgroup *cgroup;
--	struct mem_cgroup *orig, *next;
--	bool obsolete;
--
--	/*
--	 * Scan all children under the mem_cgroup mem
--	 */
--	mutex_lock(&mem_cgroup_subsys.hierarchy_mutex);
--
--	orig = root_mem->last_scanned_child;
--	obsolete = mem_cgroup_is_obsolete(orig);
--
--	if (list_empty(&root_mem->css.cgroup->children)) {
--		/*
--		 * root_mem might have children before and last_scanned_child
--		 * may point to one of them. We put it later.
--		 */
--		if (orig)
--			VM_BUG_ON(!obsolete);
--		next = NULL;
--		goto done;
--	}
--
--	if (!orig || obsolete) {
--		cgroup = list_first_entry(&root_mem->css.cgroup->children,
--				struct cgroup, sibling);
--		next = mem_cgroup_from_cont(cgroup);
--	} else
--		next = __mem_cgroup_get_next_node(orig, root_mem);
--
--done:
--	if (next)
--		mem_cgroup_get(next);
--	root_mem->last_scanned_child = next;
--	if (orig)
--		mem_cgroup_put(orig);
--	mutex_unlock(&mem_cgroup_subsys.hierarchy_mutex);
--	return (next) ? next : root_mem;
--}
--
- static bool mem_cgroup_check_under_limit(struct mem_cgroup *mem)
+-static unsigned long mem_cgroup_get_all_zonestat(struct mem_cgroup *mem,
++static unsigned long mem_cgroup_get_local_zonestat(struct mem_cgroup *mem,
+ 					enum lru_list idx)
  {
- 	if (do_swap_account) {
-@@ -755,46 +667,79 @@ static unsigned int get_swappiness(struc
+ 	int nid, zid;
+@@ -317,6 +317,42 @@ static bool mem_cgroup_is_obsolete(struc
+ 	return css_is_removed(&mem->css);
  }
  
- /*
-- * Dance down the hierarchy if needed to reclaim memory. We remember the
-- * last child we reclaimed from, so that we don't end up penalizing
-- * one child extensively based on its position in the children list.
-+ * Visit the first child (need not be the first child as per the ordering
-+ * of the cgroup list, since we track last_scanned_child) of @mem and use
-+ * that to reclaim free pages from.
-+ */
-+static struct mem_cgroup *
-+mem_cgroup_select_victim(struct mem_cgroup *root_mem)
-+{
-+	struct mem_cgroup *ret = NULL;
-+	struct cgroup_subsys_state *css;
-+	int nextid, found;
-+
-+	if (!root_mem->use_hierarchy) {
-+		css_get(&root_mem->css);
-+		ret = root_mem;
-+	}
-+
-+	while (!ret) {
-+		rcu_read_lock();
-+		nextid = root_mem->last_scanned_child + 1;
-+		css = css_get_next(&mem_cgroup_subsys, nextid, &root_mem->css,
-+				   &found);
-+		if (css && css_tryget(css))
-+			ret = container_of(css, struct mem_cgroup, css);
-+
-+		rcu_read_unlock();
-+		/* Updates scanning parameter */
-+		spin_lock(&root_mem->reclaim_param_lock);
-+		if (!css) {
-+			/* this means start scan from ID:1 */
-+			root_mem->last_scanned_child = 0;
-+		} else
-+			root_mem->last_scanned_child = found;
-+		spin_unlock(&root_mem->reclaim_param_lock);
-+	}
-+
-+	return ret;
-+}
 +
 +/*
-+ * Scan the hierarchy if needed to reclaim memory. We remember the last child
-+ * we reclaimed from, so that we don't end up penalizing one child extensively
-+ * based on its position in the children list.
-  *
-  * root_mem is the original ancestor that we've been reclaim from.
-+ *
-+ * We give up and return to the caller when we visit root_mem twice.
-+ * (other groups can be removed while we're walking....)
-  */
- static int mem_cgroup_hierarchical_reclaim(struct mem_cgroup *root_mem,
- 						gfp_t gfp_mask, bool noswap)
- {
--	struct mem_cgroup *next_mem;
--	int ret = 0;
--
--	/*
--	 * Reclaim unconditionally and don't check for return value.
--	 * We need to reclaim in the current group and down the tree.
--	 * One might think about checking for children before reclaiming,
--	 * but there might be left over accounting, even after children
--	 * have left.
--	 */
--	ret += try_to_free_mem_cgroup_pages(root_mem, gfp_mask, noswap,
--					   get_swappiness(root_mem));
--	if (mem_cgroup_check_under_limit(root_mem))
--		return 1;	/* indicate reclaim has succeeded */
--	if (!root_mem->use_hierarchy)
--		return ret;
--
--	next_mem = mem_cgroup_get_next_node(root_mem);
--
--	while (next_mem != root_mem) {
--		if (mem_cgroup_is_obsolete(next_mem)) {
--			next_mem = mem_cgroup_get_next_node(root_mem);
-+	struct mem_cgroup *victim;
-+	int ret, total = 0;
-+	int loop = 0;
++ * Call callback function against all cgroup under hierarchy tree.
++ */
++static int mem_cgroup_walk_tree(struct mem_cgroup *root, void *data,
++			  int (*func)(struct mem_cgroup *, void *))
++{
++	int found, ret, nextid;
++	struct cgroup_subsys_state *css;
++	struct mem_cgroup *mem;
 +
-+	while (loop < 2) {
-+		victim = mem_cgroup_select_victim(root_mem);
-+		if (victim == root_mem)
-+			loop++;
-+		if (!mem_cgroup_local_usage(&victim->stat)) {
-+			/* this cgroup's local usage == 0 */
-+			css_put(&victim->css);
- 			continue;
- 		}
--		ret += try_to_free_mem_cgroup_pages(next_mem, gfp_mask, noswap,
--						   get_swappiness(next_mem));
-+		/* we use swappiness of local cgroup */
-+		ret = try_to_free_mem_cgroup_pages(victim, gfp_mask, noswap,
-+						   get_swappiness(victim));
-+		css_put(&victim->css);
-+		total += ret;
- 		if (mem_cgroup_check_under_limit(root_mem))
--			return 1;	/* indicate reclaim has succeeded */
--		next_mem = mem_cgroup_get_next_node(root_mem);
-+			return 1 + total;
- 	}
--	return ret;
-+	return total;
++	if (!root->use_hierarchy)
++		return (*func)(root, data);
++
++	nextid = 1;
++	do {
++		ret = 0;
++		mem = NULL;
++
++		rcu_read_lock();
++		css = css_get_next(&mem_cgroup_subsys, nextid, &root->css,
++				   &found);
++		if (css && css_tryget(css))
++			mem = container_of(css, struct mem_cgroup, css);
++		rcu_read_unlock();
++
++		if (mem) {
++			ret = (*func)(mem, data);
++			css_put(&mem->css);
++		}
++		nextid = found + 1;
++	} while (!ret && css);
++
++	return ret;
++}
++
+ /*
+  * Following LRU functions are allowed to be used without PCG_LOCK.
+  * Operations are called by routine of global LRU independently from memcg.
+@@ -510,8 +546,8 @@ static int calc_inactive_ratio(struct me
+ 	unsigned long gb;
+ 	unsigned long inactive_ratio;
+ 
+-	inactive = mem_cgroup_get_all_zonestat(memcg, LRU_INACTIVE_ANON);
+-	active = mem_cgroup_get_all_zonestat(memcg, LRU_ACTIVE_ANON);
++	inactive = mem_cgroup_get_local_zonestat(memcg, LRU_INACTIVE_ANON);
++	active = mem_cgroup_get_local_zonestat(memcg, LRU_ACTIVE_ANON);
+ 
+ 	gb = (inactive + active) >> (30 - PAGE_SHIFT);
+ 	if (gb)
+@@ -1838,54 +1874,90 @@ static int mem_cgroup_reset(struct cgrou
+ 	return 0;
  }
  
- bool mem_cgroup_oom_called(struct task_struct *task)
-@@ -1324,8 +1269,8 @@ __mem_cgroup_uncharge_common(struct page
- 	res_counter_uncharge(&mem->res, PAGE_SIZE);
- 	if (do_swap_account && (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
- 		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
--
- 	mem_cgroup_charge_statistics(mem, pc, false);
+-static const struct mem_cgroup_stat_desc {
+-	const char *msg;
+-	u64 unit;
+-} mem_cgroup_stat_desc[] = {
+-	[MEM_CGROUP_STAT_CACHE] = { "cache", PAGE_SIZE, },
+-	[MEM_CGROUP_STAT_RSS] = { "rss", PAGE_SIZE, },
+-	[MEM_CGROUP_STAT_PGPGIN_COUNT] = {"pgpgin", 1, },
+-	[MEM_CGROUP_STAT_PGPGOUT_COUNT] = {"pgpgout", 1, },
 +
- 	ClearPageCgroupUsed(pc);
- 	/*
- 	 * pc->mem_cgroup is not cleared here. It will be accessed when it's
-@@ -2178,6 +2123,8 @@ static void __mem_cgroup_free(struct mem
- {
- 	int node;
- 
-+	free_css_id(&mem_cgroup_subsys, &mem->css);
++/* For read statistics */
++enum {
++	MCS_CACHE,
++	MCS_RSS,
++	MCS_PGPGIN,
++	MCS_PGPGOUT,
++	MCS_INACTIVE_ANON,
++	MCS_ACTIVE_ANON,
++	MCS_INACTIVE_FILE,
++	MCS_ACTIVE_FILE,
++	MCS_UNEVICTABLE,
++	NR_MCS_STAT,
++};
 +
- 	for_each_node_state(node, N_POSSIBLE)
- 		free_mem_cgroup_per_zone_info(mem, node);
- 
-@@ -2228,11 +2175,12 @@ static struct cgroup_subsys_state * __re
- mem_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
- {
- 	struct mem_cgroup *mem, *parent;
-+	long error = -ENOMEM;
- 	int node;
- 
- 	mem = mem_cgroup_alloc();
- 	if (!mem)
--		return ERR_PTR(-ENOMEM);
-+		return ERR_PTR(error);
- 
- 	for_each_node_state(node, N_POSSIBLE)
- 		if (alloc_mem_cgroup_per_zone_info(mem, node))
-@@ -2260,7 +2208,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 		res_counter_init(&mem->res, NULL);
- 		res_counter_init(&mem->memsw, NULL);
- 	}
--	mem->last_scanned_child = NULL;
-+	mem->last_scanned_child = 0;
- 	spin_lock_init(&mem->reclaim_param_lock);
- 
- 	if (parent)
-@@ -2269,7 +2217,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 	return &mem->css;
- free_out:
- 	__mem_cgroup_free(mem);
--	return ERR_PTR(-ENOMEM);
-+	return ERR_PTR(error);
- }
- 
- static int mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
-@@ -2284,12 +2232,7 @@ static void mem_cgroup_destroy(struct cg
- 				struct cgroup *cont)
- {
- 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
--	struct mem_cgroup *last_scanned_child = mem->last_scanned_child;
- 
--	if (last_scanned_child) {
--		VM_BUG_ON(!mem_cgroup_is_obsolete(last_scanned_child));
--		mem_cgroup_put(last_scanned_child);
--	}
- 	mem_cgroup_put(mem);
- }
- 
-@@ -2328,6 +2271,7 @@ struct cgroup_subsys mem_cgroup_subsys =
- 	.populate = mem_cgroup_populate,
- 	.attach = mem_cgroup_move_task,
- 	.early_init = 0,
-+	.use_id = 1,
++struct mcs_total_stat {
++	s64 stat[NR_MCS_STAT];
++};
++
++struct {
++	char *local_name;
++	char *total_name;
++} memcg_stat_strings[NR_MCS_STAT] = {
++	{"cache", "total_cache"},
++	{"rss", "total_rss"},
++	{"pgpgin", "total_pgpgin"},
++	{"pgpgout", "total_pgpgout"},
++	{"inactive_anon", "total_inactive_anon"},
++	{"active_anon", "total_active_anon"},
++	{"inactive_file", "total_inactive_file"},
++	{"active_file", "total_active_file"},
++	{"unevictable", "total_unevictable"}
  };
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
++
++static int mem_cgroup_get_local_stat(struct mem_cgroup *mem, void *data)
++{
++	struct mcs_total_stat *s = data;
++	s64 val;
++
++	/* per cpu stat */
++	val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_CACHE);
++	s->stat[MCS_CACHE] += val * PAGE_SIZE;
++	val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_RSS);
++	s->stat[MCS_RSS] += val * PAGE_SIZE;
++	val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_PGPGIN_COUNT);
++	s->stat[MCS_PGPGIN] += val;
++	val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_PGPGOUT_COUNT);
++	s->stat[MCS_PGPGOUT] += val;
++
++	/* per zone stat */
++	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
++	s->stat[MCS_INACTIVE_ANON] += val * PAGE_SIZE;
++	val = mem_cgroup_get_local_zonestat(mem, LRU_ACTIVE_ANON);
++	s->stat[MCS_ACTIVE_ANON] += val * PAGE_SIZE;
++	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_FILE);
++	s->stat[MCS_INACTIVE_FILE] += val * PAGE_SIZE;
++	val = mem_cgroup_get_local_zonestat(mem, LRU_ACTIVE_FILE);
++	s->stat[MCS_ACTIVE_FILE] += val * PAGE_SIZE;
++	val = mem_cgroup_get_local_zonestat(mem, LRU_UNEVICTABLE);
++	s->stat[MCS_UNEVICTABLE] += val * PAGE_SIZE;
++	return 0;
++}
++
++static void
++mem_cgroup_get_total_stat(struct mem_cgroup *mem, struct mcs_total_stat *s)
++{
++	mem_cgroup_walk_tree(mem, s, mem_cgroup_get_local_stat);
++}
++
+ static int mem_control_stat_show(struct cgroup *cont, struct cftype *cft,
+ 				 struct cgroup_map_cb *cb)
+ {
+ 	struct mem_cgroup *mem_cont = mem_cgroup_from_cont(cont);
+-	struct mem_cgroup_stat *stat = &mem_cont->stat;
++	struct mcs_total_stat mystat;
+ 	int i;
+ 
+-	for (i = 0; i < ARRAY_SIZE(stat->cpustat[0].count); i++) {
+-		s64 val;
++	memset(&mystat, 0, sizeof(mystat));
++	mem_cgroup_get_local_stat(mem_cont, &mystat);
+ 
+-		val = mem_cgroup_read_stat(stat, i);
+-		val *= mem_cgroup_stat_desc[i].unit;
+-		cb->fill(cb, mem_cgroup_stat_desc[i].msg, val);
+-	}
+-	/* showing # of active pages */
+-	{
+-		unsigned long active_anon, inactive_anon;
+-		unsigned long active_file, inactive_file;
+-		unsigned long unevictable;
+-
+-		inactive_anon = mem_cgroup_get_all_zonestat(mem_cont,
+-						LRU_INACTIVE_ANON);
+-		active_anon = mem_cgroup_get_all_zonestat(mem_cont,
+-						LRU_ACTIVE_ANON);
+-		inactive_file = mem_cgroup_get_all_zonestat(mem_cont,
+-						LRU_INACTIVE_FILE);
+-		active_file = mem_cgroup_get_all_zonestat(mem_cont,
+-						LRU_ACTIVE_FILE);
+-		unevictable = mem_cgroup_get_all_zonestat(mem_cont,
+-							LRU_UNEVICTABLE);
+-
+-		cb->fill(cb, "active_anon", (active_anon) * PAGE_SIZE);
+-		cb->fill(cb, "inactive_anon", (inactive_anon) * PAGE_SIZE);
+-		cb->fill(cb, "active_file", (active_file) * PAGE_SIZE);
+-		cb->fill(cb, "inactive_file", (inactive_file) * PAGE_SIZE);
+-		cb->fill(cb, "unevictable", unevictable * PAGE_SIZE);
++	for (i = 0; i < NR_MCS_STAT; i++)
++		cb->fill(cb, memcg_stat_strings[i].local_name, mystat.stat[i]);
+ 
+-	}
++	/* Hierarchical information */
+ 	{
+ 		unsigned long long limit, memsw_limit;
+ 		memcg_get_hierarchical_limit(mem_cont, &limit, &memsw_limit);
+@@ -1894,6 +1966,12 @@ static int mem_control_stat_show(struct 
+ 			cb->fill(cb, "hierarchical_memsw_limit", memsw_limit);
+ 	}
+ 
++	memset(&mystat, 0, sizeof(mystat));
++	mem_cgroup_get_total_stat(mem_cont, &mystat);
++	for (i = 0; i < NR_MCS_STAT; i++)
++		cb->fill(cb, memcg_stat_strings[i].total_name, mystat.stat[i]);
++
++
+ #ifdef CONFIG_DEBUG_VM
+ 	cb->fill(cb, "inactive_ratio", calc_inactive_ratio(mem_cont, NULL));
+ 
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from kamzawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-cgroup-css-id-support.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-memcg-use-css-id.patch
 memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
 
