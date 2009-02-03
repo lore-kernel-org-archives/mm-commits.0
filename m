@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-fix-possible-races-in-cpu-memory-hotplug.patch added to -mm tree
-Date: Tue, 03 Feb 2009 14:31:41 -0800
-Message-ID: <200902032231.n13MVfnx011656@imap1.linux-foundation.org>
+Subject: + remove-unused-include-asm-generic-dma-mappingh.patch added to -mm tree
+Date: Tue, 03 Feb 2009 14:32:18 -0800
+Message-ID: <200902032232.n13MWID4012326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751302AbZBCWbt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:31:49 -0500
+	by vger.kernel.org with ESMTP id S1750866AbZBCWcX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:32:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, menage@google.com
+Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     cpuset: fix possible races in cpu/memory hotplug
+     remove unused include/asm-generic/dma-mapping.h
 has been added to the -mm tree.  Its filename is
-     cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
+     remove-unused-include-asm-generic-dma-mappingh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,62 +33,325 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: fix possible races in cpu/memory hotplug
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: remove unused include/asm-generic/dma-mapping.h
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Change to cpuset->cpus_allowed and cpuset->mems_allowed should be protected
-by callback_mutex, otherwise the reader may read wrong cpus/mems. This is
-cpuset's lock rule.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/asm-generic/dma-mapping.h |  308 ----------------------------
+ 1 file changed, 308 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-fix-possible-races-in-cpu-memory-hotplug kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-fix-possible-races-in-cpu-memory-hotplug
-+++ a/kernel/cpuset.c
-@@ -1995,7 +1995,9 @@ static int cpuset_track_online_cpus(stru
- 	}
- 
- 	cgroup_lock();
-+	mutex_lock(&callback_mutex);
- 	cpumask_copy(top_cpuset.cpus_allowed, cpu_online_mask);
-+	mutex_unlock(&callback_mutex);
- 	scan_for_empty_cpusets(&top_cpuset);
- 	ndoms = generate_sched_domains(&doms, &attr);
- 	cgroup_unlock();
-@@ -2018,11 +2020,12 @@ static int cpuset_track_online_nodes(str
- 	cgroup_lock();
- 	switch (action) {
- 	case MEM_ONLINE:
--		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
--		break;
- 	case MEM_OFFLINE:
-+		mutex_lock(&callback_mutex);
- 		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
--		scan_for_empty_cpusets(&top_cpuset);
-+		mutex_unlock(&callback_mutex);
-+		if (action == MEM_OFFLINE)
-+			scan_for_empty_cpusets(&top_cpuset);
- 		break;
- 	default:
- 		break;
-_
-
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
-
-origin.patch
-linux-next.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
-cgroup-css-id-support.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
-
+diff -puN include/asm-generic/dma-mapping.h~remove-unused-include-asm-generic-dma-mappingh /dev/null
+--- a/include/asm-generic/dma-mapping.h
++++ /dev/null
+@@ -1,308 +0,0 @@
+-/* Copyright (C) 2002 by James.Bottomley@HansenPartnership.com 
+- *
+- * Implements the generic device dma API via the existing pci_ one
+- * for unconverted architectures
+- */
+-
+-#ifndef _ASM_GENERIC_DMA_MAPPING_H
+-#define _ASM_GENERIC_DMA_MAPPING_H
+-
+-
+-#ifdef CONFIG_PCI
+-
+-/* we implement the API below in terms of the existing PCI one,
+- * so include it */
+-#include <linux/pci.h>
+-/* need struct page definitions */
+-#include <linux/mm.h>
+-
+-static inline int
+-dma_supported(struct device *dev, u64 mask)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	return pci_dma_supported(to_pci_dev(dev), mask);
+-}
+-
+-static inline int
+-dma_set_mask(struct device *dev, u64 dma_mask)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	return pci_set_dma_mask(to_pci_dev(dev), dma_mask);
+-}
+-
+-static inline void *
+-dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
+-		   gfp_t flag)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	return pci_alloc_consistent(to_pci_dev(dev), size, dma_handle);
+-}
+-
+-static inline void
+-dma_free_coherent(struct device *dev, size_t size, void *cpu_addr,
+-		    dma_addr_t dma_handle)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	pci_free_consistent(to_pci_dev(dev), size, cpu_addr, dma_handle);
+-}
+-
+-static inline dma_addr_t
+-dma_map_single(struct device *dev, void *cpu_addr, size_t size,
+-	       enum dma_data_direction direction)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	return pci_map_single(to_pci_dev(dev), cpu_addr, size, (int)direction);
+-}
+-
+-static inline void
+-dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
+-		 enum dma_data_direction direction)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	pci_unmap_single(to_pci_dev(dev), dma_addr, size, (int)direction);
+-}
+-
+-static inline dma_addr_t
+-dma_map_page(struct device *dev, struct page *page,
+-	     unsigned long offset, size_t size,
+-	     enum dma_data_direction direction)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	return pci_map_page(to_pci_dev(dev), page, offset, size, (int)direction);
+-}
+-
+-static inline void
+-dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
+-	       enum dma_data_direction direction)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	pci_unmap_page(to_pci_dev(dev), dma_address, size, (int)direction);
+-}
+-
+-static inline int
+-dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+-	   enum dma_data_direction direction)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	return pci_map_sg(to_pci_dev(dev), sg, nents, (int)direction);
+-}
+-
+-static inline void
+-dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
+-	     enum dma_data_direction direction)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	pci_unmap_sg(to_pci_dev(dev), sg, nhwentries, (int)direction);
+-}
+-
+-static inline void
+-dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
+-			enum dma_data_direction direction)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	pci_dma_sync_single_for_cpu(to_pci_dev(dev), dma_handle,
+-				    size, (int)direction);
+-}
+-
+-static inline void
+-dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle, size_t size,
+-			   enum dma_data_direction direction)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	pci_dma_sync_single_for_device(to_pci_dev(dev), dma_handle,
+-				       size, (int)direction);
+-}
+-
+-static inline void
+-dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
+-		    enum dma_data_direction direction)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	pci_dma_sync_sg_for_cpu(to_pci_dev(dev), sg, nelems, (int)direction);
+-}
+-
+-static inline void
+-dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nelems,
+-		       enum dma_data_direction direction)
+-{
+-	BUG_ON(dev->bus != &pci_bus_type);
+-
+-	pci_dma_sync_sg_for_device(to_pci_dev(dev), sg, nelems, (int)direction);
+-}
+-
+-static inline int
+-dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+-{
+-	return pci_dma_mapping_error(to_pci_dev(dev), dma_addr);
+-}
+-
+-
+-#else
+-
+-static inline int
+-dma_supported(struct device *dev, u64 mask)
+-{
+-	return 0;
+-}
+-
+-static inline int
+-dma_set_mask(struct device *dev, u64 dma_mask)
+-{
+-	BUG();
+-	return 0;
+-}
+-
+-static inline void *
+-dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
+-		   gfp_t flag)
+-{
+-	BUG();
+-	return NULL;
+-}
+-
+-static inline void
+-dma_free_coherent(struct device *dev, size_t size, void *cpu_addr,
+-		    dma_addr_t dma_handle)
+-{
+-	BUG();
+-}
+-
+-static inline dma_addr_t
+-dma_map_single(struct device *dev, void *cpu_addr, size_t size,
+-	       enum dma_data_direction direction)
+-{
+-	BUG();
+-	return 0;
+-}
+-
+-static inline void
+-dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
+-		 enum dma_data_direction direction)
+-{
+-	BUG();
+-}
+-
+-static inline dma_addr_t
+-dma_map_page(struct device *dev, struct page *page,
+-	     unsigned long offset, size_t size,
+-	     enum dma_data_direction direction)
+-{
+-	BUG();
+-	return 0;
+-}
+-
+-static inline void
+-dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
+-	       enum dma_data_direction direction)
+-{
+-	BUG();
+-}
+-
+-static inline int
+-dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+-	   enum dma_data_direction direction)
+-{
+-	BUG();
+-	return 0;
+-}
+-
+-static inline void
+-dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
+-	     enum dma_data_direction direction)
+-{
+-	BUG();
+-}
+-
+-static inline void
+-dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
+-			enum dma_data_direction direction)
+-{
+-	BUG();
+-}
+-
+-static inline void
+-dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle, size_t size,
+-			   enum dma_data_direction direction)
+-{
+-	BUG();
+-}
+-
+-static inline void
+-dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
+-		    enum dma_data_direction direction)
+-{
+-	BUG();
+-}
+-
+-static inline void
+-dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nelems,
+-		       enum dma_data_direction direction)
+-{
+-	BUG();
+-}
+-
+-static inline int
+-dma_error(dma_addr_t dma_addr)
+-{
+-	return 0;
+-}
+-
+-#endif
+-
+-/* Now for the API extensions over the pci_ one */
+-
+-#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+-#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
+-#define dma_is_consistent(d, h)	(1)
+-
+-static inline int
+-dma_get_cache_alignment(void)
+-{
+-	/* no easy way to get cache size on all processors, so return
+-	 * the maximum possible, to be safe */
+-	return (1 << INTERNODE_CACHE_SHIFT);
+-}
+-
+-static inline void
+-dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t dma_handle,
+-			      unsigned long offset, size_t size,
+-			      enum dma_data_direction direction)
+-{
+-	/* just sync everything, that's all the pci API can do */
+-	dma_sync_single_for_cpu(dev, dma_handle, offset+size, direction);
+-}
+-
+-static inline void
+-dma_sync_single_range_for_device(struct device *dev, dma_addr_t dma_handle,
+-				 unsigned long offset, size_t size,
+-				 enum dma_data_direction direction)
+-{
+-	/* just sync everything, that's all the pci API can do */
+-	dma_sync_single_for_device(dev, dma_handle, offset+size, direction);
+-}
+-
+-static inline void
+-dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+-	       enum dma_data_direction direction)
+-{
+-	/* could define this in terms of the dma_cache ... operations,
+-	 * but if you get this on a platform, you should convert the platform
+-	 * to using the generic device DMA API */
+-	BUG();
+-}
+-
+-#endif
