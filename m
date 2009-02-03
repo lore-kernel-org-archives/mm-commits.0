@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nbd-add-locking-to-nbd_ioctl-fix.patch added to -mm tree
-Date: Tue, 03 Feb 2009 15:41:58 -0800
-Message-ID: <200902032358.n13Nwu0x031560@imap1.linux-foundation.org>
+Subject: + pci-constify-pci_bus_assign_resources.patch added to -mm tree
+Date: Tue, 03 Feb 2009 15:43:55 -0800
+Message-ID: <200902040000.n1400rJR001766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752057AbZBCX7J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:59:09 -0500
+	by vger.kernel.org with ESMTP id S1751274AbZBDAAz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 19:00:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, paul.clements@steeleye.com, pavel@suse.cz
+Cc: akpm@linux-foundation.org, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     nbd-add-locking-to-nbd_ioctl-fix
+     pci: constify pci_bus_assign_resources()
 has been added to the -mm tree.  Its filename is
-     nbd-add-locking-to-nbd_ioctl-fix.patch
+     pci-constify-pci_bus_assign_resources.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nbd-add-locking-to-nbd_ioctl-fix
+Subject: pci: constify pci_bus_assign_resources()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/block/nbd.c: In function 'nbd_ioctl':
-drivers/block/nbd.c:719: warning: control may reach end of non-void function '__nbd_ioctl' being inlined
+drivers/pci/hotplug/fakephp.c: In function 'pci_rescan_bus':
+drivers/pci/hotplug/fakephp.c:271: warning: passing argument 1 of 'pci_bus_assign_resources' discards qualifiers from pointer target type
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Paul Clements <paul.clements@steeleye.com>
-Cc: Pavel Machek <pavel@suse.cz>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/setup-bus.c |    2 +-
+ include/linux/pci.h     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/nbd.c~nbd-add-locking-to-nbd_ioctl-fix drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-add-locking-to-nbd_ioctl-fix
-+++ a/drivers/block/nbd.c
-@@ -699,9 +699,9 @@ static int __nbd_ioctl(struct block_devi
- 			&lo->queue_head);
- 		return 0;
- 	}
-+	return -ENOTTY;
+diff -puN drivers/pci/setup-bus.c~pci-constify-pci_bus_assign_resources drivers/pci/setup-bus.c
+--- a/drivers/pci/setup-bus.c~pci-constify-pci_bus_assign_resources
++++ a/drivers/pci/setup-bus.c
+@@ -495,7 +495,7 @@ void __ref pci_bus_size_bridges(struct p
  }
+ EXPORT_SYMBOL(pci_bus_size_bridges);
  
--
- static int nbd_ioctl(struct block_device *bdev, fmode_t mode,
- 		     unsigned int cmd, unsigned long arg)
+-void __ref pci_bus_assign_resources(struct pci_bus *bus)
++void __ref pci_bus_assign_resources(const struct pci_bus *bus)
  {
+ 	struct pci_bus *b;
+ 	struct pci_dev *dev;
+diff -puN include/linux/pci.h~pci-constify-pci_bus_assign_resources include/linux/pci.h
+--- a/include/linux/pci.h~pci-constify-pci_bus_assign_resources
++++ a/include/linux/pci.h
+@@ -708,7 +708,7 @@ ssize_t pci_write_vpd(struct pci_dev *de
+ int pci_vpd_truncate(struct pci_dev *dev, size_t size);
+ 
+ /* Helper functions for low-level code (drivers/pci/setup-[bus,res].c) */
+-void pci_bus_assign_resources(struct pci_bus *bus);
++void pci_bus_assign_resources(const struct pci_bus *bus);
+ void pci_bus_size_bridges(struct pci_bus *bus);
+ int pci_claim_resource(struct pci_dev *, int);
+ void pci_assign_unassigned_resources(void);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,4 +145,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+pci-constify-pci_bus_assign_resources.patch
 
