@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-show-memcg-information-during-oom-fix2.patch added to -mm tree
-Date: Tue, 03 Feb 2009 14:58:44 -0800
-Message-ID: <200902032315.n13NFhwl005856@imap1.linux-foundation.org>
+Subject: + memcg-fix-oom-killer-under-memcg-fix.patch added to -mm tree
+Date: Tue, 03 Feb 2009 15:04:54 -0800
+Message-ID: <200902032321.n13NLqRN014176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751485AbZBCXQc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:16:32 -0500
+	by vger.kernel.org with ESMTP id S1751010AbZBCXWz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:22:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
 
 
 The patch titled
-     memcg-show-memcg-information-during-oom-fix2
+     memcg-fix-oom-killer-under-memcg-fix
 has been added to the -mm tree.  Its filename is
-     memcg-show-memcg-information-during-oom-fix2.patch
+     memcg-fix-oom-killer-under-memcg-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-show-memcg-information-during-oom-fix2
+Subject: memcg-fix-oom-killer-under-memcg-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make compiler happier.
+mm/oom_kill.c: In function 'dump_tasks':
+mm/oom_kill.c:293: warning: passing argument 2 of 'task_in_mem_cgroup' discards qualifiers from pointer target type
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -47,22 +48,69 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/cgroup.h     |    2 +-
+ include/linux/memcontrol.h |    4 ++--
+ kernel/cgroup.c            |    2 +-
+ mm/memcontrol.c            |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-show-memcg-information-during-oom-fix2 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-show-memcg-information-during-oom-fix2
+diff -puN include/linux/cgroup.h~memcg-fix-oom-killer-under-memcg-fix include/linux/cgroup.h
+--- a/include/linux/cgroup.h~memcg-fix-oom-killer-under-memcg-fix
++++ a/include/linux/cgroup.h
+@@ -497,7 +497,7 @@ struct cgroup_subsys_state *css_get_next
+ 
+ /* Returns true if root is ancestor of cg */
+ bool css_is_ancestor(struct cgroup_subsys_state *cg,
+-		     struct cgroup_subsys_state *root);
++		     const struct cgroup_subsys_state *root);
+ 
+ /* Get id and depth of css */
+ unsigned short css_id(struct cgroup_subsys_state *css);
+diff -puN include/linux/memcontrol.h~memcg-fix-oom-killer-under-memcg-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-fix-oom-killer-under-memcg-fix
 +++ a/include/linux/memcontrol.h
-@@ -272,7 +272,8 @@ mem_cgroup_get_reclaim_stat_from_page(st
- 	return NULL;
+@@ -66,7 +66,7 @@ extern unsigned long mem_cgroup_isolate_
+ 					struct mem_cgroup *mem_cont,
+ 					int active, int file);
+ extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
+-int task_in_mem_cgroup(struct task_struct *task, struct mem_cgroup *mem);
++int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem);
+ 
+ extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
+ 
+@@ -192,7 +192,7 @@ static inline int mm_match_cgroup(struct
  }
  
--void mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
-+static inline void
-+mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
+ static inline int task_in_mem_cgroup(struct task_struct *task,
+-				     struct mem_cgroup *mem)
++				     const struct mem_cgroup *mem)
  {
+ 	return 1;
+ }
+diff -puN kernel/cgroup.c~memcg-fix-oom-killer-under-memcg-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~memcg-fix-oom-killer-under-memcg-fix
++++ a/kernel/cgroup.c
+@@ -3375,7 +3375,7 @@ unsigned short css_depth(struct cgroup_s
  }
  
+ bool css_is_ancestor(struct cgroup_subsys_state *child,
+-		    struct cgroup_subsys_state *root)
++		    const struct cgroup_subsys_state *root)
+ {
+ 	struct css_id *child_id = rcu_dereference(child->id);
+ 	struct css_id *root_id = rcu_dereference(root->id);
+diff -puN mm/memcontrol.c~memcg-fix-oom-killer-under-memcg-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-oom-killer-under-memcg-fix
++++ a/mm/memcontrol.c
+@@ -486,7 +486,7 @@ void mem_cgroup_move_lists(struct page *
+ 	mem_cgroup_add_lru_list(page, to);
+ }
+ 
+-int task_in_mem_cgroup(struct task_struct *task, struct mem_cgroup *mem)
++int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
+ {
+ 	int ret;
+ 	struct mem_cgroup *curr = NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +154,8 @@ epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkp
 rtc-convert-leap_year-into-an-inline.patch
 rtc-add-platform-driver-for-efi-fix.patch
 drivers-video-uvesafbc-dont-use-gfp_any.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
 memcg-show-memcg-information-during-oom-fix2.patch
 memcg-show-memcg-information-during-oom-fix.patch
 cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
