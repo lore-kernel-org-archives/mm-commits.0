@@ -1,81 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] w1-build-fix.patch removed from -mm tree
-Date: Tue, 03 Feb 2009 15:50:41 -0800
-Message-ID: <200902032350.n13NofT4020565@imap1.linux-foundation.org>
+Subject: + nbd-add-locking-to-nbd_ioctl-fix.patch added to -mm tree
+Date: Tue, 03 Feb 2009 15:41:58 -0800
+Message-ID: <200902032358.n13Nwu0x031560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60416 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750845AbZBCXun (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:50:43 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n13Nofht026439
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 3 Feb 2009 15:50:42 -0800
+	by vger.kernel.org with ESMTP id S1752057AbZBCX7J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:59:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, paul.clements@steeleye.com, pavel@suse.cz
 
 
 The patch titled
-     w1-build-fix
-has been removed from the -mm tree.  Its filename was
-     w1-build-fix.patch
+     nbd-add-locking-to-nbd_ioctl-fix
+has been added to the -mm tree.  Its filename is
+     nbd-add-locking-to-nbd_ioctl-fix.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-build-fix
+Subject: nbd-add-locking-to-nbd_ioctl-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ext3/ioctl.c: In function `ext3_ioctl':
-fs/ext3/ioctl.c:266: warning: 'err2' might be used uninitialized in this function
-fs/ext3/ioctl.c:242: warning: 'err2' might be used uninitialized in this function
+drivers/block/nbd.c: In function 'nbd_ioctl':
+drivers/block/nbd.c:719: warning: control may reach end of non-void function '__nbd_ioctl' being inlined
 
-
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Paul Clements <paul.clements@steeleye.com>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.h |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ drivers/block/nbd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/w1/w1.h~w1-build-fix drivers/w1/w1.h
---- a/drivers/w1/w1.h~w1-build-fix
-+++ a/drivers/w1/w1.h
-@@ -22,19 +22,23 @@
- #ifndef __W1_H
- #define __W1_H
+diff -puN drivers/block/nbd.c~nbd-add-locking-to-nbd_ioctl-fix drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-add-locking-to-nbd_ioctl-fix
++++ a/drivers/block/nbd.c
+@@ -699,9 +699,9 @@ static int __nbd_ioctl(struct block_devi
+ 			&lo->queue_head);
+ 		return 0;
+ 	}
++	return -ENOTTY;
+ }
  
--struct w1_reg_num
--{
-+struct w1_reg_num {
-+	union {
-+		__u64 unused;	/* So gcc will permit pointers to this struct */
-+		struct {
- #if defined(__LITTLE_ENDIAN_BITFIELD)
--	__u64	family:8,
--		id:48,
--		crc:8;
-+			__u64	family:8,
-+				id:48,
-+				crc:8;
- #elif defined(__BIG_ENDIAN_BITFIELD)
--	__u64	crc:8,
--		id:48,
--		family:8;
-+			__u64	crc:8,
-+				id:48,
-+				family:8;
- #else
- #error "Please fix <asm/byteorder.h>"
- #endif
-+		};
-+	};
- };
- 
- #ifdef __KERNEL__
+-
+ static int nbd_ioctl(struct block_device *bdev, fmode_t mode,
+ 		     unsigned int cmd, unsigned long arg)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,6 +115,7 @@ cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-s
 cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
 pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
 nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
 arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
