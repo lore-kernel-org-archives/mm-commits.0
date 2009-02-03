@@ -1,97 +1,633 @@
 From: akpm@linux-foundation.org
-Subject: [folded] filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-fix.patch removed from -mm tree
-Date: Tue, 03 Feb 2009 13:51:11 -0800
-Message-ID: <200902032151.n13LpBS4021756@imap1.linux-foundation.org>
+Subject: + cgroup-css-id-support.patch added to -mm tree
+Date: Tue, 03 Feb 2009 14:25:40 -0800
+Message-ID: <200902032225.n13MPePn003496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751699AbZBCVv7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 16:51:59 -0500
+	by vger.kernel.org with ESMTP id S1752224AbZBCW0e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 17:26:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, sandeen@redhat.com, t-sato@yk.jp.nec.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     sysrq: emergency thaw only if CONFIG_BLOCK enabled
-has been removed from the -mm tree.  Its filename was
-     filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-fix.patch
+     cgroup: CSS ID support
+has been added to the -mm tree.  Its filename is
+     cgroup-css-id-support.patch
 
-This patch was dropped because it was folded into filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysrq: emergency thaw only if CONFIG_BLOCK enabled
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cgroup: CSS ID support
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-sysrq's new emergency_thaw_all() is only available when CONFIG_BLOCK=y:
+Patch for Per-CSS(Cgroup Subsys State) ID and private hierarchy code.
 
-drivers/char/sysrq.c:351: error: implicit declaration of function 'emergency_thaw_all'
+This patch attaches unique ID to each css and provides following.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Takashi Sato <t-sato@yk.jp.nec.com>
+ - css_lookup(subsys, id)
+   returns pointer to struct cgroup_subysys_state of id.
+ - css_get_next(subsys, id, rootid, depth, foundid)
+   returns the next css under "root" by scanning
+
+When cgroup_subsys->use_id is set, an id for css is maintained.
+
+The cgroup framework only parepares
+	- css_id of root css for subsys
+	- id is automatically attached at creation of css.
+	- id is *not* freed automatically. Because the cgroup framework
+	  don't know lifetime of cgroup_subsys_state.
+	  free_css_id() function is provided. This must be called by subsys.
+
+There are several reasons to develop this.
+	- Saving space .... For example, memcg's swap_cgroup is array of
+	  pointers to cgroup. But it is not necessary to be very fast.
+	  By replacing pointers(8bytes per ent) to ID (2byes per ent), we can
+	  reduce much amount of memory usage.
+
+	- Scanning without lock.
+	  CSS_ID provides "scan id under this ROOT" function. By this, scanning
+	  css under root can be written without locks.
+	  ex)
+	  do {
+		rcu_read_lock();
+		next = cgroup_get_next(subsys, id, root, &found);
+		/* check sanity of next here */
+		css_tryget();
+		rcu_read_unlock();
+		id = found + 1
+	 } while(...)
+
+Characteristics:
+	- Each css has unique ID under subsys.
+	- Lifetime of ID is controlled by subsys.
+	- css ID contains "ID" and "Depth in hierarchy" and stack of hierarchy
+	- Allowed ID is 1-65535, ID 0 is UNUSED ID.
+
+Design Choices:
+	- scan-by-ID v.s. scan-by-tree-walk.
+	  As /proc's pid scan does, scan-by-ID is robust when scanning is done
+	  by following kind of routine.
+	  scan -> rest a while(release a lock) -> conitunue from interrupted
+	  memcg's hierarchical reclaim does this.
+
+	- When subsys->use_id is set, # of css in the system is limited to
+	  65535.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/cgroup.h |   50 ++++++
+ include/linux/idr.h    |    1 
+ kernel/cgroup.c        |  289 ++++++++++++++++++++++++++++++++++++++-
+ lib/idr.c              |   46 ++++++
+ 4 files changed, 385 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/sysrq.c~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-fix drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-fix
-+++ a/drivers/char/sysrq.c
-@@ -346,6 +346,7 @@ static struct sysrq_key_op sysrq_moom_op
- 	.enable_mask	= SYSRQ_ENABLE_SIGNAL,
+diff -puN include/linux/cgroup.h~cgroup-css-id-support include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup-css-id-support
++++ a/include/linux/cgroup.h
+@@ -15,6 +15,7 @@
+ #include <linux/cgroupstats.h>
+ #include <linux/prio_heap.h>
+ #include <linux/rwsem.h>
++#include <linux/idr.h>
+ 
+ #ifdef CONFIG_CGROUPS
+ 
+@@ -22,6 +23,7 @@ struct cgroupfs_root;
+ struct cgroup_subsys;
+ struct inode;
+ struct cgroup;
++struct css_id;
+ 
+ extern int cgroup_init_early(void);
+ extern int cgroup_init(void);
+@@ -63,6 +65,8 @@ struct cgroup_subsys_state {
+ 	atomic_t refcnt;
+ 
+ 	unsigned long flags;
++	/* ID for this css, if possible */
++	struct css_id *id;
  };
  
-+#ifdef CONFIG_BLOCK
- static void sysrq_handle_thaw(int key, struct tty_struct *tty)
- {
- 	emergency_thaw_all();
-@@ -356,6 +357,7 @@ static struct sysrq_key_op sysrq_thaw_op
- 	.action_msg	= "Emergency Thaw of all frozen filesystems",
- 	.enable_mask	= SYSRQ_ENABLE_SIGNAL,
- };
-+#endif
+ /* bits in struct cgroup_subsys_state flags field */
+@@ -373,6 +377,11 @@ struct cgroup_subsys {
+ 	int active;
+ 	int disabled;
+ 	int early_init;
++	/*
++	 * True if this subsys uses ID. ID is not available before cgroup_init()
++	 * (not available in early_init time.)
++	 */
++	bool use_id;
+ #define MAX_CGROUP_TYPE_NAMELEN 32
+ 	const char *name;
  
- static void sysrq_handle_kill(int key, struct tty_struct *tty)
+@@ -394,6 +403,9 @@ struct cgroup_subsys {
+ 	 */
+ 	struct cgroupfs_root *root;
+ 	struct list_head sibling;
++	/* used when use_id == true */
++	struct idr idr;
++	spinlock_t id_lock;
+ };
+ 
+ #define SUBSYS(_x) extern struct cgroup_subsys _x ## _subsys;
+@@ -449,6 +461,44 @@ void cgroup_iter_end(struct cgroup *cgrp
+ int cgroup_scan_tasks(struct cgroup_scanner *scan);
+ int cgroup_attach_task(struct cgroup *, struct task_struct *);
+ 
++/*
++ * CSS ID is ID for cgroup_subsys_state structs under subsys. This only works
++ * if cgroup_subsys.use_id == true. It can be used for looking up and scanning.
++ * CSS ID is assigned at cgroup allocation (create) automatically
++ * and removed when subsys calls free_css_id() function. This is because
++ * the lifetime of cgroup_subsys_state is subsys's matter.
++ *
++ * Looking up and scanning function should be called under rcu_read_lock().
++ * Taking cgroup_mutex()/hierarchy_mutex() is not necessary for following calls.
++ * But the css returned by this routine can be "not populated yet" or "being
++ * destroyed". The caller should check css and cgroup's status.
++ */
++
++/*
++ * Typically Called at ->destroy(), or somewhere the subsys frees
++ * cgroup_subsys_state.
++ */
++void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css);
++
++/* Find a cgroup_subsys_state which has given ID */
++
++struct cgroup_subsys_state *css_lookup(struct cgroup_subsys *ss, int id);
++
++/*
++ * Get a cgroup whose id is greater than or equal to id under tree of root.
++ * Returning a cgroup_subsys_state or NULL.
++ */
++struct cgroup_subsys_state *css_get_next(struct cgroup_subsys *ss, int id,
++		struct cgroup_subsys_state *root, int *foundid);
++
++/* Returns true if root is ancestor of cg */
++bool css_is_ancestor(struct cgroup_subsys_state *cg,
++		     struct cgroup_subsys_state *root);
++
++/* Get id and depth of css */
++unsigned short css_id(struct cgroup_subsys_state *css);
++unsigned short css_depth(struct cgroup_subsys_state *css);
++
+ #else /* !CONFIG_CGROUPS */
+ 
+ static inline int cgroup_init_early(void) { return 0; }
+diff -puN include/linux/idr.h~cgroup-css-id-support include/linux/idr.h
+--- a/include/linux/idr.h~cgroup-css-id-support
++++ a/include/linux/idr.h
+@@ -106,6 +106,7 @@ int idr_get_new(struct idr *idp, void *p
+ int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id);
+ int idr_for_each(struct idr *idp,
+ 		 int (*fn)(int id, void *p, void *data), void *data);
++void *idr_get_next(struct idr *idp, int *nextid);
+ void *idr_replace(struct idr *idp, void *ptr, int id);
+ void idr_remove(struct idr *idp, int id);
+ void idr_remove_all(struct idr *idp);
+diff -puN kernel/cgroup.c~cgroup-css-id-support kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-css-id-support
++++ a/kernel/cgroup.c
+@@ -94,7 +94,6 @@ struct cgroupfs_root {
+ 	char release_agent_path[PATH_MAX];
+ };
+ 
+-
+ /*
+  * The "rootnode" hierarchy is the "dummy hierarchy", reserved for the
+  * subsystems that are otherwise unattached - it never has more than a
+@@ -102,6 +101,39 @@ struct cgroupfs_root {
+  */
+ static struct cgroupfs_root rootnode;
+ 
++/*
++ * CSS ID -- ID per subsys's Cgroup Subsys State(CSS). used only when
++ * cgroup_subsys->use_id != 0.
++ */
++#define CSS_ID_MAX	(65535)
++struct css_id {
++	/*
++	 * The css to which this ID points. This pointer is set to valid value
++	 * after cgroup is populated. If cgroup is removed, this will be NULL.
++	 * This pointer is expected to be RCU-safe because destroy()
++	 * is called after synchronize_rcu(). But for safe use, css_is_removed()
++	 * css_tryget() should be used for avoiding race.
++	 */
++	struct cgroup_subsys_state *css;
++	/*
++	 * ID of this css.
++	 */
++	unsigned short id;
++	/*
++	 * Depth in hierarchy which this ID belongs to.
++	 */
++	unsigned short depth;
++	/*
++	 * ID is freed by RCU. (and lookup routine is RCU safe.)
++	 */
++	struct rcu_head rcu_head;
++	/*
++	 * Hierarchy of CSS ID belongs to.
++	 */
++	unsigned short stack[0]; /* Array of Length (depth+1) */
++};
++
++
+ /* The list of hierarchy roots */
+ 
+ static LIST_HEAD(roots);
+@@ -185,6 +217,8 @@ struct cg_cgroup_link {
+ static struct css_set init_css_set;
+ static struct cg_cgroup_link init_css_set_link;
+ 
++static int cgroup_subsys_init_idr(struct cgroup_subsys *ss);
++
+ /* css_set_lock protects the list of css_set objects, and the
+  * chain of tasks off each css_set.  Nests outside task->alloc_lock
+  * due to cgroup_iter_start() */
+@@ -567,6 +601,9 @@ static struct backing_dev_info cgroup_ba
+ 	.capabilities	= BDI_CAP_NO_ACCT_AND_WRITEBACK,
+ };
+ 
++static int alloc_css_id(struct cgroup_subsys *ss,
++			struct cgroup *parent, struct cgroup *child);
++
+ static struct inode *cgroup_new_inode(mode_t mode, struct super_block *sb)
  {
-@@ -409,7 +411,11 @@ static struct sysrq_key_op *sysrq_key_ta
- 	NULL,				/* g */
- 	NULL,				/* h - reserved for help */
- 	&sysrq_kill_op,			/* i */
-+#ifdef CONFIG_BLOCK
- 	&sysrq_thaw_op,			/* j */
-+#else
-+	NULL,				/* j */
-+#endif
- 	&sysrq_SAK_op,			/* k */
- #ifdef CONFIG_SMP
- 	&sysrq_showallcpus_op,		/* l */
+ 	struct inode *inode = new_inode(sb);
+@@ -2326,6 +2363,17 @@ static int cgroup_populate_dir(struct cg
+ 		if (ss->populate && (err = ss->populate(ss, cgrp)) < 0)
+ 			return err;
+ 	}
++	/* This cgroup is ready now */
++	for_each_subsys(cgrp->root, ss) {
++		struct cgroup_subsys_state *css = cgrp->subsys[ss->subsys_id];
++		/*
++		 * Update id->css pointer and make this css visible from
++		 * CSS ID functions. This pointer will be dereferened
++		 * from RCU-read-side without locks.
++		 */
++		if (css->id)
++			rcu_assign_pointer(css->id->css, css);
++	}
+ 
+ 	return 0;
+ }
+@@ -2337,6 +2385,7 @@ static void init_cgroup_css(struct cgrou
+ 	css->cgroup = cgrp;
+ 	atomic_set(&css->refcnt, 1);
+ 	css->flags = 0;
++	css->id = NULL;
+ 	if (cgrp == dummytop)
+ 		set_bit(CSS_ROOT, &css->flags);
+ 	BUG_ON(cgrp->subsys[ss->subsys_id]);
+@@ -2412,6 +2461,10 @@ static long cgroup_create(struct cgroup 
+ 			goto err_destroy;
+ 		}
+ 		init_cgroup_css(css, ss, cgrp);
++		if (ss->use_id)
++			if (alloc_css_id(ss, parent, cgrp))
++				goto err_destroy;
++		/* At error, ->destroy() callback has to free assigned ID. */
+ 	}
+ 
+ 	cgroup_lock_hierarchy(root);
+@@ -2706,6 +2759,8 @@ int __init cgroup_init(void)
+ 		struct cgroup_subsys *ss = subsys[i];
+ 		if (!ss->early_init)
+ 			cgroup_init_subsys(ss);
++		if (ss->use_id)
++			cgroup_subsys_init_idr(ss);
+ 	}
+ 
+ 	/* Add init_css_set to the hash table */
+@@ -3240,3 +3295,235 @@ static int __init cgroup_disable(char *s
+ 	return 1;
+ }
+ __setup("cgroup_disable=", cgroup_disable);
++
++/*
++ * Functons for CSS ID.
++ */
++
++/*
++ *To get ID other than 0, this should be called when !cgroup_is_removed().
++ */
++unsigned short css_id(struct cgroup_subsys_state *css)
++{
++	struct css_id *cssid = rcu_dereference(css->id);
++
++	if (cssid)
++		return cssid->id;
++	return 0;
++}
++
++unsigned short css_depth(struct cgroup_subsys_state *css)
++{
++	struct css_id *cssid = rcu_dereference(css->id);
++
++	if (cssid)
++		return cssid->depth;
++	return 0;
++}
++
++bool css_is_ancestor(struct cgroup_subsys_state *child,
++		    struct cgroup_subsys_state *root)
++{
++	struct css_id *child_id = rcu_dereference(child->id);
++	struct css_id *root_id = rcu_dereference(root->id);
++
++	if (!child_id || !root_id || (child_id->depth < root_id->depth))
++		return false;
++	return child_id->stack[root_id->depth] == root_id->id;
++}
++
++static void __free_css_id_cb(struct rcu_head *head)
++{
++	struct css_id *id;
++
++	id = container_of(head, struct css_id, rcu_head);
++	kfree(id);
++}
++
++void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css)
++{
++	struct css_id *id = css->id;
++	/* When this is called before css_id initialization, id can be NULL */
++	if (!id)
++		return;
++
++	BUG_ON(!ss->use_id);
++
++	rcu_assign_pointer(id->css, NULL);
++	rcu_assign_pointer(css->id, NULL);
++	spin_lock(&ss->id_lock);
++	idr_remove(&ss->idr, id->id);
++	spin_unlock(&ss->id_lock);
++	call_rcu(&id->rcu_head, __free_css_id_cb);
++}
++
++/*
++ * This is called by init or create(). Then, calls to this function are
++ * always serialized (By cgroup_mutex() at create()).
++ */
++
++static struct css_id *get_new_cssid(struct cgroup_subsys *ss, int depth)
++{
++	struct css_id *newid;
++	int myid, error, size;
++
++	BUG_ON(!ss->use_id);
++
++	size = sizeof(*newid) + sizeof(unsigned short) * (depth + 1);
++	newid = kzalloc(size, GFP_KERNEL);
++	if (!newid)
++		return ERR_PTR(-ENOMEM);
++	/* get id */
++	if (unlikely(!idr_pre_get(&ss->idr, GFP_KERNEL))) {
++		error = -ENOMEM;
++		goto err_out;
++	}
++	spin_lock(&ss->id_lock);
++	/* Don't use 0. allocates an ID of 1-65535 */
++	error = idr_get_new_above(&ss->idr, newid, 1, &myid);
++	spin_unlock(&ss->id_lock);
++
++	/* Returns error when there are no free spaces for new ID.*/
++	if (error) {
++		error = -ENOSPC;
++		goto err_out;
++	}
++	if (myid > CSS_ID_MAX)
++		goto remove_idr;
++
++	newid->id = myid;
++	newid->depth = depth;
++	return newid;
++remove_idr:
++	error = -ENOSPC;
++	spin_lock(&ss->id_lock);
++	idr_remove(&ss->idr, myid);
++	spin_unlock(&ss->id_lock);
++err_out:
++	kfree(newid);
++	return ERR_PTR(error);
++
++}
++
++static int __init cgroup_subsys_init_idr(struct cgroup_subsys *ss)
++{
++	struct css_id *newid;
++	struct cgroup_subsys_state *rootcss;
++
++	spin_lock_init(&ss->id_lock);
++	idr_init(&ss->idr);
++
++	rootcss = init_css_set.subsys[ss->subsys_id];
++	newid = get_new_cssid(ss, 0);
++	if (IS_ERR(newid))
++		return PTR_ERR(newid);
++
++	newid->stack[0] = newid->id;
++	newid->css = rootcss;
++	rootcss->id = newid;
++	return 0;
++}
++
++static int alloc_css_id(struct cgroup_subsys *ss, struct cgroup *parent,
++			struct cgroup *child)
++{
++	int subsys_id, i, depth = 0;
++	struct cgroup_subsys_state *parent_css, *child_css;
++	struct css_id *child_id, *parent_id = NULL;
++
++	subsys_id = ss->subsys_id;
++	parent_css = parent->subsys[subsys_id];
++	child_css = child->subsys[subsys_id];
++	depth = css_depth(parent_css) + 1;
++	parent_id = parent_css->id;
++
++	child_id = get_new_cssid(ss, depth);
++	if (IS_ERR(child_id))
++		return PTR_ERR(child_id);
++
++	for (i = 0; i < depth; i++)
++		child_id->stack[i] = parent_id->stack[i];
++	child_id->stack[depth] = child_id->id;
++	/*
++	 * child_id->css pointer will be set after this cgroup is available
++	 * see cgroup_populate_dir()
++	 */
++	rcu_assign_pointer(child_css->id, child_id);
++
++	return 0;
++}
++
++/**
++ * css_lookup - lookup css by id
++ * @ss: cgroup subsys to be looked into.
++ * @id: the id
++ *
++ * Returns pointer to cgroup_subsys_state if there is valid one with id.
++ * NULL if not. Should be called under rcu_read_lock()
++ */
++struct cgroup_subsys_state *css_lookup(struct cgroup_subsys *ss, int id)
++{
++	struct css_id *cssid = NULL;
++
++	BUG_ON(!ss->use_id);
++	cssid = idr_find(&ss->idr, id);
++
++	if (unlikely(!cssid))
++		return NULL;
++
++	return rcu_dereference(cssid->css);
++}
++
++/**
++ * css_get_next - lookup next cgroup under specified hierarchy.
++ * @ss: pointer to subsystem
++ * @id: current position of iteration.
++ * @root: pointer to css. search tree under this.
++ * @foundid: position of found object.
++ *
++ * Search next css under the specified hierarchy of rootid. Calling under
++ * rcu_read_lock() is necessary. Returns NULL if it reaches the end.
++ */
++struct cgroup_subsys_state *
++css_get_next(struct cgroup_subsys *ss, int id,
++	     struct cgroup_subsys_state *root, int *foundid)
++{
++	struct cgroup_subsys_state *ret = NULL;
++	struct css_id *tmp;
++	int tmpid;
++	int rootid = css_id(root);
++	int depth = css_depth(root);
++
++	if (!rootid)
++		return NULL;
++
++	BUG_ON(!ss->use_id);
++	rcu_read_lock();
++	/* fill start point for scan */
++	tmpid = id;
++	while (1) {
++		/*
++		 * scan next entry from bitmap(tree), tmpid is updated after
++		 * idr_get_next().
++		 */
++		spin_lock(&ss->id_lock);
++		tmp = idr_get_next(&ss->idr, &tmpid);
++		spin_unlock(&ss->id_lock);
++
++		if (!tmp)
++			break;
++		if (tmp->depth >= depth && tmp->stack[depth] == rootid) {
++			ret = rcu_dereference(tmp->css);
++			if (ret) {
++				*foundid = tmpid;
++				break;
++			}
++		}
++		/* continue to scan from next id */
++		tmpid = tmpid + 1;
++	}
++
++	rcu_read_unlock();
++	return ret;
++}
++
+diff -puN lib/idr.c~cgroup-css-id-support lib/idr.c
+--- a/lib/idr.c~cgroup-css-id-support
++++ a/lib/idr.c
+@@ -579,6 +579,52 @@ int idr_for_each(struct idr *idp,
+ EXPORT_SYMBOL(idr_for_each);
+ 
+ /**
++ * idr_get_next - lookup next object of id to given id.
++ * @idp: idr handle
++ * @id:  pointer to lookup key
++ *
++ * Returns pointer to registered object with id, which is next number to
++ * given id.
++ */
++
++void *idr_get_next(struct idr *idp, int *nextidp)
++{
++	struct idr_layer *p, *pa[MAX_LEVEL];
++	struct idr_layer **paa = &pa[0];
++	int id = *nextidp;
++	int n, max;
++
++	/* find first ent */
++	n = idp->layers * IDR_BITS;
++	max = 1 << n;
++	p = rcu_dereference(idp->top);
++	if (!p)
++		return NULL;
++
++	while (id < max) {
++		while (n > 0 && p) {
++			n -= IDR_BITS;
++			*paa++ = p;
++			p = rcu_dereference(p->ary[(id >> n) & IDR_MASK]);
++		}
++
++		if (p) {
++			*nextidp = id;
++			return p;
++		}
++
++		id += 1 << n;
++		while (n < fls(id)) {
++			n += IDR_BITS;
++			p = *--paa;
++		}
++	}
++	return NULL;
++}
++
++
++
++/**
+  * idr_replace - replace pointer for given id
+  * @idp: idr handle
+  * @ptr: pointer you want associated with the id
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-maintainers-general-listsopenfabricsorg-is-moderated.patch
-atyfb-fix-config_-namespace-violations.patch
-linux-next.patch
-uv-fix-header-struct-usage.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver-dont-use-bus_id.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-fix.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-documentation-ignore-byproducts-from-latex.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-linuxpps-core-support.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
 
