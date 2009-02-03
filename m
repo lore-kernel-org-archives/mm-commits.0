@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pm-fix-suspend_console-resume_console-to-use-only-one-semaphore.patch added to -mm tree
-Date: Mon, 02 Feb 2009 16:38:16 -0800
-Message-ID: <200902030038.n130cHu4029631@imap1.linux-foundation.org>
+Subject: + bluetooth-config_debug_lock_alloc-ifdefs-remove.patch added to -mm tree
+Date: Mon, 02 Feb 2009 16:41:54 -0800
+Message-ID: <200902030041.n130fsgB001981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752730AbZBCAij (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 19:38:39 -0500
+	by vger.kernel.org with ESMTP id S1758366AbZBCAmL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 19:42:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arve@android.com, alan@lxorguk.ukuu.org.uk, pavel@ucw.cz, rjw@sisk.pl, swetland@google.com, torvalds@linux-foundation.org
+Cc: hidave.darkstar@gmail.com, marcel@holtmann.org, mingo@elte.hu
 
 
 The patch titled
-     pm: fix suspend_console/resume_console to use only one semaphore
+     bluetooth: CONFIG_DEBUG_LOCK_ALLOC ifdefs remove
 has been added to the -mm tree.  Its filename is
-     pm-fix-suspend_console-resume_console-to-use-only-one-semaphore.pa=
-tch
+     bluetooth-config_debug_lock_alloc-ifdefs-remove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,118 +25,63 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: fix suspend_console/resume_console to use only one semapho=
-re
-=46rom: Arve Hj=F8nnev=E5g <arve@android.com>
+Subject: bluetooth: CONFIG_DEBUG_LOCK_ALLOC ifdefs remove
+From: Dave Young <hidave.darkstar@gmail.com>
 
-This fixes a race if another thread acquired the console while it was
-suspended and released it after it was resumed the secondary console
-semaphre would be left locked, and the primary semaphore would be relea=
-sed
-twice.  This in turn caused the console switch on suspend or resume to
-hang forever.
+Due to lockdep changes the CONFIG_DEBUG_LOCK_ALLOC ifdef is not needed
+now, just remove it here.
 
-Note that suspend_console does not actually lock the console for client=
-s
-that use acquire_console_sem, it only locks it for clients that use
-try_acquire_console_sem.  If we change suspend_console to fully lock th=
-e
-console, then the kernel may deadlock on suspend.
+The following commit fixed the !lockdep build warnings:
 
-Signed-off-by: Arve Hj=F8nnev=E5g <arve@android.com>
-Cc: Brian Swetland <swetland@google.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+commit e8f6fbf62de37cbc2e179176ac7010d5f4396b67
+Author: Ingo Molnar <mingo@elte.hu>
+Date:   Wed Nov 12 01:38:36 2008 +0000
+
+    lockdep: include/linux/lockdep.h - fix warning in net/bluetooth/af_bluetooth.c
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ net/bluetooth/af_bluetooth.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN kernel/printk.c~pm-fix-suspend_console-resume_console-to-use-=
-only-one-semaphore kernel/printk.c
---- a/kernel/printk.c~pm-fix-suspend_console-resume_console-to-use-only=
--one-semaphore
-+++ a/kernel/printk.c
-@@ -73,7 +73,6 @@ EXPORT_SYMBOL(oops_in_progress);
-  * driver system.
-  */
- static DECLARE_MUTEX(console_sem);
--static DECLARE_MUTEX(secondary_console_sem);
- struct console *console_drivers;
- EXPORT_SYMBOL_GPL(console_drivers);
-=20
-@@ -891,12 +890,14 @@ void suspend_console(void)
- 	printk("Suspending console(s) (use no_console_suspend to debug)\n");
- 	acquire_console_sem();
- 	console_suspended =3D 1;
-+	up(&console_sem);
+diff -puN net/bluetooth/af_bluetooth.c~bluetooth-config_debug_lock_alloc-ifdefs-remove net/bluetooth/af_bluetooth.c
+--- a/net/bluetooth/af_bluetooth.c~bluetooth-config_debug_lock_alloc-ifdefs-remove
++++ a/net/bluetooth/af_bluetooth.c
+@@ -48,7 +48,6 @@
+ static struct net_proto_family *bt_proto[BT_MAX_PROTO];
+ static DEFINE_RWLOCK(bt_proto_lock);
+ 
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+ static struct lock_class_key bt_lock_key[BT_MAX_PROTO];
+ static const char *bt_key_strings[BT_MAX_PROTO] = {
+ 	"sk_lock-AF_BLUETOOTH-BTPROTO_L2CAP",
+@@ -86,11 +85,6 @@ static inline void bt_sock_reclassify_lo
+ 			bt_slock_key_strings[proto], &bt_slock_key[proto],
+ 				bt_key_strings[proto], &bt_lock_key[proto]);
  }
-=20
- void resume_console(void)
+-#else
+-static inline void bt_sock_reclassify_lock(struct socket *sock, int proto)
+-{
+-}
+-#endif
+ 
+ int bt_sock_register(int proto, struct net_proto_family *ops)
  {
- 	if (!console_suspend_enabled)
- 		return;
-+	down(&console_sem);
- 	console_suspended =3D 0;
- 	release_console_sem();
- }
-@@ -912,11 +913,9 @@ void resume_console(void)
- void acquire_console_sem(void)
- {
- 	BUG_ON(in_interrupt());
--	if (console_suspended) {
--		down(&secondary_console_sem);
--		return;
--	}
- 	down(&console_sem);
-+	if (console_suspended)
-+		return;
- 	console_locked =3D 1;
- 	console_may_schedule =3D 1;
- }
-@@ -926,6 +925,10 @@ int try_acquire_console_sem(void)
- {
- 	if (down_trylock(&console_sem))
- 		return -1;
-+	if (console_suspended) {
-+		up(&console_sem);
-+		return -1;
-+	}
- 	console_locked =3D 1;
- 	console_may_schedule =3D 0;
- 	return 0;
-@@ -979,7 +982,7 @@ void release_console_sem(void)
- 	unsigned wake_klogd =3D 0;
-=20
- 	if (console_suspended) {
--		up(&secondary_console_sem);
-+		up(&console_sem);
- 		return;
- 	}
-=20
 _
 
-Patches currently in -mm which might be from arve@android.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-origin.patch
-pm-wait-for-console-in-resume.patch
-pm-fix-suspend_console-resume_console-to-use-only-one-semaphore.patch
+bluetooth-bt3c-eliminate-a-sparse-warning.patch
+bluetooth-config_debug_lock_alloc-ifdefs-remove.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
