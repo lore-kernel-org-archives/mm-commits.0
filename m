@@ -1,317 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-unify-some-pmd_-functions-fix.patch removed from -mm tree
-Date: Tue, 03 Feb 2009 12:17:41 -0800
-Message-ID: <200902032017.n13KHfr9025847@imap1.linux-foundation.org>
+Subject: + nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch added to -mm tree
+Date: Tue, 03 Feb 2009 12:51:33 -0800
+Message-ID: <200902032051.n13KpXWR006530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752116AbZBCUTu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 15:19:50 -0500
+	by vger.kernel.org with ESMTP id S1751045AbZBCUwP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 15:52:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: righi.andrea@gmail.com, benh@kernel.crashing.org, davem@davemloft.net, grundler@parisc-linux.org, heiko.carstens@de.ibm.com, hpa@zytor.com, ink@jurassic.park.msu.ru, jdike@addtoit.com
+To: mm-commits@vger.kernel.org
+Cc: konishi.ryusuke@lab.ntt.co.jp, sato.koji@lab.ntt.co.jp
 
 
 The patch titled
-     mm: unify some pmd_*() functions fix
-has been removed from the -mm tree.  Its filename was
-     mm-unify-some-pmd_-functions-fix.patch
+     nilfs2: fix wrong counting of checkpoints and dirty segments
+has been added to the -mm tree.  Its filename is
+     nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
 
-This patch was dropped because it was folded into mm-unify-some-pmd_-functions.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: unify some pmd_*() functions fix
-From: Andrea Righi <righi.andrea@gmail.com>
+Subject: nilfs2: fix wrong counting of checkpoints and dirty segments
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-Also unify implementations of pmd_*() functions in arch/*.
+Reinoud Zandijk found that counters for the number of checkpoints and
+the number of dirty segments go wrong after a garbage collection.
 
-This patch must be applied on top of mm-unify-some-pmd_-functions.patch.
+This problem turns out to be a bug of counter operations using
+le64_cpu_add() with a negative variable like:
 
-Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+  le64_cpu_add(&counter, -n);
+
+where the variable n was not u64.
+
+This fixes the problem by casting the delta to (u64).
+
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Koji Sato <sato.koji@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/pgalloc.h      |    2 ++
- arch/arm/include/asm/pgalloc.h        |    3 +--
- arch/ia64/include/asm/pgalloc.h       |    2 ++
- arch/mips/include/asm/pgalloc.h       |   13 ++-----------
- arch/parisc/include/asm/pgalloc.h     |    5 +++--
- arch/powerpc/include/asm/pgalloc-32.h |    9 ---------
- arch/powerpc/include/asm/pgalloc-64.h |    2 ++
- arch/s390/include/asm/pgalloc.h       |    3 +--
- arch/sh/include/asm/pgalloc.h         |    8 --------
- arch/sparc/include/asm/pgalloc_64.h   |    2 ++
- arch/um/include/asm/pgalloc.h         |    1 +
- arch/um/include/asm/pgtable-3level.h  |    1 +
- arch/x86/include/asm/pgalloc.h        |    3 +++
- 13 files changed, 20 insertions(+), 34 deletions(-)
+ fs/nilfs2/cpfile.c |    2 +-
+ fs/nilfs2/sufile.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix arch/alpha/include/asm/pgalloc.h
---- a/arch/alpha/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/alpha/include/asm/pgalloc.h
-@@ -43,12 +43,14 @@ pmd_alloc_one(struct mm_struct *mm, unsi
- 	pmd_t *ret = (pmd_t *)__get_free_page(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO);
- 	return ret;
- }
-+#define pmd_alloc_one pmd_alloc_one
- 
- static inline void
- pmd_free(struct mm_struct *mm, pmd_t *pmd)
- {
- 	free_page((unsigned long)pmd);
- }
-+#define pmd_free pmd_free
- 
- static inline pte_t *
- pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
-diff -puN arch/arm/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix arch/arm/include/asm/pgalloc.h
---- a/arch/arm/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/arm/include/asm/pgalloc.h
-@@ -26,8 +26,7 @@
- /*
-  * Since we have only two-level page tables, these are trivial
-  */
--#define pmd_alloc_one(mm,addr)		({ BUG(); ((pmd_t *)2); })
--#define pmd_free(mm, pmd)		do { } while (0)
-+#define pmd_alloc_one	pmd_alloc_one_bug
- #define pgd_populate(mm,pmd,pte)	BUG()
- 
- extern pgd_t *get_pgd_slow(struct mm_struct *mm);
-diff -puN arch/ia64/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix arch/ia64/include/asm/pgalloc.h
---- a/arch/ia64/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/ia64/include/asm/pgalloc.h
-@@ -61,11 +61,13 @@ static inline pmd_t *pmd_alloc_one(struc
- {
- 	return quicklist_alloc(0, GFP_KERNEL, NULL);
- }
-+#define pmd_alloc_one pmd_alloc_one
- 
- static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
- {
- 	quicklist_free(0, NULL, pmd);
- }
-+#define pmd_free pmd_free
- 
- #define __pmd_free_tlb(tlb, pmd)	pmd_free((tlb)->mm, pmd)
- 
-diff -puN arch/mips/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix arch/mips/include/asm/pgalloc.h
---- a/arch/mips/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/mips/include/asm/pgalloc.h
-@@ -104,17 +104,6 @@ do {							\
- 	tlb_remove_page((tlb), pte);			\
- } while (0)
- 
--#ifdef CONFIG_32BIT
--
--/*
-- * allocating and freeing a pmd is trivial: the 1-entry pmd is
-- * inside the pgd, so has no extra memory associated with it.
-- */
--#define pmd_free(mm, x)			do { } while (0)
--#define __pmd_free_tlb(tlb, x)		do { } while (0)
--
--#endif
--
- #ifdef CONFIG_64BIT
- 
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
-@@ -126,11 +115,13 @@ static inline pmd_t *pmd_alloc_one(struc
- 		pmd_init((unsigned long)pmd, (unsigned long)invalid_pte_table);
- 	return pmd;
- }
-+#define pmd_alloc_one pmd_alloc_one
- 
- static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
- {
- 	free_pages((unsigned long)pmd, PMD_ORDER);
- }
-+#define pmd_free pmd_free
- 
- #define __pmd_free_tlb(tlb, x)	pmd_free((tlb)->mm, x)
- 
-diff -puN arch/parisc/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix arch/parisc/include/asm/pgalloc.h
---- a/arch/parisc/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/parisc/include/asm/pgalloc.h
-@@ -69,6 +69,7 @@ static inline pmd_t *pmd_alloc_one(struc
- 		memset(pmd, 0, PAGE_SIZE<<PMD_ORDER);
- 	return pmd;
- }
-+#define pmd_alloc_one pmd_alloc_one
- 
- static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
- {
-@@ -80,6 +81,7 @@ static inline void pmd_free(struct mm_st
- #endif
- 	free_pages((unsigned long)pmd, PMD_ORDER);
- }
-+#define pmd_free pmd_free
- 
- #else
- 
-@@ -90,8 +92,7 @@ static inline void pmd_free(struct mm_st
-  * inside the pgd, so has no extra memory associated with it.
-  */
- 
--#define pmd_alloc_one(mm, addr)		({ BUG(); ((pmd_t *)2); })
--#define pmd_free(mm, x)			do { } while (0)
-+#define pmd_alloc_one	pmd_alloc_one_bug
- #define pgd_populate(mm, pmd, pte)	BUG()
- 
- #endif
-diff -puN arch/powerpc/include/asm/pgalloc-32.h~mm-unify-some-pmd_-functions-fix arch/powerpc/include/asm/pgalloc-32.h
---- a/arch/powerpc/include/asm/pgalloc-32.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/powerpc/include/asm/pgalloc-32.h
-@@ -10,15 +10,6 @@ extern void __bad_pte(pmd_t *pmd);
- extern pgd_t *pgd_alloc(struct mm_struct *mm);
- extern void pgd_free(struct mm_struct *mm, pgd_t *pgd);
- 
--/*
-- * We don't have any real pmd's, and this code never triggers because
-- * the pgd will always be present..
-- */
--/* #define pmd_alloc_one(mm,address)       ({ BUG(); ((pmd_t *)2); }) */
--#define pmd_free(mm, x) 		do { } while (0)
--#define __pmd_free_tlb(tlb,x)		do { } while (0)
--/* #define pgd_populate(mm, pmd, pte)      BUG() */
--
- #ifndef CONFIG_BOOKE
- #define pmd_populate_kernel(mm, pmd, pte)	\
- 		(pmd_val(*(pmd)) = __pa(pte) | _PMD_PRESENT)
-diff -puN arch/powerpc/include/asm/pgalloc-64.h~mm-unify-some-pmd_-functions-fix arch/powerpc/include/asm/pgalloc-64.h
---- a/arch/powerpc/include/asm/pgalloc-64.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/powerpc/include/asm/pgalloc-64.h
-@@ -81,11 +81,13 @@ static inline pmd_t *pmd_alloc_one(struc
- 	return kmem_cache_alloc(pgtable_cache[PMD_CACHE_NUM],
- 				GFP_KERNEL|__GFP_REPEAT);
- }
-+#define pmd_alloc_one pmd_alloc_one
- 
- static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
- {
- 	kmem_cache_free(pgtable_cache[PMD_CACHE_NUM], pmd);
- }
-+#define pmd_free pmd_free
- 
- static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
- 					  unsigned long address)
-diff -puN arch/s390/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix arch/s390/include/asm/pgalloc.h
---- a/arch/s390/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/s390/include/asm/pgalloc.h
-@@ -63,8 +63,7 @@ static inline unsigned long pgd_entry_ty
- #define pud_alloc_one(mm,address)		({ BUG(); ((pud_t *)2); })
- #define pud_free(mm, x)				do { } while (0)
- 
--#define pmd_alloc_one(mm,address)		({ BUG(); ((pmd_t *)2); })
--#define pmd_free(mm, x)				do { } while (0)
-+#define pmd_alloc_one	pmd_alloc_one_bug
- 
- #define pgd_populate(mm, pgd, pud)		BUG()
- #define pgd_populate_kernel(mm, pgd, pud)	BUG()
-diff -puN arch/sh/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix arch/sh/include/asm/pgalloc.h
---- a/arch/sh/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/sh/include/asm/pgalloc.h
-@@ -79,14 +79,6 @@ do {							\
- 	tlb_remove_page((tlb), (pte));			\
- } while (0)
- 
--/*
-- * allocating and freeing a pmd is trivial: the 1-entry pmd is
-- * inside the pgd, so has no extra memory associated with it.
-- */
--
--#define pmd_free(mm, x)			do { } while (0)
--#define __pmd_free_tlb(tlb,x)		do { } while (0)
--
- static inline void check_pgt_cache(void)
- {
- 	quicklist_trim(QUICK_PGD, NULL, 25, 16);
-diff -puN arch/sparc/include/asm/pgalloc_64.h~mm-unify-some-pmd_-functions-fix arch/sparc/include/asm/pgalloc_64.h
---- a/arch/sparc/include/asm/pgalloc_64.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/sparc/include/asm/pgalloc_64.h
-@@ -30,11 +30,13 @@ static inline pmd_t *pmd_alloc_one(struc
- {
- 	return quicklist_alloc(0, GFP_KERNEL, NULL);
- }
-+#define pmd_alloc_one pmd_alloc_one
- 
- static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
- {
- 	quicklist_free(0, NULL, pmd);
- }
-+#define pmd_free pmd_free
- 
- static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
- 					  unsigned long address)
-diff -puN arch/um/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix arch/um/include/asm/pgalloc.h
---- a/arch/um/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/um/include/asm/pgalloc.h
-@@ -52,6 +52,7 @@ static inline void pmd_free(struct mm_st
- {
- 	free_page((unsigned long)pmd);
- }
-+#define pmd_free pmd_free
- 
- #define __pmd_free_tlb(tlb,x)   tlb_remove_page((tlb),virt_to_page(x))
- #endif
-diff -puN arch/um/include/asm/pgtable-3level.h~mm-unify-some-pmd_-functions-fix arch/um/include/asm/pgtable-3level.h
---- a/arch/um/include/asm/pgtable-3level.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/um/include/asm/pgtable-3level.h
-@@ -80,6 +80,7 @@ static inline void pgd_mkuptodate(pgd_t 
- 
- struct mm_struct;
- extern pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address);
-+#define pmd_alloc_one pmd_alloc_one
- 
- static inline void pud_clear (pud_t *pud)
- {
-diff -puN arch/x86/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix arch/x86/include/asm/pgalloc.h
---- a/arch/x86/include/asm/pgalloc.h~mm-unify-some-pmd_-functions-fix
-+++ a/arch/x86/include/asm/pgalloc.h
-@@ -71,14 +71,17 @@ static inline pmd_t *pmd_alloc_one(struc
- {
- 	return (pmd_t *)get_zeroed_page(GFP_KERNEL|__GFP_REPEAT);
- }
-+#define pmd_alloc_one pmd_alloc_one
- 
- static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
- {
- 	BUG_ON((unsigned long)pmd & (PAGE_SIZE-1));
- 	free_page((unsigned long)pmd);
- }
-+#define pmd_free pmd_free
- 
- extern void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd);
-+#define __pmd_free_tlb __pmd_free_tlb
- 
- #ifdef CONFIG_X86_PAE
- extern void pud_populate(struct mm_struct *mm, pud_t *pudp, pmd_t *pmd);
+diff -puN fs/nilfs2/cpfile.c~nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments fs/nilfs2/cpfile.c
+--- a/fs/nilfs2/cpfile.c~nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments
++++ a/fs/nilfs2/cpfile.c
+@@ -357,7 +357,7 @@ int nilfs_cpfile_delete_checkpoints(stru
+ 		kaddr = kmap_atomic(header_bh->b_page, KM_USER0);
+ 		header = nilfs_cpfile_block_get_header(cpfile, header_bh,
+ 						       kaddr);
+-		le64_add_cpu(&header->ch_ncheckpoints, -tnicps);
++		le64_add_cpu(&header->ch_ncheckpoints, -(u64)tnicps);
+ 		nilfs_mdt_mark_buffer_dirty(header_bh);
+ 		nilfs_mdt_mark_dirty(cpfile);
+ 		kunmap_atomic(kaddr, KM_USER0);
+diff -puN fs/nilfs2/sufile.c~nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments fs/nilfs2/sufile.c
+--- a/fs/nilfs2/sufile.c~nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments
++++ a/fs/nilfs2/sufile.c
+@@ -325,7 +325,7 @@ int nilfs_sufile_freev(struct inode *suf
+ 	kaddr = kmap_atomic(header_bh->b_page, KM_USER0);
+ 	header = nilfs_sufile_block_get_header(sufile, header_bh, kaddr);
+ 	le64_add_cpu(&header->sh_ncleansegs, nsegs);
+-	le64_add_cpu(&header->sh_ndirtysegs, -nsegs);
++	le64_add_cpu(&header->sh_ndirtysegs, -(u64)nsegs);
+ 	kunmap_atomic(kaddr, KM_USER0);
+ 	nilfs_mdt_mark_buffer_dirty(header_bh);
+ 	nilfs_mdt_mark_dirty(sufile);
 _
 
-Patches currently in -mm which might be from righi.andrea@gmail.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-fbmem-copy_from-to_user-with-mutex-held-v3.patch
-mm-unify-some-pmd_-functions.patch
-mm-unify-some-pmd_-functions-fix.patch
-mm-unify-some-pmd_-functions-fix-s390.patch
-mm-unify-some-pmd_-functions-fix-for-m68k-sun3.patch
-mm-unify-some-pmd_-functions-and-move-them-in-a-distinct-include.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+nilfs2-cleanup-nilfs_clear_inode.patch
+nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
+nilfs2-insert-explanations-in-gcinode-file.patch
+nilfs2-add-maintainer.patch
+nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
+nilfs2-clean-up-indirect-function-calling-conventions.patch
 
