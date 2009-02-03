@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + pm-wait-for-console-in-resume.patch added to -mm tree
-Date: Mon, 02 Feb 2009 16:38:14 -0800
-Message-ID: <200902030038.n130cFw6029500@imap1.linux-foundation.org>
+Subject: + pm-fix-suspend_console-resume_console-to-use-only-one-semaphore.patch added to -mm tree
+Date: Mon, 02 Feb 2009 16:38:16 -0800
+Message-ID: <200902030038.n130cHu4029631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33625 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752103AbZBCAie (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 19:38:34 -0500
+	by vger.kernel.org with ESMTP id S1752730AbZBCAij (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 19:38:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +18,10 @@ Cc: arve@android.com, alan@lxorguk.ukuu.org.uk, pavel@ucw.cz, rjw@sisk.pl, swetl
 
 
 The patch titled
-     pm: wait for console in resume
+     pm: fix suspend_console/resume_console to use only one semaphore
 has been added to the -mm tree.  Its filename is
-     pm-wait-for-console-in-resume.patch
+     pm-fix-suspend_console-resume_console-to-use-only-one-semaphore.pa=
+tch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,14 +39,26 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: pm: wait for console in resume
+Subject: pm: fix suspend_console/resume_console to use only one semapho=
+re
 =46rom: Arve Hj=F8nnev=E5g <arve@android.com>
 
-Avoids later waking up to a blinking cursor if the device woke up and
-returned to sleep before the console switch happened.
+This fixes a race if another thread acquired the console while it was
+suspended and released it after it was resumed the secondary console
+semaphre would be left locked, and the primary semaphore would be relea=
+sed
+twice.  This in turn caused the console switch on suspend or resume to
+hang forever.
 
-Signed-off-by: Brian Swetland <swetland@google.com>
+Note that suspend_console does not actually lock the console for client=
+s
+that use acquire_console_sem, it only locks it for clients that use
+try_acquire_console_sem.  If we change suspend_console to fully lock th=
+e
+console, then the kernel may deadlock on suspend.
+
 Signed-off-by: Arve Hj=F8nnev=E5g <arve@android.com>
+Cc: Brian Swetland <swetland@google.com>
 Cc: Pavel Machek <pavel@ucw.cz>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -53,26 +66,71 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/console.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/printk.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN kernel/power/console.c~pm-wait-for-console-in-resume kernel/p=
-ower/console.c
---- a/kernel/power/console.c~pm-wait-for-console-in-resume
-+++ a/kernel/power/console.c
-@@ -78,6 +78,12 @@ void pm_restore_console(void)
- 	}
- 	set_console(orig_fgconsole);
- 	release_console_sem();
-+
-+	if (vt_waitactive(orig_fgconsole)) {
-+		pr_debug("Resume: Can't switch VCs.");
-+		return;
-+	}
-+
- 	kmsg_redirect =3D orig_kmsg;
+diff -puN kernel/printk.c~pm-fix-suspend_console-resume_console-to-use-=
+only-one-semaphore kernel/printk.c
+--- a/kernel/printk.c~pm-fix-suspend_console-resume_console-to-use-only=
+-one-semaphore
++++ a/kernel/printk.c
+@@ -73,7 +73,6 @@ EXPORT_SYMBOL(oops_in_progress);
+  * driver system.
+  */
+ static DECLARE_MUTEX(console_sem);
+-static DECLARE_MUTEX(secondary_console_sem);
+ struct console *console_drivers;
+ EXPORT_SYMBOL_GPL(console_drivers);
+=20
+@@ -891,12 +890,14 @@ void suspend_console(void)
+ 	printk("Suspending console(s) (use no_console_suspend to debug)\n");
+ 	acquire_console_sem();
+ 	console_suspended =3D 1;
++	up(&console_sem);
  }
- #endif
+=20
+ void resume_console(void)
+ {
+ 	if (!console_suspend_enabled)
+ 		return;
++	down(&console_sem);
+ 	console_suspended =3D 0;
+ 	release_console_sem();
+ }
+@@ -912,11 +913,9 @@ void resume_console(void)
+ void acquire_console_sem(void)
+ {
+ 	BUG_ON(in_interrupt());
+-	if (console_suspended) {
+-		down(&secondary_console_sem);
+-		return;
+-	}
+ 	down(&console_sem);
++	if (console_suspended)
++		return;
+ 	console_locked =3D 1;
+ 	console_may_schedule =3D 1;
+ }
+@@ -926,6 +925,10 @@ int try_acquire_console_sem(void)
+ {
+ 	if (down_trylock(&console_sem))
+ 		return -1;
++	if (console_suspended) {
++		up(&console_sem);
++		return -1;
++	}
+ 	console_locked =3D 1;
+ 	console_may_schedule =3D 0;
+ 	return 0;
+@@ -979,7 +982,7 @@ void release_console_sem(void)
+ 	unsigned wake_klogd =3D 0;
+=20
+ 	if (console_suspended) {
+-		up(&secondary_console_sem);
++		up(&console_sem);
+ 		return;
+ 	}
+=20
 _
 
 Patches currently in -mm which might be from arve@android.com are
