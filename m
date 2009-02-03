@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dmi-let-dmi_walk-users-pass-private-data.patch added to -mm tree
-Date: Tue, 03 Feb 2009 00:42:18 -0800
-Message-ID: <200902030842.n138gIEb029193@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch added to -mm tree
+Date: Tue, 03 Feb 2009 02:57:58 -0800
+Message-ID: <200902031057.n13Avwip016192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52732 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753653AbZBCInO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 03:43:14 -0500
+	by vger.kernel.org with ESMTP id S1752841AbZBCK6W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 05:58:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, hdegoede@redhat.com, mjg@redhat.com, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com
 
 
 The patch titled
-     dmi: Let dmi_walk() users pass private data
+     arch/x86/kernel/acpi/cstate.c: avoid using work_on_cpu()
 has been added to the -mm tree.  Its filename is
-     dmi-let-dmi_walk-users-pass-private-data.patch
+     arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,191 +33,194 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dmi: Let dmi_walk() users pass private data
-From: Jean Delvare <khali@linux-fr.org>
+Subject: arch/x86/kernel/acpi/cstate.c: avoid using work_on_cpu()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-At the moment, dmi_walk() lacks flexibility, users can't pass data to the
-callback function.  Add a pointer for private data to make this function
-more flexible.
+A series of patches which
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+- removes all but one callers of work_on_cpu() by switching then to
+  smp_call_function_single()
+
+- converts work_on_cpu() to create a kernel thread on depend, thus
+  avoidin the various deadlock scenarios which we keep on experiencing and
+  thinking up.
+
+All cheerfully untested.
+
+
+This patch:
+
+Atttempting to rid us of the problematic work_on_cpu().  Just use
+smp_call_fuction_single() here.
+
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c        |   16 +++++++++-------
- drivers/hwmon/fschmd.c             |    4 ++--
- drivers/platform/x86/dell-laptop.c |    4 ++--
- drivers/watchdog/hpwdt.c           |    4 ++--
- include/linux/dmi.h                |    7 ++++---
- 5 files changed, 19 insertions(+), 16 deletions(-)
+ arch/x86/kernel/acpi/cstate.c |   36 +++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 12 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~dmi-let-dmi_walk-users-pass-private-data drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~dmi-let-dmi_walk-users-pass-private-data
-+++ a/drivers/firmware/dmi_scan.c
-@@ -68,7 +68,8 @@ static char * __init dmi_string(const st
-  *	pointing to completely the wrong place for example
-  */
- static void dmi_table(u8 *buf, int len, int num,
--		      void (*decode)(const struct dmi_header *))
-+		      void (*decode)(const struct dmi_header *, void *),
-+		      void *priv)
+diff -puN arch/x86/kernel/acpi/cstate.c~arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu arch/x86/kernel/acpi/cstate.c
+--- a/arch/x86/kernel/acpi/cstate.c~arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu
++++ a/arch/x86/kernel/acpi/cstate.c
+@@ -61,6 +61,12 @@ struct cstate_entry {
+ };
+ static struct cstate_entry *cpu_cstate_entry;	/* per CPU ptr */
+ 
++/* Used for the cross-CPU calls */
++struct acpi_processor_cx_cross_cpu {
++	struct acpi_processor_cx *cx;
++	long retval;
++};
++
+ static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
+ 
+ #define MWAIT_SUBSTATE_MASK	(0xf)
+@@ -75,10 +81,10 @@ static short mwait_supported[ACPI_PROCES
+ 
+ #define NATIVE_CSTATE_BEYOND_HALT	(2)
+ 
+-static long acpi_processor_ffh_cstate_probe_cpu(void *_cx)
++static void acpi_processor_ffh_cstate_probe_cpu(void *_cxcc)
  {
- 	u8 *data = buf;
- 	int i = 0;
-@@ -89,7 +90,7 @@ static void dmi_table(u8 *buf, int len, 
- 		while ((data - buf < len - 1) && (data[0] || data[1]))
- 			data++;
- 		if (data - buf < len - 1)
--			decode(dm);
-+			decode(dm, priv);
- 		data += 2;
- 		i++;
+-	struct acpi_processor_cx *cx = _cx;
+-	long retval;
++	struct acpi_processor_cx_cross_cpu *cxcc = _cxcc;
++	struct acpi_processor_cx *cx = cxcc->cx;
+ 	unsigned int eax, ebx, ecx, edx;
+ 	unsigned int edx_part;
+ 	unsigned int cstate_type; /* C-state type and not ACPI C-state type */
+@@ -92,16 +98,16 @@ static long acpi_processor_ffh_cstate_pr
+ 	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
+ 	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
+ 
+-	retval = 0;
++	cxcc->retval = 0;
+ 	if (num_cstate_subtype < (cx->address & MWAIT_SUBSTATE_MASK)) {
+-		retval = -1;
++		cxcc->retval = -1;
+ 		goto out;
  	}
-@@ -99,7 +100,8 @@ static u32 dmi_base;
- static u16 dmi_len;
- static u16 dmi_num;
  
--static int __init dmi_walk_early(void (*decode)(const struct dmi_header *))
-+static int __init dmi_walk_early(void (*decode)(const struct dmi_header *,
-+		void *))
- {
- 	u8 *buf;
+ 	/* mwait ecx extensions INTERRUPT_BREAK should be supported for C2/C3 */
+ 	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
+ 	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK)) {
+-		retval = -1;
++		cxcc->retval = -1;
+ 		goto out;
+ 	}
  
-@@ -107,7 +109,7 @@ static int __init dmi_walk_early(void (*
- 	if (buf == NULL)
- 		return -1;
- 
--	dmi_table(buf, dmi_len, dmi_num, decode);
-+	dmi_table(buf, dmi_len, dmi_num, decode, NULL);
- 
- 	dmi_iounmap(buf, dmi_len);
- 	return 0;
-@@ -295,7 +297,7 @@ static void __init dmi_save_extended_dev
-  *	and machine entries. For 2.5 we should pull the smbus controller info
-  *	out of here.
-  */
--static void __init dmi_decode(const struct dmi_header *dm)
-+static void __init dmi_decode(const struct dmi_header *dm, void *dummy)
- {
- 	switch(dm->type) {
- 	case 0:		/* BIOS Information */
-@@ -601,7 +603,7 @@ int dmi_get_year(int field)
-  *
-  *	Returns -1 when the DMI table can't be reached, 0 on success.
-  */
--int dmi_walk(void (*decode)(const struct dmi_header *))
-+int dmi_walk(void (*decode)(const struct dmi_header *, void *), void *data)
- {
- 	u8 *buf;
- 
-@@ -612,7 +614,7 @@ int dmi_walk(void (*decode)(const struct
- 	if (buf == NULL)
- 		return -1;
- 
--	dmi_table(buf, dmi_len, dmi_num, decode);
-+	dmi_table(buf, dmi_len, dmi_num, decode, data);
- 
- 	iounmap(buf);
- 	return 0;
-diff -puN drivers/hwmon/fschmd.c~dmi-let-dmi_walk-users-pass-private-data drivers/hwmon/fschmd.c
---- a/drivers/hwmon/fschmd.c~dmi-let-dmi_walk-users-pass-private-data
-+++ a/drivers/hwmon/fschmd.c
-@@ -856,7 +856,7 @@ static struct file_operations watchdog_f
- 
- /* DMI decode routine to read voltage scaling factors from special DMI tables,
-    which are available on FSC machines with an fscher or later chip. */
--static void fschmd_dmi_decode(const struct dmi_header *header)
-+static void fschmd_dmi_decode(const struct dmi_header *header, void *dummy)
- {
- 	int i, mult[3] = { 0 }, offset[3] = { 0 }, vref = 0, found = 0;
- 
-@@ -991,7 +991,7 @@ static int fschmd_probe(struct i2c_clien
- 
- 	/* Read the special DMI table for fscher and newer chips */
- 	if ((kind == fscher || kind >= fschrc) && dmi_vref == -1) {
--		dmi_walk(fschmd_dmi_decode);
-+		dmi_walk(fschmd_dmi_decode, NULL);
- 		if (dmi_vref == -1) {
- 			dev_warn(&client->dev,
- 				"Couldn't get voltage scaling factors from "
-diff -puN drivers/platform/x86/dell-laptop.c~dmi-let-dmi_walk-users-pass-private-data drivers/platform/x86/dell-laptop.c
---- a/drivers/platform/x86/dell-laptop.c~dmi-let-dmi_walk-users-pass-private-data
-+++ a/drivers/platform/x86/dell-laptop.c
-@@ -103,7 +103,7 @@ static void parse_da_table(const struct 
- 	da_num_tokens += tokens;
+@@ -115,7 +121,7 @@ static long acpi_processor_ffh_cstate_pr
+ 			ACPI_CX_DESC_LEN, "ACPI FFH INTEL MWAIT 0x%x",
+ 			cx->address);
+ out:
+-	return retval;
++	return;
  }
  
--static void find_tokens(const struct dmi_header *dm)
-+static void find_tokens(const struct dmi_header *dm, void *dummy)
+ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+@@ -123,6 +129,7 @@ int acpi_processor_ffh_cstate_probe(unsi
  {
- 	switch (dm->type) {
- 	case 0xd4: /* Indexed IO */
-@@ -356,7 +356,7 @@ static int __init dell_init(void)
- 	if (!dmi_check_system(dell_device_table))
- 		return -ENODEV;
+ 	struct cstate_entry *percpu_entry;
+ 	struct cpuinfo_x86 *c = &cpu_data(cpu);
++	struct acpi_processor_cx_cross_cpu cxcc = { .cx = cx, };
+ 	long retval;
  
--	dmi_walk(find_tokens);
-+	dmi_walk(find_tokens, NULL);
+ 	if (!cpu_cstate_entry || c->cpuid_level < CPUID_MWAIT_LEAF)
+@@ -135,13 +142,18 @@ int acpi_processor_ffh_cstate_probe(unsi
+ 	percpu_entry->states[cx->index].eax = 0;
+ 	percpu_entry->states[cx->index].ecx = 0;
  
- 	if (!da_tokens)  {
- 		printk(KERN_INFO "dell-laptop: Unable to find dmi tokens\n");
-diff -puN drivers/watchdog/hpwdt.c~dmi-let-dmi_walk-users-pass-private-data drivers/watchdog/hpwdt.c
---- a/drivers/watchdog/hpwdt.c~dmi-let-dmi_walk-users-pass-private-data
-+++ a/drivers/watchdog/hpwdt.c
-@@ -382,7 +382,7 @@ asm(".text                      \n\t"
-  *	This function checks whether or not a SMBIOS/DMI record is
-  *	the 64bit CRU info or not
-  */
--static void __devinit dmi_find_cru(const struct dmi_header *dm)
-+static void __devinit dmi_find_cru(const struct dmi_header *dm, void *dummy)
- {
- 	struct smbios_cru64_info *smbios_cru64_ptr;
- 	unsigned long cru_physical_address;
-@@ -405,7 +405,7 @@ static int __devinit detect_cru_service(
- {
- 	cru_rom_addr = NULL;
+-	/* Make sure we are running on right CPU */
++	/* Run acpi_processor_ffh_cstate_probe_cpu() on the target CPU */
  
--	dmi_walk(dmi_find_cru);
-+	dmi_walk(dmi_find_cru, NULL);
- 
- 	/* if cru_rom_addr has been set then we found a CRU service */
- 	return ((cru_rom_addr != NULL) ? 0 : -ENODEV);
-diff -puN include/linux/dmi.h~dmi-let-dmi_walk-users-pass-private-data include/linux/dmi.h
---- a/include/linux/dmi.h~dmi-let-dmi_walk-users-pass-private-data
-+++ a/include/linux/dmi.h
-@@ -47,7 +47,8 @@ extern int dmi_get_year(int field);
- extern int dmi_name_in_vendors(const char *str);
- extern int dmi_name_in_serial(const char *str);
- extern int dmi_available;
--extern int dmi_walk(void (*decode)(const struct dmi_header *));
-+extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
-+	void *data);
- extern bool dmi_match(enum dmi_field f, const char *str);
- 
- #else
-@@ -61,8 +62,8 @@ static inline int dmi_get_year(int year)
- static inline int dmi_name_in_vendors(const char *s) { return 0; }
- static inline int dmi_name_in_serial(const char *s) { return 0; }
- #define dmi_available 0
--static inline int dmi_walk(void (*decode)(const struct dmi_header *))
--	{ return -1; }
-+static inline int dmi_walk(void (*decode)(const struct dmi_header *, void *),
-+	void *data) { return -1; }
- static inline bool dmi_match(enum dmi_field f, const char *str)
- 	{ return false; }
- static inline const struct dmi_system_id *
+-	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
++	retval = smp_call_function_single(cpu,
++				acpi_processor_ffh_cstate_probe_cpu, cx, 1);
+ 	if (retval == 0) {
+-		/* Use the hint in CST */
+-		percpu_entry->states[cx->index].eax = cx->address;
+-		percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
++		retval = cxcc.retval;
++		if (retval == 0) {
++			/* Use the hint in CST */
++			percpu_entry->states[cx->index].eax = cx->address;
++			percpu_entry->states[cx->index].ecx =
++					MWAIT_ECX_INTERRUPT_BREAK;
++		}
+ 	}
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+kernel-asyncc-fix-printk-warnings.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
+wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
+i-need-old-gcc.patch
 linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-i2c-incremental-i2c-mpc-driver-fix-for-multi-master-i2c-busses.patch
-i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch
-mfd-pcf50633-terminate-i2c_device_id-list.patch
-dmi-let-dmi_walk-users-pass-private-data.patch
-rtc-ds1307-true-smbus-compatibility.patch
+next-remove-localversion.patch
+kvm-unbork.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-unify-some-pmd_-functions-fix-s390.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
