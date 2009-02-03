@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 03 Feb 2009 00:15:59 -0800
-Message-ID: <200902030815.n138FxVP026475@imap1.linux-foundation.org>
+Subject: + tpm-correct-email-address-for-tpm_infineon-driver.patch added to -mm tree
+Date: Tue, 03 Feb 2009 00:19:50 -0800
+Message-ID: <200902030819.n138JoTU031647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751689AbZBCIQ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 03:16:29 -0500
+	by vger.kernel.org with ESMTP id S1750799AbZBCIUA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 03:20:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org
+Cc: m.selhorst@sirrix.com
 
 
 The patch titled
-     epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes
+     tpm: correct email address for tpm_infineon-driver
 has been added to the -mm tree.  Its filename is
-     epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+     tpm-correct-email-address-for-tpm_infineon-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tpm: correct email address for tpm_infineon-driver
+From: Marcel Selhorst <m.selhorst@sirrix.com>
 
-ERROR: code indent should use tabs where possible
-#37: FILE: fs/eventpoll.c:789:
-+        /*$
+Update my email address.
 
-total: 1 errors, 0 warnings, 31 lines checked
 
-./patches/epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
 
-Please run checkpatch prior to sending patches
-
-Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS                     |    4 ++--
+ drivers/char/tpm/tpm_infineon.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes
-+++ a/fs/eventpoll.c
-@@ -786,7 +786,7 @@ static int ep_poll_callback(wait_queue_t
- 	if (!(epi->event.events & ~EP_PRIVATE_BITS))
- 		goto out_unlock;
+diff -puN MAINTAINERS~tpm-correct-email-address-for-tpm_infineon-driver MAINTAINERS
+--- a/MAINTAINERS~tpm-correct-email-address-for-tpm_infineon-driver
++++ a/MAINTAINERS
+@@ -4314,8 +4314,8 @@ P:	Rajiv Andrade
+ M:	srajiv@linux.vnet.ibm.com
+ W:	http://tpmdd.sourceforge.net
+ P:	Marcel Selhorst
+-M:	tpm@selhorst.net
+-W:	http://www.prosec.rub.de/tpm/
++M:	m.selhorst@sirrix.com
++W:	http://www.sirrix.com
+ L:	tpmdd-devel@lists.sourceforge.net (moderated for non-subscribers)
+ S:	Maintained
  
--        /*
-+	/*
- 	 * Check the events coming with the callback. At this stage, not
- 	 * every device reports the events in the "key" parameter of the
- 	 * callback. We need to be able to handle both cases here, hence the
+diff -puN drivers/char/tpm/tpm_infineon.c~tpm-correct-email-address-for-tpm_infineon-driver drivers/char/tpm/tpm_infineon.c
+--- a/drivers/char/tpm/tpm_infineon.c~tpm-correct-email-address-for-tpm_infineon-driver
++++ a/drivers/char/tpm/tpm_infineon.c
+@@ -4,7 +4,7 @@
+  * SLD 9630 TT 1.1 and SLB 9635 TT 1.2 Trusted Platform Module
+  * Specifications at www.trustedcomputinggroup.org
+  *
+- * Copyright (C) 2005, Marcel Selhorst <selhorst@crypto.rub.de>
++ * Copyright (C) 2005, Marcel Selhorst <m.selhorst@sirrix.com>
+  * Sirrix AG - security technologies, http://www.sirrix.com and
+  * Applied Data Security Group, Ruhr-University Bochum, Germany
+  * Project-Homepage: http://www.prosec.rub.de/tpm
+@@ -636,7 +636,7 @@ static void __exit cleanup_inf(void)
+ module_init(init_inf);
+ module_exit(cleanup_inf);
+ 
+-MODULE_AUTHOR("Marcel Selhorst <selhorst@crypto.rub.de>");
++MODULE_AUTHOR("Marcel Selhorst <m.selhorst@sirrix.com>");
+ MODULE_DESCRIPTION("Driver for Infineon TPM SLD 9630 TT 1.1 / SLB 9635 TT 1.2");
+ MODULE_VERSION("1.9");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from m.selhorst@sirrix.com are
 
-origin.patch
-kernel-asyncc-fix-printk-warnings.patch
-revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
-hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
-wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
-i-need-old-gcc.patch
-linux-next.patch
-next-remove-localversion.patch
-kvm-unbork.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-early-platform-driver-v3-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-ata-sata_silc-needs-dmih.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-unify-some-pmd_-functions-fix-s390.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+tpm-correct-email-address-for-tpm_infineon-driver.patch
 
