@@ -1,130 +1,289 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch added to -mm tree
-Date: Tue, 03 Feb 2009 12:51:33 -0800
-Message-ID: <200902032051.n13KpXWR006530@imap1.linux-foundation.org>
+Subject: [to-be-updated] mtd-rbtx4939-map-driver.patch removed from -mm tree
+Date: Tue, 03 Feb 2009 12:53:15 -0800
+Message-ID: <200902032053.n13KrFDk008739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49150 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751045AbZBCUwP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 15:52:15 -0500
+	by vger.kernel.org with ESMTP id S1751244AbZBCUyE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 15:54:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: konishi.ryusuke@lab.ntt.co.jp, sato.koji@lab.ntt.co.jp
+To: anemo@mba.ocn.ne.jp, dwmw2@infradead.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nilfs2: fix wrong counting of checkpoints and dirty segments
-has been added to the -mm tree.  Its filename is
-     nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
+     mtd: RBTX4939 map driver
+has been removed from the -mm tree.  Its filename was
+     mtd-rbtx4939-map-driver.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: fix wrong counting of checkpoints and dirty segments
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: mtd: RBTX4939 map driver
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Reinoud Zandijk found that counters for the number of checkpoints and
-the number of dirty segments go wrong after a garbage collection.
+This is a map driver for NOR flash chips on RBTX4939 board.
 
-This problem turns out to be a bug of counter operations using
-le64_cpu_add() with a negative variable like:
-
-  le64_cpu_add(&counter, -n);
-
-where the variable n was not u64.
-
-This fixes the problem by casting the delta to (u64).
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Koji Sato <sato.koji@lab.ntt.co.jp>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/cpfile.c |    2 +-
- fs/nilfs2/sufile.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/maps/Kconfig          |    6 
+ drivers/mtd/maps/Makefile         |    1 
+ drivers/mtd/maps/rbtx4939-flash.c |  205 ++++++++++++++++++++++++++++
+ 3 files changed, 212 insertions(+)
 
-diff -puN fs/nilfs2/cpfile.c~nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments fs/nilfs2/cpfile.c
---- a/fs/nilfs2/cpfile.c~nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments
-+++ a/fs/nilfs2/cpfile.c
-@@ -357,7 +357,7 @@ int nilfs_cpfile_delete_checkpoints(stru
- 		kaddr = kmap_atomic(header_bh->b_page, KM_USER0);
- 		header = nilfs_cpfile_block_get_header(cpfile, header_bh,
- 						       kaddr);
--		le64_add_cpu(&header->ch_ncheckpoints, -tnicps);
-+		le64_add_cpu(&header->ch_ncheckpoints, -(u64)tnicps);
- 		nilfs_mdt_mark_buffer_dirty(header_bh);
- 		nilfs_mdt_mark_dirty(cpfile);
- 		kunmap_atomic(kaddr, KM_USER0);
-diff -puN fs/nilfs2/sufile.c~nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments fs/nilfs2/sufile.c
---- a/fs/nilfs2/sufile.c~nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments
-+++ a/fs/nilfs2/sufile.c
-@@ -325,7 +325,7 @@ int nilfs_sufile_freev(struct inode *suf
- 	kaddr = kmap_atomic(header_bh->b_page, KM_USER0);
- 	header = nilfs_sufile_block_get_header(sufile, header_bh, kaddr);
- 	le64_add_cpu(&header->sh_ncleansegs, nsegs);
--	le64_add_cpu(&header->sh_ndirtysegs, -nsegs);
-+	le64_add_cpu(&header->sh_ndirtysegs, -(u64)nsegs);
- 	kunmap_atomic(kaddr, KM_USER0);
- 	nilfs_mdt_mark_buffer_dirty(header_bh);
- 	nilfs_mdt_mark_dirty(sufile);
+diff -puN drivers/mtd/maps/Kconfig~mtd-rbtx4939-map-driver drivers/mtd/maps/Kconfig
+--- a/drivers/mtd/maps/Kconfig~mtd-rbtx4939-map-driver
++++ a/drivers/mtd/maps/Kconfig
+@@ -542,6 +542,12 @@ config MTD_INTEL_VR_NOR
+ 	  Map driver for a NOR flash bank located on the Expansion Bus of the
+ 	  Intel Vermilion Range chipset.
+ 
++config MTD_RBTX4939
++	tristate "Map driver for RBTX4939 board"
++	depends on TOSHIBA_RBTX4939 && MTD_CFI && MTD_COMPLEX_MAPPINGS
++	help
++	  Map driver for NOR flash chips on RBTX4939 board.
++
+ config MTD_PLATRAM
+ 	tristate "Map driver for platform device RAM (mtd-ram)"
+ 	select MTD_RAM
+diff -puN drivers/mtd/maps/Makefile~mtd-rbtx4939-map-driver drivers/mtd/maps/Makefile
+--- a/drivers/mtd/maps/Makefile~mtd-rbtx4939-map-driver
++++ a/drivers/mtd/maps/Makefile
+@@ -61,3 +61,4 @@ obj-$(CONFIG_MTD_PLATRAM)	+= plat-ram.o
+ obj-$(CONFIG_MTD_OMAP_NOR)	+= omap_nor.o
+ obj-$(CONFIG_MTD_INTEL_VR_NOR)	+= intel_vr_nor.o
+ obj-$(CONFIG_MTD_BFIN_ASYNC)	+= bfin-async-flash.o
++obj-$(CONFIG_MTD_RBTX4939)	+= rbtx4939-flash.o
+diff -puN /dev/null drivers/mtd/maps/rbtx4939-flash.c
+--- /dev/null
++++ a/drivers/mtd/maps/rbtx4939-flash.c
+@@ -0,0 +1,205 @@
++/*
++ * rbtx4939-flash (based on physmap.c)
++ *
++ * This is a simplified physmap driver with map_init callback function.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Copyright (C) 2009 Atsushi Nemoto <anemo@mba.ocn.ne.jp>
++ */
++
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/device.h>
++#include <linux/platform_device.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/map.h>
++#include <linux/mtd/partitions.h>
++#include <asm/txx9/rbtx4939.h>
++
++struct rbtx4939_flash_info {
++	struct mtd_info *mtd;
++	struct map_info map;
++#ifdef CONFIG_MTD_PARTITIONS
++	int nr_parts;
++#endif
++};
++
++static int rbtx4939_flash_remove(struct platform_device *dev)
++{
++	struct rbtx4939_flash_info *info;
++
++	info = platform_get_drvdata(dev);
++	if (!info)
++		return 0;
++	platform_set_drvdata(dev, NULL);
++
++	if (info->mtd) {
++#ifdef CONFIG_MTD_PARTITIONS
++		struct rbtx4939_flash_data *pdata = dev->dev.platform_data;
++
++		if (info->nr_parts || pdata->nr_parts)
++			del_mtd_partitions(info->mtd);
++		else
++			del_mtd_device(info->mtd);
++#else
++		del_mtd_device(info->mtd);
++#endif
++		map_destroy(info->mtd);
++	}
++	return 0;
++}
++
++static const char *rom_probe_types[] = { "cfi_probe", "jedec_probe", NULL };
++#ifdef CONFIG_MTD_PARTITIONS
++static const char *part_probe_types[] = { "cmdlinepart", NULL };
++#endif
++
++static int rbtx4939_flash_probe(struct platform_device *dev)
++{
++	struct rbtx4939_flash_data *pdata;
++	struct rbtx4939_flash_info *info;
++	struct resource *res;
++	const char **probe_type;
++	int err = 0;
++	unsigned long size;
++#ifdef CONFIG_MTD_PARTITIONS
++	struct mtd_partition *parts;
++#endif
++
++	pdata = dev->dev.platform_data;
++	if (!pdata)
++		return -ENODEV;
++
++	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++	info = devm_kzalloc(&dev->dev, sizeof(struct rbtx4939_flash_info),
++			    GFP_KERNEL);
++	if (!info)
++		return -ENOMEM;
++
++	platform_set_drvdata(dev, info);
++
++	size = resource_size(res);
++	pr_notice("rbtx4939 platform flash device: %pR\n", res);
++
++	if (!devm_request_mem_region(&dev->dev, res->start, size,
++				     dev_name(&dev->dev)))
++		return -EBUSY;
++
++	info->map.name = dev_name(&dev->dev);
++	info->map.phys = res->start;
++	info->map.size = size;
++	info->map.bankwidth = pdata->width;
++
++	info->map.virt = devm_ioremap(&dev->dev, info->map.phys, size);
++	if (!info->map.virt)
++		return -EBUSY;
++
++	if (pdata->map_init)
++		(*pdata->map_init)(&info->map);
++	else
++		simple_map_init(&info->map);
++
++	probe_type = rom_probe_types;
++	for (; !info->mtd && *probe_type; probe_type++)
++		info->mtd = do_map_probe(*probe_type, &info->map);
++	if (!info->mtd) {
++		dev_err(&dev->dev, "map_probe failed\n");
++		err = -ENXIO;
++		goto err_out;
++	}
++	info->mtd->owner = THIS_MODULE;
++	if (err)
++		goto err_out;
++
++#ifdef CONFIG_MTD_PARTITIONS
++	err = parse_mtd_partitions(info->mtd, part_probe_types, &parts, 0);
++	if (err > 0) {
++		add_mtd_partitions(info->mtd, parts, err);
++		return 0;
++	}
++
++	if (pdata->nr_parts) {
++		pr_notice("Using rbtx4939 partition information\n");
++		add_mtd_partitions(info->mtd, pdata->parts, pdata->nr_parts);
++		return 0;
++	}
++#endif
++
++	add_mtd_device(info->mtd);
++	return 0;
++
++err_out:
++	rbtx4939_flash_remove(dev);
++	return err;
++}
++
++#ifdef CONFIG_PM
++static int rbtx4939_flash_suspend(struct platform_device *dev,
++				  pm_message_t state)
++{
++	struct rbtx4939_flash_info *info = platform_get_drvdata(dev);
++
++	if (info->mtd->suspend)
++		return info->mtd->suspend(info->mtd);
++	return 0;
++}
++
++static int rbtx4939_flash_resume(struct platform_device *dev)
++{
++	struct rbtx4939_flash_info *info = platform_get_drvdata(dev);
++
++	if (info->mtd->resume)
++		info->mtd->resume(info->mtd);
++	return 0;
++}
++
++static void rbtx4939_flash_shutdown(struct platform_device *dev)
++{
++	struct rbtx4939_flash_info *info = platform_get_drvdata(dev);
++
++	if (info->mtd->suspend && info->mtd->resume)
++		if (info->mtd->suspend(info->mtd) == 0)
++			info->mtd->resume(info->mtd);
++}
++#else
++#define rbtx4939_flash_suspend NULL
++#define rbtx4939_flash_resume NULL
++#define rbtx4939_flash_shutdown NULL
++#endif
++
++static struct platform_driver rbtx4939_flash_driver = {
++	.probe		= rbtx4939_flash_probe,
++	.remove		= rbtx4939_flash_remove,
++	.suspend	= rbtx4939_flash_suspend,
++	.resume		= rbtx4939_flash_resume,
++	.shutdown	= rbtx4939_flash_shutdown,
++	.driver		= {
++		.name	= "rbtx4939-flash",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init rbtx4939_flash_init(void)
++{
++	return platform_driver_register(&rbtx4939_flash_driver);
++}
++
++static void __exit rbtx4939_flash_exit(void)
++{
++	platform_driver_unregister(&rbtx4939_flash_driver);
++}
++
++module_init(rbtx4939_flash_init);
++module_exit(rbtx4939_flash_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("RBTX4939 MTD map driver");
++MODULE_ALIAS("platform:rbtx4939-flash");
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-nilfs2-add-document.patch
-nilfs2-disk-format-and-userland-interface.patch
-nilfs2-add-inode-and-other-major-structures.patch
-nilfs2-integrated-block-mapping.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-b-tree-based-block-mapping.patch
-nilfs2-direct-block-mapping.patch
-nilfs2-b-tree-node-cache.patch
-nilfs2-buffer-and-page-operations.patch
-nilfs2-meta-data-file.patch
-nilfs2-persistent-object-allocator.patch
-nilfs2-disk-address-translator.patch
-nilfs2-inode-map-file.patch
-nilfs2-checkpoint-file.patch
-nilfs2-segment-usage-file.patch
-nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
-nilfs2-inode-operations.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-file-operations.patch
-nilfs2-directory-entry-operations.patch
-nilfs2-pathname-operations.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-operations-for-the_nilfs-core-object.patch
-nilfs2-super-block-operations.patch
-nilfs2-super-block-operations-fix.patch
-nilfs2-segment-buffer.patch
-nilfs2-segment-constructor.patch
-nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
-nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
-nilfs2-recovery-functions.patch
-nilfs2-another-dat-for-garbage-collection.patch
-nilfs2-block-cache-for-garbage-collection.patch
-nilfs2-ioctl-operations.patch
-nilfs2-update-makefile-and-kconfig.patch
-nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
-nilfs2-cleanup-nilfs_clear_inode.patch
-nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
-nilfs2-insert-explanations-in-gcinode-file.patch
-nilfs2-add-maintainer.patch
-nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
-nilfs2-clean-up-indirect-function-calling-conventions.patch
+origin.patch
+linux-next.patch
+mtd-txx9-add-ndfmc-support.patch
+mtd-rbtx4939-add-mtd-support.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+mtd-txx9-soc-nand-flash-memory-controller-driver.patch
+mtd-rbtx4939-map-driver.patch
+atmel-mci-fix-initialization-of-dma-slave-data.patch
+mtd-physmap-fix-wrong-free-and-del_mtd_partitiondevice.patch
+atmel_serial-might-lose-modem-status-change.patch
 
