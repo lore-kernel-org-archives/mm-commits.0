@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch added to -mm tree
-Date: Tue, 03 Feb 2009 00:15:08 -0800
-Message-ID: <200902030815.n138F85A025305@imap1.linux-foundation.org>
+Subject: + epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch added to -mm tree
+Date: Tue, 03 Feb 2009 00:15:04 -0800
+Message-ID: <200902030815.n138F4Pn025273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57608 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751986AbZBCIQJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 03:16:09 -0500
+	by vger.kernel.org with ESMTP id S1751690AbZBCIQF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 03:16:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: davidel@xmailserver.org, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, ming
 
 
 The patch titled
-     epoll keyed wakeups: teach epoll about hints coming with the wakeup key
+     epoll keyed wakeups: introduce new *_poll() wakeup macros
 has been added to the -mm tree.  Its filename is
-     epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
+     epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll keyed wakeups: teach epoll about hints coming with the wakeup key
+Subject: epoll keyed wakeups: introduce new *_poll() wakeup macros
 From: Davide Libenzi <davidel@xmailserver.org>
 
-Use the events hint now sent by some devices, to avoid unnecessary wakeups
-for events that are of no interest for the caller.  This code handles both
-devices that are sending keyed events, and the ones that are not (and
-event the ones that sometimes send events, and sometimes don't).
+Introduce new wakeup macros that allow passing an event mask to the wakeup
+targets.  They exactly mimic their non-_poll() counterpart, with the added
+event mask passing capability.  I did add only the ones currently
+requested, avoiding the _nr() and _all() for the moment.
 
 Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
@@ -50,39 +50,62 @@ Cc: William Lee Irwin III <wli@movementarian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ include/linux/wait.h |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN fs/eventpoll.c~epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key
-+++ a/fs/eventpoll.c
-@@ -372,7 +372,8 @@ static int ep_call_nested(struct nested_
+diff -puN include/linux/wait.h~epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros include/linux/wait.h
+--- a/include/linux/wait.h~epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros
++++ a/include/linux/wait.h
+@@ -158,6 +158,18 @@ wait_queue_head_t *bit_waitqueue(void *,
+ #define wake_up_interruptible_all(x)	__wake_up(x, TASK_INTERRUPTIBLE, 0, NULL)
+ #define wake_up_interruptible_sync(x)	__wake_up_sync((x), TASK_INTERRUPTIBLE, 1)
  
- static int ep_poll_wakeup_proc(void *priv, void *cookie, int call_nests)
- {
--	wake_up_nested((wait_queue_head_t *) cookie, 1 + call_nests);
-+	wake_up_nested_poll((wait_queue_head_t *) cookie, POLLIN,
-+			    1 + call_nests);
- 	return 0;
- }
- 
-@@ -785,6 +786,15 @@ static int ep_poll_callback(wait_queue_t
- 	if (!(epi->event.events & ~EP_PRIVATE_BITS))
- 		goto out_unlock;
- 
-+        /*
-+	 * Check the events coming with the callback. At this stage, not
-+	 * every device reports the events in the "key" parameter of the
-+	 * callback. We need to be able to handle both cases here, hence the
-+	 * test for "key" != NULL before the event match test.
-+	 */
-+	if (key && !((unsigned long) key & epi->event.events))
-+		goto out_unlock;
++/*
++ * Wakeup macros to be used to report events to the targets.
++ */
++#define wake_up_poll(x, m)				\
++	__wake_up(x, TASK_NORMAL, 1, (void *) (m))
++#define wake_up_locked_poll(x, m)				\
++	__wake_up_locked_key((x), TASK_NORMAL, (void *) (m))
++#define wake_up_interruptible_poll(x, m)			\
++	__wake_up(x, TASK_INTERRUPTIBLE, 1, (void *) (m))
++#define wake_up_interruptible_sync_poll(x, m)				\
++	__wake_up_sync_key((x), TASK_INTERRUPTIBLE, 1, (void *) (m))
 +
- 	/*
- 	 * If we are trasfering events to userspace, we can hold no locks
- 	 * (because we're accessing user memory, and because of linux f_op->poll()
-@@ -1260,7 +1270,6 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	case EPOLL_CTL_ADD:
- 		if (!epi) {
- 			epds.events |= POLLERR | POLLHUP;
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ /*
+  * macro to avoid include hell
+@@ -170,8 +182,17 @@ do {									\
+ 	wake_up_locked(x); 						\
+ 	spin_unlock_irqrestore(&(x)->lock, flags);			\
+ } while (0)
++#define wake_up_nested_poll(x, m, s)					\
++do {									\
++	unsigned long flags;						\
++									\
++	spin_lock_irqsave_nested(&(x)->lock, flags, (s));		\
++	wake_up_locked_poll(x, m);					\
++	spin_unlock_irqrestore(&(x)->lock, flags);			\
++} while (0)
+ #else
+ #define wake_up_nested(x, s)		wake_up(x)
++#define wake_up_nested_poll(x, m, s)	wake_up_poll(x, m)
+ #endif
+ 
+ #define __wait_event(wq, condition) 					\
+_
+
+Patches currently in -mm which might be from davidel@xmailserver.org are
+
+origin.patch
+linux-next.patch
+epoll-fix-own-poll.patch
+epoll-fix-epolls-own-poll-update.patch
+epoll-remove-debugging-code.patch
+epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
+epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
+epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
+epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
+epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
+
