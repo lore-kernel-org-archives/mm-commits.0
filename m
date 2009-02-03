@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tpm-correct-email-address-for-tpm_infineon-driver.patch added to -mm tree
-Date: Tue, 03 Feb 2009 00:19:50 -0800
-Message-ID: <200902030819.n138JoTU031647@imap1.linux-foundation.org>
+Subject: + tty-pty-lookup-retval-fixup.patch added to -mm tree
+Date: Tue, 03 Feb 2009 00:37:02 -0800
+Message-ID: <200902030837.n138b25g022190@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750799AbZBCIUA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 03:20:00 -0500
+	by vger.kernel.org with ESMTP id S1750845AbZBCIha (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 03:37:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.selhorst@sirrix.com
+Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com
 
 
 The patch titled
-     tpm: correct email address for tpm_infineon-driver
+     tty: pty: lookup retval fixup
 has been added to the -mm tree.  Its filename is
-     tpm-correct-email-address-for-tpm_infineon-driver.patch
+     tty-pty-lookup-retval-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: correct email address for tpm_infineon-driver
-From: Marcel Selhorst <m.selhorst@sirrix.com>
+Subject: tty: pty: lookup retval fixup
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Update my email address.
+Make sure we fail on NULL return value possibly returned by master tty
+lookup.
 
+Convert NULL to ERR_PTR(-ENODEV) in ptm_unix98_lookup, since NULL is not
+captured by IS_ERR() in __tty_open.
 
-
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                     |    4 ++--
- drivers/char/tpm/tpm_infineon.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/pty.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~tpm-correct-email-address-for-tpm_infineon-driver MAINTAINERS
---- a/MAINTAINERS~tpm-correct-email-address-for-tpm_infineon-driver
-+++ a/MAINTAINERS
-@@ -4314,8 +4314,8 @@ P:	Rajiv Andrade
- M:	srajiv@linux.vnet.ibm.com
- W:	http://tpmdd.sourceforge.net
- P:	Marcel Selhorst
--M:	tpm@selhorst.net
--W:	http://www.prosec.rub.de/tpm/
-+M:	m.selhorst@sirrix.com
-+W:	http://www.sirrix.com
- L:	tpmdd-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Maintained
+diff -puN drivers/char/pty.c~tty-pty-lookup-retval-fixup drivers/char/pty.c
+--- a/drivers/char/pty.c~tty-pty-lookup-retval-fixup
++++ a/drivers/char/pty.c
+@@ -508,7 +508,7 @@ static struct tty_struct *ptm_unix98_loo
+ 	struct tty_struct *tty = devpts_get_tty(ptm_inode, idx);
+ 	if (tty)
+ 		tty = tty->link;
+-	return tty;
++	return tty ? : ERR_PTR(-ENODEV);
+ }
  
-diff -puN drivers/char/tpm/tpm_infineon.c~tpm-correct-email-address-for-tpm_infineon-driver drivers/char/tpm/tpm_infineon.c
---- a/drivers/char/tpm/tpm_infineon.c~tpm-correct-email-address-for-tpm_infineon-driver
-+++ a/drivers/char/tpm/tpm_infineon.c
-@@ -4,7 +4,7 @@
-  * SLD 9630 TT 1.1 and SLB 9635 TT 1.2 Trusted Platform Module
-  * Specifications at www.trustedcomputinggroup.org
-  *
-- * Copyright (C) 2005, Marcel Selhorst <selhorst@crypto.rub.de>
-+ * Copyright (C) 2005, Marcel Selhorst <m.selhorst@sirrix.com>
-  * Sirrix AG - security technologies, http://www.sirrix.com and
-  * Applied Data Security Group, Ruhr-University Bochum, Germany
-  * Project-Homepage: http://www.prosec.rub.de/tpm
-@@ -636,7 +636,7 @@ static void __exit cleanup_inf(void)
- module_init(init_inf);
- module_exit(cleanup_inf);
- 
--MODULE_AUTHOR("Marcel Selhorst <selhorst@crypto.rub.de>");
-+MODULE_AUTHOR("Marcel Selhorst <m.selhorst@sirrix.com>");
- MODULE_DESCRIPTION("Driver for Infineon TPM SLD 9630 TT 1.1 / SLB 9635 TT 1.2");
- MODULE_VERSION("1.9");
- MODULE_LICENSE("GPL");
+ /**
 _
 
-Patches currently in -mm which might be from m.selhorst@sirrix.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-tpm-correct-email-address-for-tpm_infineon-driver.patch
+linux-next.patch
+tty-pty-lookup-retval-fixup.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
