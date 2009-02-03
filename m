@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-convert-printks-to-dev_foo-fix.patch added to -mm tree
-Date: Tue, 03 Feb 2009 15:19:39 -0800
-Message-ID: <200902032336.n13Nab6Z001692@imap1.linux-foundation.org>
+Subject: + i2c-too-much-compiler-noise.patch added to -mm tree
+Date: Tue, 03 Feb 2009 15:20:25 -0800
+Message-ID: <200902032337.n13NbOkB002587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60040 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36969 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750866AbZBCXhS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:37:18 -0500
+	by vger.kernel.org with ESMTP id S1751302AbZBCXhn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:37:43 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n13NbOQO025612
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 3 Feb 2009 15:37:25 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, geert@linux-m68k.org, krzysztof.h1@poczta.fm
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     cirrusfb-convert-printks-to-dev_foo-fix
+     i2c: too much compiler noise
 has been added to the -mm tree.  Its filename is
-     cirrusfb-convert-printks-to-dev_foo-fix.patch
+     i2c-too-much-compiler-noise.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +37,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb-convert-printks-to-dev_foo-fix
+Subject: i2c: too much compiler noise
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/cirrusfb.c: In function 'cirrusfb_pci_register':
-drivers/video/cirrusfb.c:2137: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'resource_size_t'
-drivers/video/cirrusfb.c:2140: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'resource_size_t'
-
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/i2c.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix
-+++ a/drivers/video/cirrusfb.c
-@@ -2135,10 +2135,10 @@ static int __devinit cirrusfb_pci_regist
- 	cinfo->btype = btype = (enum cirrus_board) ent->driver_data;
+diff -puN include/linux/i2c.h~i2c-too-much-compiler-noise include/linux/i2c.h
+--- a/include/linux/i2c.h~i2c-too-much-compiler-noise
++++ a/include/linux/i2c.h
+@@ -151,7 +151,7 @@ struct i2c_driver {
+ 	 * has been dynamically allocated by the driver in the function above,
+ 	 * it must be freed here.  (LEGACY I2C DRIVERS ONLY)
+ 	 */
+-	int (*detach_client)(struct i2c_client *) __deprecated;
++	int (*detach_client)(struct i2c_client *);
  
- 	dev_dbg(info->device,
--		" Found PCI device, base address 0 is 0x%x, btype set to %d\n",
--		pdev->resource[0].start, btype);
--	dev_dbg(info->device,
--		" base address 1 is 0x%x\n", pdev->resource[1].start);
-+		" Found PCI device, base address 0 is 0x%Lx, btype set to %d\n",
-+		(unsigned long long)pdev->resource[0].start, btype);
-+	dev_dbg(info->device, " base address 1 is 0x%Lx\n",
-+		(unsigned long long)pdev->resource[1].start);
+ 	/* Standard driver model interfaces, for "new style" i2c drivers.
+ 	 * With the driver model, device enumeration is NEVER done by drivers;
+@@ -431,8 +431,8 @@ static inline int i2c_add_driver(struct 
  
- 	if (isPReP) {
- 		pci_write_config_dword(pdev, PCI_BASE_ADDRESS_0, 0x00000000);
+ /* These are deprecated, your driver should use the standard .probe()
+  * and .remove() methods instead. */
+-extern int __deprecated i2c_attach_client(struct i2c_client *);
+-extern int __deprecated i2c_detach_client(struct i2c_client *);
++extern int i2c_attach_client(struct i2c_client *);
++extern int i2c_detach_client(struct i2c_client *);
+ 
+ extern struct i2c_client *i2c_use_client(struct i2c_client *client);
+ extern void i2c_release_client(struct i2c_client *client);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,7 +79,7 @@ revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
 hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
 wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
 i-need-old-gcc.patch
-i2c-fix-compiler-noise.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
 next-remove-localversion.patch
 linux-next-git-rejects.patch
