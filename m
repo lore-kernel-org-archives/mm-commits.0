@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpica-80-column-adherence-no-functional-change.patch added to -mm tree
-Date: Mon, 02 Feb 2009 15:59:34 -0800
-Message-ID: <200902022359.n12NxYEY010073@imap1.linux-foundation.org>
+Subject: + atmel_spi-fix-handling-of-chipselect-after-spi-transfer.patch added to -mm tree
+Date: Mon, 02 Feb 2009 16:31:00 -0800
+Message-ID: <200902030031.n130V0DL019865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753417AbZBBX7o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 18:59:44 -0500
+	by vger.kernel.org with ESMTP id S1752103AbZBCAbm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2009 19:31:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: myron.stowe@hp.com, lenb@kernel.org
+Cc: michael@heimpold.de, david-b@pacbell.net, hskinnemoen@atmel.com, mhei@heimpold.de
 
 
 The patch titled
-     acpica: 80 column adherence (no functional change)
+     atmel_spi: fix handling of chipselect after SPI transfer
 has been added to the -mm tree.  Its filename is
-     acpica-80-column-adherence-no-functional-change.patch
+     atmel_spi-fix-handling-of-chipselect-after-spi-transfer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpica: 80 column adherence (no functional change)
-From: Myron Stowe <myron.stowe@hp.com>
+Subject: atmel_spi: fix handling of chipselect after SPI transfer
+From: Michael Heimpold <michael@heimpold.de>
 
-Modify a file derived from ACPI CA and as such formatting may come
-directly from the CA code or indirectly from some type of parsing of the
-original CA code.  As such, non-functional formatting changes may be
-counter productive.  If this is the case then feel free to ignore this
-component of the patch series.
+According to include/linux/spi/spi.h chipselect should stay active after a
+SPI transfer or after a SPI message unless modified by
+spi_transfer.cs_change != 0.
 
-This modification may be used under either the GPL or the BSD-style
-license used for Intel ACPI CA code.
+The current atmel driver passes this field to atmel_spi_msg_done as a
+parameter with oppositional meaning: "cs_change" -> "stay" (see
+atmel_spi_interrupt).
 
-Signed-off-by: Myron Stowe <myron.stowe@hp.com>
-Cc: Len Brown <lenb@kernel.org>
+This patch fixes this behaviour by adapting the called function and its
+callers.  IMHO this solution is better than an one line fix of inverting
+the function's argument as the meaning of the field remains throughout the
+hole stack.
+
+Signed-off-by: Michael Heimpold <mhei@heimpold.de>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpica/tbutils.c |   36 ++++++++++++++++++++++----------
- 1 file changed, 25 insertions(+), 11 deletions(-)
+ drivers/spi/atmel_spi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/acpica/tbutils.c~acpica-80-column-adherence-no-functional-change drivers/acpi/acpica/tbutils.c
---- a/drivers/acpi/acpica/tbutils.c~acpica-80-column-adherence-no-functional-change
-+++ a/drivers/acpi/acpica/tbutils.c
-@@ -179,7 +179,10 @@ acpi_tb_print_table_header(acpi_physical
+diff -puN drivers/spi/atmel_spi.c~atmel_spi-fix-handling-of-chipselect-after-spi-transfer drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~atmel_spi-fix-handling-of-chipselect-after-spi-transfer
++++ a/drivers/spi/atmel_spi.c
+@@ -385,9 +385,9 @@ static void atmel_spi_dma_unmap_xfer(str
  
- 	if (ACPI_COMPARE_NAME(header->signature, ACPI_SIG_FACS)) {
+ static void
+ atmel_spi_msg_done(struct spi_master *master, struct atmel_spi *as,
+-		struct spi_message *msg, int status, int stay)
++		struct spi_message *msg, int status, int cs_change)
+ {
+-	if (!stay || status < 0)
++	if (cs_change || status < 0)
+ 		cs_deactivate(as, msg->spi);
+ 	else
+ 		as->stay = msg->spi;
+@@ -482,7 +482,7 @@ atmel_spi_interrupt(int irq, void *dev_i
+ 		/* Clear any overrun happening while cleaning up */
+ 		spi_readl(as, SR);
  
--		/* FACS only has signature and length fields of common table header */
-+		/*
-+		 * FACS only has signature and length fields of common table
-+		 * header
-+		 */
+-		atmel_spi_msg_done(master, as, msg, -EIO, 0);
++		atmel_spi_msg_done(master, as, msg, -EIO, 1);
+ 	} else if (pending & (SPI_BIT(RXBUFF) | SPI_BIT(ENDRX))) {
+ 		ret = IRQ_HANDLED;
  
- 		ACPI_INFO((AE_INFO, "%4.4s %08lX, %04X",
- 			   header->signature, (unsigned long)address,
-@@ -379,14 +382,18 @@ acpi_tb_get_root_table_entry(u8 *table_e
- 	} else {
- 		/*
- 		 * 32-bit platform, XSDT: Truncate 64-bit to 32-bit and return
--		 * 64-bit platform, XSDT: Move (unaligned) 64-bit to local, return 64-bit
-+		 * 64-bit platform, XSDT: Move (unaligned) 64-bit to local,
-+		 * return 64-bit
- 		 */
- 		ACPI_MOVE_64_TO_64(&address64, table_entry);
- 
- #if ACPI_MACHINE_WIDTH == 32
- 		if (address64 > ACPI_UINT32_MAX) {
- 
--			/* Will truncate 64-bit address to 32 bits, issue warning */
-+			/*
-+			 * Will truncate 64-bit address to 32 bits, issue
-+			 * warning
-+			 */
- 
- 			ACPI_WARNING((AE_INFO,
- 				      "64-bit Physical Address in XSDT is too large (%8.8X%8.8X), truncating",
-@@ -448,9 +455,9 @@ acpi_tb_parse_root_table(acpi_physical_a
- 	if (rsdp->revision > 1 && rsdp->xsdt_physical_address
- 			&& !acpi_rsdt_forced) {
- 		/*
--		 * Root table is an XSDT (64-bit physical addresses). We must use the
--		 * XSDT if the revision is > 1 and the XSDT pointer is present, as per
--		 * the ACPI specification.
-+		 * Root table is an XSDT (64-bit physical addresses). We must
-+		 * use the XSDT if the revision is > 1 and the XSDT pointer
-+		 * is present, as per * the ACPI specification.
- 		 */
- 		address = (acpi_physical_address) rsdp->xsdt_physical_address;
- 		table_entry_size = sizeof(u64);
-@@ -487,7 +494,7 @@ acpi_tb_parse_root_table(acpi_physical_a
- 
- 	acpi_tb_print_table_header(address, table);
- 
--	/* Get the length of the full table, verify length and map entire table */
-+	/* Get the length of the full table, verify len, and map entire table */
- 
- 	length = table->length;
- 	acpi_os_unmap_memory(table, sizeof(struct acpi_table_header));
-@@ -518,8 +525,9 @@ acpi_tb_parse_root_table(acpi_physical_a
- 		    sizeof(struct acpi_table_header)) / table_entry_size);
- 
- 	/*
--	 * First two entries in the table array are reserved for the DSDT and FACS,
--	 * which are not actually present in the RSDT/XSDT - they come from the FADT
-+	 * First two entries in the table array are reserved for the DSDT and
-+	 * FACS, * which are not actually present in the RSDT/XSDT - they come
-+	 * from the FADT
- 	 */
- 	table_entry =
- 	    ACPI_CAST_PTR(u8, table) + sizeof(struct acpi_table_header);
-@@ -532,7 +540,10 @@ acpi_tb_parse_root_table(acpi_physical_a
- 		if (acpi_gbl_root_table_list.count >=
- 		    acpi_gbl_root_table_list.size) {
- 
--			/* There is no more room in the root table array, attempt resize */
-+			/*
-+			 * There is no more room in the root table array,
-+			 * attempt resize
-+			 */
- 
- 			status = acpi_tb_resize_root_table_list();
- 			if (ACPI_FAILURE(status)) {
-@@ -545,7 +556,10 @@ acpi_tb_parse_root_table(acpi_physical_a
- 			}
- 		}
- 
--		/* Get the table physical address (32-bit for RSDT, 64-bit for XSDT) */
-+		/*
-+		 * Get the table physical address (32-bit for RSDT,
-+		 * 64-bit for XSDT)
-+		 */
- 
- 		acpi_gbl_root_table_list.tables[acpi_gbl_root_table_list.count].
- 		    address =
 _
 
-Patches currently in -mm which might be from myron.stowe@hp.com are
+Patches currently in -mm which might be from michael@heimpold.de are
 
-acpica-fix-table-entry-truncation-calculation.patch
-acpica-80-column-adherence-no-functional-change.patch
+atmel_spi-fix-handling-of-chipselect-after-spi-transfer.patch
 
