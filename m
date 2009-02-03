@@ -1,74 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-too-much-compiler-noise.patch added to -mm tree
-Date: Tue, 03 Feb 2009 15:20:25 -0800
-Message-ID: <200902032337.n13NbOkB002587@imap1.linux-foundation.org>
+Subject: [withdrawn] w1-build-fix.patch removed from -mm tree
+Date: Tue, 03 Feb 2009 15:50:41 -0800
+Message-ID: <200902032350.n13NofT4020565@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60416 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751302AbZBCXhn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:37:43 -0500
+	by vger.kernel.org with ESMTP id S1750845AbZBCXun (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2009 18:50:43 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n13NbOQO025612
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n13Nofht026439
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 3 Feb 2009 15:37:25 -0800
+	for <mm-commits@vger.kernel.org>; Tue, 3 Feb 2009 15:50:42 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c: too much compiler noise
-has been added to the -mm tree.  Its filename is
-     i2c-too-much-compiler-noise.patch
+     w1-build-fix
+has been removed from the -mm tree.  Its filename was
+     w1-build-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: too much compiler noise
+Subject: w1-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+fs/ext3/ioctl.c: In function `ext3_ioctl':
+fs/ext3/ioctl.c:266: warning: 'err2' might be used uninitialized in this function
+fs/ext3/ioctl.c:242: warning: 'err2' might be used uninitialized in this function
+
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/i2c.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/w1/w1.h |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/i2c.h~i2c-too-much-compiler-noise include/linux/i2c.h
---- a/include/linux/i2c.h~i2c-too-much-compiler-noise
-+++ a/include/linux/i2c.h
-@@ -151,7 +151,7 @@ struct i2c_driver {
- 	 * has been dynamically allocated by the driver in the function above,
- 	 * it must be freed here.  (LEGACY I2C DRIVERS ONLY)
- 	 */
--	int (*detach_client)(struct i2c_client *) __deprecated;
-+	int (*detach_client)(struct i2c_client *);
+diff -puN drivers/w1/w1.h~w1-build-fix drivers/w1/w1.h
+--- a/drivers/w1/w1.h~w1-build-fix
++++ a/drivers/w1/w1.h
+@@ -22,19 +22,23 @@
+ #ifndef __W1_H
+ #define __W1_H
  
- 	/* Standard driver model interfaces, for "new style" i2c drivers.
- 	 * With the driver model, device enumeration is NEVER done by drivers;
-@@ -431,8 +431,8 @@ static inline int i2c_add_driver(struct 
+-struct w1_reg_num
+-{
++struct w1_reg_num {
++	union {
++		__u64 unused;	/* So gcc will permit pointers to this struct */
++		struct {
+ #if defined(__LITTLE_ENDIAN_BITFIELD)
+-	__u64	family:8,
+-		id:48,
+-		crc:8;
++			__u64	family:8,
++				id:48,
++				crc:8;
+ #elif defined(__BIG_ENDIAN_BITFIELD)
+-	__u64	crc:8,
+-		id:48,
+-		family:8;
++			__u64	crc:8,
++				id:48,
++				family:8;
+ #else
+ #error "Please fix <asm/byteorder.h>"
+ #endif
++		};
++	};
+ };
  
- /* These are deprecated, your driver should use the standard .probe()
-  * and .remove() methods instead. */
--extern int __deprecated i2c_attach_client(struct i2c_client *);
--extern int __deprecated i2c_detach_client(struct i2c_client *);
-+extern int i2c_attach_client(struct i2c_client *);
-+extern int i2c_detach_client(struct i2c_client *);
- 
- extern struct i2c_client *i2c_use_client(struct i2c_client *client);
- extern void i2c_release_client(struct i2c_client *client);
+ #ifdef __KERNEL__
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
