@@ -1,130 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: + x86-allow-intel_iommu-support-to-be-disabled-by-default.patch added to -mm tree
-Date: Wed, 04 Feb 2009 14:29:19 -0800
-Message-ID: <200902042229.n14MTJb9028068@imap1.linux-foundation.org>
+Subject: [folded] wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 04 Feb 2009 15:09:07 -0800
+Message-ID: <200902042309.n14N970B016605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59140 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753224AbZBDW35 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 17:29:57 -0500
+	by vger.kernel.org with ESMTP id S1752066AbZBDXJQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 18:09:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kyle@redhat.com, dwmw2@infradead.org, hpa@zytor.com, jbarnes@virtuousgeek.org, markmc@redhat.com, mingo@elte.hu, stable@kernel.org, suresh.b.siddha@intel.com, tglx@linutronix.de
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: allow intel_iommu support to be disabled by default
-has been added to the -mm tree.  Its filename is
-     x86-allow-intel_iommu-support-to-be-disabled-by-default.patch
+     wait-prevent-exclusive-waiter-starvation-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into wait-prevent-exclusive-waiter-starvation.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: allow intel_iommu support to be disabled by default
-From: Kyle McMartin <kyle@redhat.com>
+Subject: wait-prevent-exclusive-waiter-starvation-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Due to recurring issues with DMAR support on certain platforms, provide a
-Kconfig option to change whether it is enabled by default.  If disabled,
-it can be reenabled by passing intel_iommu=on to the kernel.
+ERROR: do not use assignment in if condition
+#175: FILE: kernel/wait.c:228:
++		if (!(ret = action(q->key.flags)))
 
-Signed-off-by: Kyle McMartin <kyle@redhat.com>
-Cc: Mark McLoughlin <markmc@redhat.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <stable@kernel.org>		[2.6.28.x]
+total: 1 errors, 0 warnings, 127 lines checked
+
+./patches/wait-prevent-exclusive-waiter-starvation.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 ++
- arch/x86/Kconfig                    |   11 +++++++++++
- drivers/pci/intel-iommu.c           |   14 +++++++++++---
- 3 files changed, 24 insertions(+), 3 deletions(-)
+ kernel/wait.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~x86-allow-intel_iommu-support-to-be-disabled-by-default Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~x86-allow-intel_iommu-support-to-be-disabled-by-default
-+++ a/Documentation/kernel-parameters.txt
-@@ -938,6 +938,8 @@ and is between 256 and 4096 characters. 
- 
- 
- 	intel_iommu=	[DMAR] Intel IOMMU driver (DMAR) option
-+		on
-+			Enable intel iommu driver.
- 		off
- 			Disable intel iommu driver.
- 		igfx_off [Default Off]
-diff -puN arch/x86/Kconfig~x86-allow-intel_iommu-support-to-be-disabled-by-default arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-allow-intel_iommu-support-to-be-disabled-by-default
-+++ a/arch/x86/Kconfig
-@@ -1811,6 +1811,17 @@ config DMAR
- 	  and include PCI device scope covered by these DMA
- 	  remapping devices.
- 
-+config DMAR_DEFAULT_ON
-+	def_bool n
-+	prompt " Enable DMA Remapping Devices by default"
-+	depends on DMAR
-+	help
-+	  Selecting this option will enable a DMAR device at boot time if
-+	  one is found. If this option is not selected, DMAR support can
-+	  be enabled by passing intel_iommu=on to the kernel. It is
-+	  recommended you say N here while the DMAR code remains
-+	  experimental.
-+
- config DMAR_GFX_WA
- 	def_bool y
- 	prompt "Support for Graphics workaround"
-diff -puN drivers/pci/intel-iommu.c~x86-allow-intel_iommu-support-to-be-disabled-by-default drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~x86-allow-intel_iommu-support-to-be-disabled-by-default
-+++ a/drivers/pci/intel-iommu.c
-@@ -268,7 +268,12 @@ static long list_size;
- 
- static void domain_remove_dev_info(struct dmar_domain *domain);
- 
--int dmar_disabled;
-+#ifdef CONFIG_DMAR_DEFAULT_ON
-+int dmar_disabled = 0;
-+#else
-+int dmar_disabled = 1;
-+#endif /*CONFIG_DMAR_DEFAULT_ON*/
-+
- static int __initdata dmar_map_gfx = 1;
- static int dmar_forcedac;
- static int intel_iommu_strict;
-@@ -284,9 +289,12 @@ static int __init intel_iommu_setup(char
- 	if (!str)
- 		return -EINVAL;
- 	while (*str) {
--		if (!strncmp(str, "off", 3)) {
-+		if (!strncmp(str, "on", 2)) {
-+			dmar_disabled = 0;
-+			printk(KERN_INFO "Intel-IOMMU: enabled\n");
-+		} else if (!strncmp(str, "off", 3)) {
- 			dmar_disabled = 1;
--			printk(KERN_INFO"Intel-IOMMU: disabled\n");
-+			printk(KERN_INFO "Intel-IOMMU: disabled\n");
- 		} else if (!strncmp(str, "igfx_off", 8)) {
- 			dmar_map_gfx = 0;
- 			printk(KERN_INFO
+diff -puN kernel/wait.c~wait-prevent-exclusive-waiter-starvation-checkpatch-fixes kernel/wait.c
+--- a/kernel/wait.c~wait-prevent-exclusive-waiter-starvation-checkpatch-fixes
++++ a/kernel/wait.c
+@@ -225,7 +225,8 @@ __wait_on_bit_lock(wait_queue_head_t *wq
+ 		prepare_to_wait_exclusive(wq, &q->wait, mode);
+ 		if (!test_bit(q->key.bit_nr, q->key.flags))
+ 			continue;
+-		if (!(ret = action(q->key.flags)))
++		ret = action(q->key.flags);
++		if (!ret)
+ 			continue;
+ 		abort_exclusive_wait(wq, &q->wait, mode, &q->key);
+ 		return ret;
 _
 
-Patches currently in -mm which might be from kyle@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-allow-intel_iommu-support-to-be-disabled-by-default.patch
+origin.patch
+kernel-asyncc-fix-printk-warnings.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
+wait-prevent-exclusive-waiter-starvation.patch
+wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
+sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_add_devices.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
