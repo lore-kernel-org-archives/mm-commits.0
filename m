@@ -1,118 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xp-fix-writing-past-the-end-of-kzallocd-space-v2.patch added to -mm tree
-Date: Wed, 04 Feb 2009 11:59:18 -0800
-Message-ID: <200902041959.n14JxIgh020786@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 04 Feb 2009 12:50:51 -0800
+Message-ID: <200902042050.n14Kopd1025509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46437 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751655AbZBDT7r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 14:59:47 -0500
+	by vger.kernel.org with ESMTP id S1754327AbZBDUux (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 15:50:53 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n14Kopk7020263
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 4 Feb 2009 12:50:52 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dcn@sgi.com, stable@kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-xp: fix writing past the end of kzalloc()'d space
-has been added to the -mm tree.  Its filename is
-     sgi-xp-fix-writing-past-the-end-of-kzallocd-space-v2.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: fix writing past the end of kzalloc()'d space
-From: Dean Nelson <dcn@sgi.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-A missing type cast results in writing way beyond the end of a kzalloc()'d
-memory segment resulting in slab corruption. But it seems like the better
-solution is to define ->recv_msg_slots as a 'void *' rather than a
-'struct xpc_notify_mq_msg_uv *' and add the type cast.
-
-Signed-off-by: Dean Nelson <dcn@sgi.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc.h    |    5 +++--
- drivers/misc/sgi-xp/xpc_uv.c |   11 +++++------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/ide/ide-acpi.c  |   28 ----------------------------
+ drivers/ide/via82cxxx.c |    3 ---
+ 2 files changed, 31 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-fix-writing-past-the-end-of-kzallocd-space-v2 drivers/misc/sgi-xp/xpc.h
---- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-fix-writing-past-the-end-of-kzallocd-space-v2
-+++ a/drivers/misc/sgi-xp/xpc.h
-@@ -3,7 +3,7 @@
-  * License.  See the file "COPYING" in the main directory of this archive
-  * for more details.
-  *
-- * Copyright (c) 2004-2008 Silicon Graphics, Inc.  All Rights Reserved.
-+ * Copyright (c) 2004-2009 Silicon Graphics, Inc.  All Rights Reserved.
-  */
+diff -puN drivers/ide/ide-acpi.c~linux-next-git-rejects drivers/ide/ide-acpi.c
+--- a/drivers/ide/ide-acpi.c~linux-next-git-rejects
++++ a/drivers/ide/ide-acpi.c
+@@ -222,34 +222,6 @@ static int do_drive_get_GTF(ide_drive_t 
+ 	*gtf_address = 0UL;
+ 	*obj_loc = 0UL;
  
- /*
-@@ -514,7 +514,8 @@ struct xpc_channel_uv {
- 						/* partition's notify mq */
+-<<<<<<< HEAD:drivers/ide/ide-acpi.c
+-	if (ide_noacpi)
+-		return 0;
+-
+-	if (!dev) {
+-		DEBPRINT("no PCI device for %s\n", hwif->name);
+-		goto out;
+-	}
+-
+-	if (!hwif->acpidata) {
+-		DEBPRINT("no ACPI data for %s\n", hwif->name);
+-		goto out;
+-	}
+-
+-	port = hwif->channel ? drive->dn - 2: drive->dn;
+-
+-	DEBPRINT("ENTER: %s at %s, port#: %d, hard_port#: %d\n",
+-		 hwif->name, dev_name(dev), port, hwif->channel);
+-
+-	if ((drive->dev_flags & IDE_DFLAG_PRESENT) == 0) {
+-		DEBPRINT("%s drive %d:%d not present\n",
+-			 hwif->name, hwif->channel, port);
+-		goto out;
+-	}
+-
+-	/* Get this drive's _ADR info. if not already known. */
+-=======
+->>>>>>> FETCH_HEAD:drivers/ide/ide-acpi.c
+ 	if (!drive->acpidata->obj_handle) {
+ 		DEBPRINT("No ACPI object found for %s\n", drive->name);
+ 		goto out;
+diff -puN drivers/ide/via82cxxx.c~linux-next-git-rejects drivers/ide/via82cxxx.c
+--- a/drivers/ide/via82cxxx.c~linux-next-git-rejects
++++ a/drivers/ide/via82cxxx.c
+@@ -443,7 +443,6 @@ static int __devinit via_init_one(struct
+ 	if ((via_config->flags & VIA_NO_UNMASK) == 0)
+ 		d.host_flags |= IDE_HFLAG_UNMASK_IRQS;
  
- 	struct xpc_send_msg_slot_uv *send_msg_slots;
--	struct xpc_notify_mq_msg_uv *recv_msg_slots;
-+	void *recv_msg_slots;	/* each slot will hold a xpc_notify_mq_msg_uv */
-+				/* structure plus the user's payload */
+-<<<<<<< HEAD:drivers/ide/via82cxxx.c
+ #ifdef CONFIG_PPC_CHRP
+ 	if (machine_is(chrp) && _chrp_type == _CHRP_Pegasos)
+ 		d.host_flags |= IDE_HFLAG_FORCE_LEGACY_IRQS;
+@@ -454,8 +453,6 @@ static int __devinit via_init_one(struct
+ 		d.host_flags |= IDE_HFLAG_FORCE_LEGACY_IRQS;
+ #endif
  
- 	struct xpc_fifo_head_uv msg_slot_free_list;
- 	struct xpc_fifo_head_uv recv_msg_list;	/* deliverable payloads */
-diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-fix-writing-past-the-end-of-kzallocd-space-v2 drivers/misc/sgi-xp/xpc_uv.c
---- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-fix-writing-past-the-end-of-kzallocd-space-v2
-+++ a/drivers/misc/sgi-xp/xpc_uv.c
-@@ -3,7 +3,7 @@
-  * License.  See the file "COPYING" in the main directory of this archive
-  * for more details.
-  *
-- * Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
-+ * Copyright (c) 2008-2009 Silicon Graphics, Inc.  All Rights Reserved.
-  */
+-=======
+->>>>>>> FETCH_HEAD:drivers/ide/via82cxxx.c
+ 	d.udma_mask = via_config->udma_mask;
  
- /*
-@@ -1010,8 +1010,8 @@ xpc_allocate_recv_msg_slot_uv(struct xpc
- 			continue;
- 
- 		for (entry = 0; entry < nentries; entry++) {
--			msg_slot = ch_uv->recv_msg_slots + entry *
--			    ch->entry_size;
-+			msg_slot = ch_uv->recv_msg_slots +
-+			    entry * ch->entry_size;
- 
- 			msg_slot->hdr.msg_slot_number = entry;
- 		}
-@@ -1308,9 +1308,8 @@ xpc_handle_notify_mq_msg_uv(struct xpc_p
- 	/* we're dealing with a normal message sent via the notify_mq */
- 	ch_uv = &ch->sn.uv;
- 
--	msg_slot = (struct xpc_notify_mq_msg_uv *)((u64)ch_uv->recv_msg_slots +
--		    (msg->hdr.msg_slot_number % ch->remote_nentries) *
--		    ch->entry_size);
-+	msg_slot = ch_uv->recv_msg_slots +
-+	    (msg->hdr.msg_slot_number % ch->remote_nentries) * ch->entry_size;
- 
- 	BUG_ON(msg->hdr.msg_slot_number != msg_slot->hdr.msg_slot_number);
- 	BUG_ON(msg_slot->hdr.size != 0);
+ 	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from dcn@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-sgi-xp-fix-writing-past-the-end-of-kzallocd-space-v2.patch
+kernel-asyncc-fix-printk-warnings.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
+wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
+sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-sgi-gru-add-support-to-the-gru-driver-for-message-queue-interrupts.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+kvm-unbork.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_add_devices.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
