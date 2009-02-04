@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch added to -mm tree
-Date: Wed, 04 Feb 2009 13:13:40 -0800
-Message-ID: <200902042113.n14LDedB023732@imap1.linux-foundation.org>
+Subject: + 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch added to -mm tree
+Date: Wed, 04 Feb 2009 13:16:44 -0800
+Message-ID: <200902042116.n14LGjFY027800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752427AbZBDVOd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 16:14:33 -0500
+	by vger.kernel.org with ESMTP id S1754924AbZBDVRt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 16:17:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, geert@linux-m68k.org, krzysztof.h1@poczta.fm, randy.dunlap@oracle.com
+Cc: mchehab@redhat.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     cirrusfb-convert-printks-to-dev_foo-fix-fix2
+     8250: fix boot hang with serial console when using with Serial Over Lan port
 has been added to the -mm tree.  Its filename is
-     cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,176 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb-convert-printks-to-dev_foo-fix-fix2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: 8250: fix boot hang with serial console when using with Serial Over Lan port
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Intel 8257x Ethernet boards have a feature called Serial Over Lan.
+
+This feature works by emulating a serial port, and it is detected by
+kernel as a normal 8250 port.  However, this emulation is not perfect, as
+also noticed on changeset 7500b1f602aad75901774a67a687ee985d85893f.
+
+Before this patch, the kernel were trying to check if the serial TX is
+capable of work using IRQ's.
+
+This were done with a code similar this:
+
+        serial_outp(up, UART_IER, UART_IER_THRI);
+        lsr = serial_in(up, UART_LSR);
+        iir = serial_in(up, UART_IIR);
+        serial_outp(up, UART_IER, 0);
+
+        if (lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT)
+		up->bugs |= UART_BUG_TXEN;
+
+This works fine for other 8250 ports, but, on 8250-emulated SoL port, the
+chip is a little lazy to down UART_IIR_NO_INT at UART_IIR register.
+
+Due to that, UART_BUG_TXEN is sometimes enabled.  However, as TX IRQ keeps
+working, and the TX polling is now enabled, the driver miss-interprets the
+IRQ received later, hanging up the machine until a key is pressed at the
+serial console.
+
+This is the 6 version of this patch.  Previous versions were trying to
+introduce a large enough delay between serial_outp and serial_in(up,
+UART_IIR), but not taking forever.  However, the needed delay couldn't be
+safely determined.
+
+At the experimental tests, a delay of 1us solves most of the cases, but
+still hangs sometimes.  Increasing the delay to 5us was better, but still
+doesn't solve.  A very high delay of 50 ms seemed to work every time.
+
+However, poking around with delays and pray for it to be enough doesn't
+seem to be a good approach, even for a quirk.
+
+So, instead of playing with random large arbitrary delays, let's just
+disable UART_BUG_TXEN for all SoL ports.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/serial/8250.c       |   15 ++++++++++++++
+ drivers/serial/8250_pci.c   |   36 ++++++++++++++++++++++++++++++++++
+ include/linux/pci_ids.h     |    3 ++
+ include/linux/serial_core.h |    1 
+ 4 files changed, 55 insertions(+)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix2 drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix2
-+++ a/drivers/video/cirrusfb.c
-@@ -2384,7 +2384,8 @@ static int __init cirrusfb_init(void)
+diff -puN drivers/serial/8250.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port drivers/serial/8250.c
+--- a/drivers/serial/8250.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
++++ a/drivers/serial/8250.c
+@@ -2083,6 +2083,20 @@ static int serial8250_startup(struct uar
+ 
+ 	serial8250_set_mctrl(&up->port, up->port.mctrl);
+ 
++	/* Serial over Lan (SoL) hack:
++	   Intel 8257x Gigabit ethernet chips have a
++	   16550 emulation, to be used for Serial Over Lan.
++	   Those chips take a longer time than a normal
++	   serial device to signalize that a transmission
++	   data was queued. Due to that, the above test generally
++	   fails. One solution would be to delay the reading of
++	   iir. However, this is not reliable, since the timeout
++	   is variable. So, let's just don't test if we receive
++	   TX irq. This way, we'll never enable UART_BUG_TXEN.
++	 */
++	if (up->port.flags & UPF_NO_TXEN_TEST)
++		goto dont_test_tx_en;
++
+ 	/*
+ 	 * Do a quick test to see if we receive an
+ 	 * interrupt when we enable the TX irq.
+@@ -2102,6 +2116,7 @@ static int serial8250_startup(struct uar
+ 		up->bugs &= ~UART_BUG_TXEN;
+ 	}
+ 
++dont_test_tx_en:
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ 
+ 	/*
+diff -puN drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
++++ a/drivers/serial/8250_pci.c
+@@ -798,6 +798,21 @@ pci_default_setup(struct serial_private 
+ 	return setup_port(priv, port, bar, offset, board->reg_shift);
  }
  
- #ifndef MODULE
--static int __init cirrusfb_setup(char *options) {
-+static int __init cirrusfb_setup(char *options)
++static int
++skip_tx_en_setup(struct serial_private *priv, struct pciserial_board *board,
++		  struct uart_port *port, int idx)
 +{
- 	char *this_opt;
- 
- 	if (!options || !*options)
-@@ -2394,9 +2395,6 @@ static int __init cirrusfb_setup(char *o
- 		if (!*this_opt)
- 			continue;
- 
--		dev_dbg(info->device,
--			"cirrusfb_setup: option '%s'\n", this_opt);
--
- 		if (!strcmp(this_opt, "noaccel"))
- 			noaccel = 1;
- 		else if (!strncmp(this_opt, "mode:", 5))
++	port->flags |= UPF_NO_TXEN_TEST;
++	printk(KERN_DEBUG "serial8250: skipping TxEn test for device "
++			  "[%04x:%04x] subsystem [%04x:%04x]\n",
++			  priv->dev->vendor,
++			  priv->dev->device,
++			  priv->dev->subsystem_vendor,
++			  priv->dev->subsystem_device);
++
++	return pci_default_setup(priv, board, port, idx);
++}
++
+ /* This should be in linux/pci_ids.h */
+ #define PCI_VENDOR_ID_SBSMODULARIO	0x124B
+ #define PCI_SUBVENDOR_ID_SBSMODULARIO	0x124B
+@@ -864,6 +879,27 @@ static struct pci_serial_quirk pci_seria
+ 		.init		= pci_inteli960ni_init,
+ 		.setup		= pci_default_setup,
+ 	},
++	{
++		.vendor		= PCI_VENDOR_ID_INTEL,
++		.device		= PCI_DEVICE_ID_INTEL_8257X_SOL,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++		.setup		= skip_tx_en_setup,
++	},
++	{
++		.vendor		= PCI_VENDOR_ID_INTEL,
++		.device		= PCI_DEVICE_ID_INTEL_82573L_SOL,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++		.setup		= skip_tx_en_setup,
++	},
++	{
++		.vendor		= PCI_VENDOR_ID_INTEL,
++		.device		= PCI_DEVICE_ID_INTEL_82573E_SOL,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++		.setup		= skip_tx_en_setup,
++	},
+ 	/*
+ 	 * ITE
+ 	 */
+diff -puN include/linux/pci_ids.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
++++ a/include/linux/pci_ids.h
+@@ -2340,6 +2340,9 @@
+ #define PCI_DEVICE_ID_INTEL_82378	0x0484
+ #define PCI_DEVICE_ID_INTEL_I960	0x0960
+ #define PCI_DEVICE_ID_INTEL_I960RM	0x0962
++#define PCI_DEVICE_ID_INTEL_8257X_SOL	0x1062
++#define PCI_DEVICE_ID_INTEL_82573E_SOL	0x1085
++#define PCI_DEVICE_ID_INTEL_82573L_SOL	0x108F
+ #define PCI_DEVICE_ID_INTEL_82815_MC	0x1130
+ #define PCI_DEVICE_ID_INTEL_82815_CGC	0x1132
+ #define PCI_DEVICE_ID_INTEL_82092AA_0	0x1221
+diff -puN include/linux/serial_core.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port include/linux/serial_core.h
+--- a/include/linux/serial_core.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
++++ a/include/linux/serial_core.h
+@@ -299,6 +299,7 @@ struct uart_port {
+ #define UPF_HARDPPS_CD		((__force upf_t) (1 << 11))
+ #define UPF_LOW_LATENCY		((__force upf_t) (1 << 13))
+ #define UPF_BUGGY_UART		((__force upf_t) (1 << 14))
++#define UPF_NO_TXEN_TEST	((__force upf_t) (1 << 15))
+ #define UPF_MAGIC_MULTIPLIER	((__force upf_t) (1 << 16))
+ #define UPF_CONS_FLOW		((__force upf_t) (1 << 23))
+ #define UPF_SHARE_IRQ		((__force upf_t) (1 << 24))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mchehab@redhat.com are
 
 origin.patch
-kernel-asyncc-fix-printk-warnings.patch
-revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
-hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
-wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
-sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-early-platform-driver-v3-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_add_devices.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-ata-sata_silc-needs-dmih.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
-cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
 
