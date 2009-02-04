@@ -1,63 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded] wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 04 Feb 2009 15:09:07 -0800
-Message-ID: <200902042309.n14N970B016605@imap1.linux-foundation.org>
+Subject: [folded] sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl-fix.patch removed from -mm tree
+Date: Wed, 04 Feb 2009 15:09:33 -0800
+Message-ID: <200902042309.n14N9XIu017196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35446 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752066AbZBDXJQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 18:09:16 -0500
+	by vger.kernel.org with ESMTP id S1751583AbZBDXJj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 18:09:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, R.E.Wolff@BitWizard.nl, error27@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wait-prevent-exclusive-waiter-starvation-checkpatch-fixes
+     sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl-fix
 has been removed from the -mm tree.  Its filename was
-     wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
+     sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl-fix.patch
 
-This patch was dropped because it was folded into wait-prevent-exclusive-waiter-starvation.patch
+This patch was dropped because it was folded into sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait-prevent-exclusive-waiter-starvation-checkpatch-fixes
+Subject: sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: do not use assignment in if condition
-#175: FILE: kernel/wait.c:228:
-+		if (!(ret = action(q->key.flags)))
+fix another such path - missed func_exit().
 
-total: 1 errors, 0 warnings, 127 lines checked
-
-./patches/wait-prevent-exclusive-waiter-starvation.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: <R.E.Wolff@BitWizard.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/wait.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/char/sx.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/wait.c~wait-prevent-exclusive-waiter-starvation-checkpatch-fixes kernel/wait.c
---- a/kernel/wait.c~wait-prevent-exclusive-waiter-starvation-checkpatch-fixes
-+++ a/kernel/wait.c
-@@ -225,7 +225,8 @@ __wait_on_bit_lock(wait_queue_head_t *wq
- 		prepare_to_wait_exclusive(wq, &q->wait, mode);
- 		if (!test_bit(q->key.bit_nr, q->key.flags))
- 			continue;
--		if (!(ret = action(q->key.flags)))
-+		ret = action(q->key.flags);
-+		if (!ret)
- 			continue;
- 		abort_exclusive_wait(wq, &q->wait, mode, &q->key);
- 		return ret;
+diff -puN drivers/char/sx.c~sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl-fix drivers/char/sx.c
+--- a/drivers/char/sx.c~sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl-fix
++++ a/drivers/char/sx.c
+@@ -1713,8 +1713,8 @@ static long sx_fw_ioctl(struct file *fil
+ 		for (i = 0; i < SX_NBOARDS; i++)
+ 			sx_dprintk(SX_DEBUG_FIRMWARE, "<%x> ", boards[i].flags);
+ 		sx_dprintk(SX_DEBUG_FIRMWARE, "\n");
+-		unlock_kernel();
+-		return -EIO;
++		rc = -EIO;
++		goto out;
+ 	}
+ 
+ 	switch (cmd) {
+@@ -1845,6 +1845,7 @@ static long sx_fw_ioctl(struct file *fil
+ 		rc = -ENOTTY;
+ 		break;
+ 	}
++out:
+ 	unlock_kernel();
+ 	func_exit();
+ 	return rc;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +67,7 @@ kernel-asyncc-fix-printk-warnings.patch
 revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
 hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
 wait-prevent-exclusive-waiter-starvation.patch
-wait-prevent-exclusive-waiter-starvation-checkpatch-fixes.patch
+sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl.patch
 sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl-fix.patch
 i-need-old-gcc.patch
 i2c-too-much-compiler-noise.patch
