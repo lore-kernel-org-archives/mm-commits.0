@@ -1,107 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-fixup-bug-macro.patch added to -mm tree
-Date: Wed, 04 Feb 2009 06:50:11 -0800
-Message-ID: <200902041450.n14EoBG4026217@imap1.linux-foundation.org>
+Subject: [to-be-updated] sgi-xp-add-type-cast-to-kzallocd-space-to-avoid-slab-corruption.patch removed from -mm tree
+Date: Wed, 04 Feb 2009 11:57:56 -0800
+Message-ID: <200902041957.n14Jvu10018929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54209 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755076AbZBDOuY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 09:50:24 -0500
+	by vger.kernel.org with ESMTP id S1758379AbZBDT6H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 14:58:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+To: dcn@sgi.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fixup BUG macro
-has been added to the -mm tree.  Its filename is
-     alpha-fixup-bug-macro.patch
+     sgi-xp: add type cast to kzalloc()'d space to avoid slab corruption
+has been removed from the -mm tree.  Its filename was
+     sgi-xp-add-type-cast-to-kzallocd-space-to-avoid-slab-corruption.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: fixup BUG macro
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: sgi-xp: add type cast to kzalloc()'d space to avoid slab corruption
+From: Dean Nelson <dcn@sgi.com>
 
-Do usual do {} while (0) dance, otherwise
+A missing type cast results in writing way beyond the end of a kzalloc()'d
+memory segment resulting in slab corruption.
 
-fs/gfs2/util.c:99: error: expected expression before 'else'
-drivers/scsi/lpfc/lpfc_sli.c:363: error: expected expression before 'else'
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/bug.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/misc/sgi-xp/xpc_uv.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/alpha/include/asm/bug.h~alpha-fixup-bug-macro arch/alpha/include/asm/bug.h
---- a/arch/alpha/include/asm/bug.h~alpha-fixup-bug-macro
-+++ a/arch/alpha/include/asm/bug.h
-@@ -8,12 +8,12 @@
+diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-add-type-cast-to-kzallocd-space-to-avoid-slab-corruption drivers/misc/sgi-xp/xpc_uv.c
+--- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-add-type-cast-to-kzallocd-space-to-avoid-slab-corruption
++++ a/drivers/misc/sgi-xp/xpc_uv.c
+@@ -3,7 +3,7 @@
+  * License.  See the file "COPYING" in the main directory of this archive
+  * for more details.
+  *
+- * Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ * Copyright (c) 2008-2009 Silicon Graphics, Inc.  All Rights Reserved.
+  */
  
- /* ??? Would be nice to use .gprel32 here, but we can't be sure that the
-    function loaded the GP, so this could fail in modules.  */
--#define BUG()	{							\
-+#define BUG()	do {							\
- 	__asm__ __volatile__(						\
- 		"call_pal %0  # bugchk\n\t"				\
- 		".long %1\n\t.8byte %2"					\
- 		: : "i"(PAL_bugchk), "i"(__LINE__), "i"(__FILE__));	\
--	for ( ; ; ); }
-+	for ( ; ; ); } while (0)
+ /*
+@@ -1010,8 +1010,8 @@ xpc_allocate_recv_msg_slot_uv(struct xpc
+ 			continue;
  
- #define HAVE_ARCH_BUG
- #endif
+ 		for (entry = 0; entry < nentries; entry++) {
+-			msg_slot = ch_uv->recv_msg_slots + entry *
+-			    ch->entry_size;
++			msg_slot = (struct xpc_notify_mq_msg_uv *)((u8 *)
++			    ch_uv->recv_msg_slots + entry * ch->entry_size);
+ 
+ 			msg_slot->hdr.msg_slot_number = entry;
+ 		}
+@@ -1308,7 +1308,7 @@ xpc_handle_notify_mq_msg_uv(struct xpc_p
+ 	/* we're dealing with a normal message sent via the notify_mq */
+ 	ch_uv = &ch->sn.uv;
+ 
+-	msg_slot = (struct xpc_notify_mq_msg_uv *)((u64)ch_uv->recv_msg_slots +
++	msg_slot = (struct xpc_notify_mq_msg_uv *)((u8 *)ch_uv->recv_msg_slots +
+ 		    (msg->hdr.msg_slot_number % ch->remote_nentries) *
+ 		    ch->entry_size);
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from dcn@sgi.com are
 
 origin.patch
-alpha-fixup-bug-macro.patch
-seq_file-move-traverse-so-it-can-be-used-from-seq_read.patch
-seq_file-properly-cope-with-pread.patch
-seq_file-properly-cope-with-pread-fix.patch
+sgi-xp-add-type-cast-to-kzallocd-space-to-avoid-slab-corruption.patch
 linux-next.patch
-eeepc-should-depend-on-input.patch
-tags-fix-config-symbols-generation.patch
-sm501-fix-section-mismatches.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-proc-tty-add-struct-tty_operations-proc_fops.patch
-proc-tty-switch-cyclades-to-proc_fops.patch
-proc-tty-switch-ip2-to-proc_fops.patch
-proc-tty-switch-istallion-to-proc_fops.patch
-proc-tty-switch-synclink_cs-to-proc_fops.patch
-proc-tty-switch-stallion-to-proc_fops.patch
-proc-tty-switch-synclink-to-proc_fops.patch
-proc-tty-switch-synclink_gt-to-proc_fops.patch
-proc-tty-switch-synclinkmp-to-proc_fops.patch
-proc-tty-switch-sdio_uart-to-proc_fops.patch
-proc-tty-switch-serial_core-to-proc_fops.patch
-proc-tty-switch-usb-serial-to-proc_fops.patch
-proc-tty-switch-ircomm-to-proc_fops.patch
-proc-tty-switch-amiserial-to-proc_fops.patch
-proc-tty-switch-ia64-simserial-to-proc_fops.patch
-proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
-proc-tty-remove-struct-tty_operations-read_proc.patch
-xtensa-fix-compilation-somewhat.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
+sgi-gru-add-support-to-the-gru-driver-for-message-queue-interrupts.patch
 
