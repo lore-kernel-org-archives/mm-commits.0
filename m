@@ -1,95 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sunrpc-fix-rdma-dependencies.patch removed from -mm tree
-Date: Wed, 04 Feb 2009 12:52:24 -0800
-Message-ID: <200902042052.n14KqOdb027568@imap1.linux-foundation.org>
+Subject: + cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch added to -mm tree
+Date: Wed, 04 Feb 2009 13:06:18 -0800
+Message-ID: <200902042106.n14L6Je0013904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35135 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753617AbZBDUx1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 15:53:27 -0500
+	by vger.kernel.org with ESMTP id S1753151AbZBDVGe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 16:06:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, bfields@fieldses.org, davem@davemloft.net, neilb@suse.de, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: krzysztof.h1@wp.pl, geert@linux-m68k.org
 
 
 The patch titled
-     sunrpc: fix rdma dependencies
-has been removed from the -mm tree.  Its filename was
-     sunrpc-fix-rdma-dependencies.patch
+     cirrusfb: fix Laguna chipset memory detection and clock setting
+has been added to the -mm tree.  Its filename is
+     cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sunrpc: fix rdma dependencies
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cirrusfb: fix Laguna chipset memory detection and clock setting
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Fix sunrpc/rdma build dependencies.
-Survives 12 build combinations of INET, IPV6, SUNRPC,
-INFINIBAND, and INFINIBAND_ADDR_TRANS.
+Fix memory detection and clock setting for Cirrus Laguna chipsets
+(GD5464/GD5465).  The changes are done after the Xorg code.
 
-ERROR: "rdma_destroy_id" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_connect" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_destroy_qp" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_create_id" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_create_qp" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_resolve_route" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_disconnect" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_resolve_addr" [net/sunrpc/xprtrdma/xprtrdma.ko] undefined!
-ERROR: "rdma_accept" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_destroy_id" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_listen" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_create_id" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_create_qp" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_bind_addr" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "rdma_disconnect" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
+The driver still does not display anything on the GD5465 but it switches
+resolutions correctly at least.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: J. Bruce Fields <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Dave Miller <davem@davemloft.net>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/cirrusfb.c |   65 +++++++++++++++++++++----------------
+ 1 file changed, 38 insertions(+), 27 deletions(-)
 
-diff -puN net/sunrpc/Kconfig~sunrpc-fix-rdma-dependencies net/sunrpc/Kconfig
---- a/net/sunrpc/Kconfig~sunrpc-fix-rdma-dependencies
-+++ a/net/sunrpc/Kconfig
-@@ -6,7 +6,7 @@ config SUNRPC_GSS
+diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting
++++ a/drivers/video/cirrusfb.c
+@@ -867,19 +867,24 @@ static int cirrusfb_set_par_foo(struct f
+ 		}
+ 	}
+ 	if (nom) {
+-		vga_wseq(regbase, CL_SEQRB, nom);
+ 		tmp = den << 1;
+ 		if (div != 0)
+ 			tmp |= 1;
+-
+ 		/* 6 bit denom; ONLY 5434!!! (bugged me 10 days) */
+ 		if ((cinfo->btype == BT_SD64) ||
+ 		    (cinfo->btype == BT_ALPINE) ||
+ 		    (cinfo->btype == BT_GD5480))
+ 			tmp |= 0x80;
  
- config SUNRPC_XPRT_RDMA
- 	tristate
--	depends on SUNRPC && INFINIBAND && EXPERIMENTAL
-+	depends on SUNRPC && INFINIBAND && INFINIBAND_ADDR_TRANS && EXPERIMENTAL
- 	default SUNRPC && INFINIBAND
- 	help
- 	  This option allows the NFS client and server to support
+-		dev_dbg(info->device, "CL_SEQR1B: %ld\n", (long) tmp);
+-		vga_wseq(regbase, CL_SEQR1B, tmp);
++		dev_dbg(info->device, "CL_SEQR1B: %d\n", (int) tmp);
++		/* Laguna chipset has reversed clock registers */
++		if (cinfo->btype == BT_LAGUNA) {
++			vga_wseq(regbase, CL_SEQRE, tmp);
++			vga_wseq(regbase, CL_SEQR1E, nom);
++		} else {
++			vga_wseq(regbase, CL_SEQRB, nom);
++			vga_wseq(regbase, CL_SEQR1B, tmp);
++		}
+ 	}
+ 
+ 	if (yres >= 1024)
+@@ -1917,31 +1922,37 @@ static unsigned int __devinit cirrusfb_g
+ 						   u8 __iomem *regbase)
+ {
+ 	unsigned long mem;
+-	unsigned char SRF;
++	struct cirrusfb_info *cinfo = info->par;
+ 
+-	SRF = vga_rseq(regbase, CL_SEQRF);
+-	switch ((SRF & 0x18)) {
+-	case 0x08:
+-		mem = 512 * 1024;
+-		break;
+-	case 0x10:
+-		mem = 1024 * 1024;
+-		break;
+-	/* 64-bit DRAM data bus width; assume 2MB. Also indicates 2MB memory
+-	 * on the 5430.
+-	 */
+-	case 0x18:
+-		mem = 2048 * 1024;
+-		break;
+-	default:
+-		dev_warn(info->device, "CLgenfb: Unknown memory size!\n");
+-		mem = 1024 * 1024;
++	if (cinfo->btype == BT_LAGUNA) {
++		unsigned char SR14 = vga_rseq(regbase, CL_SEQR14);
++
++		mem = ((SR14 & 7) + 1) << 20;
++	} else {
++		unsigned char SRF = vga_rseq(regbase, CL_SEQRF);
++		switch ((SRF & 0x18)) {
++		case 0x08:
++			mem = 512 * 1024;
++			break;
++		case 0x10:
++			mem = 1024 * 1024;
++			break;
++		/* 64-bit DRAM data bus width; assume 2MB.
++		 * Also indicates 2MB memory on the 5430.
++		 */
++		case 0x18:
++			mem = 2048 * 1024;
++			break;
++		default:
++			dev_warn(info->device, "Unknown memory size!\n");
++			mem = 1024 * 1024;
++		}
++		/* If DRAM bank switching is enabled, there must be
++		 * twice as much memory installed. (4MB on the 5434)
++		 */
++		if (SRF & 0x80)
++			mem *= 2;
+ 	}
+-	if (SRF & 0x80)
+-	/* If DRAM bank switching is enabled, there must be twice as much
+-	 * memory installed. (4MB on the 5434)
+-	 */
+-		mem *= 2;
+ 
+ 	/* TODO: Handling of GD5446/5480 (see XF86 sources ...) */
+ 	return mem;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-origin.patch
-maintainers-general-listsopenfabricsorg-is-moderated.patch
-atyfb-fix-config_-namespace-violations.patch
+fbmem-copy_from-to_user-with-mutex-held-v3.patch
 linux-next.patch
-uv-fix-header-struct-usage.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver-dont-use-bus_id.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-documentation-ignore-byproducts-from-latex.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-linuxpps-core-support.patch
+cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
 
