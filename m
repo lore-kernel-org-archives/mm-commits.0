@@ -1,100 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 04 Feb 2009 12:50:51 -0800
-Message-ID: <200902042050.n14Kopd1025509@imap1.linux-foundation.org>
+Subject: [obsolete] kvm-unbork.patch removed from -mm tree
+Date: Wed, 04 Feb 2009 12:51:03 -0800
+Message-ID: <200902042051.n14Kp3Lb025743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754327AbZBDUux (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 15:50:53 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n14Kopk7020263
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 4 Feb 2009 12:50:52 -0800
+	by vger.kernel.org with ESMTP id S1754717AbZBDUwK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 15:52:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agraf@suse.de, avi@redhat.com, mtosatti@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     kvm-unbork
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     kvm-unbork.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: kvm-unbork
 From: Andrew Morton <akpm@linux-foundation.org>
 
+that'll fix it, lol.
+
+Please perform regular i386 testing?
+
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Alexander Graf <agraf@suse.de>
+Cc: Avi Kivity <avi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-acpi.c  |   28 ----------------------------
- drivers/ide/via82cxxx.c |    3 ---
- 2 files changed, 31 deletions(-)
+ arch/x86/kvm/lapic.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/ide/ide-acpi.c~linux-next-git-rejects drivers/ide/ide-acpi.c
---- a/drivers/ide/ide-acpi.c~linux-next-git-rejects
-+++ a/drivers/ide/ide-acpi.c
-@@ -222,34 +222,6 @@ static int do_drive_get_GTF(ide_drive_t 
- 	*gtf_address = 0UL;
- 	*obj_loc = 0UL;
+diff -puN arch/x86/kvm/lapic.c~kvm-unbork arch/x86/kvm/lapic.c
+--- a/arch/x86/kvm/lapic.c~kvm-unbork
++++ a/arch/x86/kvm/lapic.c
+@@ -525,7 +525,6 @@ static u32 apic_get_tmcct(struct kvm_lap
+ 	if (ktime_to_ns(remaining) < 0)
+ 		remaining = ktime_set(0, 0);
  
--<<<<<<< HEAD:drivers/ide/ide-acpi.c
--	if (ide_noacpi)
--		return 0;
--
--	if (!dev) {
--		DEBPRINT("no PCI device for %s\n", hwif->name);
--		goto out;
--	}
--
--	if (!hwif->acpidata) {
--		DEBPRINT("no ACPI data for %s\n", hwif->name);
--		goto out;
--	}
--
--	port = hwif->channel ? drive->dn - 2: drive->dn;
--
--	DEBPRINT("ENTER: %s at %s, port#: %d, hard_port#: %d\n",
--		 hwif->name, dev_name(dev), port, hwif->channel);
--
--	if ((drive->dev_flags & IDE_DFLAG_PRESENT) == 0) {
--		DEBPRINT("%s drive %d:%d not present\n",
--			 hwif->name, hwif->channel, port);
--		goto out;
--	}
--
--	/* Get this drive's _ADR info. if not already known. */
--=======
-->>>>>>> FETCH_HEAD:drivers/ide/ide-acpi.c
- 	if (!drive->acpidata->obj_handle) {
- 		DEBPRINT("No ACPI object found for %s\n", drive->name);
- 		goto out;
-diff -puN drivers/ide/via82cxxx.c~linux-next-git-rejects drivers/ide/via82cxxx.c
---- a/drivers/ide/via82cxxx.c~linux-next-git-rejects
-+++ a/drivers/ide/via82cxxx.c
-@@ -443,7 +443,6 @@ static int __devinit via_init_one(struct
- 	if ((via_config->flags & VIA_NO_UNMASK) == 0)
- 		d.host_flags |= IDE_HFLAG_UNMASK_IRQS;
+-	ns = ktime_to_ns(remaining) % apic->timer.period;
+ 	tmcct = div64_u64(ns, (APIC_BUS_CYCLE_NS * apic->timer.divide_count));
  
--<<<<<<< HEAD:drivers/ide/via82cxxx.c
- #ifdef CONFIG_PPC_CHRP
- 	if (machine_is(chrp) && _chrp_type == _CHRP_Pegasos)
- 		d.host_flags |= IDE_HFLAG_FORCE_LEGACY_IRQS;
-@@ -454,8 +453,6 @@ static int __devinit via_init_one(struct
- 		d.host_flags |= IDE_HFLAG_FORCE_LEGACY_IRQS;
- #endif
- 
--=======
-->>>>>>> FETCH_HEAD:drivers/ide/via82cxxx.c
- 	d.udma_mask = via_config->udma_mask;
- 
- 	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
+ 	return tmcct;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,7 +64,6 @@ i-need-old-gcc.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
 next-remove-localversion.patch
-linux-next-git-rejects.patch
 kvm-unbork.patch
 fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
