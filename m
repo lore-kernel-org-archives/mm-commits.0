@@ -1,208 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch added to -mm tree
-Date: Wed, 04 Feb 2009 13:16:44 -0800
-Message-ID: <200902042116.n14LGjFY027800@imap1.linux-foundation.org>
+Subject: [to-be-updated] intel_iommu-default-to-off.patch removed from -mm tree
+Date: Wed, 04 Feb 2009 14:23:21 -0800
+Message-ID: <200902042223.n14MNLUL019964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40030 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754924AbZBDVRt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 16:17:49 -0500
+	by vger.kernel.org with ESMTP id S1751978AbZBDWZD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 17:25:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mchehab@redhat.com, alan@lxorguk.ukuu.org.uk
+To: kyle@redhat.com, dwmw2@infradead.org, jbarnes@virtuousgeek.org, markmc@redhat.com, stable@kernel.org, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250: fix boot hang with serial console when using with Serial Over Lan port
-has been added to the -mm tree.  Its filename is
-     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+     intel_iommu: default to off
+has been removed from the -mm tree.  Its filename was
+     intel_iommu-default-to-off.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250: fix boot hang with serial console when using with Serial Over Lan port
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: intel_iommu: default to off
+From: Kyle McMartin <kyle@redhat.com>
 
-Intel 8257x Ethernet boards have a feature called Serial Over Lan.
+Due to reports of data corruption due to aborted DMA when using the intel
+iommu code, disable it by default and provide a command line parameter
+"intel_iommu=on" to turn it back on again.
 
-This feature works by emulating a serial port, and it is detected by
-kernel as a normal 8250 port.  However, this emulation is not perfect, as
-also noticed on changeset 7500b1f602aad75901774a67a687ee985d85893f.
-
-Before this patch, the kernel were trying to check if the serial TX is
-capable of work using IRQ's.
-
-This were done with a code similar this:
-
-        serial_outp(up, UART_IER, UART_IER_THRI);
-        lsr = serial_in(up, UART_LSR);
-        iir = serial_in(up, UART_IIR);
-        serial_outp(up, UART_IER, 0);
-
-        if (lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT)
-		up->bugs |= UART_BUG_TXEN;
-
-This works fine for other 8250 ports, but, on 8250-emulated SoL port, the
-chip is a little lazy to down UART_IIR_NO_INT at UART_IIR register.
-
-Due to that, UART_BUG_TXEN is sometimes enabled.  However, as TX IRQ keeps
-working, and the TX polling is now enabled, the driver miss-interprets the
-IRQ received later, hanging up the machine until a key is pressed at the
-serial console.
-
-This is the 6 version of this patch.  Previous versions were trying to
-introduce a large enough delay between serial_outp and serial_in(up,
-UART_IIR), but not taking forever.  However, the needed delay couldn't be
-safely determined.
-
-At the experimental tests, a delay of 1us solves most of the cases, but
-still hangs sometimes.  Increasing the delay to 5us was better, but still
-doesn't solve.  A very high delay of 50 ms seemed to work every time.
-
-However, poking around with delays and pray for it to be enough doesn't
-seem to be a good approach, even for a quirk.
-
-So, instead of playing with random large arbitrary delays, let's just
-disable UART_BUG_TXEN for all SoL ports.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Kyle McMartin <kyle@redhat.com>
+Cc: Mark McLoughlin <markmc@redhat.com>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: <stable@kernel.org>		[2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c       |   15 ++++++++++++++
- drivers/serial/8250_pci.c   |   36 ++++++++++++++++++++++++++++++++++
- include/linux/pci_ids.h     |    3 ++
- include/linux/serial_core.h |    1 
- 4 files changed, 55 insertions(+)
+ drivers/pci/intel-iommu.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/serial/8250.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port drivers/serial/8250.c
---- a/drivers/serial/8250.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
-+++ a/drivers/serial/8250.c
-@@ -2083,6 +2083,20 @@ static int serial8250_startup(struct uar
+diff -puN drivers/pci/intel-iommu.c~intel_iommu-default-to-off drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel_iommu-default-to-off
++++ a/drivers/pci/intel-iommu.c
+@@ -268,7 +268,7 @@ static long list_size;
  
- 	serial8250_set_mctrl(&up->port, up->port.mctrl);
+ static void domain_remove_dev_info(struct dmar_domain *domain);
  
-+	/* Serial over Lan (SoL) hack:
-+	   Intel 8257x Gigabit ethernet chips have a
-+	   16550 emulation, to be used for Serial Over Lan.
-+	   Those chips take a longer time than a normal
-+	   serial device to signalize that a transmission
-+	   data was queued. Due to that, the above test generally
-+	   fails. One solution would be to delay the reading of
-+	   iir. However, this is not reliable, since the timeout
-+	   is variable. So, let's just don't test if we receive
-+	   TX irq. This way, we'll never enable UART_BUG_TXEN.
-+	 */
-+	if (up->port.flags & UPF_NO_TXEN_TEST)
-+		goto dont_test_tx_en;
-+
- 	/*
- 	 * Do a quick test to see if we receive an
- 	 * interrupt when we enable the TX irq.
-@@ -2102,6 +2116,7 @@ static int serial8250_startup(struct uar
- 		up->bugs &= ~UART_BUG_TXEN;
- 	}
- 
-+dont_test_tx_en:
- 	spin_unlock_irqrestore(&up->port.lock, flags);
- 
- 	/*
-diff -puN drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
-+++ a/drivers/serial/8250_pci.c
-@@ -798,6 +798,21 @@ pci_default_setup(struct serial_private 
- 	return setup_port(priv, port, bar, offset, board->reg_shift);
- }
- 
-+static int
-+skip_tx_en_setup(struct serial_private *priv, struct pciserial_board *board,
-+		  struct uart_port *port, int idx)
-+{
-+	port->flags |= UPF_NO_TXEN_TEST;
-+	printk(KERN_DEBUG "serial8250: skipping TxEn test for device "
-+			  "[%04x:%04x] subsystem [%04x:%04x]\n",
-+			  priv->dev->vendor,
-+			  priv->dev->device,
-+			  priv->dev->subsystem_vendor,
-+			  priv->dev->subsystem_device);
-+
-+	return pci_default_setup(priv, board, port, idx);
-+}
-+
- /* This should be in linux/pci_ids.h */
- #define PCI_VENDOR_ID_SBSMODULARIO	0x124B
- #define PCI_SUBVENDOR_ID_SBSMODULARIO	0x124B
-@@ -864,6 +879,27 @@ static struct pci_serial_quirk pci_seria
- 		.init		= pci_inteli960ni_init,
- 		.setup		= pci_default_setup,
- 	},
-+	{
-+		.vendor		= PCI_VENDOR_ID_INTEL,
-+		.device		= PCI_DEVICE_ID_INTEL_8257X_SOL,
-+		.subvendor	= PCI_ANY_ID,
-+		.subdevice	= PCI_ANY_ID,
-+		.setup		= skip_tx_en_setup,
-+	},
-+	{
-+		.vendor		= PCI_VENDOR_ID_INTEL,
-+		.device		= PCI_DEVICE_ID_INTEL_82573L_SOL,
-+		.subvendor	= PCI_ANY_ID,
-+		.subdevice	= PCI_ANY_ID,
-+		.setup		= skip_tx_en_setup,
-+	},
-+	{
-+		.vendor		= PCI_VENDOR_ID_INTEL,
-+		.device		= PCI_DEVICE_ID_INTEL_82573E_SOL,
-+		.subvendor	= PCI_ANY_ID,
-+		.subdevice	= PCI_ANY_ID,
-+		.setup		= skip_tx_en_setup,
-+	},
- 	/*
- 	 * ITE
- 	 */
-diff -puN include/linux/pci_ids.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
-+++ a/include/linux/pci_ids.h
-@@ -2340,6 +2340,9 @@
- #define PCI_DEVICE_ID_INTEL_82378	0x0484
- #define PCI_DEVICE_ID_INTEL_I960	0x0960
- #define PCI_DEVICE_ID_INTEL_I960RM	0x0962
-+#define PCI_DEVICE_ID_INTEL_8257X_SOL	0x1062
-+#define PCI_DEVICE_ID_INTEL_82573E_SOL	0x1085
-+#define PCI_DEVICE_ID_INTEL_82573L_SOL	0x108F
- #define PCI_DEVICE_ID_INTEL_82815_MC	0x1130
- #define PCI_DEVICE_ID_INTEL_82815_CGC	0x1132
- #define PCI_DEVICE_ID_INTEL_82092AA_0	0x1221
-diff -puN include/linux/serial_core.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port include/linux/serial_core.h
---- a/include/linux/serial_core.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
-+++ a/include/linux/serial_core.h
-@@ -299,6 +299,7 @@ struct uart_port {
- #define UPF_HARDPPS_CD		((__force upf_t) (1 << 11))
- #define UPF_LOW_LATENCY		((__force upf_t) (1 << 13))
- #define UPF_BUGGY_UART		((__force upf_t) (1 << 14))
-+#define UPF_NO_TXEN_TEST	((__force upf_t) (1 << 15))
- #define UPF_MAGIC_MULTIPLIER	((__force upf_t) (1 << 16))
- #define UPF_CONS_FLOW		((__force upf_t) (1 << 23))
- #define UPF_SHARE_IRQ		((__force upf_t) (1 << 24))
+-int dmar_disabled;
++int dmar_disabled = 1;
+ static int __initdata dmar_map_gfx = 1;
+ static int dmar_forcedac;
+ static int intel_iommu_strict;
+@@ -284,9 +284,12 @@ static int __init intel_iommu_setup(char
+ 	if (!str)
+ 		return -EINVAL;
+ 	while (*str) {
+-		if (!strncmp(str, "off", 3)) {
++		if (!strncmp(str, "on", 2)) {
++			dmar_disabled = 0;
++			printk(KERN_INFO "Intel-IOMMU: enabled\n");
++		} else if (!strncmp(str, "off", 3)) {
+ 			dmar_disabled = 1;
+-			printk(KERN_INFO"Intel-IOMMU: disabled\n");
++			printk(KERN_INFO "Intel-IOMMU: disabled\n");
+ 		} else if (!strncmp(str, "igfx_off", 8)) {
+ 			dmar_map_gfx = 0;
+ 			printk(KERN_INFO
 _
 
-Patches currently in -mm which might be from mchehab@redhat.com are
+Patches currently in -mm which might be from kyle@redhat.com are
 
-origin.patch
-linux-next.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+intel_iommu-default-to-off.patch
 
