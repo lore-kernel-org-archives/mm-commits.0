@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch added to -mm tree
-Date: Thu, 05 Feb 2009 14:03:55 -0800
-Message-ID: <200902052203.n15M3taJ013145@imap1.linux-foundation.org>
+Subject: + mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings.patch added to -mm tree
+Date: Thu, 05 Feb 2009 14:03:57 -0800
+Message-ID: <200902052203.n15M3v7I013289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47255 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752880AbZBEWEg (ORCPT
+	by vger.kernel.org with ESMTP id S1752970AbZBEWEg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 17:04:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: vapier.adi@gmail.com, cooloney@kernel.org, dwmw2@infradead.org
 
 
 The patch titled
-     mtd/maps: blackfin async flash maps - fix bug: dont leak resources when initializing in case of errors
+     mtd/maps: blackfin async flash maps: bfin-async mtd driver needs complex mappings
 has been added to the -mm tree.  Its filename is
-     mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch
+     mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/maps: blackfin async flash maps - fix bug: dont leak resources when initializing in case of errors
+Subject: mtd/maps: blackfin async flash maps: bfin-async mtd driver needs complex mappings
 From: Mike Frysinger <vapier.adi@gmail.com>
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
@@ -42,32 +42,21 @@ Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/bfin-async-flash.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/mtd/maps/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/maps/bfin-async-flash.c~mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors drivers/mtd/maps/bfin-async-flash.c
---- a/drivers/mtd/maps/bfin-async-flash.c~mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors
-+++ a/drivers/mtd/maps/bfin-async-flash.c
-@@ -152,14 +152,18 @@ static int __devinit bfin_flash_probe(st
+diff -puN drivers/mtd/maps/Kconfig~mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings drivers/mtd/maps/Kconfig
+--- a/drivers/mtd/maps/Kconfig~mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings
++++ a/drivers/mtd/maps/Kconfig
+@@ -491,7 +491,7 @@ config MTD_PCMCIA_ANONYMOUS
  
- 	if (gpio_request(state->enet_flash_pin, DRIVER_NAME)) {
- 		pr_devinit(KERN_ERR DRIVER_NAME ": Failed to request gpio %d\n", state->enet_flash_pin);
-+		kfree(state);
- 		return -EBUSY;
- 	}
- 	gpio_direction_output(state->enet_flash_pin, 1);
- 
- 	pr_devinit(KERN_NOTICE DRIVER_NAME ": probing %d-bit flash bus\n", state->map.bankwidth * 8);
- 	state->mtd = do_map_probe(memory->name, &state->map);
--	if (!state->mtd)
-+	if (!state->mtd) {
-+		gpio_free(state->enet_flash_pin);
-+		kfree(state);
- 		return -ENXIO;
-+	}
- 
- #ifdef CONFIG_MTD_PARTITIONS
- 	ret = parse_mtd_partitions(state->mtd, part_probe_types, &pdata->parts, 0);
+ config MTD_BFIN_ASYNC
+ 	tristate "Blackfin BF533-STAMP Flash Chip Support"
+-	depends on BFIN533_STAMP && MTD_CFI
++	depends on BFIN533_STAMP && MTD_CFI && MTD_COMPLEX_MAPPINGS
+ 	select MTD_PARTITIONS
+ 	default y
+ 	help
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
