@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch added to -mm tree
-Date: Thu, 05 Feb 2009 13:54:42 -0800
-Message-ID: <200902052154.n15LsgCv000749@imap1.linux-foundation.org>
+Subject: + mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch added to -mm tree
+Date: Thu, 05 Feb 2009 14:03:55 -0800
+Message-ID: <200902052203.n15M3taJ013145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752254AbZBEVzH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 16:55:07 -0500
+	by vger.kernel.org with ESMTP id S1752880AbZBEWEg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 17:04:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com, dtor@mail.ru
+Cc: vapier.adi@gmail.com, cooloney@kernel.org, dwmw2@infradead.org
 
 
 The patch titled
-     input: add a DMI table for the i8042.reset option; make MSI Wind U-100 work
+     mtd/maps: blackfin async flash maps - fix bug: dont leak resources when initializing in case of errors
 has been added to the -mm tree.  Its filename is
-     input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+     mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: add a DMI table for the i8042.reset option; make MSI Wind U-100 work
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: mtd/maps: blackfin async flash maps - fix bug: dont leak resources when initializing in case of errors
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-There are several DMI tables in the i8042 (keyboard) driver already, but
-not one for the i8042.reset option.  This patch adds such an option (which
-also sets the nonfatal flag so that if the reset fails, the keyboard still
-works).
-
-Two users for this table are added as well, the MSI Wind U-100 and the LG
-X110.  The MSI Wind also needs to be in the "don't trust the pnp data" for
-the touchpad to work on my machine.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/i8042-x86ia64io.h |   31 ++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ drivers/mtd/maps/bfin-async-flash.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/serio/i8042-x86ia64io.h~input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work drivers/input/serio/i8042-x86ia64io.h
---- a/drivers/input/serio/i8042-x86ia64io.h~input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work
-+++ a/drivers/input/serio/i8042-x86ia64io.h
-@@ -378,6 +378,13 @@ static struct dmi_system_id __initdata i
- 			DMI_MATCH(DMI_BOARD_VENDOR, "Intel Corporation"),
- 		},
- 	},
-+	{
-+		.ident = "MSI Wind U-100",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
-+			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
-+		},
-+	},
- 	{ }
- };
- #endif
-@@ -448,6 +455,25 @@ static struct dmi_system_id __initdata i
- 	{ }
- };
+diff -puN drivers/mtd/maps/bfin-async-flash.c~mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors drivers/mtd/maps/bfin-async-flash.c
+--- a/drivers/mtd/maps/bfin-async-flash.c~mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors
++++ a/drivers/mtd/maps/bfin-async-flash.c
+@@ -152,14 +152,18 @@ static int __devinit bfin_flash_probe(st
  
-+static struct dmi_system_id __initdata i8042_dmi_reset_table[] = {
-+	{
-+		.ident = "MSI Wind U-100",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
-+			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
-+		},
-+	},
-+	{
-+		.ident = "LG Electronics X110",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "X110"),
-+			DMI_MATCH(DMI_BOARD_VENDOR, "LG Electronics Inc."),
-+		},
-+	},
-+	{ }
-+};
-+
-+
- #endif /* CONFIG_X86 */
+ 	if (gpio_request(state->enet_flash_pin, DRIVER_NAME)) {
+ 		pr_devinit(KERN_ERR DRIVER_NAME ": Failed to request gpio %d\n", state->enet_flash_pin);
++		kfree(state);
+ 		return -EBUSY;
+ 	}
+ 	gpio_direction_output(state->enet_flash_pin, 1);
  
- #ifdef CONFIG_PNP
-@@ -564,6 +590,11 @@ static int __init i8042_pnp_init(void)
- 		i8042_nopnp = 1;
- #endif
- 
-+	if (dmi_check_system(i8042_dmi_reset_table)) {
-+		i8042_reset = 1;
-+		i8042_nonfatal = 1;
+ 	pr_devinit(KERN_NOTICE DRIVER_NAME ": probing %d-bit flash bus\n", state->map.bankwidth * 8);
+ 	state->mtd = do_map_probe(memory->name, &state->map);
+-	if (!state->mtd)
++	if (!state->mtd) {
++		gpio_free(state->enet_flash_pin);
++		kfree(state);
+ 		return -ENXIO;
 +	}
-+
- 	if (i8042_nopnp) {
- 		printk(KERN_INFO "i8042: PNP detection disabled\n");
- 		return 0;
+ 
+ #ifdef CONFIG_MTD_PARTITIONS
+ 	ret = parse_mtd_partitions(state->mtd, part_probe_types, &pdata->parts, 0);
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
 origin.patch
+video-framebuffer-move-the-probe-func-into-devinittext-in-blackfin-lcd-driver.patch
 linux-next.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-resume-wait-for-device-probing-to-finish.patch
-input-introduce-a-tougher-i8042reset.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-pci-use-pci_ioremap_bar-in-drivers-serial.patch
+blackfin-nfc-driver-do-not-clobber-dmac1_perimux.patch
+blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit.patch
+blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback.patch
+mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch
+mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings.patch
+mtd-maps-blackfin-async-flash-maps-fix-up-memory-leak.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
 
