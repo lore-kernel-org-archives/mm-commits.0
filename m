@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch added to -mm tree
-Date: Thu, 05 Feb 2009 14:49:06 -0800
-Message-ID: <200902052306.n15N692q032422@imap1.linux-foundation.org>
+Subject: + vfs-simple_set_mnt-should-return-void-fix.patch added to -mm tree
+Date: Thu, 05 Feb 2009 14:57:42 -0800
+Message-ID: <200902052314.n15NEixe011623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752980AbZBEXGp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 18:06:45 -0500
+	by vger.kernel.org with ESMTP id S1751259AbZBEXP2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 18:15:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, horms@verge.net.au, nhorman@tuxdriver.com, oomichi@mxs.nes.nec.co.jp, randy.dunlap@oracle.com, vgoyal@redhat.com
+Cc: akpm@linux-foundation.org, hch@lst.de, serue@us.ibm.com, sukadev@linux.vnet.ibm.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix
+     vfs-simple_set_mnt-should-return-void-fix
 has been added to the -mm tree.  Its filename is
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+     vfs-simple_set_mnt-should-return-void-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix
+Subject: vfs-simple_set_mnt-should-return-void-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-guys...
+fs/proc/proc_net.c: In function 'proc_net_get_sb':
+fs/proc/proc_net.c:296: error: void value not ignored as it ought to be
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/proc_net.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix kernel/printk.c
---- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix
-+++ a/kernel/printk.c
-@@ -151,7 +151,7 @@ void log_buf_kexec_setup(void)
- 	VMCOREINFO_SYMBOL(log_buf);
- 	VMCOREINFO_SYMBOL(log_end);
- 	VMCOREINFO_SYMBOL(log_buf_len);
--	VMCOREINFO_SYMBOL(logged_chars)
-+	VMCOREINFO_SYMBOL(logged_chars);
- }
- #endif
+diff -puN fs/proc/proc_net.c~vfs-simple_set_mnt-should-return-void-fix fs/proc/proc_net.c
+--- a/fs/proc/proc_net.c~vfs-simple_set_mnt-should-return-void-fix
++++ a/fs/proc/proc_net.c
+@@ -293,7 +293,8 @@ static int proc_net_get_sb(struct file_s
+ 		sb->s_flags |= MS_ACTIVE;
+ 	}
  
+-	return simple_set_mnt(mnt, sb);
++	simple_set_mnt(mnt, sb);
++	return 0;
+ }
+ 
+ static struct file_system_type proc_net_fs_type = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +95,7 @@ pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
 pci-constify-pci_bus_assign_resources.patch
 pci-constify-pci_bus_add_devices.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void-fix.patch
 ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 drivers-ata-sata_silc-needs-dmih.patch
