@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-pm_notifiers-during-user-mode-hibernation.patch added to -mm tree
-Date: Thu, 05 Feb 2009 12:33:18 -0800
-Message-ID: <200902052033.n15KXIVI021065@imap1.linux-foundation.org>
+Subject: + ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch added to -mm tree
+Date: Thu, 05 Feb 2009 12:53:23 -0800
+Message-ID: <200902052053.n15KrOqm015699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754330AbZBEUeT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 15:34:19 -0500
+	by vger.kernel.org with ESMTP id S1751783AbZBEUyJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 15:54:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arvidjaar@mail.ru, pavel@ucw.cz, rjw@sisk.pl
+Cc: cotte@de.ibm.com, heiko.carstens@de.ibm.com, jaredeh@gmail.com, npiggin@suse.de, schwidefsky@de.ibm.com
 
 
 The patch titled
-     pm: fix pm_notifiers during user mode hibernation
+     ext2/xip: refuse to change xip flag during remount with busy inodes
 has been added to the -mm tree.  Its filename is
-     fix-pm_notifiers-during-user-mode-hibernation.patch
+     ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: fix pm_notifiers during user mode hibernation
-From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: ext2/xip: refuse to change xip flag during remount with busy inodes
+From: Carsten Otte <cotte@de.ibm.com>
 
-Snapshot device is opened with O_RDONLY during suspend and O_WRONLY durig
-resume.  Make sure we also call notifiers with correct parameter telling
-them what we are really doing.
+For a reason that I was unable to understand in three months of debugging,
+mount ext2 -o remount stopped working properly when remounting from
+regular operation to xip, or the other way around.  According to a git
+bisect search, the problem was introduced with the VM_MIXEDMAP/PTE_SPECIAL
+rework in the vm:
 
-Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
+commit 70688e4dd1647f0ceb502bbd5964fa344c5eb411
+Author: Nick Piggin <npiggin@suse.de>
+Date:   Mon Apr 28 02:13:02 2008 -0700
+
+    xip: support non-struct page backed memory
+
+In the failing scenario, the filesystem is mounted read only via root=
+kernel parameter on s390x.  During remount (in rc.sysinit), the inodes of
+the bash binary and its libraries are busy and cannot be invalidated (the
+bash which is running rc.sysinit resides on subject filesystem). 
+Afterwards, another bash process (running ifup-eth) recurses into a
+subshell, runs dup_mm (via fork).  Some of the mappings in this bash
+process were created from inodes that could not be invalidated during
+remount.
+
+Both parent and child process crash some time later due to inconsistencies
+in their address spaces.  The issue seems to be timing sensitive, various
+attempts to recreate it have failed.
+
+This patch refuses to change the xip flag during remount in case some
+inodes cannot be invalidated.  This patch keeps users from running into
+that issue.
+
+Signed-off-by: Carsten Otte <cotte@de.ibm.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Jared Hulbert <jaredeh@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/user.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/ext2/super.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN kernel/power/user.c~fix-pm_notifiers-during-user-mode-hibernation kernel/power/user.c
---- a/kernel/power/user.c~fix-pm_notifiers-during-user-mode-hibernation
-+++ a/kernel/power/user.c
-@@ -95,15 +95,15 @@ static int snapshot_open(struct inode *i
- 		data->swap = swsusp_resume_device ?
- 			swap_type_of(swsusp_resume_device, 0, NULL) : -1;
- 		data->mode = O_RDONLY;
--		error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
-+		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
- 		if (error)
--			pm_notifier_call_chain(PM_POST_RESTORE);
-+			pm_notifier_call_chain(PM_POST_HIBERNATION);
- 	} else {
- 		data->swap = -1;
- 		data->mode = O_WRONLY;
--		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
-+		error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
- 		if (error)
--			pm_notifier_call_chain(PM_POST_HIBERNATION);
-+			pm_notifier_call_chain(PM_POST_RESTORE);
- 	}
- 	if (error)
- 		atomic_inc(&snapshot_device_available);
+diff -puN fs/ext2/super.c~ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes
++++ a/fs/ext2/super.c
+@@ -1185,9 +1185,12 @@ static int ext2_remount (struct super_bl
+ 	es = sbi->s_es;
+ 	if (((sbi->s_mount_opt & EXT2_MOUNT_XIP) !=
+ 	    (old_mount_opt & EXT2_MOUNT_XIP)) &&
+-	    invalidate_inodes(sb))
+-		ext2_warning(sb, __func__, "busy inodes while remounting "\
+-			     "xip remain in cache (no functional problem)");
++	    invalidate_inodes(sb)) {
++		ext2_warning(sb, __func__, "refusing change of xip flag "\
++			     "with busy inodes while remounting");
++		sbi->s_mount_opt &= ~EXT2_MOUNT_XIP;
++		sbi->s_mount_opt |= old_mount_opt & EXT2_MOUNT_XIP;
++	}
+ 	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
+ 		return 0;
+ 	if (*flags & MS_RDONLY) {
 _
 
-Patches currently in -mm which might be from arvidjaar@mail.ru are
+Patches currently in -mm which might be from cotte@de.ibm.com are
 
+do_wp_page-fix-regression-with-execute-in-place.patch
 linux-next.patch
-fix-pm_notifiers-during-user-mode-hibernation.patch
+ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
 
