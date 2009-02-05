@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-msi-fix-msi_mask.patch added to -mm tree
-Date: Thu, 05 Feb 2009 13:36:27 -0800
-Message-ID: <200902052136.n15LaRkc008765@imap1.linux-foundation.org>
+Subject: + seq_file-fix-big-enough-lseek-read.patch added to -mm tree
+Date: Thu, 05 Feb 2009 13:39:21 -0800
+Message-ID: <200902052139.n15LdLk3012630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751507AbZBEVgd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 16:36:33 -0500
+	by vger.kernel.org with ESMTP id S1752479AbZBEVjh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 16:39:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: seto.hidetoshi@jp.fujitsu.com, jbarnes@virtuousgeek.org, matthew@wil.cx
+Cc: adobriyan@gmail.com, ebiederm@xmission.com, pjt@google.com, stable@kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     pci/msi: fix msi_mask()
+     seq_file: fix big-enough lseek() + read()
 has been added to the -mm tree.  Its filename is
-     pci-msi-fix-msi_mask.patch
+     seq_file-fix-big-enough-lseek-read.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci/msi: fix msi_mask()
-From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Subject: seq_file: fix big-enough lseek() + read()
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Commit bffac3c593eba1f9da3efd0199e49ea6558a40ce ("PCI MSI: Fix undefined
-shift by 32") does:
+lseek() further than length of the file will leave stale ->index
+(second-to-last during iteration).  Next seq_read() will not notice that
+->f_pos is big enough to return 0, but will print last item as if ->f_pos
+is pointing to it.
 
- -    temp = (1 << multi_msi_capable(control));
- -    temp = ((temp - 1) & ~temp);
- +    temp = msi_mask((control & PCI_MSI_FLAGS_QMASK) >> 1);
+Introduced in commit cb510b8172602a66467f3551b4be1911f5a7c8c2 ("seq_file:
+more atomicity in traverse()").
 
-and provides msi_mask() to avoid undefined shift by 32.
-
-According to PCI Local Bus Spec 3.0 "6.8.1.3 Message Control for MSI",
-relations between the encoded bits in control register, the number of
-vectors and the proper maskbits should be as following table:
-
- control[3::1] | vectors  | maskbits
- --------------+----------+-----------
-          000b |        1 | 0x1
-          001b |        2 | 0x3
-          010b |        4 | 0xf
-          011b |        8 | 0xff
-          100b |       16 | 0xffff
-          101b |       32 | 0xffffffff
-          110b | Reserved | n/a
-          111b | Reserved | n/a
-
-This patch fixes the wrong array in the msi_mask().
-
-Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x, 2.6.27.x, 2.6.28.x]
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul Turner <pjt@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/msi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/seq_file.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/pci/msi.c~pci-msi-fix-msi_mask drivers/pci/msi.c
---- a/drivers/pci/msi.c~pci-msi-fix-msi_mask
-+++ a/drivers/pci/msi.c
-@@ -109,7 +109,7 @@ static void msix_set_enable(struct pci_d
-  */
- static inline __attribute_const__ u32 msi_mask(unsigned x)
- {
--	static const u32 mask[] = { 1, 2, 4, 0xf, 0xff, 0xffff, 0xffffffff };
-+	static const u32 mask[] = { 1, 3, 0xf, 0xff, 0xffff, 0xffffffff };
- 	return mask[x];
- }
+diff -puN fs/seq_file.c~seq_file-fix-big-enough-lseek-read fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-fix-big-enough-lseek-read
++++ a/fs/seq_file.c
+@@ -110,6 +110,7 @@ static int traverse(struct seq_file *m, 
+ 		p = m->op->next(m, p, &index);
+ 	}
+ 	m->op->stop(m, p);
++	m->index = index;
+ 	return error;
  
+ Eoverflow:
 _
 
-Patches currently in -mm which might be from seto.hidetoshi@jp.fujitsu.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+origin.patch
+alpha-fixup-bug-macro.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-move-traverse-so-it-can-be-used-from-seq_read.patch
+seq_file-properly-cope-with-pread.patch
+seq_file-properly-cope-with-pread-fix.patch
+seq_file-fix-big-enough-lseek-read.patch
 linux-next.patch
-pci-msi-fix-msi_mask.patch
+eeepc-should-depend-on-input.patch
+tags-fix-config-symbols-generation.patch
+sm501-fix-section-mismatches.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+proc-tty-add-struct-tty_operations-proc_fops.patch
+proc-tty-switch-cyclades-to-proc_fops.patch
+proc-tty-switch-ip2-to-proc_fops.patch
+proc-tty-switch-istallion-to-proc_fops.patch
+proc-tty-switch-synclink_cs-to-proc_fops.patch
+proc-tty-switch-stallion-to-proc_fops.patch
+proc-tty-switch-synclink-to-proc_fops.patch
+proc-tty-switch-synclink_gt-to-proc_fops.patch
+proc-tty-switch-synclinkmp-to-proc_fops.patch
+proc-tty-switch-sdio_uart-to-proc_fops.patch
+proc-tty-switch-serial_core-to-proc_fops.patch
+proc-tty-switch-usb-serial-to-proc_fops.patch
+proc-tty-switch-ircomm-to-proc_fops.patch
+proc-tty-switch-amiserial-to-proc_fops.patch
+proc-tty-switch-ia64-simserial-to-proc_fops.patch
+proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
+proc-tty-remove-struct-tty_operations-read_proc.patch
+sysctl-min-max-range-check-is-broken.patch
+xtensa-fix-compilation-somewhat.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
