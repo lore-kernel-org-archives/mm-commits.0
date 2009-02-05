@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch added to -mm tree
-Date: Thu, 05 Feb 2009 15:00:48 -0800
-Message-ID: <200902052317.n15NHo1S015731@imap1.linux-foundation.org>
+Subject: + pci-constify-pci_bus_assign_resources-fix.patch added to -mm tree
+Date: Thu, 05 Feb 2009 15:02:14 -0800
+Message-ID: <200902052319.n15NJGf6017819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40543 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752514AbZBEXSW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 18:18:22 -0500
+	by vger.kernel.org with ESMTP id S1752770AbZBEXTS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 18:19:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mchehab@redhat.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
+     pci-constify-pci_bus_assign_resources-fix
 has been added to the -mm tree.  Its filename is
-     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
+     pci-constify-pci_bus_assign_resources-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
+Subject: pci-constify-pci_bus_assign_resources-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/serial/8250_pci.c:885: warning: initialization from incompatible pointer type
-drivers/serial/8250_pci.c:892: warning: initialization from incompatible pointer type
-drivers/serial/8250_pci.c:899: warning: initialization from incompatible pointer type
+drivers/pci/setup-bus.c: In function 'pci_bus_assign_resources':
+drivers/pci/setup-bus.c:503: warning: passing argument 1 of 'pbus_assign_resources_sorted' discards qualifiers from pointer target type
 
-Cc: <stable@kernel.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pci/setup-bus.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
-+++ a/drivers/serial/8250_pci.c
-@@ -798,9 +798,9 @@ pci_default_setup(struct serial_private 
- 	return setup_port(priv, port, bar, offset, board->reg_shift);
- }
+diff -puN drivers/pci/setup-bus.c~pci-constify-pci_bus_assign_resources-fix drivers/pci/setup-bus.c
+--- a/drivers/pci/setup-bus.c~pci-constify-pci_bus_assign_resources-fix
++++ a/drivers/pci/setup-bus.c
+@@ -27,7 +27,7 @@
+ #include <linux/slab.h>
  
--static int
--skip_tx_en_setup(struct serial_private *priv, struct pciserial_board *board,
--		  struct uart_port *port, int idx)
-+static int skip_tx_en_setup(struct serial_private *priv,
-+			const struct pciserial_board *board,
-+			struct uart_port *port, int idx)
+ 
+-static void pbus_assign_resources_sorted(struct pci_bus *bus)
++static void pbus_assign_resources_sorted(const struct pci_bus *bus)
  {
- 	port->flags |= UPF_NO_TXEN_TEST;
- 	printk(KERN_DEBUG "serial8250: skipping TxEn test for device "
+ 	struct pci_dev *dev;
+ 	struct resource *res;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +89,7 @@ input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
 mtd-rbtx4939-add-mtd-support-fix.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
 pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_assign_resources-fix.patch
 pci-constify-pci_bus_add_devices.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 vfs-simple_set_mnt-should-return-void-fix.patch
