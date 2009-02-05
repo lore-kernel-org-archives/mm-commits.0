@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + seq_file-fix-big-enough-lseek-read.patch added to -mm tree
-Date: Thu, 05 Feb 2009 13:39:21 -0800
-Message-ID: <200902052139.n15LdLk3012630@imap1.linux-foundation.org>
+Subject: + input-introduce-a-tougher-i8042reset.patch added to -mm tree
+Date: Thu, 05 Feb 2009 13:53:53 -0800
+Message-ID: <200902052153.n15LrruS032115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752479AbZBEVjh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 16:39:37 -0500
+	by vger.kernel.org with ESMTP id S1751751AbZBEVyW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 16:54:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, ebiederm@xmission.com, pjt@google.com, stable@kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+Cc: arjan@linux.intel.com, dtor@mail.ru
 
 
 The patch titled
-     seq_file: fix big-enough lseek() + read()
+     input: introduce a tougher i8042.reset
 has been added to the -mm tree.  Its filename is
-     seq_file-fix-big-enough-lseek-read.patch
+     input-introduce-a-tougher-i8042reset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,79 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file: fix big-enough lseek() + read()
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: input: introduce a tougher i8042.reset
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-lseek() further than length of the file will leave stale ->index
-(second-to-last during iteration).  Next seq_read() will not notice that
-->f_pos is big enough to return 0, but will print last item as if ->f_pos
-is pointing to it.
+Some touchpads don't reset right the first time (MSI Wind U-100 for
+example).  This patch will retry the reset up to 5 times.
 
-Introduced in commit cb510b8172602a66467f3551b4be1911f5a7c8c2 ("seq_file:
-more atomicity in traverse()").
+In addition, this patch also adds a module parameter to not treat reset
+failures as fatal to the usage of the device.  This prevents a touchpad
+failure from also disabling the keyboard.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x, 2.6.27.x, 2.6.28.x]
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul Turner <pjt@google.com>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/kernel-parameters.txt |    2 +
+ drivers/input/serio/i8042.c         |   33 ++++++++++++++++++--------
+ 2 files changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-fix-big-enough-lseek-read fs/seq_file.c
---- a/fs/seq_file.c~seq_file-fix-big-enough-lseek-read
-+++ a/fs/seq_file.c
-@@ -110,6 +110,7 @@ static int traverse(struct seq_file *m, 
- 		p = m->op->next(m, p, &index);
- 	}
- 	m->op->stop(m, p);
-+	m->index = index;
- 	return error;
+diff -puN Documentation/kernel-parameters.txt~input-introduce-a-tougher-i8042reset Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~input-introduce-a-tougher-i8042reset
++++ a/Documentation/kernel-parameters.txt
+@@ -848,6 +848,8 @@ and is between 256 and 4096 characters. 
+ 			[HW] Frequency with which keyboard LEDs should blink
+ 			     when kernel panics (default is 0.5 sec)
+ 	i8042.reset	[HW] Reset the controller during init and cleanup
++	i8042.nonfatal  [HW] Don't treat i8042.reset failures as fatal for the
++			     device initialization.
+ 	i8042.unlock	[HW] Unlock (ignore) the keylock
  
- Eoverflow:
+ 	i810=		[HW,DRM]
+diff -puN drivers/input/serio/i8042.c~input-introduce-a-tougher-i8042reset drivers/input/serio/i8042.c
+--- a/drivers/input/serio/i8042.c~input-introduce-a-tougher-i8042reset
++++ a/drivers/input/serio/i8042.c
+@@ -47,6 +47,10 @@ static unsigned int i8042_reset;
+ module_param_named(reset, i8042_reset, bool, 0);
+ MODULE_PARM_DESC(reset, "Reset controller during init and cleanup.");
+ 
++static unsigned int i8042_nonfatal;
++module_param_named(nonfatal, i8042_nonfatal, bool, 0);
++MODULE_PARM_DESC(reset, "Treat controller test failures as non-fatal.");
++
+ static unsigned int i8042_direct;
+ module_param_named(direct, i8042_direct, bool, 0);
+ MODULE_PARM_DESC(direct, "Put keyboard port into non-translated mode.");
+@@ -712,22 +716,33 @@ static int i8042_controller_check(void)
+ static int i8042_controller_selftest(void)
+ {
+ 	unsigned char param;
++	int i = 0;
+ 
+ 	if (!i8042_reset)
+ 		return 0;
+ 
+-	if (i8042_command(&param, I8042_CMD_CTL_TEST)) {
+-		printk(KERN_ERR "i8042.c: i8042 controller self test timeout.\n");
+-		return -ENODEV;
+-	}
++	/*
++	 * We try this 5 times; on some really fragile systems this does not
++	 * take the first time...
++	 */
++	do {
++
++		if (i8042_command(&param, I8042_CMD_CTL_TEST)) {
++			printk(KERN_ERR "i8042.c: i8042 controller self test timeout.\n");
++			return -ENODEV;
++		}
++
++		if (param == I8042_RET_CTL_TEST)
++			return 0;
+ 
+-	if (param != I8042_RET_CTL_TEST) {
+ 		printk(KERN_ERR "i8042.c: i8042 controller selftest failed. (%#x != %#x)\n",
+-			 param, I8042_RET_CTL_TEST);
+-		return -EIO;
+-	}
++			param, I8042_RET_CTL_TEST);
++		msleep(50);
++	} while (i++ < 5);
+ 
+-	return 0;
++	if (i8042_nonfatal)
++		return 0;
++	return -EIO;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
-alpha-fixup-bug-macro.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-move-traverse-so-it-can-be-used-from-seq_read.patch
-seq_file-properly-cope-with-pread.patch
-seq_file-properly-cope-with-pread-fix.patch
-seq_file-fix-big-enough-lseek-read.patch
 linux-next.patch
-eeepc-should-depend-on-input.patch
-tags-fix-config-symbols-generation.patch
-sm501-fix-section-mismatches.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-proc-tty-add-struct-tty_operations-proc_fops.patch
-proc-tty-switch-cyclades-to-proc_fops.patch
-proc-tty-switch-ip2-to-proc_fops.patch
-proc-tty-switch-istallion-to-proc_fops.patch
-proc-tty-switch-synclink_cs-to-proc_fops.patch
-proc-tty-switch-stallion-to-proc_fops.patch
-proc-tty-switch-synclink-to-proc_fops.patch
-proc-tty-switch-synclink_gt-to-proc_fops.patch
-proc-tty-switch-synclinkmp-to-proc_fops.patch
-proc-tty-switch-sdio_uart-to-proc_fops.patch
-proc-tty-switch-serial_core-to-proc_fops.patch
-proc-tty-switch-usb-serial-to-proc_fops.patch
-proc-tty-switch-ircomm-to-proc_fops.patch
-proc-tty-switch-amiserial-to-proc_fops.patch
-proc-tty-switch-ia64-simserial-to-proc_fops.patch
-proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
-proc-tty-remove-struct-tty_operations-read_proc.patch
-sysctl-min-max-range-check-is-broken.patch
-xtensa-fix-compilation-somewhat.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+resume-wait-for-device-probing-to-finish.patch
+input-introduce-a-tougher-i8042reset.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
 
