@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 05 Feb 2009 13:05:14 -0800
-Message-ID: <200902052105.n15L5EHG031669@imap1.linux-foundation.org>
+Subject: + kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch added to -mm tree
+Date: Thu, 05 Feb 2009 13:05:56 -0800
+Message-ID: <200902052105.n15L5ucZ032549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752213AbZBEVFX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 16:05:23 -0500
+	by vger.kernel.org with ESMTP id S1753257AbZBEVGG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 16:06:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, nhorman@tuxdriver.com
 
 
 The patch titled
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup
 has been added to the -mm tree.  Its filename is
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes.patch
+     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes
+Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
-
-ERROR: trailing whitespace
-#30: FILE: kernel/printk.c:144:
-+ * are otherwise very difficult to locate.  These symbols $
-
-ERROR: trailing whitespace
-#31: FILE: kernel/printk.c:145:
-+ * are specifically used so that utilities $
-
-total: 2 errors, 0 warnings, 21 lines checked
-
-./patches/kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
 
 Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/printk.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes kernel/printk.c
---- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes
+diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup kernel/printk.c
+--- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup
 +++ a/kernel/printk.c
-@@ -141,8 +141,8 @@ static unsigned logged_chars; /* Number 
+@@ -139,12 +139,11 @@ static unsigned logged_chars; /* Number 
+ #ifdef CONFIG_KEXEC
+ /*
   * This appends the listed symbols to /proc/vmcoreinfo
-  * /proc/vmcoreinfo is used by various utiilties, like
-  * crash and makedumpfile to obtain access to symbols that
-- * are otherwise very difficult to locate.  These symbols 
-- * are specifically used so that utilities 
-+ * are otherwise very difficult to locate.  These symbols
-+ * are specifically used so that utilities
-  * can access and extract the dmesg log from a vmcore file
-  * after a crash
+- * /proc/vmcoreinfo is used by various utiilties, like
+- * crash and makedumpfile to obtain access to symbols that
+- * are otherwise very difficult to locate.  These symbols
+- * are specifically used so that utilities
+- * can access and extract the dmesg log from a vmcore file
+- * after a crash
++ *
++ * /proc/vmcoreinfo is used by various utiilties, like crash and makedumpfile to
++ * obtain access to symbols that are otherwise very difficult to locate.  These
++ * symbols are specifically used so that utilities can access and extract the
++ * dmesg log from a vmcore file after a crash.
   */
+ void log_buf_kexec_setup(void)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -135,6 +126,7 @@ nbd-add-locking-to-nbd_ioctl-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
 arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
 arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
