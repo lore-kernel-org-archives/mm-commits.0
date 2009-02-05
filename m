@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch added to -mm tree
-Date: Wed, 04 Feb 2009 19:36:36 -0800
-Message-ID: <200902050336.n153abNS020543@imap1.linux-foundation.org>
+Subject: + seq_file-properly-cope-with-pread-fix.patch added to -mm tree
+Date: Wed, 04 Feb 2009 19:42:44 -0800
+Message-ID: <200902050342.n153giPh028729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753765AbZBEDgx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 22:36:53 -0500
+	by vger.kernel.org with ESMTP id S1752041AbZBEDm7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 22:42:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, adobriyan@gmail.com, ebiederm@xmission.com, pjt@g
 
 
 The patch titled
-     vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix
+     seq_file-properly-cope-with-pread-fix
 has been added to the -mm tree.  Its filename is
-     vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+     seq_file-properly-cope-with-pread-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix
+Subject: seq_file-properly-cope-with-pread-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc:  Alexey Dobriyan <adobriyan@gmail.com>
+Restore FMODE_PWRITE.
+
 Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x, 2.6.27.x, 2.6.28.x]
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Paul Turner <pjt@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/seq_file.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN include/linux/fs.h~vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix include/linux/fs.h
---- a/include/linux/fs.h~vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix
-+++ a/include/linux/fs.h
-@@ -54,6 +54,11 @@ struct inodes_stat_t {
- #define MAY_ACCESS 16
- #define MAY_OPEN 32
+diff -puN fs/seq_file.c~seq_file-properly-cope-with-pread-fix fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-properly-cope-with-pread-fix
++++ a/fs/seq_file.c
+@@ -48,6 +48,16 @@ int seq_open(struct file *file, const st
+ 	 */
+ 	file->f_version = 0;
  
-+/*
-+ * flags in file.f_mode.  Note that FMODE_READ and FMODE_WRITE must correspond
-+ * to O_WRONLY and O_RDWR via the strange trick in __dentry_open()
-+ */
-+
- /* file is open for reading */
- #define FMODE_READ		((__force fmode_t)1)
- /* file is open for writing */
++	/*
++	 * seq_files support lseek() and pread().  They do not implement
++	 * write() at all, but we clear FMODE_PWRITE here for historical
++	 * reasons.
++	 *
++	 * If a client of seq_files a) implements file.write() and b) wishes to
++	 * support pwrite() then that client will need to implement its own
++	 * file.open() which calls seq_open() and then sets FMODE_PWRITE.
++	 */
++	file->f_mode &= ~FMODE_PWRITE;
+ 	return 0;
+ }
+ EXPORT_SYMBOL(seq_open);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +81,7 @@ hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
 wait-prevent-exclusive-waiter-starvation.patch
 sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl.patch
 vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
 i-need-old-gcc.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
