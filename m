@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pata_it821x-resume-from-hibernation-fails-with-raid-volume.patch added to -mm tree
-Date: Thu, 05 Feb 2009 12:00:18 -0800
-Message-ID: <200902052000.n15K0IVt008706@imap1.linux-foundation.org>
+Subject: + ir-kbd-i2c-support-hauppauge-hvr-1600-r-c-port.patch added to -mm tree
+Date: Thu, 05 Feb 2009 12:06:04 -0800
+Message-ID: <200902052006.n15K64X7016546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35480 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751972AbZBEUBT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 15:01:19 -0500
+	by vger.kernel.org with ESMTP id S1751166AbZBEUGc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 15:06:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@rainbow-software.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
+Cc: lkml@rtr.ca, mchehab@infradead.org, mlord@pobox.com
 
 
 The patch titled
-     pata_it821x: resume from hibernation fails with RAID volume
+     ir-kbd-i2c: support Hauppauge HVR-1600 R/C port
 has been added to the -mm tree.  Its filename is
-     pata_it821x-resume-from-hibernation-fails-with-raid-volume.patch
+     ir-kbd-i2c-support-hauppauge-hvr-1600-r-c-port.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_it821x: resume from hibernation fails with RAID volume
-From: Ondrej Zary <linux@rainbow-software.org>
+Subject: ir-kbd-i2c: support Hauppauge HVR-1600 R/C port
+From: Mark Lord <lkml@rtr.ca>
 
-Hibernation didn't work for me since I started to use IT8212 controller. 
-I did some debugging (booting with no_console_suspend init=/bin/sh).
+Update the ir-kbd-i2c driver to recognize the remote-control port
+on the Hauppauge HV-1600 hybrid tuner card.
 
-Found that resume fails (2.6.28) with "serial number mismatch 'some
-garbage' != 'some other garbage'" and "revalidation failed" messages. 
-That's because the controller firmware fills different serial number in
-the IDENTIFY every boot.
-
-The patch below fixes the resume simply clearing the serial number.  The
-proper fix would be probably to fill in the serial number of the RAID
-volume instead.  I assume that there must be something like that stored on
-the drives but I don't know where.
-
-Fix resume on pata_it821x RAID volume by clearing the serial number in
-IDENTIFY data, which is otherwise different on each boot.
-
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Mark Lord <mlord@pobox.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_it821x.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/video/ir-kbd-i2c.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_it821x.c~pata_it821x-resume-from-hibernation-fails-with-raid-volume drivers/ata/pata_it821x.c
---- a/drivers/ata/pata_it821x.c~pata_it821x-resume-from-hibernation-fails-with-raid-volume
-+++ a/drivers/ata/pata_it821x.c
-@@ -557,6 +557,9 @@ static unsigned int it821x_read_id(struc
- 		id[83] |= 0x4400;	/* Word 83 is valid and LBA48 */
- 		id[86] |= 0x0400;	/* LBA48 on */
- 		id[ATA_ID_MAJOR_VER] |= 0x1F;
-+		/* Clear the serial number because it's different each boot
-+		   which breaks validation on resume */
-+		memset(&id[ATA_ID_SERNO], 0x20, ATA_ID_SERNO_LEN);
- 	}
- 	return err_mask;
- }
+diff -puN drivers/media/video/ir-kbd-i2c.c~ir-kbd-i2c-support-hauppauge-hvr-1600-r-c-port drivers/media/video/ir-kbd-i2c.c
+--- a/drivers/media/video/ir-kbd-i2c.c~ir-kbd-i2c-support-hauppauge-hvr-1600-r-c-port
++++ a/drivers/media/video/ir-kbd-i2c.c
+@@ -354,6 +354,11 @@ static int ir_attach(struct i2c_adapter 
+ 			} else {
+ 				ir_codes    = ir_codes_rc5_tv;
+ 			}
++		} else if (adap->id == I2C_HW_B_CX2341X) {
++			name        = "Hauppauge";
++			ir_type     = IR_TYPE_RC5;
++			ir->get_key = get_key_haup_xvr;
++			ir_codes    = ir_codes_hauppauge_new;
+ 		} else {
+ 			/* Handled by saa7134-input */
+ 			name        = "SAA713x remote";
+@@ -449,7 +454,7 @@ static int ir_probe(struct i2c_adapter *
+ 	   That's why we probe 0x1a (~0x34) first. CB
+ 	*/
+ 
+-	static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64, 0x30, -1};
++	static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64, 0x30, 0x71, -1};
+ 	static const int probe_saa7134[] = { 0x7a, 0x47, 0x71, 0x2d, -1 };
+ 	static const int probe_em28XX[] = { 0x30, 0x47, -1 };
+ 	static const int probe_cx88[] = { 0x18, 0x6b, 0x71, -1 };
 _
 
-Patches currently in -mm which might be from linux@rainbow-software.org are
+Patches currently in -mm which might be from lkml@rtr.ca are
 
-pata_it821x-resume-from-hibernation-fails-with-raid-volume.patch
+ir-kbd-i2c-support-hauppauge-hvr-1600-r-c-port.patch
+radio-si470x-add-usb-id-for-dealextreme-usb-radio.patch
 
