@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-use-__gfp_nowarn-in-page-cgroup-allocation.patch added to -mm tree
-Date: Thu, 05 Feb 2009 12:23:52 -0800
-Message-ID: <200902052023.n15KNqQR008249@imap1.linux-foundation.org>
+Subject: + sysctl-min-max-range-check-is-broken.patch added to -mm tree
+Date: Thu, 05 Feb 2009 12:30:08 -0800
+Message-ID: <200902052030.n15KU882016797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753488AbZBEU1l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 15:27:41 -0500
+	by vger.kernel.org with ESMTP id S1753928AbZBEUan (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 15:30:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, penberg@cs.helsinki.fi
+Cc: shjain@akamai.com, adobriyan@gmail.com, ebiederm@xmission.com, juhlenko@akamai.com
 
 
 The patch titled
-     memcg: use __GFP_NOWARN in page cgroup allocation
+     sysctl: min-max range check is broken
 has been added to the -mm tree.  Its filename is
-     memcg-use-__gfp_nowarn-in-page-cgroup-allocation.patch
+     sysctl-min-max-range-check-is-broken.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: use __GFP_NOWARN in page cgroup allocation
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: sysctl: min-max range check is broken
+From: Shakesh Jain <shjain@akamai.com>
 
-page_cgroup's page allocation at init/memory hotplug uses kmalloc() and
-vmalloc(). If kmalloc() failes, vmalloc() is used.
+do_proc_dointvec_minmax_conv() which gets callled from
+proc_dointvec_minmax proc_handler doesn't increment the pointer to the
+'min' (extra1) and 'max' (extra2) after each range check which results in
+doing the check against same set of min and max values.
 
-This is because vmalloc() is very limited resource on 32bit systems.
-We want to use kmalloc() first.
+This breaks the range checking for those sysctl's where you can write
+multiple values to /proc with each variable having its own range
+specification.
 
-But in this kind of call, __GFP_NOWARN should be specified.
+It seems to be implemented for the sysctl() system call strategy in
+sysctl_intvec() where min and max are treated as arrays.
 
-Reported-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Shakesh Jain <shjain@akamai.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Jason Uhlenkott <juhlenko@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/sysctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_cgroup.c~memcg-use-__gfp_nowarn-in-page-cgroup-allocation mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-use-__gfp_nowarn-in-page-cgroup-allocation
-+++ a/mm/page_cgroup.c
-@@ -114,7 +114,8 @@ static int __init_refok init_section_pag
- 		nid = page_to_nid(pfn_to_page(pfn));
- 		table_size = sizeof(struct page_cgroup) * PAGES_PER_SECTION;
- 		if (slab_is_available()) {
--			base = kmalloc_node(table_size, GFP_KERNEL, nid);
-+			base = kmalloc_node(table_size,
-+					GFP_KERNEL | __GFP_NOWARN, nid);
- 			if (!base)
- 				base = vmalloc_node(table_size, nid);
- 		} else {
+diff -puN kernel/sysctl.c~sysctl-min-max-range-check-is-broken kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-min-max-range-check-is-broken
++++ a/kernel/sysctl.c
+@@ -2411,8 +2411,8 @@ static int do_proc_dointvec_minmax_conv(
+ 	struct do_proc_dointvec_minmax_conv_param *param = data;
+ 	if (write) {
+ 		int val = *negp ? -*lvalp : *lvalp;
+-		if ((param->min && *param->min > val) ||
+-		    (param->max && *param->max < val))
++		if ((param->min && *(param->min++) > val) ||
++		    (param->max && *(param->max++) < val))
+ 			return -EINVAL;
+ 		*valp = val;
+ 	} else {
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from shjain@akamai.com are
 
-origin.patch
-memcg-use-__gfp_nowarn-in-page-cgroup-allocation.patch
-linux-next.patch
-mm-fix-memmap-init-to-initialize-valid-memmap-for-memory-hole.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-cgroup-css-id-support.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
+sysctl-min-max-range-check-is-broken.patch
 
