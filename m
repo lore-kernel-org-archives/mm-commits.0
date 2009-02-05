@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-allow-intel_iommu-support-to-be-disabled-by-default-fix.patch added to -mm tree
-Date: Thu, 05 Feb 2009 13:16:40 -0800
-Message-ID: <200902052116.n15LGevM014494@imap1.linux-foundation.org>
+Subject: + fbdev-uninline-lock_fb_info.patch added to -mm tree
+Date: Thu, 05 Feb 2009 13:20:40 -0800
+Message-ID: <200902052120.n15LKfld019912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752110AbZBEVR6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 16:17:58 -0500
+	by vger.kernel.org with ESMTP id S1752573AbZBEVVb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 16:21:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org, hpa@zytor.com, jbarnes@virtuousgeek.org, kyle@redhat.com, markmc@redhat.com, mingo@elte.hu, stable@kernel.org, suresh.b.siddha@intel.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, geert@linux-m68k.org, krzysztof.h1@poczta.fm, righi.andrea@gmail.com
 
 
 The patch titled
-     x86-allow-intel_iommu-support-to-be-disabled-by-default-fix
+     fbdev: uninline lock_fb_info()
 has been added to the -mm tree.  Its filename is
-     x86-allow-intel_iommu-support-to-be-disabled-by-default-fix.patch
+     fbdev-uninline-lock_fb_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-allow-intel_iommu-support-to-be-disabled-by-default-fix
+Subject: fbdev: uninline lock_fb_info()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/Kconfig:1816:warning: leading whitespace ignored
+Before:
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <stable@kernel.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Kyle McMartin <kyle@redhat.com>
-Cc: Mark McLoughlin <markmc@redhat.com>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+   text    data     bss     dec     hex filename
+   3648    2910      32    6590    19be drivers/video/backlight/backlight.o
+   3226    2812      32    6070    17b6 drivers/video/backlight/lcd.o
+  30990   16688    8480   56158    db5e drivers/video/console/fbcon.o
+  15488    8400      24   23912    5d68 drivers/video/fbmem.o
+
+After:
+
+   text    data     bss     dec     hex filename
+   3537    2870      32    6439    1927 drivers/video/backlight/backlight.o
+   3131    2772      32    5935    172f drivers/video/backlight/lcd.o
+  30876   16648    8480   56004    dac4 drivers/video/console/fbcon.o
+  15506    8400      24   23930    5d7a drivers/video/fbmem.o
+
+Cc: Andrea Righi <righi.andrea@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/fbmem.c |   11 +++++++++++
+ include/linux/fb.h    |   10 +---------
+ 2 files changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-allow-intel_iommu-support-to-be-disabled-by-default-fix arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-allow-intel_iommu-support-to-be-disabled-by-default-fix
-+++ a/arch/x86/Kconfig
-@@ -1813,7 +1813,7 @@ config DMAR
+diff -puN include/linux/fb.h~fbdev-uninline-lock_fb_info include/linux/fb.h
+--- a/include/linux/fb.h~fbdev-uninline-lock_fb_info
++++ a/include/linux/fb.h
+@@ -960,15 +960,7 @@ extern struct fb_info *registered_fb[FB_
+ extern int num_registered_fb;
+ extern struct class *fb_class;
  
- config DMAR_DEFAULT_ON
- 	def_bool n
--	prompt " Enable DMA Remapping Devices by default"
-+	prompt "Enable DMA Remapping Devices by default"
- 	depends on DMAR
- 	help
- 	  Selecting this option will enable a DMAR device at boot time if
+-static inline int lock_fb_info(struct fb_info *info)
+-{
+-	mutex_lock(&info->lock);
+-	if (!info->fbops) {
+-		mutex_unlock(&info->lock);
+-		return 0;
+-	}
+-	return 1;
+-}
++extern int lock_fb_info(struct fb_info *info);
+ 
+ static inline void unlock_fb_info(struct fb_info *info)
+ {
+diff -puN drivers/video/fbmem.c~fbdev-uninline-lock_fb_info drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-uninline-lock_fb_info
++++ a/drivers/video/fbmem.c
+@@ -46,6 +46,17 @@
+ struct fb_info *registered_fb[FB_MAX] __read_mostly;
+ int num_registered_fb __read_mostly;
+ 
++int lock_fb_info(struct fb_info *info)
++{
++	mutex_lock(&info->lock);
++	if (!info->fbops) {
++		mutex_unlock(&info->lock);
++		return 0;
++	}
++	return 1;
++}
++EXPORT_SYMBOL(lock_fb_info);
++
+ /*
+  * Helpers
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +155,7 @@ rtc-add-platform-driver-for-efi-fix.patch
 drivers-video-uvesafbc-dont-use-gfp_any.patch
 cirrusfb-convert-printks-to-dev_foo-fix.patch
 cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
 memcg-fix-oom-killer-under-memcg-fix2.patch
 memcg-fix-oom-killer-under-memcg-fix.patch
 memcg-show-memcg-information-during-oom-fix2.patch
