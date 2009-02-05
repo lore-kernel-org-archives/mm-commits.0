@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-fix-null-pointer-crash.patch added to -mm tree
-Date: Thu, 05 Feb 2009 14:13:13 -0800
-Message-ID: <200902052213.n15MDDx6025720@imap1.linux-foundation.org>
+Subject: + x86-prevent-kprobes-from-catching-spurious-page-faults.patch added to -mm tree
+Date: Thu, 05 Feb 2009 14:18:06 -0800
+Message-ID: <200902052218.n15MI67t032241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55270 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755005AbZBEWNY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 17:13:24 -0500
+	by vger.kernel.org with ESMTP id S1752440AbZBEWTa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 17:19:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier.adi@gmail.com, cooloney@kernel.org, david-b@pacbell.net
+Cc: mhiramat@redhat.com, ananth@in.ibm.com, fche@redhat.com, hpa@zytor.com, jkenisto@us.ibm.com, mathieu.desnoyers@polymtl.ca, mingo@elte.hu, npiggin@suse.de, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Blackfin SPI Driver: fix NULL pointer crash
+     x86: prevent kprobes from catching spurious page faults
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-fix-null-pointer-crash.patch
+     x86-prevent-kprobes-from-catching-spurious-page-faults.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: fix NULL pointer crash
-From: Mike Frysinger <vapier.adi@gmail.com>
+Subject: x86: prevent kprobes from catching spurious page faults
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-Fix NULL pointer crash when cleaning up from invalid platform resources.
+Prevent kprobes from catching spurious faults which will cause infinite
+recursive page-fault and memory corruption by stack overflow.
 
-Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: "Frank Ch. Eigler" <fche@redhat.com>
+Cc: <stable@kernel.org>		[2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/x86/mm/fault.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-null-pointer-crash drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-null-pointer-crash
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -1139,6 +1139,9 @@ static void cleanup(struct spi_device *s
- {
- 	struct chip_data *chip = spi_get_ctldata(spi);
+diff -puN arch/x86/mm/fault.c~x86-prevent-kprobes-from-catching-spurious-page-faults arch/x86/mm/fault.c
+--- a/arch/x86/mm/fault.c~x86-prevent-kprobes-from-catching-spurious-page-faults
++++ a/arch/x86/mm/fault.c
+@@ -603,8 +603,6 @@ void __kprobes do_page_fault(struct pt_r
  
-+	if (!chip)
+ 	si_code = SEGV_MAPERR;
+ 
+-	if (notify_page_fault(regs))
+-		return;
+ 	if (unlikely(kmmio_fault(regs, address)))
+ 		return;
+ 
+@@ -634,6 +632,9 @@ void __kprobes do_page_fault(struct pt_r
+ 		if (spurious_fault(address, error_code))
+ 			return;
+ 
++		/* kprobes don't want to hook the spurious faults. */
++		if (notify_page_fault(regs))
++			return;
+ 		/*
+ 		 * Don't take the mm semaphore here. If we fixup a prefetch
+ 		 * fault we could otherwise deadlock.
+@@ -641,6 +642,9 @@ void __kprobes do_page_fault(struct pt_r
+ 		goto bad_area_nosemaphore;
+ 	}
+ 
++	/* kprobes don't want to hook the spurious faults. */
++	if (notify_page_fault(regs))
 +		return;
-+
- 	if ((chip->chip_select_num > 0)
- 		&& (chip->chip_select_num <= spi->master->num_chipselect))
- 		peripheral_free(ssel[spi->master->bus_num]
+ 
+ 	/*
+ 	 * It's safe to allow irq's after cr2 has been saved and the
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
 origin.patch
-video-framebuffer-move-the-probe-func-into-devinittext-in-blackfin-lcd-driver.patch
-linux-next.patch
-blackfin-nfc-driver-do-not-clobber-dmac1_perimux.patch
-blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit.patch
-blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback.patch
-mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch
-mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings.patch
-mtd-maps-blackfin-async-flash-maps-fix-up-memory-leak.patch
-blackfin-spi-driver-add-comment-about-full-duplex-dma-according-to-david-brownell.patch
-blackfin-spi-driver-fix-null-pointer-crash.patch
-bin_elf_fdpic-check-the-return-value-of-clear_user.patch
+x86-prevent-kprobes-from-catching-spurious-page-faults.patch
+kprobes-cleanup-aggr_kprobe-related-code.patch
+kprobes-move-export_symbol_gpl-just-after-function-definitions.patch
+kprobes-cleanup-comment-style-in-kprobesh.patch
+kprobes-rename-kprobe_enabled-to-kprobes_all_disarmed.patch
+kprobes-support-per-kprobe-disabling.patch
+kprobes-support-kretprobe-and-jprobe-per-probe-disabling.patch
 
