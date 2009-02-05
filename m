@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-simple_set_mnt-should-return-void-fix.patch added to -mm tree
-Date: Thu, 05 Feb 2009 14:57:42 -0800
-Message-ID: <200902052314.n15NEixe011623@imap1.linux-foundation.org>
+Subject: + 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch added to -mm tree
+Date: Thu, 05 Feb 2009 15:00:48 -0800
+Message-ID: <200902052317.n15NHo1S015731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46323 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751259AbZBEXP2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 18:15:28 -0500
+	by vger.kernel.org with ESMTP id S1752514AbZBEXSW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 18:18:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@lst.de, serue@us.ibm.com, sukadev@linux.vnet.ibm.com, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mchehab@redhat.com, stable@kernel.org
 
 
 The patch titled
-     vfs-simple_set_mnt-should-return-void-fix
+     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
 has been added to the -mm tree.  Its filename is
-     vfs-simple_set_mnt-should-return-void-fix.patch
+     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs-simple_set_mnt-should-return-void-fix
+Subject: 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/proc_net.c: In function 'proc_net_get_sb':
-fs/proc/proc_net.c:296: error: void value not ignored as it ought to be
+drivers/serial/8250_pci.c:885: warning: initialization from incompatible pointer type
+drivers/serial/8250_pci.c:892: warning: initialization from incompatible pointer type
+drivers/serial/8250_pci.c:899: warning: initialization from incompatible pointer type
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Cc: <stable@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_net.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/serial/8250_pci.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/proc_net.c~vfs-simple_set_mnt-should-return-void-fix fs/proc/proc_net.c
---- a/fs/proc/proc_net.c~vfs-simple_set_mnt-should-return-void-fix
-+++ a/fs/proc/proc_net.c
-@@ -293,7 +293,8 @@ static int proc_net_get_sb(struct file_s
- 		sb->s_flags |= MS_ACTIVE;
- 	}
- 
--	return simple_set_mnt(mnt, sb);
-+	simple_set_mnt(mnt, sb);
-+	return 0;
+diff -puN drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
++++ a/drivers/serial/8250_pci.c
+@@ -798,9 +798,9 @@ pci_default_setup(struct serial_private 
+ 	return setup_port(priv, port, bar, offset, board->reg_shift);
  }
  
- static struct file_system_type proc_net_fs_type = {
+-static int
+-skip_tx_en_setup(struct serial_private *priv, struct pciserial_board *board,
+-		  struct uart_port *port, int idx)
++static int skip_tx_en_setup(struct serial_private *priv,
++			const struct pciserial_board *board,
++			struct uart_port *port, int idx)
+ {
+ 	port->flags |= UPF_NO_TXEN_TEST;
+ 	printk(KERN_DEBUG "serial8250: skipping TxEn test for device "
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +105,7 @@ drivers-ata-sata_silc-needs-dmih.patch
 net-dont-use-in_atomic-in-gfp_any.patch
 documentation-connector-cn_testc-dont-use-gfp_any.patch
 nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
 x86-allow-intel_iommu-support-to-be-disabled-by-default-fix.patch
 page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
