@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + pci-constify-pci_bus_assign_resources-fix.patch added to -mm tree
-Date: Thu, 05 Feb 2009 15:02:14 -0800
-Message-ID: <200902052319.n15NJGf6017819@imap1.linux-foundation.org>
+Subject: + vfs-simple_set_mnt-should-return-void-fix-nilfs.patch added to -mm tree
+Date: Thu, 05 Feb 2009 15:39:45 -0800
+Message-ID: <200902052356.n15NulR2003607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40543 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48703 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752770AbZBEXTS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 18:19:18 -0500
+	by vger.kernel.org with ESMTP id S1752805AbZBEX5U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 18:57:20 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n15NuoVx027048
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 5 Feb 2009 15:56:51 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jbarnes@virtuousgeek.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     pci-constify-pci_bus_assign_resources-fix
+     vfs-simple_set_mnt-should-return-void-fix-nilfs
 has been added to the -mm tree.  Its filename is
-     pci-constify-pci_bus_assign_resources-fix.patch
+     vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +37,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-constify-pci_bus_assign_resources-fix
+Subject: vfs-simple_set_mnt-should-return-void-fix-nilfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pci/setup-bus.c: In function 'pci_bus_assign_resources':
-drivers/pci/setup-bus.c:503: warning: passing argument 1 of 'pbus_assign_resources_sorted' discards qualifiers from pointer target type
-
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/setup-bus.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/super.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/setup-bus.c~pci-constify-pci_bus_assign_resources-fix drivers/pci/setup-bus.c
---- a/drivers/pci/setup-bus.c~pci-constify-pci_bus_assign_resources-fix
-+++ a/drivers/pci/setup-bus.c
-@@ -27,7 +27,7 @@
- #include <linux/slab.h>
+diff -puN fs/nilfs2/super.c~vfs-simple_set_mnt-should-return-void-fix-nilfs fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~vfs-simple_set_mnt-should-return-void-fix-nilfs
++++ a/fs/nilfs2/super.c
+@@ -1220,7 +1220,8 @@ nilfs_get_sb(struct file_system_type *fs
+ 	put_nilfs(nilfs);
+ 	if (need_to_close)
+ 		close_bdev_exclusive(sd.bdev, flags);
+-	return simple_set_mnt(mnt, s);
++	simple_set_mnt(mnt, s);
++	return 0;
  
- 
--static void pbus_assign_resources_sorted(struct pci_bus *bus)
-+static void pbus_assign_resources_sorted(const struct pci_bus *bus)
- {
- 	struct pci_dev *dev;
- 	struct resource *res;
+  error_s:
+ 	up(&sd.bdev->bd_mount_sem);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -137,6 +138,7 @@ nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixe
 nilfs2-inode-operations-fix.patch
 nilfs2-pathname-operations-fix.patch
 nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
 reiser4.patch
 reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
 slab-leaks3-default-y.patch
