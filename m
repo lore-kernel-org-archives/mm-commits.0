@@ -1,79 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mfd-improve-diagnostics-for-wm8350-id-register-probe.patch removed from -mm tree
-Date: Thu, 05 Feb 2009 11:14:25 -0800
-Message-ID: <200902051914.n15JEP3c011675@imap1.linux-foundation.org>
+Subject: [merged] mfd-initialise-wm8350-interrupts-earlier.patch removed from -mm tree
+Date: Thu, 05 Feb 2009 11:14:46 -0800
+Message-ID: <200902051914.n15JEkSe012151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751610AbZBETPV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 14:15:21 -0500
+	by vger.kernel.org with ESMTP id S1759355AbZBETPh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 14:15:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: broonie@opensource.wolfsonmicro.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mfd: improve diagnostics for WM8350 ID register probe
+     mfd: initialise WM8350 interrupts earlier
 has been removed from the -mm tree.  Its filename was
-     mfd-improve-diagnostics-for-wm8350-id-register-probe.patch
+     mfd-initialise-wm8350-interrupts-earlier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mfd: improve diagnostics for WM8350 ID register probe
+Subject: mfd: initialise WM8350 interrupts earlier
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Check the return value of the device I/O functions when reading the ID
-registers so we can provide a more useful diagnostic when we're having
-trouble talking to the device.
+Ensure that the interrupt handling is configured before we do platform
+specific init.  This allows the platform specific initialisation to
+configure things which use interrupts safely.
 
 Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/wm8350-core.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ drivers/mfd/wm8350-core.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/mfd/wm8350-core.c~mfd-improve-diagnostics-for-wm8350-id-register-probe drivers/mfd/wm8350-core.c
---- a/drivers/mfd/wm8350-core.c~mfd-improve-diagnostics-for-wm8350-id-register-probe
+diff -puN drivers/mfd/wm8350-core.c~mfd-initialise-wm8350-interrupts-earlier drivers/mfd/wm8350-core.c
+--- a/drivers/mfd/wm8350-core.c~mfd-initialise-wm8350-interrupts-earlier
 +++ a/drivers/mfd/wm8350-core.c
-@@ -1297,14 +1297,29 @@ static void wm8350_client_dev_register(s
- int wm8350_device_init(struct wm8350 *wm8350, int irq,
- 		       struct wm8350_platform_data *pdata)
- {
--	int ret = -EINVAL;
-+	int ret;
- 	u16 id1, id2, mask_rev;
- 	u16 cust_id, mode, chip_rev;
+@@ -1419,15 +1419,6 @@ int wm8350_device_init(struct wm8350 *wm
+ 		return ret;
+ 	}
  
- 	/* get WM8350 revision and config mode */
--	wm8350->read_dev(wm8350, WM8350_RESET_ID, sizeof(id1), &id1);
--	wm8350->read_dev(wm8350, WM8350_ID, sizeof(id2), &id2);
--	wm8350->read_dev(wm8350, WM8350_REVISION, sizeof(mask_rev), &mask_rev);
-+	ret = wm8350->read_dev(wm8350, WM8350_RESET_ID, sizeof(id1), &id1);
-+	if (ret != 0) {
-+		dev_err(wm8350->dev, "Failed to read ID: %d\n", ret);
-+		goto err;
+-	if (pdata && pdata->init) {
+-		ret = pdata->init(wm8350);
+-		if (ret != 0) {
+-			dev_err(wm8350->dev, "Platform init() failed: %d\n",
+-				ret);
+-			goto err;
+-		}
+-	}
+-
+ 	mutex_init(&wm8350->auxadc_mutex);
+ 	mutex_init(&wm8350->irq_mutex);
+ 	INIT_WORK(&wm8350->irq_work, wm8350_irq_worker);
+@@ -1445,6 +1436,15 @@ int wm8350_device_init(struct wm8350 *wm
+ 	}
+ 	wm8350->chip_irq = irq;
+ 
++	if (pdata && pdata->init) {
++		ret = pdata->init(wm8350);
++		if (ret != 0) {
++			dev_err(wm8350->dev, "Platform init() failed: %d\n",
++				ret);
++			goto err;
++		}
 +	}
 +
-+	ret = wm8350->read_dev(wm8350, WM8350_ID, sizeof(id2), &id2);
-+	if (ret != 0) {
-+		dev_err(wm8350->dev, "Failed to read ID: %d\n", ret);
-+		goto err;
-+	}
-+
-+	ret = wm8350->read_dev(wm8350, WM8350_REVISION, sizeof(mask_rev),
-+			       &mask_rev);
-+	if (ret != 0) {
-+		dev_err(wm8350->dev, "Failed to read revision: %d\n", ret);
-+		goto err;
-+	}
+ 	wm8350_reg_write(wm8350, WM8350_SYSTEM_INTERRUPTS_MASK, 0x0);
  
- 	id1 = be16_to_cpu(id1);
- 	id2 = be16_to_cpu(id2);
+ 	wm8350_client_dev_register(wm8350, "wm8350-codec",
 _
 
 Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
