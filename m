@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tpm-integrity-fix.patch added to -mm tree
-Date: Thu, 05 Feb 2009 14:22:25 -0800
-Message-ID: <200902052222.n15MMPxP005566@imap1.linux-foundation.org>
+Subject: + mmu_notifiers-destroyed-by-__mmu_notifier_release-retain-extra-mm_count.patch added to -mm tree
+Date: Thu, 05 Feb 2009 14:25:40 -0800
+Message-ID: <200902052225.n15MPejn010091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56474 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40684 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752547AbZBEWWf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 17:22:35 -0500
+	by vger.kernel.org with ESMTP id S1752779AbZBEW0I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 17:26:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srajiv@linux.vnet.ibm.com, jmorris@namei.org, safford@watson.ibm.com, serue@us.ibm.com, zohar@linux.vnet.ibm.com
+Cc: holt@sgi.com, aarcange@redhat.com, cl@linux-foundation.org, npiggin@suse.de, stable@kernel.org
 
 
 The patch titled
-     tpm: integrity fix
+     mmu_notifiers destroyed by __mmu_notifier_release() retain extra mm_count
 has been added to the -mm tree.  Its filename is
-     tpm-integrity-fix.patch
+     mmu_notifiers-destroyed-by-__mmu_notifier_release-retain-extra-mm_count.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: integrity fix
-From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Subject: mmu_notifiers destroyed by __mmu_notifier_release() retain extra mm_count
+From: Robin Holt <holt@sgi.com>
 
-Fix to a function which is called by IMA, now tpm_chip_find_get()
-considers the case in which the machine doesn't have a TPM or, if it has,
-its TPM isn't enabled.
+An application relying upon mmu_notifier_release for teardown of the
+mmu_notifiers will leak mm_structs.  At the do_mmu_notifier_register
+increments mm_count, but __mmu_notifier_release() does not decrement it.
 
-Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: <safford@watson.ibm.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: James Morris <jmorris@namei.org>
+I detected this while running a 2.6.27 kernel.  It causes a denial of
+service with OOM.
+
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: <stable@kernel.org>		[2.6.27.x, 2.6.28.x]
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/mmu_notifier.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-integrity-fix drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-integrity-fix
-+++ a/drivers/char/tpm/tpm.c
-@@ -666,18 +666,20 @@ EXPORT_SYMBOL_GPL(tpm_show_temp_deactiva
-  */
- static struct tpm_chip *tpm_chip_find_get(int chip_num)
- {
--	struct tpm_chip *pos;
-+	struct tpm_chip *pos, *chip = NULL;
- 
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(pos, &tpm_chip_list, list) {
- 		if (chip_num != TPM_ANY_NUM && chip_num != pos->dev_num)
- 			continue;
- 
--		if (try_module_get(pos->dev->driver->owner))
-+		if (try_module_get(pos->dev->driver->owner)) {
-+			chip = pos;
- 			break;
-+		}
+diff -puN mm/mmu_notifier.c~mmu_notifiers-destroyed-by-__mmu_notifier_release-retain-extra-mm_count mm/mmu_notifier.c
+--- a/mm/mmu_notifier.c~mmu_notifiers-destroyed-by-__mmu_notifier_release-retain-extra-mm_count
++++ a/mm/mmu_notifier.c
+@@ -61,6 +61,7 @@ void __mmu_notifier_release(struct mm_st
+ 		if (mn->ops->release)
+ 			mn->ops->release(mn, mm);
+ 		rcu_read_unlock();
++		mmdrop(mm);	/* matches do_mmu_notifier_register's inc */
+ 		spin_lock(&mm->mmu_notifier_mm->lock);
  	}
- 	rcu_read_unlock();
--	return pos;
-+	return chip;
- }
- 
- #define TPM_ORDINAL_PCRREAD cpu_to_be32(21)
+ 	spin_unlock(&mm->mmu_notifier_mm->lock);
 _
 
-Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
-linux-next.patch
-tpm-integrity-fix.patch
+origin.patch
+mmu_notifiers-destroyed-by-__mmu_notifier_release-retain-extra-mm_count.patch
+factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch
+allow-rwlocks-to-re-enable-interrupts.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
 
