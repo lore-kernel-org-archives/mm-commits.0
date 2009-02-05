@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + omap-mmc-recover-from-transfer-failures-resend.patch added to -mm tree
-Date: Thu, 05 Feb 2009 12:10:50 -0800
-Message-ID: <200902052010.n15KAoWL023053@imap1.linux-foundation.org>
+Subject: + memcg-use-__gfp_nowarn-in-page-cgroup-allocation.patch added to -mm tree
+Date: Thu, 05 Feb 2009 12:23:52 -0800
+Message-ID: <200902052023.n15KNqQR008249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33806 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754282AbZBEUR5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 15:17:57 -0500
+	by vger.kernel.org with ESMTP id S1753488AbZBEU1l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 15:27:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jpihet@mvista.com, alowe@mvista.com, drzeus-mmc@drzeus.cx, ext-adrian.hunter@nokia.com, jarkko.lavinen@nokia.com, tony@atomide.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     mmc: omap: recover from transfer failures
+     memcg: use __GFP_NOWARN in page cgroup allocation
 has been added to the -mm tree.  Its filename is
-     omap-mmc-recover-from-transfer-failures-resend.patch
+     memcg-use-__gfp_nowarn-in-page-cgroup-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: omap: recover from transfer failures
-From: Jean Pihet <jpihet@mvista.com>
+Subject: memcg: use __GFP_NOWARN in page cgroup allocation
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Timeouts during a command that has a data phase can result in the next
-command issued after the command that failed not being processed, i.e.  no
-interrupt ever occurs to indicate the command has completed.  This failure
-can result in a deadlock.
+page_cgroup's page allocation at init/memory hotplug uses kmalloc() and
+vmalloc(). If kmalloc() failes, vmalloc() is used.
 
-This patch resets the data state machine to clear the error in case of a
-command timeout.
+This is because vmalloc() is very limited resource on 32bit systems.
+We want to use kmalloc() first.
 
-Tested on OMAP3430 chip and intensive MMC/SD device removal while
-transferring data.
+But in this kind of call, __GFP_NOWARN should be specified.
 
-Signed-off-by: Andy Lowe <alowe@mvista.com>
-Signed-off-by: Jean Pihet <jpihet@mvista.com>
-Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Reported-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/page_cgroup.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap-mmc-recover-from-transfer-failures-resend drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap-mmc-recover-from-transfer-failures-resend
-+++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -416,8 +416,15 @@ static irqreturn_t mmc_omap_irq(int irq,
- 				}
- 				end_cmd = 1;
- 			}
--			if (host->data)
-+			if (host->data) {
- 				mmc_dma_cleanup(host);
-+				OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+					OMAP_HSMMC_READ(host->base,
-+							SYSCTL) | SRD);
-+				while (OMAP_HSMMC_READ(host->base,
-+						SYSCTL) & SRD)
-+					;
-+			}
- 		}
- 		if ((status & DATA_TIMEOUT) ||
- 			(status & DATA_CRC)) {
+diff -puN mm/page_cgroup.c~memcg-use-__gfp_nowarn-in-page-cgroup-allocation mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-use-__gfp_nowarn-in-page-cgroup-allocation
++++ a/mm/page_cgroup.c
+@@ -114,7 +114,8 @@ static int __init_refok init_section_pag
+ 		nid = page_to_nid(pfn_to_page(pfn));
+ 		table_size = sizeof(struct page_cgroup) * PAGES_PER_SECTION;
+ 		if (slab_is_available()) {
+-			base = kmalloc_node(table_size, GFP_KERNEL, nid);
++			base = kmalloc_node(table_size,
++					GFP_KERNEL | __GFP_NOWARN, nid);
+ 			if (!base)
+ 				base = vmalloc_node(table_size, nid);
+ 		} else {
 _
 
-Patches currently in -mm which might be from jpihet@mvista.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-omap-mmc-recover-from-transfer-failures-resend.patch
+origin.patch
+memcg-use-__gfp_nowarn-in-page-cgroup-allocation.patch
+linux-next.patch
+mm-fix-memmap-init-to-initialize-valid-memmap-for-memory-hole.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
 
