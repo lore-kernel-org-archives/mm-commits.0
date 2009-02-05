@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + floppy-request-only-the-ports-we-actually-use.patch added to -mm tree
-Date: Thu, 05 Feb 2009 14:29:53 -0800
-Message-ID: <200902052229.n15MTrmA015782@imap1.linux-foundation.org>
+Subject: + epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update.patch added to -mm tree
+Date: Thu, 05 Feb 2009 14:35:13 -0800
+Message-ID: <200902052235.n15MZDAV023028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755474AbZBEWa5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 17:30:57 -0500
+	by vger.kernel.org with ESMTP id S1752231AbZBEWf4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 17:35:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, abelay@mit.edu, hancockrwd@gmail.com, phdm@macqel.be, stable@kernel.org
+Cc: davidel@xmailserver.org, wli@movementarian.org
 
 
 The patch titled
-     floppy: request only the ports we actually use
+     epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key update
 has been added to the -mm tree.  Its filename is
-     floppy-request-only-the-ports-we-actually-use.patch
+     epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: floppy: request only the ports we actually use
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key update
+From: Davide Libenzi <davidel@xmailserver.org>
 
-The floppy driver requests an I/O port it doesn't need, and sometimes this
-causes a conflict with a motherboard device reported by PNPBIOS.
+- wake_up_nested() was only used by epoll, so the new wake_up_nested_poll()
+  has been moved into fs/eventpoll.c, and wake_up_nested() being no more
+  used, has been dropped
 
-This patch makes the floppy driver request only the ports it actually
-uses.
-
-The current floppy driver uses only these ports:
-    0x3f2 (FD_DOR)
-    0x3f4 (FD_STATUS)
-    0x3f5 (FD_DATA)
-    0x3f7 (FD_DCR/FD_DIR)
-but it requests 0x3f2-0x3f5 and 0x3f7, which includes the
-unused port 0x3f3.
-
-Some BIOSes report 0x3f3 as a motherboard resource.  The PNP system driver
-reserves that, which causes a conflict when the floppy driver requests
-0x3f2-0x3f5 later.
-
-Philippe reported that this conflict broke the floppy driver between
-2.6.11 and 2.6.22.  His PNPBIOS reports these devices:
-
-    $ cat 00:07/id 00:07/resources	# motherboard device
-    PNP0c02
-    state = active
-    io 0x80-0x80
-    io 0x10-0x1f
-    io 0x22-0x3f
-    io 0x44-0x5f
-    io 0x90-0x9f
-    io 0xa2-0xbf
-    io 0x3f0-0x3f1
-    io 0x3f3-0x3f3
-
-    $ cat 00:03/id 00:03/resources	# floppy device
-    PNP0700
-    state = active
-    io 0x3f4-0x3f5
-    io 0x3f2-0x3f2
-
-Reference:
-    http://lkml.org/lkml/2009/1/31/162
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Reported-by: Philippe De Muyter <phdm@macqel.be>
-Tested-by: Philippe De Muyter <phdm@macqel.be>
-Cc: Adam M Belay <abelay@mit.edu>
-Cc: Robert Hancock <hancockrwd@gmail.com>
-Cc: <stable@kernel.org>	[2.6.25.x, 2.6.26.x, 2.6.27.x, 2.6.28.x]
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: William Lee Irwin III <wli@movementarian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ fs/eventpoll.c |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/floppy.c~floppy-request-only-the-ports-we-actually-use drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-request-only-the-ports-we-actually-use
-+++ a/drivers/block/floppy.c
-@@ -4398,15 +4398,20 @@ static int floppy_grab_irq_and_dma(void)
+diff -puN fs/eventpoll.c~epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update
++++ a/fs/eventpoll.c
+@@ -370,10 +370,28 @@ static int ep_call_nested(struct nested_
+ 	return error;
+ }
  
- 	for (fdc = 0; fdc < N_FDC; fdc++) {
- 		if (FDCS->address != -1) {
--			if (!request_region(FDCS->address + 2, 4, "floppy")) {
-+			if (!request_region(FDCS->address + 2, 1, "floppy")) {
- 				DPRINT("Floppy io-port 0x%04lx in use\n",
- 				       FDCS->address + 2);
- 				goto cleanup1;
- 			}
-+			if (!request_region(FDCS->address + 4, 2, "floppy")) {
-+				DPRINT("Floppy io-port 0x%04lx in use\n",
-+				       FDCS->address + 4);
-+				goto cleanup2;
-+			}
- 			if (!request_region(FDCS->address + 7, 1, "floppy DIR")) {
- 				DPRINT("Floppy io-port 0x%04lx in use\n",
- 				       FDCS->address + 7);
--				goto cleanup2;
-+				goto cleanup3;
- 			}
- 			/* address + 6 is reserved, and may be taken by IDE.
- 			 * Unfortunately, Adaptec doesn't know this :-(, */
-@@ -4431,13 +4436,16 @@ static int floppy_grab_irq_and_dma(void)
- 	fdc = 0;
- 	irqdma_allocated = 1;
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++static inline void ep_wake_up_nested(wait_queue_head_t *wqueue,
++				     unsigned long events, int subclass)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave_nested(&wqueue->lock, flags, subclass);
++	wake_up_locked_poll(wqueue, events);
++	spin_unlock_irqrestore(&wqueue->lock, flags);
++}
++#else
++static inline void ep_wake_up_nested(wait_queue_head_t *wqueue,
++				     unsigned long events, int subclass)
++{
++	wake_up_poll(wqueue, events);
++}
++#endif
++
+ static int ep_poll_wakeup_proc(void *priv, void *cookie, int call_nests)
+ {
+-	wake_up_nested_poll((wait_queue_head_t *) cookie, POLLIN,
+-			    1 + call_nests);
++	ep_wake_up_nested((wait_queue_head_t *) cookie, POLLIN,
++			  1 + call_nests);
  	return 0;
-+cleanup3:
-+	release_region(FDCS->address + 4, 2);
- cleanup2:
--	release_region(FDCS->address + 2, 4);
-+	release_region(FDCS->address + 2, 1);
- cleanup1:
- 	fd_free_irq();
- 	fd_free_dma();
- 	while (--fdc >= 0) {
--		release_region(FDCS->address + 2, 4);
-+		release_region(FDCS->address + 2, 1);
-+		release_region(FDCS->address + 4, 2);
- 		release_region(FDCS->address + 7, 1);
- 	}
- 	spin_lock_irqsave(&floppy_usage_lock, flags);
+ }
+ 
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
+origin.patch
 linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-floppy-request-only-the-ports-we-actually-use.patch
-pnpbios-fix-warning-if-no-hotplug.patch
-pnpbios-propagate-kthread_run-error.patch
+epoll-fix-own-poll.patch
+epoll-fix-epolls-own-poll-update.patch
+epoll-remove-debugging-code.patch
+eventfd-improve-support-for-semaphore-like-behavior.patch
+epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
+epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
+epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
+epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
 
