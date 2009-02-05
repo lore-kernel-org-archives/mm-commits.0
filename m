@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch added to -mm tree
-Date: Wed, 04 Feb 2009 19:36:33 -0800
-Message-ID: <200902050336.n153aXCP020453@imap1.linux-foundation.org>
+Subject: + vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch added to -mm tree
+Date: Wed, 04 Feb 2009 19:36:36 -0800
+Message-ID: <200902050336.n153abNS020543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753765AbZBEDgs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 22:36:48 -0500
+	by vger.kernel.org with ESMTP id S1753765AbZBEDgx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2009 22:36:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pjt@google.com, adobriyan@gmail.com, ebiederm@xmission.com, stable@kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, ebiederm@xmission.com, pjt@google.com, stable@kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: separate FMODE_PREAD/FMODE_PWRITE into separate flags
+     vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix
 has been added to the -mm tree.  Its filename is
-     vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch
+     vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: separate FMODE_PREAD/FMODE_PWRITE into separate flags
-From: Paul Turner <pjt@google.com>
+Subject: vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Separate FMODE_PREAD and FMODE_PWRITE into separate flags to reflect the
-reality that the read and write paths may have independent restrictions.
-
-A git grep verifies that these flags are always cleared together so this
-new behavior will only apply to interfaces that change to clear flags
-individually.
-
-This is required for "seq_file: properly cope with pread", a post-2.6.25
-regression fix.
-
-Signed-off-by: Paul Turner <pjt@google.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
 Cc:  Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x, 2.6.27.x, 2.6.28.x]
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul Turner <pjt@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ include/linux/fs.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/fs.h~vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags include/linux/fs.h
---- a/include/linux/fs.h~vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags
+diff -puN include/linux/fs.h~vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix include/linux/fs.h
+--- a/include/linux/fs.h~vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix
 +++ a/include/linux/fs.h
-@@ -60,18 +60,19 @@ struct inodes_stat_t {
- #define FMODE_WRITE		((__force fmode_t)2)
- /* file is seekable */
- #define FMODE_LSEEK		((__force fmode_t)4)
--/* file can be accessed using pread/pwrite */
-+/* file can be accessed using pread */
- #define FMODE_PREAD		((__force fmode_t)8)
--#define FMODE_PWRITE		FMODE_PREAD	/* These go hand in hand */
-+/* file can be accessed using pwrite */
-+#define FMODE_PWRITE		((__force fmode_t)16)
- /* File is opened for execution with sys_execve / sys_uselib */
--#define FMODE_EXEC		((__force fmode_t)16)
-+#define FMODE_EXEC		((__force fmode_t)32)
- /* File is opened with O_NDELAY (only set for block devices) */
--#define FMODE_NDELAY		((__force fmode_t)32)
-+#define FMODE_NDELAY		((__force fmode_t)64)
- /* File is opened with O_EXCL (only set for block devices) */
--#define FMODE_EXCL		((__force fmode_t)64)
-+#define FMODE_EXCL		((__force fmode_t)128)
- /* File is opened using open(.., 3, ..) and is writeable only for ioctls
-    (specialy hack for floppy.c) */
--#define FMODE_WRITE_IOCTL	((__force fmode_t)128)
-+#define FMODE_WRITE_IOCTL	((__force fmode_t)256)
+@@ -54,6 +54,11 @@ struct inodes_stat_t {
+ #define MAY_ACCESS 16
+ #define MAY_OPEN 32
  
- /*
-  * Don't update ctime and mtime.
++/*
++ * flags in file.f_mode.  Note that FMODE_READ and FMODE_WRITE must correspond
++ * to O_WRONLY and O_RDWR via the strange trick in __dentry_open()
++ */
++
+ /* file is open for reading */
+ #define FMODE_READ		((__force fmode_t)1)
+ /* file is open for writing */
 _
 
-Patches currently in -mm which might be from pjt@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch
+origin.patch
+kernel-asyncc-fix-printk-warnings.patch
+revert-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+hp-wmi-fix-error-path-in-hp_wmi_bios_setup.patch
+wait-prevent-exclusive-waiter-starvation.patch
+sxc-fix-missed-unlock_kernel-on-error-path-in-sx_fw_ioctl.patch
 vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-move-traverse-so-it-can-be-used-from-seq_read.patch
-seq_file-properly-cope-with-pread.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_add_devices.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set.patch
+cpuset-fix-allocating-page-cache-slab-object-on-the-unallowed-node-when-memory-spread-is-set-fix-2.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
