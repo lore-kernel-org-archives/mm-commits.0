@@ -1,70 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-min-max-range-check-is-broken.patch removed from -mm tree
-Date: Fri, 06 Feb 2009 12:26:21 -0800
-Message-ID: <200902062026.n16KQLL8012324@imap1.linux-foundation.org>
+Subject: + forkc-fix-null-pointer-dereference-when-nr_threads-==-threads-max.patch added to -mm tree
+Date: Fri, 06 Feb 2009 12:47:25 -0800
+Message-ID: <200902062047.n16KlPHM008366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43111 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752136AbZBFU0y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 15:26:54 -0500
+	by vger.kernel.org with ESMTP id S1758199AbZBFUsG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 15:48:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shjain@akamai.com, adobriyan@gmail.com, ebiederm@xmission.com, juhlenko@akamai.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lizf@cn.fujitsu.com, dhowells@redhat.com, jmorris@namei.org
 
 
 The patch titled
-     sysctl: min-max range check is broken
-has been removed from the -mm tree.  Its filename was
-     sysctl-min-max-range-check-is-broken.patch
+     fork.c: fix NULL pointer dereference when nr_threads == threads-max
+has been added to the -mm tree.  Its filename is
+     forkc-fix-null-pointer-dereference-when-nr_threads-==-threads-max.patch
 
-This patch was dropped because im all confused
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: min-max range check is broken
-From: Shakesh Jain <shjain@akamai.com>
+Subject: fork.c: fix NULL pointer dereference when nr_threads == threads-max
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-do_proc_dointvec_minmax_conv() which gets callled from
-proc_dointvec_minmax proc_handler doesn't increment the pointer to the
-'min' (extra1) and 'max' (extra2) after each range check which results in
-doing the check against same set of min and max values.
+I happened to forked lots of processes, and hit NULL pointer dereference. 
+It is because in copy_process() after checking max_threads, 0 is returned
+but not -EAGAIN.
 
-This breaks the range checking for those sysctl's where you can write
-multiple values to /proc with each variable having its own range
-specification.
+The bug is introduced by this patch:
 
-It seems to be implemented for the sysctl() system call strategy in
-sysctl_intvec() where min and max are treated as arrays.
+| commit f1752eec6145c97163dbce62d17cf5d928e28a27
+| Author: David Howells <dhowells@redhat.com>
+| Date:   Fri Nov 14 10:39:17 2008 +1100
+|
+|    CRED: Detach the credentials from task_struct
 
-Signed-off-by: Shakesh Jain <shjain@akamai.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jason Uhlenkott <juhlenko@akamai.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/fork.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/sysctl.c~sysctl-min-max-range-check-is-broken kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-min-max-range-check-is-broken
-+++ a/kernel/sysctl.c
-@@ -2411,8 +2411,8 @@ static int do_proc_dointvec_minmax_conv(
- 	struct do_proc_dointvec_minmax_conv_param *param = data;
- 	if (write) {
- 		int val = *negp ? -*lvalp : *lvalp;
--		if ((param->min && *param->min > val) ||
--		    (param->max && *param->max < val))
-+		if ((param->min && *(param->min++) > val) ||
-+		    (param->max && *(param->max++) < val))
- 			return -EINVAL;
- 		*valp = val;
- 	} else {
+diff -puN kernel/fork.c~forkc-fix-null-pointer-dereference-when-nr_threads-==-threads-max kernel/fork.c
+--- a/kernel/fork.c~forkc-fix-null-pointer-dereference-when-nr_threads-==-threads-max
++++ a/kernel/fork.c
+@@ -1010,6 +1010,7 @@ static struct task_struct *copy_process(
+ 	 * triggers too late. This doesn't hurt, the check is only there
+ 	 * to stop root fork bombs.
+ 	 */
++	retval = -EAGAIN;
+ 	if (nr_threads >= max_threads)
+ 		goto bad_fork_cleanup_count;
+ 
 _
 
-Patches currently in -mm which might be from shjain@akamai.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-sysctl-min-max-range-check-is-broken.patch
+origin.patch
+linux-next.patch
+cgroups-fix-lockdep-subclasses-overflow.patch
+forkc-fix-null-pointer-dereference-when-nr_threads-==-threads-max.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
 
