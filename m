@@ -1,66 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lis3lv02d-add-axes-knowledge-for-hp-6530.patch removed from -mm tree
-Date: Fri, 06 Feb 2009 11:37:58 -0800
-Message-ID: <200902061937.n16Jbw10011589@imap1.linux-foundation.org>
+Subject: [merged] hpilo-open-close-fix.patch removed from -mm tree
+Date: Fri, 06 Feb 2009 11:37:31 -0800
+Message-ID: <200902061937.n16JbV0a011004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45928 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55323 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753418AbZBFTiG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 14:38:06 -0500
+	by vger.kernel.org with ESMTP id S1753276AbZBFTiC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 14:38:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.piel@tremplin-utc.net, jeromepoulin@gmail.com, pavel@suse.cz, mm-commits@vger.kernel.org
+To: david.altobelli@hp.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lis3lv02d: add axes knowledge for HP 6530
+     hpilo: open/close fix
 has been removed from the -mm tree.  Its filename was
-     lis3lv02d-add-axes-knowledge-for-hp-6530.patch
+     hpilo-open-close-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3lv02d: add axes knowledge for HP 6530
-From: Eric Piel <eric.piel@tremplin-utc.net>
+Subject: hpilo: open/close fix
+From: David Altobelli <david.altobelli@hp.com>
 
-Add support for the HP laptops of model 6530x for having correctly setup
-axes.
+The device can take a while to respond to an open/close request, so
+increase the time kernel will wait for response (1 ms to 10ms).
 
-Reported-by: Jerome Poulin <jeromepoulin@gmail.com>
-Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
-Acked-by: Pavel Machek <pavel@suse.cz>
+Also, properly clean up a channel on a failed open, by calling the channel
+close routine.  Just freeing the memory isn't sufficient, the device needs
+to be informed that the channel is no longer open, and the device memory
+cleared of references to freed dma buffer.
+
+Signed-off-by: David Altobelli <david.altobelli@hp.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/hp_accel.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/misc/hpilo.c |    6 +++---
+ drivers/misc/hpilo.h |    2 ++
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/hwmon/hp_accel.c~lis3lv02d-add-axes-knowledge-for-hp-6530 drivers/hwmon/hp_accel.c
---- a/drivers/hwmon/hp_accel.c~lis3lv02d-add-axes-knowledge-for-hp-6530
-+++ a/drivers/hwmon/hp_accel.c
-@@ -153,6 +153,7 @@ static struct axis_conversion lis3lv02d_
- static struct axis_conversion lis3lv02d_axis_x_inverted = {-1, 2, 3};
- static struct axis_conversion lis3lv02d_axis_z_inverted = {1, 2, -3};
- static struct axis_conversion lis3lv02d_axis_xy_rotated_left = {-2, 1, 3};
-+static struct axis_conversion lis3lv02d_axis_xy_rotated_left_usd = {-2, 1, -3};
- static struct axis_conversion lis3lv02d_axis_xy_swap_inverted = {-2, -1, 3};
- static struct axis_conversion lis3lv02d_axis_xy_rotated_right = {2, -1, 3};
+diff -puN drivers/misc/hpilo.c~hpilo-open-close-fix drivers/misc/hpilo.c
+--- a/drivers/misc/hpilo.c~hpilo-open-close-fix
++++ a/drivers/misc/hpilo.c
+@@ -207,7 +207,7 @@ static void ilo_ccb_close(struct pci_dev
+ 		  &device_ccb->recv_ctrl);
  
-@@ -173,6 +174,7 @@ static struct dmi_system_id lis3lv02d_dm
- 	AXIS_DMI_MATCH("NC2510", "HP Compaq 2510", y_inverted),
- 	AXIS_DMI_MATCH("NC8510", "HP Compaq 8510", xy_swap_inverted),
- 	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
-+	AXIS_DMI_MATCH("NC653x", "HP Compaq 653", xy_rotated_left_usd),
- 	AXIS_DMI_MATCH("NC651xx", "HP Compaq 651", xy_rotated_right),
- 	{ NULL, }
- /* Laptop models without axis info (yet):
+ 	/* give iLO some time to process stop request */
+-	for (retries = 1000; retries > 0; retries--) {
++	for (retries = MAX_WAIT; retries > 0; retries--) {
+ 		doorbell_set(driver_ccb);
+ 		udelay(1);
+ 		if (!(ioread32(&device_ccb->send_ctrl) & (1 << CTRL_BITPOS_A))
+@@ -309,7 +309,7 @@ static int ilo_ccb_open(struct ilo_hwinf
+ 	doorbell_clr(driver_ccb);
+ 
+ 	/* make sure iLO is really handling requests */
+-	for (i = 1000; i > 0; i--) {
++	for (i = MAX_WAIT; i > 0; i--) {
+ 		if (ilo_pkt_dequeue(hw, driver_ccb, SENDQ, &pkt_id, NULL, NULL))
+ 			break;
+ 		udelay(1);
+@@ -326,7 +326,7 @@ static int ilo_ccb_open(struct ilo_hwinf
+ 
+ 	return 0;
+ free:
+-	pci_free_consistent(pdev, data->dma_size, data->dma_va, data->dma_pa);
++	ilo_ccb_close(pdev, data);
+ out:
+ 	return error;
+ }
+diff -puN drivers/misc/hpilo.h~hpilo-open-close-fix drivers/misc/hpilo.h
+--- a/drivers/misc/hpilo.h~hpilo-open-close-fix
++++ a/drivers/misc/hpilo.h
+@@ -19,6 +19,8 @@
+ #define MAX_ILO_DEV	1
+ /* max number of files */
+ #define MAX_OPEN	(MAX_CCB * MAX_ILO_DEV)
++/* spin counter for open/close delay */
++#define MAX_WAIT	10000
+ 
+ /*
+  * Per device, used to track global memory allocations.
 _
 
-Patches currently in -mm which might be from eric.piel@tremplin-utc.net are
+Patches currently in -mm which might be from david.altobelli@hp.com are
 
 origin.patch
-hp-accelerometer-add-freefall-detection.patch
 
