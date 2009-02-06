@@ -1,80 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + next-git-rejects.patch added to -mm tree
-Date: Fri, 06 Feb 2009 11:34:38 -0800
-Message-ID: <200902061934.n16JYcmH006994@imap1.linux-foundation.org>
+Subject: [obsolete] revert-x86-prevent-kprobes-from-catching-spurious-page-faults.patch removed from -mm tree
+Date: Fri, 06 Feb 2009 11:33:06 -0800
+Message-ID: <200902061933.n16JX67o004904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42820 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751661AbZBFTfH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 14:35:07 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n16JYccT005485
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 6 Feb 2009 11:34:39 -0800
+	by vger.kernel.org with ESMTP id S1753014AbZBFTfB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 14:35:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, hpa@zytor.com, mhiramat@redhat.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     next-git-rejects
-has been added to the -mm tree.  Its filename is
-     next-git-rejects.patch
+     revert x86-prevent-kprobes-from-catching-spurious-page-faults
+has been removed from the -mm tree.  Its filename was
+     revert-x86-prevent-kprobes-from-catching-spurious-page-faults.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: next-git-rejects
+Subject: revert x86-prevent-kprobes-from-catching-spurious-page-faults
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Revert this locally so that linux-next doesn't make a huge mess.
+
+Cc: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/x86/mm/fault.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/mm/fault.c~next-git-rejects arch/x86/mm/fault.c
---- a/arch/x86/mm/fault.c~next-git-rejects
+diff -puN arch/x86/mm/fault.c~revert-x86-prevent-kprobes-from-catching-spurious-page-faults arch/x86/mm/fault.c
+--- a/arch/x86/mm/fault.c~revert-x86-prevent-kprobes-from-catching-spurious-page-faults
 +++ a/arch/x86/mm/fault.c
-@@ -814,11 +814,8 @@ void __kprobes do_page_fault(struct pt_r
- 	if(kmemcheck_active(regs))
- 		kmemcheck_hide(regs);
+@@ -603,6 +603,8 @@ void __kprobes do_page_fault(struct pt_r
  
--<<<<<<< HEAD:arch/x86/mm/fault.c
--=======
- 	if (unlikely(notify_page_fault(regs)))
- 		return;
-->>>>>>> FETCH_HEAD:arch/x86/mm/fault.c
+ 	si_code = SEGV_MAPERR;
+ 
++	if (notify_page_fault(regs))
++		return;
  	if (unlikely(kmmio_fault(regs, address)))
  		return;
  
-@@ -863,13 +860,10 @@ void __kprobes do_page_fault(struct pt_r
- 		return;
+@@ -632,9 +634,6 @@ void __kprobes do_page_fault(struct pt_r
+ 		if (spurious_fault(address, error_code))
+ 			return;
+ 
+-		/* kprobes don't want to hook the spurious faults. */
+-		if (notify_page_fault(regs))
+-			return;
+ 		/*
+ 		 * Don't take the mm semaphore here. If we fixup a prefetch
+ 		 * fault we could otherwise deadlock.
+@@ -642,9 +641,6 @@ void __kprobes do_page_fault(struct pt_r
+ 		goto bad_area_nosemaphore;
  	}
  
--<<<<<<< HEAD:arch/x86/mm/fault.c
- 	/* kprobes don't want to hook the spurious faults. */
- 	if (notify_page_fault(regs))
- 		return;
+-	/* kprobes don't want to hook the spurious faults. */
+-	if (notify_page_fault(regs))
+-		return;
  
--=======
-->>>>>>> FETCH_HEAD:arch/x86/mm/fault.c
  	/*
  	 * It's safe to allow irq's after cr2 has been saved and the
- 	 * vmalloc fault has been handled.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,9 +79,9 @@ vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
 seq_file-properly-cope-with-pread-fix.patch
 i-need-old-gcc.patch
 i2c-too-much-compiler-noise.patch
+revert-x86-prevent-kprobes-from-catching-spurious-page-faults.patch
 linux-next.patch
 next-remove-localversion.patch
-next-git-rejects.patch
 fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
 x86-define-arch_want_frame_pointers-fix.patch
