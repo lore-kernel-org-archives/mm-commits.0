@@ -1,77 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: [merged] intel_cacheinfo-add-cache-descriptors-for-intel-core-i7.patch removed from -mm tree
-Date: Fri, 06 Feb 2009 11:38:39 -0800
-Message-ID: <200902061938.n16Jcdfj012666@imap1.linux-foundation.org>
+Subject: [merged] wait-prevent-exclusive-waiter-starvation.patch removed from -mm tree
+Date: Fri, 06 Feb 2009 11:38:06 -0800
+Message-ID: <200902061938.n16Jc6eK011841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41631 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754083AbZBFTjl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 14:39:41 -0500
+	by vger.kernel.org with ESMTP id S1753690AbZBFTjq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 14:39:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, a.p.zijlstra@chello.nl, cel@citi.umich.edu, chris.mason@oracle.com, matthew@wil.cx, mingo@elte.hu, nickpiggin@yahoo.com.au, oleg@redhat.com, stable@kernel.org, mm-
 
 
 The patch titled
-     intel_cacheinfo: add cache descriptors for Intel Core i7
+     wait: prevent exclusive waiter starvation
 has been removed from the -mm tree.  Its filename was
-     intel_cacheinfo-add-cache-descriptors-for-intel-core-i7.patch
+     wait-prevent-exclusive-waiter-starvation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel_cacheinfo: add cache descriptors for Intel Core i7
-From: Dave Jones <davej@redhat.com>
+Subject: wait: prevent exclusive waiter starvation
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Signed-off-by: Dave Jones <davej@redhat.com>
+With exclusive waiters, every process woken up through the wait queue must
+ensure that the next waiter down the line is woken when it has finished.
+
+Interruptible waiters don't do that when aborting due to a signal.  And if
+an aborting waiter is concurrently woken up through the waitqueue, noone
+will ever wake up the next waiter.
+
+This has been observed with __wait_on_bit_lock() used by
+lock_page_killable(): the first contender on the queue was aborting when
+the actual lock holder woke it up concurrently.  The aborted contender
+didn't acquire the lock and therefor never did an unlock followed by
+waking up the next waiter.
+
+Add abort_exclusive_wait() which removes the process' wait descriptor from
+the waitqueue, iff still queued, or wakes up the next waiter otherwise. 
+It does so under the waitqueue lock.  Racing with a wake up means the
+aborting process is either already woken (removed from the queue) and will
+wake up the next waiter, or it will remove itself from the queue and the
+concurrent wake up will apply to the next waiter after it.
+
+Use abort_exclusive_wait() in __wait_event_interruptible_exclusive() and
+__wait_on_bit_lock() when they were interrupted by other means than a wake
+up through the queue.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Reported-by: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Mentored-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Chuck Lever <cel@citi.umich.edu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>		["after some testing"]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/intel_cacheinfo.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/linux/wait.h |   11 ++++++-
+ kernel/sched.c       |    4 +-
+ kernel/wait.c        |   59 ++++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 63 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/intel_cacheinfo.c~intel_cacheinfo-add-cache-descriptors-for-intel-core-i7 arch/x86/kernel/cpu/intel_cacheinfo.c
---- a/arch/x86/kernel/cpu/intel_cacheinfo.c~intel_cacheinfo-add-cache-descriptors-for-intel-core-i7
-+++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
-@@ -36,8 +36,11 @@ static struct _cache_table cache_table[]
+diff -puN include/linux/wait.h~wait-prevent-exclusive-waiter-starvation include/linux/wait.h
+--- a/include/linux/wait.h~wait-prevent-exclusive-waiter-starvation
++++ a/include/linux/wait.h
+@@ -132,6 +132,8 @@ static inline void __remove_wait_queue(w
+ 	list_del(&old->task_list);
+ }
+ 
++void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
++			int nr_exclusive, int sync, void *key);
+ void __wake_up(wait_queue_head_t *q, unsigned int mode, int nr, void *key);
+ extern void __wake_up_locked(wait_queue_head_t *q, unsigned int mode);
+ extern void __wake_up_sync(wait_queue_head_t *q, unsigned int mode, int nr);
+@@ -333,16 +335,19 @@ do {									\
+ 	for (;;) {							\
+ 		prepare_to_wait_exclusive(&wq, &__wait,			\
+ 					TASK_INTERRUPTIBLE);		\
+-		if (condition)						\
++		if (condition) {					\
++			finish_wait(&wq, &__wait);			\
+ 			break;						\
++		}							\
+ 		if (!signal_pending(current)) {				\
+ 			schedule();					\
+ 			continue;					\
+ 		}							\
+ 		ret = -ERESTARTSYS;					\
++		abort_exclusive_wait(&wq, &__wait, 			\
++				TASK_INTERRUPTIBLE, NULL);		\
+ 		break;							\
+ 	}								\
+-	finish_wait(&wq, &__wait);					\
+ } while (0)
+ 
+ #define wait_event_interruptible_exclusive(wq, condition)		\
+@@ -431,6 +436,8 @@ extern long interruptible_sleep_on_timeo
+ void prepare_to_wait(wait_queue_head_t *q, wait_queue_t *wait, int state);
+ void prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait, int state);
+ void finish_wait(wait_queue_head_t *q, wait_queue_t *wait);
++void abort_exclusive_wait(wait_queue_head_t *q, wait_queue_t *wait,
++			unsigned int mode, void *key);
+ int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
+ int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
+ 
+diff -puN kernel/sched.c~wait-prevent-exclusive-waiter-starvation kernel/sched.c
+--- a/kernel/sched.c~wait-prevent-exclusive-waiter-starvation
++++ a/kernel/sched.c
+@@ -4697,8 +4697,8 @@ EXPORT_SYMBOL(default_wake_function);
+  * started to run but is not in state TASK_RUNNING. try_to_wake_up() returns
+  * zero in this (rare) case, and we handle it by continuing to scan the queue.
+  */
+-static void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
+-			     int nr_exclusive, int sync, void *key)
++void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
++			int nr_exclusive, int sync, void *key)
  {
- 	{ 0x06, LVL_1_INST, 8 },	/* 4-way set assoc, 32 byte line size */
- 	{ 0x08, LVL_1_INST, 16 },	/* 4-way set assoc, 32 byte line size */
-+	{ 0x09, LVL_1_INST, 32 },	/* 4-way set assoc, 64 byte line size */
- 	{ 0x0a, LVL_1_DATA, 8 },	/* 2 way set assoc, 32 byte line size */
- 	{ 0x0c, LVL_1_DATA, 16 },	/* 4-way set assoc, 32 byte line size */
-+	{ 0x0d, LVL_1_DATA, 16 },	/* 4-way set assoc, 64 byte line size */
-+	{ 0x21, LVL_2,      256 },	/* 8-way set assoc, 64 byte line size */
- 	{ 0x22, LVL_3,      512 },	/* 4-way set assoc, sectored cache, 64 byte line size */
- 	{ 0x23, LVL_3,      1024 },	/* 8-way set assoc, sectored cache, 64 byte line size */
- 	{ 0x25, LVL_3,      2048 },	/* 8-way set assoc, sectored cache, 64 byte line size */
-@@ -85,6 +88,18 @@ static struct _cache_table cache_table[]
- 	{ 0x85, LVL_2,    2048 },	/* 8-way set assoc, 32 byte line size */
- 	{ 0x86, LVL_2,     512 },	/* 4-way set assoc, 64 byte line size */
- 	{ 0x87, LVL_2,    1024 },	/* 8-way set assoc, 64 byte line size */
-+	{ 0xd0, LVL_3,     512 },	/* 4-way set assoc, 64 byte line size */
-+	{ 0xd1, LVL_3,    1024 },	/* 4-way set assoc, 64 byte line size */
-+	{ 0xd2, LVL_3,    2048 },	/* 4-way set assoc, 64 byte line size */
-+	{ 0xd6, LVL_3,    1024 },	/* 8-way set assoc, 64 byte line size */
-+	{ 0xd7, LVL_3,    2038 },	/* 8-way set assoc, 64 byte line size */
-+	{ 0xd8, LVL_3,    4096 },	/* 12-way set assoc, 64 byte line size */
-+	{ 0xdc, LVL_3,    2048 },	/* 12-way set assoc, 64 byte line size */
-+	{ 0xdd, LVL_3,    4096 },	/* 12-way set assoc, 64 byte line size */
-+	{ 0xde, LVL_3,    8192 },	/* 12-way set assoc, 64 byte line size */
-+	{ 0xe2, LVL_3,    2048 },	/* 16-way set assoc, 64 byte line size */
-+	{ 0xe3, LVL_3,    4096 },	/* 16-way set assoc, 64 byte line size */
-+	{ 0xe4, LVL_3,    8192 },	/* 16-way set assoc, 64 byte line size */
- 	{ 0x00, 0, 0}
- };
+ 	wait_queue_t *curr, *next;
+ 
+diff -puN kernel/wait.c~wait-prevent-exclusive-waiter-starvation kernel/wait.c
+--- a/kernel/wait.c~wait-prevent-exclusive-waiter-starvation
++++ a/kernel/wait.c
+@@ -91,6 +91,15 @@ prepare_to_wait_exclusive(wait_queue_hea
+ }
+ EXPORT_SYMBOL(prepare_to_wait_exclusive);
+ 
++/*
++ * finish_wait - clean up after waiting in a queue
++ * @q: waitqueue waited on
++ * @wait: wait descriptor
++ *
++ * Sets current thread back to running state and removes
++ * the wait descriptor from the given waitqueue if still
++ * queued.
++ */
+ void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
+ {
+ 	unsigned long flags;
+@@ -117,6 +126,39 @@ void finish_wait(wait_queue_head_t *q, w
+ }
+ EXPORT_SYMBOL(finish_wait);
+ 
++/*
++ * abort_exclusive_wait - abort exclusive waiting in a queue
++ * @q: waitqueue waited on
++ * @wait: wait descriptor
++ * @state: runstate of the waiter to be woken
++ * @key: key to identify a wait bit queue or %NULL
++ *
++ * Sets current thread back to running state and removes
++ * the wait descriptor from the given waitqueue if still
++ * queued.
++ *
++ * Wakes up the next waiter if the caller is concurrently
++ * woken up through the queue.
++ *
++ * This prevents waiter starvation where an exclusive waiter
++ * aborts and is woken up concurrently and noone wakes up
++ * the next waiter.
++ */
++void abort_exclusive_wait(wait_queue_head_t *q, wait_queue_t *wait,
++			unsigned int mode, void *key)
++{
++	unsigned long flags;
++
++	__set_current_state(TASK_RUNNING);
++	spin_lock_irqsave(&q->lock, flags);
++	if (!list_empty(&wait->task_list))
++		list_del_init(&wait->task_list);
++	else if (waitqueue_active(q))
++		__wake_up_common(q, mode, 1, 0, key);
++	spin_unlock_irqrestore(&q->lock, flags);
++}
++EXPORT_SYMBOL(abort_exclusive_wait);
++
+ int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
+ {
+ 	int ret = default_wake_function(wait, mode, sync, key);
+@@ -177,17 +219,20 @@ int __sched
+ __wait_on_bit_lock(wait_queue_head_t *wq, struct wait_bit_queue *q,
+ 			int (*action)(void *), unsigned mode)
+ {
+-	int ret = 0;
+-
+ 	do {
++		int ret;
++
+ 		prepare_to_wait_exclusive(wq, &q->wait, mode);
+-		if (test_bit(q->key.bit_nr, q->key.flags)) {
+-			if ((ret = (*action)(q->key.flags)))
+-				break;
+-		}
++		if (!test_bit(q->key.bit_nr, q->key.flags))
++			continue;
++		ret = action(q->key.flags);
++		if (!ret)
++			continue;
++		abort_exclusive_wait(wq, &q->wait, mode, &q->key);
++		return ret;
+ 	} while (test_and_set_bit(q->key.bit_nr, q->key.flags));
+ 	finish_wait(wq, &q->wait);
+-	return ret;
++	return 0;
+ }
+ EXPORT_SYMBOL(__wait_on_bit_lock);
  
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
+migration-migrate_vmas-should-check-vma.patch
 linux-next.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
 
