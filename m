@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + swsusp-dont-fiddle-with-swappiness.patch added to -mm tree
-Date: Fri, 06 Feb 2009 13:01:56 -0800
-Message-ID: <200902062101.n16L1u0c028030@imap1.linux-foundation.org>
+Subject: + kernel-doc-fix-syscall-wrapper-processing.patch added to -mm tree
+Date: Fri, 06 Feb 2009 13:06:47 -0800
+Message-ID: <200902062106.n16L6lXn002118@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752278AbZBFVCx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 16:02:53 -0500
+	by vger.kernel.org with ESMTP id S1753489AbZBFVHY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 16:07:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, pavel@ucw.cz, riel@redhat.com, rjw@sisk.pl
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     swsusp: dont fiddle with swappiness
+     kernel-doc: fix syscall wrapper processing
 has been added to the -mm tree.  Its filename is
-     swsusp-dont-fiddle-with-swappiness.patch
+     kernel-doc-fix-syscall-wrapper-processing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,132 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swsusp: dont fiddle with swappiness
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: kernel-doc: fix syscall wrapper processing
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-sc.swappiness is not used in the swsusp memory shrinking path, do not
-set it.
+Fix kernel-doc processing of SYSCALL wrappers.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rik van Riel <riel@redhat.com>
+The SYSCALL wrapper patches played havoc with kernel-doc for
+syscalls.  Syscalls that were scanned for DocBook processing
+reported warnings like this one, for sys_tgkill:
+
+Warning(kernel/signal.c:2285): No description found for parameter 'tgkill'
+Warning(kernel/signal.c:2285): No description found for parameter 'pid_t'
+Warning(kernel/signal.c:2285): No description found for parameter 'int'
+
+because the macro parameters all "look like" function parameters,
+although they are not:
+
+/**
+ *  sys_tgkill - send signal to one specific thread
+ *  @tgid: the thread group ID of the thread
+ *  @pid: the PID of the thread
+ *  @sig: signal to be sent
+ *
+ *  This syscall also checks the @tgid and returns -ESRCH even if the PID
+ *  exists but it's not belonging to the target process anymore. This
+ *  method solves the problem of threads exiting and PIDs getting reused.
+ */
+SYSCALL_DEFINE3(tgkill, pid_t, tgid, pid_t, pid, int, sig)
+{
+...
+
+This patch special-cases the handling SYSCALL_DEFINE* function
+prototypes by expanding them to
+	long sys_foobar(type1 arg1, type1 arg2, ...)
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ scripts/kernel-doc |   40 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 39 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~swsusp-dont-fiddle-with-swappiness mm/vmscan.c
---- a/mm/vmscan.c~swsusp-dont-fiddle-with-swappiness
-+++ a/mm/vmscan.c
-@@ -2111,7 +2111,6 @@ unsigned long shrink_all_memory(unsigned
- 		.may_swap = 0,
- 		.swap_cluster_max = nr_pages,
- 		.may_writepage = 1,
--		.swappiness = vm_swappiness,
- 		.isolate_pages = isolate_pages_global,
- 	};
+diff -puN scripts/kernel-doc~kernel-doc-fix-syscall-wrapper-processing scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-fix-syscall-wrapper-processing
++++ a/scripts/kernel-doc
+@@ -1827,6 +1827,40 @@ sub reset_state {
+     $state = 0;
+ }
  
-@@ -2145,10 +2144,8 @@ unsigned long shrink_all_memory(unsigned
- 		int prio;
- 
- 		/* Force reclaiming mapped pages in the passes #3 and #4 */
--		if (pass > 2) {
-+		if (pass > 2)
- 			sc.may_swap = 1;
--			sc.swappiness = 100;
--		}
- 
- 		for (prio = DEF_PRIORITY; prio >= 0; prio--) {
- 			unsigned long nr_to_scan = nr_pages - ret;
++sub syscall_munge() {
++	my $void = 0;
++
++	$prototype =~ s@[\r\n\t]+@ @gos; # strip newlines/CR's/tabs
++##	if ($prototype =~ m/SYSCALL_DEFINE0\s*\(\s*(a-zA-Z0-9_)*\s*\)/) {
++	if ($prototype =~ m/SYSCALL_DEFINE0/) {
++		$void = 1;
++##		$prototype = "long sys_$1(void)";
++	}
++
++	$prototype =~ s/SYSCALL_DEFINE.*\(/long sys_/; # fix return type & func name
++	if ($prototype =~ m/long (sys_.*?),/) {
++		$prototype =~ s/,/\(/;
++	} elsif ($void) {
++		$prototype =~ s/\)/\(void\)/;
++	}
++
++	# now delete all of the odd-number commas in $prototype
++	# so that arg types & arg names don't have a comma between them
++	my $count = 0;
++	my $len = length($prototype);
++	if ($void) {
++		$len = 0;	# skip the for-loop
++	}
++	for (my $ix = 0; $ix < $len; $ix++) {
++		if (substr($prototype, $ix, 1) eq ',') {
++			$count++;
++			if ($count % 2 == 1) {
++				substr($prototype, $ix, 1) = ' ';
++			}
++		}
++	}
++}
++
+ sub process_state3_function($$) {
+     my $x = shift;
+     my $file = shift;
+@@ -1839,11 +1873,15 @@ sub process_state3_function($$) {
+     elsif ($x =~ /([^\{]*)/) {
+ 	$prototype .= $1;
+     }
++
+     if (($x =~ /\{/) || ($x =~ /\#\s*define/) || ($x =~ /;/)) {
+ 	$prototype =~ s@/\*.*?\*/@@gos;	# strip comments.
+ 	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/cr's.
+ 	$prototype =~ s@^\s+@@gos; # strip leading spaces
+-	dump_function($prototype,$file);
++	if ($prototype =~ /SYSCALL_DEFINE/) {
++		syscall_munge();
++	}
++	dump_function($prototype, $file);
+ 	reset_state();
+     }
+ }
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-migration-migrate_vmas-should-check-vma.patch
+kernel-doc-preferred-ending-marker-and-examples.patch
+kernel-doc-fix-syscall-wrapper-processing.patch
 linux-next.patch
-powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
-swsusp-clean-up-shrink_all_zones.patch
-swsusp-dont-fiddle-with-swappiness.patch
+uv-fix-header-struct-usage.patch
+kgdb-fix-kernel-doc-error.patch
+auditsc-fix-kernel-doc-notation.patch
+input-ad7879-touchscreen-driver-dont-use-bus_id.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+esp-fix-section-mismatch-warning.patch
+vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
+vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
+max3100-spi-uart-driver.patch
+filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
+atyfb-fix-header-file-trailing-whitespace.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+documentation-ignore-byproducts-from-latex.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+linuxpps-core-support.patch
 
