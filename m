@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 06 Feb 2009 13:55:04 -0800
-Message-ID: <200902062155.n16Lt54l002701@imap1.linux-foundation.org>
+Subject: + aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch added to -mm tree
+Date: Fri, 06 Feb 2009 14:38:54 -0800
+Message-ID: <200902062255.n16MtwDR020250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35760 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752554AbZBFVzJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 16:55:09 -0500
+	by vger.kernel.org with ESMTP id S1751067AbZBFW4a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 17:56:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, dougthompson@xmission.com, gerickson@nuovations.com
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, geert@linux-m68k.org, khc@pm.waw.pl, rjw@sisk.pl
 
 
 The patch titled
-     edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes
+     aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix
 has been added to the -mm tree.  Its filename is
-     edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+     aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes
+Subject: aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: suspect code indent for conditional statements (28, 36)
-#46: FILE: drivers/edac/ppc4xx_edac.c:340:
-+			    if (n < 0 || n >= size)
-+				    goto fail;
+drivers/video/aty/aty128fb.c: In function 'aty128_set_suspend':
+drivers/video/aty/aty128fb.c:2368: warning: unused variable 'pwr_command'
 
-total: 0 errors, 1 warnings, 26 lines checked
-
-./patches/edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Doug Thompson <dougthompson@xmission.com>
-Cc: Grant Erickson <gerickson@nuovations.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/ppc4xx_edac.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/video/aty/aty128fb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/edac/ppc4xx_edac.c~edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes drivers/edac/ppc4xx_edac.c
---- a/drivers/edac/ppc4xx_edac.c~edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes
-+++ a/drivers/edac/ppc4xx_edac.c
-@@ -333,16 +333,15 @@ ppc4xx_edac_generate_bank_message(const 
+diff -puN drivers/video/aty/aty128fb.c~aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix drivers/video/aty/aty128fb.c
+--- a/drivers/video/aty/aty128fb.c~aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix
++++ a/drivers/video/aty/aty128fb.c
+@@ -2365,7 +2365,6 @@ static void fbcon_aty128_bmove(struct di
+ static void aty128_set_suspend(struct aty128fb_par *par, int suspend)
+ {
+ 	u32	pmgt;
+-	u16	pwr_command;
+ 	struct pci_dev *pdev = par->pdev;
  
- 	for (rows = 0, row = 0; row < mci->nr_csrows; row++) {
- 		if (ppc4xx_edac_check_bank_error(status, row)) {
--			    n = snprintf(buffer, size,
--					 "%s%u",
--					 (rows++ ? ", " : ""), row);
--
--			    if (n < 0 || n >= size)
--				    goto fail;
--
--			    buffer += n;
--			    size -= n;
--			    total += n;
-+			n = snprintf(buffer, size, "%s%u",
-+					(rows++ ? ", " : ""), row);
-+
-+			if (n < 0 || n >= size)
-+				goto fail;
-+
-+			buffer += n;
-+			size -= n;
-+			total += n;
- 		}
- 	}
- 
+ 	if (!par->pm_reg)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,6 +91,7 @@ pci-constify-pci_bus_add_devices.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 vfs-simple_set_mnt-should-return-void-fix.patch
 ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 drivers-ata-sata_silc-needs-dmih.patch
 input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
