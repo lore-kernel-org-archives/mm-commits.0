@@ -1,476 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-rename-da903x-to-da903x_bl.patch removed from -mm tree
-Date: Fri, 06 Feb 2009 11:38:15 -0800
-Message-ID: <200902061938.n16JcF1g012078@imap1.linux-foundation.org>
+Subject: [merged] alpha-fixup-bug-macro.patch removed from -mm tree
+Date: Fri, 06 Feb 2009 11:38:25 -0800
+Message-ID: <200902061938.n16JcPLJ012322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60203 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35637 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754685AbZBFTig (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 14:38:36 -0500
+	by vger.kernel.org with ESMTP id S1754142AbZBFTik (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 14:38:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike@compulab.co.il, eric.miao@marvell.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/backlight: rename da903x to da903x_bl
+     alpha: fixup BUG macro
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-rename-da903x-to-da903x_bl.patch
+     alpha-fixup-bug-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight: rename da903x to da903x_bl
-From: Mike Rapoport <mike@compulab.co.il>
+Subject: alpha: fixup BUG macro
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Currently both da903x backlight and voltage reulator drivers have the
-same name. Rename the backlight driver to allow use of both drivers as
-modules.
+Do usual do {} while (0) dance, otherwise
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-Acked-by: Eric Miao <eric.miao@marvell.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+fs/gfs2/util.c:99: error: expected expression before 'else'
+drivers/scsi/lpfc/lpfc_sli.c:363: error: expected expression before 'else'
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Makefile    |    2 
- drivers/video/backlight/da903x.c    |  203 --------------------------
- drivers/video/backlight/da903x_bl.c |  203 ++++++++++++++++++++++++++
- 3 files changed, 204 insertions(+), 204 deletions(-)
+ arch/alpha/include/asm/bug.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/Makefile~drivers-video-backlight-rename-da903x-to-da903x_bl drivers/video/backlight/Makefile
---- a/drivers/video/backlight/Makefile~drivers-video-backlight-rename-da903x-to-da903x_bl
-+++ a/drivers/video/backlight/Makefile
-@@ -18,7 +18,7 @@ obj-$(CONFIG_BACKLIGHT_OMAP1)	+= omap1_b
- obj-$(CONFIG_BACKLIGHT_PROGEAR) += progear_bl.o
- obj-$(CONFIG_BACKLIGHT_CARILLO_RANCH) += cr_bllcd.o
- obj-$(CONFIG_BACKLIGHT_PWM)	+= pwm_bl.o
--obj-$(CONFIG_BACKLIGHT_DA903X)	+= da903x.o
-+obj-$(CONFIG_BACKLIGHT_DA903X)	+= da903x_bl.o
- obj-$(CONFIG_BACKLIGHT_MBP_NVIDIA) += mbp_nvidia_bl.o
- obj-$(CONFIG_BACKLIGHT_TOSA)	+= tosa_bl.o
- obj-$(CONFIG_BACKLIGHT_SAHARA)	+= kb3886_bl.o
-diff -puN drivers/video/backlight/da903x.c~drivers-video-backlight-rename-da903x-to-da903x_bl /dev/null
---- a/drivers/video/backlight/da903x.c
-+++ /dev/null
-@@ -1,203 +0,0 @@
--/*
-- * Backlight driver for Dialog Semiconductor DA9030/DA9034
-- *
-- * Copyright (C) 2008 Compulab, Ltd.
-- * 	Mike Rapoport <mike@compulab.co.il>
-- *
-- * Copyright (C) 2006-2008 Marvell International Ltd.
-- * 	Eric Miao <eric.miao@marvell.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/platform_device.h>
--#include <linux/fb.h>
--#include <linux/backlight.h>
--#include <linux/mfd/da903x.h>
--
--#define DA9030_WLED_CONTROL	0x25
--#define DA9030_WLED_CP_EN	(1 << 6)
--#define DA9030_WLED_TRIM(x)	((x) & 0x7)
--
--#define DA9034_WLED_CONTROL1	0x3C
--#define DA9034_WLED_CONTROL2	0x3D
--
--#define DA9034_WLED_BOOST_EN	(1 << 5)
--
--#define DA9030_MAX_BRIGHTNESS	7
--#define DA9034_MAX_BRIGHTNESS	0x7f
--
--struct da903x_backlight_data {
--	struct device *da903x_dev;
--	int id;
--	int current_brightness;
--};
--
--static int da903x_backlight_set(struct backlight_device *bl, int brightness)
--{
--	struct da903x_backlight_data *data = bl_get_data(bl);
--	struct device *dev = data->da903x_dev;
--	uint8_t val;
--	int ret = 0;
--
--	switch (data->id) {
--	case DA9034_ID_WLED:
--		ret = da903x_update(dev, DA9034_WLED_CONTROL1,
--				brightness, 0x7f);
--		if (ret)
--			return ret;
--
--		if (data->current_brightness && brightness == 0)
--			ret = da903x_clr_bits(dev,
--					DA9034_WLED_CONTROL2,
--					DA9034_WLED_BOOST_EN);
--
--		if (data->current_brightness == 0 && brightness)
--			ret = da903x_set_bits(dev,
--					DA9034_WLED_CONTROL2,
--					DA9034_WLED_BOOST_EN);
--		break;
--	case DA9030_ID_WLED:
--		val = DA9030_WLED_TRIM(brightness);
--		val |= brightness ? DA9030_WLED_CP_EN : 0;
--		ret = da903x_write(dev, DA9030_WLED_CONTROL, val);
--		break;
--	}
--
--	if (ret)
--		return ret;
--
--	data->current_brightness = brightness;
--	return 0;
--}
--
--static int da903x_backlight_update_status(struct backlight_device *bl)
--{
--	int brightness = bl->props.brightness;
--
--	if (bl->props.power != FB_BLANK_UNBLANK)
--		brightness = 0;
--
--	if (bl->props.fb_blank != FB_BLANK_UNBLANK)
--		brightness = 0;
--
--	return da903x_backlight_set(bl, brightness);
--}
--
--static int da903x_backlight_get_brightness(struct backlight_device *bl)
--{
--	struct da903x_backlight_data *data = bl_get_data(bl);
--	return data->current_brightness;
--}
--
--static struct backlight_ops da903x_backlight_ops = {
--	.update_status	= da903x_backlight_update_status,
--	.get_brightness	= da903x_backlight_get_brightness,
--};
--
--static int da903x_backlight_probe(struct platform_device *pdev)
--{
--	struct da903x_backlight_data *data;
--	struct backlight_device *bl;
--	int max_brightness;
--
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
--	if (data == NULL)
--		return -ENOMEM;
--
--	switch (pdev->id) {
--	case DA9030_ID_WLED:
--		max_brightness = DA9030_MAX_BRIGHTNESS;
--		break;
--	case DA9034_ID_WLED:
--		max_brightness = DA9034_MAX_BRIGHTNESS;
--		break;
--	default:
--		dev_err(&pdev->dev, "invalid backlight device ID(%d)\n",
--				pdev->id);
--		kfree(data);
--		return -EINVAL;
--	}
--
--	data->id = pdev->id;
--	data->da903x_dev = pdev->dev.parent;
--	data->current_brightness = 0;
--
--	bl = backlight_device_register(pdev->name, data->da903x_dev,
--			data, &da903x_backlight_ops);
--	if (IS_ERR(bl)) {
--		dev_err(&pdev->dev, "failed to register backlight\n");
--		kfree(data);
--		return PTR_ERR(bl);
--	}
--
--	bl->props.max_brightness = max_brightness;
--	bl->props.brightness = max_brightness;
--
--	platform_set_drvdata(pdev, bl);
--	backlight_update_status(bl);
--	return 0;
--}
--
--static int da903x_backlight_remove(struct platform_device *pdev)
--{
--	struct backlight_device *bl = platform_get_drvdata(pdev);
--	struct da903x_backlight_data *data = bl_get_data(bl);
--
--	backlight_device_unregister(bl);
--	kfree(data);
--	return 0;
--}
--
--#ifdef CONFIG_PM
--static int da903x_backlight_suspend(struct platform_device *pdev,
--				 pm_message_t state)
--{
--	struct backlight_device *bl = platform_get_drvdata(pdev);
--	return da903x_backlight_set(bl, 0);
--}
--
--static int da903x_backlight_resume(struct platform_device *pdev)
--{
--	struct backlight_device *bl = platform_get_drvdata(pdev);
--
--	backlight_update_status(bl);
--	return 0;
--}
--#else
--#define da903x_backlight_suspend	NULL
--#define da903x_backlight_resume		NULL
--#endif
--
--static struct platform_driver da903x_backlight_driver = {
--	.driver		= {
--		.name	= "da903x-backlight",
--		.owner	= THIS_MODULE,
--	},
--	.probe		= da903x_backlight_probe,
--	.remove		= da903x_backlight_remove,
--	.suspend	= da903x_backlight_suspend,
--	.resume		= da903x_backlight_resume,
--};
--
--static int __init da903x_backlight_init(void)
--{
--	return platform_driver_register(&da903x_backlight_driver);
--}
--module_init(da903x_backlight_init);
--
--static void __exit da903x_backlight_exit(void)
--{
--	platform_driver_unregister(&da903x_backlight_driver);
--}
--module_exit(da903x_backlight_exit);
--
--MODULE_DESCRIPTION("Backlight Driver for Dialog Semiconductor DA9030/DA9034");
--MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>"
--	      "Mike Rapoport <mike@compulab.co.il>");
--MODULE_LICENSE("GPL");
--MODULE_ALIAS("platform:da903x-backlight");
-diff -puN /dev/null drivers/video/backlight/da903x_bl.c
---- /dev/null
-+++ a/drivers/video/backlight/da903x_bl.c
-@@ -0,0 +1,203 @@
-+/*
-+ * Backlight driver for Dialog Semiconductor DA9030/DA9034
-+ *
-+ * Copyright (C) 2008 Compulab, Ltd.
-+ * 	Mike Rapoport <mike@compulab.co.il>
-+ *
-+ * Copyright (C) 2006-2008 Marvell International Ltd.
-+ * 	Eric Miao <eric.miao@marvell.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/fb.h>
-+#include <linux/backlight.h>
-+#include <linux/mfd/da903x.h>
-+
-+#define DA9030_WLED_CONTROL	0x25
-+#define DA9030_WLED_CP_EN	(1 << 6)
-+#define DA9030_WLED_TRIM(x)	((x) & 0x7)
-+
-+#define DA9034_WLED_CONTROL1	0x3C
-+#define DA9034_WLED_CONTROL2	0x3D
-+
-+#define DA9034_WLED_BOOST_EN	(1 << 5)
-+
-+#define DA9030_MAX_BRIGHTNESS	7
-+#define DA9034_MAX_BRIGHTNESS	0x7f
-+
-+struct da903x_backlight_data {
-+	struct device *da903x_dev;
-+	int id;
-+	int current_brightness;
-+};
-+
-+static int da903x_backlight_set(struct backlight_device *bl, int brightness)
-+{
-+	struct da903x_backlight_data *data = bl_get_data(bl);
-+	struct device *dev = data->da903x_dev;
-+	uint8_t val;
-+	int ret = 0;
-+
-+	switch (data->id) {
-+	case DA9034_ID_WLED:
-+		ret = da903x_update(dev, DA9034_WLED_CONTROL1,
-+				brightness, 0x7f);
-+		if (ret)
-+			return ret;
-+
-+		if (data->current_brightness && brightness == 0)
-+			ret = da903x_clr_bits(dev,
-+					DA9034_WLED_CONTROL2,
-+					DA9034_WLED_BOOST_EN);
-+
-+		if (data->current_brightness == 0 && brightness)
-+			ret = da903x_set_bits(dev,
-+					DA9034_WLED_CONTROL2,
-+					DA9034_WLED_BOOST_EN);
-+		break;
-+	case DA9030_ID_WLED:
-+		val = DA9030_WLED_TRIM(brightness);
-+		val |= brightness ? DA9030_WLED_CP_EN : 0;
-+		ret = da903x_write(dev, DA9030_WLED_CONTROL, val);
-+		break;
-+	}
-+
-+	if (ret)
-+		return ret;
-+
-+	data->current_brightness = brightness;
-+	return 0;
-+}
-+
-+static int da903x_backlight_update_status(struct backlight_device *bl)
-+{
-+	int brightness = bl->props.brightness;
-+
-+	if (bl->props.power != FB_BLANK_UNBLANK)
-+		brightness = 0;
-+
-+	if (bl->props.fb_blank != FB_BLANK_UNBLANK)
-+		brightness = 0;
-+
-+	return da903x_backlight_set(bl, brightness);
-+}
-+
-+static int da903x_backlight_get_brightness(struct backlight_device *bl)
-+{
-+	struct da903x_backlight_data *data = bl_get_data(bl);
-+	return data->current_brightness;
-+}
-+
-+static struct backlight_ops da903x_backlight_ops = {
-+	.update_status	= da903x_backlight_update_status,
-+	.get_brightness	= da903x_backlight_get_brightness,
-+};
-+
-+static int da903x_backlight_probe(struct platform_device *pdev)
-+{
-+	struct da903x_backlight_data *data;
-+	struct backlight_device *bl;
-+	int max_brightness;
-+
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	if (data == NULL)
-+		return -ENOMEM;
-+
-+	switch (pdev->id) {
-+	case DA9030_ID_WLED:
-+		max_brightness = DA9030_MAX_BRIGHTNESS;
-+		break;
-+	case DA9034_ID_WLED:
-+		max_brightness = DA9034_MAX_BRIGHTNESS;
-+		break;
-+	default:
-+		dev_err(&pdev->dev, "invalid backlight device ID(%d)\n",
-+				pdev->id);
-+		kfree(data);
-+		return -EINVAL;
-+	}
-+
-+	data->id = pdev->id;
-+	data->da903x_dev = pdev->dev.parent;
-+	data->current_brightness = 0;
-+
-+	bl = backlight_device_register(pdev->name, data->da903x_dev,
-+			data, &da903x_backlight_ops);
-+	if (IS_ERR(bl)) {
-+		dev_err(&pdev->dev, "failed to register backlight\n");
-+		kfree(data);
-+		return PTR_ERR(bl);
-+	}
-+
-+	bl->props.max_brightness = max_brightness;
-+	bl->props.brightness = max_brightness;
-+
-+	platform_set_drvdata(pdev, bl);
-+	backlight_update_status(bl);
-+	return 0;
-+}
-+
-+static int da903x_backlight_remove(struct platform_device *pdev)
-+{
-+	struct backlight_device *bl = platform_get_drvdata(pdev);
-+	struct da903x_backlight_data *data = bl_get_data(bl);
-+
-+	backlight_device_unregister(bl);
-+	kfree(data);
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int da903x_backlight_suspend(struct platform_device *pdev,
-+				 pm_message_t state)
-+{
-+	struct backlight_device *bl = platform_get_drvdata(pdev);
-+	return da903x_backlight_set(bl, 0);
-+}
-+
-+static int da903x_backlight_resume(struct platform_device *pdev)
-+{
-+	struct backlight_device *bl = platform_get_drvdata(pdev);
-+
-+	backlight_update_status(bl);
-+	return 0;
-+}
-+#else
-+#define da903x_backlight_suspend	NULL
-+#define da903x_backlight_resume		NULL
-+#endif
-+
-+static struct platform_driver da903x_backlight_driver = {
-+	.driver		= {
-+		.name	= "da903x-backlight",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= da903x_backlight_probe,
-+	.remove		= da903x_backlight_remove,
-+	.suspend	= da903x_backlight_suspend,
-+	.resume		= da903x_backlight_resume,
-+};
-+
-+static int __init da903x_backlight_init(void)
-+{
-+	return platform_driver_register(&da903x_backlight_driver);
-+}
-+module_init(da903x_backlight_init);
-+
-+static void __exit da903x_backlight_exit(void)
-+{
-+	platform_driver_unregister(&da903x_backlight_driver);
-+}
-+module_exit(da903x_backlight_exit);
-+
-+MODULE_DESCRIPTION("Backlight Driver for Dialog Semiconductor DA9030/DA9034");
-+MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>"
-+	      "Mike Rapoport <mike@compulab.co.il>");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:da903x-backlight");
+diff -puN arch/alpha/include/asm/bug.h~alpha-fixup-bug-macro arch/alpha/include/asm/bug.h
+--- a/arch/alpha/include/asm/bug.h~alpha-fixup-bug-macro
++++ a/arch/alpha/include/asm/bug.h
+@@ -8,12 +8,12 @@
+ 
+ /* ??? Would be nice to use .gprel32 here, but we can't be sure that the
+    function loaded the GP, so this could fail in modules.  */
+-#define BUG()	{							\
++#define BUG()	do {							\
+ 	__asm__ __volatile__(						\
+ 		"call_pal %0  # bugchk\n\t"				\
+ 		".long %1\n\t.8byte %2"					\
+ 		: : "i"(PAL_bugchk), "i"(__LINE__), "i"(__FILE__));	\
+-	for ( ; ; ); }
++	for ( ; ; ); } while (0)
+ 
+ #define HAVE_ARCH_BUG
+ #endif
 _
 
-Patches currently in -mm which might be from mike@compulab.co.il are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread.patch
+seq_file-properly-cope-with-pread-fix.patch
 linux-next.patch
+eeepc-should-depend-on-input.patch
+tags-fix-config-symbols-generation.patch
+sm501-fix-section-mismatches.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+proc-tty-add-struct-tty_operations-proc_fops.patch
+proc-tty-switch-cyclades-to-proc_fops.patch
+proc-tty-switch-ip2-to-proc_fops.patch
+proc-tty-switch-istallion-to-proc_fops.patch
+proc-tty-switch-synclink_cs-to-proc_fops.patch
+proc-tty-switch-stallion-to-proc_fops.patch
+proc-tty-switch-synclink-to-proc_fops.patch
+proc-tty-switch-synclink_gt-to-proc_fops.patch
+proc-tty-switch-synclinkmp-to-proc_fops.patch
+proc-tty-switch-sdio_uart-to-proc_fops.patch
+proc-tty-switch-serial_core-to-proc_fops.patch
+proc-tty-switch-usb-serial-to-proc_fops.patch
+proc-tty-switch-ircomm-to-proc_fops.patch
+proc-tty-switch-amiserial-to-proc_fops.patch
+proc-tty-switch-ia64-simserial-to-proc_fops.patch
+proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
+proc-tty-remove-struct-tty_operations-read_proc.patch
+sysctl-min-max-range-check-is-broken.patch
+xtensa-fix-compilation-somewhat.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
