@@ -1,82 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-keyed-wakeups-v3-introduce-new-_poll-wakeup-macros.patch added to -mm tree
-Date: Thu, 05 Feb 2009 17:33:04 -0800
-Message-ID: <200902060133.n161X4UI004271@imap1.linux-foundation.org>
+Subject: [withdrawn] mmu_notifiers-destroyed-by-__mmu_notifier_release-retain-extra-mm_count.patch removed from -mm tree
+Date: Fri, 06 Feb 2009 08:57:48 -0800
+Message-ID: <200902061657.n16GvmR6021132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42715 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57728 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751049AbZBFBdK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 20:33:10 -0500
+	by vger.kernel.org with ESMTP id S1751259AbZBFQ6R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2009 11:58:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org
+To: holt@sgi.com, aarcange@redhat.com, cl@linux-foundation.org, npiggin@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll keyed wakeups v3 - introduce new *_poll() wakeup macros
-has been added to the -mm tree.  Its filename is
-     epoll-keyed-wakeups-v3-introduce-new-_poll-wakeup-macros.patch
+     mmu_notifiers destroyed by __mmu_notifier_release() retain extra mm_count
+has been removed from the -mm tree.  Its filename was
+     mmu_notifiers-destroyed-by-__mmu_notifier_release-retain-extra-mm_count.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll keyed wakeups v3 - introduce new *_poll() wakeup macros
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: mmu_notifiers destroyed by __mmu_notifier_release() retain extra mm_count
+From: Robin Holt <holt@sgi.com>
 
-This patch introduces new wakeup macros that allow passing an event
-mask to the wakeup targets. They exactly mimic their non-_poll()
-counterpart, with the added event mask passing capability.
-I did add only the ones currently requested, avoiding the _nr() and
-_all() for the moment.
+An application relying upon mmu_notifier_release for teardown of the
+mmu_notifiers will leak mm_structs.  At the do_mmu_notifier_register
+increments mm_count, but __mmu_notifier_release() does not decrement it.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+I detected this while running a 2.6.27 kernel.  It causes a denial of
+service with OOM.
+
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: <stable@kernel.org>		[2.6.27.x, 2.6.28.x]
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ mm/mmu_notifier.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/wait.h~epoll-keyed-wakeups-v3-introduce-new-_poll-wakeup-macros include/linux/wait.h
---- a/include/linux/wait.h~epoll-keyed-wakeups-v3-introduce-new-_poll-wakeup-macros
-+++ a/include/linux/wait.h
-@@ -170,31 +170,6 @@ wait_queue_head_t *bit_waitqueue(void *,
- #define wake_up_interruptible_sync_poll(x, m)				\
- 	__wake_up_sync_key((x), TASK_INTERRUPTIBLE, 1, (void *) (m))
- 
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
--/*
-- * macro to avoid include hell
-- */
--#define wake_up_nested(x, s)						\
--do {									\
--	unsigned long flags;						\
--									\
--	spin_lock_irqsave_nested(&(x)->lock, flags, (s));		\
--	wake_up_locked(x); 						\
--	spin_unlock_irqrestore(&(x)->lock, flags);			\
--} while (0)
--#define wake_up_nested_poll(x, m, s)					\
--do {									\
--	unsigned long flags;						\
--									\
--	spin_lock_irqsave_nested(&(x)->lock, flags, (s));		\
--	wake_up_locked_poll(x, m);					\
--	spin_unlock_irqrestore(&(x)->lock, flags);			\
--} while (0)
--#else
--#define wake_up_nested(x, s)		wake_up(x)
--#define wake_up_nested_poll(x, m, s)	wake_up_poll(x, m)
--#endif
+diff -puN mm/mmu_notifier.c~mmu_notifiers-destroyed-by-__mmu_notifier_release-retain-extra-mm_count mm/mmu_notifier.c
+--- a/mm/mmu_notifier.c~mmu_notifiers-destroyed-by-__mmu_notifier_release-retain-extra-mm_count
++++ a/mm/mmu_notifier.c
+@@ -61,6 +61,7 @@ void __mmu_notifier_release(struct mm_st
+ 		if (mn->ops->release)
+ 			mn->ops->release(mn, mm);
+ 		rcu_read_unlock();
++		mmdrop(mm);	/* matches do_mmu_notifier_register's inc */
+ 		spin_lock(&mm->mmu_notifier_mm->lock);
+ 	}
+ 	spin_unlock(&mm->mmu_notifier_mm->lock);
+_
+
+Patches currently in -mm which might be from holt@sgi.com are
+
+origin.patch
+mmu_notifiers-destroyed-by-__mmu_notifier_release-retain-extra-mm_count.patch
+factor-out-ifdefs-from-kernel-spinlockc-to-lock_contended_flags.patch
+allow-rwlocks-to-re-enable-interrupts.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
+
