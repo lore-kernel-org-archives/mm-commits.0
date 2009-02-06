@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-simple_set_mnt-should-return-void-fix-nilfs.patch added to -mm tree
-Date: Thu, 05 Feb 2009 15:39:45 -0800
-Message-ID: <200902052356.n15NulR2003607@imap1.linux-foundation.org>
+Subject: + input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch added to -mm tree
+Date: Thu, 05 Feb 2009 16:04:01 -0800
+Message-ID: <200902060021.n160L3Y4004295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52233 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752805AbZBEX5U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 18:57:20 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n15NuoVx027048
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 5 Feb 2009 15:56:51 -0800
+	by vger.kernel.org with ESMTP id S1751166AbZBFAVk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2009 19:21:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, arjan@linux.intel.com, dtor@mail.ru
 
 
 The patch titled
-     vfs-simple_set_mnt-should-return-void-fix-nilfs
+     input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix
 has been added to the -mm tree.  Its filename is
-     vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+     input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,28 +33,138 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs-simple_set_mnt-should-return-void-fix-nilfs
+Subject: input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/input/serio/i8042-x86ia64io.h:458: warning: 'i8042_dmi_reset_table' defined but not used
+
+Fix this my moving both i8042_dmi_nopnp_tablep[] and i8042_dmi_reset_table[]
+into a section which requires CONFIG_PNP and CONFIG_X86.  Give their
+usage sites the same treatment.
+
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/super.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/input/serio/i8042-x86ia64io.h |   79 +++++++++++-------------
+ 1 file changed, 39 insertions(+), 40 deletions(-)
 
-diff -puN fs/nilfs2/super.c~vfs-simple_set_mnt-should-return-void-fix-nilfs fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~vfs-simple_set_mnt-should-return-void-fix-nilfs
-+++ a/fs/nilfs2/super.c
-@@ -1220,7 +1220,8 @@ nilfs_get_sb(struct file_system_type *fs
- 	put_nilfs(nilfs);
- 	if (need_to_close)
- 		close_bdev_exclusive(sd.bdev, flags);
--	return simple_set_mnt(mnt, s);
-+	simple_set_mnt(mnt, s);
-+	return 0;
+diff -puN drivers/input/serio/i8042-x86ia64io.h~input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix drivers/input/serio/i8042-x86ia64io.h
+--- a/drivers/input/serio/i8042-x86ia64io.h~input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix
++++ a/drivers/input/serio/i8042-x86ia64io.h
+@@ -369,26 +369,6 @@ static struct dmi_system_id __initdata i
+ 	{ }
+ };
  
-  error_s:
- 	up(&sd.bdev->bd_mount_sem);
+-#ifdef CONFIG_PNP
+-static struct dmi_system_id __initdata i8042_dmi_nopnp_table[] = {
+-	{
+-		.ident = "Intel MBO Desktop D845PESV",
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "D845PESV"),
+-			DMI_MATCH(DMI_BOARD_VENDOR, "Intel Corporation"),
+-		},
+-	},
+-	{
+-		.ident = "MSI Wind U-100",
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
+-			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
+-		},
+-	},
+-	{ }
+-};
+-#endif
+-
+ /*
+  * Some Wistron based laptops need us to explicitly enable the 'Dritek
+  * keyboard extension' to make their extra keys start generating scancodes.
+@@ -455,25 +435,6 @@ static struct dmi_system_id __initdata i
+ 	{ }
+ };
+ 
+-static struct dmi_system_id __initdata i8042_dmi_reset_table[] = {
+-	{
+-		.ident = "MSI Wind U-100",
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
+-			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
+-		},
+-	},
+-	{
+-		.ident = "LG Electronics X110",
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "X110"),
+-			DMI_MATCH(DMI_BOARD_VENDOR, "LG Electronics Inc."),
+-		},
+-	},
+-	{ }
+-};
+-
+-
+ #endif /* CONFIG_X86 */
+ 
+ #ifdef CONFIG_PNP
+@@ -492,6 +453,44 @@ static int i8042_pnp_aux_irq;
+ static char i8042_pnp_kbd_name[32];
+ static char i8042_pnp_aux_name[32];
+ 
++#ifdef CONFIG_X86
++static struct dmi_system_id __initdata i8042_dmi_nopnp_table[] = {
++	{
++		.ident = "Intel MBO Desktop D845PESV",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "D845PESV"),
++			DMI_MATCH(DMI_BOARD_VENDOR, "Intel Corporation"),
++		},
++	},
++	{
++		.ident = "MSI Wind U-100",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
++			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
++		},
++	},
++	{ }
++};
++
++static struct dmi_system_id __initdata i8042_dmi_reset_table[] = {
++	{
++		.ident = "MSI Wind U-100",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
++			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
++		},
++	},
++	{
++		.ident = "LG Electronics X110",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "X110"),
++			DMI_MATCH(DMI_BOARD_VENDOR, "LG Electronics Inc."),
++		},
++	},
++	{ }
++};
++#endif
++
+ static int i8042_pnp_kbd_probe(struct pnp_dev *dev, const struct pnp_device_id *did)
+ {
+ 	if (pnp_port_valid(dev, 0) && pnp_port_len(dev, 0) == 1)
+@@ -588,12 +587,12 @@ static int __init i8042_pnp_init(void)
+ #ifdef CONFIG_X86
+ 	if (dmi_check_system(i8042_dmi_nopnp_table))
+ 		i8042_nopnp = 1;
+-#endif
+ 
+ 	if (dmi_check_system(i8042_dmi_reset_table)) {
+ 		i8042_reset = 1;
+ 		i8042_nonfatal = 1;
+ 	}
++#endif
+ 
+ 	if (i8042_nopnp) {
+ 		printk(KERN_INFO "i8042: PNP detection disabled\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +203,7 @@ vfs-simple_set_mnt-should-return-void-fix.patch
 ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 drivers-ata-sata_silc-needs-dmih.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
 net-dont-use-in_atomic-in-gfp_any.patch
 documentation-connector-cn_testc-dont-use-gfp_any.patch
 nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
