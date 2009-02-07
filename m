@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix.patch added to -mm tree
-Date: Sat, 07 Feb 2009 12:05:22 -0800
-Message-ID: <200902072005.n17K5MTO027349@imap1.linux-foundation.org>
+Subject: + syscall-define-fix-uml-compile-bug.patch added to -mm tree
+Date: Sat, 07 Feb 2009 12:06:40 -0800
+Message-ID: <200902072006.n17K6eL2029148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50566 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36366 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753129AbZBGUF7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 7 Feb 2009 15:05:59 -0500
+	by vger.kernel.org with ESMTP id S1755128AbZBGUHp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 7 Feb 2009 15:07:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: konishi.ryusuke@lab.ntt.co.jp
+Cc: heiko.carstens@de.ibm.com, geert@linux-m68k.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     nilfs2: fix segment summary corruption
+     syscall define: fix uml compile bug
 has been added to the -mm tree.  Its filename is
-     nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix.patch
+     syscall-define-fix-uml-compile-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,217 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: fix segment summary corruption
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: syscall define: fix uml compile bug
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-With a report from David Arendt, one of the recent bug fixes
-(nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch) turned
-out to break segment summary under some conditions.
+With the new system call defines we get this on uml:
 
-This fixes the problem and clarifies a few routines to prevent similar
-regressions.  Thanks to David for his ardent feedbacks.
+arch/um/sys-i386/built-in.o: In function `sys_call_table':
+(.rodata+0x308): undefined reference to `sys_sigprocmask'
 
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Reason for this is that uml passes the preprocessor option
+-Dsigprocmask=kernel_sigprocmask to gcc when compiling the kernel. 
+This causes SYSCALL_DEFINE3(sigprocmask, ...) to be expanded to
+SYSCALL_DEFINEx(3, kernel_sigprocmask, ...) and finally to a system
+call named sys_kernel_sigprocmask.  However sys_sigprocmask is missing
+because of this.
+
+To avoid macro expansion for the system call name just concatenate the
+name at first define instead of carrying it through severel levels. 
+This was pointed out by Al Viro.
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   83 ++++++++++++++++++++----------------------
- 1 file changed, 41 insertions(+), 42 deletions(-)
+ include/linux/syscalls.h |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/nilfs2/segment.c~nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix
-+++ a/fs/nilfs2/segment.c
-@@ -654,17 +654,16 @@ struct nilfs_sc_operations nilfs_sc_dsyn
- 	.write_node_binfo = NULL,
- };
+diff -puN include/linux/syscalls.h~syscall-define-fix-uml-compile-bug include/linux/syscalls.h
+--- a/include/linux/syscalls.h~syscall-define-fix-uml-compile-bug
++++ a/include/linux/syscalls.h
+@@ -95,13 +95,13 @@ struct old_linux_dirent;
+ #define __SC_TEST5(t5, a5, ...)	__SC_TEST(t5); __SC_TEST4(__VA_ARGS__)
+ #define __SC_TEST6(t6, a6, ...)	__SC_TEST(t6); __SC_TEST5(__VA_ARGS__)
  
--static int nilfs_lookup_dirty_data_buffers(struct inode *inode,
--					   struct list_head *listp,
--					   struct nilfs_sc_info *sci,
--					   loff_t start, loff_t end)
-+static size_t nilfs_lookup_dirty_data_buffers(struct inode *inode,
-+					      struct list_head *listp,
-+					      size_t nlimit,
-+					      loff_t start, loff_t end)
- {
--	struct nilfs_segment_buffer *segbuf = sci->sc_curseg;
- 	struct address_space *mapping = inode->i_mapping;
- 	struct pagevec pvec;
--	unsigned i, ndirties = 0, nlimit;
- 	pgoff_t index = 0, last = ULONG_MAX;
--	int err = 0;
-+	size_t ndirties = 0;
-+	int i;
+-#define SYSCALL_DEFINE0(name)   asmlinkage long sys_##name(void)
+-#define SYSCALL_DEFINE1(...)    SYSCALL_DEFINEx(1, __VA_ARGS__)
+-#define SYSCALL_DEFINE2(...)    SYSCALL_DEFINEx(2, __VA_ARGS__)
+-#define SYSCALL_DEFINE3(...)    SYSCALL_DEFINEx(3, __VA_ARGS__)
+-#define SYSCALL_DEFINE4(...)    SYSCALL_DEFINEx(4, __VA_ARGS__)
+-#define SYSCALL_DEFINE5(...)    SYSCALL_DEFINEx(5, __VA_ARGS__)
+-#define SYSCALL_DEFINE6(...)    SYSCALL_DEFINEx(6, __VA_ARGS__)
++#define SYSCALL_DEFINE0(name)	   asmlinkage long sys_##name(void)
++#define SYSCALL_DEFINE1(name, ...) SYSCALL_DEFINEx(1, _##name, __VA_ARGS__)
++#define SYSCALL_DEFINE2(name, ...) SYSCALL_DEFINEx(2, _##name, __VA_ARGS__)
++#define SYSCALL_DEFINE3(name, ...) SYSCALL_DEFINEx(3, _##name, __VA_ARGS__)
++#define SYSCALL_DEFINE4(name, ...) SYSCALL_DEFINEx(4, _##name, __VA_ARGS__)
++#define SYSCALL_DEFINE5(name, ...) SYSCALL_DEFINEx(5, _##name, __VA_ARGS__)
++#define SYSCALL_DEFINE6(name, ...) SYSCALL_DEFINEx(6, _##name, __VA_ARGS__)
  
- 	if (unlikely(start != 0 || end != LLONG_MAX)) {
- 		/*
-@@ -675,16 +674,13 @@ static int nilfs_lookup_dirty_data_buffe
- 		index = start >> PAGE_SHIFT;
- 		last = end >> PAGE_SHIFT;
- 	}
--	nlimit = sci->sc_segbuf_nblocks -
--		(sci->sc_nblk_this_inc + segbuf->sb_sum.nblocks);
--		/* Remaining number of blocks within the segment */
- 	pagevec_init(&pvec, 0);
-  repeat:
- 	if (unlikely(index > last) ||
- 	    !pagevec_lookup_tag(&pvec, mapping, &index, PAGECACHE_TAG_DIRTY,
- 				min_t(pgoff_t, last - index,
- 				      PAGEVEC_SIZE - 1) + 1))
--		return 0;
-+		return ndirties;
+ #ifdef CONFIG_PPC64
+ #define SYSCALL_ALIAS(alias, name)					\
+@@ -121,21 +121,21 @@ struct old_linux_dirent;
  
- 	for (i = 0; i < pagevec_count(&pvec); i++) {
- 		struct buffer_head *bh, *head;
-@@ -705,25 +701,19 @@ static int nilfs_lookup_dirty_data_buffe
- 		do {
- 			if (!buffer_dirty(bh))
- 				continue;
--			if (unlikely(ndirties >= nlimit)) {
--				err = -E2BIG; /*
--					       * Internal code to indicate the
--					       * inode has more dirty buffers.
--					       */
--				goto bounded;
--			}
- 			get_bh(bh);
- 			list_add_tail(&bh->b_assoc_buffers, listp);
- 			ndirties++;
-+			if (unlikely(ndirties >= nlimit)) {
-+				pagevec_release(&pvec);
-+				cond_resched();
-+				return ndirties;
-+			}
- 		} while (bh = bh->b_this_page, bh != head);
- 	}
-- bounded:
- 	pagevec_release(&pvec);
- 	cond_resched();
--
--	if (!err)
--		goto repeat;
--	return err;
-+	goto repeat;
- }
+ #define SYSCALL_DEFINE(name) static inline long SYSC_##name
+ #define SYSCALL_DEFINEx(x, name, ...)					\
+-	asmlinkage long sys_##name(__SC_DECL##x(__VA_ARGS__));		\
+-	static inline long SYSC_##name(__SC_DECL##x(__VA_ARGS__));	\
+-	asmlinkage long SyS_##name(__SC_LONG##x(__VA_ARGS__))		\
++	asmlinkage long sys##name(__SC_DECL##x(__VA_ARGS__));		\
++	static inline long SYSC##name(__SC_DECL##x(__VA_ARGS__));	\
++	asmlinkage long SyS##name(__SC_LONG##x(__VA_ARGS__))		\
+ 	{								\
+ 		__SC_TEST##x(__VA_ARGS__);				\
+-		return (long) SYSC_##name(__SC_CAST##x(__VA_ARGS__));	\
++		return (long) SYSC##name(__SC_CAST##x(__VA_ARGS__));	\
+ 	}								\
+-	SYSCALL_ALIAS(sys_##name, SyS_##name);				\
+-	static inline long SYSC_##name(__SC_DECL##x(__VA_ARGS__))
++	SYSCALL_ALIAS(sys##name, SyS##name);				\
++	static inline long SYSC##name(__SC_DECL##x(__VA_ARGS__))
  
- static void nilfs_lookup_dirty_node_buffers(struct inode *inode,
-@@ -1077,23 +1067,31 @@ static int nilfs_segctor_apply_buffers(s
- 	return err;
- }
+ #else /* CONFIG_HAVE_SYSCALL_WRAPPERS */
  
-+static size_t nilfs_segctor_buffer_rest(struct nilfs_sc_info *sci)
-+{
-+	/* Remaining number of blocks within segment buffer */
-+	return sci->sc_segbuf_nblocks -
-+		(sci->sc_nblk_this_inc + sci->sc_curseg->sb_sum.nblocks);
-+}
-+
- static int nilfs_segctor_scan_file(struct nilfs_sc_info *sci,
- 				   struct inode *inode,
- 				   struct nilfs_sc_operations *sc_ops)
- {
- 	LIST_HEAD(data_buffers);
- 	LIST_HEAD(node_buffers);
--	int err, err2;
-+	int err;
+ #define SYSCALL_DEFINE(name) asmlinkage long sys_##name
+ #define SYSCALL_DEFINEx(x, name, ...)					\
+-	asmlinkage long sys_##name(__SC_DECL##x(__VA_ARGS__))
++	asmlinkage long sys##name(__SC_DECL##x(__VA_ARGS__))
  
- 	if (!(sci->sc_stage.flags & NILFS_CF_NODE)) {
--		err = nilfs_lookup_dirty_data_buffers(inode, &data_buffers,
--						      sci, 0, LLONG_MAX);
--		if (err) {
--			err2 = nilfs_segctor_apply_buffers(
-+		size_t n, rest = nilfs_segctor_buffer_rest(sci);
-+
-+		n = nilfs_lookup_dirty_data_buffers(
-+			inode, &data_buffers, rest + 1, 0, LLONG_MAX);
-+		if (n > rest) {
-+			err = nilfs_segctor_apply_buffers(
- 				sci, inode, &data_buffers,
--				err == -E2BIG ? sc_ops->collect_data : NULL);
--			if (err == -E2BIG)
--				err = err2;
-+				sc_ops->collect_data);
-+			BUG_ON(!err); /* always receive -E2BIG or true error */
- 			goto break_or_fail;
- 		}
- 	}
-@@ -1133,19 +1131,20 @@ static int nilfs_segctor_scan_file_dsync
- 					 struct inode *inode)
- {
- 	LIST_HEAD(data_buffers);
--	int err, err2;
-+	size_t n, rest = nilfs_segctor_buffer_rest(sci);
-+	int err;
- 
--	err = nilfs_lookup_dirty_data_buffers(inode, &data_buffers, sci,
--					      sci->sc_dsync_start,
--					      sci->sc_dsync_end);
--
--	err2 = nilfs_segctor_apply_buffers(sci, inode, &data_buffers,
--					   (!err || err == -E2BIG) ?
--					   nilfs_collect_file_data : NULL);
--	if (err == -E2BIG)
--		err = err2;
--	if (!err)
-+	n = nilfs_lookup_dirty_data_buffers(inode, &data_buffers, rest + 1,
-+					    sci->sc_dsync_start,
-+					    sci->sc_dsync_end);
-+
-+	err = nilfs_segctor_apply_buffers(sci, inode, &data_buffers,
-+					  nilfs_collect_file_data);
-+	if (!err) {
- 		nilfs_segctor_end_finfo(sci, inode);
-+		BUG_ON(n > rest);
-+		/* always receive -E2BIG or true error if n > rest */
-+	}
- 	return err;
- }
+ #endif /* CONFIG_HAVE_SYSCALL_WRAPPERS */
  
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-nilfs2-add-document.patch
-nilfs2-disk-format-and-userland-interface.patch
-nilfs2-add-inode-and-other-major-structures.patch
-nilfs2-integrated-block-mapping.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-b-tree-based-block-mapping.patch
-nilfs2-direct-block-mapping.patch
-nilfs2-b-tree-node-cache.patch
-nilfs2-buffer-and-page-operations.patch
-nilfs2-meta-data-file.patch
-nilfs2-persistent-object-allocator.patch
-nilfs2-disk-address-translator.patch
-nilfs2-inode-map-file.patch
-nilfs2-checkpoint-file.patch
-nilfs2-segment-usage-file.patch
-nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
-nilfs2-inode-operations.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-file-operations.patch
-nilfs2-directory-entry-operations.patch
-nilfs2-pathname-operations.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-operations-for-the_nilfs-core-object.patch
-nilfs2-super-block-operations.patch
-nilfs2-super-block-operations-fix.patch
-nilfs2-segment-buffer.patch
-nilfs2-segment-constructor.patch
-nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
-nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
-nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix.patch
-nilfs2-recovery-functions.patch
-nilfs2-another-dat-for-garbage-collection.patch
-nilfs2-block-cache-for-garbage-collection.patch
-nilfs2-ioctl-operations.patch
-nilfs2-update-makefile-and-kconfig.patch
-nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
-nilfs2-cleanup-nilfs_clear_inode.patch
-nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
-nilfs2-insert-explanations-in-gcinode-file.patch
-nilfs2-add-maintainer.patch
-nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
-nilfs2-clean-up-indirect-function-calling-conventions.patch
+origin.patch
+memcg-use-__gfp_nowarn-in-page-cgroup-allocation.patch
+linux-next.patch
+ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
+mm-fix-memmap-init-to-initialize-valid-memmap-for-memory-hole.patch
+mm-fix-memmap-init-to-initialize-valid-memmap-for-memory-hole-fix.patch
+syscall-define-fix-uml-compile-bug.patch
 
