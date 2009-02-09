@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch added to -mm tree
-Date: Mon, 09 Feb 2009 15:44:50 -0800
-Message-ID: <200902092344.n19Niou6002913@imap1.linux-foundation.org>
+Subject: + sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch added to -mm tree
+Date: Mon, 09 Feb 2009 15:46:06 -0800
+Message-ID: <200902092346.n19Nk6s6004558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57339 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56102 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752616AbZBIXpd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:45:33 -0500
+	by vger.kernel.org with ESMTP id S1752705AbZBIXqs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:46:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org, krzysztof.h1@poczta.fm
+Cc: dilinger@queued.net, dilinger@debian.org, krzysztof.h1@wp.pl
 
 
 The patch titled
-     skeletonfb: check fb_alloc_cmap return value and handle failure properly
+     sstfb: check fb_alloc_cmap return value and handle failure properly
 has been added to the -mm tree.  Its filename is
-     skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+     sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: skeletonfb: check fb_alloc_cmap return value and handle failure properly
+Subject: sstfb: check fb_alloc_cmap return value and handle failure properly
 From: Andres Salomon <dilinger@queued.net>
 
-Bad example code, no cookie!
-
 Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/skeletonfb.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/video/sstfb.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/skeletonfb.c~skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly drivers/video/skeletonfb.c
---- a/drivers/video/skeletonfb.c~skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly
-+++ a/drivers/video/skeletonfb.c
-@@ -795,8 +795,9 @@ static int __devinit xxxfb_probe(struct 
-     if (!retval || retval == 4)
- 	return -EINVAL;			
- 
--    /* This has to been done !!! */	
--    fb_alloc_cmap(&info->cmap, cmap_len, 0);
-+    /* This has to be done! */
-+    if (fb_alloc_cmap(&info->cmap, cmap_len, 0))
-+	return -ENOMEM;
+diff -puN drivers/video/sstfb.c~sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly drivers/video/sstfb.c
+--- a/drivers/video/sstfb.c~sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly
++++ a/drivers/video/sstfb.c
+@@ -1421,13 +1421,16 @@ static int __devinit sstfb_probe(struct 
+ 		goto fail;
+ 	}
  	
-     /* 
-      * The following is done in the case of having hardware with a static 
-@@ -820,8 +821,10 @@ static int __devinit xxxfb_probe(struct 
-      */
-     /* xxxfb_set_par(info); */
+-	fb_alloc_cmap(&info->cmap, 256, 0);
++	if (fb_alloc_cmap(&info->cmap, 256, 0)) {
++		printk(KERN_ERR "sstfb: can't alloc cmap memory.\n");
++		goto fail;
++	}
  
--    if (register_framebuffer(info) < 0)
-+    if (register_framebuffer(info) < 0) {
-+	fb_dealloc_cmap(&info->cmap);
- 	return -EINVAL;
-+    }
-     printk(KERN_INFO "fb%d: %s frame buffer device\n", info->node,
- 	   info->fix.id);
-     pci_set_drvdata(dev, info); /* or platform_set_drvdata(pdev, info) */
+ 	/* register fb */
+ 	info->device = &pdev->dev;
+ 	if (register_framebuffer(info) < 0) {
+ 		printk(KERN_ERR "sstfb: can't register framebuffer.\n");
+-		goto fail;
++		goto fail_register;
+ 	}
+ 
+ 	sstfb_clear_screen(info);
+@@ -1441,8 +1444,9 @@ static int __devinit sstfb_probe(struct 
+ 
+ 	return 0;
+ 
+-fail:
++fail_register:
+ 	fb_dealloc_cmap(&info->cmap);
++fail:
+ 	iounmap(info->screen_base);
+ fail_fb_remap:
+ 	iounmap(par->mmio_vbase);
 _
 
 Patches currently in -mm which might be from dilinger@queued.net are
@@ -85,4 +89,6 @@ tdfxfb-fix-memory-leaks-in-removal-path.patch
 tridentfb-fix-memory-leaks-in-removal-path.patch
 vfb-fix-memory-leaks-in-removal-path.patch
 skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 
