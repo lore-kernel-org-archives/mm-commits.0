@@ -1,120 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-allow-intel_iommu-support-to-be-disabled-by-default.patch removed from -mm tree
-Date: Mon, 09 Feb 2009 12:05:34 -0800
-Message-ID: <200902092005.n19K5YWT024625@imap1.linux-foundation.org>
+Subject: [merged] eeepc-laptop-fix-oops-when-changing-backlight-brightness-during-eeepc-laptop-init.patch removed from -mm tree
+Date: Mon, 09 Feb 2009 12:05:30 -0800
+Message-ID: <200902092005.n19K5U8K024596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46332 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753927AbZBIULw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 15:11:52 -0500
+	by vger.kernel.org with ESMTP id S1753809AbZBIUL4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 15:11:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kyle@redhat.com, dwmw2@infradead.org, hpa@zytor.com, jbarnes@virtuousgeek.org, markmc@redhat.com, mingo@elte.hu, stable@kernel.org, suresh.b.siddha@intel.com, tglx@linutronix.de, mm-c
+To: linux@youmustbejoking.demon.co.uk, corentincj@iksaif.net, hpa@zytor.com, lenb@kernel.org, mingo@elte.hu, mjg@redhat.com, noodles@earth.li, stable@kernel.org, tglx@linutronix.de, mm-co
 
 
 The patch titled
-     x86: allow intel_iommu support to be disabled by default
+     eeepc-laptop: fix oops when changing backlight brightness during eeepc-laptop init
 has been removed from the -mm tree.  Its filename was
-     x86-allow-intel_iommu-support-to-be-disabled-by-default.patch
+     eeepc-laptop-fix-oops-when-changing-backlight-brightness-during-eeepc-laptop-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: allow intel_iommu support to be disabled by default
-From: Kyle McMartin <kyle@redhat.com>
+Subject: eeepc-laptop: fix oops when changing backlight brightness during eeepc-laptop init
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
 
-Due to recurring issues with DMAR support on certain platforms, provide a
-Kconfig option to change whether it is enabled by default.  If disabled,
-it can be reenabled by passing intel_iommu=on to the kernel.
+I got the following oops while changing the backlight brightness during
+startup.  When it happens, it prevents use of the hotkeys, Fn-Fx, and the
+lid button.
 
-Signed-off-by: Kyle McMartin <kyle@redhat.com>
-Cc: Mark McLoughlin <markmc@redhat.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+It's a clear use-before-init, as I verified by testing with an
+appropriately-placed "else printk".
+
+BUG: unable to handle kernel NULL pointer dereference at 00000000
+*pde = 00000000
+Oops: 0002 [#1] PREEMPT SMP
+Pid: 160, comm: kacpi_notify Not tainted (2.6.28.1-eee901 #4) 901
+EIP: 0060:[<c0264e68>]  [<c0264e68>] eeepc_hotk_notify+26/da
+EFLAGS: 00010246 CPU: 1
+Using defaults from ksymoops -t elf32-i386 -a i386
+EAX: 00000009 EBX: 00000000 ECX: 00000009 EDX: f70dbf64
+ESI: 00000029 EDI: f7335188 EBP: c02112c9 ESP: f70dbf80
+ DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+ f70731e0 f73acd50 c02164ac f7335180 f70aa040 c02112e6 f733518c c012b62f
+ f70aa044 f70aa040 c012bdba f70aa04c 00000000 c012be6e 00000000 f70bdf80
+ c012e198 f70dbfc4 f70dbfc4 f70aa040 c012bdba 00000000 c012e0c9 c012e091
+Call Trace:
+ [<c02164ac>] ? acpi_ev_notify_dispatch+4c/55
+ [<c02112e6>] ? acpi_os_execute_deferred+1d/25
+ [<c012b62f>] ? run_workqueue+71/f1
+ [<c012bdba>] ? worker_thread+0/bf
+ [<c012be6e>] ? worker_thread+b4/bf
+ [<c012e198>] ? autoremove_wake_function+0/2b
+ [<c012bdba>] ? worker_thread+0/bf
+ [<c012e0c9>] ? kthread+38/5f
+ [<c012e091>] ? kthread+0/5f
+ [<c0103abf>] ? kernel_thread_helper+7/10
+Code: 00 00 00 00 c3 83 3d 60 5c 50 c0 00 56 89 d6 53 0f 84 c4 00 00 00 8d 42
+e0 83 f8 0f 77 0f 8b 1d 68 5c 50 c0 89 d8 e8 a9 fa ff ff <89> 03 8b 1d 60 5c
+50 c0 89 f2 83 e2 7f 0f b7 4c 53 10 8d 41 01
+
+Signed-off-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Jonathan McDowell <noodles@earth.li>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@kernel.org>		[2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 ++
- arch/x86/Kconfig                    |   11 +++++++++++
- drivers/pci/intel-iommu.c           |   14 +++++++++++---
- 3 files changed, 24 insertions(+), 3 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~x86-allow-intel_iommu-support-to-be-disabled-by-default Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~x86-allow-intel_iommu-support-to-be-disabled-by-default
-+++ a/Documentation/kernel-parameters.txt
-@@ -937,6 +937,8 @@ and is between 256 and 4096 characters. 
+diff -puN drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-fix-oops-when-changing-backlight-brightness-during-eeepc-laptop-init drivers/platform/x86/eeepc-laptop.c
+--- a/drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-fix-oops-when-changing-backlight-brightness-during-eeepc-laptop-init
++++ a/drivers/platform/x86/eeepc-laptop.c
+@@ -515,7 +515,8 @@ static int eeepc_hotk_check(void)
+ static void notify_brn(void)
+ {
+ 	struct backlight_device *bd = eeepc_backlight_device;
+-	bd->props.brightness = read_brightness(bd);
++	if (bd)
++		bd->props.brightness = read_brightness(bd);
+ }
  
- 
- 	intel_iommu=	[DMAR] Intel IOMMU driver (DMAR) option
-+		on
-+			Enable intel iommu driver.
- 		off
- 			Disable intel iommu driver.
- 		igfx_off [Default Off]
-diff -puN arch/x86/Kconfig~x86-allow-intel_iommu-support-to-be-disabled-by-default arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-allow-intel_iommu-support-to-be-disabled-by-default
-+++ a/arch/x86/Kconfig
-@@ -1802,6 +1802,17 @@ config DMAR
- 	  and include PCI device scope covered by these DMA
- 	  remapping devices.
- 
-+config DMAR_DEFAULT_ON
-+	def_bool n
-+	prompt " Enable DMA Remapping Devices by default"
-+	depends on DMAR
-+	help
-+	  Selecting this option will enable a DMAR device at boot time if
-+	  one is found. If this option is not selected, DMAR support can
-+	  be enabled by passing intel_iommu=on to the kernel. It is
-+	  recommended you say N here while the DMAR code remains
-+	  experimental.
-+
- config DMAR_GFX_WA
- 	def_bool y
- 	prompt "Support for Graphics workaround"
-diff -puN drivers/pci/intel-iommu.c~x86-allow-intel_iommu-support-to-be-disabled-by-default drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~x86-allow-intel_iommu-support-to-be-disabled-by-default
-+++ a/drivers/pci/intel-iommu.c
-@@ -268,7 +268,12 @@ static long list_size;
- 
- static void domain_remove_dev_info(struct dmar_domain *domain);
- 
--int dmar_disabled;
-+#ifdef CONFIG_DMAR_DEFAULT_ON
-+int dmar_disabled = 0;
-+#else
-+int dmar_disabled = 1;
-+#endif /*CONFIG_DMAR_DEFAULT_ON*/
-+
- static int __initdata dmar_map_gfx = 1;
- static int dmar_forcedac;
- static int intel_iommu_strict;
-@@ -284,9 +289,12 @@ static int __init intel_iommu_setup(char
- 	if (!str)
- 		return -EINVAL;
- 	while (*str) {
--		if (!strncmp(str, "off", 3)) {
-+		if (!strncmp(str, "on", 2)) {
-+			dmar_disabled = 0;
-+			printk(KERN_INFO "Intel-IOMMU: enabled\n");
-+		} else if (!strncmp(str, "off", 3)) {
- 			dmar_disabled = 1;
--			printk(KERN_INFO"Intel-IOMMU: disabled\n");
-+			printk(KERN_INFO "Intel-IOMMU: disabled\n");
- 		} else if (!strncmp(str, "igfx_off", 8)) {
- 			dmar_map_gfx = 0;
- 			printk(KERN_INFO
+ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
 _
 
-Patches currently in -mm which might be from kyle@redhat.com are
+Patches currently in -mm which might be from linux@youmustbejoking.demon.co.uk are
 
-origin.patch
-linux-next.patch
 
