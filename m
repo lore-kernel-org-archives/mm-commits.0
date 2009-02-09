@@ -1,234 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radeonfb-fix-resume-from-d3cold-on-some-platforms.patch removed from -mm tree
-Date: Mon, 09 Feb 2009 12:05:17 -0800
-Message-ID: <200902092005.n19K5HEF024240@imap1.linux-foundation.org>
+Subject: [merged] x86-allow-intel_iommu-support-to-be-disabled-by-default-fix.patch removed from -mm tree
+Date: Mon, 09 Feb 2009 12:05:37 -0800
+Message-ID: <200902092005.n19K5bZf024698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40931 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753922AbZBIUL1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 15:11:27 -0500
+	by vger.kernel.org with ESMTP id S1753557AbZBIULu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 15:11:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, geert@linux-m68k.org, khc@pm.waw.pl, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwmw2@infradead.org, hpa@zytor.com, jbarnes@virtuousgeek.org, kyle@redhat.com, markmc@redhat.com, mingo@elte.hu, stable@kernel.org, suresh.b.siddha@intel.com
 
 
 The patch titled
-     radeonfb: fix resume from D3Cold on some platforms
+     x86-allow-intel_iommu-support-to-be-disabled-by-default-fix
 has been removed from the -mm tree.  Its filename was
-     radeonfb-fix-resume-from-d3cold-on-some-platforms.patch
+     x86-allow-intel_iommu-support-to-be-disabled-by-default-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radeonfb: fix resume from D3Cold on some platforms
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: x86-allow-intel_iommu-support-to-be-disabled-by-default-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-For historical reason, this driver used its own saving/restoring of the
-PCI config space, and used the state of it on resume as an indication as
-to whether it needed to re-POST the chip or not.
+arch/x86/Kconfig:1816:warning: leading whitespace ignored
 
-This methods breaks with the later core changes since the core will have
-restored things for us.
-
-This patch fixes it by removing that custom code, using standard core
-methods to save/restore state, and testing for the need to re-POST by
-comparing the content of a few key PLL registers.
-
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@kernel.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Kyle McMartin <kyle@redhat.com>
+Cc: Mark McLoughlin <markmc@redhat.com>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/radeon_pm.c |   85 +++++++-------------------------
- drivers/video/aty/radeonfb.h  |    2 
- 2 files changed, 20 insertions(+), 67 deletions(-)
+ arch/x86/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/aty/radeon_pm.c~radeonfb-fix-resume-from-d3cold-on-some-platforms drivers/video/aty/radeon_pm.c
---- a/drivers/video/aty/radeon_pm.c~radeonfb-fix-resume-from-d3cold-on-some-platforms
-+++ a/drivers/video/aty/radeon_pm.c
-@@ -2509,9 +2509,7 @@ static void radeon_reinitialize_QW(struc
+diff -puN arch/x86/Kconfig~x86-allow-intel_iommu-support-to-be-disabled-by-default-fix arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-allow-intel_iommu-support-to-be-disabled-by-default-fix
++++ a/arch/x86/Kconfig
+@@ -1813,7 +1813,7 @@ config DMAR
  
- static void radeon_set_suspend(struct radeonfb_info *rinfo, int suspend)
- {
--	u16 pwr_cmd;
- 	u32 tmp;
--	int i;
- 
- 	if (!rinfo->pm_reg)
- 		return;
-@@ -2557,32 +2555,14 @@ static void radeon_set_suspend(struct ra
- 			}
- 		}
- 
--		for (i = 0; i < 64; ++i)
--			pci_read_config_dword(rinfo->pdev, i * 4,
--					      &rinfo->cfg_save[i]);
--
- 		/* Switch PCI power management to D2. */
- 		pci_disable_device(rinfo->pdev);
--		for (;;) {
--			pci_read_config_word(
--				rinfo->pdev, rinfo->pm_reg+PCI_PM_CTRL,
--				&pwr_cmd);
--			if (pwr_cmd & 2)
--				break;			
--			pci_write_config_word(
--				rinfo->pdev, rinfo->pm_reg+PCI_PM_CTRL,
--				(pwr_cmd & ~PCI_PM_CTRL_STATE_MASK) | 2);
--			mdelay(500);
--		}
-+		pci_save_state(rinfo->pdev);
-+		pci_set_power_state(rinfo->pdev, PCI_D2);
- 	} else {
- 		printk(KERN_DEBUG "radeonfb (%s): switching to D0 state...\n",
- 		       pci_name(rinfo->pdev));
- 
--		/* Switch back PCI powermanagment to D0 */
--		mdelay(200);
--		pci_write_config_word(rinfo->pdev, rinfo->pm_reg+PCI_PM_CTRL, 0);
--		mdelay(500);
--
- 		if (rinfo->family <= CHIP_FAMILY_RV250) {
- 			/* Reset the SDRAM controller  */
- 			radeon_pm_full_reset_sdram(rinfo);
-@@ -2598,37 +2578,10 @@ static void radeon_set_suspend(struct ra
- 	}
- }
- 
--static int radeon_restore_pci_cfg(struct radeonfb_info *rinfo)
--{
--	int i;
--	static u32 radeon_cfg_after_resume[64];
--
--	for (i = 0; i < 64; ++i)
--		pci_read_config_dword(rinfo->pdev, i * 4,
--				      &radeon_cfg_after_resume[i]);
--
--	if (radeon_cfg_after_resume[PCI_BASE_ADDRESS_0/4]
--	    == rinfo->cfg_save[PCI_BASE_ADDRESS_0/4])
--		return 0;	/* assume everything is ok */
--
--	for (i = PCI_BASE_ADDRESS_0/4; i < 64; ++i) {
--		if (radeon_cfg_after_resume[i] != rinfo->cfg_save[i])
--			pci_write_config_dword(rinfo->pdev, i * 4,
--					       rinfo->cfg_save[i]);
--	}
--	pci_write_config_word(rinfo->pdev, PCI_CACHE_LINE_SIZE,
--			      rinfo->cfg_save[PCI_CACHE_LINE_SIZE/4]);
--	pci_write_config_word(rinfo->pdev, PCI_COMMAND,
--			      rinfo->cfg_save[PCI_COMMAND/4]);
--	return 1;
--}
--
--
- int radeonfb_pci_suspend(struct pci_dev *pdev, pm_message_t mesg)
- {
-         struct fb_info *info = pci_get_drvdata(pdev);
-         struct radeonfb_info *rinfo = info->par;
--	int i;
- 
- 	if (mesg.event == pdev->dev.power.power_state.event)
- 		return 0;
-@@ -2674,6 +2627,11 @@ int radeonfb_pci_suspend(struct pci_dev 
- 	pmac_suspend_agp_for_card(pdev);
- #endif /* CONFIG_PPC_PMAC */
- 
-+	/* It's unclear whether or when the generic code will do that, so let's
-+	 * do it ourselves. We save state before we do any power management
-+	 */
-+	pci_save_state(pdev);
-+
- 	/* If we support wakeup from poweroff, we save all regs we can including cfg
- 	 * space
- 	 */
-@@ -2698,9 +2656,6 @@ int radeonfb_pci_suspend(struct pci_dev 
- 			mdelay(20);
- 			OUTREG(LVDS_GEN_CNTL, INREG(LVDS_GEN_CNTL) & ~(LVDS_DIGON));
- 		}
--		// FIXME: Use PCI layer
--		for (i = 0; i < 64; ++i)
--			pci_read_config_dword(pdev, i * 4, &rinfo->cfg_save[i]);
- 		pci_disable_device(pdev);
- 	}
- 	/* If we support D2, we go to it (should be fixed later with a flag forcing
-@@ -2717,6 +2672,13 @@ int radeonfb_pci_suspend(struct pci_dev 
- 	return 0;
- }
- 
-+static int radeon_check_power_loss(struct radeonfb_info *rinfo)
-+{
-+	return rinfo->save_regs[4] != INPLL(CLK_PIN_CNTL) ||
-+	       rinfo->save_regs[2] != INPLL(MCLK_CNTL) ||
-+	       rinfo->save_regs[3] != INPLL(SCLK_CNTL);
-+}
-+
- int radeonfb_pci_resume(struct pci_dev *pdev)
- {
-         struct fb_info *info = pci_get_drvdata(pdev);
-@@ -2735,20 +2697,13 @@ int radeonfb_pci_resume(struct pci_dev *
- 	printk(KERN_DEBUG "radeonfb (%s): resuming from state: %d...\n",
- 	       pci_name(pdev), pdev->dev.power.power_state.event);
- 
--
--	if (pci_enable_device(pdev)) {
--		rc = -ENODEV;
--		printk(KERN_ERR "radeonfb (%s): can't enable PCI device !\n",
--		       pci_name(pdev));
--		goto bail;
--	}
--	pci_set_master(pdev);
--
-+	/* PCI state will have been restored by the core, so
-+	 * we should be in D0 now with our config space fully
-+	 * restored
-+	 */
- 	if (pdev->dev.power.power_state.event == PM_EVENT_SUSPEND) {
--		/* Wakeup chip. Check from config space if we were powered off
--		 * (todo: additionally, check CLK_PIN_CNTL too)
--		 */
--		if ((rinfo->pm_mode & radeon_pm_off) && radeon_restore_pci_cfg(rinfo)) {
-+		/* Wakeup chip */
-+		if ((rinfo->pm_mode & radeon_pm_off) && radeon_check_power_loss(rinfo)) {
- 			if (rinfo->reinit_func != NULL)
- 				rinfo->reinit_func(rinfo);
- 			else {
-diff -puN drivers/video/aty/radeonfb.h~radeonfb-fix-resume-from-d3cold-on-some-platforms drivers/video/aty/radeonfb.h
---- a/drivers/video/aty/radeonfb.h~radeonfb-fix-resume-from-d3cold-on-some-platforms
-+++ a/drivers/video/aty/radeonfb.h
-@@ -361,8 +361,6 @@ struct radeonfb_info {
- #ifdef CONFIG_FB_RADEON_I2C
- 	struct radeon_i2c_chan 	i2c[4];
- #endif
--
--	u32			cfg_save[64];
- };
- 
- 
+ config DMAR_DEFAULT_ON
+ 	def_bool n
+-	prompt " Enable DMA Remapping Devices by default"
++	prompt "Enable DMA Remapping Devices by default"
+ 	depends on DMAR
+ 	help
+ 	  Selecting this option will enable a DMAR device at boot time if
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-arch-powerpc-eliminate-double-sizeof.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
 arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_assign_resources-fix.patch
+pci-constify-pci_bus_add_devices.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void-fix.patch
+ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
 aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
 page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
-spi_mpc83xx-fix-sparse-warnings.patch
-spi_mpc83xx-rework-chip-selects-handling.patch
-spi_mpc83xx-add-of-platform-driver-bindings.patch
-powerpc-add-mmc-spi-slot-bindings.patch
-powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb.patch
-powerpc-fsl_soc-isolate-legacy-fsl_spi-support-to-mpc832x_rdb-boards.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-edac-new-ppc4xx-driver-module.patch
-edac-new-ppc4xx-driver-module-update.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
 edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
 edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
