@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch added to -mm tree
-Date: Mon, 09 Feb 2009 14:14:52 -0800
-Message-ID: <200902092214.n19MEqaP008550@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-remove-useless-asm-cplbinith.patch added to -mm tree
+Date: Mon, 09 Feb 2009 14:14:54 -0800
+Message-ID: <200902092214.n19MEsSB008553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43140 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752511AbZBIWPh (ORCPT
+	by vger.kernel.org with ESMTP id S1753236AbZBIWPh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:15:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael.hennerich@analog.com, cooloney@kernel.org, david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: vapier.adi@gmail.com, cooloney@kernel.org, david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     Blackfin SPI Driver: Fix erroneous SPI Clock divisor calculation
+     Blackfin SPI Driver: remove useless <asm/cplbinit.h>
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
+     blackfin-spi-driver-remove-useless-asm-cplbinith.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: Fix erroneous SPI Clock divisor calculation
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: Blackfin SPI Driver: remove useless <asm/cplbinit.h>
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Fix erroneous SPI Clock divisor calculation.  Make sure SPI_BAUD is always
->= 2.  Writing a value of 0 or 1 to the SPI_BAUD register disables the
-serial clock.
+We already moved bfin_addr_dcachable() and friends into the cacheflush
+header where it belongs, so don't need to include <asm/cplbinit.h> here.
 
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
 Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/include/asm/bfin5xx_spi.h |    2 ++
- drivers/spi/spi_bfin5xx.c               |    3 +++
- 2 files changed, 5 insertions(+)
+ drivers/spi/spi_bfin5xx.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/blackfin/include/asm/bfin5xx_spi.h~blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation arch/blackfin/include/asm/bfin5xx_spi.h
---- a/arch/blackfin/include/asm/bfin5xx_spi.h~blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation
-+++ a/arch/blackfin/include/asm/bfin5xx_spi.h
-@@ -11,6 +11,8 @@
- #ifndef _SPI_CHANNEL_H_
- #define _SPI_CHANNEL_H_
- 
-+#define MIN_SPI_BAUD_VAL	2
-+
- #define SPI_READ              0
- #define SPI_WRITE             1
- 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-remove-useless-asm-cplbinith drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-remove-useless-asm-cplbinith
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -158,6 +158,9 @@ static u16 hz_to_spi_baud(u32 speed_hz)
- 	if ((sclk % (2 * speed_hz)) > 0)
- 		spi_baud++;
+@@ -25,9 +25,6 @@
+ #include <asm/dma.h>
+ #include <asm/portmux.h>
+ #include <asm/bfin5xx_spi.h>
+-
+-/* reserved_mem_dcache_on and cache friends */
+-#include <asm/cplbinit.h>
+ #include <asm/cacheflush.h>
  
-+	if (spi_baud < MIN_SPI_BAUD_VAL)
-+		spi_baud = MIN_SPI_BAUD_VAL;
-+
- 	return spi_baud;
- }
- 
+ #define DRV_NAME	"bfin-spi"
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
+video-framebuffer-move-the-probe-func-into-devinittext-in-blackfin-lcd-driver.patch
 linux-next.patch
-input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
-input-ad7879-touchscreen-driver.patch
-input-ad7879-touchscreen-driver-dont-use-bus_id.patch
-blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
-blackfin-spi-driver-add-gpio-controlled-spi-slave-select-support.patch
+blackfin-nfc-driver-do-not-clobber-dmac1_perimux.patch
+blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit.patch
+blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback.patch
+mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch
+mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings.patch
+mtd-maps-blackfin-async-flash-maps-fix-up-memory-leak.patch
+blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
+blackfin-spi-driver-remove-useless-asm-cplbinith.patch
+blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
+blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
+blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
+blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
+blackfin-spi-driver-add-a-few-more-dma-debug-messages.patch
+blackfin-spi-driver-do-not-check-for-spi-errors-if-dma-itself-did-not-flag-any.patch
+blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch
+blackfin-spi-driver-spi-slave-select-code-cleanup.patch
+blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
+blackfin-spi-driver-add-timeout-while-waiting-for-spif-in-dma-irq-handler.patch
+blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch
+blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions.patch
+blackfin-spi-driver-fix-null-pointer-crash.patch
+blackfin-spi-driver-add-comment-about-full-duplex-dma-according-to-david-brownell.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
 
