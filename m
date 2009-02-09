@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch added to -mm tree
-Date: Mon, 09 Feb 2009 14:14:58 -0800
-Message-ID: <200902092214.n19MEwqq008637@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch added to -mm tree
+Date: Mon, 09 Feb 2009 14:15:00 -0800
+Message-ID: <200902092215.n19MF05Q008786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54417 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753236AbZBIWPk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:15:40 -0500
+	by vger.kernel.org with ESMTP id S1753445AbZBIWPo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:15:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: vapier.adi@gmail.com, cooloney@kernel.org, david-b@pacbell.net, dbrownell@us
 
 
 The patch titled
-     Blackfin SPI Driver: pass DMA overflow error to the higher level
+     Blackfin SPI Driver: unify duplicated code in dma read/write paths
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
+     blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: pass DMA overflow error to the higher level
+Subject: Blackfin SPI Driver: unify duplicated code in dma read/write paths
 From: Mike Frysinger <vapier.adi@gmail.com>
 
-If the SPI bus registers a receive overflow error, pass the result back up
-to the higher levels.
+For DMA TX/RX operation in pump_transfers, DMA contriguration code in TX
+and RX paths are almost the same.  This patch unify the duplicated DMA
+code to make it more readable.
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
@@ -46,44 +47,98 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/spi/spi_bfin5xx.c |   47 ++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 26 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -559,6 +559,7 @@ static irqreturn_t dma_irq_handler(int i
- 	struct driver_data *drv_data = dev_id;
- 	struct chip_data *chip = drv_data->cur_chip;
- 	struct spi_message *msg = drv_data->cur_msg;
-+	u16 spistat = read_STAT(drv_data);
+@@ -756,18 +756,19 @@ static void pump_transfers(unsigned long
+ 	if (!full_duplex && drv_data->cur_chip->enable_dma
+ 				&& drv_data->len > 6) {
  
- 	dev_dbg(&drv_data->pdev->dev, "in dma_irq_handler\n");
- 	clear_dma_irqstat(drv_data->dma_channel);
-@@ -582,13 +583,18 @@ static irqreturn_t dma_irq_handler(int i
- 	while (!(read_STAT(drv_data) & SPIF))
- 		cpu_relax();
++		unsigned long dma_start_addr;
++
+ 		disable_dma(drv_data->dma_channel);
+ 		clear_dma_irqstat(drv_data->dma_channel);
+ 		bfin_spi_disable(drv_data);
  
--	msg->actual_length += drv_data->len_in_bytes;
-+	if (spistat & RBSY) {
-+		msg->state = ERROR_STATE;
-+		dev_err(&drv_data->pdev->dev, "dma receive: fifo/buffer overflow\n");
-+	} else {
-+		msg->actual_length += drv_data->len_in_bytes;
+ 		/* config dma channel */
+ 		dev_dbg(&drv_data->pdev->dev, "doing dma transfer\n");
++		set_dma_x_count(drv_data->dma_channel, drv_data->len);
+ 		if (width == CFG_SPI_WORDSIZE16) {
+-			set_dma_x_count(drv_data->dma_channel, drv_data->len);
+ 			set_dma_x_modify(drv_data->dma_channel, 2);
+ 			dma_width = WDSIZE_16;
+ 		} else {
+-			set_dma_x_count(drv_data->dma_channel, drv_data->len);
+ 			set_dma_x_modify(drv_data->dma_channel, 1);
+ 			dma_width = WDSIZE_8;
+ 		}
+@@ -802,6 +803,7 @@ static void pump_transfers(unsigned long
+ 		}
  
--	if (drv_data->cs_change)
--		cs_deactive(drv_data, chip);
-+		if (drv_data->cs_change)
-+			cs_deactive(drv_data, chip);
+ 		/* In dma mode, rx or tx must be NULL in one transfer */
++		dma_config = (RESTART | dma_width | DI_EN);
+ 		if (drv_data->rx != NULL) {
+ 			/* set transfer mode, and enable SPI */
+ 			dev_dbg(&drv_data->pdev->dev, "doing DMA in.\n");
+@@ -815,19 +817,9 @@ static void pump_transfers(unsigned long
+ 			/* clear tx reg soformer data is not shifted out */
+ 			write_TDBR(drv_data, 0xFFFF);
  
--	/* Move to next transfer */
--	msg->state = next_transfer(drv_data);
-+		/* Move to next transfer */
-+		msg->state = next_transfer(drv_data);
-+	}
+-			set_dma_x_count(drv_data->dma_channel, drv_data->len);
+-
+-			/* start dma */
+-			dma_enable_irq(drv_data->dma_channel);
+-			dma_config = (WNR | RESTART | dma_width | DI_EN);
+-			set_dma_config(drv_data->dma_channel, dma_config);
+-			set_dma_start_addr(drv_data->dma_channel,
+-					(unsigned long)drv_data->rx);
+-			enable_dma(drv_data->dma_channel);
+-
+-			/* start SPI transfer */
+-			write_CTRL(drv_data,
+-				(cr | CFG_SPI_DMAREAD | BIT_CTL_ENABLE));
++			dma_config |= WNR;
++			dma_start_addr = (unsigned long)drv_data->rx;
++			cr |= CFG_SPI_DMAREAD;
  
- 	/* Schedule transfer tasklet */
- 	tasklet_schedule(&drv_data->pump_transfers);
+ 		} else if (drv_data->tx != NULL) {
+ 			dev_dbg(&drv_data->pdev->dev, "doing DMA out.\n");
+@@ -838,18 +830,21 @@ static void pump_transfers(unsigned long
+ 						(unsigned long) (drv_data->tx +
+ 						drv_data->len_in_bytes));
+ 
+-			/* start dma */
+-			dma_enable_irq(drv_data->dma_channel);
+-			dma_config = (RESTART | dma_width | DI_EN);
+-			set_dma_config(drv_data->dma_channel, dma_config);
+-			set_dma_start_addr(drv_data->dma_channel,
+-					(unsigned long)drv_data->tx);
+-			enable_dma(drv_data->dma_channel);
++			dma_start_addr = (unsigned long)drv_data->tx;
++			cr |= CFG_SPI_DMAWRITE;
++
++		} else
++			BUG();
++
++		/* start dma */
++		dma_enable_irq(drv_data->dma_channel);
++		set_dma_config(drv_data->dma_channel, dma_config);
++		set_dma_start_addr(drv_data->dma_channel, dma_start_addr);
++		enable_dma(drv_data->dma_channel);
++
++		/* start SPI transfer */
++		write_CTRL(drv_data, (cr | BIT_CTL_ENABLE));
+ 
+-			/* start SPI transfer */
+-			write_CTRL(drv_data,
+-				(cr | CFG_SPI_DMAWRITE | BIT_CTL_ENABLE));
+-		}
+ 	} else {
+ 		/* IO mode write then read */
+ 		dev_dbg(&drv_data->pdev->dev, "doing IO transfer\n");
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
