@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-fix-break-condition-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 09 Feb 2009 15:23:12 -0800
-Message-ID: <200902092323.n19NNCra005581@imap1.linux-foundation.org>
+Subject: + cirrusfb-add-laguna-additional-overflow-register.patch added to -mm tree
+Date: Mon, 09 Feb 2009 15:24:16 -0800
+Message-ID: <200902092324.n19NOGQC007062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754062AbZBIXX2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:23:28 -0500
+	by vger.kernel.org with ESMTP id S1752123AbZBIXZG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:25:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com, fedux@lugmen.org.ar, npiggin@suse.de
+Cc: krzysztof.h1@wp.pl, geert@linux-m68k.org
 
 
 The patch titled
-     writeback-fix-break-condition-checkpatch-fixes
+     cirrusfb: add Laguna additional overflow register
 has been added to the -mm tree.  Its filename is
-     writeback-fix-break-condition-checkpatch-fixes.patch
+     cirrusfb-add-laguna-additional-overflow-register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,166 +33,172 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-fix-break-condition-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cirrusfb: add Laguna additional overflow register
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-WARNING: line over 80 characters
-#40: FILE: mm/page-writeback.c:1056:
-+				if (nr_to_write == 0 && wbc->sync_mode == WB_SYNC_NONE) {
+Add additional overflow register setting for Laguna chips.
 
-WARNING: line over 80 characters
-#42: FILE: mm/page-writeback.c:1058:
-+					 * We stop writing back only if we are not
+Also, simplify some code in the cirrusfb_pan_display() and
+cirrusfb_blank().
 
-WARNING: line over 80 characters
-#43: FILE: mm/page-writeback.c:1059:
-+					 * doing integrity sync. In case of integrity
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 
-WARNING: line over 80 characters
-#44: FILE: mm/page-writeback.c:1060:
-+					 * sync we have to keep going because someone
-
-WARNING: line over 80 characters
-#45: FILE: mm/page-writeback.c:1061:
-+					 * may be concurrently dirtying pages, and we
-
-WARNING: line over 80 characters
-#46: FILE: mm/page-writeback.c:1062:
-+					 * might have synced a lot of newly appeared
-
-WARNING: line over 80 characters
-#47: FILE: mm/page-writeback.c:1063:
-+					 * dirty pages, but have not synced all of the
-
-total: 0 errors, 7 warnings, 34 lines checked
-
-./patches/writeback-fix-break-condition.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-Cc: Federico Cuello <fedux@lugmen.org.ar>
-Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/video/cirrusfb.c |   68 ++++++++++++++++++++++---------------
+ include/video/cirrus.h   |    1 
+ 2 files changed, 43 insertions(+), 26 deletions(-)
 
-diff -puN mm/page-writeback.c~writeback-fix-break-condition-checkpatch-fixes mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-fix-break-condition-checkpatch-fixes
-+++ a/mm/page-writeback.c
-@@ -1053,14 +1053,16 @@ continue_unlock:
+diff -puN drivers/video/cirrusfb.c~cirrusfb-add-laguna-additional-overflow-register drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-add-laguna-additional-overflow-register
++++ a/drivers/video/cirrusfb.c
+@@ -1259,13 +1259,32 @@ static int cirrusfb_set_par_foo(struct f
+ 	/* screen start addr #16-18, fastpagemode cycles */
+ 	vga_wcrt(regbase, CL_CRT1B, tmp);
  
- 			if (nr_to_write > 0) {
- 				nr_to_write--;
--				if (nr_to_write == 0 && wbc->sync_mode == WB_SYNC_NONE) {
-+				if (nr_to_write == 0 &&
-+				    wbc->sync_mode == WB_SYNC_NONE) {
- 					/*
--					 * We stop writing back only if we are not
--					 * doing integrity sync. In case of integrity
--					 * sync we have to keep going because someone
--					 * may be concurrently dirtying pages, and we
--					 * might have synced a lot of newly appeared
--					 * dirty pages, but have not synced all of the
-+					 * We stop writing back only if we are
-+					 * not doing integrity sync. In case of
-+					 * integrity sync we have to keep going
-+					 * because someone may be concurrently
-+					 * dirtying pages, and we might have
-+					 * synced a lot of newly appeared dirty
-+					 * pages, but have not synced all of the
- 					 * old dirty pages.
- 					 */
- 					done = 1;
+-	if (cinfo->btype == BT_SD64 ||
+-	    cinfo->btype == BT_PICASSO4 ||
+-	    cinfo->btype == BT_ALPINE ||
+-	    cinfo->btype == BT_GD5480)
+-		/* screen start address bit 19 */
++	/* screen start address bit 19 */
++	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
+ 		vga_wcrt(regbase, CL_CRT1D, 0x00);
+ 
++	if (cinfo->btype == BT_LAGUNA ||
++	    cinfo->btype == BT_GD5480) {
++
++		tmp = 0;
++		if ((htotal + 5) & 256)
++			tmp |= 128;
++		if (hdispend & 256)
++			tmp |= 64;
++		if (hsyncstart & 256)
++			tmp |= 48;
++		if (vtotal & 1024)
++			tmp |= 8;
++		if (vdispend & 1024)
++			tmp |= 4;
++		if (vsyncstart & 1024)
++			tmp |= 3;
++
++		vga_wcrt(regbase, CL_CRT1E, tmp);
++		dev_dbg(info->device, "CRT1e: %d\n", tmp);
++	}
++
++
+ 	/* text cursor location high */
+ 	vga_wcrt(regbase, VGA_CRTC_CURSOR_HI, 0);
+ 	/* text cursor location low */
+@@ -1383,7 +1402,7 @@ static int cirrusfb_pan_display(struct f
+ 	int xoffset = 0;
+ 	int yoffset = 0;
+ 	unsigned long base;
+-	unsigned char tmp = 0, tmp2 = 0, xpix;
++	unsigned char tmp, xpix;
+ 	struct cirrusfb_info *cinfo = info->par;
+ 
+ 	dev_dbg(info->device,
+@@ -1418,6 +1437,8 @@ static int cirrusfb_pan_display(struct f
+ 	vga_wcrt(cinfo->regbase, VGA_CRTC_START_HI,
+ 		 (unsigned char) (base >> 8));
+ 
++	/* 0xf2 is %11110010, exclude tmp bits */
++	tmp = vga_rcrt(cinfo->regbase, CL_CRT1B) & 0xf2;
+ 	/* construct bits 16, 17 and 18 of screen start address */
+ 	if (base & 0x10000)
+ 		tmp |= 0x01;
+@@ -1426,9 +1447,7 @@ static int cirrusfb_pan_display(struct f
+ 	if (base & 0x40000)
+ 		tmp |= 0x08;
+ 
+-	/* 0xf2 is %11110010, exclude tmp bits */
+-	tmp2 = (vga_rcrt(cinfo->regbase, CL_CRT1B) & 0xf2) | tmp;
+-	vga_wcrt(cinfo->regbase, CL_CRT1B, tmp2);
++	vga_wcrt(cinfo->regbase, CL_CRT1B, tmp);
+ 
+ 	/* construct bit 19 of screen start address */
+ 	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
+@@ -1473,47 +1492,44 @@ static int cirrusfb_blank(int blank_mode
+ 
+ 	/* Undo current */
+ 	if (current_mode == FB_BLANK_NORMAL ||
+-	    current_mode == FB_BLANK_UNBLANK) {
+-		/* unblank the screen */
+-		val = vga_rseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE);
++	    current_mode == FB_BLANK_UNBLANK)
+ 		/* clear "FullBandwidth" bit */
+-		vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, val & 0xdf);
+-		/* and undo VESA suspend trickery */
+-		vga_wgfx(cinfo->regbase, CL_GRE, 0x00);
+-	}
+-
+-	/* set new */
+-	if (blank_mode > FB_BLANK_NORMAL) {
+-		/* blank the screen */
+-		val = vga_rseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE);
++		val = 0;
++	else
+ 		/* set "FullBandwidth" bit */
+-		vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, val | 0x20);
+-	}
++		val = 0x20;
++
++	val |= vga_rseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE) & 0xdf;
++	vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, val);
+ 
+ 	switch (blank_mode) {
+ 	case FB_BLANK_UNBLANK:
+ 	case FB_BLANK_NORMAL:
++		val = 0x00;
+ 		break;
+ 	case FB_BLANK_VSYNC_SUSPEND:
+-		vga_wgfx(cinfo->regbase, CL_GRE, 0x04);
++		val = 0x04;
+ 		break;
+ 	case FB_BLANK_HSYNC_SUSPEND:
+-		vga_wgfx(cinfo->regbase, CL_GRE, 0x02);
++		val = 0x02;
+ 		break;
+ 	case FB_BLANK_POWERDOWN:
+-		vga_wgfx(cinfo->regbase, CL_GRE, 0x06);
++		val = 0x06;
+ 		break;
+ 	default:
+ 		dev_dbg(info->device, "EXIT, returning 1\n");
+ 		return 1;
+ 	}
+ 
++	vga_wgfx(cinfo->regbase, CL_GRE, val);
++
+ 	cinfo->blank_mode = blank_mode;
+ 	dev_dbg(info->device, "EXIT, returning 0\n");
+ 
+ 	/* Let fbcon do a soft blank for us */
+ 	return (blank_mode == FB_BLANK_NORMAL) ? 1 : 0;
+ }
++
+ /**** END   Hardware specific Routines **************************************/
+ /****************************************************************************/
+ /**** BEGIN Internal Routines ***********************************************/
+diff -puN include/video/cirrus.h~cirrusfb-add-laguna-additional-overflow-register include/video/cirrus.h
+--- a/include/video/cirrus.h~cirrusfb-add-laguna-additional-overflow-register
++++ a/include/video/cirrus.h
+@@ -71,6 +71,7 @@
+ #define CL_CRT1B	0x1b	/* Extended Display Controls */
+ #define CL_CRT1C	0x1c	/* Sync adjust and genlock register */
+ #define CL_CRT1D	0x1d	/* Overlay Extended Control register */
++#define CL_CRT1E	0x1e	/* Another overflow register */
+ #define CL_CRT25	0x25	/* Part Status Register */
+ #define CL_CRT27	0x27	/* ID Register */
+ #define CL_CRT51	0x51	/* P4 disable "flicker fixer" */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
-arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-early-platform-driver-v3-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_assign_resources-fix.patch
-pci-constify-pci_bus_add_devices.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void-fix.patch
-ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
-writeback-fix-break-condition-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-ata-sata_silc-needs-dmih.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
+cirrusfb-add-laguna-additional-overflow-register.patch
 
