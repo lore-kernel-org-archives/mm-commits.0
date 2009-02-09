@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc.patch added to -mm tree
-Date: Mon, 09 Feb 2009 14:08:11 -0800
-Message-ID: <200902092208.n19M8BcL031810@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch added to -mm tree
+Date: Mon, 09 Feb 2009 14:14:50 -0800
+Message-ID: <200902092214.n19MEpQe008543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755817AbZBIWIv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:08:51 -0500
+	by vger.kernel.org with ESMTP id S1753216AbZBIWPc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:15:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yjwei@cn.fujitsu.com, dwmw2@infradead.org
+Cc: vitja.makarov@gmail.com, cooloney@kernel.org, david-b@pacbell.net, vapier.adi@gmail.com
 
 
 The patch titled
-     fs/jffs2/malloc.c: kmem_cache_alloc/memset -> kmem_cache_zalloc
+     Blackfin SPI Driver: ensure cache coherency before doing DMA
 has been added to the -mm tree.  Its filename is
-     fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc.patch
+     blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/jffs2/malloc.c: kmem_cache_alloc/memset -> kmem_cache_zalloc
-From: Wei Yongjun <yjwei@cn.fujitsu.com>
+Subject: Blackfin SPI Driver: ensure cache coherency before doing DMA
+From: Vitja Makarov <vitja.makarov@gmail.com>
 
-Used kmem_cache_zalloc instead of kmem_cache_alloc/memset.
+Flush or invalidate caches before doing DMA transfer, if needed.
 
-Signed-off-by: Wei Yongjun <yjwei@cn.fujitsu.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+[Mike Frysinger <vapier.adi@gmail.com>: add comment to address the
+issue "Full duplex only works for non-DMA transfers".]
+Signed-off-by: Vitja Makarov <vitja.makarov@gmail.com>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/malloc.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/spi/spi_bfin5xx.c |   23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN fs/jffs2/malloc.c~fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc fs/jffs2/malloc.c
---- a/fs/jffs2/malloc.c~fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc
-+++ a/fs/jffs2/malloc.c
-@@ -284,10 +284,9 @@ void jffs2_free_inode_cache(struct jffs2
- struct jffs2_xattr_datum *jffs2_alloc_xattr_datum(void)
- {
- 	struct jffs2_xattr_datum *xd;
--	xd = kmem_cache_alloc(xattr_datum_cache, GFP_KERNEL);
-+	xd = kmem_cache_zalloc(xattr_datum_cache, GFP_KERNEL);
- 	dbg_memalloc("%p\n", xd);
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-ensure-cache-coherency-before-doing-dma drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-ensure-cache-coherency-before-doing-dma
++++ a/drivers/spi/spi_bfin5xx.c
+@@ -26,6 +26,10 @@
+ #include <asm/portmux.h>
+ #include <asm/bfin5xx_spi.h>
  
--	memset(xd, 0, sizeof(struct jffs2_xattr_datum));
- 	xd->class = RAWNODE_CLASS_XATTR_DATUM;
- 	xd->node = (void *)xd;
- 	INIT_LIST_HEAD(&xd->xindex);
-@@ -303,10 +302,9 @@ void jffs2_free_xattr_datum(struct jffs2
- struct jffs2_xattr_ref *jffs2_alloc_xattr_ref(void)
- {
- 	struct jffs2_xattr_ref *ref;
--	ref = kmem_cache_alloc(xattr_ref_cache, GFP_KERNEL);
-+	ref = kmem_cache_zalloc(xattr_ref_cache, GFP_KERNEL);
- 	dbg_memalloc("%p\n", ref);
++/* reserved_mem_dcache_on and cache friends */
++#include <asm/cplbinit.h>
++#include <asm/cacheflush.h>
++
+ #define DRV_NAME	"bfin-spi"
+ #define DRV_AUTHOR	"Bryan Wu, Luke Yang"
+ #define DRV_DESC	"Blackfin BF5xx on-chip SPI Controller Driver"
+@@ -738,9 +742,10 @@ static void pump_transfers(unsigned long
+ 		width, transfer->len);
  
--	memset(ref, 0, sizeof(struct jffs2_xattr_ref));
- 	ref->class = RAWNODE_CLASS_XATTR_REF;
- 	ref->node = (void *)ref;
- 	return ref;
+ 	/*
+-	 * Try to map dma buffer and do a dma transfer if
+-	 * successful use different way to r/w according to
+-	 * drv_data->cur_chip->enable_dma
++	 * Try to map dma buffer and do a dma transfer.  If successful use,
++	 * different way to r/w according to the enable_dma settings and if
++	 * we are not doing a full duplex transfer (since the hardware does
++	 * not support full duplex DMA transfers).
+ 	 */
+ 	if (!full_duplex && drv_data->cur_chip->enable_dma
+ 				&& drv_data->len > 6) {
+@@ -795,6 +800,12 @@ static void pump_transfers(unsigned long
+ 			/* set transfer mode, and enable SPI */
+ 			dev_dbg(&drv_data->pdev->dev, "doing DMA in.\n");
+ 
++			/* invalidate caches, if needed */
++			if (bfin_addr_dcachable((unsigned long) drv_data->rx))
++				invalidate_dcache_range((unsigned long) drv_data->rx,
++							(unsigned long) (drv_data->rx +
++							drv_data->len));
++
+ 			/* clear tx reg soformer data is not shifted out */
+ 			write_TDBR(drv_data, 0xFFFF);
+ 
+@@ -815,6 +826,12 @@ static void pump_transfers(unsigned long
+ 		} else if (drv_data->tx != NULL) {
+ 			dev_dbg(&drv_data->pdev->dev, "doing DMA out.\n");
+ 
++			/* flush caches, if needed */
++			if (bfin_addr_dcachable((unsigned long) drv_data->tx))
++				flush_dcache_range((unsigned long) drv_data->tx,
++						(unsigned long) (drv_data->tx +
++						drv_data->len));
++
+ 			/* start dma */
+ 			dma_enable_irq(drv_data->dma_channel);
+ 			dma_config = (RESTART | dma_width | DI_EN);
 _
 
-Patches currently in -mm which might be from yjwei@cn.fujitsu.com are
+Patches currently in -mm which might be from vitja.makarov@gmail.com are
 
-linux-next.patch
-scsi-used-kmem_cache_zalloc-instead-of-kmem_cache_alloc-memset.patch
-fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc.patch
+blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
 
