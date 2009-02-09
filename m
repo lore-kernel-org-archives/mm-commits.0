@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch added to -mm tree
-Date: Mon, 09 Feb 2009 14:15:16 -0800
-Message-ID: <200902092215.n19MFGZb009082@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch added to -mm tree
+Date: Mon, 09 Feb 2009 14:15:08 -0800
+Message-ID: <200902092215.n19MF8Wt008887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38087 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752566AbZBIWSX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:18:23 -0500
+	by vger.kernel.org with ESMTP id S1752566AbZBIWSY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:18:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: vapier.adi@gmail.com, cooloney@kernel.org, david-b@pacbell.net
 
 
 The patch titled
-     Blackfin SPI Driver: tweak magic spi dma sequence to get it working on BF54x
+     Blackfin SPI Driver: use the properl BIT_CTL_xxx defines
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch
+     blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: tweak magic spi dma sequence to get it working on BF54x
+Subject: Blackfin SPI Driver: use the properl BIT_CTL_xxx defines
 From: Mike Frysinger <vapier.adi@gmail.com>
 
-Without this change, SPI DMA is not reliably under stress tests. 
-Obiviously it's a hardware issue which is not addressed by any document.
+use the properl BIT_CTL_...  defines rather than the internal driv er
+CFG_SPI_...  defines
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
@@ -45,23 +45,39 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/spi/spi_bfin5xx.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -862,8 +862,9 @@ static void pump_transfers(unsigned long
- 		set_dma_start_addr(drv_data->dma_channel, dma_start_addr);
- 		set_dma_config(drv_data->dma_channel, dma_config);
- 		local_irq_save(flags);
--		enable_dma(drv_data->dma_channel);
-+		SSYNC();
- 		write_CTRL(drv_data, cr);
-+		enable_dma(drv_data->dma_channel);
- 		dma_enable_irq(drv_data->dma_channel);
- 		local_irq_restore(flags);
+@@ -799,7 +799,7 @@ static void pump_transfers(unsigned long
  
+ 			/* start SPI transfer */
+ 			write_CTRL(drv_data,
+-				(cr | CFG_SPI_DMAWRITE | BIT_CTL_ENABLE));
++				(cr | BIT_CTL_TIMOD_DMA_TX | BIT_CTL_ENABLE));
+ 
+ 			/* just return here, there can only be one transfer
+ 			 * in this mode
+@@ -827,7 +827,7 @@ static void pump_transfers(unsigned long
+ 
+ 			dma_config |= WNR;
+ 			dma_start_addr = (unsigned long)drv_data->rx;
+-			cr |= CFG_SPI_DMAREAD;
++			cr |= BIT_CTL_TIMOD_DMA_RX | BIT_CTL_SENDOPT;
+ 
+ 		} else if (drv_data->tx != NULL) {
+ 			dev_dbg(&drv_data->pdev->dev, "doing DMA out.\n");
+@@ -839,7 +839,7 @@ static void pump_transfers(unsigned long
+ 						drv_data->len_in_bytes));
+ 
+ 			dma_start_addr = (unsigned long)drv_data->tx;
+-			cr |= CFG_SPI_DMAWRITE;
++			cr |= BIT_CTL_TIMOD_DMA_TX;
+ 
+ 		} else
+ 			BUG();
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
