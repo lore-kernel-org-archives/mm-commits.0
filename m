@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch added to -mm tree
-Date: Mon, 09 Feb 2009 14:14:50 -0800
-Message-ID: <200902092214.n19MEpQe008543@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch added to -mm tree
+Date: Mon, 09 Feb 2009 14:14:52 -0800
+Message-ID: <200902092214.n19MEqaP008550@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753216AbZBIWPc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:15:32 -0500
+	by vger.kernel.org with ESMTP id S1752511AbZBIWPh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:15:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vitja.makarov@gmail.com, cooloney@kernel.org, david-b@pacbell.net, vapier.adi@gmail.com
+Cc: michael.hennerich@analog.com, cooloney@kernel.org, david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     Blackfin SPI Driver: ensure cache coherency before doing DMA
+     Blackfin SPI Driver: Fix erroneous SPI Clock divisor calculation
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
+     blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: ensure cache coherency before doing DMA
-From: Vitja Makarov <vitja.makarov@gmail.com>
+Subject: Blackfin SPI Driver: Fix erroneous SPI Clock divisor calculation
+From: Michael Hennerich <michael.hennerich@analog.com>
 
-Flush or invalidate caches before doing DMA transfer, if needed.
+Fix erroneous SPI Clock divisor calculation.  Make sure SPI_BAUD is always
+>= 2.  Writing a value of 0 or 1 to the SPI_BAUD register disables the
+serial clock.
 
-[Mike Frysinger <vapier.adi@gmail.com>: add comment to address the
-issue "Full duplex only works for non-DMA transfers".]
-Signed-off-by: Vitja Makarov <vitja.makarov@gmail.com>
-Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |   23 ++++++++++++++++++++---
- 1 file changed, 20 insertions(+), 3 deletions(-)
+ arch/blackfin/include/asm/bfin5xx_spi.h |    2 ++
+ drivers/spi/spi_bfin5xx.c               |    3 +++
+ 2 files changed, 5 insertions(+)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-ensure-cache-coherency-before-doing-dma drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-ensure-cache-coherency-before-doing-dma
+diff -puN arch/blackfin/include/asm/bfin5xx_spi.h~blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation arch/blackfin/include/asm/bfin5xx_spi.h
+--- a/arch/blackfin/include/asm/bfin5xx_spi.h~blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation
++++ a/arch/blackfin/include/asm/bfin5xx_spi.h
+@@ -11,6 +11,8 @@
+ #ifndef _SPI_CHANNEL_H_
+ #define _SPI_CHANNEL_H_
+ 
++#define MIN_SPI_BAUD_VAL	2
++
+ #define SPI_READ              0
+ #define SPI_WRITE             1
+ 
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -26,6 +26,10 @@
- #include <asm/portmux.h>
- #include <asm/bfin5xx_spi.h>
+@@ -158,6 +158,9 @@ static u16 hz_to_spi_baud(u32 speed_hz)
+ 	if ((sclk % (2 * speed_hz)) > 0)
+ 		spi_baud++;
  
-+/* reserved_mem_dcache_on and cache friends */
-+#include <asm/cplbinit.h>
-+#include <asm/cacheflush.h>
++	if (spi_baud < MIN_SPI_BAUD_VAL)
++		spi_baud = MIN_SPI_BAUD_VAL;
 +
- #define DRV_NAME	"bfin-spi"
- #define DRV_AUTHOR	"Bryan Wu, Luke Yang"
- #define DRV_DESC	"Blackfin BF5xx on-chip SPI Controller Driver"
-@@ -738,9 +742,10 @@ static void pump_transfers(unsigned long
- 		width, transfer->len);
+ 	return spi_baud;
+ }
  
- 	/*
--	 * Try to map dma buffer and do a dma transfer if
--	 * successful use different way to r/w according to
--	 * drv_data->cur_chip->enable_dma
-+	 * Try to map dma buffer and do a dma transfer.  If successful use,
-+	 * different way to r/w according to the enable_dma settings and if
-+	 * we are not doing a full duplex transfer (since the hardware does
-+	 * not support full duplex DMA transfers).
- 	 */
- 	if (!full_duplex && drv_data->cur_chip->enable_dma
- 				&& drv_data->len > 6) {
-@@ -795,6 +800,12 @@ static void pump_transfers(unsigned long
- 			/* set transfer mode, and enable SPI */
- 			dev_dbg(&drv_data->pdev->dev, "doing DMA in.\n");
- 
-+			/* invalidate caches, if needed */
-+			if (bfin_addr_dcachable((unsigned long) drv_data->rx))
-+				invalidate_dcache_range((unsigned long) drv_data->rx,
-+							(unsigned long) (drv_data->rx +
-+							drv_data->len));
-+
- 			/* clear tx reg soformer data is not shifted out */
- 			write_TDBR(drv_data, 0xFFFF);
- 
-@@ -815,6 +826,12 @@ static void pump_transfers(unsigned long
- 		} else if (drv_data->tx != NULL) {
- 			dev_dbg(&drv_data->pdev->dev, "doing DMA out.\n");
- 
-+			/* flush caches, if needed */
-+			if (bfin_addr_dcachable((unsigned long) drv_data->tx))
-+				flush_dcache_range((unsigned long) drv_data->tx,
-+						(unsigned long) (drv_data->tx +
-+						drv_data->len));
-+
- 			/* start dma */
- 			dma_enable_irq(drv_data->dma_channel);
- 			dma_config = (RESTART | dma_width | DI_EN);
 _
 
-Patches currently in -mm which might be from vitja.makarov@gmail.com are
+Patches currently in -mm which might be from michael.hennerich@analog.com are
 
-blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
+linux-next.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
+input-ad7879-touchscreen-driver.patch
+input-ad7879-touchscreen-driver-dont-use-bus_id.patch
+blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
+blackfin-spi-driver-add-gpio-controlled-spi-slave-select-support.patch
 
