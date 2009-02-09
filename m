@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cramfs-propagate-uncompression-errors.patch added to -mm tree
-Date: Mon, 09 Feb 2009 15:16:39 -0800
-Message-ID: <200902092316.n19NGd9r028906@imap1.linux-foundation.org>
+Subject: + writeback-fix-break-condition.patch added to -mm tree
+Date: Mon, 09 Feb 2009 15:21:47 -0800
+Message-ID: <200902092321.n19NLlJJ003628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42786 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753620AbZBIXRD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:17:03 -0500
+	by vger.kernel.org with ESMTP id S1751607AbZBIXWF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:22:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dvomlehn@cisco.com
+Cc: fedux@lugmen.org.ar, Artem.Bityutskiy@nokia.com, npiggin@suse.de
 
 
 The patch titled
-     cramfs: propagate uncompression errors
+     writeback: fix break condition
 has been added to the -mm tree.  Its filename is
-     cramfs-propagate-uncompression-errors.patch
+     writeback-fix-break-condition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cramfs: propagate uncompression errors
-From: David VomLehn <dvomlehn@cisco.com>
+Subject: writeback: fix break condition
+From: Federico Cuello <fedux@lugmen.org.ar>
 
-If cramfs_uncompress_block() detects an error uncompressing it will return
-a zero value.  This patch checks the return value and propagates the error
-back up to the block layer.
+Commit dcf6a79dda5cc2a2bec183e50d829030c0972aaa ("write-back: fix
+nr_to_write counter") fixed nr_to_write counter, but didn't set the break
+condition properly.
 
-Signed-off-by: David VomLehn <dvomlehn@cisco.com>
+If nr_to_write == 0 after being decremented it will loop one more time
+before setting done = 1 and breaking the loop.
+
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ mm/page-writeback.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN fs/cramfs/inode.c~cramfs-propagate-uncompression-errors fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~cramfs-propagate-uncompression-errors
-+++ a/fs/cramfs/inode.c
-@@ -488,12 +488,19 @@ static int cramfs_readpage(struct file *
- 				 compr_len);
- 			mutex_unlock(&read_mutex);
- 		}
--	} else
--		pgdata = kmap(page);
--	memset(pgdata + bytes_filled, 0, PAGE_CACHE_SIZE - bytes_filled);
--	kunmap(page);
--	flush_dcache_page(page);
--	SetPageUptodate(page);
-+
-+		if (bytes_filled == 0) {
-+			/* Decompression error */
-+			ClearPageUptodate(page);
-+			SetPageError(page);
-+		} else {
-+			memset(pgdata + bytes_filled, 0,
-+					PAGE_CACHE_SIZE - bytes_filled);
-+			flush_dcache_page(page);
-+			SetPageUptodate(page);
-+		}
-+		kunmap(page);
-+	}
- 	unlock_page(page);
- 	return 0;
- }
+diff -puN mm/page-writeback.c~writeback-fix-break-condition mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-fix-break-condition
++++ a/mm/page-writeback.c
+@@ -1051,20 +1051,21 @@ continue_unlock:
+ 				}
+  			}
+ 
+-			if (nr_to_write > 0)
++			if (nr_to_write > 0) {
+ 				nr_to_write--;
+-			else if (wbc->sync_mode == WB_SYNC_NONE) {
+-				/*
+-				 * We stop writing back only if we are not
+-				 * doing integrity sync. In case of integrity
+-				 * sync we have to keep going because someone
+-				 * may be concurrently dirtying pages, and we
+-				 * might have synced a lot of newly appeared
+-				 * dirty pages, but have not synced all of the
+-				 * old dirty pages.
+-				 */
+-				done = 1;
+-				break;
++				if (nr_to_write == 0 && wbc->sync_mode == WB_SYNC_NONE) {
++					/*
++					 * We stop writing back only if we are not
++					 * doing integrity sync. In case of integrity
++					 * sync we have to keep going because someone
++					 * may be concurrently dirtying pages, and we
++					 * might have synced a lot of newly appeared
++					 * dirty pages, but have not synced all of the
++					 * old dirty pages.
++					 */
++					done = 1;
++					break;
++				}
+ 			}
+ 
+ 			if (wbc->nonblocking && bdi_write_congested(bdi)) {
 _
 
-Patches currently in -mm which might be from dvomlehn@cisco.com are
+Patches currently in -mm which might be from fedux@lugmen.org.ar are
 
-cramfs-propagate-uncompression-errors.patch
+writeback-fix-break-condition.patch
 
