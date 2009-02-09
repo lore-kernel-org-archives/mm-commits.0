@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-remove-useless-asm-cplbinith.patch added to -mm tree
-Date: Mon, 09 Feb 2009 14:14:54 -0800
-Message-ID: <200902092214.n19MEsSB008553@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch added to -mm tree
+Date: Mon, 09 Feb 2009 14:14:56 -0800
+Message-ID: <200902092214.n19MEuxw008582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753236AbZBIWPh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:15:37 -0500
+	by vger.kernel.org with ESMTP id S1753254AbZBIWPi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:15:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: vapier.adi@gmail.com, cooloney@kernel.org, david-b@pacbell.net, dbrownell@us
 
 
 The patch titled
-     Blackfin SPI Driver: remove useless <asm/cplbinit.h>
+     Blackfin SPI Driver: use len_in_bytes when we care about the number of bytes transferred
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-remove-useless-asm-cplbinith.patch
+     blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: remove useless <asm/cplbinit.h>
+Subject: Blackfin SPI Driver: use len_in_bytes when we care about the number of bytes transferred
 From: Mike Frysinger <vapier.adi@gmail.com>
 
-We already moved bfin_addr_dcachable() and friends into the cacheflush
-header where it belongs, so don't need to include <asm/cplbinit.h> here.
+Use len_in_bytes when we care about the number of bytes transferred rather
+than the number of spi transactions.  (this value will be the same for
+8bit transfers, but not any other sizes)
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
@@ -46,22 +47,39 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/spi/spi_bfin5xx.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-remove-useless-asm-cplbinith drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-remove-useless-asm-cplbinith
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -25,9 +25,6 @@
- #include <asm/dma.h>
- #include <asm/portmux.h>
- #include <asm/bfin5xx_spi.h>
--
--/* reserved_mem_dcache_on and cache friends */
--#include <asm/cplbinit.h>
- #include <asm/cacheflush.h>
+@@ -804,7 +804,7 @@ static void pump_transfers(unsigned long
+ 			if (bfin_addr_dcachable((unsigned long) drv_data->rx))
+ 				invalidate_dcache_range((unsigned long) drv_data->rx,
+ 							(unsigned long) (drv_data->rx +
+-							drv_data->len));
++							drv_data->len_in_bytes));
  
- #define DRV_NAME	"bfin-spi"
+ 			/* clear tx reg soformer data is not shifted out */
+ 			write_TDBR(drv_data, 0xFFFF);
+@@ -830,7 +830,7 @@ static void pump_transfers(unsigned long
+ 			if (bfin_addr_dcachable((unsigned long) drv_data->tx))
+ 				flush_dcache_range((unsigned long) drv_data->tx,
+ 						(unsigned long) (drv_data->tx +
+-						drv_data->len));
++						drv_data->len_in_bytes));
+ 
+ 			/* start dma */
+ 			dma_enable_irq(drv_data->dma_channel);
+@@ -893,7 +893,7 @@ static void pump_transfers(unsigned long
+ 			message->state = ERROR_STATE;
+ 		} else {
+ 			/* Update total byte transfered */
+-			message->actual_length += drv_data->len;
++			message->actual_length += drv_data->len_in_bytes;
+ 
+ 			/* Move to next transfer of this msg */
+ 			message->state = next_transfer(drv_data);
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
