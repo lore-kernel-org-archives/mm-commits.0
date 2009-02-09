@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sunxvr500-fix-cmap-memory-leaks.patch added to -mm tree
-Date: Mon, 09 Feb 2009 15:47:31 -0800
-Message-ID: <200902092347.n19NlVTL006581@imap1.linux-foundation.org>
+Subject: + tgafb-fix-cmap-memory-leak.patch added to -mm tree
+Date: Mon, 09 Feb 2009 15:48:02 -0800
+Message-ID: <200902092348.n19Nm2I5007261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751187AbZBIXsP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:48:15 -0500
+	by vger.kernel.org with ESMTP id S1752400AbZBIXsr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:48:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, davem@davemloft.net, dilinger@debian.org, krzysztof.h1@poczta.fm
+Cc: dilinger@queued.net, dilinger@debian.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     sunxvr500: fix cmap memory leaks
+     tgafb: fix cmap memory leak
 has been added to the -mm tree.  Its filename is
-     sunxvr500-fix-cmap-memory-leaks.patch
+     tgafb-fix-cmap-memory-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sunxvr500: fix cmap memory leaks
+Subject: tgafb: fix cmap memory leak
 From: Andres Salomon <dilinger@queued.net>
 
- - fix cmap leak in removal path
- - fix cmap leak when register_framebuffer fails
+Fix cmap leak when register_framebuffer fails.
 
 Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Acked-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sunxvr500.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/video/tgafb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/sunxvr500.c~sunxvr500-fix-cmap-memory-leaks drivers/video/sunxvr500.c
---- a/drivers/video/sunxvr500.c~sunxvr500-fix-cmap-memory-leaks
-+++ a/drivers/video/sunxvr500.c
-@@ -349,11 +349,14 @@ static int __devinit e3d_pci_register(st
- 	if (err < 0) {
- 		printk(KERN_ERR "e3d: Could not register framebuffer %s\n",
- 		       pci_name(pdev));
--		goto err_unmap_fb;
-+		goto err_free_cmap;
+diff -puN drivers/video/tgafb.c~tgafb-fix-cmap-memory-leak drivers/video/tgafb.c
+--- a/drivers/video/tgafb.c~tgafb-fix-cmap-memory-leak
++++ a/drivers/video/tgafb.c
+@@ -1663,7 +1663,7 @@ tgafb_register(struct device *dev)
+ 	if (register_framebuffer(info) < 0) {
+ 		printk(KERN_ERR "tgafb: Could not register framebuffer\n");
+ 		ret = -EINVAL;
+-		goto err1;
++		goto err2;
  	}
+ 
+ 	if (tga_bus_pci) {
+@@ -1682,6 +1682,8 @@ tgafb_register(struct device *dev)
  
  	return 0;
  
-+err_free_cmap:
++ err2:
 +	fb_dealloc_cmap(&info->cmap);
-+
- err_unmap_fb:
- 	iounmap(ep->fb_base);
- 
-@@ -389,6 +392,7 @@ static void __devexit e3d_pci_unregister
- 	pci_release_region(pdev, 0);
- 	pci_release_region(pdev, 1);
- 
-+	fb_dealloc_cmap(&info->cmap);
-         framebuffer_release(info);
- 
- 	pci_disable_device(pdev);
+  err1:
+ 	if (mem_base)
+ 		iounmap(mem_base);
 _
 
 Patches currently in -mm which might be from dilinger@queued.net are
@@ -92,4 +84,5 @@ sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 sunxvr500-fix-cmap-memory-leaks.patch
+tgafb-fix-cmap-memory-leak.patch
 
