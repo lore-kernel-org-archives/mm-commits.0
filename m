@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch added to -mm tree
-Date: Mon, 09 Feb 2009 14:15:00 -0800
-Message-ID: <200902092215.n19MF05Q008786@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch added to -mm tree
+Date: Mon, 09 Feb 2009 14:15:19 -0800
+Message-ID: <200902092215.n19MFJki009150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57903 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753445AbZBIWPo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:15:44 -0500
+	by vger.kernel.org with ESMTP id S1752969AbZBIWQC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:16:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier.adi@gmail.com, cooloney@kernel.org, david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: yi.li@analog.com, cooloney@kernel.org, david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     Blackfin SPI Driver: unify duplicated code in dma read/write paths
+     Blackfin SPI Driver: fix bug - spi controller driver does not assert/deassert CS correctly
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
+     blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,139 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: unify duplicated code in dma read/write paths
-From: Mike Frysinger <vapier.adi@gmail.com>
+Subject: Blackfin SPI Driver: fix bug - spi controller driver does not assert/deassert CS correctly
+From: Yi Li <yi.li@analog.com>
 
-For DMA TX/RX operation in pump_transfers, DMA contriguration code in TX
-and RX paths are almost the same.  This patch unify the duplicated DMA
-code to make it more readable.
+This bug can be observed when two SPI devices are sharing the spi bus: One
+device is set as SPI CS 7, another one is using SPI CS 4.
 
-Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+In spi_bfin5xx.c: cs_active(), cs_deactive() are used to control SPI_FLG
+register.  From the debug bellow:
+
+cs_active: flag: 0x7f91, chip->flag: 0x7f80, cs: 7
+cs_active: flag: 0xef91, chip->flag: 0xef10, cs: 4
+
+When device A (cs_7) activate CS 7, SPI_FLG is set as 0x7f91 (however,
+SPI_FLG should be set as 0x7f80, or 0x6f91 if in broadcast mode).
+
+Due to some HW bug (very possibly), if SPI_FLG is set as 0x7f91, SPISSEL7
+is asserted, however SPISSEL4 will be asserted too (I can see this using
+the scope).  This is unreasonable according to HRM.
+
+Signed-off-by: Yi Li <yi.li@analog.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
 Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |   47 ++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 26 deletions(-)
+ drivers/spi/spi_bfin5xx.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -756,18 +756,19 @@ static void pump_transfers(unsigned long
- 	if (!full_duplex && drv_data->cur_chip->enable_dma
- 				&& drv_data->len > 6) {
+@@ -189,6 +189,7 @@ static void cs_deactive(struct driver_da
+ {
+ 	u16 flag = read_FLAG(drv_data);
  
-+		unsigned long dma_start_addr;
-+
- 		disable_dma(drv_data->dma_channel);
- 		clear_dma_irqstat(drv_data->dma_channel);
- 		bfin_spi_disable(drv_data);
++	flag &= ~chip->flag;
+ 	flag |= (chip->flag << 8);
  
- 		/* config dma channel */
- 		dev_dbg(&drv_data->pdev->dev, "doing dma transfer\n");
-+		set_dma_x_count(drv_data->dma_channel, drv_data->len);
- 		if (width == CFG_SPI_WORDSIZE16) {
--			set_dma_x_count(drv_data->dma_channel, drv_data->len);
- 			set_dma_x_modify(drv_data->dma_channel, 2);
- 			dma_width = WDSIZE_16;
- 		} else {
--			set_dma_x_count(drv_data->dma_channel, drv_data->len);
- 			set_dma_x_modify(drv_data->dma_channel, 1);
- 			dma_width = WDSIZE_8;
- 		}
-@@ -802,6 +803,7 @@ static void pump_transfers(unsigned long
- 		}
+ 	write_FLAG(drv_data, flag);
+@@ -1036,7 +1037,6 @@ static int setup(struct spi_device *spi)
+ 	struct bfin5xx_spi_chip *chip_info = NULL;
+ 	struct chip_data *chip;
+ 	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
+-	u8 spi_flg;
  
- 		/* In dma mode, rx or tx must be NULL in one transfer */
-+		dma_config = (RESTART | dma_width | DI_EN);
- 		if (drv_data->rx != NULL) {
- 			/* set transfer mode, and enable SPI */
- 			dev_dbg(&drv_data->pdev->dev, "doing DMA in.\n");
-@@ -815,19 +817,9 @@ static void pump_transfers(unsigned long
- 			/* clear tx reg soformer data is not shifted out */
- 			write_TDBR(drv_data, 0xFFFF);
+ 	/* Abort device setup if requested features are not supported */
+ 	if (spi->mode & ~(SPI_CPOL | SPI_CPHA | SPI_LSB_FIRST)) {
+@@ -1119,8 +1119,7 @@ static int setup(struct spi_device *spi)
+ 	 * SPI_BAUD, not the real baudrate
+ 	 */
+ 	chip->baud = hz_to_spi_baud(spi->max_speed_hz);
+-	spi_flg = ~(1 << (spi->chip_select));
+-	chip->flag = ((u16) spi_flg << 8) | (1 << (spi->chip_select));
++	chip->flag = 1 << (spi->chip_select);
+ 	chip->chip_select_num = spi->chip_select;
  
--			set_dma_x_count(drv_data->dma_channel, drv_data->len);
--
--			/* start dma */
--			dma_enable_irq(drv_data->dma_channel);
--			dma_config = (WNR | RESTART | dma_width | DI_EN);
--			set_dma_config(drv_data->dma_channel, dma_config);
--			set_dma_start_addr(drv_data->dma_channel,
--					(unsigned long)drv_data->rx);
--			enable_dma(drv_data->dma_channel);
--
--			/* start SPI transfer */
--			write_CTRL(drv_data,
--				(cr | CFG_SPI_DMAREAD | BIT_CTL_ENABLE));
-+			dma_config |= WNR;
-+			dma_start_addr = (unsigned long)drv_data->rx;
-+			cr |= CFG_SPI_DMAREAD;
- 
- 		} else if (drv_data->tx != NULL) {
- 			dev_dbg(&drv_data->pdev->dev, "doing DMA out.\n");
-@@ -838,18 +830,21 @@ static void pump_transfers(unsigned long
- 						(unsigned long) (drv_data->tx +
- 						drv_data->len_in_bytes));
- 
--			/* start dma */
--			dma_enable_irq(drv_data->dma_channel);
--			dma_config = (RESTART | dma_width | DI_EN);
--			set_dma_config(drv_data->dma_channel, dma_config);
--			set_dma_start_addr(drv_data->dma_channel,
--					(unsigned long)drv_data->tx);
--			enable_dma(drv_data->dma_channel);
-+			dma_start_addr = (unsigned long)drv_data->tx;
-+			cr |= CFG_SPI_DMAWRITE;
-+
-+		} else
-+			BUG();
-+
-+		/* start dma */
-+		dma_enable_irq(drv_data->dma_channel);
-+		set_dma_config(drv_data->dma_channel, dma_config);
-+		set_dma_start_addr(drv_data->dma_channel, dma_start_addr);
-+		enable_dma(drv_data->dma_channel);
-+
-+		/* start SPI transfer */
-+		write_CTRL(drv_data, (cr | BIT_CTL_ENABLE));
- 
--			/* start SPI transfer */
--			write_CTRL(drv_data,
--				(cr | CFG_SPI_DMAWRITE | BIT_CTL_ENABLE));
--		}
- 	} else {
- 		/* IO mode write then read */
- 		dev_dbg(&drv_data->pdev->dev, "doing IO transfer\n");
+ 	switch (chip->bits_per_word) {
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from yi.li@analog.com are
 
-video-framebuffer-move-the-probe-func-into-devinittext-in-blackfin-lcd-driver.patch
-linux-next.patch
-blackfin-nfc-driver-do-not-clobber-dmac1_perimux.patch
-blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit.patch
-blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback.patch
-mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch
-mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings.patch
-mtd-maps-blackfin-async-flash-maps-fix-up-memory-leak.patch
-blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
-blackfin-spi-driver-remove-useless-asm-cplbinith.patch
-blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
-blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
-blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
-blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
-blackfin-spi-driver-add-a-few-more-dma-debug-messages.patch
-blackfin-spi-driver-do-not-check-for-spi-errors-if-dma-itself-did-not-flag-any.patch
-blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch
-blackfin-spi-driver-spi-slave-select-code-cleanup.patch
-blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
-blackfin-spi-driver-add-timeout-while-waiting-for-spif-in-dma-irq-handler.patch
-blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch
-blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions.patch
-blackfin-spi-driver-fix-null-pointer-crash.patch
-blackfin-spi-driver-add-comment-about-full-duplex-dma-according-to-david-brownell.patch
-bin_elf_fdpic-check-the-return-value-of-clear_user.patch
+blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
+blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch
+blackfin-spi-driver-make-mmc_spi-driver-work-on-blackfin.patch
 
