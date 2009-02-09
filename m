@@ -1,120 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atyfb-properly-save-pci-state-before-changing-pci-pm-level.patch removed from -mm tree
-Date: Mon, 09 Feb 2009 12:05:12 -0800
-Message-ID: <200902092005.n19K5C1H024128@imap1.linux-foundation.org>
+Subject: [merged] acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read.patch removed from -mm tree
+Date: Mon, 09 Feb 2009 12:05:24 -0800
+Message-ID: <200902092005.n19K5Oc9024391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753797AbZBIUL0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 15:11:26 -0500
+	by vger.kernel.org with ESMTP id S1750782AbZBIULV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 15:11:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, geert@linux-m68k.org, khc@pm.waw.pl, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: hmacht@suse.de, Li@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, marvin@mydatex.cz, rui.zhang@intel.com, shaohua.li@intel.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atyfb: properly save PCI state before changing PCI PM level
+     acpi: dock: don't evaluate _STA on every show_docked sysfs read
 has been removed from the -mm tree.  Its filename was
-     atyfb-properly-save-pci-state-before-changing-pci-pm-level.patch
+     acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atyfb: properly save PCI state before changing PCI PM level
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: acpi: dock: don't evaluate _STA on every show_docked sysfs read
+From: Holger Macht <hmacht@suse.de>
 
-This fixes atyfb to properly save the PCI config space -before- it
-potentially switches the PM state of the chip.  This avoids a warning with
-the new PM core and is the right thing to do anyway.
+Some devices trigger a DEVICE_CHECK on every evalutation of _STA.  This
+can also be seen in commit 8b59560a3baf2e7c24e0fb92ea5d09eca92805db (ACPI:
+dock: avoid check _STA method).  If an undock is processed, the dock
+driver sends a uevent and userspace might read the show_docked property in
+sysfs.  This causes an evaluation of _STA of the particular device which
+causes the dock driver to immediately dock again.
 
-I also slightly cleaned up the code that checks whether we are running on
-a PowerMac to do a runtime check instead of a compile check only, and
-replaced a deprecated number with the proper symbolic constant.
+In any case, evaluation of _STA (show_docked) does not necessarily mean
+that we are docked, so check with the internal device structure.
 
-Finally, I removed the useless switch to D0 from resume since the core
-does it for us.
+http://bugzilla.kernel.org/show_bug.cgi?id=12360
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>
+Signed-off-by: Holger Macht <hmacht@suse.de>
+Reported-by: Daniel Smolik <marvin@mydatex.cz>
+Cc: Len Brown <lenb@kernel.org>
+Cc: <Li@suse.de>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ drivers/acpi/dock.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-properly-save-pci-state-before-changing-pci-pm-level drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-properly-save-pci-state-before-changing-pci-pm-level
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -1978,7 +1978,7 @@ static int aty_power_mgmt(int sleep, str
- 
- 	return timeout ? 0 : -EIO;
- }
--#endif
-+#endif /* CONFIG_PPC_PMAC */
- 
- static int atyfb_pci_suspend(struct pci_dev *pdev, pm_message_t state)
+diff -puN drivers/acpi/dock.c~acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read
++++ a/drivers/acpi/dock.c
+@@ -855,10 +855,14 @@ fdd_out:
+ static ssize_t show_docked(struct device *dev,
+ 			   struct device_attribute *attr, char *buf)
  {
-@@ -2002,9 +2002,15 @@ static int atyfb_pci_suspend(struct pci_
- 	par->asleep = 1;
- 	par->lock_blank = 1;
- 
-+	/* Because we may change PCI D state ourselves, we need to
-+	 * first save the config space content so the core can
-+	 * restore it properly on resume.
-+	 */
-+	pci_save_state(pdev);
++	struct acpi_device *tmp;
 +
- #ifdef CONFIG_PPC_PMAC
- 	/* Set chip to "suspend" mode */
--	if (aty_power_mgmt(1, par)) {
-+	if (machine_is(powermac) && aty_power_mgmt(1, par)) {
- 		par->asleep = 0;
- 		par->lock_blank = 0;
- 		atyfb_blank(FB_BLANK_UNBLANK, info);
-@@ -2047,11 +2053,15 @@ static int atyfb_pci_resume(struct pci_d
+ 	struct dock_station *dock_station = *((struct dock_station **)
+ 		dev->platform_data);
+-	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
  
- 	acquire_console_sem();
++	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
++		return snprintf(buf, PAGE_SIZE, "1\n");
++	return snprintf(buf, PAGE_SIZE, "0\n");
+ }
+ static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
  
-+	/* PCI state will have been restored by the core, so
-+	 * we should be in D0 now with our config space fully
-+	 * restored
-+	 */
-+
- #ifdef CONFIG_PPC_PMAC
--	if (pdev->dev.power.power_state.event == 2)
-+	if (machine_is(powermac) &&
-+	    pdev->dev.power.power_state.event == PM_EVENT_SUSPEND)
- 		aty_power_mgmt(0, par);
--#else
--	pci_set_power_state(pdev, PCI_D0);
- #endif
- 
- 	aty_resume_chip(info);
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from hmacht@suse.de are
 
-linux-next.patch
-arch-powerpc-eliminate-double-sizeof.patch
-arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-spi_mpc83xx-fix-sparse-warnings.patch
-spi_mpc83xx-rework-chip-selects-handling.patch
-spi_mpc83xx-add-of-platform-driver-bindings.patch
-powerpc-add-mmc-spi-slot-bindings.patch
-powerpc-83xx-add-mmc-spi-support-via-the-device-tree-for-mpc8323e-rdb.patch
-powerpc-fsl_soc-isolate-legacy-fsl_spi-support-to-mpc832x_rdb-boards.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-edac-new-ppc4xx-driver-module.patch
-edac-new-ppc4xx-driver-module-update.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
 
