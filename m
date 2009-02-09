@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-spi-slave-select-code-cleanup.patch added to -mm tree
-Date: Mon, 09 Feb 2009 14:15:10 -0800
-Message-ID: <200902092215.n19MFAmO009031@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch added to -mm tree
+Date: Mon, 09 Feb 2009 14:15:16 -0800
+Message-ID: <200902092215.n19MFGZb009082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55677 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33239 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753251AbZBIWSU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:18:20 -0500
+	by vger.kernel.org with ESMTP id S1752566AbZBIWSX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:18:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: vapier.adi@gmail.com, cooloney@kernel.org, david-b@pacbell.net
 
 
 The patch titled
-     Blackfin SPI Driver: SPI slave select code cleanup
+     Blackfin SPI Driver: tweak magic spi dma sequence to get it working on BF54x
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-spi-slave-select-code-cleanup.patch
+     blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: SPI slave select code cleanup
+Subject: Blackfin SPI Driver: tweak magic spi dma sequence to get it working on BF54x
 From: Mike Frysinger <vapier.adi@gmail.com>
 
-- remove duplicated definition MAX_SPI_SSEL
-
-- remove unnecessary array size
+Without this change, SPI DMA is not reliably under stress tests. 
+Obiviously it's a hardware issue which is not addressed by any document.
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
@@ -46,30 +45,23 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/spi/spi_bfin5xx.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-spi-slave-select-code-cleanup drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-spi-slave-select-code-cleanup
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -198,8 +198,6 @@ static void cs_deactive(struct driver_da
- 		udelay(chip->cs_chg_udelay);
- }
+@@ -862,8 +862,9 @@ static void pump_transfers(unsigned long
+ 		set_dma_start_addr(drv_data->dma_channel, dma_start_addr);
+ 		set_dma_config(drv_data->dma_channel, dma_config);
+ 		local_irq_save(flags);
+-		enable_dma(drv_data->dma_channel);
++		SSYNC();
+ 		write_CTRL(drv_data, cr);
++		enable_dma(drv_data->dma_channel);
+ 		dma_enable_irq(drv_data->dma_channel);
+ 		local_irq_restore(flags);
  
--#define MAX_SPI_SSEL	7
--
- /* stop controller and re-config current chip*/
- static void restore_state(struct driver_data *drv_data)
- {
-@@ -1001,7 +999,7 @@ static int transfer(struct spi_device *s
- 
- #define MAX_SPI_SSEL	7
- 
--static u16 ssel[3][MAX_SPI_SSEL] = {
-+static u16 ssel[][MAX_SPI_SSEL] = {
- 	{P_SPI0_SSEL1, P_SPI0_SSEL2, P_SPI0_SSEL3,
- 	P_SPI0_SSEL4, P_SPI0_SSEL5,
- 	P_SPI0_SSEL6, P_SPI0_SSEL7},
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
