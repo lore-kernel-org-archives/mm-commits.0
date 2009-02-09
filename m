@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch added to -mm tree
-Date: Mon, 09 Feb 2009 15:46:55 -0800
-Message-ID: <200902092346.n19NktSD005696@imap1.linux-foundation.org>
+Subject: + sunxvr500-fix-cmap-memory-leaks.patch added to -mm tree
+Date: Mon, 09 Feb 2009 15:47:31 -0800
+Message-ID: <200902092347.n19NlVTL006581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40559 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750933AbZBIXrf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:47:35 -0500
+	by vger.kernel.org with ESMTP id S1751187AbZBIXsP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:48:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org, krzysztof.h1@wp.pl
+Cc: dilinger@queued.net, davem@davemloft.net, dilinger@debian.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     valkyriefb: check fb_alloc_cmap return value and handle failure properly
+     sunxvr500: fix cmap memory leaks
 has been added to the -mm tree.  Its filename is
-     valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+     sunxvr500-fix-cmap-memory-leaks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: valkyriefb: check fb_alloc_cmap return value and handle failure properly
+Subject: sunxvr500: fix cmap memory leaks
 From: Andres Salomon <dilinger@queued.net>
 
+ - fix cmap leak in removal path
+ - fix cmap leak when register_framebuffer fails
+
 Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/valkyriefb.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/video/sunxvr500.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/valkyriefb.c~valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly drivers/video/valkyriefb.c
---- a/drivers/video/valkyriefb.c~valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly
-+++ a/drivers/video/valkyriefb.c
-@@ -119,7 +119,7 @@ static void set_valkyrie_clock(unsigned 
- static int valkyrie_var_to_par(struct fb_var_screeninfo *var,
- 	struct fb_par_valkyrie *par, const struct fb_info *fb_info);
+diff -puN drivers/video/sunxvr500.c~sunxvr500-fix-cmap-memory-leaks drivers/video/sunxvr500.c
+--- a/drivers/video/sunxvr500.c~sunxvr500-fix-cmap-memory-leaks
++++ a/drivers/video/sunxvr500.c
+@@ -349,11 +349,14 @@ static int __devinit e3d_pci_register(st
+ 	if (err < 0) {
+ 		printk(KERN_ERR "e3d: Could not register framebuffer %s\n",
+ 		       pci_name(pdev));
+-		goto err_unmap_fb;
++		goto err_free_cmap;
+ 	}
  
--static void valkyrie_init_info(struct fb_info *info, struct fb_info_valkyrie *p);
-+static int valkyrie_init_info(struct fb_info *info, struct fb_info_valkyrie *p);
- static void valkyrie_par_to_fix(struct fb_par_valkyrie *par, struct fb_fix_screeninfo *fix);
- static void valkyrie_init_fix(struct fb_fix_screeninfo *fix, struct fb_info_valkyrie *p);
- 
-@@ -381,18 +381,22 @@ int __init valkyriefb_init(void)
- 
- 	valkyrie_choose_mode(p);
- 	mac_vmode_to_var(default_vmode, default_cmode, &p->info.var);
--	valkyrie_init_info(&p->info, p);
-+	err = valkyrie_init_info(&p->info, p);
-+	if (err < 0)
-+		goto out_free;
- 	valkyrie_init_fix(&p->info.fix, p);
- 	if (valkyriefb_set_par(&p->info))
- 		/* "can't happen" */
- 		printk(KERN_ERR "valkyriefb: can't set default video mode\n");
- 
- 	if ((err = register_framebuffer(&p->info)) != 0)
--		goto out_free;
-+		goto out_cmap_free;
- 
- 	printk(KERN_INFO "fb%d: valkyrie frame buffer device\n", p->info.node);
  	return 0;
  
-+ out_cmap_free:
-+	fb_dealloc_cmap(&p->info.cmap);
-  out_free:
- 	if (p->frame_buffer)
- 		iounmap(p->frame_buffer);
-@@ -538,14 +542,15 @@ static void valkyrie_par_to_fix(struct f
- 		/* ywrapstep, xpanstep, ypanstep */
- }
++err_free_cmap:
++	fb_dealloc_cmap(&info->cmap);
++
+ err_unmap_fb:
+ 	iounmap(ep->fb_base);
  
--static void __init valkyrie_init_info(struct fb_info *info, struct fb_info_valkyrie *p)
-+static int __init valkyrie_init_info(struct fb_info *info,
-+		struct fb_info_valkyrie *p)
- {
- 	info->fbops = &valkyriefb_ops;
- 	info->screen_base = p->frame_buffer + 0x1000;
- 	info->flags = FBINFO_DEFAULT;
- 	info->pseudo_palette = p->pseudo_palette;
--	fb_alloc_cmap(&info->cmap, 256, 0);
- 	info->par = &p->par;
-+	return fb_alloc_cmap(&info->cmap, 256, 0);
- }
+@@ -389,6 +392,7 @@ static void __devexit e3d_pci_unregister
+ 	pci_release_region(pdev, 0);
+ 	pci_release_region(pdev, 1);
  
++	fb_dealloc_cmap(&info->cmap);
+         framebuffer_release(info);
  
+ 	pci_disable_device(pdev);
 _
 
 Patches currently in -mm which might be from dilinger@queued.net are
@@ -115,4 +91,5 @@ sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sunxvr500-fix-cmap-memory-leaks.patch
 
