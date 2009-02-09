@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch added to -mm tree
-Date: Mon, 09 Feb 2009 14:15:08 -0800
-Message-ID: <200902092215.n19MF8Wt008887@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-get-dma-working-for-spi-flashes.patch added to -mm tree
+Date: Mon, 09 Feb 2009 14:15:12 -0800
+Message-ID: <200902092215.n19MFCiG009044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34317 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752566AbZBIWSY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:18:24 -0500
+	by vger.kernel.org with ESMTP id S1753372AbZBIWSZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:18:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier.adi@gmail.com, cooloney@kernel.org, david-b@pacbell.net
+Cc: vapier.adi@gmail.com, cooloney@kernel.org, david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     Blackfin SPI Driver: use the properl BIT_CTL_xxx defines
+     Blackfin SPI Driver: get dma working for SPI flashes
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch
+     blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: use the properl BIT_CTL_xxx defines
+Subject: Blackfin SPI Driver: get dma working for SPI flashes
 From: Mike Frysinger <vapier.adi@gmail.com>
 
-use the properl BIT_CTL_...  defines rather than the internal driv er
-CFG_SPI_...  defines
+When using a BF533-STAMP here with a W25X10 SPI flash.  It works fine when
+enable_dma is disabled, but doesn't work at all when turning DMA on.  We
+get just 0xff bytes back when trying to read the device.
+
+Change the code around so that it programs the SPI first and then enables
+DMA, it seems to work a lot better ...
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/spi/spi_bfin5xx.c |   26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-get-dma-working-for-spi-flashes drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-get-dma-working-for-spi-flashes
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -799,7 +799,7 @@ static void pump_transfers(unsigned long
+@@ -761,11 +761,10 @@ static void pump_transfers(unsigned long
+ 	if (!full_duplex && drv_data->cur_chip->enable_dma
+ 				&& drv_data->len > 6) {
+ 
+-		unsigned long dma_start_addr;
++		unsigned long dma_start_addr, flags;
+ 
+ 		disable_dma(drv_data->dma_channel);
+ 		clear_dma_irqstat(drv_data->dma_channel);
+-		bfin_spi_disable(drv_data);
+ 
+ 		/* config dma channel */
+ 		dev_dbg(&drv_data->pdev->dev, "doing dma transfer\n");
+@@ -796,8 +795,7 @@ static void pump_transfers(unsigned long
+ 			enable_dma(drv_data->dma_channel);
  
  			/* start SPI transfer */
- 			write_CTRL(drv_data,
--				(cr | CFG_SPI_DMAWRITE | BIT_CTL_ENABLE));
-+				(cr | BIT_CTL_TIMOD_DMA_TX | BIT_CTL_ENABLE));
+-			write_CTRL(drv_data,
+-				(cr | BIT_CTL_TIMOD_DMA_TX | BIT_CTL_ENABLE));
++			write_CTRL(drv_data, cr | BIT_CTL_TIMOD_DMA_TX);
  
  			/* just return here, there can only be one transfer
  			 * in this mode
-@@ -827,7 +827,7 @@ static void pump_transfers(unsigned long
- 
- 			dma_config |= WNR;
- 			dma_start_addr = (unsigned long)drv_data->rx;
--			cr |= CFG_SPI_DMAREAD;
-+			cr |= BIT_CTL_TIMOD_DMA_RX | BIT_CTL_SENDOPT;
- 
- 		} else if (drv_data->tx != NULL) {
- 			dev_dbg(&drv_data->pdev->dev, "doing DMA out.\n");
-@@ -839,7 +839,7 @@ static void pump_transfers(unsigned long
- 						drv_data->len_in_bytes));
- 
- 			dma_start_addr = (unsigned long)drv_data->tx;
--			cr |= CFG_SPI_DMAWRITE;
-+			cr |= BIT_CTL_TIMOD_DMA_TX;
- 
+@@ -842,14 +840,22 @@ static void pump_transfers(unsigned long
  		} else
  			BUG();
+ 
+-		/* start dma */
+-		dma_enable_irq(drv_data->dma_channel);
+-		set_dma_config(drv_data->dma_channel, dma_config);
++		/* oh man, here there be monsters ... and i dont mean the
++		 * fluffy cute ones from pixar, i mean the kind that'll eat
++		 * your data, kick your dog, and love it all.  do *not* try
++		 * and change these lines unless you (1) heavily test DMA
++		 * with SPI flashes on a loaded system (e.g. ping floods),
++		 * (2) know just how broken the DMA engine interaction with
++		 * the SPI peripheral is, and (3) have someone else to blame
++		 * when you screw it all up anyways.
++		 */
+ 		set_dma_start_addr(drv_data->dma_channel, dma_start_addr);
++		set_dma_config(drv_data->dma_channel, dma_config);
++		local_irq_save(flags);
+ 		enable_dma(drv_data->dma_channel);
+-
+-		/* start SPI transfer */
+-		write_CTRL(drv_data, (cr | BIT_CTL_ENABLE));
++		write_CTRL(drv_data, cr);
++		dma_enable_irq(drv_data->dma_channel);
++		local_irq_restore(flags);
+ 
+ 	} else {
+ 		/* IO mode write then read */
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
