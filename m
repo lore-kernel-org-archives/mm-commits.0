@@ -1,67 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 09 Feb 2009 11:43:12 -0800
-Message-ID: <200902091943.n19JhC1L026065@imap1.linux-foundation.org>
+Subject: [obsolete] next-git-rejects.patch removed from -mm tree
+Date: Mon, 09 Feb 2009 11:43:09 -0800
+Message-ID: <200902091943.n19Jh9DY026037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754731AbZBIToF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 14:44:05 -0500
+	by vger.kernel.org with ESMTP id S1753745AbZBITn6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 14:43:58 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n19JhC0j027244
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n19Jh9iR027215
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 9 Feb 2009 11:43:13 -0800
+	for <mm-commits@vger.kernel.org>; Mon, 9 Feb 2009 11:43:11 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_memory.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/x86/mm/fault.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_memory.c~linux-next-git-rejects drivers/gpu/drm/drm_memory.c
---- a/drivers/gpu/drm/drm_memory.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/drm_memory.c
-@@ -178,12 +178,8 @@ void drm_core_ioremap_wc(struct drm_loca
- 		map->handle = ioremap_wc(map->offset, map->size);
- }
- EXPORT_SYMBOL(drm_core_ioremap_wc);
--<<<<<<< HEAD:drivers/gpu/drm/drm_memory.c
+diff -puN arch/x86/mm/fault.c~next-git-rejects arch/x86/mm/fault.c
+--- a/arch/x86/mm/fault.c~next-git-rejects
++++ a/arch/x86/mm/fault.c
+@@ -814,11 +814,8 @@ void __kprobes do_page_fault(struct pt_r
+ 	if(kmemcheck_active(regs))
+ 		kmemcheck_hide(regs);
  
--void drm_core_ioremapfree(struct drm_map *map, struct drm_device *dev)
+-<<<<<<< HEAD:arch/x86/mm/fault.c
 -=======
- void drm_core_ioremapfree(struct drm_local_map *map, struct drm_device *dev)
-->>>>>>> FETCH_HEAD:drivers/gpu/drm/drm_memory.c
- {
- 	if (!map->handle || !map->size)
+ 	if (unlikely(notify_page_fault(regs)))
  		return;
+->>>>>>> FETCH_HEAD:arch/x86/mm/fault.c
+ 	if (unlikely(kmmio_fault(regs, address)))
+ 		return;
+ 
+@@ -863,13 +860,10 @@ void __kprobes do_page_fault(struct pt_r
+ 		return;
+ 	}
+ 
+-<<<<<<< HEAD:arch/x86/mm/fault.c
+ 	/* kprobes don't want to hook the spurious faults. */
+ 	if (notify_page_fault(regs))
+ 		return;
+ 
+-=======
+->>>>>>> FETCH_HEAD:arch/x86/mm/fault.c
+ 	/*
+ 	 * It's safe to allow irq's after cr2 has been saved and the
+ 	 * vmalloc fault has been handled.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +75,7 @@ i-need-old-gcc.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
 next-remove-localversion.patch
+next-git-rejects.patch
 linux-next-git-rejects.patch
 fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
