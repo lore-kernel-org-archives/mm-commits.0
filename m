@@ -1,156 +1,250 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] next-git-rejects.patch removed from -mm tree
-Date: Mon, 09 Feb 2009 11:43:09 -0800
-Message-ID: <200902091943.n19Jh9DY026037@imap1.linux-foundation.org>
+Subject: [wrecked] acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect.patch removed from -mm tree
+Date: Mon, 09 Feb 2009 11:56:08 -0800
+Message-ID: <200902091956.n19Ju8UW011586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41044 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753745AbZBITn6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 14:43:58 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n19Jh9iR027215
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 9 Feb 2009 11:43:11 -0800
+	by vger.kernel.org with ESMTP id S1750869AbZBIT5G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 14:57:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: alex.shi@intel.com, lenb@kernel.org, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     next-git-rejects
+     acpi: fix pmtimer overflow which makes Cx states time incorrect
 has been removed from the -mm tree.  Its filename was
-     next-git-rejects.patch
+     acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi: fix pmtimer overflow which makes Cx states time incorrect
+From: "alex.shi" <alex.shi@intel.com>
 
+On most boxes the ACPI PM timer is 24-bit counter that runs on 3.579545MHz
+clock.  In such case the max C-state sleep time should be less than 4687ms
+when it is used to record C2/C3 duration time.
+
+But on some boxes the max C-state sleep time is more than 4687ms.  In such
+case the overflow happens and the C-state duration time can't be counted
+accurately.
+
+Use clocksource to get the C-state time instead of ACPI PM timer.  and use
+div64_u64 to convert US_TO_PM_TIME_TICKS in i386 mode.
+
+Asked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Tested-by: Alex Shi <alex.shi@intel.com>
+Signed-off-by: Alex Shi <alex.shi@intel.com>
+Signed-off-by: Yakui.zhao <yakui.zhao@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/acpi/processor_idle.c |   60 ++++++++++++++++++--------------
+ 1 file changed, 35 insertions(+), 25 deletions(-)
 
-diff -puN arch/x86/mm/fault.c~next-git-rejects arch/x86/mm/fault.c
---- a/arch/x86/mm/fault.c~next-git-rejects
-+++ a/arch/x86/mm/fault.c
-@@ -814,11 +814,8 @@ void __kprobes do_page_fault(struct pt_r
- 	if(kmemcheck_active(regs))
- 		kmemcheck_hide(regs);
+diff -puN drivers/acpi/processor_idle.c~acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect
++++ a/drivers/acpi/processor_idle.c
+@@ -64,7 +64,8 @@
+ #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_idle");
+ #define ACPI_PROCESSOR_FILE_POWER	"power"
+-#define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
++#define US_TO_PM_TIMER_TICKS(t)		div64_u64(\
++	(t * (PM_TIMER_FREQUENCY/1000)), 1000ULL)
+ #define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
+ #ifndef CONFIG_CPU_IDLE
+ #define C2_OVERHEAD			4	/* 1us (3.579 ticks per us) */
+@@ -376,8 +377,9 @@ static void acpi_processor_idle(void)
+ 	struct acpi_processor *pr = NULL;
+ 	struct acpi_processor_cx *cx = NULL;
+ 	struct acpi_processor_cx *next_state = NULL;
+-	int sleep_ticks = 0;
+-	u32 t1, t2 = 0;
++	s64 sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
  
--<<<<<<< HEAD:arch/x86/mm/fault.c
--=======
- 	if (unlikely(notify_page_fault(regs)))
- 		return;
-->>>>>>> FETCH_HEAD:arch/x86/mm/fault.c
- 	if (unlikely(kmmio_fault(regs, address)))
- 		return;
+ 	/*
+ 	 * Interrupts must be disabled during bus mastering calculations and
+@@ -524,14 +526,15 @@ static void acpi_processor_idle(void)
  
-@@ -863,13 +860,10 @@ void __kprobes do_page_fault(struct pt_r
- 		return;
+ 	case ACPI_STATE_C2:
+ 		/* Get start time (ticks) */
+-		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt1 = ktime_get_real();
+ 		/* Tell the scheduler that we are going deep-idle: */
+ 		sched_clock_idle_sleep_event();
+ 		/* Invoke C2 */
+ 		acpi_state_timer_broadcast(pr, cx, 1);
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+-		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt2 = ktime_get_real();
++		idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 		/* TSC halts in C2, so notify users */
+@@ -539,7 +542,7 @@ static void acpi_processor_idle(void)
+ 			mark_tsc_unstable("possible TSC halt in C2");
+ #endif
+ 		/* Compute time (ticks) that we were actually asleep */
+-		sleep_ticks = ticks_elapsed(t1, t2);
++		sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+ 
+ 		/* Tell the scheduler how much we idled: */
+ 		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+@@ -585,13 +588,14 @@ static void acpi_processor_idle(void)
+ 		}
+ 
+ 		/* Get start time (ticks) */
+-		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt1 = ktime_get_real();
+ 		/* Invoke C3 */
+ 		/* Tell the scheduler that we are going deep-idle: */
+ 		sched_clock_idle_sleep_event();
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+-		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt2 = ktime_get_real();
++		idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 		if (pr->flags.bm_check && pr->flags.bm_control) {
+ 			/* Enable bus master arbitration */
+ 			atomic_dec(&c3_cpu_count);
+@@ -604,7 +608,7 @@ static void acpi_processor_idle(void)
+ 			mark_tsc_unstable("TSC halts in C3");
+ #endif
+ 		/* Compute time (ticks) that we were actually asleep */
+-		sleep_ticks = ticks_elapsed(t1, t2);
++		sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+ 		/* Tell the scheduler how much we idled: */
+ 		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+ 
+@@ -1424,7 +1428,8 @@ static inline void acpi_idle_do_entry(st
+ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+ 			      struct cpuidle_state *state)
+ {
+-	u32 t1, t2;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+ 
+@@ -1442,14 +1447,15 @@ static int acpi_idle_enter_c1(struct cpu
+ 		return 0;
  	}
  
--<<<<<<< HEAD:arch/x86/mm/fault.c
- 	/* kprobes don't want to hook the spurious faults. */
- 	if (notify_page_fault(regs))
- 		return;
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
  
--=======
-->>>>>>> FETCH_HEAD:arch/x86/mm/fault.c
- 	/*
- 	 * It's safe to allow irq's after cr2 has been saved and the
- 	 * vmalloc fault has been handled.
+ 	local_irq_enable();
+ 	cx->usage++;
+ 
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ /**
+@@ -1462,8 +1468,9 @@ static int acpi_idle_enter_simple(struct
+ {
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+-	u32 t1, t2;
+-	int sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
++	s64 sleep_ticks = 0;
+ 
+ 	pr = __get_cpu_var(processors);
+ 
+@@ -1496,18 +1503,19 @@ static int acpi_idle_enter_simple(struct
+ 	if (cx->type == ACPI_STATE_C3)
+ 		ACPI_FLUSH_CPU_CACHE();
+ 
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	/* Tell the scheduler that we are going deep-idle: */
+ 	sched_clock_idle_sleep_event();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 	/* TSC could halt in idle, so notify users */
+ 	if (tsc_halts_in_c(cx->type))
+ 		mark_tsc_unstable("TSC halts in idle");;
+ #endif
+-	sleep_ticks = ticks_elapsed(t1, t2);
++	sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+ 
+ 	/* Tell the scheduler how much we idled: */
+ 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+@@ -1519,7 +1527,7 @@ static int acpi_idle_enter_simple(struct
+ 
+ 	acpi_state_timer_broadcast(pr, cx, 0);
+ 	cx->time += sleep_ticks;
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ static int c3_cpu_count;
+@@ -1537,8 +1545,9 @@ static int acpi_idle_enter_bm(struct cpu
+ {
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+-	u32 t1, t2;
+-	int sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
++	s64 sleep_ticks = 0;
+ 
+ 	pr = __get_cpu_var(processors);
+ 
+@@ -1605,9 +1614,10 @@ static int acpi_idle_enter_bm(struct cpu
+ 		ACPI_FLUSH_CPU_CACHE();
+ 	}
+ 
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ 	/* Re-enable bus master arbitration */
+ 	if (pr->flags.bm_check && pr->flags.bm_control) {
+@@ -1622,7 +1632,7 @@ static int acpi_idle_enter_bm(struct cpu
+ 	if (tsc_halts_in_c(ACPI_STATE_C3))
+ 		mark_tsc_unstable("TSC halts in idle");
+ #endif
+-	sleep_ticks = ticks_elapsed(t1, t2);
++	sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+ 	/* Tell the scheduler how much we idled: */
+ 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+ 
+@@ -1633,7 +1643,7 @@ static int acpi_idle_enter_bm(struct cpu
+ 
+ 	acpi_state_timer_broadcast(pr, cx, 0);
+ 	cx->time += sleep_ticks;
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ struct cpuidle_driver acpi_idle_driver = {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alex.shi@intel.com are
 
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-next-git-rejects.patch
-linux-next-git-rejects.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
-arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-early-platform-driver-v3-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_assign_resources-fix.patch
-pci-constify-pci_bus_add_devices.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void-fix.patch
-ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-ata-sata_silc-needs-dmih.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
-x86-allow-intel_iommu-support-to-be-disabled-by-default-fix.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+acpi-fix-pmtimer-overflow-which-makes-cx-states-time-incorrect.patch
 
