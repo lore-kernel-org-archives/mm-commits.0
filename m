@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch added to -mm tree
-Date: Mon, 09 Feb 2009 14:15:19 -0800
-Message-ID: <200902092215.n19MFJki009150@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch added to -mm tree
+Date: Mon, 09 Feb 2009 14:15:24 -0800
+Message-ID: <200902092215.n19MFOgl009292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60385 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752969AbZBIWQC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:16:02 -0500
+	by vger.kernel.org with ESMTP id S1753254AbZBIWQE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 17:16:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: yi.li@analog.com, cooloney@kernel.org, david-b@pacbell.net, dbrownell@users.
 
 
 The patch titled
-     Blackfin SPI Driver: fix bug - spi controller driver does not assert/deassert CS correctly
+     Blackfin SPI Driver: fix bug - correct usage of struct spi_transfer.cs_change
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
+     blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,24 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin SPI Driver: fix bug - spi controller driver does not assert/deassert CS correctly
+Subject: Blackfin SPI Driver: fix bug - correct usage of struct spi_transfer.cs_change
 From: Yi Li <yi.li@analog.com>
 
-This bug can be observed when two SPI devices are sharing the spi bus: One
-device is set as SPI CS 7, another one is using SPI CS 4.
+According to comments in linux/spi/spi.h:
 
-In spi_bfin5xx.c: cs_active(), cs_deactive() are used to control SPI_FLG
-register.  From the debug bellow:
-
-cs_active: flag: 0x7f91, chip->flag: 0x7f80, cs: 7
-cs_active: flag: 0xef91, chip->flag: 0xef10, cs: 4
-
-When device A (cs_7) activate CS 7, SPI_FLG is set as 0x7f91 (however,
-SPI_FLG should be set as 0x7f80, or 0x6f91 if in broadcast mode).
-
-Due to some HW bug (very possibly), if SPI_FLG is set as 0x7f91, SPISSEL7
-is asserted, however SPISSEL4 will be asserted too (I can see this using
-the scope).  This is unreasonable according to HRM.
+ * All SPI transfers start with the relevant chipselect active.  Normally
+ * it stays selected until after the last transfer in a message. Drivers
+ * can affect the chipselect signal using cs_change.
+ *
+ * (i) If the transfer isn't the last one in the message, this flag is
+ * used to make the chipselect briefly go inactive in the middle of the
+ * message.  Toggling chipselect in this way may be needed to terminate
+ * a chip command, letting a single spi_message perform all of group of
+ * chip transactions together.
+ *
+ * (ii) When the transfer is the last one in the message, the chip may
+ * stay selected until the next transfer.  On multi-device SPI busses
+ * with nothing blocking messages going to other devices, this is just
+ * a performance hint; starting a message to another device deselects
+ * this one.  But in other cases, this can be used to ensure correctness.
+ * Some devices need protocol transactions to be built from a series of
+ * spi_message submissions, where the content of one message is determined
+ * by the results of previous messages and where the whole transaction
+ * ends when the chipselect goes intactive.
 
 Signed-off-by: Yi Li <yi.li@analog.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
@@ -59,43 +65,49 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/spi/spi_bfin5xx.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -189,6 +189,7 @@ static void cs_deactive(struct driver_da
- {
- 	u16 flag = read_FLAG(drv_data);
+@@ -540,15 +540,13 @@ static void giveback(struct driver_data 
  
-+	flag &= ~chip->flag;
- 	flag |= (chip->flag << 8);
+ 	msg->state = NULL;
  
- 	write_FLAG(drv_data, flag);
-@@ -1036,7 +1037,6 @@ static int setup(struct spi_device *spi)
- 	struct bfin5xx_spi_chip *chip_info = NULL;
- 	struct chip_data *chip;
- 	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
--	u8 spi_flg;
+-	/* disable chip select signal. And not stop spi in autobuffer mode */
+-	if (drv_data->tx_dma != 0xFFFF) {
+-		cs_deactive(drv_data, chip);
+-		bfin_spi_disable(drv_data);
+-	}
+-
+ 	if (!drv_data->cs_change)
+ 		cs_deactive(drv_data, chip);
  
- 	/* Abort device setup if requested features are not supported */
- 	if (spi->mode & ~(SPI_CPOL | SPI_CPHA | SPI_LSB_FIRST)) {
-@@ -1119,8 +1119,7 @@ static int setup(struct spi_device *spi)
- 	 * SPI_BAUD, not the real baudrate
- 	 */
- 	chip->baud = hz_to_spi_baud(spi->max_speed_hz);
--	spi_flg = ~(1 << (spi->chip_select));
--	chip->flag = ((u16) spi_flg << 8) | (1 << (spi->chip_select));
-+	chip->flag = 1 << (spi->chip_select);
- 	chip->chip_select_num = spi->chip_select;
++	/* Not stop spi in autobuffer mode */
++	if (drv_data->tx_dma != 0xFFFF)
++		bfin_spi_disable(drv_data);
++
+ 	if (msg->complete)
+ 		msg->complete(msg->context);
+ }
+@@ -757,7 +755,8 @@ static void pump_transfers(unsigned long
  
- 	switch (chip->bits_per_word) {
-_
-
-Patches currently in -mm which might be from yi.li@analog.com are
-
-blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
-blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch
-blackfin-spi-driver-make-mmc_spi-driver-work-on-blackfin.patch
-
+ 	write_STAT(drv_data, BIT_STAT_CLR);
+ 	cr = (read_CTRL(drv_data) & (~BIT_CTL_TIMOD));
+-	cs_active(drv_data, chip);
++	if (drv_data->cs_change)
++		cs_active(drv_data, chip);
+ 
+ 	dev_dbg(&drv_data->pdev->dev,
+ 		"now pumping a transfer: width is %d, len is %d\n",
+@@ -919,11 +918,11 @@ static void pump_transfers(unsigned long
+ 		} else {
+ 			/* Update total byte transfered */
+ 			message->actual_length += drv_data->len_in_bytes;
+-
+ 			/* Move to next transfer of this msg */
+ 			message->state = next_transfer(drv_data);
++			if (drv_data->cs_change)
++				cs_deactive(drv_data, chip);
+ 		}
