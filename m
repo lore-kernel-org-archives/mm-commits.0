@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-add-laguna-additional-overflow-register.patch added to -mm tree
-Date: Mon, 09 Feb 2009 15:24:16 -0800
-Message-ID: <200902092324.n19NOGQC007062@imap1.linux-foundation.org>
+Subject: + hw_random-add-timeriomem-rng-driver.patch added to -mm tree
+Date: Mon, 09 Feb 2009 15:27:51 -0800
+Message-ID: <200902092327.n19NRp9b011921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39823 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752123AbZBIXZG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:25:06 -0500
+	by vger.kernel.org with ESMTP id S1750983AbZBIX3P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:29:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, geert@linux-m68k.org
+Cc: alex@digriz.org.uk, herbert@gondor.apana.org.au, jbeulich@novell.com, mb@bu3sch.de
 
 
 The patch titled
-     cirrusfb: add Laguna additional overflow register
+     hw_random: add timeriomem-rng driver
 has been added to the -mm tree.  Its filename is
-     cirrusfb-add-laguna-additional-overflow-register.patch
+     hw_random-add-timeriomem-rng-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,172 +33,259 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: add Laguna additional overflow register
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: hw_random: add timeriomem-rng driver
+From: Alexander Clouter <alex@digriz.org.uk>
 
-Add additional overflow register setting for Laguna chips.
+Some hardware platforms, the TS-7800[1] is one for example, can supply the
+kernel with an entropy source, albeit a slow one for TS-7800 users, by
+just reading a particular IO address.  This source must not be read above
+a certain rate otherwise the quality suffers.
 
-Also, simplify some code in the cirrusfb_pan_display() and
-cirrusfb_blank().
+The driver is then hooked into by calling
+platform_device_(register|add|del) passing a structure similar to:
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+static struct timeriomem_rng_data ts78xx_ts_rng_data = {
+        .address        = (u32 *__iomem) TS_RNG,
+        .period         = 1000000, /* one second */
+};
 
+static struct platform_device ts78xx_ts_rng_device = {
+        .name           = "timeriomem_rng",
+        .id             = -1,
+        .dev            = {
+                .platform_data  = &ts78xx_ts_rng_data,
+        },
+        .num_resources  = 0,
+};
+
+[1] http://www.embeddedarm.com/products/board-detail.php?product=TS-7800
+
+Signed-off-by: Alexander Clouter <alex@digriz.org.uk>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   68 ++++++++++++++++++++++---------------
- include/video/cirrus.h   |    1 
- 2 files changed, 43 insertions(+), 26 deletions(-)
+ drivers/char/hw_random/Kconfig          |   14 ++
+ drivers/char/hw_random/Makefile         |    1 
+ drivers/char/hw_random/timeriomem-rng.c |  151 ++++++++++++++++++++++
+ include/linux/timeriomem-rng.h          |   16 ++
+ 4 files changed, 182 insertions(+)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-add-laguna-additional-overflow-register drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-add-laguna-additional-overflow-register
-+++ a/drivers/video/cirrusfb.c
-@@ -1259,13 +1259,32 @@ static int cirrusfb_set_par_foo(struct f
- 	/* screen start addr #16-18, fastpagemode cycles */
- 	vga_wcrt(regbase, CL_CRT1B, tmp);
+diff -puN drivers/char/hw_random/Kconfig~hw_random-add-timeriomem-rng-driver drivers/char/hw_random/Kconfig
+--- a/drivers/char/hw_random/Kconfig~hw_random-add-timeriomem-rng-driver
++++ a/drivers/char/hw_random/Kconfig
+@@ -20,6 +20,20 @@ config HW_RANDOM
  
--	if (cinfo->btype == BT_SD64 ||
--	    cinfo->btype == BT_PICASSO4 ||
--	    cinfo->btype == BT_ALPINE ||
--	    cinfo->btype == BT_GD5480)
--		/* screen start address bit 19 */
-+	/* screen start address bit 19 */
-+	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
- 		vga_wcrt(regbase, CL_CRT1D, 0x00);
+ 	  If unsure, say Y.
  
-+	if (cinfo->btype == BT_LAGUNA ||
-+	    cinfo->btype == BT_GD5480) {
++config HW_RANDOM_TIMERIOMEM
++	tristate "Timer IOMEM HW Random Number Generator support"
++	depends on HW_RANDOM
++	---help---
++	  This driver provides kernel-side support for a generic Random
++	  Number Generator used by reading a 'dumb' iomem address that
++	  is to be read no faster than, for example, once a second;
++	  the default FPGA bitstream on the TS-7800 has such functionality.
 +
-+		tmp = 0;
-+		if ((htotal + 5) & 256)
-+			tmp |= 128;
-+		if (hdispend & 256)
-+			tmp |= 64;
-+		if (hsyncstart & 256)
-+			tmp |= 48;
-+		if (vtotal & 1024)
-+			tmp |= 8;
-+		if (vdispend & 1024)
-+			tmp |= 4;
-+		if (vsyncstart & 1024)
-+			tmp |= 3;
++	  To compile this driver as a module, choose M here: the
++	  module will be called timeriomem-rng.
 +
-+		vga_wcrt(regbase, CL_CRT1E, tmp);
-+		dev_dbg(info->device, "CRT1e: %d\n", tmp);
++	  If unsure, say Y.
++
+ config HW_RANDOM_INTEL
+ 	tristate "Intel HW Random Number Generator support"
+ 	depends on HW_RANDOM && (X86 || IA64) && PCI
+diff -puN drivers/char/hw_random/Makefile~hw_random-add-timeriomem-rng-driver drivers/char/hw_random/Makefile
+--- a/drivers/char/hw_random/Makefile~hw_random-add-timeriomem-rng-driver
++++ a/drivers/char/hw_random/Makefile
+@@ -4,6 +4,7 @@
+ 
+ obj-$(CONFIG_HW_RANDOM) += rng-core.o
+ rng-core-y := core.o
++obj-$(CONFIG_HW_RANDOM_TIMERIOMEM) += timeriomem-rng.o
+ obj-$(CONFIG_HW_RANDOM_INTEL) += intel-rng.o
+ obj-$(CONFIG_HW_RANDOM_AMD) += amd-rng.o
+ obj-$(CONFIG_HW_RANDOM_GEODE) += geode-rng.o
+diff -puN /dev/null drivers/char/hw_random/timeriomem-rng.c
+--- /dev/null
++++ a/drivers/char/hw_random/timeriomem-rng.c
+@@ -0,0 +1,151 @@
++/*
++ * drivers/char/hw_random/timeriomem-rng.c
++ *
++ * Copyright (C) 2008 Alexander Clouter <alex@digriz.org.uk>
++ *
++ * Derived from drivers/char/hw_random/omap-rng.c
++ *   Copyright 2005 (c) MontaVista Software, Inc.
++ *   Author: Deepak Saxena <dsaxena@plexity.net>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Overview:
++ *   This driver is useful for platforms that have an IO range that provides
++ *   periodic random data from a single IO memory address.  All the platform
++ *   has to do is provide the address and 'wait time' that new data becomes
++ *   available.
++ *
++ * TODO: add support for reading sizes other than 32bits and masking
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/hw_random.h>
++#include <linux/io.h>
++#include <linux/timeriomem-rng.h>
++#include <linux/jiffies.h>
++#include <linux/sched.h>
++#include <linux/timer.h>
++
++static struct timeriomem_rng_data *timeriomem_rng_data;
++
++static void timeriomem_rng_trigger(unsigned long);
++static DEFINE_TIMER(timeriomem_rng_timer, &timeriomem_rng_trigger, 0, 0);
++
++/*
++ * have data return 1, however return 0 if we have nothing
++ */
++static int timeriomem_rng_data_present(struct hwrng *rng, int wait)
++{
++	s32 delay;
++
++	if (rng->priv == 0)
++		return 1;
++
++	if (del_timer_sync(&timeriomem_rng_timer)) {
++		if (!wait)
++			return 0;
++
++		delay = timeriomem_rng_timer.expires - jiffies;
++
++		schedule_timeout_uninterruptible(delay);
 +	}
 +
++	return 1;
++}
 +
- 	/* text cursor location high */
- 	vga_wcrt(regbase, VGA_CRTC_CURSOR_HI, 0);
- 	/* text cursor location low */
-@@ -1383,7 +1402,7 @@ static int cirrusfb_pan_display(struct f
- 	int xoffset = 0;
- 	int yoffset = 0;
- 	unsigned long base;
--	unsigned char tmp = 0, tmp2 = 0, xpix;
-+	unsigned char tmp, xpix;
- 	struct cirrusfb_info *cinfo = info->par;
- 
- 	dev_dbg(info->device,
-@@ -1418,6 +1437,8 @@ static int cirrusfb_pan_display(struct f
- 	vga_wcrt(cinfo->regbase, VGA_CRTC_START_HI,
- 		 (unsigned char) (base >> 8));
- 
-+	/* 0xf2 is %11110010, exclude tmp bits */
-+	tmp = vga_rcrt(cinfo->regbase, CL_CRT1B) & 0xf2;
- 	/* construct bits 16, 17 and 18 of screen start address */
- 	if (base & 0x10000)
- 		tmp |= 0x01;
-@@ -1426,9 +1447,7 @@ static int cirrusfb_pan_display(struct f
- 	if (base & 0x40000)
- 		tmp |= 0x08;
- 
--	/* 0xf2 is %11110010, exclude tmp bits */
--	tmp2 = (vga_rcrt(cinfo->regbase, CL_CRT1B) & 0xf2) | tmp;
--	vga_wcrt(cinfo->regbase, CL_CRT1B, tmp2);
-+	vga_wcrt(cinfo->regbase, CL_CRT1B, tmp);
- 
- 	/* construct bit 19 of screen start address */
- 	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
-@@ -1473,47 +1492,44 @@ static int cirrusfb_blank(int blank_mode
- 
- 	/* Undo current */
- 	if (current_mode == FB_BLANK_NORMAL ||
--	    current_mode == FB_BLANK_UNBLANK) {
--		/* unblank the screen */
--		val = vga_rseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE);
-+	    current_mode == FB_BLANK_UNBLANK)
- 		/* clear "FullBandwidth" bit */
--		vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, val & 0xdf);
--		/* and undo VESA suspend trickery */
--		vga_wgfx(cinfo->regbase, CL_GRE, 0x00);
--	}
--
--	/* set new */
--	if (blank_mode > FB_BLANK_NORMAL) {
--		/* blank the screen */
--		val = vga_rseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE);
-+		val = 0;
-+	else
- 		/* set "FullBandwidth" bit */
--		vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, val | 0x20);
--	}
-+		val = 0x20;
++static int timeriomem_rng_data_read(struct hwrng *rng, u32 *data)
++{
++	unsigned long cur;
++	s32 delay;
 +
-+	val |= vga_rseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE) & 0xdf;
-+	vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, val);
- 
- 	switch (blank_mode) {
- 	case FB_BLANK_UNBLANK:
- 	case FB_BLANK_NORMAL:
-+		val = 0x00;
- 		break;
- 	case FB_BLANK_VSYNC_SUSPEND:
--		vga_wgfx(cinfo->regbase, CL_GRE, 0x04);
-+		val = 0x04;
- 		break;
- 	case FB_BLANK_HSYNC_SUSPEND:
--		vga_wgfx(cinfo->regbase, CL_GRE, 0x02);
-+		val = 0x02;
- 		break;
- 	case FB_BLANK_POWERDOWN:
--		vga_wgfx(cinfo->regbase, CL_GRE, 0x06);
-+		val = 0x06;
- 		break;
- 	default:
- 		dev_dbg(info->device, "EXIT, returning 1\n");
- 		return 1;
- 	}
- 
-+	vga_wgfx(cinfo->regbase, CL_GRE, val);
++	*data = readl(timeriomem_rng_data->address);
 +
- 	cinfo->blank_mode = blank_mode;
- 	dev_dbg(info->device, "EXIT, returning 0\n");
- 
- 	/* Let fbcon do a soft blank for us */
- 	return (blank_mode == FB_BLANK_NORMAL) ? 1 : 0;
- }
++	if (rng->priv != 0) {
++		cur = jiffies;
 +
- /**** END   Hardware specific Routines **************************************/
- /****************************************************************************/
- /**** BEGIN Internal Routines ***********************************************/
-diff -puN include/video/cirrus.h~cirrusfb-add-laguna-additional-overflow-register include/video/cirrus.h
---- a/include/video/cirrus.h~cirrusfb-add-laguna-additional-overflow-register
-+++ a/include/video/cirrus.h
-@@ -71,6 +71,7 @@
- #define CL_CRT1B	0x1b	/* Extended Display Controls */
- #define CL_CRT1C	0x1c	/* Sync adjust and genlock register */
- #define CL_CRT1D	0x1d	/* Overlay Extended Control register */
-+#define CL_CRT1E	0x1e	/* Another overflow register */
- #define CL_CRT25	0x25	/* Part Status Register */
- #define CL_CRT27	0x27	/* ID Register */
- #define CL_CRT51	0x51	/* P4 disable "flicker fixer" */
++		delay = cur - timeriomem_rng_timer.expires;
++		delay = rng->priv - (delay % rng->priv);
++
++		timeriomem_rng_timer.expires = cur + delay;
++		add_timer(&timeriomem_rng_timer);
++	}
++
++	return 4;
++}
++
++static void timeriomem_rng_trigger(unsigned long dummy)
++{
++	del_timer_sync(&timeriomem_rng_timer);
++}
++
++static struct hwrng timeriomem_rng_ops = {
++	.name		= "timeriomem",
++	.data_present	= timeriomem_rng_data_present,
++	.data_read	= timeriomem_rng_data_read,
++	.priv		= 0,
++};
++
++static int __init timeriomem_rng_probe(struct platform_device *pdev)
++{
++	int ret;
++
++	timeriomem_rng_data = pdev->dev.platform_data;
++
++	if (timeriomem_rng_data->period != 0
++		&& usecs_to_jiffies(timeriomem_rng_data->period) > 0) {
++		timeriomem_rng_timer.expires = jiffies;
++
++		timeriomem_rng_ops.priv = usecs_to_jiffies(
++						timeriomem_rng_data->period);
++	}
++
++	ret = hwrng_register(&timeriomem_rng_ops);
++	if (ret) {
++		dev_err(&pdev->dev, "problem registering\n");
++		return ret;
++	}
++
++	dev_info(&pdev->dev, "32bits from 0x%p @ %dus\n",
++			timeriomem_rng_data->address,
++			timeriomem_rng_data->period);
++
++	return 0;
++}
++
++static int __devexit timeriomem_rng_remove(struct platform_device *pdev)
++{
++	del_timer_sync(&timeriomem_rng_timer);
++	hwrng_unregister(&timeriomem_rng_ops);
++
++	return 0;
++}
++
++static struct platform_driver timeriomem_rng_driver = {
++	.driver = {
++		.name		= "timeriomem_rng",
++		.owner		= THIS_MODULE,
++	},
++	.probe		= timeriomem_rng_probe,
++	.remove		= __devexit_p(timeriomem_rng_remove),
++};
++
++static int __init timeriomem_rng_init(void)
++{
++	return platform_driver_register(&timeriomem_rng_driver);
++}
++
++static void __exit timeriomem_rng_exit(void)
++{
++	platform_driver_unregister(&timeriomem_rng_driver);
++}
++
++module_init(timeriomem_rng_init);
++module_exit(timeriomem_rng_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Alexander Clouter <alex@digriz.org.uk>");
++MODULE_DESCRIPTION("Timer IOMEM H/W RNG driver");
+diff -puN /dev/null include/linux/timeriomem-rng.h
+--- /dev/null
++++ a/include/linux/timeriomem-rng.h
+@@ -0,0 +1,16 @@
++/*
++ * linux/include/linux/timeriomem-rng.h
++ *
++ * Copyright (c) 2008 Alexander Clouter <alex@digriz.org.uk>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++struct timeriomem_rng_data {
++	u32 __iomem	*address;
++
++	/* measures in usecs */
++	unsigned int	period;
++};
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from alex@digriz.org.uk are
 
-linux-next.patch
-cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
-cirrusfb-add-laguna-additional-overflow-register.patch
+hw_random-add-timeriomem-rng-driver.patch
 
