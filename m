@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch added to -mm tree
-Date: Mon, 09 Feb 2009 15:46:06 -0800
-Message-ID: <200902092346.n19Nk6s6004558@imap1.linux-foundation.org>
+Subject: + sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch added to -mm tree
+Date: Mon, 09 Feb 2009 15:45:39 -0800
+Message-ID: <200902092345.n19NjdHQ004053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56102 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49138 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752705AbZBIXqs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:46:48 -0500
+	by vger.kernel.org with ESMTP id S1752756AbZBIXq7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 18:46:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org, krzysztof.h1@wp.pl
+Cc: dilinger@queued.net, ben-linux@fluff.org, dilinger@debian.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     sstfb: check fb_alloc_cmap return value and handle failure properly
+     sm501fb: check fb_alloc_cmap return value and handle failure properly
 has been added to the -mm tree.  Its filename is
-     sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+     sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sstfb: check fb_alloc_cmap return value and handle failure properly
+Subject: sm501fb: check fb_alloc_cmap return value and handle failure properly
 From: Andres Salomon <dilinger@queued.net>
 
 Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Acked-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sstfb.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/video/sm501fb.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/sstfb.c~sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly drivers/video/sstfb.c
---- a/drivers/video/sstfb.c~sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly
-+++ a/drivers/video/sstfb.c
-@@ -1421,13 +1421,16 @@ static int __devinit sstfb_probe(struct 
- 		goto fail;
+diff -puN drivers/video/sm501fb.c~sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly
++++ a/drivers/video/sm501fb.c
+@@ -1525,7 +1525,10 @@ static int sm501fb_init_fb(struct fb_inf
  	}
- 	
--	fb_alloc_cmap(&info->cmap, 256, 0);
-+	if (fb_alloc_cmap(&info->cmap, 256, 0)) {
-+		printk(KERN_ERR "sstfb: can't alloc cmap memory.\n");
-+		goto fail;
+ 
+ 	/* initialise and set the palette */
+-	fb_alloc_cmap(&fb->cmap, NR_PALETTE, 0);
++	if (fb_alloc_cmap(&fb->cmap, NR_PALETTE, 0)) {
++		dev_err(info->dev, "failed to allocate cmap memory\n");
++		return -ENOMEM;
 +	}
+ 	fb_set_cmap(&fb->cmap, fb);
  
- 	/* register fb */
- 	info->device = &pdev->dev;
- 	if (register_framebuffer(info) < 0) {
- 		printk(KERN_ERR "sstfb: can't register framebuffer.\n");
--		goto fail;
-+		goto fail_register;
- 	}
- 
- 	sstfb_clear_screen(info);
-@@ -1441,8 +1444,9 @@ static int __devinit sstfb_probe(struct 
- 
- 	return 0;
- 
--fail:
-+fail_register:
- 	fb_dealloc_cmap(&info->cmap);
-+fail:
- 	iounmap(info->screen_base);
- fail_fb_remap:
- 	iounmap(par->mmio_vbase);
+ 	ret = (fb->fbops->fb_check_var)(&fb->var, fb);
 _
 
 Patches currently in -mm which might be from dilinger@queued.net are
@@ -90,5 +73,4 @@ tridentfb-fix-memory-leaks-in-removal-path.patch
 vfb-fix-memory-leaks-in-removal-path.patch
 skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 
