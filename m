@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + de2104x-support-for-systems-lacking-cache-coherence.patch added to -mm tree
-Date: Mon, 09 Feb 2009 17:01:41 -0800
-Message-ID: <200902100101.n1A11fDD011294@imap1.linux-foundation.org>
+Subject: + acpi-fix-of-pmtimer-overflow-that-make-cx-states-time-incorrect.patch added to -mm tree
+Date: Mon, 09 Feb 2009 19:52:10 -0800
+Message-ID: <200902100352.n1A3qBDS018351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753587AbZBJBCg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 20:02:36 -0500
+	by vger.kernel.org with ESMTP id S1752722AbZBJDwZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 22:52:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: risto.suominen@gmail.com, Risto.Suominen@gmail.com, grundler@parisc-linux.org
+Cc: alex.shi@intel.com, lenb@kernel.org, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com
 
 
 The patch titled
-     de2104x: support for systems lacking cache coherence
+     acpi: fix of pmtimer overflow that make Cx states time incorrect
 has been added to the -mm tree.  Its filename is
-     de2104x-support-for-systems-lacking-cache-coherence.patch
+     acpi-fix-of-pmtimer-overflow-that-make-cx-states-time-incorrect.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,233 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: de2104x: support for systems lacking cache coherence
-From: Risto Suominen <risto.suominen@gmail.com>
+Subject: acpi: fix of pmtimer overflow that make Cx states time incorrect
+From: "alex.shi" <alex.shi@intel.com>
 
-Add a configurable Descriptor Skip Length for systems that lack cache
-coherence.
+We found Cx states time abnormal in our some of machines which have 16
+LCPUs, the C0 take too many time while system is really idle when kernel
+enabled tickless and highres.  powertop output is below:
 
-Signed-off-by: Risto Suominen <Risto.Suominen@gmail.com>
-Cc: Grant Grundler <grundler@parisc-linux.org>
+     PowerTOP version 1.9       (C) 2007 Intel Corporation
+
+Cn                Avg residency       P-states (frequencies)
+C0 (cpu running)        (40.5%)         2.53 Ghz     0.0%
+C1                0.0ms ( 0.0%)         2.53 Ghz     0.0%
+C2              128.8ms (59.5%)         2.40 Ghz     0.0%
+                                        1.60 Ghz   100.0%
+
+Wakeups-from-idle per second :  4.7     interval: 20.0s
+no ACPI power usage estimate available
+
+Top causes for wakeups:
+  41.4% ( 24.9)       <interrupt> : extra timer interrupt
+  20.2% ( 12.2)     <kernel core> : usb_hcd_poll_rh_status
+(rh_timer_func)
+
+After tacking detailed for this issue, Yakui and I find it is due to 24
+bit PM timer overflows when some of cpu sleep more than 4 seconds.  With
+tickless kernel, the CPU want to sleep as much as possible when system
+idle.  But the Cx sleep time are recorded by pmtimer which length is
+determined by BIOS.  The current Cx time was gotten in the following
+function from driver/acpi/processor_idle.c:
+
+static inline u32 ticks_elapsed(u32 t1, u32 t2)
+{
+       if (t2 >= t1)
+               return (t2 - t1);
+       else if (!(acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER))
+               return (((0x00FFFFFF - t1) + t2) & 0x00FFFFFF);
+       else
+               return ((0xFFFFFFFF - t1) + t2);
+}
+
+If pmtimer is 24 bits and it take 5 seconds from t1 to t2, in above
+function, just about 1 seconds ticks was recorded.  So the Cx time will be
+reduced about 4 seconds.  and this is why we see above powertop output.
+
+To resolve this problem, Yakui and I use ktime_get() to record the Cx
+states time instead of PM timer as the following patch.  the patch was
+tested with i386/x86_64 modes on several platforms.
+
+Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Tested-by: Alex Shi <alex.shi@intel.com>
+Signed-off-by: Alex Shi <alex.shi@intel.com>
+Signed-off-by: Yakui.zhao <yakui.zhao@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/Kconfig   |   12 ++++++++++++
- drivers/net/tulip/de2104x.c |   13 ++++++++++++-
- 2 files changed, 24 insertions(+), 1 deletion(-)
+ drivers/acpi/processor_idle.c |   63 +++++++++++++-------------------
+ 1 file changed, 27 insertions(+), 36 deletions(-)
 
-diff -puN drivers/net/tulip/Kconfig~de2104x-support-for-systems-lacking-cache-coherence drivers/net/tulip/Kconfig
---- a/drivers/net/tulip/Kconfig~de2104x-support-for-systems-lacking-cache-coherence
-+++ a/drivers/net/tulip/Kconfig
-@@ -27,6 +27,18 @@ config DE2104X
- 	  To compile this driver as a module, choose M here. The module will
- 	  be called de2104x.
+diff -puN drivers/acpi/processor_idle.c~acpi-fix-of-pmtimer-overflow-that-make-cx-states-time-incorrect drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-fix-of-pmtimer-overflow-that-make-cx-states-time-incorrect
++++ a/drivers/acpi/processor_idle.c
+@@ -64,7 +64,6 @@
+ #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_idle");
+ #define ACPI_PROCESSOR_FILE_POWER	"power"
+-#define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
+ #define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
+ #define C2_OVERHEAD			1	/* 1us */
+ #define C3_OVERHEAD			1	/* 1us */
+@@ -78,6 +77,10 @@ module_param(nocst, uint, 0000);
+ static unsigned int latency_factor __read_mostly = 2;
+ module_param(latency_factor, uint, 0644);
  
-+config DE2104X_DSL
-+	int "Descriptor Skip Length in 32 bit longwords"
-+	depends on DE2104X
-+	range 0 31
-+	default 0
-+	help
-+	  Setting this value allows to align ring buffer descriptors into their
-+	  own cache lines. Value of 4 corresponds to the typical 32 byte line
-+	  (the descriptor is 16 bytes). This is necessary on systems that lack
-+	  cache coherence, an example is PowerMac 5500. Otherwise 0 is safe.
-+	  Default is 0, and range is 0 to 31.
-+
- config TULIP
- 	tristate "DECchip Tulip (dc2114x) PCI support"
- 	depends on PCI
-diff -puN drivers/net/tulip/de2104x.c~de2104x-support-for-systems-lacking-cache-coherence drivers/net/tulip/de2104x.c
---- a/drivers/net/tulip/de2104x.c~de2104x-support-for-systems-lacking-cache-coherence
-+++ a/drivers/net/tulip/de2104x.c
-@@ -82,6 +82,13 @@ MODULE_PARM_DESC (rx_copybreak, "de2104x
- 				 NETIF_MSG_RX_ERR	| \
- 				 NETIF_MSG_TX_ERR)
- 
-+/* Descriptor skip length in 32 bit longwords. */
-+#ifndef CONFIG_DE2104X_DSL
-+#define DSL			0
-+#else
-+#define DSL			CONFIG_DE2104X_DSL
-+#endif
-+
- #define DE_RX_RING_SIZE		64
- #define DE_TX_RING_SIZE		64
- #define DE_RING_BYTES		\
-@@ -153,6 +160,7 @@ enum {
- 	CmdReset		= (1 << 0),
- 	CacheAlign16		= 0x00008000,
- 	BurstLen4		= 0x00000400,
-+	DescSkipLen		= (DSL << 2),
- 
- 	/* Rx/TxPoll bits */
- 	NormalTxPoll		= (1 << 0),
-@@ -246,7 +254,7 @@ static const u32 de_intr_mask =
-  * Set the programmable burst length to 4 longwords for all:
-  * DMA errors result without these values. Cache align 16 long.
-  */
--static const u32 de_bus_mode = CacheAlign16 | BurstLen4;
-+static const u32 de_bus_mode = CacheAlign16 | BurstLen4 | DescSkipLen;
- 
- struct de_srom_media_block {
- 	u8			opts;
-@@ -266,6 +274,9 @@ struct de_desc {
- 	__le32			opts2;
- 	__le32			addr1;
- 	__le32			addr2;
-+#if DSL
-+	__le32			skip[DSL];
-+#endif
++static s64 us_to_pm_timer_ticks(s64 t)
++{
++	return div64_u64(t * PM_TIMER_FREQUENCY, 1000000);
++}
+ /*
+  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
+  * For now disable this. Probably a bug somewhere else.
+@@ -159,25 +162,6 @@ static struct dmi_system_id __cpuinitdat
+ 	{},
  };
  
- struct media_info {
+-static inline u32 ticks_elapsed(u32 t1, u32 t2)
+-{
+-	if (t2 >= t1)
+-		return (t2 - t1);
+-	else if (!(acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER))
+-		return (((0x00FFFFFF - t1) + t2) & 0x00FFFFFF);
+-	else
+-		return ((0xFFFFFFFF - t1) + t2);
+-}
+-
+-static inline u32 ticks_elapsed_in_us(u32 t1, u32 t2)
+-{
+-	if (t2 >= t1)
+-		return PM_TIMER_TICKS_TO_US(t2 - t1);
+-	else if (!(acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER))
+-		return PM_TIMER_TICKS_TO_US(((0x00FFFFFF - t1) + t2) & 0x00FFFFFF);
+-	else
+-		return PM_TIMER_TICKS_TO_US((0xFFFFFFFF - t1) + t2);
+-}
+ 
+ /*
+  * Callers should disable interrupts before the call and enable
+@@ -853,7 +837,8 @@ static inline void acpi_idle_do_entry(st
+ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+ 			      struct cpuidle_state *state)
+ {
+-	u32 t1, t2;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+ 
+@@ -871,14 +856,15 @@ static int acpi_idle_enter_c1(struct cpu
+ 		return 0;
+ 	}
+ 
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ 	local_irq_enable();
+ 	cx->usage++;
+ 
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ /**
+@@ -891,8 +877,9 @@ static int acpi_idle_enter_simple(struct
+ {
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+-	u32 t1, t2;
+-	int sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
++	s64 sleep_ticks = 0;
+ 
+ 	pr = __get_cpu_var(processors);
+ 
+@@ -925,18 +912,19 @@ static int acpi_idle_enter_simple(struct
+ 	if (cx->type == ACPI_STATE_C3)
+ 		ACPI_FLUSH_CPU_CACHE();
+ 
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	/* Tell the scheduler that we are going deep-idle: */
+ 	sched_clock_idle_sleep_event();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 	/* TSC could halt in idle, so notify users */
+ 	if (tsc_halts_in_c(cx->type))
+ 		mark_tsc_unstable("TSC halts in idle");;
+ #endif
+-	sleep_ticks = ticks_elapsed(t1, t2);
++	sleep_ticks = us_to_pm_timer_ticks(idle_time);
+ 
+ 	/* Tell the scheduler how much we idled: */
+ 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+@@ -948,7 +936,7 @@ static int acpi_idle_enter_simple(struct
+ 
+ 	acpi_state_timer_broadcast(pr, cx, 0);
+ 	cx->time += sleep_ticks;
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ static int c3_cpu_count;
+@@ -966,8 +954,10 @@ static int acpi_idle_enter_bm(struct cpu
+ {
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+-	u32 t1, t2;
+-	int sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
++	s64 sleep_ticks = 0;
++
+ 
+ 	pr = __get_cpu_var(processors);
+ 
+@@ -1034,9 +1024,10 @@ static int acpi_idle_enter_bm(struct cpu
+ 		ACPI_FLUSH_CPU_CACHE();
+ 	}
+ 
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ 	/* Re-enable bus master arbitration */
+ 	if (pr->flags.bm_check && pr->flags.bm_control) {
+@@ -1051,7 +1042,7 @@ static int acpi_idle_enter_bm(struct cpu
+ 	if (tsc_halts_in_c(ACPI_STATE_C3))
+ 		mark_tsc_unstable("TSC halts in idle");
+ #endif
+-	sleep_ticks = ticks_elapsed(t1, t2);
++	sleep_ticks = us_to_pm_timer_ticks(idle_time);
+ 	/* Tell the scheduler how much we idled: */
+ 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+ 
+@@ -1062,7 +1053,7 @@ static int acpi_idle_enter_bm(struct cpu
+ 
+ 	acpi_state_timer_broadcast(pr, cx, 0);
+ 	cx->time += sleep_ticks;
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ struct cpuidle_driver acpi_idle_driver = {
 _
 
-Patches currently in -mm which might be from risto.suominen@gmail.com are
+Patches currently in -mm which might be from alex.shi@intel.com are
 
-de2104x-force-correct-order-when-writing-to-rx-ring.patch
-de2104x-support-for-systems-lacking-cache-coherence.patch
+acpi-fix-of-pmtimer-overflow-that-make-cx-states-time-incorrect.patch
 
