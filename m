@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-fix-support-for-empty-directory-blocks-in-64k-blocksize-filesystems.patch added to -mm tree
-Date: Tue, 10 Feb 2009 14:59:22 -0800
-Message-ID: <200902102259.n1AMxMDL008883__45386.5806841806$1234306893$gmane$org@imap1.linux-foundation.org>
+Subject: + vfs-add-missing-unlock-in-sget.patch added to -mm tree
+Date: Tue, 10 Feb 2009 15:01:19 -0800
+Message-ID: <200902102301.n1AN1J13011610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754527AbZBJW76 (ORCPT
+	by vger.kernel.org with ESMTP id S1757516AbZBJXCB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 17:59:58 -0500
+	Tue, 10 Feb 2009 18:02:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yjwei@cn.fujitsu.com, linux-ext4@vger.kernel.org
+Cc: lizf@cn.fujitsu.com, a.p.zijlstra@chello.nl, menage@google.com, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     ext3: fix support for empty directory blocks in 64k blocksize filesystems
+     vfs: add missing unlock in sget()
 has been added to the -mm tree.  Its filename is
-     ext3-fix-support-for-empty-directory-blocks-in-64k-blocksize-filesystems.patch
+     vfs-add-missing-unlock-in-sget.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: fix support for empty directory blocks in 64k blocksize filesystems
-From: Wei Yongjun <yjwei@cn.fujitsu.com>
+Subject: vfs: add missing unlock in sget()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-The rec_len field in the directory entry is 16 bits, so if the filesystem
-is completely empty, rec_len of 0 is used to designate 65536 in e2fsprogs,
-for the case where the directory entry takes the entire 64k block.
+In sget(), destroy_super(s) is called with s->s_umount held, which makes
+lockdep unhappy.
 
-But if an empty directory is read, an error message will be output by
-current kernels.  You can use the following commands to reproduce it.
-
-  - mkfs.ext3 -b $(( 64 * 1024 )) /dev/sdc1
-  - mount /dev/sda1 /mnt
-  - cd /mnt/lost+found
-  - ll
-  - tail /var/log/messages
-  EXT3-fs error (device sdc1): ext3_readdir: bad entry in \
-  directory #11: rec_len is smaller than minimal - offset=0, \
-  inode=0, rec_len=0, name_len=0
-
-Treat a rec_len of 0 as 65536, as e2fsprogs does.
-
-Signed-off-by: Wei Yongjun <yjwei@cn.fujitsu.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ext3_fs.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/super.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/ext3_fs.h~ext3-fix-support-for-empty-directory-blocks-in-64k-blocksize-filesystems include/linux/ext3_fs.h
---- a/include/linux/ext3_fs.h~ext3-fix-support-for-empty-directory-blocks-in-64k-blocksize-filesystems
-+++ a/include/linux/ext3_fs.h
-@@ -711,7 +711,7 @@ static inline unsigned ext3_rec_len_from
- {
- 	unsigned len = le16_to_cpu(dlen);
- 
--	if (len == EXT3_MAX_REC_LEN)
-+	if (len == EXT3_MAX_REC_LEN || len == 0)
- 		return 1 << 16;
- 	return len;
- }
-@@ -719,7 +719,7 @@ static inline unsigned ext3_rec_len_from
- static inline __le16 ext3_rec_len_to_disk(unsigned len)
- {
- 	if (len == (1 << 16))
--		return cpu_to_le16(EXT3_MAX_REC_LEN);
-+		return cpu_to_le16(0);
- 	else if (len > (1 << 16))
- 		BUG();
- 	return cpu_to_le16(len);
+diff -puN fs/super.c~vfs-add-missing-unlock-in-sget fs/super.c
+--- a/fs/super.c~vfs-add-missing-unlock-in-sget
++++ a/fs/super.c
+@@ -357,8 +357,10 @@ retry:
+ 				continue;
+ 			if (!grab_super(old))
+ 				goto retry;
+-			if (s)
++			if (s) {
++				up_write(&s->s_umount);
+ 				destroy_super(s);
++			}
+ 			return old;
+ 		}
+ 	}
+@@ -373,6 +375,7 @@ retry:
+ 	err = set(s, data);
+ 	if (err) {
+ 		spin_unlock(&sb_lock);
++		up_write(&s->s_umount);
+ 		destroy_super(s);
+ 		return ERR_PTR(err);
+ 	}
 _
 
-Patches currently in -mm which might be from yjwei@cn.fujitsu.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 linux-next.patch
-fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc.patch
-scsi-used-kmem_cache_zalloc-instead-of-kmem_cache_alloc-memset.patch
-ext2-fix-support-for-empty-directory-blocks-in-64k-blocksize-filesystems.patch
-ext3-fix-support-for-empty-directory-blocks-in-64k-blocksize-filesystems.patch
+cgroups-fix-lockdep-subclasses-overflow.patch
+vfs-add-missing-unlock-in-sget.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
 
