@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-for_each_populated_zone-macro-cleanup.patch added to -mm tree
-Date: Tue, 10 Feb 2009 14:50:33 -0800
-Message-ID: <200902102250.n1AMoXCp028953@imap1.linux-foundation.org>
+Subject: + mm-introduce-for_each_populated_zone-macro.patch added to -mm tree
+Date: Tue, 10 Feb 2009 14:50:29 -0800
+Message-ID: <200902102250.n1AMoUQB028947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752782AbZBJWvB (ORCPT
+	by vger.kernel.org with ESMTP id S1756410AbZBJWvE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 17:51:01 -0500
+	Tue, 10 Feb 2009 17:51:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
+Cc: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     mm-introduce-for_each_populated_zone-macro-cleanup
+     mm: introduce for_each_populated_zone() macro
 has been added to the -mm tree.  Its filename is
-     mm-introduce-for_each_populated_zone-macro-cleanup.patch
+     mm-introduce-for_each_populated_zone-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,221 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-introduce-for_each_populated_zone-macro-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: introduce for_each_populated_zone() macro
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Impact: cleanup
+
+In almost cases, for_each_zone() is used with populated_zone().  It's
+because almost function doesn't need memoryless node information. 
+Therefore, for_each_populated_zone() can help to make code simplify.
+
+This patch has no functional change.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/mmzone.h  |   11 +++++++++++
+ kernel/power/snapshot.c |    9 +++------
+ kernel/power/swsusp.c   |   17 ++++++++---------
+ mm/page_alloc.c         |   26 +++++---------------------
+ mm/vmscan.c             |    4 +---
+ mm/vmstat.c             |   11 ++---------
+ 6 files changed, 30 insertions(+), 48 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro-cleanup include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro-cleanup
+diff -puN include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-introduce-for_each_populated_zone-macro
 +++ a/include/linux/mmzone.h
-@@ -814,9 +814,6 @@ extern struct zone *next_zone(struct zon
- 			; /* do nothing */		\
- 		else
+@@ -806,6 +806,17 @@ extern struct zone *next_zone(struct zon
+ 	     zone;					\
+ 	     zone = next_zone(zone))
  
--
--
--
++#define for_each_populated_zone(zone)		        \
++	for (zone = (first_online_pgdat())->node_zones; \
++	     zone;					\
++	     zone = next_zone(zone))			\
++		if (!populated_zone(zone))		\
++			; /* do nothing */		\
++		else
++
++
++
++
  static inline struct zone *zonelist_zone(struct zoneref *zoneref)
  {
  	return zoneref->zone;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
-arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-early-platform-driver-v3-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_assign_resources-fix.patch
-pci-constify-pci_bus_add_devices.patch
-cciss-pci-power-management-reset-for-kexec-cleanup.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void-fix.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
-writeback-fix-break-condition-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-ata-sata_silc-needs-dmih.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-
+diff -puN kernel/power/snapshot.c~mm-introduce-for_each_populated_zone-macro kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~mm-introduce-for_each_populated_zone-macro
++++ a/kernel/power/snapshot.c
+@@ -321,13 +321,10 @@ static int create_mem_extents(struct lis
+ 
+ 	INIT_LIST_HEAD(list);
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+ 		unsigned long zone_start, zone_end;
+ 		struct mem_extent *ext, *cur, *aux;
+ 
+-		if (!populated_zone(zone))
+-			continue;
+-
+ 		zone_start = zone->zone_start_pfn;
+ 		zone_end = zone->zone_start_pfn + zone->spanned_pages;
+ 
+@@ -804,8 +801,8 @@ static unsigned int count_free_highmem_p
+ 	struct zone *zone;
+ 	unsigned int cnt = 0;
+ 
+-	for_each_zone(zone)
+-		if (populated_zone(zone) && is_highmem(zone))
++	for_each_populated_zone(zone)
++		if (is_highmem(zone))
+ 			cnt += zone_page_state(zone, NR_FREE_PAGES);
+ 
+ 	return cnt;
+diff -puN kernel/power/swsusp.c~mm-introduce-for_each_populated_zone-macro kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~mm-introduce-for_each_populated_zone-macro
++++ a/kernel/power/swsusp.c
+@@ -229,17 +229,16 @@ int swsusp_shrink_memory(void)
+ 		size = count_data_pages() + PAGES_FOR_IO + SPARE_PAGES;
+ 		tmp = size;
+ 		size += highmem_size;
+-		for_each_zone (zone)
+-			if (populated_zone(zone)) {
+-				tmp += snapshot_additional_pages(zone);
+-				if (is_highmem(zone)) {
+-					highmem_size -=
++		for_each_populated_zone(zone) {
++			tmp += snapshot_additional_pages(zone);
++			if (is_highmem(zone)) {
++				highmem_size -=
+ 					zone_page_state(zone, NR_FREE_PAGES);
+-				} else {
+-					tmp -= zone_page_state(zone, NR_FREE_PAGES);
+-					tmp += zone->lowmem_reserve[ZONE_NORMAL];
+-				}
++			} else {
++				tmp -= zone_page_state(zone, NR_FREE_PAGES);
++				tmp += zone->lowmem_reserve[ZONE_NORMAL];
+ 			}
++		}
+ 
+ 		if (highmem_size < 0)
+ 			highmem_size = 0;
+diff -puN mm/page_alloc.c~mm-introduce-for_each_populated_zone-macro mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-for_each_populated_zone-macro
++++ a/mm/page_alloc.c
+@@ -923,13 +923,10 @@ static void drain_pages(unsigned int cpu
+ 	unsigned long flags;
+ 	struct zone *zone;
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+ 		struct per_cpu_pageset *pset;
+ 		struct per_cpu_pages *pcp;
+ 
+-		if (!populated_zone(zone))
+-			continue;
+-
+ 		pset = zone_pcp(zone, cpu);
+ 
+ 		pcp = &pset->pcp;
+@@ -1875,10 +1872,7 @@ void show_free_areas(void)
+ 	int cpu;
+ 	struct zone *zone;
+ 
+-	for_each_zone(zone) {
+-		if (!populated_zone(zone))
+-			continue;
+-
++	for_each_populated_zone(zone) {
+ 		show_node(zone);
+ 		printk("%s per-cpu:\n", zone->name);
+ 
+@@ -1918,12 +1912,9 @@ void show_free_areas(void)
+ 		global_page_state(NR_PAGETABLE),
+ 		global_page_state(NR_BOUNCE));
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+ 		int i;
+ 
+-		if (!populated_zone(zone))
+-			continue;
+-
+ 		show_node(zone);
+ 		printk("%s"
+ 			" free:%lukB"
+@@ -1963,12 +1954,9 @@ void show_free_areas(void)
+ 		printk("\n");
+ 	}
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
+ 
+-		if (!populated_zone(zone))
+-			continue;
+-
+ 		show_node(zone);
+ 		printk("%s: ", zone->name);
+ 
+@@ -2799,11 +2787,7 @@ static int __cpuinit process_zones(int c
+ 
+ 	node_set_state(node, N_CPU);	/* this node has a cpu */
+ 
+-	for_each_zone(zone) {
+-
+-		if (!populated_zone(zone))
+-			continue;
+-
++	for_each_populated_zone(zone) {
+ 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
+ 					 GFP_KERNEL, node);
+ 		if (!zone_pcp(zone, cpu))
+diff -puN mm/vmscan.c~mm-introduce-for_each_populated_zone-macro mm/vmscan.c
+--- a/mm/vmscan.c~mm-introduce-for_each_populated_zone-macro
++++ a/mm/vmscan.c
+@@ -2059,11 +2059,9 @@ static unsigned long shrink_all_zones(un
+ 	struct zone *zone;
+ 	unsigned long ret = 0;
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+ 		enum lru_list l;
+ 
+-		if (!populated_zone(zone))
+-			continue;
+ 		if (zone_is_all_unreclaimable(zone) && prio != DEF_PRIORITY)
+ 			continue;
+ 
+diff -puN mm/vmstat.c~mm-introduce-for_each_populated_zone-macro mm/vmstat.c
+--- a/mm/vmstat.c~mm-introduce-for_each_populated_zone-macro
++++ a/mm/vmstat.c
+@@ -135,11 +135,7 @@ static void refresh_zone_stat_thresholds
+ 	int cpu;
+ 	int threshold;
+ 
+-	for_each_zone(zone) {
+-
+-		if (!zone->present_pages)
+-			continue;
+-
++	for_each_populated_zone(zone) {
+ 		threshold = calculate_threshold(zone);
+ 
+ 		for_each_online_cpu(cpu)
+@@ -301,12 +297,9 @@ void refresh_cpu_vm_stats(int cpu)
+ 	int i;
+ 	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
+ 
+-	for_each_zone(zone) {
++	for_each_populated_zone(zone) {
+ 		struct per_cpu_pageset *p;
+ 
+-		if (!populated_zone(zone))
+-			continue;
