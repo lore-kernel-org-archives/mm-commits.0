@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-task-dirty-accounting-fix.patch added to -mm tree
-Date: Tue, 10 Feb 2009 14:40:54 -0800
-Message-ID: <200902102240.n1AMes4J015236@imap1.linux-foundation.org>
+Subject: + mm-vmap-fix-overflow.patch added to -mm tree
+Date: Tue, 10 Feb 2009 14:44:30 -0800
+Message-ID: <200902102244.n1AMiUfZ020344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755689AbZBJWlp (ORCPT
+	by vger.kernel.org with ESMTP id S1757301AbZBJWpR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 17:41:45 -0500
+	Tue, 10 Feb 2009 17:45:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, a.p.zijlstra@chello.nl, yamamoto@valinux.co.jp
+Cc: npiggin@suse.de, hch@lst.de, stable@kernel.org
 
 
 The patch titled
-     mm: task dirty accounting fix
+     mm: vmap fix overflow
 has been added to the -mm tree.  Its filename is
-     mm-task-dirty-accounting-fix.patch
+     mm-vmap-fix-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: task dirty accounting fix
+Subject: mm: vmap fix overflow
 From: Nick Piggin <npiggin@suse.de>
 
-YAMAMOTO-san noticed that task_dirty_inc doesn't seem to be called properly for
-cases where set_page_dirty is not used to dirty a page (eg. mark_buffer_dirty).
+The new vmap allocator can wrap the address and get confused in the case
+of large allocations or VMALLOC_END near the end of address space.
 
-Additionally, there is some inconsistency about when task_dirty_inc is
-called.  It is used for dirty balancing, however it even gets called for
-__set_page_dirty_no_writeback.
+Problem reported by Christoph Hellwig on a 32-bit XFS workload.
 
-So rather than increment it in a set_page_dirty wrapper, move it down to
-exactly where the dirty page accounting stats are incremented.
-
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Reported-by: Christoph Hellwig <hch@lst.de>
+Cc: <stable@kernel.org>		[2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c         |    1 +
- include/linux/mm.h  |    1 +
- mm/page-writeback.c |   13 +++----------
- 3 files changed, 5 insertions(+), 10 deletions(-)
+ mm/vmalloc.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/buffer.c~mm-task-dirty-accounting-fix fs/buffer.c
---- a/fs/buffer.c~mm-task-dirty-accounting-fix
-+++ a/fs/buffer.c
-@@ -777,6 +777,7 @@ static int __set_page_dirty(struct page 
- 			__inc_zone_page_state(page, NR_FILE_DIRTY);
- 			__inc_bdi_stat(mapping->backing_dev_info,
- 					BDI_RECLAIMABLE);
-+			task_dirty_inc(current);
- 			task_io_account_write(PAGE_CACHE_SIZE);
- 		}
- 		radix_tree_tag_set(&mapping->page_tree,
-diff -puN include/linux/mm.h~mm-task-dirty-accounting-fix include/linux/mm.h
---- a/include/linux/mm.h~mm-task-dirty-accounting-fix
-+++ a/include/linux/mm.h
-@@ -1165,6 +1165,7 @@ extern int filemap_fault(struct vm_area_
+diff -puN mm/vmalloc.c~mm-vmap-fix-overflow mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmap-fix-overflow
++++ a/mm/vmalloc.c
+@@ -335,6 +335,9 @@ retry:
+ 	addr = ALIGN(vstart, align);
  
- /* mm/page-writeback.c */
- int write_one_page(struct page *page, int wait);
-+void task_dirty_inc(struct task_struct *tsk);
+ 	spin_lock(&vmap_area_lock);
++	if (addr + size < addr)
++		goto overflow;
++
+ 	/* XXX: could have a last_hole cache */
+ 	n = vmap_area_root.rb_node;
+ 	if (n) {
+@@ -366,6 +369,8 @@ retry:
  
- /* readahead.c */
- #define VM_MAX_READAHEAD	128	/* kbytes */
-diff -puN mm/page-writeback.c~mm-task-dirty-accounting-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-task-dirty-accounting-fix
-+++ a/mm/page-writeback.c
-@@ -240,7 +240,7 @@ void bdi_writeout_inc(struct backing_dev
- }
- EXPORT_SYMBOL_GPL(bdi_writeout_inc);
+ 		while (addr + size > first->va_start && addr + size <= vend) {
+ 			addr = ALIGN(first->va_end + PAGE_SIZE, align);
++			if (addr + size < addr)
++				goto overflow;
  
--static inline void task_dirty_inc(struct task_struct *tsk)
-+void task_dirty_inc(struct task_struct *tsk)
- {
- 	prop_inc_single(&vm_dirties, &tsk->dirties);
- }
-@@ -1230,6 +1230,7 @@ int __set_page_dirty_nobuffers(struct pa
- 				__inc_zone_page_state(page, NR_FILE_DIRTY);
- 				__inc_bdi_stat(mapping->backing_dev_info,
- 						BDI_RECLAIMABLE);
-+				task_dirty_inc(current);
- 				task_io_account_write(PAGE_CACHE_SIZE);
- 			}
- 			radix_tree_tag_set(&mapping->page_tree,
-@@ -1262,7 +1263,7 @@ EXPORT_SYMBOL(redirty_page_for_writepage
-  * If the mapping doesn't provide a set_page_dirty a_op, then
-  * just fall through and assume that it wants buffer_heads.
-  */
--static int __set_page_dirty(struct page *page)
-+int set_page_dirty(struct page *page)
- {
- 	struct address_space *mapping = page_mapping(page);
- 
-@@ -1280,14 +1281,6 @@ static int __set_page_dirty(struct page 
+ 			n = rb_next(&first->rb_node);
+ 			if (n)
+@@ -376,6 +381,7 @@ retry:
  	}
- 	return 0;
- }
--
--int set_page_dirty(struct page *page)
--{
--	int ret = __set_page_dirty(page);
--	if (ret)
--		task_dirty_inc(current);
--	return ret;
--}
- EXPORT_SYMBOL(set_page_dirty);
- 
- /*
+ found:
+ 	if (addr + size > vend) {
++overflow:
+ 		spin_unlock(&vmap_area_lock);
+ 		if (!purged) {
+ 			purge_vmap_area_lazy();
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -133,6 +90,7 @@ ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
 writeback-fix-break-condition.patch
 writeback-fix-break-condition-checkpatch-fixes.patch
 mm-task-dirty-accounting-fix.patch
+mm-vmap-fix-overflow.patch
 vmap-remove-needless-lock-and-list-in-vmap.patch
 page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
