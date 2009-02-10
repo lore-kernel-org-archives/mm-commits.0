@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch added to -mm tree
-Date: Tue, 10 Feb 2009 15:14:01 -0800
-Message-ID: <200902102314.n1ANE1J9029325@imap1.linux-foundation.org>
+Subject: + memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch added to -mm tree
+Date: Tue, 10 Feb 2009 15:15:45 -0800
+Message-ID: <200902102315.n1ANFjh0031638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756326AbZBJXOQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755909AbZBJXPu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 18:14:16 -0500
+	Tue, 10 Feb 2009 18:15:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     memcg: remove mem_cgroup_calc_mapped_ratio()
+     memcg: remove mem_cgroup_reclaim_imbalance() remnants
 has been added to the -mm tree.  Its filename is
-     memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+     memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: remove mem_cgroup_calc_mapped_ratio()
+Subject: memcg: remove mem_cgroup_reclaim_imbalance() remnants
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Currently, mem_cgroup_calc_mapped_ratio() is unused at all.  it can be
-removed and KAMEZAWA-san suggested it.
+commit 4f98a2fee8acdb4ac84545df98cccecfd130f8db (vmscan: split LRU lists
+into anon & file sets) removed mem_cgroup_reclaim_imbalance(), but there
+are some leftovers in memcontrol.h.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 ------
- mm/memcontrol.c            |   17 -----------------
- 2 files changed, 23 deletions(-)
+ include/linux/memcontrol.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-remove-mem_cgroup_calc_mapped_ratio-take2 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-remove-mem_cgroup_calc_mapped_ratio-take2
+diff -puN include/linux/memcontrol.h~memcg-remove-mem_cgroup_reclaim_imbalance-remnants include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-remove-mem_cgroup_reclaim_imbalance-remnants
 +++ a/include/linux/memcontrol.h
-@@ -88,7 +88,6 @@ extern void mem_cgroup_end_migration(str
+@@ -88,8 +88,6 @@ extern void mem_cgroup_end_migration(str
  /*
   * For memory reclaim.
   */
--extern int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem);
- extern long mem_cgroup_reclaim_imbalance(struct mem_cgroup *mem);
- 
+-extern long mem_cgroup_reclaim_imbalance(struct mem_cgroup *mem);
+-
  extern int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem);
-@@ -211,11 +210,6 @@ static inline void mem_cgroup_end_migrat
+ extern void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem,
+ 							int priority);
+@@ -210,11 +208,6 @@ static inline void mem_cgroup_end_migrat
  {
  }
  
--static inline int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem)
+-static inline int mem_cgroup_reclaim_imbalance(struct mem_cgroup *mem)
 -{
 -	return 0;
 -}
 -
- static inline int mem_cgroup_reclaim_imbalance(struct mem_cgroup *mem)
+ static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem)
  {
  	return 0;
-diff -puN mm/memcontrol.c~memcg-remove-mem_cgroup_calc_mapped_ratio-take2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-mem_cgroup_calc_mapped_ratio-take2
-+++ a/mm/memcontrol.c
-@@ -508,23 +508,6 @@ int task_in_mem_cgroup(struct task_struc
- }
- 
- /*
-- * Calculate mapped_ratio under memory controller. This will be used in
-- * vmscan.c for deteremining we have to reclaim mapped pages.
-- */
--int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem)
--{
--	long total, rss;
--
--	/*
--	 * usage is recorded in bytes. But, here, we assume the number of
--	 * physical pages can be represented by "long" on any arch.
--	 */
--	total = (long) (mem->res.usage >> PAGE_SHIFT) + 1L;
--	rss = (long)mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_RSS);
--	return (int)((rss * 100L) / total);
--}
--
--/*
-  * prev_priority control...this will be used in memory reclaim path.
-  */
- int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem)
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -120,6 +93,7 @@ proc-export-statistics-for-softirq-to-proc.patch
 proc-export-statistics-for-softirq-to-proc-fix.patch
 proc-update-document-for-proc-softirqs-and-proc-stat.patch
 memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
 ia64-implement-interrupt-enabling-rwlocks.patch
 fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
