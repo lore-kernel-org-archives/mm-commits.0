@@ -1,157 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 10 Feb 2009 13:50:33 -0800
-Message-ID: <200902102150.n1ALoYIY010508@imap1.linux-foundation.org>
+Subject: + vmscan-rename-scmay_swap-to-may_unmap.patch added to -mm tree
+Date: Tue, 10 Feb 2009 13:56:06 -0800
+Message-ID: <200902102156.n1ALu67R018138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47631 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754688AbZBJVvP (ORCPT
+	by vger.kernel.org with ESMTP id S1755342AbZBJV4e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 16:51:15 -0500
+	Tue, 10 Feb 2009 16:56:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, nhorman@tuxdriver.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes.patch
+     vmscan: rename sc.may_swap to may_unmap
+has been added to the -mm tree.  Its filename is
+     vmscan-rename-scmay_swap-to-may_unmap.patch
 
-This patch was dropped because it was folded into kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmscan: rename sc.may_swap to may_unmap
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-ERROR: trailing whitespace
-#30: FILE: kernel/printk.c:144:
-+ * are otherwise very difficult to locate.  These symbols $
+sc.may_swap does not only influence reclaiming of anon pages but pages
+mapped into pagetables in general, which also includes mapped file pages.
 
-ERROR: trailing whitespace
-#31: FILE: kernel/printk.c:145:
-+ * are specifically used so that utilities $
+In shrink_page_list():
 
-total: 2 errors, 0 warnings, 21 lines checked
+		if (!sc->may_swap && page_mapped(page))
+			goto keep_locked;
 
-./patches/kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+For anon pages, this makes sense as they are always mapped and reclaiming
+them always requires swapping.
 
-Please run checkpatch prior to sending patches
+But mapped file pages are skipped here as well and it has nothing to do
+with swapping.
 
-Cc: Neil Horman <nhorman@tuxdriver.com>
+The real effect of the knob is whether mapped pages are unmapped and
+reclaimed or not.  Rename it to `may_unmap' to have its name match its
+actual meaning more precisely.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: MinChan Kim <minchan.kim@gmail.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes kernel/printk.c
---- a/kernel/printk.c~kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes
-+++ a/kernel/printk.c
-@@ -141,8 +141,8 @@ static unsigned logged_chars; /* Number 
-  * This appends the listed symbols to /proc/vmcoreinfo
-  * /proc/vmcoreinfo is used by various utiilties, like
-  * crash and makedumpfile to obtain access to symbols that
-- * are otherwise very difficult to locate.  These symbols 
-- * are specifically used so that utilities 
-+ * are otherwise very difficult to locate.  These symbols
-+ * are specifically used so that utilities
-  * can access and extract the dmesg log from a vmcore file
-  * after a crash
-  */
+diff -puN mm/vmscan.c~vmscan-rename-scmay_swap-to-may_unmap mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-rename-scmay_swap-to-may_unmap
++++ a/mm/vmscan.c
+@@ -60,8 +60,8 @@ struct scan_control {
+ 
+ 	int may_writepage;
+ 
+-	/* Can pages be swapped as part of reclaim? */
+-	int may_swap;
++	/* Can mapped pages be reclaimed? */
++	int may_unmap;
+ 
+ 	/* This context's SWAP_CLUSTER_MAX. If freeing memory for
+ 	 * suspend, we effectively ignore SWAP_CLUSTER_MAX.
+@@ -606,7 +606,7 @@ static unsigned long shrink_page_list(st
+ 		if (unlikely(!page_evictable(page, NULL)))
+ 			goto cull_mlocked;
+ 
+-		if (!sc->may_swap && page_mapped(page))
++		if (!sc->may_unmap && page_mapped(page))
+ 			goto keep_locked;
+ 
+ 		/* Double the slab pressure for mapped and swapcache pages */
+@@ -1694,7 +1694,7 @@ unsigned long try_to_free_pages(struct z
+ 		.gfp_mask = gfp_mask,
+ 		.may_writepage = !laptop_mode,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+-		.may_swap = 1,
++		.may_unmap = 1,
+ 		.swappiness = vm_swappiness,
+ 		.order = order,
+ 		.mem_cgroup = NULL,
+@@ -1713,7 +1713,7 @@ unsigned long try_to_free_mem_cgroup_pag
+ {
+ 	struct scan_control sc = {
+ 		.may_writepage = !laptop_mode,
+-		.may_swap = 1,
++		.may_unmap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = swappiness,
+ 		.order = 0,
+@@ -1723,7 +1723,7 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	struct zonelist *zonelist;
+ 
+ 	if (noswap)
+-		sc.may_swap = 0;
++		sc.may_unmap = 0;
+ 
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+ 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+@@ -1762,7 +1762,7 @@ static unsigned long balance_pgdat(pg_da
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+-		.may_swap = 1,
++		.may_unmap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = vm_swappiness,
+ 		.order = order,
+@@ -2108,7 +2108,7 @@ unsigned long shrink_all_memory(unsigned
+ 	struct reclaim_state reclaim_state;
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+-		.may_swap = 0,
++		.may_unmap = 0,
+ 		.swap_cluster_max = nr_pages,
+ 		.may_writepage = 1,
+ 		.isolate_pages = isolate_pages_global,
+@@ -2145,7 +2145,7 @@ unsigned long shrink_all_memory(unsigned
+ 
+ 		/* Force reclaiming mapped pages in the passes #3 and #4 */
+ 		if (pass > 2)
+-			sc.may_swap = 1;
++			sc.may_unmap = 1;
+ 
+ 		for (prio = DEF_PRIORITY; prio >= 0; prio--) {
+ 			unsigned long nr_to_scan = nr_pages - ret;
+@@ -2288,7 +2288,7 @@ static int __zone_reclaim(struct zone *z
+ 	int priority;
+ 	struct scan_control sc = {
+ 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
+-		.may_swap = !!(zone_reclaim_mode & RECLAIM_SWAP),
++		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
+ 		.swap_cluster_max = max_t(unsigned long, nr_pages,
+ 					SWAP_CLUSTER_MAX),
+ 		.gfp_mask = gfp_mask,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-origin.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
+migration-migrate_vmas-should-check-vma.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
-arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-early-platform-driver-v3-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_assign_resources-fix.patch
-pci-constify-pci_bus_add_devices.patch
-cciss-pci-power-management-reset-for-kexec-cleanup.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void-fix.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
-writeback-fix-break-condition-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-ata-sata_silc-needs-dmih.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+swsusp-clean-up-shrink_all_zones.patch
+swsusp-dont-fiddle-with-swappiness.patch
+vmscan-rename-scmay_swap-to-may_unmap.patch
 
