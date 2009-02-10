@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-t-reaches-1-tested-0.patch added to -mm tree
-Date: Tue, 10 Feb 2009 11:38:32 -0800
-Message-ID: <200902101938.n1AJcWmG022658@imap1.linux-foundation.org>
+Subject: + bootgraph-fix-for-use-with-dot-symbols.patch added to -mm tree
+Date: Tue, 10 Feb 2009 11:40:52 -0800
+Message-ID: <200902101940.n1AJeqRR025883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754219AbZBJTk0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754522AbZBJTlf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 14:40:26 -0500
+	Tue, 10 Feb 2009 14:41:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, a.zummo@towertech.it, david-b@pacbell.net, mano@roarinelk.homelinux.net
+Cc: mikey@neuling.org, arjan@linux.intel.com, sam@ravnborg.org
 
 
 The patch titled
-     rtc: t reaches -1, tested 0
+     bootgraph: fix for use with dot symbols
 has been added to the -mm tree.  Its filename is
-     rtc-t-reaches-1-tested-0.patch
+     bootgraph-fix-for-use-with-dot-symbols.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: t reaches -1, tested 0
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: bootgraph: fix for use with dot symbols
+From: Michael Neuling <mikey@neuling.org>
 
-With a postfix decrement t will reach -1 rather than 0, so neither the
-warning nor the `goto error_out' will occur.
+powerpc has dot symbols, so the dmesg output looks like:
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Manuel Lauss <mano@roarinelk.homelinux.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+<4>[    0.327310] calling  .migration_init+0x0/0x9c @ 1
+<4>[    0.327595] initcall .migration_init+0x0/0x9c returned 1 after 0 usecs
+
+The below fixes bootgraph.pl so it handles this correctly.
+
+Signed-off-by: Michael Neuling <mikey@neuling.org>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-au1xxx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/bootgraph.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-au1xxx.c~rtc-t-reaches-1-tested-0 drivers/rtc/rtc-au1xxx.c
---- a/drivers/rtc/rtc-au1xxx.c~rtc-t-reaches-1-tested-0
-+++ a/drivers/rtc/rtc-au1xxx.c
-@@ -81,7 +81,7 @@ static int __devinit au1xtoy_rtc_probe(s
- 	if (au_readl(SYS_TOYTRIM) != 32767) {
- 		/* wait until hardware gives access to TRIM register */
- 		t = 0x00100000;
--		while ((au_readl(SYS_COUNTER_CNTRL) & SYS_CNTRL_T0S) && t--)
-+		while ((au_readl(SYS_COUNTER_CNTRL) & SYS_CNTRL_T0S) && --t)
- 			msleep(1);
+diff -puN scripts/bootgraph.pl~bootgraph-fix-for-use-with-dot-symbols scripts/bootgraph.pl
+--- a/scripts/bootgraph.pl~bootgraph-fix-for-use-with-dot-symbols
++++ a/scripts/bootgraph.pl
+@@ -51,7 +51,7 @@ my %pidctr;
  
- 		if (!t) {
+ while (<>) {
+ 	my $line = $_;
+-	if ($line =~ /([0-9\.]+)\] calling  ([a-zA-Z0-9\_]+)\+/) {
++	if ($line =~ /([0-9\.]+)\] calling  ([a-zA-Z0-9\_\.]+)\+/) {
+ 		my $func = $2;
+ 		if ($done == 0) {
+ 			$start{$func} = $1;
+@@ -87,7 +87,7 @@ while (<>) {
+ 		$count = $count + 1;
+ 	}
+ 
+-	if ($line =~ /([0-9\.]+)\] initcall ([a-zA-Z0-9\_]+)\+.*returned/) {
++	if ($line =~ /([0-9\.]+)\] initcall ([a-zA-Z0-9\_\.]+)\+.*returned/) {
+ 		if ($done == 0) {
+ 			$end{$2} = $1;
+ 			$maxtime = $1;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from mikey@neuling.org are
 
-linux-next.patch
-drm-fix-lock_test_with_return-macro.patch
-dvb-negative-internal-sub_range-wont-get-noticed.patch
-leds-fix-confusion.patch
-paride-pgc-xs-confusion.patch
-mm-get_nid_for_pfn-returns-int.patch
-alpha-fix-macros.patch
-spi-limit-reaches-1-tested-0.patch
-rtc-wm8350-retries-will-reach-1.patch
-rtc-t-reaches-1-tested-0.patch
-ufs-sector_t-cannot-be-negative.patch
+bootgraph-fix-for-use-with-dot-symbols.patch
 
