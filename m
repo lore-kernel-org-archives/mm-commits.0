@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-fix-romc-kernel-doc-warning.patch added to -mm tree
-Date: Tue, 10 Feb 2009 13:31:33 -0800
-Message-ID: <200902102131.n1ALVXgV016620@imap1.linux-foundation.org>
+Subject: + nbd-fix-i-o-hang-on-disconnected-nbds.patch added to -mm tree
+Date: Tue, 10 Feb 2009 13:36:21 -0800
+Message-ID: <200902102136.n1ALaLhU023262@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756361AbZBJVbk (ORCPT
+	by vger.kernel.org with ESMTP id S1754410AbZBJVhC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 16:31:40 -0500
+	Tue, 10 Feb 2009 16:37:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, jbarnes@virtuousgeek.org
+Cc: paul.clements@steeleye.com, jnelson-kernel-bugzilla@jamponi.net, pavel@ucw.cz, stable@kernel.org
 
 
 The patch titled
-     PCI: fix rom.c kernel-doc warning
+     nbd: fix I/O hang on disconnected nbds
 has been added to the -mm tree.  Its filename is
-     pci-fix-romc-kernel-doc-warning.patch
+     nbd-fix-i-o-hang-on-disconnected-nbds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCI: fix rom.c kernel-doc warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: nbd: fix I/O hang on disconnected nbds
+From: Paul Clements <paul.clements@steeleye.com>
 
-Fix PCI kernel-doc warning:
+Fix a problem that causes I/O to a disconnected (or partially initialized)
+nbd device to hang indefinitely.  To reproduce:
 
-Warning(linux-2.6.29-rc4-git1/drivers/pci/rom.c:67): No description found for parameter 'pdev'
+# ioctl NBD_SET_SIZE_BLOCKS /dev/nbd23 514048
+# dd if=/dev/nbd23 of=/dev/null bs=4096 count=1
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+...hangs...
+
+This can also occur when an nbd device loses its nbd-client/server
+connection.  Although we clear the queue of any outstanding I/Os after the
+client/server connection fails, any additional I/Os that get queued later
+will hang.
+
+This bug may also be the problem reported in this bug report:
+http://bugzilla.kernel.org/show_bug.cgi?id=12277
+
+Testing would need to be performed to determine if the two issues are the
+same.
+
+This problem was introduced by the new request handling thread code ("NBD:
+allow nbd to be used locally", 3/2008), which entered into mainline around
+2.6.25.
+
+The fix, which is fairly simple, is to restore the check for lo->sock
+being NULL in do_nbd_request.  This causes I/O to an uninitialized nbd to
+immediately fail with an I/O error, as it did prior to the introduction of
+this bug.
+
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
+Reported-by: Jon Nelson <jnelson-kernel-bugzilla@jamponi.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: <stable@kernel.org>		[2.6.26.x, 2.6.27.x, 2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/rom.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/nbd.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/pci/rom.c~pci-fix-romc-kernel-doc-warning drivers/pci/rom.c
---- a/drivers/pci/rom.c~pci-fix-romc-kernel-doc-warning
-+++ a/drivers/pci/rom.c
-@@ -55,6 +55,7 @@ void pci_disable_rom(struct pci_dev *pde
+diff -puN drivers/block/nbd.c~nbd-fix-i-o-hang-on-disconnected-nbds drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-fix-i-o-hang-on-disconnected-nbds
++++ a/drivers/block/nbd.c
+@@ -549,6 +549,15 @@ static void do_nbd_request(struct reques
  
- /**
-  * pci_get_rom_size - obtain the actual size of the ROM image
-+ * @pdev: target PCI device
-  * @rom: kernel virtual pointer to image of ROM
-  * @size: size of PCI window
-  *  return: size of actual ROM image
+ 		BUG_ON(lo->magic != LO_MAGIC);
+ 
++		if (unlikely(!lo->sock)) {
++			printk(KERN_ERR "%s: Attempted send on closed socket\n",
++				lo->disk->disk_name);
++			req->errors++;
++			nbd_end_request(req);
++			spin_lock_irq(q->queue_lock);
++			continue;
++		}
++
+ 		spin_lock_irq(&lo->queue_lock);
+ 		list_add_tail(&req->queuelist, &lo->waiting_queue);
+ 		spin_unlock_irq(&lo->queue_lock);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from paul.clements@steeleye.com are
 
-kernel-doc-preferred-ending-marker-and-examples.patch
-kernel-doc-fix-syscall-wrapper-processing.patch
-linux-next.patch
-uv-fix-header-struct-usage.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver-dont-use-bus_id.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pci-fix-romc-kernel-doc-warning.patch
-esp-fix-section-mismatch-warning.patch
-cciss-pci-power-management-reset-for-kexec.patch
-cciss-pci-power-management-reset-for-kexec-cleanup.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-documentation-ignore-byproducts-from-latex.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
+nbd-fix-i-o-hang-on-disconnected-nbds.patch
+nbd-add-locking-to-nbd_ioctl.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+nbd-trivial-cleanups.patch
 
