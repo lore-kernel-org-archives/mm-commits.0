@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omap-mmc-replace-infinite-loops-with-timeouts.patch added to -mm tree
-Date: Tue, 10 Feb 2009 13:09:54 -0800
-Message-ID: <200902102109.n1AL9sjk019178@imap1.linux-foundation.org>
+Subject: + sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree.patch added to -mm tree
+Date: Tue, 10 Feb 2009 13:25:59 -0800
+Message-ID: <200902102125.n1ALPx6d008875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50526 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754729AbZBJVNl (ORCPT
+	by vger.kernel.org with ESMTP id S1756504AbZBJV0h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 16:13:41 -0500
+	Tue, 10 Feb 2009 16:26:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jpihet@mvista.com, alowe@mvista.com, drzeus-mmc@drzeus.cx, ext-adrian.hunter@nokia.com, jarkko.lavinen@nokia.com, tony@atomide.com
+Cc: dcn@sgi.com, mingo@elte.hu, steiner@sgi.com, tony.luck@intel.com
 
 
 The patch titled
-     omap: mmc: replace infinite loops with timeouts
+     sgi ia64 uv: fix ia64 build error in the linux-next tree
 has been added to the -mm tree.  Its filename is
-     omap-mmc-replace-infinite-loops-with-timeouts.patch
+     sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,147 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap: mmc: replace infinite loops with timeouts
-From: Jean Pihet <jpihet@mvista.com>
+Subject: sgi ia64 uv: fix ia64 build error in the linux-next tree
+From: Dean Nelson <dcn@sgi.com>
 
-Replace the 'while() ;' with a timeout
+Fix the ia64 build error that occurs in the linux-next tree by introducing
+an ia64 version of uv.h.  Additionally, clean up the usage of
+is_uv_system().
 
-Signed-off-by: Jean Pihet <jpihet@mvista.com>
-Cc: Andy Lowe <alowe@mvista.com>
-Cc: Jean Pihet <jpihet@mvista.com>
-Cc: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Presumably repairs
+
+commit 5b221278d61e3907a5e4104a844b63bc8bb3d43a
+Author: Ingo Molnar <mingo@elte.hu>
+Date:   Wed Jan 21 11:30:07 2009 +0100
+
+    x86: uv cleanup, build fix #2
+    
+
+Signed-off-by: Dean Nelson <dcn@sgi.com>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   56 +++++++++++++++++++++++++-------
- 1 file changed, 45 insertions(+), 11 deletions(-)
+ arch/ia64/include/asm/uv/uv.h  |   13 +++++++++++++
+ drivers/misc/sgi-gru/gru.h     |    2 --
+ drivers/misc/sgi-gru/grufile.c |   18 +++---------------
+ drivers/misc/sgi-xp/xp.h       |   22 ++++++++--------------
+ 4 files changed, 24 insertions(+), 31 deletions(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap-mmc-replace-infinite-loops-with-timeouts drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap-mmc-replace-infinite-loops-with-timeouts
-+++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -102,6 +102,8 @@
- #define OMAP_MMC_DATADIR_READ	1
- #define OMAP_MMC_DATADIR_WRITE	2
- #define MMC_TIMEOUT_MS		20
-+#define MMC_TIMEOUT_WAIT	100	/* Active wait duration, in usec */
-+#define MMC_TIMEOUT_WAIT_LOOPS	((MMC_TIMEOUT_MS * 1000) / MMC_TIMEOUT_WAIT)
- #define OMAP_MMC_MASTER_CLOCK	96000000
- #define DRIVER_NAME		"mmci-omap-hs"
- 
-@@ -384,6 +386,7 @@ static irqreturn_t mmc_omap_irq(int irq,
- 	struct mmc_omap_host *host = dev_id;
- 	struct mmc_data *data;
- 	int end_cmd = 0, end_trans = 0, status;
-+	unsigned long timeout_counter;
- 
- 	if (host->cmd == NULL && host->data == NULL) {
- 		OMAP_HSMMC_WRITE(host->base, STAT,
-@@ -406,9 +409,17 @@ static irqreturn_t mmc_omap_irq(int irq,
- 					OMAP_HSMMC_WRITE(host->base, SYSCTL,
- 						OMAP_HSMMC_READ(host->base,
- 								SYSCTL) | SRC);
--					while (OMAP_HSMMC_READ(host->base,
--							SYSCTL) & SRC)
--						;
-+					timeout_counter = 0;
-+					while ((OMAP_HSMMC_READ(host->base,
-+								SYSCTL) & SRC)
-+						&& (timeout_counter++ <
-+								MMC_TIMEOUT_WAIT_LOOPS))
-+							udelay(MMC_TIMEOUT_WAIT);
+diff -puN /dev/null arch/ia64/include/asm/uv/uv.h
+--- /dev/null
++++ a/arch/ia64/include/asm/uv/uv.h
+@@ -0,0 +1,13 @@
++#ifndef _ASM_IA64_UV_UV_H
++#define _ASM_IA64_UV_UV_H
 +
-+					if (OMAP_HSMMC_READ(host->base,
-+								SYSCTL)	& SRC)
-+						dev_err(mmc_dev(host->mmc),
-+							"Timeout waiting on SRC\n");
- 
- 					host->cmd->error = -ETIMEDOUT;
- 				} else {
-@@ -421,9 +432,17 @@ static irqreturn_t mmc_omap_irq(int irq,
- 				OMAP_HSMMC_WRITE(host->base, SYSCTL,
- 					OMAP_HSMMC_READ(host->base,
- 							SYSCTL) | SRD);
--				while (OMAP_HSMMC_READ(host->base,
--						SYSCTL) & SRD)
--					;
-+				timeout_counter = 0;
-+				while ((OMAP_HSMMC_READ(host->base,
-+							SYSCTL) & SRD)
-+					&& (timeout_counter++ <
-+							MMC_TIMEOUT_WAIT_LOOPS))
-+					udelay(MMC_TIMEOUT_WAIT);
++#include <asm/system.h>
++#include <asm/sn/simulator.h>
 +
-+				if (OMAP_HSMMC_READ(host->base,
-+							SYSCTL)	& SRD)
-+					dev_err(mmc_dev(host->mmc),
-+						"Timeout waiting on SRD\n");
- 			}
- 		}
- 		if ((status & DATA_TIMEOUT) ||
-@@ -436,9 +455,17 @@ static irqreturn_t mmc_omap_irq(int irq,
- 				OMAP_HSMMC_WRITE(host->base, SYSCTL,
- 					OMAP_HSMMC_READ(host->base,
- 							SYSCTL) | SRD);
--				while (OMAP_HSMMC_READ(host->base,
--						SYSCTL) & SRD)
--					;
-+				timeout_counter = 0;
-+				while ((OMAP_HSMMC_READ(host->base,
-+							SYSCTL) & SRD)
-+					&& (timeout_counter++ <
-+							MMC_TIMEOUT_WAIT_LOOPS))
-+					udelay(MMC_TIMEOUT_WAIT);
++static inline int is_uv_system(void)
++{
++	/* temporary support for running on hardware simulator */
++	return IS_MEDUSA() || ia64_platform_is("uv");
++}
 +
-+				if (OMAP_HSMMC_READ(host->base,
-+							SYSCTL)	& SRD)
-+					dev_err(mmc_dev(host->mmc),
-+						"Timeout waiting on SRD\n");
- 				end_trans = 1;
- 			}
- 		}
-@@ -524,6 +551,7 @@ static void mmc_omap_detect(struct work_
- {
- 	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
- 						mmc_carddetect_work);
-+	unsigned long timeout;
++#endif	/* _ASM_IA64_UV_UV_H */
+diff -puN drivers/misc/sgi-gru/gru.h~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree drivers/misc/sgi-gru/gru.h
+--- a/drivers/misc/sgi-gru/gru.h~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree
++++ a/drivers/misc/sgi-gru/gru.h
+@@ -19,8 +19,6 @@
+ #ifndef __GRU_H__
+ #define __GRU_H__
  
- 	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
- 	if (host->carddetect) {
-@@ -531,8 +559,14 @@ static void mmc_omap_detect(struct work_
- 	} else {
- 		OMAP_HSMMC_WRITE(host->base, SYSCTL,
- 			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
--		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
--			;
-+		/* Wait till the SRD bit is reset */
-+		timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
-+		while ((OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-+			&& time_before(jiffies, timeout))
-+			msleep(1);
+-#include <asm/uv/uv.h>
+-
+ /*
+  * GRU architectural definitions
+  */
+diff -puN drivers/misc/sgi-gru/grufile.c~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -36,23 +36,11 @@
+ #include <linux/interrupt.h>
+ #include <linux/proc_fs.h>
+ #include <linux/uaccess.h>
++#include <asm/uv/uv.h>
+ #include "gru.h"
+ #include "grulib.h"
+ #include "grutables.h"
+ 
+-#if defined CONFIG_X86_64
+-#include <asm/genapic.h>
+-#include <asm/irq.h>
+-#define IS_UV()		is_uv_system()
+-#elif defined CONFIG_IA64
+-#include <asm/system.h>
+-#include <asm/sn/simulator.h>
+-/* temp support for running on hardware simulator */
+-#define IS_UV()		IS_MEDUSA() || ia64_platform_is("uv")
+-#else
+-#define IS_UV()		0
+-#endif
+-
+ #include <asm/uv/uv_hub.h>
+ #include <asm/uv/uv_mmrs.h>
+ 
+@@ -381,7 +369,7 @@ static int __init gru_init(void)
+ 	char id[10];
+ 	void *gru_start_vaddr;
+ 
+-	if (!IS_UV())
++	if (!is_uv_system())
+ 		return 0;
+ 
+ #if defined CONFIG_IA64
+@@ -451,7 +439,7 @@ static void __exit gru_exit(void)
+ 	int order = get_order(sizeof(struct gru_state) *
+ 			      GRU_CHIPLETS_PER_BLADE);
+ 
+-	if (!IS_UV())
++	if (!is_uv_system())
+ 		return;
+ 
+ 	for (i = 0; i < GRU_CHIPLETS_PER_BLADE; i++)
+diff -puN drivers/misc/sgi-xp/xp.h~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree drivers/misc/sgi-xp/xp.h
+--- a/drivers/misc/sgi-xp/xp.h~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree
++++ a/drivers/misc/sgi-xp/xp.h
+@@ -15,21 +15,19 @@
+ 
+ #include <linux/mutex.h>
+ 
++#if defined CONFIG_X86_UV || defined CONFIG_IA64_SGI_UV
+ #include <asm/uv/uv.h>
++#define is_uv()		is_uv_system()
++#endif
 +
-+		if (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-+			dev_err(mmc_dev(host->mmc), "Timeout waiting on SRD\n");
++#ifndef is_uv
++#define is_uv()		0
++#endif
  
- 		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
- 	}
-_
-
-Patches currently in -mm which might be from jpihet@mvista.com are
-
-omap-mmc-recover-from-transfer-failures-resend.patch
-omap-mmc-replace-infinite-loops-with-timeouts.patch
-
+-#ifdef CONFIG_IA64
++#if defined CONFIG_IA64
+ #include <asm/system.h>
+ #include <asm/sn/arch.h>	/* defines is_shub1() and is_shub2() */
+ #define is_shub()	ia64_platform_is("sn2")
+-#ifdef CONFIG_IA64_SGI_UV
+-#define is_uv()		ia64_platform_is("uv")
+-#else
+-#define is_uv()		0
+-#endif
+-#endif
+-#ifdef CONFIG_X86_64
+-#include <asm/genapic.h>
+-#define is_uv()		is_uv_system()
+ #endif
+ 
+ #ifndef is_shub1
+@@ -44,10 +42,6 @@
+ #define is_shub()	0
+ #endif
+ 
+-#ifndef is_uv
+-#define is_uv()		0
+-#endif
