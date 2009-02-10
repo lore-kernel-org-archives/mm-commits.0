@@ -1,106 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch removed from -mm tree
-Date: Tue, 10 Feb 2009 09:54:34 -0800
-Message-ID: <200902101754.n1AHsYdK008531@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 10 Feb 2009 10:39:59 -0800
+Message-ID: <200902101839.n1AIdxJq006123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752728AbZBJRy5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754487AbZBJSkd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 12:54:57 -0500
+	Tue, 10 Feb 2009 13:40:33 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n1AIdxI8012297
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 10 Feb 2009 10:40:01 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chandru@in.ibm.com, benh@kernel.crashing.org, chandru@linux.vnet.ibm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: fix code for reserved memory spanning across nodes
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: fix code for reserved memory spanning across nodes
-From: Chandru <chandru@in.ibm.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When booted with crashkernel=224M@32M or any memory size less than this,
-the system boots properly.  The following was the observation..  The
-system comes up with two nodes (0-256M and 256M-4GB).  The crashkernel
-memory reservation spans across these two nodes.  The
-mark_reserved_regions_for_nid() in arch/powerpc/mm/numa.c resizes the
-reserved part of the memory within it as:
-
-	if (end_pfn > node_ar.end_pfn)
-		reserve_size = (node_ar.end_pfn << PAGE_SHIFT)
-				- (start_pfn << PAGE_SHIFT);
-
-
-but the reserve_bootmem_node() in mm/bootmem.c raises the pfn value of end 
-
-	end = PFN_UP(physaddr + size);
-
-This causes end to get a value past the last page in the 0-256M node. 
-Again when reserve_bootmem_node() returns, mark_reserved_regions_for_nid()
-loops around to set the rest of the crashkernel memory in the next node as
-reserved.  It references NODE_DATA(node_ar.nid) and this causes another
-'Oops: kernel access of bad area' problem.  The following changes made the
-system to boot with any amount of crashkernel memory size.
-
-Signed-off-by: Chandru S <chandru@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/numa.c |    7 ++++---
- mm/bootmem.c           |    4 ++++
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/drm_memory.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/powerpc/mm/numa.c~powerpc-fix-code-for-reserved-memory-spanning-across-nodes arch/powerpc/mm/numa.c
---- a/arch/powerpc/mm/numa.c~powerpc-fix-code-for-reserved-memory-spanning-across-nodes
-+++ a/arch/powerpc/mm/numa.c
-@@ -1001,10 +1001,11 @@ void __init do_init_bootmem(void)
- 				  start_pfn, end_pfn);
- 
- 		free_bootmem_with_active_regions(nid, end_pfn);
-+	}
-+
-+	for_each_online_node(nid) {
- 		/*
--		 * Be very careful about moving this around.  Future
--		 * calls to careful_zallocation() depend on this getting
--		 * done correctly.
-+		 * Be very careful about moving this around.
- 		 */
- 		mark_reserved_regions_for_nid(nid);
- 		sparse_memory_present_with_active_regions(nid);
-diff -puN mm/bootmem.c~powerpc-fix-code-for-reserved-memory-spanning-across-nodes mm/bootmem.c
---- a/mm/bootmem.c~powerpc-fix-code-for-reserved-memory-spanning-across-nodes
-+++ a/mm/bootmem.c
-@@ -375,10 +375,14 @@ int __init reserve_bootmem_node(pg_data_
- 				 unsigned long size, int flags)
- {
- 	unsigned long start, end;
-+	bootmem_data_t *bdata = pgdat->bdata;
- 
- 	start = PFN_DOWN(physaddr);
- 	end = PFN_UP(physaddr + size);
- 
-+	if (end > bdata->node_low_pfn)
-+		end = bdata->node_low_pfn;
-+
- 	return mark_bootmem_node(pgdat->bdata, start, end, 1, flags);
+diff -puN drivers/gpu/drm/drm_memory.c~linux-next-git-rejects drivers/gpu/drm/drm_memory.c
+--- a/drivers/gpu/drm/drm_memory.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/drm_memory.c
+@@ -178,12 +178,8 @@ void drm_core_ioremap_wc(struct drm_loca
+ 		map->handle = ioremap_wc(map->offset, map->size);
  }
+ EXPORT_SYMBOL(drm_core_ioremap_wc);
+-<<<<<<< HEAD:drivers/gpu/drm/drm_memory.c
  
+-void drm_core_ioremapfree(struct drm_map *map, struct drm_device *dev)
+-=======
+ void drm_core_ioremapfree(struct drm_local_map *map, struct drm_device *dev)
+->>>>>>> FETCH_HEAD:drivers/gpu/drm/drm_memory.c
+ {
+ 	if (!map->handle || !map->size)
+ 		return;
 _
 
-Patches currently in -mm which might be from chandru@in.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-powerpc-fix-code-for-reserved-memory-spanning-across-nodes.patch
+origin.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_assign_resources-fix.patch
+pci-constify-pci_bus_add_devices.patch
+cciss-pci-power-management-reset-for-kexec-cleanup.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void-fix.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
+writeback-fix-break-condition-checkpatch-fixes.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
