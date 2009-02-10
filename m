@@ -1,248 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: + latencytop-incorporate-review-feedback-from-andrew-morton.patch added to -mm tree
-Date: Tue, 10 Feb 2009 11:42:26 -0800
-Message-ID: <200902101942.n1AJgQUp027940@imap1.linux-foundation.org>
+Subject: [to-be-updated] mmc-fixes-and-enhancements-for-the-mmc-spi-driver.patch removed from -mm tree
+Date: Tue, 10 Feb 2009 11:44:20 -0800
+Message-ID: <200902101944.n1AJiKQu030695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45265 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42785 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750945AbZBJTnC (ORCPT
+	by vger.kernel.org with ESMTP id S1753550AbZBJTo6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 14:43:02 -0500
+	Tue, 10 Feb 2009 14:44:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: arjan@infradead.org, arjan@linux.intel.com, mingo@elte.hu
+To: wolfgang.mues@auerswald.de, dbrownell@users.sourceforge.net, drzeus-list@drzeus.cx, matt@console-pimps.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     latencytop: incorporate review feedback from Andrew Morton
-has been added to the -mm tree.  Its filename is
-     latencytop-incorporate-review-feedback-from-andrew-morton.patch
+     mmc: fixes and enhancements for the MMC SPI driver
+has been removed from the -mm tree.  Its filename was
+     mmc-fixes-and-enhancements-for-the-mmc-spi-driver.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: latencytop: incorporate review feedback from Andrew Morton
-From: Arjan van de Ven <arjan@infradead.org>
+Subject: mmc: fixes and enhancements for the MMC SPI driver
+From: Wolfgang Muees <wolfgang.mues@auerswald.de>
 
-Andrew had some suggestions for the latencytop file; this patch takes care
-of most of these:
+This patch will change the status of the MMC SPI driver from "works NOT
+for the majority of SD cards" to "works for the majority of SD cards".
 
-* Add documentation
-* Turn account_scheduler_latency into an inline function
-* Don't report negative values to userspace
-* Make the file operations struct const
-* Fix a few checkpatch.pl warnings
+changelog:
 
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+o  Release CPU time to other tasks in mmc_spi_skip() if busy waiting is longer
+   than a scheduling period. Otherwise the whole userspace will lock until the
+   SD card is not busy any more (maybe 900ms). ktime converted to jiffies to
+   match the scheduling periods.
+
+o  Wait a little bit longer (16 Bytes instead of 8) in mmc_spi_response_get()
+   to read the response code from the SD card. Some SD cards are slower than
+   the standard allows; especially if the card is internally writing data to
+   flash.
+
+o  Rise the write block timeout to a minimum of 1s in mmc_spi_writeblock().
+   Some cards - even SDHC! - need longer timeouts if they are pushed to the
+   limit (back-to-back write transfers, blocksize < than internal flash block
+   size). This may be enforced by the small cluster size of FAT32 volumes.
+
+o  Some SD cards are not able to send the response code after a write data
+   block in time if they are internal busy flushing data to NAND. Allow for
+   max. 27 bit offset in mmc_spi_writeblock(). (The highest observed delay
+   was 12 bits).
+
+o  Omit the CRC check for all non-data-reads (CID and CSD) in
+   mmc_spi_readblock(). Some cards send wrong CRC if len != MMC_SPI_BLOCKSIZE.
+
+o  Allow the platform data to specify SPI_MODE_3, overriding the default
+   SPI_MODE_0. This is for SPI hardware which is not able to drive Chip Select
+   correctly in SPI mode 0 (Blackfin).
+
+Signed-off-by: Wolfgang Muees <wolfgang.mues@auerswald.de>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/latencytop.h |   10 +++-
- kernel/latencytop.c        |   83 +++++++++++++++++++++++++++++------
- 2 files changed, 80 insertions(+), 13 deletions(-)
+ drivers/mmc/host/mmc_spi.c |   72 +++++++++++++++++++++++++++--------
+ 1 file changed, 56 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/latencytop.h~latencytop-incorporate-review-feedback-from-andrew-morton include/linux/latencytop.h
---- a/include/linux/latencytop.h~latencytop-incorporate-review-feedback-from-andrew-morton
-+++ a/include/linux/latencytop.h
-@@ -9,6 +9,7 @@
- #ifndef _INCLUDE_GUARD_LATENCYTOP_H_
- #define _INCLUDE_GUARD_LATENCYTOP_H_
- 
-+#include <linux/compiler.h>
- #ifdef CONFIG_LATENCYTOP
- 
- #define LT_SAVECOUNT		32
-@@ -24,7 +25,14 @@ struct latency_record {
- 
- struct task_struct;
- 
--void account_scheduler_latency(struct task_struct *task, int usecs, int inter);
-+extern int latencytop_enabled;
-+void __account_scheduler_latency(struct task_struct *task, int usecs, int inter);
-+static inline void
-+account_scheduler_latency(struct task_struct *task, int usecs, int inter)
-+{
-+	if (unlikely(latencytop_enabled))
-+		__account_scheduler_latency(task, usecs, inter);
-+}
- 
- void clear_all_latency_tracing(struct task_struct *p);
- 
-diff -puN kernel/latencytop.c~latencytop-incorporate-review-feedback-from-andrew-morton kernel/latencytop.c
---- a/kernel/latencytop.c~latencytop-incorporate-review-feedback-from-andrew-morton
-+++ a/kernel/latencytop.c
-@@ -9,6 +9,44 @@
-  * as published by the Free Software Foundation; version 2
-  * of the License.
+diff -puN drivers/mmc/host/mmc_spi.c~mmc-fixes-and-enhancements-for-the-mmc-spi-driver drivers/mmc/host/mmc_spi.c
+--- a/drivers/mmc/host/mmc_spi.c~mmc-fixes-and-enhancements-for-the-mmc-spi-driver
++++ a/drivers/mmc/host/mmc_spi.c
+@@ -25,6 +25,7 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   */
-+
-+/*
-+ * CONFIG_LATENCYTOP enables a kernel latency tracking infrastructure that is
-+ * used by the "latencytop" userspace tool. The latency that is tracked is not
-+ * the 'traditional' interrupt latency (which is primarily caused by something
-+ * else consuming CPU), but instead, it is the latency an application encounters
-+ * because the kernel sleeps on its behalf for various reasons.
-+ *
-+ * This code tracks 2 levels of statistics:
-+ * 1) System level latency
-+ * 2) Per process latency
-+ *
-+ * The latency is stored in fixed sized data structures in an accumulated form;
-+ * if the "same" latency cause is hit twice, this will be tracked as one entry
-+ * in the data structure. Both the count, total accumulated latency and maximum
-+ * latency are tracked in this data structure. When the fixed size structure is
-+ * full, no new causes are tracked until the buffer is flushed by writing to
-+ * the /proc file; the userspace tool does this on a regular basis.
-+ *
-+ * A latency cause is identified by a stringified backtrace at the point that
-+ * the scheduler gets invoked. The userland tool will use this string to
-+ * identify the cause of the latency in human readable form.
-+ *
-+ * The information is exported via /proc/latency_stats and /proc/<pid>/latency.
-+ * These files look like this:
-+ *
-+ * Latency Top version : v0.1
-+ * 70 59433 4897 i915_irq_wait drm_ioctl vfs_ioctl do_vfs_ioctl sys_ioctl
-+ * |    |    |    |
-+ * |    |    |    +----> the stringified backtrace
-+ * |    |    +---------> The maximum latency for this entry in microseconds
-+ * |    +--------------> The accumulated latency for this entry (microseconds)
-+ * +-------------------> The number of times this entry is hit
-+ *
-+ * (note: the average latency is the accumulated latency divided by the number
-+ * of times)
-+ */
-+
- #include <linux/latencytop.h>
- #include <linux/kallsyms.h>
- #include <linux/seq_file.h>
-@@ -72,7 +110,7 @@ account_global_scheduler_latency(struct 
- 				firstnonnull = i;
- 			continue;
- 		}
--		for (q = 0 ; q < LT_BACKTRACEDEPTH ; q++) {
-+		for (q = 0; q < LT_BACKTRACEDEPTH; q++) {
- 			unsigned long record = lat->backtrace[q];
- 
- 			if (latency_record[i].backtrace[q] != record) {
-@@ -101,31 +139,52 @@ account_global_scheduler_latency(struct 
- 	memcpy(&latency_record[i], lat, sizeof(struct latency_record));
- }
- 
--static inline void store_stacktrace(struct task_struct *tsk, struct latency_record *lat)
-+/*
-+ * Iterator to store a backtrace into a latency record entry
-+ */
-+static inline void store_stacktrace(struct task_struct *tsk,
-+					struct latency_record *lat)
+ #include <linux/hrtimer.h>
++#include <linux/sched.h>
+ #include <linux/delay.h>
+ #include <linux/bio.h>
+ #include <linux/dma-mapping.h>
+@@ -186,9 +187,9 @@ mmc_spi_readbytes(struct mmc_spi_host *h
+ static int
+ mmc_spi_skip(struct mmc_spi_host *host, ktime_t timeout, unsigned n, u8 byte)
  {
- 	struct stack_trace trace;
- 
- 	memset(&trace, 0, sizeof(trace));
- 	trace.max_entries = LT_BACKTRACEDEPTH;
- 	trace.entries = &lat->backtrace[0];
--	trace.skip = 0;
- 	save_stack_trace_tsk(tsk, &trace);
- }
- 
-+/**
-+ * __account_scheduler_latency - record an occured latency
-+ * @tsk - the task struct of the task hitting the latency
-+ * @usecs - the duration of the latency in microseconds
-+ * @inter - 1 if the sleep was interruptible, 0 if uninterruptible
-+ *
-+ * This function is the main entry point for recording latency entries
-+ * as called by the scheduler.
-+ *
-+ * This function has a few special cases to deal with normal 'non-latency'
-+ * sleeps: specifically, interruptible sleep longer than 5 msec is skipped
-+ * since this usually is caused by waiting for events via select() and co.
-+ *
-+ * Negative latencies (caused by time going backwards) are also explicitly
-+ * skipped.
-+ */
- void __sched
--account_scheduler_latency(struct task_struct *tsk, int usecs, int inter)
-+__account_scheduler_latency(struct task_struct *tsk, int usecs, int inter)
- {
- 	unsigned long flags;
- 	int i, q;
- 	struct latency_record lat;
- 
--	if (!latencytop_enabled)
--		return;
+-	u8		*cp = host->data->status;
 -
- 	/* Long interruptible waits are generally user requested... */
- 	if (inter && usecs > 5000)
- 		return;
+-	timeout = ktime_add(timeout, ktime_get());
++	u8 *cp = host->data->status;
++	unsigned long timeout_jiffies = (unsigned long) ((ktime_to_us(timeout) * HZ) / 1000000);
++	unsigned long starttime = jiffies;
  
-+	/* Negative sleeps are time going backwards */
-+	/* Zero-time sleeps are non-interesting */
-+	if (usecs <= 0)
-+		return;
+ 	while (1) {
+ 		int		status;
+@@ -203,11 +204,13 @@ mmc_spi_skip(struct mmc_spi_host *host, 
+ 				return cp[i];
+ 		}
+ 
+-		/* REVISIT investigate msleep() to avoid busy-wait I/O
+-		 * in at least some cases.
+-		 */
+-		if (ktime_to_ns(ktime_sub(ktime_get(), timeout)) > 0)
++		if ((jiffies - starttime) > timeout_jiffies)
+ 			break;
++		/* If we need long timeouts, we may release the CPU. */
++		/* We use jiffies here because we want to have a relation between
++                   elapsed time and the blocking of the scheduler. */
++		if ((jiffies - starttime) > 1)
++			schedule();
+ 	}
+ 	return -ETIMEDOUT;
+ }
+@@ -280,7 +283,9 @@ static int mmc_spi_response_get(struct m
+ 		 * It'd probably be better to memcpy() the first chunk and
+ 		 * avoid extra i/o calls...
+ 		 */
+-		for (i = 2; i < 9; i++) {
++		/* Note we check for more than 8 bytes, because in practice,
++		   some SD cards are slow... */
++		for (i = 2; i < 16; i++) {
+ 			value = mmc_spi_readbytes(host, 1);
+ 			if (value < 0)
+ 				goto done;
+@@ -609,6 +614,15 @@ mmc_spi_writeblock(struct mmc_spi_host *
+ 	struct spi_device	*spi = host->spi;
+ 	int			status, i;
+ 	struct scratch		*scratch = host->data;
++	u32			pattern;
 +
- 	memset(&lat, 0, sizeof(lat));
- 	lat.count = 1;
- 	lat.time = usecs;
-@@ -143,12 +202,12 @@ account_scheduler_latency(struct task_st
- 	if (tsk->latency_record_count >= LT_SAVECOUNT)
- 		goto out_unlock;
++	/* The MMC framework does a good job of computing timeouts
++           according to the mmc/sd standard. However, we found that in
++           SPI mode, there are many cards which need a longer timeout
++           of 1s after receiving a long stream of write data. */
++	struct timeval tv = ktime_to_timeval(timeout);
++	if (tv.tv_sec == 0)
++		timeout = ktime_set(1,0);
  
--	for (i = 0; i < LT_SAVECOUNT ; i++) {
-+	for (i = 0; i < LT_SAVECOUNT; i++) {
- 		struct latency_record *mylat;
- 		int same = 1;
- 
- 		mylat = &tsk->latency_record[i];
--		for (q = 0 ; q < LT_BACKTRACEDEPTH ; q++) {
-+		for (q = 0; q < LT_BACKTRACEDEPTH; q++) {
- 			unsigned long record = lat.backtrace[q];
- 
- 			if (mylat->backtrace[q] != record) {
-@@ -186,7 +245,7 @@ static int lstats_show(struct seq_file *
- 	for (i = 0; i < MAXLR; i++) {
- 		if (latency_record[i].backtrace[0]) {
- 			int q;
--			seq_printf(m, "%i %li %li ",
-+			seq_printf(m, "%i %lu %lu ",
- 				latency_record[i].count,
- 				latency_record[i].time,
- 				latency_record[i].max);
-@@ -223,7 +282,7 @@ static int lstats_open(struct inode *ino
- 	return single_open(filp, lstats_show, NULL);
+ 	if (host->mmc->use_spi_crc)
+ 		scratch->crc_val = cpu_to_be16(
+@@ -636,8 +650,23 @@ mmc_spi_writeblock(struct mmc_spi_host *
+ 	 * doesn't necessarily tell whether the write operation succeeded;
+ 	 * it just says if the transmission was ok and whether *earlier*
+ 	 * writes succeeded; see the standard.
+-	 */
+-	switch (SPI_MMC_RESPONSE_CODE(scratch->status[0])) {
++	 *
++	 * In practice, there are (even modern SDHC-)Cards which need
++	 * some bits to send the response, so we have to cope with this
++	 * situation and check the response bit-by-bit. Arggh!!!
++	 */
++	pattern  = scratch->status[0] << 24;
++	pattern |= scratch->status[1] << 16;
++	pattern |= scratch->status[2] << 8;
++	pattern |= scratch->status[3];
++
++	/* left-adjust to leading 0 bit */
++	while (pattern & 0x80000000)
++		pattern <<= 1;
++	/* right-adjust for pattern matching. Code is in bit 4..0 now. */
++	pattern >>= 27;
++
++	switch (pattern) {
+ 	case SPI_RESPONSE_ACCEPTED:
+ 		status = 0;
+ 		break;
+@@ -668,9 +697,9 @@ mmc_spi_writeblock(struct mmc_spi_host *
+ 	/* Return when not busy.  If we didn't collect that status yet,
+ 	 * we'll need some more I/O.
+ 	 */
+-	for (i = 1; i < sizeof(scratch->status); i++) {
+-		if (scratch->status[i] != 0)
+-			return 0;
++	for (i = 4; i < sizeof(scratch->status); i++) {
++		if (scratch->status[i] & 0x01)
++ 			return 0;
+ 	}
+ 	return mmc_spi_wait_unbusy(host, timeout);
  }
+@@ -743,7 +772,11 @@ mmc_spi_readblock(struct mmc_spi_host *h
+ 		return -EIO;
+ 	}
  
--static struct file_operations lstats_fops = {
-+static const struct file_operations lstats_fops = {
- 	.open		= lstats_open,
- 	.read		= seq_read,
- 	.write		= lstats_write,
-@@ -236,4 +295,4 @@ static int __init init_lstats_procfs(voi
- 	proc_create("latency_stats", 0644, NULL, &lstats_fops);
- 	return 0;
- }
--__initcall(init_lstats_procfs);
-+device_initcall(init_lstats_procfs);
+-	if (host->mmc->use_spi_crc) {
++	/* Omitt the CRC check for CID and CSD reads. There are some SDHC
++	   cards which don't supply a valid CRC after CID reads.
++	   Note that the CID has it's own CRC7 value inside the data block.
++	*/
++	if (host->mmc->use_spi_crc && (t->len == MMC_SPI_BLOCKSIZE)) {
+ 		u16 crc = crc_itu_t(0, t->rx_buf, t->len);
+ 
+ 		be16_to_cpus(&scratch->crc_val);
+@@ -1206,8 +1239,15 @@ static int mmc_spi_probe(struct spi_devi
+ 	 * rising edge ... meaning SPI modes 0 or 3.  So either SPI mode
+ 	 * should be legit.  We'll use mode 0 since it seems to be a
+ 	 * bit less troublesome on some hardware ... unclear why.
+-	 */
+-	spi->mode = SPI_MODE_0;
++	 *
++	 * If the platform_data specifies mode 3, trust the platform_data
++	 * and use this one. This allows for platforms which do not support
++	 * mode 0.
++	 */
++	if (spi->mode != SPI_MODE_3)
++		/* set our default */
++		spi->mode = SPI_MODE_0;
++
+ 	spi->bits_per_word = 8;
+ 
+ 	status = spi_setup(spi);
 _
 
-Patches currently in -mm which might be from arjan@infradead.org are
+Patches currently in -mm which might be from wolfgang.mues@auerswald.de are
 
-latencytop-incorporate-review-feedback-from-andrew-morton.patch
-synchronize-device-shutdown.patch
-serios-async-shutdown.patch
-sd-async-shutdown.patch
+mmc-fixes-and-enhancements-for-the-mmc-spi-driver.patch
+mmc-fixes-and-enhancements-for-the-mmc-spi-driver-fix.patch
+blackfin-spi-driver-make-mmc_spi-driver-work-on-blackfin.patch
 
