@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage.patch added to -mm tree
-Date: Mon, 09 Feb 2009 16:33:43 -0800
-Message-ID: <200902100033.n1A0Xi5s005428@imap1.linux-foundation.org>
+Subject: + __tty_open-use-the-correct-type-for-saved_flags.patch added to -mm tree
+Date: Mon, 09 Feb 2009 16:33:56 -0800
+Message-ID: <200902100033.n1A0Xu2Q005668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44057 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47446 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751784AbZBJAds (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 19:33:48 -0500
+	by vger.kernel.org with ESMTP id S1750759AbZBJAeH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2009 19:34:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, corbet@lwn.net
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     revert "Protect f_flags against races and eliminate fasync() BKL usage"
+     __tty_open(): use the correct type for saved_flags
 has been added to the -mm tree.  Its filename is
-     revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage.patch
+     __tty_open-use-the-correct-type-for-saved_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,244 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "Protect f_flags against races and eliminate fasync() BKL usage"
+Subject: __tty_open(): use the correct type for saved_flags
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make new stuff apply.
+filp->f_flags is unsigned, so use that type for the local copy.
 
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    5 +--
- fs/fcntl.c            |   65 ++++++++--------------------------------
- fs/ioctl.c            |   25 ++++++++++++---
- fs/nfsd/vfs.c         |    5 ---
- include/linux/fs.h    |   17 ----------
- 5 files changed, 37 insertions(+), 80 deletions(-)
+ drivers/char/tty_io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_io.c~revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage
+diff -puN drivers/char/tty_io.c~__tty_open-use-the-correct-type-for-saved_flags drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~__tty_open-use-the-correct-type-for-saved_flags
 +++ a/drivers/char/tty_io.c
-@@ -2162,12 +2162,13 @@ static int fionbio(struct file *file, in
- 	if (get_user(nonblock, p))
- 		return -EFAULT;
+@@ -1758,7 +1758,7 @@ static int __tty_open(struct inode *inod
+ 	struct tty_driver *driver;
+ 	int index;
+ 	dev_t device = inode->i_rdev;
+-	unsigned short saved_flags = filp->f_flags;
++	unsigned saved_flags = filp->f_flags;
  
--	lock_file_flags();
-+	/* file->f_flags is still BKL protected in the fs layer - vomit */
-+	lock_kernel();
- 	if (nonblock)
- 		file->f_flags |= O_NONBLOCK;
- 	else
- 		file->f_flags &= ~O_NONBLOCK;
--	unlock_file_flags();
-+	unlock_kernel();
- 	return 0;
- }
+ 	nonseekable_open(inode, filp);
  
-diff -puN fs/fcntl.c~revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage fs/fcntl.c
---- a/fs/fcntl.c~revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage
-+++ a/fs/fcntl.c
-@@ -19,16 +19,12 @@
- #include <linux/signal.h>
- #include <linux/rcupdate.h>
- #include <linux/pid_namespace.h>
--#include <linux/mutex.h>
-+#include <linux/smp_lock.h>
- 
- #include <asm/poll.h>
- #include <asm/siginfo.h>
- #include <asm/uaccess.h>
- 
--/* Serialize access to file->f_flags */
--DEFINE_SPINLOCK(file_flags_lock);
--EXPORT_SYMBOL(file_flags_lock);
--
- void set_close_on_exec(unsigned int fd, int flag)
- {
- 	struct files_struct *files = current->files;
-@@ -145,7 +141,7 @@ SYSCALL_DEFINE1(dup, unsigned int, filde
- 	return ret;
- }
- 
--#define SETFL_MASK (O_APPEND | O_NONBLOCK | O_NDELAY | O_DIRECT | O_NOATIME)
-+#define SETFL_MASK (O_APPEND | O_NONBLOCK | O_NDELAY | FASYNC | O_DIRECT | O_NOATIME)
- 
- static int setfl(int fd, struct file * filp, unsigned long arg)
- {
-@@ -180,60 +176,25 @@ static int setfl(int fd, struct file * f
- 	if (error)
- 		return error;
- 
-+	/*
-+	 * We still need a lock here for now to keep multiple FASYNC calls
-+	 * from racing with each other.
-+	 */
-+	lock_kernel();
- 	if ((arg ^ filp->f_flags) & FASYNC) {
--		error = fasync_change(fd, filp, (arg & FASYNC) != 0);
--		if (error == -ENOTTY)
--			/*
--			 * ABI compatibility: fcntl() has traditionally returned
--			 * zero in this case (but ioctl() does not).
--			 */
--			error = 0;
--		else if (error < 0)
--			goto out;
-+		if (filp->f_op && filp->f_op->fasync) {
-+			error = filp->f_op->fasync(fd, filp, (arg & FASYNC) != 0);
-+			if (error < 0)
-+				goto out;
-+		}
- 	}
- 
--	lock_file_flags();
- 	filp->f_flags = (arg & SETFL_MASK) | (filp->f_flags & ~SETFL_MASK);
--	unlock_file_flags();
-  out:
-+	unlock_kernel();
- 	return error;
- }
- 
--
--
--/*
-- * Change the setting of fasync, let the driver know.
-- * Not static because ioctl_fioasync() uses it too.
-- */
--int fasync_change(int fd, struct file *filp, int on)
--{
--	int ret = 0;
--	static DEFINE_MUTEX(fasync_mutex);
--
--	if (filp->f_op->fasync == NULL)
--		return -ENOTTY;
--
--	mutex_lock(&fasync_mutex);
--	/* Can test without flags lock, nobody else will change it */
--	if (((filp->f_flags & FASYNC) == 0) == (on == 0))
--		goto out;
--	ret = filp->f_op->fasync(fd, filp, on);
--	if (ret >= 0) {
--		lock_file_flags();
--		if (on)
--			filp->f_flags |= FASYNC;
--		else
--			filp->f_flags &= ~FASYNC;
--		unlock_file_flags();
--	}
--  out:
--	mutex_unlock(&fasync_mutex);
--	return ret;
--}
--
--
--
--
- static void f_modown(struct file *filp, struct pid *pid, enum pid_type type,
-                      uid_t uid, uid_t euid, int force)
- {
-diff -puN fs/ioctl.c~revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage fs/ioctl.c
---- a/fs/ioctl.c~revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage
-+++ a/fs/ioctl.c
-@@ -404,12 +404,10 @@ static int ioctl_fionbio(struct file *fi
- 	if (O_NONBLOCK != O_NDELAY)
- 		flag |= O_NDELAY;
- #endif
--	lock_file_flags();
- 	if (on)
- 		filp->f_flags |= flag;
- 	else
- 		filp->f_flags &= ~flag;
--	unlock_file_flags();
- 	return error;
- }
- 
-@@ -425,9 +423,20 @@ static int ioctl_fioasync(unsigned int f
- 	flag = on ? FASYNC : 0;
- 
- 	/* Did FASYNC state change ? */
--	if ((flag ^ filp->f_flags) & FASYNC)
--		return fasync_change(fd, filp, on);
--	return 0;
-+	if ((flag ^ filp->f_flags) & FASYNC) {
-+		if (filp->f_op && filp->f_op->fasync)
-+			error = filp->f_op->fasync(fd, filp, on);
-+		else
-+			error = -ENOTTY;
-+	}
-+	if (error)
-+		return error;
-+
-+	if (on)
-+		filp->f_flags |= FASYNC;
-+	else
-+		filp->f_flags &= ~FASYNC;
-+	return error;
- }
- 
- static int ioctl_fsfreeze(struct file *filp)
-@@ -490,11 +499,17 @@ int do_vfs_ioctl(struct file *filp, unsi
- 		break;
- 
- 	case FIONBIO:
-+		/* BKL needed to avoid races tweaking f_flags */
-+		lock_kernel();
- 		error = ioctl_fionbio(filp, argp);
-+		unlock_kernel();
- 		break;
- 
- 	case FIOASYNC:
-+		/* BKL needed to avoid races tweaking f_flags */
-+		lock_kernel();
- 		error = ioctl_fioasync(fd, filp, argp);
-+		unlock_kernel();
- 		break;
- 
- 	case FIOQSIZE:
-diff -puN fs/nfsd/vfs.c~revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage
-+++ a/fs/nfsd/vfs.c
-@@ -998,11 +998,8 @@ nfsd_vfs_write(struct svc_rqst *rqstp, s
- 
- 	if (!EX_ISSYNC(exp))
- 		stable = 0;
--	if (stable && !EX_WGATHER(exp)) {
--		lock_file_flags();
-+	if (stable && !EX_WGATHER(exp))
- 		file->f_flags |= O_SYNC;
--		unlock_file_flags();
--	}
- 
- 	/* Write the data. */
- 	oldfs = get_fs(); set_fs(KERNEL_DS);
-diff -puN include/linux/fs.h~revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage include/linux/fs.h
---- a/include/linux/fs.h~revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage
-+++ a/include/linux/fs.h
-@@ -885,23 +885,6 @@ extern spinlock_t files_lock;
- #define get_file(x)	atomic_long_inc(&(x)->f_count)
- #define file_count(x)	atomic_long_read(&(x)->f_count)
- 
--/*
-- * Serialize changes to file->f_flags.  These should not be called
-- * from interrupt context.
-- */
--extern spinlock_t file_flags_lock;
--
--static inline void lock_file_flags(void)
--{
--	spin_lock(&file_flags_lock);
--}
--
--static inline void unlock_file_flags(void)
--{
--	spin_unlock(&file_flags_lock);
--}
--extern int fasync_change(int fd, struct file *filp, int on);
--
- #ifdef CONFIG_DEBUG_WRITECOUNT
- static inline void file_take_write(struct file *f)
- {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
