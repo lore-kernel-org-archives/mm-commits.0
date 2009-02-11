@@ -1,66 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:18:22 -0800
-Message-ID: <200902112118.n1BLIM6E018997@imap1.linux-foundation.org>
+Subject: [folded] drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:18:44 -0800
+Message-ID: <200902112118.n1BLIilP019484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35883 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756762AbZBKVSa (ORCPT
+	by vger.kernel.org with ESMTP id S1756763AbZBKVS6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:18:30 -0500
+	Wed, 11 Feb 2009 16:18:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, julia@diku.dk, scottwood@freescale.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch-powerpc-eliminate-double-sizeof-checkpatch-fixes
+     drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
+     drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was folded into drivers-consolidate-driver_probe_done-loops-into-one-place.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-powerpc-eliminate-double-sizeof-checkpatch-fixes
+Subject: drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#44: FILE: arch/powerpc/platforms/82xx/pq2ads-pci-pic.c:189:
-+^I             sizeof(struct pq2ads_pci_pic));$
+ERROR: trailing whitespace
+#78: FILE: init/do_mounts.c:373:
++^I/* $
 
-total: 1 errors, 0 warnings, 8 lines checked
+ERROR: trailing whitespace
+#79: FILE: init/do_mounts.c:374:
++^I * wait for the known devices to complete their probing $
 
-./patches/arch-powerpc-eliminate-double-sizeof.patch has style problems, please review.  If any of these errors
+total: 2 errors, 0 warnings, 72 lines checked
+
+./patches/drivers-consolidate-driver_probe_done-loops-into-one-place.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Julia Lawall <julia@diku.dk>
-Cc: Scott Wood <scottwood@freescale.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/82xx/pq2ads-pci-pic.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ init/do_mounts.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/platforms/82xx/pq2ads-pci-pic.c~arch-powerpc-eliminate-double-sizeof-checkpatch-fixes arch/powerpc/platforms/82xx/pq2ads-pci-pic.c
---- a/arch/powerpc/platforms/82xx/pq2ads-pci-pic.c~arch-powerpc-eliminate-double-sizeof-checkpatch-fixes
-+++ a/arch/powerpc/platforms/82xx/pq2ads-pci-pic.c
-@@ -185,8 +185,7 @@ int __init pq2ads_pci_init_irq(void)
- out_unmap_regs:
- 	iounmap(priv->regs);
- out_free_bootmem:
--	free_bootmem((unsigned long)priv,
--	             sizeof(struct pq2ads_pci_pic));
-+	free_bootmem((unsigned long)priv, sizeof(struct pq2ads_pci_pic));
- 	of_node_put(np);
- out_unmap_irq:
- 	irq_dispose_mapping(irq);
+diff -puN init/do_mounts.c~drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes init/do_mounts.c
+--- a/init/do_mounts.c~drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes
++++ a/init/do_mounts.c
+@@ -370,8 +370,8 @@ void __init prepare_namespace(void)
+ 		ssleep(root_delay);
+ 	}
+ 
+-	/* 
+-	 * wait for the known devices to complete their probing 
++	/*
++	 * wait for the known devices to complete their probing
+ 	 *
+ 	 * Note: this is a potential source of long boot delays.
+ 	 * For example, it is not atypical to wait 5 seconds here
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,8 +87,7 @@ fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
 x86-define-arch_want_frame_pointers.patch
 kernel-auditscc-fix-warning.patch
-arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
 drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
 sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
 early-platform-driver-v3-checkpatch-fixes.patch
