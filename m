@@ -1,111 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] writeback-fix-break-condition-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:03:09 -0800
-Message-ID: <200902112103.n1BL3Aan029906@imap1.linux-foundation.org>
+Subject: [folded] ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:02:39 -0800
+Message-ID: <200902112102.n1BL2eIQ029120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33406 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756465AbZBKVDi (ORCPT
+	by vger.kernel.org with ESMTP id S1753143AbZBKVEa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:03:38 -0500
+	Wed, 11 Feb 2009 16:04:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com, fedux@lugmen.org.ar, npiggin@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cotte@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback-fix-break-condition-checkpatch-fixes
+     ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix
 has been removed from the -mm tree.  Its filename was
-     writeback-fix-break-condition-checkpatch-fixes.patch
+     ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
 
-This patch was dropped because it was folded into writeback-fix-break-condition.patch
+This patch was dropped because it was folded into ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-fix-break-condition-checkpatch-fixes
+Subject: ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#40: FILE: mm/page-writeback.c:1056:
-+				if (nr_to_write == 0 && wbc->sync_mode == WB_SYNC_NONE) {
+might as well nuke that unneeded backslash
 
-WARNING: line over 80 characters
-#42: FILE: mm/page-writeback.c:1058:
-+					 * We stop writing back only if we are not
-
-WARNING: line over 80 characters
-#43: FILE: mm/page-writeback.c:1059:
-+					 * doing integrity sync. In case of integrity
-
-WARNING: line over 80 characters
-#44: FILE: mm/page-writeback.c:1060:
-+					 * sync we have to keep going because someone
-
-WARNING: line over 80 characters
-#45: FILE: mm/page-writeback.c:1061:
-+					 * may be concurrently dirtying pages, and we
-
-WARNING: line over 80 characters
-#46: FILE: mm/page-writeback.c:1062:
-+					 * might have synced a lot of newly appeared
-
-WARNING: line over 80 characters
-#47: FILE: mm/page-writeback.c:1063:
-+					 * dirty pages, but have not synced all of the
-
-total: 0 errors, 7 warnings, 34 lines checked
-
-./patches/writeback-fix-break-condition.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-Cc: Federico Cuello <fedux@lugmen.org.ar>
-Cc: Nick Piggin <npiggin@suse.de>
+Cc: Carsten Otte <cotte@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ fs/ext2/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~writeback-fix-break-condition-checkpatch-fixes mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-fix-break-condition-checkpatch-fixes
-+++ a/mm/page-writeback.c
-@@ -1053,14 +1053,16 @@ continue_unlock:
- 
- 			if (nr_to_write > 0) {
- 				nr_to_write--;
--				if (nr_to_write == 0 && wbc->sync_mode == WB_SYNC_NONE) {
-+				if (nr_to_write == 0 &&
-+				    wbc->sync_mode == WB_SYNC_NONE) {
- 					/*
--					 * We stop writing back only if we are not
--					 * doing integrity sync. In case of integrity
--					 * sync we have to keep going because someone
--					 * may be concurrently dirtying pages, and we
--					 * might have synced a lot of newly appeared
--					 * dirty pages, but have not synced all of the
-+					 * We stop writing back only if we are
-+					 * not doing integrity sync. In case of
-+					 * integrity sync we have to keep going
-+					 * because someone may be concurrently
-+					 * dirtying pages, and we might have
-+					 * synced a lot of newly appeared dirty
-+					 * pages, but have not synced all of the
- 					 * old dirty pages.
- 					 */
- 					done = 1;
+diff -puN fs/ext2/super.c~ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix
++++ a/fs/ext2/super.c
+@@ -1186,7 +1186,7 @@ static int ext2_remount (struct super_bl
+ 	if (((sbi->s_mount_opt & EXT2_MOUNT_XIP) !=
+ 	    (old_mount_opt & EXT2_MOUNT_XIP)) &&
+ 	    invalidate_inodes(sb)) {
+-		ext2_warning(sb, __func__, "refusing change of xip flag "\
++		ext2_warning(sb, __func__, "refusing change of xip flag "
+ 			     "with busy inodes while remounting");
+ 		sbi->s_mount_opt &= ~EXT2_MOUNT_XIP;
+ 		sbi->s_mount_opt |= old_mount_opt & EXT2_MOUNT_XIP;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
-writeback-fix-break-condition.patch
+ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
 writeback-fix-break-condition-checkpatch-fixes.patch
 vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
 seq_file-properly-cope-with-pread-fix.patch
