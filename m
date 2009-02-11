@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch added to -mm tree
-Date: Tue, 10 Feb 2009 16:26:38 -0800
-Message-ID: <200902110026.n1B0QcqQ000403@imap1.linux-foundation.org>
+Subject: + nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints.patch added to -mm tree
+Date: Tue, 10 Feb 2009 16:27:34 -0800
+Message-ID: <200902110027.n1B0RY6I001603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54932 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754656AbZBKA0q (ORCPT
+	by vger.kernel.org with ESMTP id S1755600AbZBKA1k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 19:26:46 -0500
+	Tue, 10 Feb 2009 19:27:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kristoffer.ericson@gmail.com, krzysztof.h1@poczta.fm
+Cc: konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification
+     nilfs2: fix buggy behavior seen in enumerating checkpoints
 has been added to the -mm tree.  Its filename is
-     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+     nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,124 +34,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: nilfs2: fix buggy behavior seen in enumerating checkpoints
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com
-Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+This will fix the weird behavior of lscp command in listing continuously
+created checkpoints; the output of lscp is rewinded regularly for the
+recent nilfs.  As a result of debugging, a defect was found in
+nilfs_cpfile_do_get_cpinfo() function.
+
+Though the function can be repeatedly called to enumerate checkpoints and
+it can skip invalid checkpoint entries, the index value was not carried
+between successive calls.
+
+The bug has long been present, and came to surface after applying a bugfix
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch, which increased
+frequency of calling the function.  The similar bugfix was already applied
+for ``snapshots'' by
+nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch.
+
+This fixes the problem by making the index argument bidirectional on the
+function.
+
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s1d13xxxfb.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/nilfs2/cpfile.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification drivers/video/s1d13xxxfb.c
---- a/drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification
-+++ a/drivers/video/s1d13xxxfb.c
-@@ -637,11 +637,8 @@ s1d13xxxfb_probe(struct platform_device 
- 			default_par->prod_id = prod_id;
- 			default_par->revision = revision;
- 			ret = 0;
--		}
--
--		/* jump ship if we find something */
--		if (!ret)
- 			break;
-+		}
+diff -puN fs/nilfs2/cpfile.c~nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints fs/nilfs2/cpfile.c
+--- a/fs/nilfs2/cpfile.c~nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints
++++ a/fs/nilfs2/cpfile.c
+@@ -382,13 +382,13 @@ static void nilfs_cpfile_checkpoint_to_c
+ 	ci->ci_next = le64_to_cpu(cp->cp_snapshot_list.ssl_next);
+ }
+ 
+-static ssize_t nilfs_cpfile_do_get_cpinfo(struct inode *cpfile, __u64 cno,
++static ssize_t nilfs_cpfile_do_get_cpinfo(struct inode *cpfile, __u64 *cnop,
+ 					  struct nilfs_cpinfo *ci, size_t nci)
+ {
+ 	struct nilfs_checkpoint *cp;
+ 	struct buffer_head *bh;
+ 	size_t cpsz = NILFS_MDT(cpfile)->mi_entry_size;
+-	__u64 cur_cno = nilfs_mdt_cno(cpfile);
++	__u64 cur_cno = nilfs_mdt_cno(cpfile), cno = *cnop;
+ 	void *kaddr;
+ 	int n, ret;
+ 	int ncps, i;
+@@ -416,6 +416,8 @@ static ssize_t nilfs_cpfile_do_get_cpinf
  	}
  
- 	if (!ret) {
+ 	ret = n;
++	if (n > 0)
++		*cnop = ci[n - 1].ci_cno + 1;
+ 
+  out:
+ 	up_read(&NILFS_MDT(cpfile)->mi_sem);
+@@ -504,7 +506,7 @@ ssize_t nilfs_cpfile_get_cpinfo(struct i
+ {
+ 	switch (mode) {
+ 	case NILFS_CHECKPOINT:
+-		return nilfs_cpfile_do_get_cpinfo(cpfile, *cnop, ci, nci);
++		return nilfs_cpfile_do_get_cpinfo(cpfile, cnop, ci, nci);
+ 	case NILFS_SNAPSHOT:
+ 		return nilfs_cpfile_do_get_ssinfo(cpfile, cnop, ci, nci);
+ 	default:
+@@ -520,13 +522,14 @@ ssize_t nilfs_cpfile_get_cpinfo(struct i
+ int nilfs_cpfile_delete_checkpoint(struct inode *cpfile, __u64 cno)
+ {
+ 	struct nilfs_cpinfo ci;
++	__u64 tcno = cno;
+ 	ssize_t nci;
+ 	int ret;
+ 
+ 	/* checkpoint number 0 is invalid */
+ 	if (cno == 0)
+ 		return -ENOENT;
+-	nci = nilfs_cpfile_do_get_cpinfo(cpfile, cno, &ci, 1);
++	nci = nilfs_cpfile_do_get_cpinfo(cpfile, &tcno, &ci, 1);
+ 	if (nci < 0)
+ 		return nci;
+ 	else if (nci == 0 || ci.ci_cno != cno)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-origin.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
-arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-early-platform-driver-v3-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_assign_resources-fix.patch
-pci-constify-pci_bus_add_devices.patch
-cciss-pci-power-management-reset-for-kexec-cleanup.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void-fix.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
-writeback-fix-break-condition-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-ata-sata_silc-needs-dmih.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
 nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
+nilfs2-inode-operations.patch
 nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
 nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
 nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+nilfs2-cleanup-nilfs_clear_inode.patch
+nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
+nilfs2-insert-explanations-in-gcinode-file.patch
+nilfs2-add-maintainer.patch
+nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
+nilfs2-clean-up-indirect-function-calling-conventions.patch
+nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints.patch
 
