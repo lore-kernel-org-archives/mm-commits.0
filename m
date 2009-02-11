@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-oqo-depends-on-input_polldev.patch added to -mm tree
-Date: Wed, 11 Feb 2009 14:17:20 -0800
-Message-ID: <200902112217.n1BMHKga004280@imap1.linux-foundation.org>
+Subject: + pm-fix-build-for-config_pm-unset.patch added to -mm tree
+Date: Wed, 11 Feb 2009 14:18:05 -0800
+Message-ID: <200902112218.n1BMI5rl005320@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46863 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57854 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754158AbZBKWSE (ORCPT
+	by vger.kernel.org with ESMTP id S1755353AbZBKWTB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 17:18:04 -0500
+	Wed, 11 Feb 2009 17:19:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, hpa@zytor.com, mingo@elte.hu, mjg59@srcf.ucam.org, tglx@linutronix.de
+Cc: rjw@sisk.pl, lenb@kernel.org, mhiramat@redhat.com, mingo@elte.hu
 
 
 The patch titled
-     x86: oqo: depends on INPUT_POLLDEV
+     pm: fix build for CONFIG_PM unset
 has been added to the -mm tree.  Its filename is
-     x86-oqo-depends-on-input_polldev.patch
+     pm-fix-build-for-config_pm-unset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: oqo: depends on INPUT_POLLDEV
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: pm: fix build for CONFIG_PM unset
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-oqo driver uses polled input functions, so make it depend
-on INPUT_POLLDEV.
+Compilation of kprobes.c with CONFIG_PM unset is broken due to some broken
+config dependncies.  Fix that.
 
-ERROR: "input_register_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
-ERROR: "input_allocate_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
-ERROR: "input_free_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
-ERROR: "input_unregister_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-by: Ingo Molnar <mingo@elte.hu>
+Tested-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/Makefile       |    1 +
+ kernel/power/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/Kconfig~x86-oqo-depends-on-input_polldev drivers/platform/x86/Kconfig
---- a/drivers/platform/x86/Kconfig~x86-oqo-depends-on-input_polldev
-+++ a/drivers/platform/x86/Kconfig
-@@ -137,7 +137,7 @@ config MSI_LAPTOP
- config OQO_WMI
-        tristate "OQO WMI extras"
-        depends on ACPI_WMI
--       depends on INPUT
-+       depends on INPUT && INPUT_POLLDEV
-        depends on RFKILL
-        depends on BACKLIGHT_CLASS_DEVICE
-        help
+diff -puN kernel/Makefile~pm-fix-build-for-config_pm-unset kernel/Makefile
+--- a/kernel/Makefile~pm-fix-build-for-config_pm-unset
++++ a/kernel/Makefile
+@@ -51,6 +51,7 @@ obj-$(CONFIG_UID16) += uid16.o
+ obj-$(CONFIG_MODULES) += module.o
+ obj-$(CONFIG_KALLSYMS) += kallsyms.o
+ obj-$(CONFIG_PM) += power/
++obj-$(CONFIG_FREEZER) += power/
+ obj-$(CONFIG_BSD_PROCESS_ACCT) += acct.o
+ obj-$(CONFIG_KEXEC) += kexec.o
+ obj-$(CONFIG_BACKTRACE_SELF_TEST) += backtracetest.o
+diff -puN kernel/power/Makefile~pm-fix-build-for-config_pm-unset kernel/power/Makefile
+--- a/kernel/power/Makefile~pm-fix-build-for-config_pm-unset
++++ a/kernel/power/Makefile
+@@ -3,7 +3,7 @@ ifeq ($(CONFIG_PM_DEBUG),y)
+ EXTRA_CFLAGS	+=	-DDEBUG
+ endif
+ 
+-obj-y				:= main.o
++obj-$(CONFIG_PM)		+= main.o
+ obj-$(CONFIG_PM_SLEEP)		+= console.o
+ obj-$(CONFIG_FREEZER)		+= process.o
+ obj-$(CONFIG_HIBERNATION)	+= swsusp.o disk.o snapshot.o swap.o user.o
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-kernel-doc-preferred-ending-marker-and-examples.patch
-kernel-doc-fix-syscall-wrapper-processing.patch
 linux-next.patch
-uv-fix-header-struct-usage.patch
-x86-dell-laptop-depends-on-power_supply.patch
-x86-oqo-depends-on-input_polldev.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pci-fix-romc-kernel-doc-warning.patch
-esp-fix-section-mismatch-warning.patch
-cciss-pci-power-management-reset-for-kexec.patch
-rtl8187se-depends-on-wireless_ext.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-documentation-ignore-byproducts-from-latex.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+resume-wait-for-device-probing-to-finish.patch
+pm-fix-build-for-config_pm-unset.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+swsusp-clean-up-shrink_all_zones.patch
+swsusp-dont-fiddle-with-swappiness.patch
+pm-wait-for-console-in-resume.patch
+pm-fix-suspend_console-resume_console-to-use-only-one-semaphore.patch
+fix-pm_notifiers-during-user-mode-hibernation.patch
+shrink_slab-handle-bad-shrinkers.patch
 
