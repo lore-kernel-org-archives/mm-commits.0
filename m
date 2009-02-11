@@ -1,54 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pci-constify-pci_bus_assign_resources-fix.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:28:39 -0800
-Message-ID: <200902112128.n1BLSdUe001050@imap1.linux-foundation.org>
+Subject: [folded] vfs-simple_set_mnt-should-return-void-fix.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:31:16 -0800
+Message-ID: <200902112131.n1BLVHoJ004802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39220 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754960AbZBKVrv (ORCPT
+	by vger.kernel.org with ESMTP id S1756333AbZBKV7E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:47:51 -0500
+	Wed, 11 Feb 2009 16:59:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hch@lst.de, serue@us.ibm.com, sukadev@linux.vnet.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-constify-pci_bus_assign_resources-fix
+     vfs-simple_set_mnt-should-return-void-fix
 has been removed from the -mm tree.  Its filename was
-     pci-constify-pci_bus_assign_resources-fix.patch
+     vfs-simple_set_mnt-should-return-void-fix.patch
 
-This patch was dropped because it was folded into pci-constify-pci_bus_assign_resources.patch
+This patch was dropped because it was folded into vfs-simple_set_mnt-should-return-void.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-constify-pci_bus_assign_resources-fix
+Subject: vfs-simple_set_mnt-should-return-void-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pci/setup-bus.c: In function 'pci_bus_assign_resources':
-drivers/pci/setup-bus.c:503: warning: passing argument 1 of 'pbus_assign_resources_sorted' discards qualifiers from pointer target type
+fs/proc/proc_net.c: In function 'proc_net_get_sb':
+fs/proc/proc_net.c:296: error: void value not ignored as it ought to be
 
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/setup-bus.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/proc_net.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/setup-bus.c~pci-constify-pci_bus_assign_resources-fix drivers/pci/setup-bus.c
---- a/drivers/pci/setup-bus.c~pci-constify-pci_bus_assign_resources-fix
-+++ a/drivers/pci/setup-bus.c
-@@ -27,7 +27,7 @@
- #include <linux/slab.h>
+diff -puN fs/proc/proc_net.c~vfs-simple_set_mnt-should-return-void-fix fs/proc/proc_net.c
+--- a/fs/proc/proc_net.c~vfs-simple_set_mnt-should-return-void-fix
++++ a/fs/proc/proc_net.c
+@@ -293,7 +293,8 @@ static int proc_net_get_sb(struct file_s
+ 		sb->s_flags |= MS_ACTIVE;
+ 	}
  
+-	return simple_set_mnt(mnt, sb);
++	simple_set_mnt(mnt, sb);
++	return 0;
+ }
  
--static void pbus_assign_resources_sorted(struct pci_bus *bus)
-+static void pbus_assign_resources_sorted(const struct pci_bus *bus)
- {
- 	struct pci_dev *dev;
- 	struct resource *res;
+ static struct file_system_type proc_net_fs_type = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,10 +81,10 @@ net-dont-use-in_atomic-in-gfp_any.patch
 documentation-connector-cn_testc-dont-use-gfp_any.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
 pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_assign_resources-fix.patch
 pci-constify-pci_bus_add_devices.patch
-cciss-pci-power-management-reset-for-kexec-cleanup.patch
+cciss-pci-power-management-reset-for-kexec.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
 vfs-simple_set_mnt-should-return-void-fix.patch
 __tty_open-use-the-correct-type-for-saved_flags.patch
 aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
