@@ -1,161 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded] input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:10:02 -0800
-Message-ID: <200902112110.n1BLA3Gw007155@imap1.linux-foundation.org>
+Subject: [folded] 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:13:51 -0800
+Message-ID: <200902112113.n1BLDp8a012479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49988 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756649AbZBKVLL (ORCPT
+	by vger.kernel.org with ESMTP id S1758229AbZBKVP5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:11:11 -0500
+	Wed, 11 Feb 2009 16:15:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@linux.intel.com, dtor@mail.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mchehab@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix
+     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
 has been removed from the -mm tree.  Its filename was
-     input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
+     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
 
-This patch was dropped because it was folded into input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+This patch was dropped because it was folded into 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix
+Subject: 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/input/serio/i8042-x86ia64io.h:458: warning: 'i8042_dmi_reset_table' defined but not used
+drivers/serial/8250_pci.c:885: warning: initialization from incompatible pointer type
+drivers/serial/8250_pci.c:892: warning: initialization from incompatible pointer type
+drivers/serial/8250_pci.c:899: warning: initialization from incompatible pointer type
 
-Fix this by moving both i8042_dmi_nopnp_tablep[] and i8042_dmi_reset_table[]
-into a section which requires CONFIG_PNP and CONFIG_X86.  Give their
-usage sites the same treatment.
-
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: <stable@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/i8042-x86ia64io.h |   79 +++++++++++-------------
- 1 file changed, 39 insertions(+), 40 deletions(-)
+ drivers/serial/8250_pci.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/input/serio/i8042-x86ia64io.h~input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix drivers/input/serio/i8042-x86ia64io.h
---- a/drivers/input/serio/i8042-x86ia64io.h~input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix
-+++ a/drivers/input/serio/i8042-x86ia64io.h
-@@ -369,26 +369,6 @@ static struct dmi_system_id __initdata i
- 	{ }
- };
+diff -puN drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
++++ a/drivers/serial/8250_pci.c
+@@ -798,9 +798,9 @@ pci_default_setup(struct serial_private 
+ 	return setup_port(priv, port, bar, offset, board->reg_shift);
+ }
  
--#ifdef CONFIG_PNP
--static struct dmi_system_id __initdata i8042_dmi_nopnp_table[] = {
--	{
--		.ident = "Intel MBO Desktop D845PESV",
--		.matches = {
--			DMI_MATCH(DMI_BOARD_NAME, "D845PESV"),
--			DMI_MATCH(DMI_BOARD_VENDOR, "Intel Corporation"),
--		},
--	},
--	{
--		.ident = "MSI Wind U-100",
--		.matches = {
--			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
--			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
--		},
--	},
--	{ }
--};
--#endif
--
- /*
-  * Some Wistron based laptops need us to explicitly enable the 'Dritek
-  * keyboard extension' to make their extra keys start generating scancodes.
-@@ -455,25 +435,6 @@ static struct dmi_system_id __initdata i
- 	{ }
- };
- 
--static struct dmi_system_id __initdata i8042_dmi_reset_table[] = {
--	{
--		.ident = "MSI Wind U-100",
--		.matches = {
--			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
--			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
--		},
--	},
--	{
--		.ident = "LG Electronics X110",
--		.matches = {
--			DMI_MATCH(DMI_BOARD_NAME, "X110"),
--			DMI_MATCH(DMI_BOARD_VENDOR, "LG Electronics Inc."),
--		},
--	},
--	{ }
--};
--
--
- #endif /* CONFIG_X86 */
- 
- #ifdef CONFIG_PNP
-@@ -492,6 +453,44 @@ static int i8042_pnp_aux_irq;
- static char i8042_pnp_kbd_name[32];
- static char i8042_pnp_aux_name[32];
- 
-+#ifdef CONFIG_X86
-+static struct dmi_system_id __initdata i8042_dmi_nopnp_table[] = {
-+	{
-+		.ident = "Intel MBO Desktop D845PESV",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "D845PESV"),
-+			DMI_MATCH(DMI_BOARD_VENDOR, "Intel Corporation"),
-+		},
-+	},
-+	{
-+		.ident = "MSI Wind U-100",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
-+			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
-+		},
-+	},
-+	{ }
-+};
-+
-+static struct dmi_system_id __initdata i8042_dmi_reset_table[] = {
-+	{
-+		.ident = "MSI Wind U-100",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
-+			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
-+		},
-+	},
-+	{
-+		.ident = "LG Electronics X110",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "X110"),
-+			DMI_MATCH(DMI_BOARD_VENDOR, "LG Electronics Inc."),
-+		},
-+	},
-+	{ }
-+};
-+#endif
-+
- static int i8042_pnp_kbd_probe(struct pnp_dev *dev, const struct pnp_device_id *did)
+-static int
+-skip_tx_en_setup(struct serial_private *priv, struct pciserial_board *board,
+-		  struct uart_port *port, int idx)
++static int skip_tx_en_setup(struct serial_private *priv,
++			const struct pciserial_board *board,
++			struct uart_port *port, int idx)
  {
- 	if (pnp_port_valid(dev, 0) && pnp_port_len(dev, 0) == 1)
-@@ -588,12 +587,12 @@ static int __init i8042_pnp_init(void)
- #ifdef CONFIG_X86
- 	if (dmi_check_system(i8042_dmi_nopnp_table))
- 		i8042_nopnp = 1;
--#endif
- 
- 	if (dmi_check_system(i8042_dmi_reset_table)) {
- 		i8042_reset = 1;
- 		i8042_nonfatal = 1;
- 	}
-+#endif
- 
- 	if (i8042_nopnp) {
- 		printk(KERN_INFO "i8042: PNP detection disabled\n");
+ 	port->flags |= UPF_NO_TXEN_TEST;
+ 	printk(KERN_DEBUG "serial8250: skipping TxEn test for device "
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -194,10 +94,10 @@ aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 drivers-ata-sata_silc-needs-dmih.patch
 input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
 net-dont-use-in_atomic-in-gfp_any.patch
 documentation-connector-cn_testc-dont-use-gfp_any.patch
 nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
 page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
