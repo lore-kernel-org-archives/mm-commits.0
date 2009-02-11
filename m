@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lis3lv02d-support-both-one-and-two-byte-sensors.patch added to -mm tree
-Date: Wed, 11 Feb 2009 14:39:16 -0800
-Message-ID: <200902112239.n1BMdG93002442@imap1.linux-foundation.org>
+Subject: + lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 11 Feb 2009 14:39:55 -0800
+Message-ID: <200902112239.n1BMdtCp003358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43570 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750730AbZBKWjY (ORCPT
+	by vger.kernel.org with ESMTP id S1754972AbZBKWkD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 17:39:24 -0500
+	Wed, 11 Feb 2009 17:40:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: giuseppe.bilotta@gmail.com, Eric.Piel@tremplin-utc.net, pavel@suse.cz
+Cc: akpm@linux-foundation.org, Eric.Piel@tremplin-utc.net, giuseppe.bilotta@gmail.com, pavel@suse.cz
 
 
 The patch titled
-     lis3lv02d: support both one- and two-byte sensors
+     lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     lis3lv02d-support-both-one-and-two-byte-sensors.patch
+     lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,229 +26,184 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3lv02d: support both one- and two-byte sensors
-=46rom: Giuseppe Bilotta <giuseppe.bilotta@gmail.com>
+Subject: lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Sensors responding with 0x3B to WHO_AM_I only have one data register pe=
-r
-direction, thus returning a signed byte from the position which is
-occupied by the MSB in sensors responding with 0x3A.
+ERROR: switch and case should be at the same indent
+#65: FILE: drivers/hwmon/hp_accel.c:249:
++	switch (adev.whoami) {
++		case LIS_DOUBLE_ID:
+[...]
++		case LIS_SINGLE_ID:
+[...]
++		default:
 
-Since multiple sensors share the reply to WHO_AM_I, we rename the defin=
-es
-to better indicate what they identify (family of single and double
-precision sensors).
+WARNING: line over 80 characters
+#131: FILE: drivers/hwmon/lis3lv02d.c:221:
++	input_set_abs_params(adev.idev, ABS_X, -adev.mdps_max_val, adev.mdps_max_val, 3, 3);
 
-We support both kind of sensors by checking for the sensor type on init
-and defining appropriate data-access routines and sensor limits (for th=
-e
-joystick) depending on what we find.
+WARNING: line over 80 characters
+#132: FILE: drivers/hwmon/lis3lv02d.c:222:
++	input_set_abs_params(adev.idev, ABS_Y, -adev.mdps_max_val, adev.mdps_max_val, 3, 3);
 
-Signed-off-by: Giuseppe Bilotta <giuseppe.bilotta@gmail.com>
-Acked-by: Eric Piel <Eric.Piel@tremplin-utc.net>
+WARNING: line over 80 characters
+#133: FILE: drivers/hwmon/lis3lv02d.c:223:
++	input_set_abs_params(adev.idev, ABS_Z, -adev.mdps_max_val, adev.mdps_max_val, 3, 3);
+
+WARNING: line over 80 characters
+#177: FILE: drivers/hwmon/lis3lv02d.h:168:
++	u8			whoami;    /* 3Ah: 2-byte registries, 3Bh: 1-byte registries */
+
+total: 1 errors, 4 warnings, 141 lines checked
+
+./patches/lis3lv02d-support-both-one-and-two-byte-sensors.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Eric Piel <Eric.Piel@tremplin-utc.net>
+Cc: Giuseppe Bilotta <giuseppe.bilotta@gmail.com>
 Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/hp_accel.c  |   38 +++++++++++++++++++++++++++++++-----
- drivers/hwmon/lis3lv02d.c |   25 +++++------------------
- drivers/hwmon/lis3lv02d.h |   16 ++++++++++++---
- 3 files changed, 52 insertions(+), 27 deletions(-)
+ drivers/hwmon/hp_accel.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/hwmon/hp_accel.c~lis3lv02d-support-both-one-and-two-b=
-yte-sensors drivers/hwmon/hp_accel.c
---- a/drivers/hwmon/hp_accel.c~lis3lv02d-support-both-one-and-two-byte-=
-sensors
+diff -puN drivers/hwmon/hp_accel.c~lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes drivers/hwmon/hp_accel.c
+--- a/drivers/hwmon/hp_accel.c~lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes
 +++ a/drivers/hwmon/hp_accel.c
-@@ -213,9 +213,25 @@ static struct delayed_led_classdev hpled
- 	.set_brightness =3D hpled_set,
- };
-=20
-+static s16 lis3lv02d_read_16(acpi_handle handle, int reg)
-+{
-+	u8 lo, hi;
-+
-+	adev.read(handle, reg - 1, &lo);
-+	adev.read(handle, reg, &hi);
-+	/* In "12 bit right justified" mode, bit 6, bit 7, bit 8 =3D bit 5 */
-+	return (s16)((hi << 8) | lo);
-+}
-+
-+static s16 lis3lv02d_read_8(acpi_handle handle, int reg)
-+{
-+	s8 lo;
-+	adev.read(handle, reg, &lo);
-+	return lo;
-+}
-+
- static int lis3lv02d_add(struct acpi_device *device)
- {
--	u8 val;
- 	int ret;
-=20
- 	if (!device)
-@@ -229,10 +245,22 @@ static int lis3lv02d_add(struct acpi_dev
- 	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
- 	device->driver_data =3D &adev;
-=20
--	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &val);
--	if ((val !=3D LIS3LV02DL_ID) && (val !=3D LIS302DL_ID)) {
--		printk(KERN_ERR DRIVER_NAME
--				": Accelerometer chip not LIS3LV02D{L,Q}\n");
-+	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &adev.whoami);
-+	switch (adev.whoami) {
-+		case LIS_DOUBLE_ID:
-+			printk(KERN_INFO DRIVER_NAME ": 2-byte sensor found\n");
-+			adev.read_data =3D lis3lv02d_read_16;
-+			adev.mdps_max_val =3D 2048;
-+			break;
-+		case LIS_SINGLE_ID:
-+			printk(KERN_INFO DRIVER_NAME ": 1-byte sensor found\n");
-+			adev.read_data =3D lis3lv02d_read_8;
-+			adev.mdps_max_val =3D 128;
-+			break;
-+		default:
-+			printk(KERN_ERR DRIVER_NAME
-+				": unknown sensor type 0x%X\n", adev.whoami);
-+			return -EINVAL;
+@@ -247,20 +247,20 @@ static int lis3lv02d_add(struct acpi_dev
+ 
+ 	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &adev.whoami);
+ 	switch (adev.whoami) {
+-		case LIS_DOUBLE_ID:
+-			printk(KERN_INFO DRIVER_NAME ": 2-byte sensor found\n");
+-			adev.read_data = lis3lv02d_read_16;
+-			adev.mdps_max_val = 2048;
+-			break;
+-		case LIS_SINGLE_ID:
+-			printk(KERN_INFO DRIVER_NAME ": 1-byte sensor found\n");
+-			adev.read_data = lis3lv02d_read_8;
+-			adev.mdps_max_val = 128;
+-			break;
+-		default:
+-			printk(KERN_ERR DRIVER_NAME
+-				": unknown sensor type 0x%X\n", adev.whoami);
+-			return -EINVAL;
++	case LIS_DOUBLE_ID:
++		printk(KERN_INFO DRIVER_NAME ": 2-byte sensor found\n");
++		adev.read_data = lis3lv02d_read_16;
++		adev.mdps_max_val = 2048;
++		break;
++	case LIS_SINGLE_ID:
++		printk(KERN_INFO DRIVER_NAME ": 1-byte sensor found\n");
++		adev.read_data = lis3lv02d_read_8;
++		adev.mdps_max_val = 128;
++		break;
++	default:
++		printk(KERN_ERR DRIVER_NAME
++			": unknown sensor type 0x%X\n", adev.whoami);
++		return -EINVAL;
  	}
-=20
+ 
  	/* If possible use a "standard" axes order */
-diff -puN drivers/hwmon/lis3lv02d.c~lis3lv02d-support-both-one-and-two-=
-byte-sensors drivers/hwmon/lis3lv02d.c
---- a/drivers/hwmon/lis3lv02d.c~lis3lv02d-support-both-one-and-two-byte=
--sensors
-+++ a/drivers/hwmon/lis3lv02d.c
-@@ -52,24 +52,11 @@
-  * joystick.
-  */
-=20
--/* Maximum value our axis may get for the input device (signed 12 bits=
-) */
--#define MDPS_MAX_VAL 2048
--
- struct acpi_lis3lv02d adev;
- EXPORT_SYMBOL_GPL(adev);
-=20
- static int lis3lv02d_add_fs(struct acpi_device *device);
-=20
--static s16 lis3lv02d_read_16(acpi_handle handle, int reg)
--{
--	u8 lo, hi;
--
--	adev.read(handle, reg, &lo);
--	adev.read(handle, reg + 1, &hi);
--	/* In "12 bit right justified" mode, bit 6, bit 7, bit 8 =3D bit 5 */
--	return (s16)((hi << 8) | lo);
--}
--
- /**
-  * lis3lv02d_get_axis - For the given axis, give the value converted
-  * @axis:      1,2,3 - can also be negative
-@@ -98,9 +85,9 @@ static void lis3lv02d_get_xyz(acpi_handl
- {
- 	int position[3];
-=20
--	position[0] =3D lis3lv02d_read_16(handle, OUTX_L);
--	position[1] =3D lis3lv02d_read_16(handle, OUTY_L);
--	position[2] =3D lis3lv02d_read_16(handle, OUTZ_L);
-+	position[0] =3D adev.read_data(handle, OUTX);
-+	position[1] =3D adev.read_data(handle, OUTY);
-+	position[2] =3D adev.read_data(handle, OUTZ);
-=20
- 	*x =3D lis3lv02d_get_axis(adev.ac.x, position);
- 	*y =3D lis3lv02d_get_axis(adev.ac.y, position);
-@@ -231,9 +218,9 @@ int lis3lv02d_joystick_enable(void)
- 	adev.idev->close      =3D lis3lv02d_joystick_close;
-=20
- 	set_bit(EV_ABS, adev.idev->evbit);
--	input_set_abs_params(adev.idev, ABS_X, -MDPS_MAX_VAL, MDPS_MAX_VAL, 3=
-, 3);
--	input_set_abs_params(adev.idev, ABS_Y, -MDPS_MAX_VAL, MDPS_MAX_VAL, 3=
-, 3);
--	input_set_abs_params(adev.idev, ABS_Z, -MDPS_MAX_VAL, MDPS_MAX_VAL, 3=
-, 3);
-+	input_set_abs_params(adev.idev, ABS_X, -adev.mdps_max_val, adev.mdps_=
-max_val, 3, 3);
-+	input_set_abs_params(adev.idev, ABS_Y, -adev.mdps_max_val, adev.mdps_=
-max_val, 3, 3);
-+	input_set_abs_params(adev.idev, ABS_Z, -adev.mdps_max_val, adev.mdps_=
-max_val, 3, 3);
-=20
- 	err =3D input_register_device(adev.idev);
- 	if (err) {
-diff -puN drivers/hwmon/lis3lv02d.h~lis3lv02d-support-both-one-and-two-=
-byte-sensors drivers/hwmon/lis3lv02d.h
---- a/drivers/hwmon/lis3lv02d.h~lis3lv02d-support-both-one-and-two-byte=
--sensors
-+++ a/drivers/hwmon/lis3lv02d.h
-@@ -22,12 +22,15 @@
- /*
-  * The actual chip is STMicroelectronics LIS3LV02DL or LIS3LV02DQ that=
- seems to
-  * be connected via SPI. There exists also several similar chips (such=
- as LIS302DL or
-- * LIS3L02DQ) but not in the HP laptops and they have slightly differe=
-nt registers.
-+ * LIS3L02DQ) and they have slightly different registers, but we can p=
-rovide a
-+ * common interface for all of them.
-  * They can also be connected via I=C2=B2C.
-  */
-=20
--#define LIS3LV02DL_ID	0x3A /* Also the LIS3LV02DQ */
--#define LIS302DL_ID	0x3B /* Also the LIS202DL! */
-+/* 2-byte registers */
-+#define LIS_DOUBLE_ID	0x3A /* LIS3LV02D[LQ] */
-+/* 1-byte registers */
-+#define LIS_SINGLE_ID	0x3B /* LIS[32]02DL and others */
-=20
- enum lis3lv02d_reg {
- 	WHO_AM_I	=3D 0x0F,
-@@ -44,10 +47,13 @@ enum lis3lv02d_reg {
- 	STATUS_REG	=3D 0x27,
- 	OUTX_L		=3D 0x28,
- 	OUTX_H		=3D 0x29,
-+	OUTX		=3D 0x29,
- 	OUTY_L		=3D 0x2A,
- 	OUTY_H		=3D 0x2B,
-+	OUTY		=3D 0x2B,
- 	OUTZ_L		=3D 0x2C,
- 	OUTZ_H		=3D 0x2D,
-+	OUTZ		=3D 0x2D,
- 	FF_WU_CFG	=3D 0x30,
- 	FF_WU_SRC	=3D 0x31,
- 	FF_WU_ACK	=3D 0x32,
-@@ -159,6 +165,10 @@ struct acpi_lis3lv02d {
- 	acpi_status (*write) (acpi_handle handle, int reg, u8 val);
- 	acpi_status (*read) (acpi_handle handle, int reg, u8 *ret);
-=20
-+	u8			whoami;    /* 3Ah: 2-byte registries, 3Bh: 1-byte registries */
-+	s16 (*read_data) (acpi_handle handle, int reg);
-+	int			mdps_max_val;
-+
- 	struct input_dev	*idev;     /* input device */
- 	struct task_struct	*kthread;  /* kthread for input */
- 	struct mutex            lock;
 _
 
-Patches currently in -mm which might be from giuseppe.bilotta@gmail.com=
- are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lis3lv02d-support-both-one-and-two-byte-sensors.patch
+origin.patch
+ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
+writeback-fix-break-condition.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+mtd-rbtx4939-add-mtd-support.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_add_devices.patch
+cciss-pci-power-management-reset-for-kexec.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
