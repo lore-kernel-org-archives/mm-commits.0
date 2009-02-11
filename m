@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 11 Feb 2009 14:44:31 -0800
-Message-ID: <200902112244.n1BMiVQE009793@imap1.linux-foundation.org>
+Subject: + v4l-dvb-calibration-still-successful-at-10.patch added to -mm tree
+Date: Wed, 11 Feb 2009 14:47:35 -0800
+Message-ID: <200902112247.n1BMlZhd014037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56959 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755630AbZBKWpI (ORCPT
+	by vger.kernel.org with ESMTP id S1752903AbZBKWsJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 17:45:08 -0500
+	Wed, 11 Feb 2009 17:48:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, kosaki.motohiro@jp.fujitsu.com
+Cc: roel.kluin@gmail.com
 
 
 The patch titled
-     vmalloc-add-__get_vm_area_caller-checkpatch-fixes
+     v4l/dvb: calibration still  successful at 10
 has been added to the -mm tree.  Its filename is
-     vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
+     v4l-dvb-calibration-still-successful-at-10.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,139 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc-add-__get_vm_area_caller-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: v4l/dvb: calibration still  successful at 10
+From: Roel Kluin <roel.kluin@gmail.com>
 
-WARNING: line over 80 characters
-#27: FILE: include/linux/vmalloc.h:87:
-+extern struct vm_struct *__get_vm_area_caller(unsigned long size, unsigned long flags,
+With while (i++ < 10) { ...  } i can reach 11, so callibration still
+succeeds at i == 10.
 
-WARNING: line over 80 characters
-#28: FILE: include/linux/vmalloc.h:88:
-+					      unsigned long start, unsigned long end,
-
-total: 0 errors, 2 warnings, 23 lines checked
-
-./patches/vmalloc-add-__get_vm_area_caller.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/media/common/tuners/mt2060.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmalloc.h~vmalloc-add-__get_vm_area_caller-checkpatch-fixes include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~vmalloc-add-__get_vm_area_caller-checkpatch-fixes
-+++ a/include/linux/vmalloc.h
-@@ -84,9 +84,10 @@ extern struct vm_struct *get_vm_area_cal
- 					unsigned long flags, void *caller);
- extern struct vm_struct *__get_vm_area(unsigned long size, unsigned long flags,
- 					unsigned long start, unsigned long end);
--extern struct vm_struct *__get_vm_area_caller(unsigned long size, unsigned long flags,
--					      unsigned long start, unsigned long end,
--					      void *caller);
-+extern struct vm_struct *__get_vm_area_caller(unsigned long size,
-+					unsigned long flags,
-+					unsigned long start, unsigned long end,
-+					void *caller);
- extern struct vm_struct *get_vm_area_node(unsigned long size,
- 					  unsigned long flags, int node,
- 					  gfp_t gfp_mask);
+diff -puN drivers/media/common/tuners/mt2060.c~v4l-dvb-calibration-still-successful-at-10 drivers/media/common/tuners/mt2060.c
+--- a/drivers/media/common/tuners/mt2060.c~v4l-dvb-calibration-still-successful-at-10
++++ a/drivers/media/common/tuners/mt2060.c
+@@ -278,7 +278,7 @@ static void mt2060_calibrate(struct mt20
+ 	while (i++ < 10 && mt2060_readreg(priv, REG_MISC_STAT, &b) == 0 && (b & (1 << 6)) == 0)
+ 		msleep(20);
+ 
+-	if (i < 10) {
++	if (i <= 10) {
+ 		mt2060_readreg(priv, REG_FM_FREQ, &priv->fmfreq); // now find out, what is fmreq used for :)
+ 		dprintk("calibration was successful: %d", (int)priv->fmfreq);
+ 	} else
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
-ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
-writeback-fix-break-condition.patch
-vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
+rtc-t-reaches-1-tested-0.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-kernel-auditscc-fix-warning.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-mtd-rbtx4939-add-mtd-support.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_add_devices.patch
-cciss-pci-power-management-reset-for-kexec.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-timerfd-add-flags-check-fix.patch
-lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+drm-fix-lock_test_with_return-macro.patch
+dvb-negative-internal-sub_range-wont-get-noticed.patch
+v4l-dvb-calibration-still-successful-at-10.patch
+leds-fix-confusion.patch
+paride-pgc-xs-confusion.patch
+mm-get_nid_for_pfn-returns-int.patch
+alpha-fix-macros.patch
+m68k-count-can-reach-51-not-50.patch
 m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+spi-limit-reaches-1-tested-0.patch
+rtc-wm8350-retries-will-reach-1.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+ufs-sector_t-cannot-be-negative.patch
 
