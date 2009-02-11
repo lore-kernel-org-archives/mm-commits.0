@@ -1,58 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded] x86-define-arch_want_frame_pointers-fix.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:16:16 -0800
-Message-ID: <200902112116.n1BLGGNS015966@imap1.linux-foundation.org>
+Subject: [folded] thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:15:54 -0800
+Message-ID: <200902112115.n1BLFt85015448@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53215 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758445AbZBKVQa (ORCPT
+	by vger.kernel.org with ESMTP id S1757798AbZBKVQ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:16:30 -0500
+	Wed, 11 Feb 2009 16:16:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeffm@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hmh@hmh.eng.br, hpa@zytor.com, mingo@elte.hu, pavel@suse.cz, rpurdie@rpsys.net, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-define-arch_want_frame_pointers-fix
+     thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     x86-define-arch_want_frame_pointers-fix.patch
+     thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into x86-define-arch_want_frame_pointers.patch
+This patch was dropped because it was folded into thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-define-arch_want_frame_pointers-fix
+Subject: thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-unbust the whitespace.
+ERROR: code indent should use tabs where possible
+#218: FILE: drivers/platform/x86/thinkpad_acpi.c:4092:
++                       TPACPI_LED_OFF :$
 
+ERROR: code indent should use tabs where possible
+#219: FILE: drivers/platform/x86/thinkpad_acpi.c:4093:
++                       (tpacpi_led_state_cache[data->led] == TPACPI_LED_BLINK) ?$
+
+ERROR: code indent should use tabs where possible
+#220: FILE: drivers/platform/x86/thinkpad_acpi.c:4094:
++                              TPACPI_LED_BLINK : TPACPI_LED_ON);$
+
+total: 3 errors, 0 warnings, 225 lines checked
+
+./patches/thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Pavel Machek <pavel@suse.cz>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    6 +++---
+ drivers/platform/x86/thinkpad_acpi.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN lib/Kconfig.debug~x86-define-arch_want_frame_pointers-fix lib/Kconfig.debug
---- a/lib/Kconfig.debug~x86-define-arch_want_frame_pointers-fix
-+++ a/lib/Kconfig.debug
-@@ -672,9 +672,9 @@ config ARCH_WANT_FRAME_POINTERS
+diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes drivers/platform/x86/thinkpad_acpi.c
+--- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes
++++ a/drivers/platform/x86/thinkpad_acpi.c
+@@ -4658,9 +4658,9 @@ static int led_set_class_status(struct d
+ 	if (tpacpi_lifecycle != TPACPI_LIFE_RUNNING)
+ 		return -EINVAL;
+ 	return led_set_status(data->led, (data->new_brightness == LED_OFF) ?
+-                       TPACPI_LED_OFF :
+-                       (tpacpi_led_state_cache[data->led] == TPACPI_LED_BLINK) ?
+-                              TPACPI_LED_BLINK : TPACPI_LED_ON);
++		    TPACPI_LED_OFF :
++		    (tpacpi_led_state_cache[data->led] == TPACPI_LED_BLINK) ?
++			TPACPI_LED_BLINK : TPACPI_LED_ON);
+ }
  
- config ARCH_WANT_FRAME_POINTERS
- 	bool
--       help
--        Select this config option from the architecture Kconfig, if it
--        it is preferred to always enable frame pointers on the architecture.
-+	help
-+	  Select this config option from the architecture Kconfig, if it
-+	  it is preferred to always enable frame pointers on the architecture.
- 
- config FRAME_POINTER
- 	bool "Compile the kernel with frame pointers"
+ static int led_sysfs_blink_set(struct led_classdev *led_cdev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +91,7 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-x86-define-arch_want_frame_pointers.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
 x86-define-arch_want_frame_pointers-fix.patch
 kernel-auditscc-fix-warning.patch
 arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
