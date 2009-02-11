@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 10 Feb 2009 16:26:36 -0800
-Message-ID: <200902110026.n1B0Qabn000327@imap1.linux-foundation.org>
+Subject: + fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch added to -mm tree
+Date: Tue, 10 Feb 2009 16:26:33 -0800
+Message-ID: <200902110026.n1B0QXjk032684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59728 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754894AbZBKA0n (ORCPT
+	by vger.kernel.org with ESMTP id S1754465AbZBKA0k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 19:26:43 -0500
+	Tue, 10 Feb 2009 19:26:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kristoffer.ericson@gmail.com, krzysztof.h1@poczta.fm
+Cc: kristoffer.ericson@gmail.com, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes
+     fbdev: update s1d13xxxfb to differ between revisions and production ids
 has been added to the -mm tree.  Its filename is
-     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,157 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fbdev: update s1d13xxxfb to differ between revisions and production ids
+From: Kristoffer Ericson <kristoffer.ericson@gmail.com>
 
-ERROR: space required after that ',' (ctx:VxV)
-#64: FILE: drivers/video/s1d13xxxfb.c:559:
-+	u8 revision,prod_id;
- 	           ^
+The s1d13xxx chip provides two values of identification value: the
+Production id (e.g 13506/13505/13806..) and a revision number 0,1,2,3). 
+Together these can help us to differentiate between similiar setups.
 
-WARNING: line over 80 characters
-#97: FILE: drivers/video/s1d13xxxfb.c:648:
-+		printk(KERN_INFO PFX "chip production id %i = %s\n", prod_id, s1d13xxxfb_prod_names[i]);
+This patch adds the proper way of grabbing both those values and save them
+for future reference (=3D in order to decide what functions a card
+supports, e.g acceleration).
 
-WARNING: line over 80 characters
-#102: FILE: drivers/video/s1d13xxxfb.c:651:
-+		printk(KERN_INFO PFX "unknown chip production id %i, revision %i\n", prod_id, revision);
+We also move away from the concept of all s1d13xxx = s1d13806 when we
+really support alot more.
 
-total: 1 errors, 2 warnings, 78 lines checked
-
-./patches/fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com
-Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com>
+Signed-off-by: Kristoffer Ericson <kristoffer.ericson@gmail.com
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s1d13xxxfb.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/video/s1d13xxxfb.c |   48 ++++++++++++++++++++++++++---------
+ 1 file changed, 36 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes drivers/video/s1d13xxxfb.c
---- a/drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes
+diff -puN drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids drivers/video/s1d13xxxfb.c
+--- a/drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids
 +++ a/drivers/video/s1d13xxxfb.c
-@@ -556,7 +556,7 @@ s1d13xxxfb_probe(struct platform_device 
+@@ -50,9 +50,22 @@
+ #define dbg(fmt, args...) do { } while (0)
+ #endif
+ 
+-static const int __devinitconst s1d13xxxfb_revisions[] = {
+-	S1D13506_CHIP_REV,	/* Rev.4 on HP Jornada 7xx S1D13506 */
+-	S1D13806_CHIP_REV,	/* Rev.7 on .. */
++/*
++ * List of card production ids
++ */
++static const int s1d13xxxfb_prod_ids[] = {
++	S1D13505_PROD_ID,
++	S1D13506_PROD_ID,
++	S1D13806_PROD_ID,
++};
++
++/*
++ * List of card strings
++ */
++static const char *s1d13xxxfb_prod_names[] = {
++	"S1D13505",
++	"S1D13506",
++	"S1D13806",
+ };
+ 
+ /*
+@@ -377,7 +390,6 @@ s1d13xxxfb_pan_display(struct fb_var_scr
+ 	return 0;
+ }
+ 
+-
+ /* framebuffer information structures */
+ 
+ static struct fb_ops s1d13xxxfb_fbops = {
+@@ -544,7 +556,7 @@ s1d13xxxfb_probe(struct platform_device 
  	struct s1d13xxxfb_pdata *pdata = NULL;
  	int ret = 0;
  	int i;
--	u8 revision,prod_id;
-+	u8 revision, prod_id;
+-	u8 revision;
++	u8 revision,prod_id;
  
  	dbg("probe called: device is %p\n", pdev);
  
-@@ -645,10 +645,13 @@ s1d13xxxfb_probe(struct platform_device 
- 	}
- 
- 	if (!ret) {
--		printk(KERN_INFO PFX "chip production id %i = %s\n", prod_id, s1d13xxxfb_prod_names[i]);
-+		printk(KERN_INFO PFX "chip production id %i = %s\n",
-+			prod_id, s1d13xxxfb_prod_names[i]);
- 		printk(KERN_INFO PFX "chip revision %i\n", revision);
- 	} else {
--		printk(KERN_INFO PFX "unknown chip production id %i, revision %i\n", prod_id, revision);
-+		printk(KERN_INFO PFX
-+			"unknown chip production id %i, revision %i\n",
-+			prod_id, revision);
- 		printk(KERN_INFO PFX "please contant maintainer\n");
+@@ -613,19 +625,31 @@ s1d13xxxfb_probe(struct platform_device 
  		goto bail;
  	}
+ 
+-	revision = s1d13xxxfb_readreg(default_par, S1DREG_REV_CODE) >> 2;
+-
++	/* production id is top 6 bits */
++	prod_id = s1d13xxxfb_readreg(default_par, S1DREG_REV_CODE) >> 2;
++	/* revision id is lower 2 bits */
++	revision = s1d13xxxfb_readreg(default_par, S1DREG_REV_CODE) & 0x3;
+ 	ret = -ENODEV;
+ 
+-	for (i = 0; i < ARRAY_SIZE(s1d13xxxfb_revisions); i++) {
+-		if (revision == s1d13xxxfb_revisions[i])
++	for (i = 0; i < ARRAY_SIZE(s1d13xxxfb_prod_ids); i++) {
++		if (prod_id == s1d13xxxfb_prod_ids[i]) {
++			/* looks like we got it in our list */
++			default_par->prod_id = prod_id;
++			default_par->revision = revision;
+ 			ret = 0;
++		}
++
++		/* jump ship if we find something */
++		if (!ret)
++			break;
+ 	}
+ 
+-	if (!ret)
++	if (!ret) {
++		printk(KERN_INFO PFX "chip production id %i = %s\n", prod_id, s1d13xxxfb_prod_names[i]);
+ 		printk(KERN_INFO PFX "chip revision %i\n", revision);
+-	else {
+-		printk(KERN_INFO PFX "unknown chip revision %i\n", revision);
++	} else {
++		printk(KERN_INFO PFX "unknown chip production id %i, revision %i\n", prod_id, revision);
++		printk(KERN_INFO PFX "please contant maintainer\n");
+ 		goto bail;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kristoffer.ericson@gmail.com are
 
-origin.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
-kernel-auditscc-fix-warning.patch
-arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
-early-platform-driver-v3-checkpatch-fixes.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support-fix.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_assign_resources-fix.patch
-pci-constify-pci_bus_add_devices.patch
-cciss-pci-power-management-reset-for-kexec-cleanup.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void-fix.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
-writeback-fix-break-condition-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-ata-sata_silc-needs-dmih.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
 fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
 fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
