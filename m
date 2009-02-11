@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linuxpps-core-support-v2.patch added to -mm tree
-Date: Tue, 10 Feb 2009 15:56:55 -0800
-Message-ID: <200902102356.n1ANutPQ024080@imap1.linux-foundation.org>
+Subject: + fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 10 Feb 2009 16:26:36 -0800
+Message-ID: <200902110026.n1B0Qabn000327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32799 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50477 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754303AbZBJX5c (ORCPT
+	by vger.kernel.org with ESMTP id S1754894AbZBKA0n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Feb 2009 18:57:32 -0500
+	Tue, 10 Feb 2009 19:26:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: giometti@linux.it, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, greg@kroah.com, hch@infradead.org, kay.sievers@vrfy.org, mtk-manpages@gmx.net, randy.dunlap@oracle.com, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, kristoffer.ericson@gmail.com, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     LinuxPPS core support (v2)
+     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     linuxpps-core-support-v2.patch
+     fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,161 +34,157 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: LinuxPPS core support (v2)
-From: Rodolfo Giometti <giometti@linux.it>
+Subject: fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-* fix race during PPS source registration.
+ERROR: space required after that ',' (ctx:VxV)
+#64: FILE: drivers/video/s1d13xxxfb.c:559:
++	u8 revision,prod_id;
+ 	           ^
 
-* PPS_CHECK removed.
+WARNING: line over 80 characters
+#97: FILE: drivers/video/s1d13xxxfb.c:648:
++		printk(KERN_INFO PFX "chip production id %i = %s\n", prod_id, s1d13xxxfb_prod_names[i]);
 
-* not needed check in pps_exit() removed.
+WARNING: line over 80 characters
+#102: FILE: drivers/video/s1d13xxxfb.c:651:
++		printk(KERN_INFO PFX "unknown chip production id %i, revision %i\n", prod_id, revision);
 
-* Printing stuff on exit removed.
+total: 1 errors, 2 warnings, 78 lines checked
 
-Signed-off-by: Rodolfo Giometti <giometti@linux.it>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+./patches/fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com
+Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ioctl/ioctl-number.txt |    2 -
- drivers/pps/kapi.c                   |   32 +++++++++++++++++--------
- drivers/pps/pps.c                    |   12 ---------
- include/linux/pps.h                  |    3 --
- 4 files changed, 25 insertions(+), 24 deletions(-)
+ drivers/video/s1d13xxxfb.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/ioctl/ioctl-number.txt~linuxpps-core-support-v2 Documentation/ioctl/ioctl-number.txt
---- a/Documentation/ioctl/ioctl-number.txt~linuxpps-core-support-v2
-+++ a/Documentation/ioctl/ioctl-number.txt
-@@ -151,7 +151,7 @@ Code	Seq#	Include File		Comments
- 'p'	40-7F	linux/nvram.h
- 'p'	80-9F				user-space parport
- 					<mailto:tim@cyberelk.net>
--'p'	a0-a4	linux/pps.h		LinuxPPS
-+'p'	a1-a4	linux/pps.h		LinuxPPS
- 					<mailto:giometti@linux.it>
- 'q'	00-1F	linux/serio.h
- 'q'	80-FF				Internet PhoneJACK, Internet LineJACK
-diff -puN drivers/pps/kapi.c~linuxpps-core-support-v2 drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~linuxpps-core-support-v2
-+++ a/drivers/pps/kapi.c
-@@ -158,6 +158,17 @@ int pps_register_source(struct pps_sourc
- 		goto pps_register_source_exit;
+diff -puN drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes drivers/video/s1d13xxxfb.c
+--- a/drivers/video/s1d13xxxfb.c~fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes
++++ a/drivers/video/s1d13xxxfb.c
+@@ -556,7 +556,7 @@ s1d13xxxfb_probe(struct platform_device 
+ 	struct s1d13xxxfb_pdata *pdata = NULL;
+ 	int ret = 0;
+ 	int i;
+-	u8 revision,prod_id;
++	u8 revision, prod_id;
+ 
+ 	dbg("probe called: device is %p\n", pdev);
+ 
+@@ -645,10 +645,13 @@ s1d13xxxfb_probe(struct platform_device 
  	}
  
-+	/* These initializations must be done before calling idr_get_new()
-+	 * in order to avoid reces into pps_event().
-+	 */
-+	pps->params.api_version = PPS_API_VERS;
-+	pps->params.mode = default_params;
-+	pps->info = *info;
-+
-+	init_waitqueue_head(&pps->queue);
-+	spin_lock_init(&pps->lock);
-+	atomic_set(&pps->usage, 1);
-+
- 	/* Get new ID for the new PPS source */
- 	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0) {
- 		err = -ENOMEM;
-@@ -165,28 +176,29 @@ int pps_register_source(struct pps_sourc
+ 	if (!ret) {
+-		printk(KERN_INFO PFX "chip production id %i = %s\n", prod_id, s1d13xxxfb_prod_names[i]);
++		printk(KERN_INFO PFX "chip production id %i = %s\n",
++			prod_id, s1d13xxxfb_prod_names[i]);
+ 		printk(KERN_INFO PFX "chip revision %i\n", revision);
+ 	} else {
+-		printk(KERN_INFO PFX "unknown chip production id %i, revision %i\n", prod_id, revision);
++		printk(KERN_INFO PFX
++			"unknown chip production id %i, revision %i\n",
++			prod_id, revision);
+ 		printk(KERN_INFO PFX "please contant maintainer\n");
+ 		goto bail;
  	}
- 
- 	spin_lock_irq(&pps_idr_lock);
--	err = idr_get_new(&pps_idr, pps, &id);
--	spin_unlock_irq(&pps_idr_lock);
- 
--	if (err < 0)
-+	/* Now really allocate the PPS source.
-+	 * After idr_get_new() calling the new source will be freely available
-+	 * into the kernel.
-+	 */
-+	err = idr_get_new(&pps_idr, pps, &id);
-+	if (err < 0) {
-+		spin_unlock_irq(&pps_idr_lock);
- 		goto kfree_pps;
-+	}
- 
- 	id = id & MAX_ID_MASK;
- 	if (id >= PPS_MAX_SOURCES) {
-+		spin_unlock_irq(&pps_idr_lock);
-+
- 		printk(KERN_ERR "pps: %s: too many PPS sources in the system\n",
- 					info->name);
- 		err = -EBUSY;
- 		goto free_idr;
- 	}
--
- 	pps->id = id;
--	pps->params.api_version = PPS_API_VERS;
--	pps->params.mode = default_params;
--	pps->info = *info;
- 
--	init_waitqueue_head(&pps->queue);
--	spin_lock_init(&pps->lock);
--	atomic_set(&pps->usage, 1);
-+	spin_unlock_irq(&pps_idr_lock);
- 
- 	/* Create the char device */
- 	err = pps_register_cdev(pps);
-diff -puN drivers/pps/pps.c~linuxpps-core-support-v2 drivers/pps/pps.c
---- a/drivers/pps/pps.c~linuxpps-core-support-v2
-+++ a/drivers/pps/pps.c
-@@ -68,12 +68,6 @@ static long pps_cdev_ioctl(struct file *
- 	int err;
- 
- 	switch (cmd) {
--	case PPS_CHECK:
--
--		/* This does nothing but signal we are a PPS source... */
--
--		return 0;
--
- 	case PPS_GETPARAMS:
- 		pr_debug("PPS_GETPARAMS: source %d\n", pps->id);
- 
-@@ -278,11 +272,7 @@ void pps_unregister_cdev(struct pps_devi
- static void __exit pps_exit(void)
- {
- 	class_destroy(pps_class);
--
--	if (pps_devt)
--		unregister_chrdev_region(pps_devt, PPS_MAX_SOURCES);
--
--	pr_info("LinuxPPS API ver. %d removed\n", PPS_API_VERS);
-+	unregister_chrdev_region(pps_devt, PPS_MAX_SOURCES);
- }
- 
- static int __init pps_init(void)
-diff -puN include/linux/pps.h~linuxpps-core-support-v2 include/linux/pps.h
---- a/include/linux/pps.h~linuxpps-core-support-v2
-+++ a/include/linux/pps.h
-@@ -23,7 +23,7 @@
- #ifndef _PPS_H_
- #define _PPS_H_
- 
--#define PPS_VERSION		"5.3.4"
-+#define PPS_VERSION		"5.3.5"
- #define PPS_MAX_SOURCES		16		/* should be enough... */
- 
- /* Implementation note: the logical states ``assert'' and ``clear''
-@@ -115,7 +115,6 @@ struct pps_fdata {
- 
- #include <linux/ioctl.h>
- 
--#define PPS_CHECK		_IO('p', 0xa0)
- #define PPS_GETPARAMS		_IOR('p', 0xa1, struct pps_kparams *)
- #define PPS_SETPARAMS		_IOW('p', 0xa2, struct pps_kparams *)
- #define PPS_GETCAP		_IOR('p', 0xa3, int *)
 _
 
-Patches currently in -mm which might be from giometti@linux.it are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
+origin.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+x86-define-arch_want_frame_pointers-fix.patch
+kernel-auditscc-fix-warning.patch
+arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3-checkpatch-fixes.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_assign_resources-fix.patch
+pci-constify-pci_bus_add_devices.patch
+cciss-pci-power-management-reset-for-kexec-cleanup.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void-fix.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
+writeback-fix-break-condition-checkpatch-fixes.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+revert-protect-f_flags-against-races-and-eliminate-fasync-bkl-usage.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
