@@ -1,47 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:18:44 -0800
-Message-ID: <200902112118.n1BLIilP019484@imap1.linux-foundation.org>
+Subject: [folded] drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:18:40 -0800
+Message-ID: <200902112118.n1BLIe9G019339@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45153 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756763AbZBKVS6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756755AbZBKVSz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:18:58 -0500
+	Wed, 11 Feb 2009 16:18:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes
+     drivers-consolidate-driver_probe_done-loops-into-one-place-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+     drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
 
 This patch was dropped because it was folded into drivers-consolidate-driver_probe_done-loops-into-one-place.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes
+Subject: drivers-consolidate-driver_probe_done-loops-into-one-place-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing whitespace
-#78: FILE: init/do_mounts.c:373:
-+^I/* $
-
-ERROR: trailing whitespace
-#79: FILE: init/do_mounts.c:374:
-+^I * wait for the known devices to complete their probing $
-
-total: 2 errors, 0 warnings, 72 lines checked
-
-./patches/drivers-consolidate-driver_probe_done-loops-into-one-place.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+drivers/base/dd.c: In function 'wait_for_device_probe':
+drivers/base/dd.c:181: error: implicit declaration of function 'msleep'
 
 Cc: Arjan van de Ven <arjan@linux.intel.com>
 Cc: Greg KH <greg@kroah.com>
@@ -52,23 +39,20 @@ Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/dd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN init/do_mounts.c~drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes init/do_mounts.c
---- a/init/do_mounts.c~drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes
-+++ a/init/do_mounts.c
-@@ -370,8 +370,8 @@ void __init prepare_namespace(void)
- 		ssleep(root_delay);
- 	}
+diff -puN drivers/base/dd.c~drivers-consolidate-driver_probe_done-loops-into-one-place-fix drivers/base/dd.c
+--- a/drivers/base/dd.c~drivers-consolidate-driver_probe_done-loops-into-one-place-fix
++++ a/drivers/base/dd.c
+@@ -18,6 +18,7 @@
+  */
  
--	/* 
--	 * wait for the known devices to complete their probing 
-+	/*
-+	 * wait for the known devices to complete their probing
- 	 *
- 	 * Note: this is a potential source of long boot delays.
- 	 * For example, it is not atypical to wait 5 seconds here
+ #include <linux/device.h>
++#include <linux/delay.h>
+ #include <linux/module.h>
+ #include <linux/kthread.h>
+ #include <linux/wait.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +72,7 @@ thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
 x86-define-arch_want_frame_pointers.patch
 kernel-auditscc-fix-warning.patch
 drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
 drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
 sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
 early-platform-driver-v3-checkpatch-fixes.patch
