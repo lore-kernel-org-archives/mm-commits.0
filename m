@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtl8187se-depends-on-wireless_ext.patch added to -mm tree
-Date: Wed, 11 Feb 2009 14:15:49 -0800
-Message-ID: <200902112215.n1BMFnQr002112@imap1.linux-foundation.org>
+Subject: + x86-dell-laptop-depends-on-power_supply.patch added to -mm tree
+Date: Wed, 11 Feb 2009 14:16:33 -0800
+Message-ID: <200902112216.n1BMGXJQ003132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49066 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753084AbZBKWQX (ORCPT
+	by vger.kernel.org with ESMTP id S1754887AbZBKWRQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 17:16:23 -0500
+	Wed, 11 Feb 2009 17:17:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, gregkh@suse.de
+Cc: randy.dunlap@oracle.com, hpa@zytor.com, mingo@elte.hu, mjg59@srcf.ucam.org, tglx@linutronix.de
 
 
 The patch titled
-     rtl8187se: depends on WIRELESS_EXT
+     x86: dell-laptop: depends on POWER_SUPPLY
 has been added to the -mm tree.  Its filename is
-     rtl8187se-depends-on-wireless_ext.patch
+     x86-dell-laptop-depends-on-power_supply.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtl8187se: depends on WIRELESS_EXT
+Subject: x86: dell-laptop: depends on POWER_SUPPLY
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-rtl8187se uses wireless extensions so it needs to depend on
-WIRELESS_EXT (or select it).
+Build breaks when DELL_LAPTOP=y and POWER_SUPPLY=m.  DELL_LAPTOP needs to
+depend on POWER_SUPPLY.
 
-drivers/staging/rtl8187se/r8180_core.c:5973: error: 'struct net_device' has no member named 'wireless_handlers'
-drivers/staging/rtl8187se/r8180_core.c:5982: error: 'struct net_device' has no member named 'wireless_handlers'
+dell-laptop.c:(.text+0x1ef3c4): undefined reference to `power_supply_is_system_supplied'
+dell-laptop.c:(.text+0x1ef45e): undefined reference to `power_supply_is_system_supplied'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg KH <gregkh@suse.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8187se/Kconfig |    1 +
+ drivers/platform/x86/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/staging/rtl8187se/Kconfig~rtl8187se-depends-on-wireless_ext drivers/staging/rtl8187se/Kconfig
---- a/drivers/staging/rtl8187se/Kconfig~rtl8187se-depends-on-wireless_ext
-+++ a/drivers/staging/rtl8187se/Kconfig
-@@ -1,5 +1,6 @@
- config RTL8187SE
- 	tristate "RealTek RTL8187SE Wireless LAN NIC driver"
- 	depends on PCI
-+	depends on WIRELESS_EXT
- 	default N
+diff -puN drivers/platform/x86/Kconfig~x86-dell-laptop-depends-on-power_supply drivers/platform/x86/Kconfig
+--- a/drivers/platform/x86/Kconfig~x86-dell-laptop-depends-on-power_supply
++++ a/drivers/platform/x86/Kconfig
+@@ -62,6 +62,7 @@ config DELL_LAPTOP
+ 	depends on EXPERIMENTAL
+ 	depends on BACKLIGHT_CLASS_DEVICE
+ 	depends on RFKILL
++	depends on POWER_SUPPLY
+ 	default n
  	---help---
+ 	This driver adds support for rfkill and backlight control to Dell
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -90,4 +94,5 @@ kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
 linuxpps-core-support.patch
 linuxpps-core-support-v2.patch
+x86-dell-laptop-depends-on-power_supply.patch
 
