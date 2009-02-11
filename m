@@ -1,109 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mtd-txx9-soc-nand-flash-memory-controller-driver-v3.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:26:32 -0800
-Message-ID: <200902112126.n1BLQWn0030437@imap1.linux-foundation.org>
+Subject: [merged] usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:30:54 -0800
+Message-ID: <200902112130.n1BLUsaT004247@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34414 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757577AbZBKV0v (ORCPT
+	by vger.kernel.org with ESMTP id S1754816AbZBKVbq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:26:51 -0500
+	Wed, 11 Feb 2009 16:31:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, dwmw2@infradead.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: aquynh@gmail.com, greg@kroah.com, k.suzaki@aist.go.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MTD: TXx9 SoC NAND Flash Memory Controller driver (v3)
+     usb: another unusual_devs entry for another bad Argosy storage device
 has been removed from the -mm tree.  Its filename was
-     mtd-txx9-soc-nand-flash-memory-controller-driver-v3.patch
+     usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device.patch
 
-This patch was dropped because it was folded into mtd-txx9-soc-nand-flash-memory-controller-driver.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MTD: TXx9 SoC NAND Flash Memory Controller driver (v3)
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: usb: another unusual_devs entry for another bad Argosy storage device
+From: "Nguyen Anh Quynh" <aquynh@gmail.com>
 
-* fix wrong free of mtd_partition parsed by cmdlinepart.
-* do not use ':' for name of mtd device
+I have another Argosy USB storage device, which has the same problem
+with the Argosy USB storage device already fixed in 2.6.27.7. But this
+device has another product ID (840:84), so this patch adds a new entry
+into unusual_devs to fix the mount problem.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+I enclose here two patches: one against 2.6.27.8, and another against
+the latest linus-git tree.
+
+
+The information about the Argosy device is like below:
+
+#lsusb -v -d 840:84
+Bus 005 Device 005: ID 0840:0084 Argosy Research, Inc.
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  idVendor           0x0840 Argosy Research, Inc.
+  idProduct          0x0084
+  bcdDevice            0.01
+  iManufacturer           1 Generic
+  iProduct                2 USB 2.0 Storage Device
+  iSerial                 3 8400000000002549
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           32
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0xc0
+      Self Powered
+    MaxPower                2mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           2
+      bInterfaceClass         8 Mass Storage
+      bInterfaceSubClass      6 SCSI
+      bInterfaceProtocol     80 Bulk (Zip)
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
+
+Before the patch, dmesg returns a lot of information like below (my
+dmesg is overflown):
+....
+[  138.833390] sd 7:0:0:0: [sdb] Add. Sense: No additional sense information
+[  138.877631] sd 7:0:0:0: [sdb] Sense Key : No Sense [current]
+[  138.877643] sd 7:0:0:0: [sdb] Add. Sense: No additional sense information
+[  138.921906] sd 7:0:0:0: [sdb] Sense Key : No Sense [current]
+[  138.921923] sd 7:0:0:0: [sdb] Add. Sense: No additional sense information
+....
+
+After the fix, dmesg returns below information:
+....
+usb 5-1: new high speed USB device using ehci_hcd and address 5
+usb 5-1: configuration #1 chosen from 1 choice
+scsi7 : SCSI emulation for USB Mass Storage devices
+usb-storage: device found at 5
+usb-storage: waiting for device to settle before scanning
+usb-storage: device scan complete
+scsi 7:0:0:0: Direct-Access     HTS54808 0M9AT00          MG4O PQ: 0 ANSI: 0
+sd 7:0:0:0: [sdb] 156301488 512-byte hardware sectors (80026 MB)
+sd 7:0:0:0: [sdb] Write Protect is off
+sd 7:0:0:0: [sdb] Mode Sense: 03 00 00 00
+sd 7:0:0:0: [sdb] Assuming drive cache: write through
+sd 7:0:0:0: [sdb] 156301488 512-byte hardware sectors (80026 MB)
+sd 7:0:0:0: [sdb] Write Protect is off
+sd 7:0:0:0: [sdb] Mode Sense: 03 00 00 00
+sd 7:0:0:0: [sdb] Assuming drive cache: write through
+ sdb: sdb1
+sd 7:0:0:0: [sdb] Attached SCSI disk
+sd 7:0:0:0: Attached scsi generic sg1 type 0
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on sdb1, internal journal
+EXT3-fs: recovery complete.
+EXT3-fs: mounted filesystem with ordered data mode.
+
+Cc: "Kuniyasu Suzaki" <k.suzaki@aist.go.jp>
+Signed-off-by: Nguyen Anh Quynh <aquynh@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/txx9ndfmc.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/usb/storage/unusual_devs.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/mtd/nand/txx9ndfmc.c~mtd-txx9-soc-nand-flash-memory-controller-driver-v3 drivers/mtd/nand/txx9ndfmc.c
---- a/drivers/mtd/nand/txx9ndfmc.c~mtd-txx9-soc-nand-flash-memory-controller-driver-v3
-+++ a/drivers/mtd/nand/txx9ndfmc.c
-@@ -74,6 +74,9 @@ struct txx9ndfmc_drvdata {
- 	unsigned char hold;	/* in gbusclock */
- 	unsigned char spw;	/* in gbusclock */
- 	struct nand_hw_control hw_control;
-+#ifdef CONFIG_MTD_PARTITIONS
-+	struct mtd_partition *parts[MAX_TXX9NDFMC_DEV];
-+#endif
- };
+diff -puN drivers/usb/storage/unusual_devs.h~usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device drivers/usb/storage/unusual_devs.h
+--- a/drivers/usb/storage/unusual_devs.h~usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device
++++ a/drivers/usb/storage/unusual_devs.h
+@@ -1268,6 +1268,13 @@ UNUSUAL_DEV( 0x0840, 0x0085, 0x0001, 0x0
+ 		US_SC_DEVICE, US_PR_DEVICE, NULL,
+ 		US_FL_FIX_CAPACITY),
  
- static struct platform_device *mtd_to_platdev(struct mtd_info *mtd)
-@@ -294,7 +297,6 @@ static int __init txx9ndfmc_probe(struct
- 		struct mtd_info *mtd;
- #ifdef CONFIG_MTD_PARTITIONS
- 		int nr_parts;
--		struct mtd_partition *parts;
- #endif
- 
- 		if (!(plat->ch_mask & (1 << i)))
-@@ -332,7 +334,7 @@ static int __init txx9ndfmc_probe(struct
- 
- 		if (plat->ch_mask != 1) {
- 			txx9_priv->cs = i;
--			sprintf(txx9_priv->mtdname, "%s:%u",
-+			sprintf(txx9_priv->mtdname, "%s.%u",
- 				dev_name(&dev->dev), i);
- 		} else {
- 			txx9_priv->cs = -1;
-@@ -348,11 +350,10 @@ static int __init txx9ndfmc_probe(struct
- 		mtd->name = txx9_priv->mtdname;
- 
- #ifdef CONFIG_MTD_PARTITIONS
--		nr_parts = parse_mtd_partitions(mtd, probes, &parts, 0);
--		if (nr_parts > 0) {
--			add_mtd_partitions(mtd, parts, nr_parts);
--			kfree(parts);
--		}
-+		nr_parts = parse_mtd_partitions(mtd, probes,
-+						&drvdata->parts[i], 0);
-+		if (nr_parts > 0)
-+			add_mtd_partitions(mtd, drvdata->parts[i], nr_parts);
- #endif
- 		add_mtd_device(mtd);
- 		drvdata->mtds[i] = mtd;
-@@ -381,6 +382,7 @@ static int __exit txx9ndfmc_remove(struc
- 
- #ifdef CONFIG_MTD_PARTITIONS
- 		del_mtd_partitions(mtd);
-+		kfree(drvdata->parts[i]);
- #endif
- 		del_mtd_device(mtd);
- 		kfree(txx9_priv);
++/* Reported and patched by Nguyen Anh Quynh <aquynh@gmail.com> */
++UNUSUAL_DEV( 0x0840, 0x0084, 0x0001, 0x0001,
++		"Argosy",
++		"Storage",
++		US_SC_DEVICE, US_PR_DEVICE, NULL,
++		US_FL_FIX_CAPACITY),
++
+ /* Entry and supporting patch by Theodore Kilgore <kilgota@auburn.edu>.
+  * Flag will support Bulk devices which use a standards-violating 32-byte
+  * Command Block Wrapper. Here, the "DC2MEGA" cameras (several brands) with
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from aquynh@gmail.com are
 
-origin.patch
-mtd-txx9-add-ndfmc-support.patch
-mtd-rbtx4939-add-mtd-support.patch
-mtd-txx9-soc-nand-flash-memory-controller-driver.patch
-mtd-txx9-soc-nand-flash-memory-controller-driver-v3.patch
-mtd-rbtx4939-map-driver-v2.patch
-atmel-mci-fix-initialization-of-dma-slave-data.patch
-mtd-physmap-fix-wrong-free-and-del_mtd_partitiondevice.patch
-atmel_serial-might-lose-modem-status-change.patch
+linux-next.patch
+usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device.patch
 
