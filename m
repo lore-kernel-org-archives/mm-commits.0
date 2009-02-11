@@ -1,177 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:30:54 -0800
-Message-ID: <200902112130.n1BLUsaT004247@imap1.linux-foundation.org>
+Subject: [merged] drivers-ata-sata_silc-needs-dmih.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:41:00 -0800
+Message-ID: <200902112141.n1BLf1bd018394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47706 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754816AbZBKVbq (ORCPT
+	by vger.kernel.org with ESMTP id S1757724AbZBKVl5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:31:46 -0500
+	Wed, 11 Feb 2009 16:41:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aquynh@gmail.com, greg@kroah.com, k.suzaki@aist.go.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: another unusual_devs entry for another bad Argosy storage device
+     drivers/ata/sata_sil.c needs dmi.h
 has been removed from the -mm tree.  Its filename was
-     usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device.patch
+     drivers-ata-sata_silc-needs-dmih.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: another unusual_devs entry for another bad Argosy storage device
-From: "Nguyen Anh Quynh" <aquynh@gmail.com>
+Subject: drivers/ata/sata_sil.c needs dmi.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I have another Argosy USB storage device, which has the same problem
-with the Argosy USB storage device already fixed in 2.6.27.7. But this
-device has another product ID (840:84), so this patch adds a new entry
-into unusual_devs to fix the mount problem.
+alpha:
 
-I enclose here two patches: one against 2.6.27.8, and another against
-the latest linus-git tree.
+drivers/ata/sata_sil.c: In function 'sil_broken_system_poweroff':
+drivers/ata/sata_sil.c:713: error: implicit declaration of function 'dmi_first_match'
 
-
-The information about the Argosy device is like below:
-
-#lsusb -v -d 840:84
-Bus 005 Device 005: ID 0840:0084 Argosy Research, Inc.
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x0840 Argosy Research, Inc.
-  idProduct          0x0084
-  bcdDevice            0.01
-  iManufacturer           1 Generic
-  iProduct                2 USB 2.0 Storage Device
-  iSerial                 3 8400000000002549
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           32
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0xc0
-      Self Powered
-    MaxPower                2mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           2
-      bInterfaceClass         8 Mass Storage
-      bInterfaceSubClass      6 SCSI
-      bInterfaceProtocol     80 Bulk (Zip)
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
-
-Before the patch, dmesg returns a lot of information like below (my
-dmesg is overflown):
-....
-[  138.833390] sd 7:0:0:0: [sdb] Add. Sense: No additional sense information
-[  138.877631] sd 7:0:0:0: [sdb] Sense Key : No Sense [current]
-[  138.877643] sd 7:0:0:0: [sdb] Add. Sense: No additional sense information
-[  138.921906] sd 7:0:0:0: [sdb] Sense Key : No Sense [current]
-[  138.921923] sd 7:0:0:0: [sdb] Add. Sense: No additional sense information
-....
-
-After the fix, dmesg returns below information:
-....
-usb 5-1: new high speed USB device using ehci_hcd and address 5
-usb 5-1: configuration #1 chosen from 1 choice
-scsi7 : SCSI emulation for USB Mass Storage devices
-usb-storage: device found at 5
-usb-storage: waiting for device to settle before scanning
-usb-storage: device scan complete
-scsi 7:0:0:0: Direct-Access     HTS54808 0M9AT00          MG4O PQ: 0 ANSI: 0
-sd 7:0:0:0: [sdb] 156301488 512-byte hardware sectors (80026 MB)
-sd 7:0:0:0: [sdb] Write Protect is off
-sd 7:0:0:0: [sdb] Mode Sense: 03 00 00 00
-sd 7:0:0:0: [sdb] Assuming drive cache: write through
-sd 7:0:0:0: [sdb] 156301488 512-byte hardware sectors (80026 MB)
-sd 7:0:0:0: [sdb] Write Protect is off
-sd 7:0:0:0: [sdb] Mode Sense: 03 00 00 00
-sd 7:0:0:0: [sdb] Assuming drive cache: write through
- sdb: sdb1
-sd 7:0:0:0: [sdb] Attached SCSI disk
-sd 7:0:0:0: Attached scsi generic sg1 type 0
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS on sdb1, internal journal
-EXT3-fs: recovery complete.
-EXT3-fs: mounted filesystem with ordered data mode.
-
-Cc: "Kuniyasu Suzaki" <k.suzaki@aist.go.jp>
-Signed-off-by: Nguyen Anh Quynh <aquynh@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/unusual_devs.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/ata/sata_sil.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/storage/unusual_devs.h~usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device drivers/usb/storage/unusual_devs.h
---- a/drivers/usb/storage/unusual_devs.h~usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device
-+++ a/drivers/usb/storage/unusual_devs.h
-@@ -1268,6 +1268,13 @@ UNUSUAL_DEV( 0x0840, 0x0085, 0x0001, 0x0
- 		US_SC_DEVICE, US_PR_DEVICE, NULL,
- 		US_FL_FIX_CAPACITY),
- 
-+/* Reported and patched by Nguyen Anh Quynh <aquynh@gmail.com> */
-+UNUSUAL_DEV( 0x0840, 0x0084, 0x0001, 0x0001,
-+		"Argosy",
-+		"Storage",
-+		US_SC_DEVICE, US_PR_DEVICE, NULL,
-+		US_FL_FIX_CAPACITY),
-+
- /* Entry and supporting patch by Theodore Kilgore <kilgota@auburn.edu>.
-  * Flag will support Bulk devices which use a standards-violating 32-byte
-  * Command Block Wrapper. Here, the "DC2MEGA" cameras (several brands) with
+diff -puN drivers/ata/sata_sil.c~drivers-ata-sata_silc-needs-dmih drivers/ata/sata_sil.c
+--- a/drivers/ata/sata_sil.c~drivers-ata-sata_silc-needs-dmih
++++ a/drivers/ata/sata_sil.c
+@@ -38,6 +38,7 @@
+ #include <linux/module.h>
+ #include <linux/pci.h>
+ #include <linux/init.h>
++#include <linux/dmi.h>
+ #include <linux/blkdev.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
 _
 
-Patches currently in -mm which might be from aquynh@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
+writeback-fix-break-condition.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-usb-another-unusual_devs-entry-for-another-bad-argosy-storage-device.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+x86-define-arch_want_frame_pointers.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+mtd-rbtx4939-add-mtd-support.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_add_devices.patch
+cciss-pci-power-management-reset-for-kexec.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
