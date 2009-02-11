@@ -1,80 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:15:54 -0800
-Message-ID: <200902112115.n1BLFt85015448@imap1.linux-foundation.org>
+Subject: [withdrawn] arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:18:22 -0800
+Message-ID: <200902112118.n1BLIM6E018997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757798AbZBKVQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756762AbZBKVSa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:16:29 -0500
+	Wed, 11 Feb 2009 16:18:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hmh@hmh.eng.br, hpa@zytor.com, mingo@elte.hu, pavel@suse.cz, rpurdie@rpsys.net, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, julia@diku.dk, scottwood@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes
+     arch-powerpc-eliminate-double-sizeof-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+     arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes
+Subject: arch-powerpc-eliminate-double-sizeof-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 ERROR: code indent should use tabs where possible
-#218: FILE: drivers/platform/x86/thinkpad_acpi.c:4092:
-+                       TPACPI_LED_OFF :$
+#44: FILE: arch/powerpc/platforms/82xx/pq2ads-pci-pic.c:189:
++^I             sizeof(struct pq2ads_pci_pic));$
 
-ERROR: code indent should use tabs where possible
-#219: FILE: drivers/platform/x86/thinkpad_acpi.c:4093:
-+                       (tpacpi_led_state_cache[data->led] == TPACPI_LED_BLINK) ?$
+total: 1 errors, 0 warnings, 8 lines checked
 
-ERROR: code indent should use tabs where possible
-#220: FILE: drivers/platform/x86/thinkpad_acpi.c:4094:
-+                              TPACPI_LED_BLINK : TPACPI_LED_ON);$
-
-total: 3 errors, 0 warnings, 225 lines checked
-
-./patches/thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch has style problems, please review.  If any of these errors
+./patches/arch-powerpc-eliminate-double-sizeof.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pavel Machek <pavel@suse.cz>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Julia Lawall <julia@diku.dk>
+Cc: Scott Wood <scottwood@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/thinkpad_acpi.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/powerpc/platforms/82xx/pq2ads-pci-pic.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes drivers/platform/x86/thinkpad_acpi.c
---- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes
-+++ a/drivers/platform/x86/thinkpad_acpi.c
-@@ -4658,9 +4658,9 @@ static int led_set_class_status(struct d
- 	if (tpacpi_lifecycle != TPACPI_LIFE_RUNNING)
- 		return -EINVAL;
- 	return led_set_status(data->led, (data->new_brightness == LED_OFF) ?
--                       TPACPI_LED_OFF :
--                       (tpacpi_led_state_cache[data->led] == TPACPI_LED_BLINK) ?
--                              TPACPI_LED_BLINK : TPACPI_LED_ON);
-+		    TPACPI_LED_OFF :
-+		    (tpacpi_led_state_cache[data->led] == TPACPI_LED_BLINK) ?
-+			TPACPI_LED_BLINK : TPACPI_LED_ON);
- }
- 
- static int led_sysfs_blink_set(struct led_classdev *led_cdev,
+diff -puN arch/powerpc/platforms/82xx/pq2ads-pci-pic.c~arch-powerpc-eliminate-double-sizeof-checkpatch-fixes arch/powerpc/platforms/82xx/pq2ads-pci-pic.c
+--- a/arch/powerpc/platforms/82xx/pq2ads-pci-pic.c~arch-powerpc-eliminate-double-sizeof-checkpatch-fixes
++++ a/arch/powerpc/platforms/82xx/pq2ads-pci-pic.c
+@@ -185,8 +185,7 @@ int __init pq2ads_pci_init_irq(void)
+ out_unmap_regs:
+ 	iounmap(priv->regs);
+ out_free_bootmem:
+-	free_bootmem((unsigned long)priv,
+-	             sizeof(struct pq2ads_pci_pic));
++	free_bootmem((unsigned long)priv, sizeof(struct pq2ads_pci_pic));
+ 	of_node_put(np);
+ out_unmap_irq:
+ 	irq_dispose_mapping(irq);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,8 +77,7 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
-x86-define-arch_want_frame_pointers-fix.patch
+x86-define-arch_want_frame_pointers.patch
 kernel-auditscc-fix-warning.patch
 arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
 drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
