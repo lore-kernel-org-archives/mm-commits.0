@@ -1,61 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: [folded] ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:02:39 -0800
-Message-ID: <200902112102.n1BL2eIQ029120@imap1.linux-foundation.org>
+Subject: [folded] input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:10:02 -0800
+Message-ID: <200902112110.n1BLA3Gw007155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42626 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753143AbZBKVEa (ORCPT
+	by vger.kernel.org with ESMTP id S1756649AbZBKVLL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:04:30 -0500
+	Wed, 11 Feb 2009 16:11:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cotte@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@linux.intel.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix
+     input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix
 has been removed from the -mm tree.  Its filename was
-     ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
+     input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
 
-This patch was dropped because it was folded into ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
+This patch was dropped because it was folded into input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix
+Subject: input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-might as well nuke that unneeded backslash
+drivers/input/serio/i8042-x86ia64io.h:458: warning: 'i8042_dmi_reset_table' defined but not used
 
-Cc: Carsten Otte <cotte@de.ibm.com>
+Fix this by moving both i8042_dmi_nopnp_tablep[] and i8042_dmi_reset_table[]
+into a section which requires CONFIG_PNP and CONFIG_X86.  Give their
+usage sites the same treatment.
+
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/serio/i8042-x86ia64io.h |   79 +++++++++++-------------
+ 1 file changed, 39 insertions(+), 40 deletions(-)
 
-diff -puN fs/ext2/super.c~ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix fs/ext2/super.c
---- a/fs/ext2/super.c~ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix
-+++ a/fs/ext2/super.c
-@@ -1186,7 +1186,7 @@ static int ext2_remount (struct super_bl
- 	if (((sbi->s_mount_opt & EXT2_MOUNT_XIP) !=
- 	    (old_mount_opt & EXT2_MOUNT_XIP)) &&
- 	    invalidate_inodes(sb)) {
--		ext2_warning(sb, __func__, "refusing change of xip flag "\
-+		ext2_warning(sb, __func__, "refusing change of xip flag "
- 			     "with busy inodes while remounting");
- 		sbi->s_mount_opt &= ~EXT2_MOUNT_XIP;
- 		sbi->s_mount_opt |= old_mount_opt & EXT2_MOUNT_XIP;
+diff -puN drivers/input/serio/i8042-x86ia64io.h~input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix drivers/input/serio/i8042-x86ia64io.h
+--- a/drivers/input/serio/i8042-x86ia64io.h~input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix
++++ a/drivers/input/serio/i8042-x86ia64io.h
+@@ -369,26 +369,6 @@ static struct dmi_system_id __initdata i
+ 	{ }
+ };
+ 
+-#ifdef CONFIG_PNP
+-static struct dmi_system_id __initdata i8042_dmi_nopnp_table[] = {
+-	{
+-		.ident = "Intel MBO Desktop D845PESV",
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "D845PESV"),
+-			DMI_MATCH(DMI_BOARD_VENDOR, "Intel Corporation"),
+-		},
+-	},
+-	{
+-		.ident = "MSI Wind U-100",
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
+-			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
+-		},
+-	},
+-	{ }
+-};
+-#endif
+-
+ /*
+  * Some Wistron based laptops need us to explicitly enable the 'Dritek
+  * keyboard extension' to make their extra keys start generating scancodes.
+@@ -455,25 +435,6 @@ static struct dmi_system_id __initdata i
+ 	{ }
+ };
+ 
+-static struct dmi_system_id __initdata i8042_dmi_reset_table[] = {
+-	{
+-		.ident = "MSI Wind U-100",
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
+-			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
+-		},
+-	},
+-	{
+-		.ident = "LG Electronics X110",
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_NAME, "X110"),
+-			DMI_MATCH(DMI_BOARD_VENDOR, "LG Electronics Inc."),
+-		},
+-	},
+-	{ }
+-};
+-
+-
+ #endif /* CONFIG_X86 */
+ 
+ #ifdef CONFIG_PNP
+@@ -492,6 +453,44 @@ static int i8042_pnp_aux_irq;
+ static char i8042_pnp_kbd_name[32];
+ static char i8042_pnp_aux_name[32];
+ 
++#ifdef CONFIG_X86
++static struct dmi_system_id __initdata i8042_dmi_nopnp_table[] = {
++	{
++		.ident = "Intel MBO Desktop D845PESV",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "D845PESV"),
++			DMI_MATCH(DMI_BOARD_VENDOR, "Intel Corporation"),
++		},
++	},
++	{
++		.ident = "MSI Wind U-100",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
++			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
++		},
++	},
++	{ }
++};
++
++static struct dmi_system_id __initdata i8042_dmi_reset_table[] = {
++	{
++		.ident = "MSI Wind U-100",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "U-100"),
++			DMI_MATCH(DMI_BOARD_VENDOR, "MICRO-STAR INTERNATIONAL CO., LTD"),
++		},
++	},
++	{
++		.ident = "LG Electronics X110",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "X110"),
++			DMI_MATCH(DMI_BOARD_VENDOR, "LG Electronics Inc."),
++		},
++	},
++	{ }
++};
++#endif
++
+ static int i8042_pnp_kbd_probe(struct pnp_dev *dev, const struct pnp_device_id *did)
+ {
+ 	if (pnp_port_valid(dev, 0) && pnp_port_len(dev, 0) == 1)
+@@ -588,12 +587,12 @@ static int __init i8042_pnp_init(void)
+ #ifdef CONFIG_X86
+ 	if (dmi_check_system(i8042_dmi_nopnp_table))
+ 		i8042_nopnp = 1;
+-#endif
+ 
+ 	if (dmi_check_system(i8042_dmi_reset_table)) {
+ 		i8042_reset = 1;
+ 		i8042_nonfatal = 1;
+ 	}
++#endif
+ 
+ 	if (i8042_nopnp) {
+ 		printk(KERN_INFO "i8042: PNP detection disabled\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
-ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes-fix.patch
-writeback-fix-break-condition-checkpatch-fixes.patch
+writeback-fix-break-condition.patch
 vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
 seq_file-properly-cope-with-pread-fix.patch
 i-need-old-gcc.patch
@@ -86,6 +193,7 @@ __tty_open-use-the-correct-type-for-saved_flags.patch
 aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 drivers-ata-sata_silc-needs-dmih.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
 input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work-fix.patch
 net-dont-use-in_atomic-in-gfp_any.patch
 documentation-connector-cn_testc-dont-use-gfp_any.patch
