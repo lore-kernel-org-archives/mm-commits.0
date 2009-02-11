@@ -1,61 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded] 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:13:51 -0800
-Message-ID: <200902112113.n1BLDp8a012479@imap1.linux-foundation.org>
+Subject: [folded] x86-define-arch_want_frame_pointers-fix.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:16:16 -0800
+Message-ID: <200902112116.n1BLGGNS015966@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53215 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758229AbZBKVP5 (ORCPT
+	by vger.kernel.org with ESMTP id S1758445AbZBKVQa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:15:57 -0500
+	Wed, 11 Feb 2009 16:16:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mchehab@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeffm@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
+     x86-define-arch_want_frame_pointers-fix
 has been removed from the -mm tree.  Its filename was
-     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
+     x86-define-arch_want_frame_pointers-fix.patch
 
-This patch was dropped because it was folded into 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+This patch was dropped because it was folded into x86-define-arch_want_frame_pointers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
+Subject: x86-define-arch_want_frame_pointers-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/serial/8250_pci.c:885: warning: initialization from incompatible pointer type
-drivers/serial/8250_pci.c:892: warning: initialization from incompatible pointer type
-drivers/serial/8250_pci.c:899: warning: initialization from incompatible pointer type
+unbust the whitespace.
 
-Cc: <stable@kernel.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |    6 +++---
+ lib/Kconfig.debug |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix
-+++ a/drivers/serial/8250_pci.c
-@@ -798,9 +798,9 @@ pci_default_setup(struct serial_private 
- 	return setup_port(priv, port, bar, offset, board->reg_shift);
- }
+diff -puN lib/Kconfig.debug~x86-define-arch_want_frame_pointers-fix lib/Kconfig.debug
+--- a/lib/Kconfig.debug~x86-define-arch_want_frame_pointers-fix
++++ a/lib/Kconfig.debug
+@@ -672,9 +672,9 @@ config ARCH_WANT_FRAME_POINTERS
  
--static int
--skip_tx_en_setup(struct serial_private *priv, struct pciserial_board *board,
--		  struct uart_port *port, int idx)
-+static int skip_tx_en_setup(struct serial_private *priv,
-+			const struct pciserial_board *board,
-+			struct uart_port *port, int idx)
- {
- 	port->flags |= UPF_NO_TXEN_TEST;
- 	printk(KERN_DEBUG "serial8250: skipping TxEn test for device "
+ config ARCH_WANT_FRAME_POINTERS
+ 	bool
+-       help
+-        Select this config option from the architecture Kconfig, if it
+-        it is preferred to always enable frame pointers on the architecture.
++	help
++	  Select this config option from the architecture Kconfig, if it
++	  it is preferred to always enable frame pointers on the architecture.
+ 
+ config FRAME_POINTER
+ 	bool "Compile the kernel with frame pointers"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +68,8 @@ linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
 fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code-checkpatch-fixes.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+x86-define-arch_want_frame_pointers.patch
 x86-define-arch_want_frame_pointers-fix.patch
 kernel-auditscc-fix-warning.patch
 arch-powerpc-eliminate-double-sizeof-checkpatch-fixes.patch
@@ -82,6 +80,8 @@ early-platform-driver-v3-checkpatch-fixes.patch
 clocksource-pass-clocksource-to-read-callback.patch
 input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
 mtd-rbtx4939-add-mtd-support-fix.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
 pci-constify-pci_bus_assign_resources.patch
 pci-constify-pci_bus_assign_resources-fix.patch
@@ -94,11 +94,8 @@ aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 drivers-ata-sata_silc-needs-dmih.patch
 input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-net-dont-use-in_atomic-in-gfp_any.patch
-documentation-connector-cn_testc-dont-use-gfp_any.patch
 nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port-fix.patch
 page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
 page_fault-retry-with-nopage_retry-fix-fix.patch
