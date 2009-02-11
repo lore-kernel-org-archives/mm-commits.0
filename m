@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86-dell-laptop-depends-on-power_supply.patch added to -mm tree
-Date: Wed, 11 Feb 2009 14:16:33 -0800
-Message-ID: <200902112216.n1BMGXJQ003132@imap1.linux-foundation.org>
+Subject: + x86-oqo-depends-on-input_polldev.patch added to -mm tree
+Date: Wed, 11 Feb 2009 14:17:20 -0800
+Message-ID: <200902112217.n1BMHKga004280@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754887AbZBKWRQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754158AbZBKWSE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 17:17:16 -0500
+	Wed, 11 Feb 2009 17:18:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com, hpa@zytor.com, mingo@elte.hu, mjg59@srcf.ucam.org, 
 
 
 The patch titled
-     x86: dell-laptop: depends on POWER_SUPPLY
+     x86: oqo: depends on INPUT_POLLDEV
 has been added to the -mm tree.  Its filename is
-     x86-dell-laptop-depends-on-power_supply.patch
+     x86-oqo-depends-on-input_polldev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: dell-laptop: depends on POWER_SUPPLY
+Subject: x86: oqo: depends on INPUT_POLLDEV
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Build breaks when DELL_LAPTOP=y and POWER_SUPPLY=m.  DELL_LAPTOP needs to
-depend on POWER_SUPPLY.
+oqo driver uses polled input functions, so make it depend
+on INPUT_POLLDEV.
 
-dell-laptop.c:(.text+0x1ef3c4): undefined reference to `power_supply_is_system_supplied'
-dell-laptop.c:(.text+0x1ef45e): undefined reference to `power_supply_is_system_supplied'
+ERROR: "input_register_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
+ERROR: "input_allocate_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
+ERROR: "input_free_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
+ERROR: "input_unregister_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Matthew Garrett <mjg59@srcf.ucam.org>
@@ -51,20 +53,21 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/platform/x86/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/Kconfig~x86-dell-laptop-depends-on-power_supply drivers/platform/x86/Kconfig
---- a/drivers/platform/x86/Kconfig~x86-dell-laptop-depends-on-power_supply
+diff -puN drivers/platform/x86/Kconfig~x86-oqo-depends-on-input_polldev drivers/platform/x86/Kconfig
+--- a/drivers/platform/x86/Kconfig~x86-oqo-depends-on-input_polldev
 +++ a/drivers/platform/x86/Kconfig
-@@ -62,6 +62,7 @@ config DELL_LAPTOP
- 	depends on EXPERIMENTAL
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on RFKILL
-+	depends on POWER_SUPPLY
- 	default n
- 	---help---
- 	This driver adds support for rfkill and backlight control to Dell
+@@ -137,7 +137,7 @@ config MSI_LAPTOP
+ config OQO_WMI
+        tristate "OQO WMI extras"
+        depends on ACPI_WMI
+-       depends on INPUT
++       depends on INPUT && INPUT_POLLDEV
+        depends on RFKILL
+        depends on BACKLIGHT_CLASS_DEVICE
+        help
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -73,6 +76,8 @@ kernel-doc-preferred-ending-marker-and-examples.patch
 kernel-doc-fix-syscall-wrapper-processing.patch
 linux-next.patch
 uv-fix-header-struct-usage.patch
+x86-dell-laptop-depends-on-power_supply.patch
+x86-oqo-depends-on-input_polldev.patch
 kgdb-fix-kernel-doc-error.patch
 auditsc-fix-kernel-doc-notation.patch
 input-ad7879-touchscreen-driver.patch
@@ -94,5 +99,4 @@ kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
 linuxpps-core-support.patch
 linuxpps-core-support-v2.patch
-x86-dell-laptop-depends-on-power_supply.patch
 
