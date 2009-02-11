@@ -1,110 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [folded] input-ad7879-touchscreen-driver-dont-use-bus_id.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:22:33 -0800
-Message-ID: <200902112122.n1BLMXWl024820@imap1.linux-foundation.org>
+Subject: [folded] input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:23:07 -0800
+Message-ID: <200902112123.n1BLN7qt025686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44048 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33909 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752567AbZBKVWv (ORCPT
+	by vger.kernel.org with ESMTP id S1755325AbZBKVXk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:22:51 -0500
+	Wed, 11 Feb 2009 16:23:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, cooloney@kernel.org, dmitry.torokhov@gmail.com, michael.hennerich@analog.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dtor@mail.ru, rydberg@euromail.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     touchscreen/ad787x: don't use bus_id
+     input-bcm5974-declare-alignment-usage-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     input-ad7879-touchscreen-driver-dont-use-bus_id.patch
+     input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into input-ad7879-touchscreen-driver.patch
+This patch was dropped because it was folded into input-bcm5974-declare-alignment-usage.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: touchscreen/ad787x: don't use bus_id
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: input-bcm5974-declare-alignment-usage-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/input/touchscreen/ad7879.c:421: error: 'struct device' has no member named 'bus_id'
-drivers/input/touchscreen/ad7877.c:716: error: 'struct device' has no member named 'bus_id'
-drivers/input/touchscreen/ad7877.c:743: error: 'struct device' has no member named 'bus_id'
+ERROR: space required after that ',' (ctx:VxV)
+#45: FILE: drivers/input/mouse/bcm5974.c:137:
++} __attribute__((packed,aligned(2)));
+                        ^
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
-Cc: Bryan Wu <cooloney@kernel.org>
+total: 1 errors, 0 warnings, 37 lines checked
+
+./patches/input-bcm5974-declare-alignment-usage.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Henrik Rydberg" <rydberg@euromail.se>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Henrik Rydberg <rydberg@euromail.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/ad7877.c |    6 +++---
- drivers/input/touchscreen/ad7879.c |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/input/mouse/bcm5974.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/ad7877.c~input-ad7879-touchscreen-driver-dont-use-bus_id drivers/input/touchscreen/ad7877.c
---- a/drivers/input/touchscreen/ad7877.c~input-ad7879-touchscreen-driver-dont-use-bus_id
-+++ a/drivers/input/touchscreen/ad7877.c
-@@ -713,7 +713,7 @@ static int __devinit ad7877_probe(struct
- 	ts->averaging = pdata->averaging;
- 	ts->pen_down_acc_interval = pdata->pen_down_acc_interval;
+diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-declare-alignment-usage-checkpatch-fixes drivers/input/mouse/bcm5974.c
+--- a/drivers/input/mouse/bcm5974.c~input-bcm5974-declare-alignment-usage-checkpatch-fixes
++++ a/drivers/input/mouse/bcm5974.c
+@@ -134,7 +134,7 @@ struct tp_finger {
+ 	__le16 force_minor;	/* trackpad force, minor axis? */
+ 	__le16 unused[3];	/* zeros */
+ 	__le16 multi;		/* one finger: varies, more fingers: constant */
+-} __attribute__((packed,aligned(2)));
++} __attribute__((packed, aligned(2)));
  
--	snprintf(ts->phys, sizeof(ts->phys), "%s/inputX", spi->dev.bus_id);
-+	snprintf(ts->phys, sizeof(ts->phys), "%s/inputX", dev_name(&spi->dev));
- 
- 	input_dev->name = "AD7877 Touchscreen";
- 	input_dev->phys = ts->phys;
-@@ -740,8 +740,8 @@ static int __devinit ad7877_probe(struct
- 	verify = ad7877_read(spi, AD7877_REG_SEQ1);
- 
- 	if (verify != AD7877_MM_SEQUENCE){
--		dev_err(&spi->dev, "%s: Failed to probe %s\n", spi->dev.bus_id,
--			 input_dev->name);
-+		dev_err(&spi->dev, "%s: Failed to probe %s\n",
-+			dev_name(&spi->dev), input_dev->name);
- 		err = -ENODEV;
- 		goto err_free_mem;
- 	}
-diff -puN drivers/input/touchscreen/ad7879.c~input-ad7879-touchscreen-driver-dont-use-bus_id drivers/input/touchscreen/ad7879.c
---- a/drivers/input/touchscreen/ad7879.c~input-ad7879-touchscreen-driver-dont-use-bus_id
-+++ a/drivers/input/touchscreen/ad7879.c
-@@ -418,7 +418,7 @@ static int __devinit ad7879_construct(bu
- 	else
- 		ts->gpio_init = AD7879_GPIO_EN | AD7879_GPIODIR;
- 
--	snprintf(ts->phys, sizeof(ts->phys), "%s/inputX", bus->dev.bus_id);
-+	snprintf(ts->phys, sizeof(ts->phys), "%s/inputX", dev_name(&bus->dev));
- 
- 	input_dev->name = "AD7879 Touchscreen";
- 	input_dev->phys = ts->phys;
+ /* trackpad finger data size, empirically at least ten fingers */
+ #define SIZEOF_FINGER		sizeof(struct tp_finger)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernel-doc-preferred-ending-marker-and-examples.patch
-kernel-doc-fix-syscall-wrapper-processing.patch
+origin.patch
+ext2-xip-refuse-to-change-xip-flag-during-remount-with-busy-inodes.patch
+writeback-fix-break-condition.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-uv-fix-header-struct-usage.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver.patch
-input-ad7879-touchscreen-driver-dont-use-bus_id.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pci-fix-romc-kernel-doc-warning.patch
-esp-fix-section-mismatch-warning.patch
-cciss-pci-power-management-reset-for-kexec.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+x86-define-arch_want_frame_pointers.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support-fix.patch
+net-dont-use-in_atomic-in-gfp_any.patch
+documentation-connector-cn_testc-dont-use-gfp_any.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_assign_resources-fix.patch
+pci-constify-pci_bus_add_devices.patch
 cciss-pci-power-management-reset-for-kexec-cleanup.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-atyfb-fix-header-file-trailing-whitespace.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void-fix.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-ata-sata_silc-needs-dmih.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
 cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-documentation-ignore-byproducts-from-latex.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
