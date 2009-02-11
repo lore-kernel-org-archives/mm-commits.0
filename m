@@ -1,58 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vfs-simple_set_mnt-should-return-void-fix.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:31:16 -0800
-Message-ID: <200902112131.n1BLVHoJ004802@imap1.linux-foundation.org>
+Subject: [folded] cciss-pci-power-management-reset-for-kexec-cleanup.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:29:43 -0800
+Message-ID: <200902112129.n1BLTiJJ002616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39220 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48513 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756333AbZBKV7E (ORCPT
+	by vger.kernel.org with ESMTP id S1753400AbZBKV7S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:59:04 -0500
+	Wed, 11 Feb 2009 16:59:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, serue@us.ibm.com, sukadev@linux.vnet.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, coldwell@redhat.com, jens.axboe@oracle.com, mike.miller@hp.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs-simple_set_mnt-should-return-void-fix
+     cciss-pci-power-management-reset-for-kexec-cleanup
 has been removed from the -mm tree.  Its filename was
-     vfs-simple_set_mnt-should-return-void-fix.patch
+     cciss-pci-power-management-reset-for-kexec-cleanup.patch
 
-This patch was dropped because it was folded into vfs-simple_set_mnt-should-return-void.patch
+This patch was dropped because it was folded into cciss-pci-power-management-reset-for-kexec.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs-simple_set_mnt-should-return-void-fix
+Subject: cciss-pci-power-management-reset-for-kexec-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/proc_net.c: In function 'proc_net_get_sb':
-fs/proc/proc_net.c:296: error: void value not ignored as it ought to be
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Cc: Chip Coldwell <coldwell@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mike Miller <mike.miller@hp.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_net.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/cciss.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/proc_net.c~vfs-simple_set_mnt-should-return-void-fix fs/proc/proc_net.c
---- a/fs/proc/proc_net.c~vfs-simple_set_mnt-should-return-void-fix
-+++ a/fs/proc/proc_net.c
-@@ -293,7 +293,8 @@ static int proc_net_get_sb(struct file_s
- 		sb->s_flags |= MS_ACTIVE;
- 	}
+diff -puN drivers/block/cciss.c~cciss-pci-power-management-reset-for-kexec-cleanup drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-pci-power-management-reset-for-kexec-cleanup
++++ a/drivers/block/cciss.c
+@@ -3561,16 +3561,14 @@ static __devinit int cciss_hard_reset_co
+ 	pmcsr |= PCI_D3hot;
+ 	pci_write_config_word(pdev, pos + PCI_PM_CTRL, pmcsr);
  
--	return simple_set_mnt(mnt, sb);
-+	simple_set_mnt(mnt, sb);
-+	return 0;
- }
+-	set_current_state(TASK_UNINTERRUPTIBLE);
+-	schedule_timeout(HZ >> 1);
++	schedule_timeout_uninterruptible(HZ >> 1);
  
- static struct file_system_type proc_net_fs_type = {
+ 	/* enter the D0 power management state */
+ 	pmcsr &= ~PCI_PM_CTRL_STATE_MASK;
+ 	pmcsr |= PCI_D0;
+ 	pci_write_config_word(pdev, pos + PCI_PM_CTRL, pmcsr);
+ 
+-	set_current_state(TASK_UNINTERRUPTIBLE);
+-	schedule_timeout(HZ >> 1);
++	schedule_timeout_uninterruptible(HZ >> 1);
+ 
+ 	/* Restore the PCI configuration space.  The Open CISS
+ 	 * Specification says, "Restore the PCI Configuration
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,8 +89,8 @@ pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
 pci-constify-pci_bus_assign_resources.patch
 pci-constify-pci_bus_add_devices.patch
 cciss-pci-power-management-reset-for-kexec.patch
+cciss-pci-power-management-reset-for-kexec-cleanup.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
 vfs-simple_set_mnt-should-return-void-fix.patch
 __tty_open-use-the-correct-type-for-saved_flags.patch
 aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
