@@ -1,58 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:18:40 -0800
-Message-ID: <200902112118.n1BLIe9G019339@imap1.linux-foundation.org>
+Subject: [folded] sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:19:22 -0800
+Message-ID: <200902112119.n1BLJMgl020360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57188 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756755AbZBKVSz (ORCPT
+	by vger.kernel.org with ESMTP id S1756137AbZBKVTi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:18:55 -0500
+	Wed, 11 Feb 2009 16:19:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cornelia.huck@de.ibm.com, ebiederm@aristanetworks.com, gregkh@suse.de, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-consolidate-driver_probe_done-loops-into-one-place-fix
+     sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
+     sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
 
-This patch was dropped because it was folded into drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+This patch was dropped because it was folded into sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-consolidate-driver_probe_done-loops-into-one-place-fix
+Subject: sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/base/dd.c: In function 'wait_for_device_probe':
-drivers/base/dd.c:181: error: implicit declaration of function 'msleep'
-
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Eric W. Biederman <ebiederm@aristanetworks.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dd.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/sysfs/inode.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/base/dd.c~drivers-consolidate-driver_probe_done-loops-into-one-place-fix drivers/base/dd.c
---- a/drivers/base/dd.c~drivers-consolidate-driver_probe_done-loops-into-one-place-fix
-+++ a/drivers/base/dd.c
-@@ -18,6 +18,7 @@
-  */
+diff -puN fs/sysfs/inode.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix fs/sysfs/inode.c
+--- a/fs/sysfs/inode.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix
++++ a/fs/sysfs/inode.c
+@@ -215,6 +215,13 @@ struct inode * sysfs_get_inode(struct sy
+ 	return inode;
+ }
  
- #include <linux/device.h>
-+#include <linux/delay.h>
- #include <linux/module.h>
- #include <linux/kthread.h>
- #include <linux/wait.h>
++/*
++ * The sysfs_dirent serves as both an inode and a directory entry for sysfs.
++ * To prevent the sysfs inode numbers from being freed prematurely we take a
++ * reference to sysfs_dirent from the sysfs inode.  A
++ * super_operations.delete_inode() implementation is needed to drop that
++ * reference upon inode destruction.
++ */
+ void sysfs_delete_inode(struct inode *inode)
+ {
+ 	struct sysfs_dirent *sd  = inode->i_private;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,8 +74,7 @@ thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
 x86-define-arch_want_frame_pointers.patch
 kernel-auditscc-fix-warning.patch
 drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-fix.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place-checkpatch-fixes.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
 sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
 early-platform-driver-v3-checkpatch-fixes.patch
 clocksource-pass-clocksource-to-read-callback.patch
