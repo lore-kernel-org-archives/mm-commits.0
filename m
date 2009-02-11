@@ -1,60 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [folded] sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:19:22 -0800
-Message-ID: <200902112119.n1BLJMgl020360@imap1.linux-foundation.org>
+Subject: [folded] early-platform-driver-v3-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 13:19:56 -0800
+Message-ID: <200902112119.n1BLJvpM021178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40136 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756137AbZBKVTi (ORCPT
+	by vger.kernel.org with ESMTP id S1756328AbZBKVUL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 16:19:38 -0500
+	Wed, 11 Feb 2009 16:20:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cornelia.huck@de.ibm.com, ebiederm@aristanetworks.com, gregkh@suse.de, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, damm@igel.co.jp, david-b@pacbell.net, greg@kroah.com, htejun@gmail.com, kay.sievers@vrfy.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix
+     early-platform-driver-v3-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+     early-platform-driver-v3-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+This patch was dropped because it was folded into early-platform-driver-v3.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix
+Subject: early-platform-driver-v3-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Eric W. Biederman <ebiederm@aristanetworks.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Tejun Heo <tj@kernel.org>
+ERROR: space required before the open parenthesis '('
+#227: FILE: drivers/base/platform.c:1091:
++			if(pd->id == id)
+
+ERROR: space required before the open parenthesis '('
+#245: FILE: drivers/base/platform.c:1109:
++			if(pd->id >= id)
+
+ERROR: code indent should use tabs where possible
+#307: FILE: drivers/base/platform.c:1171:
++^I^I        else$
+
+WARNING: suspect code indent for conditional statements (16, 25)
+#337: FILE: drivers/base/platform.c:1201:
++		if (k < 0)
++			 break;
+
+WARNING: suspect code indent for conditional statements (16, 25)
+#342: FILE: drivers/base/platform.c:1206:
++		if (user_only)
++			 break;
+
+total: 3 errors, 2 warnings, 382 lines checked
+
+./patches/early-platform-driver-v3.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Magnus Damm <damm@igel.co.jp>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/inode.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/base/platform.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/sysfs/inode.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix fs/sysfs/inode.c
---- a/fs/sysfs/inode.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix
-+++ a/fs/sysfs/inode.c
-@@ -215,6 +215,13 @@ struct inode * sysfs_get_inode(struct sy
- 	return inode;
- }
+diff -puN drivers/base/platform.c~early-platform-driver-v3-checkpatch-fixes drivers/base/platform.c
+--- a/drivers/base/platform.c~early-platform-driver-v3-checkpatch-fixes
++++ a/drivers/base/platform.c
+@@ -1106,7 +1106,7 @@ early_platform_match(struct early_platfo
  
-+/*
-+ * The sysfs_dirent serves as both an inode and a directory entry for sysfs.
-+ * To prevent the sysfs inode numbers from being freed prematurely we take a
-+ * reference to sysfs_dirent from the sysfs inode.  A
-+ * super_operations.delete_inode() implementation is needed to drop that
-+ * reference upon inode destruction.
-+ */
- void sysfs_delete_inode(struct inode *inode)
- {
- 	struct sysfs_dirent *sd  = inode->i_private;
+ 	list_for_each_entry(pd, &early_platform_device_list, dev.devres_head)
+ 		if (platform_match(&pd->dev, &epdrv->pdrv->driver))
+-			if(pd->id == id)
++			if (pd->id == id)
+ 				return pd;
+ 
+ 	return NULL;
+@@ -1124,7 +1124,7 @@ static  __init int early_platform_left(s
+ 
+ 	list_for_each_entry(pd, &early_platform_device_list, dev.devres_head)
+ 		if (platform_match(&pd->dev, &epdrv->pdrv->driver))
+-			if(pd->id >= id)
++			if (pd->id >= id)
+ 				return 1;
+ 
+ 	return 0;
+@@ -1186,7 +1186,7 @@ static int __init early_platform_driver_
+ 			if (epdrv->pdrv->probe(match))
+ 				pr_warning("%s: unable to probe %s early.\n",
+ 					   class_str, match->name);
+-		        else
++			else
+ 				n++;
+ 		}
+ 
+@@ -1217,12 +1217,12 @@ int __init early_platform_driver_probe(c
+ 		k = early_platform_driver_probe_id(class_str, i, nr_probe - n);
+ 
+ 		if (k < 0)
+-			 break;
++			break;
+ 
+ 		n += k;
+ 
+ 		if (user_only)
+-			 break;
++			break;
+ 	}
+ 
+ 	return n;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +134,7 @@ x86-define-arch_want_frame_pointers.patch
 kernel-auditscc-fix-warning.patch
 drivers-consolidate-driver_probe_done-loops-into-one-place.patch
 sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes-fix.patch
+early-platform-driver-v3.patch
 early-platform-driver-v3-checkpatch-fixes.patch
 clocksource-pass-clocksource-to-read-callback.patch
 input-bcm5974-declare-alignment-usage-checkpatch-fixes.patch
