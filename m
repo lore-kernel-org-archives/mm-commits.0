@@ -1,92 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: + pm-fix-build-for-config_pm-unset.patch added to -mm tree
-Date: Wed, 11 Feb 2009 14:18:05 -0800
-Message-ID: <200902112218.n1BMI5rl005320@imap1.linux-foundation.org>
+Subject: [merged] x86-define-arch_want_frame_pointers.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 14:19:17 -0800
+Message-ID: <200902112219.n1BMJIwc007002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755353AbZBKWTB (ORCPT
+	by vger.kernel.org with ESMTP id S1755241AbZBKWTv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 17:19:01 -0500
+	Wed, 11 Feb 2009 17:19:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, lenb@kernel.org, mhiramat@redhat.com, mingo@elte.hu
+To: jeffm@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm: fix build for CONFIG_PM unset
-has been added to the -mm tree.  Its filename is
-     pm-fix-build-for-config_pm-unset.patch
+     x86: define ARCH_WANT_FRAME_POINTERS
+has been removed from the -mm tree.  Its filename was
+     x86-define-arch_want_frame_pointers.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: fix build for CONFIG_PM unset
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: x86: define ARCH_WANT_FRAME_POINTERS
+From: Jeff Mahoney <jeffm@suse.com>
 
-Compilation of kprobes.c with CONFIG_PM unset is broken due to some broken
-config dependncies.  Fix that.
+Commit da4276b8299a6544dc41ac2485d3ffca5811b3fb changed a dependency for
+FRAME_POINTER from X86 to ARCH_WANT_FRAME_POINTERS, but didn't actually
+define it.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-by: Ingo Molnar <mingo@elte.hu>
-Tested-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
+This patch adds the definition for ARCH_WANT_FRAME_POINTERS.  Without it,
+FRAME_POINTER can't be enabled on x86.
+
+[akpm@linux-foundation.org: unbust the whitespace]
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile       |    1 +
- kernel/power/Makefile |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/Makefile~pm-fix-build-for-config_pm-unset kernel/Makefile
---- a/kernel/Makefile~pm-fix-build-for-config_pm-unset
-+++ a/kernel/Makefile
-@@ -51,6 +51,7 @@ obj-$(CONFIG_UID16) += uid16.o
- obj-$(CONFIG_MODULES) += module.o
- obj-$(CONFIG_KALLSYMS) += kallsyms.o
- obj-$(CONFIG_PM) += power/
-+obj-$(CONFIG_FREEZER) += power/
- obj-$(CONFIG_BSD_PROCESS_ACCT) += acct.o
- obj-$(CONFIG_KEXEC) += kexec.o
- obj-$(CONFIG_BACKTRACE_SELF_TEST) += backtracetest.o
-diff -puN kernel/power/Makefile~pm-fix-build-for-config_pm-unset kernel/power/Makefile
---- a/kernel/power/Makefile~pm-fix-build-for-config_pm-unset
-+++ a/kernel/power/Makefile
-@@ -3,7 +3,7 @@ ifeq ($(CONFIG_PM_DEBUG),y)
- EXTRA_CFLAGS	+=	-DDEBUG
- endif
+diff -puN lib/Kconfig.debug~x86-define-arch_want_frame_pointers lib/Kconfig.debug
+--- a/lib/Kconfig.debug~x86-define-arch_want_frame_pointers
++++ a/lib/Kconfig.debug
+@@ -670,6 +670,12 @@ config ARCH_WANT_FRAME_POINTERS
+ 	bool
+ 	help
  
--obj-y				:= main.o
-+obj-$(CONFIG_PM)		+= main.o
- obj-$(CONFIG_PM_SLEEP)		+= console.o
- obj-$(CONFIG_FREEZER)		+= process.o
- obj-$(CONFIG_HIBERNATION)	+= swsusp.o disk.o snapshot.o swap.o user.o
++config ARCH_WANT_FRAME_POINTERS
++	bool
++	help
++	  Select this config option from the architecture Kconfig, if it
++	  it is preferred to always enable frame pointers on the architecture.
++
+ config FRAME_POINTER
+ 	bool "Compile the kernel with frame pointers"
+ 	depends on DEBUG_KERNEL && \
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-linux-next.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-resume-wait-for-device-probing-to-finish.patch
-pm-fix-build-for-config_pm-unset.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-swsusp-clean-up-shrink_all_zones.patch
-swsusp-dont-fiddle-with-swappiness.patch
-pm-wait-for-console-in-resume.patch
-pm-fix-suspend_console-resume_console-to-use-only-one-semaphore.patch
-fix-pm_notifiers-during-user-mode-hibernation.patch
-shrink_slab-handle-bad-shrinkers.patch
+x86-define-arch_want_frame_pointers.patch
 
