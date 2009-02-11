@@ -1,59 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radio-si470x-add-usb-id-for-dealextreme-usb-radio.patch removed from -mm tree
-Date: Wed, 11 Feb 2009 13:59:15 -0800
-Message-ID: <200902112159.n1BLxFuo011405@imap1.linux-foundation.org>
+Subject: + rtl8187se-depends-on-wireless_ext.patch added to -mm tree
+Date: Wed, 11 Feb 2009 14:15:49 -0800
+Message-ID: <200902112215.n1BMFnQr002112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41623 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753480AbZBKWIA (ORCPT
+	by vger.kernel.org with ESMTP id S1753084AbZBKWQX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 17:08:00 -0500
+	Wed, 11 Feb 2009 17:16:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkml@rtr.ca, greg@kroah.com, mlord@pobox.com, tobias.lorenz@gmx.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, gregkh@suse.de
 
 
 The patch titled
-     radio-si470x: add USB ID for dealextreme usb radio
-has been removed from the -mm tree.  Its filename was
-     radio-si470x-add-usb-id-for-dealextreme-usb-radio.patch
+     rtl8187se: depends on WIRELESS_EXT
+has been added to the -mm tree.  Its filename is
+     rtl8187se-depends-on-wireless_ext.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radio-si470x: add USB ID for dealextreme usb radio
-From: Mark Lord <lkml@rtr.ca>
+Subject: rtl8187se: depends on WIRELESS_EXT
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add USB ID for the Sil4701 radio from DealExtreme.
+rtl8187se uses wireless extensions so it needs to depend on
+WIRELESS_EXT (or select it).
 
-Signed-off-by: Mark Lord <mlord@pobox.com>
-Cc: Tobias Lorenz <tobias.lorenz@gmx.net>
-Cc: Greg KH <greg@kroah.com>
+drivers/staging/rtl8187se/r8180_core.c:5973: error: 'struct net_device' has no member named 'wireless_handlers'
+drivers/staging/rtl8187se/r8180_core.c:5982: error: 'struct net_device' has no member named 'wireless_handlers'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Greg KH <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/radio/radio-si470x.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/staging/rtl8187se/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/radio/radio-si470x.c~radio-si470x-add-usb-id-for-dealextreme-usb-radio drivers/media/radio/radio-si470x.c
---- a/drivers/media/radio/radio-si470x.c~radio-si470x-add-usb-id-for-dealextreme-usb-radio
-+++ a/drivers/media/radio/radio-si470x.c
-@@ -136,6 +136,8 @@
- static struct usb_device_id si470x_usb_driver_id_table[] = {
- 	/* Silicon Labs USB FM Radio Reference Design */
- 	{ USB_DEVICE_AND_INTERFACE_INFO(0x10c4, 0x818a, USB_CLASS_HID, 0, 0) },
-+	/* DealExtreme USB Radio */
-+	{ USB_DEVICE_AND_INTERFACE_INFO(0x10c5, 0x819a,	USB_CLASS_HID, 0, 0) },
- 	/* ADS/Tech FM Radio Receiver (formerly Instant FM Music) */
- 	{ USB_DEVICE_AND_INTERFACE_INFO(0x06e1, 0xa155, USB_CLASS_HID, 0, 0) },
- 	/* KWorld USB FM Radio SnapMusic Mobile 700 (FM700) */
+diff -puN drivers/staging/rtl8187se/Kconfig~rtl8187se-depends-on-wireless_ext drivers/staging/rtl8187se/Kconfig
+--- a/drivers/staging/rtl8187se/Kconfig~rtl8187se-depends-on-wireless_ext
++++ a/drivers/staging/rtl8187se/Kconfig
+@@ -1,5 +1,6 @@
+ config RTL8187SE
+ 	tristate "RealTek RTL8187SE Wireless LAN NIC driver"
+ 	depends on PCI
++	depends on WIRELESS_EXT
+ 	default N
+ 	---help---
 _
 
-Patches currently in -mm which might be from lkml@rtr.ca are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-radio-si470x-add-usb-id-for-dealextreme-usb-radio.patch
-ir-kbd-i2c-support-hauppauge-hvr-1600-r-c-port.patch
+kernel-doc-preferred-ending-marker-and-examples.patch
+kernel-doc-fix-syscall-wrapper-processing.patch
+linux-next.patch
+uv-fix-header-struct-usage.patch
+kgdb-fix-kernel-doc-error.patch
+auditsc-fix-kernel-doc-notation.patch
+input-ad7879-touchscreen-driver.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pci-fix-romc-kernel-doc-warning.patch
+esp-fix-section-mismatch-warning.patch
+cciss-pci-power-management-reset-for-kexec.patch
+rtl8187se-depends-on-wireless_ext.patch
+vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
+vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
+max3100-spi-uart-driver.patch
+filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
+atyfb-fix-header-file-trailing-whitespace.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+documentation-ignore-byproducts-from-latex.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+linuxpps-core-support.patch
+linuxpps-core-support-v2.patch
 
