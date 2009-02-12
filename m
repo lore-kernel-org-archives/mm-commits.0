@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-get_throttling_state-cannot-be-larger-state_count.patch added to -mm tree
-Date: Wed, 11 Feb 2009 16:07:54 -0800
-Message-ID: <200902120007.n1C07sNK028232@imap1.linux-foundation.org>
+Subject: + pci-hotplug-shpchp-busnr-reaches-end-1.patch added to -mm tree
+Date: Wed, 11 Feb 2009 16:10:11 -0800
+Message-ID: <200902120010.n1C0AB7p031441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38598 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753099AbZBLAIF (ORCPT
+	by vger.kernel.org with ESMTP id S1752853AbZBLAKN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 19:08:05 -0500
+	Wed, 11 Feb 2009 19:10:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, lenb@kernel.org
+Cc: roel.kluin@gmail.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     acpi: get_throttling_state() cannot be larger than state_count
+     pci hotplug: shpchp: busnr reaches end + 1
 has been added to the -mm tree.  Its filename is
-     acpi-get_throttling_state-cannot-be-larger-state_count.patch
+     pci-hotplug-shpchp-busnr-reaches-end-1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: get_throttling_state() cannot be larger than state_count
+Subject: pci hotplug: shpchp: busnr reaches end + 1
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With for(i = 0; i < n; i++) { ... } i reaches n.
+With for (busnr = 0; busnr <= end; busnr++) { ...  } busnr reaches end + 1
+after the loop.  so only then there is no free bus.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_throttling.c |    2 +-
+ drivers/pci/hotplug/shpchp_pci.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_throttling.c~acpi-get_throttling_state-cannot-be-larger-state_count drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~acpi-get_throttling_state-cannot-be-larger-state_count
-+++ a/drivers/acpi/processor_throttling.c
-@@ -785,7 +785,7 @@ static int acpi_get_throttling_state(str
- 		if (tx->control == value)
- 			break;
- 	}
--	if (i > pr->throttling.state_count)
-+	if (i >= pr->throttling.state_count)
- 		i = -1;
- 	return i;
- }
+diff -puN drivers/pci/hotplug/shpchp_pci.c~pci-hotplug-shpchp-busnr-reaches-end-1 drivers/pci/hotplug/shpchp_pci.c
+--- a/drivers/pci/hotplug/shpchp_pci.c~pci-hotplug-shpchp-busnr-reaches-end-1
++++ a/drivers/pci/hotplug/shpchp_pci.c
+@@ -137,7 +137,7 @@ int __ref shpchp_configure_device(struct
+ 							busnr))
+ 					break;
+ 			}
+-			if (busnr >= end) {
++			if (busnr > end) {
+ 				ctrl_err(ctrl,
+ 					 "No free bus for hot-added bridge\n");
+ 				pci_dev_put(dev);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -73,6 +74,7 @@ v4l-dvb-calibration-still-successful-at-10.patch
 leds-fix-confusion.patch
 netdev-tg3-limit-reaches-1.patch
 sun3-print-when-lance_open-fails.patch
+pci-hotplug-shpchp-busnr-reaches-end-1.patch
 scsi-ncr53c8xx-div-reaches-1.patch
 paride-pgc-xs-confusion.patch
 m68k-amiflop-ptr-incremented-past-0x4489.patch
