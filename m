@@ -1,98 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-mlocked-page-counter-mismatch.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 12:25:22 -0800
-Message-ID: <200902122025.n1CKPMUV014506@imap1.linux-foundation.org>
+Subject: [merged] kernel-doc-fix-syscall-wrapper-processing.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 12:25:37 -0800
+Message-ID: <200902122025.n1CKPb0O014930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33156 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757290AbZBLU0F (ORCPT
+	by vger.kernel.org with ESMTP id S1757612AbZBLU0c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 15:26:05 -0500
+	Thu, 12 Feb 2009 15:26:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix mlocked page counter mismatch
+     kernel-doc: fix syscall wrapper processing
 has been removed from the -mm tree.  Its filename was
-     mm-fix-mlocked-page-counter-mismatch.patch
+     kernel-doc-fix-syscall-wrapper-processing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix mlocked page counter mismatch
-From: MinChan Kim <minchan.kim@gmail.com>
+Subject: kernel-doc: fix syscall wrapper processing
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-When I tested following program, I found that the mlocked counter
-is strange.  It cannot free some mlocked pages.
+Fix kernel-doc processing of SYSCALL wrappers.
 
-It is because try_to_unmap_file() doesn't check real
-page mappings in vmas.
+The SYSCALL wrapper patches played havoc with kernel-doc for
+syscalls.  Syscalls that were scanned for DocBook processing
+reported warnings like this one, for sys_tgkill:
 
-That is because the goal of an address_space for a file is to find all
-processes into which the file's specific interval is mapped.  It is
-related to the file's interval, not to pages.
+Warning(kernel/signal.c:2285): No description found for parameter 'tgkill'
+Warning(kernel/signal.c:2285): No description found for parameter 'pid_t'
+Warning(kernel/signal.c:2285): No description found for parameter 'int'
 
-Even if the page isn't really mapped by the vma, it returns SWAP_MLOCK
-since the vma has VM_LOCKED, then calls try_to_mlock_page.  After this the
-mlocked counter is increased again.
+because the macro parameters all "look like" function parameters,
+although they are not:
 
-COWed anon page in a file-backed vma could be a such case.  This patch
-resolves it.
-
--- my test program --
-
-int main()
+/**
+ *  sys_tgkill - send signal to one specific thread
+ *  @tgid: the thread group ID of the thread
+ *  @pid: the PID of the thread
+ *  @sig: signal to be sent
+ *
+ *  This syscall also checks the @tgid and returns -ESRCH even if the PID
+ *  exists but it's not belonging to the target process anymore. This
+ *  method solves the problem of threads exiting and PIDs getting reused.
+ */
+SYSCALL_DEFINE3(tgkill, pid_t, tgid, pid_t, pid, int, sig)
 {
-       mlockall(MCL_CURRENT);
-       return 0;
-}
+...
 
--- before --
+This patch special-cases the handling SYSCALL_DEFINE* function
+prototypes by expanding them to
+	long sys_foobar(type1 arg1, type1 arg2, ...)
 
-root@barrios-target-linux:~# cat /proc/meminfo | egrep 'Mlo|Unev'
-Unevictable:           0 kB
-Mlocked:               0 kB
-
--- after --
-
-root@barrios-target-linux:~# cat /proc/meminfo | egrep 'Mlo|Unev'
-Unevictable:           8 kB
-Mlocked:               8 kB
-
-Signed-off-by: MinChan Kim <minchan.kim@gmail.com>
-Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Tested-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/kernel-doc |   40 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 39 insertions(+), 1 deletion(-)
 
-diff -puN mm/rmap.c~mm-fix-mlocked-page-counter-mismatch mm/rmap.c
---- a/mm/rmap.c~mm-fix-mlocked-page-counter-mismatch
-+++ a/mm/rmap.c
-@@ -1072,7 +1072,8 @@ static int try_to_unmap_file(struct page
- 	spin_lock(&mapping->i_mmap_lock);
- 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
- 		if (MLOCK_PAGES && unlikely(unlock)) {
--			if (!(vma->vm_flags & VM_LOCKED))
-+			if (!((vma->vm_flags & VM_LOCKED) &&
-+						page_mapped_in_vma(page, vma)))
- 				continue;	/* must visit all vmas */
- 			ret = SWAP_MLOCK;
- 		} else {
+diff -puN scripts/kernel-doc~kernel-doc-fix-syscall-wrapper-processing scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-fix-syscall-wrapper-processing
++++ a/scripts/kernel-doc
+@@ -1827,6 +1827,40 @@ sub reset_state {
+     $state = 0;
+ }
+ 
++sub syscall_munge() {
++	my $void = 0;
++
++	$prototype =~ s@[\r\n\t]+@ @gos; # strip newlines/CR's/tabs
++##	if ($prototype =~ m/SYSCALL_DEFINE0\s*\(\s*(a-zA-Z0-9_)*\s*\)/) {
++	if ($prototype =~ m/SYSCALL_DEFINE0/) {
++		$void = 1;
++##		$prototype = "long sys_$1(void)";
++	}
++
++	$prototype =~ s/SYSCALL_DEFINE.*\(/long sys_/; # fix return type & func name
++	if ($prototype =~ m/long (sys_.*?),/) {
++		$prototype =~ s/,/\(/;
++	} elsif ($void) {
++		$prototype =~ s/\)/\(void\)/;
++	}
++
++	# now delete all of the odd-number commas in $prototype
++	# so that arg types & arg names don't have a comma between them
++	my $count = 0;
++	my $len = length($prototype);
++	if ($void) {
++		$len = 0;	# skip the for-loop
++	}
++	for (my $ix = 0; $ix < $len; $ix++) {
++		if (substr($prototype, $ix, 1) eq ',') {
++			$count++;
++			if ($count % 2 == 1) {
++				substr($prototype, $ix, 1) = ' ';
++			}
++		}
++	}
++}
++
+ sub process_state3_function($$) {
+     my $x = shift;
+     my $file = shift;
+@@ -1839,11 +1873,15 @@ sub process_state3_function($$) {
+     elsif ($x =~ /([^\{]*)/) {
+ 	$prototype .= $1;
+     }
++
+     if (($x =~ /\{/) || ($x =~ /\#\s*define/) || ($x =~ /;/)) {
+ 	$prototype =~ s@/\*.*?\*/@@gos;	# strip comments.
+ 	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/cr's.
+ 	$prototype =~ s@^\s+@@gos; # strip leading spaces
+-	dump_function($prototype,$file);
++	if ($prototype =~ /SYSCALL_DEFINE/) {
++		syscall_munge();
++	}
++	dump_function($prototype, $file);
+ 	reset_state();
+     }
+ }
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-vmap-remove-needless-lock-and-list-in-vmap.patch
-vmscan-rename-scmay_swap-to-may_unmap.patch
+linux-next.patch
+uv-fix-header-struct-usage.patch
+x86-dell-laptop-depends-on-power_supply.patch
+x86-oqo-depends-on-input_polldev.patch
+kgdb-fix-kernel-doc-error.patch
+auditsc-fix-kernel-doc-notation.patch
+input-ad7879-touchscreen-driver.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pci-fix-romc-kernel-doc-warning.patch
+esp-fix-section-mismatch-warning.patch
+cciss-pci-power-management-reset-for-kexec.patch
+rtl8187se-depends-on-wireless_ext.patch
+vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
+vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
+max3100-spi-uart-driver.patch
+filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
+atyfb-fix-header-file-trailing-whitespace.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
+documentation-ignore-byproducts-from-latex.patch
+docbook-split-kernel-api-add-device-drivers-book.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+linuxpps-core-support.patch
+linuxpps-core-support-v2.patch
 
