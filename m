@@ -1,68 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dvb-fix-kconfig-typo.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 12:26:10 -0800
-Message-ID: <200902122026.n1CKQAa2015670@imap1.linux-foundation.org>
+Subject: [merged] revert-ext3-wait-on-all-pending-commits-in-ext3_sync_fs.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 12:25:20 -0800
+Message-ID: <200902122025.n1CKPKa5014453__27357.4868836024$1234471061$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56092 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758633AbZBLUfk (ORCPT
+	by vger.kernel.org with ESMTP id S1753178AbZBLUfk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 12 Feb 2009 15:35:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nm127@freemail.hu, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, linux-ext4@vger.kernel.org, sandeen@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dvb: fix Kconfig typo
+     ext3: revert "ext3: wait on all pending commits in ext3_sync_fs"
 has been removed from the -mm tree.  Its filename was
-     dvb-fix-kconfig-typo.patch
+     revert-ext3-wait-on-all-pending-commits-in-ext3_sync_fs.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dvb: fix Kconfig typo
-=46rom: M=E1rton N=E9meth <nm127@freemail.hu>
+Subject: ext3: revert "ext3: wait on all pending commits in ext3_sync_fs"
+From: Jan Kara <jack@suse.cz>
 
-=46ix typo in "DAB adapters" section in Kconfig.
+This reverts commit c87591b719737b4e91eb1a9fa8fd55a4ff1886d6.
 
-Signed-off-by: M=E1rton N=E9meth <nm127@freemail.hu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Since journal_start_commit() is now fixed to return 1 when we started a
+transaction commit, there's some transaction waiting to be committed or
+there's a transaction already committing, we don't need to call
+ext3_force_commit() in ext3_sync_fs().  Furthermore ext3_force_commit()
+can unnecessarily create sync transaction which is expensive so it's
+worthwhile to remove it when we can.
+
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext3/super.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/media/Kconfig~dvb-fix-kconfig-typo drivers/media/Kcon=
-fig
---- a/drivers/media/Kconfig~dvb-fix-kconfig-typo
-+++ a/drivers/media/Kconfig
-@@ -117,7 +117,7 @@ source "drivers/media/dvb/Kconfig"
- config DAB
- 	boolean "DAB adapters"
- 	---help---
--	  Allow selecting support for for Digital Audio Broadcasting (DAB)
-+	  Allow selecting support for Digital Audio Broadcasting (DAB)
- 	  Receiver adapters.
-=20
- if DAB
+diff -puN fs/ext3/super.c~revert-ext3-wait-on-all-pending-commits-in-ext3_sync_fs fs/ext3/super.c
+--- a/fs/ext3/super.c~revert-ext3-wait-on-all-pending-commits-in-ext3_sync_fs
++++ a/fs/ext3/super.c
+@@ -2428,12 +2428,13 @@ static void ext3_write_super (struct sup
+ 
+ static int ext3_sync_fs(struct super_block *sb, int wait)
+ {
+-	sb->s_dirt = 0;
+-	if (wait)
+-		ext3_force_commit(sb);
+-	else
+-		journal_start_commit(EXT3_SB(sb)->s_journal, NULL);
++	tid_t target;
+ 
++	sb->s_dirt = 0;
++	if (journal_start_commit(EXT3_SB(sb)->s_journal, &target)) {
++		if (wait)
++			log_wait_commit(EXT3_SB(sb)->s_journal, target);
++	}
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from nm127@freemail.hu are
+Patches currently in -mm which might be from jack@suse.cz are
 
+origin.patch
 linux-next.patch
+ext2-add-blk_issue_flush-to-syncing-paths.patch
+jbd-fix-oops-in-jbd_journal_init_inode-on-corrupted-fs.patch
+fs-adfs-return-f_fsid-for-statfs2.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
