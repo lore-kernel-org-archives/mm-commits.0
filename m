@@ -1,104 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-doc-preferred-ending-marker-and-examples.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 12:25:33 -0800
-Message-ID: <200902122025.n1CKPX9l014823@imap1.linux-foundation.org>
+Subject: [merged] cgroups-fix-lockdep-subclasses-overflow.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 12:25:45 -0800
+Message-ID: <200902122025.n1CKPjhY015131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751231AbZBLU0c (ORCPT
+	by vger.kernel.org with ESMTP id S1757824AbZBLU0j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 15:26:32 -0500
+	Thu, 12 Feb 2009 15:26:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, robert.w.love@intel.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: preferred ending marker and examples
+     cgroups: fix lockdep subclasses overflow
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-preferred-ending-marker-and-examples.patch
+     cgroups-fix-lockdep-subclasses-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: preferred ending marker and examples
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cgroups: fix lockdep subclasses overflow
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Fix kernel-doc-nano-HOWTO.txt to use */ as the ending marker in kernel-doc
-examples and state that */ is the preferred ending marker.
+I enabled all cgroup subsystems when compiling kernel, and then:
+ # mount -t cgroup -o net_cls xxx /mnt
+ # mkdir /mnt/0
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Reported-by: Robert Love <robert.w.love@intel.com>
+This showed up immediately:
+ BUG: MAX_LOCKDEP_SUBCLASSES too low!
+ turning off the locking correctness validator.
+
+It's caused by the cgroup hierarchy lock:
+	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
+		struct cgroup_subsys *ss = subsys[i];
+		if (ss->root == root)
+			mutex_lock_nested(&ss->hierarchy_mutex, i);
+	}
+
+Now we have 9 cgroup subsystems, and the above 'i' for net_cls is 8, but
+MAX_LOCKDEP_SUBCLASSES is 8.
+
+This patch uses different lockdep keys for different subsystems.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-doc-nano-HOWTO.txt |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/cgroup.h |    1 +
+ kernel/cgroup.c        |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-doc-nano-HOWTO.txt~kernel-doc-preferred-ending-marker-and-examples Documentation/kernel-doc-nano-HOWTO.txt
---- a/Documentation/kernel-doc-nano-HOWTO.txt~kernel-doc-preferred-ending-marker-and-examples
-+++ a/Documentation/kernel-doc-nano-HOWTO.txt
-@@ -43,7 +43,8 @@ Only comments so marked will be consider
- and any comment so marked must be in kernel-doc format.  Do not use
- "/**" to be begin a comment block unless the comment block contains
- kernel-doc formatted comments.  The closing comment marker for
--kernel-doc comments can be either "*/" or "**/".
-+kernel-doc comments can be either "*/" or "**/", but "*/" is
-+preferred in the Linux kernel tree.
+diff -puN include/linux/cgroup.h~cgroups-fix-lockdep-subclasses-overflow include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-fix-lockdep-subclasses-overflow
++++ a/include/linux/cgroup.h
+@@ -378,6 +378,7 @@ struct cgroup_subsys {
+ 	 * - initiating hotplug events
+ 	 */
+ 	struct mutex hierarchy_mutex;
++	struct lock_class_key subsys_key;
  
- Kernel-doc comments should be placed just before the function
- or data structure being described.
-@@ -63,7 +64,7 @@ Example kernel-doc function comment:
-  * comment lines.
-  *
-  * The longer description can have multiple paragraphs.
-- **/
-+ */
+ 	/*
+ 	 * Link to parent, and list entry in parent's children.
+diff -puN kernel/cgroup.c~cgroups-fix-lockdep-subclasses-overflow kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-fix-lockdep-subclasses-overflow
++++ a/kernel/cgroup.c
+@@ -2351,7 +2351,7 @@ static void cgroup_lock_hierarchy(struct
+ 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
+ 		struct cgroup_subsys *ss = subsys[i];
+ 		if (ss->root == root)
+-			mutex_lock_nested(&ss->hierarchy_mutex, i);
++			mutex_lock(&ss->hierarchy_mutex);
+ 	}
+ }
  
- The first line, with the short description, must be on a single line.
+@@ -2637,6 +2637,7 @@ static void __init cgroup_init_subsys(st
+ 	BUG_ON(!list_empty(&init_task.tasks));
  
-@@ -85,7 +86,7 @@ Example kernel-doc data structure commen
-  *		perhaps with more lines and words.
-  *
-  * Longer description of this structure.
-- **/
-+ */
+ 	mutex_init(&ss->hierarchy_mutex);
++	lockdep_set_class(&ss->hierarchy_mutex, &ss->subsys_key);
+ 	ss->active = 1;
+ }
  
- The kernel-doc function comments describe each parameter to the
- function, in order, with the @name lines.
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
-uv-fix-header-struct-usage.patch
-x86-dell-laptop-depends-on-power_supply.patch
-x86-oqo-depends-on-input_polldev.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pci-fix-romc-kernel-doc-warning.patch
-esp-fix-section-mismatch-warning.patch
-cciss-pci-power-management-reset-for-kexec.patch
-rtl8187se-depends-on-wireless_ext.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
-documentation-ignore-byproducts-from-latex.patch
-docbook-split-kernel-api-add-device-drivers-book.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
+cgroups-fix-possible-use-after-free.patch
+vfs-add-missing-unlock-in-sget.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
 
