@@ -1,96 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nbd-fix-i-o-hang-on-disconnected-nbds.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 12:26:03 -0800
-Message-ID: <200902122026.n1CKQ3j3015557@imap1.linux-foundation.org>
+Subject: [merged] syscall-define-fix-uml-compile-bug.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 12:25:50 -0800
+Message-ID: <200902122025.n1CKPoUx015181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40412 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758533AbZBLU1G (ORCPT
+	by vger.kernel.org with ESMTP id S1756312AbZBLUb7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 15:27:06 -0500
+	Thu, 12 Feb 2009 15:31:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul.clements@steeleye.com, jnelson-kernel-bugzilla@jamponi.net, pavel@ucw.cz, stable@kernel.org, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, geert@linux-m68k.org, viro@zeniv.linux.org.uk, wangcong@zeuux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nbd: fix I/O hang on disconnected nbds
+     syscall define: fix uml compile bug
 has been removed from the -mm tree.  Its filename was
-     nbd-fix-i-o-hang-on-disconnected-nbds.patch
+     syscall-define-fix-uml-compile-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nbd: fix I/O hang on disconnected nbds
-From: Paul Clements <paul.clements@steeleye.com>
+Subject: syscall define: fix uml compile bug
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-Fix a problem that causes I/O to a disconnected (or partially initialized)
-nbd device to hang indefinitely.  To reproduce:
+With the new system call defines we get this on uml:
 
-# ioctl NBD_SET_SIZE_BLOCKS /dev/nbd23 514048
-# dd if=/dev/nbd23 of=/dev/null bs=4096 count=1
+arch/um/sys-i386/built-in.o: In function `sys_call_table':
+(.rodata+0x308): undefined reference to `sys_sigprocmask'
 
-...hangs...
+Reason for this is that uml passes the preprocessor option
+-Dsigprocmask=kernel_sigprocmask to gcc when compiling the kernel. 
+This causes SYSCALL_DEFINE3(sigprocmask, ...) to be expanded to
+SYSCALL_DEFINEx(3, kernel_sigprocmask, ...) and finally to a system
+call named sys_kernel_sigprocmask.  However sys_sigprocmask is missing
+because of this.
 
-This can also occur when an nbd device loses its nbd-client/server
-connection.  Although we clear the queue of any outstanding I/Os after the
-client/server connection fails, any additional I/Os that get queued later
-will hang.
+To avoid macro expansion for the system call name just concatenate the
+name at first define instead of carrying it through severel levels. 
+This was pointed out by Al Viro.
 
-This bug may also be the problem reported in this bug report:
-http://bugzilla.kernel.org/show_bug.cgi?id=12277
-
-Testing would need to be performed to determine if the two issues are the
-same.
-
-This problem was introduced by the new request handling thread code ("NBD:
-allow nbd to be used locally", 3/2008), which entered into mainline around
-2.6.25.
-
-The fix, which is fairly simple, is to restore the check for lo->sock
-being NULL in do_nbd_request.  This causes I/O to an uninitialized nbd to
-immediately fail with an I/O error, as it did prior to the introduction of
-this bug.
-
-Signed-off-by: Paul Clements <paul.clements@steeleye.com>
-Reported-by: Jon Nelson <jnelson-kernel-bugzilla@jamponi.net>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: <stable@kernel.org>		[2.6.26.x, 2.6.27.x, 2.6.28.x]
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Reviewed-by: WANG Cong <wangcong@zeuux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/syscalls.h |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/block/nbd.c~nbd-fix-i-o-hang-on-disconnected-nbds drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-fix-i-o-hang-on-disconnected-nbds
-+++ a/drivers/block/nbd.c
-@@ -549,6 +549,15 @@ static void do_nbd_request(struct reques
+diff -puN include/linux/syscalls.h~syscall-define-fix-uml-compile-bug include/linux/syscalls.h
+--- a/include/linux/syscalls.h~syscall-define-fix-uml-compile-bug
++++ a/include/linux/syscalls.h
+@@ -95,13 +95,13 @@ struct old_linux_dirent;
+ #define __SC_TEST5(t5, a5, ...)	__SC_TEST(t5); __SC_TEST4(__VA_ARGS__)
+ #define __SC_TEST6(t6, a6, ...)	__SC_TEST(t6); __SC_TEST5(__VA_ARGS__)
  
- 		BUG_ON(lo->magic != LO_MAGIC);
+-#define SYSCALL_DEFINE0(name)   asmlinkage long sys_##name(void)
+-#define SYSCALL_DEFINE1(...)    SYSCALL_DEFINEx(1, __VA_ARGS__)
+-#define SYSCALL_DEFINE2(...)    SYSCALL_DEFINEx(2, __VA_ARGS__)
+-#define SYSCALL_DEFINE3(...)    SYSCALL_DEFINEx(3, __VA_ARGS__)
+-#define SYSCALL_DEFINE4(...)    SYSCALL_DEFINEx(4, __VA_ARGS__)
+-#define SYSCALL_DEFINE5(...)    SYSCALL_DEFINEx(5, __VA_ARGS__)
+-#define SYSCALL_DEFINE6(...)    SYSCALL_DEFINEx(6, __VA_ARGS__)
++#define SYSCALL_DEFINE0(name)	   asmlinkage long sys_##name(void)
++#define SYSCALL_DEFINE1(name, ...) SYSCALL_DEFINEx(1, _##name, __VA_ARGS__)
++#define SYSCALL_DEFINE2(name, ...) SYSCALL_DEFINEx(2, _##name, __VA_ARGS__)
++#define SYSCALL_DEFINE3(name, ...) SYSCALL_DEFINEx(3, _##name, __VA_ARGS__)
++#define SYSCALL_DEFINE4(name, ...) SYSCALL_DEFINEx(4, _##name, __VA_ARGS__)
++#define SYSCALL_DEFINE5(name, ...) SYSCALL_DEFINEx(5, _##name, __VA_ARGS__)
++#define SYSCALL_DEFINE6(name, ...) SYSCALL_DEFINEx(6, _##name, __VA_ARGS__)
  
-+		if (unlikely(!lo->sock)) {
-+			printk(KERN_ERR "%s: Attempted send on closed socket\n",
-+				lo->disk->disk_name);
-+			req->errors++;
-+			nbd_end_request(req);
-+			spin_lock_irq(q->queue_lock);
-+			continue;
-+		}
-+
- 		spin_lock_irq(&lo->queue_lock);
- 		list_add_tail(&req->queuelist, &lo->waiting_queue);
- 		spin_unlock_irq(&lo->queue_lock);
+ #ifdef CONFIG_PPC64
+ #define SYSCALL_ALIAS(alias, name)					\
+@@ -121,21 +121,21 @@ struct old_linux_dirent;
+ 
+ #define SYSCALL_DEFINE(name) static inline long SYSC_##name
+ #define SYSCALL_DEFINEx(x, name, ...)					\
+-	asmlinkage long sys_##name(__SC_DECL##x(__VA_ARGS__));		\
+-	static inline long SYSC_##name(__SC_DECL##x(__VA_ARGS__));	\
+-	asmlinkage long SyS_##name(__SC_LONG##x(__VA_ARGS__))		\
++	asmlinkage long sys##name(__SC_DECL##x(__VA_ARGS__));		\
++	static inline long SYSC##name(__SC_DECL##x(__VA_ARGS__));	\
++	asmlinkage long SyS##name(__SC_LONG##x(__VA_ARGS__))		\
+ 	{								\
+ 		__SC_TEST##x(__VA_ARGS__);				\
+-		return (long) SYSC_##name(__SC_CAST##x(__VA_ARGS__));	\
++		return (long) SYSC##name(__SC_CAST##x(__VA_ARGS__));	\
+ 	}								\
+-	SYSCALL_ALIAS(sys_##name, SyS_##name);				\
+-	static inline long SYSC_##name(__SC_DECL##x(__VA_ARGS__))
++	SYSCALL_ALIAS(sys##name, SyS##name);				\
++	static inline long SYSC##name(__SC_DECL##x(__VA_ARGS__))
+ 
+ #else /* CONFIG_HAVE_SYSCALL_WRAPPERS */
+ 
+ #define SYSCALL_DEFINE(name) asmlinkage long sys_##name
+ #define SYSCALL_DEFINEx(x, name, ...)					\
+-	asmlinkage long sys_##name(__SC_DECL##x(__VA_ARGS__))
++	asmlinkage long sys##name(__SC_DECL##x(__VA_ARGS__))
+ 
+ #endif /* CONFIG_HAVE_SYSCALL_WRAPPERS */
+ 
 _
 
-Patches currently in -mm which might be from paul.clements@steeleye.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 origin.patch
-nbd-add-locking-to-nbd_ioctl.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-nbd-trivial-cleanups.patch
+linux-next.patch
 
