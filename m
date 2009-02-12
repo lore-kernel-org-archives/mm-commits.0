@@ -1,142 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: + reparent-untrace-do-nothing-if-no-childs-tracees.patch added to -mm tree
-Date: Wed, 11 Feb 2009 16:19:46 -0800
-Message-ID: <200902120019.n1C0JkTd012285@imap1.linux-foundation.org>
+Subject: [to-be-updated] pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch removed from -mm tree
+Date: Wed, 11 Feb 2009 16:20:20 -0800
+Message-ID: <200902120020.n1C0KKZ4013138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38526 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755620AbZBLAUD (ORCPT
+	by vger.kernel.org with ESMTP id S1754748AbZBLAU2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 19:20:03 -0500
+	Wed, 11 Feb 2009 19:20:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, ebiederm@xmission.com, markus.t.metzger@intel.com, roland@redhat.com
+To: mirq-linux@rere.qmqm.pl, jbarnes@virtuousgeek.org, norsk5@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reparent/untrace: do nothing if no childs/tracees
-has been added to the -mm tree.  Its filename is
-     reparent-untrace-do-nothing-if-no-childs-tracees.patch
+     pci-quirks: unhide 'Overflow' device on i828{6,7}5P/PE chipsets
+has been removed from the -mm tree.  Its filename was
+     pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reparent/untrace: do nothing if no childs/tracees
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: pci-quirks: unhide 'Overflow' device on i828{6,7}5P/PE chipsets
+From: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
 
-forget_original_parent() and exit_ptrace() can avoid taking the global
-tasklist_lock if there are no childs/tracees.  But I failed to invent the
-comment to explain why/when this is safe to do, that is why the separate
-patch/changelog.
+As I found out from EDAC driver sources for i82875P some BIOSes for
+i82875P/PE hide 'overflow' device 6.  The same thing happens for
+i82865P/PE chipsets.
 
-The problem is, we can race with the concurrent release_task() which can
-remove the last child form our ->children/ptraced list.  This means that
-list_empty() can return the "false" positive, it is possible that
-release_task() is still in progress, it can use the caller's task_struct
-somehow, and it is even possible that list_del(sibling/ptrace_entry) has
-not yet completed.
+After testing this patch for couple of days on my laptop (i82856P) it
+looks like something is resetting device 0 (MCH) config register 0xF4 to
+zero and effectively disabling the device again.  The delay looks random
+to me.  I can easily update the register using 'hexedit
+/sys/bus/pci/devices/0000\:00\:00.0/config' and see correct values in
+lspci output afterwards.
 
-But this is fine, before our task_struct will be released we will take
-tasklist_lock at least once in release_task(), this will synchronize us
-with the possible release_task/ptrace_unlink in flight.
+On Fri, 9 Jan 2009 13:40:02 -0800
+Jesse Barnes <jbarnes@virtuousgeek.org> wrote:
+> 
+> This one already got a NAK until Michal can figure out a way to prevent the 
+> SMM code on his machine from hiding this device periodically.
 
-However, forget_original_parent() has another problem.  We can race with
-another thread which has already picked us for reparenting before we set
-PF_EXITING, so this patch also checks thread_group_empty().
-
-It is possible to be more clever, we can take tasklist for reading, or
-ensure that ->thread_group.prev is not PF_EXITING, but this is nasty. 
-Perhaps even this optimization is too ugly.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Metzger, Markus T" <markus.t.metzger@intel.com>
-Cc: Roland McGrath <roland@redhat.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c   |   10 ++++++++++
- kernel/ptrace.c |    3 +++
- 2 files changed, 13 insertions(+)
+ drivers/pci/quirks.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN kernel/exit.c~reparent-untrace-do-nothing-if-no-childs-tracees kernel/exit.c
---- a/kernel/exit.c~reparent-untrace-do-nothing-if-no-childs-tracees
-+++ a/kernel/exit.c
-@@ -806,6 +806,16 @@ static void forget_original_parent(struc
- 	struct task_struct *p, *n, *reaper;
- 	LIST_HEAD(dead_children);
+diff -puN drivers/pci/quirks.c~pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets
++++ a/drivers/pci/quirks.c
+@@ -2149,6 +2149,29 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AT
  
-+	if (thread_group_empty(father)) {
-+		/*
-+		 * Make sure no other thread can reparent to
-+		 * us after the list_empty(->children) check.
-+		 */
-+		smp_rmb();
-+		if (list_empty(&father->children))
-+			return;
+ #endif /* CONFIG_PCI_MSI */
+ 
++/* Originally in EDAC sources for i82875P:
++ * Intel tells BIOS developers to hide device 6 which
++ * configures the overflow device access containing
++ * the DRBs - this is where we expose device 6.
++ * http://www.x86-secret.com/articles/tweak/pat/patsecrets-2.htm
++ */
++static void __devinit
++quirk_unhide_mch_memory_controller_dev6(struct pci_dev *dev)
++{
++	u8 reg;
++
++	if (pci_read_config_byte(dev, 0xF4, &reg) == 0 && !(reg & 0x02)) {
++		dev_info(&dev->dev,
++			"Enabling MCH Memory Controller 'Overflow' Device");
++		pci_write_config_byte(dev, 0xF4, reg | 0x02);
 +	}
++}
 +
- 	write_lock_irq(&tasklist_lock);
- 	reaper = find_new_reaper(father);
- 
-diff -puN kernel/ptrace.c~reparent-untrace-do-nothing-if-no-childs-tracees kernel/ptrace.c
---- a/kernel/ptrace.c~reparent-untrace-do-nothing-if-no-childs-tracees
-+++ a/kernel/ptrace.c
-@@ -323,6 +323,9 @@ void exit_ptrace(struct task_struct *tra
- 	struct task_struct *p, *n;
- 	LIST_HEAD(ptrace_dead);
- 
-+	if (list_empty(&tracer->ptraced))
-+		return;
++DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82865_HB,
++			quirk_unhide_mch_memory_controller_dev6);
++DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82875_HB,
++			quirk_unhide_mch_memory_controller_dev6);
 +
- 	write_lock_irq(&tasklist_lock);
- 	list_for_each_entry_safe(p, n, &tracer->ptraced, ptrace_entry) {
- 		if (__ptrace_detach(tracer, p))
+ static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
+ 			  struct pci_fixup *end)
+ {
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from mirq-linux@rere.qmqm.pl are
 
-origin.patch
-linux-next.patch
-pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch
-get_mm_hiwater_xxx-trivial-s-define-inline.patch
-getrusage-fill-ru_maxrss-value.patch
-ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
-ptrace-simplify-ptrace_exit-ignoring_children-path.patch
-ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
-ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
-reparent_thread-dont-call-kill_orphaned_pgrp-if-task_detached.patch
-reparent_thread-fix-the-is-it-traced-check.patch
-reparent_thread-fix-a-zombie-leak-if-sbin-init-ignores-sigchld.patch
-forget_original_parent-split-out-the-un-ptrace-part.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-move-exit_ptrace-from-forget_original_parent-to-do_exit.patch
-reparent-untrace-do-nothing-if-no-childs-tracees.patch
-tracehook_notify_death-use-task_detached-helper.patch
-workqueue-avoid-recursion-in-run_workqueue.patch
-kthreads-move-sched-realeted-initialization-from-kthreadd-context.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets.patch
+pci-quirks-hp-hides-smbus-controller-in-compaq-nx9500-laptops.patch
 
