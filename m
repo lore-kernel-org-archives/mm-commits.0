@@ -1,78 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-add-li-zefan-as-a-maintainer.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 12:25:43 -0800
-Message-ID: <200902122025.n1CKPhd6015046@imap1.linux-foundation.org>
+Subject: [merged] memcg-use-__gfp_nowarn-in-page-cgroup-allocation.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 12:25:30 -0800
+Message-ID: <200902122025.n1CKPULF014701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50991 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757122AbZBLU0i (ORCPT
+	by vger.kernel.org with ESMTP id S1758072AbZBLU0u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 15:26:38 -0500
+	Thu, 12 Feb 2009 15:26:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: add Li Zefan as a maintainer
+     memcg: use __GFP_NOWARN in page cgroup allocation
 has been removed from the -mm tree.  Its filename was
-     cgroups-add-li-zefan-as-a-maintainer.patch
+     memcg-use-__gfp_nowarn-in-page-cgroup-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: add Li Zefan as a maintainer
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: memcg: use __GFP_NOWARN in page cgroup allocation
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Add Li Zefan as co-maintainer.
+page_cgroup's page allocation at init/memory hotplug uses kmalloc() and
+vmalloc(). If kmalloc() failes, vmalloc() is used.
 
-Acked-by: Paul Menage <menage@google.com>
-Acked-by: Li Zefan <lizf@cn.fujitsu.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+This is because vmalloc() is very limited resource on 32bit systems.
+We want to use kmalloc() first.
+
+But in this kind of call, __GFP_NOWARN should be specified.
+
+Reported-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_cgroup.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~cgroups-add-li-zefan-as-a-maintainer MAINTAINERS
---- a/MAINTAINERS~cgroups-add-li-zefan-as-a-maintainer
-+++ a/MAINTAINERS
-@@ -1202,6 +1202,8 @@ S:	Supported
- CONTROL GROUPS (CGROUPS)
- P:	Paul Menage
- M:	menage@google.com
-+P:	Li Zefan
-+M:	lizf@cn.fujitsu.com
- L:	containers@lists.linux-foundation.org
- S:	Maintained
- 
+diff -puN mm/page_cgroup.c~memcg-use-__gfp_nowarn-in-page-cgroup-allocation mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-use-__gfp_nowarn-in-page-cgroup-allocation
++++ a/mm/page_cgroup.c
+@@ -114,7 +114,8 @@ static int __init_refok init_section_pag
+ 		nid = page_to_nid(pfn_to_page(pfn));
+ 		table_size = sizeof(struct page_cgroup) * PAGES_PER_SECTION;
+ 		if (slab_is_available()) {
+-			base = kmalloc_node(table_size, GFP_KERNEL, nid);
++			base = kmalloc_node(table_size,
++					GFP_KERNEL | __GFP_NOWARN, nid);
+ 			if (!base)
+ 				base = vmalloc_node(table_size, nid);
+ 		} else {
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-vmalloc-add-__get_vm_area_caller.patch
-vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
 linux-next.patch
-get_mm_hiwater_xxx-trivial-s-define-inline.patch
-swsusp-clean-up-shrink_all_zones.patch
-swsusp-dont-fiddle-with-swappiness.patch
-vmscan-rename-scmay_swap-to-may_unmap.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 mm-introduce-for_each_populated_zone-macro.patch
 mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-dont-call-mark_page_accessed-in-do_swap_page.patch
-mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
-getrusage-fill-ru_maxrss-value.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
 memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
 memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
-ia64-implement-interrupt-enabling-rwlocks.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
