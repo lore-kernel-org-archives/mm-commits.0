@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook_notify_death-use-task_detached-helper.patch added to -mm tree
-Date: Wed, 11 Feb 2009 16:19:48 -0800
-Message-ID: <200902120019.n1C0Jmer012312@imap1.linux-foundation.org>
+Subject: + move-exit_ptrace-from-forget_original_parent-to-do_exit.patch added to -mm tree
+Date: Wed, 11 Feb 2009 16:19:43 -0800
+Message-ID: <200902120019.n1C0JhfL012282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52346 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754979AbZBLAUg (ORCPT
+	by vger.kernel.org with ESMTP id S1755651AbZBLAUl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 19:20:36 -0500
+	Wed, 11 Feb 2009 19:20:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, ebiederm@xmission.com, markus.t.metzger@intel.com, roland@r
 
 
 The patch titled
-     tracehook_notify_death: use task_detached() helper
+     move exit_ptrace() from forget_original_parent() to do_exit()
 has been added to the -mm tree.  Its filename is
-     tracehook_notify_death-use-task_detached-helper.patch
+     move-exit_ptrace-from-forget_original_parent-to-do_exit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook_notify_death: use task_detached() helper
+Subject: move exit_ptrace() from forget_original_parent() to do_exit()
 From: Oleg Nesterov <oleg@redhat.com>
 
-Now that task_detached() is exported, change tracehook_notify_death() to
-use this helper, nobody else checks ->exit_signal == -1 by hand.
+By discussion with Roland.
+
+Call exit_ptrace() from do_exit(), no need to delay this call until
+forget_original_parent().
+
+If we ever change exit_ptrace() to do the blocking calls, it makes
+sense to move it after exit_signals().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -47,21 +52,29 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/tracehook.h~tracehook_notify_death-use-task_detached-helper include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook_notify_death-use-task_detached-helper
-+++ a/include/linux/tracehook.h
-@@ -507,7 +507,7 @@ static inline int tracehook_notify_jctl(
- static inline int tracehook_notify_death(struct task_struct *task,
- 					 void **death_cookie, int group_dead)
- {
--	if (task->exit_signal == -1)
-+	if (task_detached(task))
- 		return task->ptrace ? SIGCHLD : DEATH_REAP;
+diff -puN kernel/exit.c~move-exit_ptrace-from-forget_original_parent-to-do_exit kernel/exit.c
+--- a/kernel/exit.c~move-exit_ptrace-from-forget_original_parent-to-do_exit
++++ a/kernel/exit.c
+@@ -806,8 +806,6 @@ static void forget_original_parent(struc
+ 	struct task_struct *p, *n, *reaper;
+ 	LIST_HEAD(dead_children);
  
+-	exit_ptrace(father);
+-
+ 	write_lock_irq(&tasklist_lock);
+ 	reaper = find_new_reaper(father);
+ 
+@@ -956,6 +954,7 @@ NORET_TYPE void do_exit(long code)
+ 		schedule();
+ 	}
+ 
++	exit_ptrace(tsk);
+ 	exit_signals(tsk);  /* sets PF_EXITING */
  	/*
+ 	 * tsk->flags are checked in the futex code to protect against
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
