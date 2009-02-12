@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ntfs-remove-private-wrapper-of-endian-helpers.patch added to -mm tree
-Date: Wed, 11 Feb 2009 16:25:44 -0800
-Message-ID: <200902120025.n1C0PitP020647@imap1.linux-foundation.org>
+Subject: + libata-change-drive-ready-wait-after-hard-reset-to-5s.patch added to -mm tree
+Date: Wed, 11 Feb 2009 16:28:04 -0800
+Message-ID: <200902120028.n1C0S4LI023938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55280 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754429AbZBLAZ4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755794AbZBLA2a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Feb 2009 19:25:56 -0500
+	Wed, 11 Feb 2009 19:28:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, aia21@cantab.net
+Cc: stuart_hayes@dell.com, jeff@garzik.org
 
 
 The patch titled
-     ntfs: remove private wrapper of endian helpers
+     libata: change drive ready wait after hard reset to 5s
 has been added to the -mm tree.  Its filename is
-     ntfs-remove-private-wrapper-of-endian-helpers.patch
+     libata-change-drive-ready-wait-after-hard-reset-to-5s.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,859 +34,1714 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntfs: remove private wrapper of endian helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: libata: change drive ready wait after hard reset to 5s
+From: Stuart Hayes <stuart_hayes@dell.com>
 
-The base versions handle constant folding now and are shorter than these
-private wrappers, use them directly.
+This fixes problems during resume with drives that take longer than 1s to
+be ready.  The ATA-6 spec appears to allow 5 seconds for a drive to be
+ready.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Anton Altaparmakov <aia21@cantab.net>
+On one affected system, this patch changes "PM: resume devices took..."
+message from 17 seconds to 4 seconds, and gets rid of a lot of ugly
+timeout/error messages.
+
+Without this patch, the libata code moves on after 1s, tries to send a
+soft reset (which the drive doesn't see because it isn't ready) which also
+times out, then an IDENTIFY command is sent to the drive which times out,
+and finally the error handler will try to send another hard reset which
+will finally get things working.
+
+Signed-off-by: Stuart Hayes <stuart_hayes@dell.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/dir.c     |    4 
- fs/ntfs/inode.c   |    3 
- fs/ntfs/layout.h  |  333 +++++++++++++++++++++-----------------------
- fs/ntfs/logfile.h |    6 
- fs/ntfs/mft.c     |    2 
- fs/ntfs/super.c   |   50 +++---
- fs/ntfs/usnjrnl.h |   48 +++---
- 7 files changed, 217 insertions(+), 229 deletions(-)
+ include/linux/libata.h      |    2 
+ include/linux/libata.h.orig | 1663 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 1664 insertions(+), 1 deletion(-)
 
-diff -puN fs/ntfs/dir.c~ntfs-remove-private-wrapper-of-endian-helpers fs/ntfs/dir.c
---- a/fs/ntfs/dir.c~ntfs-remove-private-wrapper-of-endian-helpers
-+++ a/fs/ntfs/dir.c
-@@ -32,8 +32,8 @@
- /**
-  * The little endian Unicode string $I30 as a global constant.
-  */
--ntfschar I30[5] = { const_cpu_to_le16('$'), const_cpu_to_le16('I'),
--		const_cpu_to_le16('3'),	const_cpu_to_le16('0'), 0 };
-+ntfschar I30[5] = { cpu_to_le16('$'), cpu_to_le16('I'),
-+		cpu_to_le16('3'),	cpu_to_le16('0'), 0 };
- 
- /**
-  * ntfs_lookup_inode_by_name - find an inode in a directory given its name
-diff -puN fs/ntfs/inode.c~ntfs-remove-private-wrapper-of-endian-helpers fs/ntfs/inode.c
---- a/fs/ntfs/inode.c~ntfs-remove-private-wrapper-of-endian-helpers
-+++ a/fs/ntfs/inode.c
-@@ -1975,8 +1975,7 @@ int ntfs_read_inode_mount(struct inode *
- 				goto em_put_err_out;
- 			next_al_entry = (ATTR_LIST_ENTRY*)((u8*)al_entry +
- 					le16_to_cpu(al_entry->length));
--			if (le32_to_cpu(al_entry->type) >
--					const_le32_to_cpu(AT_DATA))
-+			if (le32_to_cpu(al_entry->type) > le32_to_cpu(AT_DATA))
- 				goto em_put_err_out;
- 			if (AT_DATA != al_entry->type)
- 				continue;
-diff -puN fs/ntfs/layout.h~ntfs-remove-private-wrapper-of-endian-helpers fs/ntfs/layout.h
---- a/fs/ntfs/layout.h~ntfs-remove-private-wrapper-of-endian-helpers
-+++ a/fs/ntfs/layout.h
-@@ -31,19 +31,8 @@
- 
- #include "types.h"
- 
--/*
-- * Constant endianness conversion defines.
-- */
--#define const_le16_to_cpu(x)	__constant_le16_to_cpu(x)
--#define const_le32_to_cpu(x)	__constant_le32_to_cpu(x)
--#define const_le64_to_cpu(x)	__constant_le64_to_cpu(x)
--
--#define const_cpu_to_le16(x)	__constant_cpu_to_le16(x)
--#define const_cpu_to_le32(x)	__constant_cpu_to_le32(x)
--#define const_cpu_to_le64(x)	__constant_cpu_to_le64(x)
--
- /* The NTFS oem_id "NTFS    " */
--#define magicNTFS	const_cpu_to_le64(0x202020205346544eULL)
-+#define magicNTFS	cpu_to_le64(0x202020205346544eULL)
- 
- /*
-  * Location of bootsector on partition:
-@@ -114,25 +103,25 @@ typedef struct {
-  */
- enum {
- 	/* Found in $MFT/$DATA. */
--	magic_FILE = const_cpu_to_le32(0x454c4946), /* Mft entry. */
--	magic_INDX = const_cpu_to_le32(0x58444e49), /* Index buffer. */
--	magic_HOLE = const_cpu_to_le32(0x454c4f48), /* ? (NTFS 3.0+?) */
-+	magic_FILE = cpu_to_le32(0x454c4946), /* Mft entry. */
-+	magic_INDX = cpu_to_le32(0x58444e49), /* Index buffer. */
-+	magic_HOLE = cpu_to_le32(0x454c4f48), /* ? (NTFS 3.0+?) */
- 
- 	/* Found in $LogFile/$DATA. */
--	magic_RSTR = const_cpu_to_le32(0x52545352), /* Restart page. */
--	magic_RCRD = const_cpu_to_le32(0x44524352), /* Log record page. */
-+	magic_RSTR = cpu_to_le32(0x52545352), /* Restart page. */
-+	magic_RCRD = cpu_to_le32(0x44524352), /* Log record page. */
- 
- 	/* Found in $LogFile/$DATA.  (May be found in $MFT/$DATA, also?) */
--	magic_CHKD = const_cpu_to_le32(0x444b4843), /* Modified by chkdsk. */
-+	magic_CHKD = cpu_to_le32(0x444b4843), /* Modified by chkdsk. */
- 
- 	/* Found in all ntfs record containing records. */
--	magic_BAAD = const_cpu_to_le32(0x44414142), /* Failed multi sector
-+	magic_BAAD = cpu_to_le32(0x44414142), /* Failed multi sector
- 						       transfer was detected. */
- 	/*
- 	 * Found in $LogFile/$DATA when a page is full of 0xff bytes and is
- 	 * thus not initialized.  Page must be initialized before using it.
+diff -puN include/linux/libata.h~libata-change-drive-ready-wait-after-hard-reset-to-5s include/linux/libata.h
+--- a/include/linux/libata.h~libata-change-drive-ready-wait-after-hard-reset-to-5s
++++ a/include/linux/libata.h
+@@ -275,7 +275,7 @@ enum {
+ 	 * advised to wait only for the following duration before
+ 	 * doing SRST.
  	 */
--	magic_empty = const_cpu_to_le32(0xffffffff) /* Record is empty. */
-+	magic_empty = cpu_to_le32(0xffffffff) /* Record is empty. */
- };
+-	ATA_TMOUT_PMP_SRST_WAIT	= 1000,
++	ATA_TMOUT_PMP_SRST_WAIT	= 5000,
  
- typedef le32 NTFS_RECORD_TYPE;
-@@ -258,8 +247,8 @@ typedef enum {
-  * information about the mft record in which they are present.
-  */
- enum {
--	MFT_RECORD_IN_USE	= const_cpu_to_le16(0x0001),
--	MFT_RECORD_IS_DIRECTORY = const_cpu_to_le16(0x0002),
-+	MFT_RECORD_IN_USE	= cpu_to_le16(0x0001),
-+	MFT_RECORD_IS_DIRECTORY = cpu_to_le16(0x0002),
- } __attribute__ ((__packed__));
- 
- typedef le16 MFT_RECORD_FLAGS;
-@@ -309,7 +298,7 @@ typedef le16 MFT_RECORD_FLAGS;
-  * Note: The _LE versions will return a CPU endian formatted value!
-  */
- #define MFT_REF_MASK_CPU 0x0000ffffffffffffULL
--#define MFT_REF_MASK_LE const_cpu_to_le64(MFT_REF_MASK_CPU)
-+#define MFT_REF_MASK_LE cpu_to_le64(MFT_REF_MASK_CPU)
- 
- typedef u64 MFT_REF;
- typedef le64 leMFT_REF;
-@@ -477,25 +466,25 @@ typedef struct {
-  * a revealing choice of symbol I do not know what is... (-;
-  */
- enum {
--	AT_UNUSED			= const_cpu_to_le32(         0),
--	AT_STANDARD_INFORMATION		= const_cpu_to_le32(      0x10),
--	AT_ATTRIBUTE_LIST		= const_cpu_to_le32(      0x20),
--	AT_FILE_NAME			= const_cpu_to_le32(      0x30),
--	AT_OBJECT_ID			= const_cpu_to_le32(      0x40),
--	AT_SECURITY_DESCRIPTOR		= const_cpu_to_le32(      0x50),
--	AT_VOLUME_NAME			= const_cpu_to_le32(      0x60),
--	AT_VOLUME_INFORMATION		= const_cpu_to_le32(      0x70),
--	AT_DATA				= const_cpu_to_le32(      0x80),
--	AT_INDEX_ROOT			= const_cpu_to_le32(      0x90),
--	AT_INDEX_ALLOCATION		= const_cpu_to_le32(      0xa0),
--	AT_BITMAP			= const_cpu_to_le32(      0xb0),
--	AT_REPARSE_POINT		= const_cpu_to_le32(      0xc0),
--	AT_EA_INFORMATION		= const_cpu_to_le32(      0xd0),
--	AT_EA				= const_cpu_to_le32(      0xe0),
--	AT_PROPERTY_SET			= const_cpu_to_le32(      0xf0),
--	AT_LOGGED_UTILITY_STREAM	= const_cpu_to_le32(     0x100),
--	AT_FIRST_USER_DEFINED_ATTRIBUTE	= const_cpu_to_le32(    0x1000),
--	AT_END				= const_cpu_to_le32(0xffffffff)
-+	AT_UNUSED			= cpu_to_le32(         0),
-+	AT_STANDARD_INFORMATION		= cpu_to_le32(      0x10),
-+	AT_ATTRIBUTE_LIST		= cpu_to_le32(      0x20),
-+	AT_FILE_NAME			= cpu_to_le32(      0x30),
-+	AT_OBJECT_ID			= cpu_to_le32(      0x40),
-+	AT_SECURITY_DESCRIPTOR		= cpu_to_le32(      0x50),
-+	AT_VOLUME_NAME			= cpu_to_le32(      0x60),
-+	AT_VOLUME_INFORMATION		= cpu_to_le32(      0x70),
-+	AT_DATA				= cpu_to_le32(      0x80),
-+	AT_INDEX_ROOT			= cpu_to_le32(      0x90),
-+	AT_INDEX_ALLOCATION		= cpu_to_le32(      0xa0),
-+	AT_BITMAP			= cpu_to_le32(      0xb0),
-+	AT_REPARSE_POINT		= cpu_to_le32(      0xc0),
-+	AT_EA_INFORMATION		= cpu_to_le32(      0xd0),
-+	AT_EA				= cpu_to_le32(      0xe0),
-+	AT_PROPERTY_SET			= cpu_to_le32(      0xf0),
-+	AT_LOGGED_UTILITY_STREAM	= cpu_to_le32(     0x100),
-+	AT_FIRST_USER_DEFINED_ATTRIBUTE	= cpu_to_le32(    0x1000),
-+	AT_END				= cpu_to_le32(0xffffffff)
- };
- 
- typedef le32 ATTR_TYPE;
-@@ -539,13 +528,13 @@ typedef le32 ATTR_TYPE;
-  *	equal then the second le32 values would be compared, etc.
-  */
- enum {
--	COLLATION_BINARY		= const_cpu_to_le32(0x00),
--	COLLATION_FILE_NAME		= const_cpu_to_le32(0x01),
--	COLLATION_UNICODE_STRING	= const_cpu_to_le32(0x02),
--	COLLATION_NTOFS_ULONG		= const_cpu_to_le32(0x10),
--	COLLATION_NTOFS_SID		= const_cpu_to_le32(0x11),
--	COLLATION_NTOFS_SECURITY_HASH	= const_cpu_to_le32(0x12),
--	COLLATION_NTOFS_ULONGS		= const_cpu_to_le32(0x13),
-+	COLLATION_BINARY		= cpu_to_le32(0x00),
-+	COLLATION_FILE_NAME		= cpu_to_le32(0x01),
-+	COLLATION_UNICODE_STRING	= cpu_to_le32(0x02),
-+	COLLATION_NTOFS_ULONG		= cpu_to_le32(0x10),
-+	COLLATION_NTOFS_SID		= cpu_to_le32(0x11),
-+	COLLATION_NTOFS_SECURITY_HASH	= cpu_to_le32(0x12),
-+	COLLATION_NTOFS_ULONGS		= cpu_to_le32(0x13),
- };
- 
- typedef le32 COLLATION_RULE;
-@@ -559,25 +548,25 @@ typedef le32 COLLATION_RULE;
-  * NT4.
-  */
- enum {
--	ATTR_DEF_INDEXABLE	= const_cpu_to_le32(0x02), /* Attribute can be
-+	ATTR_DEF_INDEXABLE	= cpu_to_le32(0x02), /* Attribute can be
- 					indexed. */
--	ATTR_DEF_MULTIPLE	= const_cpu_to_le32(0x04), /* Attribute type
-+	ATTR_DEF_MULTIPLE	= cpu_to_le32(0x04), /* Attribute type
- 					can be present multiple times in the
- 					mft records of an inode. */
--	ATTR_DEF_NOT_ZERO	= const_cpu_to_le32(0x08), /* Attribute value
-+	ATTR_DEF_NOT_ZERO	= cpu_to_le32(0x08), /* Attribute value
- 					must contain at least one non-zero
- 					byte. */
--	ATTR_DEF_INDEXED_UNIQUE	= const_cpu_to_le32(0x10), /* Attribute must be
-+	ATTR_DEF_INDEXED_UNIQUE	= cpu_to_le32(0x10), /* Attribute must be
- 					indexed and the attribute value must be
- 					unique for the attribute type in all of
- 					the mft records of an inode. */
--	ATTR_DEF_NAMED_UNIQUE	= const_cpu_to_le32(0x20), /* Attribute must be
-+	ATTR_DEF_NAMED_UNIQUE	= cpu_to_le32(0x20), /* Attribute must be
- 					named and the name must be unique for
- 					the attribute type in all of the mft
- 					records of an inode. */
--	ATTR_DEF_RESIDENT	= const_cpu_to_le32(0x40), /* Attribute must be
-+	ATTR_DEF_RESIDENT	= cpu_to_le32(0x40), /* Attribute must be
- 					resident. */
--	ATTR_DEF_ALWAYS_LOG	= const_cpu_to_le32(0x80), /* Always log
-+	ATTR_DEF_ALWAYS_LOG	= cpu_to_le32(0x80), /* Always log
- 					modifications to this attribute,
- 					regardless of whether it is resident or
- 					non-resident.  Without this, only log
-@@ -614,12 +603,12 @@ typedef struct {
-  * Attribute flags (16-bit).
-  */
- enum {
--	ATTR_IS_COMPRESSED    = const_cpu_to_le16(0x0001),
--	ATTR_COMPRESSION_MASK = const_cpu_to_le16(0x00ff), /* Compression method
-+	ATTR_IS_COMPRESSED    = cpu_to_le16(0x0001),
-+	ATTR_COMPRESSION_MASK = cpu_to_le16(0x00ff), /* Compression method
- 							      mask.  Also, first
- 							      illegal value. */
--	ATTR_IS_ENCRYPTED     = const_cpu_to_le16(0x4000),
--	ATTR_IS_SPARSE	      = const_cpu_to_le16(0x8000),
-+	ATTR_IS_ENCRYPTED     = cpu_to_le16(0x4000),
-+	ATTR_IS_SPARSE	      = cpu_to_le16(0x8000),
- } __attribute__ ((__packed__));
- 
- typedef le16 ATTR_FLAGS;
-@@ -811,32 +800,32 @@ typedef ATTR_RECORD ATTR_REC;
-  * flags appear in all of the above.
-  */
- enum {
--	FILE_ATTR_READONLY		= const_cpu_to_le32(0x00000001),
--	FILE_ATTR_HIDDEN		= const_cpu_to_le32(0x00000002),
--	FILE_ATTR_SYSTEM		= const_cpu_to_le32(0x00000004),
--	/* Old DOS volid. Unused in NT.	= const_cpu_to_le32(0x00000008), */
-+	FILE_ATTR_READONLY		= cpu_to_le32(0x00000001),
-+	FILE_ATTR_HIDDEN		= cpu_to_le32(0x00000002),
-+	FILE_ATTR_SYSTEM		= cpu_to_le32(0x00000004),
-+	/* Old DOS volid. Unused in NT.	= cpu_to_le32(0x00000008), */
- 
--	FILE_ATTR_DIRECTORY		= const_cpu_to_le32(0x00000010),
-+	FILE_ATTR_DIRECTORY		= cpu_to_le32(0x00000010),
- 	/* Note, FILE_ATTR_DIRECTORY is not considered valid in NT.  It is
- 	   reserved for the DOS SUBDIRECTORY flag. */
--	FILE_ATTR_ARCHIVE		= const_cpu_to_le32(0x00000020),
--	FILE_ATTR_DEVICE		= const_cpu_to_le32(0x00000040),
--	FILE_ATTR_NORMAL		= const_cpu_to_le32(0x00000080),
--
--	FILE_ATTR_TEMPORARY		= const_cpu_to_le32(0x00000100),
--	FILE_ATTR_SPARSE_FILE		= const_cpu_to_le32(0x00000200),
--	FILE_ATTR_REPARSE_POINT		= const_cpu_to_le32(0x00000400),
--	FILE_ATTR_COMPRESSED		= const_cpu_to_le32(0x00000800),
--
--	FILE_ATTR_OFFLINE		= const_cpu_to_le32(0x00001000),
--	FILE_ATTR_NOT_CONTENT_INDEXED	= const_cpu_to_le32(0x00002000),
--	FILE_ATTR_ENCRYPTED		= const_cpu_to_le32(0x00004000),
-+	FILE_ATTR_ARCHIVE		= cpu_to_le32(0x00000020),
-+	FILE_ATTR_DEVICE		= cpu_to_le32(0x00000040),
-+	FILE_ATTR_NORMAL		= cpu_to_le32(0x00000080),
+ 	/* ATA bus states */
+ 	BUS_UNKNOWN		= 0,
+diff -puN /dev/null include/linux/libata.h.orig
+--- /dev/null
++++ a/include/linux/libata.h.orig
+@@ -0,0 +1,1663 @@
++/*
++ *  Copyright 2003-2005 Red Hat, Inc.  All rights reserved.
++ *  Copyright 2003-2005 Jeff Garzik
++ *
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2, or (at your option)
++ *  any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; see the file COPYING.  If not, write to
++ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ *
++ *  libata documentation is available via 'make {ps|pdf}docs',
++ *  as Documentation/DocBook/libata.*
++ *
++ */
 +
-+	FILE_ATTR_TEMPORARY		= cpu_to_le32(0x00000100),
-+	FILE_ATTR_SPARSE_FILE		= cpu_to_le32(0x00000200),
-+	FILE_ATTR_REPARSE_POINT		= cpu_to_le32(0x00000400),
-+	FILE_ATTR_COMPRESSED		= cpu_to_le32(0x00000800),
++#ifndef __LINUX_LIBATA_H__
++#define __LINUX_LIBATA_H__
 +
-+	FILE_ATTR_OFFLINE		= cpu_to_le32(0x00001000),
-+	FILE_ATTR_NOT_CONTENT_INDEXED	= cpu_to_le32(0x00002000),
-+	FILE_ATTR_ENCRYPTED		= cpu_to_le32(0x00004000),
- 
--	FILE_ATTR_VALID_FLAGS		= const_cpu_to_le32(0x00007fb7),
-+	FILE_ATTR_VALID_FLAGS		= cpu_to_le32(0x00007fb7),
- 	/* Note, FILE_ATTR_VALID_FLAGS masks out the old DOS VolId and the
- 	   FILE_ATTR_DEVICE and preserves everything else.  This mask is used
- 	   to obtain all flags that are valid for reading. */
--	FILE_ATTR_VALID_SET_FLAGS	= const_cpu_to_le32(0x000031a7),
-+	FILE_ATTR_VALID_SET_FLAGS	= cpu_to_le32(0x000031a7),
- 	/* Note, FILE_ATTR_VALID_SET_FLAGS masks out the old DOS VolId, the
- 	   F_A_DEVICE, F_A_DIRECTORY, F_A_SPARSE_FILE, F_A_REPARSE_POINT,
- 	   F_A_COMPRESSED, and F_A_ENCRYPTED and preserves the rest.  This mask
-@@ -846,11 +835,11 @@ enum {
- 	 * FILENAME_ATTR attributes but not in the STANDARD_INFORMATION
- 	 * attribute of an mft record.
- 	 */
--	FILE_ATTR_DUP_FILE_NAME_INDEX_PRESENT	= const_cpu_to_le32(0x10000000),
-+	FILE_ATTR_DUP_FILE_NAME_INDEX_PRESENT	= cpu_to_le32(0x10000000),
- 	/* Note, this is a copy of the corresponding bit from the mft record,
- 	   telling us whether this is a directory or not, i.e. whether it has
- 	   an index root attribute or not. */
--	FILE_ATTR_DUP_VIEW_INDEX_PRESENT	= const_cpu_to_le32(0x20000000),
-+	FILE_ATTR_DUP_VIEW_INDEX_PRESENT	= cpu_to_le32(0x20000000),
- 	/* Note, this is a copy of the corresponding bit from the mft record,
- 	   telling us whether this file has a view index present (eg. object id
- 	   index, quota index, one of the security indexes or the encrypting
-@@ -1446,42 +1435,42 @@ enum {
- 	/* Specific rights for files and directories are as follows: */
- 
- 	/* Right to read data from the file. (FILE) */
--	FILE_READ_DATA			= const_cpu_to_le32(0x00000001),
-+	FILE_READ_DATA			= cpu_to_le32(0x00000001),
- 	/* Right to list contents of a directory. (DIRECTORY) */
--	FILE_LIST_DIRECTORY		= const_cpu_to_le32(0x00000001),
-+	FILE_LIST_DIRECTORY		= cpu_to_le32(0x00000001),
- 
- 	/* Right to write data to the file. (FILE) */
--	FILE_WRITE_DATA			= const_cpu_to_le32(0x00000002),
-+	FILE_WRITE_DATA			= cpu_to_le32(0x00000002),
- 	/* Right to create a file in the directory. (DIRECTORY) */
--	FILE_ADD_FILE			= const_cpu_to_le32(0x00000002),
-+	FILE_ADD_FILE			= cpu_to_le32(0x00000002),
- 
- 	/* Right to append data to the file. (FILE) */
--	FILE_APPEND_DATA		= const_cpu_to_le32(0x00000004),
-+	FILE_APPEND_DATA		= cpu_to_le32(0x00000004),
- 	/* Right to create a subdirectory. (DIRECTORY) */
--	FILE_ADD_SUBDIRECTORY		= const_cpu_to_le32(0x00000004),
-+	FILE_ADD_SUBDIRECTORY		= cpu_to_le32(0x00000004),
- 
- 	/* Right to read extended attributes. (FILE/DIRECTORY) */
--	FILE_READ_EA			= const_cpu_to_le32(0x00000008),
-+	FILE_READ_EA			= cpu_to_le32(0x00000008),
- 
- 	/* Right to write extended attributes. (FILE/DIRECTORY) */
--	FILE_WRITE_EA			= const_cpu_to_le32(0x00000010),
-+	FILE_WRITE_EA			= cpu_to_le32(0x00000010),
- 
- 	/* Right to execute a file. (FILE) */
--	FILE_EXECUTE			= const_cpu_to_le32(0x00000020),
-+	FILE_EXECUTE			= cpu_to_le32(0x00000020),
- 	/* Right to traverse the directory. (DIRECTORY) */
--	FILE_TRAVERSE			= const_cpu_to_le32(0x00000020),
-+	FILE_TRAVERSE			= cpu_to_le32(0x00000020),
- 
- 	/*
- 	 * Right to delete a directory and all the files it contains (its
- 	 * children), even if the files are read-only. (DIRECTORY)
- 	 */
--	FILE_DELETE_CHILD		= const_cpu_to_le32(0x00000040),
-+	FILE_DELETE_CHILD		= cpu_to_le32(0x00000040),
- 
- 	/* Right to read file attributes. (FILE/DIRECTORY) */
--	FILE_READ_ATTRIBUTES		= const_cpu_to_le32(0x00000080),
-+	FILE_READ_ATTRIBUTES		= cpu_to_le32(0x00000080),
- 
- 	/* Right to change file attributes. (FILE/DIRECTORY) */
--	FILE_WRITE_ATTRIBUTES		= const_cpu_to_le32(0x00000100),
-+	FILE_WRITE_ATTRIBUTES		= cpu_to_le32(0x00000100),
- 
- 	/*
- 	 * The standard rights (bits 16 to 23).  These are independent of the
-@@ -1489,27 +1478,27 @@ enum {
- 	 */
- 
- 	/* Right to delete the object. */
--	DELETE				= const_cpu_to_le32(0x00010000),
-+	DELETE				= cpu_to_le32(0x00010000),
- 
- 	/*
- 	 * Right to read the information in the object's security descriptor,
- 	 * not including the information in the SACL, i.e. right to read the
- 	 * security descriptor and owner.
- 	 */
--	READ_CONTROL			= const_cpu_to_le32(0x00020000),
-+	READ_CONTROL			= cpu_to_le32(0x00020000),
- 
- 	/* Right to modify the DACL in the object's security descriptor. */
--	WRITE_DAC			= const_cpu_to_le32(0x00040000),
-+	WRITE_DAC			= cpu_to_le32(0x00040000),
- 
- 	/* Right to change the owner in the object's security descriptor. */
--	WRITE_OWNER			= const_cpu_to_le32(0x00080000),
-+	WRITE_OWNER			= cpu_to_le32(0x00080000),
- 
- 	/*
- 	 * Right to use the object for synchronization.  Enables a process to
- 	 * wait until the object is in the signalled state.  Some object types
- 	 * do not support this access right.
- 	 */
--	SYNCHRONIZE			= const_cpu_to_le32(0x00100000),
-+	SYNCHRONIZE			= cpu_to_le32(0x00100000),
- 
- 	/*
- 	 * The following STANDARD_RIGHTS_* are combinations of the above for
-@@ -1517,25 +1506,25 @@ enum {
- 	 */
- 
- 	/* These are currently defined to READ_CONTROL. */
--	STANDARD_RIGHTS_READ		= const_cpu_to_le32(0x00020000),
--	STANDARD_RIGHTS_WRITE		= const_cpu_to_le32(0x00020000),
--	STANDARD_RIGHTS_EXECUTE		= const_cpu_to_le32(0x00020000),
-+	STANDARD_RIGHTS_READ		= cpu_to_le32(0x00020000),
-+	STANDARD_RIGHTS_WRITE		= cpu_to_le32(0x00020000),
-+	STANDARD_RIGHTS_EXECUTE		= cpu_to_le32(0x00020000),
- 
- 	/* Combines DELETE, READ_CONTROL, WRITE_DAC, and WRITE_OWNER access. */
--	STANDARD_RIGHTS_REQUIRED	= const_cpu_to_le32(0x000f0000),
-+	STANDARD_RIGHTS_REQUIRED	= cpu_to_le32(0x000f0000),
- 
- 	/*
- 	 * Combines DELETE, READ_CONTROL, WRITE_DAC, WRITE_OWNER, and
- 	 * SYNCHRONIZE access.
- 	 */
--	STANDARD_RIGHTS_ALL		= const_cpu_to_le32(0x001f0000),
-+	STANDARD_RIGHTS_ALL		= cpu_to_le32(0x001f0000),
- 
- 	/*
- 	 * The access system ACL and maximum allowed access types (bits 24 to
- 	 * 25, bits 26 to 27 are reserved).
- 	 */
--	ACCESS_SYSTEM_SECURITY		= const_cpu_to_le32(0x01000000),
--	MAXIMUM_ALLOWED			= const_cpu_to_le32(0x02000000),
-+	ACCESS_SYSTEM_SECURITY		= cpu_to_le32(0x01000000),
-+	MAXIMUM_ALLOWED			= cpu_to_le32(0x02000000),
- 
- 	/*
- 	 * The generic rights (bits 28 to 31).  These map onto the standard and
-@@ -1543,10 +1532,10 @@ enum {
- 	 */
- 
- 	/* Read, write, and execute access. */
--	GENERIC_ALL			= const_cpu_to_le32(0x10000000),
-+	GENERIC_ALL			= cpu_to_le32(0x10000000),
- 
- 	/* Execute access. */
--	GENERIC_EXECUTE			= const_cpu_to_le32(0x20000000),
-+	GENERIC_EXECUTE			= cpu_to_le32(0x20000000),
- 
- 	/*
- 	 * Write access.  For files, this maps onto:
-@@ -1555,7 +1544,7 @@ enum {
- 	 * For directories, the mapping has the same numerical value.  See
- 	 * above for the descriptions of the rights granted.
- 	 */
--	GENERIC_WRITE			= const_cpu_to_le32(0x40000000),
-+	GENERIC_WRITE			= cpu_to_le32(0x40000000),
- 
- 	/*
- 	 * Read access.  For files, this maps onto:
-@@ -1564,7 +1553,7 @@ enum {
- 	 * For directories, the mapping has the same numberical value.  See
- 	 * above for the descriptions of the rights granted.
- 	 */
--	GENERIC_READ			= const_cpu_to_le32(0x80000000),
-+	GENERIC_READ			= cpu_to_le32(0x80000000),
- };
- 
- typedef le32 ACCESS_MASK;
-@@ -1604,8 +1593,8 @@ typedef struct {
-  * The object ACE flags (32-bit).
-  */
- enum {
--	ACE_OBJECT_TYPE_PRESENT			= const_cpu_to_le32(1),
--	ACE_INHERITED_OBJECT_TYPE_PRESENT	= const_cpu_to_le32(2),
-+	ACE_OBJECT_TYPE_PRESENT			= cpu_to_le32(1),
-+	ACE_INHERITED_OBJECT_TYPE_PRESENT	= cpu_to_le32(2),
- };
- 
- typedef le32 OBJECT_ACE_FLAGS;
-@@ -1706,23 +1695,23 @@ typedef enum {
-  *	expressed as offsets from the beginning of the security descriptor.
-  */
- enum {
--	SE_OWNER_DEFAULTED		= const_cpu_to_le16(0x0001),
--	SE_GROUP_DEFAULTED		= const_cpu_to_le16(0x0002),
--	SE_DACL_PRESENT			= const_cpu_to_le16(0x0004),
--	SE_DACL_DEFAULTED		= const_cpu_to_le16(0x0008),
--
--	SE_SACL_PRESENT			= const_cpu_to_le16(0x0010),
--	SE_SACL_DEFAULTED		= const_cpu_to_le16(0x0020),
--
--	SE_DACL_AUTO_INHERIT_REQ	= const_cpu_to_le16(0x0100),
--	SE_SACL_AUTO_INHERIT_REQ	= const_cpu_to_le16(0x0200),
--	SE_DACL_AUTO_INHERITED		= const_cpu_to_le16(0x0400),
--	SE_SACL_AUTO_INHERITED		= const_cpu_to_le16(0x0800),
--
--	SE_DACL_PROTECTED		= const_cpu_to_le16(0x1000),
--	SE_SACL_PROTECTED		= const_cpu_to_le16(0x2000),
--	SE_RM_CONTROL_VALID		= const_cpu_to_le16(0x4000),
--	SE_SELF_RELATIVE		= const_cpu_to_le16(0x8000)
-+	SE_OWNER_DEFAULTED		= cpu_to_le16(0x0001),
-+	SE_GROUP_DEFAULTED		= cpu_to_le16(0x0002),
-+	SE_DACL_PRESENT			= cpu_to_le16(0x0004),
-+	SE_DACL_DEFAULTED		= cpu_to_le16(0x0008),
++#include <linux/delay.h>
++#include <linux/jiffies.h>
++#include <linux/interrupt.h>
++#include <linux/dma-mapping.h>
++#include <linux/scatterlist.h>
++#include <linux/io.h>
++#include <linux/ata.h>
++#include <linux/workqueue.h>
++#include <scsi/scsi_host.h>
++#include <linux/acpi.h>
++#include <linux/cdrom.h>
 +
-+	SE_SACL_PRESENT			= cpu_to_le16(0x0010),
-+	SE_SACL_DEFAULTED		= cpu_to_le16(0x0020),
++/*
++ * Define if arch has non-standard setup.  This is a _PCI_ standard
++ * not a legacy or ISA standard.
++ */
++#ifdef CONFIG_ATA_NONSTANDARD
++#include <asm/libata-portmap.h>
++#else
++#include <asm-generic/libata-portmap.h>
++#endif
 +
-+	SE_DACL_AUTO_INHERIT_REQ	= cpu_to_le16(0x0100),
-+	SE_SACL_AUTO_INHERIT_REQ	= cpu_to_le16(0x0200),
-+	SE_DACL_AUTO_INHERITED		= cpu_to_le16(0x0400),
-+	SE_SACL_AUTO_INHERITED		= cpu_to_le16(0x0800),
++/*
++ * compile-time options: to be removed as soon as all the drivers are
++ * converted to the new debugging mechanism
++ */
++#undef ATA_DEBUG		/* debugging output */
++#undef ATA_VERBOSE_DEBUG	/* yet more debugging output */
++#undef ATA_IRQ_TRAP		/* define to ack screaming irqs */
++#undef ATA_NDEBUG		/* define to disable quick runtime checks */
 +
-+	SE_DACL_PROTECTED		= cpu_to_le16(0x1000),
-+	SE_SACL_PROTECTED		= cpu_to_le16(0x2000),
-+	SE_RM_CONTROL_VALID		= cpu_to_le16(0x4000),
-+	SE_SELF_RELATIVE		= cpu_to_le16(0x8000)
- } __attribute__ ((__packed__));
- 
- typedef le16 SECURITY_DESCRIPTOR_CONTROL;
-@@ -1910,21 +1899,21 @@ typedef struct {
-  * Possible flags for the volume (16-bit).
-  */
- enum {
--	VOLUME_IS_DIRTY			= const_cpu_to_le16(0x0001),
--	VOLUME_RESIZE_LOG_FILE		= const_cpu_to_le16(0x0002),
--	VOLUME_UPGRADE_ON_MOUNT		= const_cpu_to_le16(0x0004),
--	VOLUME_MOUNTED_ON_NT4		= const_cpu_to_le16(0x0008),
-+	VOLUME_IS_DIRTY			= cpu_to_le16(0x0001),
-+	VOLUME_RESIZE_LOG_FILE		= cpu_to_le16(0x0002),
-+	VOLUME_UPGRADE_ON_MOUNT		= cpu_to_le16(0x0004),
-+	VOLUME_MOUNTED_ON_NT4		= cpu_to_le16(0x0008),
- 
--	VOLUME_DELETE_USN_UNDERWAY	= const_cpu_to_le16(0x0010),
--	VOLUME_REPAIR_OBJECT_ID		= const_cpu_to_le16(0x0020),
-+	VOLUME_DELETE_USN_UNDERWAY	= cpu_to_le16(0x0010),
-+	VOLUME_REPAIR_OBJECT_ID		= cpu_to_le16(0x0020),
- 
--	VOLUME_CHKDSK_UNDERWAY		= const_cpu_to_le16(0x4000),
--	VOLUME_MODIFIED_BY_CHKDSK	= const_cpu_to_le16(0x8000),
-+	VOLUME_CHKDSK_UNDERWAY		= cpu_to_le16(0x4000),
-+	VOLUME_MODIFIED_BY_CHKDSK	= cpu_to_le16(0x8000),
- 
--	VOLUME_FLAGS_MASK		= const_cpu_to_le16(0xc03f),
-+	VOLUME_FLAGS_MASK		= cpu_to_le16(0xc03f),
- 
- 	/* To make our life easier when checking if we must mount read-only. */
--	VOLUME_MUST_MOUNT_RO_MASK	= const_cpu_to_le16(0xc027),
-+	VOLUME_MUST_MOUNT_RO_MASK	= cpu_to_le16(0xc027),
- } __attribute__ ((__packed__));
- 
- typedef le16 VOLUME_FLAGS;
-@@ -2109,26 +2098,26 @@ typedef struct {
-  * The user quota flags.  Names explain meaning.
-  */
- enum {
--	QUOTA_FLAG_DEFAULT_LIMITS	= const_cpu_to_le32(0x00000001),
--	QUOTA_FLAG_LIMIT_REACHED	= const_cpu_to_le32(0x00000002),
--	QUOTA_FLAG_ID_DELETED		= const_cpu_to_le32(0x00000004),
-+	QUOTA_FLAG_DEFAULT_LIMITS	= cpu_to_le32(0x00000001),
-+	QUOTA_FLAG_LIMIT_REACHED	= cpu_to_le32(0x00000002),
-+	QUOTA_FLAG_ID_DELETED		= cpu_to_le32(0x00000004),
- 
--	QUOTA_FLAG_USER_MASK		= const_cpu_to_le32(0x00000007),
-+	QUOTA_FLAG_USER_MASK		= cpu_to_le32(0x00000007),
- 	/* This is a bit mask for the user quota flags. */
- 
- 	/*
- 	 * These flags are only present in the quota defaults index entry, i.e.
- 	 * in the entry where owner_id = QUOTA_DEFAULTS_ID.
- 	 */
--	QUOTA_FLAG_TRACKING_ENABLED	= const_cpu_to_le32(0x00000010),
--	QUOTA_FLAG_ENFORCEMENT_ENABLED	= const_cpu_to_le32(0x00000020),
--	QUOTA_FLAG_TRACKING_REQUESTED	= const_cpu_to_le32(0x00000040),
--	QUOTA_FLAG_LOG_THRESHOLD	= const_cpu_to_le32(0x00000080),
--
--	QUOTA_FLAG_LOG_LIMIT		= const_cpu_to_le32(0x00000100),
--	QUOTA_FLAG_OUT_OF_DATE		= const_cpu_to_le32(0x00000200),
--	QUOTA_FLAG_CORRUPT		= const_cpu_to_le32(0x00000400),
--	QUOTA_FLAG_PENDING_DELETES	= const_cpu_to_le32(0x00000800),
-+	QUOTA_FLAG_TRACKING_ENABLED	= cpu_to_le32(0x00000010),
-+	QUOTA_FLAG_ENFORCEMENT_ENABLED	= cpu_to_le32(0x00000020),
-+	QUOTA_FLAG_TRACKING_REQUESTED	= cpu_to_le32(0x00000040),
-+	QUOTA_FLAG_LOG_THRESHOLD	= cpu_to_le32(0x00000080),
 +
-+	QUOTA_FLAG_LOG_LIMIT		= cpu_to_le32(0x00000100),
-+	QUOTA_FLAG_OUT_OF_DATE		= cpu_to_le32(0x00000200),
-+	QUOTA_FLAG_CORRUPT		= cpu_to_le32(0x00000400),
-+	QUOTA_FLAG_PENDING_DELETES	= cpu_to_le32(0x00000800),
- };
- 
- typedef le32 QUOTA_FLAGS;
-@@ -2172,9 +2161,9 @@ typedef struct {
-  * Predefined owner_id values (32-bit).
-  */
- enum {
--	QUOTA_INVALID_ID	= const_cpu_to_le32(0x00000000),
--	QUOTA_DEFAULTS_ID	= const_cpu_to_le32(0x00000001),
--	QUOTA_FIRST_USER_ID	= const_cpu_to_le32(0x00000100),
-+	QUOTA_INVALID_ID	= cpu_to_le32(0x00000000),
-+	QUOTA_DEFAULTS_ID	= cpu_to_le32(0x00000001),
-+	QUOTA_FIRST_USER_ID	= cpu_to_le32(0x00000100),
- };
- 
- /*
-@@ -2189,14 +2178,14 @@ typedef enum {
-  * Index entry flags (16-bit).
-  */
- enum {
--	INDEX_ENTRY_NODE = const_cpu_to_le16(1), /* This entry contains a
-+	INDEX_ENTRY_NODE = cpu_to_le16(1), /* This entry contains a
- 			sub-node, i.e. a reference to an index block in form of
- 			a virtual cluster number (see below). */
--	INDEX_ENTRY_END  = const_cpu_to_le16(2), /* This signifies the last
-+	INDEX_ENTRY_END  = cpu_to_le16(2), /* This signifies the last
- 			entry in an index block.  The index entry does not
- 			represent a file but it can point to a sub-node. */
- 
--	INDEX_ENTRY_SPACE_FILLER = const_cpu_to_le16(0xffff), /* gcc: Force
-+	INDEX_ENTRY_SPACE_FILLER = cpu_to_le16(0xffff), /* gcc: Force
- 			enum bit width to 16-bit. */
- } __attribute__ ((__packed__));
- 
-@@ -2334,26 +2323,26 @@ typedef struct {
-  * These are the predefined reparse point tags:
-  */
- enum {
--	IO_REPARSE_TAG_IS_ALIAS		= const_cpu_to_le32(0x20000000),
--	IO_REPARSE_TAG_IS_HIGH_LATENCY	= const_cpu_to_le32(0x40000000),
--	IO_REPARSE_TAG_IS_MICROSOFT	= const_cpu_to_le32(0x80000000),
-+	IO_REPARSE_TAG_IS_ALIAS		= cpu_to_le32(0x20000000),
-+	IO_REPARSE_TAG_IS_HIGH_LATENCY	= cpu_to_le32(0x40000000),
-+	IO_REPARSE_TAG_IS_MICROSOFT	= cpu_to_le32(0x80000000),
- 
--	IO_REPARSE_TAG_RESERVED_ZERO	= const_cpu_to_le32(0x00000000),
--	IO_REPARSE_TAG_RESERVED_ONE	= const_cpu_to_le32(0x00000001),
--	IO_REPARSE_TAG_RESERVED_RANGE	= const_cpu_to_le32(0x00000001),
-+	IO_REPARSE_TAG_RESERVED_ZERO	= cpu_to_le32(0x00000000),
-+	IO_REPARSE_TAG_RESERVED_ONE	= cpu_to_le32(0x00000001),
-+	IO_REPARSE_TAG_RESERVED_RANGE	= cpu_to_le32(0x00000001),
- 
--	IO_REPARSE_TAG_NSS		= const_cpu_to_le32(0x68000005),
--	IO_REPARSE_TAG_NSS_RECOVER	= const_cpu_to_le32(0x68000006),
--	IO_REPARSE_TAG_SIS		= const_cpu_to_le32(0x68000007),
--	IO_REPARSE_TAG_DFS		= const_cpu_to_le32(0x68000008),
-+	IO_REPARSE_TAG_NSS		= cpu_to_le32(0x68000005),
-+	IO_REPARSE_TAG_NSS_RECOVER	= cpu_to_le32(0x68000006),
-+	IO_REPARSE_TAG_SIS		= cpu_to_le32(0x68000007),
-+	IO_REPARSE_TAG_DFS		= cpu_to_le32(0x68000008),
- 
--	IO_REPARSE_TAG_MOUNT_POINT	= const_cpu_to_le32(0x88000003),
-+	IO_REPARSE_TAG_MOUNT_POINT	= cpu_to_le32(0x88000003),
- 
--	IO_REPARSE_TAG_HSM		= const_cpu_to_le32(0xa8000004),
-+	IO_REPARSE_TAG_HSM		= cpu_to_le32(0xa8000004),
- 
--	IO_REPARSE_TAG_SYMBOLIC_LINK	= const_cpu_to_le32(0xe8000000),
-+	IO_REPARSE_TAG_SYMBOLIC_LINK	= cpu_to_le32(0xe8000000),
- 
--	IO_REPARSE_TAG_VALID_VALUES	= const_cpu_to_le32(0xe000ffff),
-+	IO_REPARSE_TAG_VALID_VALUES	= cpu_to_le32(0xe000ffff),
- };
- 
- /*
-diff -puN fs/ntfs/logfile.h~ntfs-remove-private-wrapper-of-endian-helpers fs/ntfs/logfile.h
---- a/fs/ntfs/logfile.h~ntfs-remove-private-wrapper-of-endian-helpers
-+++ a/fs/ntfs/logfile.h
-@@ -104,7 +104,7 @@ typedef struct {
-  * in this particular client array.  Also inside the client records themselves,
-  * this means that there are no client records preceding or following this one.
-  */
--#define LOGFILE_NO_CLIENT	const_cpu_to_le16(0xffff)
-+#define LOGFILE_NO_CLIENT	cpu_to_le16(0xffff)
- #define LOGFILE_NO_CLIENT_CPU	0xffff
- 
- /*
-@@ -112,8 +112,8 @@ typedef struct {
-  * information about the log file in which they are present.
-  */
- enum {
--	RESTART_VOLUME_IS_CLEAN	= const_cpu_to_le16(0x0002),
--	RESTART_SPACE_FILLER	= const_cpu_to_le16(0xffff), /* gcc: Force enum bit width to 16. */
-+	RESTART_VOLUME_IS_CLEAN	= cpu_to_le16(0x0002),
-+	RESTART_SPACE_FILLER	= cpu_to_le16(0xffff), /* gcc: Force enum bit width to 16. */
- } __attribute__ ((__packed__));
- 
- typedef le16 RESTART_AREA_FLAGS;
-diff -puN fs/ntfs/mft.c~ntfs-remove-private-wrapper-of-endian-helpers fs/ntfs/mft.c
---- a/fs/ntfs/mft.c~ntfs-remove-private-wrapper-of-endian-helpers
-+++ a/fs/ntfs/mft.c
-@@ -2839,7 +2839,7 @@ int ntfs_extent_mft_record_free(ntfs_ino
- 	 */
- 
- 	/* Mark the mft record as not in use. */
--	m->flags &= const_cpu_to_le16(~const_le16_to_cpu(MFT_RECORD_IN_USE));
-+	m->flags &= ~MFT_RECORD_IN_USE;
- 
- 	/* Increment the sequence number, skipping zero, if it is not zero. */
- 	old_seq_no = m->sequence_number;
-diff -puN fs/ntfs/super.c~ntfs-remove-private-wrapper-of-endian-helpers fs/ntfs/super.c
---- a/fs/ntfs/super.c~ntfs-remove-private-wrapper-of-endian-helpers
-+++ a/fs/ntfs/super.c
-@@ -618,7 +618,7 @@ static bool is_boot_sector_ntfs(const st
- 	 * many BIOSes will refuse to boot from a bootsector if the magic is
- 	 * incorrect, so we emit a warning.
- 	 */
--	if (!silent && b->end_of_sector_marker != const_cpu_to_le16(0xaa55))
-+	if (!silent && b->end_of_sector_marker != cpu_to_le16(0xaa55))
- 		ntfs_warning(sb, "Invalid end of sector marker.");
- 	return true;
- not_ntfs:
-@@ -1242,13 +1242,13 @@ static int check_windows_hibernation_sta
- 	u32 *kaddr, *kend;
- 	ntfs_name *name = NULL;
- 	int ret = 1;
--	static const ntfschar hiberfil[13] = { const_cpu_to_le16('h'),
--			const_cpu_to_le16('i'), const_cpu_to_le16('b'),
--			const_cpu_to_le16('e'), const_cpu_to_le16('r'),
--			const_cpu_to_le16('f'), const_cpu_to_le16('i'),
--			const_cpu_to_le16('l'), const_cpu_to_le16('.'),
--			const_cpu_to_le16('s'), const_cpu_to_le16('y'),
--			const_cpu_to_le16('s'), 0 };
-+	static const ntfschar hiberfil[13] = { cpu_to_le16('h'),
-+			cpu_to_le16('i'), cpu_to_le16('b'),
-+			cpu_to_le16('e'), cpu_to_le16('r'),
-+			cpu_to_le16('f'), cpu_to_le16('i'),
-+			cpu_to_le16('l'), cpu_to_le16('.'),
-+			cpu_to_le16('s'), cpu_to_le16('y'),
-+			cpu_to_le16('s'), 0 };
- 
- 	ntfs_debug("Entering.");
- 	/*
-@@ -1296,7 +1296,7 @@ static int check_windows_hibernation_sta
- 		goto iput_out;
- 	}
- 	kaddr = (u32*)page_address(page);
--	if (*(le32*)kaddr == const_cpu_to_le32(0x72626968)/*'hibr'*/) {
-+	if (*(le32*)kaddr == cpu_to_le32(0x72626968)/*'hibr'*/) {
- 		ntfs_debug("Magic \"hibr\" found in hiberfil.sys.  Windows is "
- 				"hibernated on the volume.  This is the "
- 				"system volume.");
-@@ -1337,12 +1337,12 @@ static bool load_and_init_quota(ntfs_vol
- 	MFT_REF mref;
- 	struct inode *tmp_ino;
- 	ntfs_name *name = NULL;
--	static const ntfschar Quota[7] = { const_cpu_to_le16('$'),
--			const_cpu_to_le16('Q'), const_cpu_to_le16('u'),
--			const_cpu_to_le16('o'), const_cpu_to_le16('t'),
--			const_cpu_to_le16('a'), 0 };
--	static ntfschar Q[3] = { const_cpu_to_le16('$'),
--			const_cpu_to_le16('Q'), 0 };
-+	static const ntfschar Quota[7] = { cpu_to_le16('$'),
-+			cpu_to_le16('Q'), cpu_to_le16('u'),
-+			cpu_to_le16('o'), cpu_to_le16('t'),
-+			cpu_to_le16('a'), 0 };
-+	static ntfschar Q[3] = { cpu_to_le16('$'),
-+			cpu_to_le16('Q'), 0 };
- 
- 	ntfs_debug("Entering.");
- 	/*
-@@ -1416,16 +1416,16 @@ static bool load_and_init_usnjrnl(ntfs_v
- 	struct page *page;
- 	ntfs_name *name = NULL;
- 	USN_HEADER *uh;
--	static const ntfschar UsnJrnl[9] = { const_cpu_to_le16('$'),
--			const_cpu_to_le16('U'), const_cpu_to_le16('s'),
--			const_cpu_to_le16('n'), const_cpu_to_le16('J'),
--			const_cpu_to_le16('r'), const_cpu_to_le16('n'),
--			const_cpu_to_le16('l'), 0 };
--	static ntfschar Max[5] = { const_cpu_to_le16('$'),
--			const_cpu_to_le16('M'), const_cpu_to_le16('a'),
--			const_cpu_to_le16('x'), 0 };
--	static ntfschar J[3] = { const_cpu_to_le16('$'),
--			const_cpu_to_le16('J'), 0 };
-+	static const ntfschar UsnJrnl[9] = { cpu_to_le16('$'),
-+			cpu_to_le16('U'), cpu_to_le16('s'),
-+			cpu_to_le16('n'), cpu_to_le16('J'),
-+			cpu_to_le16('r'), cpu_to_le16('n'),
-+			cpu_to_le16('l'), 0 };
-+	static ntfschar Max[5] = { cpu_to_le16('$'),
-+			cpu_to_le16('M'), cpu_to_le16('a'),
-+			cpu_to_le16('x'), 0 };
-+	static ntfschar J[3] = { cpu_to_le16('$'),
-+			cpu_to_le16('J'), 0 };
- 
- 	ntfs_debug("Entering.");
- 	/*
-diff -puN fs/ntfs/usnjrnl.h~ntfs-remove-private-wrapper-of-endian-helpers fs/ntfs/usnjrnl.h
---- a/fs/ntfs/usnjrnl.h~ntfs-remove-private-wrapper-of-endian-helpers
-+++ a/fs/ntfs/usnjrnl.h
-@@ -116,27 +116,27 @@ typedef struct {
-  * documentation: http://www.linux-ntfs.org/
-  */
- enum {
--	USN_REASON_DATA_OVERWRITE	= const_cpu_to_le32(0x00000001),
--	USN_REASON_DATA_EXTEND		= const_cpu_to_le32(0x00000002),
--	USN_REASON_DATA_TRUNCATION	= const_cpu_to_le32(0x00000004),
--	USN_REASON_NAMED_DATA_OVERWRITE	= const_cpu_to_le32(0x00000010),
--	USN_REASON_NAMED_DATA_EXTEND	= const_cpu_to_le32(0x00000020),
--	USN_REASON_NAMED_DATA_TRUNCATION= const_cpu_to_le32(0x00000040),
--	USN_REASON_FILE_CREATE		= const_cpu_to_le32(0x00000100),
--	USN_REASON_FILE_DELETE		= const_cpu_to_le32(0x00000200),
--	USN_REASON_EA_CHANGE		= const_cpu_to_le32(0x00000400),
--	USN_REASON_SECURITY_CHANGE	= const_cpu_to_le32(0x00000800),
--	USN_REASON_RENAME_OLD_NAME	= const_cpu_to_le32(0x00001000),
--	USN_REASON_RENAME_NEW_NAME	= const_cpu_to_le32(0x00002000),
--	USN_REASON_INDEXABLE_CHANGE	= const_cpu_to_le32(0x00004000),
--	USN_REASON_BASIC_INFO_CHANGE	= const_cpu_to_le32(0x00008000),
--	USN_REASON_HARD_LINK_CHANGE	= const_cpu_to_le32(0x00010000),
--	USN_REASON_COMPRESSION_CHANGE	= const_cpu_to_le32(0x00020000),
--	USN_REASON_ENCRYPTION_CHANGE	= const_cpu_to_le32(0x00040000),
--	USN_REASON_OBJECT_ID_CHANGE	= const_cpu_to_le32(0x00080000),
--	USN_REASON_REPARSE_POINT_CHANGE	= const_cpu_to_le32(0x00100000),
--	USN_REASON_STREAM_CHANGE	= const_cpu_to_le32(0x00200000),
--	USN_REASON_CLOSE		= const_cpu_to_le32(0x80000000),
-+	USN_REASON_DATA_OVERWRITE	= cpu_to_le32(0x00000001),
-+	USN_REASON_DATA_EXTEND		= cpu_to_le32(0x00000002),
-+	USN_REASON_DATA_TRUNCATION	= cpu_to_le32(0x00000004),
-+	USN_REASON_NAMED_DATA_OVERWRITE	= cpu_to_le32(0x00000010),
-+	USN_REASON_NAMED_DATA_EXTEND	= cpu_to_le32(0x00000020),
-+	USN_REASON_NAMED_DATA_TRUNCATION= cpu_to_le32(0x00000040),
-+	USN_REASON_FILE_CREATE		= cpu_to_le32(0x00000100),
-+	USN_REASON_FILE_DELETE		= cpu_to_le32(0x00000200),
-+	USN_REASON_EA_CHANGE		= cpu_to_le32(0x00000400),
-+	USN_REASON_SECURITY_CHANGE	= cpu_to_le32(0x00000800),
-+	USN_REASON_RENAME_OLD_NAME	= cpu_to_le32(0x00001000),
-+	USN_REASON_RENAME_NEW_NAME	= cpu_to_le32(0x00002000),
-+	USN_REASON_INDEXABLE_CHANGE	= cpu_to_le32(0x00004000),
-+	USN_REASON_BASIC_INFO_CHANGE	= cpu_to_le32(0x00008000),
-+	USN_REASON_HARD_LINK_CHANGE	= cpu_to_le32(0x00010000),
-+	USN_REASON_COMPRESSION_CHANGE	= cpu_to_le32(0x00020000),
-+	USN_REASON_ENCRYPTION_CHANGE	= cpu_to_le32(0x00040000),
-+	USN_REASON_OBJECT_ID_CHANGE	= cpu_to_le32(0x00080000),
-+	USN_REASON_REPARSE_POINT_CHANGE	= cpu_to_le32(0x00100000),
-+	USN_REASON_STREAM_CHANGE	= cpu_to_le32(0x00200000),
-+	USN_REASON_CLOSE		= cpu_to_le32(0x80000000),
- };
- 
- typedef le32 USN_REASON_FLAGS;
-@@ -148,9 +148,9 @@ typedef le32 USN_REASON_FLAGS;
-  *	http://www.linux-ntfs.org/
-  */
- enum {
--	USN_SOURCE_DATA_MANAGEMENT	  = const_cpu_to_le32(0x00000001),
--	USN_SOURCE_AUXILIARY_DATA	  = const_cpu_to_le32(0x00000002),
--	USN_SOURCE_REPLICATION_MANAGEMENT = const_cpu_to_le32(0x00000004),
-+	USN_SOURCE_DATA_MANAGEMENT	  = cpu_to_le32(0x00000001),
-+	USN_SOURCE_AUXILIARY_DATA	  = cpu_to_le32(0x00000002),
-+	USN_SOURCE_REPLICATION_MANAGEMENT = cpu_to_le32(0x00000004),
- };
- 
- typedef le32 USN_SOURCE_INFO_FLAGS;
++/* note: prints function name for you */
++#ifdef ATA_DEBUG
++#define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
++#ifdef ATA_VERBOSE_DEBUG
++#define VPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
++#else
++#define VPRINTK(fmt, args...)
++#endif	/* ATA_VERBOSE_DEBUG */
++#else
++#define DPRINTK(fmt, args...)
++#define VPRINTK(fmt, args...)
++#endif	/* ATA_DEBUG */
++
++#define BPRINTK(fmt, args...) if (ap->flags & ATA_FLAG_DEBUGMSG) printk(KERN_ERR "%s: " fmt, __func__, ## args)
++
++/* NEW: debug levels */
++#define HAVE_LIBATA_MSG 1
++
++enum {
++	ATA_MSG_DRV	= 0x0001,
++	ATA_MSG_INFO	= 0x0002,
++	ATA_MSG_PROBE	= 0x0004,
++	ATA_MSG_WARN	= 0x0008,
++	ATA_MSG_MALLOC	= 0x0010,
++	ATA_MSG_CTL	= 0x0020,
++	ATA_MSG_INTR	= 0x0040,
++	ATA_MSG_ERR	= 0x0080,
++};
++
++#define ata_msg_drv(p)    ((p)->msg_enable & ATA_MSG_DRV)
++#define ata_msg_info(p)   ((p)->msg_enable & ATA_MSG_INFO)
++#define ata_msg_probe(p)  ((p)->msg_enable & ATA_MSG_PROBE)
++#define ata_msg_warn(p)   ((p)->msg_enable & ATA_MSG_WARN)
++#define ata_msg_malloc(p) ((p)->msg_enable & ATA_MSG_MALLOC)
++#define ata_msg_ctl(p)    ((p)->msg_enable & ATA_MSG_CTL)
++#define ata_msg_intr(p)   ((p)->msg_enable & ATA_MSG_INTR)
++#define ata_msg_err(p)    ((p)->msg_enable & ATA_MSG_ERR)
++
++static inline u32 ata_msg_init(int dval, int default_msg_enable_bits)
++{
++	if (dval < 0 || dval >= (sizeof(u32) * 8))
++		return default_msg_enable_bits; /* should be 0x1 - only driver info msgs */
++	if (!dval)
++		return 0;
++	return (1 << dval) - 1;
++}
++
++/* defines only for the constants which don't work well as enums */
++#define ATA_TAG_POISON		0xfafbfcfdU
++
++enum {
++	/* various global constants */
++	LIBATA_MAX_PRD		= ATA_MAX_PRD / 2,
++	LIBATA_DUMB_MAX_PRD	= ATA_MAX_PRD / 4,	/* Worst case */
++	ATA_DEF_QUEUE		= 1,
++	/* tag ATA_MAX_QUEUE - 1 is reserved for internal commands */
++	ATA_MAX_QUEUE		= 32,
++	ATA_TAG_INTERNAL	= ATA_MAX_QUEUE - 1,
++	ATA_SHORT_PAUSE		= 16,
++
++	ATAPI_MAX_DRAIN		= 16 << 10,
++
++	ATA_ALL_DEVICES		= (1 << ATA_MAX_DEVICES) - 1,
++
++	ATA_SHT_EMULATED	= 1,
++	ATA_SHT_CMD_PER_LUN	= 1,
++	ATA_SHT_THIS_ID		= -1,
++	ATA_SHT_USE_CLUSTERING	= 1,
++
++	/* struct ata_device stuff */
++	ATA_DFLAG_LBA		= (1 << 0), /* device supports LBA */
++	ATA_DFLAG_LBA48		= (1 << 1), /* device supports LBA48 */
++	ATA_DFLAG_CDB_INTR	= (1 << 2), /* device asserts INTRQ when ready for CDB */
++	ATA_DFLAG_NCQ		= (1 << 3), /* device supports NCQ */
++	ATA_DFLAG_FLUSH_EXT	= (1 << 4), /* do FLUSH_EXT instead of FLUSH */
++	ATA_DFLAG_ACPI_PENDING	= (1 << 5), /* ACPI resume action pending */
++	ATA_DFLAG_ACPI_FAILED	= (1 << 6), /* ACPI on devcfg has failed */
++	ATA_DFLAG_AN		= (1 << 7), /* AN configured */
++	ATA_DFLAG_HIPM		= (1 << 8), /* device supports HIPM */
++	ATA_DFLAG_DIPM		= (1 << 9), /* device supports DIPM */
++	ATA_DFLAG_DMADIR	= (1 << 10), /* device requires DMADIR */
++	ATA_DFLAG_CFG_MASK	= (1 << 12) - 1,
++
++	ATA_DFLAG_PIO		= (1 << 12), /* device limited to PIO mode */
++	ATA_DFLAG_NCQ_OFF	= (1 << 13), /* device limited to non-NCQ mode */
++	ATA_DFLAG_SPUNDOWN	= (1 << 14), /* XXX: for spindown_compat */
++	ATA_DFLAG_SLEEPING	= (1 << 15), /* device is sleeping */
++	ATA_DFLAG_DUBIOUS_XFER	= (1 << 16), /* data transfer not verified */
++	ATA_DFLAG_NO_UNLOAD	= (1 << 17), /* device doesn't support unload */
++	ATA_DFLAG_INIT_MASK	= (1 << 24) - 1,
++
++	ATA_DFLAG_DETACH	= (1 << 24),
++	ATA_DFLAG_DETACHED	= (1 << 25),
++
++	ATA_DEV_UNKNOWN		= 0,	/* unknown device */
++	ATA_DEV_ATA		= 1,	/* ATA device */
++	ATA_DEV_ATA_UNSUP	= 2,	/* ATA device (unsupported) */
++	ATA_DEV_ATAPI		= 3,	/* ATAPI device */
++	ATA_DEV_ATAPI_UNSUP	= 4,	/* ATAPI device (unsupported) */
++	ATA_DEV_PMP		= 5,	/* SATA port multiplier */
++	ATA_DEV_PMP_UNSUP	= 6,	/* SATA port multiplier (unsupported) */
++	ATA_DEV_SEMB		= 7,	/* SEMB */
++	ATA_DEV_SEMB_UNSUP	= 8,	/* SEMB (unsupported) */
++	ATA_DEV_NONE		= 9,	/* no device */
++
++	/* struct ata_link flags */
++	ATA_LFLAG_NO_HRST	= (1 << 1), /* avoid hardreset */
++	ATA_LFLAG_NO_SRST	= (1 << 2), /* avoid softreset */
++	ATA_LFLAG_ASSUME_ATA	= (1 << 3), /* assume ATA class */
++	ATA_LFLAG_ASSUME_SEMB	= (1 << 4), /* assume SEMB class */
++	ATA_LFLAG_ASSUME_CLASS	= ATA_LFLAG_ASSUME_ATA | ATA_LFLAG_ASSUME_SEMB,
++	ATA_LFLAG_NO_RETRY	= (1 << 5), /* don't retry this link */
++	ATA_LFLAG_DISABLED	= (1 << 6), /* link is disabled */
++	ATA_LFLAG_SW_ACTIVITY	= (1 << 7), /* keep activity stats */
++
++	/* struct ata_port flags */
++	ATA_FLAG_SLAVE_POSS	= (1 << 0), /* host supports slave dev */
++					    /* (doesn't imply presence) */
++	ATA_FLAG_SATA		= (1 << 1),
++	ATA_FLAG_NO_LEGACY	= (1 << 2), /* no legacy mode check */
++	ATA_FLAG_MMIO		= (1 << 3), /* use MMIO, not PIO */
++	ATA_FLAG_SRST		= (1 << 4), /* (obsolete) use ATA SRST, not E.D.D. */
++	ATA_FLAG_SATA_RESET	= (1 << 5), /* (obsolete) use COMRESET */
++	ATA_FLAG_NO_ATAPI	= (1 << 6), /* No ATAPI support */
++	ATA_FLAG_PIO_DMA	= (1 << 7), /* PIO cmds via DMA */
++	ATA_FLAG_PIO_LBA48	= (1 << 8), /* Host DMA engine is LBA28 only */
++	ATA_FLAG_PIO_POLLING	= (1 << 9), /* use polling PIO if LLD
++					     * doesn't handle PIO interrupts */
++	ATA_FLAG_NCQ		= (1 << 10), /* host supports NCQ */
++	ATA_FLAG_NO_POWEROFF_SPINDOWN = (1 << 11), /* don't spindown before poweroff */
++	ATA_FLAG_NO_HIBERNATE_SPINDOWN = (1 << 12), /* don't spindown before hibernation */
++	ATA_FLAG_DEBUGMSG	= (1 << 13),
++	ATA_FLAG_IGN_SIMPLEX	= (1 << 15), /* ignore SIMPLEX */
++	ATA_FLAG_NO_IORDY	= (1 << 16), /* controller lacks iordy */
++	ATA_FLAG_ACPI_SATA	= (1 << 17), /* need native SATA ACPI layout */
++	ATA_FLAG_AN		= (1 << 18), /* controller supports AN */
++	ATA_FLAG_PMP		= (1 << 19), /* controller supports PMP */
++	ATA_FLAG_IPM		= (1 << 20), /* driver can handle IPM */
++	ATA_FLAG_EM		= (1 << 21), /* driver supports enclosure
++					      * management */
++	ATA_FLAG_SW_ACTIVITY	= (1 << 22), /* driver supports sw activity
++					      * led */
++
++	/* The following flag belongs to ap->pflags but is kept in
++	 * ap->flags because it's referenced in many LLDs and will be
++	 * removed in not-too-distant future.
++	 */
++	ATA_FLAG_DISABLED	= (1 << 23), /* port is disabled, ignore it */
++
++	/* bits 24:31 of ap->flags are reserved for LLD specific flags */
++
++	/* struct ata_port pflags */
++	ATA_PFLAG_EH_PENDING	= (1 << 0), /* EH pending */
++	ATA_PFLAG_EH_IN_PROGRESS = (1 << 1), /* EH in progress */
++	ATA_PFLAG_FROZEN	= (1 << 2), /* port is frozen */
++	ATA_PFLAG_RECOVERED	= (1 << 3), /* recovery action performed */
++	ATA_PFLAG_LOADING	= (1 << 4), /* boot/loading probe */
++	ATA_PFLAG_SCSI_HOTPLUG	= (1 << 6), /* SCSI hotplug scheduled */
++	ATA_PFLAG_INITIALIZING	= (1 << 7), /* being initialized, don't touch */
++	ATA_PFLAG_RESETTING	= (1 << 8), /* reset in progress */
++	ATA_PFLAG_UNLOADING	= (1 << 9), /* driver is being unloaded */
++	ATA_PFLAG_UNLOADED	= (1 << 10), /* driver is unloaded */
++
++	ATA_PFLAG_SUSPENDED	= (1 << 17), /* port is suspended (power) */
++	ATA_PFLAG_PM_PENDING	= (1 << 18), /* PM operation pending */
++	ATA_PFLAG_INIT_GTM_VALID = (1 << 19), /* initial gtm data valid */
++
++	/* struct ata_queued_cmd flags */
++	ATA_QCFLAG_ACTIVE	= (1 << 0), /* cmd not yet ack'd to scsi lyer */
++	ATA_QCFLAG_DMAMAP	= (1 << 1), /* SG table is DMA mapped */
++	ATA_QCFLAG_IO		= (1 << 3), /* standard IO command */
++	ATA_QCFLAG_RESULT_TF	= (1 << 4), /* result TF requested */
++	ATA_QCFLAG_CLEAR_EXCL	= (1 << 5), /* clear excl_link on completion */
++	ATA_QCFLAG_QUIET	= (1 << 6), /* don't report device error */
++	ATA_QCFLAG_RETRY	= (1 << 7), /* retry after failure */
++
++	ATA_QCFLAG_FAILED	= (1 << 16), /* cmd failed and is owned by EH */
++	ATA_QCFLAG_SENSE_VALID	= (1 << 17), /* sense data valid */
++	ATA_QCFLAG_EH_SCHEDULED = (1 << 18), /* EH scheduled (obsolete) */
++
++	/* host set flags */
++	ATA_HOST_SIMPLEX	= (1 << 0),	/* Host is simplex, one DMA channel per host only */
++	ATA_HOST_STARTED	= (1 << 1),	/* Host started */
++	ATA_HOST_PARALLEL_SCAN	= (1 << 2),	/* Ports on this host can be scanned in parallel */
++
++	/* bits 24:31 of host->flags are reserved for LLD specific flags */
++
++	/* various lengths of time */
++	ATA_TMOUT_BOOT		= 30000,	/* heuristic */
++	ATA_TMOUT_BOOT_QUICK	=  7000,	/* heuristic */
++	ATA_TMOUT_INTERNAL_QUICK = 5000,
++	ATA_TMOUT_MAX_PARK	= 30000,
++
++	/* FIXME: GoVault needs 2s but we can't afford that without
++	 * parallel probing.  800ms is enough for iVDR disk
++	 * HHD424020F7SV00.  Increase to 2secs when parallel probing
++	 * is in place.
++	 */
++	ATA_TMOUT_FF_WAIT	=  800,
++
++	/* Spec mandates to wait for ">= 2ms" before checking status
++	 * after reset.  We wait 150ms, because that was the magic
++	 * delay used for ATAPI devices in Hale Landis's ATADRVR, for
++	 * the period of time between when the ATA command register is
++	 * written, and then status is checked.  Because waiting for
++	 * "a while" before checking status is fine, post SRST, we
++	 * perform this magic delay here as well.
++	 *
++	 * Old drivers/ide uses the 2mS rule and then waits for ready.
++	 */
++	ATA_WAIT_AFTER_RESET	=  150,
++
++	/* If PMP is supported, we have to do follow-up SRST.  As some
++	 * PMPs don't send D2H Reg FIS after hardreset, LLDs are
++	 * advised to wait only for the following duration before
++	 * doing SRST.
++	 */
++	ATA_TMOUT_PMP_SRST_WAIT	= 1000,
++
++	/* ATA bus states */
++	BUS_UNKNOWN		= 0,
++	BUS_DMA			= 1,
++	BUS_IDLE		= 2,
++	BUS_NOINTR		= 3,
++	BUS_NODATA		= 4,
++	BUS_TIMER		= 5,
++	BUS_PIO			= 6,
++	BUS_EDD			= 7,
++	BUS_IDENTIFY		= 8,
++	BUS_PACKET		= 9,
++
++	/* SATA port states */
++	PORT_UNKNOWN		= 0,
++	PORT_ENABLED		= 1,
++	PORT_DISABLED		= 2,
++
++	/* encoding various smaller bitmaps into a single
++	 * unsigned long bitmap
++	 */
++	ATA_NR_PIO_MODES	= 7,
++	ATA_NR_MWDMA_MODES	= 5,
++	ATA_NR_UDMA_MODES	= 8,
++
++	ATA_SHIFT_PIO		= 0,
++	ATA_SHIFT_MWDMA		= ATA_SHIFT_PIO + ATA_NR_PIO_MODES,
++	ATA_SHIFT_UDMA		= ATA_SHIFT_MWDMA + ATA_NR_MWDMA_MODES,
++
++	/* size of buffer to pad xfers ending on unaligned boundaries */
++	ATA_DMA_PAD_SZ		= 4,
++
++	/* ering size */
++	ATA_ERING_SIZE		= 32,
++
++	/* return values for ->qc_defer */
++	ATA_DEFER_LINK		= 1,
++	ATA_DEFER_PORT		= 2,
++
++	/* desc_len for ata_eh_info and context */
++	ATA_EH_DESC_LEN		= 80,
++
++	/* reset / recovery action types */
++	ATA_EH_REVALIDATE	= (1 << 0),
++	ATA_EH_SOFTRESET	= (1 << 1), /* meaningful only in ->prereset */
++	ATA_EH_HARDRESET	= (1 << 2), /* meaningful only in ->prereset */
++	ATA_EH_RESET		= ATA_EH_SOFTRESET | ATA_EH_HARDRESET,
++	ATA_EH_ENABLE_LINK	= (1 << 3),
++	ATA_EH_LPM		= (1 << 4),  /* link power management action */
++	ATA_EH_PARK		= (1 << 5), /* unload heads and stop I/O */
++
++	ATA_EH_PERDEV_MASK	= ATA_EH_REVALIDATE | ATA_EH_PARK,
++	ATA_EH_ALL_ACTIONS	= ATA_EH_REVALIDATE | ATA_EH_RESET |
++				  ATA_EH_ENABLE_LINK | ATA_EH_LPM,
++
++	/* ata_eh_info->flags */
++	ATA_EHI_HOTPLUGGED	= (1 << 0),  /* could have been hotplugged */
++	ATA_EHI_NO_AUTOPSY	= (1 << 2),  /* no autopsy */
++	ATA_EHI_QUIET		= (1 << 3),  /* be quiet */
++
++	ATA_EHI_DID_SOFTRESET	= (1 << 16), /* already soft-reset this port */
++	ATA_EHI_DID_HARDRESET	= (1 << 17), /* already soft-reset this port */
++	ATA_EHI_PRINTINFO	= (1 << 18), /* print configuration info */
++	ATA_EHI_SETMODE		= (1 << 19), /* configure transfer mode */
++	ATA_EHI_POST_SETMODE	= (1 << 20), /* revaildating after setmode */
++
++	ATA_EHI_DID_RESET	= ATA_EHI_DID_SOFTRESET | ATA_EHI_DID_HARDRESET,
++
++	/* mask of flags to transfer *to* the slave link */
++	ATA_EHI_TO_SLAVE_MASK	= ATA_EHI_NO_AUTOPSY | ATA_EHI_QUIET,
++
++	/* max tries if error condition is still set after ->error_handler */
++	ATA_EH_MAX_TRIES	= 5,
++
++	/* how hard are we gonna try to probe/recover devices */
++	ATA_PROBE_MAX_TRIES	= 3,
++	ATA_EH_DEV_TRIES	= 3,
++	ATA_EH_PMP_TRIES	= 5,
++	ATA_EH_PMP_LINK_TRIES	= 3,
++
++	SATA_PMP_RW_TIMEOUT	= 3000,		/* PMP read/write timeout */
++
++	/* This should match the actual table size of
++	 * ata_eh_cmd_timeout_table in libata-eh.c.
++	 */
++	ATA_EH_CMD_TIMEOUT_TABLE_SIZE = 5,
++
++	/* Horkage types. May be set by libata or controller on drives
++	   (some horkage may be drive/controller pair dependant */
++
++	ATA_HORKAGE_DIAGNOSTIC	= (1 << 0),	/* Failed boot diag */
++	ATA_HORKAGE_NODMA	= (1 << 1),	/* DMA problems */
++	ATA_HORKAGE_NONCQ	= (1 << 2),	/* Don't use NCQ */
++	ATA_HORKAGE_MAX_SEC_128	= (1 << 3),	/* Limit max sects to 128 */
++	ATA_HORKAGE_BROKEN_HPA	= (1 << 4),	/* Broken HPA */
++	ATA_HORKAGE_DISABLE	= (1 << 5),	/* Disable it */
++	ATA_HORKAGE_HPA_SIZE	= (1 << 6),	/* native size off by one */
++	ATA_HORKAGE_IPM		= (1 << 7),	/* Link PM problems */
++	ATA_HORKAGE_IVB		= (1 << 8),	/* cbl det validity bit bugs */
++	ATA_HORKAGE_STUCK_ERR	= (1 << 9),	/* stuck ERR on next PACKET */
++	ATA_HORKAGE_BRIDGE_OK	= (1 << 10),	/* no bridge limits */
++	ATA_HORKAGE_ATAPI_MOD16_DMA = (1 << 11), /* use ATAPI DMA for commands
++						    not multiple of 16 bytes */
++	ATA_HORKAGE_FIRMWARE_WARN = (1 << 12),	/* firmware update warning */
++	ATA_HORKAGE_1_5_GBPS	= (1 << 13),	/* force 1.5 Gbps */
++
++	 /* DMA mask for user DMA control: User visible values; DO NOT
++	    renumber */
++	ATA_DMA_MASK_ATA	= (1 << 0),	/* DMA on ATA Disk */
++	ATA_DMA_MASK_ATAPI	= (1 << 1),	/* DMA on ATAPI */
++	ATA_DMA_MASK_CFA	= (1 << 2),	/* DMA on CF Card */
++
++	/* ATAPI command types */
++	ATAPI_READ		= 0,		/* READs */
++	ATAPI_WRITE		= 1,		/* WRITEs */
++	ATAPI_READ_CD		= 2,		/* READ CD [MSF] */
++	ATAPI_PASS_THRU		= 3,		/* SAT pass-thru */
++	ATAPI_MISC		= 4,		/* the rest */
++
++	/* Timing constants */
++	ATA_TIMING_SETUP	= (1 << 0),
++	ATA_TIMING_ACT8B	= (1 << 1),
++	ATA_TIMING_REC8B	= (1 << 2),
++	ATA_TIMING_CYC8B	= (1 << 3),
++	ATA_TIMING_8BIT		= ATA_TIMING_ACT8B | ATA_TIMING_REC8B |
++				  ATA_TIMING_CYC8B,
++	ATA_TIMING_ACTIVE	= (1 << 4),
++	ATA_TIMING_RECOVER	= (1 << 5),
++	ATA_TIMING_DMACK_HOLD	= (1 << 6),
++	ATA_TIMING_CYCLE	= (1 << 7),
++	ATA_TIMING_UDMA		= (1 << 8),
++	ATA_TIMING_ALL		= ATA_TIMING_SETUP | ATA_TIMING_ACT8B |
++				  ATA_TIMING_REC8B | ATA_TIMING_CYC8B |
++				  ATA_TIMING_ACTIVE | ATA_TIMING_RECOVER |
++				  ATA_TIMING_DMACK_HOLD | ATA_TIMING_CYCLE |
++				  ATA_TIMING_UDMA,
++};
++
++enum ata_xfer_mask {
++	ATA_MASK_PIO		= ((1LU << ATA_NR_PIO_MODES) - 1)
++					<< ATA_SHIFT_PIO,
++	ATA_MASK_MWDMA		= ((1LU << ATA_NR_MWDMA_MODES) - 1)
++					<< ATA_SHIFT_MWDMA,
++	ATA_MASK_UDMA		= ((1LU << ATA_NR_UDMA_MODES) - 1)
++					<< ATA_SHIFT_UDMA,
++};
++
++enum hsm_task_states {
++	HSM_ST_IDLE,		/* no command on going */
++	HSM_ST_FIRST,		/* (waiting the device to)
++				   write CDB or first data block */
++	HSM_ST,			/* (waiting the device to) transfer data */
++	HSM_ST_LAST,		/* (waiting the device to) complete command */
++	HSM_ST_ERR,		/* error */
++};
++
++enum ata_completion_errors {
++	AC_ERR_DEV		= (1 << 0), /* device reported error */
++	AC_ERR_HSM		= (1 << 1), /* host state machine violation */
++	AC_ERR_TIMEOUT		= (1 << 2), /* timeout */
++	AC_ERR_MEDIA		= (1 << 3), /* media error */
++	AC_ERR_ATA_BUS		= (1 << 4), /* ATA bus error */
++	AC_ERR_HOST_BUS		= (1 << 5), /* host bus error */
++	AC_ERR_SYSTEM		= (1 << 6), /* system error */
++	AC_ERR_INVALID		= (1 << 7), /* invalid argument */
++	AC_ERR_OTHER		= (1 << 8), /* unknown */
++	AC_ERR_NODEV_HINT	= (1 << 9), /* polling device detection hint */
++	AC_ERR_NCQ		= (1 << 10), /* marker for offending NCQ qc */
++};
++
++/* forward declarations */
++struct scsi_device;
++struct ata_port_operations;
++struct ata_port;
++struct ata_link;
++struct ata_queued_cmd;
++
++/* typedefs */
++typedef void (*ata_qc_cb_t) (struct ata_queued_cmd *qc);
++typedef int (*ata_prereset_fn_t)(struct ata_link *link, unsigned long deadline);
++typedef int (*ata_reset_fn_t)(struct ata_link *link, unsigned int *classes,
++			      unsigned long deadline);
++typedef void (*ata_postreset_fn_t)(struct ata_link *link, unsigned int *classes);
++
++/*
++ * host pm policy: If you alter this, you also need to alter libata-scsi.c
++ * (for the ascii descriptions)
++ */
++enum link_pm {
++	NOT_AVAILABLE,
++	MIN_POWER,
++	MAX_PERFORMANCE,
++	MEDIUM_POWER,
++};
++extern struct device_attribute dev_attr_link_power_management_policy;
++extern struct device_attribute dev_attr_unload_heads;
++extern struct device_attribute dev_attr_em_message_type;
++extern struct device_attribute dev_attr_em_message;
++extern struct device_attribute dev_attr_sw_activity;
++
++enum sw_activity {
++	OFF,
++	BLINK_ON,
++	BLINK_OFF,
++};
++
++#ifdef CONFIG_ATA_SFF
++struct ata_ioports {
++	void __iomem		*cmd_addr;
++	void __iomem		*data_addr;
++	void __iomem		*error_addr;
++	void __iomem		*feature_addr;
++	void __iomem		*nsect_addr;
++	void __iomem		*lbal_addr;
++	void __iomem		*lbam_addr;
++	void __iomem		*lbah_addr;
++	void __iomem		*device_addr;
++	void __iomem		*status_addr;
++	void __iomem		*command_addr;
++	void __iomem		*altstatus_addr;
++	void __iomem		*ctl_addr;
++	void __iomem		*bmdma_addr;
++	void __iomem		*scr_addr;
++};
++#endif /* CONFIG_ATA_SFF */
++
++struct ata_host {
++	spinlock_t		lock;
++	struct device 		*dev;
++	void __iomem * const	*iomap;
++	unsigned int		n_ports;
++	void			*private_data;
++	struct ata_port_operations *ops;
++	unsigned long		flags;
++#ifdef CONFIG_ATA_ACPI
++	acpi_handle		acpi_handle;
++#endif
++	struct ata_port		*simplex_claimed;	/* channel owning the DMA */
++	struct ata_port		*ports[0];
++};
++
++struct ata_queued_cmd {
++	struct ata_port		*ap;
++	struct ata_device	*dev;
++
++	struct scsi_cmnd	*scsicmd;
++	void			(*scsidone)(struct scsi_cmnd *);
++
++	struct ata_taskfile	tf;
++	u8			cdb[ATAPI_CDB_LEN];
++
++	unsigned long		flags;		/* ATA_QCFLAG_xxx */
++	unsigned int		tag;
++	unsigned int		n_elem;
++
++	int			dma_dir;
++
++	unsigned int		sect_size;
++
++	unsigned int		nbytes;
++	unsigned int		extrabytes;
++	unsigned int		curbytes;
++
++	struct scatterlist	*cursg;
++	unsigned int		cursg_ofs;
++
++	struct scatterlist	sgent;
++
++	struct scatterlist	*sg;
++
++	unsigned int		err_mask;
++	struct ata_taskfile	result_tf;
++	ata_qc_cb_t		complete_fn;
++
++	void			*private_data;
++	void			*lldd_task;
++};
++
++struct ata_port_stats {
++	unsigned long		unhandled_irq;
++	unsigned long		idle_irq;
++	unsigned long		rw_reqbuf;
++};
++
++struct ata_ering_entry {
++	unsigned int		eflags;
++	unsigned int		err_mask;
++	u64			timestamp;
++};
++
++struct ata_ering {
++	int			cursor;
++	struct ata_ering_entry	ring[ATA_ERING_SIZE];
++};
++
++struct ata_device {
++	struct ata_link		*link;
++	unsigned int		devno;		/* 0 or 1 */
++	unsigned int		horkage;	/* List of broken features */
++	unsigned long		flags;		/* ATA_DFLAG_xxx */
++	struct scsi_device	*sdev;		/* attached SCSI device */
++#ifdef CONFIG_ATA_ACPI
++	acpi_handle		acpi_handle;
++	union acpi_object	*gtf_cache;
++#endif
++	/* n_sector is CLEAR_BEGIN, read comment above CLEAR_BEGIN */
++	u64			n_sectors;	/* size of device, if ATA */
++	unsigned int		class;		/* ATA_DEV_xxx */
++	unsigned long		unpark_deadline;
++
++	u8			pio_mode;
++	u8			dma_mode;
++	u8			xfer_mode;
++	unsigned int		xfer_shift;	/* ATA_SHIFT_xxx */
++
++	unsigned int		multi_count;	/* sectors count for
++						   READ/WRITE MULTIPLE */
++	unsigned int		max_sectors;	/* per-device max sectors */
++	unsigned int		cdb_len;
++
++	/* per-dev xfer mask */
++	unsigned long		pio_mask;
++	unsigned long		mwdma_mask;
++	unsigned long		udma_mask;
++
++	/* for CHS addressing */
++	u16			cylinders;	/* Number of cylinders */
++	u16			heads;		/* Number of heads */
++	u16			sectors;	/* Number of sectors per track */
++
++	union {
++		u16		id[ATA_ID_WORDS]; /* IDENTIFY xxx DEVICE data */
++		u32		gscr[SATA_PMP_GSCR_DWORDS]; /* PMP GSCR block */
++	};
++
++	/* error history */
++	int			spdn_cnt;
++	/* ering is CLEAR_END, read comment above CLEAR_END */
++	struct ata_ering	ering;
++};
++
++/* Fields between ATA_DEVICE_CLEAR_BEGIN and ATA_DEVICE_CLEAR_END are
++ * cleared to zero on ata_dev_init().
++ */
++#define ATA_DEVICE_CLEAR_BEGIN		offsetof(struct ata_device, n_sectors)
++#define ATA_DEVICE_CLEAR_END		offsetof(struct ata_device, ering)
++
++struct ata_eh_info {
++	struct ata_device	*dev;		/* offending device */
++	u32			serror;		/* SError from LLDD */
++	unsigned int		err_mask;	/* port-wide err_mask */
++	unsigned int		action;		/* ATA_EH_* action mask */
++	unsigned int		dev_action[ATA_MAX_DEVICES]; /* dev EH action */
++	unsigned int		flags;		/* ATA_EHI_* flags */
++
++	unsigned int		probe_mask;
++
++	char			desc[ATA_EH_DESC_LEN];
++	int			desc_len;
++};
++
++struct ata_eh_context {
++	struct ata_eh_info	i;
++	int			tries[ATA_MAX_DEVICES];
++	int			cmd_timeout_idx[ATA_MAX_DEVICES]
++					       [ATA_EH_CMD_TIMEOUT_TABLE_SIZE];
++	unsigned int		classes[ATA_MAX_DEVICES];
++	unsigned int		did_probe_mask;
++	unsigned int		unloaded_mask;
++	unsigned int		saved_ncq_enabled;
++	u8			saved_xfer_mode[ATA_MAX_DEVICES];
++	/* timestamp for the last reset attempt or success */
++	unsigned long		last_reset;
++};
++
++struct ata_acpi_drive
++{
++	u32 pio;
++	u32 dma;
++} __packed;
++
++struct ata_acpi_gtm {
++	struct ata_acpi_drive drive[2];
++	u32 flags;
++} __packed;
++
++struct ata_link {
++	struct ata_port		*ap;
++	int			pmp;		/* port multiplier port # */
++
++	unsigned int		active_tag;	/* active tag on this link */
++	u32			sactive;	/* active NCQ commands */
++
++	unsigned int		flags;		/* ATA_LFLAG_xxx */
++
++	u32			saved_scontrol;	/* SControl on probe */
++	unsigned int		hw_sata_spd_limit;
++	unsigned int		sata_spd_limit;
++	unsigned int		sata_spd;	/* current SATA PHY speed */
++
++	/* record runtime error info, protected by host_set lock */
++	struct ata_eh_info	eh_info;
++	/* EH context */
++	struct ata_eh_context	eh_context;
++
++	struct ata_device	device[ATA_MAX_DEVICES];
++};
++
++struct ata_port {
++	struct Scsi_Host	*scsi_host; /* our co-allocated scsi host */
++	struct ata_port_operations *ops;
++	spinlock_t		*lock;
++	unsigned long		flags;	/* ATA_FLAG_xxx */
++	unsigned int		pflags; /* ATA_PFLAG_xxx */
++	unsigned int		print_id; /* user visible unique port ID */
++	unsigned int		port_no; /* 0 based port no. inside the host */
++
++	struct ata_prd		*prd;	 /* our SG list */
++	dma_addr_t		prd_dma; /* and its DMA mapping */
++
++#ifdef CONFIG_ATA_SFF
++	struct ata_ioports	ioaddr;	/* ATA cmd/ctl/dma register blocks */
++#endif /* CONFIG_ATA_SFF */
++
++	u8			ctl;	/* cache of ATA control register */
++	u8			last_ctl;	/* Cache last written value */
++	unsigned int		pio_mask;
++	unsigned int		mwdma_mask;
++	unsigned int		udma_mask;
++	unsigned int		cbl;	/* cable type; ATA_CBL_xxx */
++
++	struct ata_queued_cmd	qcmd[ATA_MAX_QUEUE];
++	unsigned long		qc_allocated;
++	unsigned int		qc_active;
++	int			nr_active_links; /* #links with active qcs */
++
++	struct ata_link		link;		/* host default link */
++	struct ata_link		*slave_link;	/* see ata_slave_link_init() */
++
++	int			nr_pmp_links;	/* nr of available PMP links */
++	struct ata_link		*pmp_link;	/* array of PMP links */
++	struct ata_link		*excl_link;	/* for PMP qc exclusion */
++
++	struct ata_port_stats	stats;
++	struct ata_host		*host;
++	struct device 		*dev;
++
++	void			*port_task_data;
++	struct delayed_work	port_task;
++	struct delayed_work	hotplug_task;
++	struct work_struct	scsi_rescan_task;
++
++	unsigned int		hsm_task_state;
++
++	u32			msg_enable;
++	struct list_head	eh_done_q;
++	wait_queue_head_t	eh_wait_q;
++	int			eh_tries;
++	struct completion	park_req_pending;
++
++	pm_message_t		pm_mesg;
++	int			*pm_result;
++	enum link_pm		pm_policy;
++
++	struct timer_list	fastdrain_timer;
++	unsigned long		fastdrain_cnt;
++
++	int			em_message_type;
++	void			*private_data;
++
++#ifdef CONFIG_ATA_ACPI
++	acpi_handle		acpi_handle;
++	struct ata_acpi_gtm	__acpi_init_gtm; /* use ata_acpi_init_gtm() */
++#endif
++	u8			sector_buf[ATA_SECT_SIZE]; /* owned by EH */
++};
++
++/* The following initializer overrides a method to NULL whether one of
++ * its parent has the method defined or not.  This is equivalent to
++ * ERR_PTR(-ENOENT).  Unfortunately, ERR_PTR doesn't render a constant
++ * expression and thus can't be used as an initializer.
++ */
++#define ATA_OP_NULL		(void *)(unsigned long)(-ENOENT)
++
++struct ata_port_operations {
++	/*
++	 * Command execution
++	 */
++	int  (*qc_defer)(struct ata_queued_cmd *qc);
++	int  (*check_atapi_dma)(struct ata_queued_cmd *qc);
++	void (*qc_prep)(struct ata_queued_cmd *qc);
++	unsigned int (*qc_issue)(struct ata_queued_cmd *qc);
++	bool (*qc_fill_rtf)(struct ata_queued_cmd *qc);
++
++	/*
++	 * Configuration and exception handling
++	 */
++	int  (*cable_detect)(struct ata_port *ap);
++	unsigned long (*mode_filter)(struct ata_device *dev, unsigned long xfer_mask);
++	void (*set_piomode)(struct ata_port *ap, struct ata_device *dev);
++	void (*set_dmamode)(struct ata_port *ap, struct ata_device *dev);
++	int  (*set_mode)(struct ata_link *link, struct ata_device **r_failed_dev);
++	unsigned int (*read_id)(struct ata_device *dev, struct ata_taskfile *tf, u16 *id);
++
++	void (*dev_config)(struct ata_device *dev);
++
++	void (*freeze)(struct ata_port *ap);
++	void (*thaw)(struct ata_port *ap);
++	ata_prereset_fn_t	prereset;
++	ata_reset_fn_t		softreset;
++	ata_reset_fn_t		hardreset;
++	ata_postreset_fn_t	postreset;
++	ata_prereset_fn_t	pmp_prereset;
++	ata_reset_fn_t		pmp_softreset;
++	ata_reset_fn_t		pmp_hardreset;
++	ata_postreset_fn_t	pmp_postreset;
++	void (*error_handler)(struct ata_port *ap);
++	void (*post_internal_cmd)(struct ata_queued_cmd *qc);
++
++	/*
++	 * Optional features
++	 */
++	int  (*scr_read)(struct ata_link *link, unsigned int sc_reg, u32 *val);
++	int  (*scr_write)(struct ata_link *link, unsigned int sc_reg, u32 val);
++	void (*pmp_attach)(struct ata_port *ap);
++	void (*pmp_detach)(struct ata_port *ap);
++	int  (*enable_pm)(struct ata_port *ap, enum link_pm policy);
++	void (*disable_pm)(struct ata_port *ap);
++
++	/*
++	 * Start, stop, suspend and resume
++	 */
++	int  (*port_suspend)(struct ata_port *ap, pm_message_t mesg);
++	int  (*port_resume)(struct ata_port *ap);
++	int  (*port_start)(struct ata_port *ap);
++	void (*port_stop)(struct ata_port *ap);
++	void (*host_stop)(struct ata_host *host);
++
++#ifdef CONFIG_ATA_SFF
++	/*
++	 * SFF / taskfile oriented ops
++	 */
++	void (*sff_dev_select)(struct ata_port *ap, unsigned int device);
++	u8   (*sff_check_status)(struct ata_port *ap);
++	u8   (*sff_check_altstatus)(struct ata_port *ap);
++	void (*sff_tf_load)(struct ata_port *ap, const struct ata_taskfile *tf);
++	void (*sff_tf_read)(struct ata_port *ap, struct ata_taskfile *tf);
++	void (*sff_exec_command)(struct ata_port *ap,
++				 const struct ata_taskfile *tf);
++	unsigned int (*sff_data_xfer)(struct ata_device *dev,
++			unsigned char *buf, unsigned int buflen, int rw);
++	u8   (*sff_irq_on)(struct ata_port *);
++	void (*sff_irq_clear)(struct ata_port *);
++
++	void (*bmdma_setup)(struct ata_queued_cmd *qc);
++	void (*bmdma_start)(struct ata_queued_cmd *qc);
++	void (*bmdma_stop)(struct ata_queued_cmd *qc);
++	u8   (*bmdma_status)(struct ata_port *ap);
++#endif /* CONFIG_ATA_SFF */
++
++	ssize_t (*em_show)(struct ata_port *ap, char *buf);
++	ssize_t (*em_store)(struct ata_port *ap, const char *message,
++			    size_t size);
++	ssize_t (*sw_activity_show)(struct ata_device *dev, char *buf);
++	ssize_t (*sw_activity_store)(struct ata_device *dev,
++				     enum sw_activity val);
++	/*
++	 * Obsolete
++	 */
++	void (*phy_reset)(struct ata_port *ap);
++	void (*eng_timeout)(struct ata_port *ap);
++
++	/*
++	 * ->inherits must be the last field and all the preceding
++	 * fields must be pointers.
++	 */
++	const struct ata_port_operations	*inherits;
++};
++
++struct ata_port_info {
++	unsigned long		flags;
++	unsigned long		link_flags;
++	unsigned long		pio_mask;
++	unsigned long		mwdma_mask;
++	unsigned long		udma_mask;
++	struct ata_port_operations *port_ops;
++	void 			*private_data;
++};
++
++struct ata_timing {
++	unsigned short mode;		/* ATA mode */
++	unsigned short setup;		/* t1 */
++	unsigned short act8b;		/* t2 for 8-bit I/O */
++	unsigned short rec8b;		/* t2i for 8-bit I/O */
++	unsigned short cyc8b;		/* t0 for 8-bit I/O */
++	unsigned short active;		/* t2 or tD */
++	unsigned short recover;		/* t2i or tK */
++	unsigned short dmack_hold;	/* tj */
++	unsigned short cycle;		/* t0 */
++	unsigned short udma;		/* t2CYCTYP/2 */
++};
++
++/*
++ * Core layer - drivers/ata/libata-core.c
++ */
++extern const unsigned long sata_deb_timing_normal[];
++extern const unsigned long sata_deb_timing_hotplug[];
++extern const unsigned long sata_deb_timing_long[];
++
++extern struct ata_port_operations ata_dummy_port_ops;
++extern const struct ata_port_info ata_dummy_port_info;
++
++static inline const unsigned long *
++sata_ehc_deb_timing(struct ata_eh_context *ehc)
++{
++	if (ehc->i.flags & ATA_EHI_HOTPLUGGED)
++		return sata_deb_timing_hotplug;
++	else
++		return sata_deb_timing_normal;
++}
++
++static inline int ata_port_is_dummy(struct ata_port *ap)
++{
++	return ap->ops == &ata_dummy_port_ops;
++}
++
++extern void ata_port_probe(struct ata_port *);
++extern int sata_set_spd(struct ata_link *link);
++extern int ata_std_prereset(struct ata_link *link, unsigned long deadline);
++extern int ata_wait_after_reset(struct ata_link *link, unsigned long deadline,
++				int (*check_ready)(struct ata_link *link));
++extern int sata_link_debounce(struct ata_link *link,
++			const unsigned long *params, unsigned long deadline);
++extern int sata_link_resume(struct ata_link *link, const unsigned long *params,
++			    unsigned long deadline);
++extern int sata_link_hardreset(struct ata_link *link,
++			const unsigned long *timing, unsigned long deadline,
++			bool *online, int (*check_ready)(struct ata_link *));
++extern int sata_std_hardreset(struct ata_link *link, unsigned int *class,
++			      unsigned long deadline);
++extern void ata_std_postreset(struct ata_link *link, unsigned int *classes);
++extern void ata_port_disable(struct ata_port *);
++
++extern struct ata_host *ata_host_alloc(struct device *dev, int max_ports);
++extern struct ata_host *ata_host_alloc_pinfo(struct device *dev,
++			const struct ata_port_info * const * ppi, int n_ports);
++extern int ata_slave_link_init(struct ata_port *ap);
++extern int ata_host_start(struct ata_host *host);
++extern int ata_host_register(struct ata_host *host,
++			     struct scsi_host_template *sht);
++extern int ata_host_activate(struct ata_host *host, int irq,
++			     irq_handler_t irq_handler, unsigned long irq_flags,
++			     struct scsi_host_template *sht);
++extern void ata_host_detach(struct ata_host *host);
++extern void ata_host_init(struct ata_host *, struct device *,
++			  unsigned long, struct ata_port_operations *);
++extern int ata_scsi_detect(struct scsi_host_template *sht);
++extern int ata_scsi_ioctl(struct scsi_device *dev, int cmd, void __user *arg);
++extern int ata_scsi_queuecmd(struct scsi_cmnd *cmd, void (*done)(struct scsi_cmnd *));
++extern int ata_sas_scsi_ioctl(struct ata_port *ap, struct scsi_device *dev,
++			    int cmd, void __user *arg);
++extern void ata_sas_port_destroy(struct ata_port *);
++extern struct ata_port *ata_sas_port_alloc(struct ata_host *,
++					   struct ata_port_info *, struct Scsi_Host *);
++extern int ata_sas_port_init(struct ata_port *);
++extern int ata_sas_port_start(struct ata_port *ap);
++extern void ata_sas_port_stop(struct ata_port *ap);
++extern int ata_sas_slave_configure(struct scsi_device *, struct ata_port *);
++extern int ata_sas_queuecmd(struct scsi_cmnd *cmd, void (*done)(struct scsi_cmnd *),
++			    struct ata_port *ap);
++extern int sata_scr_valid(struct ata_link *link);
++extern int sata_scr_read(struct ata_link *link, int reg, u32 *val);
++extern int sata_scr_write(struct ata_link *link, int reg, u32 val);
++extern int sata_scr_write_flush(struct ata_link *link, int reg, u32 val);
++extern bool ata_link_online(struct ata_link *link);
++extern bool ata_link_offline(struct ata_link *link);
++#ifdef CONFIG_PM
++extern int ata_host_suspend(struct ata_host *host, pm_message_t mesg);
++extern void ata_host_resume(struct ata_host *host);
++#endif
++extern int ata_ratelimit(void);
++extern u32 ata_wait_register(void __iomem *reg, u32 mask, u32 val,
++			     unsigned long interval, unsigned long timeout);
++extern int atapi_cmd_type(u8 opcode);
++extern void ata_tf_to_fis(const struct ata_taskfile *tf,
++			  u8 pmp, int is_cmd, u8 *fis);
++extern void ata_tf_from_fis(const u8 *fis, struct ata_taskfile *tf);
++extern unsigned long ata_pack_xfermask(unsigned long pio_mask,
++			unsigned long mwdma_mask, unsigned long udma_mask);
++extern void ata_unpack_xfermask(unsigned long xfer_mask,
++			unsigned long *pio_mask, unsigned long *mwdma_mask,
++			unsigned long *udma_mask);
++extern u8 ata_xfer_mask2mode(unsigned long xfer_mask);
++extern unsigned long ata_xfer_mode2mask(u8 xfer_mode);
++extern int ata_xfer_mode2shift(unsigned long xfer_mode);
++extern const char *ata_mode_string(unsigned long xfer_mask);
++extern unsigned long ata_id_xfermask(const u16 *id);
++extern int ata_port_start(struct ata_port *ap);
++extern int ata_std_qc_defer(struct ata_queued_cmd *qc);
++extern void ata_noop_qc_prep(struct ata_queued_cmd *qc);
++extern void ata_sg_init(struct ata_queued_cmd *qc, struct scatterlist *sg,
++		 unsigned int n_elem);
++extern unsigned int ata_dev_classify(const struct ata_taskfile *tf);
++extern void ata_dev_disable(struct ata_device *adev);
++extern void ata_id_string(const u16 *id, unsigned char *s,
++			  unsigned int ofs, unsigned int len);
++extern void ata_id_c_string(const u16 *id, unsigned char *s,
++			    unsigned int ofs, unsigned int len);
++extern unsigned int ata_do_dev_read_id(struct ata_device *dev,
++					struct ata_taskfile *tf, u16 *id);
++extern void ata_qc_complete(struct ata_queued_cmd *qc);
++extern int ata_qc_complete_multiple(struct ata_port *ap, u32 qc_active);
++extern void ata_scsi_simulate(struct ata_device *dev, struct scsi_cmnd *cmd,
++			      void (*done)(struct scsi_cmnd *));
++extern int ata_std_bios_param(struct scsi_device *sdev,
++			      struct block_device *bdev,
++			      sector_t capacity, int geom[]);
++extern int ata_scsi_slave_config(struct scsi_device *sdev);
++extern void ata_scsi_slave_destroy(struct scsi_device *sdev);
++extern int ata_scsi_change_queue_depth(struct scsi_device *sdev,
++				       int queue_depth);
++extern struct ata_device *ata_dev_pair(struct ata_device *adev);
++extern int ata_do_set_mode(struct ata_link *link, struct ata_device **r_failed_dev);
++
++extern int ata_cable_40wire(struct ata_port *ap);
++extern int ata_cable_80wire(struct ata_port *ap);
++extern int ata_cable_sata(struct ata_port *ap);
++extern int ata_cable_ignore(struct ata_port *ap);
++extern int ata_cable_unknown(struct ata_port *ap);
++
++/* Timing helpers */
++extern unsigned int ata_pio_need_iordy(const struct ata_device *);
++extern const struct ata_timing *ata_timing_find_mode(u8 xfer_mode);
++extern int ata_timing_compute(struct ata_device *, unsigned short,
++			      struct ata_timing *, int, int);
++extern void ata_timing_merge(const struct ata_timing *,
++			     const struct ata_timing *, struct ata_timing *,
++			     unsigned int);
++extern u8 ata_timing_cycle2mode(unsigned int xfer_shift, int cycle);
++
++/* PCI */
++#ifdef CONFIG_PCI
++struct pci_dev;
++
++struct pci_bits {
++	unsigned int		reg;	/* PCI config register to read */
++	unsigned int		width;	/* 1 (8 bit), 2 (16 bit), 4 (32 bit) */
++	unsigned long		mask;
++	unsigned long		val;
++};
++
++extern int pci_test_config_bits(struct pci_dev *pdev, const struct pci_bits *bits);
++extern void ata_pci_remove_one(struct pci_dev *pdev);
++
++#ifdef CONFIG_PM
++extern void ata_pci_device_do_suspend(struct pci_dev *pdev, pm_message_t mesg);
++extern int __must_check ata_pci_device_do_resume(struct pci_dev *pdev);
++extern int ata_pci_device_suspend(struct pci_dev *pdev, pm_message_t mesg);
++extern int ata_pci_device_resume(struct pci_dev *pdev);
++#endif /* CONFIG_PM */
++#endif /* CONFIG_PCI */
++
++/*
++ * ACPI - drivers/ata/libata-acpi.c
++ */
++#ifdef CONFIG_ATA_ACPI
++static inline const struct ata_acpi_gtm *ata_acpi_init_gtm(struct ata_port *ap)
++{
++	if (ap->pflags & ATA_PFLAG_INIT_GTM_VALID)
++		return &ap->__acpi_init_gtm;
++	return NULL;
++}
++int ata_acpi_stm(struct ata_port *ap, const struct ata_acpi_gtm *stm);
++int ata_acpi_gtm(struct ata_port *ap, struct ata_acpi_gtm *stm);
++unsigned long ata_acpi_gtm_xfermask(struct ata_device *dev,
++				    const struct ata_acpi_gtm *gtm);
++int ata_acpi_cbl_80wire(struct ata_port *ap, const struct ata_acpi_gtm *gtm);
++#else
++static inline const struct ata_acpi_gtm *ata_acpi_init_gtm(struct ata_port *ap)
++{
++	return NULL;
++}
++
++static inline int ata_acpi_stm(const struct ata_port *ap,
++			       struct ata_acpi_gtm *stm)
++{
++	return -ENOSYS;
++}
++
++static inline int ata_acpi_gtm(const struct ata_port *ap,
++			       struct ata_acpi_gtm *stm)
++{
++	return -ENOSYS;
++}
++
++static inline unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
++					const struct ata_acpi_gtm *gtm)
++{
++	return 0;
++}
++
++static inline int ata_acpi_cbl_80wire(struct ata_port *ap,
++				      const struct ata_acpi_gtm *gtm)
++{
++	return 0;
++}
++#endif
++
++/*
++ * EH - drivers/ata/libata-eh.c
++ */
++extern void ata_port_schedule_eh(struct ata_port *ap);
++extern int ata_link_abort(struct ata_link *link);
++extern int ata_port_abort(struct ata_port *ap);
++extern int ata_port_freeze(struct ata_port *ap);
++extern int sata_async_notification(struct ata_port *ap);
++
++extern void ata_eh_freeze_port(struct ata_port *ap);
++extern void ata_eh_thaw_port(struct ata_port *ap);
++
++extern void ata_eh_qc_complete(struct ata_queued_cmd *qc);
++extern void ata_eh_qc_retry(struct ata_queued_cmd *qc);
++extern void ata_eh_analyze_ncq_error(struct ata_link *link);
++
++extern void ata_do_eh(struct ata_port *ap, ata_prereset_fn_t prereset,
++		      ata_reset_fn_t softreset, ata_reset_fn_t hardreset,
++		      ata_postreset_fn_t postreset);
++extern void ata_std_error_handler(struct ata_port *ap);
++
++/*
++ * Base operations to inherit from and initializers for sht
++ *
++ * Operations
++ *
++ * base  : Common to all libata drivers.
++ * sata  : SATA controllers w/ native interface.
++ * pmp   : SATA controllers w/ PMP support.
++ * sff   : SFF ATA controllers w/o BMDMA support.
++ * bmdma : SFF ATA controllers w/ BMDMA support.
++ *
++ * sht initializers
++ *
++ * BASE  : Common to all libata drivers.  The user must set
++ *	   sg_tablesize and dma_boundary.
++ * PIO   : SFF ATA controllers w/ only PIO support.
++ * BMDMA : SFF ATA controllers w/ BMDMA support.  sg_tablesize and
++ *	   dma_boundary are set to BMDMA limits.
++ * NCQ   : SATA controllers supporting NCQ.  The user must set
++ *	   sg_tablesize, dma_boundary and can_queue.
++ */
++extern const struct ata_port_operations ata_base_port_ops;
++extern const struct ata_port_operations sata_port_ops;
++extern struct device_attribute *ata_common_sdev_attrs[];
++
++#define ATA_BASE_SHT(drv_name)					\
++	.module			= THIS_MODULE,			\
++	.name			= drv_name,			\
++	.ioctl			= ata_scsi_ioctl,		\
++	.queuecommand		= ata_scsi_queuecmd,		\
++	.can_queue		= ATA_DEF_QUEUE,		\
++	.this_id		= ATA_SHT_THIS_ID,		\
++	.cmd_per_lun		= ATA_SHT_CMD_PER_LUN,		\
++	.emulated		= ATA_SHT_EMULATED,		\
++	.use_clustering		= ATA_SHT_USE_CLUSTERING,	\
++	.proc_name		= drv_name,			\
++	.slave_configure	= ata_scsi_slave_config,	\
++	.slave_destroy		= ata_scsi_slave_destroy,	\
++	.bios_param		= ata_std_bios_param,		\
++	.sdev_attrs		= ata_common_sdev_attrs
++
++#define ATA_NCQ_SHT(drv_name)					\
++	ATA_BASE_SHT(drv_name),					\
++	.change_queue_depth	= ata_scsi_change_queue_depth
++
++/*
++ * PMP helpers
++ */
++#ifdef CONFIG_SATA_PMP
++static inline bool sata_pmp_supported(struct ata_port *ap)
++{
++	return ap->flags & ATA_FLAG_PMP;
++}
++
++static inline bool sata_pmp_attached(struct ata_port *ap)
++{
++	return ap->nr_pmp_links != 0;
++}
++
++static inline int ata_is_host_link(const struct ata_link *link)
++{
++	return link == &link->ap->link || link == link->ap->slave_link;
++}
++#else /* CONFIG_SATA_PMP */
++static inline bool sata_pmp_supported(struct ata_port *ap)
++{
++	return false;
++}
++
++static inline bool sata_pmp_attached(struct ata_port *ap)
++{
++	return false;
++}
++
++static inline int ata_is_host_link(const struct ata_link *link)
++{
++	return 1;
++}
++#endif /* CONFIG_SATA_PMP */
++
++static inline int sata_srst_pmp(struct ata_link *link)
++{
++	if (sata_pmp_supported(link->ap) && ata_is_host_link(link))
++		return SATA_PMP_CTRL_PORT;
++	return link->pmp;
++}
++
++/*
++ * printk helpers
++ */
++#define ata_port_printk(ap, lv, fmt, args...) \
++	printk("%sata%u: "fmt, lv, (ap)->print_id , ##args)
++
++#define ata_link_printk(link, lv, fmt, args...) do { \
++	if (sata_pmp_attached((link)->ap) || (link)->ap->slave_link)	\
++		printk("%sata%u.%02u: "fmt, lv, (link)->ap->print_id,	\
++		       (link)->pmp , ##args); \
++	else \
++		printk("%sata%u: "fmt, lv, (link)->ap->print_id , ##args); \
++	} while(0)
++
++#define ata_dev_printk(dev, lv, fmt, args...) \
++	printk("%sata%u.%02u: "fmt, lv, (dev)->link->ap->print_id,	\
++	       (dev)->link->pmp + (dev)->devno , ##args)
++
++/*
++ * ata_eh_info helpers
++ */
++extern void __ata_ehi_push_desc(struct ata_eh_info *ehi, const char *fmt, ...)
++	__attribute__ ((format (printf, 2, 3)));
++extern void ata_ehi_push_desc(struct ata_eh_info *ehi, const char *fmt, ...)
++	__attribute__ ((format (printf, 2, 3)));
++extern void ata_ehi_clear_desc(struct ata_eh_info *ehi);
++
++static inline void ata_ehi_hotplugged(struct ata_eh_info *ehi)
++{
++	ehi->probe_mask |= (1 << ATA_MAX_DEVICES) - 1;
++	ehi->flags |= ATA_EHI_HOTPLUGGED;
++	ehi->action |= ATA_EH_RESET | ATA_EH_ENABLE_LINK;
++	ehi->err_mask |= AC_ERR_ATA_BUS;
++}
++
++/*
++ * port description helpers
++ */
++extern void ata_port_desc(struct ata_port *ap, const char *fmt, ...)
++	__attribute__ ((format (printf, 2, 3)));
++#ifdef CONFIG_PCI
++extern void ata_port_pbar_desc(struct ata_port *ap, int bar, ssize_t offset,
++			       const char *name);
++#endif
++
++static inline unsigned int ata_tag_valid(unsigned int tag)
++{
++	return (tag < ATA_MAX_QUEUE) ? 1 : 0;
++}
++
++static inline unsigned int ata_tag_internal(unsigned int tag)
++{
++	return tag == ATA_TAG_INTERNAL;
++}
++
++/*
++ * device helpers
++ */
++static inline unsigned int ata_class_enabled(unsigned int class)
++{
++	return class == ATA_DEV_ATA || class == ATA_DEV_ATAPI ||
++		class == ATA_DEV_PMP || class == ATA_DEV_SEMB;
++}
++
++static inline unsigned int ata_class_disabled(unsigned int class)
++{
++	return class == ATA_DEV_ATA_UNSUP || class == ATA_DEV_ATAPI_UNSUP ||
++		class == ATA_DEV_PMP_UNSUP || class == ATA_DEV_SEMB_UNSUP;
++}
++
++static inline unsigned int ata_class_absent(unsigned int class)
++{
++	return !ata_class_enabled(class) && !ata_class_disabled(class);
++}
++
++static inline unsigned int ata_dev_enabled(const struct ata_device *dev)
++{
++	return ata_class_enabled(dev->class);
++}
++
++static inline unsigned int ata_dev_disabled(const struct ata_device *dev)
++{
++	return ata_class_disabled(dev->class);
++}
++
++static inline unsigned int ata_dev_absent(const struct ata_device *dev)
++{
++	return ata_class_absent(dev->class);
++}
++
++/*
++ * link helpers
++ */
++static inline int ata_link_max_devices(const struct ata_link *link)
++{
++	if (ata_is_host_link(link) && link->ap->flags & ATA_FLAG_SLAVE_POSS)
++		return 2;
++	return 1;
++}
++
++static inline int ata_link_active(struct ata_link *link)
++{
++	return ata_tag_valid(link->active_tag) || link->sactive;
++}
++
++/*
++ * Iterators
++ *
++ * ATA_LITER_* constants are used to select link iteration mode and
++ * ATA_DITER_* device iteration mode.
++ *
++ * For a custom iteration directly using ata_{link|dev}_next(), if
++ * @link or @dev, respectively, is NULL, the first element is
++ * returned.  @dev and @link can be any valid device or link and the
++ * next element according to the iteration mode will be returned.
++ * After the last element, NULL is returned.
++ */
++enum ata_link_iter_mode {
++	ATA_LITER_EDGE,		/* if present, PMP links only; otherwise,
++				 * host link.  no slave link */
++	ATA_LITER_HOST_FIRST,	/* host link followed by PMP or slave links */
++	ATA_LITER_PMP_FIRST,	/* PMP links followed by host link,
++				 * slave link still comes after host link */
++};
++
++enum ata_dev_iter_mode {
++	ATA_DITER_ENABLED,
++	ATA_DITER_ENABLED_REVERSE,
++	ATA_DITER_ALL,
++	ATA_DITER_ALL_REVERSE,
++};
++
++extern struct ata_link *ata_link_next(struct ata_link *link,
++				      struct ata_port *ap,
++				      enum ata_link_iter_mode mode);
++
++extern struct ata_device *ata_dev_next(struct ata_device *dev,
++				       struct ata_link *link,
++				       enum ata_dev_iter_mode mode);
++
++/*
++ * Shortcut notation for iterations
++ *
++ * ata_for_each_link() iterates over each link of @ap according to
++ * @mode.  @link points to the current link in the loop.  @link is
++ * NULL after loop termination.  ata_for_each_dev() works the same way
++ * except that it iterates over each device of @link.
++ *
++ * Note that the mode prefixes ATA_{L|D}ITER_ shouldn't need to be
++ * specified when using the following shorthand notations.  Only the
++ * mode itself (EDGE, HOST_FIRST, ENABLED, etc...) should be
++ * specified.  This not only increases brevity but also makes it
++ * impossible to use ATA_LITER_* for device iteration or vice-versa.
++ */
++#define ata_for_each_link(link, ap, mode) \
++	for ((link) = ata_link_next(NULL, (ap), ATA_LITER_##mode); (link); \
++	     (link) = ata_link_next((link), (ap), ATA_LITER_##mode))
++
++#define ata_for_each_dev(dev, link, mode) \
++	for ((dev) = ata_dev_next(NULL, (link), ATA_DITER_##mode); (dev); \
++	     (dev) = ata_dev_next((dev), (link), ATA_DITER_##mode))
++
++/**
++ *	ata_ncq_enabled - Test whether NCQ is enabled
++ *	@dev: ATA device to test for
++ *
++ *	LOCKING:
++ *	spin_lock_irqsave(host lock)
++ *
++ *	RETURNS:
++ *	1 if NCQ is enabled for @dev, 0 otherwise.
++ */
++static inline int ata_ncq_enabled(struct ata_device *dev)
++{
++	return (dev->flags & (ATA_DFLAG_PIO | ATA_DFLAG_NCQ_OFF |
++			      ATA_DFLAG_NCQ)) == ATA_DFLAG_NCQ;
++}
++
++static inline void ata_qc_set_polling(struct ata_queued_cmd *qc)
++{
++	qc->tf.ctl |= ATA_NIEN;
++}
++
++static inline struct ata_queued_cmd *__ata_qc_from_tag(struct ata_port *ap,
++						       unsigned int tag)
++{
++	if (likely(ata_tag_valid(tag)))
++		return &ap->qcmd[tag];
++	return NULL;
++}
++
++static inline struct ata_queued_cmd *ata_qc_from_tag(struct ata_port *ap,
++						     unsigned int tag)
++{
++	struct ata_queued_cmd *qc = __ata_qc_from_tag(ap, tag);
++
++	if (unlikely(!qc) || !ap->ops->error_handler)
++		return qc;
++
++	if ((qc->flags & (ATA_QCFLAG_ACTIVE |
++			  ATA_QCFLAG_FAILED)) == ATA_QCFLAG_ACTIVE)
++		return qc;
++
++	return NULL;
++}
++
++static inline unsigned int ata_qc_raw_nbytes(struct ata_queued_cmd *qc)
++{
++	return qc->nbytes - min(qc->extrabytes, qc->nbytes);
++}
++
++static inline void ata_tf_init(struct ata_device *dev, struct ata_taskfile *tf)
++{
++	memset(tf, 0, sizeof(*tf));
++
++	tf->ctl = dev->link->ap->ctl;
++	if (dev->devno == 0)
++		tf->device = ATA_DEVICE_OBS;
++	else
++		tf->device = ATA_DEVICE_OBS | ATA_DEV1;
++}
++
++static inline void ata_qc_reinit(struct ata_queued_cmd *qc)
++{
++	qc->dma_dir = DMA_NONE;
++	qc->sg = NULL;
++	qc->flags = 0;
++	qc->cursg = NULL;
++	qc->cursg_ofs = 0;
++	qc->nbytes = qc->extrabytes = qc->curbytes = 0;
++	qc->n_elem = 0;
++	qc->err_mask = 0;
++	qc->sect_size = ATA_SECT_SIZE;
++
++	ata_tf_init(qc->dev, &qc->tf);
++
++	/* init result_tf such that it indicates normal completion */
++	qc->result_tf.command = ATA_DRDY;
++	qc->result_tf.feature = 0;
++}
++
++static inline int ata_try_flush_cache(const struct ata_device *dev)
++{
++	return ata_id_wcache_enabled(dev->id) ||
++	       ata_id_has_flush(dev->id) ||
++	       ata_id_has_flush_ext(dev->id);
++}
++
++static inline unsigned int ac_err_mask(u8 status)
++{
++	if (status & (ATA_BUSY | ATA_DRQ))
++		return AC_ERR_HSM;
++	if (status & (ATA_ERR | ATA_DF))
++		return AC_ERR_DEV;
++	return 0;
++}
++
++static inline unsigned int __ac_err_mask(u8 status)
++{
++	unsigned int mask = ac_err_mask(status);
++	if (mask == 0)
++		return AC_ERR_OTHER;
++	return mask;
++}
++
++static inline struct ata_port *ata_shost_to_port(struct Scsi_Host *host)
++{
++	return *(struct ata_port **)&host->hostdata[0];
++}
++
++static inline int ata_check_ready(u8 status)
++{
++	if (!(status & ATA_BUSY))
++		return 1;
++
++	/* 0xff indicates either no device or device not ready */
++	if (status == 0xff)
++		return -ENODEV;
++
++	return 0;
++}
++
++static inline unsigned long ata_deadline(unsigned long from_jiffies,
++					 unsigned long timeout_msecs)
++{
++	return from_jiffies + msecs_to_jiffies(timeout_msecs);
++}
++
++/* Don't open code these in drivers as there are traps. Firstly the range may
++   change in future hardware and specs, secondly 0xFF means 'no DMA' but is
++   > UDMA_0. Dyma ddreigiau */
++
++static inline int ata_using_mwdma(struct ata_device *adev)
++{
++	if (adev->dma_mode >= XFER_MW_DMA_0 && adev->dma_mode <= XFER_MW_DMA_4)
++		return 1;
++	return 0;
++}
++
++static inline int ata_using_udma(struct ata_device *adev)
++{
++	if (adev->dma_mode >= XFER_UDMA_0 && adev->dma_mode <= XFER_UDMA_7)
++		return 1;
++	return 0;
++}
++
++static inline int ata_dma_enabled(struct ata_device *adev)
++{
++	return (adev->dma_mode == 0xFF ? 0 : 1);
++}
++
++/**************************************************************************
++ * PMP - drivers/ata/libata-pmp.c
++ */
++#ifdef CONFIG_SATA_PMP
++
++extern const struct ata_port_operations sata_pmp_port_ops;
++
++extern int sata_pmp_qc_defer_cmd_switch(struct ata_queued_cmd *qc);
++extern void sata_pmp_error_handler(struct ata_port *ap);
++
++#else /* CONFIG_SATA_PMP */
++
++#define sata_pmp_port_ops		sata_port_ops
++#define sata_pmp_qc_defer_cmd_switch	ata_std_qc_defer
++#define sata_pmp_error_handler		ata_std_error_handler
++
++#endif /* CONFIG_SATA_PMP */
++
++
++/**************************************************************************
++ * SFF - drivers/ata/libata-sff.c
++ */
++#ifdef CONFIG_ATA_SFF
++
++extern const struct ata_port_operations ata_sff_port_ops;
++extern const struct ata_port_operations ata_bmdma_port_ops;
++extern const struct ata_port_operations ata_bmdma32_port_ops;
++
++/* PIO only, sg_tablesize and dma_boundary limits can be removed */
++#define ATA_PIO_SHT(drv_name)					\
++	ATA_BASE_SHT(drv_name),					\
++	.sg_tablesize		= LIBATA_MAX_PRD,		\
++	.dma_boundary		= ATA_DMA_BOUNDARY
++
++#define ATA_BMDMA_SHT(drv_name)					\
++	ATA_BASE_SHT(drv_name),					\
++	.sg_tablesize		= LIBATA_MAX_PRD,		\
++	.dma_boundary		= ATA_DMA_BOUNDARY
++
++extern void ata_sff_qc_prep(struct ata_queued_cmd *qc);
++extern void ata_sff_dumb_qc_prep(struct ata_queued_cmd *qc);
++extern void ata_sff_dev_select(struct ata_port *ap, unsigned int device);
++extern u8 ata_sff_check_status(struct ata_port *ap);
++extern void ata_sff_pause(struct ata_port *ap);
++extern void ata_sff_dma_pause(struct ata_port *ap);
++extern int ata_sff_busy_sleep(struct ata_port *ap,
++			      unsigned long timeout_pat, unsigned long timeout);
++extern int ata_sff_wait_ready(struct ata_link *link, unsigned long deadline);
++extern void ata_sff_tf_load(struct ata_port *ap, const struct ata_taskfile *tf);
++extern void ata_sff_tf_read(struct ata_port *ap, struct ata_taskfile *tf);
++extern void ata_sff_exec_command(struct ata_port *ap,
++				 const struct ata_taskfile *tf);
++extern unsigned int ata_sff_data_xfer(struct ata_device *dev,
++			unsigned char *buf, unsigned int buflen, int rw);
++extern unsigned int ata_sff_data_xfer32(struct ata_device *dev,
++			unsigned char *buf, unsigned int buflen, int rw);
++extern unsigned int ata_sff_data_xfer_noirq(struct ata_device *dev,
++			unsigned char *buf, unsigned int buflen, int rw);
++extern u8 ata_sff_irq_on(struct ata_port *ap);
++extern void ata_sff_irq_clear(struct ata_port *ap);
++extern int ata_sff_hsm_move(struct ata_port *ap, struct ata_queued_cmd *qc,
++			    u8 status, int in_wq);
++extern unsigned int ata_sff_qc_issue(struct ata_queued_cmd *qc);
++extern bool ata_sff_qc_fill_rtf(struct ata_queued_cmd *qc);
++extern unsigned int ata_sff_host_intr(struct ata_port *ap,
++				      struct ata_queued_cmd *qc);
++extern irqreturn_t ata_sff_interrupt(int irq, void *dev_instance);
++extern void ata_sff_freeze(struct ata_port *ap);
++extern void ata_sff_thaw(struct ata_port *ap);
++extern int ata_sff_prereset(struct ata_link *link, unsigned long deadline);
++extern unsigned int ata_sff_dev_classify(struct ata_device *dev, int present,
++					  u8 *r_err);
++extern int ata_sff_wait_after_reset(struct ata_link *link, unsigned int devmask,
++				    unsigned long deadline);
++extern int ata_sff_softreset(struct ata_link *link, unsigned int *classes,
++			     unsigned long deadline);
++extern int sata_sff_hardreset(struct ata_link *link, unsigned int *class,
++			       unsigned long deadline);
++extern void ata_sff_postreset(struct ata_link *link, unsigned int *classes);
++extern void ata_sff_error_handler(struct ata_port *ap);
++extern void ata_sff_post_internal_cmd(struct ata_queued_cmd *qc);
++extern int ata_sff_port_start(struct ata_port *ap);
++extern void ata_sff_std_ports(struct ata_ioports *ioaddr);
++extern unsigned long ata_bmdma_mode_filter(struct ata_device *dev,
++					   unsigned long xfer_mask);
++extern void ata_bmdma_setup(struct ata_queued_cmd *qc);
++extern void ata_bmdma_start(struct ata_queued_cmd *qc);
++extern void ata_bmdma_stop(struct ata_queued_cmd *qc);
++extern u8 ata_bmdma_status(struct ata_port *ap);
++extern void ata_bus_reset(struct ata_port *ap);
++
++#ifdef CONFIG_PCI
++extern int ata_pci_bmdma_clear_simplex(struct pci_dev *pdev);
++extern int ata_pci_bmdma_init(struct ata_host *host);
++extern int ata_pci_sff_init_host(struct ata_host *host);
++extern int ata_pci_sff_prepare_host(struct pci_dev *pdev,
++				    const struct ata_port_info * const * ppi,
++				    struct ata_host **r_host);
++extern int ata_pci_sff_activate_host(struct ata_host *host,
++				     irq_handler_t irq_handler,
++				     struct scsi_host_template *sht);
++extern int ata_pci_sff_init_one(struct pci_dev *pdev,
++				const struct ata_port_info * const * ppi,
++				struct scsi_host_template *sht, void *host_priv);
++#endif /* CONFIG_PCI */
++
++/**
++ *	ata_sff_busy_wait - Wait for a port status register
++ *	@ap: Port to wait for.
++ *	@bits: bits that must be clear
++ *	@max: number of 10uS waits to perform
++ *
++ *	Waits up to max*10 microseconds for the selected bits in the port's
++ *	status register to be cleared.
++ *	Returns final value of status register.
++ *
++ *	LOCKING:
++ *	Inherited from caller.
++ */
++static inline u8 ata_sff_busy_wait(struct ata_port *ap, unsigned int bits,
++				   unsigned int max)
++{
++	u8 status;
++
++	do {
++		udelay(10);
++		status = ap->ops->sff_check_status(ap);
++		max--;
++	} while (status != 0xff && (status & bits) && (max > 0));
++
++	return status;
++}
++
++/**
++ *	ata_wait_idle - Wait for a port to be idle.
++ *	@ap: Port to wait for.
++ *
++ *	Waits up to 10ms for port's BUSY and DRQ signals to clear.
++ *	Returns final value of status register.
++ *
++ *	LOCKING:
++ *	Inherited from caller.
++ */
++static inline u8 ata_wait_idle(struct ata_port *ap)
++{
++	u8 status = ata_sff_busy_wait(ap, ATA_BUSY | ATA_DRQ, 1000);
++
++#ifdef ATA_DEBUG
++	if (status != 0xff && (status & (ATA_BUSY | ATA_DRQ)))
++		ata_port_printk(ap, KERN_DEBUG, "abnormal Status 0x%X\n",
++				status);
++#endif
++
++	return status;
++}
++#endif /* CONFIG_ATA_SFF */
++
++#endif /* __LINUX_LIBATA_H__ */
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from stuart_hayes@dell.com are
 
-linux-next.patch
-input-ads7846c-sparse-lock-annotation.patch
-ntfs-remove-private-wrapper-of-endian-helpers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+libata-change-drive-ready-wait-after-hard-reset-to-5s.patch
 
