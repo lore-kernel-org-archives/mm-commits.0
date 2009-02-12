@@ -1,79 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] revert-ext3-wait-on-all-pending-commits-in-ext3_sync_fs.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 12:25:20 -0800
-Message-ID: <200902122025.n1CKPKa5014453__27357.4868836024$1234471061$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] gxfb-properly-alloc-cmap-and-plug-cmap-leak.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 12:25:09 -0800
+Message-ID: <200902122025.n1CKP9ne014210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55290 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753178AbZBLUfk (ORCPT
+	by vger.kernel.org with ESMTP id S1758572AbZBLUfj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 15:35:40 -0500
+	Thu, 12 Feb 2009 15:35:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, linux-ext4@vger.kernel.org, sandeen@redhat.com, mm-commits@vger.kernel.org
+To: dilinger@queued.net, dilinger@debian.org, jordan@cosmicpenguin.net, marco-laporta@tiscali.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: revert "ext3: wait on all pending commits in ext3_sync_fs"
+     gxfb: properly alloc cmap and plug cmap leak
 has been removed from the -mm tree.  Its filename was
-     revert-ext3-wait-on-all-pending-commits-in-ext3_sync_fs.patch
+     gxfb-properly-alloc-cmap-and-plug-cmap-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: revert "ext3: wait on all pending commits in ext3_sync_fs"
-From: Jan Kara <jack@suse.cz>
+Subject: gxfb: properly alloc cmap and plug cmap leak
+From: Andres Salomon <dilinger@queued.net>
 
-This reverts commit c87591b719737b4e91eb1a9fa8fd55a4ff1886d6.
+We weren't properly allocating the cmap for depths greater than 8bpp,
+which caused pain for things like DirectFB.  Also, we never freed the cmap
+memory upon module unload..
 
-Since journal_start_commit() is now fixed to return 1 when we started a
-transaction commit, there's some transaction waiting to be committed or
-there's a transaction already committing, we don't need to call
-ext3_force_commit() in ext3_sync_fs().  Furthermore ext3_force_commit()
-can unnecessarily create sync transaction which is expensive so it's
-worthwhile to remove it when we can.
-
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Marco La Porta <marco-laporta@tiscali.it>
+Cc: Jordan Crouse <jordan@cosmicpenguin.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/video/geode/gxfb_core.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN fs/ext3/super.c~revert-ext3-wait-on-all-pending-commits-in-ext3_sync_fs fs/ext3/super.c
---- a/fs/ext3/super.c~revert-ext3-wait-on-all-pending-commits-in-ext3_sync_fs
-+++ a/fs/ext3/super.c
-@@ -2428,12 +2428,13 @@ static void ext3_write_super (struct sup
+diff -puN drivers/video/geode/gxfb_core.c~gxfb-properly-alloc-cmap-and-plug-cmap-leak drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~gxfb-properly-alloc-cmap-and-plug-cmap-leak
++++ a/drivers/video/geode/gxfb_core.c
+@@ -171,13 +171,10 @@ static int gxfb_check_var(struct fb_var_
  
- static int ext3_sync_fs(struct super_block *sb, int wait)
+ static int gxfb_set_par(struct fb_info *info)
  {
--	sb->s_dirt = 0;
--	if (wait)
--		ext3_force_commit(sb);
--	else
--		journal_start_commit(EXT3_SB(sb)->s_journal, NULL);
-+	tid_t target;
+-	if (info->var.bits_per_pixel > 8) {
++	if (info->var.bits_per_pixel > 8)
+ 		info->fix.visual = FB_VISUAL_TRUECOLOR;
+-		fb_dealloc_cmap(&info->cmap);
+-	} else {
++	else
+ 		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+-		fb_alloc_cmap(&info->cmap, 1<<info->var.bits_per_pixel, 0);
+-	}
  
-+	sb->s_dirt = 0;
-+	if (journal_start_commit(EXT3_SB(sb)->s_journal, &target)) {
-+		if (wait)
-+			log_wait_commit(EXT3_SB(sb)->s_journal, target);
+ 	info->fix.line_length = gx_line_delta(info->var.xres, info->var.bits_per_pixel);
+ 
+@@ -331,6 +328,11 @@ static struct fb_info * __init gxfb_init
+ 
+ 	info->var.grayscale	= 0;
+ 
++	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
++		framebuffer_release(info);
++		return NULL;
 +	}
- 	return 0;
++
+ 	return info;
  }
  
+@@ -443,8 +445,10 @@ static int __init gxfb_probe(struct pci_
+ 		pci_release_region(pdev, 1);
+ 	}
+ 
+-	if (info)
++	if (info) {
++		fb_dealloc_cmap(&info->cmap);
+ 		framebuffer_release(info);
++	}
+ 	return ret;
+ }
+ 
+@@ -467,6 +471,7 @@ static void gxfb_remove(struct pci_dev *
+ 	iounmap(par->gp_regs);
+ 	pci_release_region(pdev, 1);
+ 
++	fb_dealloc_cmap(&info->cmap);
+ 	pci_set_drvdata(pdev, NULL);
+ 
+ 	framebuffer_release(info);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 origin.patch
-linux-next.patch
-ext2-add-blk_issue_flush-to-syncing-paths.patch
-jbd-fix-oops-in-jbd_journal_init_inode-on-corrupted-fs.patch
-fs-adfs-return-f_fsid-for-statfs2.patch
+jffs2-force-the-jffs2-gc-daemon-to-behave-a-bit-better.patch
+drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
+tdfxfb-fix-memory-leaks-in-removal-path.patch
+tridentfb-fix-memory-leaks-in-removal-path.patch
+vfb-fix-memory-leaks-in-removal-path.patch
+skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sunxvr500-fix-cmap-memory-leaks.patch
+tgafb-fix-cmap-memory-leak.patch
+68328fb-fix-cmap-memory-leaks.patch
+amba-clcd-fix-cmap-memory-leaks.patch
+amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 
