@@ -1,55 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] arm-at91-fix-nr_aic_irqs-undeclared.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 00:27:22 -0800
-Message-ID: <200902120827.n1C8RNPF013236@imap1.linux-foundation.org>
+Subject: [withdrawn] mpt-remove-unused-struct-mpt_proc_entry_t.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 10:44:31 -0800
+Message-ID: <200902121844.n1CIiVPZ002257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59733 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750968AbZBLI1Z (ORCPT
+	by vger.kernel.org with ESMTP id S1751238AbZBLSoi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 03:27:25 -0500
+	Thu, 12 Feb 2009 13:44:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stf_xl@wp.pl, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ARM/AT91: fix NR_AIC_IRQS undeclared
+     MPT: remove unused struct -- mpt_proc_entry_t
 has been removed from the -mm tree.  Its filename was
-     arm-at91-fix-nr_aic_irqs-undeclared.patch
+     mpt-remove-unused-struct-mpt_proc_entry_t.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ARM/AT91: fix NR_AIC_IRQS undeclared
-From: Stanislaw Gruszka <stf_xl@wp.pl>
+Subject: MPT: remove unused struct -- mpt_proc_entry_t
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-arch/arm/mach-at91/at91sam9263.c:312: error: 'NR_AIC_IRQS' undeclared here (not in a function)
-
-Signed-off-by: Stanislaw Gruszka <stf_xl@wp.pl>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsi.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/at91sam9263.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/message/fusion/mptbase.h |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN arch/arm/mach-at91/at91sam9263.c~arm-at91-fix-nr_aic_irqs-undeclared arch/arm/mach-at91/at91sam9263.c
---- a/arch/arm/mach-at91/at91sam9263.c~arm-at91-fix-nr_aic_irqs-undeclared
-+++ a/arch/arm/mach-at91/at91sam9263.c
-@@ -20,6 +20,7 @@
- #include <mach/at91_pmc.h>
- #include <mach/at91_rstc.h>
- #include <mach/at91_shdwc.h>
-+#include <mach/irqs.h>
+diff -puN drivers/message/fusion/mptbase.h~mpt-remove-unused-struct-mpt_proc_entry_t drivers/message/fusion/mptbase.h
+--- a/drivers/message/fusion/mptbase.h~mpt-remove-unused-struct-mpt_proc_entry_t
++++ a/drivers/message/fusion/mptbase.h
+@@ -402,17 +402,6 @@ typedef struct _VirtDevice {
+ #define MPT_TARGET_FLAGS_RAID_COMPONENT	0x40
+ #define MPT_TARGET_FLAGS_LED_ON		0x80
  
- #include "generic.h"
- #include "clock.h"
+-/*
+- *	/proc/mpt interface
+- */
+-typedef struct {
+-	const char	*name;
+-	mode_t		 mode;
+-	int		 pad;
+-	read_proc_t	*read_proc;
+-	write_proc_t	*write_proc;
+-} mpt_proc_entry_t;
+-
+ #define MPT_PROC_READ_RETURN(buf,start,offset,request,eof,len) \
+ do { \
+ 	len -= offset;			\
 _
 
-Patches currently in -mm which might be from stf_xl@wp.pl are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-arm-at91-fix-nr_aic_irqs-undeclared.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread.patch
+seq_file-properly-cope-with-pread-fix.patch
+linux-next.patch
+tags-fix-config-symbols-generation.patch
+sm501-fix-section-mismatches.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+proc-tty-add-struct-tty_operations-proc_fops.patch
+proc-tty-switch-cyclades-to-proc_fops.patch
+proc-tty-switch-ip2-to-proc_fops.patch
+proc-tty-switch-istallion-to-proc_fops.patch
+proc-tty-switch-synclink_cs-to-proc_fops.patch
+proc-tty-switch-stallion-to-proc_fops.patch
+proc-tty-switch-synclink-to-proc_fops.patch
+proc-tty-switch-synclink_gt-to-proc_fops.patch
+proc-tty-switch-synclinkmp-to-proc_fops.patch
+proc-tty-switch-sdio_uart-to-proc_fops.patch
+proc-tty-switch-serial_core-to-proc_fops.patch
+proc-tty-switch-usb-serial-to-proc_fops.patch
+proc-tty-switch-ircomm-to-proc_fops.patch
+proc-tty-switch-amiserial-to-proc_fops.patch
+proc-tty-switch-ia64-simserial-to-proc_fops.patch
+proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
+proc-tty-remove-struct-tty_operations-read_proc.patch
+eeepc-should-depend-on-input.patch
+xtensa-fix-compilation-somewhat.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
