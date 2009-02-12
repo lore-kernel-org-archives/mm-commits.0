@@ -1,81 +1,63 @@
-From: akpm@linux-foundation.org
-Subject: [withdrawn] atmel_spi-fix-handling-of-chipselect-after-spi-transfer.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 13:59:00 -0800
-Message-ID: <200902122159.n1CLx0qI017265@imap1.linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: +
+ work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch  added to
+ -mm tree
+Date: Thu, 12 Feb 2009 14:20:21 -0800
+Message-ID: <20090212142021.3978072c.akpm@linux-foundation.org>
+References: <200902031058.n13AwOoK016719@imap1.linux-foundation.org>
+	<20090203121147.GB19979@elte.hu>
+	<c62985530902030858y28906b2dh511c5868afabfd17@mail.gmail.com>
+	<20090203112529.26e6bf76.akpm@linux-foundation.org>
+	<m18wobcrw3.fsf@fess.ebiederm.org>
+	<20090212124835.2fc41620.akpm@linux-foundation.org>
+	<m1eiy3z4ty.fsf@fess.ebiederm.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758760AbZBLV7P (ORCPT
+	by vger.kernel.org with ESMTP id S1753455AbZBLWVU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 16:59:15 -0500
+	Thu, 12 Feb 2009 17:21:20 -0500
+In-Reply-To: <m1eiy3z4ty.fsf@fess.ebiederm.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael@heimpold.de, david-b@pacbell.net, hskinnemoen@atmel.com, mhei@heimpold.de, mm-commits@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: fweisbec@gmail.com, mingo@elte.hu, linux-kernel@vger.kernel.org, oleg@redhat.com, travis@sgi.com, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org, rusty@rustcorp.com.au
 
+On Thu, 12 Feb 2009 14:08:09 -0800
+ebiederm@xmission.com (Eric W. Biederman) wrote:
 
-The patch titled
-     atmel_spi: fix handling of chipselect after SPI transfer
-has been removed from the -mm tree.  Its filename was
-     atmel_spi-fix-handling-of-chipselect-after-spi-transfer.patch
+> Andrew Morton <akpm@linux-foundation.org> writes:
+> 
+> > The problem with set_cpus_allowed() is that some other
+> > suitably-privileged userspace process can come in from the side and
+> > modify your cpus_allowed at any time.
+> 
+> According to the comments the only reason we care is so that
+> we get the appropriate NUMA affinity by default.  I don't
+> think it would be fatal if userspace messed around and we
+> had a wrong value.
 
-This patch was dropped because it was withdrawn
+Right.  In this particular case, if you are fantastically unlucky and
+hit the race window, all that will happen is that one particular device
+will run a bit more slowly.
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+But at other codesites, the effects of a racing cpus_allowed rewrite
+can be fatal.
 
-------------------------------------------------------
-Subject: atmel_spi: fix handling of chipselect after SPI transfer
-From: Michael Heimpold <michael@heimpold.de>
+> Does work_on_cpu prevent that?
 
-According to include/linux/spi/spi.h chipselect should stay active after a
-SPI transfer or after a SPI message unless modified by
-spi_transfer.cs_change != 0.
+Yup.
 
-The current atmel driver passes this field to atmel_spi_msg_done as a
-parameter with oppositional meaning: "cs_change" -> "stay" (see
-atmel_spi_interrupt).
+I think.
 
-This patch fixes this behaviour by adapting the called function and its
-callers.  IMHO this solution is better than an one line fix of inverting
-the function's argument as the meaning of the field remains throughout the
-hole stack.
+Nope.
 
-Signed-off-by: Michael Heimpold <mhei@heimpold.de>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: David Brownell <david-b@pacbell.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+I don't think there's actually anything which would prevent a
+sufficiently stupid/malicious/unlucky administrator from moving the
+work_on_cpu thread onto the wrong CPU at the wrong time.  hrm.
 
- drivers/spi/atmel_spi.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-fix-handling-of-chipselect-after-spi-transfer drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-fix-handling-of-chipselect-after-spi-transfer
-+++ a/drivers/spi/atmel_spi.c
-@@ -385,9 +385,9 @@ static void atmel_spi_dma_unmap_xfer(str
- 
- static void
- atmel_spi_msg_done(struct spi_master *master, struct atmel_spi *as,
--		struct spi_message *msg, int status, int stay)
-+		struct spi_message *msg, int status, int cs_change)
- {
--	if (!stay || status < 0)
-+	if (cs_change || status < 0)
- 		cs_deactivate(as, msg->spi);
- 	else
- 		as->stay = msg->spi;
-@@ -482,7 +482,7 @@ atmel_spi_interrupt(int irq, void *dev_i
- 		/* Clear any overrun happening while cleaning up */
- 		spi_readl(as, SR);
- 
--		atmel_spi_msg_done(master, as, msg, -EIO, 0);
-+		atmel_spi_msg_done(master, as, msg, -EIO, 1);
- 	} else if (pending & (SPI_BIT(RXBUFF) | SPI_BIT(ENDRX))) {
- 		ret = IRQ_HANDLED;
- 
-_
-
-Patches currently in -mm which might be from michael@heimpold.de are
-
-atmel_spi-fix-handling-of-chipselect-after-spi-transfer.patch
-
+Another reason to use smp_call_function_single().
