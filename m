@@ -1,131 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-doc-fix-syscall-wrapper-processing.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 12:25:37 -0800
-Message-ID: <200902122025.n1CKPb0O014930@imap1.linux-foundation.org>
+Subject: [merged] kernel-doc-preferred-ending-marker-and-examples.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 12:25:33 -0800
+Message-ID: <200902122025.n1CKPX9l014823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51166 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757612AbZBLU0c (ORCPT
+	by vger.kernel.org with ESMTP id S1751231AbZBLU0c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 12 Feb 2009 15:26:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, robert.w.love@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: fix syscall wrapper processing
+     kernel-doc: preferred ending marker and examples
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-fix-syscall-wrapper-processing.patch
+     kernel-doc-preferred-ending-marker-and-examples.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: fix syscall wrapper processing
+Subject: kernel-doc: preferred ending marker and examples
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix kernel-doc processing of SYSCALL wrappers.
-
-The SYSCALL wrapper patches played havoc with kernel-doc for
-syscalls.  Syscalls that were scanned for DocBook processing
-reported warnings like this one, for sys_tgkill:
-
-Warning(kernel/signal.c:2285): No description found for parameter 'tgkill'
-Warning(kernel/signal.c:2285): No description found for parameter 'pid_t'
-Warning(kernel/signal.c:2285): No description found for parameter 'int'
-
-because the macro parameters all "look like" function parameters,
-although they are not:
-
-/**
- *  sys_tgkill - send signal to one specific thread
- *  @tgid: the thread group ID of the thread
- *  @pid: the PID of the thread
- *  @sig: signal to be sent
- *
- *  This syscall also checks the @tgid and returns -ESRCH even if the PID
- *  exists but it's not belonging to the target process anymore. This
- *  method solves the problem of threads exiting and PIDs getting reused.
- */
-SYSCALL_DEFINE3(tgkill, pid_t, tgid, pid_t, pid, int, sig)
-{
-...
-
-This patch special-cases the handling SYSCALL_DEFINE* function
-prototypes by expanding them to
-	long sys_foobar(type1 arg1, type1 arg2, ...)
+Fix kernel-doc-nano-HOWTO.txt to use */ as the ending marker in kernel-doc
+examples and state that */ is the preferred ending marker.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Reported-by: Robert Love <robert.w.love@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   40 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
+ Documentation/kernel-doc-nano-HOWTO.txt |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-fix-syscall-wrapper-processing scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-fix-syscall-wrapper-processing
-+++ a/scripts/kernel-doc
-@@ -1827,6 +1827,40 @@ sub reset_state {
-     $state = 0;
- }
+diff -puN Documentation/kernel-doc-nano-HOWTO.txt~kernel-doc-preferred-ending-marker-and-examples Documentation/kernel-doc-nano-HOWTO.txt
+--- a/Documentation/kernel-doc-nano-HOWTO.txt~kernel-doc-preferred-ending-marker-and-examples
++++ a/Documentation/kernel-doc-nano-HOWTO.txt
+@@ -43,7 +43,8 @@ Only comments so marked will be consider
+ and any comment so marked must be in kernel-doc format.  Do not use
+ "/**" to be begin a comment block unless the comment block contains
+ kernel-doc formatted comments.  The closing comment marker for
+-kernel-doc comments can be either "*/" or "**/".
++kernel-doc comments can be either "*/" or "**/", but "*/" is
++preferred in the Linux kernel tree.
  
-+sub syscall_munge() {
-+	my $void = 0;
-+
-+	$prototype =~ s@[\r\n\t]+@ @gos; # strip newlines/CR's/tabs
-+##	if ($prototype =~ m/SYSCALL_DEFINE0\s*\(\s*(a-zA-Z0-9_)*\s*\)/) {
-+	if ($prototype =~ m/SYSCALL_DEFINE0/) {
-+		$void = 1;
-+##		$prototype = "long sys_$1(void)";
-+	}
-+
-+	$prototype =~ s/SYSCALL_DEFINE.*\(/long sys_/; # fix return type & func name
-+	if ($prototype =~ m/long (sys_.*?),/) {
-+		$prototype =~ s/,/\(/;
-+	} elsif ($void) {
-+		$prototype =~ s/\)/\(void\)/;
-+	}
-+
-+	# now delete all of the odd-number commas in $prototype
-+	# so that arg types & arg names don't have a comma between them
-+	my $count = 0;
-+	my $len = length($prototype);
-+	if ($void) {
-+		$len = 0;	# skip the for-loop
-+	}
-+	for (my $ix = 0; $ix < $len; $ix++) {
-+		if (substr($prototype, $ix, 1) eq ',') {
-+			$count++;
-+			if ($count % 2 == 1) {
-+				substr($prototype, $ix, 1) = ' ';
-+			}
-+		}
-+	}
-+}
-+
- sub process_state3_function($$) {
-     my $x = shift;
-     my $file = shift;
-@@ -1839,11 +1873,15 @@ sub process_state3_function($$) {
-     elsif ($x =~ /([^\{]*)/) {
- 	$prototype .= $1;
-     }
-+
-     if (($x =~ /\{/) || ($x =~ /\#\s*define/) || ($x =~ /;/)) {
- 	$prototype =~ s@/\*.*?\*/@@gos;	# strip comments.
- 	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/cr's.
- 	$prototype =~ s@^\s+@@gos; # strip leading spaces
--	dump_function($prototype,$file);
-+	if ($prototype =~ /SYSCALL_DEFINE/) {
-+		syscall_munge();
-+	}
-+	dump_function($prototype, $file);
- 	reset_state();
-     }
- }
+ Kernel-doc comments should be placed just before the function
+ or data structure being described.
+@@ -63,7 +64,7 @@ Example kernel-doc function comment:
+  * comment lines.
+  *
+  * The longer description can have multiple paragraphs.
+- **/
++ */
+ 
+ The first line, with the short description, must be on a single line.
+ 
+@@ -85,7 +86,7 @@ Example kernel-doc data structure commen
+  *		perhaps with more lines and words.
+  *
+  * Longer description of this structure.
+- **/
++ */
+ 
+ The kernel-doc function comments describe each parameter to the
+ function, in order, with the @name lines.
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
