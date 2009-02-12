@@ -1,114 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gx1fb-properly-alloc-cmap-and-plug-cmap-leak.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 12:25:12 -0800
-Message-ID: <200902122025.n1CKPCsS014231@imap1.linux-foundation.org>
+Subject: [merged] jbd-fix-return-value-of-journal_start_commit.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 12:25:17 -0800
+Message-ID: <200902122025.n1CKPHsg014441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37166 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756963AbZBLUZ4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757311AbZBLU0N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 15:25:56 -0500
+	Thu, 12 Feb 2009 15:26:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, dilinger@debian.org, jordan@cosmicpenguin.net, marco-laporta@tiscali.it, mm-commits@vger.kernel.org
+To: jack@suse.cz, linux-ext4@vger.kernel.org, sandeen@redhat.com, snitzer@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gx1fb: properly alloc cmap and plug cmap leak
+     jbd: fix return value of journal_start_commit()
 has been removed from the -mm tree.  Its filename was
-     gx1fb-properly-alloc-cmap-and-plug-cmap-leak.patch
+     jbd-fix-return-value-of-journal_start_commit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gx1fb: properly alloc cmap and plug cmap leak
-From: Andres Salomon <dilinger@queued.net>
+Subject: jbd: fix return value of journal_start_commit()
+From: Jan Kara <jack@suse.cz>
 
-We weren't properly allocating the cmap for depths greater than 8bpp,
-which caused pain for things like DirectFB.  Also, we never freed the cmap
-memory upon module unload..
+journal_start_commit() returns 1 if either a transaction is committing or
+the function has queued a transaction commit.  But it returns 0 if we
+raced with somebody queueing the transaction commit as well.  This
+resulted in ext3_sync_fs() not functioning correctly (description from
+Arthur Jones): In the case of a data=ordered umount with pending long
+symlinks which are delayed due to a long list of other I/O on the backing
+block device, this causes the buffer associated with the long symlinks to
+not be moved to the inode dirty list in the second phase of fsync_super. 
+Then, before they can be dirtied again, kjournald exits, seeing the UMOUNT
+flag and the dirty pages are never written to the backing block device,
+causing long symlink corruption and exposing new or previously freed block
+data to userspace.
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Marco La Porta <marco-laporta@tiscali.it>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+This can be reproduced with a script created by Eric Sandeen
+<sandeen@redhat.com>:
+
+        #!/bin/bash
+
+        umount /mnt/test2
+        mount /dev/sdb4 /mnt/test2
+        rm -f /mnt/test2/*
+        dd if=/dev/zero of=/mnt/test2/bigfile bs=1M count=512
+        touch /mnt/test2/thisisveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongfilename
+        ln -s /mnt/test2/thisisveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongfilename
+        /mnt/test2/link
+        umount /mnt/test2
+        mount /dev/sdb4 /mnt/test2
+        ls /mnt/test2/
+
+This patch fixes journal_start_commit() to always return 1 when there's
+a transaction committing or queued for commit.
+
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Mike Snitzer <snitzer@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/gx1fb_core.c |   17 +++++++++++------
+ fs/jbd/journal.c |   17 +++++++++++------
  1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/geode/gx1fb_core.c~gx1fb-properly-alloc-cmap-and-plug-cmap-leak drivers/video/geode/gx1fb_core.c
---- a/drivers/video/geode/gx1fb_core.c~gx1fb-properly-alloc-cmap-and-plug-cmap-leak
-+++ a/drivers/video/geode/gx1fb_core.c
-@@ -136,13 +136,10 @@ static int gx1fb_set_par(struct fb_info 
+diff -puN fs/jbd/journal.c~jbd-fix-return-value-of-journal_start_commit fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-fix-return-value-of-journal_start_commit
++++ a/fs/jbd/journal.c
+@@ -427,7 +427,7 @@ int __log_space_left(journal_t *journal)
+ }
+ 
+ /*
+- * Called under j_state_lock.  Returns true if a transaction was started.
++ * Called under j_state_lock.  Returns true if a transaction commit was started.
+  */
+ int __log_start_commit(journal_t *journal, tid_t target)
  {
- 	struct geodefb_par *par = info->par;
+@@ -495,7 +495,8 @@ int journal_force_commit_nested(journal_
  
--	if (info->var.bits_per_pixel == 16) {
-+	if (info->var.bits_per_pixel == 16)
- 		info->fix.visual = FB_VISUAL_TRUECOLOR;
--		fb_dealloc_cmap(&info->cmap);
--	} else {
-+	else
- 		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
--		fb_alloc_cmap(&info->cmap, 1<<info->var.bits_per_pixel, 0);
--	}
+ /*
+  * Start a commit of the current running transaction (if any).  Returns true
+- * if a transaction was started, and fills its tid in at *ptid
++ * if a transaction is going to be committed (or is currently already
++ * committing), and fills its tid in at *ptid
+  */
+ int journal_start_commit(journal_t *journal, tid_t *ptid)
+ {
+@@ -505,15 +506,19 @@ int journal_start_commit(journal_t *jour
+ 	if (journal->j_running_transaction) {
+ 		tid_t tid = journal->j_running_transaction->t_tid;
  
- 	info->fix.line_length = gx1_line_delta(info->var.xres, info->var.bits_per_pixel);
- 
-@@ -315,6 +312,10 @@ static struct fb_info * __init gx1fb_ini
- 	if (!par->panel_x)
- 		par->enable_crt = 1; /* fall back to CRT if no panel is specified */
- 
-+	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
-+		framebuffer_release(info);
-+		return NULL;
-+	}
- 	return info;
- }
- 
-@@ -374,8 +375,11 @@ static int __init gx1fb_probe(struct pci
- 		release_mem_region(gx1_gx_base() + 0x8300, 0x100);
+-		ret = __log_start_commit(journal, tid);
+-		if (ret && ptid)
++		__log_start_commit(journal, tid);
++		/* There's a running transaction and we've just made sure
++		 * it's commit has been scheduled. */
++		if (ptid)
+ 			*ptid = tid;
+-	} else if (journal->j_committing_transaction && ptid) {
++		ret = 1;
++	} else if (journal->j_committing_transaction) {
+ 		/*
+ 		 * If ext3_write_super() recently started a commit, then we
+ 		 * have to wait for completion of that transaction
+ 		 */
+-		*ptid = journal->j_committing_transaction->t_tid;
++		if (ptid)
++			*ptid = journal->j_committing_transaction->t_tid;
+ 		ret = 1;
  	}
- 
--	if (info)
-+	if (info) {
-+		fb_dealloc_cmap(&info->cmap);
- 		framebuffer_release(info);
-+	}
-+
- 	return ret;
- }
- 
-@@ -395,6 +399,7 @@ static void gx1fb_remove(struct pci_dev 
- 	iounmap(par->dc_regs);
- 	release_mem_region(gx1_gx_base() + 0x8300, 0x100);
- 
-+	fb_dealloc_cmap(&info->cmap);
- 	pci_set_drvdata(pdev, NULL);
- 
- 	framebuffer_release(info);
+ 	spin_unlock(&journal->j_state_lock);
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-jffs2-force-the-jffs2-gc-daemon-to-behave-a-bit-better.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sunxvr500-fix-cmap-memory-leaks.patch
-tgafb-fix-cmap-memory-leak.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+linux-next.patch
+ext2-add-blk_issue_flush-to-syncing-paths.patch
+jbd-fix-oops-in-jbd_journal_init_inode-on-corrupted-fs.patch
+fs-adfs-return-f_fsid-for-statfs2.patch
 
