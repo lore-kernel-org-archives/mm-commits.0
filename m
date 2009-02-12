@@ -1,114 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gxfb-properly-alloc-cmap-and-plug-cmap-leak.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 12:25:09 -0800
-Message-ID: <200902122025.n1CKP9ne014210@imap1.linux-foundation.org>
+Subject: [merged] tpm-correct-email-address-for-tpm_infineon-driver.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 12:25:25 -0800
+Message-ID: <200902122025.n1CKPP9G014647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32863 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758572AbZBLUfj (ORCPT
+	by vger.kernel.org with ESMTP id S1758754AbZBLUfe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 15:35:39 -0500
+	Thu, 12 Feb 2009 15:35:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, dilinger@debian.org, jordan@cosmicpenguin.net, marco-laporta@tiscali.it, mm-commits@vger.kernel.org
+To: m.selhorst@sirrix.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gxfb: properly alloc cmap and plug cmap leak
+     tpm: correct email address for tpm_infineon-driver
 has been removed from the -mm tree.  Its filename was
-     gxfb-properly-alloc-cmap-and-plug-cmap-leak.patch
+     tpm-correct-email-address-for-tpm_infineon-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gxfb: properly alloc cmap and plug cmap leak
-From: Andres Salomon <dilinger@queued.net>
+Subject: tpm: correct email address for tpm_infineon-driver
+From: Marcel Selhorst <m.selhorst@sirrix.com>
 
-We weren't properly allocating the cmap for depths greater than 8bpp,
-which caused pain for things like DirectFB.  Also, we never freed the cmap
-memory upon module unload..
+Update my email address.
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Marco La Porta <marco-laporta@tiscali.it>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Signed-off-by: Marcel Selhorst <m.selhorst@sirrix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/gxfb_core.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ MAINTAINERS                     |    4 ++--
+ drivers/char/tpm/tpm_infineon.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/geode/gxfb_core.c~gxfb-properly-alloc-cmap-and-plug-cmap-leak drivers/video/geode/gxfb_core.c
---- a/drivers/video/geode/gxfb_core.c~gxfb-properly-alloc-cmap-and-plug-cmap-leak
-+++ a/drivers/video/geode/gxfb_core.c
-@@ -171,13 +171,10 @@ static int gxfb_check_var(struct fb_var_
+diff -puN MAINTAINERS~tpm-correct-email-address-for-tpm_infineon-driver MAINTAINERS
+--- a/MAINTAINERS~tpm-correct-email-address-for-tpm_infineon-driver
++++ a/MAINTAINERS
+@@ -4291,8 +4291,8 @@ P:	Rajiv Andrade
+ M:	srajiv@linux.vnet.ibm.com
+ W:	http://tpmdd.sourceforge.net
+ P:	Marcel Selhorst
+-M:	tpm@selhorst.net
+-W:	http://www.prosec.rub.de/tpm/
++M:	m.selhorst@sirrix.com
++W:	http://www.sirrix.com
+ L:	tpmdd-devel@lists.sourceforge.net (moderated for non-subscribers)
+ S:	Maintained
  
- static int gxfb_set_par(struct fb_info *info)
- {
--	if (info->var.bits_per_pixel > 8) {
-+	if (info->var.bits_per_pixel > 8)
- 		info->fix.visual = FB_VISUAL_TRUECOLOR;
--		fb_dealloc_cmap(&info->cmap);
--	} else {
-+	else
- 		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
--		fb_alloc_cmap(&info->cmap, 1<<info->var.bits_per_pixel, 0);
--	}
+diff -puN drivers/char/tpm/tpm_infineon.c~tpm-correct-email-address-for-tpm_infineon-driver drivers/char/tpm/tpm_infineon.c
+--- a/drivers/char/tpm/tpm_infineon.c~tpm-correct-email-address-for-tpm_infineon-driver
++++ a/drivers/char/tpm/tpm_infineon.c
+@@ -4,7 +4,7 @@
+  * SLD 9630 TT 1.1 and SLB 9635 TT 1.2 Trusted Platform Module
+  * Specifications at www.trustedcomputinggroup.org
+  *
+- * Copyright (C) 2005, Marcel Selhorst <selhorst@crypto.rub.de>
++ * Copyright (C) 2005, Marcel Selhorst <m.selhorst@sirrix.com>
+  * Sirrix AG - security technologies, http://www.sirrix.com and
+  * Applied Data Security Group, Ruhr-University Bochum, Germany
+  * Project-Homepage: http://www.prosec.rub.de/tpm
+@@ -636,7 +636,7 @@ static void __exit cleanup_inf(void)
+ module_init(init_inf);
+ module_exit(cleanup_inf);
  
- 	info->fix.line_length = gx_line_delta(info->var.xres, info->var.bits_per_pixel);
- 
-@@ -331,6 +328,11 @@ static struct fb_info * __init gxfb_init
- 
- 	info->var.grayscale	= 0;
- 
-+	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
-+		framebuffer_release(info);
-+		return NULL;
-+	}
-+
- 	return info;
- }
- 
-@@ -443,8 +445,10 @@ static int __init gxfb_probe(struct pci_
- 		pci_release_region(pdev, 1);
- 	}
- 
--	if (info)
-+	if (info) {
-+		fb_dealloc_cmap(&info->cmap);
- 		framebuffer_release(info);
-+	}
- 	return ret;
- }
- 
-@@ -467,6 +471,7 @@ static void gxfb_remove(struct pci_dev *
- 	iounmap(par->gp_regs);
- 	pci_release_region(pdev, 1);
- 
-+	fb_dealloc_cmap(&info->cmap);
- 	pci_set_drvdata(pdev, NULL);
- 
- 	framebuffer_release(info);
+-MODULE_AUTHOR("Marcel Selhorst <selhorst@crypto.rub.de>");
++MODULE_AUTHOR("Marcel Selhorst <m.selhorst@sirrix.com>");
+ MODULE_DESCRIPTION("Driver for Infineon TPM SLD 9630 TT 1.1 / SLB 9635 TT 1.2");
+ MODULE_VERSION("1.9");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from m.selhorst@sirrix.com are
 
 origin.patch
-jffs2-force-the-jffs2-gc-daemon-to-behave-a-bit-better.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sunxvr500-fix-cmap-memory-leaks.patch
-tgafb-fix-cmap-memory-leak.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 
