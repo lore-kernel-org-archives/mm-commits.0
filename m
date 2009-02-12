@@ -1,127 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jbd-fix-return-value-of-journal_start_commit.patch removed from -mm tree
-Date: Thu, 12 Feb 2009 12:25:17 -0800
-Message-ID: <200902122025.n1CKPHsg014441@imap1.linux-foundation.org>
+Subject: [merged] mm-fix-mlocked-page-counter-mismatch.patch removed from -mm tree
+Date: Thu, 12 Feb 2009 12:25:22 -0800
+Message-ID: <200902122025.n1CKPMUV014506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48191 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757311AbZBLU0N (ORCPT
+	by vger.kernel.org with ESMTP id S1757290AbZBLU0F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 15:26:13 -0500
+	Thu, 12 Feb 2009 15:26:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, linux-ext4@vger.kernel.org, sandeen@redhat.com, snitzer@gmail.com, mm-commits@vger.kernel.org
+To: minchan.kim@gmail.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: fix return value of journal_start_commit()
+     mm: fix mlocked page counter mismatch
 has been removed from the -mm tree.  Its filename was
-     jbd-fix-return-value-of-journal_start_commit.patch
+     mm-fix-mlocked-page-counter-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: fix return value of journal_start_commit()
-From: Jan Kara <jack@suse.cz>
+Subject: mm: fix mlocked page counter mismatch
+From: MinChan Kim <minchan.kim@gmail.com>
 
-journal_start_commit() returns 1 if either a transaction is committing or
-the function has queued a transaction commit.  But it returns 0 if we
-raced with somebody queueing the transaction commit as well.  This
-resulted in ext3_sync_fs() not functioning correctly (description from
-Arthur Jones): In the case of a data=ordered umount with pending long
-symlinks which are delayed due to a long list of other I/O on the backing
-block device, this causes the buffer associated with the long symlinks to
-not be moved to the inode dirty list in the second phase of fsync_super. 
-Then, before they can be dirtied again, kjournald exits, seeing the UMOUNT
-flag and the dirty pages are never written to the backing block device,
-causing long symlink corruption and exposing new or previously freed block
-data to userspace.
+When I tested following program, I found that the mlocked counter
+is strange.  It cannot free some mlocked pages.
 
-This can be reproduced with a script created by Eric Sandeen
-<sandeen@redhat.com>:
+It is because try_to_unmap_file() doesn't check real
+page mappings in vmas.
 
-        #!/bin/bash
+That is because the goal of an address_space for a file is to find all
+processes into which the file's specific interval is mapped.  It is
+related to the file's interval, not to pages.
 
-        umount /mnt/test2
-        mount /dev/sdb4 /mnt/test2
-        rm -f /mnt/test2/*
-        dd if=/dev/zero of=/mnt/test2/bigfile bs=1M count=512
-        touch /mnt/test2/thisisveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongfilename
-        ln -s /mnt/test2/thisisveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongfilename
-        /mnt/test2/link
-        umount /mnt/test2
-        mount /dev/sdb4 /mnt/test2
-        ls /mnt/test2/
+Even if the page isn't really mapped by the vma, it returns SWAP_MLOCK
+since the vma has VM_LOCKED, then calls try_to_mlock_page.  After this the
+mlocked counter is increased again.
 
-This patch fixes journal_start_commit() to always return 1 when there's
-a transaction committing or queued for commit.
+COWed anon page in a file-backed vma could be a such case.  This patch
+resolves it.
 
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Mike Snitzer <snitzer@gmail.com>
-Cc: <linux-ext4@vger.kernel.org>
-Signed-off-by: Jan Kara <jack@suse.cz>
+-- my test program --
+
+int main()
+{
+       mlockall(MCL_CURRENT);
+       return 0;
+}
+
+-- before --
+
+root@barrios-target-linux:~# cat /proc/meminfo | egrep 'Mlo|Unev'
+Unevictable:           0 kB
+Mlocked:               0 kB
+
+-- after --
+
+root@barrios-target-linux:~# cat /proc/meminfo | egrep 'Mlo|Unev'
+Unevictable:           8 kB
+Mlocked:               8 kB
+
+Signed-off-by: MinChan Kim <minchan.kim@gmail.com>
+Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Tested-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/journal.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ mm/rmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/jbd/journal.c~jbd-fix-return-value-of-journal_start_commit fs/jbd/journal.c
---- a/fs/jbd/journal.c~jbd-fix-return-value-of-journal_start_commit
-+++ a/fs/jbd/journal.c
-@@ -427,7 +427,7 @@ int __log_space_left(journal_t *journal)
- }
- 
- /*
-- * Called under j_state_lock.  Returns true if a transaction was started.
-+ * Called under j_state_lock.  Returns true if a transaction commit was started.
-  */
- int __log_start_commit(journal_t *journal, tid_t target)
- {
-@@ -495,7 +495,8 @@ int journal_force_commit_nested(journal_
- 
- /*
-  * Start a commit of the current running transaction (if any).  Returns true
-- * if a transaction was started, and fills its tid in at *ptid
-+ * if a transaction is going to be committed (or is currently already
-+ * committing), and fills its tid in at *ptid
-  */
- int journal_start_commit(journal_t *journal, tid_t *ptid)
- {
-@@ -505,15 +506,19 @@ int journal_start_commit(journal_t *jour
- 	if (journal->j_running_transaction) {
- 		tid_t tid = journal->j_running_transaction->t_tid;
- 
--		ret = __log_start_commit(journal, tid);
--		if (ret && ptid)
-+		__log_start_commit(journal, tid);
-+		/* There's a running transaction and we've just made sure
-+		 * it's commit has been scheduled. */
-+		if (ptid)
- 			*ptid = tid;
--	} else if (journal->j_committing_transaction && ptid) {
-+		ret = 1;
-+	} else if (journal->j_committing_transaction) {
- 		/*
- 		 * If ext3_write_super() recently started a commit, then we
- 		 * have to wait for completion of that transaction
- 		 */
--		*ptid = journal->j_committing_transaction->t_tid;
-+		if (ptid)
-+			*ptid = journal->j_committing_transaction->t_tid;
- 		ret = 1;
- 	}
- 	spin_unlock(&journal->j_state_lock);
+diff -puN mm/rmap.c~mm-fix-mlocked-page-counter-mismatch mm/rmap.c
+--- a/mm/rmap.c~mm-fix-mlocked-page-counter-mismatch
++++ a/mm/rmap.c
+@@ -1072,7 +1072,8 @@ static int try_to_unmap_file(struct page
+ 	spin_lock(&mapping->i_mmap_lock);
+ 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
+ 		if (MLOCK_PAGES && unlikely(unlock)) {
+-			if (!(vma->vm_flags & VM_LOCKED))
++			if (!((vma->vm_flags & VM_LOCKED) &&
++						page_mapped_in_vma(page, vma)))
+ 				continue;	/* must visit all vmas */
+ 			ret = SWAP_MLOCK;
+ 		} else {
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
 origin.patch
-linux-next.patch
-ext2-add-blk_issue_flush-to-syncing-paths.patch
-jbd-fix-oops-in-jbd_journal_init_inode-on-corrupted-fs.patch
-fs-adfs-return-f_fsid-for-statfs2.patch
+vmap-remove-needless-lock-and-list-in-vmap.patch
+vmscan-rename-scmay_swap-to-may_unmap.patch
 
