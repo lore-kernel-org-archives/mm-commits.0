@@ -1,155 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] net-dont-use-in_atomic-in-gfp_any.patch removed from -mm tree
-Date: Fri, 13 Feb 2009 11:55:49 -0800
-Message-ID: <200902131955.n1DJtnI5028038@imap1.linux-foundation.org>
+Subject: [merged] rtl8187se-depends-on-wireless_ext.patch removed from -mm tree
+Date: Fri, 13 Feb 2009 11:56:01 -0800
+Message-ID: <200902131956.n1DJu1ag028282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751271AbZBMTz6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753645AbZBMT4M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Feb 2009 14:55:58 -0500
+	Fri, 13 Feb 2009 14:56:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: don't use in_atomic() in gfp_any()
+     rtl8187se: depends on WIRELESS_EXT
 has been removed from the -mm tree.  Its filename was
-     net-dont-use-in_atomic-in-gfp_any.patch
+     rtl8187se-depends-on-wireless_ext.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net: don't use in_atomic() in gfp_any()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtl8187se: depends on WIRELESS_EXT
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The problem is that in_atomic() will return false inside spinlocks if
-CONFIG_PREEMPT=n.  This will lead to deadlockable GFP_KERNEL allocations
-from spinlocked regions.
+rtl8187se uses wireless extensions so it needs to depend on
+WIRELESS_EXT (or select it).
 
-Secondly, if CONFIG_PREEMPT=y, this bug solves itself because networking
-will instead use GFP_ATOMIC from this callsite.  Hence we won't get the
-might_sleep() debugging warnings which would have informed us of the buggy
-callsites.
+drivers/staging/rtl8187se/r8180_core.c:5973: error: 'struct net_device' has no member named 'wireless_handlers'
+drivers/staging/rtl8187se/r8180_core.c:5982: error: 'struct net_device' has no member named 'wireless_handlers'
 
-Solve both these problems by switching to in_interrupt().  Now, if someone
-runs a gfp_any() allocation from inside spinlock we will get the warning
-if CONFIG_PREEMPT=y.
-
-I reviewed all callsites and most of them were too complex for my little
-brain and none of them documented their interface requirements.  I have no
-idea what this patch will do.
-
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Greg KH <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/sock.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/rtl8187se/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/net/sock.h~net-dont-use-in_atomic-in-gfp_any include/net/sock.h
---- a/include/net/sock.h~net-dont-use-in_atomic-in-gfp_any
-+++ a/include/net/sock.h
-@@ -1313,7 +1313,7 @@ static inline int sock_writeable(const s
- 
- static inline gfp_t gfp_any(void)
- {
--	return in_atomic() ? GFP_ATOMIC : GFP_KERNEL;
-+	return in_softirq() ? GFP_ATOMIC : GFP_KERNEL;
- }
- 
- static inline long sock_rcvtimeo(const struct sock *sk, int noblock)
+diff -puN drivers/staging/rtl8187se/Kconfig~rtl8187se-depends-on-wireless_ext drivers/staging/rtl8187se/Kconfig
+--- a/drivers/staging/rtl8187se/Kconfig~rtl8187se-depends-on-wireless_ext
++++ a/drivers/staging/rtl8187se/Kconfig
+@@ -1,5 +1,6 @@
+ config RTL8187SE
+ 	tristate "RealTek RTL8187SE Wireless LAN NIC driver"
+ 	depends on PCI
++	depends on WIRELESS_EXT
+ 	default N
+ 	---help---
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-kernel-auditscc-fix-warning.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-mtd-rbtx4939-add-mtd-support.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_add_devices.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+uv-fix-header-struct-usage.patch
+x86-dell-laptop-depends-on-power_supply.patch
+x86-oqo-depends-on-input_polldev.patch
+kgdb-fix-kernel-doc-error.patch
+auditsc-fix-kernel-doc-notation.patch
+input-ad7879-touchscreen-driver.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pci-fix-romc-kernel-doc-warning.patch
+esp-fix-section-mismatch-warning.patch
 cciss-pci-power-management-reset-for-kexec.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-timerfd-add-flags-check-fix.patch
-lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
+vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
+vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
+max3100-spi-uart-driver.patch
+filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
+atyfb-fix-header-file-trailing-whitespace.patch
 cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
+documentation-ignore-byproducts-from-latex.patch
+docbook-split-kernel-api-add-device-drivers-book.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
 kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+linuxpps-core-support.patch
+linuxpps-core-support-v2.patch
 
