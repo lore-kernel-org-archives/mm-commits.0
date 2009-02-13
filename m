@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 13 Feb 2009 14:58:55 -0800
-Message-ID: <200902132258.n1DMwtqQ029612@imap1.linux-foundation.org>
+Subject: + vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch added to -mm tree
+Date: Fri, 13 Feb 2009 14:58:57 -0800
+Message-ID: <200902132258.n1DMwvu7029638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47462 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758854AbZBMW74 (ORCPT
+	by vger.kernel.org with ESMTP id S1760423AbZBMXAF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Feb 2009 17:59:56 -0500
+	Fri, 13 Feb 2009 18:00:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, rjw@sisk.pl
+Cc: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, ncunningham@crca.org.au, riel@redhat.com, rjw@sisk.pl
 
 
 The patch titled
-     mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes
+     vmscan: clip swap_cluster_max in shrink_all_memory()
 has been added to the -mm tree.  Its filename is
-     mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+     vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,162 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmscan: clip swap_cluster_max in shrink_all_memory()
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-ERROR: trailing whitespace
-#81: FILE: mm/vmscan.c:2127:
-+^I^Iif (sc.nr_reclaimed >= nr_pages) $
+shrink_inactive_list() scans in sc->swap_cluster_max chunks until it hits
+the scan limit it was passed.
 
-ERROR: trailing whitespace
-#96: FILE: mm/vmscan.c:2153:
-+^I^I^Iif (sc.nr_reclaimed >= nr_pages) $
+shrink_inactive_list()
+{
+	do {
+		isolate_pages(swap_cluster_max)
+		shrink_page_list()
+	} while (nr_scanned < max_scan);
+}
 
-ERROR: trailing whitespace
-#105: FILE: mm/vmscan.c:2160:
-+^I^I^Iif (sc.nr_reclaimed >= nr_pages) $
+This assumes that swap_cluster_max is not bigger than the scan limit
+because the latter is checked only after at least one iteration.
 
-WARNING: line over 80 characters
-#114: FILE: mm/vmscan.c:2169:
-+	 * If sc.nr_reclaimed = 0, we could not shrink LRUs, but there may be something
+In shrink_all_memory() sc->swap_cluster_max is initialized to the overall
+reclaim goal in the beginning but not decreased while reclaim is making
+progress which leads to subsequent calls to shrink_inactive_list()
+reclaiming way too much in the one iteration that is done unconditionally.
 
-WARNING: line over 80 characters
-#125: FILE: mm/vmscan.c:2177:
-+		} while (sc.nr_reclaimed < nr_pages && reclaim_state.reclaimed_slab > 0);
+Set sc->swap_cluster_max always to the proper goal before doing
+  shrink_all_zones()
+    shrink_list()
+      shrink_inactive_list().
 
-total: 3 errors, 2 warnings, 106 lines checked
+While the current shrink_all_memory() happily reclaims more than actually
+requested, this patch fixes it to never exceed the goal:
 
-./patches/mm-shrink_all_memory-use-scnr_reclaimed.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+unpatched
+   wanted=10000 reclaimed=13356
+   wanted=10000 reclaimed=19711
+   wanted=10000 reclaimed=10289
+   wanted=10000 reclaimed=17306
+   wanted=10000 reclaimed=10700
+   wanted=10000 reclaimed=10004
+   wanted=10000 reclaimed=13301
+   wanted=10000 reclaimed=10976
+   wanted=10000 reclaimed=10605
+   wanted=10000 reclaimed=10088
+   wanted=10000 reclaimed=15000
 
-Please run checkpatch prior to sending patches
+patched
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=9599
+   wanted=10000 reclaimed=8476
+   wanted=10000 reclaimed=8326
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=9919
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=9624
+   wanted=10000 reclaimed=10000
+   wanted=10000 reclaimed=10000
+   wanted=8500 reclaimed=8092
+   wanted=316 reclaimed=316
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: MinChan Kim <minchan.kim@gmail.com>
+Acked-by: Nigel Cunningham <ncunningham@crca.org.au>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: MinChan Kim <minchan.kim@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes mm/vmscan.c
---- a/mm/vmscan.c~mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes
+diff -puN mm/vmscan.c~vmscan-clip-swap_cluster_max-in-shrink_all_memory mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-clip-swap_cluster_max-in-shrink_all_memory
 +++ a/mm/vmscan.c
-@@ -2166,15 +2166,16 @@ unsigned long shrink_all_memory(unsigned
- 	}
+@@ -2107,7 +2107,6 @@ unsigned long shrink_all_memory(unsigned
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+ 		.may_unmap = 0,
+-		.swap_cluster_max = nr_pages,
+ 		.may_writepage = 1,
+ 		.isolate_pages = isolate_pages_global,
+ 	};
+@@ -2149,6 +2148,7 @@ unsigned long shrink_all_memory(unsigned
+ 			unsigned long nr_to_scan = nr_pages - sc.nr_reclaimed;
  
- 	/*
--	 * If sc.nr_reclaimed = 0, we could not shrink LRUs, but there may be something
--	 * in slab caches
-+	 * If sc.nr_reclaimed = 0, we could not shrink LRUs, but there may be
-+	 * something in slab caches
- 	 */
- 	if (!sc.nr_reclaimed) {
- 		do {
- 			reclaim_state.reclaimed_slab = 0;
- 			shrink_slab(nr_pages, sc.gfp_mask, global_lru_pages());
- 			sc.nr_reclaimed += reclaim_state.reclaimed_slab;
--		} while (sc.nr_reclaimed < nr_pages && reclaim_state.reclaimed_slab > 0);
-+		} while (sc.nr_reclaimed < nr_pages &&
-+				reclaim_state.reclaimed_slab > 0);
- 	}
- 
- 
+ 			sc.nr_scanned = 0;
++			sc.swap_cluster_max = nr_to_scan;
+ 			shrink_all_zones(nr_to_scan, prio, pass, &sc);
+ 			if (sc.nr_reclaimed >= nr_pages)
+ 				goto out;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-kernel-auditscc-fix-warning.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-mtd-rbtx4939-add-mtd-support.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_add_devices.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-cciss-pci-power-management-reset-for-kexec.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-timerfd-add-flags-check-fix.patch
-lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+swsusp-clean-up-shrink_all_zones.patch
+swsusp-dont-fiddle-with-swappiness.patch
+vmscan-rename-scmay_swap-to-may_unmap.patch
+mm-introduce-for_each_populated_zone-macro.patch
 mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed.patch
 mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
 
