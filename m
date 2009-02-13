@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-drm-fix-kconfig-submenu-mess-in-graphics-support.patch added to -mm tree
-Date: Fri, 13 Feb 2009 15:39:00 -0800
-Message-ID: <200902132339.n1DNd097021828@imap1.linux-foundation.org>
+Subject: + asiliantfb-fix-cmap-memory-leaks.patch added to -mm tree
+Date: Fri, 13 Feb 2009 15:42:55 -0800
+Message-ID: <200902132342.n1DNgtDS027256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38719 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753453AbZBMXjg (ORCPT
+	by vger.kernel.org with ESMTP id S1752954AbZBMXnG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Feb 2009 18:39:36 -0500
+	Fri, 13 Feb 2009 18:43:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, airlied@linux.ie, mingo@elte.hu
+Cc: dilinger@debian.org, krzysztof.h1@wp.pl
 
 
 The patch titled
-     fbdev/drm: fix Kconfig submenu mess in "Graphics support"
+     asiliantfb: fix cmap memory leaks
 has been added to the -mm tree.  Its filename is
-     fbdev-drm-fix-kconfig-submenu-mess-in-graphics-support.patch
+     asiliantfb-fix-cmap-memory-leaks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev/drm: fix Kconfig submenu mess in "Graphics support"
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: asiliantfb: fix cmap memory leaks
+From: Andres Salomon <dilinger@debian.org>
 
-Submenus of the graphics support "Support for frame buffer devices" and
-"Direct Rendering Manager (XFree86 4.1.0 and higher DRI support)" are
-broken in half after latest changes for Intel 915 mode setting support.
+ - fix cmap leak in removal path
+ - fix cmap leak when register_framebuffer fails
+ - check return value of fb_alloc_cmap
+ - don't continue with driver setup if register_framebuffer fails
 
-The DRM subsection is broken because one option is put outside the choice
-section it depends on.
-
-The frame buffers part is broken then due to circular dependency.  Fix
-this by make Intel frame buffers depend on CONFIG_INTEL_AGP.
-
-Kconfigs are broken by d2f59357700487a8b944f4f7777d1e97cf5ea2ed
-("drm/i915: select framebuffer support automatically").
-
-This is probably not only way to fix this.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Dave Airlie <airlied@linux.ie>
+[krzysztof.h1@wp.pl: spotted missing iounmap]
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/Kconfig |   13 ++++++-------
- drivers/video/Kconfig   |   10 ++--------
- 2 files changed, 8 insertions(+), 15 deletions(-)
+ drivers/video/asiliantfb.c |   25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpu/drm/Kconfig~fbdev-drm-fix-kconfig-submenu-mess-in-graphics-support drivers/gpu/drm/Kconfig
---- a/drivers/gpu/drm/Kconfig~fbdev-drm-fix-kconfig-submenu-mess-in-graphics-support
-+++ a/drivers/gpu/drm/Kconfig
-@@ -80,18 +80,17 @@ config DRM_I915
- 	  XFree86 4.4 and above. If unsure, build this and i830 as modules and
- 	  the X server will load the correct one.
+diff -puN drivers/video/asiliantfb.c~asiliantfb-fix-cmap-memory-leaks drivers/video/asiliantfb.c
+--- a/drivers/video/asiliantfb.c~asiliantfb-fix-cmap-memory-leaks
++++ a/drivers/video/asiliantfb.c
+@@ -505,19 +505,26 @@ static struct fb_var_screeninfo asiliant
+ 	.vsync_len 	= 2,
+ };
  
--endchoice
--
- config DRM_I915_KMS
- 	bool "Enable modesetting on intel by default"
- 	depends on DRM_I915
- 	help
--	Choose this option if you want kernel modesetting enabled by default,
--	and you have a new enough userspace to support this. Running old
--	userspaces with this enabled will cause pain.  Note that this causes
--	the driver to bind to PCI devices, which precludes loading things
--	like intelfb.
-+	  Choose this option if you want kernel modesetting enabled by default,
-+	  and you have a new enough userspace to support this. Running old
-+	  userspaces with this enabled will cause pain.  Note that this causes
-+	  the driver to bind to PCI devices, which precludes loading things
-+	  like intelfb.
+-static void __devinit init_asiliant(struct fb_info *p, unsigned long addr)
++static int __devinit init_asiliant(struct fb_info *p, unsigned long addr)
+ {
+ 	p->fix			= asiliantfb_fix;
+ 	p->fix.smem_start	= addr;
+ 	p->var			= asiliantfb_var;
+ 	p->fbops		= &asiliantfb_ops;
+ 	p->flags		= FBINFO_DEFAULT;
++	int err;
  
-+endchoice
+-	fb_alloc_cmap(&p->cmap, 256, 0);
++	err = fb_alloc_cmap(&p->cmap, 256, 0);
++	if (err) {
++		printk(KERN_ERR "C&T 69000 fb failed to alloc cmap memory\n");
++		return err;
++	}
  
- config DRM_MGA
- 	tristate "Matrox g200/g400"
-diff -puN drivers/video/Kconfig~fbdev-drm-fix-kconfig-submenu-mess-in-graphics-support drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-drm-fix-kconfig-submenu-mess-in-graphics-support
-+++ a/drivers/video/Kconfig
-@@ -1054,10 +1054,7 @@ config FB_RIVA_BACKLIGHT
+-	if (register_framebuffer(p) < 0) {
++	err = register_framebuffer(p);
++	if (err < 0) {
+ 		printk(KERN_ERR "C&T 69000 framebuffer failed to register\n");
+-		return;
++		fb_dealloc_cmap(&p->cmap);
++		return err;
+ 	}
  
- config FB_I810
- 	tristate "Intel 810/815 support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && PCI && X86_32
--	select AGP
--	select AGP_INTEL
--	select FB
-+	depends on EXPERIMENTAL && FB && PCI && X86_32 && AGP_INTEL
- 	select FB_MODE_HELPERS
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
-@@ -1120,10 +1117,7 @@ config FB_CARILLO_RANCH
+ 	printk(KERN_INFO "fb%d: Asiliant 69000 frame buffer (%dK RAM detected)\n",
+@@ -532,6 +539,7 @@ asiliantfb_pci_init(struct pci_dev *dp, 
+ {
+ 	unsigned long addr, size;
+ 	struct fb_info *p;
++	int err;
  
- config FB_INTEL
- 	tristate "Intel 830M/845G/852GM/855GM/865G/915G/945G/945GM/965G/965GM support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && PCI && X86
--	select FB
--	select AGP
--	select AGP_INTEL
-+	depends on EXPERIMENTAL && FB && PCI && X86 && AGP_INTEL
- 	select FB_MODE_HELPERS
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
+ 	if ((dp->resource[0].flags & IORESOURCE_MEM) == 0)
+ 		return -ENODEV;
+@@ -560,7 +568,13 @@ asiliantfb_pci_init(struct pci_dev *dp, 
+ 	pci_write_config_dword(dp, 4, 0x02800083);
+ 	writeb(3, p->screen_base + 0x400784);
+ 
+-	init_asiliant(p, addr);
++	err = init_asiliant(p, addr);
++	if (err) {
++		iounmap(p->screen_base);
++		release_mem_region(addr, size);
++		framebuffer_release(p);
++		return err;
++	}
+ 
+ 	pci_set_drvdata(dp, p);
+ 	return 0;
+@@ -571,6 +585,7 @@ static void __devexit asiliantfb_remove(
+ 	struct fb_info *p = pci_get_drvdata(dp);
+ 
+ 	unregister_framebuffer(p);
++	fb_dealloc_cmap(&p->cmap);
+ 	iounmap(p->screen_base);
+ 	release_mem_region(pci_resource_start(dp, 0), pci_resource_len(dp, 0));
+ 	pci_set_drvdata(dp, NULL);
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from dilinger@debian.org are
 
-linux-next.patch
-fbdev-drm-fix-kconfig-submenu-mess-in-graphics-support.patch
-cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
-cirrusfb-add-laguna-additional-overflow-register.patch
+origin.patch
+jffs2-force-the-jffs2-gc-daemon-to-behave-a-bit-better.patch
 drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
 tdfxfb-fix-memory-leaks-in-removal-path.patch
 tridentfb-fix-memory-leaks-in-removal-path.patch
 vfb-fix-memory-leaks-in-removal-path.patch
+skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
 valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sunxvr500-fix-cmap-memory-leaks.patch
+tgafb-fix-cmap-memory-leak.patch
 68328fb-fix-cmap-memory-leaks.patch
 amba-clcd-fix-cmap-memory-leaks.patch
 amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+asiliantfb-fix-cmap-memory-leaks.patch
 
