@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 13 Feb 2009 14:08:12 -0800
-Message-ID: <200902132208.n1DM8DwI022145@imap1.linux-foundation.org>
+Subject: + ext4-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext4-nameic.patch added to -mm tree
+Date: Fri, 13 Feb 2009 14:12:20 -0800
+Message-ID: <200902132212.n1DMCKB8027990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60802 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753342AbZBMWJW (ORCPT
+	by vger.kernel.org with ESMTP id S1753328AbZBMWNe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Feb 2009 17:09:22 -0500
+	Fri, 13 Feb 2009 17:13:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tytso@mit.edu, yjwei@cn.fujitsu.com
+Cc: yjwei@cn.fujitsu.com, linux-ext4@vger.kernel.org, tytso@mit.edu
 
 
 The patch titled
-     ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes
+     ext4: use unsigned instead of int for type of blocksize in fs/ext4/namei.c
 has been added to the -mm tree.  Its filename is
-     ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+     ext4-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext4-nameic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ext4: use unsigned instead of int for type of blocksize in fs/ext4/namei.c
+From: Wei Yongjun <yjwei@cn.fujitsu.com>
 
-ERROR: "(foo*)" should be "(foo *)"
-#65: FILE: fs/ext3/namei.c:1130:
-+	while ((char*)de < base + blocksize) {
+- Use unsigned instead of int for the parameter which carries a
+  blocksize.  (ported from Wei Yongjun's ext3 patch).
 
-total: 1 errors, 0 warnings, 48 lines checked
+- coding-style fixes
 
-./patches/ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+- rename `size' to `blocksize']
 
-Please run checkpatch prior to sending patches
-
-Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: Wei Yongjun <yjwei@cn.fujitsu.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/namei.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/ext3/namei.c~ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes
-+++ a/fs/ext3/namei.c
-@@ -1127,7 +1127,7 @@ static struct ext3_dir_entry_2 *dx_pack_
+diff -puN fs/ext4/namei.c~ext4-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext4-nameic fs/ext4/namei.c
+--- a/fs/ext4/namei.c~ext4-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext4-nameic
++++ a/fs/ext4/namei.c
+@@ -161,12 +161,12 @@ static struct dx_frame *dx_probe(const s
+ 				 struct dx_frame *frame,
+ 				 int *err);
+ static void dx_release(struct dx_frame *frames);
+-static int dx_make_map(struct ext4_dir_entry_2 *de, int size,
++static int dx_make_map(struct ext4_dir_entry_2 *de, unsigned blocksize,
+ 		       struct dx_hash_info *hinfo, struct dx_map_entry map[]);
+ static void dx_sort_map(struct dx_map_entry *map, unsigned count);
+ static struct ext4_dir_entry_2 *dx_move_dirents(char *from, char *to,
+ 		struct dx_map_entry *offsets, int count);
+-static struct ext4_dir_entry_2* dx_pack_dirents(char *base, int size);
++static struct ext4_dir_entry_2 *dx_pack_dirents(char *base, unsigned blocksize);
+ static void dx_insert_block(struct dx_frame *frame,
+ 					u32 hash, ext4_lblk_t block);
+ static int ext4_htree_next_block(struct inode *dir, __u32 hash,
+@@ -713,15 +713,14 @@ errout:
+  * Create map of hash values, offsets, and sizes, stored at end of block.
+  * Returns number of entries mapped.
+  */
+-static int dx_make_map (struct ext4_dir_entry_2 *de, int size,
+-			struct dx_hash_info *hinfo, struct dx_map_entry *map_tail)
++static int dx_make_map(struct ext4_dir_entry_2 *de, unsigned blocksize,
++		struct dx_hash_info *hinfo, struct dx_map_entry *map_tail)
+ {
+ 	int count = 0;
+-	char *base = (char *) de;
++	char *base = (char *)de;
+ 	struct dx_hash_info h = *hinfo;
+ 
+-	while ((char *) de < base + size)
+-	{
++	while ((char *) de < base + blocksize) {
+ 		if (de->name_len && de->inode) {
+ 			ext4fs_dirhash(de->name, de->name_len, &h);
+ 			map_tail--;
+@@ -1130,13 +1129,14 @@ dx_move_dirents(char *from, char *to, st
+  * Compact each dir entry in the range to the minimal rec_len.
+  * Returns pointer to last entry in range.
+  */
+-static struct ext4_dir_entry_2* dx_pack_dirents(char *base, int size)
++static struct ext4_dir_entry_2 *dx_pack_dirents(char *base, unsigned blocksize)
+ {
+-	struct ext4_dir_entry_2 *next, *to, *prev, *de = (struct ext4_dir_entry_2 *) base;
++	struct ext4_dir_entry_2 *next, *to, *prev;
++	struct ext4_dir_entry_2 *de = (struct ext4_dir_entry_2 *)base;
  	unsigned rec_len = 0;
  
  	prev = to = de;
--	while ((char*)de < base + blocksize) {
+-	while ((char*)de < base + size) {
 +	while ((char *)de < base + blocksize) {
- 		next = ext3_next_entry(de);
+ 		next = ext4_next_entry(de);
  		if (de->inode && de->name_len) {
- 			rec_len = EXT3_DIR_REC_LEN(de->name_len);
+ 			rec_len = EXT4_DIR_REC_LEN(de->name_len);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yjwei@cn.fujitsu.com are
 
-origin.patch
-vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-kernel-auditscc-fix-warning.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-mtd-rbtx4939-add-mtd-support.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-constify-pci_bus_add_devices.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-cciss-pci-power-management-reset-for-kexec.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-timerfd-add-flags-check-fix.patch
-lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+fs-jffs2-mallocc-kmem_cache_alloc-memset-kmem_cache_zalloc.patch
+ext4-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext4-nameic.patch
+scsi-used-kmem_cache_zalloc-instead-of-kmem_cache_alloc-memset.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
 ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
