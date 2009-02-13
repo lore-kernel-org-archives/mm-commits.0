@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lis3lv02d-add-axes-knowledge-of-hp-pavilion-dv5-models.patch added to -mm tree
-Date: Fri, 13 Feb 2009 14:30:51 -0800
-Message-ID: <200902132230.n1DMUpsv022072@imap1.linux-foundation.org>
+Subject: + mm-shrink_all_memory-use-scnr_reclaimed.patch added to -mm tree
+Date: Fri, 13 Feb 2009 14:58:51 -0800
+Message-ID: <200902132258.n1DMwpbV029469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752724AbZBMWa7 (ORCPT
+	by vger.kernel.org with ESMTP id S1758219AbZBMW7y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Feb 2009 17:30:59 -0500
+	Fri, 13 Feb 2009 17:59:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: giuseppe.bilotta@gmail.com, Eric.Piel@tremplin-utc.net, palatis@gmail.com, pavel@suse.cz
+Cc: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rjw@sisk.pl
 
 
 The patch titled
-     lis3lv02d: add axes knowledge of HP Pavilion dv5 models
+     mm: shrink_all_memory(): use sc.nr_reclaimed
 has been added to the -mm tree.  Its filename is
-     lis3lv02d-add-axes-knowledge-of-hp-pavilion-dv5-models.patch
+     mm-shrink_all_memory-use-scnr_reclaimed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,151 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3lv02d: add axes knowledge of HP Pavilion dv5 models
-From: Giuseppe Bilotta <giuseppe.bilotta@gmail.com>
+Subject: mm: shrink_all_memory(): use sc.nr_reclaimed
+From: MinChan Kim <minchan.kim@gmail.com>
 
-Add support for HP Pavilion dv5.
+Commit a79311c14eae4bb946a97af25f3e1b17d625985d "vmscan: bail out of
+direct reclaim after swap_cluster_max pages" moved the nr_reclaimed
+counter into the scan control to accumulate the number of all reclaimed
+pages in a reclaim invocation.
 
-Since Intel-based models have an inverted x axis, while AMD-based models
-have an inverted y axis, we introduce a new macro that special-cases axis
-orientation based on two DMI entries: HP dv5 axis configuration is then
-based on both the PRODUCT and BOARD name.
+shrink_all_memory() can use the same mechanism. it increase code
+consistency and redability.
 
-Signed-off-by: Giuseppe Bilotta <giuseppe.bilotta@gmail.com>
-Cc: Eric Piel <Eric.Piel@tremplin-utc.net>
-Cc: Pavel Machek <pavel@suse.cz>
-Tested-by: Palatis Tseng <palatis@gmail.com>
+Signed-off-by: MinChan Kim <minchan.kim@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/hp_accel.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ mm/vmscan.c |   43 ++++++++++++++++++++++---------------------
+ 1 file changed, 22 insertions(+), 21 deletions(-)
 
-diff -puN drivers/hwmon/hp_accel.c~lis3lv02d-add-axes-knowledge-of-hp-pavilion-dv5-models drivers/hwmon/hp_accel.c
---- a/drivers/hwmon/hp_accel.c~lis3lv02d-add-axes-knowledge-of-hp-pavilion-dv5-models
-+++ a/drivers/hwmon/hp_accel.c
-@@ -166,6 +166,18 @@ static struct axis_conversion lis3lv02d_
- 	},						\
- 	.driver_data = &lis3lv02d_axis_##_axis		\
+diff -puN mm/vmscan.c~mm-shrink_all_memory-use-scnr_reclaimed mm/vmscan.c
+--- a/mm/vmscan.c~mm-shrink_all_memory-use-scnr_reclaimed
++++ a/mm/vmscan.c
+@@ -2048,16 +2048,15 @@ unsigned long global_lru_pages(void)
+ #ifdef CONFIG_PM
+ /*
+  * Helper function for shrink_all_memory().  Tries to reclaim 'nr_pages' pages
+- * from LRU lists system-wide, for given pass and priority, and returns the
+- * number of reclaimed pages
++ * from LRU lists system-wide, for given pass and priority.
+  *
+  * For pass > 3 we also try to shrink the LRU lists that contain a few pages
+  */
+-static unsigned long shrink_all_zones(unsigned long nr_pages, int prio,
++static void shrink_all_zones(unsigned long nr_pages, int prio,
+ 				      int pass, struct scan_control *sc)
+ {
+ 	struct zone *zone;
+-	unsigned long ret = 0;
++	unsigned long nr_reclaimed = 0;
+ 
+ 	for_each_populated_zone(zone) {
+ 		enum lru_list l;
+@@ -2080,14 +2079,16 @@ static unsigned long shrink_all_zones(un
+ 
+ 				zone->lru[l].nr_scan = 0;
+ 				nr_to_scan = min(nr_pages, lru_pages);
+-				ret += shrink_list(l, nr_to_scan, zone,
++				nr_reclaimed += shrink_list(l, nr_to_scan, zone,
+ 								sc, prio);
+-				if (ret >= nr_pages)
+-					return ret;
++				if (nr_reclaimed >= nr_pages) {
++					sc->nr_reclaimed = nr_reclaimed;
++					return;
++				}
+ 			}
+ 		}
+ 	}
+-	return ret;
++	sc->nr_reclaimed = nr_reclaimed;
  }
+ 
+ /*
+@@ -2101,7 +2102,6 @@ static unsigned long shrink_all_zones(un
+ unsigned long shrink_all_memory(unsigned long nr_pages)
+ {
+ 	unsigned long lru_pages, nr_slab;
+-	unsigned long ret = 0;
+ 	int pass;
+ 	struct reclaim_state reclaim_state;
+ 	struct scan_control sc = {
+@@ -2123,8 +2123,8 @@ unsigned long shrink_all_memory(unsigned
+ 		if (!reclaim_state.reclaimed_slab)
+ 			break;
+ 
+-		ret += reclaim_state.reclaimed_slab;
+-		if (ret >= nr_pages)
++		sc.nr_reclaimed += reclaim_state.reclaimed_slab;
++		if (sc.nr_reclaimed >= nr_pages)
+ 			goto out;
+ 
+ 		nr_slab -= reclaim_state.reclaimed_slab;
+@@ -2146,18 +2146,18 @@ unsigned long shrink_all_memory(unsigned
+ 			sc.may_unmap = 1;
+ 
+ 		for (prio = DEF_PRIORITY; prio >= 0; prio--) {
+-			unsigned long nr_to_scan = nr_pages - ret;
++			unsigned long nr_to_scan = nr_pages - sc.nr_reclaimed;
+ 
+ 			sc.nr_scanned = 0;
+-			ret += shrink_all_zones(nr_to_scan, prio, pass, &sc);
+-			if (ret >= nr_pages)
++			shrink_all_zones(nr_to_scan, prio, pass, &sc);
++			if (sc.nr_reclaimed >= nr_pages)
+ 				goto out;
+ 
+ 			reclaim_state.reclaimed_slab = 0;
+ 			shrink_slab(sc.nr_scanned, sc.gfp_mask,
+ 					global_lru_pages());
+-			ret += reclaim_state.reclaimed_slab;
+-			if (ret >= nr_pages)
++			sc.nr_reclaimed += reclaim_state.reclaimed_slab;
++			if (sc.nr_reclaimed >= nr_pages)
+ 				goto out;
+ 
+ 			if (sc.nr_scanned && prio < DEF_PRIORITY - 2)
+@@ -2166,21 +2166,22 @@ unsigned long shrink_all_memory(unsigned
+ 	}
+ 
+ 	/*
+-	 * If ret = 0, we could not shrink LRUs, but there may be something
++	 * If sc.nr_reclaimed = 0, we could not shrink LRUs, but there may be something
+ 	 * in slab caches
+ 	 */
+-	if (!ret) {
++	if (!sc.nr_reclaimed) {
+ 		do {
+ 			reclaim_state.reclaimed_slab = 0;
+ 			shrink_slab(nr_pages, sc.gfp_mask, global_lru_pages());
+-			ret += reclaim_state.reclaimed_slab;
+-		} while (ret < nr_pages && reclaim_state.reclaimed_slab > 0);
++			sc.nr_reclaimed += reclaim_state.reclaimed_slab;
++		} while (sc.nr_reclaimed < nr_pages && reclaim_state.reclaimed_slab > 0);
+ 	}
+ 
 +
-+#define AXIS_DMI_MATCH2(_ident, _class1, _name1,	\
-+				_class2, _name2,	\
-+				_axis) {		\
-+	.ident = _ident,				\
-+	.callback = lis3lv02d_dmi_matched,		\
-+	.matches = {					\
-+		DMI_MATCH(DMI_##_class1, _name1),	\
-+		DMI_MATCH(DMI_##_class2, _name2),	\
-+	},						\
-+	.driver_data = &lis3lv02d_axis_##_axis		\
-+}
- static struct dmi_system_id lis3lv02d_dmi_ids[] = {
- 	/* product names are truncated to match all kinds of a same model */
- 	AXIS_DMI_MATCH("NC64x0", "HP Compaq nc64", x_inverted),
-@@ -179,6 +191,16 @@ static struct dmi_system_id lis3lv02d_dm
- 	AXIS_DMI_MATCH("NC673x", "HP Compaq 673", xy_rotated_left_usd),
- 	AXIS_DMI_MATCH("NC651xx", "HP Compaq 651", xy_rotated_right),
- 	AXIS_DMI_MATCH("NC671xx", "HP Compaq 671", xy_swap_yz_inverted),
-+	/* Intel-based HP Pavilion dv5 */
-+	AXIS_DMI_MATCH2("HPDV5_I",
-+			PRODUCT_NAME, "HP Pavilion dv5",
-+			BOARD_NAME, "3603",
-+			x_inverted),
-+	/* AMD-based HP Pavilion dv5 */
-+	AXIS_DMI_MATCH2("HPDV5_A",
-+			PRODUCT_NAME, "HP Pavilion dv5",
-+			BOARD_NAME, "3600",
-+			y_inverted),
- 	{ NULL, }
- /* Laptop models without axis info (yet):
-  * "NC6910" "HP Compaq 6910"
+ out:
+ 	current->reclaim_state = NULL;
+ 
+-	return ret;
++	return sc.nr_reclaimed;
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from giuseppe.bilotta@gmail.com are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-lis3lv02d-support-both-one-and-two-byte-sensors.patch
-lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
-lis3lv02d-add-axes-knowledge-of-hp-pavilion-dv5-models.patch
+origin.patch
+vmap-remove-needless-lock-and-list-in-vmap.patch
+vmscan-rename-scmay_swap-to-may_unmap.patch
+mm-shrink_all_memory-use-scnr_reclaimed.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch
 
