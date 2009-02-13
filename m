@@ -1,80 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + mm-disable-preemption-in-apply_to_pte_range.patch added to -mm tree
-Date: Thu, 12 Feb 2009 17:29:16 -0800
-Message-ID: <200902130129.n1D1TGJB022772@imap1.linux-foundation.org>
+Subject: [merged] netdev-tg3-limit-reaches-1.patch removed from -mm tree
+Date: Fri, 13 Feb 2009 11:55:56 -0800
+Message-ID: <200902131955.n1DJtu9V028186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49776 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51702 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752287AbZBMB3q (ORCPT
+	by vger.kernel.org with ESMTP id S1751550AbZBMTz7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Feb 2009 20:29:46 -0500
+	Fri, 13 Feb 2009 14:55:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, hugh@veritas.com, jeremy.fitzhardinge@citrix.com, nickpiggin@yahoo.com.au
+To: roel.kluin@gmail.com, mchan@broadcom.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: disable preemption in apply_to_pte_range
-has been added to the -mm tree.  Its filename is
-     mm-disable-preemption-in-apply_to_pte_range.patch
+     netdev: tg3: limit reaches -1
+has been removed from the -mm tree.  Its filename was
+     netdev-tg3-limit-reaches-1.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: disable preemption in apply_to_pte_range
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: netdev: tg3: limit reaches -1
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Lazy mmu mode needs preemption disabled, so if we're apply to init_mm
-(which doesn't require any pte locks), then explicitly disable preemption.
- (Do it unconditionally after checking we've successfully done the
-allocation to simplify the error handling.)
+With while (limit--) { ... } limit reaches -1, so 0 means success.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Michael Chan <mchan@broadcom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/tg3.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-disable-preemption-in-apply_to_pte_range mm/memory.c
---- a/mm/memory.c~mm-disable-preemption-in-apply_to_pte_range
-+++ a/mm/memory.c
-@@ -1718,6 +1718,7 @@ static int apply_to_pte_range(struct mm_
+diff -puN drivers/net/tg3.c~netdev-tg3-limit-reaches-1 drivers/net/tg3.c
+--- a/drivers/net/tg3.c~netdev-tg3-limit-reaches-1
++++ a/drivers/net/tg3.c
+@@ -852,7 +852,7 @@ static int tg3_bmcr_reset(struct tg3 *tp
+ 		}
+ 		udelay(10);
+ 	}
+-	if (limit <= 0)
++	if (limit < 0)
+ 		return -EBUSY;
  
- 	BUG_ON(pmd_huge(*pmd));
+ 	return 0;
+@@ -1603,7 +1603,7 @@ static int tg3_wait_macro_done(struct tg
+ 				break;
+ 		}
+ 	}
+-	if (limit <= 0)
++	if (limit < 0)
+ 		return -EBUSY;
  
-+	preempt_disable();
- 	arch_enter_lazy_mmu_mode();
- 
- 	token = pmd_pgtable(*pmd);
-@@ -1729,6 +1730,7 @@ static int apply_to_pte_range(struct mm_
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
- 
- 	arch_leave_lazy_mmu_mode();
-+	preempt_enable();
- 
- 	if (mm != &init_mm)
- 		pte_unmap_unlock(pte-1, ptl);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-mm-disable-preemption-in-apply_to_pte_range.patch
+acpi-get_throttling_state-cannot-be-larger-state_count.patch
+drm-fix-lock_test_with_return-macro.patch
+dvb-negative-internal-sub_range-wont-get-noticed.patch
+v4l-dvb-calibration-still-successful-at-10.patch
+leds-fix-confusion.patch
+pci-hotplug-shpchp-busnr-reaches-end-1.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+paride-pgc-xs-confusion.patch
+m68k-amiflop-ptr-incremented-past-0x4489.patch
+mm-get_nid_for_pfn-returns-int.patch
+alpha-fix-macros.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+spi-limit-reaches-1-tested-0.patch
+rtc-wm8350-retries-will-reach-1.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
+ufs-sector_t-cannot-be-negative.patch
 
