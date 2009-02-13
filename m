@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-duplicate-output_buffer-of-e03.patch added to -mm tree
-Date: Fri, 13 Feb 2009 15:01:48 -0800
-Message-ID: <200902132301.n1DN1mPU001171@imap1.linux-foundation.org>
+Subject: + frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 13 Feb 2009 15:13:46 -0800
+Message-ID: <200902132313.n1DNDksJ018334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42437 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755004AbZBMXCh (ORCPT
+	by vger.kernel.org with ESMTP id S1752826AbZBMXOT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Feb 2009 18:02:37 -0500
+	Fri, 13 Feb 2009 18:14:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, dhowells@redhat.com, jason.wessel@windriver.com
+Cc: akpm@linux-foundation.org, roel.kluin@gmail.com
 
 
 The patch titled
-     frv: duplicate output_buffer of E03
+     frv-duplicate-output_buffer-of-e03-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     frv-duplicate-output_buffer-of-e03.patch
+     frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: duplicate output_buffer of E03
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: frv-duplicate-output_buffer-of-e03-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In the case of an error, output_buffer gets an E0X value.  E03 was set in
-two.
+ERROR: space required after that ',' (ctx:VxV)
+#23: FILE: arch/frv/kernel/gdb-stub.c:1883:
++				gdbstub_strcpy(output_buffer,"E02");
+ 				                            ^
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+ERROR: space required after that ',' (ctx:VxV)
+#32: FILE: arch/frv/kernel/gdb-stub.c:1911:
++				gdbstub_strcpy(output_buffer,"E02");
+ 				                            ^
+
+total: 2 errors, 0 warnings, 16 lines checked
+
+./patches/frv-duplicate-output_buffer-of-e03.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  arch/frv/kernel/gdb-stub.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/frv/kernel/gdb-stub.c~frv-duplicate-output_buffer-of-e03 arch/frv/kernel/gdb-stub.c
---- a/arch/frv/kernel/gdb-stub.c~frv-duplicate-output_buffer-of-e03
+diff -puN arch/frv/kernel/gdb-stub.c~frv-duplicate-output_buffer-of-e03-checkpatch-fixes arch/frv/kernel/gdb-stub.c
+--- a/arch/frv/kernel/gdb-stub.c~frv-duplicate-output_buffer-of-e03-checkpatch-fixes
 +++ a/arch/frv/kernel/gdb-stub.c
 @@ -1880,7 +1880,7 @@ void gdbstub(int sigval)
  			}
  
  			if (temp >= 5) {
--				gdbstub_strcpy(output_buffer,"E03");
-+				gdbstub_strcpy(output_buffer,"E02");
+-				gdbstub_strcpy(output_buffer,"E02");
++				gdbstub_strcpy(output_buffer, "E02");
  				break;
  			}
  
@@ -65,34 +78,103 @@ diff -puN arch/frv/kernel/gdb-stub.c~frv-duplicate-output_buffer-of-e03 arch/frv
  			}
  
  			if (temp >= 5) {
--				gdbstub_strcpy(output_buffer,"E03");
-+				gdbstub_strcpy(output_buffer,"E02");
+-				gdbstub_strcpy(output_buffer,"E02");
++				gdbstub_strcpy(output_buffer, "E02");
  				break;
  			}
  
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-acpi-get_throttling_state-cannot-be-larger-state_count.patch
-drm-fix-lock_test_with_return-macro.patch
-dvb-negative-internal-sub_range-wont-get-noticed.patch
-v4l-dvb-calibration-still-successful-at-10.patch
-leds-fix-confusion.patch
-pci-hotplug-shpchp-busnr-reaches-end-1.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-paride-pgc-xs-confusion.patch
-m68k-amiflop-ptr-incremented-past-0x4489.patch
-mm-get_nid_for_pfn-returns-int.patch
-frv-duplicate-output_buffer-of-e03.patch
-alpha-fix-macros.patch
-m68k-count-can-reach-51-not-50.patch
+next-remove-localversion.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+mtd-rbtx4939-add-mtd-support.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_add_devices.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+cciss-pci-power-management-reset-for-kexec.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+timerfd-add-flags-check-fix.patch
+lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-spi-limit-reaches-1-tested-0.patch
-rtc-wm8350-retries-will-reach-1.patch
-fbdev-newport-newport_wait-return-0-on-timeout.patch
-drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
-ufs-sector_t-cannot-be-negative.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
