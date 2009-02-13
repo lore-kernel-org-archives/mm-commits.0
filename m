@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-add-mmio-registers-for-laguna-chipsets.patch added to -mm tree
-Date: Fri, 13 Feb 2009 15:45:15 -0800
-Message-ID: <200902132345.n1DNjFKX030613@imap1.linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Fri, 13 Feb 2009 15:49:55 -0800
+Message-ID: <200902132349.n1DNntJH004797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38255 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44143 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753082AbZBMXpS (ORCPT
+	by vger.kernel.org with ESMTP id S1753125AbZBMXt5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Feb 2009 18:45:18 -0500
+	Fri, 13 Feb 2009 18:49:57 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n1DNntl7001371
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 13 Feb 2009 15:49:56 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     cirrusfb: add mmio registers for Laguna chipsets
+     linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
+     linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,156 +38,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: add mmio registers for Laguna chipsets
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: linux-next-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The Laguna chipsets use special registers which are available through the
-mmio area.  The cirrusfb driver does not use memory mapped registers for
-the PCI cards.
-
-Add the memory mapped area for Laguna chipsets and add basic usage of the
-special Laguna registers after SVGALIB code.
-
-This gives readable console at 16bpp on the GD-5465 (Laguna AGP).  The
-8bpp and 32bpp depths are still broken.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   38 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ Documentation/kernel-parameters.txt |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-add-mmio-registers-for-laguna-chipsets drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-add-mmio-registers-for-laguna-chipsets
-+++ a/drivers/video/cirrusfb.c
-@@ -327,6 +327,7 @@ enum cirrusfb_dbg_reg_class {
- /* info about board */
- struct cirrusfb_info {
- 	u8 __iomem *regbase;
-+	u8 __iomem *laguna_mmio;
- 	enum cirrus_board btype;
- 	unsigned char SFR;	/* Shadow of special function register */
+diff -puN Documentation/kernel-parameters.txt~linux-next-rejects Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~linux-next-rejects
++++ a/Documentation/kernel-parameters.txt
+@@ -1020,6 +1020,10 @@ and is between 256 and 4096 characters. 
+ 			Configure the RouterBoard 532 series on-chip
+ 			Ethernet adapter MAC address.
  
-@@ -699,6 +700,7 @@ static int cirrusfb_set_par_foo(struct f
- 	int yres, vdispend, vsyncstart, vsyncend, vtotal;
- 	long freq;
- 	int nom, den, div;
-+	unsigned int control, format, threshold;
- 
- 	dev_dbg(info->device, "Requested mode: %dx%dx%d\n",
- 	       var->xres, var->yres, var->bits_per_pixel);
-@@ -866,6 +868,23 @@ static int cirrusfb_set_par_foo(struct f
- 			cirrusfb_set_mclk_as_source(info, divMCLK);
- 		}
- 	}
-+	if (cinfo->btype == BT_LAGUNA) {
-+		long pcifc = fb_readl(cinfo->laguna_mmio + 0x3fc);
-+		unsigned char tile = fb_readb(cinfo->laguna_mmio + 0x407);
-+		unsigned short tile_control;
++	kmemleak=	[KNL] Boot-time kmemleak enable/disable
++			Valid arguments: on, off
++			Default: on
 +
-+		tile_control = fb_readw(cinfo->laguna_mmio + 0x2c4);
-+		fb_writew(tile_control & ~0x80, cinfo->laguna_mmio + 0x2c4);
-+
-+		fb_writel(pcifc | 0x10000000l, cinfo->laguna_mmio + 0x3fc);
-+		fb_writeb(tile & 0x3f, cinfo->laguna_mmio + 0x407);
-+		control = fb_readw(cinfo->laguna_mmio + 0x402);
-+		threshold = fb_readw(cinfo->laguna_mmio + 0xea);
-+		control &= ~0x6800;
-+		format = 0;
-+		threshold &= 0xffe0;
-+		threshold &= 0x3fbf;
-+	}
- 	if (nom) {
- 		tmp = den << 1;
- 		if (div != 0)
-@@ -1035,6 +1054,7 @@ static int cirrusfb_set_par_foo(struct f
- 		case BT_LAGUNA:
- 			vga_wseq(regbase, CL_SEQR7,
- 				vga_rseq(regbase, CL_SEQR7) | 0x01);
-+			threshold |= 0x10;
- 			break;
+ 	kstack=N	[X86-32,X86-64] Print N words from the kernel stack
+ 			in oops dumps.
  
- 		default:
-@@ -1146,6 +1166,9 @@ static int cirrusfb_set_par_foo(struct f
- 		case BT_LAGUNA:
- 			vga_wseq(regbase, CL_SEQR7,
- 				vga_rseq(regbase, CL_SEQR7) & ~0x01);
-+			control |= 0x2000;
-+			format |= 0x1400;
-+			threshold |= 0x10;
- 			break;
- 
- 		default:
-@@ -1220,6 +1243,9 @@ static int cirrusfb_set_par_foo(struct f
- 		case BT_LAGUNA:
- 			vga_wseq(regbase, CL_SEQR7,
- 				vga_rseq(regbase, CL_SEQR7) & ~0x01);
-+			control |= 0x6000;
-+			format |= 0x3400;
-+			threshold |= 0x20;
- 			break;
- 
- 		default:
-@@ -1327,6 +1353,12 @@ static int cirrusfb_set_par_foo(struct f
- 	/* graphics cursor attributes: nothing special */
- 	vga_wseq(regbase, CL_SEQR12, 0x0);
- 
-+	if (cinfo->btype == BT_LAGUNA) {
-+		/* no tiles */
-+		fb_writew(control | 0x1000, cinfo->laguna_mmio + 0x402);
-+		fb_writew(format, cinfo->laguna_mmio + 0xc0);
-+		fb_writew(threshold, cinfo->laguna_mmio + 0xea);
-+	}
- 	/* finally, turn on everything - turn off "FullBandwidth" bit */
- 	/* also, set "DotClock%2" bit where requested */
- 	tmp = 0x01;
-@@ -2000,7 +2032,10 @@ static void get_pci_addrs(const struct p
- static void cirrusfb_pci_unmap(struct fb_info *info)
- {
- 	struct pci_dev *pdev = to_pci_dev(info->device);
-+	struct cirrusfb_info *cinfo = info->par;
- 
-+	if (cinfo->laguna_mmio == NULL)
-+		iounmap(cinfo->laguna_mmio);
- 	iounmap(info->screen_base);
- #if 0 /* if system didn't claim this region, we would... */
- 	release_mem_region(0xA0000, 65535);
-@@ -2180,6 +2215,7 @@ static int __devinit cirrusfb_pci_regist
- 		get_pci_addrs(pdev, &board_addr, &info->fix.mmio_start);
- 		/* FIXME: this forces VGA.  alternatives? */
- 		cinfo->regbase = NULL;
-+		cinfo->laguna_mmio = ioremap(info->fix.mmio_start, 0x1000);
- 	}
- 
- 	dev_dbg(info->device, "Board address: 0x%lx, register address: 0x%lx\n",
-@@ -2234,6 +2270,8 @@ err_release_regions:
- #endif
- 	pci_release_regions(pdev);
- err_release_fb:
-+	if (cinfo->laguna_mmio == NULL)
-+		iounmap(cinfo->laguna_mmio);
- 	framebuffer_release(info);
- err_disable:
- err_out:
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-fbdev-drm-fix-kconfig-submenu-mess-in-graphics-support.patch
-cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
-cirrusfb-add-laguna-additional-overflow-register.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-asiliantfb-fix-cmap-memory-leaks.patch
-cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+fix-sparseirq-use-kstat_irqs_cpu-on-non-x86-architectures-too.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+mtd-rbtx4939-add-mtd-support.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-constify-pci_bus_add_devices.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+cciss-pci-power-management-reset-for-kexec.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+timerfd-add-flags-check-fix.patch
+lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
