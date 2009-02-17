@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch added to -mm tree
-Date: Tue, 17 Feb 2009 14:13:31 -0800
-Message-ID: <200902172213.n1HMDVOC017877@imap1.linux-foundation.org>
+Subject: + vfs-add-set_page_dirty_notag.patch added to -mm tree
+Date: Tue, 17 Feb 2009 14:35:16 -0800
+Message-ID: <200902172235.n1HMZHF4016709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40402 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750828AbZBQWWI (ORCPT
+	by vger.kernel.org with ESMTP id S1754679AbZBQWfx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 17:22:08 -0500
+	Tue, 17 Feb 2009 17:35:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, dvlasenk@redhat.com, jmarchan@redhat.com, roland@redhat.com
+Cc: edward.shishkin@gmail.com, a.p.zijlstra@chello.nl, npiggin@suse.de
 
 
 The patch titled
-     ptrace_detach: the wrong wakeup breaks the ERESTARTxxx logic
+     vfs: add set_page_dirty_notag()
 has been added to the -mm tree.  Its filename is
-     ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch
+     vfs-add-set_page_dirty_notag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace_detach: the wrong wakeup breaks the ERESTARTxxx logic
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: vfs: add set_page_dirty_notag()
+From: Edward Shishkin <edward.shishkin@gmail.com>
 
-Another ancient bug. Consider this trivial test-case,
+In accordance with reiser4 transactional model every dirty page should be
+"captured" by some atom.  However, outside reiser4 context dirty page can
+not be captured in some cases, as it is accompanied with specific work
+(jnode creation, etc).  Reiser4 recognizes such "anonymous" pages (i.e. 
+pages that were dirtied outside of reiser4) by the tag
+PAGECACHE_TAG_DIRTY.  Pages dirtied inside reiser4 context are not tagged
+at all: we don't need this.  Indeed, once page is dirtied and captured, it
+is attached to a jnode (a special header to keep a track of transactions).
 
-	int main(void)
-	{
-		int pid = fork();
+reiser4_set_page_dirty_internal() was the internal reiser4 function that
+set dirty bit without tagging the page.  Having such internal function led
+to real problems (incorrect task io accounting, etc.  because of not
+updating this internal "friend").
 
-		if (pid) {
-			ptrace(PTRACE_ATTACH, pid, NULL, NULL);
-			wait(NULL);
-			ptrace(PTRACE_DETACH, pid, NULL, NULL);
-		} else {
-			pause();
-			printf("WE HAVE A KERNEL BUG!!!\n");
-		}
+Solution:
 
-		return 0;
-	}
+The following patch adds a core library function that sets a dirty bit
+without tagging the page.  It should be modified simultaneously with its
+"friends": __set_page_dirty_nobuffers, __set_page_dirty.
 
-the child must not "escape" for sys_pause(), but it can and this was seen
-in practice.
-
-This is because ptrace_detach does:
-
-	if (!child->exit_state)
-		wake_up_process(child);
-
-this wakeup can happen after this child has already restarted sys_pause(),
-because it gets another wakeup from ptrace_untrace().
-
-With or without this patch, perhaps sys_pause() needs a fix.  But this
-wakeup also breaks the SIGNAL_STOP_STOPPED logic in ptrace_untrace().
-
-Remove this wakeup.  The caller saw this task in TASK_TRACED state, and
-unless it was SIGKILL'ed in between __ptrace_unlink()->ptrace_untrace()
-should handle this case correctly.  If it was SIGKILL'ed, we don't need to
-wakup the dying tracee too.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Signed-off-by: Edward Shishkin<edward.shishkin@gmail.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/mm.h  |    1 +
+ mm/page-writeback.c |   36 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+)
 
-diff -puN kernel/ptrace.c~ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic
-+++ a/kernel/ptrace.c
-@@ -301,11 +301,7 @@ int ptrace_detach(struct task_struct *ch
- 	 */
- 	if (child->ptrace) {
- 		child->exit_code = data;
--
- 		dead = __ptrace_detach(current, child);
--
--		if (!child->exit_state)
--			wake_up_process(child);
- 	}
- 	write_unlock_irq(&tasklist_lock);
+diff -puN include/linux/mm.h~vfs-add-set_page_dirty_notag include/linux/mm.h
+--- a/include/linux/mm.h~vfs-add-set_page_dirty_notag
++++ a/include/linux/mm.h
+@@ -841,6 +841,7 @@ int redirty_page_for_writepage(struct wr
+ 				struct page *page);
+ int set_page_dirty(struct page *page);
+ int set_page_dirty_lock(struct page *page);
++int set_page_dirty_notag(struct page *page);
+ int clear_page_dirty_for_io(struct page *page);
  
+ extern unsigned long move_page_tables(struct vm_area_struct *vma,
+diff -puN mm/page-writeback.c~vfs-add-set_page_dirty_notag mm/page-writeback.c
+--- a/mm/page-writeback.c~vfs-add-set_page_dirty_notag
++++ a/mm/page-writeback.c
+@@ -1248,6 +1248,42 @@ int __set_page_dirty_nobuffers(struct pa
+ EXPORT_SYMBOL(__set_page_dirty_nobuffers);
+ 
+ /*
++ * set_page_dirty_notag() -- similar to __set_page_dirty_nobuffers()
++ * except it doesn't tag the page dirty in the page-cache radix tree.
++ * This means that the address space using this cannot use the regular
++ * filemap ->writepages() helpers and must provide its own means of
++ * tracking and finding non-tagged dirty pages.
++ *
++ * NOTE: furthermore, this version also doesn't handle truncate races.
++ */
++int set_page_dirty_notag(struct page *page)
++{
++	struct address_space *mapping = page->mapping;
++
++	if (!TestSetPageDirty(page)) {
++		WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
++		if (mapping_cap_account_dirty(mapping)) {
++		        /*
++			 * The accounting functions rely on
++			 * being atomic wrt interrupts.
++			 */
++		        unsigned long flags;
++			local_irq_save(flags);
++			__inc_zone_page_state(page, NR_FILE_DIRTY);
++			__inc_bdi_stat(mapping->backing_dev_info,
++				       BDI_RECLAIMABLE);
++			task_dirty_inc(current);
++			task_io_account_write(PAGE_CACHE_SIZE);
++			local_irq_restore(flags);
++		}
++		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
++		return 1;
++	}
++	return 0;
++}
++EXPORT_SYMBOL(set_page_dirty_notag);
++
++/*
+  * When a writepage implementation decides that it doesn't want to write this
+  * page for some reason, it should redirty the locked page via
+  * redirty_page_for_writepage() and it should then unlock the page and return 0
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
-linux-next.patch
-pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch
-get_mm_hiwater_xxx-trivial-s-define-inline.patch
-getrusage-fill-ru_maxrss-value.patch
-do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch
-ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
-ptrace-simplify-ptrace_exit-ignoring_children-path.patch
-ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
-ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
-reparent_thread-dont-call-kill_orphaned_pgrp-if-task_detached.patch
-reparent_thread-fix-the-is-it-traced-check.patch
-reparent_thread-fix-a-zombie-leak-if-sbin-init-ignores-sigchld.patch
-forget_original_parent-split-out-the-un-ptrace-part.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-move-exit_ptrace-from-forget_original_parent-to-do_exit.patch
-reparent-untrace-do-nothing-if-no-childs-tracees.patch
-tracehook_notify_death-use-task_detached-helper.patch
-ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch
-ptrace_untrace-fix-the-signal_stop_stopped-check.patch
-workqueue-avoid-recursion-in-run_workqueue.patch
-kthreads-move-sched-realeted-initialization-from-kthreadd-context.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+vfs-add-set_page_dirty_notag.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4.patch
+reiser4-adjust-to-the-new-aops.patch
+reiser4-adjust-to-the-new-aops-fixup.patch
+reiser4-remove-simple_prepare_write-usage.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
+reiser4-update-names-of-quota-methods.patch
 
