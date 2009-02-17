@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jsm-additional-device-support.patch added to -mm tree
-Date: Tue, 17 Feb 2009 13:31:30 -0800
-Message-ID: <200902172131.n1HLVUFa022164@imap1.linux-foundation.org>
+Subject: + mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch added to -mm tree
+Date: Tue, 17 Feb 2009 13:58:28 -0800
+Message-ID: <200902172158.n1HLwTvV028582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750814AbZBQVf3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751379AbZBQV72 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 16:35:29 -0500
+	Tue, 17 Feb 2009 16:59:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adam@os.inf.tu-dresden.de, Scott_Kilau@digi.com, alan@lxorguk.ukuu.org.uk, wendyx@us.ibm.com
+Cc: akpm@linux-foundation.org, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, npiggin@suse.de
 
 
 The patch titled
-     jsm: additional device support
+     mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix
 has been added to the -mm tree.  Its filename is
-     jsm-additional-device-support.patch
+     mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jsm: additional device support
-From: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+Subject: mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I have a Digi Neo 8 PCI card (114f:00b1) Serial controller: Digi
-International Digi Neo 8 (rev 05)
-
-that works with the jsm driver after using the following patch.
-
-Signed-off-by: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
-Cc: Scott H Kilau <Scott_Kilau@digi.com>
-Cc: Wendy Xiong <wendyx@us.ibm.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_driver.c |    3 +++
- include/linux/pci_ids.h         |    1 +
- 2 files changed, 4 insertions(+)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/jsm/jsm_driver.c~jsm-additional-device-support drivers/serial/jsm/jsm_driver.c
---- a/drivers/serial/jsm/jsm_driver.c~jsm-additional-device-support
-+++ a/drivers/serial/jsm/jsm_driver.c
-@@ -84,6 +84,8 @@ static int jsm_probe_one(struct pci_dev 
- 	brd->pci_dev = pdev;
- 	if (pdev->device == PCIE_DEVICE_ID_NEO_4_IBM)
- 		brd->maxports = 4;
-+	else if (pdev->device == PCI_DEVICE_ID_DIGI_NEO_8)
-+		brd->maxports = 8;
- 	else
- 		brd->maxports = 2;
- 
-@@ -212,6 +214,7 @@ static struct pci_device_id jsm_pci_tbl[
- 	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCI_DEVICE_ID_NEO_2RJ45), 0, 0, 2 },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCI_DEVICE_ID_NEO_2RJ45PRI), 0, 0, 3 },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCIE_DEVICE_ID_NEO_4_IBM), 0, 0, 4 },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCI_DEVICE_ID_DIGI_NEO_8), 0, 0, 5 },
- 	{ 0, }
- };
- MODULE_DEVICE_TABLE(pci, jsm_pci_tbl);
-diff -puN include/linux/pci_ids.h~jsm-additional-device-support include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~jsm-additional-device-support
-+++ a/include/linux/pci_ids.h
-@@ -1449,6 +1449,7 @@
- #define PCI_DEVICE_ID_DIGI_DF_M_E	0x0071
- #define PCI_DEVICE_ID_DIGI_DF_M_IOM2_A	0x0072
- #define PCI_DEVICE_ID_DIGI_DF_M_A	0x0073
-+#define PCI_DEVICE_ID_DIGI_NEO_8	0x00B1
- #define PCI_DEVICE_ID_NEO_2DB9          0x00C8
- #define PCI_DEVICE_ID_NEO_2DB9PRI       0x00C9
- #define PCI_DEVICE_ID_NEO_2RJ45         0x00CA
+diff -puN mm/memory.c~mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix mm/memory.c
+--- a/mm/memory.c~mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix
++++ a/mm/memory.c
+@@ -1153,7 +1153,7 @@ struct page *follow_page(struct vm_area_
+ 			set_page_dirty(page);
+ 		/*
+ 		 * pte_mkyoung() would be more correct here, but atomic care
+-		 * is needed to avoid losing dirty bit: easier to
++		 * is needed to avoid losing the dirty bit: it is easier to use
+ 		 * mark_page_accessed().
+ 		 */
+ 		mark_page_accessed(page);
 _
 
-Patches currently in -mm which might be from adam@os.inf.tu-dresden.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-jsm-additional-device-support.patch
+vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+mtd-rbtx4939-add-mtd-support.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+cciss-pci-power-management-reset-for-kexec.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+timerfd-add-flags-check-fix.patch
+lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
