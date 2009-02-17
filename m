@@ -1,45 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] floppy-request-only-the-ports-we-actually-use.patch removed from -mm tree
-Date: Tue, 17 Feb 2009 14:04:06 -0800
-Message-ID: <200902172204.n1HM47sg004317@imap1.linux-foundation.org>
+Subject: + floppy-request-and-release-only-the-ports-we-actually-use.patch added to -mm tree
+Date: Tue, 17 Feb 2009 14:07:27 -0800
+Message-ID: <200902172207.n1HM7SpW009092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752781AbZBQWFU (ORCPT
+	by vger.kernel.org with ESMTP id S1752048AbZBQWHf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 17:05:20 -0500
+	Tue, 17 Feb 2009 17:07:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, abelay@mit.edu, hancockrwd@gmail.com, phdm@macqel.be, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: phdm@macqel.be, abelay@mit.edu, bjorn.helgaas@hp.com, hancockrwd@gmail.com
 
 
 The patch titled
-     floppy: request only the ports we actually use
-has been removed from the -mm tree.  Its filename was
-     floppy-request-only-the-ports-we-actually-use.patch
+     floppy: request and release only the ports we actually use
+has been added to the -mm tree.  Its filename is
+     floppy-request-and-release-only-the-ports-we-actually-use.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: floppy: request only the ports we actually use
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: floppy: request and release only the ports we actually use
+From: Philippe De Muyter <phdm@macqel.be>
 
 The floppy driver requests an I/O port it doesn't need, and sometimes this
 causes a conflict with a motherboard device reported by PNPBIOS.
 
-This patch makes the floppy driver request only the ports it actually
-uses.
+This patch makes the floppy driver request and release only the ports it
+actually uses.  It also factors out the request/release stuff and the
+io-ports list so they're all in one place now.
 
 The current floppy driver uses only these ports:
+
     0x3f2 (FD_DOR)
     0x3f4 (FD_STATUS)
     0x3f5 (FD_DATA)
     0x3f7 (FD_DCR/FD_DIR)
-but it requests 0x3f2-0x3f5 and 0x3f7, which includes the
-unused port 0x3f3.
+
+but it requests 0x3f2-0x3f5 and 0x3f7, which includes the unused port
+0x3f3.
 
 Some BIOSes report 0x3f3 as a motherboard resource.  The PNP system driver
 reserves that, which causes a conflict when the floppy driver requests
@@ -69,102 +82,154 @@ Philippe reported that this conflict broke the floppy driver between
 Reference:
     http://lkml.org/lkml/2009/1/31/162
 
-[phdm@macqel.be: release only the ports we actually requested]
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
 Reported-by: Philippe De Muyter <phdm@macqel.be>
 Tested-by: Philippe De Muyter <phdm@macqel.be>
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
 Cc: Adam M Belay <abelay@mit.edu>
 Cc: Robert Hancock <hancockrwd@gmail.com>
-Cc: <stable@kernel.org>	[2.6.25.x, 2.6.26.x, 2.6.27.x, 2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ drivers/block/floppy.c |   79 +++++++++++++++++++++++++--------------
+ 1 file changed, 52 insertions(+), 27 deletions(-)
 
-diff -puN drivers/block/floppy.c~floppy-request-only-the-ports-we-actually-use drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-request-only-the-ports-we-actually-use
+diff -puN drivers/block/floppy.c~floppy-request-and-release-only-the-ports-we-actually-use drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-request-and-release-only-the-ports-we-actually-use
 +++ a/drivers/block/floppy.c
-@@ -4273,7 +4273,8 @@ static int __init floppy_init(void)
+@@ -558,6 +558,8 @@ static void process_fd_request(void);
+ static void recalibrate_floppy(void);
+ static void floppy_shutdown(unsigned long);
+ 
++static int floppy_request_regions(int);
++static void floppy_release_regions(int);
+ static int floppy_grab_irq_and_dma(void);
+ static void floppy_release_irq_and_dma(void);
+ 
+@@ -4273,8 +4275,7 @@ static int __init floppy_init(void)
  		FDCS->rawcmd = 2;
  		if (user_reset_fdc(-1, FD_RESET_ALWAYS, 0)) {
  			/* free ioports reserved by floppy_grab_irq_and_dma() */
 -			release_region(FDCS->address + 2, 4);
-+			release_region(FDCS->address + 2, 1);
-+			release_region(FDCS->address + 4, 2);
- 			release_region(FDCS->address + 7, 1);
+-			release_region(FDCS->address + 7, 1);
++			floppy_release_regions(fdc);
  			FDCS->address = -1;
  			FDCS->version = FDC_NONE;
-@@ -4283,7 +4284,8 @@ static int __init floppy_init(void)
+ 			continue;
+@@ -4283,8 +4284,7 @@ static int __init floppy_init(void)
  		FDCS->version = get_fdc_version();
  		if (FDCS->version == FDC_NONE) {
  			/* free ioports reserved by floppy_grab_irq_and_dma() */
 -			release_region(FDCS->address + 2, 4);
-+			release_region(FDCS->address + 2, 1);
-+			release_region(FDCS->address + 4, 2);
- 			release_region(FDCS->address + 7, 1);
+-			release_region(FDCS->address + 7, 1);
++			floppy_release_regions(fdc);
  			FDCS->address = -1;
  			continue;
-@@ -4398,15 +4400,20 @@ static int floppy_grab_irq_and_dma(void)
+ 		}
+@@ -4357,6 +4357,47 @@ out_put_disk:
+ 
+ static DEFINE_SPINLOCK(floppy_usage_lock);
+ 
++static const struct io_region {
++	int offset;
++	int size;
++} io_regions[] = {
++	{ 2, 1 },
++	/* address + 3 is sometimes reserved by pnp bios for motherboard */
++	{ 4, 2 },
++	/* address + 6 is reserved, and may be taken by IDE.
++	 * Unfortunately, Adaptec doesn't know this :-(, */
++	{ 7, 1 },
++};
++
++static void floppy_release_allocated_regions(int fdc, const struct io_region *p)
++{
++	while (p != io_regions) {
++		p--;
++		release_region(FDCS->address + p->offset, p->size);
++	}
++}
++
++#define ARRAY_END(X) (&((X)[ARRAY_SIZE(X)]))
++
++static int floppy_request_regions(int fdc)
++{
++	const struct io_region *p;
++
++	for (p = io_regions; p < ARRAY_END(io_regions); p++) {
++		if (!request_region(FDCS->address + p->offset, p->size, "floppy")) {
++			DPRINT("Floppy io-port 0x%04lx in use\n", FDCS->address + p->offset);
++			floppy_release_allocated_regions(fdc, p);
++			return -EBUSY;
++		}
++	}
++	return 0;
++}
++
++static void floppy_release_regions(int fdc)
++{
++	floppy_release_allocated_regions(fdc, ARRAY_END(io_regions));
++}
++
+ static int floppy_grab_irq_and_dma(void)
+ {
+ 	unsigned long flags;
+@@ -4398,18 +4439,8 @@ static int floppy_grab_irq_and_dma(void)
  
  	for (fdc = 0; fdc < N_FDC; fdc++) {
  		if (FDCS->address != -1) {
 -			if (!request_region(FDCS->address + 2, 4, "floppy")) {
-+			if (!request_region(FDCS->address + 2, 1, "floppy")) {
- 				DPRINT("Floppy io-port 0x%04lx in use\n",
- 				       FDCS->address + 2);
- 				goto cleanup1;
- 			}
-+			if (!request_region(FDCS->address + 4, 2, "floppy")) {
-+				DPRINT("Floppy io-port 0x%04lx in use\n",
-+				       FDCS->address + 4);
-+				goto cleanup2;
-+			}
- 			if (!request_region(FDCS->address + 7, 1, "floppy DIR")) {
- 				DPRINT("Floppy io-port 0x%04lx in use\n",
- 				       FDCS->address + 7);
+-				DPRINT("Floppy io-port 0x%04lx in use\n",
+-				       FDCS->address + 2);
+-				goto cleanup1;
+-			}
+-			if (!request_region(FDCS->address + 7, 1, "floppy DIR")) {
+-				DPRINT("Floppy io-port 0x%04lx in use\n",
+-				       FDCS->address + 7);
 -				goto cleanup2;
-+				goto cleanup3;
- 			}
- 			/* address + 6 is reserved, and may be taken by IDE.
- 			 * Unfortunately, Adaptec doesn't know this :-(, */
-@@ -4431,13 +4438,16 @@ static int floppy_grab_irq_and_dma(void)
+-			}
+-			/* address + 6 is reserved, and may be taken by IDE.
+-			 * Unfortunately, Adaptec doesn't know this :-(, */
++			if (floppy_request_regions(fdc))
++				goto cleanup;
+ 		}
+ 	}
+ 	for (fdc = 0; fdc < N_FDC; fdc++) {
+@@ -4431,15 +4462,11 @@ static int floppy_grab_irq_and_dma(void)
  	fdc = 0;
  	irqdma_allocated = 1;
  	return 0;
-+cleanup3:
-+	release_region(FDCS->address + 4, 2);
- cleanup2:
+-cleanup2:
 -	release_region(FDCS->address + 2, 4);
-+	release_region(FDCS->address + 2, 1);
- cleanup1:
+-cleanup1:
++cleanup:
  	fd_free_irq();
  	fd_free_dma();
- 	while (--fdc >= 0) {
+-	while (--fdc >= 0) {
 -		release_region(FDCS->address + 2, 4);
-+		release_region(FDCS->address + 2, 1);
-+		release_region(FDCS->address + 4, 2);
- 		release_region(FDCS->address + 7, 1);
- 	}
+-		release_region(FDCS->address + 7, 1);
+-	}
++	while (--fdc >= 0)
++		floppy_release_regions(fdc);
  	spin_lock_irqsave(&floppy_usage_lock, flags);
-@@ -4501,7 +4511,8 @@ static void floppy_release_irq_and_dma(v
+ 	usage_count--;
+ 	spin_unlock_irqrestore(&floppy_usage_lock, flags);
+@@ -4500,10 +4527,8 @@ static void floppy_release_irq_and_dma(v
+ #endif
  	old_fdc = fdc;
  	for (fdc = 0; fdc < N_FDC; fdc++)
- 		if (FDCS->address != -1) {
+-		if (FDCS->address != -1) {
 -			release_region(FDCS->address + 2, 4);
-+			release_region(FDCS->address + 2, 1);
-+			release_region(FDCS->address + 4, 2);
- 			release_region(FDCS->address + 7, 1);
- 		}
+-			release_region(FDCS->address + 7, 1);
+-		}
++		if (FDCS->address != -1)
++			floppy_release_regions(fdc);
  	fdc = old_fdc;
+ }
+ 
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from phdm@macqel.be are
 
-linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-floppy-request-only-the-ports-we-actually-use.patch
-pnpbios-fix-warning-if-no-hotplug.patch
-pnpbios-propagate-kthread_run-error.patch
+floppy-request-and-release-only-the-ports-we-actually-use.patch
 
