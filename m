@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace_untrace-fix-the-signal_stop_stopped-check.patch added to -mm tree
-Date: Tue, 17 Feb 2009 14:13:34 -0800
-Message-ID: <200902172213.n1HMDYei017979@imap1.linux-foundation.org>
+Subject: + ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch added to -mm tree
+Date: Tue, 17 Feb 2009 14:13:31 -0800
+Message-ID: <200902172213.n1HMDVOC017877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53528 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40402 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752892AbZBQWVS (ORCPT
+	by vger.kernel.org with ESMTP id S1750828AbZBQWWI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 17:21:18 -0500
+	Tue, 17 Feb 2009 17:22:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, dvlasenk@redhat.com, jmarchan@redhat.com, roland@redhat.com
 
 
 The patch titled
-     ptrace_untrace: fix the SIGNAL_STOP_STOPPED check
+     ptrace_detach: the wrong wakeup breaks the ERESTARTxxx logic
 has been added to the -mm tree.  Its filename is
-     ptrace_untrace-fix-the-signal_stop_stopped-check.patch
+     ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace_untrace: fix the SIGNAL_STOP_STOPPED check
+Subject: ptrace_detach: the wrong wakeup breaks the ERESTARTxxx logic
 From: Oleg Nesterov <oleg@redhat.com>
 
-This bug is ancient too. ptrace_untrace() must not resume the task
-if the group stop in progress, we should set TASK_STOPPED instead.
+Another ancient bug. Consider this trivial test-case,
 
-Unfortunately, we still have problems here:
+	int main(void)
+	{
+		int pid = fork();
 
-	- if the process/thread was traced, SIGNAL_STOP_STOPPED
-	  does not necessary means this thread group is stopped.
+		if (pid) {
+			ptrace(PTRACE_ATTACH, pid, NULL, NULL);
+			wait(NULL);
+			ptrace(PTRACE_DETACH, pid, NULL, NULL);
+		} else {
+			pause();
+			printf("WE HAVE A KERNEL BUG!!!\n");
+		}
 
-	- ptrace breaks the bookkeeping of ->group_stop_count.
+		return 0;
+	}
+
+the child must not "escape" for sys_pause(), but it can and this was seen
+in practice.
+
+This is because ptrace_detach does:
+
+	if (!child->exit_state)
+		wake_up_process(child);
+
+this wakeup can happen after this child has already restarted sys_pause(),
+because it gets another wakeup from ptrace_untrace().
+
+With or without this patch, perhaps sys_pause() needs a fix.  But this
+wakeup also breaks the SIGNAL_STOP_STOPPED logic in ptrace_untrace().
+
+Remove this wakeup.  The caller saw this task in TASK_TRACED state, and
+unless it was SIGKILL'ed in between __ptrace_unlink()->ptrace_untrace()
+should handle this case correctly.  If it was SIGKILL'ed, we don't need to
+wakup the dying tracee too.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Jerome Marchand <jmarchan@redhat.com>
@@ -54,31 +81,24 @@ Cc: Denys Vlasenko <dvlasenk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ kernel/ptrace.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace_untrace-fix-the-signal_stop_stopped-check kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace_untrace-fix-the-signal_stop_stopped-check
+diff -puN kernel/ptrace.c~ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic
 +++ a/kernel/ptrace.c
-@@ -60,11 +60,15 @@ static void ptrace_untrace(struct task_s
- {
- 	spin_lock(&child->sighand->siglock);
- 	if (task_is_traced(child)) {
--		if (child->signal->flags & SIGNAL_STOP_STOPPED) {
-+		/*
-+		 * If the group stop is completed or in progress,
-+		 * this thread was already counted as stopped.
-+		 */
-+		if (child->signal->flags & SIGNAL_STOP_STOPPED ||
-+		    child->signal->group_stop_count)
- 			__set_task_state(child, TASK_STOPPED);
--		} else {
-+		else
- 			signal_wake_up(child, 1);
--		}
+@@ -301,11 +301,7 @@ int ptrace_detach(struct task_struct *ch
+ 	 */
+ 	if (child->ptrace) {
+ 		child->exit_code = data;
+-
+ 		dead = __ptrace_detach(current, child);
+-
+-		if (!child->exit_state)
+-			wake_up_process(child);
  	}
- 	spin_unlock(&child->sighand->siglock);
- }
+ 	write_unlock_irq(&tasklist_lock);
+ 
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
