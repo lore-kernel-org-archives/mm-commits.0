@@ -1,170 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree.patch removed from -mm tree
-Date: Tue, 17 Feb 2009 12:08:43 -0800
-Message-ID: <200902172008.n1HK8hwO000946@imap1.linux-foundation.org>
+Subject: [merged] dmar-fix-endless-unknown-dmar-structure-type-loop.patch removed from -mm tree
+Date: Tue, 17 Feb 2009 12:08:47 -0800
+Message-ID: <200902172008.n1HK8lJT001171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46449 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753152AbZBQUPW (ORCPT
+	by vger.kernel.org with ESMTP id S1753443AbZBQUPk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 15:15:22 -0500
+	Tue, 17 Feb 2009 15:15:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcn@sgi.com, mingo@elte.hu, steiner@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: tonyb@cybernetics.com, 7eggert@gmx.de, avi@redhat.com, dwmw2@infradead.org, iommu@lists.linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi ia64 uv: fix ia64 build error in the linux-next tree
+     dmar: fix endless "Unknown DMAR structure type" loop
 has been removed from the -mm tree.  Its filename was
-     sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree.patch
+     dmar-fix-endless-unknown-dmar-structure-type-loop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi ia64 uv: fix ia64 build error in the linux-next tree
-From: Dean Nelson <dcn@sgi.com>
+Subject: dmar: fix endless "Unknown DMAR structure type" loop
+From: Tony Battersby <tonyb@cybernetics.com>
 
-Fix the ia64 build error that occurs in the linux-next tree by introducing
-an ia64 version of uv.h.  Additionally, clean up the usage of
-is_uv_system().
+I have a SuperMicro C2SBX motherboard with BIOS revision 1.0b.  With vt-d
+enabled in the BIOS, Linux gets into an endless loop printing
+"DMAR:Unknown DMAR structure type" when booting.  Here is the DMAR ACPI
+table:
 
-Presumably repairs
+DMAR @ 0x7fe86dec
+  0000: 44 4d 41 52 98 00 00 00 01 6f 49 6e 74 65 6c 20  DMAR.....oIntel
+  0010: 4f 45 4d 44 4d 41 52 20 00 00 04 06 4c 4f 48 52  OEMDMAR ....LOHR
+  0020: 01 00 00 00 23 00 00 00 00 00 00 00 00 00 00 00  ....#...........
+  0030: 01 00 58 00 00 00 00 00 00 a0 e8 7f 00 00 00 00  ..X.............
+  0040: ff ff ef 7f 00 00 00 00 01 08 00 00 00 00 1d 00  ................
+  0050: 01 08 00 00 00 00 1d 01 01 08 00 00 00 00 1d 02  ................
+  0060: 01 08 00 00 00 00 1d 07 01 08 00 00 00 00 1a 00  ................
+  0070: 01 08 00 00 00 00 1a 01 01 08 00 00 00 00 1a 02  ................
+  0080: 01 08 00 00 00 00 1a 07 01 08 00 00 00 00 1a 07  ................
+  0090: c0 00 68 00 04 10 66 60                          ..h...f`
 
-commit 5b221278d61e3907a5e4104a844b63bc8bb3d43a
-Author: Ingo Molnar <mingo@elte.hu>
-Date:   Wed Jan 21 11:30:07 2009 +0100
+Here are the messages printed by the kernel:
 
-    x86: uv cleanup, build fix #2
-    
+DMAR:Host address width 36
+DMAR:RMRR base: 0x000000007fe8a000 end: 0x000000007fefffff
+DMAR:Unknown DMAR structure type
+DMAR:Unknown DMAR structure type
+DMAR:Unknown DMAR structure type
+...
 
-Signed-off-by: Dean Nelson <dcn@sgi.com>
-Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Although I not very familiar with ACPI, to me it looks like struct
+acpi_dmar_header::length == 0x0058 is incorrect, causing
+parse_dmar_table() to look at an invalid offset on the next loop.  This
+offset happens to have struct acpi_dmar_header::length == 0x0000, which
+prevents the loop from ever terminating.  This patch checks for this
+condition and bails out instead of looping forever.
+
+Signed-off-by: Tony Battersby <tonyb@cybernetics.com>
+Cc: Bodo Eggert <7eggert@gmx.de>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: <iommu@lists.linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/uv/uv.h  |   13 +++++++++++++
- drivers/misc/sgi-gru/gru.h     |    2 --
- drivers/misc/sgi-gru/grufile.c |   18 +++---------------
- drivers/misc/sgi-xp/xp.h       |   22 ++++++++--------------
- 4 files changed, 24 insertions(+), 31 deletions(-)
+ drivers/pci/dmar.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN /dev/null arch/ia64/include/asm/uv/uv.h
---- /dev/null
-+++ a/arch/ia64/include/asm/uv/uv.h
-@@ -0,0 +1,13 @@
-+#ifndef _ASM_IA64_UV_UV_H
-+#define _ASM_IA64_UV_UV_H
+diff -puN drivers/pci/dmar.c~dmar-fix-endless-unknown-dmar-structure-type-loop drivers/pci/dmar.c
+--- a/drivers/pci/dmar.c~dmar-fix-endless-unknown-dmar-structure-type-loop
++++ a/drivers/pci/dmar.c
+@@ -330,6 +330,14 @@ parse_dmar_table(void)
+ 	entry_header = (struct acpi_dmar_header *)(dmar + 1);
+ 	while (((unsigned long)entry_header) <
+ 			(((unsigned long)dmar) + dmar_tbl->length)) {
++		/* Avoid looping forever on bad ACPI tables */
++		if (entry_header->length == 0) {
++			printk(KERN_WARNING PREFIX
++				"Invalid 0-length structure\n");
++			ret = -EINVAL;
++			break;
++		}
 +
-+#include <asm/system.h>
-+#include <asm/sn/simulator.h>
-+
-+static inline int is_uv_system(void)
-+{
-+	/* temporary support for running on hardware simulator */
-+	return IS_MEDUSA() || ia64_platform_is("uv");
-+}
-+
-+#endif	/* _ASM_IA64_UV_UV_H */
-diff -puN drivers/misc/sgi-gru/gru.h~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree drivers/misc/sgi-gru/gru.h
---- a/drivers/misc/sgi-gru/gru.h~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree
-+++ a/drivers/misc/sgi-gru/gru.h
-@@ -19,8 +19,6 @@
- #ifndef __GRU_H__
- #define __GRU_H__
+ 		dmar_table_print_dmar_entry(entry_header);
  
--#include <asm/uv/uv.h>
--
- /*
-  * GRU architectural definitions
-  */
-diff -puN drivers/misc/sgi-gru/grufile.c~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -36,23 +36,11 @@
- #include <linux/interrupt.h>
- #include <linux/proc_fs.h>
- #include <linux/uaccess.h>
-+#include <asm/uv/uv.h>
- #include "gru.h"
- #include "grulib.h"
- #include "grutables.h"
- 
--#if defined CONFIG_X86_64
--#include <asm/genapic.h>
--#include <asm/irq.h>
--#define IS_UV()		is_uv_system()
--#elif defined CONFIG_IA64
--#include <asm/system.h>
--#include <asm/sn/simulator.h>
--/* temp support for running on hardware simulator */
--#define IS_UV()		IS_MEDUSA() || ia64_platform_is("uv")
--#else
--#define IS_UV()		0
--#endif
--
- #include <asm/uv/uv_hub.h>
- #include <asm/uv/uv_mmrs.h>
- 
-@@ -381,7 +369,7 @@ static int __init gru_init(void)
- 	char id[10];
- 	void *gru_start_vaddr;
- 
--	if (!IS_UV())
-+	if (!is_uv_system())
- 		return 0;
- 
- #if defined CONFIG_IA64
-@@ -451,7 +439,7 @@ static void __exit gru_exit(void)
- 	int order = get_order(sizeof(struct gru_state) *
- 			      GRU_CHIPLETS_PER_BLADE);
- 
--	if (!IS_UV())
-+	if (!is_uv_system())
- 		return;
- 
- 	for (i = 0; i < GRU_CHIPLETS_PER_BLADE; i++)
-diff -puN drivers/misc/sgi-xp/xp.h~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree drivers/misc/sgi-xp/xp.h
---- a/drivers/misc/sgi-xp/xp.h~sgi-ia64-uv-fix-ia64-build-error-in-the-linux-next-tree
-+++ a/drivers/misc/sgi-xp/xp.h
-@@ -15,21 +15,19 @@
- 
- #include <linux/mutex.h>
- 
-+#if defined CONFIG_X86_UV || defined CONFIG_IA64_SGI_UV
- #include <asm/uv/uv.h>
-+#define is_uv()		is_uv_system()
-+#endif
-+
-+#ifndef is_uv
-+#define is_uv()		0
-+#endif
- 
--#ifdef CONFIG_IA64
-+#if defined CONFIG_IA64
- #include <asm/system.h>
- #include <asm/sn/arch.h>	/* defines is_shub1() and is_shub2() */
- #define is_shub()	ia64_platform_is("sn2")
--#ifdef CONFIG_IA64_SGI_UV
--#define is_uv()		ia64_platform_is("uv")
--#else
--#define is_uv()		0
--#endif
--#endif
--#ifdef CONFIG_X86_64
--#include <asm/genapic.h>
--#define is_uv()		is_uv_system()
- #endif
- 
- #ifndef is_shub1
-@@ -44,10 +42,6 @@
- #define is_shub()	0
- #endif
- 
--#ifndef is_uv
--#define is_uv()		0
--#endif
+ 		switch (entry_header->type) {
+_
+
+Patches currently in -mm which might be from tonyb@cybernetics.com are
+
+linux-next.patch
+make-shm_get_stat-more-robust.patch
+
