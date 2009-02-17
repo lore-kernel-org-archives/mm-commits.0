@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch removed from -mm tree
-Date: Tue, 17 Feb 2009 12:09:09 -0800
-Message-ID: <200902172009.n1HK99OV001668@imap1.linux-foundation.org>
+Subject: [merged] mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings.patch removed from -mm tree
+Date: Tue, 17 Feb 2009 12:09:11 -0800
+Message-ID: <200902172009.n1HK9BeR001673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54984 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34234 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752919AbZBQUPU (ORCPT
+	by vger.kernel.org with ESMTP id S1753374AbZBQUPU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Feb 2009 15:15:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,17 +15,19 @@ To: vapier.adi@gmail.com, cooloney@kernel.org, dwmw2@infradead.org, mm-commits@v
 
 
 The patch titled
-     mtd/maps: blackfin async flash maps - fix bug: dont leak resources when initializing in case of errors
+     mtd/maps: blackfin async flash maps: bfin-async mtd driver needs complex mappings
 has been removed from the -mm tree.  Its filename was
-     mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch
+     mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/maps: blackfin async flash maps - fix bug: dont leak resources when initializing in case of errors
+Subject: mtd/maps: blackfin async flash maps: bfin-async mtd driver needs complex mappings
 From: Mike Frysinger <vapier.adi@gmail.com>
+
+Correct a build error.  bfin-async uses complex mappings and so needs it.
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
@@ -33,32 +35,21 @@ Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/bfin-async-flash.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/mtd/maps/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/maps/bfin-async-flash.c~mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors drivers/mtd/maps/bfin-async-flash.c
---- a/drivers/mtd/maps/bfin-async-flash.c~mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors
-+++ a/drivers/mtd/maps/bfin-async-flash.c
-@@ -152,14 +152,18 @@ static int __devinit bfin_flash_probe(st
+diff -puN drivers/mtd/maps/Kconfig~mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings drivers/mtd/maps/Kconfig
+--- a/drivers/mtd/maps/Kconfig~mtd-maps-blackfin-async-flash-maps-bfin-async-mtd-driver-needs-complex-mappings
++++ a/drivers/mtd/maps/Kconfig
+@@ -491,7 +491,7 @@ config MTD_PCMCIA_ANONYMOUS
  
- 	if (gpio_request(state->enet_flash_pin, DRIVER_NAME)) {
- 		pr_devinit(KERN_ERR DRIVER_NAME ": Failed to request gpio %d\n", state->enet_flash_pin);
-+		kfree(state);
- 		return -EBUSY;
- 	}
- 	gpio_direction_output(state->enet_flash_pin, 1);
- 
- 	pr_devinit(KERN_NOTICE DRIVER_NAME ": probing %d-bit flash bus\n", state->map.bankwidth * 8);
- 	state->mtd = do_map_probe(memory->name, &state->map);
--	if (!state->mtd)
-+	if (!state->mtd) {
-+		gpio_free(state->enet_flash_pin);
-+		kfree(state);
- 		return -ENXIO;
-+	}
- 
- #ifdef CONFIG_MTD_PARTITIONS
- 	ret = parse_mtd_partitions(state->mtd, part_probe_types, &pdata->parts, 0);
+ config MTD_BFIN_ASYNC
+ 	tristate "Blackfin BF533-STAMP Flash Chip Support"
+-	depends on BFIN533_STAMP && MTD_CFI
++	depends on BFIN533_STAMP && MTD_CFI && MTD_COMPLEX_MAPPINGS
+ 	select MTD_PARTITIONS
+ 	default y
+ 	help
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
