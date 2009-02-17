@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-hibernate-fix-swap-breaks-after-hibernation-failures.patch added to -mm tree
-Date: Tue, 17 Feb 2009 15:50:17 -0800
-Message-ID: <200902172350.n1HNoIYS026751@imap1.linux-foundation.org>
+Subject: + pm-fix-pm_notifiers-during-user-mode-hibernation.patch added to -mm tree
+Date: Tue, 17 Feb 2009 15:50:19 -0800
+Message-ID: <200902172350.n1HNoJBN026754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751408AbZBQXvK (ORCPT
+	by vger.kernel.org with ESMTP id S1751690AbZBQXvT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 18:51:10 -0500
+	Tue, 17 Feb 2009 18:51:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan-jenkins@tuffmail.co.uk, lenb@kernel.org, rjw@sisk.pl
+Cc: arvidjaar@mail.ru, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     PM/hibernate: fix "swap breaks after hibernation failures"
+     pm: fix pm_notifiers during user mode hibernation
 has been added to the -mm tree.  Its filename is
-     pm-hibernate-fix-swap-breaks-after-hibernation-failures.patch
+     pm-fix-pm_notifiers-during-user-mode-hibernation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PM/hibernate: fix "swap breaks after hibernation failures"
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: pm: fix pm_notifiers during user mode hibernation
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=12239
+Snapshot device is opened with O_RDONLY during suspend and O_WRONLY durig
+resume.  Make sure we also call notifiers with correct parameter telling
+them what we are really doing.
 
-The image writing code dropped a reference to the current swap device. 
-This doesn't show up if the hibernation succeeds - because it doesn't
-affect the image which gets resumed.  But it means multiple _failed_
-hibernations end up freeing the swap device while it is still use!
-
-swsusp_write() finds the block device for the swap file using
-swap_type_of().  It then uses blkdev_get() / blkdev_put() to open and
-close the block device.
-
-Unfortunately, blkdev_get() assumes ownership of the inode of the
-block_device passed to it.  So blkdev_put() calls iput() on the inode. 
-This is by design and other callers expect this behaviour.  The fix is for
-swap_type_of() to take a reference on the inode using bdget().
-
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/power/user.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/swapfile.c~pm-hibernate-fix-swap-breaks-after-hibernation-failures mm/swapfile.c
---- a/mm/swapfile.c~pm-hibernate-fix-swap-breaks-after-hibernation-failures
-+++ a/mm/swapfile.c
-@@ -635,7 +635,7 @@ int swap_type_of(dev_t device, sector_t 
- 
- 		if (!bdev) {
- 			if (bdev_p)
--				*bdev_p = sis->bdev;
-+				*bdev_p = bdget(sis->bdev->bd_dev);
- 
- 			spin_unlock(&swap_lock);
- 			return i;
-@@ -647,7 +647,7 @@ int swap_type_of(dev_t device, sector_t 
- 					struct swap_extent, list);
- 			if (se->start_block == offset) {
- 				if (bdev_p)
--					*bdev_p = sis->bdev;
-+					*bdev_p = bdget(sis->bdev->bd_dev);
- 
- 				spin_unlock(&swap_lock);
- 				bdput(bdev);
+diff -puN kernel/power/user.c~pm-fix-pm_notifiers-during-user-mode-hibernation kernel/power/user.c
+--- a/kernel/power/user.c~pm-fix-pm_notifiers-during-user-mode-hibernation
++++ a/kernel/power/user.c
+@@ -95,15 +95,15 @@ static int snapshot_open(struct inode *i
+ 		data->swap = swsusp_resume_device ?
+ 			swap_type_of(swsusp_resume_device, 0, NULL) : -1;
+ 		data->mode = O_RDONLY;
+-		error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
++		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
+ 		if (error)
+-			pm_notifier_call_chain(PM_POST_RESTORE);
++			pm_notifier_call_chain(PM_POST_HIBERNATION);
+ 	} else {
+ 		data->swap = -1;
+ 		data->mode = O_WRONLY;
+-		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
++		error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
+ 		if (error)
+-			pm_notifier_call_chain(PM_POST_HIBERNATION);
++			pm_notifier_call_chain(PM_POST_RESTORE);
+ 	}
+ 	if (error)
+ 		atomic_inc(&snapshot_device_available);
 _
 
-Patches currently in -mm which might be from alan-jenkins@tuffmail.co.uk are
+Patches currently in -mm which might be from arvidjaar@mail.ru are
 
-pm-hibernate-fix-swap-breaks-after-hibernation-failures.patch
+linux-next.patch
+pm-fix-pm_notifiers-during-user-mode-hibernation.patch
+fix-pm_notifiers-during-user-mode-hibernation.patch
+fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
 
