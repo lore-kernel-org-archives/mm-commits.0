@@ -1,91 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + mmc_core-fix-data-timeout-for-send_ext_csd.patch added to -mm tree
-Date: Sun, 15 Feb 2009 13:47:34 -0800
-Message-ID: <200902152147.n1FLlYbV031289@imap1.linux-foundation.org>
+Subject: [to-be-updated] futex-fix-reference-leak.patch removed from -mm tree
+Date: Tue, 17 Feb 2009 11:46:48 -0800
+Message-ID: <200902171946.n1HJkmtw001910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755957AbZBOVrv (ORCPT
+	by vger.kernel.org with ESMTP id S1754571AbZBQTrm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 15 Feb 2009 16:47:51 -0500
+	Tue, 17 Feb 2009 14:47:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ext-adrian.hunter@nokia.com, drzeus@drzeus.cx, matt@console-pimps.org, stable@kernel.org
+To: peterz@infradead.org, a.p.zijlstra@chello.nl, catalin.marinas@arm.com, dvhltc@us.ibm.com, mingo@elte.hu, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc_core: fix data timeout for SEND_EXT_CSD
-has been added to the -mm tree.  Its filename is
-     mmc_core-fix-data-timeout-for-send_ext_csd.patch
+     futex: fix reference leak
+has been removed from the -mm tree.  Its filename was
+     futex-fix-reference-leak.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc_core: fix data timeout for SEND_EXT_CSD
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: futex: fix reference leak
+From: Peter Zijlstra <peterz@infradead.org>
 
-Commit 0d3e0460f307e84904968aad6cff97bd688583d8 "MMC: CSD and CID timeout
-values" inadvertently broke the timeout for the MMC command SEND_EXT_CSD.
+Catalin noticed that (38d47c1b7075: futex: rely on get_user_pages() for
+shared futexes) caused an mm_struct leak.
 
-This patch puts it back again.
+Some tracing with the function graph tracer quickly pointed out that
+futex_wait() has exit paths with unbalanced reference counts.
 
-Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
-Cc: <stable@kernel.org>		[2.6.28.x]
+This regression was discovered by kmemleak.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Tested-by: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Tested-by: Catalin Marinas <catalin.marinas@arm.com>
+Reported-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc_ops.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ kernel/futex.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mmc/core/mmc_ops.c~mmc_core-fix-data-timeout-for-send_ext_csd drivers/mmc/core/mmc_ops.c
---- a/drivers/mmc/core/mmc_ops.c~mmc_core-fix-data-timeout-for-send_ext_csd
-+++ a/drivers/mmc/core/mmc_ops.c
-@@ -248,12 +248,16 @@ mmc_send_cxd_data(struct mmc_card *card,
+diff -puN kernel/futex.c~futex-fix-reference-leak kernel/futex.c
+--- a/kernel/futex.c~futex-fix-reference-leak
++++ a/kernel/futex.c
+@@ -1289,18 +1289,23 @@ retry:
+ 	 */
  
- 	sg_init_one(&sg, data_buf, len);
- 
--	/*
--	 * The spec states that CSR and CID accesses have a timeout
--	 * of 64 clock cycles.
--	 */
--	data.timeout_ns = 0;
--	data.timeout_clks = 64;
-+	if (!mmc_host_is_spi(host) && opcode == MMC_SEND_EXT_CSD)
-+		mmc_set_data_timeout(&data, card);
-+	else {
-+		/*
-+		 * The spec states that CSR and CID accesses have a timeout
-+		 * of 64 clock cycles (8 for SPI).
-+		 */
-+		data.timeout_ns = 0;
-+		data.timeout_clks = 64;
+ 	/* If we were woken (and unqueued), we succeeded, whatever. */
+-	if (!unqueue_me(&q))
+-		return 0;
+-	if (rem)
+-		return -ETIMEDOUT;
++	if (!unqueue_me(&q)) {
++		ret = 0;
++		goto out_put_key;
++	}
++	if (rem) {
++		ret = -ETIMEDOUT;
++		goto out_put_key;
 +	}
  
- 	mmc_wait_for_req(host, &mrq);
+ 	/*
+ 	 * We expect signal_pending(current), but another thread may
+ 	 * have handled it for us already.
+ 	 */
+-	if (!abs_time)
+-		return -ERESTARTSYS;
+-	else {
++	if (!abs_time) {
++		ret = -ERESTARTSYS;
++		goto out_put_key;
++	} else {
+ 		struct restart_block *restart;
+ 		restart = &current_thread_info()->restart_block;
+ 		restart->fn = futex_wait_restart;
+@@ -1314,11 +1319,13 @@ retry:
+ 			restart->futex.flags |= FLAGS_SHARED;
+ 		if (clockrt)
+ 			restart->futex.flags |= FLAGS_CLOCKRT;
+-		return -ERESTART_RESTARTBLOCK;
++		ret = -ERESTART_RESTARTBLOCK;
++		goto out_put_key;
+ 	}
  
+ out_unlock_put_key:
+ 	queue_unlock(&q, hb);
++out_put_key:
+ 	put_futex_key(fshared, &q.key);
+ 
+ out:
 _
 
-Patches currently in -mm which might be from ext-adrian.hunter@nokia.com are
+Patches currently in -mm which might be from peterz@infradead.org are
 
 linux-next.patch
-mmc-add-extended-csd-as-a-device-attribute.patch
-omap-mmc-recover-from-transfer-failures-resend.patch
-omap-mmc-replace-infinite-loops-with-timeouts.patch
-omap-mmc-replace-infinite-loops-with-timeouts-update.patch
-mmc_core-fix-data-timeout-for-send_ext_csd.patch
+futex-fix-reference-leak.patch
+fs-superc-add-lockdep-annotation-to-s_umount.patch
+workqueue-avoid-recursion-in-run_workqueue.patch
 
