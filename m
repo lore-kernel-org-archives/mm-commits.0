@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-fix-ehci-printk-formats.patch added to -mm tree
-Date: Tue, 17 Feb 2009 15:38:28 -0800
-Message-ID: <200902172338.n1HNcS6b009780@imap1.linux-foundation.org>
+Subject: + wireless-fix-for-config_nl80211=n.patch added to -mm tree
+Date: Tue, 17 Feb 2009 15:42:08 -0800
+Message-ID: <200902172342.n1HNg8lv015063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755049AbZBQXih (ORCPT
+	by vger.kernel.org with ESMTP id S1752793AbZBQXnb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 18:38:37 -0500
+	Tue, 17 Feb 2009 18:43:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, johannes@sipsolutions.net, linville@tuxdriver.com
 
 
 The patch titled
-     usb: fix ehci printk formats
+     wireless: fix for CONFIG_NL80211=n
 has been added to the -mm tree.  Its filename is
-     usb-fix-ehci-printk-formats.patch
+     wireless-fix-for-config_nl80211=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: fix ehci printk formats
+Subject: wireless: fix for CONFIG_NL80211=n
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix ehci printk formats:
+Add empty function for case of CONFIG_NL80211=n:
 
-drivers/usb/host/ehci-q.c:351: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
-drivers/usb/host/ehci-q.c:351: warning: format '%d' expects type 'int', but argument 5 has type 'size_t'
+net/wireless/scan.c:35: error: implicit declaration of function 'nl80211_send_scan_aborted'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ehci-q.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/wireless/nl80211.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/usb/host/ehci-q.c~usb-fix-ehci-printk-formats drivers/usb/host/ehci-q.c
---- a/drivers/usb/host/ehci-q.c~usb-fix-ehci-printk-formats
-+++ a/drivers/usb/host/ehci-q.c
-@@ -349,7 +349,7 @@ qh_completions (struct ehci_hcd *ehci, s
- 						--qh->xacterrs > 0 &&
- 						!urb->unlinked) {
- 					ehci_dbg(ehci,
--	"detected XactErr len %d/%d retry %d\n",
-+	"detected XactErr len %zu/%zu retry %d\n",
- 	qtd->length - QTD_LENGTH(token), qtd->length,
- 	QH_XACTERR_MAX - qh->xacterrs);
+diff -puN net/wireless/nl80211.h~wireless-fix-for-config_nl80211=n net/wireless/nl80211.h
+--- a/net/wireless/nl80211.h~wireless-fix-for-config_nl80211=n
++++ a/net/wireless/nl80211.h
+@@ -27,6 +27,10 @@ static inline void
+ nl80211_send_scan_done(struct cfg80211_registered_device *rdev,
+ 		       struct net_device *netdev)
+ {}
++static inline void nl80211_send_scan_aborted(
++					struct cfg80211_registered_device *rdev,
++					struct net_device *netdev)
++{}
+ #endif /* CONFIG_NL80211 */
  
+ #endif /* __NET_WIRELESS_NL80211_H */
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -76,6 +79,7 @@ cciss-pci-power-management-reset-for-kexec.patch
 usb-fix-ehci-printk-formats.patch
 vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
 vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
+wireless-fix-for-config_nl80211=n.patch
 x86-dell-laptop-depends-on-power_supply.patch
 x86-oqo-depends-on-input_polldev.patch
 max3100-spi-uart-driver.patch
