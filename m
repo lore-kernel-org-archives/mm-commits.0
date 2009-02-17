@@ -1,81 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-fix-romc-kernel-doc-warning.patch removed from -mm tree
-Date: Tue, 17 Feb 2009 12:08:58 -0800
-Message-ID: <200902172008.n1HK8wYa001414@imap1.linux-foundation.org>
+Subject: [merged] bootgraph-fix-for-use-with-dot-symbols.patch removed from -mm tree
+Date: Tue, 17 Feb 2009 12:09:02 -0800
+Message-ID: <200902172009.n1HK92BC001434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51681 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753081AbZBQUPK (ORCPT
+	by vger.kernel.org with ESMTP id S1753303AbZBQUPQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 15:15:10 -0500
+	Tue, 17 Feb 2009 15:15:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: mikey@neuling.org, arjan@linux.intel.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCI: fix rom.c kernel-doc warning
+     bootgraph: fix for use with dot symbols
 has been removed from the -mm tree.  Its filename was
-     pci-fix-romc-kernel-doc-warning.patch
+     bootgraph-fix-for-use-with-dot-symbols.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCI: fix rom.c kernel-doc warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: bootgraph: fix for use with dot symbols
+From: Michael Neuling <mikey@neuling.org>
 
-Fix PCI kernel-doc warning:
+powerpc has dot symbols, so the dmesg output looks like:
 
-Warning(linux-2.6.29-rc4-git1/drivers/pci/rom.c:67): No description found for parameter 'pdev'
+<4>[    0.327310] calling  .migration_init+0x0/0x9c @ 1
+<4>[    0.327595] initcall .migration_init+0x0/0x9c returned 1 after 0 usecs
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+The below fixes bootgraph.pl so it handles this correctly.
+
+Signed-off-by: Michael Neuling <mikey@neuling.org>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/rom.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/bootgraph.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/rom.c~pci-fix-romc-kernel-doc-warning drivers/pci/rom.c
---- a/drivers/pci/rom.c~pci-fix-romc-kernel-doc-warning
-+++ a/drivers/pci/rom.c
-@@ -55,6 +55,7 @@ void pci_disable_rom(struct pci_dev *pde
+diff -puN scripts/bootgraph.pl~bootgraph-fix-for-use-with-dot-symbols scripts/bootgraph.pl
+--- a/scripts/bootgraph.pl~bootgraph-fix-for-use-with-dot-symbols
++++ a/scripts/bootgraph.pl
+@@ -51,7 +51,7 @@ my %pidctr;
  
- /**
-  * pci_get_rom_size - obtain the actual size of the ROM image
-+ * @pdev: target PCI device
-  * @rom: kernel virtual pointer to image of ROM
-  * @size: size of PCI window
-  *  return: size of actual ROM image
+ while (<>) {
+ 	my $line = $_;
+-	if ($line =~ /([0-9\.]+)\] calling  ([a-zA-Z0-9\_]+)\+/) {
++	if ($line =~ /([0-9\.]+)\] calling  ([a-zA-Z0-9\_\.]+)\+/) {
+ 		my $func = $2;
+ 		if ($done == 0) {
+ 			$start{$func} = $1;
+@@ -87,7 +87,7 @@ while (<>) {
+ 		$count = $count + 1;
+ 	}
+ 
+-	if ($line =~ /([0-9\.]+)\] initcall ([a-zA-Z0-9\_]+)\+.*returned/) {
++	if ($line =~ /([0-9\.]+)\] initcall ([a-zA-Z0-9\_\.]+)\+.*returned/) {
+ 		if ($done == 0) {
+ 			$end{$2} = $1;
+ 			$maxtime = $1;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mikey@neuling.org are
 
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-cciss-pci-power-management-reset-for-kexec.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-x86-dell-laptop-depends-on-power_supply.patch
-x86-oqo-depends-on-input_polldev.patch
-max3100-spi-uart-driver.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
-documentation-ignore-byproducts-from-latex.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
-reiser4-export-remove_from_page_cache-fix.patch
 
