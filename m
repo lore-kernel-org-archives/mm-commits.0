@@ -1,98 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jffs2-force-the-jffs2-gc-daemon-to-behave-a-bit-better.patch removed from -mm tree
-Date: Tue, 17 Feb 2009 12:08:51 -0800
-Message-ID: <200902172008.n1HK8p6X001174@imap1.linux-foundation.org>
+Subject: [merged] mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch removed from -mm tree
+Date: Tue, 17 Feb 2009 12:09:09 -0800
+Message-ID: <200902172009.n1HK99OV001668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50057 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753366AbZBQUPV (ORCPT
+	by vger.kernel.org with ESMTP id S1752919AbZBQUPU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 15:15:21 -0500
+	Tue, 17 Feb 2009 15:15:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, dilinger@debian.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: vapier.adi@gmail.com, cooloney@kernel.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jffs2: force the jffs2 GC daemon to behave a bit better
+     mtd/maps: blackfin async flash maps - fix bug: dont leak resources when initializing in case of errors
 has been removed from the -mm tree.  Its filename was
-     jffs2-force-the-jffs2-gc-daemon-to-behave-a-bit-better.patch
+     mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jffs2: force the jffs2 GC daemon to behave a bit better
-From: Andres Salomon <dilinger@queued.net>
+Subject: mtd/maps: blackfin async flash maps - fix bug: dont leak resources when initializing in case of errors
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-I've noticed some pretty poor behavior on OLPC machines after bootup, when
-gdm/X are starting.  The GCD monopolizes the scheduler (which in turns
-means it gets to do more nand i/o), which results in processes taking much
-much longer than they should to start.
-
-As an example, on an OLPC machine going from OFW to a usable X (via
-auto-login gdm) takes 2m 30s.  The majority of this time is consumed by
-the switch into graphical mode.  With this patch, we cut a full 60s off of
-bootup time.  After bootup, things are much snappier as well.
-
-Note that we have seen a CRC node error with this patch that causes the machine
-to fail to boot, but we've also seen that problem without this patch.
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/background.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ drivers/mtd/maps/bfin-async-flash.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/jffs2/background.c~jffs2-force-the-jffs2-gc-daemon-to-behave-a-bit-better fs/jffs2/background.c
---- a/fs/jffs2/background.c~jffs2-force-the-jffs2-gc-daemon-to-behave-a-bit-better
-+++ a/fs/jffs2/background.c
-@@ -95,13 +95,17 @@ static int jffs2_garbage_collect_thread(
- 			spin_unlock(&c->erase_completion_lock);
- 			
+diff -puN drivers/mtd/maps/bfin-async-flash.c~mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors drivers/mtd/maps/bfin-async-flash.c
+--- a/drivers/mtd/maps/bfin-async-flash.c~mtd-maps-blackfin-async-flash-maps-fix-bug-dont-leak-resources-when-initializing-in-case-of-errors
++++ a/drivers/mtd/maps/bfin-async-flash.c
+@@ -152,14 +152,18 @@ static int __devinit bfin_flash_probe(st
  
--		/* This thread is purely an optimisation. But if it runs when
--		   other things could be running, it actually makes things a
--		   lot worse. Use yield() and put it at the back of the runqueue
--		   every time. Especially during boot, pulling an inode in
--		   with read_inode() is much preferable to having the GC thread
--		   get there first. */
--		yield();
-+		/* Problem - immediately after bootup, the GCD spends a lot
-+		 * of time in places like jffs2_kill_fragtree(); so much so
-+		 * that userspace processes (like gdm and X) are starved
-+		 * despite plenty of cond_resched()s and renicing.  Yield()
-+		 * doesn't help, either (presumably because userspace and GCD
-+		 * are generally competing for a higher latency resource -
-+		 * disk).
-+		 * This forces the GCD to slow the hell down.   Pulling an
-+		 * inode in with read_inode() is much preferable to having
-+		 * the GC thread get there first. */
-+		schedule_timeout_interruptible(msecs_to_jiffies(50));
+ 	if (gpio_request(state->enet_flash_pin, DRIVER_NAME)) {
+ 		pr_devinit(KERN_ERR DRIVER_NAME ": Failed to request gpio %d\n", state->enet_flash_pin);
++		kfree(state);
+ 		return -EBUSY;
+ 	}
+ 	gpio_direction_output(state->enet_flash_pin, 1);
  
- 		/* Put_super will send a SIGKILL and then wait on the sem.
- 		 */
+ 	pr_devinit(KERN_NOTICE DRIVER_NAME ": probing %d-bit flash bus\n", state->map.bankwidth * 8);
+ 	state->mtd = do_map_probe(memory->name, &state->map);
+-	if (!state->mtd)
++	if (!state->mtd) {
++		gpio_free(state->enet_flash_pin);
++		kfree(state);
+ 		return -ENXIO;
++	}
+ 
+ #ifdef CONFIG_MTD_PARTITIONS
+ 	ret = parse_mtd_partitions(state->mtd, part_probe_types, &pdata->parts, 0);
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
 linux-next.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-sunxvr500-fix-cmap-memory-leaks.patch
-tgafb-fix-cmap-memory-leak.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+blackfin-nfc-driver-do-not-clobber-dmac1_perimux.patch
+blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit.patch
+blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback.patch
+blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
+blackfin-spi-driver-remove-useless-asm-cplbinith.patch
+blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
+blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
+blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
+blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
+blackfin-spi-driver-add-a-few-more-dma-debug-messages.patch
+blackfin-spi-driver-do-not-check-for-spi-errors-if-dma-itself-did-not-flag-any.patch
+blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch
+blackfin-spi-driver-spi-slave-select-code-cleanup.patch
+blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
+blackfin-spi-driver-add-timeout-while-waiting-for-spif-in-dma-irq-handler.patch
+blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch
+blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions.patch
+blackfin-spi-driver-fix-null-pointer-crash.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
 
