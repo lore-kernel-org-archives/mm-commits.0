@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups-update.patch added to -mm tree
-Date: Tue, 17 Feb 2009 13:21:43 -0800
-Message-ID: <200902172121.n1HLLipg008239@imap1.linux-foundation.org>
+Subject: + mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch added to -mm tree
+Date: Tue, 17 Feb 2009 13:29:27 -0800
+Message-ID: <200902172129.n1HLTRto019296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44034 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753401AbZBQVWU (ORCPT
+	by vger.kernel.org with ESMTP id S1751385AbZBQVaX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 16:22:20 -0500
+	Tue, 17 Feb 2009 16:30:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, Valdis.Kletnieks@vt.edu
+Cc: balajirrao@openmoko.org, andy@openmoko.com, drzeus-mmc@drzeus.cx
 
 
 The patch titled
-     epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups update
+     mmc: in mmc_power_up(), use previously selected ocr if available
 has been added to the -mm tree.  Its filename is
-     epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups-update.patch
+     mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups update
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: mmc: in mmc_power_up(), use previously selected ocr if available
+From: Balaji Rao <balajirrao@openmoko.org>
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: <Valdis.Kletnieks@vt.edu>
+When mmc_power_up is called during unsafe resume, host->ocr should be used
+instead of host->ocr_avail.
+
+Signed-off-by: Balaji Rao <balajirrao@openmoko.org>
+Cc: Andy Green <andy@openmoko.com>
+Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/sock.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mmc/core/core.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN net/core/sock.c~epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups-update net/core/sock.c
---- a/net/core/sock.c~epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups-update
-+++ a/net/core/sock.c
-@@ -1687,7 +1687,8 @@ static void sock_def_readable(struct soc
+diff -puN drivers/mmc/core/core.c~mmc-in-mmc_power_up-use-previously-selected-ocr-if-available drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-in-mmc_power_up-use-previously-selected-ocr-if-available
++++ a/drivers/mmc/core/core.c
+@@ -572,7 +572,13 @@ void mmc_set_timing(struct mmc_host *hos
+  */
+ static void mmc_power_up(struct mmc_host *host)
  {
- 	read_lock(&sk->sk_callback_lock);
- 	if (sk->sk_sleep && waitqueue_active(sk->sk_sleep))
--		wake_up_interruptible_sync_poll(sk->sk_sleep, POLLIN);
-+		wake_up_interruptible_sync_poll(sk->sk_sleep, POLLIN |
-+						POLLRDNORM | POLLRDBAND);
- 	sk_wake_async(sk, SOCK_WAKE_WAITD, POLL_IN);
- 	read_unlock(&sk->sk_callback_lock);
- }
-@@ -1701,7 +1702,8 @@ static void sock_def_write_space(struct 
- 	 */
- 	if ((atomic_read(&sk->sk_wmem_alloc) << 1) <= sk->sk_sndbuf) {
- 		if (sk->sk_sleep && waitqueue_active(sk->sk_sleep))
--			wake_up_interruptible_sync_poll(sk->sk_sleep, POLLOUT);
-+			wake_up_interruptible_sync_poll(sk->sk_sleep, POLLOUT |
-+							POLLWRNORM | POLLWRBAND);
+-	int bit = fls(host->ocr_avail) - 1;
++	int bit;
++
++	/* If ocr is set, we use it */
++	if (host->ocr)
++		bit = ffs(host->ocr) - 1;
++	else
++		bit = fls(host->ocr_avail) - 1;
  
- 		/* Should agree with poll, otherwise some programs break */
- 		if (sock_writeable(sk))
+ 	host->ios.vdd = bit;
+ 	if (mmc_host_is_spi(host)) {
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from balajirrao@openmoko.org are
 
+mfd-pcf50633-terminate-i2c_device_id-list.patch
 linux-next.patch
-timerfd-add-flags-check.patch
-timerfd-add-flags-check-fix.patch
-epoll-fix-own-poll.patch
-epoll-fix-epolls-own-poll-update.patch
-epoll-remove-debugging-code.patch
-eventfd-improve-support-for-semaphore-like-behavior.patch
-epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
-epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
-epoll-keyed-wakeups-v3-introduce-new-_poll-wakeup-macros.patch
-epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups-update.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
+mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch
 
