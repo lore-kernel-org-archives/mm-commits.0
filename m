@@ -1,153 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch added to -mm tree
-Date: Tue, 17 Feb 2009 13:58:28 -0800
-Message-ID: <200902172158.n1HLwTvV028582@imap1.linux-foundation.org>
+Subject: [nacked] m68k-amiflop-ptr-incremented-past-0x4489.patch removed from -mm tree
+Date: Tue, 17 Feb 2009 13:59:17 -0800
+Message-ID: <200902172159.n1HLxH2P029853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751379AbZBQV72 (ORCPT
+	by vger.kernel.org with ESMTP id S1751998AbZBQWAo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 16:59:28 -0500
+	Tue, 17 Feb 2009 17:00:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, npiggin@suse.de
+To: roel.kluin@gmail.com, geert@linux-m68k.org, jens.axboe@oracle.com, joerg@dorchain.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix
-has been added to the -mm tree.  Its filename is
-     mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+     m68k: amiflop: *ptr incremented past 0x4489
+has been removed from the -mm tree.  Its filename was
+     m68k-amiflop-ptr-incremented-past-0x4489.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: m68k: amiflop: *ptr incremented past 0x4489
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@suse.de>
+With while (*ptr++ != 0x4489) { ...  } *ptr will be incremented past
+0x4489 after the loop.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Joerg Dorchain <joerg@dorchain.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/amiflop.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix mm/memory.c
---- a/mm/memory.c~mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix
-+++ a/mm/memory.c
-@@ -1153,7 +1153,7 @@ struct page *follow_page(struct vm_area_
- 			set_page_dirty(page);
- 		/*
- 		 * pte_mkyoung() would be more correct here, but atomic care
--		 * is needed to avoid losing dirty bit: easier to
-+		 * is needed to avoid losing the dirty bit: it is easier to use
- 		 * mark_page_accessed().
- 		 */
- 		mark_page_accessed(page);
+diff -puN drivers/block/amiflop.c~m68k-amiflop-ptr-incremented-past-0x4489 drivers/block/amiflop.c
+--- a/drivers/block/amiflop.c~m68k-amiflop-ptr-incremented-past-0x4489
++++ a/drivers/block/amiflop.c
+@@ -662,8 +662,8 @@ static unsigned long scan_sync(unsigned 
+ {
+ 	ushort *ptr = (ushort *)raw, *endp = (ushort *)end;
+ 
+-	while (ptr < endp && *ptr++ != 0x4489)
+-		;
++	while (ptr < endp && *ptr != 0x4489)
++		++ptr;
+ 	if (ptr < endp) {
+ 		while (*ptr == 0x4489 && ptr < endp)
+ 			ptr++;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
-vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
-seq_file-properly-cope-with-pread-fix.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-kernel-auditscc-fix-warning.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-mtd-rbtx4939-add-mtd-support.patch
-pci-constify-pci_bus_assign_resources.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-cciss-pci-power-management-reset-for-kexec.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-timerfd-add-flags-check-fix.patch
-lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+acpi-get_throttling_state-cannot-be-larger-state_count.patch
+drm-fix-lock_test_with_return-macro.patch
+dvb-negative-internal-sub_range-wont-get-noticed.patch
+v4l-dvb-calibration-still-successful-at-10.patch
+leds-fix-confusion.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+paride-pgc-xs-confusion.patch
+m68k-amiflop-ptr-incremented-past-0x4489.patch
+mm-get_nid_for_pfn-returns-int.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+alpha-fix-macros.patch
+m68k-count-can-reach-51-not-50.patch
 m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+spi-limit-reaches-1-tested-0.patch
+rtc-wm8350-retries-will-reach-1.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
+ufs-sector_t-cannot-be-negative.patch
 
