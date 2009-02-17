@@ -1,205 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: + do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch added to -mm tree
-Date: Tue, 17 Feb 2009 14:12:06 -0800
-Message-ID: <200902172212.n1HMC7lm015923@imap1.linux-foundation.org>
+Subject: [obsolete] reiser4-broke.patch removed from -mm tree
+Date: Tue, 17 Feb 2009 14:18:28 -0800
+Message-ID: <200902172218.n1HMISbB025023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58523 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49472 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752267AbZBQWMt (ORCPT
+	by vger.kernel.org with ESMTP id S1752870AbZBQWTT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 17:12:49 -0500
+	Tue, 17 Feb 2009 17:19:19 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n1HMISln021333
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 17 Feb 2009 14:18:29 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, drepper@redhat.com, dvlasenk@redhat.com, ebiederm@xmission.com, jan.kratochvil@redhat.com, kkylheku@gmail.com, mtk.manpages@googlemail.com, roland@redhat.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do_wait: fix waiting for the group stop with the dead leader
-has been added to the -mm tree.  Its filename is
-     do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch
+     reiser4 broke
+has been removed from the -mm tree.  Its filename was
+     reiser4-broke.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_wait: fix waiting for the group stop with the dead leader
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: reiser4 broke
+From: Andrew Morton <akpm@linux-foundation.org>
 
-do_wait(WSTOPPED) assumes that p->state must be == TASK_STOPPED, this is
-not true if the leader is already dead.  Check SIGNAL_STOP_STOPPED instead
-and use signal->group_exit_code.
-
-Trivial test-case:
-
-	void *tfunc(void *arg)
-	{
-		pause();
-		return NULL;
-	}
-
-	int main(void)
-	{
-		pthread_t thr;
-		pthread_create(&thr, NULL, tfunc, NULL);
-		pthread_exit(NULL);
-		return 0;
-	}
-
-It doesn't react to ^Z (and then to ^C or ^\). The task is stopped, but
-bash can't see this.
-
-The bug is very old, and it was reported multiple times. This patch was sent
-more than a year ago (http://marc.info/?t=119713920000003) but it was ignored.
-
-This change also fixes other oddities (but not all) in this area.  For
-example, before this patch:
-
-	$ sleep 100
-	^Z
-	[1]+  Stopped                 sleep 100
-	$ strace -p `pidof sleep`
-	Process 11442 attached - interrupt to quit
-
-strace hangs in do_wait(), because ->exit_code was already consumed by
-bash.  After this patch, strace happily proceeds:
-
-	--- SIGTSTP (Stopped) @ 0 (0) ---
-	restart_syscall(<... resuming interrupted call ...>
-
-To me, this looks much more "natural" and correct.
-
-Another example.  Let's suppose we have the main thread M and sub-thread
-T, the process is stopped, and its parent did wait(WSTOPPED).  Now we can
-ptrace T but not M.  This looks at least strange to me.
-
-Imho, do_wait() should not confuse the per-thread ptrace stops with the
-per-process job control stops.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: Kaz Kylheku <kkylheku@gmail.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ fs/reiser4/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/exit.c~do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader kernel/exit.c
---- a/kernel/exit.c~do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader
-+++ a/kernel/exit.c
-@@ -1427,6 +1427,18 @@ static int wait_task_zombie(struct task_
- 	return retval;
- }
- 
-+static int *task_stopped_code(struct task_struct *p, bool ptrace)
-+{
-+	if (ptrace) {
-+		if (task_is_stopped_or_traced(p))
-+			return &p->exit_code;
-+	} else {
-+		if (p->signal->flags & SIGNAL_STOP_STOPPED)
-+			return &p->signal->group_exit_code;
-+	}
-+	return NULL;
-+}
-+
- /*
-  * Handle sys_wait4 work for one task in state TASK_STOPPED.  We hold
-  * read_lock(&tasklist_lock) on entry.  If we return zero, we still hold
-@@ -1437,7 +1449,7 @@ static int wait_task_stopped(int ptrace,
- 			     int options, struct siginfo __user *infop,
- 			     int __user *stat_addr, struct rusage __user *ru)
- {
--	int retval, exit_code, why;
-+	int retval, exit_code, *p_code, why;
- 	uid_t uid = 0; /* unneeded, required by compiler */
- 	pid_t pid;
- 
-@@ -1447,22 +1459,16 @@ static int wait_task_stopped(int ptrace,
- 	exit_code = 0;
- 	spin_lock_irq(&p->sighand->siglock);
- 
--	if (unlikely(!task_is_stopped_or_traced(p)))
--		goto unlock_sig;
--
--	if (!ptrace && p->signal->group_stop_count > 0)
--		/*
--		 * A group stop is in progress and this is the group leader.
--		 * We won't report until all threads have stopped.
--		 */
-+	p_code = task_stopped_code(p, ptrace);
-+	if (unlikely(!p_code))
- 		goto unlock_sig;
- 
--	exit_code = p->exit_code;
-+	exit_code = *p_code;
- 	if (!exit_code)
- 		goto unlock_sig;
- 
- 	if (!unlikely(options & WNOWAIT))
--		p->exit_code = 0;
-+		*p_code = 0;
- 
- 	/* don't need the RCU readlock here as we're holding a spinlock */
- 	uid = __task_cred(p)->uid;
-@@ -1618,7 +1624,7 @@ static int wait_consider_task(struct tas
- 	 */
- 	*notask_error = 0;
- 
--	if (task_is_stopped_or_traced(p))
-+	if (task_stopped_code(p, ptrace))
- 		return wait_task_stopped(ptrace, p, options,
- 					 infop, stat_addr, ru);
- 
+diff -puN fs/reiser4/Kconfig~reiser4-broke fs/reiser4/Kconfig
+--- a/fs/reiser4/Kconfig~reiser4-broke
++++ a/fs/reiser4/Kconfig
+@@ -1,6 +1,7 @@
+ config REISER4_FS
+ 	tristate "Reiser4 (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on BROKEN
+ 	select ZLIB_INFLATE
+ 	select ZLIB_DEFLATE
+ 	select LZO_COMPRESS
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
+seq_file-properly-cope-with-pread-fix.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch
-get_mm_hiwater_xxx-trivial-s-define-inline.patch
-getrusage-fill-ru_maxrss-value.patch
-do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch
-ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
-ptrace-simplify-ptrace_exit-ignoring_children-path.patch
-ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
-ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
-reparent_thread-dont-call-kill_orphaned_pgrp-if-task_detached.patch
-reparent_thread-fix-the-is-it-traced-check.patch
-reparent_thread-fix-a-zombie-leak-if-sbin-init-ignores-sigchld.patch
-forget_original_parent-split-out-the-un-ptrace-part.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+kernel-auditscc-fix-warning.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+mtd-rbtx4939-add-mtd-support.patch
+pci-constify-pci_bus_assign_resources.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+cciss-pci-power-management-reset-for-kexec.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+timerfd-add-flags-check-fix.patch
+lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
 forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-move-exit_ptrace-from-forget_original_parent-to-do_exit.patch
-reparent-untrace-do-nothing-if-no-childs-tracees.patch
-tracehook_notify_death-use-task_detached-helper.patch
-workqueue-avoid-recursion-in-run_workqueue.patch
-kthreads-move-sched-realeted-initialization-from-kthreadd-context.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
 pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
