@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + floppy-request-and-release-only-the-ports-we-actually-use.patch added to -mm tree
-Date: Tue, 17 Feb 2009 14:07:27 -0800
-Message-ID: <200902172207.n1HM7SpW009092@imap1.linux-foundation.org>
+Subject: + do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch added to -mm tree
+Date: Tue, 17 Feb 2009 14:12:06 -0800
+Message-ID: <200902172212.n1HMC7lm015923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44625 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752048AbZBQWHf (ORCPT
+	by vger.kernel.org with ESMTP id S1752267AbZBQWMt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 17:07:35 -0500
+	Tue, 17 Feb 2009 17:12:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: phdm@macqel.be, abelay@mit.edu, bjorn.helgaas@hp.com, hancockrwd@gmail.com
+Cc: oleg@redhat.com, drepper@redhat.com, dvlasenk@redhat.com, ebiederm@xmission.com, jan.kratochvil@redhat.com, kkylheku@gmail.com, mtk.manpages@googlemail.com, roland@redhat.com
 
 
 The patch titled
-     floppy: request and release only the ports we actually use
+     do_wait: fix waiting for the group stop with the dead leader
 has been added to the -mm tree.  Its filename is
-     floppy-request-and-release-only-the-ports-we-actually-use.patch
+     do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,202 +34,172 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: floppy: request and release only the ports we actually use
-From: Philippe De Muyter <phdm@macqel.be>
+Subject: do_wait: fix waiting for the group stop with the dead leader
+From: Oleg Nesterov <oleg@redhat.com>
 
-The floppy driver requests an I/O port it doesn't need, and sometimes this
-causes a conflict with a motherboard device reported by PNPBIOS.
+do_wait(WSTOPPED) assumes that p->state must be == TASK_STOPPED, this is
+not true if the leader is already dead.  Check SIGNAL_STOP_STOPPED instead
+and use signal->group_exit_code.
 
-This patch makes the floppy driver request and release only the ports it
-actually uses.  It also factors out the request/release stuff and the
-io-ports list so they're all in one place now.
+Trivial test-case:
 
-The current floppy driver uses only these ports:
+	void *tfunc(void *arg)
+	{
+		pause();
+		return NULL;
+	}
 
-    0x3f2 (FD_DOR)
-    0x3f4 (FD_STATUS)
-    0x3f5 (FD_DATA)
-    0x3f7 (FD_DCR/FD_DIR)
+	int main(void)
+	{
+		pthread_t thr;
+		pthread_create(&thr, NULL, tfunc, NULL);
+		pthread_exit(NULL);
+		return 0;
+	}
 
-but it requests 0x3f2-0x3f5 and 0x3f7, which includes the unused port
-0x3f3.
+It doesn't react to ^Z (and then to ^C or ^\). The task is stopped, but
+bash can't see this.
 
-Some BIOSes report 0x3f3 as a motherboard resource.  The PNP system driver
-reserves that, which causes a conflict when the floppy driver requests
-0x3f2-0x3f5 later.
+The bug is very old, and it was reported multiple times. This patch was sent
+more than a year ago (http://marc.info/?t=119713920000003) but it was ignored.
 
-Philippe reported that this conflict broke the floppy driver between
-2.6.11 and 2.6.22.  His PNPBIOS reports these devices:
+This change also fixes other oddities (but not all) in this area.  For
+example, before this patch:
 
-    $ cat 00:07/id 00:07/resources	# motherboard device
-    PNP0c02
-    state = active
-    io 0x80-0x80
-    io 0x10-0x1f
-    io 0x22-0x3f
-    io 0x44-0x5f
-    io 0x90-0x9f
-    io 0xa2-0xbf
-    io 0x3f0-0x3f1
-    io 0x3f3-0x3f3
+	$ sleep 100
+	^Z
+	[1]+  Stopped                 sleep 100
+	$ strace -p `pidof sleep`
+	Process 11442 attached - interrupt to quit
 
-    $ cat 00:03/id 00:03/resources	# floppy device
-    PNP0700
-    state = active
-    io 0x3f4-0x3f5
-    io 0x3f2-0x3f2
+strace hangs in do_wait(), because ->exit_code was already consumed by
+bash.  After this patch, strace happily proceeds:
 
-Reference:
-    http://lkml.org/lkml/2009/1/31/162
+	--- SIGTSTP (Stopped) @ 0 (0) ---
+	restart_syscall(<... resuming interrupted call ...>
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Reported-by: Philippe De Muyter <phdm@macqel.be>
-Tested-by: Philippe De Muyter <phdm@macqel.be>
-Cc: Adam M Belay <abelay@mit.edu>
-Cc: Robert Hancock <hancockrwd@gmail.com>
+To me, this looks much more "natural" and correct.
+
+Another example.  Let's suppose we have the main thread M and sub-thread
+T, the process is stopped, and its parent did wait(WSTOPPED).  Now we can
+ptrace T but not M.  This looks at least strange to me.
+
+Imho, do_wait() should not confuse the per-thread ptrace stops with the
+per-process job control stops.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
+Cc: Kaz Kylheku <kkylheku@gmail.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   79 +++++++++++++++++++++++++--------------
- 1 file changed, 52 insertions(+), 27 deletions(-)
+ kernel/exit.c |   30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
-diff -puN drivers/block/floppy.c~floppy-request-and-release-only-the-ports-we-actually-use drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-request-and-release-only-the-ports-we-actually-use
-+++ a/drivers/block/floppy.c
-@@ -558,6 +558,8 @@ static void process_fd_request(void);
- static void recalibrate_floppy(void);
- static void floppy_shutdown(unsigned long);
- 
-+static int floppy_request_regions(int);
-+static void floppy_release_regions(int);
- static int floppy_grab_irq_and_dma(void);
- static void floppy_release_irq_and_dma(void);
- 
-@@ -4273,8 +4275,7 @@ static int __init floppy_init(void)
- 		FDCS->rawcmd = 2;
- 		if (user_reset_fdc(-1, FD_RESET_ALWAYS, 0)) {
- 			/* free ioports reserved by floppy_grab_irq_and_dma() */
--			release_region(FDCS->address + 2, 4);
--			release_region(FDCS->address + 7, 1);
-+			floppy_release_regions(fdc);
- 			FDCS->address = -1;
- 			FDCS->version = FDC_NONE;
- 			continue;
-@@ -4283,8 +4284,7 @@ static int __init floppy_init(void)
- 		FDCS->version = get_fdc_version();
- 		if (FDCS->version == FDC_NONE) {
- 			/* free ioports reserved by floppy_grab_irq_and_dma() */
--			release_region(FDCS->address + 2, 4);
--			release_region(FDCS->address + 7, 1);
-+			floppy_release_regions(fdc);
- 			FDCS->address = -1;
- 			continue;
- 		}
-@@ -4357,6 +4357,47 @@ out_put_disk:
- 
- static DEFINE_SPINLOCK(floppy_usage_lock);
- 
-+static const struct io_region {
-+	int offset;
-+	int size;
-+} io_regions[] = {
-+	{ 2, 1 },
-+	/* address + 3 is sometimes reserved by pnp bios for motherboard */
-+	{ 4, 2 },
-+	/* address + 6 is reserved, and may be taken by IDE.
-+	 * Unfortunately, Adaptec doesn't know this :-(, */
-+	{ 7, 1 },
-+};
-+
-+static void floppy_release_allocated_regions(int fdc, const struct io_region *p)
-+{
-+	while (p != io_regions) {
-+		p--;
-+		release_region(FDCS->address + p->offset, p->size);
-+	}
-+}
-+
-+#define ARRAY_END(X) (&((X)[ARRAY_SIZE(X)]))
-+
-+static int floppy_request_regions(int fdc)
-+{
-+	const struct io_region *p;
-+
-+	for (p = io_regions; p < ARRAY_END(io_regions); p++) {
-+		if (!request_region(FDCS->address + p->offset, p->size, "floppy")) {
-+			DPRINT("Floppy io-port 0x%04lx in use\n", FDCS->address + p->offset);
-+			floppy_release_allocated_regions(fdc, p);
-+			return -EBUSY;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static void floppy_release_regions(int fdc)
-+{
-+	floppy_release_allocated_regions(fdc, ARRAY_END(io_regions));
-+}
-+
- static int floppy_grab_irq_and_dma(void)
- {
- 	unsigned long flags;
-@@ -4398,18 +4439,8 @@ static int floppy_grab_irq_and_dma(void)
- 
- 	for (fdc = 0; fdc < N_FDC; fdc++) {
- 		if (FDCS->address != -1) {
--			if (!request_region(FDCS->address + 2, 4, "floppy")) {
--				DPRINT("Floppy io-port 0x%04lx in use\n",
--				       FDCS->address + 2);
--				goto cleanup1;
--			}
--			if (!request_region(FDCS->address + 7, 1, "floppy DIR")) {
--				DPRINT("Floppy io-port 0x%04lx in use\n",
--				       FDCS->address + 7);
--				goto cleanup2;
--			}
--			/* address + 6 is reserved, and may be taken by IDE.
--			 * Unfortunately, Adaptec doesn't know this :-(, */
-+			if (floppy_request_regions(fdc))
-+				goto cleanup;
- 		}
- 	}
- 	for (fdc = 0; fdc < N_FDC; fdc++) {
-@@ -4431,15 +4462,11 @@ static int floppy_grab_irq_and_dma(void)
- 	fdc = 0;
- 	irqdma_allocated = 1;
- 	return 0;
--cleanup2:
--	release_region(FDCS->address + 2, 4);
--cleanup1:
-+cleanup:
- 	fd_free_irq();
- 	fd_free_dma();
--	while (--fdc >= 0) {
--		release_region(FDCS->address + 2, 4);
--		release_region(FDCS->address + 7, 1);
--	}
-+	while (--fdc >= 0)
-+		floppy_release_regions(fdc);
- 	spin_lock_irqsave(&floppy_usage_lock, flags);
- 	usage_count--;
- 	spin_unlock_irqrestore(&floppy_usage_lock, flags);
-@@ -4500,10 +4527,8 @@ static void floppy_release_irq_and_dma(v
- #endif
- 	old_fdc = fdc;
- 	for (fdc = 0; fdc < N_FDC; fdc++)
--		if (FDCS->address != -1) {
--			release_region(FDCS->address + 2, 4);
--			release_region(FDCS->address + 7, 1);
--		}
-+		if (FDCS->address != -1)
-+			floppy_release_regions(fdc);
- 	fdc = old_fdc;
+diff -puN kernel/exit.c~do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader kernel/exit.c
+--- a/kernel/exit.c~do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader
++++ a/kernel/exit.c
+@@ -1427,6 +1427,18 @@ static int wait_task_zombie(struct task_
+ 	return retval;
  }
+ 
++static int *task_stopped_code(struct task_struct *p, bool ptrace)
++{
++	if (ptrace) {
++		if (task_is_stopped_or_traced(p))
++			return &p->exit_code;
++	} else {
++		if (p->signal->flags & SIGNAL_STOP_STOPPED)
++			return &p->signal->group_exit_code;
++	}
++	return NULL;
++}
++
+ /*
+  * Handle sys_wait4 work for one task in state TASK_STOPPED.  We hold
+  * read_lock(&tasklist_lock) on entry.  If we return zero, we still hold
+@@ -1437,7 +1449,7 @@ static int wait_task_stopped(int ptrace,
+ 			     int options, struct siginfo __user *infop,
+ 			     int __user *stat_addr, struct rusage __user *ru)
+ {
+-	int retval, exit_code, why;
++	int retval, exit_code, *p_code, why;
+ 	uid_t uid = 0; /* unneeded, required by compiler */
+ 	pid_t pid;
+ 
+@@ -1447,22 +1459,16 @@ static int wait_task_stopped(int ptrace,
+ 	exit_code = 0;
+ 	spin_lock_irq(&p->sighand->siglock);
+ 
+-	if (unlikely(!task_is_stopped_or_traced(p)))
+-		goto unlock_sig;
+-
+-	if (!ptrace && p->signal->group_stop_count > 0)
+-		/*
+-		 * A group stop is in progress and this is the group leader.
+-		 * We won't report until all threads have stopped.
+-		 */
++	p_code = task_stopped_code(p, ptrace);
++	if (unlikely(!p_code))
+ 		goto unlock_sig;
+ 
+-	exit_code = p->exit_code;
++	exit_code = *p_code;
+ 	if (!exit_code)
+ 		goto unlock_sig;
+ 
+ 	if (!unlikely(options & WNOWAIT))
+-		p->exit_code = 0;
++		*p_code = 0;
+ 
+ 	/* don't need the RCU readlock here as we're holding a spinlock */
+ 	uid = __task_cred(p)->uid;
+@@ -1618,7 +1624,7 @@ static int wait_consider_task(struct tas
+ 	 */
+ 	*notask_error = 0;
+ 
+-	if (task_is_stopped_or_traced(p))
++	if (task_stopped_code(p, ptrace))
+ 		return wait_task_stopped(ptrace, p, options,
+ 					 infop, stat_addr, ru);
  
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-floppy-request-and-release-only-the-ports-we-actually-use.patch
+linux-next.patch
+pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch
+get_mm_hiwater_xxx-trivial-s-define-inline.patch
+getrusage-fill-ru_maxrss-value.patch
+do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch
+ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
+ptrace-simplify-ptrace_exit-ignoring_children-path.patch
+ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
+ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
+ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
+ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
+reparent_thread-dont-call-kill_orphaned_pgrp-if-task_detached.patch
+reparent_thread-fix-the-is-it-traced-check.patch
+reparent_thread-fix-a-zombie-leak-if-sbin-init-ignores-sigchld.patch
+forget_original_parent-split-out-the-un-ptrace-part.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+move-exit_ptrace-from-forget_original_parent-to-do_exit.patch
+reparent-untrace-do-nothing-if-no-childs-tracees.patch
+tracehook_notify_death-use-task_detached-helper.patch
+workqueue-avoid-recursion-in-run_workqueue.patch
+kthreads-move-sched-realeted-initialization-from-kthreadd-context.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
+pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
+pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
 
