@@ -1,80 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 18 Feb 2009 13:56:36 -0800
-Message-ID: <200902182156.n1ILuaa0003729@imap1.linux-foundation.org>
+Subject: [folded] vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch removed from -mm tree
+Date: Wed, 18 Feb 2009 13:56:56 -0800
+Message-ID: <200902182156.n1ILuu3i004214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54173 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37277 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758839AbZBRV5A (ORCPT
+	by vger.kernel.org with ESMTP id S1753039AbZBRV5a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 16:57:00 -0500
+	Wed, 18 Feb 2009 16:57:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@gmail.com, ebiederm@xmission.com, pjt@google.com, stable@kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmalloc-add-__get_vm_area_caller-checkpatch-fixes
+     vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix
 has been removed from the -mm tree.  Its filename was
-     vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
+     vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
 
-This patch was dropped because it was folded into vmalloc-add-__get_vm_area_caller.patch
+This patch was dropped because it was folded into vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc-add-__get_vm_area_caller-checkpatch-fixes
+Subject: vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#27: FILE: include/linux/vmalloc.h:87:
-+extern struct vm_struct *__get_vm_area_caller(unsigned long size, unsigned long flags,
-
-WARNING: line over 80 characters
-#28: FILE: include/linux/vmalloc.h:88:
-+					      unsigned long start, unsigned long end,
-
-total: 0 errors, 2 warnings, 23 lines checked
-
-./patches/vmalloc-add-__get_vm_area_caller.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc:  Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x, 2.6.27.x, 2.6.28.x]
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul Turner <pjt@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/fs.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/vmalloc.h~vmalloc-add-__get_vm_area_caller-checkpatch-fixes include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~vmalloc-add-__get_vm_area_caller-checkpatch-fixes
-+++ a/include/linux/vmalloc.h
-@@ -84,9 +84,10 @@ extern struct vm_struct *get_vm_area_cal
- 					unsigned long flags, void *caller);
- extern struct vm_struct *__get_vm_area(unsigned long size, unsigned long flags,
- 					unsigned long start, unsigned long end);
--extern struct vm_struct *__get_vm_area_caller(unsigned long size, unsigned long flags,
--					      unsigned long start, unsigned long end,
--					      void *caller);
-+extern struct vm_struct *__get_vm_area_caller(unsigned long size,
-+					unsigned long flags,
-+					unsigned long start, unsigned long end,
-+					void *caller);
- extern struct vm_struct *get_vm_area_node(unsigned long size,
- 					  unsigned long flags, int node,
- 					  gfp_t gfp_mask);
+diff -puN include/linux/fs.h~vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix include/linux/fs.h
+--- a/include/linux/fs.h~vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix
++++ a/include/linux/fs.h
+@@ -54,6 +54,11 @@ struct inodes_stat_t {
+ #define MAY_ACCESS 16
+ #define MAY_OPEN 32
+ 
++/*
++ * flags in file.f_mode.  Note that FMODE_READ and FMODE_WRITE must correspond
++ * to O_WRONLY and O_RDWR via the strange trick in __dentry_open()
++ */
++
+ /* file is open for reading */
+ #define FMODE_READ		((__force fmode_t)1)
+ /* file is open for writing */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 vmalloc-add-__get_vm_area_caller.patch
-vmalloc-add-__get_vm_area_caller-checkpatch-fixes.patch
+vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch
 vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags-fix.patch
 seq_file-properly-cope-with-pread-fix.patch
 timerfd-add-flags-check-fix.patch
