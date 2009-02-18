@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + b43-bitwise-or-has-higher-precedence-than.patch added to -mm tree
-Date: Wed, 18 Feb 2009 13:14:40 -0800
-Message-ID: <200902182114.n1ILEe6b008257@imap1.linux-foundation.org>
+Subject: + uvesafb-bitwise-or-has-higher-precedence-than.patch added to -mm tree
+Date: Wed, 18 Feb 2009 13:18:00 -0800
+Message-ID: <200902182118.n1ILI0sk012983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43011 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752189AbZBRVPU (ORCPT
+	by vger.kernel.org with ESMTP id S1756676AbZBRVSi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 16:15:20 -0500
+	Wed, 18 Feb 2009 16:18:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, Larry.Finger@lwfinger.net, linville@tuxdriver.com, mb@bu3sch.de
+Cc: roel.kluin@gmail.com, krzysztof.h1@poczta.fm, michalj@gmail.com
 
 
 The patch titled
-     b43: bitwise OR has higher precedence than ?:
+     uvesafb: bitwise OR has higher precedence than ?:
 has been added to the -mm tree.  Its filename is
-     b43-bitwise-or-has-higher-precedence-than.patch
+     uvesafb-bitwise-or-has-higher-precedence-than.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: b43: bitwise OR has higher precedence than ?:
+Subject: uvesafb: bitwise OR has higher precedence than ?:
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Acked-by: Michal Januszewski <michalj@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/lo.c |    2 +-
+ drivers/video/uvesafb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/b43/lo.c~b43-bitwise-or-has-higher-precedence-than drivers/net/wireless/b43/lo.c
---- a/drivers/net/wireless/b43/lo.c~b43-bitwise-or-has-higher-precedence-than
-+++ a/drivers/net/wireless/b43/lo.c
-@@ -783,7 +783,7 @@ struct b43_lo_calib * b43_calibrate_lo_s
- 			  | rfatt->att);
- 	b43_radio_write16(dev, txctl_reg,
- 			  (b43_radio_read16(dev, txctl_reg) & ~txctl_value)
--			  | (rfatt->with_padmix) ? txctl_value : 0);
-+			  | (rfatt->with_padmix ? txctl_value : 0));
+diff -puN drivers/video/uvesafb.c~uvesafb-bitwise-or-has-higher-precedence-than drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~uvesafb-bitwise-or-has-higher-precedence-than
++++ a/drivers/video/uvesafb.c
+@@ -1552,7 +1552,7 @@ static void __devinit uvesafb_init_info(
+ 	}
  
- 	max_rx_gain = rfatt->att * 2;
- 	max_rx_gain += bbatt->att / 2;
+ 	info->flags = FBINFO_FLAG_DEFAULT |
+-			(par->ypan) ? FBINFO_HWACCEL_YPAN : 0;
++			(par->ypan ? FBINFO_HWACCEL_YPAN : 0);
+ 
+ 	if (!par->ypan)
+ 		info->fbops->fb_pan_display = NULL;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -83,5 +82,6 @@ rtc-wm8350-retries-will-reach-1.patch
 fbdev-newport-newport_wait-return-0-on-timeout.patch
 drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
 arkfb-fix-misplaced-parentheses.patch
+uvesafb-bitwise-or-has-higher-precedence-than.patch
 ufs-sector_t-cannot-be-negative.patch
 
