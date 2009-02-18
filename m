@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-fix-section-mismatch-in-sm501c.patch added to -mm tree
-Date: Tue, 17 Feb 2009 15:57:18 -0800
-Message-ID: <200902172357.n1HNvIse004530@imap1.linux-foundation.org>
+Subject: + ext4-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch added to -mm tree
+Date: Tue, 17 Feb 2009 16:08:11 -0800
+Message-ID: <200902180008.n1I08BZF020006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751209AbZBQX5x (ORCPT
+	by vger.kernel.org with ESMTP id S1755038AbZBRAIQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 18:57:53 -0500
+	Tue, 17 Feb 2009 19:08:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rakib.mullick@gmail.com, sameo@openedhand.com
+Cc: bdonlan@gmail.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     mfd: fix section mismatch in sm501.c
+     ext4: return -EIO not -ESTALE on directory traversal through deleted inode
 has been added to the -mm tree.  Its filename is
-     mfd-fix-section-mismatch-in-sm501c.patch
+     ext4-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mfd: fix section mismatch in sm501.c
-From: Rakib Mullick <rakib.mullick@gmail.com>
+Subject: ext4: return -EIO not -ESTALE on directory traversal through deleted inode
+From: Bryan Donlan <bdonlan@gmail.com>
 
-Fix the following warning, caused due to a call from function
-sm501_register_gpio() to a function sm501_gpio_register_chip() which is
-marked as __devinit function.
+ext4_iget() returns -ESTALE if invoked on a deleted inode, in order to
+report errors to NFS properly.  However, in ext[234]_lookup(), this
+-ESTALE can be propagated to userspace if the filesystem is corrupted such
+that a directory entry references a deleted inode.  This leads to a
+misleading error message - "Stale NFS file handle" - and confusion on the
+part of the admin.
 
-  LD      drivers/mfd/built-in.o
-WARNING: drivers/mfd/built-in.o(.text+0x16ca): Section mismatch in
-reference from the function sm501_register_gpio() to the function
-.devinit.text:sm501_gpio_register_chip()
-The function sm501_register_gpio() references
-the function __devinit sm501_gpio_register_chip().
-This is often because sm501_register_gpio lacks a __devinit
-annotation or the annotation of sm501_gpio_register_chip is wrong.
+The bug can be easily reproduced by creating a new filesystem, making a
+link to an unused inode using debugfs, then mounting and attempting to ls
+-l said link.
 
-WARNING: drivers/mfd/built-in.o(.text+0x1706): Section mismatch in
-reference from the function sm501_register_gpio() to the function
-.devinit.text:sm501_gpio_register_chip()
-The function sm501_register_gpio() references
-the function __devinit sm501_gpio_register_chip().
-This is often because sm501_register_gpio lacks a __devinit
-annotation or the annotation of sm501_gpio_register_chip is wrong.
+This patch thus changes ext4_lookup to return -EIO if it receives -ESTALE
+from ext4_iget(), as ext4 does for other filesystem metadata corruption;
+and also invokes the appropriate ext*_error functions when this case is
+detected.
 
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
-Cc: Samuel Ortiz <sameo@openedhand.com>
+Signed-off-by: Bryan Donlan <bdonlan@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/namei.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~mfd-fix-section-mismatch-in-sm501c drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~mfd-fix-section-mismatch-in-sm501c
-+++ a/drivers/mfd/sm501.c
-@@ -1050,7 +1050,7 @@ static int __devinit sm501_gpio_register
- 	return gpiochip_add(gchip);
+diff -puN fs/ext4/namei.c~ext4-return-eio-not-estale-on-directory-traversal-through-deleted-inode fs/ext4/namei.c
+--- a/fs/ext4/namei.c~ext4-return-eio-not-estale-on-directory-traversal-through-deleted-inode
++++ a/fs/ext4/namei.c
+@@ -1051,8 +1051,16 @@ static struct dentry *ext4_lookup(struct
+ 			return ERR_PTR(-EIO);
+ 		}
+ 		inode = ext4_iget(dir->i_sb, ino);
+-		if (IS_ERR(inode))
+-			return ERR_CAST(inode);
++		if (unlikely(IS_ERR(inode))) {
++			if (PTR_ERR(inode) == -ESTALE) {
++				ext4_error(dir->i_sb, "ext2_lookup",
++						"deleted inode referenced: %u",
++						ino);
++				return ERR_PTR(-EIO);
++			} else {
++				return ERR_CAST(inode);
++			}
++		}
+ 	}
+ 	return d_splice_alias(inode, dentry);
  }
- 
--static int sm501_register_gpio(struct sm501_devdata *sm)
-+static int __devinit sm501_register_gpio(struct sm501_devdata *sm)
- {
- 	struct sm501_gpio *gpio = &sm->gpio;
- 	resource_size_t iobase = sm->io_res->start + SM501_GPIO;
 _
 
-Patches currently in -mm which might be from rakib.mullick@gmail.com are
+Patches currently in -mm which might be from bdonlan@gmail.com are
 
-linux-next.patch
-kernel-auditscc-fix-warning.patch
-mfd-fix-section-mismatch-in-sm501c.patch
-kmemleak-fix-section-mismatch-in-kmemleakc.patch
+ext4-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch
+ext2-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch
+ext3-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch
 
