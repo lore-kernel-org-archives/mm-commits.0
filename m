@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch added to -mm tree
-Date: Tue, 17 Feb 2009 16:09:23 -0800
-Message-ID: <200902180009.n1I09NHB021769@imap1.linux-foundation.org>
+Subject: + cirrusfb-do-not-calculate-line-length-twice.patch added to -mm tree
+Date: Tue, 17 Feb 2009 16:14:44 -0800
+Message-ID: <200902180014.n1I0EiX4029367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42786 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753109AbZBRAJ4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751180AbZBRAPY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 19:09:56 -0500
+	Tue, 17 Feb 2009 19:15:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bdonlan@gmail.com, linux-ext4@vger.kernel.org
+Cc: krzysztof.h1@wp.pl, arthur.marsh@internode.on.net, geert.uytterhoeven@gmail.com
 
 
 The patch titled
-     ext3: return -EIO not -ESTALE on directory traversal through deleted inode
+     cirrusfb: do not calculate line length twice
 has been added to the -mm tree.  Its filename is
-     ext3-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch
+     cirrusfb-do-not-calculate-line-length-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: return -EIO not -ESTALE on directory traversal through deleted inode
-From: Bryan Donlan <bdonlan@gmail.com>
+Subject: cirrusfb: do not calculate line length twice
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-ext3_iget() returns -ESTALE if invoked on a deleted inode, in order to
-report errors to NFS properly.  However, in ext[234]_lookup(), this
--ESTALE can be propagated to userspace if the filesystem is corrupted such
-that a directory entry references a deleted inode.  This leads to a
-misleading error message - "Stale NFS file handle" - and confusion on the
-part of the admin.
+A line length is calculated twice: first in the cirrusfb_decode_var() then
+in the cirrusfb_set_par_foo().
 
-The bug can be easily reproduced by creating a new filesystem, making a
-link to an unused inode using debugfs, then mounting and attempting to ls
--l said link.
+Use the first calculated value.  A nice side effect is that 32bpp mode
+works now.
 
-This patch thus changes ext3_lookup to return -EIO if it receives -ESTALE
-from ext3_iget(), as ext3 does for other filesystem metadata corruption;
-and also invokes the appropriate ext*_error functions when this case is
-detected.
-
-Signed-off-by: Bryan Donlan <bdonlan@gmail.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Geert Uytterhoeven <geert.uytterhoeven@gmail.com>
+Cc: Arthur Marsh <arthur.marsh@internode.on.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/video/cirrusfb.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN fs/ext3/namei.c~ext3-return-eio-not-estale-on-directory-traversal-through-deleted-inode fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-return-eio-not-estale-on-directory-traversal-through-deleted-inode
-+++ a/fs/ext3/namei.c
-@@ -1047,8 +1047,16 @@ static struct dentry *ext3_lookup(struct
- 			return ERR_PTR(-EIO);
- 		}
- 		inode = ext3_iget(dir->i_sb, ino);
--		if (IS_ERR(inode))
--			return ERR_CAST(inode);
-+		if (unlikely(IS_ERR(inode))) {
-+			if (PTR_ERR(inode) == -ESTALE) {
-+				ext3_error(dir->i_sb, "ext2_lookup",
-+						"deleted inode referenced: %lu",
-+						ino);
-+				return ERR_PTR(-EIO);
-+			} else {
-+				return ERR_CAST(inode);
-+			}
-+		}
+diff -puN drivers/video/cirrusfb.c~cirrusfb-do-not-calculate-line-length-twice drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-do-not-calculate-line-length-twice
++++ a/drivers/video/cirrusfb.c
+@@ -694,7 +694,8 @@ static int cirrusfb_set_par_foo(struct f
+ 	struct cirrusfb_regs regs;
+ 	u8 __iomem *regbase = cinfo->regbase;
+ 	unsigned char tmp;
+-	int offset = 0, err;
++	int err;
++	int pitch;
+ 	const struct cirrusfb_board_info_rec *bi;
+ 	int hdispend, hsyncstart, hsyncend, htotal;
+ 	int yres, vdispend, vsyncstart, vsyncend, vtotal;
+@@ -1027,7 +1028,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x06);
+ 		/* plane mask: only write to first plane */
+ 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0x01);
+-		offset = var->xres_virtual / 16;
  	}
- 	return d_splice_alias(inode, dentry);
- }
+ 
+ 	/******************************************************
+@@ -1113,7 +1113,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x0a);
+ 		/* plane mask: enable writing to all 4 planes */
+ 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0xff);
+-		offset = var->xres_virtual / 8;
+ 	}
+ 
+ 	/******************************************************
+@@ -1190,7 +1189,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x0a);
+ 		/* plane mask: enable writing to all 4 planes */
+ 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0xff);
+-		offset = var->xres_virtual / 4;
+ 	}
+ 
+ 	/******************************************************
+@@ -1263,7 +1261,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x0a);
+ 		/* plane mask: enable writing to all 4 planes */
+ 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0xff);
+-		offset = var->xres_virtual / 4;
+ 	}
+ 
+ 	/******************************************************
+@@ -1277,9 +1274,10 @@ static int cirrusfb_set_par_foo(struct f
+ 			"What's this? requested color depth == %d.\n",
+ 			var->bits_per_pixel);
+ 
+-	vga_wcrt(regbase, VGA_CRTC_OFFSET, offset & 0xff);
++	pitch = info->fix.line_length >> 3;
++	vga_wcrt(regbase, VGA_CRTC_OFFSET, pitch & 0xff);
+ 	tmp = 0x22;
+-	if (offset & 0x100)
++	if (pitch & 0x100)
+ 		tmp |= 0x10;	/* offset overflow bit */
+ 
+ 	/* screen start addr #16-18, fastpagemode cycles */
+@@ -1287,7 +1285,7 @@ static int cirrusfb_set_par_foo(struct f
+ 
+ 	/* screen start address bit 19 */
+ 	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
+-		vga_wcrt(regbase, CL_CRT1D, 0x00);
++		vga_wcrt(regbase, CL_CRT1D, (pitch >> 9) & 1);
+ 
+ 	if (cinfo->btype == BT_LAGUNA ||
+ 	    cinfo->btype == BT_GD5480) {
 _
 
-Patches currently in -mm which might be from bdonlan@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-ext4-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch
-ext2-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch
-ext3-return-eio-not-estale-on-directory-traversal-through-deleted-inode.patch
+linux-next.patch
+fbdev-drm-fix-kconfig-submenu-mess-in-graphics-support.patch
+cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
+cirrusfb-add-laguna-additional-overflow-register.patch
+cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
+cirrusfb-do-not-calculate-line-length-twice.patch
+cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
+drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
+tdfxfb-fix-memory-leaks-in-removal-path.patch
+tridentfb-fix-memory-leaks-in-removal-path.patch
+vfb-fix-memory-leaks-in-removal-path.patch
+sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+68328fb-fix-cmap-memory-leaks.patch
+amba-clcd-fix-cmap-memory-leaks.patch
+amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+asiliantfb-fix-cmap-memory-leaks.patch
 
