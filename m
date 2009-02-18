@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-update-documentation-about-css_set-hash-table.patch added to -mm tree
-Date: Tue, 17 Feb 2009 17:43:23 -0800
-Message-ID: <200902180143.n1I1hNJr026256@imap1.linux-foundation.org>
+Subject: + pci-enable-msi-on-8132.patch added to -mm tree
+Date: Wed, 18 Feb 2009 02:00:21 -0800
+Message-ID: <200902181000.n1IA0Lpa019116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753352AbZBRBnx (ORCPT
+	by vger.kernel.org with ESMTP id S1751991AbZBRKAx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 20:43:53 -0500
+	Wed, 18 Feb 2009 05:00:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, menage@google.com
+Cc: yinghai@kernel.org, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com, david@lang.hm, jbarnes@virtuousgeek.org, mingo@elte.hu
 
 
 The patch titled
-     cgroups: update documentation about css_set hash table
+     pci: enable MSI on 8132
 has been added to the -mm tree.  Its filename is
-     cgroups-update-documentation-about-css_set-hash-table.patch
+     pci-enable-msi-on-8132.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: update documentation about css_set hash table
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: pci: enable MSI on 8132
+From: Yinghai Lu <yinghai@kernel.org>
 
-The css_set hash table was introduced in 2.6.26, so update the
-documentation accordingly.
+Impact: workaround BIOS that doesn't enable that bit
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+David reported that LSI sas doesn't work with MSI.  it turns out that BIOS
+doesn't enable HT MSI 8132 does support HT MSI.  add quirk to enable it
+
+Reported-by: David Lang <david@lang.hm>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: <Eric.Moore@lsi.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/pci/quirks.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroups-update-documentation-about-css_set-hash-table Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroups-update-documentation-about-css_set-hash-table
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -252,10 +252,8 @@ cgroup file system directories.
- When a task is moved from one cgroup to another, it gets a new
- css_set pointer - if there's an already existing css_set with the
- desired collection of cgroups then that group is reused, else a new
--css_set is allocated. Note that the current implementation uses a
--linear search to locate an appropriate existing css_set, so isn't
--very efficient. A future version will use a hash table for better
--performance.
-+css_set is allocated. The appropriate existing css_set is located by
-+looking into a hash table.
+diff -puN drivers/pci/quirks.c~pci-enable-msi-on-8132 drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-enable-msi-on-8132
++++ a/drivers/pci/quirks.c
+@@ -2008,7 +2008,6 @@ static void __devinit quirk_msi_ht_cap(s
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_HT2000_PCIE,
+ 			quirk_msi_ht_cap);
  
- To allow access from a cgroup to the css_sets (and hence tasks)
- that comprise it, a set of cg_cgroup_link objects form a lattice;
-_
-
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
-
-cgroups-update-documentation-about-css_set-hash-table.patch
-linux-next.patch
-cgroups-fix-possible-use-after-free.patch
-fs-superc-add-lockdep-annotation-to-s_umount.patch
-vfs-add-missing-unlock-in-sget.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
-cgroup-css-id-support.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
-
