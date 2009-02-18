@@ -1,108 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch removed from -mm tree
-Date: Tue, 17 Feb 2009 16:27:07 -0800
-Message-ID: <200902180027.n1I0R74D014483@imap1.linux-foundation.org>
+Subject: + bcm47xx-fix-gpio-api-return-codes.patch added to -mm tree
+Date: Tue, 17 Feb 2009 16:29:47 -0800
+Message-ID: <200902180029.n1I0Tlo1018326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33217 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751665AbZBRA1r (ORCPT
+	by vger.kernel.org with ESMTP id S1750864AbZBRAa6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 19:27:47 -0500
+	Tue, 17 Feb 2009 19:30:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clifford@clifford.at, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mb@bu3sch.de, david-b@pacbell.net, ralf@linux-mips.org
 
 
 The patch titled
-     i2c: fix i2c-mpc driver for multi-master i2c busses
-has been removed from the -mm tree.  Its filename was
-     i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch
+     bcm47xx: fix GPIO API return codes
+has been added to the -mm tree.  Its filename is
+     bcm47xx-fix-gpio-api-return-codes.patch
 
-This patch was dropped because i lost the plot
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: fix i2c-mpc driver for multi-master i2c busses
-From: Clifford Wolf <clifford@clifford.at>
+Subject: bcm47xx: fix GPIO API return codes
+From: Michael Buesch <mb@bu3sch.de>
 
-Simply retry on arbitration lost until xfer is successfull, a
-non-arbitration-lost error is triggered or the 1s timeout is hit.
+The GPIO API is supposed to return 0 or a negative error code,
+but the SSB GPIO functions return the bitmask of the GPIO register.
+Fix this by ignoring the bitmask and always returning 0. The SSB GPIO functions can't fail.
 
-Tested with a freescale MPC8349E host cpu.
-
-Signed-off-by: Clifford Wolf <clifford@clifford.at>
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-mpc.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ arch/mips/include/asm/mach-bcm47xx/gpio.h |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-mpc.c~i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses drivers/i2c/busses/i2c-mpc.c
---- a/drivers/i2c/busses/i2c-mpc.c~i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses
-+++ a/drivers/i2c/busses/i2c-mpc.c
-@@ -134,13 +134,13 @@ static int i2c_wait(struct mpc_i2c *i2c,
- 	if (result < 0)
- 		return result;
+diff -puN arch/mips/include/asm/mach-bcm47xx/gpio.h~bcm47xx-fix-gpio-api-return-codes arch/mips/include/asm/mach-bcm47xx/gpio.h
+--- a/arch/mips/include/asm/mach-bcm47xx/gpio.h~bcm47xx-fix-gpio-api-return-codes
++++ a/arch/mips/include/asm/mach-bcm47xx/gpio.h
+@@ -31,24 +31,28 @@ static inline void gpio_set_value(unsign
  
--	if (!(x & CSR_MCF)) {
--		pr_debug("I2C: unfinished\n");
--		return -EIO;
--	}
--
- 	if (x & CSR_MAL) {
- 		pr_debug("I2C: MAL\n");
-+		return -EAGAIN;
-+	}
-+
-+	if (!(x & CSR_MCF)) {
-+		pr_debug("I2C: unfinished\n");
- 		return -EIO;
- 	}
- 
-@@ -257,11 +257,11 @@ static int mpc_read(struct mpc_i2c *i2c,
- static int mpc_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+ static inline int gpio_direction_input(unsigned gpio)
  {
- 	struct i2c_msg *pmsg;
--	int i;
--	int ret = 0;
-+	int i, ret;
- 	unsigned long orig_jiffies = jiffies;
- 	struct mpc_i2c *i2c = i2c_get_adapdata(adap);
- 
-+restart:
- 	mpc_i2c_start(i2c);
- 
- 	/* Allow bus up to 1s to become not busy */
-@@ -281,7 +281,7 @@ static int mpc_xfer(struct i2c_adapter *
- 		schedule();
- 	}
- 
--	for (i = 0; ret >= 0 && i < num; i++) {
-+	for (i = 0, ret = 0; ret >= 0 && i < num; i++) {
- 		pmsg = &msgs[i];
- 		pr_debug("Doing %s %d bytes to 0x%02x - %d of %d messages\n",
- 			 pmsg->flags & I2C_M_RD ? "read" : "write",
-@@ -292,7 +292,13 @@ static int mpc_xfer(struct i2c_adapter *
- 		else
- 			ret =
- 			    mpc_write(i2c, pmsg->addr, pmsg->buf, pmsg->len, i);
-+		if (ret == -EAGAIN) {
-+			pr_debug("Lost i2c arbitration -> retry.\n");
-+			mpc_i2c_stop(i2c);
-+			goto restart;
-+		}
- 	}
-+
- 	mpc_i2c_stop(i2c);
- 	return (ret < 0) ? ret : num;
+-	return ssb_gpio_outen(&ssb_bcm47xx, 1 << gpio, 0);
++	ssb_gpio_outen(&ssb_bcm47xx, 1 << gpio, 0);
++	return 0;
  }
+ 
+ static inline int gpio_direction_output(unsigned gpio, int value)
+ {
+-	return ssb_gpio_outen(&ssb_bcm47xx, 1 << gpio, 1 << gpio);
++	ssb_gpio_outen(&ssb_bcm47xx, 1 << gpio, 1 << gpio);
++	return 0;
+ }
+ 
+-static int gpio_intmask(unsigned gpio, int value)
++static inline int gpio_intmask(unsigned gpio, int value)
+ {
+-	return ssb_gpio_intmask(&ssb_bcm47xx, 1 << gpio,
+-				value ? 1 << gpio : 0);
++	ssb_gpio_intmask(&ssb_bcm47xx, 1 << gpio,
++			 value ? 1 << gpio : 0);
++	return 0;
+ }
+ 
+-static int gpio_polarity(unsigned gpio, int value)
++static inline int gpio_polarity(unsigned gpio, int value)
+ {
+-	return ssb_gpio_polarity(&ssb_bcm47xx, 1 << gpio,
+-				 value ? 1 << gpio : 0);
++	ssb_gpio_polarity(&ssb_bcm47xx, 1 << gpio,
++			  value ? 1 << gpio : 0);
++	return 0;
+ }
+ 
+ 
 _
 
-Patches currently in -mm which might be from clifford@clifford.at are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
-i2c-incremental-i2c-mpc-driver-fix-for-multi-master-i2c-busses.patch
-i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch
+linux-next.patch
+bcm47xx-fix-gpio-api-return-codes.patch
 
