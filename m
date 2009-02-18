@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uvesafb-bitwise-or-has-higher-precedence-than.patch added to -mm tree
-Date: Wed, 18 Feb 2009 13:18:00 -0800
-Message-ID: <200902182118.n1ILI0sk012983@imap1.linux-foundation.org>
+Subject: + vesafb-bitwise-or-has-higher-precedence-than.patch added to -mm tree
+Date: Wed, 18 Feb 2009 13:19:14 -0800
+Message-ID: <200902182119.n1ILJEVC014751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756676AbZBRVSi (ORCPT
+	by vger.kernel.org with ESMTP id S1752226AbZBRVTx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 16:18:38 -0500
+	Wed, 18 Feb 2009 16:19:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roel.kluin@gmail.com, krzysztof.h1@poczta.fm, michalj@gmail.com
 
 
 The patch titled
-     uvesafb: bitwise OR has higher precedence than ?:
+     vesafb: bitwise OR has higher precedence than ?:
 has been added to the -mm tree.  Its filename is
-     uvesafb-bitwise-or-has-higher-precedence-than.patch
+     vesafb-bitwise-or-has-higher-precedence-than.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uvesafb: bitwise OR has higher precedence than ?:
+Subject: vesafb: bitwise OR has higher precedence than ?:
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
@@ -43,20 +43,20 @@ Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    2 +-
+ drivers/video/vesafb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-bitwise-or-has-higher-precedence-than drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-bitwise-or-has-higher-precedence-than
-+++ a/drivers/video/uvesafb.c
-@@ -1552,7 +1552,7 @@ static void __devinit uvesafb_init_info(
- 	}
- 
+diff -puN drivers/video/vesafb.c~vesafb-bitwise-or-has-higher-precedence-than drivers/video/vesafb.c
+--- a/drivers/video/vesafb.c~vesafb-bitwise-or-has-higher-precedence-than
++++ a/drivers/video/vesafb.c
+@@ -438,7 +438,7 @@ static int __init vesafb_probe(struct pl
+ 	info->var = vesafb_defined;
+ 	info->fix = vesafb_fix;
  	info->flags = FBINFO_FLAG_DEFAULT |
--			(par->ypan) ? FBINFO_HWACCEL_YPAN : 0;
-+			(par->ypan ? FBINFO_HWACCEL_YPAN : 0);
+-		(ypan) ? FBINFO_HWACCEL_YPAN : 0;
++		(ypan ? FBINFO_HWACCEL_YPAN : 0);
  
- 	if (!par->ypan)
+ 	if (!ypan)
  		info->fbops->fb_pan_display = NULL;
 _
 
@@ -84,4 +84,5 @@ drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
 arkfb-fix-misplaced-parentheses.patch
 uvesafb-bitwise-or-has-higher-precedence-than.patch
 ufs-sector_t-cannot-be-negative.patch
+vesafb-bitwise-or-has-higher-precedence-than.patch
 
