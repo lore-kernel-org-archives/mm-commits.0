@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-use-fixed-sized-types-for-ioctl-structures.patch added to -mm tree
-Date: Wed, 18 Feb 2009 15:39:32 -0800
-Message-ID: <200902182339.n1INdWjB022203@imap1.linux-foundation.org>
+Subject: + nilfs2-remove-compat-ioctl-code.patch added to -mm tree
+Date: Wed, 18 Feb 2009 15:39:43 -0800
+Message-ID: <200902182339.n1INdhZ2022436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38733 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751676AbZBRXj7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751676AbZBRXkD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 18:39:59 -0500
+	Wed, 18 Feb 2009 18:40:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2: use fixed sized types for ioctl structures
+     nilfs2: remove compat ioctl code
 has been added to the -mm tree.  Its filename is
-     nilfs2-use-fixed-sized-types-for-ioctl-structures.patch
+     nilfs2-remove-compat-ioctl-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,162 +34,342 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: use fixed sized types for ioctl structures
+Subject: nilfs2: remove compat ioctl code
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-Nilfs ioctl had structures not having fixed sized types such as:
-
-  struct nilfs_argv {
-         void *v_base;
-         size_t v_nmembs;
-         size_t v_size;
-         int v_index;
-         int v_flags;
-  };
-
-Further, some of them are wrongly aligned:
-
-  e.g.
-
-  struct nilfs_cpmode {
-        __u64 cm_cno;
-        int cm_mode;
-  };
-
-The size of wrongly aligned structures varies depending on
-architectures, and it breaks the identity of ioctl commands, which
-leads to arch dependent errors.
-
-Previously, these are compensated by using compat_ioctl.
-
-This fixes these problems and allows removal of compat ioctl.
-
-Since this will change sizes of those structures, binary compatibility
-for the past utilities will once break; new utilities have to be used
-instead.  However, it would be helpful to avoid platform dependent
-problems in the long term.
+This removes compat code from the nilfs ioctls and applies the same
+function for both .ioctl and .compat_ioctl file operations.
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c         |   11 +++++------
- include/linux/nilfs2_fs.h |   23 ++++++++++++++---------
- 2 files changed, 19 insertions(+), 15 deletions(-)
+ fs/nilfs2/dir.c           |    2 
+ fs/nilfs2/file.c          |    2 
+ fs/nilfs2/ioctl.c         |  228 ------------------------------------
+ fs/nilfs2/nilfs.h         |    1 
+ include/linux/nilfs2_fs.h |   41 ------
+ 5 files changed, 2 insertions(+), 272 deletions(-)
 
-diff -puN fs/nilfs2/ioctl.c~nilfs2-use-fixed-sized-types-for-ioctl-structures fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-use-fixed-sized-types-for-ioctl-structures
+diff -puN fs/nilfs2/dir.c~nilfs2-remove-compat-ioctl-code fs/nilfs2/dir.c
+--- a/fs/nilfs2/dir.c~nilfs2-remove-compat-ioctl-code
++++ a/fs/nilfs2/dir.c
+@@ -704,7 +704,7 @@ struct file_operations nilfs_dir_operati
+ 	.readdir	= nilfs_readdir,
+ 	.ioctl		= nilfs_ioctl,
+ #ifdef CONFIG_COMPAT
+-	.compat_ioctl	= nilfs_compat_ioctl,
++	.compat_ioctl	= nilfs_ioctl,
+ #endif	/* CONFIG_COMPAT */
+ 	.fsync		= nilfs_sync_file,
+ 
+diff -puN fs/nilfs2/file.c~nilfs2-remove-compat-ioctl-code fs/nilfs2/file.c
+--- a/fs/nilfs2/file.c~nilfs2-remove-compat-ioctl-code
++++ a/fs/nilfs2/file.c
+@@ -140,7 +140,7 @@ struct file_operations nilfs_file_operat
+ 	.aio_write	= generic_file_aio_write,
+ 	.ioctl		= nilfs_ioctl,
+ #ifdef CONFIG_COMPAT
+-	.compat_ioctl	= nilfs_compat_ioctl,
++	.compat_ioctl	= nilfs_ioctl,
+ #endif	/* CONFIG_COMPAT */
+ 	.mmap		= nilfs_file_mmap,
+ 	.open		= generic_file_open,
+diff -puN fs/nilfs2/ioctl.c~nilfs2-remove-compat-ioctl-code fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-remove-compat-ioctl-code
 +++ a/fs/nilfs2/ioctl.c
-@@ -41,6 +41,7 @@ static int nilfs_ioctl_wrap_copy(struct 
- 						   void *, size_t, size_t))
- {
- 	void *buf;
-+	void __user *base = (void __user *)(unsigned long)argv->v_base;
- 	size_t maxmembs, total, n;
- 	ssize_t nr;
- 	int ret, i;
-@@ -64,9 +65,8 @@ static int nilfs_ioctl_wrap_copy(struct 
- 		n = (argv->v_nmembs - i < maxmembs) ?
- 			argv->v_nmembs - i : maxmembs;
- 		if ((dir & _IOC_WRITE) &&
--		    copy_from_user(buf,
--			    (void __user *)argv->v_base + argv->v_size * i,
--			    argv->v_size * n)) {
-+		    copy_from_user(buf, base + argv->v_size * i,
-+				   argv->v_size * n)) {
- 			ret = -EFAULT;
- 			break;
- 		}
-@@ -78,9 +78,8 @@ static int nilfs_ioctl_wrap_copy(struct 
- 			break;
- 		}
- 		if ((dir & _IOC_READ) &&
--		    copy_to_user(
--			    (void __user *)argv->v_base + argv->v_size * i,
--			    buf, argv->v_size * nr)) {
-+		    copy_to_user(base + argv->v_size * i, buf,
-+				 argv->v_size * nr)) {
- 			ret = -EFAULT;
- 			break;
- 		}
-diff -puN include/linux/nilfs2_fs.h~nilfs2-use-fixed-sized-types-for-ioctl-structures include/linux/nilfs2_fs.h
---- a/include/linux/nilfs2_fs.h~nilfs2-use-fixed-sized-types-for-ioctl-structures
+@@ -631,231 +631,3 @@ int nilfs_ioctl(struct inode *inode, str
+ 		return -ENOTTY;
+ 	}
+ }
+-
+-/* compat_ioctl */
+-#ifdef CONFIG_COMPAT
+-#include <linux/compat.h>
+-
+-static int nilfs_compat_locked_ioctl(struct inode *inode, struct file *filp,
+-				     unsigned int cmd, unsigned long arg)
+-{
+-	int ret;
+-
+-	lock_kernel();
+-	ret = nilfs_ioctl(inode, filp, cmd, arg);
+-	unlock_kernel();
+-	return ret;
+-}
+-
+-static int
+-nilfs_compat_ioctl_uargv32_to_uargv(struct nilfs_argv32 __user *uargv32,
+-				    struct nilfs_argv __user *uargv)
+-{
+-	compat_uptr_t base;
+-	compat_size_t nmembs, size;
+-	compat_int_t index, flags;
+-
+-	if (get_user(base, &uargv32->v_base) ||
+-	    put_user(compat_ptr(base), &uargv->v_base) ||
+-	    get_user(nmembs, &uargv32->v_nmembs) ||
+-	    put_user(nmembs, &uargv->v_nmembs) ||
+-	    get_user(size, &uargv32->v_size) ||
+-	    put_user(size, &uargv->v_size) ||
+-	    get_user(index, &uargv32->v_index) ||
+-	    put_user(index, &uargv->v_index) ||
+-	    get_user(flags, &uargv32->v_flags) ||
+-	    put_user(flags, &uargv->v_flags))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static int
+-nilfs_compat_ioctl_uargv_to_uargv32(struct nilfs_argv __user *uargv,
+-				    struct nilfs_argv32 __user *uargv32)
+-{
+-	size_t nmembs;
+-
+-	if (get_user(nmembs, &uargv->v_nmembs) ||
+-	    put_user(nmembs, &uargv32->v_nmembs))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static int
+-nilfs_compat_ioctl_get_by_argv(struct inode *inode, struct file *filp,
+-			       unsigned int cmd, unsigned long arg)
+-{
+-	struct nilfs_argv __user *uargv;
+-	struct nilfs_argv32 __user *uargv32;
+-	int ret;
+-
+-	uargv = compat_alloc_user_space(sizeof(struct nilfs_argv));
+-	uargv32 = compat_ptr(arg);
+-	ret = nilfs_compat_ioctl_uargv32_to_uargv(uargv32, uargv);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = nilfs_compat_locked_ioctl(inode, filp, cmd, (unsigned long)uargv);
+-	if (ret < 0)
+-		return ret;
+-
+-	return nilfs_compat_ioctl_uargv_to_uargv32(uargv, uargv32);
+-}
+-
+-static int
+-nilfs_compat_ioctl_change_cpmode(struct inode *inode, struct file *filp,
+-				 unsigned int cmd, unsigned long arg)
+-{
+-	struct nilfs_cpmode __user *ucpmode;
+-	struct nilfs_cpmode32 __user *ucpmode32;
+-	int mode;
+-
+-	ucpmode = compat_alloc_user_space(sizeof(struct nilfs_cpmode));
+-	ucpmode32 = compat_ptr(arg);
+-	if (copy_in_user(&ucpmode->cm_cno, &ucpmode32->cm_cno,
+-			 sizeof(__u64)) ||
+-	    get_user(mode, &ucpmode32->cm_mode) ||
+-	    put_user(mode, &ucpmode->cm_mode))
+-		return -EFAULT;
+-
+-	return nilfs_compat_locked_ioctl(
+-		inode, filp, cmd, (unsigned long)ucpmode);
+-}
+-
+-
+-static inline int
+-nilfs_compat_ioctl_delete_checkpoint(struct inode *inode, struct file *filp,
+-				     unsigned int cmd, unsigned long arg)
+-{
+-	return nilfs_compat_locked_ioctl(inode, filp, cmd, arg);
+-}
+-
+-static inline int
+-nilfs_compat_ioctl_get_cpinfo(struct inode *inode, struct file *filp,
+-			      unsigned int cmd, unsigned long arg)
+-{
+-	return nilfs_compat_ioctl_get_by_argv(inode, filp, cmd, arg);
+-}
+-
+-static inline int
+-nilfs_compat_ioctl_get_cpstat(struct inode *inode, struct file *filp,
+-			      unsigned int cmd, unsigned long arg)
+-{
+-	return nilfs_compat_locked_ioctl(inode, filp, cmd, arg);
+-}
+-
+-static inline int
+-nilfs_compat_ioctl_get_suinfo(struct inode *inode, struct file *filp,
+-			      unsigned int cmd, unsigned long arg)
+-{
+-	return nilfs_compat_ioctl_get_by_argv(inode, filp, cmd, arg);
+-}
+-
+-static int
+-nilfs_compat_ioctl_get_sustat(struct inode *inode, struct file *filp,
+-			      unsigned int cmd, unsigned long arg)
+-{
+-	struct nilfs_sustat __user *usustat;
+-	struct nilfs_sustat32 __user *usustat32;
+-	time_t ctime, nongc_ctime;
+-	int ret;
+-
+-	usustat = compat_alloc_user_space(sizeof(struct nilfs_sustat));
+-	ret = nilfs_compat_locked_ioctl(inode, filp, cmd,
+-					(unsigned long)usustat);
+-	if (ret < 0)
+-		return ret;
+-
+-	usustat32 = compat_ptr(arg);
+-	if (copy_in_user(&usustat32->ss_nsegs, &usustat->ss_nsegs,
+-			 sizeof(__u64)) ||
+-	    copy_in_user(&usustat32->ss_ncleansegs, &usustat->ss_ncleansegs,
+-			 sizeof(__u64)) ||
+-	    copy_in_user(&usustat32->ss_ndirtysegs, &usustat->ss_ndirtysegs,
+-			 sizeof(__u64)) ||
+-	    get_user(ctime, &usustat->ss_ctime) ||
+-	    put_user(ctime, &usustat32->ss_ctime) ||
+-	    get_user(nongc_ctime, &usustat->ss_nongc_ctime) ||
+-	    put_user(nongc_ctime, &usustat32->ss_nongc_ctime))
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-static inline int
+-nilfs_compat_ioctl_get_vinfo(struct inode *inode, struct file *filp,
+-			      unsigned int cmd, unsigned long arg)
+-{
+-	return nilfs_compat_ioctl_get_by_argv(inode, filp, cmd, arg);
+-}
+-
+-static inline int
+-nilfs_compat_ioctl_get_bdescs(struct inode *inode, struct file *filp,
+-			     unsigned int cmd, unsigned long arg)
+-{
+-	return nilfs_compat_ioctl_get_by_argv(inode, filp, cmd, arg);
+-}
+-
+-static int
+-nilfs_compat_ioctl_clean_segments(struct inode *inode, struct file *filp,
+-				  unsigned int cmd, unsigned long arg)
+-{
+-	struct nilfs_argv __user *uargv;
+-	struct nilfs_argv32 __user *uargv32;
+-	int i, ret;
+-
+-	uargv = compat_alloc_user_space(sizeof(struct nilfs_argv) * 5);
+-	uargv32 = compat_ptr(arg);
+-	for (i = 0; i < 5; i++) {
+-		ret = nilfs_compat_ioctl_uargv32_to_uargv(&uargv32[i],
+-							  &uargv[i]);
+-		if (ret < 0)
+-			return ret;
+-	}
+-	return nilfs_compat_locked_ioctl(
+-		inode, filp, cmd, (unsigned long)uargv);
+-}
+-
+-static int nilfs_compat_ioctl_sync(struct inode *inode, struct file *filp,
+-				   unsigned int cmd, unsigned long arg)
+-{
+-	return nilfs_compat_locked_ioctl(inode, filp, cmd, arg);
+-}
+-
+-long nilfs_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+-{
+-	struct inode *inode = filp->f_dentry->d_inode;
+-
+-	switch (cmd) {
+-	case NILFS_IOCTL32_CHANGE_CPMODE:
+-		return nilfs_compat_ioctl_change_cpmode(
+-			inode, filp, NILFS_IOCTL_CHANGE_CPMODE, arg);
+-	case NILFS_IOCTL_DELETE_CHECKPOINT:
+-		return nilfs_compat_ioctl_delete_checkpoint(
+-			inode, filp, cmd, arg);
+-	case NILFS_IOCTL32_GET_CPINFO:
+-		return nilfs_compat_ioctl_get_cpinfo(
+-			inode, filp, NILFS_IOCTL_GET_CPINFO, arg);
+-	case NILFS_IOCTL_GET_CPSTAT:
+-		return nilfs_compat_ioctl_get_cpstat(inode, filp, cmd, arg);
+-	case NILFS_IOCTL32_GET_SUINFO:
+-		return nilfs_compat_ioctl_get_suinfo(
+-			inode, filp, NILFS_IOCTL_GET_SUINFO, arg);
+-	case NILFS_IOCTL32_GET_SUSTAT:
+-		return nilfs_compat_ioctl_get_sustat(
+-			inode, filp, NILFS_IOCTL_GET_SUSTAT, arg);
+-	case NILFS_IOCTL32_GET_VINFO:
+-		return nilfs_compat_ioctl_get_vinfo(
+-			inode, filp, NILFS_IOCTL_GET_VINFO, arg);
+-	case NILFS_IOCTL32_GET_BDESCS:
+-		return nilfs_compat_ioctl_get_bdescs(
+-			inode, filp, NILFS_IOCTL_GET_BDESCS, arg);
+-	case NILFS_IOCTL32_CLEAN_SEGMENTS:
+-		return nilfs_compat_ioctl_clean_segments(
+-			inode, filp, NILFS_IOCTL_CLEAN_SEGMENTS, arg);
+-	case NILFS_IOCTL_SYNC:
+-		return nilfs_compat_ioctl_sync(inode, filp, cmd, arg);
+-	default:
+-		return -ENOIOCTLCMD;
+-	}
+-}
+-#endif
+diff -puN fs/nilfs2/nilfs.h~nilfs2-remove-compat-ioctl-code fs/nilfs2/nilfs.h
+--- a/fs/nilfs2/nilfs.h~nilfs2-remove-compat-ioctl-code
++++ a/fs/nilfs2/nilfs.h
+@@ -243,7 +243,6 @@ extern int nilfs_sync_file(struct file *
+ 
+ /* ioctl.c */
+ int nilfs_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
+-long nilfs_compat_ioctl(struct file *, unsigned int, unsigned long);
+ int nilfs_ioctl_prepare_clean_segments(struct the_nilfs *, void __user *);
+ 
+ /* inode.c */
+diff -puN include/linux/nilfs2_fs.h~nilfs2-remove-compat-ioctl-code include/linux/nilfs2_fs.h
+--- a/include/linux/nilfs2_fs.h~nilfs2-remove-compat-ioctl-code
 +++ a/include/linux/nilfs2_fs.h
-@@ -499,6 +499,7 @@ NILFS_CHECKPOINT_FNS(SKETCH, sketch)
- /**
-  * struct nilfs_cpinfo - checkpoint information
-  * @ci_flags: flags
-+ * @ci_pad: padding
-  * @ci_cno: checkpoint number
-  * @ci_create: creation timestamp
-  * @ci_nblk_inc: number of blocks incremented by this checkpoint
-@@ -508,6 +509,7 @@ NILFS_CHECKPOINT_FNS(SKETCH, sketch)
-  */
- struct nilfs_cpinfo {
- 	__u32 ci_flags;
-+	__u32 ci_pad;
- 	__u64 ci_cno;
- 	__u64 ci_create;
- 	__u64 ci_nblk_inc;
-@@ -668,7 +670,8 @@ enum {
-  */
- struct nilfs_cpmode {
- 	__u64 cm_cno;
--	int cm_mode;
-+	__u32 cm_mode;
-+	__u32 cm_pad;
- };
+@@ -793,45 +793,4 @@ struct nilfs_bdesc {
+ #define NILFS_IOCTL_RESIZE  \
+ 	_IOW(NILFS_IOCTL_IDENT, 0x8B, __u64)
  
- /**
-@@ -676,15 +679,15 @@ struct nilfs_cpmode {
-  * @v_base:
-  * @v_nmembs:
-  * @v_size:
-- * @v_index:
-  * @v_flags:
-+ * @v_index:
-  */
- struct nilfs_argv {
--	void *v_base;
--	size_t v_nmembs;	/* number of members */
--	size_t v_size;		/* size of members */
--	int v_index;
--	int v_flags;
-+	__u64 v_base;
-+	__u32 v_nmembs;	/* number of members */
-+	__u16 v_size;	/* size of members */
-+	__u16 v_flags;
-+	__u64 v_index;
- };
- 
- /**
-@@ -721,8 +724,8 @@ struct nilfs_sustat {
- 	__u64 ss_nsegs;
- 	__u64 ss_ncleansegs;
- 	__u64 ss_ndirtysegs;
--	time_t ss_ctime;
--	time_t ss_nongc_ctime;
-+	__u64 ss_ctime;
-+	__u64 ss_nongc_ctime;
- };
- 
- /**
-@@ -750,6 +753,7 @@ struct nilfs_vdesc {
- 	__u64 vd_blocknr;
- 	__u64 vd_offset;
- 	__u32 vd_flags;
-+	__u32 vd_pad;
- };
- 
- /**
-@@ -761,6 +765,7 @@ struct nilfs_bdesc {
- 	__u64 bd_blocknr;
- 	__u64 bd_offset;
- 	__u32 bd_level;
-+	__u32 bd_pad;
- };
- 
- #define NILFS_IOCTL_IDENT		'n'
+-/* compat_ioctl */
+-#ifdef CONFIG_COMPAT
+-#include <linux/compat.h>
+-
+-struct nilfs_cpmode32 {
+-	__u64 cm_cno;
+-	compat_int_t cm_mode;
+-};
+-
+-struct nilfs_argv32 {
+-	compat_caddr_t v_base;
+-	compat_size_t v_nmembs;
+-	compat_size_t v_size;
+-	compat_int_t v_index;
+-	compat_int_t v_flags;
+-};
+-
+-struct nilfs_sustat32 {
+-	__u64 ss_nsegs;
+-	__u64 ss_ncleansegs;
+-	__u64 ss_ndirtysegs;
+-	compat_time_t ss_ctime;
+-	compat_time_t ss_nongc_ctime;
+-};
+-
+-#define NILFS_IOCTL32_CHANGE_CPMODE  \
+-	_IOW(NILFS_IOCTL_IDENT, 0x80, struct nilfs_cpmode32)
+-#define NILFS_IOCTL32_GET_CPINFO  \
+-	_IOR(NILFS_IOCTL_IDENT, 0x82, struct nilfs_argv32)
+-#define NILFS_IOCTL32_GET_SUINFO  \
+-	_IOR(NILFS_IOCTL_IDENT, 0x84, struct nilfs_argv32)
+-#define NILFS_IOCTL32_GET_SUSTAT  \
+-	_IOR(NILFS_IOCTL_IDENT, 0x85, struct nilfs_sustat32)
+-#define NILFS_IOCTL32_GET_VINFO  \
+-	_IOWR(NILFS_IOCTL_IDENT, 0x86, struct nilfs_argv32)
+-#define NILFS_IOCTL32_GET_BDESCS  \
+-	_IOWR(NILFS_IOCTL_IDENT, 0x87, struct nilfs_argv32)
+-#define NILFS_IOCTL32_CLEAN_SEGMENTS  \
+-	_IOW(NILFS_IOCTL_IDENT, 0x88, struct nilfs_argv32[5])
+-#endif	/* CONFIG_COMPAT */
+-
+ #endif	/* _LINUX_NILFS_FS_H */
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
