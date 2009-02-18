@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-do-not-calculate-line-length-twice.patch added to -mm tree
-Date: Tue, 17 Feb 2009 16:14:44 -0800
-Message-ID: <200902180014.n1I0EiX4029367@imap1.linux-foundation.org>
+Subject: + cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch added to -mm tree
+Date: Tue, 17 Feb 2009 16:14:47 -0800
+Message-ID: <200902180014.n1I0ElUU029506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42680 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751180AbZBRAPY (ORCPT
+	by vger.kernel.org with ESMTP id S1751342AbZBRAPZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 19:15:24 -0500
+	Tue, 17 Feb 2009 19:15:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, arthur.marsh@internode.on.net, geert.uytterhoeven@gmail.
 
 
 The patch titled
-     cirrusfb: do not calculate line length twice
+     cirrusfb: use 5-6-5 RGB for 16bpp mode
 has been added to the -mm tree.  Its filename is
-     cirrusfb-do-not-calculate-line-length-twice.patch
+     cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: do not calculate line length twice
+Subject: cirrusfb: use 5-6-5 RGB for 16bpp mode
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-A line length is calculated twice: first in the cirrusfb_decode_var() then
-in the cirrusfb_set_par_foo().
+Use the 5-6-5 RGB mode instead of the 5-5-5 mode at 16bpp depth.
 
-Use the first calculated value.  A nice side effect is that 32bpp mode
-works now.
+It fixes colors in the 16bpp modes on Cirrus Laguna chips.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Cc: Geert Uytterhoeven <geert.uytterhoeven@gmail.com>
@@ -49,76 +47,36 @@ Cc: Arthur Marsh <arthur.marsh@internode.on.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/video/cirrusfb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-do-not-calculate-line-length-twice drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-do-not-calculate-line-length-twice
+diff -puN drivers/video/cirrusfb.c~cirrusfb-use-5-6-5-rgb-for-16bpp-mode drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-use-5-6-5-rgb-for-16bpp-mode
 +++ a/drivers/video/cirrusfb.c
-@@ -694,7 +694,8 @@ static int cirrusfb_set_par_foo(struct f
- 	struct cirrusfb_regs regs;
- 	u8 __iomem *regbase = cinfo->regbase;
- 	unsigned char tmp;
--	int offset = 0, err;
-+	int err;
-+	int pitch;
- 	const struct cirrusfb_board_info_rec *bi;
- 	int hdispend, hsyncstart, hsyncend, htotal;
- 	int yres, vdispend, vsyncstart, vsyncend, vtotal;
-@@ -1027,7 +1028,6 @@ static int cirrusfb_set_par_foo(struct f
- 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x06);
- 		/* plane mask: only write to first plane */
- 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0x01);
--		offset = var->xres_virtual / 16;
- 	}
+@@ -499,12 +499,12 @@ static int cirrusfb_check_var(struct fb_
+ 			var->green.offset = -3;
+ 			var->blue.offset = 8;
+ 		} else {
+-			var->red.offset = 10;
++			var->red.offset = 11;
+ 			var->green.offset = 5;
+ 			var->blue.offset = 0;
+ 		}
+ 		var->red.length = 5;
+-		var->green.length = 5;
++		var->green.length = 6;
+ 		var->blue.length = 5;
+ 		break;
  
- 	/******************************************************
-@@ -1113,7 +1113,6 @@ static int cirrusfb_set_par_foo(struct f
- 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x0a);
- 		/* plane mask: enable writing to all 4 planes */
- 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0xff);
--		offset = var->xres_virtual / 8;
- 	}
- 
- 	/******************************************************
-@@ -1190,7 +1189,6 @@ static int cirrusfb_set_par_foo(struct f
- 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x0a);
- 		/* plane mask: enable writing to all 4 planes */
- 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0xff);
--		offset = var->xres_virtual / 4;
- 	}
- 
- 	/******************************************************
-@@ -1263,7 +1261,6 @@ static int cirrusfb_set_par_foo(struct f
- 		vga_wseq(regbase, VGA_SEQ_MEMORY_MODE, 0x0a);
- 		/* plane mask: enable writing to all 4 planes */
- 		vga_wseq(regbase, VGA_SEQ_PLANE_WRITE, 0xff);
--		offset = var->xres_virtual / 4;
- 	}
- 
- 	/******************************************************
-@@ -1277,9 +1274,10 @@ static int cirrusfb_set_par_foo(struct f
- 			"What's this? requested color depth == %d.\n",
- 			var->bits_per_pixel);
- 
--	vga_wcrt(regbase, VGA_CRTC_OFFSET, offset & 0xff);
-+	pitch = info->fix.line_length >> 3;
-+	vga_wcrt(regbase, VGA_CRTC_OFFSET, pitch & 0xff);
- 	tmp = 0x22;
--	if (offset & 0x100)
-+	if (pitch & 0x100)
- 		tmp |= 0x10;	/* offset overflow bit */
- 
- 	/* screen start addr #16-18, fastpagemode cycles */
-@@ -1287,7 +1285,7 @@ static int cirrusfb_set_par_foo(struct f
- 
- 	/* screen start address bit 19 */
- 	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
--		vga_wcrt(regbase, CL_CRT1D, 0x00);
-+		vga_wcrt(regbase, CL_CRT1D, (pitch >> 9) & 1);
- 
- 	if (cinfo->btype == BT_LAGUNA ||
- 	    cinfo->btype == BT_GD5480) {
+@@ -1180,7 +1180,7 @@ static int cirrusfb_set_par_foo(struct f
+ 		/* pixel mask: pass-through all planes */
+ 		WGen(cinfo, VGA_PEL_MSK, 0xff);
+ #ifdef CONFIG_PCI
+-		WHDR(cinfo, 0xc0);	/* Copy Xbh */
++		WHDR(cinfo, 0xc1);	/* Copy Xbh */
+ #elif defined(CONFIG_ZORRO)
+ 		/* FIXME: CONFIG_PCI and CONFIG_ZORRO may be defined both */
+ 		WHDR(cinfo, 0xa0);	/* hidden dac reg: nothing special */
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
