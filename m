@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch added to -mm tree
-Date: Wed, 18 Feb 2009 14:45:43 -0800
-Message-ID: <200902182245.n1IMjhOo009646@imap1.linux-foundation.org>
+Subject: + uml-fix-vde-network-backend-in-user-mode-linux.patch added to -mm tree
+Date: Wed, 18 Feb 2009 14:52:24 -0800
+Message-ID: <200902182252.n1IMqPK7019334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761490AbZBRWqX (ORCPT
+	by vger.kernel.org with ESMTP id S1753755AbZBRWxJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 17:46:23 -0500
+	Wed, 18 Feb 2009 17:53:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, yokota@netlab.is.tsukuba.ac.jp
+Cc: shammash@artha.org, jdike@addtoit.com, jkosina@suse.cz, wangcong@zeuux.org
 
 
 The patch titled
-     drivers/scsi/pcmcia/nsp_cs.c: time_out reaches -1
+     uml: fix vde network backend in user mode linux
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch
+     uml-fix-vde-network-backend-in-user-mode-linux.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/pcmcia/nsp_cs.c: time_out reaches -1
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: uml: fix vde network backend in user mode linux
+From: Luca Bigliardi <shammash@artha.org>
 
-With a postfix decrement the timeout will reach -1 rather than 0, so
-the error does not appear.
+* Replace kmalloc() with uml_kmalloc() (fix build failure)
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: <yokota@netlab.is.tsukuba.ac.jp>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+* Remove unnecessary UM_KERN_INFO in printk() (don't display '<6>' while
+  printing info)
+
+Signed-off-by: Luca Bigliardi <shammash@artha.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Reviewed-by: WANG Cong <wangcong@zeuux.org>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/pcmcia/nsp_cs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/drivers/vde_user.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/pcmcia/nsp_cs.c~drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1 drivers/scsi/pcmcia/nsp_cs.c
---- a/drivers/scsi/pcmcia/nsp_cs.c~drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1
-+++ a/drivers/scsi/pcmcia/nsp_cs.c
-@@ -530,7 +530,7 @@ static int nsp_negate_signal(struct scsi
- 		if (reg == 0xff) {
- 			break;
- 		}
--	} while ((time_out-- != 0) && (reg & mask) != 0);
-+	} while ((--time_out != 0) && (reg & mask) != 0);
+diff -puN arch/um/drivers/vde_user.c~uml-fix-vde-network-backend-in-user-mode-linux arch/um/drivers/vde_user.c
+--- a/arch/um/drivers/vde_user.c~uml-fix-vde-network-backend-in-user-mode-linux
++++ a/arch/um/drivers/vde_user.c
+@@ -78,7 +78,7 @@ void vde_init_libstuff(struct vde_data *
+ {
+ 	struct vde_open_args *args;
  
- 	if (time_out == 0) {
- 		nsp_msg(KERN_DEBUG, " %s signal off timeut", str);
+-	vpri->args = kmalloc(sizeof(struct vde_open_args), UM_GFP_KERNEL);
++	vpri->args = uml_kmalloc(sizeof(struct vde_open_args), UM_GFP_KERNEL);
+ 	if (vpri->args == NULL) {
+ 		printk(UM_KERN_ERR "vde_init_libstuff - vde_open_args "
+ 		       "allocation failed");
+@@ -91,8 +91,8 @@ void vde_init_libstuff(struct vde_data *
+ 	args->group = init->group;
+ 	args->mode = init->mode ? init->mode : 0700;
+ 
+-	args->port ?  printk(UM_KERN_INFO "port %d", args->port) :
+-		printk(UM_KERN_INFO "undefined port");
++	args->port ?  printk("port %d", args->port) :
++		printk("undefined port");
+ }
+ 
+ int vde_user_read(void *conn, void *buf, int len)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from shammash@artha.org are
 
-origin.patch
-linux-next.patch
-acpi-get_throttling_state-cannot-be-larger-state_count.patch
-drm-fix-lock_test_with_return-macro.patch
-dvb-negative-internal-sub_range-wont-get-noticed.patch
-atm-bitwise-or-has-higher-precedence-than.patch
-drivers-net-tg3c-fix-confusion.patch
-smsc-timeout-reaches-1.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-paride-pgc-xs-confusion.patch
-b43-bitwise-or-has-higher-precedence-than.patch
-mm-get_nid_for_pfn-returns-int.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-fix-macros.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-spi-limit-reaches-1-tested-0.patch
-rtc-wm8350-retries-will-reach-1.patch
-fbdev-newport-newport_wait-return-0-on-timeout.patch
-drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
-arkfb-fix-misplaced-parentheses.patch
-uvesafb-bitwise-or-has-higher-precedence-than.patch
-vesafb-bitwise-or-has-higher-precedence-than.patch
-ufs-sector_t-cannot-be-negative.patch
-drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch
+uml-fix-vde-network-backend-in-user-mode-linux.patch
 
