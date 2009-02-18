@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + smsc-timeout-reaches-1.patch added to -mm tree
-Date: Wed, 18 Feb 2009 14:42:36 -0800
-Message-ID: <200902182242.n1IMga4Y005230@imap1.linux-foundation.org>
+Subject: + drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch added to -mm tree
+Date: Wed, 18 Feb 2009 14:45:43 -0800
+Message-ID: <200902182245.n1IMjhOo009646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758623AbZBRWnA (ORCPT
+	by vger.kernel.org with ESMTP id S1761490AbZBRWqX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 17:43:00 -0500
+	Wed, 18 Feb 2009 17:46:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, steve.glendinning@smsc.com
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, yokota@netlab.is.tsukuba.ac.jp
 
 
 The patch titled
-     drivers/net/smsc: timeout reaches -1
+     drivers/scsi/pcmcia/nsp_cs.c: time_out reaches -1
 has been added to the -mm tree.  Its filename is
-     smsc-timeout-reaches-1.patch
+     drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/smsc: timeout reaches -1
+Subject: drivers/scsi/pcmcia/nsp_cs.c: time_out reaches -1
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With a postfix decrement timeouts will reach -1 rather than 0, so the
-error path is not taken.
+With a postfix decrement the timeout will reach -1 rather than 0, so
+the error does not appear.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: <steve.glendinning@smsc.com>
+Cc: <yokota@netlab.is.tsukuba.ac.jp>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smsc911x.c |    2 +-
- drivers/net/smsc9420.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/pcmcia/nsp_cs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/smsc911x.c~smsc-timeout-reaches-1 drivers/net/smsc911x.c
---- a/drivers/net/smsc911x.c~smsc-timeout-reaches-1
-+++ a/drivers/net/smsc911x.c
-@@ -1624,7 +1624,7 @@ static int smsc911x_eeprom_send_cmd(stru
- 	do {
- 		msleep(1);
- 		e2cmd = smsc911x_reg_read(pdata, E2P_CMD);
--	} while ((e2cmd & E2P_CMD_EPC_BUSY_) && (timeout--));
-+	} while ((e2cmd & E2P_CMD_EPC_BUSY_) && (--timeout));
+diff -puN drivers/scsi/pcmcia/nsp_cs.c~drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1 drivers/scsi/pcmcia/nsp_cs.c
+--- a/drivers/scsi/pcmcia/nsp_cs.c~drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1
++++ a/drivers/scsi/pcmcia/nsp_cs.c
+@@ -530,7 +530,7 @@ static int nsp_negate_signal(struct scsi
+ 		if (reg == 0xff) {
+ 			break;
+ 		}
+-	} while ((time_out-- != 0) && (reg & mask) != 0);
++	} while ((--time_out != 0) && (reg & mask) != 0);
  
- 	if (!timeout) {
- 		SMSC_TRACE(DRV, "TIMED OUT");
-diff -puN drivers/net/smsc9420.c~smsc-timeout-reaches-1 drivers/net/smsc9420.c
---- a/drivers/net/smsc9420.c~smsc-timeout-reaches-1
-+++ a/drivers/net/smsc9420.c
-@@ -341,7 +341,7 @@ static int smsc9420_eeprom_send_cmd(stru
- 	do {
- 		msleep(1);
- 		e2cmd = smsc9420_reg_read(pd, E2P_CMD);
--	} while ((e2cmd & E2P_CMD_EPC_BUSY_) && (timeout--));
-+	} while ((e2cmd & E2P_CMD_EPC_BUSY_) && (--timeout));
- 
- 	if (!timeout) {
- 		smsc_info(HW, "TIMED OUT");
+ 	if (time_out == 0) {
+ 		nsp_msg(KERN_DEBUG, " %s signal off timeut", str);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -102,4 +90,5 @@ arkfb-fix-misplaced-parentheses.patch
 uvesafb-bitwise-or-has-higher-precedence-than.patch
 vesafb-bitwise-or-has-higher-precedence-than.patch
 ufs-sector_t-cannot-be-negative.patch
+drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch
 
