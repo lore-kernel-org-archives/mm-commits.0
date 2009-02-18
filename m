@@ -1,102 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch added to -mm tree
-Date: Tue, 17 Feb 2009 16:14:47 -0800
-Message-ID: <200902180014.n1I0ElUU029506@imap1.linux-foundation.org>
+Subject: - i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch removed from -mm tree
+Date: Tue, 17 Feb 2009 16:27:07 -0800
+Message-ID: <200902180027.n1I0R74D014483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751342AbZBRAPZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751665AbZBRA1r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Feb 2009 19:15:25 -0500
+	Tue, 17 Feb 2009 19:27:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, arthur.marsh@internode.on.net, geert.uytterhoeven@gmail.com
+To: clifford@clifford.at, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: use 5-6-5 RGB for 16bpp mode
-has been added to the -mm tree.  Its filename is
-     cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
+     i2c: fix i2c-mpc driver for multi-master i2c busses
+has been removed from the -mm tree.  Its filename was
+     i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because i lost the plot
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: use 5-6-5 RGB for 16bpp mode
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: i2c: fix i2c-mpc driver for multi-master i2c busses
+From: Clifford Wolf <clifford@clifford.at>
 
-Use the 5-6-5 RGB mode instead of the 5-5-5 mode at 16bpp depth.
+Simply retry on arbitration lost until xfer is successfull, a
+non-arbitration-lost error is triggered or the 1s timeout is hit.
 
-It fixes colors in the 16bpp modes on Cirrus Laguna chips.
+Tested with a freescale MPC8349E host cpu.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Geert Uytterhoeven <geert.uytterhoeven@gmail.com>
-Cc: Arthur Marsh <arthur.marsh@internode.on.net>
+Signed-off-by: Clifford Wolf <clifford@clifford.at>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-mpc.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-use-5-6-5-rgb-for-16bpp-mode drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-use-5-6-5-rgb-for-16bpp-mode
-+++ a/drivers/video/cirrusfb.c
-@@ -499,12 +499,12 @@ static int cirrusfb_check_var(struct fb_
- 			var->green.offset = -3;
- 			var->blue.offset = 8;
- 		} else {
--			var->red.offset = 10;
-+			var->red.offset = 11;
- 			var->green.offset = 5;
- 			var->blue.offset = 0;
- 		}
- 		var->red.length = 5;
--		var->green.length = 5;
-+		var->green.length = 6;
- 		var->blue.length = 5;
- 		break;
+diff -puN drivers/i2c/busses/i2c-mpc.c~i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses drivers/i2c/busses/i2c-mpc.c
+--- a/drivers/i2c/busses/i2c-mpc.c~i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses
++++ a/drivers/i2c/busses/i2c-mpc.c
+@@ -134,13 +134,13 @@ static int i2c_wait(struct mpc_i2c *i2c,
+ 	if (result < 0)
+ 		return result;
  
-@@ -1180,7 +1180,7 @@ static int cirrusfb_set_par_foo(struct f
- 		/* pixel mask: pass-through all planes */
- 		WGen(cinfo, VGA_PEL_MSK, 0xff);
- #ifdef CONFIG_PCI
--		WHDR(cinfo, 0xc0);	/* Copy Xbh */
-+		WHDR(cinfo, 0xc1);	/* Copy Xbh */
- #elif defined(CONFIG_ZORRO)
- 		/* FIXME: CONFIG_PCI and CONFIG_ZORRO may be defined both */
- 		WHDR(cinfo, 0xa0);	/* hidden dac reg: nothing special */
+-	if (!(x & CSR_MCF)) {
+-		pr_debug("I2C: unfinished\n");
+-		return -EIO;
+-	}
+-
+ 	if (x & CSR_MAL) {
+ 		pr_debug("I2C: MAL\n");
++		return -EAGAIN;
++	}
++
++	if (!(x & CSR_MCF)) {
++		pr_debug("I2C: unfinished\n");
+ 		return -EIO;
+ 	}
+ 
+@@ -257,11 +257,11 @@ static int mpc_read(struct mpc_i2c *i2c,
+ static int mpc_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
+ {
+ 	struct i2c_msg *pmsg;
+-	int i;
+-	int ret = 0;
++	int i, ret;
+ 	unsigned long orig_jiffies = jiffies;
+ 	struct mpc_i2c *i2c = i2c_get_adapdata(adap);
+ 
++restart:
+ 	mpc_i2c_start(i2c);
+ 
+ 	/* Allow bus up to 1s to become not busy */
+@@ -281,7 +281,7 @@ static int mpc_xfer(struct i2c_adapter *
+ 		schedule();
+ 	}
+ 
+-	for (i = 0; ret >= 0 && i < num; i++) {
++	for (i = 0, ret = 0; ret >= 0 && i < num; i++) {
+ 		pmsg = &msgs[i];
+ 		pr_debug("Doing %s %d bytes to 0x%02x - %d of %d messages\n",
+ 			 pmsg->flags & I2C_M_RD ? "read" : "write",
+@@ -292,7 +292,13 @@ static int mpc_xfer(struct i2c_adapter *
+ 		else
+ 			ret =
+ 			    mpc_write(i2c, pmsg->addr, pmsg->buf, pmsg->len, i);
++		if (ret == -EAGAIN) {
++			pr_debug("Lost i2c arbitration -> retry.\n");
++			mpc_i2c_stop(i2c);
++			goto restart;
++		}
+ 	}
++
+ 	mpc_i2c_stop(i2c);
+ 	return (ret < 0) ? ret : num;
+ }
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from clifford@clifford.at are
 
-linux-next.patch
-fbdev-drm-fix-kconfig-submenu-mess-in-graphics-support.patch
-cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
-cirrusfb-add-laguna-additional-overflow-register.patch
-cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
-cirrusfb-do-not-calculate-line-length-twice.patch
-cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-asiliantfb-fix-cmap-memory-leaks.patch
+i2c-incremental-i2c-mpc-driver-fix-for-multi-master-i2c-busses.patch
+i2c-fix-i2c-mpc-driver-for-multi-master-i2c-busses.patch
 
