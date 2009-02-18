@@ -1,54 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] v4l-dvb-calibration-still-successful-at-10.patch removed from -mm tree
-Date: Wed, 18 Feb 2009 02:13:57 -0800
-Message-ID: <200902181013.n1IADvtD006116@imap1.linux-foundation.org>
+Subject: [merged] leds-fix-confusion.patch removed from -mm tree
+Date: Wed, 18 Feb 2009 02:14:01 -0800
+Message-ID: <200902181014.n1IAE1Qt006142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53013 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751216AbZBRKOA (ORCPT
+	by vger.kernel.org with ESMTP id S1751396AbZBRKON (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 05:14:00 -0500
+	Wed, 18 Feb 2009 05:14:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, rdreier@cisco.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     v4l/dvb: calibration still  successful at 10
+     leds: fix &&/|| confusion
 has been removed from the -mm tree.  Its filename was
-     v4l-dvb-calibration-still-successful-at-10.patch
+     leds-fix-confusion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: v4l/dvb: calibration still  successful at 10
+Subject: leds: fix &&/|| confusion
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With while (i++ < 10) { ...  } i can reach 11, so callibration still
-succeeds at i == 10.
-
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Roland Dreier <rdreier@cisco.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/common/tuners/mt2060.c |    2 +-
+ drivers/leds/leds-pca9532.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/common/tuners/mt2060.c~v4l-dvb-calibration-still-successful-at-10 drivers/media/common/tuners/mt2060.c
---- a/drivers/media/common/tuners/mt2060.c~v4l-dvb-calibration-still-successful-at-10
-+++ a/drivers/media/common/tuners/mt2060.c
-@@ -278,7 +278,7 @@ static void mt2060_calibrate(struct mt20
- 	while (i++ < 10 && mt2060_readreg(priv, REG_MISC_STAT, &b) == 0 && (b & (1 << 6)) == 0)
- 		msleep(20);
+diff -puN drivers/leds/leds-pca9532.c~leds-fix-confusion drivers/leds/leds-pca9532.c
+--- a/drivers/leds/leds-pca9532.c~leds-fix-confusion
++++ a/drivers/leds/leds-pca9532.c
+@@ -169,7 +169,7 @@ static int pca9532_event(struct input_de
+ {
+ 	struct pca9532_data *data = input_get_drvdata(dev);
  
--	if (i < 10) {
-+	if (i <= 10) {
- 		mt2060_readreg(priv, REG_FM_FREQ, &priv->fmfreq); // now find out, what is fmreq used for :)
- 		dprintk("calibration was successful: %d", (int)priv->fmfreq);
- 	} else
+-	if (type != EV_SND && (code != SND_BELL || code != SND_TONE))
++	if (type != EV_SND || (code != SND_BELL && code != SND_TONE))
+ 		return -1;
+ 
+ 	/* XXX: allow different kind of beeps with psc/pwm modifications */
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
