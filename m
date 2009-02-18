@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atm-bitwise-or-has-higher-precedence-than.patch added to -mm tree
-Date: Wed, 18 Feb 2009 13:12:19 -0800
-Message-ID: <200902182112.n1ILCJuW004843@imap1.linux-foundation.org>
+Subject: + b43-bitwise-or-has-higher-precedence-than.patch added to -mm tree
+Date: Wed, 18 Feb 2009 13:14:40 -0800
+Message-ID: <200902182114.n1ILEe6b008257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43011 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752653AbZBRVM6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752189AbZBRVPU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 16:12:58 -0500
+	Wed, 18 Feb 2009 16:15:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, chas3@users.sourceforge.net, chas@cmf.nrl.navy.mil, viro@zeniv.linux.org.uk
+Cc: roel.kluin@gmail.com, Larry.Finger@lwfinger.net, linville@tuxdriver.com, mb@bu3sch.de
 
 
 The patch titled
-     atm: bitwise or has higher precedence than ?:
+     b43: bitwise OR has higher precedence than ?:
 has been added to the -mm tree.  Its filename is
-     atm-bitwise-or-has-higher-precedence-than.patch
+     b43-bitwise-or-has-higher-precedence-than.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atm: bitwise or has higher precedence than ?:
+Subject: b43: bitwise OR has higher precedence than ?:
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: chas williams <chas3@users.sourceforge.net>
-Cc: chas williams <chas@cmf.nrl.navy.mil>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/lanai.c |    2 +-
+ drivers/net/wireless/b43/lo.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/atm/lanai.c~atm-bitwise-or-has-higher-precedence-than drivers/atm/lanai.c
---- a/drivers/atm/lanai.c~atm-bitwise-or-has-higher-precedence-than
-+++ a/drivers/atm/lanai.c
-@@ -901,7 +901,7 @@ static int __devinit eeprom_read(struct 
- 		clock_l(); udelay(5);
- 		for (i = 128; i != 0; i >>= 1) {   /* write command out */
- 			tmp = (lanai->conf1 & ~CONFIG1_PROMDATA) |
--			    (data & i) ? CONFIG1_PROMDATA : 0;
-+			    ((data & i) ? CONFIG1_PROMDATA : 0);
- 			if (lanai->conf1 != tmp) {
- 				set_config1(tmp);
- 				udelay(5);	/* Let new data settle */
+diff -puN drivers/net/wireless/b43/lo.c~b43-bitwise-or-has-higher-precedence-than drivers/net/wireless/b43/lo.c
+--- a/drivers/net/wireless/b43/lo.c~b43-bitwise-or-has-higher-precedence-than
++++ a/drivers/net/wireless/b43/lo.c
+@@ -783,7 +783,7 @@ struct b43_lo_calib * b43_calibrate_lo_s
+ 			  | rfatt->att);
+ 	b43_radio_write16(dev, txctl_reg,
+ 			  (b43_radio_read16(dev, txctl_reg) & ~txctl_value)
+-			  | (rfatt->with_padmix) ? txctl_value : 0);
++			  | (rfatt->with_padmix ? txctl_value : 0));
+ 
+ 	max_rx_gain = rfatt->att * 2;
+ 	max_rx_gain += bbatt->att / 2;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -71,6 +71,7 @@ dvb-negative-internal-sub_range-wont-get-noticed.patch
 atm-bitwise-or-has-higher-precedence-than.patch
 scsi-ncr53c8xx-div-reaches-1.patch
 paride-pgc-xs-confusion.patch
+b43-bitwise-or-has-higher-precedence-than.patch
 mm-get_nid_for_pfn-returns-int.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
