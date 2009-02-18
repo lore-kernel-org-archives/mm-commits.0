@@ -1,55 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [folded] timerfd-add-flags-check-fix.patch removed from -mm tree
-Date: Wed, 18 Feb 2009 13:57:56 -0800
-Message-ID: <200902182157.n1ILvuP8005656@imap1.linux-foundation.org>
+Subject: [folded] lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 18 Feb 2009 13:58:22 -0800
+Message-ID: <200902182158.n1ILwMIf006376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758044AbZBRWAl (ORCPT
+	by vger.kernel.org with ESMTP id S1754721AbZBRWBE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 17:00:41 -0500
+	Wed, 18 Feb 2009 17:01:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davidel@xmailserver.org, mtk.manpages@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Eric.Piel@tremplin-utc.net, giuseppe.bilotta@gmail.com, pavel@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timerfd-add-flags-check-fix
+     lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     timerfd-add-flags-check-fix.patch
+     lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into timerfd-add-flags-check.patch
+This patch was dropped because it was folded into lis3lv02d-support-both-one-and-two-byte-sensors.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timerfd-add-flags-check-fix
+Subject: lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove unused TFD_FLAGS_SET.
+ERROR: switch and case should be at the same indent
+#65: FILE: drivers/hwmon/hp_accel.c:249:
++	switch (adev.whoami) {
++		case LIS_DOUBLE_ID:
+[...]
++		case LIS_SINGLE_ID:
+[...]
++		default:
 
-Cc: <stable@kernel.org>		[2.6.27.x, 2.6.28.x]
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+WARNING: line over 80 characters
+#131: FILE: drivers/hwmon/lis3lv02d.c:221:
++	input_set_abs_params(adev.idev, ABS_X, -adev.mdps_max_val, adev.mdps_max_val, 3, 3);
+
+WARNING: line over 80 characters
+#132: FILE: drivers/hwmon/lis3lv02d.c:222:
++	input_set_abs_params(adev.idev, ABS_Y, -adev.mdps_max_val, adev.mdps_max_val, 3, 3);
+
+WARNING: line over 80 characters
+#133: FILE: drivers/hwmon/lis3lv02d.c:223:
++	input_set_abs_params(adev.idev, ABS_Z, -adev.mdps_max_val, adev.mdps_max_val, 3, 3);
+
+WARNING: line over 80 characters
+#177: FILE: drivers/hwmon/lis3lv02d.h:168:
++	u8			whoami;    /* 3Ah: 2-byte registries, 3Bh: 1-byte registries */
+
+total: 1 errors, 4 warnings, 141 lines checked
+
+./patches/lis3lv02d-support-both-one-and-two-byte-sensors.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Eric Piel <Eric.Piel@tremplin-utc.net>
+Cc: Giuseppe Bilotta <giuseppe.bilotta@gmail.com>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timerfd.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/hwmon/hp_accel.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/timerfd.h~timerfd-add-flags-check-fix include/linux/timerfd.h
---- a/include/linux/timerfd.h~timerfd-add-flags-check-fix
-+++ a/include/linux/timerfd.h
-@@ -27,8 +27,5 @@
- #define TFD_CREATE_FLAGS TFD_SHARED_FCNTL_FLAGS
- /* Flags for timerfd_settime.  */
- #define TFD_SETTIME_FLAGS TFD_TIMER_ABSTIME
--#define TFD_FLAGS_SET (TFD_SHARED_FCNTL_FLAGS | TFD_TIMER_ABSTIME)
--
+diff -puN drivers/hwmon/hp_accel.c~lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes drivers/hwmon/hp_accel.c
+--- a/drivers/hwmon/hp_accel.c~lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes
++++ a/drivers/hwmon/hp_accel.c
+@@ -271,20 +271,20 @@ static int lis3lv02d_add(struct acpi_dev
  
- #endif /* _LINUX_TIMERFD_H */
--
+ 	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &adev.whoami);
+ 	switch (adev.whoami) {
+-		case LIS_DOUBLE_ID:
+-			printk(KERN_INFO DRIVER_NAME ": 2-byte sensor found\n");
+-			adev.read_data = lis3lv02d_read_16;
+-			adev.mdps_max_val = 2048;
+-			break;
+-		case LIS_SINGLE_ID:
+-			printk(KERN_INFO DRIVER_NAME ": 1-byte sensor found\n");
+-			adev.read_data = lis3lv02d_read_8;
+-			adev.mdps_max_val = 128;
+-			break;
+-		default:
+-			printk(KERN_ERR DRIVER_NAME
+-				": unknown sensor type 0x%X\n", adev.whoami);
+-			return -EINVAL;
++	case LIS_DOUBLE_ID:
++		printk(KERN_INFO DRIVER_NAME ": 2-byte sensor found\n");
++		adev.read_data = lis3lv02d_read_16;
++		adev.mdps_max_val = 2048;
++		break;
++	case LIS_SINGLE_ID:
++		printk(KERN_INFO DRIVER_NAME ": 1-byte sensor found\n");
++		adev.read_data = lis3lv02d_read_8;
++		adev.mdps_max_val = 128;
++		break;
++	default:
++		printk(KERN_ERR DRIVER_NAME
++			": unknown sensor type 0x%X\n", adev.whoami);
++		return -EINVAL;
+ 	}
+ 
+ 	/* If possible use a "standard" axes order */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -59,7 +116,7 @@ vmalloc-add-__get_vm_area_caller.patch
 vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch
 seq_file-properly-cope-with-pread.patch
 timerfd-add-flags-check.patch
-timerfd-add-flags-check-fix.patch
+lis3lv02d-support-both-one-and-two-byte-sensors.patch
 lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
 i-need-old-gcc.patch
 i2c-too-much-compiler-noise.patch
