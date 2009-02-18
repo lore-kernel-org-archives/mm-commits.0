@@ -1,66 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] seq_file-properly-cope-with-pread-fix.patch removed from -mm tree
-Date: Wed, 18 Feb 2009 13:57:30 -0800
-Message-ID: <200902182157.n1ILvVA6005074@imap1.linux-foundation.org>
+Subject: [folded] timerfd-add-flags-check-fix.patch removed from -mm tree
+Date: Wed, 18 Feb 2009 13:57:56 -0800
+Message-ID: <200902182157.n1ILvuP8005656@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754416AbZBRV6C (ORCPT
+	by vger.kernel.org with ESMTP id S1758044AbZBRWAl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 16:58:02 -0500
+	Wed, 18 Feb 2009 17:00:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, ebiederm@xmission.com, pjt@google.com, stable@kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, mtk.manpages@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     seq_file-properly-cope-with-pread-fix
+     timerfd-add-flags-check-fix
 has been removed from the -mm tree.  Its filename was
-     seq_file-properly-cope-with-pread-fix.patch
+     timerfd-add-flags-check-fix.patch
 
-This patch was dropped because it was folded into seq_file-properly-cope-with-pread.patch
+This patch was dropped because it was folded into timerfd-add-flags-check.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file-properly-cope-with-pread-fix
+Subject: timerfd-add-flags-check-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Restore FMODE_PWRITE.
+Remove unused TFD_FLAGS_SET.
 
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x, 2.6.27.x, 2.6.28.x]
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul Turner <pjt@google.com>
+Cc: <stable@kernel.org>		[2.6.27.x, 2.6.28.x]
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ include/linux/timerfd.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-properly-cope-with-pread-fix fs/seq_file.c
---- a/fs/seq_file.c~seq_file-properly-cope-with-pread-fix
-+++ a/fs/seq_file.c
-@@ -48,6 +48,16 @@ int seq_open(struct file *file, const st
- 	 */
- 	file->f_version = 0;
+diff -puN include/linux/timerfd.h~timerfd-add-flags-check-fix include/linux/timerfd.h
+--- a/include/linux/timerfd.h~timerfd-add-flags-check-fix
++++ a/include/linux/timerfd.h
+@@ -27,8 +27,5 @@
+ #define TFD_CREATE_FLAGS TFD_SHARED_FCNTL_FLAGS
+ /* Flags for timerfd_settime.  */
+ #define TFD_SETTIME_FLAGS TFD_TIMER_ABSTIME
+-#define TFD_FLAGS_SET (TFD_SHARED_FCNTL_FLAGS | TFD_TIMER_ABSTIME)
+-
  
-+	/*
-+	 * seq_files support lseek() and pread().  They do not implement
-+	 * write() at all, but we clear FMODE_PWRITE here for historical
-+	 * reasons.
-+	 *
-+	 * If a client of seq_files a) implements file.write() and b) wishes to
-+	 * support pwrite() then that client will need to implement its own
-+	 * file.open() which calls seq_open() and then sets FMODE_PWRITE.
-+	 */
-+	file->f_mode &= ~FMODE_PWRITE;
- 	return 0;
- }
- EXPORT_SYMBOL(seq_open);
+ #endif /* _LINUX_TIMERFD_H */
+-
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +58,7 @@ origin.patch
 vmalloc-add-__get_vm_area_caller.patch
 vfs-separate-fmode_pread-fmode_pwrite-into-separate-flags.patch
 seq_file-properly-cope-with-pread.patch
-seq_file-properly-cope-with-pread-fix.patch
+timerfd-add-flags-check.patch
 timerfd-add-flags-check-fix.patch
 lis3lv02d-support-both-one-and-two-byte-sensors-checkpatch-fixes.patch
 i-need-old-gcc.patch
