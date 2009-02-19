@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-add-support-for-wm8351-revision-b.patch added to -mm tree
-Date: Thu, 19 Feb 2009 12:19:01 -0800
-Message-ID: <200902192019.n1JKJ1uP020318@imap1.linux-foundation.org>
+Subject: + kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch added to -mm tree
+Date: Thu, 19 Feb 2009 12:20:04 -0800
+Message-ID: <200902192020.n1JKK44s020385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752081AbZBSUTf (ORCPT
+	by vger.kernel.org with ESMTP id S1751370AbZBSUUx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 15:19:35 -0500
+	Thu, 19 Feb 2009 15:20:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, sameo@openedhand.com
+Cc: dhowells@redhat.com, sam@ravnborg.org
 
 
 The patch titled
-     mfd: add support for WM8351 revision B
+     kbuild: make it possible for the linker to discard local symbols from vmlinux
 has been added to the -mm tree.  Its filename is
-     mfd-add-support-for-wm8351-revision-b.patch
+     kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mfd: add support for WM8351 revision B
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: kbuild: make it possible for the linker to discard local symbols from vmlinux
+From: David Howells <dhowells@redhat.com>
 
-No software visible difference from revision A.
+Make it possible for the linker to discard local symbols from vmlinux as
+they cause vmlinux to balloon when CONFIG_KALLSYMS=y and they cause
+dump_stack() and get_wchan() to produce useless information under some
+circumstances.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Samuel Ortiz <sameo@openedhand.com>
+With this we add a config option (CONFIG_STRIP_ASM_SYMS) that will cause
+the build to supply -X to the linker to tell it to strip temporary local
+symbols.
+
+This doesn't seem to cause gdb any problems.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/wm8350-core.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ Makefile     |    4 ++++
+ init/Kconfig |    8 ++++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN drivers/mfd/wm8350-core.c~mfd-add-support-for-wm8351-revision-b drivers/mfd/wm8350-core.c
---- a/drivers/mfd/wm8350-core.c~mfd-add-support-for-wm8351-revision-b
-+++ a/drivers/mfd/wm8350-core.c
-@@ -1386,6 +1386,11 @@ int wm8350_device_init(struct wm8350 *wm
- 			wm8350->power.rev_g_coeff = 1;
- 			break;
+diff -puN Makefile~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux Makefile
+--- a/Makefile~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux
++++ a/Makefile
+@@ -591,6 +591,10 @@ LDFLAGS_BUILD_ID = $(patsubst -Wl$(comma
+ LDFLAGS_MODULE += $(LDFLAGS_BUILD_ID)
+ LDFLAGS_vmlinux += $(LDFLAGS_BUILD_ID)
  
-+		case 1:
-+			dev_info(wm8350->dev, "WM8351 Rev B\n");
-+			wm8350->power.rev_g_coeff = 1;
-+			break;
++ifeq ($(CONFIG_STRIP_ASM_SYMS),y)
++LDFLAGS_vmlinux	+= -X
++endif
 +
- 		default:
- 			dev_err(wm8350->dev, "Unknown WM8351 CHIP_REV\n");
- 			ret = -ENODEV;
+ # Default kernel image to build when no specific target is given.
+ # KBUILD_IMAGE may be overruled on the command line or
+ # set in the environment
+diff -puN init/Kconfig~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux init/Kconfig
+--- a/init/Kconfig~kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux
++++ a/init/Kconfig
+@@ -737,6 +737,14 @@ config KALLSYMS_EXTRA_PASS
+ 	   you wait for kallsyms to be fixed.
+ 
+ 
++config STRIP_ASM_SYMS
++	bool "Strip assembler-generated symbols during link"
++	default n
++	help
++	  Strip internal assembler-generated symbols during a link (symbols
++	  that look like '.Lxxx') so they don't pollute the output of
++	  get_wchan() and suchlike.
++
+ config HOTPLUG
+ 	bool "Support for hot-pluggable devices" if EMBEDDED
+ 	default y
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
 linux-next.patch
-regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers.patch
-mfd-add-support-for-wm8351-revision-b.patch
-rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
-rtc-wm8350-retries-will-reach-1.patch
+kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+frv-duplicate-output_buffer-of-e03.patch
+nommu-present-backing-device-capabilities-for-mtd-chardevs.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat-if-possible.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly.patch
+mtd-fix-a-bad-dependency-in-the-blackfin-code.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
+mutex-subsystem-synchro-test-module.patch
 
