@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-update-pnp-ids.patch added to -mm tree
-Date: Thu, 19 Feb 2009 12:17:24 -0800
-Message-ID: <200902192017.n1JKHOmO020115@imap1.linux-foundation.org>
+Subject: + mfd-add-support-for-wm8351-revision-b.patch added to -mm tree
+Date: Thu, 19 Feb 2009 12:19:01 -0800
+Message-ID: <200902192019.n1JKJ1uP020318@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752830AbZBSUS0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752081AbZBSUTf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 15:18:26 -0500
+	Thu, 19 Feb 2009 15:19:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mjg59@srcf.ucam.org, alan@lxorguk.ukuu.org.uk, mjg@redhat.com
+Cc: broonie@opensource.wolfsonmicro.com, sameo@openedhand.com
 
 
 The patch titled
-     serial: update PNP IDs
+     mfd: add support for WM8351 revision B
 has been added to the -mm tree.  Its filename is
-     serial-update-pnp-ids.patch
+     mfd-add-support-for-wm8351-revision-b.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: update PNP IDs
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: mfd: add support for WM8351 revision B
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Add new Wacom device IDs to the 8250_pnp serial driver, to support
-autoconfig on some newer tablet PCs.  Also add a comment to clarify that
-the FUJ02E6 device is a custom protocol, not a Wacom tablet.
+No software visible difference from revision A.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pnp.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/mfd/wm8350-core.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/serial/8250_pnp.c~serial-update-pnp-ids drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~serial-update-pnp-ids
-+++ a/drivers/serial/8250_pnp.c
-@@ -333,6 +333,10 @@ static const struct pnp_device_id pnp_de
- 	{       "WACF006",              0       },
- 	{       "WACF007",              0       },
- 	{       "WACF008",              0       },
-+	{       "WACF009",              0       },
-+	{       "WACF00A",              0       },
-+	{       "WACF00B",              0       },
-+	{       "WACF00C",              0       },
- 	/* Compaq touchscreen */
- 	{       "FPI2002",              0 },
- 	/* Fujitsu Stylistic touchscreens */
-@@ -346,8 +350,9 @@ static const struct pnp_device_id pnp_de
- 	{       "FUJ02B8",              0 },
- 	{       "FUJ02B9",              0 },
- 	{       "FUJ02BC",              0 },
--	/* Fujitsu Wacom Tablet PC devices */
-+	/* Fujitsu Wacom Tablet PC device */
- 	{	"FUJ02E5",		0	},
-+	/* Fujitsu P-series tablet PC device */
- 	{	"FUJ02E6",		0	},
- 	/*
- 	 * LG C1 EXPRESS DUAL (C1-PB11A3) touch screen (actually a FUJ02E6 in
+diff -puN drivers/mfd/wm8350-core.c~mfd-add-support-for-wm8351-revision-b drivers/mfd/wm8350-core.c
+--- a/drivers/mfd/wm8350-core.c~mfd-add-support-for-wm8351-revision-b
++++ a/drivers/mfd/wm8350-core.c
+@@ -1386,6 +1386,11 @@ int wm8350_device_init(struct wm8350 *wm
+ 			wm8350->power.rev_g_coeff = 1;
+ 			break;
+ 
++		case 1:
++			dev_info(wm8350->dev, "WM8351 Rev B\n");
++			wm8350->power.rev_g_coeff = 1;
++			break;
++
+ 		default:
+ 			dev_err(wm8350->dev, "Unknown WM8351 CHIP_REV\n");
+ 			ret = -ENODEV;
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
 origin.patch
 linux-next.patch
-x86-oqo-depends-on-input_polldev.patch
-serial-update-pnp-ids.patch
+regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers.patch
+mfd-add-support-for-wm8351-revision-b.patch
+rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
+rtc-wm8350-retries-will-reach-1.patch
 
