@@ -1,150 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atmel-mci-fix-initialization-of-dma-slave-data.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:16:52 -0800
-Message-ID: <200902191916.n1JJGq5j016296@imap1.linux-foundation.org>
+Subject: [merged] eeepc-should-depend-on-input.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:16:44 -0800
+Message-ID: <200902191916.n1JJGiKB016279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752984AbZBSTRF (ORCPT
+	by vger.kernel.org with ESMTP id S1752716AbZBSTRF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Feb 2009 14:17:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, anemo@mba.ocn.ne.jp, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, lenb@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel-mci: fix initialization of dma slave data
+     eeepc: should depend on INPUT
 has been removed from the -mm tree.  Its filename was
-     atmel-mci-fix-initialization-of-dma-slave-data.patch
+     eeepc-should-depend-on-input.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel-mci: fix initialization of dma slave data
-From: Dan Williams <dan.j.williams@intel.com>
+Subject: eeepc: should depend on INPUT
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-The conversion of atmel-mci to dma_request_channel missed the
-initialization of the channel dma_slave information.  The filter_fn passed
-to dma_request_channel is responsible for initializing the channel's
-private data.  This implementation has the additional benefit of enabling
-a generic client-channel data passing mechanism.
+Otherwise with INPUT=m, EEEPC_LAPTOP=y one gets
 
-Reviewed-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+drivers/built-in.o: In function `input_sync':
+eeepc-laptop.c:(.text+0x18ce51): undefined reference to `input_event'
+drivers/built-in.o: In function `input_report_key':
+eeepc-laptop.c:(.text+0x18ce73): undefined reference to `input_event'
+drivers/built-in.o: In function `eeepc_hotk_check':
+eeepc-laptop.c:(.text+0x18d05f): undefined reference to `input_allocate_device'
+eeepc-laptop.c:(.text+0x18d10f): undefined reference to `input_register_device'
+eeepc-laptop.c:(.text+0x18d131): undefined reference to `input_free_device'
+drivers/built-in.o: In function `eeepc_backlight_exit':
+eeepc-laptop.c:(.text+0x18d546): undefined reference to `input_unregister_device'
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmaengine.c      |    2 ++
- drivers/dma/dw_dmac.c        |    5 ++---
- drivers/dma/dw_dmac_regs.h   |    2 --
- drivers/mmc/host/atmel-mci.c |    5 +++--
- include/linux/dmaengine.h    |    2 ++
- 5 files changed, 9 insertions(+), 7 deletions(-)
+ drivers/platform/x86/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/dma/dmaengine.c~atmel-mci-fix-initialization-of-dma-slave-data drivers/dma/dmaengine.c
---- a/drivers/dma/dmaengine.c~atmel-mci-fix-initialization-of-dma-slave-data
-+++ a/drivers/dma/dmaengine.c
-@@ -518,6 +518,7 @@ struct dma_chan *__dma_request_channel(d
- 				       dma_chan_name(chan), err);
- 			else
- 				break;
-+			chan->private = NULL;
- 			chan = NULL;
- 		}
- 	}
-@@ -536,6 +537,7 @@ void dma_release_channel(struct dma_chan
- 	WARN_ONCE(chan->client_count != 1,
- 		  "chan reference count %d != 1\n", chan->client_count);
- 	dma_chan_put(chan);
-+	chan->private = NULL;
- 	mutex_unlock(&dma_list_mutex);
- }
- EXPORT_SYMBOL_GPL(dma_release_channel);
-diff -puN drivers/dma/dw_dmac.c~atmel-mci-fix-initialization-of-dma-slave-data drivers/dma/dw_dmac.c
---- a/drivers/dma/dw_dmac.c~atmel-mci-fix-initialization-of-dma-slave-data
-+++ a/drivers/dma/dw_dmac.c
-@@ -560,7 +560,7 @@ dwc_prep_slave_sg(struct dma_chan *chan,
- 		unsigned long flags)
- {
- 	struct dw_dma_chan	*dwc = to_dw_dma_chan(chan);
--	struct dw_dma_slave	*dws = dwc->dws;
-+	struct dw_dma_slave	*dws = chan->private;
- 	struct dw_desc		*prev;
- 	struct dw_desc		*first;
- 	u32			ctllo;
-@@ -790,7 +790,7 @@ static int dwc_alloc_chan_resources(stru
- 	cfghi = DWC_CFGH_FIFO_MODE;
- 	cfglo = 0;
- 
--	dws = dwc->dws;
-+	dws = chan->private;
- 	if (dws) {
- 		/*
- 		 * We need controller-specific data to set up slave
-@@ -866,7 +866,6 @@ static void dwc_free_chan_resources(stru
- 	spin_lock_bh(&dwc->lock);
- 	list_splice_init(&dwc->free_list, &list);
- 	dwc->descs_allocated = 0;
--	dwc->dws = NULL;
- 
- 	/* Disable interrupts */
- 	channel_clear_bit(dw, MASK.XFER, dwc->mask);
-diff -puN drivers/dma/dw_dmac_regs.h~atmel-mci-fix-initialization-of-dma-slave-data drivers/dma/dw_dmac_regs.h
---- a/drivers/dma/dw_dmac_regs.h~atmel-mci-fix-initialization-of-dma-slave-data
-+++ a/drivers/dma/dw_dmac_regs.h
-@@ -139,8 +139,6 @@ struct dw_dma_chan {
- 	struct list_head	queue;
- 	struct list_head	free_list;
- 
--	struct dw_dma_slave	*dws;
--
- 	unsigned int		descs_allocated;
- };
- 
-diff -puN drivers/mmc/host/atmel-mci.c~atmel-mci-fix-initialization-of-dma-slave-data drivers/mmc/host/atmel-mci.c
---- a/drivers/mmc/host/atmel-mci.c~atmel-mci-fix-initialization-of-dma-slave-data
-+++ a/drivers/mmc/host/atmel-mci.c
-@@ -1548,9 +1548,10 @@ static bool filter(struct dma_chan *chan
- {
- 	struct dw_dma_slave *dws = slave;
- 
--	if (dws->dma_dev == chan->device->dev)
-+	if (dws->dma_dev == chan->device->dev) {
-+		chan->private = dws;
- 		return true;
--	else
-+	} else
- 		return false;
- }
- #endif
-diff -puN include/linux/dmaengine.h~atmel-mci-fix-initialization-of-dma-slave-data include/linux/dmaengine.h
---- a/include/linux/dmaengine.h~atmel-mci-fix-initialization-of-dma-slave-data
-+++ a/include/linux/dmaengine.h
-@@ -121,6 +121,7 @@ struct dma_chan_percpu {
-  * @local: per-cpu pointer to a struct dma_chan_percpu
-  * @client-count: how many clients are using this channel
-  * @table_count: number of appearances in the mem-to-mem allocation table
-+ * @private: private data for certain client-channel associations
-  */
- struct dma_chan {
- 	struct dma_device *device;
-@@ -134,6 +135,7 @@ struct dma_chan {
- 	struct dma_chan_percpu *local;
- 	int client_count;
- 	int table_count;
-+	void *private;
- };
- 
- /**
+diff -puN drivers/platform/x86/Kconfig~eeepc-should-depend-on-input drivers/platform/x86/Kconfig
+--- a/drivers/platform/x86/Kconfig~eeepc-should-depend-on-input
++++ a/drivers/platform/x86/Kconfig
+@@ -301,6 +301,7 @@ config INTEL_MENLOW
+ config EEEPC_LAPTOP
+ 	tristate "Eee PC Hotkey Driver (EXPERIMENTAL)"
+ 	depends on ACPI
++	depends on INPUT
+ 	depends on EXPERIMENTAL
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	select HWMON
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 linux-next.patch
+fs-proc-task_mmuc-fix-sparse-warnings.patch
+proc-tty-add-struct-tty_operations-proc_fops.patch
+proc-tty-switch-cyclades-to-proc_fops.patch
+proc-tty-switch-ip2-to-proc_fops.patch
+proc-tty-switch-istallion-to-proc_fops.patch
+proc-tty-switch-synclink_cs-to-proc_fops.patch
+proc-tty-switch-stallion-to-proc_fops.patch
+proc-tty-switch-synclink-to-proc_fops.patch
+proc-tty-switch-synclink_gt-to-proc_fops.patch
+proc-tty-switch-synclinkmp-to-proc_fops.patch
+proc-tty-switch-sdio_uart-to-proc_fops.patch
+proc-tty-switch-serial_core-to-proc_fops.patch
+proc-tty-switch-usb-serial-to-proc_fops.patch
+proc-tty-switch-ircomm-to-proc_fops.patch
+proc-tty-switch-amiserial-to-proc_fops.patch
+proc-tty-switch-ia64-simserial-to-proc_fops.patch
+proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
+proc-tty-remove-struct-tty_operations-read_proc.patch
+xtensa-fix-compilation-somewhat.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 
