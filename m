@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rio-addition-has-higher-precedence-than.patch added to -mm tree
-Date: Wed, 18 Feb 2009 16:01:16 -0800
-Message-ID: <200902190001.n1J01GRT020749@imap1.linux-foundation.org>
+Subject: + atm-add-missing-parentheses.patch added to -mm tree
+Date: Wed, 18 Feb 2009 16:04:30 -0800
+Message-ID: <200902190004.n1J04U56025312@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50391 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51585 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753114AbZBSAB1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753654AbZBSAEp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Feb 2009 19:01:27 -0500
+	Wed, 18 Feb 2009 19:04:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk
+Cc: roel.kluin@gmail.com, chas@cmf.nrl.navy.mil
 
 
 The patch titled
-     rio: addition has higher precedence than ?:
+     atm: bitwise OR has higher precedence than ?:
 has been added to the -mm tree.  Its filename is
-     rio-addition-has-higher-precedence-than.patch
+     atm-add-missing-parentheses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rio: addition has higher precedence than ?:
+Subject: atm: bitwise OR has higher precedence than ?:
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: chas williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rio/rio_linux.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/atm/firestream.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/rio/rio_linux.c~rio-addition-has-higher-precedence-than drivers/char/rio/rio_linux.c
---- a/drivers/char/rio/rio_linux.c~rio-addition-has-higher-precedence-than
-+++ a/drivers/char/rio/rio_linux.c
-@@ -333,7 +333,7 @@ void rio_copy_to_card(void *from, void _
+diff -puN drivers/atm/firestream.c~atm-add-missing-parentheses drivers/atm/firestream.c
+--- a/drivers/atm/firestream.c~atm-add-missing-parentheses
++++ a/drivers/atm/firestream.c
+@@ -1690,17 +1690,17 @@ static int __devinit fs_init (struct fs_
+ 		  | (0 * SARMODE0_SHADEN) /* We don't use shadow registers. */
+ 		  | (1 * SARMODE0_INTMODE_READCLEAR)
+ 		  | (1 * SARMODE0_CWRE)
+-		  | IS_FS50(dev)?SARMODE0_PRPWT_FS50_5: 
+-		                 SARMODE0_PRPWT_FS155_3
++		  | (IS_FS50(dev) ? SARMODE0_PRPWT_FS50_5:
++			  SARMODE0_PRPWT_FS155_3)
+ 		  | (1 * SARMODE0_CALSUP_1)
+-		  | IS_FS50 (dev)?(0
++		  | (IS_FS50(dev) ? (0
+ 				   | SARMODE0_RXVCS_32
+ 				   | SARMODE0_ABRVCS_32 
+ 				   | SARMODE0_TXVCS_32):
+ 		                  (0
+ 				   | SARMODE0_RXVCS_1k
+ 				   | SARMODE0_ABRVCS_1k 
+-				   | SARMODE0_TXVCS_1k));
++				   | SARMODE0_TXVCS_1k)));
  
- int rio_minor(struct tty_struct *tty)
- {
--	return tty->index + (tty->driver == rio_driver) ? 0 : 256;
-+	return tty->index + ((tty->driver == rio_driver) ? 0 : 256);
- }
- 
- static int rio_set_real_termios(void *ptr)
+ 	/* 10ms * 100 is 1 second. That should be enough, as AN3:9 says it takes
+ 	   1ms. */
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -67,6 +80,7 @@ acpi-get_throttling_state-cannot-be-larger-state_count.patch
 drm-fix-lock_test_with_return-macro.patch
 dvb-negative-internal-sub_range-wont-get-noticed.patch
 atm-bitwise-or-has-higher-precedence-than.patch
+atm-add-missing-parentheses.patch
 drivers-net-tg3c-fix-confusion.patch
 smsc-timeout-reaches-1.patch
 scsi-ncr53c8xx-div-reaches-1.patch
