@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-add-use-account_page_dirtied.patch added to -mm tree
-Date: Thu, 19 Feb 2009 13:12:39 -0800
-Message-ID: <200902192112.n1JLCd7v023291@imap1.linux-foundation.org>
+Subject: + vfs-take-2add-set_page_dirty_notag.patch added to -mm tree
+Date: Thu, 19 Feb 2009 13:15:28 -0800
+Message-ID: <200902192115.n1JLFSeO023473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45372 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751898AbZBSVN2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754099AbZBSVPt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 16:13:28 -0500
+	Thu, 19 Feb 2009 16:15:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: edward.shishkin@gmail.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     vfs: add/use account_page_dirtied()
+     vfs: add set_page_dirty_notag
 has been added to the -mm tree.  Its filename is
-     vfs-add-use-account_page_dirtied.patch
+     vfs-take-2add-set_page_dirty_notag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: add/use account_page_dirtied()
+Subject: vfs: add set_page_dirty_notag
 From: Edward Shishkin <edward.shishkin@gmail.com>
 
-Add a helper function account_page_dirtied().  Use that from two
-callsites.  reiser4 adds a function which adds a third callsite.
+In accordance with reiser4 transactional model every dirty page should be
+"captured" by some atom.  However, outside reiser4 context dirty page can
+not be captured in some cases, as it is accompanied with specific work
+(jnode creation, etc).  Reiser4 recognizes such "anonymous" pages (i.e. 
+pages that were dirtied outside of reiser4) by the tag
+PAGECACHE_TAG_DIRTY.  Pages dirtied inside reiser4 context are not tagged
+at all: we don't need this.  Indeed, once page is dirtied and captured, it
+is attached to a jnode (a special header to keep a track of transactions).
+
+reiser4_set_page_dirty_internal() was the internal reiser4 function that
+set dirty bit without tagging the page.  Having such internal function led
+to real problems (incorrect task io accounting, etc.  because of not
+updating this internal "friend").
+
+Solution:
+
+The following patch adds a core library function that sets a dirty bit
+without tagging the page.
 
 Signed-off-by: Edward Shishkin<edward.shishkin@gmail.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c         |    9 +--------
  include/linux/mm.h  |    1 +
- mm/page-writeback.c |   22 +++++++++++++++-------
- 3 files changed, 17 insertions(+), 15 deletions(-)
+ mm/page-writeback.c |   26 ++++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+)
 
-diff -puN fs/buffer.c~vfs-add-use-account_page_dirtied fs/buffer.c
---- a/fs/buffer.c~vfs-add-use-account_page_dirtied
-+++ a/fs/buffer.c
-@@ -772,14 +772,7 @@ static int __set_page_dirty(struct page 
- 	spin_lock_irq(&mapping->tree_lock);
- 	if (page->mapping) {	/* Race with truncate? */
- 		WARN_ON_ONCE(warn && !PageUptodate(page));
--
--		if (mapping_cap_account_dirty(mapping)) {
--			__inc_zone_page_state(page, NR_FILE_DIRTY);
--			__inc_bdi_stat(mapping->backing_dev_info,
--					BDI_RECLAIMABLE);
--			task_dirty_inc(current);
--			task_io_account_write(PAGE_CACHE_SIZE);
--		}
-+		account_page_dirtied(page, mapping);
- 		radix_tree_tag_set(&mapping->page_tree,
- 				page_index(page), PAGECACHE_TAG_DIRTY);
- 	}
-diff -puN include/linux/mm.h~vfs-add-use-account_page_dirtied include/linux/mm.h
---- a/include/linux/mm.h~vfs-add-use-account_page_dirtied
+diff -puN include/linux/mm.h~vfs-take-2add-set_page_dirty_notag include/linux/mm.h
+--- a/include/linux/mm.h~vfs-take-2add-set_page_dirty_notag
 +++ a/include/linux/mm.h
-@@ -839,6 +839,7 @@ int __set_page_dirty_nobuffers(struct pa
- int __set_page_dirty_no_writeback(struct page *page);
- int redirty_page_for_writepage(struct writeback_control *wbc,
- 				struct page *page);
-+void account_page_dirtied(struct page *page, struct address_space *mapping);
+@@ -842,6 +842,7 @@ int redirty_page_for_writepage(struct wr
+ void account_page_dirtied(struct page *page, struct address_space *mapping);
  int set_page_dirty(struct page *page);
  int set_page_dirty_lock(struct page *page);
++int set_page_dirty_notag(struct page *page);
  int clear_page_dirty_for_io(struct page *page);
-diff -puN mm/page-writeback.c~vfs-add-use-account_page_dirtied mm/page-writeback.c
---- a/mm/page-writeback.c~vfs-add-use-account_page_dirtied
+ 
+ extern unsigned long move_page_tables(struct vm_area_struct *vma,
+diff -puN mm/page-writeback.c~vfs-take-2add-set_page_dirty_notag mm/page-writeback.c
+--- a/mm/page-writeback.c~vfs-take-2add-set_page_dirty_notag
 +++ a/mm/page-writeback.c
-@@ -1198,6 +1198,20 @@ int __set_page_dirty_no_writeback(struct
- }
+@@ -1256,6 +1256,32 @@ int __set_page_dirty_nobuffers(struct pa
+ EXPORT_SYMBOL(__set_page_dirty_nobuffers);
  
  /*
-+ * Helper function for set_page_dirty family.
-+ * NOTE: This relies on being atomic wrt interrupts.
++ * set_page_dirty_notag() -- similar to __set_page_dirty_nobuffers()
++ * except it doesn't tag the page dirty in the page-cache radix tree.
++ * This means that the address space using this cannot use the regular
++ * filemap ->writepages() helpers and must provide its own means of
++ * tracking and finding non-tagged dirty pages.
++ *
++ * NOTE: furthermore, this version also doesn't handle truncate races.
 + */
-+void account_page_dirtied(struct page *page, struct address_space *mapping)
++int set_page_dirty_notag(struct page *page)
 +{
-+	if (mapping_cap_account_dirty(mapping)) {
-+		__inc_zone_page_state(page, NR_FILE_DIRTY);
-+		__inc_bdi_stat(mapping->backing_dev_info, BDI_RECLAIMABLE);
-+		task_dirty_inc(current);
-+		task_io_account_write(PAGE_CACHE_SIZE);
++	struct address_space *mapping = page->mapping;
++
++	if (!TestSetPageDirty(page)) {
++		unsigned long flags;
++		WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
++		local_irq_save(flags);
++		account_page_dirtied(page, mapping);
++		local_irq_restore(flags);
++		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
++		return 1;
 +	}
++	return 0;
 +}
++EXPORT_SYMBOL(set_page_dirty_notag);
 +
 +/*
-  * For address_spaces which do not use buffers.  Just tag the page as dirty in
-  * its radix tree.
-  *
-@@ -1226,13 +1240,7 @@ int __set_page_dirty_nobuffers(struct pa
- 		if (mapping2) { /* Race with truncate? */
- 			BUG_ON(mapping2 != mapping);
- 			WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
--			if (mapping_cap_account_dirty(mapping)) {
--				__inc_zone_page_state(page, NR_FILE_DIRTY);
--				__inc_bdi_stat(mapping->backing_dev_info,
--						BDI_RECLAIMABLE);
--				task_dirty_inc(current);
--				task_io_account_write(PAGE_CACHE_SIZE);
--			}
-+			account_page_dirtied(page, mapping);
- 			radix_tree_tag_set(&mapping->page_tree,
- 				page_index(page), PAGECACHE_TAG_DIRTY);
- 		}
+  * When a writepage implementation decides that it doesn't want to write this
+  * page for some reason, it should redirty the locked page via
+  * redirty_page_for_writepage() and it should then unlock the page and return 0
 _
 
 Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
 vfs-add-use-account_page_dirtied.patch
+vfs-take-2add-set_page_dirty_notag.patch
 vfs-add-set_page_dirty_notag.patch
 vfs-add-set_page_dirty_notag-checkpatch-fixes.patch
 reiser4-vfs-add-super_operationssync_inodes-2.patch
