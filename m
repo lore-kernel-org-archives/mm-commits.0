@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drm-only-use-drm_ioctl_update_draw-compat-wrapper-for-compat-x86.patch added to -mm tree
-Date: Thu, 19 Feb 2009 12:47:38 -0800
-Message-ID: <200902192047.n1JKlcbb021917@imap1.linux-foundation.org>
+Subject: + drm-radeon-fix-unaligned-access-in-r300_scratch.patch added to -mm tree
+Date: Thu, 19 Feb 2009 12:48:13 -0800
+Message-ID: <200902192048.n1JKmDY7021936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60828 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50422 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753856AbZBSUsW (ORCPT
+	by vger.kernel.org with ESMTP id S1757693AbZBSUsw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 15:48:22 -0500
+	Thu, 19 Feb 2009 15:48:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: davem@davemloft.net, airlied@linux.ie, benh@kernel.crashing.org
 
 
 The patch titled
-     drm: only use DRM_IOCTL_UPDATE_DRAW compat wrapper for compat X86.
+     drm: radeon: fix unaligned access in r300_scratch().
 has been added to the -mm tree.  Its filename is
-     drm-only-use-drm_ioctl_update_draw-compat-wrapper-for-compat-x86.patch
+     drm-radeon-fix-unaligned-access-in-r300_scratch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: only use DRM_IOCTL_UPDATE_DRAW compat wrapper for compat X86.
+Subject: drm: radeon: fix unaligned access in r300_scratch().
 From: David Miller <davem@davemloft.net>
 
-Only X86 32-bit uses a different alignment for "unsigned long long" than
-it's 64-bit counterpart.
+In compat mode, the cmdbuf->buf 64-bit address cookie can potentially be
+only 32-bit aligned.  Dereferencing this as 64-bit causes expensive
+unaligned traps on platforms like sparc64.
 
-Therefore this compat translation is only correct, and only needed, when
-either CONFIG_X86 or CONFIG_IA64.
+Use get_unaligned() to fix.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Cc: Dave Airlie <airlied@linux.ie>
@@ -49,38 +49,39 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_ioc32.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/gpu/drm/radeon/r300_cmdbuf.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/drm_ioc32.c~drm-only-use-drm_ioctl_update_draw-compat-wrapper-for-compat-x86 drivers/gpu/drm/drm_ioc32.c
---- a/drivers/gpu/drm/drm_ioc32.c~drm-only-use-drm_ioctl_update_draw-compat-wrapper-for-compat-x86
-+++ a/drivers/gpu/drm/drm_ioc32.c
-@@ -954,6 +954,7 @@ static int compat_drm_sg_free(struct fil
- 			 DRM_IOCTL_SG_FREE, (unsigned long)request);
- }
+diff -puN drivers/gpu/drm/radeon/r300_cmdbuf.c~drm-radeon-fix-unaligned-access-in-r300_scratch drivers/gpu/drm/radeon/r300_cmdbuf.c
+--- a/drivers/gpu/drm/radeon/r300_cmdbuf.c~drm-radeon-fix-unaligned-access-in-r300_scratch
++++ a/drivers/gpu/drm/radeon/r300_cmdbuf.c
+@@ -37,6 +37,8 @@
+ #include "radeon_drv.h"
+ #include "r300_reg.h"
  
-+#if defined(CONFIG_X86) || defined(CONFIG_IA64)
- typedef struct drm_update_draw32 {
- 	drm_drawable_t handle;
- 	unsigned int type;
-@@ -984,6 +985,7 @@ static int compat_drm_update_draw(struct
- 			DRM_IOCTL_UPDATE_DRAW, (unsigned long)request);
- 	return err;
- }
-+#endif
++#include <asm/unaligned.h>
++
+ #define R300_SIMULTANEOUS_CLIPRECTS		4
  
- struct drm_wait_vblank_request32 {
- 	enum drm_vblank_seq_type type;
-@@ -1066,7 +1068,9 @@ drm_ioctl_compat_t *drm_compat_ioctls[] 
- #endif
- 	[DRM_IOCTL_NR(DRM_IOCTL_SG_ALLOC32)] = compat_drm_sg_alloc,
- 	[DRM_IOCTL_NR(DRM_IOCTL_SG_FREE32)] = compat_drm_sg_free,
-+#if defined(CONFIG_X86) || defined(CONFIG_IA64)
- 	[DRM_IOCTL_NR(DRM_IOCTL_UPDATE_DRAW32)] = compat_drm_update_draw,
-+#endif
- 	[DRM_IOCTL_NR(DRM_IOCTL_WAIT_VBLANK32)] = compat_drm_wait_vblank,
- };
+ /* Values for R300_RE_CLIPRECT_CNTL depending on the number of cliprects
+@@ -917,6 +919,7 @@ static int r300_scratch(drm_radeon_priva
+ {
+ 	u32 *ref_age_base;
+ 	u32 i, buf_idx, h_pending;
++	u64 ptr_addr;
+ 	RING_LOCALS;
  
+ 	if (cmdbuf->bufsz <
+@@ -930,7 +933,8 @@ static int r300_scratch(drm_radeon_priva
+ 
+ 	dev_priv->scratch_ages[header.scratch.reg]++;
+ 
+-	ref_age_base =  (u32 *)(unsigned long)*((uint64_t *)cmdbuf->buf);
++	ptr_addr = get_unaligned((u64 *)cmdbuf->buf);
++	ref_age_base = (u32 *)(unsigned long)ptr_addr;
+ 
+ 	cmdbuf->buf += sizeof(u64);
+ 	cmdbuf->bufsz -= sizeof(u64);
 _
 
 Patches currently in -mm which might be from davem@davemloft.net are
@@ -88,6 +89,7 @@ Patches currently in -mm which might be from davem@davemloft.net are
 linux-next.patch
 sfc-modify-allocation-error-message.patch
 drm-only-use-drm_ioctl_update_draw-compat-wrapper-for-compat-x86.patch
+drm-radeon-fix-unaligned-access-in-r300_scratch.patch
 epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
 epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
 epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
