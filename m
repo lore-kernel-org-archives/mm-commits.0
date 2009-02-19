@@ -1,79 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-update-documentation-about-css_set-hash-table.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:16:24 -0800
-Message-ID: <200902191916.n1JJGOdp016247@imap1.linux-foundation.org>
+Subject: [merged] mm-task-dirty-accounting-fix.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:16:37 -0800
+Message-ID: <200902191916.n1JJGbh1016268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42171 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752406AbZBSTQd (ORCPT
+	by vger.kernel.org with ESMTP id S1752822AbZBSTQs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:16:33 -0500
+	Thu, 19 Feb 2009 14:16:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, a.p.zijlstra@chello.nl, yamamoto@valinux.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: update documentation about css_set hash table
+     mm: task dirty accounting fix
 has been removed from the -mm tree.  Its filename was
-     cgroups-update-documentation-about-css_set-hash-table.patch
+     mm-task-dirty-accounting-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: update documentation about css_set hash table
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: mm: task dirty accounting fix
+From: Nick Piggin <npiggin@suse.de>
 
-The css_set hash table was introduced in 2.6.26, so update the
-documentation accordingly.
+YAMAMOTO-san noticed that task_dirty_inc doesn't seem to be called properly for
+cases where set_page_dirty is not used to dirty a page (eg. mark_buffer_dirty).
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+Additionally, there is some inconsistency about when task_dirty_inc is
+called.  It is used for dirty balancing, however it even gets called for
+__set_page_dirty_no_writeback.
+
+So rather than increment it in a set_page_dirty wrapper, move it down to
+exactly where the dirty page accounting stats are incremented.
+
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/buffer.c         |    1 +
+ include/linux/mm.h  |    1 +
+ mm/page-writeback.c |   13 +++----------
+ 3 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroups-update-documentation-about-css_set-hash-table Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroups-update-documentation-about-css_set-hash-table
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -252,10 +252,8 @@ cgroup file system directories.
- When a task is moved from one cgroup to another, it gets a new
- css_set pointer - if there's an already existing css_set with the
- desired collection of cgroups then that group is reused, else a new
--css_set is allocated. Note that the current implementation uses a
--linear search to locate an appropriate existing css_set, so isn't
--very efficient. A future version will use a hash table for better
--performance.
-+css_set is allocated. The appropriate existing css_set is located by
-+looking into a hash table.
+diff -puN fs/buffer.c~mm-task-dirty-accounting-fix fs/buffer.c
+--- a/fs/buffer.c~mm-task-dirty-accounting-fix
++++ a/fs/buffer.c
+@@ -777,6 +777,7 @@ static int __set_page_dirty(struct page 
+ 			__inc_zone_page_state(page, NR_FILE_DIRTY);
+ 			__inc_bdi_stat(mapping->backing_dev_info,
+ 					BDI_RECLAIMABLE);
++			task_dirty_inc(current);
+ 			task_io_account_write(PAGE_CACHE_SIZE);
+ 		}
+ 		radix_tree_tag_set(&mapping->page_tree,
+diff -puN include/linux/mm.h~mm-task-dirty-accounting-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-task-dirty-accounting-fix
++++ a/include/linux/mm.h
+@@ -1159,6 +1159,7 @@ extern int filemap_fault(struct vm_area_
  
- To allow access from a cgroup to the css_sets (and hence tasks)
- that comprise it, a set of cg_cgroup_link objects form a lattice;
+ /* mm/page-writeback.c */
+ int write_one_page(struct page *page, int wait);
++void task_dirty_inc(struct task_struct *tsk);
+ 
+ /* readahead.c */
+ #define VM_MAX_READAHEAD	128	/* kbytes */
+diff -puN mm/page-writeback.c~mm-task-dirty-accounting-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-task-dirty-accounting-fix
++++ a/mm/page-writeback.c
+@@ -240,7 +240,7 @@ void bdi_writeout_inc(struct backing_dev
+ }
+ EXPORT_SYMBOL_GPL(bdi_writeout_inc);
+ 
+-static inline void task_dirty_inc(struct task_struct *tsk)
++void task_dirty_inc(struct task_struct *tsk)
+ {
+ 	prop_inc_single(&vm_dirties, &tsk->dirties);
+ }
+@@ -1229,6 +1229,7 @@ int __set_page_dirty_nobuffers(struct pa
+ 				__inc_zone_page_state(page, NR_FILE_DIRTY);
+ 				__inc_bdi_stat(mapping->backing_dev_info,
+ 						BDI_RECLAIMABLE);
++				task_dirty_inc(current);
+ 				task_io_account_write(PAGE_CACHE_SIZE);
+ 			}
+ 			radix_tree_tag_set(&mapping->page_tree,
+@@ -1261,7 +1262,7 @@ EXPORT_SYMBOL(redirty_page_for_writepage
+  * If the mapping doesn't provide a set_page_dirty a_op, then
+  * just fall through and assume that it wants buffer_heads.
+  */
+-static int __set_page_dirty(struct page *page)
++int set_page_dirty(struct page *page)
+ {
+ 	struct address_space *mapping = page_mapping(page);
+ 
+@@ -1279,14 +1280,6 @@ static int __set_page_dirty(struct page 
+ 	}
+ 	return 0;
+ }
+-
+-int set_page_dirty(struct page *page)
+-{
+-	int ret = __set_page_dirty(page);
+-	if (ret)
+-		task_dirty_inc(current);
+-	return ret;
+-}
+ EXPORT_SYMBOL(set_page_dirty);
+ 
+ /*
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
 linux-next.patch
-vfs-add-missing-unlock-in-sget.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
-cgroup-css-id-support.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
+mm-vmap-fix-overflow.patch
+mm-vmap-fix-overflow-update.patch
+vmap-remove-needless-lock-and-list-in-vmap.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+radix-tree-gang-set-if-tagged-operation.patch
+mm-dont-call-mark_page_accessed-in-do_swap_page.patch
+mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+vfs-add-set_page_dirty_notag.patch
+vfs-add-set_page_dirty_notag-checkpatch-fixes.patch
+reiser4.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
