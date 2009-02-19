@@ -1,86 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] wireless-fix-for-config_nl80211=n.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:17:44 -0800
-Message-ID: <200902191917.n1JJHiFn016407@imap1.linux-foundation.org>
+Subject: [merged] pci-enable-msi-on-8132.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:17:55 -0800
+Message-ID: <200902191917.n1JJHtPe016425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58268 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753959AbZBSTSl (ORCPT
+	by vger.kernel.org with ESMTP id S1753546AbZBSTSX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:18:41 -0500
+	Thu, 19 Feb 2009 14:18:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: yinghai@kernel.org, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com, david@lang.hm, jbarnes@virtuousgeek.org, mingo@elte.hu, stable@kernel.org, willy@linux.intel.com, mm-com
 
 
 The patch titled
-     wireless: fix for CONFIG_NL80211=n
+     pci: enable MSI on 8132
 has been removed from the -mm tree.  Its filename was
-     wireless-fix-for-config_nl80211=n.patch
+     pci-enable-msi-on-8132.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wireless: fix for CONFIG_NL80211=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: pci: enable MSI on 8132
+From: Yinghai Lu <yinghai@kernel.org>
 
-Add empty function for case of CONFIG_NL80211=n:
+Impact: workaround BIOS that doesn't enable that bit
 
-net/wireless/scan.c:35: error: implicit declaration of function 'nl80211_send_scan_aborted'
+David reported that LSI sas doesn't work with MSI.  it turns out that BIOS
+doesn't enable HT MSI 8132 does support HT MSI.  add quirk to enable it
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Reported-by: David Lang <david@lang.hm>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: <Eric.Moore@lsi.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Reviewed-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: <stable@kernel.org>		[2.6.26.x, 2.6.27.x, 2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/wireless/nl80211.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/pci/quirks.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN net/wireless/nl80211.h~wireless-fix-for-config_nl80211=n net/wireless/nl80211.h
---- a/net/wireless/nl80211.h~wireless-fix-for-config_nl80211=n
-+++ a/net/wireless/nl80211.h
-@@ -27,6 +27,10 @@ static inline void
- nl80211_send_scan_done(struct cfg80211_registered_device *rdev,
- 		       struct net_device *netdev)
- {}
-+static inline void nl80211_send_scan_aborted(
-+					struct cfg80211_registered_device *rdev,
-+					struct net_device *netdev)
-+{}
- #endif /* CONFIG_NL80211 */
+diff -puN drivers/pci/quirks.c~pci-enable-msi-on-8132 drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-enable-msi-on-8132
++++ a/drivers/pci/quirks.c
+@@ -1981,7 +1981,6 @@ static void __devinit quirk_msi_ht_cap(s
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_HT2000_PCIE,
+ 			quirk_msi_ht_cap);
  
- #endif /* __NET_WIRELESS_NL80211_H */
-_
-
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
-
-origin.patch
-linux-next.patch
-x86-oqo-depends-on-input_polldev.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-99.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
-documentation-ignore-byproducts-from-latex.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
-reiser4-export-remove_from_page_cache-fix.patch
-
