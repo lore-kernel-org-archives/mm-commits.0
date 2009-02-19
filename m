@@ -1,125 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atmel_serial-might-lose-modem-status-change.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:16:55 -0800
-Message-ID: <200902191916.n1JJGuv0016303@imap1.linux-foundation.org>
+Subject: [merged] cpuhotplug-remove-cpu_hotplug_init.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:18:02 -0800
+Message-ID: <200902191918.n1JJI2Qo016443@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52928 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40367 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756412AbZBSTR5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753844AbZBSTS0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:17:57 -0500
+	Thu, 19 Feb 2009 14:18:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, alan@lxorguk.ukuu.org.uk, haavard.skinnemoen@atmel.com, itai.levi.devel@gmail.com, linux@bohmer.net, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
+To: laijs@cn.fujitsu.com, ego@in.ibm.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial might lose modem status change
+     cpuhotplug: remove cpu_hotplug_init()
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-might-lose-modem-status-change.patch
+     cpuhotplug-remove-cpu_hotplug_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial might lose modem status change
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: cpuhotplug: remove cpu_hotplug_init()
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-I found a problem of handling of modem status of atmel_serial driver.
+We can do all this at compile time.
 
-With the commit 1ecc26 ("atmel_serial: split the interrupt handler"),
-handling of modem status signal was splitted into two parts.  The
-atmel_tasklet_func() compares new status with irq_status_prev, but
-irq_status_prev is not correct if signal status was changed while the port
-is closed.
-
-Here is a sequence to cause problem:
-
-1. Remote side sets CTS (and DSR).
-2. Local side close the port.
-3. Local side clears RTS and DTR.
-4. Remote side clears CTS and DSR.
-5. Local side reopen the port.  hw_stopped becomes 1.
-6. Local side sets RTS and DTR.
-7. Remote side sets CTS and DSR.
-
-Then CTS change interrupt can be received, but since CTS bit in
-irq_status_prev and new status is same, uart_handle_cts_change() will not
-be called (so hw_stopped will not be cleared, i.e.  cannot send any data).
-
-I suppose irq_status_prev should be initialized at somewhere in open
-sequence.
-
-Itai Levi pointed out that we need to initialize atmel_port->irq_status
-as well here. His analysis is as follows:
-
-> Regarding the second part of the patch (which resets irq_status_prev),
-> it turns out that both versions of the patch (mine and Atsushi's)
-> still leave enough room for faulty behavior when opening the port.
->
-> This is because we are not resetting both irq_status_prev and
-> irq_status in atmel_startup() to CSR, which leads faulty behavior in
-> the following sequences:
->
-> First case:
-> 1. closing the port while CTS line = 1 (TX not allowed)
-> 2. setting CTS line = 0 (TX allowed)
-> 3. opening the port
-> 4. transmitting one char
-> 5. Cannot transmit more chars, although CTS line is 0
->
-> Second case:
-> 1. closing the port while CTS line = 0 (TX allowed)
-> 2. setting CTS line = 1 (TX not allowed)
-> 3. opening the port
-> 4. receiving some chars
-> 5. Now we can transmit, although CTS line is 1
->
-> This reason for this is that the tasklet is scheduled as a result of
-> TX or RX interrupts (not a status change!), in steps 4 above. Inside
-> the tasklet, the atmel_port->irq_status (which holds the value from
-> the previous session) is compared to atmel_port->irq_status_prev.
-> Hence, a status-change of the CTS line is faultily detected.
->
-> Both cases were verified on 9260 hardware.
-
-[haavard.skinnemoen@atmel.com: folded with patch from Itai Levi]
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Cc: Remy Bohmer <linux@bohmer.net>
-Cc: Marc Pignat <marc.pignat@hevs.ch>
-Cc: Itai Levi <itai.levi.devel@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/cpu.h |    5 -----
+ init/main.c         |    1 -
+ kernel/cpu.c        |   11 +++--------
+ 3 files changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change
-+++ a/drivers/serial/atmel_serial.c
-@@ -877,6 +877,10 @@ static int atmel_startup(struct uart_por
- 		}
- 	}
+diff -puN include/linux/cpu.h~cpuhotplug-remove-cpu_hotplug_init include/linux/cpu.h
+--- a/include/linux/cpu.h~cpuhotplug-remove-cpu_hotplug_init
++++ a/include/linux/cpu.h
+@@ -69,7 +69,6 @@ static inline void unregister_cpu_notifi
  
-+	/* Save current CSR for comparison in atmel_tasklet_func() */
-+	atmel_port->irq_status_prev = UART_GET_CSR(port);
-+	atmel_port->irq_status = atmel_port->irq_status_prev;
-+
- 	/*
- 	 * Finally, enable the serial port
+ int cpu_up(unsigned int cpu);
+ void notify_cpu_starting(unsigned int cpu);
+-extern void cpu_hotplug_init(void);
+ extern void cpu_maps_update_begin(void);
+ extern void cpu_maps_update_done(void);
+ 
+@@ -84,10 +83,6 @@ static inline void unregister_cpu_notifi
+ {
+ }
+ 
+-static inline void cpu_hotplug_init(void)
+-{
+-}
+-
+ static inline void cpu_maps_update_begin(void)
+ {
+ }
+diff -puN init/main.c~cpuhotplug-remove-cpu_hotplug_init init/main.c
+--- a/init/main.c~cpuhotplug-remove-cpu_hotplug_init
++++ a/init/main.c
+@@ -650,7 +650,6 @@ asmlinkage void __init start_kernel(void
+ 	page_cgroup_init();
+ 	mem_init();
+ 	enable_debug_pagealloc();
+-	cpu_hotplug_init();
+ 	kmem_cache_init();
+ 	kmemtrace_init();
+ 	kmemleak_init();
+diff -puN kernel/cpu.c~cpuhotplug-remove-cpu_hotplug_init kernel/cpu.c
+--- a/kernel/cpu.c~cpuhotplug-remove-cpu_hotplug_init
++++ a/kernel/cpu.c
+@@ -34,14 +34,9 @@ static struct {
+ 	 * an ongoing cpu hotplug operation.
  	 */
-_
-
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
-
-origin.patch
-linux-next.patch
-mtd-txx9-add-ndfmc-support.patch
-mtd-rbtx4939-add-mtd-support.patch
-mtd-txx9-soc-nand-flash-memory-controller-driver.patch
-mtd-rbtx4939-map-driver-v2.patch
-
+ 	int refcount;
+-} cpu_hotplug;
