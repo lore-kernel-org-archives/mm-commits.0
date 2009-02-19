@@ -1,225 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] floppy-request-and-release-only-the-ports-we-actually-use.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:17:10 -0800
-Message-ID: <200902191917.n1JJHAZA016343@imap1.linux-foundation.org>
+Subject: [merged] atmel_serial-might-lose-modem-status-change.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:16:55 -0800
+Message-ID: <200902191916.n1JJGuv0016303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52928 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756412AbZBSTSB (ORCPT
+	by vger.kernel.org with ESMTP id S1756412AbZBSTR5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:18:01 -0500
+	Thu, 19 Feb 2009 14:17:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: phdm@macqel.be, abelay@mit.edu, bjorn.helgaas@hp.com, hancockrwd@gmail.com, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, alan@lxorguk.ukuu.org.uk, haavard.skinnemoen@atmel.com, itai.levi.devel@gmail.com, linux@bohmer.net, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     floppy: request and release only the ports we actually use
+     atmel_serial might lose modem status change
 has been removed from the -mm tree.  Its filename was
-     floppy-request-and-release-only-the-ports-we-actually-use.patch
+     atmel_serial-might-lose-modem-status-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: floppy: request and release only the ports we actually use
-From: Philippe De Muyter <phdm@macqel.be>
+Subject: atmel_serial might lose modem status change
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-The floppy driver requests an I/O port it doesn't need, and sometimes this
-causes a conflict with a motherboard device reported by PNPBIOS.
+I found a problem of handling of modem status of atmel_serial driver.
 
-This patch makes the floppy driver request and release only the ports it
-actually uses.  It also factors out the request/release stuff and the
-io-ports list so they're all in one place now.
+With the commit 1ecc26 ("atmel_serial: split the interrupt handler"),
+handling of modem status signal was splitted into two parts.  The
+atmel_tasklet_func() compares new status with irq_status_prev, but
+irq_status_prev is not correct if signal status was changed while the port
+is closed.
 
-The current floppy driver uses only these ports:
+Here is a sequence to cause problem:
 
-    0x3f2 (FD_DOR)
-    0x3f4 (FD_STATUS)
-    0x3f5 (FD_DATA)
-    0x3f7 (FD_DCR/FD_DIR)
+1. Remote side sets CTS (and DSR).
+2. Local side close the port.
+3. Local side clears RTS and DTR.
+4. Remote side clears CTS and DSR.
+5. Local side reopen the port.  hw_stopped becomes 1.
+6. Local side sets RTS and DTR.
+7. Remote side sets CTS and DSR.
 
-but it requests 0x3f2-0x3f5 and 0x3f7, which includes the unused port
-0x3f3.
+Then CTS change interrupt can be received, but since CTS bit in
+irq_status_prev and new status is same, uart_handle_cts_change() will not
+be called (so hw_stopped will not be cleared, i.e.  cannot send any data).
 
-Some BIOSes report 0x3f3 as a motherboard resource.  The PNP system driver
-reserves that, which causes a conflict when the floppy driver requests
-0x3f2-0x3f5 later.
+I suppose irq_status_prev should be initialized at somewhere in open
+sequence.
 
-Philippe reported that this conflict broke the floppy driver between
-2.6.11 and 2.6.22.  His PNPBIOS reports these devices:
+Itai Levi pointed out that we need to initialize atmel_port->irq_status
+as well here. His analysis is as follows:
 
-    $ cat 00:07/id 00:07/resources	# motherboard device
-    PNP0c02
-    state = active
-    io 0x80-0x80
-    io 0x10-0x1f
-    io 0x22-0x3f
-    io 0x44-0x5f
-    io 0x90-0x9f
-    io 0xa2-0xbf
-    io 0x3f0-0x3f1
-    io 0x3f3-0x3f3
+> Regarding the second part of the patch (which resets irq_status_prev),
+> it turns out that both versions of the patch (mine and Atsushi's)
+> still leave enough room for faulty behavior when opening the port.
+>
+> This is because we are not resetting both irq_status_prev and
+> irq_status in atmel_startup() to CSR, which leads faulty behavior in
+> the following sequences:
+>
+> First case:
+> 1. closing the port while CTS line = 1 (TX not allowed)
+> 2. setting CTS line = 0 (TX allowed)
+> 3. opening the port
+> 4. transmitting one char
+> 5. Cannot transmit more chars, although CTS line is 0
+>
+> Second case:
+> 1. closing the port while CTS line = 0 (TX allowed)
+> 2. setting CTS line = 1 (TX not allowed)
+> 3. opening the port
+> 4. receiving some chars
+> 5. Now we can transmit, although CTS line is 1
+>
+> This reason for this is that the tasklet is scheduled as a result of
+> TX or RX interrupts (not a status change!), in steps 4 above. Inside
+> the tasklet, the atmel_port->irq_status (which holds the value from
+> the previous session) is compared to atmel_port->irq_status_prev.
+> Hence, a status-change of the CTS line is faultily detected.
+>
+> Both cases were verified on 9260 hardware.
 
-    $ cat 00:03/id 00:03/resources	# floppy device
-    PNP0700
-    state = active
-    io 0x3f4-0x3f5
-    io 0x3f2-0x3f2
-
-Reference:
-    http://lkml.org/lkml/2009/1/31/162
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Reported-by: Philippe De Muyter <phdm@macqel.be>
-Tested-by: Philippe De Muyter <phdm@macqel.be>
-Cc: Adam M Belay <abelay@mit.edu>
-Cc: Robert Hancock <hancockrwd@gmail.com>
+[haavard.skinnemoen@atmel.com: folded with patch from Itai Levi]
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Cc: Remy Bohmer <linux@bohmer.net>
+Cc: Marc Pignat <marc.pignat@hevs.ch>
+Cc: Itai Levi <itai.levi.devel@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   79 +++++++++++++++++++++++++--------------
- 1 file changed, 52 insertions(+), 27 deletions(-)
+ drivers/serial/atmel_serial.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/block/floppy.c~floppy-request-and-release-only-the-ports-we-actually-use drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-request-and-release-only-the-ports-we-actually-use
-+++ a/drivers/block/floppy.c
-@@ -558,6 +558,8 @@ static void process_fd_request(void);
- static void recalibrate_floppy(void);
- static void floppy_shutdown(unsigned long);
- 
-+static int floppy_request_regions(int);
-+static void floppy_release_regions(int);
- static int floppy_grab_irq_and_dma(void);
- static void floppy_release_irq_and_dma(void);
- 
-@@ -4274,8 +4276,7 @@ static int __init floppy_init(void)
- 		FDCS->rawcmd = 2;
- 		if (user_reset_fdc(-1, FD_RESET_ALWAYS, 0)) {
- 			/* free ioports reserved by floppy_grab_irq_and_dma() */
--			release_region(FDCS->address + 2, 4);
--			release_region(FDCS->address + 7, 1);
-+			floppy_release_regions(fdc);
- 			FDCS->address = -1;
- 			FDCS->version = FDC_NONE;
- 			continue;
-@@ -4284,8 +4285,7 @@ static int __init floppy_init(void)
- 		FDCS->version = get_fdc_version();
- 		if (FDCS->version == FDC_NONE) {
- 			/* free ioports reserved by floppy_grab_irq_and_dma() */
--			release_region(FDCS->address + 2, 4);
--			release_region(FDCS->address + 7, 1);
-+			floppy_release_regions(fdc);
- 			FDCS->address = -1;
- 			continue;
- 		}
-@@ -4358,6 +4358,47 @@ out_put_disk:
- 
- static DEFINE_SPINLOCK(floppy_usage_lock);
- 
-+static const struct io_region {
-+	int offset;
-+	int size;
-+} io_regions[] = {
-+	{ 2, 1 },
-+	/* address + 3 is sometimes reserved by pnp bios for motherboard */
-+	{ 4, 2 },
-+	/* address + 6 is reserved, and may be taken by IDE.
-+	 * Unfortunately, Adaptec doesn't know this :-(, */
-+	{ 7, 1 },
-+};
-+
-+static void floppy_release_allocated_regions(int fdc, const struct io_region *p)
-+{
-+	while (p != io_regions) {
-+		p--;
-+		release_region(FDCS->address + p->offset, p->size);
-+	}
-+}
-+
-+#define ARRAY_END(X) (&((X)[ARRAY_SIZE(X)]))
-+
-+static int floppy_request_regions(int fdc)
-+{
-+	const struct io_region *p;
-+
-+	for (p = io_regions; p < ARRAY_END(io_regions); p++) {
-+		if (!request_region(FDCS->address + p->offset, p->size, "floppy")) {
-+			DPRINT("Floppy io-port 0x%04lx in use\n", FDCS->address + p->offset);
-+			floppy_release_allocated_regions(fdc, p);
-+			return -EBUSY;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static void floppy_release_regions(int fdc)
-+{
-+	floppy_release_allocated_regions(fdc, ARRAY_END(io_regions));
-+}
-+
- static int floppy_grab_irq_and_dma(void)
- {
- 	unsigned long flags;
-@@ -4399,18 +4440,8 @@ static int floppy_grab_irq_and_dma(void)
- 
- 	for (fdc = 0; fdc < N_FDC; fdc++) {
- 		if (FDCS->address != -1) {
--			if (!request_region(FDCS->address + 2, 4, "floppy")) {
--				DPRINT("Floppy io-port 0x%04lx in use\n",
--				       FDCS->address + 2);
--				goto cleanup1;
--			}
--			if (!request_region(FDCS->address + 7, 1, "floppy DIR")) {
--				DPRINT("Floppy io-port 0x%04lx in use\n",
--				       FDCS->address + 7);
--				goto cleanup2;
--			}
--			/* address + 6 is reserved, and may be taken by IDE.
--			 * Unfortunately, Adaptec doesn't know this :-(, */
-+			if (floppy_request_regions(fdc))
-+				goto cleanup;
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-might-lose-modem-status-change
++++ a/drivers/serial/atmel_serial.c
+@@ -877,6 +877,10 @@ static int atmel_startup(struct uart_por
  		}
  	}
- 	for (fdc = 0; fdc < N_FDC; fdc++) {
-@@ -4432,15 +4463,11 @@ static int floppy_grab_irq_and_dma(void)
- 	fdc = 0;
- 	irqdma_allocated = 1;
- 	return 0;
--cleanup2:
--	release_region(FDCS->address + 2, 4);
--cleanup1:
-+cleanup:
- 	fd_free_irq();
- 	fd_free_dma();
--	while (--fdc >= 0) {
--		release_region(FDCS->address + 2, 4);
--		release_region(FDCS->address + 7, 1);
--	}
-+	while (--fdc >= 0)
-+		floppy_release_regions(fdc);
- 	spin_lock_irqsave(&floppy_usage_lock, flags);
- 	usage_count--;
- 	spin_unlock_irqrestore(&floppy_usage_lock, flags);
-@@ -4501,10 +4528,8 @@ static void floppy_release_irq_and_dma(v
- #endif
- 	old_fdc = fdc;
- 	for (fdc = 0; fdc < N_FDC; fdc++)
--		if (FDCS->address != -1) {
--			release_region(FDCS->address + 2, 4);
--			release_region(FDCS->address + 7, 1);
--		}
-+		if (FDCS->address != -1)
-+			floppy_release_regions(fdc);
- 	fdc = old_fdc;
- }
  
++	/* Save current CSR for comparison in atmel_tasklet_func() */
++	atmel_port->irq_status_prev = UART_GET_CSR(port);
++	atmel_port->irq_status = atmel_port->irq_status_prev;
++
+ 	/*
+ 	 * Finally, enable the serial port
+ 	 */
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
+linux-next.patch
+mtd-txx9-add-ndfmc-support.patch
+mtd-rbtx4939-add-mtd-support.patch
+mtd-txx9-soc-nand-flash-memory-controller-driver.patch
+mtd-rbtx4939-map-driver-v2.patch
 
