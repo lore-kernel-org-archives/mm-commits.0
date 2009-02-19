@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-fix-sc-shmem-printk-format-warning.patch added to -mm tree
-Date: Thu, 19 Feb 2009 15:29:59 -0800
-Message-ID: <200902192329.n1JNTxQt030657@imap1.linux-foundation.org>
+Subject: + cramfs-propagate-uncompression-errors-v21.patch added to -mm tree
+Date: Thu, 19 Feb 2009 15:39:06 -0800
+Message-ID: <200902192339.n1JNd6nZ031144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752201AbZBSXaM (ORCPT
+	by vger.kernel.org with ESMTP id S1754442AbZBSXjv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 18:30:12 -0500
+	Thu, 19 Feb 2009 18:39:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, kkeil@suse.de
+Cc: dvomlehn@cisco.com
 
 
 The patch titled
-     isdn: fix sc/shmem printk format warning
+     cramfs: propagate uncompression errors
 has been added to the -mm tree.  Its filename is
-     isdn-fix-sc-shmem-printk-format-warning.patch
+     cramfs-propagate-uncompression-errors-v21.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: fix sc/shmem printk format warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cramfs: propagate uncompression errors
+From: David VomLehn <dvomlehn@cisco.com>
 
-Fix isdn/sc/shmem.c printk format warning:
+Decompression errors can arise due to corruption of compressed blocks on
+flash or in memory.  This patch propagates errors detected during
+decompression back to the block layer.
 
-drivers/isdn/sc/shmem.c:57: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: David VomLehn <dvomlehn@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/sc/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/cramfs/inode.c      |   36 ++++++++++++++++++++++++++----------
+ fs/cramfs/uncompress.c |    2 +-
+ 2 files changed, 27 insertions(+), 11 deletions(-)
 
-diff -puN drivers/isdn/sc/shmem.c~isdn-fix-sc-shmem-printk-format-warning drivers/isdn/sc/shmem.c
---- a/drivers/isdn/sc/shmem.c~isdn-fix-sc-shmem-printk-format-warning
-+++ a/drivers/isdn/sc/shmem.c
-@@ -54,7 +54,7 @@ void memcpy_toshmem(int card, void *dest
- 	spin_unlock_irqrestore(&sc_adapter[card]->lock, flags);
- 	pr_debug("%s: set page to %#x\n",sc_adapter[card]->devicename,
- 		((sc_adapter[card]->shmem_magic + ch * SRAM_PAGESIZE)>>14)|0x80);
--	pr_debug("%s: copying %d bytes from %#lx to %#lx\n",
-+	pr_debug("%s: copying %zu bytes from %#lx to %#lx\n",
- 		sc_adapter[card]->devicename, n,
- 		(unsigned long) src,
- 		sc_adapter[card]->rambase + ((unsigned long) dest %0x4000));
+diff -puN fs/cramfs/inode.c~cramfs-propagate-uncompression-errors-v21 fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~cramfs-propagate-uncompression-errors-v21
++++ a/fs/cramfs/inode.c
+@@ -459,11 +459,14 @@ static struct dentry * cramfs_lookup(str
+ static int cramfs_readpage(struct file *file, struct page * page)
+ {
+ 	struct inode *inode = page->mapping->host;
+-	u32 maxblock, bytes_filled;
++	u32 maxblock;
++	int bytes_filled;
+ 	void *pgdata;
+ 
+ 	maxblock = (inode->i_size + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+ 	bytes_filled = 0;
++	pgdata = kmap(page);
++
+ 	if (page->index < maxblock) {
+ 		struct super_block *sb = inode->i_sb;
+ 		u32 blkptr_offset = OFFSET(inode) + page->index*4;
+@@ -472,30 +475,43 @@ static int cramfs_readpage(struct file *
+ 		start_offset = OFFSET(inode) + maxblock*4;
+ 		mutex_lock(&read_mutex);
+ 		if (page->index)
+-			start_offset = *(u32 *) cramfs_read(sb, blkptr_offset-4, 4);
+-		compr_len = (*(u32 *) cramfs_read(sb, blkptr_offset, 4) - start_offset);
++			start_offset = *(u32 *) cramfs_read(sb, blkptr_offset-4,
++				4);
++		compr_len = (*(u32 *) cramfs_read(sb, blkptr_offset, 4) -
++			start_offset);
+ 		mutex_unlock(&read_mutex);
+-		pgdata = kmap(page);
++
+ 		if (compr_len == 0)
+ 			; /* hole */
+-		else if (compr_len > (PAGE_CACHE_SIZE << 1))
+-			printk(KERN_ERR "cramfs: bad compressed blocksize %u\n", compr_len);
+-		else {
++		else if (unlikely(compr_len > (PAGE_CACHE_SIZE << 1))) {
++			pr_err("cramfs: bad compressed blocksize %u\n",
++				compr_len);
++			goto err;
++		} else {
+ 			mutex_lock(&read_mutex);
+ 			bytes_filled = cramfs_uncompress_block(pgdata,
+ 				 PAGE_CACHE_SIZE,
+ 				 cramfs_read(sb, start_offset, compr_len),
+ 				 compr_len);
+ 			mutex_unlock(&read_mutex);
++			if (unlikely(bytes_filled < 0))
++				goto err;
+ 		}
+-	} else
+-		pgdata = kmap(page);
++	}
++
+ 	memset(pgdata + bytes_filled, 0, PAGE_CACHE_SIZE - bytes_filled);
+-	kunmap(page);
+ 	flush_dcache_page(page);
++	kunmap(page);
+ 	SetPageUptodate(page);
+ 	unlock_page(page);
+ 	return 0;
++
++err:
++	kunmap(page);
++	ClearPageUptodate(page);
++	SetPageError(page);
++	unlock_page(page);
++	return 0;
+ }
+ 
+ static const struct address_space_operations cramfs_aops = {
+diff -puN fs/cramfs/uncompress.c~cramfs-propagate-uncompression-errors-v21 fs/cramfs/uncompress.c
+--- a/fs/cramfs/uncompress.c~cramfs-propagate-uncompression-errors-v21
++++ a/fs/cramfs/uncompress.c
+@@ -50,7 +50,7 @@ int cramfs_uncompress_block(void *dst, i
+ err:
+ 	printk("Error %d while decompressing!\n", err);
+ 	printk("%p(%d)->%p(%d)\n", src, srclen, dst, dstlen);
+-	return 0;
++	return -EIO;
+ }
+ 
+ int cramfs_uncompress_init(void)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from dvomlehn@cisco.com are
 
-origin.patch
-docsrc-use-config-instead-of-menuconfig.patch
-cpuset-various-documentation-fixes-and-updates.patch
-linux-next.patch
-x86-oqo-depends-on-input_polldev.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-isdn-fix-sc-shmem-printk-format-warning.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-qla2x-fix-printk-format-warnings.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-99.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
-asiliantfb-fix-cmap-memory-leaks-fix.patch
-documentation-ignore-byproducts-from-latex.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
-reiser4-export-remove_from_page_cache-fix.patch
+cramfs-propagate-uncompression-errors-v21.patch
+cramfs-propagate-uncompression-errors.patch
 
