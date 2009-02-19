@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sxc-avoid-referencing-freed-memory-if-copy_from_user-fails.patch added to -mm tree
-Date: Thu, 19 Feb 2009 13:23:44 -0800
-Message-ID: <200902192123.n1JLNiS0023952@imap1.linux-foundation.org>
+Subject: + scsi-fix-proc-memory-leak-in-the-scsi-core.patch added to -mm tree
+Date: Thu, 19 Feb 2009 13:49:49 -0800
+Message-ID: <200902192149.n1JLnnEp025264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45007 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753017AbZBSVYN (ORCPT
+	by vger.kernel.org with ESMTP id S1759035AbZBSVuZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 16:24:13 -0500
+	Thu, 19 Feb 2009 16:50:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, ilpo.jarvinen@helsinki.fi
+Cc: stern@rowland.harvard.edu, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     sx.c: avoid referencing freed memory if copy_from_user() fails
+     scsi: fix /proc memory leak in the SCSI core
 has been added to the -mm tree.  Its filename is
-     sxc-avoid-referencing-freed-memory-if-copy_from_user-fails.patch
+     scsi-fix-proc-memory-leak-in-the-scsi-core.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,56 +26,69 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sx.c: avoid referencing freed memory if copy_from_user() fails
-=46rom: Dan Carpenter <error27@gmail.com>
+Subject: scsi: fix /proc memory leak in the SCSI core
+From: Alan Stern <stern@rowland.harvard.edu>
 
-The "break" would just result in reusing a free'd pointer.  I don't hav=
-e
-the cards myself to test it though.  :/
+The SCSI core calls scsi_proc_hostdir_add() from within scsi_host_alloc(),
+but the corresponding scsi_proc_hostdir_rm() routine is called from within
+scsi_remove_host().  As a result, if a host is allocated and then
+deallocated without ever being registered, the host's directory in /proc
+is leaked.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
+This patch (as1181) fixes this bug in the SCSI core by moving
+scsi_proc_hostdir_add() into scsi_host_add().
+
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/hosts.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/sx.c~sxc-avoid-referencing-freed-memory-if-copy_=
-from_user-fails drivers/char/sx.c
---- a/drivers/char/sx.c~sxc-avoid-referencing-freed-memory-if-copy_from=
-_user-fails
-+++ a/drivers/char/sx.c
-@@ -1789,7 +1789,7 @@ static long sx_fw_ioctl(struct file *fil
- 						nbytes - i : SX_CHUNK_SIZE)) {
- 					kfree(tmp);
- 					rc =3D -EFAULT;
--					break;
-+					goto out;
- 				}
- 				memcpy_toio(board->base2 + offset + i, tmp,
- 						(i + SX_CHUNK_SIZE > nbytes) ?
+diff -puN drivers/scsi/hosts.c~scsi-fix-proc-memory-leak-in-the-scsi-core drivers/scsi/hosts.c
+--- a/drivers/scsi/hosts.c~scsi-fix-proc-memory-leak-in-the-scsi-core
++++ a/drivers/scsi/hosts.c
+@@ -206,9 +206,10 @@ int scsi_add_host(struct Scsi_Host *shos
+ 	if (error)
+ 		goto fail;
+ 
++	scsi_proc_hostdir_add(shost->hostt);
++
+ 	if (!shost->shost_gendev.parent)
+ 		shost->shost_gendev.parent = dev ? dev : &platform_bus;
+-
+ 	error = device_add(&shost->shost_gendev);
+ 	if (error)
+ 		goto out;
+@@ -259,6 +260,7 @@ int scsi_add_host(struct Scsi_Host *shos
+  out_del_gendev:
+ 	device_del(&shost->shost_gendev);
+  out:
++	scsi_proc_hostdir_rm(shost->hostt);
+ 	scsi_destroy_command_freelist(shost);
+  fail:
+ 	return error;
+@@ -407,7 +409,6 @@ struct Scsi_Host *scsi_host_alloc(struct
+ 		goto fail_kfree;
+ 	}
+ 
+-	scsi_proc_hostdir_add(shost->hostt);
+ 	return shost;
+ 
+  fail_kfree:
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-origin.patch
-sxc-fix-dbl-statement-if-add-missing-braces.patch
-sxc-avoid-referencing-freed-memory-if-copy_from_user-fails.patch
 linux-next.patch
+scsi-fix-proc-memory-leak-in-the-scsi-core.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
