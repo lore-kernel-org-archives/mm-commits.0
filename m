@@ -1,177 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-superc-add-lockdep-annotation-to-s_umount.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:16:58 -0800
-Message-ID: <200902191916.n1JJGw8A016309@imap1.linux-foundation.org>
+Subject: [merged] lis3lv02d-support-both-one-and-two-byte-sensors.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:16:49 -0800
+Message-ID: <200902191916.n1JJGnT2016288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752093AbZBSTRN (ORCPT
+	by vger.kernel.org with ESMTP id S1752984AbZBSTQ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:17:13 -0500
+	Thu, 19 Feb 2009 14:16:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterz@infradead.org, a.p.zijlstra@chello.nl, arjan@infradead.org, lizf@cn.fujitsu.com, menage@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: giuseppe.bilotta@gmail.com, Eric.Piel@tremplin-utc.net, pavel@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/super.c: add lockdep annotation to s_umount
+     lis3lv02d: support both one- and two-byte sensors
 has been removed from the -mm tree.  Its filename was
-     fs-superc-add-lockdep-annotation-to-s_umount.patch
+     lis3lv02d-support-both-one-and-two-byte-sensors.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fs/super.c: add lockdep annotation to s_umount
-From: Peter Zijlstra <peterz@infradead.org>
+Subject: lis3lv02d: support both one- and two-byte sensors
+=46rom: Giuseppe Bilotta <giuseppe.bilotta@gmail.com>
 
-Li Zefan said:
+Sensors responding with 0x3B to WHO_AM_I only have one data register pe=
+r
+direction, thus returning a signed byte from the position which is
+occupied by the MSB in sensors responding with 0x3A.
 
-Thread 1:
-  for ((; ;))
-  {
-      mount -t cpuset xxx /mnt > /dev/null 2>&1
-      cat /mnt/cpus > /dev/null 2>&1
-      umount /mnt > /dev/null 2>&1
-  }
+Since multiple sensors share the reply to WHO_AM_I, we rename the defin=
+es
+to better indicate what they identify (family of single and double
+precision sensors).
 
-Thread 2:
-  for ((; ;))
-  {
-      mount -t cpuset xxx /mnt > /dev/null 2>&1
-      umount /mnt > /dev/null 2>&1
-  }
+We support both kind of sensors by checking for the sensor type on init
+and defining appropriate data-access routines and sensor limits (for th=
+e
+joystick) depending on what we find.
 
-(Note: It is irrelevant which cgroup subsys is used.)
-
-After a while a lockdep warning showed up:
-
-=============================================
-[ INFO: possible recursive locking detected ]
-2.6.28 #479
----------------------------------------------
-mount/13554 is trying to acquire lock:
- (&type->s_umount_key#19){--..}, at: [<c049d888>] sget+0x5e/0x321
-
-but task is already holding lock:
- (&type->s_umount_key#19){--..}, at: [<c049da0c>] sget+0x1e2/0x321
-
-other info that might help us debug this:
-1 lock held by mount/13554:
- #0:  (&type->s_umount_key#19){--..}, at: [<c049da0c>] sget+0x1e2/0x321
-
-stack backtrace:
-Pid: 13554, comm: mount Not tainted 2.6.28-mc #479
-Call Trace:
- [<c044ad2e>] validate_chain+0x4c6/0xbbd
- [<c044ba9b>] __lock_acquire+0x676/0x700
- [<c044bb82>] lock_acquire+0x5d/0x7a
- [<c049d888>] ? sget+0x5e/0x321
- [<c061b9b8>] down_write+0x34/0x50
- [<c049d888>] ? sget+0x5e/0x321
- [<c049d888>] sget+0x5e/0x321
- [<c045a2e7>] ? cgroup_set_super+0x0/0x3e
- [<c045959f>] ? cgroup_test_super+0x0/0x2f
- [<c045bcea>] cgroup_get_sb+0x98/0x2e7
- [<c045cfb6>] cpuset_get_sb+0x4a/0x5f
- [<c049dfa4>] vfs_kern_mount+0x40/0x7b
- [<c049e02d>] do_kern_mount+0x37/0xbf
- [<c04af4a0>] do_mount+0x5c3/0x61a
- [<c04addd2>] ? copy_mount_options+0x2c/0x111
- [<c04af560>] sys_mount+0x69/0xa0
- [<c0403251>] sysenter_do_call+0x12/0x31
-
-The cause is after alloc_super() and then retry, an old entry in list
-fs_supers is found, so grab_super(old) is called, but both functions hold
-s_umount lock:
-
-struct super_block *sget(...)
-{
-	...
-retry:
-	spin_lock(&sb_lock);
-	if (test) {
-		list_for_each_entry(old, &type->fs_supers, s_instances) {
-			if (!test(old, data))
-				continue;
-			if (!grab_super(old))  <--- 2nd: down_write(&old->s_umount);
-				goto retry;
-			if (s)
-				destroy_super(s);
-			return old;
-		}
-	}
-	if (!s) {
-		spin_unlock(&sb_lock);
-		s = alloc_super(type);   <--- 1th: down_write(&s->s_umount)
-		if (!s)
-			return ERR_PTR(-ENOMEM);
-		goto retry;
-	}
-	...
-}
-
-It seems like a false positive, and seems like VFS but not cgroup needs to
-be fixed.
-
-
-Peter said:
-
-We can simply put the new s_umount instance in a but lockdep doesn't
-particularly cares about subclass order.
-
-If there's any issue with the callers of sget() assuming the s_umount lock
-being of sublcass 0, then there is another annotation we can use to fix
-that, but lets not bother with that if this is sufficient.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=12673
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Tested-by: Li Zefan <lizf@cn.fujitsu.com>
-Reported-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Paul Menage <menage@google.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Giuseppe Bilotta <giuseppe.bilotta@gmail.com>
+Acked-by: Eric Piel <Eric.Piel@tremplin-utc.net>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ drivers/hwmon/hp_accel.c  |   36 ++++++++++++++++++++++++++++++++----
+ drivers/hwmon/lis3lv02d.c |   25 ++++++-------------------
+ drivers/hwmon/lis3lv02d.h |   16 +++++++++++++---
+ 3 files changed, 51 insertions(+), 26 deletions(-)
 
-diff -puN fs/super.c~fs-superc-add-lockdep-annotation-to-s_umount fs/super.c
---- a/fs/super.c~fs-superc-add-lockdep-annotation-to-s_umount
-+++ a/fs/super.c
-@@ -82,7 +82,22 @@ static struct super_block *alloc_super(s
- 		 * lock ordering than usbfs:
- 		 */
- 		lockdep_set_class(&s->s_lock, &type->s_lock_key);
--		down_write(&s->s_umount);
-+		/*
-+		 * sget() can have s_umount recursion.
-+		 *
-+		 * When it cannot find a suitable sb, it allocates a new
-+		 * one (this one), and tries again to find a suitable old
-+		 * one.
-+		 *
-+		 * In case that succeeds, it will acquire the s_umount
-+		 * lock of the old one. Since these are clearly distrinct
-+		 * locks, and this object isn't exposed yet, there's no
-+		 * risk of deadlocks.
-+		 *
-+		 * Annotate this by putting this lock in a different
-+		 * subclass.
-+		 */
-+		down_write_nested(&s->s_umount, SINGLE_DEPTH_NESTING);
- 		s->s_count = S_BIAS;
- 		atomic_set(&s->s_active, 1);
- 		mutex_init(&s->s_vfs_rename_mutex);
+diff -puN drivers/hwmon/hp_accel.c~lis3lv02d-support-both-one-and-two-b=
+yte-sensors drivers/hwmon/hp_accel.c
+--- a/drivers/hwmon/hp_accel.c~lis3lv02d-support-both-one-and-two-byte-=
+sensors
++++ a/drivers/hwmon/hp_accel.c
+@@ -237,9 +237,25 @@ static void lis3lv02d_enum_resources(str
+ 		printk(KERN_DEBUG DRIVER_NAME ": Error getting resources\n");
+ }
+=20
++static s16 lis3lv02d_read_16(acpi_handle handle, int reg)
++{
++	u8 lo, hi;
++
++	adev.read(handle, reg - 1, &lo);
++	adev.read(handle, reg, &hi);
++	/* In "12 bit right justified" mode, bit 6, bit 7, bit 8 =3D bit 5 */
++	return (s16)((hi << 8) | lo);
++}
++
++static s16 lis3lv02d_read_8(acpi_handle handle, int reg)
++{
++	s8 lo;
++	adev.read(handle, reg, &lo);
++	return lo;
++}
++
+ static int lis3lv02d_add(struct acpi_device *device)
+ {
+-	u8 val;
+ 	int ret;
+=20
+ 	if (!device)
+@@ -253,10 +269,22 @@ static int lis3lv02d_add(struct acpi_dev
+ 	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
+ 	device->driver_data =3D &adev;
+=20
+-	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &val);
+-	if ((val !=3D LIS3LV02DL_ID) && (val !=3D LIS302DL_ID)) {
++	lis3lv02d_acpi_read(device->handle, WHO_AM_I, &adev.whoami);
++	switch (adev.whoami) {
++	case LIS_DOUBLE_ID:
++		printk(KERN_INFO DRIVER_NAME ": 2-byte sensor found\n");
++		adev.read_data =3D lis3lv02d_read_16;
++		adev.mdps_max_val =3D 2048;
++		break;
++	case LIS_SINGLE_ID:
++		printk(KERN_INFO DRIVER_NAME ": 1-byte sensor found\n");
++		adev.read_data =3D lis3lv02d_read_8;
++		adev.mdps_max_val =3D 128;
++		break;
++	default:
+ 		printk(KERN_ERR DRIVER_NAME
+-				": Accelerometer chip not LIS3LV02D{L,Q}\n");
++			": unknown sensor type 0x%X\n", adev.whoami);
++		return -EINVAL;
+ 	}
+=20
+ 	/* If possible use a "standard" axes order */
+diff -puN drivers/hwmon/lis3lv02d.c~lis3lv02d-support-both-one-and-two-=
+byte-sensors drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3lv02d-support-both-one-and-two-byte=
+-sensors
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -53,9 +53,6 @@
+  * joystick.
+  */
+=20
+-/* Maximum value our axis may get for the input device (signed 12 bits=
+) */
+-#define MDPS_MAX_VAL 2048
+-
+ struct acpi_lis3lv02d adev =3D {
+ 	.misc_wait   =3D __WAIT_QUEUE_HEAD_INITIALIZER(adev.misc_wait),
+ };
+@@ -64,16 +61,6 @@ EXPORT_SYMBOL_GPL(adev);
+=20
+ static int lis3lv02d_add_fs(struct acpi_device *device);
+=20
+-static s16 lis3lv02d_read_16(acpi_handle handle, int reg)
+-{
+-	u8 lo, hi;
+-
+-	adev.read(handle, reg, &lo);
+-	adev.read(handle, reg + 1, &hi);
+-	/* In "12 bit right justified" mode, bit 6, bit 7, bit 8 =3D bit 5 */
+-	return (s16)((hi << 8) | lo);
+-}
+-
+ /**
+  * lis3lv02d_get_axis - For the given axis, give the value converted
+  * @axis:      1,2,3 - can also be negative
+@@ -102,9 +89,9 @@ static void lis3lv02d_get_xyz(acpi_handl
+ {
+ 	int position[3];
+=20
+-	position[0] =3D lis3lv02d_read_16(handle, OUTX_L);
+-	position[1] =3D lis3lv02d_read_16(handle, OUTY_L);
+-	position[2] =3D lis3lv02d_read_16(handle, OUTZ_L);
++	position[0] =3D adev.read_data(handle, OUTX);
++	position[1] =3D adev.read_data(handle, OUTY);
++	position[2] =3D adev.read_data(handle, OUTZ);
+=20
+ 	*x =3D lis3lv02d_get_axis(adev.ac.x, position);
+ 	*y =3D lis3lv02d_get_axis(adev.ac.y, position);
+@@ -355,9 +342,9 @@ int lis3lv02d_joystick_enable(void)
+ 	adev.idev->close      =3D lis3lv02d_joystick_close;
+=20
+ 	set_bit(EV_ABS, adev.idev->evbit);
+-	input_set_abs_params(adev.idev, ABS_X, -MDPS_MAX_VAL, MDPS_MAX_VAL, 3=
+, 3);
+-	input_set_abs_params(adev.idev, ABS_Y, -MDPS_MAX_VAL, MDPS_MAX_VAL, 3=
+, 3);
+-	input_set_abs_params(adev.idev, ABS_Z, -MDPS_MAX_VAL, MDPS_MAX_VAL, 3=
+, 3);
++	input_set_abs_params(adev.idev, ABS_X, -adev.mdps_max_val, adev.mdps_=
+max_val, 3, 3);
++	input_set_abs_params(adev.idev, ABS_Y, -adev.mdps_max_val, adev.mdps_=
+max_val, 3, 3);
++	input_set_abs_params(adev.idev, ABS_Z, -adev.mdps_max_val, adev.mdps_=
+max_val, 3, 3);
+=20
+ 	err =3D input_register_device(adev.idev);
+ 	if (err) {
+diff -puN drivers/hwmon/lis3lv02d.h~lis3lv02d-support-both-one-and-two-=
+byte-sensors drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3lv02d-support-both-one-and-two-byte=
+-sensors
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -22,12 +22,15 @@
+ /*
+  * The actual chip is STMicroelectronics LIS3LV02DL or LIS3LV02DQ that=
+ seems to
+  * be connected via SPI. There exists also several similar chips (such=
+ as LIS302DL or
+- * LIS3L02DQ) but not in the HP laptops and they have slightly differe=
+nt registers.
++ * LIS3L02DQ) and they have slightly different registers, but we can p=
+rovide a
++ * common interface for all of them.
+  * They can also be connected via I=C2=B2C.
+  */
+=20
+-#define LIS3LV02DL_ID	0x3A /* Also the LIS3LV02DQ */
+-#define LIS302DL_ID	0x3B /* Also the LIS202DL! */
++/* 2-byte registers */
++#define LIS_DOUBLE_ID	0x3A /* LIS3LV02D[LQ] */
++/* 1-byte registers */
++#define LIS_SINGLE_ID	0x3B /* LIS[32]02DL and others */
+=20
+ enum lis3lv02d_reg {
+ 	WHO_AM_I	=3D 0x0F,
+@@ -44,10 +47,13 @@ enum lis3lv02d_reg {
+ 	STATUS_REG	=3D 0x27,
+ 	OUTX_L		=3D 0x28,
+ 	OUTX_H		=3D 0x29,
++	OUTX		=3D 0x29,
+ 	OUTY_L		=3D 0x2A,
+ 	OUTY_H		=3D 0x2B,
++	OUTY		=3D 0x2B,
+ 	OUTZ_L		=3D 0x2C,
+ 	OUTZ_H		=3D 0x2D,
++	OUTZ		=3D 0x2D,
+ 	FF_WU_CFG	=3D 0x30,
+ 	FF_WU_SRC	=3D 0x31,
+ 	FF_WU_ACK	=3D 0x32,
+@@ -159,6 +165,10 @@ struct acpi_lis3lv02d {
+ 	acpi_status (*write) (acpi_handle handle, int reg, u8 val);
+ 	acpi_status (*read) (acpi_handle handle, int reg, u8 *ret);
+=20
++	u8			whoami;    /* 3Ah: 2-byte registries, 3Bh: 1-byte registries */
++	s16 (*read_data) (acpi_handle handle, int reg);
++	int			mdps_max_val;
++
+ 	struct input_dev	*idev;     /* input device */
+ 	struct task_struct	*kthread;  /* kthread for input */
+ 	struct mutex            lock;
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from giuseppe.bilotta@gmail.com=
+ are
 
 origin.patch
-linux-next.patch
-workqueue-avoid-recursion-in-run_workqueue.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
