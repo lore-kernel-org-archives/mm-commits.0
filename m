@@ -1,82 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jsm-additional-device-support.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:17:07 -0800
-Message-ID: <200902191917.n1JJH7JG016340@imap1.linux-foundation.org>
+Subject: [merged] timerfd-add-flags-check.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:16:35 -0800
+Message-ID: <200902191916.n1JJGZbK016261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32824 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751927AbZBSTRW (ORCPT
+	by vger.kernel.org with ESMTP id S1752984AbZBSTQp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:17:22 -0500
+	Thu, 19 Feb 2009 14:16:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adam@os.inf.tu-dresden.de, Scott_Kilau@digi.com, alan@lxorguk.ukuu.org.uk, wendyx@us.ibm.com, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, mtk.manpages@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jsm: additional device support
+     timerfd: add flags check
 has been removed from the -mm tree.  Its filename was
-     jsm-additional-device-support.patch
+     timerfd-add-flags-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jsm: additional device support
-From: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+Subject: timerfd: add flags check
+From: Davide Libenzi <davidel@xmailserver.org>
 
-I have a Digi Neo 8 PCI card (114f:00b1) Serial controller: Digi
-International Digi Neo 8 (rev 05)
+As requested by Michael, add a missing check for valid flags in
+timerfd_settime(), and make it return EINVAL in case some extra bits are
+set.
 
-that works with the jsm driver after using the following patch.
+Michael said:
+If this is to be any use to userland apps that want to check flag
+support (perhaps it is too late already), then the sooner we get it
+into the kernel the better: 2.6.29 would be good; earlier stables as
+well would be even better.
 
-Signed-off-by: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
-Cc: Scott H Kilau <Scott_Kilau@digi.com>
-Cc: Wendy Xiong <wendyx@us.ibm.com>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+[akpm@linux-foundation.org: remove unused TFD_FLAGS_SET]
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: <stable@kernel.org>		[2.6.27.x, 2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_driver.c |    3 +++
- include/linux/pci_ids.h         |    1 +
- 2 files changed, 4 insertions(+)
+ fs/timerfd.c            |   12 ++++++------
+ include/linux/timerfd.h |   16 ++++++++++++----
+ 2 files changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN drivers/serial/jsm/jsm_driver.c~jsm-additional-device-support drivers/serial/jsm/jsm_driver.c
---- a/drivers/serial/jsm/jsm_driver.c~jsm-additional-device-support
-+++ a/drivers/serial/jsm/jsm_driver.c
-@@ -84,6 +84,8 @@ static int jsm_probe_one(struct pci_dev 
- 	brd->pci_dev = pdev;
- 	if (pdev->device == PCIE_DEVICE_ID_NEO_4_IBM)
- 		brd->maxports = 4;
-+	else if (pdev->device == PCI_DEVICE_ID_DIGI_NEO_8)
-+		brd->maxports = 8;
- 	else
- 		brd->maxports = 2;
+diff -puN fs/timerfd.c~timerfd-add-flags-check fs/timerfd.c
+--- a/fs/timerfd.c~timerfd-add-flags-check
++++ a/fs/timerfd.c
+@@ -186,10 +186,9 @@ SYSCALL_DEFINE2(timerfd_create, int, clo
+ 	BUILD_BUG_ON(TFD_CLOEXEC != O_CLOEXEC);
+ 	BUILD_BUG_ON(TFD_NONBLOCK != O_NONBLOCK);
  
-@@ -212,6 +214,7 @@ static struct pci_device_id jsm_pci_tbl[
- 	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCI_DEVICE_ID_NEO_2RJ45), 0, 0, 2 },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCI_DEVICE_ID_NEO_2RJ45PRI), 0, 0, 3 },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCIE_DEVICE_ID_NEO_4_IBM), 0, 0, 4 },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_DIGI, PCI_DEVICE_ID_DIGI_NEO_8), 0, 0, 5 },
- 	{ 0, }
- };
- MODULE_DEVICE_TABLE(pci, jsm_pci_tbl);
-diff -puN include/linux/pci_ids.h~jsm-additional-device-support include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~jsm-additional-device-support
-+++ a/include/linux/pci_ids.h
-@@ -1445,6 +1445,7 @@
- #define PCI_DEVICE_ID_DIGI_DF_M_E	0x0071
- #define PCI_DEVICE_ID_DIGI_DF_M_IOM2_A	0x0072
- #define PCI_DEVICE_ID_DIGI_DF_M_A	0x0073
-+#define PCI_DEVICE_ID_DIGI_NEO_8	0x00B1
- #define PCI_DEVICE_ID_NEO_2DB9          0x00C8
- #define PCI_DEVICE_ID_NEO_2DB9PRI       0x00C9
- #define PCI_DEVICE_ID_NEO_2RJ45         0x00CA
-_
-
-Patches currently in -mm which might be from adam@os.inf.tu-dresden.de are
-
-origin.patch
-
+-	if (flags & ~(TFD_CLOEXEC | TFD_NONBLOCK))
+-		return -EINVAL;
+-	if (clockid != CLOCK_MONOTONIC &&
+-	    clockid != CLOCK_REALTIME)
++	if ((flags & ~TFD_CREATE_FLAGS) ||
++	    (clockid != CLOCK_MONOTONIC &&
++	     clockid != CLOCK_REALTIME))
+ 		return -EINVAL;
+ 
+ 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+@@ -201,7 +200,7 @@ SYSCALL_DEFINE2(timerfd_create, int, clo
+ 	hrtimer_init(&ctx->tmr, clockid, HRTIMER_MODE_ABS);
+ 
+ 	ufd = anon_inode_getfd("[timerfd]", &timerfd_fops, ctx,
+-			       flags & (O_CLOEXEC | O_NONBLOCK));
++			       flags & TFD_SHARED_FCNTL_FLAGS);
+ 	if (ufd < 0)
+ 		kfree(ctx);
+ 
+@@ -219,7 +218,8 @@ SYSCALL_DEFINE4(timerfd_settime, int, uf
+ 	if (copy_from_user(&ktmr, utmr, sizeof(ktmr)))
+ 		return -EFAULT;
+ 
+-	if (!timespec_valid(&ktmr.it_value) ||
++	if ((flags & ~TFD_SETTIME_FLAGS) ||
++	    !timespec_valid(&ktmr.it_value) ||
+ 	    !timespec_valid(&ktmr.it_interval))
+ 		return -EINVAL;
+ 
+diff -puN include/linux/timerfd.h~timerfd-add-flags-check include/linux/timerfd.h
+--- a/include/linux/timerfd.h~timerfd-add-flags-check
++++ a/include/linux/timerfd.h
+@@ -11,13 +11,21 @@
+ /* For O_CLOEXEC and O_NONBLOCK */
+ #include <linux/fcntl.h>
+ 
+-/* Flags for timerfd_settime.  */
++/*
++ * CAREFUL: Check include/asm-generic/fcntl.h when defining
++ * new flags, since they might collide with O_* ones. We want
++ * to re-use O_* flags that couldn't possibly have a meaning
++ * from eventfd, in order to leave a free define-space for
++ * shared O_* flags.
++ */
+ #define TFD_TIMER_ABSTIME (1 << 0)
+-
+-/* Flags for timerfd_create.  */
+ #define TFD_CLOEXEC O_CLOEXEC
+ #define TFD_NONBLOCK O_NONBLOCK
+ 
++#define TFD_SHARED_FCNTL_FLAGS (TFD_CLOEXEC | TFD_NONBLOCK)
++/* Flags for timerfd_create.  */
++#define TFD_CREATE_FLAGS TFD_SHARED_FCNTL_FLAGS
++/* Flags for timerfd_settime.  */
++#define TFD_SETTIME_FLAGS TFD_TIMER_ABSTIME
+ 
+ #endif /* _LINUX_TIMERFD_H */
