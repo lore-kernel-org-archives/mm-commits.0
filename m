@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers.patch added to -mm tree
-Date: Thu, 19 Feb 2009 11:47:12 -0800
-Message-ID: <200902191947.n1JJlCMO018157@imap1.linux-foundation.org>
+Subject: + mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 19 Feb 2009 11:47:41 -0800
+Message-ID: <200902191947.n1JJlfjY018173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754736AbZBSTrw (ORCPT
+	by vger.kernel.org with ESMTP id S1752805AbZBSTsW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:47:52 -0500
+	Thu, 19 Feb 2009 14:48:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
+Cc: akpm@linux-foundation.org, drzeus-mmc@drzeus.cx, ext-adrian.hunter@nokia.com
 
 
 The patch titled
-     regulator: suggest use of datasheet supply or pin names for consumers
+     mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers.patch
+     mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: suggest use of datasheet supply or pin names for consumers
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Update the documentation to suggest the use of datasheet names for
-the supplies requested by regulator consumers. Doing this makes it
-easier to tie the design for a given platform up with the requirements
-of the driver for a consumer.
+total: 0 errors, 0 warnings, 15 lines checked
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>
+./patches/regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers.patch has no obvious style problems and is ready for submission.
+
+Please run checkpatch prior to sending patches
+
+Cc: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/core.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/mmc/core/debugfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/regulator/core.c~regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers drivers/regulator/core.c
---- a/drivers/regulator/core.c~regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers
-+++ a/drivers/regulator/core.c
-@@ -925,9 +925,12 @@ overflow_err:
-  * @id: Supply name or regulator ID.
-  *
-  * Returns a struct regulator corresponding to the regulator producer,
-- * or IS_ERR() condition containing errno.  Use of supply names
-- * configured via regulator_set_device_supply() is strongly
-- * encouraged.
-+ * or IS_ERR() condition containing errno.
-+ *
-+ * Use of supply names configured via regulator_set_device_supply() is
-+ * strongly encouraged.  It is recommended that the supply name used
-+ * should match the name used for the supply and/or the relevant
-+ * device pins in the datasheet.
-  */
- struct regulator *regulator_get(struct device *dev, const char *id)
- {
+diff -puN drivers/mmc/core/debugfs.c~mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes drivers/mmc/core/debugfs.c
+--- a/drivers/mmc/core/debugfs.c~mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes
++++ a/drivers/mmc/core/debugfs.c
+@@ -240,7 +240,7 @@ static int mmc_ext_csd_release(struct in
+ 	return 0;
+ }
+ 
+-static struct file_operations mmc_dbg_ext_csd_fops = {
++static const struct file_operations mmc_dbg_ext_csd_fops = {
+ 	.open		= mmc_ext_csd_open,
+ 	.read		= mmc_ext_csd_read,
+ 	.release	= mmc_ext_csd_release,
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers.patch
-rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
-rtc-wm8350-retries-will-reach-1.patch
+next-remove-localversion.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+kernel-auditscc-fix-warning.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+vfs-add-set_page_dirty_notag-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
