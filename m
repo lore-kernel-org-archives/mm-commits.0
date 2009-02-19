@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-preserve-shmlba-bits-in-hash-key-for-_drm_shm-mappings.patch added to -mm tree
-Date: Thu, 19 Feb 2009 14:06:32 -0800
-Message-ID: <200902192206.n1JM6Xhr026207@imap1.linux-foundation.org>
+Subject: + ntp-apply-frequency-tick-changes-immediately.patch added to -mm tree
+Date: Thu, 19 Feb 2009 14:12:38 -0800
+Message-ID: <200902192212.n1JMCcml026504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752106AbZBSWHM (ORCPT
+	by vger.kernel.org with ESMTP id S1754014AbZBSWNY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 17:07:12 -0500
+	Thu, 19 Feb 2009 17:13:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, airlied@linux.ie, benh@kernel.crashing.org
+Cc: johnstul@us.ibm.com, tglx@linutronix.de, williams@redhat.com, zippel@linux-m68k.org
 
 
 The patch titled
-     drm: preserve SHMLBA bits in hash key for _DRM_SHM mappings.
+     ntp: apply frequency/tick changes immediately
 has been added to the -mm tree.  Its filename is
-     drm-preserve-shmlba-bits-in-hash-key-for-_drm_shm-mappings.patch
+     ntp-apply-frequency-tick-changes-immediately.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,137 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: preserve SHMLBA bits in hash key for _DRM_SHM mappings.
-From: David Miller <davem@davemloft.net>
+Subject: ntp: apply frequency/tick changes immediately
+From: john stultz <johnstul@us.ibm.com>
 
-Platforms such as sparc64 have D-cache aliasing issues.  We cannot allow
-virtual mappings in different contexts to be such that two cache lines can
-be loaded for the same backing data.  Updates to one cache line won't be
-seen by accesses to the other cache line.
+Apply NTP tick/frequency adjustments immediately instead of waiting for
+the next second to pass.
 
-Code in sparc64 and other architectures solve this problem by making sure
-that all userland mappings of MAP_SHARED objects have the same virtual
-address base.  They implement this by keying off of the page offset, and
-using that to choose a suitably consistent virtual address for mmap()
-requests.
-
-Making things even worse, getting this wrong on sparc64 can result in
-hangs during DRM lock acquisition.  This is because, at least on
-UltraSPARC-III, normal loads consult the D-cache but atomics such as 'cas'
-(which is what cmpxchg() is implement using) only consult the L2 cache. 
-So if a D-cache alias is inserted, the load can see different data than
-the atomic, and we'll loop forever because the atomic compare-and-exchange
-will never complete successfully.
-
-So to make this all work properly, we need to make sure that the hash
-address computed by drm_map_handle() preserves the SHMLBA relevant bits,
-and that's what this patch does for _DRM_SHM mappings.
-
-As a historical note, many years ago this bug didn't exist because we used
-to just use the low 32-bits of the address as the hash and just hope for
-the best.  This preserved the SHMLBA bits properly.  But when the hashtab
-code was added to DRM, this was no longer the case.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Clark Williams <williams@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_bufs.c |   35 +++++++++++++++++++++++++++++++----
- 1 file changed, 31 insertions(+), 4 deletions(-)
+ kernel/time/ntp.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/gpu/drm/drm_bufs.c~drm-preserve-shmlba-bits-in-hash-key-for-_drm_shm-mappings drivers/gpu/drm/drm_bufs.c
---- a/drivers/gpu/drm/drm_bufs.c~drm-preserve-shmlba-bits-in-hash-key-for-_drm_shm-mappings
-+++ a/drivers/gpu/drm/drm_bufs.c
-@@ -34,6 +34,8 @@
-  */
+diff -puN kernel/time/ntp.c~ntp-apply-frequency-tick-changes-immediately kernel/time/ntp.c
+--- a/kernel/time/ntp.c~ntp-apply-frequency-tick-changes-immediately
++++ a/kernel/time/ntp.c
+@@ -51,6 +51,7 @@ static long ntp_tick_adj;
  
- #include <linux/vmalloc.h>
-+#include <linux/log2.h>
-+#include <asm/shmparam.h>
- #include "drmP.h"
- 
- resource_size_t drm_get_resource_start(struct drm_device *dev, unsigned int resource)
-@@ -83,9 +85,11 @@ static struct drm_map_list *drm_find_mat
- }
- 
- static int drm_map_handle(struct drm_device *dev, struct drm_hash_item *hash,
--			  unsigned long user_token, int hashed_handle)
-+			  unsigned long user_token, int hashed_handle, int shm)
+ static void ntp_update_frequency(void)
  {
--	int use_hashed_handle;
-+	int use_hashed_handle, shift;
-+	unsigned long add;
++	u64 old_tick_length_base = tick_length_base;
+ 	u64 second_length = (u64)(tick_usec * NSEC_PER_USEC * USER_HZ)
+ 				<< NTP_SCALE_SHIFT;
+ 	second_length += (s64)ntp_tick_adj << NTP_SCALE_SHIFT;
+@@ -60,6 +61,11 @@ static void ntp_update_frequency(void)
+ 
+ 	tick_nsec = div_u64(second_length, HZ) >> NTP_SCALE_SHIFT;
+ 	tick_length_base = div_u64(tick_length_base, NTP_INTERVAL_FREQ);
 +
- #if (BITS_PER_LONG == 64)
- 	use_hashed_handle = ((user_token & 0xFFFFFFFF00000000UL) || hashed_handle);
- #elif (BITS_PER_LONG == 32)
-@@ -101,9 +105,31 @@ static int drm_map_handle(struct drm_dev
- 		if (ret != -EINVAL)
- 			return ret;
- 	}
-+
-+	shift = 0;
-+	add = DRM_MAP_HASH_OFFSET >> PAGE_SHIFT;
-+	if (shm && (SHMLBA > PAGE_SIZE)) {
-+		int bits = ilog2(SHMLBA >> PAGE_SHIFT) + 1;
-+
-+		/* For shared memory, we have to preserve the SHMLBA
-+		 * bits of the eventual vma->vm_pgoff value during
-+		 * mmap().  Otherwise we run into cache aliasing problems
-+		 * on some platforms.  On these platforms, the pgoff of
-+		 * a mmap() request is used to pick a suitable virtual
-+		 * address for the mmap() region such that it will not
-+		 * cause cache aliasing problems.
-+		 *
-+		 * Therefore, make sure the SHMLBA relevant bits of the
-+		 * hash value we use are equal to those in the original
-+		 * kernel virtual address.
-+		 */
-+		shift = bits;
-+		add |= ((user_token >> PAGE_SHIFT) & ((1UL << bits) - 1UL));
-+	}
-+
- 	return drm_ht_just_insert_please(&dev->map_hash, hash,
- 					 user_token, 32 - PAGE_SHIFT - 3,
--					 0, DRM_MAP_HASH_OFFSET >> PAGE_SHIFT);
-+					 shift, add);
++	/* Don't wait for the next second_overflow, apply
++	 * the change to the tick length immediately
++	 */
++	tick_length += tick_length_base - old_tick_length_base;
  }
  
- /**
-@@ -323,7 +349,8 @@ static int drm_addmap_core(struct drm_de
- 	/* We do it here so that dev->struct_mutex protects the increment */
- 	user_token = (map->type == _DRM_SHM) ? (unsigned long)map->handle :
- 		map->offset;
--	ret = drm_map_handle(dev, &list->hash, user_token, 0);
-+	ret = drm_map_handle(dev, &list->hash, user_token, 0,
-+			     (map->type == _DRM_SHM));
- 	if (ret) {
- 		if (map->type == _DRM_REGISTERS)
- 			iounmap(map->handle);
+ static void ntp_update_offset(long offset)
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
+origin.patch
 linux-next.patch
-sfc-modify-allocation-error-message.patch
-drm-only-use-drm_ioctl_update_draw-compat-wrapper-for-compat-x86.patch
-drm-radeon-fix-unaligned-access-in-r300_scratch.patch
-drm-preserve-shmlba-bits-in-hash-key-for-_drm_shm-mappings.patch
-epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
-epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
-epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
-epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
-kprobes-cleanup-aggr_kprobe-related-code.patch
-kprobes-move-export_symbol_gpl-just-after-function-definitions.patch
-kprobes-cleanup-comment-style-in-kprobesh.patch
-kprobes-rename-kprobe_enabled-to-kprobes_all_disarmed.patch
-kprobes-support-per-kprobe-disabling.patch
-kprobes-support-kretprobe-and-jprobe-per-probe-disabling.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-sunxvr500-fix-cmap-memory-leaks.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-add-enable-and-disable-callbacks.patch
+clocksource-sanity-check-sysfs-clocksource-changes.patch
+ntp-apply-frequency-tick-changes-immediately.patch
 
