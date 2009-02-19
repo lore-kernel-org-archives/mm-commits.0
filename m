@@ -1,88 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-dell-laptop-depends-on-power_supply.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:17:19 -0800
-Message-ID: <200902191917.n1JJHJeN016366@imap1.linux-foundation.org>
+Subject: [merged] mm-fix-memmap-init-for-handling-memory-hole.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:17:05 -0800
+Message-ID: <200902191917.n1JJH5AR016335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51832 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754841AbZBSTRy (ORCPT
+	by vger.kernel.org with ESMTP id S1756282AbZBSTR4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:17:54 -0500
+	Thu, 19 Feb 2009 14:17:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, hpa@zytor.com, lenb@kernel.org, mingo@elte.hu, mjg59@srcf.ucam.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, davem@davemlloft.net, heiko.carstens@de.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: dell-laptop: depends on POWER_SUPPLY
+     mm: fix memmap init for handling memory hole
 has been removed from the -mm tree.  Its filename was
-     x86-dell-laptop-depends-on-power_supply.patch
+     mm-fix-memmap-init-for-handling-memory-hole.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: dell-laptop: depends on POWER_SUPPLY
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mm: fix memmap init for handling memory hole
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Build breaks when DELL_LAPTOP=y and POWER_SUPPLY=m.  DELL_LAPTOP needs to
-depend on POWER_SUPPLY.
+Now, early_pfn_in_nid(PFN, NID) may returns false if PFN is a hole.
+and memmap initialization was not done. This was a trouble for
+sparc boot.
 
-dell-laptop.c:(.text+0x1ef3c4): undefined reference to `power_supply_is_system_supplied'
-dell-laptop.c:(.text+0x1ef45e): undefined reference to `power_supply_is_system_supplied'
+To fix this, the PFN should be initialized and marked as PG_reserved.
+This patch changes early_pfn_in_nid() return true if PFN is a hole.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reported-by: David Miller <davem@davemlloft.net>
+Tested-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x, 2.6.27.x, 2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/ia64/mm/numa.c    |    2 +-
+ include/linux/mmzone.h |    2 +-
+ mm/page_alloc.c        |   23 ++++++++++++++++++++---
+ 3 files changed, 22 insertions(+), 5 deletions(-)
 
-diff -puN drivers/platform/x86/Kconfig~x86-dell-laptop-depends-on-power_supply drivers/platform/x86/Kconfig
---- a/drivers/platform/x86/Kconfig~x86-dell-laptop-depends-on-power_supply
-+++ a/drivers/platform/x86/Kconfig
-@@ -62,6 +62,7 @@ config DELL_LAPTOP
- 	depends on EXPERIMENTAL
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on RFKILL
-+	depends on POWER_SUPPLY
- 	default n
- 	---help---
- 	This driver adds support for rfkill and backlight control to Dell
+diff -puN arch/ia64/mm/numa.c~mm-fix-memmap-init-for-handling-memory-hole arch/ia64/mm/numa.c
+--- a/arch/ia64/mm/numa.c~mm-fix-memmap-init-for-handling-memory-hole
++++ a/arch/ia64/mm/numa.c
+@@ -70,7 +70,7 @@ int __meminit __early_pfn_to_nid(unsigne
+ 			return node_memblk[i].nid;
+ 	}
+ 
+-	return 0;
++	return -1;
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+diff -puN include/linux/mmzone.h~mm-fix-memmap-init-for-handling-memory-hole include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-fix-memmap-init-for-handling-memory-hole
++++ a/include/linux/mmzone.h
+@@ -1071,7 +1071,7 @@ void sparse_init(void);
+ #endif /* CONFIG_SPARSEMEM */
+ 
+ #ifdef CONFIG_NODES_SPAN_OTHER_NODES
+-#define early_pfn_in_nid(pfn, nid)	(early_pfn_to_nid(pfn) == (nid))
++bool early_pfn_in_nid(unsigned long pfn, int nid);
+ #else
+ #define early_pfn_in_nid(pfn, nid)	(1)
+ #endif
+diff -puN mm/page_alloc.c~mm-fix-memmap-init-for-handling-memory-hole mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-memmap-init-for-handling-memory-hole
++++ a/mm/page_alloc.c
+@@ -3000,16 +3000,33 @@ int __meminit __early_pfn_to_nid(unsigne
+ 		if (start_pfn <= pfn && pfn < end_pfn)
+ 			return early_node_map[i].nid;
+ 	}
+-
+-	return 0;
++	/* This is a memory hole */
++	return -1;
+ }
+ #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+ 
+ int __meminit early_pfn_to_nid(unsigned long pfn)
+ {
+-	return __early_pfn_to_nid(pfn);
++	int nid;
++
++	nid = __early_pfn_to_nid(pfn);
++	if (nid >= 0)
++		return nid;
++	/* just returns 0 */
++	return 0;
+ }
+ 
++#ifdef CONFIG_NODES_SPAN_OTHER_NODES
++bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
++{
++	int nid;
++
++	nid = __early_pfn_to_nid(pfn);
++	if (nid >= 0 && nid != node)
++		return false;
++	return true;
++}
++#endif
+ 
+ /* Basic iterator support to walk early_node_map[] */
+ #define for_each_active_range_index_in_nid(i, nid) \
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
-x86-oqo-depends-on-input_polldev.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-99.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
-documentation-ignore-byproducts-from-latex.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
-reiser4-export-remove_from_page_cache-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
 
