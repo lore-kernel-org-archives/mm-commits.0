@@ -1,134 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] vfs-add-set_page_dirty_notag.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 13:15:35 -0800
-Message-ID: <200902192115.n1JLFajC023479@imap1.linux-foundation.org>
+Subject: + kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch added to -mm tree
+Date: Thu, 19 Feb 2009 13:18:02 -0800
+Message-ID: <200902192118.n1JLI2v1023572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43392 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757990AbZBSVQG (ORCPT
+	by vger.kernel.org with ESMTP id S1758439AbZBSVSX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 16:16:06 -0500
+	Thu, 19 Feb 2009 16:18:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edward.shishkin@gmail.com, a.p.zijlstra@chello.nl, npiggin@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: anemo@mba.ocn.ne.jp, alan@lxorguk.ukuu.org.uk, jason.wessel@windriver.com, ralf@linux-mips.org
 
 
 The patch titled
-     vfs: add set_page_dirty_notag()
-has been removed from the -mm tree.  Its filename was
-     vfs-add-set_page_dirty_notag.patch
+     kgdb: kgdboc console poll hooks for serial_txx9 uart
+has been added to the -mm tree.  Its filename is
+     kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: add set_page_dirty_notag()
-From: Edward Shishkin <edward.shishkin@gmail.com>
+Subject: kgdb: kgdboc console poll hooks for serial_txx9 uart
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-In accordance with reiser4 transactional model every dirty page should be
-"captured" by some atom.  However, outside reiser4 context dirty page can
-not be captured in some cases, as it is accompanied with specific work
-(jnode creation, etc).  Reiser4 recognizes such "anonymous" pages (i.e. 
-pages that were dirtied outside of reiser4) by the tag
-PAGECACHE_TAG_DIRTY.  Pages dirtied inside reiser4 context are not tagged
-at all: we don't need this.  Indeed, once page is dirtied and captured, it
-is attached to a jnode (a special header to keep a track of transactions).
+Implement the serial polling hooks for the serial_txx9 uart for use with
+kgdboc.
 
-reiser4_set_page_dirty_internal() was the internal reiser4 function that
-set dirty bit without tagging the page.  Having such internal function led
-to real problems (incorrect task io accounting, etc.  because of not
-updating this internal "friend").
+This patch once got SOB from Jason on Jul 2008 and (perhaps) merged
+into kgdb-next branch, but lost somewhere then.
+I resend it now with Jason's Acked-by.
 
-Solution:
-
-The following patch adds a core library function that sets a dirty bit
-without tagging the page.  It should be modified simultaneously with its
-"friends": __set_page_dirty_nobuffers, __set_page_dirty.
-
-Signed-off-by: Edward Shishkin<edward.shishkin@gmail.com>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Acked-by: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    1 +
- mm/page-writeback.c |   36 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+)
+ drivers/serial/serial_txx9.c |  113 ++++++++++++++++++++++++++-------
+ 1 file changed, 92 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/mm.h~vfs-add-set_page_dirty_notag include/linux/mm.h
---- a/include/linux/mm.h~vfs-add-set_page_dirty_notag
-+++ a/include/linux/mm.h
-@@ -841,6 +841,7 @@ int redirty_page_for_writepage(struct wr
- 				struct page *page);
- int set_page_dirty(struct page *page);
- int set_page_dirty_lock(struct page *page);
-+int set_page_dirty_notag(struct page *page);
- int clear_page_dirty_for_io(struct page *page);
+diff -puN drivers/serial/serial_txx9.c~kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart drivers/serial/serial_txx9.c
+--- a/drivers/serial/serial_txx9.c~kgdb-kgdboc-console-poll-hooks-for-serial_txx9-uart
++++ a/drivers/serial/serial_txx9.c
+@@ -461,6 +461,94 @@ static void serial_txx9_break_ctl(struct
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ }
  
- extern unsigned long move_page_tables(struct vm_area_struct *vma,
-diff -puN mm/page-writeback.c~vfs-add-set_page_dirty_notag mm/page-writeback.c
---- a/mm/page-writeback.c~vfs-add-set_page_dirty_notag
-+++ a/mm/page-writeback.c
-@@ -1247,6 +1247,42 @@ int __set_page_dirty_nobuffers(struct pa
- EXPORT_SYMBOL(__set_page_dirty_nobuffers);
- 
- /*
-+ * set_page_dirty_notag() -- similar to __set_page_dirty_nobuffers()
-+ * except it doesn't tag the page dirty in the page-cache radix tree.
-+ * This means that the address space using this cannot use the regular
-+ * filemap ->writepages() helpers and must provide its own means of
-+ * tracking and finding non-tagged dirty pages.
-+ *
-+ * NOTE: furthermore, this version also doesn't handle truncate races.
-+ */
-+int set_page_dirty_notag(struct page *page)
-+{
-+	struct address_space *mapping = page->mapping;
-+
-+	if (!TestSetPageDirty(page)) {
-+		WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
-+		if (mapping_cap_account_dirty(mapping)) {
-+		        /*
-+			 * The accounting functions rely on
-+			 * being atomic wrt interrupts.
-+			 */
-+		        unsigned long flags;
-+			local_irq_save(flags);
-+			__inc_zone_page_state(page, NR_FILE_DIRTY);
-+			__inc_bdi_stat(mapping->backing_dev_info,
-+				       BDI_RECLAIMABLE);
-+			task_dirty_inc(current);
-+			task_io_account_write(PAGE_CACHE_SIZE);
-+			local_irq_restore(flags);
-+		}
-+		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
-+		return 1;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL(set_page_dirty_notag);
-+
++#if defined(CONFIG_SERIAL_TXX9_CONSOLE) || (CONFIG_CONSOLE_POLL)
 +/*
-  * When a writepage implementation decides that it doesn't want to write this
-  * page for some reason, it should redirty the locked page via
-  * redirty_page_for_writepage() and it should then unlock the page and return 0
-_
-
-Patches currently in -mm which might be from edward.shishkin@gmail.com are
-
-vfs-add-use-account_page_dirtied.patch
-vfs-take-2add-set_page_dirty_notag.patch
-vfs-add-set_page_dirty_notag.patch
-vfs-add-set_page_dirty_notag-checkpatch-fixes.patch
-reiser4-vfs-add-super_operationssync_inodes-2.patch
-reiser4.patch
-reiser4-adjust-to-the-new-aops.patch
-reiser4-adjust-to-the-new-aops-fixup.patch
-reiser4-remove-simple_prepare_write-usage.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
-reiser4-update-names-of-quota-methods.patch
-reiser4-use-set_page_dirty_notag.patch
-
++ *	Wait for transmitter & holding register to empty
++ */
++static void wait_for_xmitr(struct uart_txx9_port *up)
++{
++	unsigned int tmout = 10000;
++
++	/* Wait up to 10ms for the character(s) to be sent. */
++	while (--tmout &&
++	       !(sio_in(up, TXX9_SICISR) & TXX9_SICISR_TXALS))
++		udelay(1);
++
++	/* Wait up to 1s for flow control if necessary */
++	if (up->port.flags & UPF_CONS_FLOW) {
++		tmout = 1000000;
++		while (--tmout &&
++		       (sio_in(up, TXX9_SICISR) & TXX9_SICISR_CTSS))
++			udelay(1);
++	}
++}
++#endif
++
++#ifdef CONFIG_CONSOLE_POLL
++/*
++ * Console polling routines for writing and reading from the uart while
++ * in an interrupt or debug context.
++ */
++
++static int serial_txx9_get_poll_char(struct uart_port *port)
++{
++	unsigned int ier;
++	unsigned char c;
++	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
++
++	/*
++	 *	First save the IER then disable the interrupts
++	 */
++	ier = sio_in(up, TXX9_SIDICR);
++	sio_out(up, TXX9_SIDICR, 0);
++
++	while (sio_in(up, TXX9_SIDISR) & TXX9_SIDISR_UVALID)
++		;
++
++	c = sio_in(up, TXX9_SIRFIFO);
++
++	/*
++	 *	Finally, clear RX interrupt status
++	 *	and restore the IER
++	 */
++	sio_mask(up, TXX9_SIDISR, TXX9_SIDISR_RDIS);
++	sio_out(up, TXX9_SIDICR, ier);
++	return c;
++}
++
++
++static void serial_txx9_put_poll_char(struct uart_port *port, unsigned char c)
++{
++	unsigned int ier;
++	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
++
++	/*
++	 *	First save the IER then disable the interrupts
++	 */
++	ier = sio_in(up, TXX9_SIDICR);
++	sio_out(up, TXX9_SIDICR, 0);
++
++	wait_for_xmitr(up);
++	/*
++	 *	Send the character out.
++	 *	If a LF, also do CR...
++	 */
++	sio_out(up, TXX9_SITFIFO, c);
++	if (c == 10) {
++		wait_for_xmitr(up);
++		sio_out(up, TXX9_SITFIFO, 13);
++	}
++
++	/*
++	 *	Finally, wait for transmitter to become empty
++	 *	and restore the IER
++	 */
++	wait_for_xmitr(up);
++	sio_out(up, TXX9_SIDICR, ier);
++}
++
++#endif /* CONFIG_CONSOLE_POLL */
++
+ static int serial_txx9_startup(struct uart_port *port)
+ {
+ 	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
+@@ -781,6 +869,10 @@ static struct uart_ops serial_txx9_pops 
+ 	.release_port	= serial_txx9_release_port,
+ 	.request_port	= serial_txx9_request_port,
+ 	.config_port	= serial_txx9_config_port,
++#ifdef CONFIG_CONSOLE_POLL
++	.poll_get_char	= serial_txx9_get_poll_char,
++	.poll_put_char	= serial_txx9_put_poll_char,
++#endif
+ };
+ 
+ static struct uart_txx9_port serial_txx9_ports[UART_NR];
+@@ -803,27 +895,6 @@ static void __init serial_txx9_register_
+ 
+ #ifdef CONFIG_SERIAL_TXX9_CONSOLE
+ 
+-/*
+- *	Wait for transmitter & holding register to empty
+- */
+-static inline void wait_for_xmitr(struct uart_txx9_port *up)
+-{
+-	unsigned int tmout = 10000;
+-
+-	/* Wait up to 10ms for the character(s) to be sent. */
+-	while (--tmout &&
+-	       !(sio_in(up, TXX9_SICISR) & TXX9_SICISR_TXALS))
+-		udelay(1);
+-
+-	/* Wait up to 1s for flow control if necessary */
+-	if (up->port.flags & UPF_CONS_FLOW) {
+-		tmout = 1000000;
+-		while (--tmout &&
+-		       (sio_in(up, TXX9_SICISR) & TXX9_SICISR_CTSS))
+-			udelay(1);
+-	}
+-}
