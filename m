@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-proc-memory-leak-in-the-scsi-core.patch added to -mm tree
-Date: Thu, 19 Feb 2009 13:49:49 -0800
-Message-ID: <200902192149.n1JLnnEp025264@imap1.linux-foundation.org>
+Subject: + sd-tell-the-user-when-a-disks-capacity-is-adjusted.patch added to -mm tree
+Date: Thu, 19 Feb 2009 13:50:56 -0800
+Message-ID: <200902192150.n1JLouvY025314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759035AbZBSVuZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757438AbZBSVvv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 16:50:25 -0500
+	Thu, 19 Feb 2009 16:51:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, James.Bottomley@HansenPartnership.com
+Cc: stern@rowland.harvard.edu, jens.axboe@oracle.com
 
 
 The patch titled
-     scsi: fix /proc memory leak in the SCSI core
+     sd: tell the user when a disk's capacity is adjusted
 has been added to the -mm tree.  Its filename is
-     scsi-fix-proc-memory-leak-in-the-scsi-core.patch
+     sd-tell-the-user-when-a-disks-capacity-is-adjusted.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: fix /proc memory leak in the SCSI core
+Subject: sd: tell the user when a disk's capacity is adjusted
 From: Alan Stern <stern@rowland.harvard.edu>
 
-The SCSI core calls scsi_proc_hostdir_add() from within scsi_host_alloc(),
-but the corresponding scsi_proc_hostdir_rm() routine is called from within
-scsi_remove_host().  As a result, if a host is allocated and then
-deallocated without ever being registered, the host's directory in /proc
-is leaked.
-
-This patch (as1181) fixes this bug in the SCSI core by moving
-scsi_proc_hostdir_add() into scsi_host_add().
+This patch (as1188) combines the tests for decrementing a drive's reported
+capacity and expands the comment.  It also adds an informational message
+to the system log, informing the user when the reported value has been
+changed.
 
 Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hosts.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/scsi/sd.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN drivers/scsi/hosts.c~scsi-fix-proc-memory-leak-in-the-scsi-core drivers/scsi/hosts.c
---- a/drivers/scsi/hosts.c~scsi-fix-proc-memory-leak-in-the-scsi-core
-+++ a/drivers/scsi/hosts.c
-@@ -206,9 +206,10 @@ int scsi_add_host(struct Scsi_Host *shos
- 	if (error)
- 		goto fail;
+diff -puN drivers/scsi/sd.c~sd-tell-the-user-when-a-disks-capacity-is-adjusted drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~sd-tell-the-user-when-a-disks-capacity-is-adjusted
++++ a/drivers/scsi/sd.c
+@@ -1386,18 +1386,22 @@ repeat:
+ 		sd_read_protection_type(sdkp, buffer);
+ 	}	
  
-+	scsi_proc_hostdir_add(shost->hostt);
-+
- 	if (!shost->shost_gendev.parent)
- 		shost->shost_gendev.parent = dev ? dev : &platform_bus;
--
- 	error = device_add(&shost->shost_gendev);
- 	if (error)
- 		goto out;
-@@ -259,6 +260,7 @@ int scsi_add_host(struct Scsi_Host *shos
-  out_del_gendev:
- 	device_del(&shost->shost_gendev);
-  out:
-+	scsi_proc_hostdir_rm(shost->hostt);
- 	scsi_destroy_command_freelist(shost);
-  fail:
- 	return error;
-@@ -407,7 +409,6 @@ struct Scsi_Host *scsi_host_alloc(struct
- 		goto fail_kfree;
- 	}
- 
--	scsi_proc_hostdir_add(shost->hostt);
- 	return shost;
- 
-  fail_kfree:
-_
-
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
-
-linux-next.patch
-scsi-fix-proc-memory-leak-in-the-scsi-core.patch
-
+-	/* Some devices return the total number of sectors, not the
+-	 * highest sector number.  Make the necessary adjustment. */
+-	if (sdp->fix_capacity) {
++	/* Some devices are known to return the total number of blocks,
++	 * not the highest block number.  Some devices have versions
++	 * which do this and others which do not.  Some devices we might
++	 * suspect of doing this but we don't know for certain.
++	 *
++	 * If we know the reported capacity is wrong, decrement it.  If
++	 * we can only guess, then assume the number of blocks is even
++	 * (usually true but not always) and err on the side of lowering
++	 * the capacity.
++	 */
++	if (sdp->fix_capacity ||
++	    (sdp->guess_capacity && (sdkp->capacity & 0x01))) {
++		sd_printk(KERN_INFO, sdkp, "Adjusting the sector count "
++				"from its reported value: %llu\n",
++				(unsigned long long) sdkp->capacity);
+ 		--sdkp->capacity;
