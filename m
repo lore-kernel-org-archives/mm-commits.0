@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly.patch added to -mm tree
-Date: Thu, 19 Feb 2009 11:52:41 -0800
-Message-ID: <200902191952.n1JJqfAZ018458@imap1.linux-foundation.org>
+Subject: + via-sdmmc-via-msp-card-reader-driver-support.patch added to -mm tree
+Date: Thu, 19 Feb 2009 11:58:42 -0800
+Message-ID: <200902191958.n1JJwg7A018909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46118 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52116 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752941AbZBSTxS (ORCPT
+	by vger.kernel.org with ESMTP id S1753152AbZBST7e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:53:18 -0500
+	Thu, 19 Feb 2009 14:59:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, bernd.schmidt@analog.com, dwmw2@infradead.org, gerg@snapgear.com
+Cc: JosephChan@via.com.tw, arnd@arndb.de, ben-linux@fluff.org, drzeus-mmc@drzeus.cx, josephchan@via.com.tw
 
 
 The patch titled
-     nommu: make it possible for RomFS to use MTD devices directly
+     via-sdmmc: VIA MSP card reader driver support
 has been added to the -mm tree.  Its filename is
-     nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly.patch
+     via-sdmmc-via-msp-card-reader-driver-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,1829 +34,1407 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: make it possible for RomFS to use MTD devices directly
-From: David Howells <dhowells@redhat.com>
+Subject: via-sdmmc: VIA MSP card reader driver support
+From: <JosephChan@via.com.tw>
 
-Change RomFS so that it can use MTD devices directly - without the
-intercession of the block layer - as well as using block devices.
+Provide VIA MSP SD/MMC card reader driver support.  Special thanks for
+Arnd's suggestions and help.
 
-This permits RomFS:
-
- (1) to use the MTD direct mapping facility available under NOMMU conditions if
-     the underlying device is directly accessible by the CPU (including XIP);
-
- (2) and thus to be used when the block layer is disabled.
-
-RomFS can be configured with support just for MTD devices, just for Block
-devices or for both.  If RomFS is configured for both, then it will treat
-mtdblock device files as MTD backing stores, not block layer backing
-stores.
-
-I tested this using a CONFIG_MMU=n CONFIG_BLOCK=n kernel running on my FRV
-board with a RomFS image installed on the mtdram test device.  I see my
-test program being run XIP:
-
-	# cat /proc/maps
-	...
-	c0c000b0-c0c01f8c r-xs 00000000 1f:00 144        /mnt/doshm
-	...
-
-GDB on the kernel can be used to show that these addresses are within the
-set-aside RAM space.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Tested-by: Bernd Schmidt <bernd.schmidt@analog.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Joseph Chan <josephchan@via.com.tw>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/Kconfig      |   24 +
- fs/romfs/Makefile     |    9 
- fs/romfs/inode.c      |  665 ----------------------------------------
- fs/romfs/internal.h   |   47 ++
- fs/romfs/mmap-nommu.c |   75 ++++
- fs/romfs/storage.c    |  261 +++++++++++++++
- fs/romfs/super.c      |  648 ++++++++++++++++++++++++++++++++++++++
- 7 files changed, 1062 insertions(+), 667 deletions(-)
+ drivers/mmc/host/Kconfig     |   12 
+ drivers/mmc/host/Makefile    |    1 
+ drivers/mmc/host/via-sdmmc.c | 1348 +++++++++++++++++++++++++++++++++
+ 3 files changed, 1361 insertions(+)
 
-diff -puN fs/romfs/Kconfig~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly fs/romfs/Kconfig
---- a/fs/romfs/Kconfig~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly
-+++ a/fs/romfs/Kconfig
-@@ -14,3 +14,27 @@ config ROMFS_FS
- 
- 	  If you don't know whether you need it, then you don't need it:
- 	  answer N.
+diff -puN drivers/mmc/host/Kconfig~via-sdmmc-via-msp-card-reader-driver-support drivers/mmc/host/Kconfig
+--- a/drivers/mmc/host/Kconfig~via-sdmmc-via-msp-card-reader-driver-support
++++ a/drivers/mmc/host/Kconfig
+@@ -212,3 +212,15 @@ config MMC_TMIO
+ 	help
+ 	  This provides support for the SD/MMC cell found in TC6393XB,
+ 	  T7L66XB and also ipaq ASIC3
 +
-+config ROMFS_ON_BLOCK
-+	bool "Block device-backed ROM file system support" if (ROMFS_ON_MTD && EMBEDDED)
-+	depends on ROMFS_FS && BLOCK
++config MMC_VIA_SDMMC
++	tristate "VIA SD/MMC Card Reader driver"
++	depends on PCI && EXPERIMENTAL
 +	help
-+	  This permits ROMFS to use block devices buffered through the page
-+	  cache as the medium from which to retrieve data.  It does not allow
-+	  direct mapping of the medium.
++	  This selects the VIA SD/MMC Card Reader driver, say Y or M here.
++	  VIA provides one multi-functional card reader which integrated into
++	  some motherboards manufactured by VIA. This card reader supports
++	  SD/MMC/SDHC.
++	  If you have a controller with this interface, say Y or M here.
 +
-+	  If unsure, answer Y.
-+
-+config ROMFS_ON_MTD
-+	bool "MTD-backed ROM file system support"
-+	depends on ROMFS_FS
-+	depends on MTD=y || (ROMFS_FS=m && MTD)
-+	help
-+	  This permits ROMFS to use MTD based devices directly, without the
-+	  intercession of the block layer (which may have been disabled).  It
-+	  also allows direct mapping of MTD devices through romfs files under
-+	  NOMMU conditions if the underlying device is directly addressable by
-+	  the CPU.
-+
-+	  If unsure, answer Y.
-+
-diff -puN fs/romfs/Makefile~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly fs/romfs/Makefile
---- a/fs/romfs/Makefile~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly
-+++ a/fs/romfs/Makefile
-@@ -1,7 +1,12 @@
- #
--# Makefile for the linux romfs filesystem routines.
-+# Makefile for the linux RomFS filesystem routines.
- #
++	  If unsure, say N.
+diff -puN drivers/mmc/host/Makefile~via-sdmmc-via-msp-card-reader-driver-support drivers/mmc/host/Makefile
+--- a/drivers/mmc/host/Makefile~via-sdmmc-via-msp-card-reader-driver-support
++++ a/drivers/mmc/host/Makefile
+@@ -27,4 +27,5 @@ endif
+ obj-$(CONFIG_MMC_S3C)   	+= s3cmci.o
+ obj-$(CONFIG_MMC_SDRICOH_CS)	+= sdricoh_cs.o
+ obj-$(CONFIG_MMC_TMIO)		+= tmio_mmc.o
++obj-$(CONFIG_MMC_VIA_SDMMC)	+= via-sdmmc.o
  
- obj-$(CONFIG_ROMFS_FS) += romfs.o
- 
--romfs-objs := inode.o
-+romfs-y := storage.o super.o
-+
-+ifneq ($(CONFIG_MMU),y)
-+romfs-$(CONFIG_ROMFS_ON_MTD) += mmap-nommu.o
-+endif
-+
-diff -puN fs/romfs/inode.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly /dev/null
---- a/fs/romfs/inode.c
-+++ /dev/null
-@@ -1,665 +0,0 @@
--/*
-- * ROMFS file system, Linux implementation
-- *
-- * Copyright (C) 1997-1999  Janos Farkas <chexum@shadow.banki.hu>
-- *
-- * Using parts of the minix filesystem
-- * Copyright (C) 1991, 1992  Linus Torvalds
-- *
-- * and parts of the affs filesystem additionally
-- * Copyright (C) 1993  Ray Burr
-- * Copyright (C) 1996  Hans-Joachim Widmaier
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * as published by the Free Software Foundation; either version
-- * 2 of the License, or (at your option) any later version.
-- *
-- * Changes
-- *					Changed for 2.1.19 modules
-- *	Jan 1997			Initial release
-- *	Jun 1997			2.1.43+ changes
-- *					Proper page locking in readpage
-- *					Changed to work with 2.1.45+ fs
-- *	Jul 1997			Fixed follow_link
-- *			2.1.47
-- *					lookup shouldn't return -ENOENT
-- *					from Horst von Brand:
-- *					  fail on wrong checksum
-- *					  double unlock_super was possible
-- *					  correct namelen for statfs
-- *					spotted by Bill Hawes:
-- *					  readlink shouldn't iput()
-- *	Jun 1998	2.1.106		from Avery Pennarun: glibc scandir()
-- *					  exposed a problem in readdir
-- *			2.1.107		code-freeze spellchecker run
-- *	Aug 1998			2.1.118+ VFS changes
-- *	Sep 1998	2.1.122		another VFS change (follow_link)
-- *	Apr 1999	2.2.7		no more EBADF checking in
-- *					  lookup/readdir, use ERR_PTR
-- *	Jun 1999	2.3.6		d_alloc_root use changed
-- *			2.3.9		clean up usage of ENOENT/negative
-- *					  dentries in lookup
-- *					clean up page flags setting
-- *					  (error, uptodate, locking) in
-- *					  in readpage
-- *					use init_special_inode for
-- *					  fifos/sockets (and streamline) in
-- *					  read_inode, fix _ops table order
-- *	Aug 1999	2.3.16		__initfunc() => __init change
-- *	Oct 1999	2.3.24		page->owner hack obsoleted
-- *	Nov 1999	2.3.27		2.3.25+ page->offset => index change
-- */
--
--/* todo:
-- *	- see Documentation/filesystems/romfs.txt
-- *	- use allocated, not stack memory for file names?
-- *	- considering write access...
-- *	- network (tftp) files?
-- *	- merge back some _op tables
-- */
--
--/*
-- * Sorry about some optimizations and for some goto's.  I just wanted
-- * to squeeze some more bytes out of this code.. :)
-- */
--
--#include <linux/module.h>
--#include <linux/types.h>
--#include <linux/errno.h>
--#include <linux/slab.h>
--#include <linux/romfs_fs.h>
--#include <linux/fs.h>
--#include <linux/init.h>
--#include <linux/pagemap.h>
--#include <linux/smp_lock.h>
--#include <linux/buffer_head.h>
--#include <linux/vfs.h>
--
--#include <asm/uaccess.h>
--
--struct romfs_inode_info {
--	unsigned long i_metasize;	/* size of non-data area */
--	unsigned long i_dataoffset;	/* from the start of fs */
--	struct inode vfs_inode;
--};
--
--static struct inode *romfs_iget(struct super_block *, unsigned long);
--
--/* instead of private superblock data */
--static inline unsigned long romfs_maxsize(struct super_block *sb)
--{
--	return (unsigned long)sb->s_fs_info;
--}
--
--static inline struct romfs_inode_info *ROMFS_I(struct inode *inode)
--{
--	return container_of(inode, struct romfs_inode_info, vfs_inode);
--}
--
--static __u32
--romfs_checksum(void *data, int size)
--{
--	__u32 sum;
--	__be32 *ptr;
--
--	sum = 0; ptr = data;
--	size>>=2;
--	while (size>0) {
--		sum += be32_to_cpu(*ptr++);
--		size--;
--	}
--	return sum;
--}
--
--static const struct super_operations romfs_ops;
--
--static int romfs_fill_super(struct super_block *s, void *data, int silent)
--{
--	struct buffer_head *bh;
--	struct romfs_super_block *rsb;
--	struct inode *root;
--	int sz, ret = -EINVAL;
--
--	/* I would parse the options here, but there are none.. :) */
--
--	sb_set_blocksize(s, ROMBSIZE);
--	s->s_maxbytes = 0xFFFFFFFF;
--
--	bh = sb_bread(s, 0);
--	if (!bh) {
--		/* XXX merge with other printk? */
--                printk ("romfs: unable to read superblock\n");
--		goto outnobh;
--	}
--
--	rsb = (struct romfs_super_block *)bh->b_data;
--	sz = be32_to_cpu(rsb->size);
--	if (rsb->word0 != ROMSB_WORD0 || rsb->word1 != ROMSB_WORD1
--	   || sz < ROMFH_SIZE) {
--		if (!silent)
--			printk ("VFS: Can't find a romfs filesystem on dev "
--				"%s.\n", s->s_id);
--		goto out;
--	}
--	if (romfs_checksum(rsb, min_t(int, sz, 512))) {
--		printk ("romfs: bad initial checksum on dev "
--			"%s.\n", s->s_id);
--		goto out;
--	}
--
--	s->s_magic = ROMFS_MAGIC;
--	s->s_fs_info = (void *)(long)sz;
--
--	s->s_flags |= MS_RDONLY;
--
--	/* Find the start of the fs */
--	sz = (ROMFH_SIZE +
--	      strnlen(rsb->name, ROMFS_MAXFN) + 1 + ROMFH_PAD)
--	     & ROMFH_MASK;
--
--	s->s_op	= &romfs_ops;
--	root = romfs_iget(s, sz);
--	if (IS_ERR(root)) {
--		ret = PTR_ERR(root);
--		goto out;
--	}
--
--	ret = -ENOMEM;
--	s->s_root = d_alloc_root(root);
--	if (!s->s_root)
--		goto outiput;
--
--	brelse(bh);
--	return 0;
--
--outiput:
--	iput(root);
--out:
--	brelse(bh);
--outnobh:
--	return ret;
--}
--
--/* That's simple too. */
--
--static int
--romfs_statfs(struct dentry *dentry, struct kstatfs *buf)
--{
--	buf->f_type = ROMFS_MAGIC;
--	buf->f_bsize = ROMBSIZE;
--	buf->f_bfree = buf->f_bavail = buf->f_ffree;
--	buf->f_blocks = (romfs_maxsize(dentry->d_sb)+ROMBSIZE-1)>>ROMBSBITS;
--	buf->f_namelen = ROMFS_MAXFN;
--	return 0;
--}
--
--/* some helper routines */
--
--static int
--romfs_strnlen(struct inode *i, unsigned long offset, unsigned long count)
--{
--	struct buffer_head *bh;
--	unsigned long avail, maxsize, res;
--
--	maxsize = romfs_maxsize(i->i_sb);
--	if (offset >= maxsize)
--		return -1;
--
--	/* strnlen is almost always valid */
--	if (count > maxsize || offset+count > maxsize)
--		count = maxsize-offset;
--
--	bh = sb_bread(i->i_sb, offset>>ROMBSBITS);
--	if (!bh)
--		return -1;		/* error */
--
--	avail = ROMBSIZE - (offset & ROMBMASK);
--	maxsize = min_t(unsigned long, count, avail);
--	res = strnlen(((char *)bh->b_data)+(offset&ROMBMASK), maxsize);
--	brelse(bh);
--
--	if (res < maxsize)
--		return res;		/* found all of it */
--
--	while (res < count) {
--		offset += maxsize;
--
--		bh = sb_bread(i->i_sb, offset>>ROMBSBITS);
--		if (!bh)
--			return -1;
--		maxsize = min_t(unsigned long, count - res, ROMBSIZE);
--		avail = strnlen(bh->b_data, maxsize);
--		res += avail;
--		brelse(bh);
--		if (avail < maxsize)
--			return res;
--	}
--	return res;
--}
--
--static int
--romfs_copyfrom(struct inode *i, void *dest, unsigned long offset, unsigned long count)
--{
--	struct buffer_head *bh;
--	unsigned long avail, maxsize, res;
--
--	maxsize = romfs_maxsize(i->i_sb);
--	if (offset >= maxsize || count > maxsize || offset+count>maxsize)
--		return -1;
--
--	bh = sb_bread(i->i_sb, offset>>ROMBSBITS);
--	if (!bh)
--		return -1;		/* error */
--
--	avail = ROMBSIZE - (offset & ROMBMASK);
--	maxsize = min_t(unsigned long, count, avail);
--	memcpy(dest, ((char *)bh->b_data) + (offset & ROMBMASK), maxsize);
--	brelse(bh);
--
--	res = maxsize;			/* all of it */
--
--	while (res < count) {
--		offset += maxsize;
--		dest += maxsize;
--
--		bh = sb_bread(i->i_sb, offset>>ROMBSBITS);
--		if (!bh)
--			return -1;
--		maxsize = min_t(unsigned long, count - res, ROMBSIZE);
--		memcpy(dest, bh->b_data, maxsize);
--		brelse(bh);
--		res += maxsize;
--	}
--	return res;
--}
--
--static unsigned char romfs_dtype_table[] = {
--	DT_UNKNOWN, DT_DIR, DT_REG, DT_LNK, DT_BLK, DT_CHR, DT_SOCK, DT_FIFO
--};
--
--static int
--romfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
--{
--	struct inode *i = filp->f_path.dentry->d_inode;
--	struct romfs_inode ri;
--	unsigned long offset, maxoff;
--	int j, ino, nextfh;
--	int stored = 0;
--	char fsname[ROMFS_MAXFN];	/* XXX dynamic? */
--
--	lock_kernel();
--
--	maxoff = romfs_maxsize(i->i_sb);
--
--	offset = filp->f_pos;
--	if (!offset) {
--		offset = i->i_ino & ROMFH_MASK;
--		if (romfs_copyfrom(i, &ri, offset, ROMFH_SIZE) <= 0)
--			goto out;
--		offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
--	}
--
--	/* Not really failsafe, but we are read-only... */
--	for(;;) {
--		if (!offset || offset >= maxoff) {
--			offset = maxoff;
--			filp->f_pos = offset;
--			goto out;
--		}
--		filp->f_pos = offset;
--
--		/* Fetch inode info */
--		if (romfs_copyfrom(i, &ri, offset, ROMFH_SIZE) <= 0)
--			goto out;
--
--		j = romfs_strnlen(i, offset+ROMFH_SIZE, sizeof(fsname)-1);
--		if (j < 0)
--			goto out;
--
--		fsname[j]=0;
--		romfs_copyfrom(i, fsname, offset+ROMFH_SIZE, j);
--
--		ino = offset;
--		nextfh = be32_to_cpu(ri.next);
--		if ((nextfh & ROMFH_TYPE) == ROMFH_HRD)
--			ino = be32_to_cpu(ri.spec);
--		if (filldir(dirent, fsname, j, offset, ino,
--			    romfs_dtype_table[nextfh & ROMFH_TYPE]) < 0) {
--			goto out;
--		}
--		stored++;
--		offset = nextfh & ROMFH_MASK;
--	}
--out:
--	unlock_kernel();
--	return stored;
--}
--
--static struct dentry *
--romfs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
--{
--	unsigned long offset, maxoff;
--	long res;
--	int fslen;
--	struct inode *inode = NULL;
--	char fsname[ROMFS_MAXFN];	/* XXX dynamic? */
--	struct romfs_inode ri;
--	const char *name;		/* got from dentry */
--	int len;
--
--	res = -EACCES;			/* placeholder for "no data here" */
--	offset = dir->i_ino & ROMFH_MASK;
--	lock_kernel();
--	if (romfs_copyfrom(dir, &ri, offset, ROMFH_SIZE) <= 0)
--		goto error;
--
--	maxoff = romfs_maxsize(dir->i_sb);
--	offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
--
--	/* OK, now find the file whose name is in "dentry" in the
--	 * directory specified by "dir".  */
--
--	name = dentry->d_name.name;
--	len = dentry->d_name.len;
--
--	for(;;) {
--		if (!offset || offset >= maxoff)
--			goto success; /* negative success */
--		if (romfs_copyfrom(dir, &ri, offset, ROMFH_SIZE) <= 0)
--			goto error;
--
--		/* try to match the first 16 bytes of name */
--		fslen = romfs_strnlen(dir, offset+ROMFH_SIZE, ROMFH_SIZE);
--		if (len < ROMFH_SIZE) {
--			if (len == fslen) {
--				/* both are shorter, and same size */
--				romfs_copyfrom(dir, fsname, offset+ROMFH_SIZE, len+1);
--				if (strncmp (name, fsname, len) == 0)
--					break;
--			}
--		} else if (fslen >= ROMFH_SIZE) {
--			/* both are longer; XXX optimize max size */
--			fslen = romfs_strnlen(dir, offset+ROMFH_SIZE, sizeof(fsname)-1);
--			if (len == fslen) {
--				romfs_copyfrom(dir, fsname, offset+ROMFH_SIZE, len+1);
--				if (strncmp(name, fsname, len) == 0)
--					break;
--			}
--		}
--		/* next entry */
--		offset = be32_to_cpu(ri.next) & ROMFH_MASK;
--	}
--
--	/* Hard link handling */
--	if ((be32_to_cpu(ri.next) & ROMFH_TYPE) == ROMFH_HRD)
--		offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
--
--	inode = romfs_iget(dir->i_sb, offset);
--	if (IS_ERR(inode)) {
--		res = PTR_ERR(inode);
--		goto error;
--	}
--
--success:
--	d_add(dentry, inode);
--	res = 0;
--error:
--	unlock_kernel();
--	return ERR_PTR(res);
--}
--
--/*
-- * Ok, we do readpage, to be able to execute programs.  Unfortunately,
-- * we can't use bmap, since we may have looser alignments.
-- */
--
--static int
--romfs_readpage(struct file *file, struct page * page)
--{
--	struct inode *inode = page->mapping->host;
--	loff_t offset, size;
--	unsigned long filled;
--	void *buf;
--	int result = -EIO;
--
--	page_cache_get(page);
--	lock_kernel();
--	buf = kmap(page);
--	if (!buf)
--		goto err_out;
--
--	/* 32 bit warning -- but not for us :) */
--	offset = page_offset(page);
--	size = i_size_read(inode);
--	filled = 0;
--	result = 0;
--	if (offset < size) {
--		unsigned long readlen;
--
--		size -= offset;
--		readlen = size > PAGE_SIZE ? PAGE_SIZE : size;
--
--		filled = romfs_copyfrom(inode, buf, ROMFS_I(inode)->i_dataoffset+offset, readlen);
--
--		if (filled != readlen) {
--			SetPageError(page);
--			filled = 0;
--			result = -EIO;
--		}
--	}
--
--	if (filled < PAGE_SIZE)
--		memset(buf + filled, 0, PAGE_SIZE-filled);
--
--	if (!result)
--		SetPageUptodate(page);
--	flush_dcache_page(page);
--
--	unlock_page(page);
--
--	kunmap(page);
--err_out:
--	page_cache_release(page);
--	unlock_kernel();
--
--	return result;
--}
--
--/* Mapping from our types to the kernel */
--
--static const struct address_space_operations romfs_aops = {
--	.readpage = romfs_readpage
--};
--
--static const struct file_operations romfs_dir_operations = {
--	.read		= generic_read_dir,
--	.readdir	= romfs_readdir,
--};
--
--static const struct inode_operations romfs_dir_inode_operations = {
--	.lookup		= romfs_lookup,
--};
--
--static mode_t romfs_modemap[] =
--{
--	0, S_IFDIR+0644, S_IFREG+0644, S_IFLNK+0777,
--	S_IFBLK+0600, S_IFCHR+0600, S_IFSOCK+0644, S_IFIFO+0644
--};
--
--static struct inode *
--romfs_iget(struct super_block *sb, unsigned long ino)
--{
--	int nextfh, ret;
--	struct romfs_inode ri;
--	struct inode *i;
--
--	ino &= ROMFH_MASK;
--	i = iget_locked(sb, ino);
--	if (!i)
--		return ERR_PTR(-ENOMEM);
--	if (!(i->i_state & I_NEW))
--		return i;
--
--	i->i_mode = 0;
--
--	/* Loop for finding the real hard link */
--	for(;;) {
--		if (romfs_copyfrom(i, &ri, ino, ROMFH_SIZE) <= 0) {
--			printk(KERN_ERR "romfs: read error for inode 0x%lx\n",
--				ino);
--			iget_failed(i);
--			return ERR_PTR(-EIO);
--		}
--		/* XXX: do romfs_checksum here too (with name) */
--
--		nextfh = be32_to_cpu(ri.next);
--		if ((nextfh & ROMFH_TYPE) != ROMFH_HRD)
--			break;
--
--		ino = be32_to_cpu(ri.spec) & ROMFH_MASK;
--	}
--
--	i->i_nlink = 1;		/* Hard to decide.. */
--	i->i_size = be32_to_cpu(ri.size);
--	i->i_mtime.tv_sec = i->i_atime.tv_sec = i->i_ctime.tv_sec = 0;
--	i->i_mtime.tv_nsec = i->i_atime.tv_nsec = i->i_ctime.tv_nsec = 0;
--
--        /* Precalculate the data offset */
--	ret = romfs_strnlen(i, ino + ROMFH_SIZE, ROMFS_MAXFN);
--	if (ret >= 0)
--		ino = (ROMFH_SIZE + ret + 1 + ROMFH_PAD) & ROMFH_MASK;
--	else
--		ino = 0;
--
--        ROMFS_I(i)->i_metasize = ino;
--        ROMFS_I(i)->i_dataoffset = ino+(i->i_ino&ROMFH_MASK);
--
--        /* Compute permissions */
--        ino = romfs_modemap[nextfh & ROMFH_TYPE];
--	/* only "normal" files have ops */
--	switch (nextfh & ROMFH_TYPE) {
--		case 1:
--			i->i_size = ROMFS_I(i)->i_metasize;
--			i->i_op = &romfs_dir_inode_operations;
--			i->i_fop = &romfs_dir_operations;
--			if (nextfh & ROMFH_EXEC)
--				ino |= S_IXUGO;
--			i->i_mode = ino;
--			break;
--		case 2:
--			i->i_fop = &generic_ro_fops;
--			i->i_data.a_ops = &romfs_aops;
--			if (nextfh & ROMFH_EXEC)
--				ino |= S_IXUGO;
--			i->i_mode = ino;
--			break;
--		case 3:
--			i->i_op = &page_symlink_inode_operations;
--			i->i_data.a_ops = &romfs_aops;
--			i->i_mode = ino | S_IRWXUGO;
--			break;
--		default:
--			/* depending on MBZ for sock/fifos */
--			nextfh = be32_to_cpu(ri.spec);
--			init_special_inode(i, ino,
--					MKDEV(nextfh>>16,nextfh&0xffff));
--	}
--	unlock_new_inode(i);
--	return i;
--}
--
--static struct kmem_cache * romfs_inode_cachep;
--
--static struct inode *romfs_alloc_inode(struct super_block *sb)
--{
--	struct romfs_inode_info *ei;
--	ei = kmem_cache_alloc(romfs_inode_cachep, GFP_KERNEL);
--	if (!ei)
--		return NULL;
--	return &ei->vfs_inode;
--}
--
--static void romfs_destroy_inode(struct inode *inode)
--{
--	kmem_cache_free(romfs_inode_cachep, ROMFS_I(inode));
--}
--
--static void init_once(void *foo)
--{
--	struct romfs_inode_info *ei = foo;
--
--	inode_init_once(&ei->vfs_inode);
--}
--
--static int init_inodecache(void)
--{
--	romfs_inode_cachep = kmem_cache_create("romfs_inode_cache",
--					     sizeof(struct romfs_inode_info),
--					     0, (SLAB_RECLAIM_ACCOUNT|
--						SLAB_MEM_SPREAD),
--					     init_once);
--	if (romfs_inode_cachep == NULL)
--		return -ENOMEM;
--	return 0;
--}
--
--static void destroy_inodecache(void)
--{
--	kmem_cache_destroy(romfs_inode_cachep);
--}
--
--static int romfs_remount(struct super_block *sb, int *flags, char *data)
--{
--	*flags |= MS_RDONLY;
--	return 0;
--}
--
--static const struct super_operations romfs_ops = {
--	.alloc_inode	= romfs_alloc_inode,
--	.destroy_inode	= romfs_destroy_inode,
--	.statfs		= romfs_statfs,
--	.remount_fs	= romfs_remount,
--};
--
--static int romfs_get_sb(struct file_system_type *fs_type,
--	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
--{
--	return get_sb_bdev(fs_type, flags, dev_name, data, romfs_fill_super,
--			   mnt);
--}
--
--static struct file_system_type romfs_fs_type = {
--	.owner		= THIS_MODULE,
--	.name		= "romfs",
--	.get_sb		= romfs_get_sb,
--	.kill_sb	= kill_block_super,
--	.fs_flags	= FS_REQUIRES_DEV,
--};
--
--static int __init init_romfs_fs(void)
--{
--	int err = init_inodecache();
--	if (err)
--		goto out1;
--        err = register_filesystem(&romfs_fs_type);
--	if (err)
--		goto out;
--	return 0;
--out:
--	destroy_inodecache();
--out1:
--	return err;
--}
--
--static void __exit exit_romfs_fs(void)
--{
--	unregister_filesystem(&romfs_fs_type);
--	destroy_inodecache();
--}
--
--/* Yes, works even as a module... :) */
--
--module_init(init_romfs_fs)
--module_exit(exit_romfs_fs)
--MODULE_LICENSE("GPL");
-diff -puN /dev/null fs/romfs/internal.h
+diff -puN /dev/null drivers/mmc/host/via-sdmmc.c
 --- /dev/null
-+++ a/fs/romfs/internal.h
-@@ -0,0 +1,47 @@
-+/* RomFS internal definitions
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
-+
-+#include <linux/romfs_fs.h>
-+
-+struct romfs_inode_info {
-+	struct inode	vfs_inode;
-+	unsigned long	i_metasize;	/* size of non-data area */
-+	unsigned long	i_dataoffset;	/* from the start of fs */
-+};
-+
-+static inline size_t romfs_maxsize(struct super_block *sb)
-+{
-+	return (size_t) (unsigned long) sb->s_fs_info;
-+}
-+
-+static inline struct romfs_inode_info *ROMFS_I(struct inode *inode)
-+{
-+	return container_of(inode, struct romfs_inode_info, vfs_inode);
-+}
-+
++++ a/drivers/mmc/host/via-sdmmc.c
+@@ -0,0 +1,1348 @@
 +/*
-+ * mmap-nommu.c
-+ */
-+#if !defined(CONFIG_MMU) && defined(CONFIG_ROMFS_ON_MTD)
-+extern const struct file_operations romfs_ro_fops;
-+#else
-+#define romfs_ro_fops	generic_ro_fops
-+#endif
-+
-+/*
-+ * storage.c
-+ */
-+extern int romfs_dev_read(struct super_block *sb, unsigned long pos,
-+			  void *buf, size_t buflen);
-+extern ssize_t romfs_dev_strnlen(struct super_block *sb,
-+				 unsigned long pos, size_t maxlen);
-+extern int romfs_dev_strncmp(struct super_block *sb, unsigned long pos,
-+			     const char *str, size_t size);
-diff -puN /dev/null fs/romfs/mmap-nommu.c
---- /dev/null
-+++ a/fs/romfs/mmap-nommu.c
-@@ -0,0 +1,75 @@
-+/* NOMMU mmap support for RomFS on MTD devices
++ *  drivers/mmc/host/via-sdmmc.c - VIA SD/MMC Card Reader driver
++ *  Copyright (c) 2008, VIA Technologies Inc. All Rights Reserved.
 + *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or (at
++ * your option) any later version.
 + */
 +
-+#include <linux/mm.h>
-+#include <linux/mtd/super.h>
-+#include "internal.h"
-+
-+/*
-+ * try to determine where a shared mapping can be made
-+ * - only supported for NOMMU at the moment (MMU can't doesn't copy private
-+ *   mappings)
-+ * - attempts to map through to the underlying MTD device
-+ */
-+static unsigned long romfs_get_unmapped_area(struct file *file,
-+					     unsigned long addr,
-+					     unsigned long len,
-+					     unsigned long pgoff,
-+					     unsigned long flags)
-+{
-+	struct inode *inode = file->f_mapping->host;
-+	struct mtd_info *mtd = inode->i_sb->s_mtd;
-+	unsigned long isize, offset;
-+
-+	if (!mtd)
-+		goto cant_map_directly;
-+
-+	isize = i_size_read(inode);
-+	offset = pgoff << PAGE_SHIFT;
-+	if (offset > isize || len > isize || offset > isize - len)
-+		return (unsigned long) -EINVAL;
-+
-+	/* we need to call down to the MTD layer to do the actual mapping */
-+	if (mtd->get_unmapped_area) {
-+		if (addr != 0)
-+			return (unsigned long) -EINVAL;
-+
-+		if (len > mtd->size || pgoff >= (mtd->size >> PAGE_SHIFT))
-+			return (unsigned long) -EINVAL;
-+
-+		offset += ROMFS_I(inode)->i_dataoffset;
-+		if (offset > mtd->size - len)
-+			return (unsigned long) -EINVAL;
-+
-+		return mtd->get_unmapped_area(mtd, len, offset, flags);
-+	}
-+
-+cant_map_directly:
-+	return (unsigned long) -ENOSYS;
-+}
-+
-+/*
-+ * permit a R/O mapping to be made directly through onto an MTD device if
-+ * possible
-+ */
-+static int romfs_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	return vma->vm_flags & (VM_SHARED | VM_MAYSHARE) ? 0 : -ENOSYS;
-+}
-+
-+const struct file_operations romfs_ro_fops = {
-+	.llseek			= generic_file_llseek,
-+	.read			= do_sync_read,
-+	.aio_read		= generic_file_aio_read,
-+	.splice_read		= generic_file_splice_read,
-+	.mmap			= romfs_mmap,
-+	.get_unmapped_area	= romfs_get_unmapped_area,
-+};
-diff -puN /dev/null fs/romfs/storage.c
---- /dev/null
-+++ a/fs/romfs/storage.c
-@@ -0,0 +1,261 @@
-+/* RomFS storage access routines
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
-+
-+#include <linux/fs.h>
-+#include <linux/mtd/super.h>
-+#include <linux/buffer_head.h>
-+#include "internal.h"
-+
-+#if !defined(CONFIG_ROMFS_ON_MTD) && !defined(CONFIG_ROMFS_ON_BLOCK)
-+#error no ROMFS backing store interface configured
-+#endif
-+
-+#ifdef CONFIG_ROMFS_ON_MTD
-+#define ROMFS_MTD_READ(sb, ...) ((sb)->s_mtd->read((sb)->s_mtd, ##__VA_ARGS__))
-+
-+/*
-+ * read data from an romfs image on an MTD device
-+ */
-+static int romfs_mtd_read(struct super_block *sb, unsigned long pos,
-+			  void *buf, size_t buflen)
-+{
-+	size_t rlen;
-+	int ret;
-+
-+	ret = ROMFS_MTD_READ(sb, pos, buflen, &rlen, buf);
-+	return (ret < 0 || rlen != buflen) ? -EIO : 0;
-+}
-+
-+/*
-+ * determine the length of a string in a romfs image on an MTD device
-+ */
-+static ssize_t romfs_mtd_strnlen(struct super_block *sb,
-+				 unsigned long pos, size_t maxlen)
-+{
-+	ssize_t n = 0;
-+	size_t segment;
-+	u_char buf[16], *p;
-+	size_t len;
-+	int ret;
-+
-+	/* scan the string up to 16 bytes at a time */
-+	while (maxlen > 0) {
-+		segment = min_t(size_t, maxlen, 16);
-+		ret = ROMFS_MTD_READ(sb, pos, segment, &len, buf);
-+		if (ret < 0)
-+			return ret;
-+		p = memchr(buf, 0, len);
-+		if (p)
-+			return n + (p - buf);
-+		maxlen -= len;
-+		pos += len;
-+		n += len;
-+	}
-+
-+	return n;
-+}
-+
-+/*
-+ * compare a string to one in a romfs image on MTD
-+ * - return 1 if matched, 0 if differ, -ve if error
-+ */
-+static int romfs_mtd_strncmp(struct super_block *sb, unsigned long pos,
-+			     const char *str, size_t size)
-+{
-+	u_char buf[16];
-+	size_t len, segment;
-+	int ret;
-+
-+	/* scan the string up to 16 bytes at a time */
-+	while (size > 0) {
-+		segment = min_t(size_t, size, 16);
-+		ret = ROMFS_MTD_READ(sb, pos, segment, &len, buf);
-+		if (ret < 0)
-+			return ret;
-+		if (memcmp(buf, str, len) != 0)
-+			return 0;
-+		size -= len;
-+		pos += len;
-+		str += len;
-+	}
-+
-+	return 1;
-+}
-+#endif /* CONFIG_ROMFS_ON_MTD */
-+
-+#ifdef CONFIG_ROMFS_ON_BLOCK
-+/*
-+ * read data from an romfs image on a block device
-+ */
-+static int romfs_blk_read(struct super_block *sb, unsigned long pos,
-+			  void *buf, size_t buflen)
-+{
-+	struct buffer_head *bh;
-+	unsigned long offset;
-+	size_t segment;
-+
-+	/* copy the string up to blocksize bytes at a time */
-+	while (buflen > 0) {
-+		offset = pos & (ROMBSIZE - 1);
-+		segment = min_t(size_t, buflen, ROMBSIZE - offset);
-+		bh = sb_bread(sb, pos >> ROMBSBITS);
-+		if (!bh)
-+			return -EIO;
-+		memcpy(buf, bh->b_data + offset, segment);
-+		brelse(bh);
-+		buflen -= segment;
-+		pos += segment;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * determine the length of a string in romfs on a block device
-+ */
-+static ssize_t romfs_blk_strnlen(struct super_block *sb,
-+				 unsigned long pos, size_t limit)
-+{
-+	struct buffer_head *bh;
-+	unsigned long offset;
-+	ssize_t n = 0;
-+	size_t segment;
-+	u_char *buf, *p;
-+
-+	/* scan the string up to blocksize bytes at a time */
-+	while (limit > 0) {
-+		offset = pos & (ROMBSIZE - 1);
-+		segment = min_t(size_t, limit, ROMBSIZE - offset);
-+		bh = sb_bread(sb, pos >> ROMBSBITS);
-+		if (!bh)
-+			return -EIO;
-+		buf = bh->b_data + offset;
-+		p = memchr(buf, 0, segment);
-+		brelse(bh);
-+		if (p)
-+			return n + (p - buf);
-+		limit -= segment;
-+		pos += segment;
-+		n += segment;
-+	}
-+
-+	return n;
-+}
-+
-+/*
-+ * compare a string to one in a romfs image on a block device
-+ * - return 1 if matched, 0 if differ, -ve if error
-+ */
-+static int romfs_blk_strncmp(struct super_block *sb, unsigned long pos,
-+			     const char *str, size_t size)
-+{
-+	struct buffer_head *bh;
-+	unsigned long offset;
-+	size_t segment;
-+	bool x;
-+
-+	/* scan the string up to 16 bytes at a time */
-+	while (size > 0) {
-+		offset = pos & (ROMBSIZE - 1);
-+		segment = min_t(size_t, size, ROMBSIZE - offset);
-+		bh = sb_bread(sb, pos >> ROMBSBITS);
-+		if (!bh)
-+			return -EIO;
-+		x = (memcmp(bh->b_data + offset, str, segment) != 0);
-+		brelse(bh);
-+		if (x)
-+			return 0;
-+		size -= segment;
-+		pos += segment;
-+		str += segment;
-+	}
-+
-+	return 1;
-+}
-+#endif /* CONFIG_ROMFS_ON_BLOCK */
-+
-+/*
-+ * read data from the romfs image
-+ */
-+int romfs_dev_read(struct super_block *sb, unsigned long pos,
-+		   void *buf, size_t buflen)
-+{
-+	size_t limit;
-+
-+	limit = romfs_maxsize(sb);
-+	if (pos >= limit)
-+		return -EIO;
-+	if (buflen > limit - pos)
-+		buflen = limit - pos;
-+
-+#ifdef CONFIG_ROMFS_ON_MTD
-+	if (sb->s_mtd)
-+		return romfs_mtd_read(sb, pos, buf, buflen);
-+#endif
-+#ifdef CONFIG_ROMFS_ON_BLOCK
-+	if (sb->s_bdev)
-+		return romfs_blk_read(sb, pos, buf, buflen);
-+#endif
-+	return -EIO;
-+}
-+
-+/*
-+ * determine the length of a string in romfs
-+ */
-+ssize_t romfs_dev_strnlen(struct super_block *sb,
-+			  unsigned long pos, size_t maxlen)
-+{
-+	size_t limit;
-+
-+	limit = romfs_maxsize(sb);
-+	if (pos >= limit)
-+		return -EIO;
-+	if (maxlen > limit - pos)
-+		maxlen = limit - pos;
-+
-+#ifdef CONFIG_ROMFS_ON_MTD
-+	if (sb->s_mtd)
-+		return romfs_mtd_strnlen(sb, pos, limit);
-+#endif
-+#ifdef CONFIG_ROMFS_ON_BLOCK
-+	if (sb->s_bdev)
-+		return romfs_blk_strnlen(sb, pos, limit);
-+#endif
-+	return -EIO;
-+}
-+
-+/*
-+ * compare a string to one in romfs
-+ * - return 1 if matched, 0 if differ, -ve if error
-+ */
-+int romfs_dev_strncmp(struct super_block *sb, unsigned long pos,
-+		      const char *str, size_t size)
-+{
-+	size_t limit;
-+
-+	limit = romfs_maxsize(sb);
-+	if (pos >= limit)
-+		return -EIO;
-+	if (size > ROMFS_MAXFN)
-+		return -ENAMETOOLONG;
-+	if (size > limit - pos)
-+		return -EIO;
-+
-+#ifdef CONFIG_ROMFS_ON_MTD
-+	if (sb->s_mtd)
-+		return romfs_mtd_strncmp(sb, pos, str, size);
-+#endif
-+#ifdef CONFIG_ROMFS_ON_BLOCK
-+	if (sb->s_bdev)
-+		return romfs_blk_strncmp(sb, pos, str, size);
-+#endif
-+	return -EIO;
-+}
-diff -puN /dev/null fs/romfs/super.c
---- /dev/null
-+++ a/fs/romfs/super.c
-@@ -0,0 +1,648 @@
-+/* Block- or MTD-based romfs
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * Derived from: ROMFS file system, Linux implementation
-+ *
-+ * Copyright (C) 1997-1999  Janos Farkas <chexum@shadow.banki.hu>
-+ *
-+ * Using parts of the minix filesystem
-+ * Copyright (C) 1991, 1992  Linus Torvalds
-+ *
-+ * and parts of the affs filesystem additionally
-+ * Copyright (C) 1993  Ray Burr
-+ * Copyright (C) 1996  Hans-Joachim Widmaier
-+ *
-+ * Changes
-+ *					Changed for 2.1.19 modules
-+ *	Jan 1997			Initial release
-+ *	Jun 1997			2.1.43+ changes
-+ *					Proper page locking in readpage
-+ *					Changed to work with 2.1.45+ fs
-+ *	Jul 1997			Fixed follow_link
-+ *			2.1.47
-+ *					lookup shouldn't return -ENOENT
-+ *					from Horst von Brand:
-+ *					  fail on wrong checksum
-+ *					  double unlock_super was possible
-+ *					  correct namelen for statfs
-+ *					spotted by Bill Hawes:
-+ *					  readlink shouldn't iput()
-+ *	Jun 1998	2.1.106		from Avery Pennarun: glibc scandir()
-+ *					  exposed a problem in readdir
-+ *			2.1.107		code-freeze spellchecker run
-+ *	Aug 1998			2.1.118+ VFS changes
-+ *	Sep 1998	2.1.122		another VFS change (follow_link)
-+ *	Apr 1999	2.2.7		no more EBADF checking in
-+ *					  lookup/readdir, use ERR_PTR
-+ *	Jun 1999	2.3.6		d_alloc_root use changed
-+ *			2.3.9		clean up usage of ENOENT/negative
-+ *					  dentries in lookup
-+ *					clean up page flags setting
-+ *					  (error, uptodate, locking) in
-+ *					  in readpage
-+ *					use init_special_inode for
-+ *					  fifos/sockets (and streamline) in
-+ *					  read_inode, fix _ops table order
-+ *	Aug 1999	2.3.16		__initfunc() => __init change
-+ *	Oct 1999	2.3.24		page->owner hack obsoleted
-+ *	Nov 1999	2.3.27		2.3.25+ page->offset => index change
-+ *
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public Licence
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the Licence, or (at your option) any later version.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/string.h>
-+#include <linux/fs.h>
-+#include <linux/time.h>
-+#include <linux/slab.h>
-+#include <linux/init.h>
-+#include <linux/blkdev.h>
-+#include <linux/parser.h>
-+#include <linux/mount.h>
-+#include <linux/namei.h>
-+#include <linux/statfs.h>
-+#include <linux/mtd/super.h>
-+#include <linux/ctype.h>
++#include <linux/pci.h>
++#include <linux/dma-mapping.h>
 +#include <linux/highmem.h>
-+#include <linux/pagemap.h>
-+#include <linux/uaccess.h>
-+#include "internal.h"
++#include <linux/delay.h>
++#include <linux/mmc/card.h>
++#include <linux/mmc/mmc.h>
++#include <linux/mmc/sd.h>
++#include <linux/mmc/host.h>
 +
-+static struct kmem_cache *romfs_inode_cachep;
++#define DEV_NULL	0
++#define DEV_SDC		1
++#define DEV_CEATA	2
++#define DEV_MSC		4
++#define DEV_XDC		8
 +
-+static const umode_t romfs_modemap[8] = {
-+	0,			/* hard link */
-+	S_IFDIR  | 0644,	/* directory */
-+	S_IFREG  | 0644,	/* regular file */
-+	S_IFLNK  | 0777,	/* symlink */
-+	S_IFBLK  | 0600,	/* blockdev */
-+	S_IFCHR  | 0600,	/* chardev */
-+	S_IFSOCK | 0644,	/* socket */
-+	S_IFIFO  | 0644		/* FIFO */
++#define NFC_OFFSET	0x0
++#define MSC_OFFSET	0x100
++#define SDC_OFFSET	0x200
++#define CEA_OFFSET	0x300
++#define DDMA_OFFSET	0x400
++#define CICH_OFFSET	0x500
++#define PCICTRL_OFFSET	0x600
++
++enum DMA_DIRECTION {
++	CARD_TO_MEM,
++	MEM_TO_CARD
 +};
 +
-+static const unsigned char romfs_dtype_table[] = {
-+	DT_UNKNOWN, DT_DIR, DT_REG, DT_LNK, DT_BLK, DT_CHR, DT_SOCK, DT_FIFO
++enum PCI_HOST_CLK_CONTROL {
++	PCI_CLK_375K = 0x03,
++	PCI_CLK_8M  = 0x04,
++	PCI_CLK_12M = 0x00,
++	PCI_CLK_16M = 0x05,
++	PCI_CLK_24M = 0x01,
++	PCI_CLK_33M = 0x06,
++	PCI_CLK_48M = 0x02
 +};
-+
-+static struct inode *romfs_iget(struct super_block *sb, unsigned long pos);
 +
 +/*
-+ * read a page worth of data from the image
++ * PCI registers
 + */
-+static int romfs_readpage(struct file *file, struct page *page)
++
++#define PCI_WORK_MODE		0x40
++#define PCI_DEBUG_MODE		0x41
++
++/*
++ * SDC MMIO Registers
++ */
++
++#define SDCONTROL_REG		0x0
++#define SDCMDARG_REG		0x4
++
++#define SDBUSMODE_REG		0x8
++#define SD_MODE_SPI		0x01
++#define SD_MODE_4BIT		0x02
++#define SD_MODE_RW		0x04
++#define SD_MODE_SPICRC		0x08
++#define SD_MODE_CST		0x10
++#define SD_MODE_SPICS		0x20
++#define SD_MODE_SDPWR		0x40
++#define SD_MODE_SFTRST		0x80
++
++#define SDBLKLEN_REG		0xc
++#define SD_BLKLEN_CRCSTP	0x0800
++#define SD_BLKLEN_DETPOL	0x1000
++#define SD_BLKLEN_GPIDET	0x2000
++#define SD_BLKLEN_DT3DET	0x4000
++#define SD_BLKLEN_INTEN		0x8000
++
++#define SDRESP0_REG		0x10
++#define SDRESP1_REG		0x14
++#define SDRESP2_REG		0x18
++#define SDRESP3_REG		0x1c
++#define SDCURBLKCNT_REG		0x20
++
++#define SDINTMASK_REG		0x24
++#define SD_INTMASK_BDIE		0x10
++#define SD_INTMASK_DDIE		0x20
++#define SD_INTMASK_CDIE		0x40
++#define SD_INTMASK_SIIE		0x80
++#define SD_INTMASK_IOIE		0x100
++#define SD_INTMASK_CRIE		0x200
++#define SD_INTMASK_RAIE		0x400
++#define SD_INTMASK_PDIE		0x800
++#define SD_INTMASK_DTIE		0x1000
++#define SD_INTMASK_SCIE		0x2000
++#define SD_INTMASK_RCIE		0x4000
++#define SD_INTMASK_WCIE		0x8000
++#define SD_ACTIVE_INTMASK \
++	(SD_INTMASK_BDIE | SD_INTMASK_SIIE | SD_INTMASK_CRIE \
++	| SD_INTMASK_RAIE | SD_INTMASK_DTIE | SD_INTMASK_SCIE \
++	| SD_INTMASK_RCIE | SD_INTMASK_WCIE)
++
++#define SDSTATUS_REG		0x28
++#define SD_STS_CECC		0x01
++#define SD_STS_WP		0x02
++#define SD_STS_SLOTD		0x04
++#define SD_STS_SLOTG		0x08
++#define SD_STS_BD		0x10
++#define SD_STS_DD		0x20
++#define SD_STS_CD		0x40
++#define SD_STS_SI		0x80
++#define SD_STS_IO		0x100
++#define SD_STS_CR		0x200
++#define SD_STS_RA		0x400
++#define SD_STS_PD		0x800
++#define SD_STS_DT		0x1000
++#define SD_STS_SC		0x2000
++#define SD_STS_RC		0x4000
++#define SD_STS_WC		0x8000
++#define SD_STS_IGN_MASK\
++	(SD_STS_DD | SD_STS_PD | SD_STS_IO)
++#define SD_STS_INT_MASK \
++	(SD_STS_BD | SD_STS_DD | SD_STS_CD | SD_STS_SI \
++	| SD_STS_IO | SD_STS_CR | SD_STS_RA | SD_STS_PD \
++	| SD_STS_DT | SD_STS_SC | SD_STS_RC | SD_STS_WC)
++#define SD_STS_W1C_MASK \
++	(SD_STS_CECC | SD_STS_BD | SD_STS_DD | SD_STS_CD \
++	| SD_STS_SI | SD_STS_CR  | SD_STS_RA | SD_STS_PD \
++	| SD_STS_DT | SD_STS_SC | SD_STS_RC | SD_STS_WC)
++#define  SD_STS_CMD_MASK \
++	(SD_STS_CR | SD_STS_RA | SD_STS_SC)
++#define  SD_STS_DATA_MASK\
++	(SD_STS_BD | SD_STS_DT | SD_STS_RC | SD_STS_WC)
++
++#define SDSTATUS_REG2		0x2a
++#define SD_STS_DB		0x20
++#define SD_STS_CFE		0x80
++
++#define SDRSPTMO_REG		0x2C
++
++#define SDCLKSEL_REG		0x30
++#define SD_CLKSEL_375k		0x00
++#define SD_CLKSEL_10M		0x01
++#define SD_CLKSEL_12M		0x02
++#define SD_CLKSEL_15M		0x03
++#define SD_CLKSEL_20M		0x04
++#define SD_CLKSEL_24M		0x05
++#define SD_CLKSEL_30M		0x06
++#define SD_CLKSEL_40M		0x07
++
++#define SDEXTCTRL_REG		0x34
++#define SD_EXTCTRL_AUTO		0x01
++#define SD_EXTCTRL_8BIT		0x04
++/* 0x38-0xFF reserved */
++
++/*
++ * Data DMA Control Registers
++ */
++
++#define DDMABASEADD_REG		0x0
++#define DDMACOUNTER_REG		0x4
++
++#define DDMACONTROL_REG		0x8
++#define DDMA_CONTROL_RDDIR	0x100
++#define DDMA_CONTROL_DATA16	0x200
++#define DDMA_CONTROL_EFMODE	0x400
++#define DDMA_CONTROL_RDENIRQ	0x10000
++#define DDMA_CONTROL_SOFTRESET	0x1000000
++
++#define DDMASTATUS_REG		0xc
++#define DDMA_STATUS_IRQSTATUS	0x10000
++
++#define DDMASTART_REG		0x10
++/*0x14-0xFF reserved*/
++
++/*
++ * PCI Control Registers
++ */
++
++/*0x0 - 0x1 reserved*/
++#define PCICLKGATT_REG		0x2
++#define PCI_CLKGATT_SOFTRST	0x01
++#define PCI_CLKGATT_CKGEN	0x02
++#define PCI_CLKGATT_POWSEL	0x10
++#define PCI_CLKGATT_POWOFF	0x20
++
++#define PCINFCCLK_REG		0x3
++#define PCIMSCCLK_REG		0x4
++#define PCISDCCLK_REG		0x5
++#define PCICEACLK_REG		0x6
++
++#define PCIDMACLK_REG		0x7
++#define PCI_DMA_CLK_NFC		0x0
++#define PCI_DMA_CLK_MSC		0x1
++#define PCI_DMA_CLK_SDC		0x2
++#define PCI_DMA_CLK_CEA		0x3
++
++#define PCIINTCTRL_REG		0x8
++#define PCI_INTCTRL_NFCIRQEN	0x01
++#define PCI_INTCTRL_MSCIRQEN	0x02
++#define PCI_INTCTRL_SDCIRQEN	0x04
++#define PCI_INTCTRL_CEAIRQEN	0x08
++#define PCI_INTCTRL_DMAIRQEN	0x10
++#define PCI_INTCTRL_CICHIRQEN	0x20
++
++#define PCIINTSTATUS_REG	0x9
++#define PCI_INT_STATUS_NFC	0x01
++#define PCI_INT_STATUS_MSC	0x02
++#define PCI_INT_STATUS_SDC	0x04
++#define PCI_INT_STATUS_CEA	0x08
++#define PCI_INT_STATUS_DMA	0x10
++#define PCI_INT_STATUS_CICH	0x20
++
++#define PCITMOCTRL_REG		0xa
++#define PCI_TMO_CTRL_NO		0x0
++#define PCI_TMO_CTRL_32US	0x1
++#define PCI_TMO_CTRL_256US	0x2
++#define PCI_TMO_CTRL_1024US	0x3
++#define PCI_TMO_CTRL_256MS	0x4
++#define PCI_TMO_CTRL_512MS	0x5
++#define PCI_TMO_CTRL_1024MS	0x6
++
++/*0xB-0xFF reserved*/
++
++struct sdhcreg {
++	u32 sdcontrol_reg;
++	u32 sdcmdarg_reg;
++	u32 sdbusmode_reg;
++	u32 sdblklen_reg;
++	u32 sdresp_reg[4];
++	u32 sdcurblkcnt_reg;
++	u32 sdintmask_reg;
++	u32 sdstatus_reg;
++	u32 sdrsptmo_reg;
++	u32 sdclksel_reg;
++	u32 sdextctrl_reg;
++};
++
++struct pcictrlreg {
++	u8 reserve[2];
++	u8 pciclkgat_reg;
++	u8 pcinfcclk_reg;
++	u8 pcimscclk_reg;
++	u8 pcisdclk_reg;
++	u8 pcicaclk_reg;
++	u8 pcidmaclk_reg;
++	u8 pciintctrl_reg;
++	u8 pciintstatus_reg;
++	u8 pcitmoctrl_reg;
++	u8 Resv;
++};
++
++struct via_crdr_chip {
++	struct via_crdr_mmc_host *sdc;
++	void __iomem *mmiobase;
++	void __iomem *sdhc_mmiobase;
++	void __iomem *ddma_mmiobase;
++	void __iomem *pcictrl_mmiobase;
++	struct workqueue_struct *card_detect_queue;
++	u32 cur_device;
++
++#ifdef CONFIG_PM
++	u8 pci_cfg_bak[0x42];
++	struct pcictrlreg pm_pcictrl_reg;
++	struct sdhcreg pm_sdhc_reg;
++#endif
++};
++
++struct via_crdr_mmc_host {
++	struct via_crdr_chip *chip;
++	struct mmc_host *mmc;
++	spinlock_t lock;
++	struct mmc_request *mrq;
++	struct mmc_command *cmd;
++	struct mmc_data *data;
++	int data_early:1;
++	u8 bus_width;
++	u8 *ddmabuf;
++	dma_addr_t dmaaddr;
++
++	struct work_struct carddet_work;
++	struct tasklet_struct finish_tasklet;
++
++	struct timer_list timer;
++};
++
++#define DRV_NAME	"via_sdmmc_driver"
++#define DRIVER_VERSION 	"2.1 beta 2"
++
++static struct pci_device_id via_ids[] = {
++	{PCI_VENDOR_ID_VIA, 0x9530, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0,},
++	{0,}
++};
++
++MODULE_DEVICE_TABLE(pci, via_ids);
++
++static void via_print_sdchc(struct via_crdr_chip *vcrdr_chip)
 +{
-+	struct inode *inode = page->mapping->host;
-+	loff_t offset, size;
-+	unsigned long fillsize, pos;
-+	void *buf;
-+	int ret;
++	void __iomem *addrbase;
 +
-+	buf = kmap(page);
-+	if (!buf)
-+		return -ENOMEM;
++	addrbase = vcrdr_chip->sdhc_mmiobase;
 +
-+	/* 32 bit warning -- but not for us :) */
-+	offset = page_offset(page);
-+	size = i_size_read(inode);
-+	fillsize = 0;
-+	ret = 0;
-+	if (offset < size) {
-+		size -= offset;
-+		fillsize = size > PAGE_SIZE ? PAGE_SIZE : size;
-+
-+		pos = ROMFS_I(inode)->i_dataoffset + offset;
-+
-+		ret = romfs_dev_read(inode->i_sb, pos, buf, fillsize);
-+		if (ret < 0) {
-+			SetPageError(page);
-+			fillsize = 0;
-+			ret = -EIO;
-+		}
-+	}
-+
-+	if (fillsize < PAGE_SIZE)
-+		memset(buf + fillsize, 0, PAGE_SIZE - fillsize);
-+	if (ret == 0)
-+		SetPageUptodate(page);
-+
-+	flush_dcache_page(page);
-+	kunmap(page);
-+	unlock_page(page);
-+	return ret;
++	pr_debug("SDC MMIO Registers:\n");
++	pr_debug("SDCONTROL_REG=%x ,", readl(addrbase + SDCONTROL_REG));
++	pr_debug("SDCMDARG_REG=%x ,", readl(addrbase + SDCMDARG_REG));
++	pr_debug("SDBUSMODE_REG=%x\n", readl(addrbase + SDBUSMODE_REG));
++	pr_debug("SDBLKLEN_REG=%x ,", readl(addrbase + SDBLKLEN_REG));
++	pr_debug("SDCURBLKCNT_REG=%x,", readl(addrbase + SDCURBLKCNT_REG));
++	pr_debug("SDINTMASK_REG=%x\n", readl(addrbase + SDINTMASK_REG));
++	pr_debug("SDSTATUS_REG=%x,", readl(addrbase + SDSTATUS_REG));
++	pr_debug("SDCLKSEL_REG=%x,", readl(addrbase + SDCLKSEL_REG));
++	pr_debug("SDEXTCTRL_REG=%x\n", readl(addrbase + SDEXTCTRL_REG));
 +}
 +
-+static const struct address_space_operations romfs_aops = {
-+	.readpage	= romfs_readpage
-+};
-+
-+/*
-+ * read the entries from a directory
-+ */
-+static int romfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
++static void via_print_pcictrl(struct via_crdr_chip *vcrdr_chip)
 +{
-+	struct inode *i = filp->f_dentry->d_inode;
-+	struct romfs_inode ri;
-+	unsigned long offset, maxoff;
-+	int j, ino, nextfh;
-+	int stored = 0;
-+	char fsname[ROMFS_MAXFN];	/* XXX dynamic? */
-+	int ret;
++	void __iomem *addrbase;
 +
-+	maxoff = romfs_maxsize(i->i_sb);
++	addrbase = vcrdr_chip->pcictrl_mmiobase;
 +
-+	offset = filp->f_pos;
-+	if (!offset) {
-+		offset = i->i_ino & ROMFH_MASK;
-+		ret = romfs_dev_read(i->i_sb, offset, &ri, ROMFH_SIZE);
-+		if (ret < 0)
-+			goto out;
-+		offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
++	pr_debug("PCI Control Registers:\n");
++	pr_debug("PCICLKGATT_REG=%x,", readb(addrbase + PCICLKGATT_REG));
++	pr_debug("PCIMSCCCLK_REG=%x,", readb(addrbase + PCIMSCCLK_REG));
++	pr_debug("PCISDCCLK_REG=%x,", readb(addrbase + PCISDCCLK_REG));
++	pr_debug("PCIDMACLK_REG=%x\n,", readb(addrbase + PCIDMACLK_REG));
++	pr_debug("PCIINTCTRL_REG=%x,", readb(addrbase + PCIINTCTRL_REG));
++	pr_debug("PCIINTSTATUS_REG=%x\n", readb(addrbase + PCIINTSTATUS_REG));
++}
++
++static void via_save_pcictrlreg(struct via_crdr_chip *vcrdr_chip)
++{
++	struct pcictrlreg *pm_pcictrl_reg;
++	void __iomem *addrbase;
++
++	pm_pcictrl_reg = &(vcrdr_chip->pm_pcictrl_reg);
++	addrbase = vcrdr_chip->pcictrl_mmiobase;
++
++	pm_pcictrl_reg->pciclkgat_reg = readb(addrbase + PCICLKGATT_REG);
++	pm_pcictrl_reg->pciclkgat_reg |=
++	    PCI_CLKGATT_POWSEL | PCI_CLKGATT_POWOFF;
++	pm_pcictrl_reg->pcimscclk_reg = readb(addrbase + PCIMSCCLK_REG);
++	pm_pcictrl_reg->pcisdclk_reg = readb(addrbase + PCISDCCLK_REG);
++	pm_pcictrl_reg->pcidmaclk_reg = readb(addrbase + PCIDMACLK_REG);
++	pm_pcictrl_reg->pciintctrl_reg = readb(addrbase + PCIINTCTRL_REG);
++	pm_pcictrl_reg->pciintstatus_reg = readb(addrbase + PCIINTSTATUS_REG);
++	pm_pcictrl_reg->pcitmoctrl_reg = readb(addrbase + PCITMOCTRL_REG);
++}
++
++static void via_restore_pcictrlreg(struct via_crdr_chip *vcrdr_chip)
++{
++	struct pcictrlreg *pm_pcictrl_reg;
++	void __iomem *addrbase;
++
++	pm_pcictrl_reg = &(vcrdr_chip->pm_pcictrl_reg);
++	addrbase = vcrdr_chip->pcictrl_mmiobase;
++
++	writeb(pm_pcictrl_reg->pciclkgat_reg, addrbase + PCICLKGATT_REG);
++	writeb(pm_pcictrl_reg->pcimscclk_reg, addrbase + PCIMSCCLK_REG);
++	writeb(pm_pcictrl_reg->pcisdclk_reg, addrbase + PCISDCCLK_REG);
++	writeb(pm_pcictrl_reg->pcidmaclk_reg, addrbase + PCIDMACLK_REG);
++	writeb(pm_pcictrl_reg->pciintctrl_reg, addrbase + PCIINTCTRL_REG);
++	writeb(pm_pcictrl_reg->pciintstatus_reg, addrbase + PCIINTSTATUS_REG);
++	writeb(pm_pcictrl_reg->pcitmoctrl_reg, addrbase + PCITMOCTRL_REG);
++}
++
++static void via_save_sdcreg(struct via_crdr_chip *vcrdr_chip)
++{
++	struct sdhcreg *pm_sdhc_reg;
++	void __iomem *addrbase;
++
++	pm_sdhc_reg = &(vcrdr_chip->pm_sdhc_reg);
++	addrbase = vcrdr_chip->sdhc_mmiobase;
++
++	pm_sdhc_reg->sdcontrol_reg = readl(addrbase + SDCONTROL_REG);
++	pm_sdhc_reg->sdcmdarg_reg = readl(addrbase + SDCMDARG_REG);
++	pm_sdhc_reg->sdbusmode_reg = readl(addrbase + SDBUSMODE_REG);
++	pm_sdhc_reg->sdblklen_reg = readl(addrbase + SDBLKLEN_REG);
++	pm_sdhc_reg->sdcurblkcnt_reg = readl(addrbase + SDCURBLKCNT_REG);
++	pm_sdhc_reg->sdintmask_reg = readl(addrbase + SDINTMASK_REG);
++	pm_sdhc_reg->sdstatus_reg = readl(addrbase + SDSTATUS_REG);
++	pm_sdhc_reg->sdrsptmo_reg = readl(addrbase + SDRSPTMO_REG);
++	pm_sdhc_reg->sdclksel_reg = readl(addrbase + SDCLKSEL_REG);
++	pm_sdhc_reg->sdextctrl_reg = readl(addrbase + SDEXTCTRL_REG);
++}
++
++static void via_restore_sdcreg(struct via_crdr_chip *vcrdr_chip)
++{
++	struct sdhcreg *pm_sdhc_reg;
++	void __iomem *addrbase;
++
++	pm_sdhc_reg = &(vcrdr_chip->pm_sdhc_reg);
++	addrbase = vcrdr_chip->sdhc_mmiobase;
++
++	writel(pm_sdhc_reg->sdcontrol_reg, addrbase + SDCONTROL_REG);
++	writel(pm_sdhc_reg->sdcmdarg_reg, addrbase + SDCMDARG_REG);
++	writel(pm_sdhc_reg->sdbusmode_reg, addrbase + SDBUSMODE_REG);
++	writel(pm_sdhc_reg->sdblklen_reg, addrbase + SDBLKLEN_REG);
++	writel(pm_sdhc_reg->sdcurblkcnt_reg, addrbase + SDCURBLKCNT_REG);
++	writel(pm_sdhc_reg->sdintmask_reg, addrbase + SDINTMASK_REG);
++	writel(pm_sdhc_reg->sdstatus_reg, addrbase + SDSTATUS_REG);
++	writel(pm_sdhc_reg->sdrsptmo_reg, addrbase + SDRSPTMO_REG);
++	writel(pm_sdhc_reg->sdclksel_reg, addrbase + SDCLKSEL_REG);
++	writel(pm_sdhc_reg->sdextctrl_reg, addrbase + SDEXTCTRL_REG);
++}
++
++static void via_set_ddma(struct via_crdr_chip *vcrdr_chip,
++			 dma_addr_t dmaaddr, u32 count, int dir, int enirq)
++{
++	void __iomem *addrbase = vcrdr_chip->ddma_mmiobase;
++	u32 ctrl_data = 0;
++
++	if (enirq)
++		ctrl_data |= DDMA_CONTROL_RDENIRQ;
++
++	if (dir)
++		ctrl_data |= DDMA_CONTROL_RDDIR;
++
++	writel(dmaaddr, addrbase + DDMABASEADD_REG);
++	writel(count, addrbase + DDMACOUNTER_REG);
++	writel(ctrl_data, addrbase + DDMACONTROL_REG);
++	writel(0x01, addrbase + DDMASTART_REG);
++}
++
++static void via_sdc_preparedata(struct via_crdr_mmc_host *host,
++				struct mmc_data *data)
++{
++	void __iomem *addrbase;
++	u32 org_data, blk_reg;
++	u32 offset = 0;
++	int dir, count;
++
++	host->data = data;
++	host->data_early = 0;
++	count = data->blocks * data->blksz;
++
++	memset(host->ddmabuf, 0, count);
++
++	if (data->flags & MMC_DATA_WRITE)
++		dir = MEM_TO_CARD;
++	else
++		dir = CARD_TO_MEM;
++
++	if (data->flags & MMC_DATA_WRITE) {
++		struct scatterlist *sg;
++		unsigned char *tmpbuf = NULL;
++		int i;
++
++		for_each_sg(data->sg, sg, data->sg_len, i) {
++			tmpbuf = kmap_atomic(sg_page(sg), KM_BIO_SRC_IRQ);
++			tmpbuf += sg->offset;
++			memcpy(host->ddmabuf + offset, tmpbuf, sg->length);
++			offset += sg->length;
++			kunmap_atomic(tmpbuf, KM_BIO_SRC_IRQ);
++		}
 +	}
 +
-+	/* Not really failsafe, but we are read-only... */
-+	for (;;) {
-+		if (!offset || offset >= maxoff) {
-+			offset = maxoff;
-+			filp->f_pos = offset;
-+			goto out;
++	via_set_ddma(host->chip, host->dmaaddr, count, dir, 0);
++
++	addrbase = host->chip->pcictrl_mmiobase;
++	if (readb(addrbase + PCISDCCLK_REG) != PCI_CLK_48M)
++		writeb(PCI_CLK_48M, addrbase + PCISDCCLK_REG);
++
++	addrbase = host->chip->sdhc_mmiobase;
++	blk_reg = (((data->blksz) - 1) & 0xffff) | (data->blocks << 16);
++	org_data = readl(addrbase + SDBLKLEN_REG);
++	org_data &= ~0xffff07ff;
++	blk_reg &= 0xffff07ff;
++	writel(org_data | blk_reg, addrbase + SDBLKLEN_REG);
++}
++
++static void via_sdc_get_response(struct via_crdr_mmc_host *host,
++				 struct mmc_command *cmd)
++{
++	void __iomem *addrbase = host->chip->sdhc_mmiobase;
++	u32 dwdata0 = readl(addrbase + SDRESP0_REG);
++	u32 dwdata1 = readl(addrbase + SDRESP1_REG);
++	u32 dwdata2 = readl(addrbase + SDRESP2_REG);
++	u32 dwdata3 = readl(addrbase + SDRESP3_REG);
++
++	if (cmd->flags & MMC_RSP_136) {
++		cmd->resp[0] = ((u8) (dwdata1)) |
++		    (((u8) (dwdata0 >> 24)) << 8) |
++		    (((u8) (dwdata0 >> 16)) << 16) |
++		    (((u8) (dwdata0 >> 8)) << 24);
++
++		cmd->resp[1] = ((u8) (dwdata2)) |
++		    (((u8) (dwdata1 >> 24)) << 8) |
++		    (((u8) (dwdata1 >> 16)) << 16) |
++		    (((u8) (dwdata1 >> 8)) << 24);
++
++		cmd->resp[2] = ((u8) (dwdata3)) |
++		    (((u8) (dwdata2 >> 24)) << 8) |
++		    (((u8) (dwdata2 >> 16)) << 16) |
++		    (((u8) (dwdata2 >> 8)) << 24);
++
++		cmd->resp[3] = 0xff |
++		    ((((u8) (dwdata3 >> 24))) << 8) |
++		    (((u8) (dwdata3 >> 16)) << 16) |
++		    (((u8) (dwdata3 >> 8)) << 24);
++	} else {
++		dwdata0 >>= 8;
++		cmd->resp[0] = ((dwdata0 & 0xff) << 24) |
++		    (((dwdata0 >> 8) & 0xff) << 16) |
++		    (((dwdata0 >> 16) & 0xff) << 8) | (dwdata1 & 0xff);
++
++		dwdata1 >>= 8;
++		cmd->resp[1] = ((dwdata1 & 0xff) << 24) |
++		    (((dwdata1 >> 8) & 0xff) << 16) |
++		    (((dwdata1 >> 16) & 0xff) << 8);
++	}
++}
++
++static void via_sdc_send_command(struct via_crdr_mmc_host *host,
++				 struct mmc_command *cmd)
++{
++	void __iomem *addrbase;
++	struct mmc_data *data;
++	u32 cmdctrl = 0;
++
++	data = cmd->data;
++
++	mod_timer(&host->timer, jiffies + 10 * HZ);
++	host->cmd = cmd;
++
++	cmdctrl = cmd->opcode << 8;
++
++	cmd->flags &= 0x1f;
++	switch (cmd->flags) {
++	case MMC_RSP_NONE:
++		cmdctrl |= ((u32) (0x0 << 16));
++		break;
++	case MMC_RSP_R1:
++		cmdctrl |= ((u32) (0x01 << 16));
++		break;
++	case MMC_RSP_R1B:
++		cmdctrl |= ((u32) (0x09 << 16));
++		break;
++	case MMC_RSP_R2:
++		cmdctrl |= ((u32) (0x02 << 16));
++		break;
++	case MMC_RSP_R3:
++		cmdctrl |= ((u32) (0x03 << 16));
++		break;
++	default:
++		pr_err("%s: cmd->flag is not valid\n", mmc_hostname(host->mmc));
++		break;
++	}
++
++	if (!(cmd->data))
++		goto nodata;
++
++	via_sdc_preparedata(host, data);
++
++	if (data->blocks > 1) {
++		if (data->flags & MMC_DATA_WRITE)
++			cmdctrl |= 0x34;
++		else
++			cmdctrl |= 0x40;
++	} else {
++		if (data->flags & MMC_DATA_WRITE)
++			cmdctrl |= 0x14;
++		else
++			cmdctrl |= 0x20;
++	}
++
++nodata:
++	if (cmd->opcode == MMC_STOP_TRANSMISSION)
++		cmdctrl |= 0x70;
++
++	cmdctrl |= 1;
++
++	addrbase = host->chip->sdhc_mmiobase;
++	writel(cmd->arg, addrbase + SDCMDARG_REG);
++	writel(cmdctrl, addrbase + SDCONTROL_REG);
++}
++
++static void via_sdc_finish_data(struct via_crdr_mmc_host *host)
++{
++	struct mmc_data *data;
++	u16 blocks;
++	u32 offset = 0;
++
++	BUG_ON(!host->data);
++
++	data = host->data;
++	host->data = NULL;
++
++	if (data->blocks == 1)
++		blocks = (data->error == 0) ? 0 : 1;
++	else
++		blocks = readw(host->chip->sdhc_mmiobase + SDCURBLKCNT_REG);
++	data->bytes_xfered = data->blksz * (data->blocks - blocks);
++
++	if (!data->error && blocks) {
++		pr_err("%s: Controller signalled completion even "
++		       "though there were blocks left.\n",
++		       mmc_hostname(host->mmc));
++		data->error = -EIO;
++	}
++
++	if (data->flags & MMC_DATA_READ) {
++		struct scatterlist *sg;
++		unsigned char *sgbuf;
++		int i;
++
++		for_each_sg(data->sg, sg, data->sg_len, i) {
++			sgbuf = kmap_atomic(sg_page(sg), KM_BIO_SRC_IRQ);
++			memcpy(sgbuf + sg->offset, host->ddmabuf + offset,
++			       sg->length);
++			offset += sg[i].length;
++			kunmap_atomic(sgbuf, KM_BIO_SRC_IRQ);
 +		}
-+		filp->f_pos = offset;
++	}
 +
-+		/* Fetch inode info */
-+		ret = romfs_dev_read(i->i_sb, offset, &ri, ROMFH_SIZE);
-+		if (ret < 0)
-+			goto out;
++	if (data->stop)
++		via_sdc_send_command(host, data->stop);
++	else
++		tasklet_schedule(&host->finish_tasklet);
++}
 +
-+		j = romfs_dev_strnlen(i->i_sb, offset + ROMFH_SIZE,
-+				      sizeof(fsname) - 1);
-+		if (j < 0)
-+			goto out;
++static void via_sdc_finish_command(struct via_crdr_mmc_host *host)
++{
++	via_sdc_get_response(host, host->cmd);
 +
-+		ret = romfs_dev_read(i->i_sb, offset + ROMFH_SIZE, fsname, j);
-+		if (ret < 0)
-+			goto out;
-+		fsname[j] = '\0';
++	host->cmd->error = 0;
 +
-+		ino = offset;
-+		nextfh = be32_to_cpu(ri.next);
-+		if ((nextfh & ROMFH_TYPE) == ROMFH_HRD)
-+			ino = be32_to_cpu(ri.spec);
-+		if (filldir(dirent, fsname, j, offset, ino,
-+			    romfs_dtype_table[nextfh & ROMFH_TYPE]) < 0)
-+			goto out;
++	if (host->data && host->data_early)
++		via_sdc_finish_data(host);
 +
-+		stored++;
-+		offset = nextfh & ROMFH_MASK;
++	if (!host->cmd->data)
++		tasklet_schedule(&host->finish_tasklet);
++
++	host->cmd = NULL;
++}
++
++static void via_sdc_request(struct mmc_host *mmc, struct mmc_request *mrq)
++{
++	void __iomem *addrbase;
++	struct via_crdr_mmc_host *host;
++	struct via_crdr_chip *vcrdr_chip;
++	unsigned long flags;
++	u16 status;
++
++	host = mmc_priv(mmc);
++	vcrdr_chip = host->chip;
++
++	spin_lock_irqsave(&host->lock, flags);
++
++	addrbase = vcrdr_chip->pcictrl_mmiobase;
++	writeb(PCI_DMA_CLK_SDC, addrbase + PCIDMACLK_REG);
++	vcrdr_chip->cur_device = DEV_SDC;
++
++	status = readw(vcrdr_chip->sdhc_mmiobase + SDSTATUS_REG);
++	status &= SD_STS_W1C_MASK;
++	writew(status, vcrdr_chip->sdhc_mmiobase + SDSTATUS_REG);
++
++	WARN_ON(host->mrq != NULL);
++	host->mrq = mrq;
++
++	if (host->mrq->cmd->opcode == 5) {
++		host->mrq->cmd->error = -ENOMEDIUM;
++		tasklet_schedule(&host->finish_tasklet);
++		goto out;
++	}
++
++	status = readw(vcrdr_chip->sdhc_mmiobase + SDSTATUS_REG);
++	if (!(status & SD_STS_SLOTG)) {
++		host->mrq->cmd->error = -ENOMEDIUM;
++		tasklet_schedule(&host->finish_tasklet);
++	} else {
++		via_sdc_send_command(host, mrq->cmd);
 +	}
 +
 +out:
-+	return stored;
++	mmiowb();
++	spin_unlock_irqrestore(&host->lock, flags);
 +}
 +
-+/*
-+ * look up an entry in a directory
-+ */
-+static struct dentry *romfs_lookup(struct inode *dir, struct dentry *dentry,
-+				   struct nameidata *nd)
++static void via_sdc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 +{
-+	unsigned long offset, maxoff;
-+	struct inode *inode;
-+	struct romfs_inode ri;
-+	const char *name;		/* got from dentry */
-+	int len, ret;
++	struct via_crdr_mmc_host *host;
++	struct via_crdr_chip *vcrdr_chip;
++	unsigned long flags;
 +
-+	offset = dir->i_ino & ROMFH_MASK;
-+	ret = romfs_dev_read(dir->i_sb, offset, &ri, ROMFH_SIZE);
-+	if (ret < 0)
-+		goto error;
++	host = mmc_priv(mmc);
++	vcrdr_chip = host->chip;
 +
-+	/* search all the file entries in the list starting from the one
-+	 * pointed to by the directory's special data */
-+	maxoff = romfs_maxsize(dir->i_sb);
-+	offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
++	spin_lock_irqsave(&host->lock, flags);
 +
-+	name = dentry->d_name.name;
-+	len = dentry->d_name.len;
++	if (host->bus_width != ios->bus_width) {
++		void __iomem *addrbase = vcrdr_chip->sdhc_mmiobase;
++		u32 org_data = readl(addrbase + SDBUSMODE_REG);
 +
-+	for (;;) {
-+		if (!offset || offset >= maxoff)
-+			goto out0;
-+
-+		ret = romfs_dev_read(dir->i_sb, offset, &ri, sizeof(ri));
-+		if (ret < 0)
-+			goto error;
-+
-+		/* try to match the first 16 bytes of name */
-+		ret = romfs_dev_strncmp(dir->i_sb, offset + ROMFH_SIZE, name,
-+					len);
-+		if (ret < 0)
-+			goto error;
-+		if (ret == 1)
-+			break;
-+
-+		/* next entry */
-+		offset = be32_to_cpu(ri.next) & ROMFH_MASK;
++		if (ios->bus_width == MMC_BUS_WIDTH_1) {
++			host->bus_width = MMC_BUS_WIDTH_1;
++			org_data &= ~SD_MODE_4BIT;
++		} else {
++			host->bus_width = MMC_BUS_WIDTH_4;
++			org_data |= SD_MODE_4BIT;
++		}
++		writel(org_data, addrbase + SDBUSMODE_REG);
 +	}
 +
-+	/* Hard link handling */
-+	if ((be32_to_cpu(ri.next) & ROMFH_TYPE) == ROMFH_HRD)
-+		offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
-+
-+	inode = romfs_iget(dir->i_sb, offset);
-+	if (IS_ERR(inode)) {
-+		ret = PTR_ERR(inode);
-+		goto error;
-+	}
-+	goto outi;
-+
-+	/*
-+	 * it's a bit funky, _lookup needs to return an error code
-+	 * (negative) or a NULL, both as a dentry.  ENOENT should not
-+	 * be returned, instead we need to create a negative dentry by
-+	 * d_add(dentry, NULL); and return 0 as no error.
-+	 * (Although as I see, it only matters on writable file
-+	 * systems).
-+	 */
-+out0:
-+	inode = NULL;
-+outi:
-+	d_add(dentry, inode);
-+	ret = 0;
-+error:
-+	return ERR_PTR(ret);
++	mmiowb();
++	spin_unlock_irqrestore(&host->lock, flags);
 +}
 +
-+static const struct file_operations romfs_dir_operations = {
-+	.read		= generic_read_dir,
-+	.readdir	= romfs_readdir,
-+};
-+
-+static struct inode_operations romfs_dir_inode_operations = {
-+	.lookup		= romfs_lookup,
-+};
-+
-+/*
-+ * get a romfs inode based on its position in the image (which doubles as the
-+ * inode number)
-+ */
-+static struct inode *romfs_iget(struct super_block *sb, unsigned long pos)
++static int via_sdc_get_ro(struct mmc_host *mmc)
 +{
-+	struct romfs_inode_info *inode;
-+	struct romfs_inode ri;
-+	struct inode *i;
-+	unsigned long nlen;
-+	unsigned nextfh, ret;
-+	umode_t mode;
++	struct via_crdr_mmc_host *host;
++	struct via_crdr_chip *vcrdr_chip;
++	unsigned long flags;
++	u16 status;
 +
-+	/* we might have to traverse a chain of "hard link" file entries to get
-+	 * to the actual file */
-+	for (;;) {
-+		ret = romfs_dev_read(sb, pos, &ri, sizeof(ri));
-+		if (ret < 0)
-+			goto error;
++	host = mmc_priv(mmc);
++	vcrdr_chip = host->chip;
 +
-+		/* XXX: do romfs_checksum here too (with name) */
++	spin_lock_irqsave(&host->lock, flags);
 +
-+		nextfh = be32_to_cpu(ri.next);
-+		if ((nextfh & ROMFH_TYPE) != ROMFH_HRD)
-+			break;
++	status = readw(vcrdr_chip->sdhc_mmiobase + SDSTATUS_REG);
 +
-+		pos = be32_to_cpu(ri.spec) & ROMFH_MASK;
++	spin_unlock_irqrestore(&host->lock, flags);
++
++	return !(status & SD_STS_WP);
++}
++
++static const struct mmc_host_ops via_sdc_ops = {
++	.request = via_sdc_request,
++	.set_ios = via_sdc_set_ios,
++	.get_ro = via_sdc_get_ro,
++};
++
++static void via_reset_pcictrl(struct via_crdr_mmc_host *host)
++{
++	struct via_crdr_chip *vcrdr_chip;
++	void __iomem *addrbase;
++	unsigned long flags;
++	u8 gatt;
++
++	vcrdr_chip = host->chip;
++	addrbase = vcrdr_chip->pcictrl_mmiobase;
++
++	spin_lock_irqsave(&host->lock, flags);
++
++	via_save_pcictrlreg(vcrdr_chip);
++	via_save_sdcreg(vcrdr_chip);
++
++	spin_unlock_irqrestore(&host->lock, flags);
++
++	gatt = PCI_CLKGATT_POWSEL | PCI_CLKGATT_POWOFF;
++	writeb(gatt, vcrdr_chip->pcictrl_mmiobase + PCICLKGATT_REG);
++	msleep(3);
++	gatt |= PCI_CLKGATT_SOFTRST;
++	writeb(gatt, vcrdr_chip->pcictrl_mmiobase + PCICLKGATT_REG);
++	msleep(3);
++
++	spin_lock_irqsave(&host->lock, flags);
++
++	via_restore_pcictrlreg(vcrdr_chip);
++	via_restore_sdcreg(vcrdr_chip);
++
++	mmiowb();
++	spin_unlock_irqrestore(&host->lock, flags);
++}
++
++static void via_sdc_cmd_isr(struct via_crdr_mmc_host *host, u16 intmask)
++{
++	BUG_ON(intmask == 0);
++
++	if (!host->cmd) {
++		pr_err("%s: Got command interrupt 0x%x even "
++		       "though no command operation was in progress.\n",
++		       mmc_hostname(host->mmc), intmask);
++		return;
 +	}
 +
-+	/* determine the length of the filename */
-+	nlen = romfs_dev_strnlen(sb, pos + ROMFH_SIZE, ROMFS_MAXFN);
-+	if (IS_ERR_VALUE(nlen))
-+		goto eio;
++	if (intmask & SD_STS_RA)
++		host->cmd->error = -ETIMEDOUT;
++	else if (intmask & SD_STS_SC)
++		host->cmd->error = -EILSEQ;
 +
-+	/* get an inode for this image position */
-+	i = iget_locked(sb, pos);
-+	if (!i)
-+		return ERR_PTR(-ENOMEM);
++	if (host->cmd->error)
++		tasklet_schedule(&host->finish_tasklet);
++	else if (intmask & SD_STS_CR)
++		via_sdc_finish_command(host);
++}
 +
-+	if (!(i->i_state & I_NEW))
-+		return i;
++static void via_sdc_data_isr(struct via_crdr_mmc_host *host, u16 intmask)
++{
++	BUG_ON(intmask == 0);
 +
-+	/* precalculate the data offset */
-+	inode = ROMFS_I(i);
-+	inode->i_metasize = (ROMFH_SIZE + nlen + 1 + ROMFH_PAD) & ROMFH_MASK;
-+	inode->i_dataoffset = pos + inode->i_metasize;
++	if (intmask & SD_STS_DT)
++		host->data->error = -ETIMEDOUT;
++	else if (intmask & (SD_STS_RC | SD_STS_WC))
++		host->data->error = -EILSEQ;
 +
-+	i->i_nlink = 1;		/* Hard to decide.. */
-+	i->i_size = be32_to_cpu(ri.size);
-+	i->i_mtime.tv_sec = i->i_atime.tv_sec = i->i_ctime.tv_sec = 0;
-+	i->i_mtime.tv_nsec = i->i_atime.tv_nsec = i->i_ctime.tv_nsec = 0;
++	if (host->data->error)
++		via_sdc_finish_data(host);
++	else {
++		if (host->cmd)
++			host->data_early = 1;
++		else
++			via_sdc_finish_data(host);
++	}
++}
 +
-+	/* set up mode and ops */
-+	mode = romfs_modemap[nextfh & ROMFH_TYPE];
++static irqreturn_t via_sdc_isr(int irq, void *dev_id)
++{
++	struct via_crdr_mmc_host *sdhost = dev_id;
++	struct via_crdr_chip *vcrdr_chip = sdhost->chip;
++	void __iomem *addrbase;
++	u8 pci_status;
++	u16 sd_status;
++	irqreturn_t result;
 +
-+	switch (nextfh & ROMFH_TYPE) {
-+	case ROMFH_DIR:
-+		i->i_size = ROMFS_I(i)->i_metasize;
-+		i->i_op = &romfs_dir_inode_operations;
-+		i->i_fop = &romfs_dir_operations;
-+		if (nextfh & ROMFH_EXEC)
-+			mode |= S_IXUGO;
-+		break;
-+	case ROMFH_REG:
-+		i->i_fop = &romfs_ro_fops;
-+		i->i_data.a_ops = &romfs_aops;
-+		if (i->i_sb->s_mtd)
-+			i->i_data.backing_dev_info =
-+				i->i_sb->s_mtd->backing_dev_info;
-+		if (nextfh & ROMFH_EXEC)
-+			mode |= S_IXUGO;
-+		break;
-+	case ROMFH_SYM:
-+		i->i_op = &page_symlink_inode_operations;
-+		i->i_data.a_ops = &romfs_aops;
-+		mode |= S_IRWXUGO;
++	spin_lock(&sdhost->lock);
++
++	addrbase = vcrdr_chip->pcictrl_mmiobase;
++	pci_status = readb(addrbase + PCIINTSTATUS_REG);
++	if (!(pci_status & PCI_INT_STATUS_SDC)) {
++		result = IRQ_NONE;
++		goto out;
++	}
++
++	addrbase = vcrdr_chip->sdhc_mmiobase;
++	sd_status = readw(addrbase + SDSTATUS_REG);
++	sd_status &= SD_STS_INT_MASK;
++	sd_status &= ~SD_STS_IGN_MASK;
++	if (!sd_status) {
++		result = IRQ_NONE;
++		goto out;
++	}
++
++	if (sd_status & SD_STS_SI) {
++		writew(sd_status & SD_STS_SI, addrbase + SDSTATUS_REG);
++		queue_work(vcrdr_chip->card_detect_queue,
++			 &sdhost->carddet_work);
++	}
++
++	sd_status &= ~SD_STS_SI;
++	if (sd_status & SD_STS_CMD_MASK) {
++		writew(sd_status & SD_STS_CMD_MASK, addrbase + SDSTATUS_REG);
++		via_sdc_cmd_isr(sdhost, sd_status & SD_STS_CMD_MASK);
++	}
++	if (sd_status & SD_STS_DATA_MASK) {
++		writew(sd_status & SD_STS_DATA_MASK, addrbase + SDSTATUS_REG);
++		via_sdc_data_isr(sdhost, sd_status & SD_STS_DATA_MASK);
++	}
++
++	sd_status &= ~(SD_STS_CMD_MASK | SD_STS_DATA_MASK);
++	if (sd_status) {
++		pr_err("%s: Unexpected interrupt 0x%x\n",
++		       mmc_hostname(sdhost->mmc), sd_status);
++		writew(sd_status, addrbase + SDSTATUS_REG);
++	}
++
++	result = IRQ_HANDLED;
++
++	mmiowb();
++out:
++	spin_unlock(&sdhost->lock);
++
++	return result;
++}
++
++static void via_sdc_timeout(unsigned long ulongdata)
++{
++	struct via_crdr_mmc_host *sdhost;
++	unsigned long flags;
++
++	sdhost = (struct via_crdr_mmc_host *)ulongdata;
++
++	spin_lock_irqsave(&sdhost->lock, flags);
++
++	if (sdhost->mrq) {
++		pr_err("%s: Timeout waiting for hardware interrupt."
++		       "cmd:0x%x\n", mmc_hostname(sdhost->mmc),
++		       sdhost->mrq->cmd->opcode);
++		if (sdhost->data) {
++			sdhost->data->error = -ETIMEDOUT;
++			via_sdc_finish_data(sdhost);
++		} else {
++			if (sdhost->cmd)
++				sdhost->cmd->error = -ETIMEDOUT;
++			else
++				sdhost->mrq->cmd->error = -ETIMEDOUT;
++			tasklet_schedule(&sdhost->finish_tasklet);
++		}
++	}
++
++	mmiowb();
++	spin_unlock_irqrestore(&sdhost->lock, flags);
++}
++
++static void via_sdc_tasklet_finish(unsigned long param)
++{
++	struct via_crdr_mmc_host *host;
++	unsigned long flags;
++	struct mmc_request *mrq;
++
++	host = (struct via_crdr_mmc_host *)param;
++
++	spin_lock_irqsave(&host->lock, flags);
++
++	del_timer(&host->timer);
++	mrq = host->mrq;
++	host->mrq = NULL;
++	host->cmd = NULL;
++	host->data = NULL;
++
++	spin_unlock_irqrestore(&host->lock, flags);
++
++	mmc_request_done(host->mmc, mrq);
++}
++
++static void via_sdc_card_detect(struct work_struct *work)
++{
++	struct via_crdr_mmc_host *host;
++	struct via_crdr_chip *vcrdr_chip;
++	void __iomem *addrbase;
++	unsigned long flags;
++	u16 status;
++
++	host = container_of(work, struct via_crdr_mmc_host, carddet_work);
++	vcrdr_chip = host->chip;
++
++	addrbase = vcrdr_chip->ddma_mmiobase;
++	writel(DDMA_CONTROL_SOFTRESET, addrbase + DDMACONTROL_REG);
++
++	spin_lock_irqsave(&host->lock, flags);
++
++	addrbase = vcrdr_chip->pcictrl_mmiobase;
++	writeb(PCI_DMA_CLK_SDC, addrbase + PCIDMACLK_REG);
++	vcrdr_chip->cur_device = DEV_SDC;
++
++	addrbase = vcrdr_chip->sdhc_mmiobase;
++	status = readw(addrbase + SDSTATUS_REG);
++	if (!(status & SD_STS_SLOTG)) {
++		if (host->mrq) {
++			pr_err("%s: Card removed during transfer!\n",
++			       mmc_hostname(host->mmc));
++			host->mrq->cmd->error = -ENOMEDIUM;
++			tasklet_schedule(&host->finish_tasklet);
++		}
++
++		addrbase = vcrdr_chip->pcictrl_mmiobase;
++		writeb(PCI_CLK_375K, addrbase + PCISDCCLK_REG);
++
++		mmiowb();
++		spin_unlock_irqrestore(&host->lock, flags);
++
++		via_reset_pcictrl(host);
++
++		spin_lock_irqsave(&host->lock, flags);
++
++		vcrdr_chip->cur_device = DEV_NULL;
++	}
++
++	mmiowb();
++	spin_unlock_irqrestore(&host->lock, flags);
++
++	via_print_pcictrl(vcrdr_chip);
++	via_print_sdchc(vcrdr_chip);
++
++	mmc_detect_change(host->mmc, 0);
++}
++
++static void via_init_mmc_host(struct via_crdr_mmc_host *host)
++{
++	struct via_crdr_chip *vcrdr_chip = host->chip;
++	struct mmc_host *mmc = host->mmc;
++	void __iomem *addrbase;
++	u32 lenreg;
++	u32 status;
++
++	init_timer(&host->timer);
++	host->timer.data = (unsigned long)host;
++	host->timer.function = via_sdc_timeout;
++
++	spin_lock_init(&host->lock);
++
++	host->mmc->f_min = 450000;
++	host->mmc->f_max = 24000000;
++	host->mmc->max_seg_size = 512;
++	host->mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
++	host->mmc->caps = MMC_CAP_4_BIT_DATA;
++	host->mmc->ops = &via_sdc_ops;
++	host->mmc->max_hw_segs = 128;
++	host->mmc->max_phys_segs = 128;
++	host->mmc->max_seg_size = mmc->max_hw_segs * 512;
++	host->mmc->max_req_size = host->mmc->max_seg_size;
++
++	INIT_WORK(&host->carddet_work, via_sdc_card_detect);
++
++	tasklet_init(&host->finish_tasklet, via_sdc_tasklet_finish,
++		     (unsigned long)host);
++
++	addrbase = vcrdr_chip->sdhc_mmiobase;
++	writel(0x0, addrbase + SDINTMASK_REG);
++	msleep(1);
++
++	lenreg = 0x1ff;
++	lenreg |= SD_BLKLEN_GPIDET | SD_BLKLEN_INTEN;
++	lenreg |= 0x80000;
++	writel(lenreg, addrbase + SDBLKLEN_REG);
++
++	status = readw(addrbase + SDSTATUS_REG);
++	status &= SD_STS_W1C_MASK;
++	writew(status, addrbase + SDSTATUS_REG);
++
++	status = readw(addrbase + SDSTATUS_REG2);
++	status |= SD_STS_CFE;
++	writew(status, addrbase + SDSTATUS_REG2);
++
++	writeb(0x0, addrbase + SDEXTCTRL_REG);
++
++	writel(SD_ACTIVE_INTMASK, addrbase + SDINTMASK_REG);
++	msleep(1);
++
++	host->bus_width = MMC_BUS_WIDTH_1;
++
++	addrbase = vcrdr_chip->pcictrl_mmiobase;
++	writeb(PCI_CLK_375K, addrbase + PCISDCCLK_REG);
++}
++
++static int __devinit via_chip_probe(struct pci_dev *pcidev,
++				    const struct pci_device_id *id)
++{
++	struct device *dev;
++	struct mmc_host *mmc;
++	struct via_crdr_mmc_host *sdhost;
++	struct via_crdr_chip *vcrdr_chip;
++	u32 mmiobase;
++	u32 len;
++	u8 rev;
++	int ret;
++	u8 gatt;
++
++	pci_read_config_byte(pcidev, PCI_CLASS_REVISION, &rev);
++	pr_info(DRV_NAME
++		": VIA SDMMC controller found at %s [%04x:%04x] (rev %x)\n",
++		pci_name(pcidev), (int)pcidev->vendor, (int)pcidev->device,
++		(int)rev);
++
++	ret = pci_enable_device(pcidev);
++	if (ret)
++		return ret;
++
++	ret = pci_request_regions(pcidev, DRV_NAME);
++	if (ret)
++		goto disable;
++
++	vcrdr_chip = kzalloc(sizeof(*vcrdr_chip), GFP_KERNEL);
++	if (!vcrdr_chip) {
++		ret = -ENOMEM;
++		goto release;
++	}
++
++	vcrdr_chip->card_detect_queue =
++		create_singlethread_workqueue("via_card_detect");
++	if (!vcrdr_chip->card_detect_queue) {
++		ret = -ENOMEM;
++		goto chip_free;
++	}
++
++	pci_write_config_byte(pcidev, PCI_WORK_MODE, 0);
++	pci_write_config_byte(pcidev, PCI_DEBUG_MODE, 0);
++
++	len = pci_resource_len(pcidev, 0);
++	mmiobase = pci_resource_start(pcidev, 0);
++	vcrdr_chip->mmiobase = ioremap_nocache(mmiobase, len);
++	if (!vcrdr_chip->mmiobase) {
++		ret = -ENOMEM;
++		goto work_queue_free;
++	}
++
++	vcrdr_chip->sdhc_mmiobase = vcrdr_chip->mmiobase + SDC_OFFSET;
++	vcrdr_chip->ddma_mmiobase = vcrdr_chip->mmiobase + DDMA_OFFSET;
++	vcrdr_chip->pcictrl_mmiobase = vcrdr_chip->mmiobase + PCICTRL_OFFSET;
++
++	dev = &pcidev->dev;
++	dev_set_drvdata(dev, vcrdr_chip);
++
++	vcrdr_chip->cur_device = DEV_NULL;
++
++	gatt = PCI_CLKGATT_POWSEL | PCI_CLKGATT_POWOFF;
++	writeb(gatt, vcrdr_chip->pcictrl_mmiobase + PCICLKGATT_REG);
++	msleep(3);
++	gatt |= PCI_CLKGATT_SOFTRST;
++	writeb(gatt, vcrdr_chip->pcictrl_mmiobase + PCICLKGATT_REG);
++	msleep(3);
++
++	mmc = mmc_alloc_host(sizeof(struct via_crdr_mmc_host), dev);
++	if (!mmc) {
++		ret = -ENOMEM;
++		goto unmap;
++	}
++
++	sdhost = mmc_priv(mmc);
++	sdhost->mmc = mmc;
++	sdhost->chip = vcrdr_chip;
++	vcrdr_chip->sdc = sdhost;
++
++	via_init_mmc_host(sdhost);
++
++	ret =
++	    request_irq(pcidev->irq, via_sdc_isr, IRQF_SHARED, DRV_NAME,
++			sdhost);
++	if (ret)
++		goto free_mmc_host;
++
++	sdhost->ddmabuf = (u8 *) __get_free_pages(GFP_KERNEL, 4);
++	if (!sdhost->ddmabuf) {
++		ret = -ENOMEM;
++		goto free_mmc_irq;
++	}
++
++	sdhost->dmaaddr = dma_map_single(dev, sdhost->ddmabuf,
++		sdhost->mmc->max_req_size, DMA_BIDIRECTIONAL);
++
++	writeb(PCI_INTCTRL_SDCIRQEN,
++	       vcrdr_chip->pcictrl_mmiobase + PCIINTCTRL_REG);
++	writeb(PCI_TMO_CTRL_1024MS,
++	       vcrdr_chip->pcictrl_mmiobase + PCITMOCTRL_REG);
++
++	mmc_add_host(mmc);
++
++	return 0;
++
++free_mmc_irq:
++	free_irq(pcidev->irq, sdhost);
++free_mmc_host:
++	mmc_free_host(mmc);
++unmap:
++	dev_set_drvdata(dev, NULL);
++	iounmap(vcrdr_chip->mmiobase);
++work_queue_free:
++	destroy_workqueue(vcrdr_chip->card_detect_queue);
++chip_free:
++	kfree(vcrdr_chip);
++release:
++	pci_release_regions(pcidev);
++disable:
++	pci_disable_device(pcidev);
++
++	return ret;
++}
++
++static void __devexit via_chip_remove(struct pci_dev *pcidev)
++{
++	struct via_crdr_chip *vcrdr_chip;
++	struct via_crdr_mmc_host *sdhost;
++	u8 gatt;
++
++	pr_info(DRV_NAME
++		": VIA SDMMC controller at %s [%04x:%04x] has been removed\n",
++		pci_name(pcidev), (int)pcidev->vendor, (int)pcidev->device);
++
++	vcrdr_chip = pci_get_drvdata(pcidev);
++
++	flush_workqueue(vcrdr_chip->card_detect_queue);
++
++	sdhost = vcrdr_chip->sdc;
++	if (sdhost) {
++
++		tasklet_kill(&sdhost->finish_tasklet);
++		dma_unmap_single(&pcidev->dev, sdhost->dmaaddr,
++			sdhost->mmc->max_req_size, DMA_BIDIRECTIONAL);
++		free_pages((unsigned long)sdhost->ddmabuf, 4);
++
++		if (&sdhost->timer)
++			del_timer_sync(&sdhost->timer);
++
++		mmc_remove_host(sdhost->mmc);
++	}
++
++	free_irq(pcidev->irq, sdhost);
++	mmc_free_host(sdhost->mmc);
++
++	writeb(0x0, vcrdr_chip->pcictrl_mmiobase + PCIINTCTRL_REG);
++
++	gatt = readb(vcrdr_chip->pcictrl_mmiobase + PCICLKGATT_REG);
++	gatt &= ~PCI_CLKGATT_POWOFF;
++	writeb(gatt, vcrdr_chip->pcictrl_mmiobase + PCICLKGATT_REG);
++
++	dev_set_drvdata(&pcidev->dev, NULL);
++	iounmap(vcrdr_chip->mmiobase);
++	destroy_workqueue(vcrdr_chip->card_detect_queue);
++	kfree(vcrdr_chip);
++	pci_release_regions(pcidev);
++	pci_disable_device(pcidev);
++}
++
++#ifdef CONFIG_PM
++static void via_save_pcicfg(struct pci_dev *pcidev,
++			    struct via_crdr_chip *vcrdr_chip)
++{
++	int i;
++
++	for (i = 0; i < 0x42; i++)
++		pci_read_config_byte(pcidev, i, &(vcrdr_chip->pci_cfg_bak[i]));
++}
++
++static void via_restore_pcicfg(struct pci_dev *pcidev,
++			       struct via_crdr_chip *vcrdr_chip)
++{
++	int i;
++
++	for (i = 0; i < 0x42; i++)
++		pci_write_config_byte(pcidev, i, vcrdr_chip->pci_cfg_bak[i]);
++}
++
++static void via_init_sdc_pm(struct via_crdr_chip *vcrdr_chip)
++{
++	struct sdhcreg *pm_sdhcreg;
++	void __iomem *addrbase;
++	u32 lenreg;
++	u16 status;
++
++	pm_sdhcreg = &(vcrdr_chip->pm_sdhc_reg);
++	addrbase = vcrdr_chip->sdhc_mmiobase;
++
++	writel(0x0, addrbase + SDINTMASK_REG);
++
++	lenreg = 0x1ff;
++	lenreg |= SD_BLKLEN_GPIDET | SD_BLKLEN_INTEN;
++	lenreg |= 0x80000;
++	writel(lenreg, addrbase + SDBLKLEN_REG);
++
++	status = readw(addrbase + SDSTATUS_REG);
++	status &= SD_STS_W1C_MASK;
++	writew(status, addrbase + SDSTATUS_REG);
++
++	status = readw(addrbase + SDSTATUS_REG2);
++	status |= SD_STS_CFE;
++	writew(status, addrbase + SDSTATUS_REG2);
++
++	writel(pm_sdhcreg->sdcontrol_reg, addrbase + SDCONTROL_REG);
++	writel(pm_sdhcreg->sdcmdarg_reg, addrbase + SDCMDARG_REG);
++	writel(pm_sdhcreg->sdintmask_reg, addrbase + SDINTMASK_REG);
++	writel(pm_sdhcreg->sdrsptmo_reg, addrbase + SDRSPTMO_REG);
++	writel(pm_sdhcreg->sdclksel_reg, addrbase + SDCLKSEL_REG);
++	writel(pm_sdhcreg->sdextctrl_reg, addrbase + SDEXTCTRL_REG);
++
++	addrbase = vcrdr_chip->pcictrl_mmiobase;
++	writeb(PCI_CLK_375K, addrbase + PCISDCCLK_REG);
++
++	via_print_pcictrl(vcrdr_chip);
++	via_print_sdchc(vcrdr_chip);
++}
++
++static int via_chip_suspend(struct pci_dev *pcidev, pm_message_t state)
++{
++	struct via_crdr_mmc_host *sdhost;
++	struct via_crdr_chip *vcrdr_chip;
++	int ret = 0;
++
++	vcrdr_chip = pci_get_drvdata(pcidev);
++	sdhost = vcrdr_chip->sdc;
++
++	flush_workqueue(vcrdr_chip->card_detect_queue);
++
++	via_save_pcicfg(pcidev, vcrdr_chip);
++	via_save_pcictrlreg(vcrdr_chip);
++	via_save_sdcreg(vcrdr_chip);
++
++	switch (vcrdr_chip->cur_device) {
++	case DEV_SDC:
++		ret = mmc_suspend_host(sdhost->mmc, state);
 +		break;
 +	default:
-+		/* depending on MBZ for sock/fifos */
-+		nextfh = be32_to_cpu(ri.spec);
-+		init_special_inode(i, mode, MKDEV(nextfh >> 16,
-+						  nextfh & 0xffff));
 +		break;
 +	}
 +
-+	i->i_mode = mode;
-+
-+	unlock_new_inode(i);
-+	return i;
-+
-+eio:
-+	ret = -EIO;
-+error:
-+	printk(KERN_ERR "ROMFS: read error for inode 0x%lx\n", pos);
-+	return ERR_PTR(ret);
++	return ret;
 +}
 +
-+/*
-+ * allocate a new inode
-+ */
-+static struct inode *romfs_alloc_inode(struct super_block *sb)
++static int via_chip_resume(struct pci_dev *pcidev)
 +{
-+	struct romfs_inode_info *inode;
-+	inode = kmem_cache_alloc(romfs_inode_cachep, GFP_KERNEL);
-+	return inode ? &inode->vfs_inode : NULL;
++	struct via_crdr_mmc_host *sdhost;
++	struct via_crdr_chip *vcrdr_chip;
++	int ret = 0;
++	u8 gatt;
++
++	vcrdr_chip = pci_get_drvdata(pcidev);
++	sdhost = vcrdr_chip->sdc;
++
++	gatt = PCI_CLKGATT_POWSEL | PCI_CLKGATT_POWOFF;
++	writeb(gatt, vcrdr_chip->pcictrl_mmiobase + PCICLKGATT_REG);
++	msleep(3);
++	gatt |= PCI_CLKGATT_SOFTRST;
++	writeb(gatt, vcrdr_chip->pcictrl_mmiobase + PCICLKGATT_REG);
++	msleep(3);
++
++	msleep(100);
++
++	via_restore_pcicfg(pcidev, vcrdr_chip);
++	via_restore_pcictrlreg(vcrdr_chip);
++	via_init_sdc_pm(vcrdr_chip);
++
++	switch (vcrdr_chip->cur_device) {
++	case DEV_SDC:
++		ret = mmc_resume_host(sdhost->mmc);
++		break;
++	default:
++		break;
++	}
++
++	return ret;
 +}
 +
-+/*
-+ * return a spent inode to the slab cache
-+ */
-+static void romfs_destroy_inode(struct inode *inode)
-+{
-+	kmem_cache_free(romfs_inode_cachep, ROMFS_I(inode));
-+}
++#else /* CONFIG_PM */
 +
-+/*
-+ * get filesystem statistics
-+ */
-+static int romfs_statfs(struct dentry *dentry, struct kstatfs *buf)
-+{
-+	buf->f_type = ROMFS_MAGIC;
-+	buf->f_namelen = ROMFS_MAXFN;
-+	buf->f_bsize = ROMBSIZE;
-+	buf->f_bfree = buf->f_bavail = buf->f_ffree;
-+	buf->f_blocks =
-+		(romfs_maxsize(dentry->d_sb) + ROMBSIZE - 1) >> ROMBSBITS;
-+	return 0;
-+}
++#define via_chip_suspend NULL
++#define via_chip_resume NULL
 +
-+/*
-+ * remounting must involve read-only
-+ */
-+static int romfs_remount(struct super_block *sb, int *flags, char *data)
-+{
-+	*flags |= MS_RDONLY;
-+	return 0;
-+}
++#endif /* CONFIG_PM */
 +
-+static const struct super_operations romfs_super_ops = {
-+	.alloc_inode	= romfs_alloc_inode,
-+	.destroy_inode	= romfs_destroy_inode,
-+	.statfs		= romfs_statfs,
-+	.remount_fs	= romfs_remount,
++static struct pci_driver via_sd_driver = {
++	.name = DRV_NAME,
++	.id_table = via_ids,
++	.probe = via_chip_probe,
++	.remove = __devexit_p(via_chip_remove),
++	.suspend = via_chip_suspend,
++	.resume = via_chip_resume,
 +};
 +
-+/*
-+ * checksum check on part of a romfs filesystem
-+ */
-+static __u32 romfs_checksum(const void *data, int size)
++static int __init via_sd_drv_init(void)
 +{
-+	const __be32 *ptr = data;
-+	__u32 sum;
++	pr_info(DRV_NAME ": VIA SD/MMC Card Reader driver\n");
++	pr_info(DRV_NAME ": Copyright(c) VIA Technologies Inc.\n");
 +
-+	sum = 0;
-+	size >>= 2;
-+	while (size > 0) {
-+		sum += be32_to_cpu(*ptr++);
-+		size--;
-+	}
-+	return sum;
++	return pci_register_driver(&via_sd_driver);
 +}
 +
-+/*
-+ * fill in the superblock
-+ */
-+static int romfs_fill_super(struct super_block *sb, void *data, int silent)
++static void __exit via_sd_drv_exit(void)
 +{
-+	struct romfs_super_block *rsb;
-+	struct inode *root;
-+	unsigned long pos, img_size;
-+	const char *storage;
-+	size_t len;
-+	int ret;
-+
-+#ifdef CONFIG_BLOCK
-+	if (!sb->s_mtd) {
-+		sb_set_blocksize(sb, ROMBSIZE);
-+	} else {
-+		sb->s_blocksize = ROMBSIZE;
-+		sb->s_blocksize_bits = blksize_bits(ROMBSIZE);
-+	}
-+#endif
-+
-+	sb->s_maxbytes = 0xFFFFFFFF;
-+	sb->s_magic = ROMFS_MAGIC;
-+	sb->s_flags |= MS_RDONLY | MS_NOATIME;
-+	sb->s_op = &romfs_super_ops;
-+
-+	/* read the image superblock and check it */
-+	rsb = kmalloc(512, GFP_KERNEL);
-+	if (!rsb)
-+		return -ENOMEM;
-+
-+	sb->s_fs_info = (void *) 512;
-+	ret = romfs_dev_read(sb, 0, rsb, 512);
-+	if (ret < 0)
-+		goto error_rsb;
-+
-+	img_size = be32_to_cpu(rsb->size);
-+
-+	if (sb->s_mtd && img_size > sb->s_mtd->size)
-+		goto error_rsb_inval;
-+
-+	sb->s_fs_info = (void *) img_size;
-+
-+	if (rsb->word0 != ROMSB_WORD0 || rsb->word1 != ROMSB_WORD1 ||
-+	    img_size < ROMFH_SIZE) {
-+		if (!silent)
-+			printk(KERN_WARNING "VFS:"
-+			       " Can't find a romfs filesystem on dev %s.\n",
-+			       sb->s_id);
-+		goto error_rsb_inval;
-+	}
-+
-+	if (romfs_checksum(rsb, min_t(size_t, img_size, 512))) {
-+		printk(KERN_ERR "ROMFS: bad initial checksum on dev %s.\n",
-+		       sb->s_id);
-+		goto error_rsb_inval;
-+	}
-+
-+	storage = sb->s_mtd ? "MTD" : "the block layer";
-+
-+	len = strnlen(rsb->name, ROMFS_MAXFN);
-+	if (!silent)
-+		printk(KERN_NOTICE "ROMFS: Mounting image '%*.*s' through %s\n",
-+		       (unsigned) len, (unsigned) len, rsb->name, storage);
-+
-+	kfree(rsb);
-+	rsb = NULL;
-+
-+	/* find the root directory */
-+	pos = (ROMFH_SIZE + len + 1 + ROMFH_PAD) & ROMFH_MASK;
-+
-+	root = romfs_iget(sb, pos);
-+	if (!root)
-+		goto error;
-+
-+	sb->s_root = d_alloc_root(root);
-+	if (!sb->s_root)
-+		goto error_i;
-+
-+	return 0;
-+
-+error_i:
-+	iput(root);
-+error:
-+	return -EINVAL;
-+error_rsb_inval:
-+	ret = -EINVAL;
-+error_rsb:
-+	return ret;
++	pci_unregister_driver(&via_sd_driver);
 +}
 +
-+/*
-+ * get a superblock for mounting
-+ */
-+static int romfs_get_sb(struct file_system_type *fs_type,
-+			int flags, const char *dev_name,
-+			void *data, struct vfsmount *mnt)
-+{
-+	int ret = -EINVAL;
++module_init(via_sd_drv_init);
++module_exit(via_sd_drv_exit);
 +
-+#ifdef CONFIG_ROMFS_ON_MTD
-+	ret = get_sb_mtd(fs_type, flags, dev_name, data, romfs_fill_super,
-+			 mnt);
-+#endif
-+#ifdef CONFIG_ROMFS_ON_BLOCK
-+	if (ret == -EINVAL)
-+		ret = get_sb_bdev(fs_type, flags, dev_name, data,
-+				  romfs_fill_super, mnt);
-+#endif
-+	return ret;
-+}
-+
-+/*
-+ * destroy a romfs superblock in the appropriate manner
-+ */
-+static void romfs_kill_sb(struct super_block *sb)
-+{
-+#ifdef CONFIG_ROMFS_ON_MTD
-+	if (sb->s_mtd) {
-+		kill_mtd_super(sb);
-+		return;
-+	}
-+#endif
-+#ifdef CONFIG_ROMFS_ON_BLOCK
-+	if (sb->s_bdev) {
-+		kill_block_super(sb);
-+		return;
-+	}
-+#endif
-+}
-+
-+static struct file_system_type romfs_fs_type = {
-+	.owner		= THIS_MODULE,
-+	.name		= "romfs",
-+	.get_sb		= romfs_get_sb,
-+	.kill_sb	= romfs_kill_sb,
-+	.fs_flags	= FS_REQUIRES_DEV,
-+};
-+
-+/*
-+ * inode storage initialiser
-+ */
-+static void romfs_i_init_once(void *_inode)
-+{
-+	struct romfs_inode_info *inode = _inode;
-+
-+	inode_init_once(&inode->vfs_inode);
-+}
-+
-+/*
-+ * romfs module initialisation
-+ */
-+static int __init init_romfs_fs(void)
-+{
-+	int ret;
-+
-+	printk(KERN_INFO "ROMFS MTD (C) 2007 Red Hat, Inc.\n");
-+
-+	romfs_inode_cachep =
-+		kmem_cache_create("romfs_i",
-+				  sizeof(struct romfs_inode_info), 0,
-+				  SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD,
-+				  romfs_i_init_once);
-+
-+	if (!romfs_inode_cachep) {
-+		printk(KERN_ERR
-+		       "ROMFS error: Failed to initialise inode cache\n");
-+		return -ENOMEM;
-+	}
-+	ret = register_filesystem(&romfs_fs_type);
-+	if (ret) {
-+		printk(KERN_ERR "ROMFS error: Failed to register filesystem\n");
-+		goto error_register;
-+	}
-+	return 0;
-+
-+error_register:
-+	kmem_cache_destroy(romfs_inode_cachep);
-+	return ret;
-+}
-+
-+/*
-+ * romfs module removal
-+ */
-+static void __exit exit_romfs_fs(void)
-+{
-+	unregister_filesystem(&romfs_fs_type);
-+	kmem_cache_destroy(romfs_inode_cachep);
-+}
-+
-+module_init(init_romfs_fs);
-+module_exit(exit_romfs_fs);
-+
-+MODULE_DESCRIPTION("Direct-MTD Capable RomFS");
-+MODULE_AUTHOR("Red Hat, Inc.");
-+MODULE_LICENSE("GPL"); /* Actually dual-licensed, but it doesn't matter for */
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("VIA Technologies Inc.");
++MODULE_DESCRIPTION("VIA SD/MMC Card Interface driver");
++MODULE_VERSION(DRIVER_VERSION);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from JosephChan@via.com.tw are
 
-origin.patch
-linux-next.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-frv-duplicate-output_buffer-of-e03.patch
-nommu-present-backing-device-capabilities-for-mtd-chardevs.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat-if-possible.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly.patch
-mtd-fix-a-bad-dependency-in-the-blackfin-code.patch
-bin_elf_fdpic-check-the-return-value-of-clear_user.patch
-mutex-subsystem-synchro-test-module.patch
+via-sdmmc-via-msp-card-reader-driver-support.patch
 
