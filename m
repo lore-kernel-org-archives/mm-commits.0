@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asiliantfb-fix-cmap-memory-leaks-fix.patch added to -mm tree
-Date: Thu, 19 Feb 2009 13:52:41 -0800
-Message-ID: <200902192152.n1JLqfCU025373@imap1.linux-foundation.org>
+Subject: + qla2x-fix-printk-format-warnings.patch added to -mm tree
+Date: Thu, 19 Feb 2009 13:54:04 -0800
+Message-ID: <200902192154.n1JLs4lq025518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757684AbZBSVxl (ORCPT
+	by vger.kernel.org with ESMTP id S1756808AbZBSVzA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 16:53:41 -0500
+	Thu, 19 Feb 2009 16:55:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dilinger@debian.org, krzysztof.h1@wp.pl
+Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, seokmann.ju@qlogic.com
 
 
 The patch titled
-     asiliantfb: fix ISO declaration/code warning
+     qla2x: fix printk format warnings
 has been added to the -mm tree.  Its filename is
-     asiliantfb-fix-cmap-memory-leaks-fix.patch
+     qla2x-fix-printk-format-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asiliantfb: fix ISO declaration/code warning
+Subject: qla2x: fix printk format warnings
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Move data declaration before any code:
+Fix qla2xxx printk format warnings:
 
-drivers/video/asiliantfb.c:515: warning: ISO C90 forbids mixed declarations and code
+drivers/scsi/qla2xxx/qla_sup.c:915: warning: long long unsigned int format, u64 arg (arg 5)
+drivers/scsi/qla2xxx/qla_sup.c:915: warning: long long unsigned int format, u64 arg (arg 6)
+drivers/scsi/qla2xxx/qla_sup.c:923: warning: long long unsigned int format, u64 arg (arg 5)
+drivers/scsi/qla2xxx/qla_sup.c:923: warning: long long unsigned int format, u64 arg (arg 6)
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Andres Salomon <dilinger@debian.org>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Acked-by: Seokmann Ju <seokmann.ju@qlogic.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/asiliantfb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/scsi/qla2xxx/qla_sup.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/asiliantfb.c~asiliantfb-fix-cmap-memory-leaks-fix drivers/video/asiliantfb.c
---- a/drivers/video/asiliantfb.c~asiliantfb-fix-cmap-memory-leaks-fix
-+++ a/drivers/video/asiliantfb.c
-@@ -507,12 +507,13 @@ static struct fb_var_screeninfo asiliant
+diff -puN drivers/scsi/qla2xxx/qla_sup.c~qla2x-fix-printk-format-warnings drivers/scsi/qla2xxx/qla_sup.c
+--- a/drivers/scsi/qla2xxx/qla_sup.c~qla2x-fix-printk-format-warnings
++++ a/drivers/scsi/qla2xxx/qla_sup.c
+@@ -914,7 +914,9 @@ qla2xxx_flash_npiv_conf(scsi_qla_host_t 
  
- static int __devinit init_asiliant(struct fb_info *p, unsigned long addr)
- {
-+	int err;
-+
- 	p->fix			= asiliantfb_fix;
- 	p->fix.smem_start	= addr;
- 	p->var			= asiliantfb_var;
- 	p->fbops		= &asiliantfb_ops;
- 	p->flags		= FBINFO_DEFAULT;
--	int err;
+ 		DEBUG2(qla_printk(KERN_DEBUG, ha, "NPIV[%02x]: wwpn=%llx "
+ 			"wwnn=%llx vf_id=0x%x Q_qos=0x%x F_qos=0x%x.\n", cnt,
+-			vid.port_name, vid.node_name, le16_to_cpu(entry->vf_id),
++			(unsigned long long)vid.port_name,
++			(unsigned long long)vid.node_name,
++			le16_to_cpu(entry->vf_id),
+ 			entry->q_qos, entry->f_qos));
  
- 	err = fb_alloc_cmap(&p->cmap, 256, 0);
- 	if (err) {
+ 		if (i < QLA_PRECONFIG_VPORTS) {
+@@ -923,7 +925,8 @@ qla2xxx_flash_npiv_conf(scsi_qla_host_t 
+ 				qla_printk(KERN_INFO, ha,
+ 				"NPIV-Config: Failed to create vport [%02x]: "
+ 				"wwpn=%llx wwnn=%llx.\n", cnt,
+-				vid.port_name, vid.node_name);
++				(unsigned long long)vid.port_name,
++				(unsigned long long)vid.node_name);
+ 		}
+ 	}
+ done:
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -81,6 +90,7 @@ input-ad7879-touchscreen-driver.patch
 es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
 e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 esp-fix-section-mismatch-warning.patch
+qla2x-fix-printk-format-warnings.patch
 vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
 vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
 max3100-spi-uart-driver.patch
