@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-use-kzfree.patch added to -mm tree
-Date: Thu, 19 Feb 2009 12:24:54 -0800
-Message-ID: <200902192024.n1JKOsoR020700@imap1.linux-foundation.org>
+Subject: + s390-use-kzfree.patch added to -mm tree
+Date: Thu, 19 Feb 2009 12:24:48 -0800
+Message-ID: <200902192024.n1JKOmk2020687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54055 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42462 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752624AbZBSUZU (ORCPT
+	by vger.kernel.org with ESMTP id S1751736AbZBSUZT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 15:25:20 -0500
+	Thu, 19 Feb 2009 15:25:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, penberg@cs.helsinki.fi, sfrench@samba.org
+Cc: hannes@cmpxchg.org, heiko.carstens@de.ibm.com, penberg@cs.helsinki.fi, schwidefsky@de.ibm.com
 
 
 The patch titled
-     cifs: use kzfree()
+     s390: use kzfree()
 has been added to the -mm tree.  Its filename is
-     cifs-use-kzfree.patch
+     s390-use-kzfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: use kzfree()
+Subject: s390: use kzfree()
 From: Johannes Weiner <hannes@cmpxchg.org>
 
 Use kzfree() instead of memset() + kfree().
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: Steve French <sfrench@samba.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/connect.c |    6 +-----
- fs/cifs/misc.c    |   10 ++--------
- 2 files changed, 3 insertions(+), 13 deletions(-)
+ arch/s390/crypto/prng.c             |    3 +--
+ drivers/s390/crypto/zcrypt_pcixcc.c |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/cifs/connect.c~cifs-use-kzfree fs/cifs/connect.c
---- a/fs/cifs/connect.c~cifs-use-kzfree
-+++ a/fs/cifs/connect.c
-@@ -2478,11 +2478,7 @@ mount_fail_check:
- out:
- 	/* zero out password before freeing */
- 	if (volume_info) {
--		if (volume_info->password != NULL) {
--			memset(volume_info->password, 0,
--				strlen(volume_info->password));
--			kfree(volume_info->password);
--		}
-+		kzfree(volume_info->password);
- 		kfree(volume_info->UNC);
- 		kfree(volume_info->prepath);
- 		kfree(volume_info);
-diff -puN fs/cifs/misc.c~cifs-use-kzfree fs/cifs/misc.c
---- a/fs/cifs/misc.c~cifs-use-kzfree
-+++ a/fs/cifs/misc.c
-@@ -97,10 +97,7 @@ sesInfoFree(struct cifsSesInfo *buf_to_f
- 	kfree(buf_to_free->serverOS);
- 	kfree(buf_to_free->serverDomain);
- 	kfree(buf_to_free->serverNOS);
--	if (buf_to_free->password) {
--		memset(buf_to_free->password, 0, strlen(buf_to_free->password));
--		kfree(buf_to_free->password);
--	}
-+	kzfree(buf_to_free->password);
- 	kfree(buf_to_free->domainName);
- 	kfree(buf_to_free);
- }
-@@ -132,10 +129,7 @@ tconInfoFree(struct cifsTconInfo *buf_to
- 	}
- 	atomic_dec(&tconInfoAllocCount);
- 	kfree(buf_to_free->nativeFileSystem);
--	if (buf_to_free->password) {
--		memset(buf_to_free->password, 0, strlen(buf_to_free->password));
--		kfree(buf_to_free->password);
--	}
-+	kzfree(buf_to_free->password);
- 	kfree(buf_to_free);
+diff -puN arch/s390/crypto/prng.c~s390-use-kzfree arch/s390/crypto/prng.c
+--- a/arch/s390/crypto/prng.c~s390-use-kzfree
++++ a/arch/s390/crypto/prng.c
+@@ -201,8 +201,7 @@ out_free:
+ static void __exit prng_exit(void)
+ {
+ 	/* wipe me */
+-	memset(p->buf, 0, prng_chunk_size);
+-	kfree(p->buf);
++	kzfree(p->buf);
+ 	kfree(p);
+ 
+ 	misc_deregister(&prng_dev);
+diff -puN drivers/s390/crypto/zcrypt_pcixcc.c~s390-use-kzfree drivers/s390/crypto/zcrypt_pcixcc.c
+--- a/drivers/s390/crypto/zcrypt_pcixcc.c~s390-use-kzfree
++++ a/drivers/s390/crypto/zcrypt_pcixcc.c
+@@ -781,8 +781,7 @@ static long zcrypt_pcixcc_send_cprb(stru
+ 		/* Signal pending. */
+ 		ap_cancel_message(zdev->ap_dev, &ap_msg);
+ out_free:
+-	memset(ap_msg.message, 0x0, ap_msg.length);
+-	kfree(ap_msg.message);
++	kzfree(ap_msg.message);
+ 	return rc;
  }
  
 _
