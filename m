@@ -1,83 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-fix-ehci-printk-formats.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:17:42 -0800
-Message-ID: <200902191917.n1JJHgGh016404@imap1.linux-foundation.org>
+Subject: [merged] mmc-add-extended-csd-as-a-device-attribute.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:17:33 -0800
+Message-ID: <200902191917.n1JJHXkM016385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56259 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754867AbZBSTRs (ORCPT
+	by vger.kernel.org with ESMTP id S1754829AbZBSTRs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Feb 2009 14:17:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: ext-adrian.hunter@nokia.com, drzeus-list@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: fix ehci printk formats
+     mmc: add Extended CSD as a device attribute
 has been removed from the -mm tree.  Its filename was
-     usb-fix-ehci-printk-formats.patch
+     mmc-add-extended-csd-as-a-device-attribute.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: fix ehci printk formats
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mmc: add Extended CSD as a device attribute
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
 
-Fix ehci printk formats:
+Extended CSD is a MMC card register.  The Card Identification (CID)
+register and the Card-Specific Data (CSD) register are already device
+attributes.  As increasingly interesting fields are being added to
+Extended CSD, it seems reasonable to add it too.  Note that SD cards do
+not have an Extended CSD register, so it is MMC only.
 
-drivers/usb/host/ehci-q.c:351: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
-drivers/usb/host/ehci-q.c:351: warning: format '%d' expects type 'int', but argument 5 has type 'size_t'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ehci-q.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/core/mmc.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff -puN drivers/usb/host/ehci-q.c~usb-fix-ehci-printk-formats drivers/usb/host/ehci-q.c
---- a/drivers/usb/host/ehci-q.c~usb-fix-ehci-printk-formats
-+++ a/drivers/usb/host/ehci-q.c
-@@ -349,7 +349,7 @@ qh_completions (struct ehci_hcd *ehci, s
- 						--qh->xacterrs > 0 &&
- 						!urb->unlinked) {
- 					ehci_dbg(ehci,
--	"detected XactErr len %d/%d retry %d\n",
-+	"detected XactErr len %zu/%zu retry %d\n",
- 	qtd->length - QTD_LENGTH(token), qtd->length,
- 	QH_XACTERR_MAX - qh->xacterrs);
+diff -puN drivers/mmc/core/mmc.c~mmc-add-extended-csd-as-a-device-attribute drivers/mmc/core/mmc.c
+--- a/drivers/mmc/core/mmc.c~mmc-add-extended-csd-as-a-device-attribute
++++ a/drivers/mmc/core/mmc.c
+@@ -259,6 +259,34 @@ MMC_DEV_ATTR(name, "%s\n", card->cid.pro
+ MMC_DEV_ATTR(oemid, "0x%04x\n", card->cid.oemid);
+ MMC_DEV_ATTR(serial, "0x%08x\n", card->cid.serial);
+ 
++static ssize_t mmc_ext_csd_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct mmc_card *card = container_of(dev, struct mmc_card, dev);
++	ssize_t n = 0;
++	u8 *ext_csd;
++	int err, i;
++
++	ext_csd = kmalloc(512, GFP_KERNEL);
++	if (!ext_csd)
++		return 0;
++
++	mmc_claim_host(card->host);
++	err = mmc_send_ext_csd(card, ext_csd);
++	mmc_release_host(card->host);
++
++	if (!err) {
++		for (i = 511; i >= 0; i--)
++			n += sprintf(buf + n, "%02x", ext_csd[i]);
++		n += sprintf(buf + n, "\n");
++	}
++
++	kfree(ext_csd);
++
++	return n;
++}
++
++static DEVICE_ATTR(ext_csd, S_IRUGO, mmc_ext_csd_show, NULL);
++
+ static struct attribute *mmc_std_attrs[] = {
+ 	&dev_attr_cid.attr,
+ 	&dev_attr_csd.attr,
+@@ -269,6 +297,7 @@ static struct attribute *mmc_std_attrs[]
+ 	&dev_attr_name.attr,
+ 	&dev_attr_oemid.attr,
+ 	&dev_attr_serial.attr,
++	&dev_attr_ext_csd.attr,
+ 	NULL,
+ };
  
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from ext-adrian.hunter@nokia.com are
 
 origin.patch
 linux-next.patch
-x86-oqo-depends-on-input_polldev.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-99.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
-documentation-ignore-byproducts-from-latex.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
-reiser4-export-remove_from_page_cache-fix.patch
+mmc_core-fix-data-timeout-for-send_ext_csd.patch
 
