@@ -1,78 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-fix-possible-use-after-free.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:16:40 -0800
-Message-ID: <200902191916.n1JJGehp016273@imap1.linux-foundation.org>
+Subject: [merged] pavel-has-moved.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:16:32 -0800
+Message-ID: <200902191916.n1JJGW3i016258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752984AbZBSTQt (ORCPT
+	by vger.kernel.org with ESMTP id S1753464AbZBSTQo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:16:49 -0500
+	Thu, 19 Feb 2009 14:16:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, menage@google.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: pavel@suse.cz, jkosina@suse.cz, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: fix possible use after free
+     Pavel has moved
 has been removed from the -mm tree.  Its filename was
-     cgroups-fix-possible-use-after-free.patch
+     pavel-has-moved.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix possible use after free
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: Pavel has moved
+From: Pavel Machek <pavel@suse.cz>
 
-In cgroup_kill_sb(), root is freed before sb is detached from the list, so
-another sget() may find this sb and call cgroup_test_super(), which will
-access the root that has been freed.
+My @suse.cz address will stop working some day, so put working one into
+MAINTAINERS/CREDITS.  It would be cool to get this to 2.6.29...  it should
+not really break anything.
 
-Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ CREDITS     |    1 -
+ MAINTAINERS |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-fix-possible-use-after-free kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-possible-use-after-free
-+++ a/kernel/cgroup.c
-@@ -1122,8 +1122,8 @@ static void cgroup_kill_sb(struct super_
+diff -puN CREDITS~pavel-has-moved CREDITS
+--- a/CREDITS~pavel-has-moved
++++ a/CREDITS
+@@ -2166,7 +2166,6 @@ D: Initial implementation of VC's, pty's
  
- 	mutex_unlock(&cgroup_mutex);
+ N: Pavel Machek
+ E: pavel@ucw.cz
+-E: pavel@suse.cz
+ D: Softcursor for vga, hypertech cdrom support, vcsa bugfix, nbd
+ D: sun4/330 port, capabilities for elf, speedup for rm on ext2, USB,
+ D: work on suspend-to-ram/disk, killing duplicates from ioctl32
+diff -puN MAINTAINERS~pavel-has-moved MAINTAINERS
+--- a/MAINTAINERS~pavel-has-moved
++++ a/MAINTAINERS
+@@ -2001,7 +2001,7 @@ S:	Maintained
  
--	kfree(root);
- 	kill_litter_super(sb);
-+	kfree(root);
- }
- 
- static struct file_system_type cgroup_fs_type = {
+ HIBERNATION (aka Software Suspend, aka swsusp)
+ P:	Pavel Machek
+-M:	pavel@suse.cz
++M:	pavel@ucw.cz
+ P:	Rafael J. Wysocki
+ M:	rjw@sisk.pl
+ L:	linux-pm@lists.linux-foundation.org
+@@ -4172,7 +4172,7 @@ SUSPEND TO RAM
+ P:	Len Brown
+ M:	len.brown@intel.com
+ P:	Pavel Machek
+-M:	pavel@suse.cz
++M:	pavel@ucw.cz
+ P:	Rafael J. Wysocki
+ M:	rjw@sisk.pl
+ L:	linux-pm@lists.linux-foundation.org
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from pavel@suse.cz are
 
 origin.patch
 linux-next.patch
-vfs-add-missing-unlock-in-sget.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
-cgroup-css-id-support.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
+resume-wait-for-device-probing-to-finish.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+ext2-add-blk_issue_flush-to-syncing-paths.patch
+nbd-add-locking-to-nbd_ioctl.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+nbd-trivial-cleanups.patch
 
