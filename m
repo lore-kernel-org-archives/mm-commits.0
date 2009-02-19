@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-protect-cinit-from-blocked-fatal-signals.patch added to -mm tree
-Date: Thu, 19 Feb 2009 14:26:30 -0800
-Message-ID: <200902192226.n1JMQUg9027297@imap1.linux-foundation.org>
+Subject: + leds-add-bd2802gu-led-driver-fix.patch added to -mm tree
+Date: Thu, 19 Feb 2009 14:47:34 -0800
+Message-ID: <200902192247.n1JMlYlO028344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38378 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56111 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754582AbZBSW1R (ORCPT
+	by vger.kernel.org with ESMTP id S1754909AbZBSWrw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 17:27:17 -0500
+	Thu, 19 Feb 2009 17:47:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@linux.vnet.ibm.com, daniel.lezcano@free.fr, ebiederm@xmission.com, oleg@tv-sign.ru, roland@redhat.com
+Cc: akpm@linux-foundation.org, chammoru@gmail.com, kyungmin.park@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     signals: protect cinit from blocked fatal signals
+     leds-add-bd2802gu-led-driver-fix
 has been added to the -mm tree.  Its filename is
-     signals-protect-cinit-from-blocked-fatal-signals.patch
+     leds-add-bd2802gu-led-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: protect cinit from blocked fatal signals
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Subject: leds-add-bd2802gu-led-driver-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Normally SIG_DFL signals to global and container-init are dropped early. 
-But if a signal is blocked when it is posted, we cannot drop the signal
-since the receiver may install a handler before unblocking the signal. 
-Once this signal is queued however, the receiver container-init has no way
-of knowing if the signal was sent from an ancestor or descendant
-namespace.  This patch ensures that contianer-init drops all SIG_DFL
-signals in get_signal_to_deliver() except SIGKILL/SIGSTOP.
-
-If SIGSTOP/SIGKILL originate from a descendant of container-init they are
-never queued (i.e dropped in sig_ignored() in an earler patch).
-
-If SIGSTOP/SIGKILL originate from parent namespace, the signal is queued
-and container-init processes the signal.
-
-IOW, if get_signal_to_deliver() sees a sig_kernel_only() signal for global
-or container-init, the signal must have been generated internally or must
-have come from an ancestor ns and we process the signal.
-
-Further, the signal_group_exit() check was needed to cover the case of a
-multi-threaded init sending SIGKILL to other threads when doing an exit()
-or exec().  But since the new sig_kernel_only() check covers the SIGKILL,
-the signal_group_exit() check is no longer needed and can be removed.
-
-Finally, now that we have all pieces in place, set SIGNAL_UNKILLABLE for
-container-inits.
-
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: <kyungmin.park@samsung.com>
+Cc: Kim Kyuwon <chammoru@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c   |    2 ++
- kernel/signal.c |    9 ++++++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ drivers/leds/leds-bd2802.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/fork.c~signals-protect-cinit-from-blocked-fatal-signals kernel/fork.c
---- a/kernel/fork.c~signals-protect-cinit-from-blocked-fatal-signals
-+++ a/kernel/fork.c
-@@ -844,6 +844,8 @@ static int copy_signal(unsigned long clo
- 	atomic_set(&sig->live, 1);
- 	init_waitqueue_head(&sig->wait_chldexit);
- 	sig->flags = 0;
-+	if (clone_flags & CLONE_NEWPID)
-+		sig->flags |= SIGNAL_UNKILLABLE;
- 	sig->group_exit_code = 0;
- 	sig->group_exit_task = NULL;
- 	sig->group_stop_count = 0;
-diff -puN kernel/signal.c~signals-protect-cinit-from-blocked-fatal-signals kernel/signal.c
---- a/kernel/signal.c~signals-protect-cinit-from-blocked-fatal-signals
-+++ a/kernel/signal.c
-@@ -1862,9 +1862,16 @@ relock:
+diff -puN drivers/leds/leds-bd2802.c~leds-add-bd2802gu-led-driver-fix drivers/leds/leds-bd2802.c
+--- a/drivers/leds/leds-bd2802.c~leds-add-bd2802gu-led-driver-fix
++++ a/drivers/leds/leds-bd2802.c
+@@ -132,7 +132,7 @@ static inline int bd2802_is_all_off(stru
+ {
+ 	int i;
  
- 		/*
- 		 * Global init gets no signals it doesn't want.
-+		 * Container-init gets no signals it doesn't want from same
-+		 * container.
-+		 *
-+		 * Note that if global/container-init sees a sig_kernel_only()
-+		 * signal here, the signal must have been generated internally
-+		 * or must have come from an ancestor namespace. In either
-+		 * case, the signal cannot be dropped.
- 		 */
- 		if (unlikely(signal->flags & SIGNAL_UNKILLABLE) &&
--		    !signal_group_exit(signal))
-+				!sig_kernel_only(signr))
- 			continue;
+-	for (i = 0 ; i < LED_NUM ; i++)
++	for (i = 0; i < LED_NUM; i++)
+ 		if (!bd2802_is_led_off(led, i))
+ 			return 0;
  
- 		if (sig_kernel_stop(signr)) {
+@@ -173,7 +173,7 @@ static void bd2802_update_state(struct b
+ 	int i;
+ 	u8 value;
+ 
+-	for (i = 0 ; i < LED_NUM ; i++) {
++	for (i = 0; i < LED_NUM; i++) {
+ 		if (i == id) {
+ 			switch (color) {
+ 			case RED:
+@@ -318,7 +318,7 @@ static void bd2802_restore_state(struct 
+ {
+ 	int i;
+ 
+-	for (i = 0 ; i < LED_NUM ; i++) {
++	for (i = 0; i < LED_NUM; i++) {
+ 		if (led->led[i].r)
+ 			bd2802_turn_on(led, i, RED, led->led[i].r);
+ 		if (led->led[i].g)
 _
 
-Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+drivers-consolidate-driver_probe_done-loops-into-one-place.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+kernel-auditscc-fix-warning.patch
+sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+leds-add-bd2802gu-led-driver-fix.patch
+mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 vfs-simple_set_mnt-should-return-void.patch
-devpts-must-release-s_umount-on-error.patch
-signals-remove-handler-parameter-to-tracehook-functions.patch
-signals-protect-init-from-unwanted-signals-more.patch
-signals-add-from_ancestor_ns-parameter-to-send_signal.patch
-signals-protect-cinit-from-unblocked-sig_dfl-signals.patch
-signals-zap_pid_ns_process-should-use-force_sig.patch
-signals-protect-cinit-from-blocked-fatal-signals.patch
-signals-si_user-masquerade-si_pid-when-crossing-pid-ns-boundary.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
 pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
