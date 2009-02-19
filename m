@@ -1,140 +1,225 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-memmap-init-for-handling-memory-hole.patch removed from -mm tree
-Date: Thu, 19 Feb 2009 11:17:05 -0800
-Message-ID: <200902191917.n1JJH5AR016335@imap1.linux-foundation.org>
+Subject: [merged] floppy-request-and-release-only-the-ports-we-actually-use.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 11:17:10 -0800
+Message-ID: <200902191917.n1JJHAZA016343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756282AbZBSTR4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756412AbZBSTSB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 14:17:56 -0500
+	Thu, 19 Feb 2009 14:18:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, davem@davemlloft.net, heiko.carstens@de.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, stable@kernel.org, mm-commits@vger.kernel.org
+To: phdm@macqel.be, abelay@mit.edu, bjorn.helgaas@hp.com, hancockrwd@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix memmap init for handling memory hole
+     floppy: request and release only the ports we actually use
 has been removed from the -mm tree.  Its filename was
-     mm-fix-memmap-init-for-handling-memory-hole.patch
+     floppy-request-and-release-only-the-ports-we-actually-use.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix memmap init for handling memory hole
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: floppy: request and release only the ports we actually use
+From: Philippe De Muyter <phdm@macqel.be>
 
-Now, early_pfn_in_nid(PFN, NID) may returns false if PFN is a hole.
-and memmap initialization was not done. This was a trouble for
-sparc boot.
+The floppy driver requests an I/O port it doesn't need, and sometimes this
+causes a conflict with a motherboard device reported by PNPBIOS.
 
-To fix this, the PFN should be initialized and marked as PG_reserved.
-This patch changes early_pfn_in_nid() return true if PFN is a hole.
+This patch makes the floppy driver request and release only the ports it
+actually uses.  It also factors out the request/release stuff and the
+io-ports list so they're all in one place now.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reported-by: David Miller <davem@davemlloft.net>
-Tested-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x, 2.6.27.x, 2.6.28.x]
+The current floppy driver uses only these ports:
+
+    0x3f2 (FD_DOR)
+    0x3f4 (FD_STATUS)
+    0x3f5 (FD_DATA)
+    0x3f7 (FD_DCR/FD_DIR)
+
+but it requests 0x3f2-0x3f5 and 0x3f7, which includes the unused port
+0x3f3.
+
+Some BIOSes report 0x3f3 as a motherboard resource.  The PNP system driver
+reserves that, which causes a conflict when the floppy driver requests
+0x3f2-0x3f5 later.
+
+Philippe reported that this conflict broke the floppy driver between
+2.6.11 and 2.6.22.  His PNPBIOS reports these devices:
+
+    $ cat 00:07/id 00:07/resources	# motherboard device
+    PNP0c02
+    state = active
+    io 0x80-0x80
+    io 0x10-0x1f
+    io 0x22-0x3f
+    io 0x44-0x5f
+    io 0x90-0x9f
+    io 0xa2-0xbf
+    io 0x3f0-0x3f1
+    io 0x3f3-0x3f3
+
+    $ cat 00:03/id 00:03/resources	# floppy device
+    PNP0700
+    state = active
+    io 0x3f4-0x3f5
+    io 0x3f2-0x3f2
+
+Reference:
+    http://lkml.org/lkml/2009/1/31/162
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Reported-by: Philippe De Muyter <phdm@macqel.be>
+Tested-by: Philippe De Muyter <phdm@macqel.be>
+Cc: Adam M Belay <abelay@mit.edu>
+Cc: Robert Hancock <hancockrwd@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/numa.c    |    2 +-
- include/linux/mmzone.h |    2 +-
- mm/page_alloc.c        |   23 ++++++++++++++++++++---
- 3 files changed, 22 insertions(+), 5 deletions(-)
+ drivers/block/floppy.c |   79 +++++++++++++++++++++++++--------------
+ 1 file changed, 52 insertions(+), 27 deletions(-)
 
-diff -puN arch/ia64/mm/numa.c~mm-fix-memmap-init-for-handling-memory-hole arch/ia64/mm/numa.c
---- a/arch/ia64/mm/numa.c~mm-fix-memmap-init-for-handling-memory-hole
-+++ a/arch/ia64/mm/numa.c
-@@ -70,7 +70,7 @@ int __meminit __early_pfn_to_nid(unsigne
- 			return node_memblk[i].nid;
- 	}
+diff -puN drivers/block/floppy.c~floppy-request-and-release-only-the-ports-we-actually-use drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-request-and-release-only-the-ports-we-actually-use
++++ a/drivers/block/floppy.c
+@@ -558,6 +558,8 @@ static void process_fd_request(void);
+ static void recalibrate_floppy(void);
+ static void floppy_shutdown(unsigned long);
  
--	return 0;
-+	return -1;
- }
++static int floppy_request_regions(int);
++static void floppy_release_regions(int);
+ static int floppy_grab_irq_and_dma(void);
+ static void floppy_release_irq_and_dma(void);
  
- #ifdef CONFIG_MEMORY_HOTPLUG
-diff -puN include/linux/mmzone.h~mm-fix-memmap-init-for-handling-memory-hole include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-fix-memmap-init-for-handling-memory-hole
-+++ a/include/linux/mmzone.h
-@@ -1071,7 +1071,7 @@ void sparse_init(void);
- #endif /* CONFIG_SPARSEMEM */
+@@ -4274,8 +4276,7 @@ static int __init floppy_init(void)
+ 		FDCS->rawcmd = 2;
+ 		if (user_reset_fdc(-1, FD_RESET_ALWAYS, 0)) {
+ 			/* free ioports reserved by floppy_grab_irq_and_dma() */
+-			release_region(FDCS->address + 2, 4);
+-			release_region(FDCS->address + 7, 1);
++			floppy_release_regions(fdc);
+ 			FDCS->address = -1;
+ 			FDCS->version = FDC_NONE;
+ 			continue;
+@@ -4284,8 +4285,7 @@ static int __init floppy_init(void)
+ 		FDCS->version = get_fdc_version();
+ 		if (FDCS->version == FDC_NONE) {
+ 			/* free ioports reserved by floppy_grab_irq_and_dma() */
+-			release_region(FDCS->address + 2, 4);
+-			release_region(FDCS->address + 7, 1);
++			floppy_release_regions(fdc);
+ 			FDCS->address = -1;
+ 			continue;
+ 		}
+@@ -4358,6 +4358,47 @@ out_put_disk:
  
- #ifdef CONFIG_NODES_SPAN_OTHER_NODES
--#define early_pfn_in_nid(pfn, nid)	(early_pfn_to_nid(pfn) == (nid))
-+bool early_pfn_in_nid(unsigned long pfn, int nid);
- #else
- #define early_pfn_in_nid(pfn, nid)	(1)
- #endif
-diff -puN mm/page_alloc.c~mm-fix-memmap-init-for-handling-memory-hole mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-memmap-init-for-handling-memory-hole
-+++ a/mm/page_alloc.c
-@@ -3000,16 +3000,33 @@ int __meminit __early_pfn_to_nid(unsigne
- 		if (start_pfn <= pfn && pfn < end_pfn)
- 			return early_node_map[i].nid;
- 	}
--
--	return 0;
-+	/* This is a memory hole */
-+	return -1;
- }
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+ static DEFINE_SPINLOCK(floppy_usage_lock);
  
- int __meminit early_pfn_to_nid(unsigned long pfn)
- {
--	return __early_pfn_to_nid(pfn);
-+	int nid;
++static const struct io_region {
++	int offset;
++	int size;
++} io_regions[] = {
++	{ 2, 1 },
++	/* address + 3 is sometimes reserved by pnp bios for motherboard */
++	{ 4, 2 },
++	/* address + 6 is reserved, and may be taken by IDE.
++	 * Unfortunately, Adaptec doesn't know this :-(, */
++	{ 7, 1 },
++};
 +
-+	nid = __early_pfn_to_nid(pfn);
-+	if (nid >= 0)
-+		return nid;
-+	/* just returns 0 */
-+	return 0;
- }
- 
-+#ifdef CONFIG_NODES_SPAN_OTHER_NODES
-+bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
++static void floppy_release_allocated_regions(int fdc, const struct io_region *p)
 +{
-+	int nid;
-+
-+	nid = __early_pfn_to_nid(pfn);
-+	if (nid >= 0 && nid != node)
-+		return false;
-+	return true;
++	while (p != io_regions) {
++		p--;
++		release_region(FDCS->address + p->offset, p->size);
++	}
 +}
-+#endif
++
++#define ARRAY_END(X) (&((X)[ARRAY_SIZE(X)]))
++
++static int floppy_request_regions(int fdc)
++{
++	const struct io_region *p;
++
++	for (p = io_regions; p < ARRAY_END(io_regions); p++) {
++		if (!request_region(FDCS->address + p->offset, p->size, "floppy")) {
++			DPRINT("Floppy io-port 0x%04lx in use\n", FDCS->address + p->offset);
++			floppy_release_allocated_regions(fdc, p);
++			return -EBUSY;
++		}
++	}
++	return 0;
++}
++
++static void floppy_release_regions(int fdc)
++{
++	floppy_release_allocated_regions(fdc, ARRAY_END(io_regions));
++}
++
+ static int floppy_grab_irq_and_dma(void)
+ {
+ 	unsigned long flags;
+@@ -4399,18 +4440,8 @@ static int floppy_grab_irq_and_dma(void)
  
- /* Basic iterator support to walk early_node_map[] */
- #define for_each_active_range_index_in_nid(i, nid) \
+ 	for (fdc = 0; fdc < N_FDC; fdc++) {
+ 		if (FDCS->address != -1) {
+-			if (!request_region(FDCS->address + 2, 4, "floppy")) {
+-				DPRINT("Floppy io-port 0x%04lx in use\n",
+-				       FDCS->address + 2);
+-				goto cleanup1;
+-			}
+-			if (!request_region(FDCS->address + 7, 1, "floppy DIR")) {
+-				DPRINT("Floppy io-port 0x%04lx in use\n",
+-				       FDCS->address + 7);
+-				goto cleanup2;
+-			}
+-			/* address + 6 is reserved, and may be taken by IDE.
+-			 * Unfortunately, Adaptec doesn't know this :-(, */
++			if (floppy_request_regions(fdc))
++				goto cleanup;
+ 		}
+ 	}
+ 	for (fdc = 0; fdc < N_FDC; fdc++) {
+@@ -4432,15 +4463,11 @@ static int floppy_grab_irq_and_dma(void)
+ 	fdc = 0;
+ 	irqdma_allocated = 1;
+ 	return 0;
+-cleanup2:
+-	release_region(FDCS->address + 2, 4);
+-cleanup1:
++cleanup:
+ 	fd_free_irq();
+ 	fd_free_dma();
+-	while (--fdc >= 0) {
+-		release_region(FDCS->address + 2, 4);
+-		release_region(FDCS->address + 7, 1);
+-	}
++	while (--fdc >= 0)
++		floppy_release_regions(fdc);
+ 	spin_lock_irqsave(&floppy_usage_lock, flags);
+ 	usage_count--;
+ 	spin_unlock_irqrestore(&floppy_usage_lock, flags);
+@@ -4501,10 +4528,8 @@ static void floppy_release_irq_and_dma(v
+ #endif
+ 	old_fdc = fdc;
+ 	for (fdc = 0; fdc < N_FDC; fdc++)
+-		if (FDCS->address != -1) {
+-			release_region(FDCS->address + 2, 4);
+-			release_region(FDCS->address + 7, 1);
+-		}
++		if (FDCS->address != -1)
++			floppy_release_regions(fdc);
+ 	fdc = old_fdc;
+ }
+ 
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from phdm@macqel.be are
 
 origin.patch
-linux-next.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-cgroup-css-id-support.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
-memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
 
