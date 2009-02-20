@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-enable-pcie-aer-only-after-checking-firmware-support.patch added to -mm tree
-Date: Fri, 20 Feb 2009 13:53:09 -0800
-Message-ID: <200902202153.n1KLrAFt002099@imap1.linux-foundation.org>
+Subject: + pci-enable-pcie-aer-only-after-checking-firmware-support-fix.patch added to -mm tree
+Date: Fri, 20 Feb 2009 13:53:12 -0800
+Message-ID: <200902202153.n1KLrClq002104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754527AbZBTVxO (ORCPT
+	by vger.kernel.org with ESMTP id S1755356AbZBTVxQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Feb 2009 16:53:14 -0500
+	Fri, 20 Feb 2009 16:53:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andrew.patterson@hp.com, jbarnes@virtuousgeek.org
+Cc: akpm@linux-foundation.org, andrew.patterson@hp.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     pci: enable PCIe AER only after checking firmware support
+     pci-enable-pcie-aer-only-after-checking-firmware-support-fix
 has been added to the -mm tree.  Its filename is
-     pci-enable-pcie-aer-only-after-checking-firmware-support.patch
+     pci-enable-pcie-aer-only-after-checking-firmware-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: enable PCIe AER only after checking firmware support
-From: Andrew Patterson <andrew.patterson@hp.com>
+Subject: pci-enable-pcie-aer-only-after-checking-firmware-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The PCIe port driver currently sets the PCIe AER error reporting bits for
-any root or switch port without first checking to see if firmware will
-grant control.  This patch moves setting these bits to the AER service
-driver aer_enable_port routine.  The bits are then set for the root port
-and any downstream switch ports after the check for firmware support
-(aer_osc_setup) is made.  The patch also unsets the bits in a similar
-fashion when the AER service driver is unloaded.
+fix kerneldoc.
 
-Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
+Cc: Andrew Patterson <andrew.patterson@hp.com>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/aer/aerdrv_core.c |   49 ++++++++++++++++++++++-----
- drivers/pci/pcie/portdrv_pci.c     |    2 -
- 2 files changed, 40 insertions(+), 11 deletions(-)
+ drivers/pci/pcie/aer/aerdrv_core.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/pci/pcie/aer/aerdrv_core.c~pci-enable-pcie-aer-only-after-checking-firmware-support drivers/pci/pcie/aer/aerdrv_core.c
---- a/drivers/pci/pcie/aer/aerdrv_core.c~pci-enable-pcie-aer-only-after-checking-firmware-support
+diff -puN drivers/pci/pcie/aer/aerdrv_core.c~pci-enable-pcie-aer-only-after-checking-firmware-support-fix drivers/pci/pcie/aer/aerdrv_core.c
+--- a/drivers/pci/pcie/aer/aerdrv_core.c~pci-enable-pcie-aer-only-after-checking-firmware-support-fix
 +++ a/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -108,6 +108,35 @@ int pci_cleanup_aer_correct_error_status
+@@ -125,8 +125,7 @@ static void set_device_error_reporting(s
  }
- #endif  /*  0  */
  
-+
-+static void set_device_error_reporting(struct pci_dev *dev, void *data)
-+{
-+	bool enable = *((bool *)data);
-+
-+	if (dev->pcie_type != PCIE_RC_PORT &&
-+	    dev->pcie_type != PCIE_SW_UPSTREAM_PORT &&
-+	    dev->pcie_type != PCIE_SW_DOWNSTREAM_PORT)
-+		return;
-+
-+	if (enable)
-+		pci_enable_pcie_error_reporting(dev);
-+	else
-+		pci_disable_pcie_error_reporting(dev);
-+}
-+
-+/**
-+ * set_downstream_devices_error_reporting - enable/disable the error reporting
-+ * bits on the root port and its downstream ports.
-+ * @dev: pointer to root port's pci_dev data structure
-+ * @enable: true = enable error reporting, false = disable error reporting.
-+ */
-+static void set_downstream_devices_error_reporting(struct pci_dev *dev,
-+						   bool enable)
-+{
-+	set_device_error_reporting(dev, &enable);
-+	pci_walk_bus(dev->subordinate, set_device_error_reporting, &enable);
-+}
-+
- static int find_device_iter(struct device *device, void *data)
- {
- 	struct pci_dev *dev;
-@@ -525,15 +554,11 @@ void aer_enable_rootport(struct aer_rpc 
- 	pci_read_config_dword(pdev, aer_pos + PCI_ERR_UNCOR_STATUS, &reg32);
- 	pci_write_config_dword(pdev, aer_pos + PCI_ERR_UNCOR_STATUS, reg32);
- 
--	/* Enable Root Port device reporting error itself */
--	pci_read_config_word(pdev, pos+PCI_EXP_DEVCTL, &reg16);
--	reg16 = reg16 |
--		PCI_EXP_DEVCTL_CERE |
--		PCI_EXP_DEVCTL_NFERE |
--		PCI_EXP_DEVCTL_FERE |
--		PCI_EXP_DEVCTL_URRE;
--	pci_write_config_word(pdev, pos+PCI_EXP_DEVCTL,
--		reg16);
-+	/*
-+	 * Enable error reporting for the root port device and downstream port
-+	 * devices.
-+	 */
-+	set_downstream_devices_error_reporting(pdev, true);
- 
- 	/* Enable Root Port's interrupt in response to error messages */
- 	pci_write_config_dword(pdev,
-@@ -553,6 +578,12 @@ static void disable_root_aer(struct aer_
- 	u32 reg32;
- 	int pos;
- 
-+	/*
-+	 * Disable error reporting for the root port device and downstream port
-+	 * devices.
-+	 */
-+	set_downstream_devices_error_reporting(pdev, false);
-+
- 	pos = pci_find_ext_capability(pdev, PCI_EXT_CAP_ID_ERR);
- 	/* Disable Root's interrupt in response to error messages */
- 	pci_write_config_dword(pdev, pos + PCI_ERR_ROOT_COMMAND, 0);
-diff -puN drivers/pci/pcie/portdrv_pci.c~pci-enable-pcie-aer-only-after-checking-firmware-support drivers/pci/pcie/portdrv_pci.c
---- a/drivers/pci/pcie/portdrv_pci.c~pci-enable-pcie-aer-only-after-checking-firmware-support
-+++ a/drivers/pci/pcie/portdrv_pci.c
-@@ -87,8 +87,6 @@ static int __devinit pcie_portdrv_probe 
- 
- 	pci_save_state(dev);
- 
--	pci_enable_pcie_error_reporting(dev);
+ /**
+- * set_downstream_devices_error_reporting - enable/disable the error reporting
+- * bits on the root port and its downstream ports.
++ * set_downstream_devices_error_reporting - enable/disable the error reporting bits on the root port and its downstream ports.
+  * @dev: pointer to root port's pci_dev data structure
+  * @enable: true = enable error reporting, false = disable error reporting.
+  */
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+leds-add-bd2802gu-led-driver-fix.patch
+mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+pci-enable-pcie-aer-only-after-checking-firmware-support-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+
