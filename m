@@ -1,152 +1,296 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack.patch added to -mm tree
-Date: Thu, 19 Feb 2009 16:07:47 -0800
-Message-ID: <200902200025.n1K0P75v001026@imap1.linux-foundation.org>
+Subject: [failures] kgdb-switch-master-cpu-after-gdb-thread-command-for-smp.patch removed from -mm tree
+Date: Thu, 19 Feb 2009 16:38:15 -0800
+Message-ID: <200902200055.n1K0taqo002619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758512AbZBTA03 (ORCPT
+	by vger.kernel.org with ESMTP id S1758873AbZBTAzu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 19:26:29 -0500
+	Thu, 19 Feb 2009 19:55:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bernd.schmidt@analog.com, dhowells@redhat.com, dwmw2@infradead.org, gerg@snapgear.com
+To: sonic.adi@gmail.com, cooloney@kernel.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack
-has been added to the -mm tree.  Its filename is
-     nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack.patch
+     kgdb: switch master cpu after gdb thread command for SMP
+has been removed from the -mm tree.  Its filename was
+     kgdb-switch-master-cpu-after-gdb-thread-command-for-smp.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kgdb: switch master cpu after gdb thread command for SMP
+From: sonic zhang <sonic.adi@gmail.com>
 
-Cc: Bernd Schmidt <bernd.schmidt@analog.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg Ungerer <gerg@snapgear.com>
+The kgdb SMP patch, which is tested on blackfin bf561 dual core system.  
+
+   In blackfin SMP architecture, different core has its own L1 SRAM and
+   MMR memory, which code running on the other core can't access.  In
+   current kgdb implementation, cpus are represented by thread with minus
+   prefix.
+
+If user run thread command in gdb to switch to the thread of the other
+cpu, kgdb should:
+
+1. send IPI signal to master cpu
+2. release the specific passive cpu waiting in IPI handler
+3. exit kgdb exception loop on master cpu and trap into kgdb wait in IPI handler
+4. trap the released passive cpu into kgdb exception in IPI handler
+
+Signed-off-by: Sonic Zhang <sonic.adi@gmail.com>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/storage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kgdb.h |   13 ++++++
+ kernel/kgdb.c        |   85 ++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 89 insertions(+), 9 deletions(-)
 
-diff -puN fs/romfs/storage.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack fs/romfs/storage.c
---- a/fs/romfs/storage.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack
-+++ a/fs/romfs/storage.c
-@@ -15,7 +15,7 @@
- #include "internal.h"
+diff -puN include/linux/kgdb.h~kgdb-switch-master-cpu-after-gdb-thread-command-for-smp include/linux/kgdb.h
+--- a/include/linux/kgdb.h~kgdb-switch-master-cpu-after-gdb-thread-command-for-smp
++++ a/include/linux/kgdb.h
+@@ -202,6 +202,19 @@ kgdb_arch_handle_exception(int vector, i
+  */
+ extern void kgdb_roundup_cpus(unsigned long flags);
  
- #if !defined(CONFIG_ROMFS_ON_MTD) && !defined(CONFIG_ROMFS_ON_BLOCK)
--#error no ROMFS backing store interface configured
-+//#error no ROMFS backing store interface configured
++/**
++ *	kgdb_roundup_cpu - Get spcific CPU into a holding pattern
++ *	@cpu: Specific cpu id
++ *	@flags: Current IRQ state
++ *
++ *	On SMP systems, we need to switch cpu from current active one to
++ *	the other passive one. This get current active CPU into a known state
++ *	in kgdb_wait().
++ *
++ *	On non-SMP systems, this is not called.
++ */
++extern void kgdb_roundup_cpu(int cpu, unsigned long flags);
++
+ /* Optional functions. */
+ extern int kgdb_validate_break_address(unsigned long addr);
+ extern int kgdb_arch_set_breakpoint(unsigned long addr, char *saved_instr);
+diff -puN kernel/kgdb.c~kgdb-switch-master-cpu-after-gdb-thread-command-for-smp kernel/kgdb.c
+--- a/kernel/kgdb.c~kgdb-switch-master-cpu-after-gdb-thread-command-for-smp
++++ a/kernel/kgdb.c
+@@ -565,6 +565,7 @@ static void kgdb_wait(struct pt_regs *re
+ {
+ 	unsigned long flags;
+ 	int cpu;
++	struct task_struct *thread;
+ 
+ 	local_irq_save(flags);
+ 	cpu = raw_smp_processor_id();
+@@ -577,10 +578,26 @@ static void kgdb_wait(struct pt_regs *re
+ 	smp_wmb();
+ 	atomic_set(&cpu_in_kgdb[cpu], 1);
+ 
++	kgdb_disable_hw_debug(regs);
++
+ 	/* Wait till primary CPU is done with debugging */
+ 	while (atomic_read(&passive_cpu_wait[cpu]))
+ 		cpu_relax();
+ 
++	/* Trap into kgdb as the active CPU if gdb asks to switch. */
++	thread = getthread(regs, -raw_smp_processor_id() - 2);
++	if ((arch_kgdb_ops.flags & KGDB_THR_PROC_SWAP) &&
++		kgdb_contthread && kgdb_contthread == current) {
++		kgdb_breakpoint();
++
++		kgdb_info[cpu].debuggerinfo = NULL;
++		kgdb_info[cpu].task = NULL;
++
++		clocksource_touch_watchdog();
++		local_irq_restore(flags);
++		return;
++	}
++
+ 	kgdb_info[cpu].debuggerinfo = NULL;
+ 	kgdb_info[cpu].task = NULL;
+ 
+@@ -1066,13 +1083,16 @@ static void gdb_cmd_query(struct kgdb_st
+ 			sprintf(tmpstr, "shadowCPU%d",
+ 					(int)(-ks->threadid - 2));
+ 			kgdb_mem2hex(tmpstr, remcom_out_buffer, strlen(tmpstr));
++
++			if (arch_kgdb_ops.flags & KGDB_THR_PROC_SWAP)
++				ks->thr_query = 1;
+ 		}
+ 		break;
+ 	}
+ }
+ 
+ /* Handle the 'H' task query packets */
+-static void gdb_cmd_task(struct kgdb_state *ks)
++static int gdb_cmd_task(struct kgdb_state *ks)
+ {
+ 	struct task_struct *thread;
+ 	char *ptr;
+@@ -1089,6 +1109,15 @@ static void gdb_cmd_task(struct kgdb_sta
+ 		kgdb_usethread = thread;
+ 		ks->kgdb_usethreadid = ks->threadid;
+ 		strcpy(remcom_out_buffer, "OK");
++#ifdef CONFIG_SMP
++		if ((arch_kgdb_ops.flags & KGDB_THR_PROC_SWAP) &&
++			!ks->thr_query && ks->kgdb_usethreadid < -1 &&
++			- ks->kgdb_usethreadid - 2 != raw_smp_processor_id()) {
++			kgdb_roundup_cpu(raw_smp_processor_id(), 0);
++			kgdb_contthread = kgdb_usethread;
++			return 1;
++		}
++#endif
+ 		break;
+ 	case 'c':
+ 		ptr = &remcom_in_buffer[2];
+@@ -1102,10 +1131,27 @@ static void gdb_cmd_task(struct kgdb_sta
+ 				break;
+ 			}
+ 			kgdb_contthread = thread;
++#ifdef CONFIG_SMP
++			if ((arch_kgdb_ops.flags & KGDB_THR_PROC_SWAP) &&
++				thread != current) {
++				int cpu;
++				for_each_online_cpu(cpu) {
++					if (thread == kgdb_info[cpu].task) {
++						kgdb_roundup_cpu(
++							raw_smp_processor_id(),
++							0);
++						ks->kgdb_usethreadid = -cpu-2;
++						return 1;
++					}
++				}
++			}
++#endif
+ 		}
+ 		strcpy(remcom_out_buffer, "OK");
+ 		break;
+ 	}
++
++	return 0;
+ }
+ 
+ /* Handle the 'T' thread query packets */
+@@ -1114,6 +1160,9 @@ static void gdb_cmd_thread(struct kgdb_s
+ 	char *ptr = &remcom_in_buffer[1];
+ 	struct task_struct *thread;
+ 
++	if (arch_kgdb_ops.flags & KGDB_THR_PROC_SWAP)
++		ks->thr_query = 0;
++
+ 	kgdb_hex2long(&ptr, &ks->threadid);
+ 	thread = getthread(ks->linux_regs, ks->threadid);
+ 	if (thread)
+@@ -1223,7 +1272,12 @@ static int gdb_serial_stub(struct kgdb_s
+ 	/* Clear the out buffer. */
+ 	memset(remcom_out_buffer, 0, sizeof(remcom_out_buffer));
+ 
+-	if (kgdb_connected) {
++	if ((arch_kgdb_ops.flags & KGDB_THR_PROC_SWAP) && kgdb_contthread) {
++		remcom_out_buffer[0] = 'O';
++		remcom_out_buffer[1] = 'K';
++		remcom_out_buffer[2] = 0;
++		put_packet(remcom_out_buffer);
++	} else if (kgdb_connected) {
+ 		unsigned char thref[8];
+ 		char *ptr;
+ 
+@@ -1238,6 +1292,7 @@ static int gdb_serial_stub(struct kgdb_s
+ 		put_packet(remcom_out_buffer);
+ 	}
+ 
++	kgdb_contthread = current;
+ 	kgdb_usethread = kgdb_info[ks->cpu].task;
+ 	ks->kgdb_usethreadid = shadow_pid(kgdb_info[ks->cpu].task->pid);
+ 	ks->pass_exception = 0;
+@@ -1284,7 +1339,8 @@ static int gdb_serial_stub(struct kgdb_s
+ 			gdb_cmd_query(ks);
+ 			break;
+ 		case 'H': /* task related */
+-			gdb_cmd_task(ks);
++			if (gdb_cmd_task(ks))
++				goto kgdb_exit;
+ 			break;
+ 		case 'T': /* Query thread status */
+ 			gdb_cmd_thread(ks);
+@@ -1324,6 +1380,7 @@ default_handle:
+ 			if (error >= 0 || remcom_in_buffer[0] == 'D' ||
+ 			    remcom_in_buffer[0] == 'k') {
+ 				error = 0;
++				kgdb_contthread = NULL;
+ 				goto kgdb_exit;
+ 			}
+ 
+@@ -1464,11 +1521,15 @@ acquirelock:
+ 	 * Get the passive CPU lock which will hold all the non-primary
+ 	 * CPU in a spin state while the debugger is active
+ 	 */
+-	if (!kgdb_single_step) {
++	if (!kgdb_single_step && !kgdb_contthread) {
+ 		for (i = 0; i < NR_CPUS; i++)
+ 			atomic_set(&passive_cpu_wait[i], 1);
+ 	}
+ 
++	if (kgdb_contthread)
++		atomic_set(&passive_cpu_wait[raw_smp_processor_id()], 1);
++
++
+ 	/*
+ 	 * spin_lock code is good enough as a barrier so we don't
+ 	 * need one here:
+@@ -1477,7 +1538,7 @@ acquirelock:
+ 
+ #ifdef CONFIG_SMP
+ 	/* Signal the other CPUs to enter kgdb_wait() */
+-	if ((!kgdb_single_step) && kgdb_do_roundup)
++	if ((!kgdb_single_step && !kgdb_contthread) && kgdb_do_roundup)
+ 		kgdb_roundup_cpus(flags);
  #endif
  
- #ifdef CONFIG_ROMFS_ON_MTD
+@@ -1496,7 +1557,6 @@ acquirelock:
+ 	kgdb_post_primary_code(ks->linux_regs, ks->ex_vector, ks->err_code);
+ 	kgdb_deactivate_sw_breakpoints();
+ 	kgdb_single_step = 0;
+-	kgdb_contthread = current;
+ 	exception_level = 0;
+ 
+ 	/* Talk to debugger with gdbserial protocol */
+@@ -1510,7 +1570,14 @@ acquirelock:
+ 	kgdb_info[ks->cpu].task = NULL;
+ 	atomic_set(&cpu_in_kgdb[ks->cpu], 0);
+ 
+-	if (!kgdb_single_step) {
++#ifdef CONFIG_SMP
++	i = -(ks->kgdb_usethreadid + 2);
++	if ((arch_kgdb_ops.flags & KGDB_THR_PROC_SWAP) &&
++		kgdb_contthread && i != cpu) {
++		atomic_set(&passive_cpu_wait[i], 0);
++	}
++#endif
++	if (!kgdb_single_step && !kgdb_contthread) {
+ 		for (i = NR_CPUS-1; i >= 0; i--)
+ 			atomic_set(&passive_cpu_wait[i], 0);
+ 		/*
+@@ -1536,9 +1603,9 @@ kgdb_restore:
+ int kgdb_nmicallback(int cpu, void *regs)
+ {
+ #ifdef CONFIG_SMP
+-	if (!atomic_read(&cpu_in_kgdb[cpu]) &&
++	if (!atomic_read(&cpu_in_kgdb[cpu]) && (kgdb_contthread ||
+ 			atomic_read(&kgdb_active) != cpu &&
+-			atomic_read(&cpu_in_kgdb[atomic_read(&kgdb_active)])) {
++			atomic_read(&cpu_in_kgdb[atomic_read(&kgdb_active)]))) {
+ 		kgdb_wait((struct pt_regs *)regs);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sonic.adi@gmail.com are
 
-origin.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-tracing-blktrace-move-the-tracing-file-to-kernel-trace.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-kernel-auditscc-fix-warning.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-leds-add-bd2802gu-led-driver-fix.patch
-mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+kgdb-switch-master-cpu-after-gdb-thread-command-for-smp.patch
 
