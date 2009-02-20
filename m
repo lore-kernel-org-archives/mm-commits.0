@@ -1,143 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack.patch removed from -mm tree
-Date: Fri, 20 Feb 2009 09:48:14 -0800
-Message-ID: <200902201748.n1KHmFjR020963@imap1.linux-foundation.org>
+Subject: + nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-fix.patch added to -mm tree
+Date: Fri, 20 Feb 2009 09:48:08 -0800
+Message-ID: <200902201748.n1KHm8Sl020957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39305 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753501AbZBTRsk (ORCPT
+	by vger.kernel.org with ESMTP id S1753413AbZBTRsj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Feb 2009 12:48:40 -0500
+	Fri, 20 Feb 2009 12:48:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bernd.schmidt@analog.com, dhowells@redhat.com, dwmw2@infradead.org, gerg@snapgear.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dhowells@redhat.com, bernd.schmidt@analog.com, dwmw2@infradead.org, gerg@snapgear.com
 
 
 The patch titled
-     nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack
-has been removed from the -mm tree.  Its filename was
-     nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack.patch
+     NOMMU: Make it possible for RomFS to use MTD devices directly
+has been added to the -mm tree.  Its filename is
+     nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: NOMMU: Make it possible for RomFS to use MTD devices directly
+From: David Howells <dhowells@redhat.com>
 
+Fix the configuration of the RomFS to make sure that at least one backing
+store method is always selected.  This is done by rendering it down to a
+choice item that selects between Block, MTD and both.
+
+This also works correctly in the case that CONFIG_MTD=m: MTD cannot be
+selected as a backing store unless CONFIG_ROMFS_FS is also 'm'.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Cc: Bernd Schmidt <bernd.schmidt@analog.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/storage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/romfs/Kconfig |   34 ++++++++++++++++++++++++++++------
+ 1 file changed, 28 insertions(+), 6 deletions(-)
 
-diff -puN fs/romfs/storage.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack fs/romfs/storage.c
---- a/fs/romfs/storage.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack
-+++ a/fs/romfs/storage.c
-@@ -15,7 +15,7 @@
- #include "internal.h"
+diff -puN fs/romfs/Kconfig~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-fix fs/romfs/Kconfig
+--- a/fs/romfs/Kconfig~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-fix
++++ a/fs/romfs/Kconfig
+@@ -1,6 +1,6 @@
+ config ROMFS_FS
+ 	tristate "ROM file system support"
+-	depends on BLOCK
++	depends on BLOCK || MTD
+ 	---help---
+ 	  This is a very small read-only file system mainly intended for
+ 	  initial ram disks of installation disks, but it could be used for
+@@ -15,9 +15,19 @@ config ROMFS_FS
+ 	  If you don't know whether you need it, then you don't need it:
+ 	  answer N.
  
- #if !defined(CONFIG_ROMFS_ON_MTD) && !defined(CONFIG_ROMFS_ON_BLOCK)
--#error no ROMFS backing store interface configured
-+//#error no ROMFS backing store interface configured
- #endif
+-config ROMFS_ON_BLOCK
+-	bool "Block device-backed ROM file system support" if (ROMFS_ON_MTD && EMBEDDED)
+-	depends on ROMFS_FS && BLOCK
++#
++# Select the backing stores to be supported
++#
++choice
++	prompt "RomFS backing stores"
++	depends on ROMFS_FS
++	default ROMFS_BACKED_BY_BLOCK
++	help
++	  Select the backing stores to be supported.
++
++config ROMFS_BACKED_BY_BLOCK
++	bool "Block device-backed ROM file system support"
++	depends on BLOCK
+ 	help
+ 	  This permits ROMFS to use block devices buffered through the page
+ 	  cache as the medium from which to retrieve data.  It does not allow
+@@ -25,9 +35,8 @@ config ROMFS_ON_BLOCK
  
- #ifdef CONFIG_ROMFS_ON_MTD
+ 	  If unsure, answer Y.
+ 
+-config ROMFS_ON_MTD
++config ROMFS_BACKED_BY_MTD
+ 	bool "MTD-backed ROM file system support"
+-	depends on ROMFS_FS
+ 	depends on MTD=y || (ROMFS_FS=m && MTD)
+ 	help
+ 	  This permits ROMFS to use MTD based devices directly, without the
+@@ -38,3 +47,16 @@ config ROMFS_ON_MTD
+ 
+ 	  If unsure, answer Y.
+ 
++config ROMFS_BACKED_BY_BOTH
++	bool "Both the above"
++	depends on BLOCK && (MTD=y || (ROMFS_FS=m && MTD))
++endchoice
++
++
++config ROMFS_ON_BLOCK
++	bool
++	default y if ROMFS_BACKED_BY_BLOCK || ROMFS_BACKED_BY_BOTH
++
++config ROMFS_ON_MTD
++	bool
++	default y if ROMFS_BACKED_BY_MTD || ROMFS_BACKED_BY_BOTH
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
+mn10300-fix-oprofile.patch
+mn10300-fix-typo-in-arch-mn10300-unit-asb2305-pcic.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-tracing-blktrace-move-the-tracing-file-to-kernel-trace.patch
-drivers-consolidate-driver_probe_done-loops-into-one-place.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-kernel-auditscc-fix-warning.patch
-sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-leds-add-bd2802gu-led-driver-fix.patch
-mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
 nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03.patch
+nommu-present-backing-device-capabilities-for-mtd-chardevs.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat-if-possible.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-fix.patch
 nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+mtd-fix-a-bad-dependency-in-the-blackfin-code.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
+mutex-subsystem-synchro-test-module.patch
 
