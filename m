@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-tracing-blktrace-move-the-tracing-file-to-kernel-trace.patch added to -mm tree
-Date: Thu, 19 Feb 2009 16:01:06 -0800
-Message-ID: <200902200018.n1K0IRDP000627@imap1.linux-foundation.org>
+Subject: + nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack.patch added to -mm tree
+Date: Thu, 19 Feb 2009 16:07:47 -0800
+Message-ID: <200902200025.n1K0P75v001026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756137AbZBTAS6 (ORCPT
+	by vger.kernel.org with ESMTP id S1758512AbZBTA03 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Feb 2009 19:18:58 -0500
+	Thu, 19 Feb 2009 19:26:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fweisbec@gmail.com, mingo@elte.hu, rostedt@goodmis.org
+Cc: akpm@linux-foundation.org, bernd.schmidt@analog.com, dhowells@redhat.com, dwmw2@infradead.org, gerg@snapgear.com
 
 
 The patch titled
-     fix " tracing/blktrace: move the tracing file to kernel/trace"
+     nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack
 has been added to the -mm tree.  Its filename is
-     fix-tracing-blktrace-move-the-tracing-file-to-kernel-trace.patch
+     nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix " tracing/blktrace: move the tracing file to kernel/trace"
+Subject: nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-catch up with mainline changes.
-
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Bernd Schmidt <bernd.schmidt@analog.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/blktrace.c |    2 +-
+ fs/romfs/storage.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/trace/blktrace.c~fix-tracing-blktrace-move-the-tracing-file-to-kernel-trace kernel/trace/blktrace.c
---- a/kernel/trace/blktrace.c~fix-tracing-blktrace-move-the-tracing-file-to-kernel-trace
-+++ a/kernel/trace/blktrace.c
-@@ -176,7 +176,7 @@ static void __blk_add_trace(struct blk_t
+diff -puN fs/romfs/storage.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack fs/romfs/storage.c
+--- a/fs/romfs/storage.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack
++++ a/fs/romfs/storage.c
+@@ -15,7 +15,7 @@
+ #include "internal.h"
  
- 	what |= ddir_act[rw & WRITE];
- 	what |= MASK_TC_BIT(rw, BARRIER);
--	what |= MASK_TC_BIT(rw, SYNC);
-+	what |= MASK_TC_BIT(rw, SYNCIO);
- 	what |= MASK_TC_BIT(rw, AHEAD);
- 	what |= MASK_TC_BIT(rw, META);
- 	what |= MASK_TC_BIT(rw, DISCARD);
+ #if !defined(CONFIG_ROMFS_ON_MTD) && !defined(CONFIG_ROMFS_ON_BLOCK)
+-#error no ROMFS backing store interface configured
++//#error no ROMFS backing store interface configured
+ #endif
+ 
+ #ifdef CONFIG_ROMFS_ON_MTD
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +100,7 @@ mm-introduce-for_each_populated_zone-macro-cleanup.patch
 mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
 mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-hack-hack-hack.patch
 do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
 m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
 epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
