@@ -1,109 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch removed from -mm tree
-Date: Fri, 20 Feb 2009 11:21:46 -0800
-Message-ID: <200902201921.n1KJLkMa026503@imap1.linux-foundation.org>
+Subject: + mmc-core-corec-fixed-delayed_work-was-never-cancelled.patch added to -mm tree
+Date: Fri, 20 Feb 2009 13:34:32 -0800
+Message-ID: <200902202134.n1KLYW5H001196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753460AbZBTTWb (ORCPT
+	by vger.kernel.org with ESMTP id S1751125AbZBTVfW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Feb 2009 14:22:31 -0500
+	Fri, 20 Feb 2009 16:35:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@aristanetworks.com, cornelia.huck@de.ibm.com, gregkh@suse.de, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ext-jorg.2.schummer@nokia.com
 
 
 The patch titled
-     sysfs: reference sysfs_dirent from sysfs inodes
-has been removed from the -mm tree.  Its filename was
-     sysfs-reference-sysfs_dirent-from-sysfs-inodes.patch
+     mmc: core/core.c: delayed_work was never cancelled
+has been added to the -mm tree.  Its filename is
+     mmc-core-corec-fixed-delayed_work-was-never-cancelled.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: reference sysfs_dirent from sysfs inodes
-From: Eric W. Biederman <ebiederm@aristanetworks.com>
+Subject: mmc: core/core.c: delayed_work was never cancelled
+From: Jorg Schummer <ext-jorg.2.schummer@nokia.com>
 
-The sysfs_dirent serves as both an inode and a directory entry
-for sysfs.  To prevent the sysfs inode numbers from being freed
-prematurely hold a reference to sysfs_dirent from the sysfs inode.
+The delayed work item mmc_host.detect is now cancelled before flushing the
+work queue.  This takes care of cases when delayed_work was scheduled for
+mmc_host.detect, but not yet placed in the work queue.
 
-[akpm@linux-foundation.org: add comment]
-Signed-off-by: Eric W. Biederman <ebiederm@aristanetworks.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Signed-off-by: Jorg Schummer <ext-jorg.2.schummer@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/inode.c |   17 +++++++++++++++++
- fs/sysfs/mount.c |    1 +
- fs/sysfs/sysfs.h |    1 +
- 3 files changed, 19 insertions(+)
+ drivers/mmc/core/core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/sysfs/inode.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes fs/sysfs/inode.c
---- a/fs/sysfs/inode.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes
-+++ a/fs/sysfs/inode.c
-@@ -147,6 +147,7 @@ static void sysfs_init_inode(struct sysf
- {
- 	struct bin_attribute *bin_attr;
+diff -puN drivers/mmc/core/core.c~mmc-core-corec-fixed-delayed_work-was-never-cancelled drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-core-corec-fixed-delayed_work-was-never-cancelled
++++ a/drivers/mmc/core/core.c
+@@ -815,6 +815,7 @@ void mmc_stop_host(struct mmc_host *host
+ 	spin_unlock_irqrestore(&host->lock, flags);
+ #endif
  
-+	inode->i_private = sysfs_get(sd);
- 	inode->i_mapping->a_ops = &sysfs_aops;
- 	inode->i_mapping->backing_dev_info = &sysfs_backing_dev_info;
- 	inode->i_op = &sysfs_inode_operations;
-@@ -214,6 +215,22 @@ struct inode * sysfs_get_inode(struct sy
- 	return inode;
- }
++	cancel_delayed_work(&host->detect);
+ 	mmc_flush_scheduled_work();
  
-+/*
-+ * The sysfs_dirent serves as both an inode and a directory entry for sysfs.
-+ * To prevent the sysfs inode numbers from being freed prematurely we take a
-+ * reference to sysfs_dirent from the sysfs inode.  A
-+ * super_operations.delete_inode() implementation is needed to drop that
-+ * reference upon inode destruction.
-+ */
-+void sysfs_delete_inode(struct inode *inode)
-+{
-+	struct sysfs_dirent *sd  = inode->i_private;
-+
-+	truncate_inode_pages(&inode->i_data, 0);
-+	clear_inode(inode);
-+	sysfs_put(sd);
-+}
-+
- int sysfs_hash_and_remove(struct sysfs_dirent *dir_sd, const char *name)
- {
- 	struct sysfs_addrm_cxt acxt;
-diff -puN fs/sysfs/mount.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes fs/sysfs/mount.c
---- a/fs/sysfs/mount.c~sysfs-reference-sysfs_dirent-from-sysfs-inodes
-+++ a/fs/sysfs/mount.c
-@@ -29,6 +29,7 @@ struct kmem_cache *sysfs_dir_cachep;
- static const struct super_operations sysfs_ops = {
- 	.statfs		= simple_statfs,
- 	.drop_inode	= generic_delete_inode,
-+	.delete_inode	= sysfs_delete_inode,
- };
- 
- struct sysfs_dirent sysfs_root = {
-diff -puN fs/sysfs/sysfs.h~sysfs-reference-sysfs_dirent-from-sysfs-inodes fs/sysfs/sysfs.h
---- a/fs/sysfs/sysfs.h~sysfs-reference-sysfs_dirent-from-sysfs-inodes
-+++ a/fs/sysfs/sysfs.h
-@@ -145,6 +145,7 @@ static inline void __sysfs_put(struct sy
-  * inode.c
+ 	mmc_bus_get(host);
+@@ -842,6 +843,7 @@ void mmc_stop_host(struct mmc_host *host
   */
- struct inode *sysfs_get_inode(struct sysfs_dirent *sd);
-+void sysfs_delete_inode(struct inode *inode);
- int sysfs_setattr(struct dentry *dentry, struct iattr *iattr);
- int sysfs_hash_and_remove(struct sysfs_dirent *dir_sd, const char *name);
- int sysfs_inode_init(void);
+ int mmc_suspend_host(struct mmc_host *host, pm_message_t state)
+ {
++	cancel_delayed_work(&host->detect);
+ 	mmc_flush_scheduled_work();
+ 
+ 	mmc_bus_get(host);
 _
 
-Patches currently in -mm which might be from ebiederm@aristanetworks.com are
+Patches currently in -mm which might be from ext-jorg.2.schummer@nokia.com are
 
-linux-next.patch
+mmc-core-corec-fixed-delayed_work-was-never-cancelled.patch
 
