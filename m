@@ -1,342 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: + x86-conform-l3-cache-index-disable-to-linux-standards.patch added to -mm tree
-Date: Fri, 20 Feb 2009 14:50:16 -0800
-Message-ID: <200902202250.n1KMoHmE005473@imap1.linux-foundation.org>
+Subject: [alternative-merged] aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch removed from -mm tree
+Date: Fri, 20 Feb 2009 15:16:47 -0800
+Message-ID: <200902202334.n1KNYAqU007941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752701AbZBTWv2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753504AbZBTXeg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Feb 2009 17:51:28 -0500
+	Fri, 20 Feb 2009 18:34:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mark.langsdorf@amd.com, eric@lammerts.org, hpa@zytor.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, geert@linux-m68k.org, khc@pm.waw.pl, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: Conform L3 Cache Index Disable to Linux standards
-has been added to the -mm tree.  Its filename is
-     x86-conform-l3-cache-index-disable-to-linux-standards.patch
+     aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix
+has been removed from the -mm tree.  Its filename was
+     aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an alternative patch was merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: Conform L3 Cache Index Disable to Linux standards
-=46rom: Mark Langsdorf <mark.langsdorf@amd.com>
+Subject: aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add ABI Documentation entry and fix some /sys directory formating
-issues with the L3 Cache Index Disable feature for future AMD
-processors. =A0Add a check to disable it for family 0x10 models
-that do not support it yet.
+drivers/video/aty/aty128fb.c: In function 'aty128_set_suspend':
+drivers/video/aty/aty128fb.c:2368: warning: unused variable 'pwr_command'
 
-Signed-off-by: Mark Langsdorf <mark.langsdorf@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Eric Lammerts <eric@lammerts.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-devices-cache_disable |   18 +
- arch/x86/kernel/cpu/intel_cacheinfo.c                 |  178 ++++-----=
--
- 2 files changed, 94 insertions(+), 102 deletions(-)
+ drivers/video/aty/aty128fb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN /dev/null Documentation/ABI/testing/sysfs-devices-cache_disab=
-le
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-devices-cache_disable
-@@ -0,0 +1,18 @@
-+What:	    /sys/devices/system/cpu/cpu*/cache/index*/cache_disable_X
-+Date:	    August 2008
-+KernelVersion:  2.6.27
-+Contact:	 mark.langsdorf@amd.com
-+Description:    These files exist in every cpu's cache index directori=
-es.
-+		 There are currently 2 cache_disable_# files in each
-+		 directory.  Reading from these files on a supported
-+		 processor will return that cache disable index value
-+		 for that processor and node.  Writing to one of these
-+		 files will cause the specificed cache index to be disabled.
-+
-+		 Currently, only AMD Family 10h Processors support cache index
-+		 disable, and only for their L3 caches.  See the BIOS and
-+		 Kernel Developer's Guide at
-+		http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_d=
-ocs/31116-Public-GH-BKDG_3.20_2-4-09.pdf
-+		 for formatting information and other details on the
-+		 cache index disable.
-+Users:	   joachim.deguara@amd.com
-diff -puN arch/x86/kernel/cpu/intel_cacheinfo.c~x86-conform-l3-cache-in=
-dex-disable-to-linux-standards arch/x86/kernel/cpu/intel_cacheinfo.c
---- a/arch/x86/kernel/cpu/intel_cacheinfo.c~x86-conform-l3-cache-index-=
-disable-to-linux-standards
-+++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
-@@ -18,6 +18,9 @@
- #include <asm/processor.h>
- #include <asm/smp.h>
-=20
-+#include <linux/pci.h>
-+#include <asm/k8.h>
-+
- #define LVL_1_INST	1
- #define LVL_1_DATA	2
- #define LVL_2		3
-@@ -159,14 +162,6 @@ struct _cpuid4_info_regs {
- 	unsigned long can_disable;
- };
-=20
--#ifdef CONFIG_PCI
--static struct pci_device_id k8_nb_id[] =3D {
--	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, 0x1103) },
--	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, 0x1203) },
--	{}
--};
--#endif
--
- unsigned short			num_cache_leaves;
-=20
- /* AMD doesn't have CPUID4. Emulate it here to report the same
-@@ -291,6 +286,12 @@ amd_check_l3_disable(int index, struct _
+diff -puN drivers/video/aty/aty128fb.c~aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix drivers/video/aty/aty128fb.c
+--- a/drivers/video/aty/aty128fb.c~aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix
++++ a/drivers/video/aty/aty128fb.c
+@@ -2365,7 +2365,6 @@ static void fbcon_aty128_bmove(struct di
+ static void aty128_set_suspend(struct aty128fb_par *par, int suspend)
  {
- 	if (index < 3)
- 		return;
-+	if (boot_cpu_data.x86 =3D=3D 0x11)
-+		return;
-+
-+	if ((boot_cpu_data.x86 =3D=3D 0x10) && (boot_cpu_data.x86_model < 0x1=
-5))
-+		return;
-+
- 	this_leaf->can_disable =3D 1;
- }
-=20
-@@ -639,6 +640,66 @@ static ssize_t show_##file_name						\
- 	return sprintf (buf, "%lu\n", (unsigned long)this_leaf->object + val)=
-; \
- }
-=20
-+static ssize_t show_cache_disable(struct _cpuid4_info *this_leaf, char=
- *buf,
-+		 unsigned int index)
-+{
-+	const struct cpumask *mask =3D to_cpumask(this_leaf->shared_cpu_map);
-+	int node =3D cpu_to_node(cpumask_first(mask));
-+	struct pci_dev *dev =3D k8_northbridges[node];
-+	unsigned int reg =3D 0;
-+
-+	if (!this_leaf->can_disable)
-+		return -EINVAL;
-+
-+	pci_read_config_dword(dev, 0x1BC + index * 4, &reg);
-+	return sprintf(buf, "%x\n", reg);
-+}
-+
-+#define SHOW_CACHE_DISABLE(index)					\
-+static ssize_t								\
-+show_cache_disable_##index(struct _cpuid4_info *this_leaf, char *buf) =
- 	\
-+{									\
-+	return show_cache_disable(this_leaf, buf, index);		\
-+}
-+
-+static ssize_t
-+store_cache_disable(struct _cpuid4_info *this_leaf, const char *buf,
-+		 size_t count, unsigned int index)
-+{
-+	const struct cpumask *mask =3D to_cpumask(this_leaf->shared_cpu_map);
-+	int node =3D cpu_to_node(cpumask_first(mask));
-+	struct pci_dev *dev =3D k8_northbridges[node];
-+	unsigned long val =3D 0;
-+
-+	if (!this_leaf->can_disable)
-+		return -EINVAL;
-+
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	if (strict_strtoul(buf, 10, &val) < 0)
-+		return -EINVAL;
-+
-+	val |=3D 0xc0000000;
-+	pci_write_config_dword(dev, 0x1BC + index * 4, val & ~0x40000000);
-+	wbinvd();
-+	pci_write_config_dword(dev, 0x1BC + index * 4, val);
-+	return count;
-+}
-+
-+#define STORE_CACHE_DISABLE(index)					\
-+static ssize_t								\
-+store_cache_disable_##index(struct _cpuid4_info *this_leaf,	     	\
-+		 const char *buf, size_t count)			     	\
-+{									\
-+	return store_cache_disable(this_leaf, buf, count, index);	\
-+}
-+
-+SHOW_CACHE_DISABLE(0)
-+STORE_CACHE_DISABLE(0)
-+SHOW_CACHE_DISABLE(1)
-+STORE_CACHE_DISABLE(1)
-+
- show_one_plus(level, eax.split.level, 0);
- show_one_plus(coherency_line_size, ebx.split.coherency_line_size, 1);
- show_one_plus(physical_line_partition, ebx.split.physical_line_partiti=
-on, 1);
-@@ -696,98 +757,6 @@ static ssize_t show_type(struct _cpuid4_
- #define to_object(k)	container_of(k, struct _index_kobject, kobj)
- #define to_attr(a)	container_of(a, struct _cache_attr, attr)
-=20
--#ifdef CONFIG_PCI
--static struct pci_dev *get_k8_northbridge(int node)
--{
--	struct pci_dev *dev =3D NULL;
--	int i;
--
--	for (i =3D 0; i <=3D node; i++) {
--		do {
--			dev =3D pci_get_device(PCI_ANY_ID, PCI_ANY_ID, dev);
--			if (!dev)
--				break;
--		} while (!pci_match_id(&k8_nb_id[0], dev));
--		if (!dev)
--			break;
--	}
--	return dev;
--}
--#else
--static struct pci_dev *get_k8_northbridge(int node)
--{
--	return NULL;
--}
--#endif
--
--static ssize_t show_cache_disable(struct _cpuid4_info *this_leaf, char=
- *buf)
--{
--	const struct cpumask *mask =3D to_cpumask(this_leaf->shared_cpu_map);
--	int node =3D cpu_to_node(cpumask_first(mask));
--	struct pci_dev *dev =3D NULL;
--	ssize_t ret =3D 0;
--	int i;
--
--	if (!this_leaf->can_disable)
--		return sprintf(buf, "Feature not enabled\n");
--
--	dev =3D get_k8_northbridge(node);
--	if (!dev) {
--		printk(KERN_ERR "Attempting AMD northbridge operation on a system wi=
-th no northbridge\n");
--		return -EINVAL;
--	}
--
--	for (i =3D 0; i < 2; i++) {
--		unsigned int reg;
--
--		pci_read_config_dword(dev, 0x1BC + i * 4, &reg);
--
--		ret +=3D sprintf(buf, "%sEntry: %d\n", buf, i);
--		ret +=3D sprintf(buf, "%sReads:  %s\tNew Entries: %s\n", =20
--			buf,
--			reg & 0x80000000 ? "Disabled" : "Allowed",
--			reg & 0x40000000 ? "Disabled" : "Allowed");
--		ret +=3D sprintf(buf, "%sSubCache: %x\tIndex: %x\n",
--			buf, (reg & 0x30000) >> 16, reg & 0xfff);
--	}
--	return ret;
--}
--
--static ssize_t
--store_cache_disable(struct _cpuid4_info *this_leaf, const char *buf,
--		    size_t count)
--{
--	const struct cpumask *mask =3D to_cpumask(this_leaf->shared_cpu_map);
--	int node =3D cpu_to_node(cpumask_first(mask));
--	struct pci_dev *dev =3D NULL;
--	unsigned int ret, index, val;
--
--	if (!this_leaf->can_disable)
--		return 0;
--
--	if (strlen(buf) > 15)
--		return -EINVAL;
--
--	ret =3D sscanf(buf, "%x %x", &index, &val);
--	if (ret !=3D 2)
--		return -EINVAL;
--	if (index > 1)
--		return -EINVAL;
--
--	val |=3D 0xc0000000;
--	dev =3D get_k8_northbridge(node);
--	if (!dev) {
--		printk(KERN_ERR "Attempting AMD northbridge operation on a system wi=
-th no northbridge\n");
--		return -EINVAL;
--	}
--
--	pci_write_config_dword(dev, 0x1BC + index * 4, val & ~0x40000000);
--	wbinvd();
--	pci_write_config_dword(dev, 0x1BC + index * 4, val);
--
--	return 1;
--}
--
- struct _cache_attr {
- 	struct attribute attr;
- 	ssize_t (*show)(struct _cpuid4_info *, char *);
-@@ -808,7 +777,11 @@ define_one_ro(size);
- define_one_ro(shared_cpu_map);
- define_one_ro(shared_cpu_list);
-=20
--static struct _cache_attr cache_disable =3D __ATTR(cache_disable, 0644=
-, show_cache_disable, store_cache_disable);
-+static struct _cache_attr cache_disable_0 =3D __ATTR(cache_disable_0, =
-0644,
-+		 show_cache_disable_0, store_cache_disable_0);
-+static struct _cache_attr cache_disable_1 =3D __ATTR(cache_disable_1, =
-0644,
-+		 show_cache_disable_1, store_cache_disable_1);
-+
-=20
- static struct attribute * default_attrs[] =3D {
- 	&type.attr,
-@@ -820,7 +793,8 @@ static struct attribute * default_attrs[
- 	&size.attr,
- 	&shared_cpu_map.attr,
- 	&shared_cpu_list.attr,
--	&cache_disable.attr,
-+	&cache_disable_0.attr,
-+	&cache_disable_1.attr,
- 	NULL
- };
-=20
+ 	u32	pmgt;
+-	u16	pwr_command;
+ 	struct pci_dev *pdev = par->pdev;
+ 
+ 	if (!par->pm_reg)
 _
 
-Patches currently in -mm which might be from mark.langsdorf@amd.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-conform-l3-cache-index-disable-to-linux-standards.patch
+origin.patch
+8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+pci-enable-pcie-aer-only-after-checking-firmware-support-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+aty128fb-properly-save-pci-state-before-changing-pci-pm-level-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
