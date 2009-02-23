@@ -1,77 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sxc-fix-dbl-statement-if-add-missing-braces.patch removed from -mm tree
-Date: Mon, 23 Feb 2009 12:06:39 -0800
-Message-ID: <200902232006.n1NK6dbJ013412@imap1.linux-foundation.org>
+Subject: [merged] pm-fix-pm_notifiers-during-user-mode-hibernation.patch removed from -mm tree
+Date: Mon, 23 Feb 2009 12:07:02 -0800
+Message-ID: <200902232007.n1NK72MF013457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751984AbZBWUHX (ORCPT
+	by vger.kernel.org with ESMTP id S1753058AbZBWUHt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Feb 2009 15:07:23 -0500
+	Mon, 23 Feb 2009 15:07:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ilpo.jarvinen@helsinki.fi, error27@gmail.com, mm-commits@vger.kernel.org
+To: arvidjaar@mail.ru, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sx.c: fix dbl statement if - add missing braces
+     pm: fix pm_notifiers during user mode hibernation
 has been removed from the -mm tree.  Its filename was
-     sxc-fix-dbl-statement-if-add-missing-braces.patch
+     pm-fix-pm_notifiers-during-user-mode-hibernation.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sx.c: fix dbl statement if - add missing braces
-=46rom: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
+Subject: pm: fix pm_notifiers during user mode hibernation
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 
-Caused by 736d54533aed (sx.c: fix missed unlock_kernel() on error path =
-in
-sx_fw_ioctl()).  You guys keep breaking things this way in every single
-kernel release in at least couple of places...  :-(
+Snapshot device is opened with O_RDONLY during suspend and O_WRONLY durig
+resume.  Make sure we also call notifiers with correct parameter telling
+them what we are really doing.
 
-Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
-Acked-by: Dan Carpenter <error27@gmail.com>
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sx.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/power/user.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/sx.c~sxc-fix-dbl-statement-if-add-missing-braces=
- drivers/char/sx.c
---- a/drivers/char/sx.c~sxc-fix-dbl-statement-if-add-missing-braces
-+++ a/drivers/char/sx.c
-@@ -1746,9 +1746,10 @@ static long sx_fw_ioctl(struct file *fil
- 		sx_dprintk(SX_DEBUG_FIRMWARE, "returning type=3D %ld\n", rc);
- 		break;
- 	case SXIO_DO_RAMTEST:
--		if (sx_initialized)	/* Already initialized: better not ramtest the b=
-oard.  */
-+		if (sx_initialized) {	/* Already initialized: better not ramtest the=
- board.  */
- 			rc =3D -EPERM;
- 			break;
-+		}
- 		if (IS_SX_BOARD(board)) {
- 			rc =3D do_memtest(board, 0, 0x7000);
- 			if (!rc)
+diff -puN kernel/power/user.c~pm-fix-pm_notifiers-during-user-mode-hibernation kernel/power/user.c
+--- a/kernel/power/user.c~pm-fix-pm_notifiers-during-user-mode-hibernation
++++ a/kernel/power/user.c
+@@ -95,15 +95,15 @@ static int snapshot_open(struct inode *i
+ 		data->swap = swsusp_resume_device ?
+ 			swap_type_of(swsusp_resume_device, 0, NULL) : -1;
+ 		data->mode = O_RDONLY;
+-		error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
++		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
+ 		if (error)
+-			pm_notifier_call_chain(PM_POST_RESTORE);
++			pm_notifier_call_chain(PM_POST_HIBERNATION);
+ 	} else {
+ 		data->swap = -1;
+ 		data->mode = O_WRONLY;
+-		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
++		error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
+ 		if (error)
+-			pm_notifier_call_chain(PM_POST_HIBERNATION);
++			pm_notifier_call_chain(PM_POST_RESTORE);
+ 	}
+ 	if (error)
+ 		atomic_inc(&snapshot_device_available);
 _
 
-Patches currently in -mm which might be from ilpo.jarvinen@helsinki.fi =
-are
+Patches currently in -mm which might be from arvidjaar@mail.ru are
 
 linux-next.patch
+fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
