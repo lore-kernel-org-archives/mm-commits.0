@@ -1,58 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] 8250_pnpc-add-another-serial-wacom-tablet.patch removed from -mm tree
-Date: Mon, 23 Feb 2009 00:09:17 -0800
-Message-ID: <200902230809.n1N89Hvo032343@imap1.linux-foundation.org>
+Subject: + kernel-cgroupc-kfreenull-is-legal.patch added to -mm tree
+Date: Mon, 23 Feb 2009 00:10:59 -0800
+Message-ID: <200902230810.n1N8AxJv032518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753681AbZBWIJb (ORCPT
+	by vger.kernel.org with ESMTP id S1752648AbZBWILJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Feb 2009 03:09:31 -0500
+	Mon, 23 Feb 2009 03:11:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dkukawka@suse.de, alan@lxorguk.ukuu.org.uk, bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jj@chaosbits.net, menage@google.com
 
 
 The patch titled
-     8250_pnp.c: add another serial Wacom tablet
-has been removed from the -mm tree.  Its filename was
-     8250_pnpc-add-another-serial-wacom-tablet.patch
+     kernel/cgroup.c: kfree(NULL) is legal
+has been added to the -mm tree.  Its filename is
+     kernel-cgroupc-kfreenull-is-legal.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250_pnp.c: add another serial Wacom tablet
-From: Danny Kukawka <dkukawka@suse.de>
+Subject: kernel/cgroup.c: kfree(NULL) is legal
+From: Jesper Juhl <jj@chaosbits.net>
 
-Add another serial Wacom tablet with pnp_id: WACF009.
+Reduces object file size a bit:
 
-Signed-off-by: Danny Kukawka <dkukawka@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Before:
+$ size kernel/cgroup.o
+   text    data     bss     dec     hex filename
+  21593    7804    4924   34321    8611 kernel/cgroup.o
+After:
+$ size kernel/cgroup.o
+   text    data     bss     dec     hex filename
+  21537    7744    4924   34205    859d kernel/cgroup.o
+
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pnp.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/cgroup.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/serial/8250_pnp.c~8250_pnpc-add-another-serial-wacom-tablet drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~8250_pnpc-add-another-serial-wacom-tablet
-+++ a/drivers/serial/8250_pnp.c
-@@ -333,6 +333,7 @@ static const struct pnp_device_id pnp_de
- 	{       "WACF006",              0       },
- 	{       "WACF007",              0       },
- 	{       "WACF008",              0       },
-+	{       "WACF009",              0       },
- 	/* Compaq touchscreen */
- 	{       "FPI2002",              0 },
- 	/* Fujitsu Stylistic touchscreens */
+diff -puN kernel/cgroup.c~kernel-cgroupc-kfreenull-is-legal kernel/cgroup.c
+--- a/kernel/cgroup.c~kernel-cgroupc-kfreenull-is-legal
++++ a/kernel/cgroup.c
+@@ -923,8 +923,7 @@ static int cgroup_remount(struct super_b
+ 	if (opts.release_agent)
+ 		strcpy(root->release_agent_path, opts.release_agent);
+  out_unlock:
+-	if (opts.release_agent)
+-		kfree(opts.release_agent);
++	kfree(opts.release_agent);
+ 	mutex_unlock(&cgroup_mutex);
+ 	mutex_unlock(&cgrp->dentry->d_inode->i_mutex);
+ 	return ret;
+@@ -1027,15 +1026,13 @@ static int cgroup_get_sb(struct file_sys
+ 	/* First find the desired set of subsystems */
+ 	ret = parse_cgroupfs_options(data, &opts);
+ 	if (ret) {
+-		if (opts.release_agent)
+-			kfree(opts.release_agent);
++		kfree(opts.release_agent);
+ 		return ret;
+ 	}
+ 
+ 	root = kzalloc(sizeof(*root), GFP_KERNEL);
+ 	if (!root) {
+-		if (opts.release_agent)
+-			kfree(opts.release_agent);
++		kfree(opts.release_agent);
+ 		return -ENOMEM;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from dkukawka@suse.de are
+Patches currently in -mm which might be from jj@chaosbits.net are
 
-8250_pnpc-add-another-serial-wacom-tablet.patch
-linux-next.patch
+kernel-cgroupc-kfreenull-is-legal.patch
 
