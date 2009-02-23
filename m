@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + 8250_pnpc-add-another-serial-wacom-tablet.patch added to -mm tree
-Date: Sun, 22 Feb 2009 23:40:38 -0800
-Message-ID: <200902230740.n1N7ecCC030719@imap1.linux-foundation.org>
+Subject: [alternative-merged] 8250_pnpc-add-another-serial-wacom-tablet.patch removed from -mm tree
+Date: Mon, 23 Feb 2009 00:09:17 -0800
+Message-ID: <200902230809.n1N89Hvo032343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58484 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752647AbZBWHlX (ORCPT
+	by vger.kernel.org with ESMTP id S1753681AbZBWIJb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Feb 2009 02:41:23 -0500
+	Mon, 23 Feb 2009 03:09:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dkukawka@suse.de, alan@lxorguk.ukuu.org.uk, bjorn.helgaas@hp.com
+To: dkukawka@suse.de, alan@lxorguk.ukuu.org.uk, bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      8250_pnp.c: add another serial Wacom tablet
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      8250_pnpc-add-another-serial-wacom-tablet.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
