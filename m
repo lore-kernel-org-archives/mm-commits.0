@@ -1,106 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] move-exit_ptrace-from-forget_original_parent-to-do_exit.patch removed from -mm tree
-Date: Mon, 23 Feb 2009 11:51:31 -0800
-Message-ID: <200902231951.n1NJpVFG012328@imap1.linux-foundation.org>
+Subject: [merged] readme-fix-a-wrong-filename.patch removed from -mm tree
+Date: Mon, 23 Feb 2009 12:06:37 -0800
+Message-ID: <200902232006.n1NK6bOD013407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51805 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44480 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754223AbZBWTx5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752188AbZBWUHP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Feb 2009 14:53:57 -0500
+	Mon, 23 Feb 2009 15:07:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, ebiederm@xmission.com, markus.t.metzger@intel.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     move exit_ptrace() from forget_original_parent() to do_exit()
+     README: fix a wrong filename
 has been removed from the -mm tree.  Its filename was
-     move-exit_ptrace-from-forget_original_parent-to-do_exit.patch
+     readme-fix-a-wrong-filename.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: move exit_ptrace() from forget_original_parent() to do_exit()
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: README: fix a wrong filename
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-By discussion with Roland.
+It should be Documentation/build/kconfig.txt.
 
-Call exit_ptrace() from do_exit(), no need to delay this call until
-forget_original_parent().
+Introduced by commit 2af238e455ef5fd31c2f7a06c2db3f13d843b9bf
+("kbuild: make *config usage docs").
 
-If we ever change exit_ptrace() to do the blocking calls, it makes
-sense to move it after exit_signals().
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Metzger, Markus T" <markus.t.metzger@intel.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ README |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~move-exit_ptrace-from-forget_original_parent-to-do_exit kernel/exit.c
---- a/kernel/exit.c~move-exit_ptrace-from-forget_original_parent-to-do_exit
-+++ a/kernel/exit.c
-@@ -806,8 +806,6 @@ static void forget_original_parent(struc
- 	struct task_struct *p, *n, *reaper;
- 	LIST_HEAD(dead_children);
+diff -puN README~readme-fix-a-wrong-filename README
+--- a/README~readme-fix-a-wrong-filename
++++ a/README
+@@ -188,7 +188,7 @@ CONFIGURING the kernel:
+ 			   values to random values.
  
--	exit_ptrace(father);
--
- 	write_lock_irq(&tasklist_lock);
- 	reaper = find_new_reaper(father);
+    You can find more information on using the Linux kernel config tools
+-   in Documentation/kbuild/make-configs.txt.
++   in Documentation/kbuild/kconfig.txt.
  
-@@ -956,6 +954,7 @@ NORET_TYPE void do_exit(long code)
- 		schedule();
- 	}
- 
-+	exit_ptrace(tsk);
- 	exit_signals(tsk);  /* sets PF_EXITING */
- 	/*
- 	 * tsk->flags are checked in the futex code to protect against
+ 	NOTES on "make config":
+ 	- having unnecessary drivers will make the kernel bigger, and can
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-origin.patch
 linux-next.patch
-pipe_rdwr_fasync-fix-the-error-handling-to-prevent-the-leak-crash.patch
-get_mm_hiwater_xxx-trivial-s-define-inline.patch
-getrusage-fill-ru_maxrss-value.patch
-do_wait-fix-waiting-for-the-group-stop-with-the-dead-leader.patch
-signals-remove-handler-parameter-to-tracehook-functions.patch
-signals-protect-init-from-unwanted-signals-more.patch
-ptrace-kill-__ptrace_detach-fix-exit_state-check.patch
-ptrace-simplify-ptrace_exit-ignoring_children-path.patch
-ptrace-simplify-ptrace_exit-ignoring_children-pathpatch-fix.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit.patch
-ptrace-reintroduce-__ptrace_detach-as-a-callee-of-ptrace_exit-fix.patch
-ptrace-fix-possible-zombie-leak-on-ptrace_detach.patch
-reparent_thread-dont-call-kill_orphaned_pgrp-if-task_detached.patch
-reparent_thread-fix-the-is-it-traced-check.patch
-reparent_thread-fix-a-zombie-leak-if-sbin-init-ignores-sigchld.patch
-forget_original_parent-split-out-the-un-ptrace-part.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-move-exit_ptrace-from-forget_original_parent-to-do_exit.patch
-reparent-untrace-do-nothing-if-no-childs-tracees.patch
-tracehook_notify_death-use-task_detached-helper.patch
-ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch
-ptrace_untrace-fix-the-signal_stop_stopped-check.patch
-workqueue-avoid-recursion-in-run_workqueue.patch
-kthreads-simplify-the-startup-synchronization.patch
-kthreads-rework-kthread_stop.patch
-kthreads-simplify-migration_thread-exit-path.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-pids-improve-get_task_pid-to-fix-the-unsafe-sys_wait4-task_pgrp.patch
-pids-refactor-vnr-nr_ns-helpers-to-make-them-safe.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+vfs-add-missing-unlock-in-sget.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
 
