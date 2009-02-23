@@ -1,86 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swsusp-dont-fiddle-with-swappiness.patch removed from -mm tree
-Date: Mon, 23 Feb 2009 12:07:12 -0800
-Message-ID: <200902232007.n1NK7C3h013475@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Mon, 23 Feb 2009 13:51:36 -0800
+Message-ID: <200902232209.n1NM92T0021317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751242AbZBWUU1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753250AbZBWWJh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Feb 2009 15:20:27 -0500
+	Mon, 23 Feb 2009 17:09:37 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n1NM964x017812
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 23 Feb 2009 14:09:07 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, pavel@ucw.cz, riel@redhat.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     swsusp: dont fiddle with swappiness
-has been removed from the -mm tree.  Its filename was
-     swsusp-dont-fiddle-with-swappiness.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swsusp: dont fiddle with swappiness
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-sc.swappiness is not used in the swsusp memory shrinking path, do not
-set it.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/gpu/drm/drm_crtc_helper.c |    9 ---------
+ drivers/gpu/drm/i915/i915_gem.c   |    6 ------
+ fs/cifs/CHANGES                   |    4 ----
+ 3 files changed, 19 deletions(-)
 
-diff -puN mm/vmscan.c~swsusp-dont-fiddle-with-swappiness mm/vmscan.c
---- a/mm/vmscan.c~swsusp-dont-fiddle-with-swappiness
-+++ a/mm/vmscan.c
-@@ -2111,7 +2111,6 @@ unsigned long shrink_all_memory(unsigned
- 		.may_swap = 0,
- 		.swap_cluster_max = nr_pages,
- 		.may_writepage = 1,
--		.swappiness = vm_swappiness,
- 		.isolate_pages = isolate_pages_global,
- 	};
+diff -puN drivers/gpu/drm/drm_crtc_helper.c~linux-next-git-rejects drivers/gpu/drm/drm_crtc_helper.c
+--- a/drivers/gpu/drm/drm_crtc_helper.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/drm_crtc_helper.c
+@@ -782,18 +782,9 @@ int drm_crtc_helper_set_config(struct dr
+ fail_set_mode:
+ 	set->crtc->enabled = save_enabled;
+ 	count = 0;
+-<<<<<<< HEAD:drivers/gpu/drm/drm_crtc_helper.c
+-	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
+-		if (!connector->encoder)
+-			continue;
+-
+-		connector->encoder->crtc = save_crtcs[count++];
+-	}
+-=======
+ 	list_for_each_entry(connector, &dev->mode_config.connector_list, head)
+ 		if (connector->encoder)
+ 			connector->encoder->crtc = save_crtcs[count++];
+->>>>>>> FETCH_HEAD:drivers/gpu/drm/drm_crtc_helper.c
+ fail_no_encoder:
+ 	kfree(save_crtcs);
+ 	count = 0;
+diff -puN drivers/gpu/drm/i915/i915_gem.c~linux-next-git-rejects drivers/gpu/drm/i915/i915_gem.c
+--- a/drivers/gpu/drm/i915/i915_gem.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/i915_gem.c
+@@ -2931,12 +2931,6 @@ int i915_gem_init_object(struct drm_gem_
+ void i915_gem_free_object(struct drm_gem_object *obj)
+ {
+ 	struct drm_device *dev = obj->dev;
+-<<<<<<< HEAD:drivers/gpu/drm/i915/i915_gem.c
+-=======
+-	struct drm_gem_mm *mm = dev->mm_private;
+-	struct drm_map_list *list;
+-	struct drm_local_map *map;
+->>>>>>> FETCH_HEAD:drivers/gpu/drm/i915/i915_gem.c
+ 	struct drm_i915_gem_object *obj_priv = obj->driver_private;
  
-@@ -2145,10 +2144,8 @@ unsigned long shrink_all_memory(unsigned
- 		int prio;
+ 	while (obj_priv->pin_count > 0)
+diff -puN fs/cifs/CHANGES~linux-next-git-rejects fs/cifs/CHANGES
+--- a/fs/cifs/CHANGES~linux-next-git-rejects
++++ a/fs/cifs/CHANGES
+@@ -18,13 +18,9 @@ top of the share.  Fix problem in 2.6.28
+ Samba servers (worked to Windows).  Fix rmdir so that pending search
+ (readdir) requests do not get invalid results which include the now
+ removed directory.  Fix oops in cifs_dfs_ref.c when prefixpath is not reachable
+-<<<<<<< HEAD:fs/cifs/CHANGES
+ when using DFS.  Add better file create support to servers which support
+ the CIFS POSIX protocol extensions (this adds support for new flags
+ on create, and improves semantics for write of locked ranges).
+-=======
+-when using DFS.
+->>>>>>> FETCH_HEAD:fs/cifs/CHANGES
  
- 		/* Force reclaiming mapped pages in the passes #3 and #4 */
--		if (pass > 2) {
-+		if (pass > 2)
- 			sc.may_swap = 1;
--			sc.swappiness = 100;
--		}
- 
- 		for (prio = DEF_PRIORITY; prio >= 0; prio--) {
- 			unsigned long nr_to_scan = nr_pages - ret;
+ Version 1.55
+ ------------
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-cifs-use-kzfree.patch
-md-use-kzfree.patch
-s390-use-kzfree.patch
-usb-use-kzfree.patch
-crypto-use-kzfree.patch
-vmscan-rename-scmay_swap-to-may_unmap.patch
-mm-introduce-for_each_populated_zone-macro.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
+kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+pci-enable-pcie-aer-only-after-checking-firmware-support-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
 mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed.patch
 mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch
-vmscan-respect-higher-order-in-zone_reclaim.patch
-ecryptfs-use-kzfree.patch
-memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
