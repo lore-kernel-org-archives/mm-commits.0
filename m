@@ -1,113 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slab-introduce-kzfree.patch removed from -mm tree
-Date: Mon, 23 Feb 2009 12:06:35 -0800
-Message-ID: <200902232006.n1NK6ZY0013400@imap1.linux-foundation.org>
+Subject: [merged] 8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch removed from -mm tree
+Date: Mon, 23 Feb 2009 12:06:56 -0800
+Message-ID: <200902232006.n1NK6uLY013444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753667AbZBWUIe (ORCPT
+	by vger.kernel.org with ESMTP id S1752497AbZBWUJQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Feb 2009 15:08:34 -0500
+	Mon, 23 Feb 2009 15:09:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, cl@linux-foundation.org, mpm@selenic.com, npiggin@suse.de, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: mchehab@redhat.com, alan@lxorguk.ukuu.org.uk, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: introduce kzfree()
+     8250: fix boot hang with serial console when using with Serial Over Lan port
 has been removed from the -mm tree.  Its filename was
-     slab-introduce-kzfree.patch
+     8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slab: introduce kzfree()
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: 8250: fix boot hang with serial console when using with Serial Over Lan port
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-kzfree() is a wrapper for kfree() that additionally zeroes the underlying
-memory before releasing it to the slab allocator.
+Intel 8257x Ethernet boards have a feature called Serial Over Lan.
 
-Currently there is code which memset()s the memory region of an object
-before releasing it back to the slab allocator to make sure
-security-sensitive data are really zeroed out after use.
+This feature works by emulating a serial port, and it is detected by
+kernel as a normal 8250 port.  However, this emulation is not perfect, as
+also noticed on changeset 7500b1f602aad75901774a67a687ee985d85893f.
 
-These callsites can then just use kzfree() which saves some code, makes
-users greppable and allows for a stupid destructor that isn't necessarily
-aware of the actual object size.
+Before this patch, the kernel were trying to check if the serial TX is
+capable of work using IRQ's.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Matt Mackall <mpm@selenic.com>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Cc: Nick Piggin <npiggin@suse.de>
+This were done with a code similar this:
+
+        serial_outp(up, UART_IER, UART_IER_THRI);
+        lsr = serial_in(up, UART_LSR);
+        iir = serial_in(up, UART_IIR);
+        serial_outp(up, UART_IER, 0);
+
+        if (lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT)
+		up->bugs |= UART_BUG_TXEN;
+
+This works fine for other 8250 ports, but, on 8250-emulated SoL port, the
+chip is a little lazy to down UART_IIR_NO_INT at UART_IIR register.
+
+Due to that, UART_BUG_TXEN is sometimes enabled.  However, as TX IRQ keeps
+working, and the TX polling is now enabled, the driver miss-interprets the
+IRQ received later, hanging up the machine until a key is pressed at the
+serial console.
+
+This is the 6 version of this patch.  Previous versions were trying to
+introduce a large enough delay between serial_outp and serial_in(up,
+UART_IIR), but not taking forever.  However, the needed delay couldn't be
+safely determined.
+
+At the experimental tests, a delay of 1us solves most of the cases, but
+still hangs sometimes.  Increasing the delay to 5us was better, but still
+doesn't solve.  A very high delay of 50 ms seemed to work every time.
+
+However, poking around with delays and pray for it to be enough doesn't
+seem to be a good approach, even for a quirk.
+
+So, instead of playing with random large arbitrary delays, let's just
+disable UART_BUG_TXEN for all SoL ports.
+
+[akpm@linux-foundation.org: fix warnings]
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    1 +
- mm/util.c            |   20 ++++++++++++++++++++
- 2 files changed, 21 insertions(+)
+ drivers/serial/8250.c       |   15 ++++++++++++++
+ drivers/serial/8250_pci.c   |   36 ++++++++++++++++++++++++++++++++++
+ include/linux/pci_ids.h     |    3 ++
+ include/linux/serial_core.h |    1 
+ 4 files changed, 55 insertions(+)
 
-diff -puN include/linux/slab.h~slab-introduce-kzfree include/linux/slab.h
---- a/include/linux/slab.h~slab-introduce-kzfree
-+++ a/include/linux/slab.h
-@@ -127,6 +127,7 @@ int kmem_ptr_validate(struct kmem_cache 
- void * __must_check __krealloc(const void *, size_t, gfp_t);
- void * __must_check krealloc(const void *, size_t, gfp_t);
- void kfree(const void *);
-+void kzfree(const void *);
- size_t ksize(const void *);
+diff -puN drivers/serial/8250.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port drivers/serial/8250.c
+--- a/drivers/serial/8250.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
++++ a/drivers/serial/8250.c
+@@ -2083,6 +2083,20 @@ static int serial8250_startup(struct uar
  
- /*
-diff -puN mm/util.c~slab-introduce-kzfree mm/util.c
---- a/mm/util.c~slab-introduce-kzfree
-+++ a/mm/util.c
-@@ -129,6 +129,26 @@ void *krealloc(const void *p, size_t new
+ 	serial8250_set_mctrl(&up->port, up->port.mctrl);
+ 
++	/* Serial over Lan (SoL) hack:
++	   Intel 8257x Gigabit ethernet chips have a
++	   16550 emulation, to be used for Serial Over Lan.
++	   Those chips take a longer time than a normal
++	   serial device to signalize that a transmission
++	   data was queued. Due to that, the above test generally
++	   fails. One solution would be to delay the reading of
++	   iir. However, this is not reliable, since the timeout
++	   is variable. So, let's just don't test if we receive
++	   TX irq. This way, we'll never enable UART_BUG_TXEN.
++	 */
++	if (up->port.flags & UPF_NO_TXEN_TEST)
++		goto dont_test_tx_en;
++
+ 	/*
+ 	 * Do a quick test to see if we receive an
+ 	 * interrupt when we enable the TX irq.
+@@ -2102,6 +2116,7 @@ static int serial8250_startup(struct uar
+ 		up->bugs &= ~UART_BUG_TXEN;
+ 	}
+ 
++dont_test_tx_en:
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ 
+ 	/*
+diff -puN drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
++++ a/drivers/serial/8250_pci.c
+@@ -798,6 +798,21 @@ pci_default_setup(struct serial_private 
+ 	return setup_port(priv, port, bar, offset, board->reg_shift);
  }
- EXPORT_SYMBOL(krealloc);
  
-+/**
-+ * kzfree - like kfree but zero memory
-+ * @p: object to free memory of
-+ *
-+ * The memory of the object @p points to is zeroed before freed.
-+ * If @p is %NULL, kzfree() does nothing.
-+ */
-+void kzfree(const void *p)
++static int skip_tx_en_setup(struct serial_private *priv,
++			const struct pciserial_board *board,
++			struct uart_port *port, int idx)
 +{
-+	size_t ks;
-+	void *mem = (void *)p;
++	port->flags |= UPF_NO_TXEN_TEST;
++	printk(KERN_DEBUG "serial8250: skipping TxEn test for device "
++			  "[%04x:%04x] subsystem [%04x:%04x]\n",
++			  priv->dev->vendor,
++			  priv->dev->device,
++			  priv->dev->subsystem_vendor,
++			  priv->dev->subsystem_device);
 +
-+	if (unlikely(ZERO_OR_NULL_PTR(mem)))
-+		return;
-+	ks = ksize(mem);
-+	memset(mem, 0, ks);
-+	kfree(mem);
++	return pci_default_setup(priv, board, port, idx);
 +}
-+EXPORT_SYMBOL(kzfree);
 +
- /*
-  * strndup_user - duplicate an existing string from user space
-  * @s: The string to duplicate
+ /* This should be in linux/pci_ids.h */
+ #define PCI_VENDOR_ID_SBSMODULARIO	0x124B
+ #define PCI_SUBVENDOR_ID_SBSMODULARIO	0x124B
+@@ -864,6 +879,27 @@ static struct pci_serial_quirk pci_seria
+ 		.init		= pci_inteli960ni_init,
+ 		.setup		= pci_default_setup,
+ 	},
++	{
++		.vendor		= PCI_VENDOR_ID_INTEL,
++		.device		= PCI_DEVICE_ID_INTEL_8257X_SOL,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++		.setup		= skip_tx_en_setup,
++	},
++	{
++		.vendor		= PCI_VENDOR_ID_INTEL,
++		.device		= PCI_DEVICE_ID_INTEL_82573L_SOL,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++		.setup		= skip_tx_en_setup,
++	},
++	{
++		.vendor		= PCI_VENDOR_ID_INTEL,
++		.device		= PCI_DEVICE_ID_INTEL_82573E_SOL,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++		.setup		= skip_tx_en_setup,
++	},
+ 	/*
+ 	 * ITE
+ 	 */
+diff -puN include/linux/pci_ids.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
++++ a/include/linux/pci_ids.h
+@@ -2323,6 +2323,9 @@
+ #define PCI_DEVICE_ID_INTEL_82378	0x0484
+ #define PCI_DEVICE_ID_INTEL_I960	0x0960
+ #define PCI_DEVICE_ID_INTEL_I960RM	0x0962
++#define PCI_DEVICE_ID_INTEL_8257X_SOL	0x1062
++#define PCI_DEVICE_ID_INTEL_82573E_SOL	0x1085
++#define PCI_DEVICE_ID_INTEL_82573L_SOL	0x108F
+ #define PCI_DEVICE_ID_INTEL_82815_MC	0x1130
+ #define PCI_DEVICE_ID_INTEL_82815_CGC	0x1132
+ #define PCI_DEVICE_ID_INTEL_82092AA_0	0x1221
+diff -puN include/linux/serial_core.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port include/linux/serial_core.h
+--- a/include/linux/serial_core.h~8250-fix-boot-hang-with-serial-console-when-using-with-serial-over-lan-port
++++ a/include/linux/serial_core.h
+@@ -296,6 +296,7 @@ struct uart_port {
+ #define UPF_HARDPPS_CD		((__force upf_t) (1 << 11))
+ #define UPF_LOW_LATENCY		((__force upf_t) (1 << 13))
+ #define UPF_BUGGY_UART		((__force upf_t) (1 << 14))
++#define UPF_NO_TXEN_TEST	((__force upf_t) (1 << 15))
+ #define UPF_MAGIC_MULTIPLIER	((__force upf_t) (1 << 16))
+ #define UPF_CONS_FLOW		((__force upf_t) (1 << 23))
+ #define UPF_SHARE_IRQ		((__force upf_t) (1 << 24))
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mchehab@redhat.com are
 
 linux-next.patch
-cifs-use-kzfree.patch
-md-use-kzfree.patch
-s390-use-kzfree.patch
-usb-use-kzfree.patch
-crypto-use-kzfree.patch
-vmscan-rename-scmay_swap-to-may_unmap.patch
-mm-introduce-for_each_populated_zone-macro.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch
-vmscan-respect-higher-order-in-zone_reclaim.patch
-ecryptfs-use-kzfree.patch
-memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
 
