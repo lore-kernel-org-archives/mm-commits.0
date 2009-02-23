@@ -1,76 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pm-wait-for-console-in-resume.patch removed from -mm tree
-Date: Mon, 23 Feb 2009 12:07:05 -0800
-Message-ID: <200902232007.n1NK75bZ013460@imap1.linux-foundation.org>
+Subject: [merged] pm-hibernate-fix-swap-breaks-after-hibernation-failures.patch removed from -mm tree
+Date: Mon, 23 Feb 2009 12:06:59 -0800
+Message-ID: <200902232006.n1NK6x0W013447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60668 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753058AbZBWUHz (ORCPT
+	by vger.kernel.org with ESMTP id S1753439AbZBWUHo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Feb 2009 15:07:55 -0500
+	Mon, 23 Feb 2009 15:07:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arve@android.com, alan@lxorguk.ukuu.org.uk, pavel@ucw.cz, rjw@sisk.pl, swetland@google.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: alan-jenkins@tuffmail.co.uk, lenb@kernel.org, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm: wait for console in resume
+     PM/hibernate: fix "swap breaks after hibernation failures"
 has been removed from the -mm tree.  Its filename was
-     pm-wait-for-console-in-resume.patch
+     pm-hibernate-fix-swap-breaks-after-hibernation-failures.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: wait for console in resume
-=46rom: Arve Hj=F8nnev=E5g <arve@android.com>
+Subject: PM/hibernate: fix "swap breaks after hibernation failures"
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Avoids later waking up to a blinking cursor if the device woke up and
-returned to sleep before the console switch happened.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=12239
 
-Signed-off-by: Brian Swetland <swetland@google.com>
-Signed-off-by: Arve Hj=F8nnev=E5g <arve@android.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+The image writing code dropped a reference to the current swap device. 
+This doesn't show up if the hibernation succeeds - because it doesn't
+affect the image which gets resumed.  But it means multiple _failed_
+hibernations end up freeing the swap device while it is still use!
+
+swsusp_write() finds the block device for the swap file using
+swap_type_of().  It then uses blkdev_get() / blkdev_put() to open and
+close the block device.
+
+Unfortunately, blkdev_get() assumes ownership of the inode of the
+block_device passed to it.  So blkdev_put() calls iput() on the inode. 
+This is by design and other callers expect this behaviour.  The fix is for
+swap_type_of() to take a reference on the inode using bdget().
+
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/console.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/swapfile.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/power/console.c~pm-wait-for-console-in-resume kernel/p=
-ower/console.c
---- a/kernel/power/console.c~pm-wait-for-console-in-resume
-+++ a/kernel/power/console.c
-@@ -78,6 +78,12 @@ void pm_restore_console(void)
- 	}
- 	set_console(orig_fgconsole);
- 	release_console_sem();
-+
-+	if (vt_waitactive(orig_fgconsole)) {
-+		pr_debug("Resume: Can't switch VCs.");
-+		return;
-+	}
-+
- 	kmsg_redirect =3D orig_kmsg;
- }
- #endif
+diff -puN mm/swapfile.c~pm-hibernate-fix-swap-breaks-after-hibernation-failures mm/swapfile.c
+--- a/mm/swapfile.c~pm-hibernate-fix-swap-breaks-after-hibernation-failures
++++ a/mm/swapfile.c
+@@ -635,7 +635,7 @@ int swap_type_of(dev_t device, sector_t 
+ 
+ 		if (!bdev) {
+ 			if (bdev_p)
+-				*bdev_p = sis->bdev;
++				*bdev_p = bdget(sis->bdev->bd_dev);
+ 
+ 			spin_unlock(&swap_lock);
+ 			return i;
+@@ -647,7 +647,7 @@ int swap_type_of(dev_t device, sector_t 
+ 					struct swap_extent, list);
+ 			if (se->start_block == offset) {
+ 				if (bdev_p)
+-					*bdev_p = sis->bdev;
++					*bdev_p = bdget(sis->bdev->bd_dev);
+ 
+ 				spin_unlock(&swap_lock);
+ 				bdput(bdev);
 _
 
-Patches currently in -mm which might be from arve@android.com are
+Patches currently in -mm which might be from alan-jenkins@tuffmail.co.uk are
 
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
