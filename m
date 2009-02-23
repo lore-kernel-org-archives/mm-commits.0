@@ -1,55 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] reparent-untrace-do-nothing-if-no-childs-tracees.patch removed from -mm tree
-Date: Mon, 23 Feb 2009 11:51:34 -0800
-Message-ID: <200902231951.n1NJpYmP012337@imap1.linux-foundation.org>
+Subject: [to-be-updated] move-exit_ptrace-from-forget_original_parent-to-do_exit.patch removed from -mm tree
+Date: Mon, 23 Feb 2009 11:51:31 -0800
+Message-ID: <200902231951.n1NJpVFG012328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755148AbZBWTwV (ORCPT
+	by vger.kernel.org with ESMTP id S1754223AbZBWTx5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Feb 2009 14:52:21 -0500
+	Mon, 23 Feb 2009 14:53:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, ebiederm@xmission.com, markus.t.metzger@intel.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reparent/untrace: do nothing if no childs/tracees
+     move exit_ptrace() from forget_original_parent() to do_exit()
 has been removed from the -mm tree.  Its filename was
-     reparent-untrace-do-nothing-if-no-childs-tracees.patch
+     move-exit_ptrace-from-forget_original_parent-to-do_exit.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reparent/untrace: do nothing if no childs/tracees
+Subject: move exit_ptrace() from forget_original_parent() to do_exit()
 From: Oleg Nesterov <oleg@redhat.com>
 
-forget_original_parent() and exit_ptrace() can avoid taking the global
-tasklist_lock if there are no childs/tracees.  But I failed to invent the
-comment to explain why/when this is safe to do, that is why the separate
-patch/changelog.
+By discussion with Roland.
 
-The problem is, we can race with the concurrent release_task() which can
-remove the last child form our ->children/ptraced list.  This means that
-list_empty() can return the "false" positive, it is possible that
-release_task() is still in progress, it can use the caller's task_struct
-somehow, and it is even possible that list_del(sibling/ptrace_entry) has
-not yet completed.
+Call exit_ptrace() from do_exit(), no need to delay this call until
+forget_original_parent().
 
-But this is fine, before our task_struct will be released we will take
-tasklist_lock at least once in release_task(), this will synchronize us
-with the possible release_task/ptrace_unlink in flight.
-
-However, forget_original_parent() has another problem.  We can race with
-another thread which has already picked us for reparenting before we set
-PF_EXITING, so this patch also checks thread_group_empty().
-
-It is possible to be more clever, we can take tasklist for reading, or
-ensure that ->thread_group.prev is not PF_EXITING, but this is nasty. 
-Perhaps even this optimization is too ugly.
+If we ever change exit_ptrace() to do the blocking calls, it makes
+sense to move it after exit_signals().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -58,43 +42,29 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c   |   10 ++++++++++
- kernel/ptrace.c |    3 +++
- 2 files changed, 13 insertions(+)
+ kernel/exit.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~reparent-untrace-do-nothing-if-no-childs-tracees kernel/exit.c
---- a/kernel/exit.c~reparent-untrace-do-nothing-if-no-childs-tracees
+diff -puN kernel/exit.c~move-exit_ptrace-from-forget_original_parent-to-do_exit kernel/exit.c
+--- a/kernel/exit.c~move-exit_ptrace-from-forget_original_parent-to-do_exit
 +++ a/kernel/exit.c
-@@ -806,6 +806,16 @@ static void forget_original_parent(struc
+@@ -806,8 +806,6 @@ static void forget_original_parent(struc
  	struct task_struct *p, *n, *reaper;
  	LIST_HEAD(dead_children);
  
-+	if (thread_group_empty(father)) {
-+		/*
-+		 * Make sure no other thread can reparent to
-+		 * us after the list_empty(->children) check.
-+		 */
-+		smp_rmb();
-+		if (list_empty(&father->children))
-+			return;
-+	}
-+
+-	exit_ptrace(father);
+-
  	write_lock_irq(&tasklist_lock);
  	reaper = find_new_reaper(father);
  
-diff -puN kernel/ptrace.c~reparent-untrace-do-nothing-if-no-childs-tracees kernel/ptrace.c
---- a/kernel/ptrace.c~reparent-untrace-do-nothing-if-no-childs-tracees
-+++ a/kernel/ptrace.c
-@@ -323,6 +323,9 @@ void exit_ptrace(struct task_struct *tra
- 	struct task_struct *p, *n;
- 	LIST_HEAD(ptrace_dead);
+@@ -956,6 +954,7 @@ NORET_TYPE void do_exit(long code)
+ 		schedule();
+ 	}
  
-+	if (list_empty(&tracer->ptraced))
-+		return;
-+
- 	write_lock_irq(&tasklist_lock);
- 	list_for_each_entry_safe(p, n, &tracer->ptraced, ptrace_entry) {
- 		if (__ptrace_detach(tracer, p))
++	exit_ptrace(tsk);
+ 	exit_signals(tsk);  /* sets PF_EXITING */
+ 	/*
+ 	 * tsk->flags are checked in the futex code to protect against
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -119,6 +89,7 @@ reparent_thread-fix-a-zombie-leak-if-sbin-init-ignores-sigchld.patch
 forget_original_parent-split-out-the-un-ptrace-part.patch
 forget_original_parent-do-not-abuse-child-ptrace_entry.patch
 forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+move-exit_ptrace-from-forget_original_parent-to-do_exit.patch
 reparent-untrace-do-nothing-if-no-childs-tracees.patch
 tracehook_notify_death-use-task_detached-helper.patch
 ptrace_detach-the-wrong-wakeup-breaks-the-erestartxxx-logic.patch
