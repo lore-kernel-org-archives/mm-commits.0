@@ -1,73 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pm-fix-pm_notifiers-during-user-mode-hibernation.patch removed from -mm tree
-Date: Mon, 23 Feb 2009 12:07:02 -0800
-Message-ID: <200902232007.n1NK72MF013457@imap1.linux-foundation.org>
+Subject: [merged] pm-wait-for-console-in-resume.patch removed from -mm tree
+Date: Mon, 23 Feb 2009 12:07:05 -0800
+Message-ID: <200902232007.n1NK75bZ013460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60668 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753058AbZBWUHt (ORCPT
+	by vger.kernel.org with ESMTP id S1753058AbZBWUHz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Feb 2009 15:07:49 -0500
+	Mon, 23 Feb 2009 15:07:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvidjaar@mail.ru, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: arve@android.com, alan@lxorguk.ukuu.org.uk, pavel@ucw.cz, rjw@sisk.pl, swetland@google.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm: fix pm_notifiers during user mode hibernation
+     pm: wait for console in resume
 has been removed from the -mm tree.  Its filename was
-     pm-fix-pm_notifiers-during-user-mode-hibernation.patch
+     pm-wait-for-console-in-resume.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: pm: fix pm_notifiers during user mode hibernation
-From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: pm: wait for console in resume
+=46rom: Arve Hj=F8nnev=E5g <arve@android.com>
 
-Snapshot device is opened with O_RDONLY during suspend and O_WRONLY durig
-resume.  Make sure we also call notifiers with correct parameter telling
-them what we are really doing.
+Avoids later waking up to a blinking cursor if the device woke up and
+returned to sleep before the console switch happened.
 
-Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Brian Swetland <swetland@google.com>
+Signed-off-by: Arve Hj=F8nnev=E5g <arve@android.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/user.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/power/console.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/power/user.c~pm-fix-pm_notifiers-during-user-mode-hibernation kernel/power/user.c
---- a/kernel/power/user.c~pm-fix-pm_notifiers-during-user-mode-hibernation
-+++ a/kernel/power/user.c
-@@ -95,15 +95,15 @@ static int snapshot_open(struct inode *i
- 		data->swap = swsusp_resume_device ?
- 			swap_type_of(swsusp_resume_device, 0, NULL) : -1;
- 		data->mode = O_RDONLY;
--		error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
-+		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
- 		if (error)
--			pm_notifier_call_chain(PM_POST_RESTORE);
-+			pm_notifier_call_chain(PM_POST_HIBERNATION);
- 	} else {
- 		data->swap = -1;
- 		data->mode = O_WRONLY;
--		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
-+		error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
- 		if (error)
--			pm_notifier_call_chain(PM_POST_HIBERNATION);
-+			pm_notifier_call_chain(PM_POST_RESTORE);
+diff -puN kernel/power/console.c~pm-wait-for-console-in-resume kernel/p=
+ower/console.c
+--- a/kernel/power/console.c~pm-wait-for-console-in-resume
++++ a/kernel/power/console.c
+@@ -78,6 +78,12 @@ void pm_restore_console(void)
  	}
- 	if (error)
- 		atomic_inc(&snapshot_device_available);
+ 	set_console(orig_fgconsole);
+ 	release_console_sem();
++
++	if (vt_waitactive(orig_fgconsole)) {
++		pr_debug("Resume: Can't switch VCs.");
++		return;
++	}
++
+ 	kmsg_redirect =3D orig_kmsg;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from arvidjaar@mail.ru are
+Patches currently in -mm which might be from arve@android.com are
 
-linux-next.patch
-fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
