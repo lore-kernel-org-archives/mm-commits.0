@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1_ds2433-clear-the-validcrc-flag-after-a-write.patch added to -mm tree
-Date: Tue, 24 Feb 2009 13:13:05 -0800
-Message-ID: <200902242113.n1OLD5gh011395@imap1.linux-foundation.org>
+Subject: + mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb.patch added to -mm tree
+Date: Tue, 24 Feb 2009 13:16:16 -0800
+Message-ID: <200902242116.n1OLGG5M011669@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756943AbZBXVNx (ORCPT
+	by vger.kernel.org with ESMTP id S1751467AbZBXVSS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 16:13:53 -0500
+	Tue, 24 Feb 2009 16:18:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gardner.ben@gmail.com, johnpol@2ka.mipt.ru
+Cc: kiran@scalex86.org, agl@us.ibm.com, mel@csn.ul.ie, wli@holomorphy.com
 
 
 The patch titled
-     w1_ds2433: clear the validcrc flag after a write
+     mm: reintroduce and deprecate rlimit based access for SHM_HUGETLB
 has been added to the -mm tree.  Its filename is
-     w1_ds2433-clear-the-validcrc-flag-after-a-write.patch
+     mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1_ds2433: clear the validcrc flag after a write
-From: Ben Gardner <gardner.ben@gmail.com>
+Subject: mm: reintroduce and deprecate rlimit based access for SHM_HUGETLB
+From: Ravikiran G Thirumalai <kiran@scalex86.org>
 
-The w1_ds2433 driver does not read from the hardware if the CRC was valid
-on the last read.  The validcrc flag should be cleared after a write so
-that the new value can be read.
+Allow non root users with sufficient mlock rlimits to be able to allocate
+hugetlb backed shm for now.  Deprecate this though.  This is being
+deprecated because the mlock based rlimit checks for SHM_HUGETLB is not
+consistent with mmap based huge page allocations.
 
-Signed-off-by: Ben Gardner <gardner.ben@gmail.com>
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Adam Litke <agl@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2433.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ Documentation/feature-removal-schedule.txt |   12 ++++++++++++
+ fs/hugetlbfs/inode.c                       |   13 +++++++++++--
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_ds2433.c~w1_ds2433-clear-the-validcrc-flag-after-a-write drivers/w1/slaves/w1_ds2433.c
---- a/drivers/w1/slaves/w1_ds2433.c~w1_ds2433-clear-the-validcrc-flag-after-a-write
-+++ a/drivers/w1/slaves/w1_ds2433.c
-@@ -156,6 +156,9 @@ out_up:
-  */
- static int w1_f23_write(struct w1_slave *sl, int addr, int len, const u8 *data)
- {
-+#ifdef CONFIG_W1_SLAVE_DS2433_CRC
-+	struct w1_f23_data *f23 = sl->family_data;
-+#endif
- 	u8 wrbuf[4];
- 	u8 rdbuf[W1_PAGE_SIZE + 3];
- 	u8 es = (addr + len - 1) & 0x1f;
-@@ -196,7 +199,9 @@ static int w1_f23_write(struct w1_slave 
+diff -puN Documentation/feature-removal-schedule.txt~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb
++++ a/Documentation/feature-removal-schedule.txt
+@@ -284,6 +284,18 @@ Who:	Vlad Yasevich <vladislav.yasevich@h
  
- 	/* Reset the bus to wake up the EEPROM (this may not be needed) */
- 	w1_reset_bus(sl->master);
+ ---------------------------
+ 
++What:	Ability for non root users to shm_get hugetlb pages based on mlock
++	resource limits
++When:	2.6.31
++Why:	Non root users need to be part of /proc/sys/vm/hugetlb_shm_group or
++	have CAP_IPC_LOCK to be able to allocate shm segments backed by
++	huge pages.  The mlock based rlimit check to allow shm hugetlb is
++	inconsistent with mmap based allocations.  Hence it is being
++	deprecated.
++Who:	Ravikiran Thirumalai <kiran@scalex86.org>
++
++---------------------------
++
+ What:	CONFIG_THERMAL_HWMON
+ When:	January 2009
+ Why:	This option was introduced just to allow older lm-sensors userspace
+diff -puN fs/hugetlbfs/inode.c~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb
++++ a/fs/hugetlbfs/inode.c
+@@ -949,6 +949,7 @@ static int can_do_hugetlb_shm(void)
+ struct file *hugetlb_file_setup(const char *name, size_t size, int acctflag)
+ {
+ 	int error = -ENOMEM;
++	int unlock_shm = 0;
+ 	struct file *file;
+ 	struct inode *inode;
+ 	struct dentry *dentry, *root;
+@@ -958,8 +959,14 @@ struct file *hugetlb_file_setup(const ch
+ 	if (!hugetlbfs_vfsmount)
+ 		return ERR_PTR(-ENOENT);
+ 
+-	if (!can_do_hugetlb_shm())
+-		return ERR_PTR(-EPERM);
++	if (!can_do_hugetlb_shm()) {
++		if (user_shm_lock(size, user)) {
++			unlock_shm = 1;
++			WARN_ONCE(1,
++			  "Using mlock ulimits for SHM_HUGETLB deprecated\n");
++		} else
++			return ERR_PTR(-EPERM);
++	}
+ 
+ 	root = hugetlbfs_vfsmount->mnt_root;
+ 	quick_string.name = name;
+@@ -999,6 +1006,8 @@ out_inode:
+ out_dentry:
+ 	dput(dentry);
+ out_shm_unlock:
++	if (unlock_shm)
++		user_shm_unlock(size, user);
+ 	return ERR_PTR(error);
+ }
+ 
+_
+
+Patches currently in -mm which might be from kiran@scalex86.org are
+
+linux-next.patch
+mm-fix-shm_hugetlb-to-work-with-users-in-hugetlb_shm_group.patch
+mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb.patch
+slab-leaks3-default-y.patch
+
