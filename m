@@ -1,70 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers.patch removed from -mm tree
-Date: Tue, 24 Feb 2009 11:33:06 -0800
-Message-ID: <200902241933.n1OJX6aV004491@imap1.linux-foundation.org>
+Subject: [merged] drm-only-use-drm_ioctl_update_draw-compat-wrapper-for-compat-x86.patch removed from -mm tree
+Date: Tue, 24 Feb 2009 11:33:12 -0800
+Message-ID: <200902241933.n1OJXCFH004501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56248 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760070AbZBXTge (ORCPT
+	by vger.kernel.org with ESMTP id S1755784AbZBXThY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 14:36:34 -0500
+	Tue, 24 Feb 2009 14:37:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, mm-commits@vger.kernel.org
+To: davem@davemloft.net, airlied@linux.ie, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     regulator: suggest use of datasheet supply or pin names for consumers
+     drm: only use DRM_IOCTL_UPDATE_DRAW compat wrapper for compat X86.
 has been removed from the -mm tree.  Its filename was
-     regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers.patch
+     drm-only-use-drm_ioctl_update_draw-compat-wrapper-for-compat-x86.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: suggest use of datasheet supply or pin names for consumers
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: drm: only use DRM_IOCTL_UPDATE_DRAW compat wrapper for compat X86.
+From: David Miller <davem@davemloft.net>
 
-Update the documentation to suggest the use of datasheet names for
-the supplies requested by regulator consumers. Doing this makes it
-easier to tie the design for a given platform up with the requirements
-of the driver for a consumer.
+Only X86 32-bit uses a different alignment for "unsigned long long" than
+it's 64-bit counterpart.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>
+Therefore this compat translation is only correct, and only needed, when
+either CONFIG_X86 or CONFIG_IA64.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/core.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/drm_ioc32.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/regulator/core.c~regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers drivers/regulator/core.c
---- a/drivers/regulator/core.c~regulator-suggest-use-of-datasheet-supply-or-pin-names-for-consumers
-+++ a/drivers/regulator/core.c
-@@ -925,9 +925,12 @@ overflow_err:
-  * @id: Supply name or regulator ID.
-  *
-  * Returns a struct regulator corresponding to the regulator producer,
-- * or IS_ERR() condition containing errno.  Use of supply names
-- * configured via regulator_set_device_supply() is strongly
-- * encouraged.
-+ * or IS_ERR() condition containing errno.
-+ *
-+ * Use of supply names configured via regulator_set_device_supply() is
-+ * strongly encouraged.  It is recommended that the supply name used
-+ * should match the name used for the supply and/or the relevant
-+ * device pins in the datasheet.
-  */
- struct regulator *regulator_get(struct device *dev, const char *id)
- {
+diff -puN drivers/gpu/drm/drm_ioc32.c~drm-only-use-drm_ioctl_update_draw-compat-wrapper-for-compat-x86 drivers/gpu/drm/drm_ioc32.c
+--- a/drivers/gpu/drm/drm_ioc32.c~drm-only-use-drm_ioctl_update_draw-compat-wrapper-for-compat-x86
++++ a/drivers/gpu/drm/drm_ioc32.c
+@@ -954,6 +954,7 @@ static int compat_drm_sg_free(struct fil
+ 			 DRM_IOCTL_SG_FREE, (unsigned long)request);
+ }
+ 
++#if defined(CONFIG_X86) || defined(CONFIG_IA64)
+ typedef struct drm_update_draw32 {
+ 	drm_drawable_t handle;
+ 	unsigned int type;
+@@ -984,6 +985,7 @@ static int compat_drm_update_draw(struct
+ 			DRM_IOCTL_UPDATE_DRAW, (unsigned long)request);
+ 	return err;
+ }
++#endif
+ 
+ struct drm_wait_vblank_request32 {
+ 	enum drm_vblank_seq_type type;
+@@ -1066,7 +1068,9 @@ drm_ioctl_compat_t *drm_compat_ioctls[] 
+ #endif
+ 	[DRM_IOCTL_NR(DRM_IOCTL_SG_ALLOC32)] = compat_drm_sg_alloc,
+ 	[DRM_IOCTL_NR(DRM_IOCTL_SG_FREE32)] = compat_drm_sg_free,
++#if defined(CONFIG_X86) || defined(CONFIG_IA64)
+ 	[DRM_IOCTL_NR(DRM_IOCTL_UPDATE_DRAW32)] = compat_drm_update_draw,
++#endif
+ 	[DRM_IOCTL_NR(DRM_IOCTL_WAIT_VBLANK32)] = compat_drm_wait_vblank,
+ };
+ 
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from davem@davemloft.net are
 
+origin.patch
 linux-next.patch
-mfd-add-support-for-wm8351-revision-b.patch
-rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
-rtc-wm8350-retries-will-reach-1.patch
+sfc-modify-allocation-error-message.patch
+epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
+epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
+epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
+epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
+epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
+kprobes-cleanup-aggr_kprobe-related-code.patch
+kprobes-move-export_symbol_gpl-just-after-function-definitions.patch
+kprobes-cleanup-comment-style-in-kprobesh.patch
+kprobes-rename-kprobe_enabled-to-kprobes_all_disarmed.patch
+kprobes-support-per-kprobe-disabling.patch
+kprobes-support-kretprobe-and-jprobe-per-probe-disabling.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+sunxvr500-fix-cmap-memory-leaks.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
