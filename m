@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + export_symbold_obtain_alias-rather-than-export_symbol_gpl.patch added to -mm tree
-Date: Tue, 24 Feb 2009 12:23:31 -0800
-Message-ID: <200902242023.n1OKNVLk008195@imap1.linux-foundation.org>
+Subject: + init-mainc-fix-sparse-warnings-context-imbalance.patch added to -mm tree
+Date: Tue, 24 Feb 2009 12:24:45 -0800
+Message-ID: <200902242024.n1OKOjAl008347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39209 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758488AbZBXUY1 (ORCPT
+	by vger.kernel.org with ESMTP id S1758578AbZBXUZ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 15:24:27 -0500
+	Tue, 24 Feb 2009 15:25:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bhalevy@panasas.com, bfields@fieldses.org, hch@infradead.org, torvalds@linux-foundation.org, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk
+Cc: hannes@hanneseder.net, mingo@elte.hu
 
 
 The patch titled
-     EXPORT_SYMBOL(d_obtain_alias) rather than EXPORT_SYMBOL_GPL
+     init/main.c: fix sparse warnings: context imbalance
 has been added to the -mm tree.  Its filename is
-     export_symbold_obtain_alias-rather-than-export_symbol_gpl.patch
+     init-mainc-fix-sparse-warnings-context-imbalance.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: EXPORT_SYMBOL(d_obtain_alias) rather than EXPORT_SYMBOL_GPL
-From: Benny Halevy <bhalevy@panasas.com>
+Subject: init/main.c: fix sparse warnings: context imbalance
+From: Hannes Eder <hannes@hanneseder.net>
 
-Commit 4ea3ada2955e4519befa98ff55dd62d6dfbd1705 declares d_obtain_alias()
-as EXPORT_SYMBOL_GPL where it's supposed to replace d_alloc_anon which was
-previously declared as EXPORT_SYMBOL and thus available to any loadable
-module.
+Impact: Attribute function 'init_post' with __releases(...).
 
-This patch reverts that.
+Fix these sparse warnings:
+  init/main.c:805:21: warning: context imbalance in 'init_post' - unexpected unlock
+  init/main.c:899:9: warning: context imbalance in 'kernel_init' - wrong count at exit
 
-Signed-off-by: Benny Halevy <bhalevy@panasas.com>
-Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Hannes Eder <hannes@hanneseder.net>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/dcache.c~export_symbold_obtain_alias-rather-than-export_symbol_gpl fs/dcache.c
---- a/fs/dcache.c~export_symbold_obtain_alias-rather-than-export_symbol_gpl
-+++ a/fs/dcache.c
-@@ -1180,7 +1180,7 @@ struct dentry *d_obtain_alias(struct ino
- 	iput(inode);
- 	return res;
- }
--EXPORT_SYMBOL_GPL(d_obtain_alias);
-+EXPORT_SYMBOL(d_obtain_alias);
- 
- /**
-  * d_splice_alias - splice a disconnected dentry into the tree if one exists
+diff -puN init/main.c~init-mainc-fix-sparse-warnings-context-imbalance init/main.c
+--- a/init/main.c~init-mainc-fix-sparse-warnings-context-imbalance
++++ a/init/main.c
+@@ -808,6 +808,7 @@ int initmem_now_dynamic;
+  * makes it inline to init() and it becomes part of init.text section
+  */
+ static noinline int init_post(void)
++	__releases(kernel_lock)
+ {
+ 	/* need to finish all async __init code before freeing the memory */
+ 	async_synchronize_full();
 _
 
-Patches currently in -mm which might be from bhalevy@panasas.com are
+Patches currently in -mm which might be from hannes@hanneseder.net are
 
 linux-next.patch
-export_symbold_obtain_alias-rather-than-export_symbol_gpl.patch
+init-mainc-fix-sparse-warnings-context-imbalance.patch
 
