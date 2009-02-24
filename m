@@ -1,199 +1,282 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-add-imageblit-function.patch added to -mm tree
-Date: Tue, 24 Feb 2009 14:57:14 -0800
-Message-ID: <200902242257.n1OMvEUE018360@imap1.linux-foundation.org>
+Subject: [to-be-updated] watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate.patch removed from -mm tree
+Date: Tue, 24 Feb 2009 14:57:58 -0800
+Message-ID: <200902242257.n1OMvwqa018391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58839 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755919AbZBXW5S (ORCPT
+	by vger.kernel.org with ESMTP id S1752100AbZBXW6Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 17:57:18 -0500
+	Tue, 24 Feb 2009 17:58:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+To: Kristof@sigsegv.be, buytenh@wantstofly.org, kristof@sigsegv.be, nico@cam.org, rmk@arm.linux.org.uk, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: add imageblit function
-has been added to the -mm tree.  Its filename is
-     cirrusfb-add-imageblit-function.patch
+     watchdog: make orion5x_wdt aware of runtime-determined timer tick rate
+has been removed from the -mm tree.  Its filename was
+     watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: add imageblit function
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: watchdog: make orion5x_wdt aware of runtime-determined timer tick rate
+From: Kristof Provost <Kristof@sigsegv.be>
 
-Add hardware color expansion (imageblit) function.  It roughly doubles
-scrolling speed of my Alpine card (GD5430).
+orion5x_wdt no longer compiled after the changes in
+ebe35aff883496c07248df82c8576c3b6e84bbbe ("Orion: prepare for
+runtime-determined timer tick rate").
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+The tick rate define (ORION5X_TCLK) was removed in favor of a runtime
+detection.  This value is now passed to the watchdog timer.
+
+Signed-off-by: Kristof Provost <kristof@sigsegv.be>
+Cc: Lennert Buytenhek <buytenh@wantstofly.org>
+Cc: Nicolas Pitre <nico@cam.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   64 ++++++++++++++++++++++++++-----------
- 1 file changed, 46 insertions(+), 18 deletions(-)
+ arch/arm/mach-orion5x/common.c                |   17 +++++
+ arch/arm/mach-orion5x/common.h                |    1 
+ arch/arm/mach-orion5x/include/mach/hardware.h |    3 +
+ arch/arm/mach-orion5x/ts78xx-setup.c          |    1 
+ arch/arm/plat-orion/include/plat/wdt.h        |   14 ++++
+ drivers/watchdog/orion5x_wdt.c                |   47 ++++++++++++----
+ 6 files changed, 72 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-add-imageblit-function drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-add-imageblit-function
-+++ a/drivers/video/cirrusfb.c
-@@ -381,7 +381,8 @@ static void cirrusfb_BitBLT(u8 __iomem *
- static void cirrusfb_RectFill(u8 __iomem *regbase, int bits_per_pixel,
- 			      u_short x, u_short y,
- 			      u_short width, u_short height,
--			      u32 color, u_short line_length);
-+			      u32 fg_color, u32 bg_color,
-+			      u_short line_length, u_char blitmode);
+diff -puN arch/arm/mach-orion5x/common.c~watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate arch/arm/mach-orion5x/common.c
+--- a/arch/arm/mach-orion5x/common.c~watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate
++++ a/arch/arm/mach-orion5x/common.c
+@@ -32,6 +32,7 @@
+ #include <plat/mv_xor.h>
+ #include <plat/orion_nand.h>
+ #include <plat/time.h>
++#include <plat/wdt.h>
+ #include "common.h"
  
- static void bestclock(long freq, int *nom, int *den, int *div);
- 
-@@ -1790,8 +1791,8 @@ static void cirrusfb_fillrect(struct fb_
- 			  info->var.bits_per_pixel,
- 			  (region->dx * m) / 8, region->dy,
- 			  (region->width * m) / 8, region->height,
--			  color,
--			  info->fix.line_length);
-+			  color, color,
-+			  info->fix.line_length, 0x40);
+ /*****************************************************************************
+@@ -427,6 +428,21 @@ void __init orion5x_uart1_init(void)
+ 	platform_device_register(&orion5x_uart1);
  }
  
- static void cirrusfb_copyarea(struct fb_info *info,
-@@ -1840,9 +1841,33 @@ static void cirrusfb_imageblit(struct fb
- {
- 	struct cirrusfb_info *cinfo = info->par;
- 
--	if (!is_laguna(cinfo))
-+	if (info->state != FBINFO_STATE_RUNNING)
-+		return;
-+	if (info->flags & FBINFO_HWACCEL_DISABLED)
-+		cfb_imageblit(info, image);
-+	else {
-+		unsigned size = ((image->width + 7) >> 3) * image->height;
-+		int m = info->var.bits_per_pixel;
-+		u32 fg, bg;
++static struct orion5x_wdt_platform_data orion5x_wdt_data = {
++	.tclk = 0,
++};
 +
-+		if (info->var.bits_per_pixel == 8) {
-+			fg = image->fg_color;
-+			bg = image->bg_color;
-+		} else {
-+			fg = ((u32 *)(info->pseudo_palette))[image->fg_color];
-+			bg = ((u32 *)(info->pseudo_palette))[image->bg_color];
-+		}
- 		cirrusfb_WaitBLT(cinfo->regbase);
--	cfb_imageblit(info, image);
-+		/* byte rounded scanlines */
-+		vga_wgfx(cinfo->regbase, CL_GR33, 0x00);
-+		cirrusfb_RectFill(cinfo->regbase,
-+				  info->var.bits_per_pixel,
-+				  (image->dx * m) / 8, image->dy,
-+				  (image->width * m) / 8, image->height,
-+				  fg, bg,
-+				  info->fix.line_length, 0x04);
-+		memcpy(info->screen_base, image->data, size);
-+	}
- }
- 
- #ifdef CONFIG_PPC_PREP
-@@ -1988,10 +2013,12 @@ static int __devinit cirrusfb_set_fbinfo
- 		    | FBINFO_HWACCEL_XPAN
- 		    | FBINFO_HWACCEL_YPAN
- 		    | FBINFO_HWACCEL_FILLRECT
-+		    | FBINFO_HWACCEL_IMAGEBLIT
- 		    | FBINFO_HWACCEL_COPYAREA;
- 	if (noaccel || is_laguna(cinfo))
- 		info->flags |= FBINFO_HWACCEL_DISABLED;
- 	info->fbops = &cirrusfb_ops;
++static struct platform_device orion5x_wdt = {
++	.name = "orion5x_wdt",
++	.dev  = {
++		.platform_data = &orion5x_wdt_data,
++	},
++};
 +
- 	if (cinfo->btype == BT_GD5480) {
- 		if (var->bits_per_pixel == 16)
- 			info->screen_base += 1 * MB_;
-@@ -2711,7 +2738,8 @@ static void cirrusfb_BitBLT(u8 __iomem *
++void __init orion5x_wdt_init(void)
++{
++	platform_device_register(&orion5x_wdt);
++}
  
- static void cirrusfb_RectFill(u8 __iomem *regbase, int bits_per_pixel,
- 		     u_short x, u_short y, u_short width, u_short height,
--		     u32 color, u_short line_length)
-+		     u32 fg_color, u32 bg_color, u_short line_length,
-+		     u_char blitmode)
+ /*****************************************************************************
+  * XOR engine
+@@ -610,6 +626,7 @@ void __init orion5x_init(void)
+ 	orion5x_spi_plat_data.tclk = orion5x_tclk;
+ 	orion5x_uart0_data[0].uartclk = orion5x_tclk;
+ 	orion5x_uart1_data[0].uartclk = orion5x_tclk;
++	orion5x_wdt_data.tclk = orion5x_tclk;
+ 
+ 	/*
+ 	 * Setup Orion address map
+diff -puN arch/arm/mach-orion5x/common.h~watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate arch/arm/mach-orion5x/common.h
+--- a/arch/arm/mach-orion5x/common.h~watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate
++++ a/arch/arm/mach-orion5x/common.h
+@@ -36,6 +36,7 @@ void orion5x_sata_init(struct mv_sata_pl
+ void orion5x_spi_init(void);
+ void orion5x_uart0_init(void);
+ void orion5x_uart1_init(void);
++void orion5x_wdt_init(void);
+ void orion5x_xor_init(void);
+ 
+ /*
+diff -puN arch/arm/mach-orion5x/include/mach/hardware.h~watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate arch/arm/mach-orion5x/include/mach/hardware.h
+--- a/arch/arm/mach-orion5x/include/mach/hardware.h~watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate
++++ a/arch/arm/mach-orion5x/include/mach/hardware.h
+@@ -17,5 +17,8 @@
+ #define PCIBIOS_MIN_MEM		0x01000000
+ #define PCIMEM_BASE		ORION5X_PCIE_MEM_PHYS_BASE
+ 
++struct orion_wdt_data {
++	int tclk;
++};
+ 
+ #endif
+diff -puN arch/arm/mach-orion5x/ts78xx-setup.c~watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate arch/arm/mach-orion5x/ts78xx-setup.c
+--- a/arch/arm/mach-orion5x/ts78xx-setup.c~watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate
++++ a/arch/arm/mach-orion5x/ts78xx-setup.c
+@@ -255,6 +255,7 @@ static void __init ts78xx_init(void)
+ 	orion5x_sata_init(&ts78xx_sata_data);
+ 	orion5x_uart0_init();
+ 	orion5x_uart1_init();
++	orion5x_wdt_init();
+ 	orion5x_xor_init();
+ 
+ 	orion5x_setup_dev_boot_win(TS78XX_NOR_BOOT_BASE,
+diff -puN /dev/null arch/arm/plat-orion/include/plat/wdt.h
+--- /dev/null
++++ a/arch/arm/plat-orion/include/plat/wdt.h
+@@ -0,0 +1,14 @@
++/*
++ * arch/arm/plat-orion/include/plat/wdt.h
++ *
++ * Marvell watchdog platform device data definition file.
++ */
++
++#ifndef __PLAT_WDT_H
++#define __PLAT_WDT_H
++
++struct orion5x_wdt_platform_data {
++	int tclk;
++};
++
++#endif
+diff -puN drivers/watchdog/orion5x_wdt.c~watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate drivers/watchdog/orion5x_wdt.c
+--- a/drivers/watchdog/orion5x_wdt.c~watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate
++++ a/drivers/watchdog/orion5x_wdt.c
+@@ -16,11 +16,13 @@
+ #include <linux/kernel.h>
+ #include <linux/fs.h>
+ #include <linux/miscdevice.h>
++#include <linux/platform_device.h>
+ #include <linux/watchdog.h>
+ #include <linux/init.h>
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
+ #include <linux/spinlock.h>
++#include <plat/wdt.h>
+ 
+ /*
+  * Watchdog timer block registers.
+@@ -29,12 +31,13 @@
+ #define  WDT_EN			0x0010
+ #define WDT_VAL			(TIMER_VIRT_BASE + 0x0024)
+ 
+-#define WDT_MAX_DURATION	(0xffffffff / ORION5X_TCLK)
+ #define WDT_IN_USE		0
+ #define WDT_OK_TO_CLOSE		1
+ 
++struct orion5x_wdt_platform_data *orion5x_wdt_data;
++
+ static int nowayout = WATCHDOG_NOWAYOUT;
+-static int heartbeat =  WDT_MAX_DURATION;	/* (seconds) */
++static int heartbeat;
+ static unsigned long wdt_status;
+ static spinlock_t wdt_lock;
+ 
+@@ -45,7 +48,7 @@ static void wdt_enable(void)
+ 	spin_lock(&wdt_lock);
+ 
+ 	/* Set watchdog duration */
+-	writel(ORION5X_TCLK * heartbeat, WDT_VAL);
++	writel(orion5x_wdt_data->tclk * heartbeat, WDT_VAL);
+ 
+ 	/* Clear watchdog timer interrupt */
+ 	reg = readl(BRIDGE_CAUSE);
+@@ -87,7 +90,7 @@ static void wdt_disable(void)
+ static int orion5x_wdt_get_timeleft(int *time_left)
  {
- 	u_long ndest = (y * line_length) + x;
- 	u_char op;
-@@ -2720,24 +2748,24 @@ static void cirrusfb_RectFill(u8 __iomem
+ 	spin_lock(&wdt_lock);
+-	*time_left = readl(WDT_VAL) / ORION5X_TCLK;
++	*time_left = readl(WDT_VAL) / orion5x_wdt_data->tclk;
+ 	spin_unlock(&wdt_lock);
+ 	return 0;
+ }
+@@ -157,7 +160,7 @@ static long orion5x_wdt_ioctl(struct fil
+ 		if (ret)
+ 			break;
  
- 	/* This is a ColorExpand Blt, using the */
- 	/* same color for foreground and background */
--	vga_wgfx(regbase, VGA_GFX_SR_VALUE, color);	/* foreground color */
--	vga_wgfx(regbase, VGA_GFX_SR_ENABLE, color);	/* background color */
-+	vga_wgfx(regbase, VGA_GFX_SR_VALUE, bg_color);
-+	vga_wgfx(regbase, VGA_GFX_SR_ENABLE, fg_color);
- 
--	op = 0xc0;
-+	op = 0x80;
- 	if (bits_per_pixel >= 16) {
--		vga_wgfx(regbase, CL_GR10, color >> 8);	/* foreground color */
--		vga_wgfx(regbase, CL_GR11, color >> 8);	/* background color */
--		op = 0xd0;
-+		vga_wgfx(regbase, CL_GR10, bg_color >> 8);
-+		vga_wgfx(regbase, CL_GR11, fg_color >> 8);
-+		op = 0x90;
- 	}
- 	if (bits_per_pixel == 32) {
--		vga_wgfx(regbase, CL_GR12, color >> 16);/* foreground color */
--		vga_wgfx(regbase, CL_GR13, color >> 16);/* background color */
--		vga_wgfx(regbase, CL_GR14, color >> 24);/* foreground color */
--		vga_wgfx(regbase, CL_GR15, color >> 24);/* background color */
--		op = 0xf0;
-+		vga_wgfx(regbase, CL_GR12, bg_color >> 16);
-+		vga_wgfx(regbase, CL_GR13, fg_color >> 16);
-+		vga_wgfx(regbase, CL_GR14, bg_color >> 24);
-+		vga_wgfx(regbase, CL_GR15, fg_color >> 24);
-+		op = 0xb0;
- 	}
- 	cirrusfb_set_blitter(regbase, width - 1, height - 1,
--			    0, ndest, op, line_length);
-+			    0, ndest, op | blitmode, line_length);
+-		if (time <= 0 || time > WDT_MAX_DURATION) {
++		if (time <= 0 || time * orion5x_wdt_data->tclk > 0xffffffff) {
+ 			ret = -EINVAL;
+ 			break;
+ 		}
+@@ -193,7 +196,6 @@ static int orion5x_wdt_release(struct in
+ 	return 0;
  }
  
- /**************************************************************************
+-
+ static const struct file_operations orion5x_wdt_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+@@ -205,15 +207,21 @@ static const struct file_operations orio
+ 
+ static struct miscdevice orion5x_wdt_miscdev = {
+ 	.minor		= WATCHDOG_MINOR,
+-	.name		= "watchdog",
++	.name		= "orion5x_wdt",
+ 	.fops		= &orion5x_wdt_fops,
+ };
+ 
+-static int __init orion5x_wdt_init(void)
++static int __init orion5x_wdt_probe(struct platform_device *pdev)
+ {
+ 	int ret;
+ 
++	orion5x_wdt_data = pdev->dev.platform_data;
++
++	if (!orion5x_wdt_data)
++		return -ENODEV;
++
+ 	spin_lock_init(&wdt_lock);
++	heartbeat = 0xffffffff / orion5x_wdt_data->tclk;
+ 
+ 	ret = misc_register(&orion5x_wdt_miscdev);
+ 	if (ret == 0)
+@@ -223,9 +231,27 @@ static int __init orion5x_wdt_init(void)
+ 	return ret;
+ }
+ 
++static int __devexit orion5x_wdt_remove(struct platform_device *pdev)
++{
++	return misc_deregister(&orion5x_wdt_miscdev);
++}
++
++static struct platform_driver orion5x_wdt_driver = {
++	.remove = __devexit_p(orion5x_wdt_remove),
++	.driver = {
++		.name = "orion5x_wdt",
++		.owner = THIS_MODULE,
++	},
++};
++
++static int __init orion5x_wdt_init(void)
++{
++	return platform_driver_probe(&orion5x_wdt_driver, orion5x_wdt_probe);
++}
++
+ static void __exit orion5x_wdt_exit(void)
+ {
+-	misc_deregister(&orion5x_wdt_miscdev);
++	platform_driver_unregister(&orion5x_wdt_driver);
+ }
+ 
+ module_init(orion5x_wdt_init);
+@@ -235,8 +261,7 @@ MODULE_AUTHOR("Sylver Bruneau <sylver.br
+ MODULE_DESCRIPTION("Orion5x Processor Watchdog");
+ 
+ module_param(heartbeat, int, 0);
+-MODULE_PARM_DESC(heartbeat, "Watchdog heartbeat in seconds (default is "
+-					__MODULE_STRING(WDT_MAX_DURATION) ")");
++MODULE_PARM_DESC(heartbeat, "Watchdog heartbeat in seconds.");
+ 
+ module_param(nowayout, int, 0);
+ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started");
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from Kristof@sigsegv.be are
 
-linux-next.patch
-cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
-cirrusfb-add-laguna-additional-overflow-register.patch
-cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
-cirrusfb-do-not-calculate-line-length-twice.patch
-cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
-cirrusfb-various-improvements.patch
-cirrusfb-laguna-chipset-8bpp-fix.patch
-cirrusfb-check_var-improvements.patch
-cirrusfb-various-laguna-fixes.patch
-cirrusfb-acceleration-improvements.patch
-cirrusfb-add-imageblit-function.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-asiliantfb-fix-cmap-memory-leaks.patch
-asiliantfb-fix-cmap-memory-leaks-fix.patch
+watchdog-make-orion5x_wdt-aware-of-runtime-determined-timer-tick-rate.patch
 
