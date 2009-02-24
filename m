@@ -1,65 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atm-add-missing-parentheses.patch removed from -mm tree
-Date: Tue, 24 Feb 2009 11:32:46 -0800
-Message-ID: <200902241932.n1OJWkTq004449@imap1.linux-foundation.org>
+Subject: [merged] sundance-bitwise-or-has-higher-precedence-than.patch removed from -mm tree
+Date: Tue, 24 Feb 2009 11:32:52 -0800
+Message-ID: <200902241932.n1OJWqxX004463@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57331 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50260 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753776AbZBXTd1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754041AbZBXTd0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 14:33:27 -0500
+	Tue, 24 Feb 2009 14:33:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, chas@cmf.nrl.navy.mil, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atm: bitwise OR has higher precedence than ?:
+     sundance: bitwise OR has higher precedence than ?:
 has been removed from the -mm tree.  Its filename was
-     atm-add-missing-parentheses.patch
+     sundance-bitwise-or-has-higher-precedence-than.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atm: bitwise OR has higher precedence than ?:
+Subject: sundance: bitwise OR has higher precedence than ?:
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: chas williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/firestream.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/sundance.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/atm/firestream.c~atm-add-missing-parentheses drivers/atm/firestream.c
---- a/drivers/atm/firestream.c~atm-add-missing-parentheses
-+++ a/drivers/atm/firestream.c
-@@ -1690,17 +1690,17 @@ static int __devinit fs_init (struct fs_
- 		  | (0 * SARMODE0_SHADEN) /* We don't use shadow registers. */
- 		  | (1 * SARMODE0_INTMODE_READCLEAR)
- 		  | (1 * SARMODE0_CWRE)
--		  | IS_FS50(dev)?SARMODE0_PRPWT_FS50_5: 
--		                 SARMODE0_PRPWT_FS155_3
-+		  | (IS_FS50(dev) ? SARMODE0_PRPWT_FS50_5:
-+			  SARMODE0_PRPWT_FS155_3)
- 		  | (1 * SARMODE0_CALSUP_1)
--		  | IS_FS50 (dev)?(0
-+		  | (IS_FS50(dev) ? (0
- 				   | SARMODE0_RXVCS_32
- 				   | SARMODE0_ABRVCS_32 
- 				   | SARMODE0_TXVCS_32):
- 		                  (0
- 				   | SARMODE0_RXVCS_1k
- 				   | SARMODE0_ABRVCS_1k 
--				   | SARMODE0_TXVCS_1k));
-+				   | SARMODE0_TXVCS_1k)));
+diff -puN drivers/net/sundance.c~sundance-bitwise-or-has-higher-precedence-than drivers/net/sundance.c
+--- a/drivers/net/sundance.c~sundance-bitwise-or-has-higher-precedence-than
++++ a/drivers/net/sundance.c
+@@ -909,7 +909,7 @@ static void check_duplex(struct net_devi
+ 			printk(KERN_INFO "%s: Setting %s-duplex based on MII #%d "
+ 				   "negotiated capability %4.4x.\n", dev->name,
+ 				   duplex ? "full" : "half", np->phys[0], negotiated);
+-		iowrite16(ioread16(ioaddr + MACCtrl0) | duplex ? 0x20 : 0, ioaddr + MACCtrl0);
++		iowrite16(ioread16(ioaddr + MACCtrl0) | (duplex ? 0x20 : 0), ioaddr + MACCtrl0);
+ 	}
+ }
  
- 	/* 10ms * 100 is 1 second. That should be enough, as AN3:9 says it takes
- 	   1ms. */
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
