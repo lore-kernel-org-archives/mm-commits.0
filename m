@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-improve-comment-describing-fget_light.patch added to -mm tree
-Date: Tue, 24 Feb 2009 13:41:34 -0800
-Message-ID: <200902242141.n1OLfZSb013331@imap1.linux-foundation.org>
+Subject: + cgroups-more-documentation-for-remount-and-release_agent.patch added to -mm tree
+Date: Tue, 24 Feb 2009 13:42:38 -0800
+Message-ID: <200902242142.n1OLgcK9013364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36787 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753639AbZBXVmL (ORCPT
+	by vger.kernel.org with ESMTP id S1753148AbZBXVnR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 16:42:11 -0500
+	Tue, 24 Feb 2009 16:43:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tonyb@cybernetics.com, viro@zeniv.linux.org.uk
+Cc: lizf@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
 
 
 The patch titled
-     vfs: improve comment describing fget_light()
+     cgroups: more documentation for remount and release_agent
 has been added to the -mm tree.  Its filename is
-     vfs-improve-comment-describing-fget_light.patch
+     cgroups-more-documentation-for-remount-and-release_agent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: improve comment describing fget_light()
-From: Tony Battersby <tonyb@cybernetics.com>
+Subject: cgroups: more documentation for remount and release_agent
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Improve the description of fget_light(), which is currently incorrect
-about needing a prior refcnt (judging by the way it is actually used).
+This won't remove cpuacct from the mounted hierachy:
+ # mount -t cgroup -o cpu,cpuacct xxx /mnt
+ # mount -o remount,cpu /mnt
 
-Signed-off-by: Tony Battersby <tonyb@cybernetics.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Because for this usage mount(8) will append the new options to the original
+options.
+
+And this will get you right:
+ # mount [-t cgroup] -o remount,cpu xxx /mnt
+
+Also document how to specify or change release_agent.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Reviewd-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ Documentation/cgroups/cgroups.txt |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN fs/file_table.c~vfs-improve-comment-describing-fget_light fs/file_table.c
---- a/fs/file_table.c~vfs-improve-comment-describing-fget_light
-+++ a/fs/file_table.c
-@@ -318,11 +318,20 @@ struct file *fget(unsigned int fd)
- EXPORT_SYMBOL(fget);
+diff -puN Documentation/cgroups/cgroups.txt~cgroups-more-documentation-for-remount-and-release_agent Documentation/cgroups/cgroups.txt
+--- a/Documentation/cgroups/cgroups.txt~cgroups-more-documentation-for-remount-and-release_agent
++++ a/Documentation/cgroups/cgroups.txt
+@@ -333,12 +333,23 @@ The "xxx" is not interpreted by the cgro
  
- /*
-- * Lightweight file lookup - no refcnt increment if fd table isn't shared. 
-- * You can use this only if it is guranteed that the current task already 
-- * holds a refcnt to that file. That check has to be done at fget() only
-- * and a flag is returned to be passed to the corresponding fput_light().
-- * There must not be a cloning between an fget_light/fput_light pair.
-+ * Lightweight file lookup - no refcnt increment if fd table isn't shared.
-+ *
-+ * You can use this instead of fget if you satisfy all of the following
-+ * conditions:
-+ * 1) You must call fput_light before exiting the syscall and returning control
-+ *    to userspace (i.e. you cannot remember the returned struct file * after
-+ *    returning to userspace).
-+ * 2) You must not call filp_close on the returned struct file * in between
-+ *    calls to fget_light and fput_light.
-+ * 3) You must not clone the current task in between the calls to fget_light
-+ *    and fput_light.
-+ *
-+ * The fput_needed flag returned by fget_light should be passed to the
-+ * corresponding fput_light.
-  */
- struct file *fget_light(unsigned int fd, int *fput_needed)
- {
+ To mount a cgroup hierarchy with just the cpuset and numtasks
+ subsystems, type:
+-# mount -t cgroup -o cpuset,numtasks hier1 /dev/cgroup
++# mount -t cgroup -o cpuset,memory hier1 /dev/cgroup
+ 
+ To change the set of subsystems bound to a mounted hierarchy, just
+ remount with different options:
++# mount -o remount,cpuset,ns hier1 /dev/cgroup
+ 
+-# mount -o remount,cpuset,ns  /dev/cgroup
++Now memory is removed from the hierarchy and ns is added.
++
++Note this will add ns to the hierarchy but won't remove memory or
++cpuset, because the new options are appended to the old ones:
++# mount -o remount,ns /dev/cgroup
++
++To Specify a hierarchy's release_agent:
++# mount -t cgroup -o cpuset,release_agent="/sbin/cpuset_release_agent" \
++  xxx /dev/cgroup
++
++Note that specifying 'release_agent' more than once will return failure.
+ 
+ Note that changing the set of subsystems is currently only supported
+ when the hierarchy consists of a single (root) cgroup. Supporting
+@@ -349,6 +360,11 @@ Then under /dev/cgroup you can find a tr
+ tree of the cgroups in the system. For instance, /dev/cgroup
+ is the cgroup that holds the whole system.
+ 
++If you want to change the value of release_agent:
++# echo "/sbin/new_release_agent" > /dev/cgroup/release_agent
++
++It can also be changed via remount.
++
+ If you want to create a new cgroup under /dev/cgroup:
+ # cd /dev/cgroup
+ # mkdir my_cgroup
 _
 
-Patches currently in -mm which might be from tonyb@cybernetics.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 linux-next.patch
-vfs-improve-comment-describing-fget_light.patch
-make-shm_get_stat-more-robust.patch
+vfs-add-missing-unlock-in-sget.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+cgroups-more-documentation-for-remount-and-release_agent.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
 
