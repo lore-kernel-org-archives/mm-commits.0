@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb.patch added to -mm tree
-Date: Tue, 24 Feb 2009 13:16:16 -0800
-Message-ID: <200902242116.n1OLGG5M011669@imap1.linux-foundation.org>
+Subject: + pm-rework-includes-remove-arch-ifdefs.patch added to -mm tree
+Date: Tue, 24 Feb 2009 13:18:26 -0800
+Message-ID: <200902242118.n1OLIQJm011778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38575 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40252 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751467AbZBXVSS (ORCPT
+	by vger.kernel.org with ESMTP id S1751680AbZBXVTO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 16:18:18 -0500
+	Tue, 24 Feb 2009 16:19:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kiran@scalex86.org, agl@us.ibm.com, mel@csn.ul.ie, wli@holomorphy.com
+Cc: damm@igel.co.jp, lethal@linux-sh.org, rjw@sisk.pl
 
 
 The patch titled
-     mm: reintroduce and deprecate rlimit based access for SHM_HUGETLB
+     pm: rework includes, remove arch ifdefs
 has been added to the -mm tree.  Its filename is
-     mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb.patch
+     pm-rework-includes-remove-arch-ifdefs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: reintroduce and deprecate rlimit based access for SHM_HUGETLB
-From: Ravikiran G Thirumalai <kiran@scalex86.org>
+Subject: pm: rework includes, remove arch ifdefs
+From: Magnus Damm <damm@igel.co.jp>
 
-Allow non root users with sufficient mlock rlimits to be able to allocate
-hugetlb backed shm for now.  Deprecate this though.  This is being
-deprecated because the mlock based rlimit checks for SHM_HUGETLB is not
-consistent with mmap based huge page allocations.
+Make the following header file changes:
 
-Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
-Reviewed-by: Mel Gorman <mel@csn.ul.ie>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: Adam Litke <agl@us.ibm.com>
+ - remove arch ifdefs and asm/suspend.h from linux/suspend.h
+ - add asm/suspend.h to disk.c (for arch_prepare_suspend())
+ - add linux/io.h to swsusp.c (for ioremap())
+
+These are the only generic changes needed to get CONFIG_HIBERNATION
+working on SuperH.
+
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   12 ++++++++++++
- fs/hugetlbfs/inode.c                       |   13 +++++++++++--
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ include/linux/suspend.h |    3 ---
+ kernel/power/disk.c     |    1 +
+ kernel/power/swsusp.c   |    1 +
+ 3 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -284,6 +284,18 @@ Who:	Vlad Yasevich <vladislav.yasevich@h
+diff -puN include/linux/suspend.h~pm-rework-includes-remove-arch-ifdefs include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-rework-includes-remove-arch-ifdefs
++++ a/include/linux/suspend.h
+@@ -1,9 +1,6 @@
+ #ifndef _LINUX_SUSPEND_H
+ #define _LINUX_SUSPEND_H
  
- ---------------------------
+-#if defined(CONFIG_X86) || defined(CONFIG_FRV) || defined(CONFIG_PPC32) || defined(CONFIG_PPC64)
+-#include <asm/suspend.h>
+-#endif
+ #include <linux/swap.h>
+ #include <linux/notifier.h>
+ #include <linux/init.h>
+diff -puN kernel/power/disk.c~pm-rework-includes-remove-arch-ifdefs kernel/power/disk.c
+--- a/kernel/power/disk.c~pm-rework-includes-remove-arch-ifdefs
++++ a/kernel/power/disk.c
+@@ -22,6 +22,7 @@
+ #include <linux/console.h>
+ #include <linux/cpu.h>
+ #include <linux/freezer.h>
++#include <asm/suspend.h>
  
-+What:	Ability for non root users to shm_get hugetlb pages based on mlock
-+	resource limits
-+When:	2.6.31
-+Why:	Non root users need to be part of /proc/sys/vm/hugetlb_shm_group or
-+	have CAP_IPC_LOCK to be able to allocate shm segments backed by
-+	huge pages.  The mlock based rlimit check to allow shm hugetlb is
-+	inconsistent with mmap based allocations.  Hence it is being
-+	deprecated.
-+Who:	Ravikiran Thirumalai <kiran@scalex86.org>
-+
-+---------------------------
-+
- What:	CONFIG_THERMAL_HWMON
- When:	January 2009
- Why:	This option was introduced just to allow older lm-sensors userspace
-diff -puN fs/hugetlbfs/inode.c~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb
-+++ a/fs/hugetlbfs/inode.c
-@@ -949,6 +949,7 @@ static int can_do_hugetlb_shm(void)
- struct file *hugetlb_file_setup(const char *name, size_t size, int acctflag)
- {
- 	int error = -ENOMEM;
-+	int unlock_shm = 0;
- 	struct file *file;
- 	struct inode *inode;
- 	struct dentry *dentry, *root;
-@@ -958,8 +959,14 @@ struct file *hugetlb_file_setup(const ch
- 	if (!hugetlbfs_vfsmount)
- 		return ERR_PTR(-ENOENT);
+ #include "power.h"
  
--	if (!can_do_hugetlb_shm())
--		return ERR_PTR(-EPERM);
-+	if (!can_do_hugetlb_shm()) {
-+		if (user_shm_lock(size, user)) {
-+			unlock_shm = 1;
-+			WARN_ONCE(1,
-+			  "Using mlock ulimits for SHM_HUGETLB deprecated\n");
-+		} else
-+			return ERR_PTR(-EPERM);
-+	}
+diff -puN kernel/power/swsusp.c~pm-rework-includes-remove-arch-ifdefs kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~pm-rework-includes-remove-arch-ifdefs
++++ a/kernel/power/swsusp.c
+@@ -51,6 +51,7 @@
+ #include <linux/highmem.h>
+ #include <linux/time.h>
+ #include <linux/rbtree.h>
++#include <linux/io.h>
  
- 	root = hugetlbfs_vfsmount->mnt_root;
- 	quick_string.name = name;
-@@ -999,6 +1006,8 @@ out_inode:
- out_dentry:
- 	dput(dentry);
- out_shm_unlock:
-+	if (unlock_shm)
-+		user_shm_unlock(size, user);
- 	return ERR_PTR(error);
- }
+ #include "power.h"
  
 _
 
-Patches currently in -mm which might be from kiran@scalex86.org are
+Patches currently in -mm which might be from damm@igel.co.jp are
 
 linux-next.patch
-mm-fix-shm_hugetlb-to-work-with-users-in-hugetlb_shm_group.patch
-mm-reintroduce-and-deprecate-rlimit-based-access-for-shm_hugetlb.patch
-slab-leaks3-default-y.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+clocksource-add-enable-and-disable-callbacks.patch
+irq-free-setup_irq-interrupt-using-free_irq.patch
+pm-rework-includes-remove-arch-ifdefs.patch
 
