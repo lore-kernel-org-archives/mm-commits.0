@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-agp-tight-check-to-update-amd-nb-aperture.patch added to -mm tree
-Date: Tue, 24 Feb 2009 14:13:06 -0800
-Message-ID: <200902242213.n1OMD6ot015393@imap1.linux-foundation.org>
+Subject: + namespaces-mqueue-namespace-adapt-sysctl-update.patch added to -mm tree
+Date: Tue, 24 Feb 2009 14:17:26 -0800
+Message-ID: <200902242217.n1OMHQLq015744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47718 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46075 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754859AbZBXWOT (ORCPT
+	by vger.kernel.org with ESMTP id S1757017AbZBXWSF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 17:14:19 -0500
+	Tue, 24 Feb 2009 17:18:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, airlied@linux.ie, jetrull@sbcglobal.net, mingo@elte.hu
+Cc: serue@us.ibm.com, Nadia.Derbey@bull.net, adobriyan@gmail.com, clg@fr.ibm.com
 
 
 The patch titled
-     x86/agp: tighted check to update amd nb aperture
+     mqueue-namespace-adapt-sysctl-update
 has been added to the -mm tree.  Its filename is
-     x86-agp-tight-check-to-update-amd-nb-aperture.patch
+     namespaces-mqueue-namespace-adapt-sysctl-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86/agp: tighted check to update amd nb aperture
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: mqueue-namespace-adapt-sysctl-update
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Impact: fix bug to make agp work with dri
+Feb 24: comments from Alexey Dobriyan:
 
-Jeffrey reported that dri does work with 64bit, but doesn't work with
-32bit it turns out NB aperture is 32M, aperture on agp is 128M
+1) put proc handlers under CONFIG_PROC_SYSCTL and make them NULL
+   otherwise.
 
-64bit is using 64M for vaidation for 64 iommu/gart 32bit is only using
-32M..., and will not update the nb aperture.
+2) remove & from proc_handler when assigned to ctl_table.
 
-So try to compare nb apterture and agp apterture before leaving not
-touch nb aperture.
-
-Reported-by: Jeffrey Trull <jetrull@sbcglobal.net>
-Tested-by: Jeffrey Trull <jetrull@sbcglobal.net>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/amd64-agp.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ ipc/mq_sysctl.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN drivers/char/agp/amd64-agp.c~x86-agp-tight-check-to-update-amd-nb-aperture drivers/char/agp/amd64-agp.c
---- a/drivers/char/agp/amd64-agp.c~x86-agp-tight-check-to-update-amd-nb-aperture
-+++ a/drivers/char/agp/amd64-agp.c
-@@ -271,15 +271,15 @@ static __devinit int fix_northbridge(str
- 	nb_order = (nb_order >> 1) & 7;
- 	pci_read_config_dword(nb, AMD64_GARTAPERTUREBASE, &nb_base);
- 	nb_aper = nb_base << 25;
--	if (agp_aperture_valid(nb_aper, (32*1024*1024)<<nb_order)) {
--		return 0;
--	}
+diff -puN ipc/mq_sysctl.c~namespaces-mqueue-namespace-adapt-sysctl-update ipc/mq_sysctl.c
+--- a/ipc/mq_sysctl.c~namespaces-mqueue-namespace-adapt-sysctl-update
++++ a/ipc/mq_sysctl.c
+@@ -30,7 +30,7 @@ static void *get_mq(ctl_table *table)
+ 	return which;
+ }
  
- 	/* Northbridge seems to contain crap. Try the AGP bridge. */
+-#ifdef CONFIG_PROC_FS
++#ifdef CONFIG_PROC_SYSCTL
+ static int proc_mq_dointvec(ctl_table *table, int write, struct file *filp,
+ 	void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+@@ -51,19 +51,10 @@ static int proc_mq_dointvec_minmax(ctl_t
+ 	return proc_dointvec_minmax(&mq_table, write, filp, buffer,
+ 					lenp, ppos);
+ }
+-#else /* CONFIG_PROC_FS */
+-static int proc_mq_dointvec(ctl_table *table, int write, struct file *filp,
+-	void __user *buffer, size_t *lenp, loff_t *ppos)
+-{
+-	return -ENOSYS;
+-}
+-
+-static int proc_mq_dointvec_minmax(ctl_table *table, int write,
+-	struct file *filp, void __user *buffer, size_t *lenp, loff_t *ppos)
+-{
+-	return -ENOSYS;
+-}
+-#endif /* CONFIG_PROC_FS */
++#else
++proc_handler *proc_mq_dointvec = NULL;
++proc_handler *proc_mq_dointvec_minmax = NULL;
++#endif
  
- 	pci_read_config_word(agp, cap+0x14, &apsize);
--	if (apsize == 0xffff)
-+	if (apsize == 0xffff) {
-+		if (agp_aperture_valid(nb_aper, (32*1024*1024)<<nb_order))
-+			return 0;
- 		return -1;
-+	}
- 
- 	apsize &= 0xfff;
- 	/* Some BIOS use weird encodings not in the AGPv3 table. */
-@@ -301,6 +301,11 @@ static __devinit int fix_northbridge(str
- 		order = nb_order;
- 	}
- 
-+	if (nb_order >= order) {
-+		if (agp_aperture_valid(nb_aper, (32*1024*1024)<<nb_order))
-+			return 0;
-+	}
-+
- 	dev_info(&agp->dev, "aperture from AGP @ %Lx size %u MB\n",
- 		 aper, 32 << order);
- 	if (order < 0 || !agp_aperture_valid(aper, (32*1024*1024)<<order))
+ static int msg_max_limit_min = MIN_MSGMAX;
+ static int msg_max_limit_max = MAX_MSGMAX;
+@@ -77,14 +68,14 @@ static ctl_table mq_sysctls[] = {
+ 		.data		= &init_ipc_ns.mq_queues_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= &proc_mq_dointvec,
++		.proc_handler	= proc_mq_dointvec,
+ 	},
+ 	{
+ 		.procname	= "msg_max",
+ 		.data		= &init_ipc_ns.mq_msg_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= &proc_mq_dointvec_minmax,
++		.proc_handler	= proc_mq_dointvec_minmax,
+ 		.extra1		= &msg_max_limit_min,
+ 		.extra2		= &msg_max_limit_max,
+ 	},
+@@ -93,7 +84,7 @@ static ctl_table mq_sysctls[] = {
+ 		.data		= &init_ipc_ns.mq_msgsize_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= &proc_mq_dointvec_minmax,
++		.proc_handler	= proc_mq_dointvec_minmax,
+ 		.extra1		= &msg_maxsize_limit_min,
+ 		.extra2		= &msg_maxsize_limit_max,
+ 	},
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 linux-next.patch
-x86-agp-tight-check-to-update-amd-nb-aperture.patch
+vfs-simple_set_mnt-should-return-void.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
+namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
+namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
+namespaces-mqueue-namespace-adapt-sysctl.patch
+namespaces-mqueue-namespace-adapt-sysctl-update.patch
+mqueue-namespace-adapt-sysctl-update-fix.patch
+reiser4.patch
 
