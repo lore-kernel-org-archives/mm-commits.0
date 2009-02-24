@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-more-documentation-for-remount-and-release_agent.patch added to -mm tree
-Date: Tue, 24 Feb 2009 13:42:38 -0800
-Message-ID: <200902242142.n1OLgcK9013364@imap1.linux-foundation.org>
+Subject: + namespaces-mqueue-namespace-adapt-sysctl.patch added to -mm tree
+Date: Tue, 24 Feb 2009 13:50:40 -0800
+Message-ID: <200902242150.n1OLofKG013920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54469 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753148AbZBXVnR (ORCPT
+	by vger.kernel.org with ESMTP id S1757963AbZBXVvU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 16:43:17 -0500
+	Tue, 24 Feb 2009 16:51:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
+Cc: serue@us.ibm.com, Nadia.Derbey@bull.net, adobriyan@gmail.com, clg@fr.ibm.com
 
 
 The patch titled
-     cgroups: more documentation for remount and release_agent
+     namespaces: mqueue namespace: adapt sysctl
 has been added to the -mm tree.  Its filename is
-     cgroups-more-documentation-for-remount-and-release_agent.patch
+     namespaces-mqueue-namespace-adapt-sysctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,302 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: more documentation for remount and release_agent
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: namespaces: mqueue namespace: adapt sysctl
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-This won't remove cpuacct from the mounted hierachy:
- # mount -t cgroup -o cpu,cpuacct xxx /mnt
- # mount -o remount,cpu /mnt
+Largely inspired from ipc/ipc_sysctl.c.  This patch isolates the mqueue
+sysctl stuff in its own file.
 
-Because for this usage mount(8) will append the new options to the original
-options.
-
-And this will get you right:
- # mount [-t cgroup] -o remount,cpu xxx /mnt
-
-Also document how to specify or change release_agent.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Reviewd-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ include/linux/ipc_namespace.h |   14 +++
+ init/Kconfig                  |    6 +
+ ipc/Makefile                  |    1 
+ ipc/mq_sysctl.c               |  125 ++++++++++++++++++++++++++++++++
+ ipc/mqueue.c                  |   65 ----------------
+ 5 files changed, 147 insertions(+), 64 deletions(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroups-more-documentation-for-remount-and-release_agent Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroups-more-documentation-for-remount-and-release_agent
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -333,12 +333,23 @@ The "xxx" is not interpreted by the cgro
- 
- To mount a cgroup hierarchy with just the cpuset and numtasks
- subsystems, type:
--# mount -t cgroup -o cpuset,numtasks hier1 /dev/cgroup
-+# mount -t cgroup -o cpuset,memory hier1 /dev/cgroup
- 
- To change the set of subsystems bound to a mounted hierarchy, just
- remount with different options:
-+# mount -o remount,cpuset,ns hier1 /dev/cgroup
- 
--# mount -o remount,cpuset,ns  /dev/cgroup
-+Now memory is removed from the hierarchy and ns is added.
+diff -puN include/linux/ipc_namespace.h~namespaces-mqueue-namespace-adapt-sysctl include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~namespaces-mqueue-namespace-adapt-sysctl
++++ a/include/linux/ipc_namespace.h
+@@ -128,4 +128,18 @@ static inline void put_ipc_ns(struct ipc
+ {
+ }
+ #endif
 +
-+Note this will add ns to the hierarchy but won't remove memory or
-+cpuset, because the new options are appended to the old ones:
-+# mount -o remount,ns /dev/cgroup
++#ifdef CONFIG_POSIX_MQUEUE_SYSCTL
 +
-+To Specify a hierarchy's release_agent:
-+# mount -t cgroup -o cpuset,release_agent="/sbin/cpuset_release_agent" \
-+  xxx /dev/cgroup
++struct ctl_table_header;
++extern struct ctl_table_header *mq_register_sysctl_table(void);
 +
-+Note that specifying 'release_agent' more than once will return failure.
++#else /* CONFIG_POSIX_MQUEUE_SYSCTL */
++
++static inline struct ctl_table_header *mq_register_sysctl_table(void)
++{
++	return NULL;
++}
++
++#endif /* CONFIG_POSIX_MQUEUE_SYSCTL */
+ #endif
+diff -puN init/Kconfig~namespaces-mqueue-namespace-adapt-sysctl init/Kconfig
+--- a/init/Kconfig~namespaces-mqueue-namespace-adapt-sysctl
++++ a/init/Kconfig
+@@ -148,6 +148,12 @@ config POSIX_MQUEUE
  
- Note that changing the set of subsystems is currently only supported
- when the hierarchy consists of a single (root) cgroup. Supporting
-@@ -349,6 +360,11 @@ Then under /dev/cgroup you can find a tr
- tree of the cgroups in the system. For instance, /dev/cgroup
- is the cgroup that holds the whole system.
+ 	  If unsure, say Y.
  
-+If you want to change the value of release_agent:
-+# echo "/sbin/new_release_agent" > /dev/cgroup/release_agent
++config POSIX_MQUEUE_SYSCTL
++	bool
++	depends on POSIX_MQUEUE
++	depends on SYSCTL
++	default y
 +
-+It can also be changed via remount.
+ config BSD_PROCESS_ACCT
+ 	bool "BSD Process Accounting"
+ 	help
+diff -puN ipc/Makefile~namespaces-mqueue-namespace-adapt-sysctl ipc/Makefile
+--- a/ipc/Makefile~namespaces-mqueue-namespace-adapt-sysctl
++++ a/ipc/Makefile
+@@ -8,4 +8,5 @@ obj-$(CONFIG_SYSVIPC_SYSCTL) += ipc_sysc
+ obj_mq-$(CONFIG_COMPAT) += compat_mq.o
+ obj-$(CONFIG_POSIX_MQUEUE) += mqueue.o msgutil.o $(obj_mq-y)
+ obj-$(CONFIG_IPC_NS) += namespace.o
++obj-$(CONFIG_POSIX_MQUEUE_SYSCTL) += mq_sysctl.o
+ 
+diff -puN /dev/null ipc/mq_sysctl.c
+--- /dev/null
++++ a/ipc/mq_sysctl.c
+@@ -0,0 +1,125 @@
++/*
++ *  Copyright (C) 2007 IBM Corporation
++ *
++ *  Author: Cedric Le Goater <clg@fr.ibm.com>
++ *
++ *  This program is free software; you can redistribute it and/or
++ *  modify it under the terms of the GNU General Public License as
++ *  published by the Free Software Foundation, version 2 of the
++ *  License.
++ */
 +
- If you want to create a new cgroup under /dev/cgroup:
- # cd /dev/cgroup
- # mkdir my_cgroup
++#include <linux/nsproxy.h>
++#include <linux/ipc_namespace.h>
++#include <linux/sysctl.h>
++
++/*
++ * Define the ranges various user-specified maximum values can
++ * be set to.
++ */
++#define MIN_MSGMAX	1		/* min value for msg_max */
++#define MAX_MSGMAX	HARD_MSGMAX	/* max value for msg_max */
++#define MIN_MSGSIZEMAX	128		/* min value for msgsize_max */
++#define MAX_MSGSIZEMAX	(8192*128)	/* max value for msgsize_max */
++
++static void *get_mq(ctl_table *table)
++{
++	char *which = table->data;
++	struct ipc_namespace *ipc_ns = current->nsproxy->ipc_ns;
++	which = (which - (char *)&init_ipc_ns) + (char *)ipc_ns;
++	return which;
++}
++
++#ifdef CONFIG_PROC_FS
++static int proc_mq_dointvec(ctl_table *table, int write, struct file *filp,
++	void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	struct ctl_table mq_table;
++	memcpy(&mq_table, table, sizeof(mq_table));
++	mq_table.data = get_mq(table);
++
++	return proc_dointvec(&mq_table, write, filp, buffer, lenp, ppos);
++}
++
++static int proc_mq_dointvec_minmax(ctl_table *table, int write,
++	struct file *filp, void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	struct ctl_table mq_table;
++	memcpy(&mq_table, table, sizeof(mq_table));
++	mq_table.data = get_mq(table);
++
++	return proc_dointvec_minmax(&mq_table, write, filp, buffer,
++					lenp, ppos);
++}
++#else /* CONFIG_PROC_FS */
++static int proc_mq_dointvec(ctl_table *table, int write, struct file *filp,
++	void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	return -ENOSYS;
++}
++
++static int proc_mq_dointvec_minmax(ctl_table *table, int write,
++	struct file *filp, void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	return -ENOSYS;
++}
++#endif /* CONFIG_PROC_FS */
++
++static int msg_max_limit_min = MIN_MSGMAX;
++static int msg_max_limit_max = MAX_MSGMAX;
++
++static int msg_maxsize_limit_min = MIN_MSGSIZEMAX;
++static int msg_maxsize_limit_max = MAX_MSGSIZEMAX;
++
++static ctl_table mq_sysctls[] = {
++	{
++		.procname	= "queues_max",
++		.data		= &init_ipc_ns.mq_queues_max,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_mq_dointvec,
++	},
++	{
++		.procname	= "msg_max",
++		.data		= &init_ipc_ns.mq_msg_max,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_mq_dointvec_minmax,
++		.extra1		= &msg_max_limit_min,
++		.extra2		= &msg_max_limit_max,
++	},
++	{
++		.procname	= "msgsize_max",
++		.data		= &init_ipc_ns.mq_msgsize_max,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_mq_dointvec_minmax,
++		.extra1		= &msg_maxsize_limit_min,
++		.extra2		= &msg_maxsize_limit_max,
++	},
++	{ .ctl_name = 0 }
++};
++
++static ctl_table mq_sysctl_dir[] = {
++	{
++		.procname	= "mqueue",
++		.mode		= 0555,
++		.child		= mq_sysctls,
++	},
++	{ .ctl_name = 0 }
++};
++
++static ctl_table mq_sysctl_root[] = {
++	{
++		.ctl_name	= CTL_FS,
++		.procname	= "fs",
++		.mode		= 0555,
++		.child		= mq_sysctl_dir,
++	},
++	{ .ctl_name = 0 }
++};
++
++struct ctl_table_header *mq_register_sysctl_table(void)
++{
++	return register_sysctl_table(mq_sysctl_root);
++}
+diff -puN ipc/mqueue.c~namespaces-mqueue-namespace-adapt-sysctl ipc/mqueue.c
+--- a/ipc/mqueue.c~namespaces-mqueue-namespace-adapt-sysctl
++++ a/ipc/mqueue.c
+@@ -47,15 +47,6 @@
+ #define STATE_PENDING	1
+ #define STATE_READY	2
+ 
+-/*
+- * Define the ranges various user-specified maximum values can
+- * be set to.
+- */
+-#define MIN_MSGMAX	1		/* min value for msg_max */
+-#define MAX_MSGMAX	HARD_MSGMAX	/* max value for msg_max */
+-#define MIN_MSGSIZEMAX	128		/* min value for msgsize_max */
+-#define MAX_MSGSIZEMAX	(8192*128)	/* max value for msgsize_max */
+-
+ struct ext_wait_queue {		/* queue of sleeping tasks */
+ 	struct task_struct *task;
+ 	struct list_head list;
+@@ -1271,60 +1262,6 @@ void mq_put_mnt(struct ipc_namespace *ns
+ 	mntput(ns->mq_mnt);
+ }
+ 
+-static int msg_max_limit_min = MIN_MSGMAX;
+-static int msg_max_limit_max = MAX_MSGMAX;
+-
+-static int msg_maxsize_limit_min = MIN_MSGSIZEMAX;
+-static int msg_maxsize_limit_max = MAX_MSGSIZEMAX;
+-
+-static ctl_table mq_sysctls[] = {
+-	{
+-		.procname	= "queues_max",
+-		.data		= &init_ipc_ns.mq_queues_max,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec,
+-	},
+-	{
+-		.procname	= "msg_max",
+-		.data		= &init_ipc_ns.mq_msg_max,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec_minmax,
+-		.extra1		= &msg_max_limit_min,
+-		.extra2		= &msg_max_limit_max,
+-	},
+-	{
+-		.procname	= "msgsize_max",
+-		.data		= &init_ipc_ns.mq_msgsize_max,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec_minmax,
+-		.extra1		= &msg_maxsize_limit_min,
+-		.extra2		= &msg_maxsize_limit_max,
+-	},
+-	{ .ctl_name = 0 }
+-};
+-
+-static ctl_table mq_sysctl_dir[] = {
+-	{
+-		.procname	= "mqueue",
+-		.mode		= 0555,
+-		.child		= mq_sysctls,
+-	},
+-	{ .ctl_name = 0 }
+-};
+-
+-static ctl_table mq_sysctl_root[] = {
+-	{
+-		.ctl_name	= CTL_FS,
+-		.procname	= "fs",
+-		.mode		= 0555,
+-		.child		= mq_sysctl_dir,
+-	},
+-	{ .ctl_name = 0 }
+-};
+-
+ static int __init init_mqueue_fs(void)
+ {
+ 	int error;
+@@ -1336,7 +1273,7 @@ static int __init init_mqueue_fs(void)
+ 		return -ENOMEM;
+ 
+ 	/* ignore failues - they are not fatal */
+-	mq_sysctl_table = register_sysctl_table(mq_sysctl_root);
++	mq_sysctl_table = mq_register_sysctl_table();
+ 
+ 	error = register_filesystem(&mqueue_fs_type);
+ 	if (error)
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 linux-next.patch
-vfs-add-missing-unlock-in-sget.patch
+vfs-simple_set_mnt-should-return-void.patch
 relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
-cgroup-css-id-support.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-cgroups-more-documentation-for-remount-and-release_agent.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
+pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
+namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
+namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
+namespaces-mqueue-namespace-adapt-sysctl.patch
+reiser4.patch
 
