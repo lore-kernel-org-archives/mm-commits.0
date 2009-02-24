@@ -1,105 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: + pm-rework-includes-remove-arch-ifdefs.patch added to -mm tree
-Date: Tue, 24 Feb 2009 13:18:26 -0800
-Message-ID: <200902242118.n1OLIQJm011778@imap1.linux-foundation.org>
+Subject: [to-be-updated] mmc-add-modalias-linkage-for-mmc-sd-devices.patch removed from -mm tree
+Date: Tue, 24 Feb 2009 13:35:11 -0800
+Message-ID: <200902242135.n1OLZBNp012911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40252 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751680AbZBXVTO (ORCPT
+	by vger.kernel.org with ESMTP id S1752681AbZBXVfZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 16:19:14 -0500
+	Tue, 24 Feb 2009 16:35:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: damm@igel.co.jp, lethal@linux-sh.org, rjw@sisk.pl
+To: apw@canonical.com, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm: rework includes, remove arch ifdefs
-has been added to the -mm tree.  Its filename is
-     pm-rework-includes-remove-arch-ifdefs.patch
+     mmc: add MODALIAS linkage for MMC/SD devices
+has been removed from the -mm tree.  Its filename was
+     mmc-add-modalias-linkage-for-mmc-sd-devices.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: rework includes, remove arch ifdefs
-From: Magnus Damm <damm@igel.co.jp>
+Subject: mmc: add MODALIAS linkage for MMC/SD devices
+From: Andy Whitcroft <apw@canonical.com>
 
-Make the following header file changes:
+Currently we are using an explicit udev rule to trigger loading of the
+mmc-block module when an MMC or SD card is detected:
 
- - remove arch ifdefs and asm/suspend.h from linux/suspend.h
- - add asm/suspend.h to disk.c (for arch_prepare_suspend())
- - add linux/io.h to swsusp.c (for ioremap())
+    SUBSYSTEM=="mmc", RUN+="/sbin/modprobe -Qba mmc-block"
 
-These are the only generic changes needed to get CONFIG_HIBERNATION
-working on SuperH.
+It makes much more sense for the mmc bus driver and the mmc-block module
+to share MODALIAS information so that they are linked automatically.
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Add MODALIAS attributes to the uevents as generated, and add the
+corresponding MODULE_ALIAS marks to the mmc-block module so that it is
+automatically loaded by udev.  I have followed the example set by the SCSI
+subsystem in pushing out numeric typed aliases:
+
+	mmc:t-0xNN
+
+Where NN is the MMC type as defined in include/linux/mmc/card.h.  Numeric
+types are used to allow automatic handling of new unknown types in the
+core.  The matches are open on the right to allow additional fields to be
+added as required in the future.
+
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/suspend.h |    3 ---
- kernel/power/disk.c     |    1 +
- kernel/power/swsusp.c   |    1 +
- 3 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/mmc/card/block.c |    3 +++
+ drivers/mmc/core/bus.c   |    5 +++++
+ include/linux/mmc/card.h |   10 +++++++---
+ 3 files changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/suspend.h~pm-rework-includes-remove-arch-ifdefs include/linux/suspend.h
---- a/include/linux/suspend.h~pm-rework-includes-remove-arch-ifdefs
-+++ a/include/linux/suspend.h
-@@ -1,9 +1,6 @@
- #ifndef _LINUX_SUSPEND_H
- #define _LINUX_SUSPEND_H
+diff -puN drivers/mmc/card/block.c~mmc-add-modalias-linkage-for-mmc-sd-devices drivers/mmc/card/block.c
+--- a/drivers/mmc/card/block.c~mmc-add-modalias-linkage-for-mmc-sd-devices
++++ a/drivers/mmc/card/block.c
+@@ -41,6 +41,9 @@
  
--#if defined(CONFIG_X86) || defined(CONFIG_FRV) || defined(CONFIG_PPC32) || defined(CONFIG_PPC64)
--#include <asm/suspend.h>
--#endif
- #include <linux/swap.h>
- #include <linux/notifier.h>
- #include <linux/init.h>
-diff -puN kernel/power/disk.c~pm-rework-includes-remove-arch-ifdefs kernel/power/disk.c
---- a/kernel/power/disk.c~pm-rework-includes-remove-arch-ifdefs
-+++ a/kernel/power/disk.c
-@@ -22,6 +22,7 @@
- #include <linux/console.h>
- #include <linux/cpu.h>
- #include <linux/freezer.h>
-+#include <asm/suspend.h>
+ #include "queue.h"
  
- #include "power.h"
++MODULE_ALIAS_MMC_DEVICE(MMC_TYPE_MMC);
++MODULE_ALIAS_MMC_DEVICE(MMC_TYPE_SD);
++
+ /*
+  * max 8 partitions per card
+  */
+diff -puN drivers/mmc/core/bus.c~mmc-add-modalias-linkage-for-mmc-sd-devices drivers/mmc/core/bus.c
+--- a/drivers/mmc/core/bus.c~mmc-add-modalias-linkage-for-mmc-sd-devices
++++ a/drivers/mmc/core/bus.c
+@@ -84,6 +84,11 @@ mmc_bus_uevent(struct device *dev, struc
+ 	}
  
-diff -puN kernel/power/swsusp.c~pm-rework-includes-remove-arch-ifdefs kernel/power/swsusp.c
---- a/kernel/power/swsusp.c~pm-rework-includes-remove-arch-ifdefs
-+++ a/kernel/power/swsusp.c
-@@ -51,6 +51,7 @@
- #include <linux/highmem.h>
- #include <linux/time.h>
- #include <linux/rbtree.h>
-+#include <linux/io.h>
+ 	retval = add_uevent_var(env, "MMC_NAME=%s", mmc_card_name(card));
++	if (retval)
++		return retval;
++
++	retval = add_uevent_var(env, "MODALIAS=" MMC_DEVICE_MODALIAS_FMT,
++		card->type);
  
- #include "power.h"
+ 	return retval;
+ }
+diff -puN include/linux/mmc/card.h~mmc-add-modalias-linkage-for-mmc-sd-devices include/linux/mmc/card.h
+--- a/include/linux/mmc/card.h~mmc-add-modalias-linkage-for-mmc-sd-devices
++++ a/include/linux/mmc/card.h
+@@ -86,9 +86,9 @@ struct mmc_card {
+ 	struct device		dev;		/* the device */
+ 	unsigned int		rca;		/* relative card address of device */
+ 	unsigned int		type;		/* card type */
+-#define MMC_TYPE_MMC		0		/* MMC card */
+-#define MMC_TYPE_SD		1		/* SD card */
+-#define MMC_TYPE_SDIO		2		/* SDIO card */
++#define MMC_TYPE_MMC		0x00		/* MMC card */
++#define MMC_TYPE_SD		0x01		/* SD card */
++#define MMC_TYPE_SDIO		0x02		/* SDIO card */
+ 	unsigned int		state;		/* (our) card state */
+ #define MMC_STATE_PRESENT	(1<<0)		/* present in sysfs */
+ #define MMC_STATE_READONLY	(1<<1)		/* card is read-only */
+@@ -150,4 +150,8 @@ struct mmc_driver {
+ extern int mmc_register_driver(struct mmc_driver *);
+ extern void mmc_unregister_driver(struct mmc_driver *);
  
++#define MODULE_ALIAS_MMC_DEVICE(type) \
++	MODULE_ALIAS("mmc:t-" __stringify(type) "*")
++#define MMC_DEVICE_MODALIAS_FMT "mmc:t-0x%02x"
++
+ #endif
 _
 
-Patches currently in -mm which might be from damm@igel.co.jp are
+Patches currently in -mm which might be from apw@canonical.com are
 
-linux-next.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-clocksource-add-enable-and-disable-callbacks.patch
-irq-free-setup_irq-interrupt-using-free_irq.patch
-pm-rework-includes-remove-arch-ifdefs.patch
+mmc-add-modalias-linkage-for-mmc-sd-devices.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+checkpatch-make-in_atomic-ok-in-the-core.patch
+checkpatch-do-not-warn-about-p0-patches-when-checking-files.patch
+checkpatch-correctly-handle-type-spacing-in-the-face-of-modifiers.patch
+checkpatch-pointer-type-star-may-have-modifiers-following.patch
+checkpatch-a-modifier-is-not-an-identifier-at-the-end-of-a-type.patch
+checkpatch-extend-attribute-testing-to-all-modifiers.patch
+checkpatch-add-__ref-as-a-sparse-modifier.patch
+checkpatch-version-028.patch
 
