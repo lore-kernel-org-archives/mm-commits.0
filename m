@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-convert-u64-to-unsigned-long-long.patch added to -mm tree
-Date: Tue, 24 Feb 2009 13:39:38 -0800
-Message-ID: <200902242139.n1OLdcq6013206@imap1.linux-foundation.org>
+Subject: + vfs-improve-comment-describing-fget_light.patch added to -mm tree
+Date: Tue, 24 Feb 2009 13:41:34 -0800
+Message-ID: <200902242141.n1OLfZSb013331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44054 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759139AbZBXVjv (ORCPT
+	by vger.kernel.org with ESMTP id S1753639AbZBXVmL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 16:39:51 -0500
+	Tue, 24 Feb 2009 16:42:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: tonyb@cybernetics.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     alpha: convert u64 to unsigned long long
+     vfs: improve comment describing fget_light()
 has been added to the -mm tree.  Its filename is
-     alpha-convert-u64-to-unsigned-long-long.patch
+     vfs-improve-comment-describing-fget_light.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,495 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: convert u64 to unsigned long long
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: vfs: improve comment describing fget_light()
+From: Tony Battersby <tonyb@cybernetics.com>
 
-Convert alpha architecture to use u64 as unsigned long long.  This is
-being done so that (a) all arches use u64 as unsigned long long and (b)
-printk of a u64 as %ll[ux] will not generate format warnings by gcc.
+Improve the description of fget_light(), which is currently incorrect
+about needing a prior refcnt (judging by the way it is actually used).
 
-The only gcc cross-compiler that I have is 4.0.2, which generates errors
-about miscompiling __weak references, so I have commented out that line in
-compiler-gcc4.h so that most of these compile, but more builds and real
-machine testing would be Real Good.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Tony Battersby <tonyb@cybernetics.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/types.h |    5 +++
- arch/alpha/kernel/err_ev6.c    |    4 +--
- arch/alpha/kernel/err_ev7.c    |    6 ++--
- arch/alpha/kernel/err_marvel.c |   40 +++++++++++++++----------------
- arch/alpha/kernel/err_titan.c  |   28 ++++++++++-----------
- arch/alpha/kernel/pci_iommu.c  |   34 +++++++++++++-------------
- arch/alpha/kernel/setup.c      |    2 -
- arch/alpha/kernel/smc37c669.c  |    4 +--
- arch/alpha/kernel/sys_sable.c  |    4 +--
- arch/alpha/kernel/traps.c      |    2 -
- 10 files changed, 67 insertions(+), 62 deletions(-)
+ fs/file_table.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN arch/alpha/include/asm/types.h~alpha-convert-u64-to-unsigned-long-long arch/alpha/include/asm/types.h
---- a/arch/alpha/include/asm/types.h~alpha-convert-u64-to-unsigned-long-long
-+++ a/arch/alpha/include/asm/types.h
-@@ -8,7 +8,12 @@
-  * not a major issue.  However, for interoperability, libraries still
-  * need to be careful to avoid a name clashes.
+diff -puN fs/file_table.c~vfs-improve-comment-describing-fget_light fs/file_table.c
+--- a/fs/file_table.c~vfs-improve-comment-describing-fget_light
++++ a/fs/file_table.c
+@@ -318,11 +318,20 @@ struct file *fget(unsigned int fd)
+ EXPORT_SYMBOL(fget);
+ 
+ /*
+- * Lightweight file lookup - no refcnt increment if fd table isn't shared. 
+- * You can use this only if it is guranteed that the current task already 
+- * holds a refcnt to that file. That check has to be done at fget() only
+- * and a flag is returned to be passed to the corresponding fput_light().
+- * There must not be a cloning between an fget_light/fput_light pair.
++ * Lightweight file lookup - no refcnt increment if fd table isn't shared.
++ *
++ * You can use this instead of fget if you satisfy all of the following
++ * conditions:
++ * 1) You must call fput_light before exiting the syscall and returning control
++ *    to userspace (i.e. you cannot remember the returned struct file * after
++ *    returning to userspace).
++ * 2) You must not call filp_close on the returned struct file * in between
++ *    calls to fget_light and fput_light.
++ * 3) You must not clone the current task in between the calls to fget_light
++ *    and fput_light.
++ *
++ * The fput_needed flag returned by fget_light should be passed to the
++ * corresponding fput_light.
   */
-+
-+#ifdef __KERNEL__
-+#include <asm-generic/int-ll64.h>
-+#else
- #include <asm-generic/int-l64.h>
-+#endif
- 
- #ifndef __ASSEMBLY__
- 
-diff -puN arch/alpha/kernel/err_ev6.c~alpha-convert-u64-to-unsigned-long-long arch/alpha/kernel/err_ev6.c
---- a/arch/alpha/kernel/err_ev6.c~alpha-convert-u64-to-unsigned-long-long
-+++ a/arch/alpha/kernel/err_ev6.c
-@@ -157,8 +157,8 @@ ev6_parse_cbox(u64 c_addr, u64 c1_syn, u
- 		       err_print_prefix,
- 		       streamname[stream], bitsname[bits], sourcename[source]);
- 
--	printk("%s    Address: 0x%016lx\n"
--	         "    Syndrome[upper.lower]: %02lx.%02lx\n", 
-+	printk("%s    Address: 0x%016llx\n"
-+	         "    Syndrome[upper.lower]: %02llx.%02llx\n",
- 	       err_print_prefix,
- 	       c_addr,
- 	       c2_syn, c1_syn);
-diff -puN arch/alpha/kernel/err_ev7.c~alpha-convert-u64-to-unsigned-long-long arch/alpha/kernel/err_ev7.c
---- a/arch/alpha/kernel/err_ev7.c~alpha-convert-u64-to-unsigned-long-long
-+++ a/arch/alpha/kernel/err_ev7.c
-@@ -246,13 +246,13 @@ ev7_process_pal_subpacket(struct el_subp
- 
- 	switch(header->type) {
- 	case EL_TYPE__PAL__LOGOUT_FRAME:
--		printk("%s*** MCHK occurred on LPID %ld (RBOX %lx)\n",
-+		printk("%s*** MCHK occurred on LPID %ld (RBOX %llx)\n",
- 		       err_print_prefix,
- 		       packet->by_type.logout.whami, 
- 		       packet->by_type.logout.rbox_whami);
- 		el_print_timestamp(&packet->by_type.logout.timestamp);
--		printk("%s  EXC_ADDR: %016lx\n"
--		         "  HALT_CODE: %lx\n", 
-+		printk("%s  EXC_ADDR: %016llx\n"
-+		         "  HALT_CODE: %llx\n",
- 		       err_print_prefix,
- 		       packet->by_type.logout.exc_addr,
- 		       packet->by_type.logout.halt_code);
-diff -puN arch/alpha/kernel/err_marvel.c~alpha-convert-u64-to-unsigned-long-long arch/alpha/kernel/err_marvel.c
---- a/arch/alpha/kernel/err_marvel.c~alpha-convert-u64-to-unsigned-long-long
-+++ a/arch/alpha/kernel/err_marvel.c
-@@ -129,7 +129,7 @@ marvel_print_po7_crrct_sym(u64 crrct_sym
- 
- 
- 	printk("%s      Correctable Error Symptoms:\n"
--	       "%s        Syndrome: 0x%lx\n",
-+	       "%s        Syndrome: 0x%llx\n",
- 	       err_print_prefix,
- 	       err_print_prefix, EXTRACT(crrct_sym, IO7__PO7_CRRCT_SYM__SYN));
- 	marvel_print_err_cyc(EXTRACT(crrct_sym, IO7__PO7_CRRCT_SYM__ERR_CYC));
-@@ -186,7 +186,7 @@ marvel_print_po7_uncrr_sym(u64 uncrr_sym
- 	uncrr_sym &= valid_mask;
- 
- 	if (EXTRACT(valid_mask, IO7__PO7_UNCRR_SYM__SYN))
--		printk("%s        Syndrome: 0x%lx\n",
-+		printk("%s        Syndrome: 0x%llx\n",
- 		       err_print_prefix, 
- 		       EXTRACT(uncrr_sym, IO7__PO7_UNCRR_SYM__SYN));
- 
-@@ -307,7 +307,7 @@ marvel_print_po7_ugbge_sym(u64 ugbge_sym
- 		sprintf(opcode_str, "BlkIO");
- 		break;
- 	default:
--		sprintf(opcode_str, "0x%lx\n", 
-+		sprintf(opcode_str, "0x%llx\n",
- 			EXTRACT(ugbge_sym, IO7__PO7_UGBGE_SYM__UPH_OPCODE));
- 		break;
- 	}
-@@ -321,7 +321,7 @@ marvel_print_po7_ugbge_sym(u64 ugbge_sym
- 	       opcode_str);
- 
- 	if (0xC5 != EXTRACT(ugbge_sym, IO7__PO7_UGBGE_SYM__UPH_OPCODE))
--		printk("%s        Packet Offset 0x%08lx\n",
-+		printk("%s        Packet Offset 0x%08llx\n",
- 		       err_print_prefix,
- 		       EXTRACT(ugbge_sym, IO7__PO7_UGBGE_SYM__UPH_PKT_OFF));
- }
-@@ -480,8 +480,8 @@ marvel_print_po7_err_sum(struct ev7_pal_
- 		printk("%s    Lost Error\n", err_print_prefix);
- 
- 	printk("%s    Failing Packet:\n"
--	       "%s      Cycle 1: %016lx\n"
--	       "%s      Cycle 2: %016lx\n",
-+	       "%s      Cycle 1: %016llx\n"
-+	       "%s      Cycle 2: %016llx\n",
- 	       err_print_prefix,
- 	       err_print_prefix, io->po7_err_pkt0,
- 	       err_print_prefix, io->po7_err_pkt1);
-@@ -515,9 +515,9 @@ marvel_print_pox_tlb_err(u64 tlb_err)
- 	if (!(tlb_err & IO7__POX_TLBERR__ERR_VALID))
- 		return;
- 
--	printk("%s      TLB Error on index 0x%lx:\n"
-+	printk("%s      TLB Error on index 0x%llx:\n"
- 	       "%s        - %s\n"
--	       "%s        - Addr: 0x%016lx\n",
-+	       "%s        - Addr: 0x%016llx\n",
- 	       err_print_prefix,
- 	       EXTRACT(tlb_err, IO7__POX_TLBERR__ERR_TLB_PTR),
- 	       err_print_prefix,
-@@ -579,7 +579,7 @@ marvel_print_pox_spl_cmplt(u64 spl_cmplt
- 		sprintf(message, "Uncorrectable Split Write Data Error");
- 		break;
- 	default:
--		sprintf(message, "%08lx\n", 
-+		sprintf(message, "%08llx\n",
- 			EXTRACT(spl_cmplt, IO7__POX_SPLCMPLT__MESSAGE));
- 		break;
- 	}
-@@ -620,9 +620,9 @@ marvel_print_pox_trans_sum(u64 trans_sum
- 		return;
- 
- 	printk("%s      Transaction Summary:\n"
--	       "%s        Command: 0x%lx - %s\n"
--	       "%s        Address: 0x%016lx%s\n"
--	       "%s        PCI-X Master Slot: 0x%lx\n",
-+	       "%s        Command: 0x%llx - %s\n"
-+	       "%s        Address: 0x%016llx%s\n"
-+	       "%s        PCI-X Master Slot: 0x%llx\n",
- 	       err_print_prefix, 
- 	       err_print_prefix, 
- 	       EXTRACT(trans_sum, IO7__POX_TRANSUM__PCIX_CMD),
-@@ -964,12 +964,12 @@ marvel_process_io_error(struct ev7_lf_su
- 
- #if 0
- 		printk("%s  PORT 7 ERROR:\n"
--		       "%s    PO7_ERROR_SUM: %016lx\n"
--		       "%s    PO7_UNCRR_SYM: %016lx\n"
--		       "%s    PO7_CRRCT_SYM: %016lx\n"
--		       "%s    PO7_UGBGE_SYM: %016lx\n"
--		       "%s    PO7_ERR_PKT0:  %016lx\n"
--		       "%s    PO7_ERR_PKT1:  %016lx\n",
-+		       "%s    PO7_ERROR_SUM: %016llx\n"
-+		       "%s    PO7_UNCRR_SYM: %016llx\n"
-+		       "%s    PO7_CRRCT_SYM: %016llx\n"
-+		       "%s    PO7_UGBGE_SYM: %016llx\n"
-+		       "%s    PO7_ERR_PKT0:  %016llx\n"
-+		       "%s    PO7_ERR_PKT1:  %016llx\n",
- 		       err_print_prefix,
- 		       err_print_prefix, io->po7_error_sum,
- 		       err_print_prefix, io->po7_uncrr_sym,
-@@ -987,12 +987,12 @@ marvel_process_io_error(struct ev7_lf_su
- 		if (!MARVEL_IO_ERR_VALID(io->ports[i].pox_err_sum))
- 			continue;
- 
--		printk("%s  PID %u PORT %d POx_ERR_SUM: %016lx\n", 
-+		printk("%s  PID %u PORT %d POx_ERR_SUM: %016llx\n",
- 		       err_print_prefix, 
- 		       lf_subpackets->io_pid, i, io->ports[i].pox_err_sum);
- 		marvel_print_pox_err(io->ports[i].pox_err_sum, &io->ports[i]);
- 
--		printk("%s  [ POx_FIRST_ERR: %016lx ]\n", 
-+		printk("%s  [ POx_FIRST_ERR: %016llx ]\n",
- 		       err_print_prefix, io->ports[i].pox_first_err);
- 		marvel_print_pox_err(io->ports[i].pox_first_err, 
- 				     &io->ports[i]);
-diff -puN arch/alpha/kernel/err_titan.c~alpha-convert-u64-to-unsigned-long-long arch/alpha/kernel/err_titan.c
---- a/arch/alpha/kernel/err_titan.c~alpha-convert-u64-to-unsigned-long-long
-+++ a/arch/alpha/kernel/err_titan.c
-@@ -107,12 +107,12 @@ titan_parse_p_serror(int which, u64 serr
- 	if (!print)
- 		return status;
- 
--	printk("%s  PChip %d SERROR: %016lx\n", 
-+	printk("%s  PChip %d SERROR: %016llx\n",
- 	       err_print_prefix, which, serror);
- 	if (serror & TITAN__PCHIP_SERROR__ECCMASK) {
- 		printk("%s    %sorrectable ECC Error:\n"
- 		       "      Source: %-6s  Command: %-8s  Syndrome: 0x%08x\n"
--		       "      Address: 0x%lx\n", 
-+		       "      Address: 0x%llx\n",
- 		       err_print_prefix,
- 		       (serror & TITAN__PCHIP_SERROR__UECC) ? "Unc" : "C",
- 		       serror_src[EXTRACT(serror, TITAN__PCHIP_SERROR__SRC)],
-@@ -223,7 +223,7 @@ titan_parse_p_perror(int which, int port
- 	if (!print) 
- 		return status;
- 
--	printk("%s  PChip %d %cPERROR: %016lx\n", 
-+	printk("%s  PChip %d %cPERROR: %016llx\n",
- 	       err_print_prefix, which, 
- 	       port ? 'A' : 'G', perror);
- 	if (perror & TITAN__PCHIP_PERROR__IPTPW)
-@@ -316,7 +316,7 @@ titan_parse_p_agperror(int which, u64 ag
- 	addr = EXTRACT(agperror, TITAN__PCHIP_AGPERROR__ADDR) << 3;
- 	len = EXTRACT(agperror, TITAN__PCHIP_AGPERROR__LEN);
- 
--	printk("%s  PChip %d AGPERROR: %016lx\n", err_print_prefix,
-+	printk("%s  PChip %d AGPERROR: %016llx\n", err_print_prefix,
- 	       which, agperror);
- 	if (agperror & TITAN__PCHIP_AGPERROR__NOWINDOW)
- 		printk("%s    No Window\n", err_print_prefix);
-@@ -597,16 +597,16 @@ privateer_process_680_frame(struct el_co
- 		return status;
- 
- 	/* TODO - decode instead of just dumping... */
--	printk("%s  Summary Flags:         %016lx\n"
-- 	         "  CChip DIRx:            %016lx\n"
--		 "  System Management IR:  %016lx\n"
--		 "  CPU IR:                %016lx\n"
--		 "  Power Supply IR:       %016lx\n"
--		 "  LM78 Fault Status:     %016lx\n"
--		 "  System Doors:          %016lx\n"
--		 "  Temperature Warning:   %016lx\n"
--		 "  Fan Control:           %016lx\n"
--		 "  Fatal Power Down Code: %016lx\n",
-+	printk("%s  Summary Flags:         %016llx\n"
-+ 	         "  CChip DIRx:            %016llx\n"
-+		 "  System Management IR:  %016llx\n"
-+		 "  CPU IR:                %016llx\n"
-+		 "  Power Supply IR:       %016llx\n"
-+		 "  LM78 Fault Status:     %016llx\n"
-+		 "  System Doors:          %016llx\n"
-+		 "  Temperature Warning:   %016llx\n"
-+		 "  Fan Control:           %016llx\n"
-+		 "  Fatal Power Down Code: %016llx\n",
- 	       err_print_prefix,
- 	       emchk->summary,
- 	       emchk->c_dirx,
-diff -puN arch/alpha/kernel/pci_iommu.c~alpha-convert-u64-to-unsigned-long-long arch/alpha/kernel/pci_iommu.c
---- a/arch/alpha/kernel/pci_iommu.c~alpha-convert-u64-to-unsigned-long-long
-+++ a/arch/alpha/kernel/pci_iommu.c
-@@ -247,7 +247,7 @@ pci_map_single_1(struct pci_dev *pdev, v
- 	    && paddr + size <= __direct_map_size) {
- 		ret = paddr + __direct_map_base;
- 
--		DBGA2("pci_map_single: [%p,%lx] -> direct %lx from %p\n",
-+		DBGA2("pci_map_single: [%p,%zx] -> direct %llx from %p\n",
- 		      cpu_addr, size, ret, __builtin_return_address(0));
- 
- 		return ret;
-@@ -258,7 +258,7 @@ pci_map_single_1(struct pci_dev *pdev, v
- 	if (dac_allowed) {
- 		ret = paddr + alpha_mv.pci_dac_offset;
- 
--		DBGA2("pci_map_single: [%p,%lx] -> DAC %lx from %p\n",
-+		DBGA2("pci_map_single: [%p,%zx] -> DAC %llx from %p\n",
- 		      cpu_addr, size, ret, __builtin_return_address(0));
- 
- 		return ret;
-@@ -299,7 +299,7 @@ pci_map_single_1(struct pci_dev *pdev, v
- 	ret = arena->dma_base + dma_ofs * PAGE_SIZE;
- 	ret += (unsigned long)cpu_addr & ~PAGE_MASK;
- 
--	DBGA2("pci_map_single: [%p,%lx] np %ld -> sg %lx from %p\n",
-+	DBGA2("pci_map_single: [%p,%zx] np %ld -> sg %llx from %p\n",
- 	      cpu_addr, size, npages, ret, __builtin_return_address(0));
- 
- 	return ret;
-@@ -355,14 +355,14 @@ pci_unmap_single(struct pci_dev *pdev, d
- 	    && dma_addr < __direct_map_base + __direct_map_size) {
- 		/* Nothing to do.  */
- 
--		DBGA2("pci_unmap_single: direct [%lx,%lx] from %p\n",
-+		DBGA2("pci_unmap_single: direct [%llx,%zx] from %p\n",
- 		      dma_addr, size, __builtin_return_address(0));
- 
- 		return;
- 	}
- 
- 	if (dma_addr > 0xffffffff) {
--		DBGA2("pci64_unmap_single: DAC [%lx,%lx] from %p\n",
-+		DBGA2("pci64_unmap_single: DAC [%llx,%zx] from %p\n",
- 		      dma_addr, size, __builtin_return_address(0));
- 		return;
- 	}
-@@ -373,9 +373,9 @@ pci_unmap_single(struct pci_dev *pdev, d
- 
- 	dma_ofs = (dma_addr - arena->dma_base) >> PAGE_SHIFT;
- 	if (dma_ofs * PAGE_SIZE >= arena->size) {
--		printk(KERN_ERR "Bogus pci_unmap_single: dma_addr %lx "
--		       " base %lx size %x\n", dma_addr, arena->dma_base,
--		       arena->size);
-+		printk(KERN_ERR "Bogus pci_unmap_single: dma_addr %llx "
-+		       " base %llx size %x\n",
-+		       dma_addr, arena->dma_base, arena->size);
- 		return;
- 		BUG();
- 	}
-@@ -394,7 +394,7 @@ pci_unmap_single(struct pci_dev *pdev, d
- 
- 	spin_unlock_irqrestore(&arena->lock, flags);
- 
--	DBGA2("pci_unmap_single: sg [%lx,%lx] np %ld from %p\n",
-+	DBGA2("pci_unmap_single: sg [%llx,%zx] np %ld from %p\n",
- 	      dma_addr, size, npages, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(pci_unmap_single);
-@@ -444,7 +444,7 @@ try_again:
- 		goto try_again;
- 	}
- 		
--	DBGA2("pci_alloc_consistent: %lx -> [%p,%x] from %p\n",
-+	DBGA2("pci_alloc_consistent: %zx -> [%p,%llx] from %p\n",
- 	      size, cpu_addr, *dma_addrp, __builtin_return_address(0));
- 
- 	return cpu_addr;
-@@ -464,7 +464,7 @@ pci_free_consistent(struct pci_dev *pdev
- 	pci_unmap_single(pdev, dma_addr, size, PCI_DMA_BIDIRECTIONAL);
- 	free_pages((unsigned long)cpu_addr, get_order(size));
- 
--	DBGA2("pci_free_consistent: [%x,%lx] from %p\n",
-+	DBGA2("pci_free_consistent: [%llx,%zx] from %p\n",
- 	      dma_addr, size, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(pci_free_consistent);
-@@ -551,7 +551,7 @@ sg_fill(struct device *dev, struct scatt
- 		out->dma_address = paddr + __direct_map_base;
- 		out->dma_length = size;
- 
--		DBGA("    sg_fill: [%p,%lx] -> direct %lx\n",
-+		DBGA("    sg_fill: [%p,%lx] -> direct %llx\n",
- 		     __va(paddr), size, out->dma_address);
- 
- 		return 0;
-@@ -563,7 +563,7 @@ sg_fill(struct device *dev, struct scatt
- 		out->dma_address = paddr + alpha_mv.pci_dac_offset;
- 		out->dma_length = size;
- 
--		DBGA("    sg_fill: [%p,%lx] -> DAC %lx\n",
-+		DBGA("    sg_fill: [%p,%lx] -> DAC %llx\n",
- 		     __va(paddr), size, out->dma_address);
- 
- 		return 0;
-@@ -589,7 +589,7 @@ sg_fill(struct device *dev, struct scatt
- 	out->dma_address = arena->dma_base + dma_ofs*PAGE_SIZE + paddr;
- 	out->dma_length = size;
- 
--	DBGA("    sg_fill: [%p,%lx] -> sg %lx np %ld\n",
-+	DBGA("    sg_fill: [%p,%lx] -> sg %llx np %ld\n",
- 	     __va(paddr), size, out->dma_address, npages);
- 
- 	/* All virtually contiguous.  We need to find the length of each
-@@ -752,7 +752,7 @@ pci_unmap_sg(struct pci_dev *pdev, struc
- 
- 		if (addr > 0xffffffff) {
- 			/* It's a DAC address -- nothing to do.  */
--			DBGA("    (%ld) DAC [%lx,%lx]\n",
-+			DBGA("    (%ld) DAC [%llx,%zx]\n",
- 			      sg - end + nents, addr, size);
- 			continue;
- 		}
-@@ -760,12 +760,12 @@ pci_unmap_sg(struct pci_dev *pdev, struc
- 		if (addr >= __direct_map_base
- 		    && addr < __direct_map_base + __direct_map_size) {
- 			/* Nothing to do.  */
--			DBGA("    (%ld) direct [%lx,%lx]\n",
-+			DBGA("    (%ld) direct [%llx,%zx]\n",
- 			      sg - end + nents, addr, size);
- 			continue;
- 		}
- 
--		DBGA("    (%ld) sg [%lx,%lx]\n",
-+		DBGA("    (%ld) sg [%llx,%zx]\n",
- 		     sg - end + nents, addr, size);
- 
- 		npages = iommu_num_pages(addr, size, PAGE_SIZE);
-diff -puN arch/alpha/kernel/setup.c~alpha-convert-u64-to-unsigned-long-long arch/alpha/kernel/setup.c
---- a/arch/alpha/kernel/setup.c~alpha-convert-u64-to-unsigned-long-long
-+++ a/arch/alpha/kernel/setup.c
-@@ -1255,7 +1255,7 @@ show_cpuinfo(struct seq_file *f, void *s
- 		       platform_string(), nr_processors);
- 
- #ifdef CONFIG_SMP
--	seq_printf(f, "cpus active\t\t: %d\n"
-+	seq_printf(f, "cpus active\t\t: %u\n"
- 		      "cpu active mask\t\t: %016lx\n",
- 		       num_online_cpus(), cpus_addr(cpu_possible_map)[0]);
- #endif
-diff -puN arch/alpha/kernel/smc37c669.c~alpha-convert-u64-to-unsigned-long-long arch/alpha/kernel/smc37c669.c
---- a/arch/alpha/kernel/smc37c669.c~alpha-convert-u64-to-unsigned-long-long
-+++ a/arch/alpha/kernel/smc37c669.c
-@@ -2542,8 +2542,8 @@ void __init SMC669_Init ( int index )
-         SMC37c669_display_device_info( );
- #endif
- 	local_irq_restore(flags);
--        printk( "SMC37c669 Super I/O Controller found @ 0x%lx\n",
--		(unsigned long) SMC_base );
-+        printk( "SMC37c669 Super I/O Controller found @ 0x%p\n",
-+		SMC_base );
-     }
-     else {
- 	local_irq_restore(flags);
-diff -puN arch/alpha/kernel/sys_sable.c~alpha-convert-u64-to-unsigned-long-long arch/alpha/kernel/sys_sable.c
---- a/arch/alpha/kernel/sys_sable.c~alpha-convert-u64-to-unsigned-long-long
-+++ a/arch/alpha/kernel/sys_sable.c
-@@ -453,7 +453,7 @@ sable_lynx_enable_irq(unsigned int irq)
- 	sable_lynx_irq_swizzle->update_irq_hw(bit, mask);
- 	spin_unlock(&sable_lynx_irq_lock);
- #if 0
--	printk("%s: mask 0x%lx bit 0x%x irq 0x%x\n",
-+	printk("%s: mask 0x%lx bit 0x%lx irq 0x%x\n",
- 	       __func__, mask, bit, irq);
- #endif
- }
-@@ -469,7 +469,7 @@ sable_lynx_disable_irq(unsigned int irq)
- 	sable_lynx_irq_swizzle->update_irq_hw(bit, mask);
- 	spin_unlock(&sable_lynx_irq_lock);
- #if 0
--	printk("%s: mask 0x%lx bit 0x%x irq 0x%x\n",
-+	printk("%s: mask 0x%lx bit 0x%lx irq 0x%x\n",
- 	       __func__, mask, bit, irq);
- #endif
- }
-diff -puN arch/alpha/kernel/traps.c~alpha-convert-u64-to-unsigned-long-long arch/alpha/kernel/traps.c
---- a/arch/alpha/kernel/traps.c~alpha-convert-u64-to-unsigned-long-long
-+++ a/arch/alpha/kernel/traps.c
-@@ -623,7 +623,7 @@ do_entUna(void * va, unsigned long opcod
- 	}
- 
- 	lock_kernel();
--	printk("Bad unaligned kernel access at %016lx: %p %lx %ld\n",
-+	printk("Bad unaligned kernel access at %016lx: %p %lx %lu\n",
- 		pc, va, opcode, reg);
- 	do_exit(SIGSEGV);
- 
+ struct file *fget_light(unsigned int fd, int *fput_needed)
+ {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from tonyb@cybernetics.com are
 
-origin.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-kbuild-check-for-select-dependency-errors-on-config-load.patch
-kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-qla2x-fix-printk-format-warnings.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-alpha-convert-u64-to-unsigned-long-long.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-99.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
-asiliantfb-fix-cmap-memory-leaks-fix.patch
-documentation-ignore-byproducts-from-latex.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
-reiser4-export-remove_from_page_cache-fix.patch
+vfs-improve-comment-describing-fget_light.patch
+make-shm_get_stat-more-robust.patch
 
