@@ -1,68 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-fix-for-atmel-at91-powersaving.patch removed from -mm tree
-Date: Tue, 24 Feb 2009 11:32:34 -0800
-Message-ID: <200902241932.n1OJWYAv004433@imap1.linux-foundation.org>
+Subject: [merged] atm-bitwise-or-has-higher-precedence-than.patch removed from -mm tree
+Date: Tue, 24 Feb 2009 11:32:43 -0800
+Message-ID: <200902241932.n1OJWhhw004443@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754058AbZBXTde (ORCPT
+	by vger.kernel.org with ESMTP id S1754187AbZBXTdg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 14:33:34 -0500
+	Tue, 24 Feb 2009 14:33:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andrei.birjukov@artecdesign.ee, linux@maxim.org.za, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, chas3@users.sourceforge.net, chas@cmf.nrl.navy.mil, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: fix for Atmel AT91 powersaving
+     atm: bitwise or has higher precedence than ?:
 has been removed from the -mm tree.  Its filename was
-     arm-fix-for-atmel-at91-powersaving.patch
+     atm-bitwise-or-has-higher-precedence-than.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: fix for Atmel AT91 powersaving
-From: Andrei Birjukov <andrei.birjukov@artecdesign.ee>
+Subject: atm: bitwise or has higher precedence than ?:
+From: Roel Kluin <roel.kluin@gmail.com>
 
-We've discovered that our AT91SAM9260 board consumed too much power when
-returning from a slowclock low-power mode.  RAM self-refresh is enabled in
-a bootloader in our case, this is how we saw a difference.  Estimated ca. 
-30mA more on 4V battery than the same state before powersaving.
-
-After a small research we found that there seems to be a bogus
-sdram_selfrefresh_disable() call at the end of at91_pm_enter() call, which
-overwrites the LPR register with uninitialized value.  Please find the
-suggested patch attached.
-
-This patch fixes correct restoring of LPR register of the Atmel AT91 SDRAM
-controller when returning from a power saving mode.
-
-Signed-off-by: Andrei Birjukov <andrei.birjukov@artecdesign.ee>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Andrew Victor <linux@maxim.org.za>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: chas williams <chas3@users.sourceforge.net>
+Cc: chas williams <chas@cmf.nrl.navy.mil>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/pm.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/atm/lanai.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/mach-at91/pm.c~arm-fix-for-atmel-at91-powersaving arch/arm/mach-at91/pm.c
---- a/arch/arm/mach-at91/pm.c~arm-fix-for-atmel-at91-powersaving
-+++ a/arch/arm/mach-at91/pm.c
-@@ -332,7 +332,6 @@ static int at91_pm_enter(suspend_state_t
- 			at91_sys_read(AT91_AIC_IPR) & at91_sys_read(AT91_AIC_IMR));
- 
- error:
--	sdram_selfrefresh_disable();
- 	target_state = PM_SUSPEND_ON;
- 	at91_irq_resume();
- 	at91_gpio_resume();
+diff -puN drivers/atm/lanai.c~atm-bitwise-or-has-higher-precedence-than drivers/atm/lanai.c
+--- a/drivers/atm/lanai.c~atm-bitwise-or-has-higher-precedence-than
++++ a/drivers/atm/lanai.c
+@@ -901,7 +901,7 @@ static int __devinit eeprom_read(struct 
+ 		clock_l(); udelay(5);
+ 		for (i = 128; i != 0; i >>= 1) {   /* write command out */
+ 			tmp = (lanai->conf1 & ~CONFIG1_PROMDATA) |
+-			    (data & i) ? CONFIG1_PROMDATA : 0;
++			    ((data & i) ? CONFIG1_PROMDATA : 0);
+ 			if (lanai->conf1 != tmp) {
+ 				set_config1(tmp);
+ 				udelay(5);	/* Let new data settle */
 _
 
-Patches currently in -mm which might be from andrei.birjukov@artecdesign.ee are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
+acpi-get_throttling_state-cannot-be-larger-state_count.patch
+drm-fix-lock_test_with_return-macro.patch
+dvb-negative-internal-sub_range-wont-get-noticed.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch
+mm-get_nid_for_pfn-returns-int.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-fix-macros.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+spi-limit-reaches-1-tested-0.patch
+rtc-wm8350-retries-will-reach-1.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
+arkfb-fix-misplaced-parentheses.patch
+uvesafb-bitwise-or-has-higher-precedence-than.patch
+vesafb-bitwise-or-has-higher-precedence-than.patch
+ufs-sector_t-cannot-be-negative.patch
+rio-addition-has-higher-precedence-than.patch
 
