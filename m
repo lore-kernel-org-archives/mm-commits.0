@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-make-cpufreq-nforce2-less-obnoxious.patch added to -mm tree
-Date: Tue, 24 Feb 2009 11:58:30 -0800
-Message-ID: <200902241958.n1OJwU5v006408@imap1.linux-foundation.org>
+Subject: + mm-fix-shm_hugetlb-to-work-with-users-in-hugetlb_shm_group.patch added to -mm tree
+Date: Tue, 24 Feb 2009 11:57:34 -0800
+Message-ID: <200902241957.n1OJvZml006372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47685 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759879AbZBXT7W (ORCPT
+	by vger.kernel.org with ESMTP id S1752006AbZBXUAG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 14:59:22 -0500
+	Tue, 24 Feb 2009 15:00:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mjg59@srcf.ucam.org, mjg@redhat.com
+Cc: kiran@scalex86.org, agl@us.ibm.com, mel@csn.ul.ie, wli@holomorphy.com
 
 
 The patch titled
-     cpufreq: make cpufreq-nforce2 less obnoxious
+     mm: fix SHM_HUGETLB to work with users in hugetlb_shm_group
 has been added to the -mm tree.  Its filename is
-     cpufreq-make-cpufreq-nforce2-less-obnoxious.patch
+     mm-fix-shm_hugetlb-to-work-with-users-in-hugetlb_shm_group.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: make cpufreq-nforce2 less obnoxious
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: mm: fix SHM_HUGETLB to work with users in hugetlb_shm_group
+From: Ravikiran G Thirumalai <kiran@scalex86.org>
 
-Not owning an nforce2 is a sign of good taste, not an error.
+Fix hugetlb subsystem so that non root users belonging to
+hugetlb_shm_group can actually allocate hugetlb backed shm.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Currently non root users cannot even map one large page using SHM_HUGETLB
+when they belong to the gid in /proc/sys/vm/hugetlb_shm_group.  This is
+because allocation size is verified against RLIMIT_MEMLOCK resource limit
+even if the user belongs to hugetlb_shm_group.
+
+This patch
+1. Fixes hugetlb subsystem so that users with CAP_IPC_LOCK and users
+   belonging to hugetlb_shm_group don't need to be restricted with
+   RLIMIT_MEMLOCK resource limits
+2. This patch also disables mlock based rlimit checking (which will
+   be reinstated and marked deprecated in a subsequent patch).
+
+Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Adam Litke <agl@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/cpufreq-nforce2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/cpufreq-nforce2.c~cpufreq-make-cpufreq-nforce2-less-obnoxious arch/x86/kernel/cpu/cpufreq/cpufreq-nforce2.c
---- a/arch/x86/kernel/cpu/cpufreq/cpufreq-nforce2.c~cpufreq-make-cpufreq-nforce2-less-obnoxious
-+++ a/arch/x86/kernel/cpu/cpufreq/cpufreq-nforce2.c
-@@ -420,7 +420,7 @@ static int __init nforce2_init(void)
+diff -puN fs/hugetlbfs/inode.c~mm-fix-shm_hugetlb-to-work-with-users-in-hugetlb_shm_group fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-fix-shm_hugetlb-to-work-with-users-in-hugetlb_shm_group
++++ a/fs/hugetlbfs/inode.c
+@@ -943,9 +943,7 @@ static struct vfsmount *hugetlbfs_vfsmou
  
- 	/* detect chipset */
- 	if (nforce2_detect_chipset()) {
--		printk(KERN_ERR "cpufreq: No nForce2 chipset.\n");
-+		printk(KERN_INFO "cpufreq: No nForce2 chipset.\n");
- 		return -ENODEV;
- 	}
+ static int can_do_hugetlb_shm(void)
+ {
+-	return likely(capable(CAP_IPC_LOCK) ||
+-			in_group_p(sysctl_hugetlb_shm_group) ||
+-			can_do_mlock());
++	return capable(CAP_IPC_LOCK) || in_group_p(sysctl_hugetlb_shm_group);
+ }
  
-_
-
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
-
-serial-update-pnp-ids.patch
-cpufreq-make-cpufreq-nforce2-less-obnoxious.patch
-
+ struct file *hugetlb_file_setup(const char *name, size_t size, int acctflag)
+@@ -963,9 +961,6 @@ struct file *hugetlb_file_setup(const ch
+ 	if (!can_do_hugetlb_shm())
+ 		return ERR_PTR(-EPERM);
+ 
+-	if (!user_shm_lock(size, user))
+-		return ERR_PTR(-ENOMEM);
