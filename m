@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-check_var-improvements.patch added to -mm tree
-Date: Tue, 24 Feb 2009 12:20:42 -0800
-Message-ID: <200902242020.n1OKKgpc008053@imap1.linux-foundation.org>
+Subject: + export_symbold_obtain_alias-rather-than-export_symbol_gpl.patch added to -mm tree
+Date: Tue, 24 Feb 2009 12:23:31 -0800
+Message-ID: <200902242023.n1OKNVLk008195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35780 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758152AbZBXUVQ (ORCPT
+	by vger.kernel.org with ESMTP id S1758488AbZBXUY1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 15:21:16 -0500
+	Tue, 24 Feb 2009 15:24:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: bhalevy@panasas.com, bfields@fieldses.org, hch@infradead.org, torvalds@linux-foundation.org, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     cirrusfb: check_var improvements
+     EXPORT_SYMBOL(d_obtain_alias) rather than EXPORT_SYMBOL_GPL
 has been added to the -mm tree.  Its filename is
-     cirrusfb-check_var-improvements.patch
+     export_symbold_obtain_alias-rather-than-export_symbol_gpl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,386 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: check_var improvements
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: EXPORT_SYMBOL(d_obtain_alias) rather than EXPORT_SYMBOL_GPL
+From: Benny Halevy <bhalevy@panasas.com>
 
-Break cirrusfb_decode_var() function into two parts:
-cirrusfb_check_pixclock() which can be called from the
-cirrusfb_check_var() aand merge rest into the cirrusfb_set_par_foo(). 
-This allows rejecting modes with too high pixclock before before any
-change to hardware state (and a console is messed up).
+Commit 4ea3ada2955e4519befa98ff55dd62d6dfbd1705 declares d_obtain_alias()
+as EXPORT_SYMBOL_GPL where it's supposed to replace d_alloc_anon which was
+previously declared as EXPORT_SYMBOL and thus available to any loadable
+module.
 
-Also, fix RGB field's lengths for 8bpp modes to correct ones so X11 works
-with fbdev driver with cirrusfb.
+This patch reverts that.
 
-Kill some redundant function calls or register loads.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Benny Halevy <bhalevy@panasas.com>
+Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |  195 ++++++++++++++-----------------------
- 1 file changed, 74 insertions(+), 121 deletions(-)
+ fs/dcache.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-check_var-improvements drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-check_var-improvements
-+++ a/drivers/video/cirrusfb.c
-@@ -432,6 +432,53 @@ static int cirrusfb_check_mclk(struct fb
- 	return 0;
+diff -puN fs/dcache.c~export_symbold_obtain_alias-rather-than-export_symbol_gpl fs/dcache.c
+--- a/fs/dcache.c~export_symbold_obtain_alias-rather-than-export_symbol_gpl
++++ a/fs/dcache.c
+@@ -1180,7 +1180,7 @@ struct dentry *d_obtain_alias(struct ino
+ 	iput(inode);
+ 	return res;
  }
+-EXPORT_SYMBOL_GPL(d_obtain_alias);
++EXPORT_SYMBOL(d_obtain_alias);
  
-+static int cirrusfb_check_pixclock(const struct fb_var_screeninfo *var,
-+				   struct fb_info *info)
-+{
-+	long freq;
-+	long maxclock;
-+	struct cirrusfb_info *cinfo = info->par;
-+	unsigned maxclockidx = var->bits_per_pixel >> 3;
-+
-+	/* convert from ps to kHz */
-+	freq = PICOS2KHZ(var->pixclock);
-+
-+	dev_dbg(info->device, "desired pixclock: %ld kHz\n", freq);
-+
-+	maxclock = cirrusfb_board_info[cinfo->btype].maxclock[maxclockidx];
-+	cinfo->multiplexing = 0;
-+
-+	/* If the frequency is greater than we can support, we might be able
-+	 * to use multiplexing for the video mode */
-+	if (freq > maxclock) {
-+		switch (cinfo->btype) {
-+		case BT_ALPINE:
-+		case BT_GD5480:
-+			cinfo->multiplexing = 1;
-+			break;
-+
-+		default:
-+			dev_err(info->device,
-+				"Frequency greater than maxclock (%ld kHz)\n",
-+				maxclock);
-+			return -EINVAL;
-+		}
-+	}
-+#if 0
-+	/* TODO: If we have a 1MB 5434, we need to put ourselves in a mode where
-+	 * the VCLK is double the pixel clock. */
-+	switch (var->bits_per_pixel) {
-+	case 16:
-+	case 32:
-+		if (var->xres <= 800)
-+			/* Xbh has this type of clock for 32-bit */
-+			freq /= 2;
-+		break;
-+	}
-+#endif
-+	return 0;
-+}
-+
- static int cirrusfb_check_var(struct fb_var_screeninfo *var,
- 			      struct fb_info *info)
- {
-@@ -449,7 +496,7 @@ static int cirrusfb_check_var(struct fb_
- 
- 	case 8:
- 		var->red.offset = 0;
--		var->red.length = 6;
-+		var->red.length = 8;
- 		var->green = var->red;
- 		var->blue = var->red;
- 		break;
-@@ -513,7 +560,6 @@ static int cirrusfb_check_var(struct fb_
- 		return -EINVAL;
- 	}
- 
--
- 	if (var->xoffset < 0)
- 		var->xoffset = 0;
- 	if (var->yoffset < 0)
-@@ -544,80 +590,9 @@ static int cirrusfb_check_var(struct fb_
- 		return -EINVAL;
- 	}
- 
--	return 0;
--}
--
--static int cirrusfb_decode_var(const struct fb_var_screeninfo *var,
--				struct fb_info *info)
--{
--	long freq;
--	long maxclock;
--	int maxclockidx = var->bits_per_pixel >> 3;
--	struct cirrusfb_info *cinfo = info->par;
--
--	switch (var->bits_per_pixel) {
--	case 1:
--		info->fix.line_length = var->xres_virtual / 8;
--		info->fix.visual = FB_VISUAL_MONO10;
--		break;
--
--	case 8:
--		info->fix.line_length = var->xres_virtual;
--		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
--		break;
--
--	case 16:
--	case 32:
--		info->fix.line_length = var->xres_virtual * maxclockidx;
--		info->fix.visual = FB_VISUAL_TRUECOLOR;
--		break;
--
--	default:
--		dev_dbg(info->device,
--			"Unsupported bpp size: %d\n", var->bits_per_pixel);
--		assert(false);
--		/* should never occur */
--		break;
--	}
--
--	info->fix.type = FB_TYPE_PACKED_PIXELS;
--
--	/* convert from ps to kHz */
--	freq = PICOS2KHZ(var->pixclock);
--
--	dev_dbg(info->device, "desired pixclock: %ld kHz\n", freq);
--
--	maxclock = cirrusfb_board_info[cinfo->btype].maxclock[maxclockidx];
--	cinfo->multiplexing = 0;
--
--	/* If the frequency is greater than we can support, we might be able
--	 * to use multiplexing for the video mode */
--	if (freq > maxclock) {
--		switch (cinfo->btype) {
--		case BT_ALPINE:
--		case BT_GD5480:
--			cinfo->multiplexing = 1;
--			break;
-+	if (cirrusfb_check_pixclock(var, info))
-+		return -EINVAL;
- 
--		default:
--			dev_err(info->device,
--				"Frequency greater than maxclock (%ld kHz)\n",
--				maxclock);
--			return -EINVAL;
--		}
--	}
--#if 0
--	/* TODO: If we have a 1MB 5434, we need to put ourselves in a mode where
--	 * the VCLK is double the pixel clock. */
--	switch (var->bits_per_pixel) {
--	case 16:
--	case 32:
--		if (var->xres <= 800)
--			/* Xbh has this type of clock for 32-bit */
--			freq /= 2;
--		break;
--	}
--#endif
- 	return 0;
- }
- 
-@@ -653,7 +628,6 @@ static int cirrusfb_set_par_foo(struct f
- 	struct fb_var_screeninfo *var = &info->var;
- 	u8 __iomem *regbase = cinfo->regbase;
- 	unsigned char tmp;
--	int err;
- 	int pitch;
- 	const struct cirrusfb_board_info_rec *bi;
- 	int hdispend, hsyncstart, hsyncend, htotal;
-@@ -664,16 +638,28 @@ static int cirrusfb_set_par_foo(struct f
- 
- 	dev_dbg(info->device, "Requested mode: %dx%dx%d\n",
- 	       var->xres, var->yres, var->bits_per_pixel);
--	dev_dbg(info->device, "pixclock: %d\n", var->pixclock);
- 
--	init_vgachip(info);
-+	switch (var->bits_per_pixel) {
-+	case 1:
-+		info->fix.line_length = var->xres_virtual / 8;
-+		info->fix.visual = FB_VISUAL_MONO10;
-+		break;
- 
--	err = cirrusfb_decode_var(var, info);
--	if (err) {
--		/* should never happen */
--		dev_dbg(info->device, "mode change aborted.  invalid var.\n");
--		return -EINVAL;
-+	case 8:
-+		info->fix.line_length = var->xres_virtual;
-+		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
-+		break;
-+
-+	case 16:
-+	case 32:
-+		info->fix.line_length = var->xres_virtual *
-+					var->bits_per_pixel >> 3;
-+		info->fix.visual = FB_VISUAL_TRUECOLOR;
-+		break;
- 	}
-+	info->fix.type = FB_TYPE_PACKED_PIXELS;
-+
-+	init_vgachip(info);
- 
- 	bi = &cirrusfb_board_info[cinfo->btype];
- 
-@@ -873,9 +859,6 @@ static int cirrusfb_set_par_foo(struct f
- 		 * address wrap, no compat. */
- 		vga_wcrt(regbase, VGA_CRTC_MODE, 0xc3);
- 
--/* HAEH?	vga_wcrt(regbase, VGA_CRTC_V_SYNC_END, 0x20);
-- * previously: 0x00  unlock VGA_CRTC_H_TOTAL..CRT7 */
--
- 	/* don't know if it would hurt to also program this if no interlaced */
- 	/* mode is used, but I feel better this way.. :-) */
- 	if (var->vmode & FB_VMODE_INTERLACED)
-@@ -883,8 +866,6 @@ static int cirrusfb_set_par_foo(struct f
- 	else
- 		vga_wcrt(regbase, VGA_CRTC_REGS, 0x00);	/* interlace control */
- 
--	vga_wseq(regbase, VGA_SEQ_CHARACTER_MAP, 0);
--
- 	/* adjust horizontal/vertical sync type (low/high) */
- 	/* enable display memory & CRTC I/O address for color mode */
- 	tmp = 0x03;
-@@ -896,8 +877,6 @@ static int cirrusfb_set_par_foo(struct f
- 		tmp |= 0xc;
- 	WGen(cinfo, VGA_MIS_W, tmp);
- 
--	/* Screen A Preset Row-Scan register */
--	vga_wcrt(regbase, VGA_CRTC_PRESET_ROW, 0);
- 	/* text cursor on and start line */
- 	vga_wcrt(regbase, VGA_CRTC_CURSOR_START, 0);
- 	/* text cursor end line */
-@@ -1248,7 +1227,6 @@ static int cirrusfb_set_par_foo(struct f
- 		dev_dbg(info->device, "CRT1e: %d\n", tmp);
- 	}
- 
--
- 	/* pixel panning */
- 	vga_wattr(regbase, CL_AR33, 0);
- 
-@@ -1274,9 +1252,6 @@ static int cirrusfb_set_par_foo(struct f
- 	vga_wseq(regbase, VGA_SEQ_CLOCK_MODE, tmp);
- 	dev_dbg(info->device, "CL_SEQR1: %d\n", tmp);
- 
--	/* pan to requested offset */
--	cirrusfb_pan_display(var, info);
--
- #ifdef CIRRUSFB_DEBUG
- 	cirrusfb_dbg_reg_dump(info, NULL);
- #endif
-@@ -1332,8 +1307,7 @@ static int cirrusfb_setcolreg(unsigned r
- static int cirrusfb_pan_display(struct fb_var_screeninfo *var,
- 				struct fb_info *info)
- {
--	int xoffset = 0;
--	int yoffset = 0;
-+	int xoffset;
- 	unsigned long base;
- 	unsigned char tmp, xpix;
- 	struct cirrusfb_info *cinfo = info->par;
-@@ -1347,9 +1321,8 @@ static int cirrusfb_pan_display(struct f
- 		return -EINVAL;
- 
- 	xoffset = var->xoffset * info->var.bits_per_pixel / 8;
--	yoffset = var->yoffset;
- 
--	base = yoffset * info->fix.line_length + xoffset;
-+	base = var->yoffset * info->fix.line_length + xoffset;
- 
- 	if (info->var.bits_per_pixel == 1) {
- 		/* base is already correct */
-@@ -1363,10 +1336,8 @@ static int cirrusfb_pan_display(struct f
- 		cirrusfb_WaitBLT(cinfo->regbase);
- 
- 	/* lower 8 + 8 bits of screen start address */
--	vga_wcrt(cinfo->regbase, VGA_CRTC_START_LO,
--		 (unsigned char) (base & 0xff));
--	vga_wcrt(cinfo->regbase, VGA_CRTC_START_HI,
--		 (unsigned char) (base >> 8));
-+	vga_wcrt(cinfo->regbase, VGA_CRTC_START_LO, base & 0xff);
-+	vga_wcrt(cinfo->regbase, VGA_CRTC_START_HI, (base >> 8) & 0xff);
- 
- 	/* 0xf2 is %11110010, exclude tmp bits */
- 	tmp = vga_rcrt(cinfo->regbase, CL_CRT1B) & 0xf2;
-@@ -1544,10 +1515,6 @@ static void init_vgachip(struct fb_info 
- 
- 		/* FullBandwidth (video off) and 8/9 dot clock */
- 		vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, 0x21);
--		/* polarity (-/-), disable access to display memory,
--		 * VGA_CRTC_START_HI base address: color
--		 */
--		WGen(cinfo, VGA_MIS_W, 0xc1);
- 
- 		/* "magic cookie" - doesn't make any sense to me.. */
- /*      vga_wgfx(cinfo->regbase, CL_GRA, 0xce);   */
-@@ -1614,10 +1581,6 @@ static void init_vgachip(struct fb_info 
- 	vga_wcrt(cinfo->regbase, VGA_CRTC_CURSOR_START, 0x20);
- 	/* Text cursor end: - */
- 	vga_wcrt(cinfo->regbase, VGA_CRTC_CURSOR_END, 0x00);
--	/* Screen start address high: 0 */
--	vga_wcrt(cinfo->regbase, VGA_CRTC_START_HI, 0x00);
--	/* Screen start address low: 0 */
--	vga_wcrt(cinfo->regbase, VGA_CRTC_START_LO, 0x00);
- 	/* text cursor location high: 0 */
- 	vga_wcrt(cinfo->regbase, VGA_CRTC_CURSOR_HI, 0x00);
- 	/* text cursor location low: 0 */
-@@ -1625,10 +1588,6 @@ static void init_vgachip(struct fb_info 
- 
- 	/* Underline Row scanline: - */
- 	vga_wcrt(cinfo->regbase, VGA_CRTC_UNDERLINE, 0x00);
--	/* mode control: timing enable, byte mode, no compat modes */
--	vga_wcrt(cinfo->regbase, VGA_CRTC_MODE, 0xc3);
--	/* Line Compare: not needed */
--	vga_wcrt(cinfo->regbase, VGA_CRTC_LINE_COMPARE, 0x00);
- 	/* ### add 0x40 for text modes with > 30 MHz pixclock */
- 	/* ext. display controls: ext.adr. wrap */
- 	vga_wcrt(cinfo->regbase, CL_CRT1B, 0x02);
-@@ -1697,12 +1656,6 @@ static void init_vgachip(struct fb_info 
- 
- 	WGen(cinfo, VGA_PEL_MSK, 0xff);	/* Pixel mask: no mask */
- 
--	if (cinfo->btype != BT_ALPINE && cinfo->btype != BT_GD5480)
--	/* polarity (-/-), enable display mem,
--	 * VGA_CRTC_START_HI i/o base = color
--	 */
--		WGen(cinfo, VGA_MIS_W, 0xc3);
--
- 	/* BLT Start/status: Blitter reset */
- 	vga_wgfx(cinfo->regbase, CL_GR31, 0x04);
- 	/* - " -	   : "end-of-reset" */
-@@ -2052,7 +2005,7 @@ static int __devinit cirrusfb_register(s
- 
- 	info->var.activate = FB_ACTIVATE_NOW;
- 
--	err = cirrusfb_decode_var(&info->var, info);
-+	err = cirrusfb_check_var(&info->var, info);
- 	if (err < 0) {
- 		/* should never happen */
- 		dev_dbg(info->device,
+ /**
+  * d_splice_alias - splice a disconnected dentry into the tree if one exists
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from bhalevy@panasas.com are
 
 linux-next.patch
-cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
-cirrusfb-add-laguna-additional-overflow-register.patch
-cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
-cirrusfb-do-not-calculate-line-length-twice.patch
-cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
-cirrusfb-various-improvements.patch
-cirrusfb-laguna-chipset-8bpp-fix.patch
-cirrusfb-check_var-improvements.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-asiliantfb-fix-cmap-memory-leaks.patch
-asiliantfb-fix-cmap-memory-leaks-fix.patch
+export_symbold_obtain_alias-rather-than-export_symbol_gpl.patch
 
