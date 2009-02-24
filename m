@@ -1,181 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 24 Feb 2009 14:49:34 -0800
-Message-ID: <200902242249.n1OMnYYn017934@imap1.linux-foundation.org>
+Subject: - kbuild-check-for-select-dependency-errors-on-config-load.patch removed from -mm tree
+Date: Tue, 24 Feb 2009 14:49:31 -0800
+Message-ID: <200902242249.n1OMnVmO017927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754261AbZBXWuf (ORCPT
+	by vger.kernel.org with ESMTP id S1753554AbZBXWuf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 24 Feb 2009 17:50:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, randy.dunlap@oracle.com, rostedt@goodmis.org, sam@ravnborg.org, srostedt@redhat.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, randy.dunlap@oracle.com, sam@ravnborg.org, srostedt@redhat.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes
+     kbuild: check for select dependency errors on config load
 has been removed from the -mm tree.  Its filename was
-     kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes.patch
+     kbuild-check-for-select-dependency-errors-on-config-load.patch
 
 This patch was dropped because i got bored of all the noise
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kbuild: check for select dependency errors on config load
+From: Steven Rostedt <rostedt@goodmis.org>
 
-WARNING: labels should not be indented
-#144: FILE: scripts/kconfig/confdata.c:400:
-+	next:
+There have been a few problems with SELECT and dependencies lately.  I've
+been burnt by it a few times myself.  So I look at the kconfig code and
+added this patch.  It can use a bit more work but it does what I want.
 
-ERROR: trailing statements should be on next line
-#151: FILE: scripts/kconfig/confdata.c:407:
-+		else while ((menu = menu->parent)) {
-+		else while ((menu = menu->parent)) {
-ERROR: trailing statements should be on next line
-#151: FILE: scripts/kconfig/confdata.c:407:
-+		else while ((menu = menu->parent)) {
+When the config is loaded, it checks all the symbols that are selected by
+an active config and makes sure the visible dependencies are also
+activated.  This should probably be moved to the writing of the config
+instead, but since I just wanted to see if my current config was OK, I did
+it on load.  This is an RFC patch anyway, so fixes/comments are definitely
+welcome.
 
-total: 2 errors, 1 warnings, 116 lines checked
+Here's what I get with the attached config running on 2.6.29-rc5.
 
-./patches/kbuild-check-for-select-dependency-errors-on-config-load.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+$ make menuconfig
+scripts/kconfig/mconf arch/x86/Kconfig
+.config:2561:warning: MICROCODE selects FW_LOADER which fails its dependencies!
+.config:2561:warning: MICROCODE_INTEL selects FW_LOADER which fails its dependencies!
+.config:2561:warning: PCMCIA_LOAD_CIS selects FW_LOADER which fails its dependencies!
+.config:2561:warning: SCSI_SAS_LIBSAS selects SCSI_SAS_ATTRS which fails its dependencies!
+.config:2561:warning: SCSI_AIC94XX selects FW_LOADER which fails its dependencies!
+.config:2561:warning: KEYBOARD_ATKBD selects SERIO which fails its dependencies!
+.config:2561:warning: KEYBOARD_ATKBD selects SERIO_LIBPS2 which fails its dependencies!
+.config:2561:warning: KEYBOARD_ATKBD selects SERIO_I8042 which fails its dependencies!
+.config:2561:warning: MOUSE_PS2 selects SERIO which fails its dependencies!
+.config:2561:warning: MOUSE_PS2 selects SERIO_LIBPS2 which fails its dependencies!
+.config:2561:warning: MOUSE_PS2 selects SERIO_I8042 which fails its dependencies!
+.config:2561:warning: VT selects INPUT which fails its dependencies!
+.config:2561:warning: DRM selects I2C_ALGOBIT which fails its dependencies!
+.config:2561:warning: SND_EMU10K1 selects FW_LOADER which fails its dependencies!
 
-Please run checkpatch prior to sending patches
+<exit out>
 
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+*** End of Linux kernel configuration.
+*** Execute 'make' to build the kernel or try 'make help'.
+
+This also flags the MARKERS error with KVM_TRACE in linux-tip.
+
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Steven Rostedt <srostedt@redhat.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/confdata.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ scripts/kconfig/confdata.c |  104 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 104 insertions(+)
 
-diff -puN scripts/kconfig/confdata.c~kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes scripts/kconfig/confdata.c
---- a/scripts/kconfig/confdata.c~kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes
+diff -puN scripts/kconfig/confdata.c~kbuild-check-for-select-dependency-errors-on-config-load scripts/kconfig/confdata.c
+--- a/scripts/kconfig/confdata.c~kbuild-check-for-select-dependency-errors-on-config-load
 +++ a/scripts/kconfig/confdata.c
-@@ -397,17 +397,20 @@ void test_conf(void)
- 			}
- 		}
+@@ -310,6 +310,109 @@ load:
+ 	return 0;
+ }
  
--	next:
-+next:
- 		if (menu->list) {
- 			menu = menu->list;
- 			continue;
- 		}
--		if (menu->next)
++static int test_deps(struct symbol *sym)
++{
++	struct property *prop;
++	struct expr *expr;
 +
-+		if (menu->next) {
- 			menu = menu->next;
--		else while ((menu = menu->parent)) {
--			if (menu->next) {
--				menu = menu->next;
--				break;
-+		} else {
-+			while ((menu = menu->parent)) {
-+				if (menu->next) {
-+					menu = menu->next;
++	if (sym->rev_dep.tri == no)
++		return 1;
++
++	for (prop = sym->prop; prop; prop = prop->next) {
++		if (prop->type != P_PROMPT)
++			continue;
++
++		expr = prop->visible.expr;
++		if (!expr)
++			continue;
++
++		if (expr_calc_value(expr) == no)
++			return 0;
++	}
++
++	return 1;
++}
++
++void test_select(struct symbol *sym)
++{
++	struct property *prop;
++	struct expr *expr;
++
++	for (prop = sym->prop; prop; prop = prop->next) {
++		if (prop->type != P_SELECT)
++			continue;
++
++		expr = prop->expr;
++
++		if (!expr || expr->type != E_SYMBOL ||
++		    !expr->left.sym)
++			continue;
++
++		if (test_deps(expr->left.sym))
++			continue;
++
++		conf_warning("%s selects %s which fails its dependencies!",
++			     sym->name, expr->left.sym->name);
++	}
++}
++
++void test_conf(void)
++{
++	struct symbol *sym;
++	struct menu *menu;
++	int type;
++
++	menu = rootmenu.list;
++	while (menu) {
++		sym = menu->sym;
++		if (!sym)
++			goto next;
++
++		if (!(sym->flags & SYMBOL_CHOICE)) {
++			sym_calc_value(sym);
++			if (!(sym->flags & SYMBOL_WRITE))
++				goto next;
++			type = sym->type;
++			if (type == S_TRISTATE) {
++				sym_calc_value(modules_sym);
++				if (modules_sym->curr.tri == no)
++					type = S_BOOLEAN;
++			}
++			switch (type) {
++			case S_BOOLEAN:
++			case S_TRISTATE:
++				switch (sym_get_tristate_value(sym)) {
++				case no:
++					break;
++				case mod:
++				case yes:
++					test_select(sym);
 +					break;
 +				}
- 			}
- 		}
- 	}
++				break;
++			case S_STRING:
++			case S_HEX:
++			case S_INT:
++				break;
++			}
++		}
++
++	next:
++		if (menu->list) {
++			menu = menu->list;
++			continue;
++		}
++		if (menu->next)
++			menu = menu->next;
++		else while ((menu = menu->parent)) {
++			if (menu->next) {
++				menu = menu->next;
++				break;
++			}
++		}
++	}
++}
++
+ int conf_read(const char *name)
+ {
+ 	struct symbol *sym, *choice_sym;
+@@ -386,6 +489,7 @@ int conf_read(const char *name)
+ 
+ 	sym_add_change_count(conf_warnings || conf_unsaved);
+ 
++	test_conf();
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
+kbuild-check-for-select-dependency-errors-on-config-load.patch
 kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-pci-enable-pcie-aer-only-after-checking-firmware-support-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
