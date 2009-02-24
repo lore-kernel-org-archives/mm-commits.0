@@ -1,76 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: + x86-dmi_scan_machine-uses-uninitialized-address-on-x86-efi.patch added to -mm tree
-Date: Mon, 23 Feb 2009 15:06:49 -0800
-Message-ID: <200902232306.n1NN6o9d025256@imap1.linux-foundation.org>
+Subject: [merged] isdn-fix-sc-shmem-printk-format-warning.patch removed from -mm tree
+Date: Tue, 24 Feb 2009 11:32:39 -0800
+Message-ID: <200902241932.n1OJWdto004440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754778AbZBWXHr (ORCPT
+	by vger.kernel.org with ESMTP id S1752642AbZBXTdW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Feb 2009 18:07:47 -0500
+	Tue, 24 Feb 2009 14:33:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tjourdan@interfaceconcept.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+To: randy.dunlap@oracle.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: dmi_scan_machine uses uninitialized address on x86/EFI
-has been added to the -mm tree.  Its filename is
-     x86-dmi_scan_machine-uses-uninitialized-address-on-x86-efi.patch
+     isdn: fix sc/shmem printk format warning
+has been removed from the -mm tree.  Its filename was
+     isdn-fix-sc-shmem-printk-format-warning.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: dmi_scan_machine uses uninitialized address on x86/EFI
-From: "Thomas Jourdan" <tjourdan@interfaceconcept.com>
+Subject: isdn: fix sc/shmem printk format warning
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-On x86/EFI platforms, if efi_enabled is true, the dmi_scan_machine
-function fails, even if valid DMI table is present.  In the setup_arch
-function, efi_init is called after dmi_scan_machine.  But this is efi_init
-which will initialize the smbios address, needed by dmi_scan_machine.
+Fix isdn/sc/shmem.c printk format warning:
 
-This leads to dmi_scan_machine ioremapping physical address 0, instead of
-the address provided by the EFI system table.  The following patch fixes
-the problem.
+drivers/isdn/sc/shmem.c:57: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/isdn/sc/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/setup.c~x86-dmi_scan_machine-uses-uninitialized-address-on-x86-efi arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~x86-dmi_scan_machine-uses-uninitialized-address-on-x86-efi
-+++ a/arch/x86/kernel/setup.c
-@@ -783,6 +783,9 @@ void __init setup_arch(char **cmdline_p)
- 
- 	finish_e820_parsing();
- 
-+	if (efi_enabled)
-+		efi_init();
-+
- 	dmi_scan_machine();
- 
- 	dmi_check_system(bad_bios_dmi_table);
-@@ -802,9 +805,6 @@ void __init setup_arch(char **cmdline_p)
- 	insert_resource(&iomem_resource, &data_resource);
- 	insert_resource(&iomem_resource, &bss_resource);
- 
--	if (efi_enabled)
--		efi_init();
+diff -puN drivers/isdn/sc/shmem.c~isdn-fix-sc-shmem-printk-format-warning drivers/isdn/sc/shmem.c
+--- a/drivers/isdn/sc/shmem.c~isdn-fix-sc-shmem-printk-format-warning
++++ a/drivers/isdn/sc/shmem.c
+@@ -54,7 +54,7 @@ void memcpy_toshmem(int card, void *dest
+ 	spin_unlock_irqrestore(&sc_adapter[card]->lock, flags);
+ 	pr_debug("%s: set page to %#x\n",sc_adapter[card]->devicename,
+ 		((sc_adapter[card]->shmem_magic + ch * SRAM_PAGESIZE)>>14)|0x80);
+-	pr_debug("%s: copying %d bytes from %#lx to %#lx\n",
++	pr_debug("%s: copying %zu bytes from %#lx to %#lx\n",
+ 		sc_adapter[card]->devicename, n,
+ 		(unsigned long) src,
+ 		sc_adapter[card]->rambase + ((unsigned long) dest %0x4000));
+_
+
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
+
+origin.patch
+linux-next.patch
+kgdb-fix-kernel-doc-error.patch
+auditsc-fix-kernel-doc-notation.patch
+input-ad7879-touchscreen-driver.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+kbuild-check-for-select-dependency-errors-on-config-load.patch
+kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+esp-fix-section-mismatch-warning.patch
+qla2x-fix-printk-format-warnings.patch
+vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
+vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
+max3100-spi-uart-driver.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
+filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-99.patch
+atyfb-fix-header-file-trailing-whitespace.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
+asiliantfb-fix-cmap-memory-leaks-fix.patch
+documentation-ignore-byproducts-from-latex.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+linuxpps-core-support.patch
+linuxpps-core-support-v2.patch
+reiser4-export-remove_from_page_cache-fix.patch
+
