@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acer-wmi-fix-regression-in-backlight-detection.patch added to -mm tree
-Date: Tue, 24 Feb 2009 13:53:04 -0800
-Message-ID: <200902242153.n1OLr5WC014092@imap1.linux-foundation.org>
+Subject: + via-sdmmc-via-msp-card-reader-driver-support-update.patch added to -mm tree
+Date: Tue, 24 Feb 2009 13:55:13 -0800
+Message-ID: <200902242155.n1OLtD36014269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43457 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753409AbZBXVxa (ORCPT
+	by vger.kernel.org with ESMTP id S1753448AbZBXV4B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 16:53:30 -0500
+	Tue, 24 Feb 2009 16:56:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mspang@csclub.uwaterloo.ca, ak@linux.intel.com, carlos@strangeworlds.co.uk, len.brown@intel.com, rjw@sisk.pl, rui.zhang@intel.com, stable@kernel.org, trenn@suse.de
+Cc: josephchan@via.com.tw, arnd@arndb.de, ben-linux@fluff.org, drzeus-mmc@drzeus.cx, randy.dunlap@oracle.com
 
 
 The patch titled
-     acer-wmi: fix regression in backlight detection
+     via-sdmmc-via-msp-card-reader-driver-support-update
 has been added to the -mm tree.  Its filename is
-     acer-wmi-fix-regression-in-backlight-detection.patch
+     via-sdmmc-via-msp-card-reader-driver-support-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acer-wmi: fix regression in backlight detection
-From: Michael Spang <mspang@csclub.uwaterloo.ca>
+Subject: via-sdmmc-via-msp-card-reader-driver-support-update
+From: Joseph Chan <josephchan@via.com.tw>
 
-Currently we disable the Acer WMI backlight device if there is no ACPI
-backlight device.  As a result, we end up with no backlight device at all.
- We should instead disable it if there is an ACPI device, as the other
-laptop drivers do.  This regression was introduced in febf2d9 ("Acer-WMI:
-fingers off backlight if video.ko is serving this functionality").
+Thanks for Randy's check.
+We fixed the compiling issue is this v4 patch when CONFIG_PM=n.
 
-Each laptop driver with backlight support got a similar change around
-febf2d9.  The changes to the other drivers look correct; see e.g. 
-a598c82f for a similar but correct change.  The regression is also in
-2.6.28.
-
-Signed-off-by: Michael Spang <mspang@csclub.uwaterloo.ca>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Len Brown <len.brown@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: <stable@kernel.org>		[2.6.28.x]
+Signed-off-by: Joseph Chan <josephchan@via.com.tw>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acer-wmi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/via-sdmmc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/platform/x86/acer-wmi.c~acer-wmi-fix-regression-in-backlight-detection drivers/platform/x86/acer-wmi.c
---- a/drivers/platform/x86/acer-wmi.c~acer-wmi-fix-regression-in-backlight-detection
-+++ a/drivers/platform/x86/acer-wmi.c
-@@ -1297,7 +1297,7 @@ static int __init acer_wmi_init(void)
+diff -puN drivers/mmc/host/via-sdmmc.c~via-sdmmc-via-msp-card-reader-driver-support-update drivers/mmc/host/via-sdmmc.c
+--- a/drivers/mmc/host/via-sdmmc.c~via-sdmmc-via-msp-card-reader-driver-support-update
++++ a/drivers/mmc/host/via-sdmmc.c
+@@ -260,11 +260,9 @@ struct via_crdr_chip {
+ 	struct workqueue_struct *card_detect_queue;
+ 	u32 cur_device;
  
- 	set_quirks();
+-#ifdef CONFIG_PM
+ 	u8 pci_cfg_bak[0x42];
+ 	struct pcictrlreg pm_pcictrl_reg;
+ 	struct sdhcreg pm_sdhc_reg;
+-#endif
+ };
  
--	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
-+	if (acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
- 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
- 		printk(ACER_INFO "Brightness must be controlled by "
- 		       "generic video driver\n");
+ struct via_crdr_mmc_host {
 _
 
-Patches currently in -mm which might be from mspang@csclub.uwaterloo.ca are
+Patches currently in -mm which might be from josephchan@via.com.tw are
 
-acer-wmi-fix-regression-in-backlight-detection.patch
+via-sdmmc-via-msp-card-reader-driver-support.patch
+via-sdmmc-via-msp-card-reader-driver-support-update.patch
 
