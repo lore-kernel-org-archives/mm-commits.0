@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uinput-flush-all-pending-ff-effects-before-destroying-device.patch added to -mm tree
-Date: Tue, 24 Feb 2009 12:19:59 -0800
-Message-ID: <200902242020.n1OKK0Mk007989@imap1.linux-foundation.org>
+Subject: + cirrusfb-check_var-improvements.patch added to -mm tree
+Date: Tue, 24 Feb 2009 12:20:42 -0800
+Message-ID: <200902242020.n1OKKgpc008053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35780 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757151AbZBXUVO (ORCPT
+	by vger.kernel.org with ESMTP id S1758152AbZBXUVQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 15:21:14 -0500
+	Tue, 24 Feb 2009 15:21:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aris@ruivo.org, aris@redhat.com, dtor@mail.ru
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     uinput: flush all pending ff effects before destroying device
+     cirrusfb: check_var improvements
 has been added to the -mm tree.  Its filename is
-     uinput-flush-all-pending-ff-effects-before-destroying-device.patch
+     cirrusfb-check_var-improvements.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,190 +34,386 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uinput: flush all pending ff effects before destroying device
-From: Aristeu Sergio Rozanski Filho <aris@ruivo.org>
+Subject: cirrusfb: check_var improvements
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The destruction of a input device in uinput is triggered by an ioctl(). 
-If a process tries to destroy an input device while other is uploading a
-force feedback effect by evdev to the same device, they'll deadlock:
+Break cirrusfb_decode_var() function into two parts:
+cirrusfb_check_pixclock() which can be called from the
+cirrusfb_check_var() aand merge rest into the cirrusfb_set_par_foo(). 
+This allows rejecting modes with too high pixclock before before any
+change to hardware state (and a console is messed up).
 
-	uinput-driver D ffff88001f994540  3120  2403   2374
-	 ffff88001dc459e8 0000000000000046 ffff88001dc45988 ffffffff8106a2d8
-	 ffffffff81a4a980 ffffffff81a4a980 ffff88001f994540 ffff88001ea3c540
-	 ffff88001f9948e0 00000000810297b8 0000000100000001 ffff88001f9948e0
-	Call Trace:
-	 [<ffffffff8106a2d8>] ? __lock_acquire+0xb3a/0xc01
-	 [<ffffffff81068a7b>] ? mark_lock+0x22/0x3a2
-	 [<ffffffff81068e62>] ? mark_held_locks+0x67/0x82
-	 [<ffffffff813148c6>] ? __mutex_lock_common+0x1f0/0x35d
-	 [<ffffffff813148d6>] __mutex_lock_common+0x200/0x35d
-	 [<ffffffff81251699>] ? evdev_cleanup+0x2f/0x103
-	 [<ffffffff8106763a>] ? lock_release_holdtime+0x2c/0x111
-	 [<ffffffff81251699>] ? evdev_cleanup+0x2f/0x103
-	 [<ffffffff81158b16>] ? kobject_put+0x47/0x4b
-	 [<ffffffff81314adc>] mutex_lock_nested+0x35/0x3a
-	 [<ffffffff81251699>] evdev_cleanup+0x2f/0x103
-	 [<ffffffff81251798>] evdev_disconnect+0x2b/0x44
-	 [<ffffffff8124cc02>] input_unregister_device+0x11a/0x1c9
-	 [<ffffffff81258505>] uinput_destroy_device+0x2d/0x5d
-	 [<ffffffff8125854d>] uinput_release+0x18/0x26
-	 [<ffffffff810cc5b9>] __fput+0xf0/0x18b
-	 [<ffffffff810cc669>] fput+0x15/0x17
-	 [<ffffffff810c99f8>] filp_close+0x67/0x72
-	 [<ffffffff81049255>] put_files_struct+0x74/0xc8
-	 [<ffffffff810492f0>] exit_files+0x47/0x4f
-	 [<ffffffff8104ab49>] do_exit+0x228/0x89b
-	 [<ffffffff81316002>] ? _spin_unlock_irq+0x2b/0x37
-	 [<ffffffff8104b235>] do_group_exit+0x79/0xa9
-	 [<ffffffff81054a37>] get_signal_to_deliver+0x318/0x339
-	 [<ffffffff810103fb>] do_notify_resume+0x8c/0x875
-	 [<ffffffff8106763a>] ? lock_release_holdtime+0x2c/0x111
-	 [<ffffffff81316002>] ? _spin_unlock_irq+0x2b/0x37
-	 [<ffffffff81069007>] ? trace_hardirqs_on_caller+0xf6/0x11a
-	 [<ffffffff81069038>] ? trace_hardirqs_on+0xd/0xf
-	 [<ffffffff81316002>] ? _spin_unlock_irq+0x2b/0x37
-	 [<ffffffff81043f97>] ? finish_task_switch+0x5f/0xc2
-	 [<ffffffff81043f38>] ? finish_task_switch+0x0/0xc2
-	 [<ffffffff810d71e2>] ? do_vfs_ioctl+0x398/0x3c6
-	 [<ffffffff810119af>] ? retint_signal+0x11/0xc2
-	 [<ffffffff81069007>] ? trace_hardirqs_on_caller+0xf6/0x11a
-	 [<ffffffff81011a03>] retint_signal+0x65/0xc2
-	uinput-app    D 0000000000000002  3120  2413   2374
-	 ffff88001d941be8 0000000000000046 ffff88001d941b38 ffffffff81068a7b
-	 ffffffff81a4a980 ffffffff81a4a980 ffff88001d96a2a0 ffff88001f994540
-	 ffff88001d96a640 000000000000004e ffff88001d941bc8 ffff88001d96a640
-	Call Trace:
-	 [<ffffffff81068a7b>] ? mark_lock+0x22/0x3a2
-	 [<ffffffff810297b8>] ? pvclock_clocksource_read+0x42/0x7e
-	 [<ffffffff81068a7b>] ? mark_lock+0x22/0x3a2
-	 [<ffffffff813142c6>] schedule_timeout+0x22/0xc6
-	 [<ffffffff81316002>] ? _spin_unlock_irq+0x2b/0x37
-	 [<ffffffff81069007>] ? trace_hardirqs_on_caller+0xf6/0x11a
-	 [<ffffffff81069038>] ? trace_hardirqs_on+0xd/0xf
-	 [<ffffffff81316002>] ? _spin_unlock_irq+0x2b/0x37
-	 [<ffffffff813141a2>] wait_for_common+0xb7/0x100
-	 [<ffffffff8103fcde>] ? default_wake_function+0x0/0xf
-	 [<ffffffff81314275>] wait_for_completion+0x18/0x1a
-	 [<ffffffff81258acf>] uinput_dev_upload_effect+0x80/0x93
-	 [<ffffffff8124e6d1>] input_ff_upload+0x1eb/0x276
-	 [<ffffffff8125130f>] evdev_ioctl_handler+0x6f1/0x709
-	 [<ffffffff81017a68>] ? sched_clock+0x9/0xc
-	 [<ffffffff8106763a>] ? lock_release_holdtime+0x2c/0x111
-	 [<ffffffff81251344>] evdev_ioctl+0xb/0xd
-	 [<ffffffff810d6dfc>] vfs_ioctl+0x2a/0x78
-	 [<ffffffff810d71e2>] do_vfs_ioctl+0x398/0x3c6
-	 [<ffffffff810cb067>] ? fsnotify_modify+0x62/0x6a
-	 [<ffffffff810110ca>] ? sysret_check+0x46/0x81
-	 [<ffffffff810d7252>] sys_ioctl+0x42/0x65
-	 [<ffffffff8101107a>] system_call_fastpath+0x16/0x1b
+Also, fix RGB field's lengths for 8bpp modes to correct ones so X11 works
+with fbdev driver with cirrusfb.
 
-This patch fixes the problem by flushing all pending FF uploads before
-destroying the device and preventing new uploads during this operation
+Kill some redundant function calls or register loads.
 
-Signed-off-by: Aristeu Rozanski <aris@redhat.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/uinput.c |   41 ++++++++++++++++++++++++++++++----
- include/linux/uinput.h      |    1 
- 2 files changed, 38 insertions(+), 4 deletions(-)
+ drivers/video/cirrusfb.c |  195 ++++++++++++++-----------------------
+ 1 file changed, 74 insertions(+), 121 deletions(-)
 
-diff -puN drivers/input/misc/uinput.c~uinput-flush-all-pending-ff-effects-before-destroying-device drivers/input/misc/uinput.c
---- a/drivers/input/misc/uinput.c~uinput-flush-all-pending-ff-effects-before-destroying-device
-+++ a/drivers/input/misc/uinput.c
-@@ -62,6 +62,9 @@ static int uinput_request_alloc_id(struc
- 
- 	spin_lock(&udev->requests_lock);
- 
-+	if (unlikely(udev->requests_flushed))
-+		goto out;
-+
- 	for (id = 0; id < UINPUT_NUM_REQUESTS; id++)
- 		if (!udev->requests[id]) {
- 			request->id = id;
-@@ -70,6 +73,7 @@ static int uinput_request_alloc_id(struc
- 			break;
- 		}
- 
-+out:
- 	spin_unlock(&udev->requests_lock);
- 	return err;
- }
-@@ -109,6 +113,34 @@ static int uinput_request_submit(struct 
- 	return request->retval;
+diff -puN drivers/video/cirrusfb.c~cirrusfb-check_var-improvements drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-check_var-improvements
++++ a/drivers/video/cirrusfb.c
+@@ -432,6 +432,53 @@ static int cirrusfb_check_mclk(struct fb
+ 	return 0;
  }
  
-+static inline void uinput_init_requests(struct uinput_device *udev)
++static int cirrusfb_check_pixclock(const struct fb_var_screeninfo *var,
++				   struct fb_info *info)
 +{
-+	spin_lock_init(&udev->requests_lock);
-+	init_waitqueue_head(&udev->requests_waitq);
-+	udev->requests_flushed = 0;
-+}
++	long freq;
++	long maxclock;
++	struct cirrusfb_info *cinfo = info->par;
++	unsigned maxclockidx = var->bits_per_pixel >> 3;
 +
-+static void uinput_flush_requests(struct uinput_device *udev)
-+{
-+	struct uinput_request *request;
-+	int id;
++	/* convert from ps to kHz */
++	freq = PICOS2KHZ(var->pixclock);
 +
-+	/*
-+	 * get rid of all pending requests and set requests_flushed to prevent
-+	 * more requests to be filled until we unregister the input device
-+	 */
-+	spin_lock(&udev->requests_lock);
-+	udev->requests_flushed = 1;
-+	for (id = 0; id < UINPUT_NUM_REQUESTS; id++) {
-+		request = udev->requests[id];
-+		if (request == NULL)
-+			continue;
-+		request->retval = -ENODEV;
-+		uinput_request_done(udev, request);
++	dev_dbg(info->device, "desired pixclock: %ld kHz\n", freq);
++
++	maxclock = cirrusfb_board_info[cinfo->btype].maxclock[maxclockidx];
++	cinfo->multiplexing = 0;
++
++	/* If the frequency is greater than we can support, we might be able
++	 * to use multiplexing for the video mode */
++	if (freq > maxclock) {
++		switch (cinfo->btype) {
++		case BT_ALPINE:
++		case BT_GD5480:
++			cinfo->multiplexing = 1;
++			break;
++
++		default:
++			dev_err(info->device,
++				"Frequency greater than maxclock (%ld kHz)\n",
++				maxclock);
++			return -EINVAL;
++		}
 +	}
-+	spin_unlock(&udev->requests_lock);
++#if 0
++	/* TODO: If we have a 1MB 5434, we need to put ourselves in a mode where
++	 * the VCLK is double the pixel clock. */
++	switch (var->bits_per_pixel) {
++	case 16:
++	case 32:
++		if (var->xres <= 800)
++			/* Xbh has this type of clock for 32-bit */
++			freq /= 2;
++		break;
++	}
++#endif
++	return 0;
 +}
 +
- static void uinput_dev_set_gain(struct input_dev *dev, u16 gain)
+ static int cirrusfb_check_var(struct fb_var_screeninfo *var,
+ 			      struct fb_info *info)
  {
- 	uinput_dev_event(dev, EV_FF, FF_GAIN, gain);
-@@ -180,9 +212,11 @@ static void uinput_destroy_device(struct
- 	if (udev->dev) {
- 		name = udev->dev->name;
- 		phys = udev->dev->phys;
--		if (udev->state == UIST_CREATED)
-+		if (udev->state == UIST_CREATED) {
-+			uinput_flush_requests(udev);
- 			input_unregister_device(udev->dev);
--		else
-+			uinput_init_requests(udev);
-+		} else
- 			input_free_device(udev->dev);
- 		kfree(name);
- 		kfree(phys);
-@@ -237,8 +271,7 @@ static int uinput_open(struct inode *ino
+@@ -449,7 +496,7 @@ static int cirrusfb_check_var(struct fb_
  
- 	lock_kernel();
- 	mutex_init(&newdev->mutex);
--	spin_lock_init(&newdev->requests_lock);
--	init_waitqueue_head(&newdev->requests_waitq);
-+	uinput_init_requests(newdev);
- 	init_waitqueue_head(&newdev->waitq);
- 	newdev->state = UIST_NEW_DEVICE;
+ 	case 8:
+ 		var->red.offset = 0;
+-		var->red.length = 6;
++		var->red.length = 8;
+ 		var->green = var->red;
+ 		var->blue = var->red;
+ 		break;
+@@ -513,7 +560,6 @@ static int cirrusfb_check_var(struct fb_
+ 		return -EINVAL;
+ 	}
  
-diff -puN include/linux/uinput.h~uinput-flush-all-pending-ff-effects-before-destroying-device include/linux/uinput.h
---- a/include/linux/uinput.h~uinput-flush-all-pending-ff-effects-before-destroying-device
-+++ a/include/linux/uinput.h
-@@ -74,6 +74,7 @@ struct uinput_device {
- 	struct uinput_request	*requests[UINPUT_NUM_REQUESTS];
- 	wait_queue_head_t	requests_waitq;
- 	spinlock_t		requests_lock;
-+	int			requests_flushed;
- };
- #endif	/* __KERNEL__ */
+-
+ 	if (var->xoffset < 0)
+ 		var->xoffset = 0;
+ 	if (var->yoffset < 0)
+@@ -544,80 +590,9 @@ static int cirrusfb_check_var(struct fb_
+ 		return -EINVAL;
+ 	}
  
+-	return 0;
+-}
+-
+-static int cirrusfb_decode_var(const struct fb_var_screeninfo *var,
+-				struct fb_info *info)
+-{
+-	long freq;
+-	long maxclock;
+-	int maxclockidx = var->bits_per_pixel >> 3;
+-	struct cirrusfb_info *cinfo = info->par;
+-
+-	switch (var->bits_per_pixel) {
+-	case 1:
+-		info->fix.line_length = var->xres_virtual / 8;
+-		info->fix.visual = FB_VISUAL_MONO10;
+-		break;
+-
+-	case 8:
+-		info->fix.line_length = var->xres_virtual;
+-		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+-		break;
+-
+-	case 16:
+-	case 32:
+-		info->fix.line_length = var->xres_virtual * maxclockidx;
+-		info->fix.visual = FB_VISUAL_TRUECOLOR;
+-		break;
+-
+-	default:
+-		dev_dbg(info->device,
+-			"Unsupported bpp size: %d\n", var->bits_per_pixel);
+-		assert(false);
+-		/* should never occur */
+-		break;
+-	}
+-
+-	info->fix.type = FB_TYPE_PACKED_PIXELS;
+-
+-	/* convert from ps to kHz */
+-	freq = PICOS2KHZ(var->pixclock);
+-
+-	dev_dbg(info->device, "desired pixclock: %ld kHz\n", freq);
+-
+-	maxclock = cirrusfb_board_info[cinfo->btype].maxclock[maxclockidx];
+-	cinfo->multiplexing = 0;
+-
+-	/* If the frequency is greater than we can support, we might be able
+-	 * to use multiplexing for the video mode */
+-	if (freq > maxclock) {
+-		switch (cinfo->btype) {
+-		case BT_ALPINE:
+-		case BT_GD5480:
+-			cinfo->multiplexing = 1;
+-			break;
++	if (cirrusfb_check_pixclock(var, info))
++		return -EINVAL;
+ 
+-		default:
+-			dev_err(info->device,
+-				"Frequency greater than maxclock (%ld kHz)\n",
+-				maxclock);
+-			return -EINVAL;
+-		}
+-	}
+-#if 0
+-	/* TODO: If we have a 1MB 5434, we need to put ourselves in a mode where
+-	 * the VCLK is double the pixel clock. */
+-	switch (var->bits_per_pixel) {
+-	case 16:
+-	case 32:
+-		if (var->xres <= 800)
+-			/* Xbh has this type of clock for 32-bit */
+-			freq /= 2;
+-		break;
+-	}
+-#endif
+ 	return 0;
+ }
+ 
+@@ -653,7 +628,6 @@ static int cirrusfb_set_par_foo(struct f
+ 	struct fb_var_screeninfo *var = &info->var;
+ 	u8 __iomem *regbase = cinfo->regbase;
+ 	unsigned char tmp;
+-	int err;
+ 	int pitch;
+ 	const struct cirrusfb_board_info_rec *bi;
+ 	int hdispend, hsyncstart, hsyncend, htotal;
+@@ -664,16 +638,28 @@ static int cirrusfb_set_par_foo(struct f
+ 
+ 	dev_dbg(info->device, "Requested mode: %dx%dx%d\n",
+ 	       var->xres, var->yres, var->bits_per_pixel);
+-	dev_dbg(info->device, "pixclock: %d\n", var->pixclock);
+ 
+-	init_vgachip(info);
++	switch (var->bits_per_pixel) {
++	case 1:
++		info->fix.line_length = var->xres_virtual / 8;
++		info->fix.visual = FB_VISUAL_MONO10;
++		break;
+ 
+-	err = cirrusfb_decode_var(var, info);
+-	if (err) {
+-		/* should never happen */
+-		dev_dbg(info->device, "mode change aborted.  invalid var.\n");
+-		return -EINVAL;
++	case 8:
++		info->fix.line_length = var->xres_virtual;
++		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
++		break;
++
++	case 16:
++	case 32:
++		info->fix.line_length = var->xres_virtual *
++					var->bits_per_pixel >> 3;
++		info->fix.visual = FB_VISUAL_TRUECOLOR;
++		break;
+ 	}
++	info->fix.type = FB_TYPE_PACKED_PIXELS;
++
++	init_vgachip(info);
+ 
+ 	bi = &cirrusfb_board_info[cinfo->btype];
+ 
+@@ -873,9 +859,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		 * address wrap, no compat. */
+ 		vga_wcrt(regbase, VGA_CRTC_MODE, 0xc3);
+ 
+-/* HAEH?	vga_wcrt(regbase, VGA_CRTC_V_SYNC_END, 0x20);
+- * previously: 0x00  unlock VGA_CRTC_H_TOTAL..CRT7 */
+-
+ 	/* don't know if it would hurt to also program this if no interlaced */
+ 	/* mode is used, but I feel better this way.. :-) */
+ 	if (var->vmode & FB_VMODE_INTERLACED)
+@@ -883,8 +866,6 @@ static int cirrusfb_set_par_foo(struct f
+ 	else
+ 		vga_wcrt(regbase, VGA_CRTC_REGS, 0x00);	/* interlace control */
+ 
+-	vga_wseq(regbase, VGA_SEQ_CHARACTER_MAP, 0);
+-
+ 	/* adjust horizontal/vertical sync type (low/high) */
+ 	/* enable display memory & CRTC I/O address for color mode */
+ 	tmp = 0x03;
+@@ -896,8 +877,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		tmp |= 0xc;
+ 	WGen(cinfo, VGA_MIS_W, tmp);
+ 
+-	/* Screen A Preset Row-Scan register */
+-	vga_wcrt(regbase, VGA_CRTC_PRESET_ROW, 0);
+ 	/* text cursor on and start line */
+ 	vga_wcrt(regbase, VGA_CRTC_CURSOR_START, 0);
+ 	/* text cursor end line */
+@@ -1248,7 +1227,6 @@ static int cirrusfb_set_par_foo(struct f
+ 		dev_dbg(info->device, "CRT1e: %d\n", tmp);
+ 	}
+ 
+-
+ 	/* pixel panning */
+ 	vga_wattr(regbase, CL_AR33, 0);
+ 
+@@ -1274,9 +1252,6 @@ static int cirrusfb_set_par_foo(struct f
+ 	vga_wseq(regbase, VGA_SEQ_CLOCK_MODE, tmp);
+ 	dev_dbg(info->device, "CL_SEQR1: %d\n", tmp);
+ 
+-	/* pan to requested offset */
+-	cirrusfb_pan_display(var, info);
+-
+ #ifdef CIRRUSFB_DEBUG
+ 	cirrusfb_dbg_reg_dump(info, NULL);
+ #endif
+@@ -1332,8 +1307,7 @@ static int cirrusfb_setcolreg(unsigned r
+ static int cirrusfb_pan_display(struct fb_var_screeninfo *var,
+ 				struct fb_info *info)
+ {
+-	int xoffset = 0;
+-	int yoffset = 0;
++	int xoffset;
+ 	unsigned long base;
+ 	unsigned char tmp, xpix;
+ 	struct cirrusfb_info *cinfo = info->par;
+@@ -1347,9 +1321,8 @@ static int cirrusfb_pan_display(struct f
+ 		return -EINVAL;
+ 
+ 	xoffset = var->xoffset * info->var.bits_per_pixel / 8;
+-	yoffset = var->yoffset;
+ 
+-	base = yoffset * info->fix.line_length + xoffset;
++	base = var->yoffset * info->fix.line_length + xoffset;
+ 
+ 	if (info->var.bits_per_pixel == 1) {
+ 		/* base is already correct */
+@@ -1363,10 +1336,8 @@ static int cirrusfb_pan_display(struct f
+ 		cirrusfb_WaitBLT(cinfo->regbase);
+ 
+ 	/* lower 8 + 8 bits of screen start address */
+-	vga_wcrt(cinfo->regbase, VGA_CRTC_START_LO,
+-		 (unsigned char) (base & 0xff));
+-	vga_wcrt(cinfo->regbase, VGA_CRTC_START_HI,
+-		 (unsigned char) (base >> 8));
++	vga_wcrt(cinfo->regbase, VGA_CRTC_START_LO, base & 0xff);
++	vga_wcrt(cinfo->regbase, VGA_CRTC_START_HI, (base >> 8) & 0xff);
+ 
+ 	/* 0xf2 is %11110010, exclude tmp bits */
+ 	tmp = vga_rcrt(cinfo->regbase, CL_CRT1B) & 0xf2;
+@@ -1544,10 +1515,6 @@ static void init_vgachip(struct fb_info 
+ 
+ 		/* FullBandwidth (video off) and 8/9 dot clock */
+ 		vga_wseq(cinfo->regbase, VGA_SEQ_CLOCK_MODE, 0x21);
+-		/* polarity (-/-), disable access to display memory,
+-		 * VGA_CRTC_START_HI base address: color
+-		 */
+-		WGen(cinfo, VGA_MIS_W, 0xc1);
+ 
+ 		/* "magic cookie" - doesn't make any sense to me.. */
+ /*      vga_wgfx(cinfo->regbase, CL_GRA, 0xce);   */
+@@ -1614,10 +1581,6 @@ static void init_vgachip(struct fb_info 
+ 	vga_wcrt(cinfo->regbase, VGA_CRTC_CURSOR_START, 0x20);
+ 	/* Text cursor end: - */
+ 	vga_wcrt(cinfo->regbase, VGA_CRTC_CURSOR_END, 0x00);
+-	/* Screen start address high: 0 */
+-	vga_wcrt(cinfo->regbase, VGA_CRTC_START_HI, 0x00);
+-	/* Screen start address low: 0 */
+-	vga_wcrt(cinfo->regbase, VGA_CRTC_START_LO, 0x00);
+ 	/* text cursor location high: 0 */
+ 	vga_wcrt(cinfo->regbase, VGA_CRTC_CURSOR_HI, 0x00);
+ 	/* text cursor location low: 0 */
+@@ -1625,10 +1588,6 @@ static void init_vgachip(struct fb_info 
+ 
+ 	/* Underline Row scanline: - */
+ 	vga_wcrt(cinfo->regbase, VGA_CRTC_UNDERLINE, 0x00);
+-	/* mode control: timing enable, byte mode, no compat modes */
+-	vga_wcrt(cinfo->regbase, VGA_CRTC_MODE, 0xc3);
+-	/* Line Compare: not needed */
+-	vga_wcrt(cinfo->regbase, VGA_CRTC_LINE_COMPARE, 0x00);
+ 	/* ### add 0x40 for text modes with > 30 MHz pixclock */
+ 	/* ext. display controls: ext.adr. wrap */
+ 	vga_wcrt(cinfo->regbase, CL_CRT1B, 0x02);
+@@ -1697,12 +1656,6 @@ static void init_vgachip(struct fb_info 
+ 
+ 	WGen(cinfo, VGA_PEL_MSK, 0xff);	/* Pixel mask: no mask */
+ 
+-	if (cinfo->btype != BT_ALPINE && cinfo->btype != BT_GD5480)
+-	/* polarity (-/-), enable display mem,
+-	 * VGA_CRTC_START_HI i/o base = color
+-	 */
+-		WGen(cinfo, VGA_MIS_W, 0xc3);
+-
+ 	/* BLT Start/status: Blitter reset */
+ 	vga_wgfx(cinfo->regbase, CL_GR31, 0x04);
+ 	/* - " -	   : "end-of-reset" */
+@@ -2052,7 +2005,7 @@ static int __devinit cirrusfb_register(s
+ 
+ 	info->var.activate = FB_ACTIVATE_NOW;
+ 
+-	err = cirrusfb_decode_var(&info->var, info);
++	err = cirrusfb_check_var(&info->var, info);
+ 	if (err < 0) {
+ 		/* should never happen */
+ 		dev_dbg(info->device,
 _
 
-Patches currently in -mm which might be from aris@ruivo.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 linux-next.patch
-uinput-flush-all-pending-ff-effects-before-destroying-device.patch
+cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
+cirrusfb-add-laguna-additional-overflow-register.patch
+cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
+cirrusfb-do-not-calculate-line-length-twice.patch
+cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
+cirrusfb-various-improvements.patch
+cirrusfb-laguna-chipset-8bpp-fix.patch
+cirrusfb-check_var-improvements.patch
+drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
+tdfxfb-fix-memory-leaks-in-removal-path.patch
+tridentfb-fix-memory-leaks-in-removal-path.patch
+vfb-fix-memory-leaks-in-removal-path.patch
+sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+68328fb-fix-cmap-memory-leaks.patch
+amba-clcd-fix-cmap-memory-leaks.patch
+amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+asiliantfb-fix-cmap-memory-leaks.patch
+asiliantfb-fix-cmap-memory-leaks-fix.patch
 
