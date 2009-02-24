@@ -1,57 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-net-tg3c-fix-confusion.patch removed from -mm tree
-Date: Tue, 24 Feb 2009 11:32:48 -0800
-Message-ID: <200902241932.n1OJWmdE004453@imap1.linux-foundation.org>
+Subject: [merged] atm-add-missing-parentheses.patch removed from -mm tree
+Date: Tue, 24 Feb 2009 11:32:46 -0800
+Message-ID: <200902241932.n1OJWkTq004449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47671 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753752AbZBXTdX (ORCPT
+	by vger.kernel.org with ESMTP id S1753776AbZBXTd1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 14:33:23 -0500
+	Tue, 24 Feb 2009 14:33:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, mcarlson@broadcom.com, mchan@broadcom.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, chas@cmf.nrl.navy.mil, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/tg3.c: fix &&/|| confusion
+     atm: bitwise OR has higher precedence than ?:
 has been removed from the -mm tree.  Its filename was
-     drivers-net-tg3c-fix-confusion.patch
+     atm-add-missing-parentheses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/tg3.c: fix &&/|| confusion
+Subject: atm: bitwise OR has higher precedence than ?:
 From: Roel Kluin <roel.kluin@gmail.com>
 
-phyid can't be both TG3_PHY_OUI_1 and TG3_PHY_OUI_2 and TG3_PHY_OUI_3.
-
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Matt Carlson <mcarlson@broadcom.com>
-Cc: Michael Chan <mchan@broadcom.com>
+Cc: chas williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tg3.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/atm/firestream.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/tg3.c~drivers-net-tg3c-fix-confusion drivers/net/tg3.c
---- a/drivers/net/tg3.c~drivers-net-tg3c-fix-confusion
-+++ a/drivers/net/tg3.c
-@@ -2237,8 +2237,8 @@ static int tg3_set_power_state(struct tg
- 			phyid = phydev->drv->phy_id & phydev->drv->phy_id_mask;
- 			if (phyid != TG3_PHY_ID_BCMAC131) {
- 				phyid &= TG3_PHY_OUI_MASK;
--				if (phyid == TG3_PHY_OUI_1 &&
--				    phyid == TG3_PHY_OUI_2 &&
-+				if (phyid == TG3_PHY_OUI_1 ||
-+				    phyid == TG3_PHY_OUI_2 ||
- 				    phyid == TG3_PHY_OUI_3)
- 					do_low_power = true;
- 			}
+diff -puN drivers/atm/firestream.c~atm-add-missing-parentheses drivers/atm/firestream.c
+--- a/drivers/atm/firestream.c~atm-add-missing-parentheses
++++ a/drivers/atm/firestream.c
+@@ -1690,17 +1690,17 @@ static int __devinit fs_init (struct fs_
+ 		  | (0 * SARMODE0_SHADEN) /* We don't use shadow registers. */
+ 		  | (1 * SARMODE0_INTMODE_READCLEAR)
+ 		  | (1 * SARMODE0_CWRE)
+-		  | IS_FS50(dev)?SARMODE0_PRPWT_FS50_5: 
+-		                 SARMODE0_PRPWT_FS155_3
++		  | (IS_FS50(dev) ? SARMODE0_PRPWT_FS50_5:
++			  SARMODE0_PRPWT_FS155_3)
+ 		  | (1 * SARMODE0_CALSUP_1)
+-		  | IS_FS50 (dev)?(0
++		  | (IS_FS50(dev) ? (0
+ 				   | SARMODE0_RXVCS_32
+ 				   | SARMODE0_ABRVCS_32 
+ 				   | SARMODE0_TXVCS_32):
+ 		                  (0
+ 				   | SARMODE0_RXVCS_1k
+ 				   | SARMODE0_ABRVCS_1k 
+-				   | SARMODE0_TXVCS_1k));
++				   | SARMODE0_TXVCS_1k)));
+ 
+ 	/* 10ms * 100 is 1 second. That should be enough, as AN3:9 says it takes
+ 	   1ms. */
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
