@@ -1,258 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds.patch removed from -mm tree
-Date: Tue, 24 Feb 2009 14:25:56 -0800
-Message-ID: <200902242225.n1OMPuQD016330@imap1.linux-foundation.org>
+Subject: + namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch added to -mm tree
+Date: Tue, 24 Feb 2009 14:17:36 -0800
+Message-ID: <200902242217.n1OMHanG015751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47833 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40435 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761284AbZBXW0i (ORCPT
+	by vger.kernel.org with ESMTP id S1759439AbZBXW0m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 17:26:38 -0500
+	Tue, 24 Feb 2009 17:26:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tonyb@cybernetics.com, corbet@lwn.net, davidel@xmailserver.org, mtk.manpages@googlemail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, Nadia.Derbey@bull.net, adobriyan@gmail.com, clg@fr.ibm.com, serue@us.ibm.com
 
 
 The patch titled
-     epoll: fix for epoll_wait() sometimes returning events on closed fds
-has been removed from the -mm tree.  Its filename was
-     epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds.patch
+     mqueue-namespace-adapt-sysctl-update-fix
+has been added to the -mm tree.  Its filename is
+     namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: fix for epoll_wait() sometimes returning events on closed fds
-From: Tony Battersby <tonyb@cybernetics.com>
+Subject: mqueue-namespace-adapt-sysctl-update-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The epoll manpage:
-
-Q: Will closing a file descriptor cause it to be removed from all
-   epoll sets automatically?
-A: Yes
-
-sys_close() calls filp_close(), which calls fput().  If no one else holds
-a reference to the file, then fput() calls __fput(), and __fput() calls
-eventpoll_release(), which prevents epoll_wait() from returning events on
-the fd to userspace.  In the rare case that sys_close() doesn't call
-__fput() because someone else has a reference to the file, a subsequent
-epoll_wait() may still unexpectedly return events on the fd after it has
-been closed.  This can end up confusing or crashing a userspace program
-that doesn't do epoll_ctl(EPOLL_CTL_DEL) before closing the fd.  I have
-reports of this actually happening under heavy load with a program using
-epoll with network sockets on 2.6.27.
-
-This patch fixes the problem by calling eventpoll_release_file() from
-filp_close() instead of from __fput().
-
-The locking in eventpoll_release() and eventpoll_release_file() needs to
-be changed because previously it relied on the fact that no one else could
-have a reference to the file when called from __fput(), and this is no
-longer true.  The new locking is admittedly ugly, but I believe it works.
-
-ep_insert() now also needs to check if the file has been closed to avoid
-races in multi-threaded programs where one thread is doing
-epoll_ctl(EPOLL_CTL_ADD) and another thread is closing the fd.  This is
-done by checking that fget_light still returns the same struct file * as
-before.
-
-Note that the list_del_init(&epi->fllink) previously done in
-eventpoll_release_file() was unnecessary because it is also done by
-ep_remove().
-
-Userspace programs that might run on kernels with this bug can work around
-the problem by doing epoll_ctl(EPOLL_CTL_DEL) before close().
-
-Signed-off-by: Tony Battersby <tonyb@cybernetics.com>
-Cc: <stable@kernel.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c            |   66 ++++++++++++++++++++++++++++--------
- fs/file_table.c           |    5 --
- fs/open.c                 |    2 +
- include/linux/eventpoll.h |   16 ++++----
- 4 files changed, 64 insertions(+), 25 deletions(-)
+ ipc/mq_sysctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds
-+++ a/fs/eventpoll.c
-@@ -538,27 +538,40 @@ void eventpoll_release_file(struct file 
- 	struct epitem *epi;
- 
- 	/*
--	 * We don't want to get "file->f_ep_lock" because it is not
--	 * necessary. It is not necessary because we're in the "struct file"
--	 * cleanup path, and this means that noone is using this file anymore.
--	 * So, for example, epoll_ctl() cannot hit here sicne if we reach this
--	 * point, the file counter already went to zero and fget() would fail.
--	 * The only hit might come from ep_free() but by holding the mutex
--	 * will correctly serialize the operation. We do need to acquire
--	 * "ep->mtx" after "epmutex" because ep_remove() requires it when called
--	 * from anywhere but ep_free().
-+	 * epmutex makes it safe to use *ep by preventing ep_free() from
-+	 * running.
- 	 */
- 	mutex_lock(&epmutex);
- 
-+	spin_lock(&file->f_ep_lock);
- 	while (!list_empty(lsthead)) {
--		epi = list_first_entry(lsthead, struct epitem, fllink);
-+		ep = list_first_entry(lsthead, struct epitem, fllink)->ep;
-+		spin_unlock(&file->f_ep_lock);
- 
--		ep = epi->ep;
--		list_del_init(&epi->fllink);
-+		/*
-+		 * ep->mtx protects against epoll_ctl() and is required for
-+		 * calling ep_remove().
-+		 */
- 		mutex_lock(&ep->mtx);
--		ep_remove(ep, epi);
-+
-+		spin_lock(&file->f_ep_lock);
-+		epi = list_first_entry(lsthead, struct epitem, fllink);
-+		spin_unlock(&file->f_ep_lock);
-+
-+		/*
-+		 * epoll_ctl(EPOLL_CTL_DEL) may have modified the list before
-+		 * we locked ep->mtx, so it is necessary to check that the
-+		 * first entry still exists and belongs to the ep whose mtx we
-+		 * are holding.
-+		 */
-+		if (epi && epi->ep == ep)
-+			ep_remove(ep, epi);
-+
- 		mutex_unlock(&ep->mtx);
-+
-+		spin_lock(&file->f_ep_lock);
- 	}
-+	spin_unlock(&file->f_ep_lock);
- 
- 	mutex_unlock(&epmutex);
+diff -puN ipc/mq_sysctl.c~namespaces-mqueue-namespace-adapt-sysctl-update-fix ipc/mq_sysctl.c
+--- a/ipc/mq_sysctl.c~namespaces-mqueue-namespace-adapt-sysctl-update-fix
++++ a/ipc/mq_sysctl.c
+@@ -52,8 +52,8 @@ static int proc_mq_dointvec_minmax(ctl_t
+ 					lenp, ppos);
  }
-@@ -736,6 +749,22 @@ static void ep_rbtree_insert(struct even
- }
+ #else
+-proc_handler *proc_mq_dointvec = NULL;
+-proc_handler *proc_mq_dointvec_minmax = NULL;
++#define proc_mq_dointvec NULL
++#define proc_mq_dointvec_minmax NULL
+ #endif
  
- /*
-+ * Returns true if the fd has been closed or false if not.
-+ */
-+static bool ep_is_file_closed(struct file *file, int fd)
-+{
-+	struct file *file2;
-+	int needs_fput;
-+	bool closed;
-+
-+	file2 = fget_light(fd, &needs_fput);
-+	closed = (file2 != file);
-+	if (file2)
-+		fput_light(file2, needs_fput);
-+	return closed;
-+}
-+
-+/*
-  * Must be called with "mtx" held.
-  */
- static int ep_insert(struct eventpoll *ep, struct epoll_event *event,
-@@ -786,6 +815,17 @@ static int ep_insert(struct eventpoll *e
- 
- 	/* Add the current item to the list of active epoll hook for this file */
- 	spin_lock(&tfile->f_ep_lock);
-+	/*
-+	 * Don't add the fd to the epoll set if it was closed in between the
-+	 * initial fget() and the time we get here.  This check must be done
-+	 * while holding f_ep_lock to prevent races with
-+	 * eventpoll_release_file().
-+	 */
-+	if (ep_is_file_closed(tfile, fd)) {
-+		spin_unlock(&tfile->f_ep_lock);
-+		error = -EBADF;
-+		goto error_unregister;
-+	}
- 	list_add_tail(&epi->fllink, &tfile->f_ep_links);
- 	spin_unlock(&tfile->f_ep_lock);
- 
-diff -puN fs/file_table.c~epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds fs/file_table.c
---- a/fs/file_table.c~epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds
-+++ a/fs/file_table.c
-@@ -266,11 +266,6 @@ void __fput(struct file *file)
- 	might_sleep();
- 
- 	fsnotify_close(file);
--	/*
--	 * The function eventpoll_release() should be the first called
--	 * in the file cleanup chain.
--	 */
--	eventpoll_release(file);
- 	locks_remove_flock(file);
- 
- 	if (unlikely(file->f_flags & FASYNC)) {
-diff -puN fs/open.c~epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds fs/open.c
---- a/fs/open.c~epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds
-+++ a/fs/open.c
-@@ -29,6 +29,7 @@
- #include <linux/rcupdate.h>
- #include <linux/audit.h>
- #include <linux/falloc.h>
-+#include <linux/eventpoll.h>
- 
- int vfs_statfs(struct dentry *dentry, struct kstatfs *buf)
- {
-@@ -1104,6 +1105,7 @@ int filp_close(struct file *filp, fl_own
- 
- 	dnotify_flush(filp, id);
- 	locks_remove_posix(filp, id);
-+	eventpoll_release(filp);
- 	fput(filp);
- 	return retval;
- }
-diff -puN include/linux/eventpoll.h~epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds include/linux/eventpoll.h
---- a/include/linux/eventpoll.h~epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds
-+++ a/include/linux/eventpoll.h
-@@ -69,23 +69,25 @@ static inline void eventpoll_init_file(s
- void eventpoll_release_file(struct file *file);
- 
- /*
-- * This is called from inside fs/file_table.c:__fput() to unlink files
-+ * This is called from inside fs/open.c:filp_close() to unlink files
-  * from the eventpoll interface. We need to have this facility to cleanup
-  * correctly files that are closed without being removed from the eventpoll
-  * interface.
-  */
- static inline void eventpoll_release(struct file *file)
- {
-+	bool empty;
- 
- 	/*
--	 * Fast check to avoid the get/release of the semaphore. Since
--	 * we're doing this outside the semaphore lock, it might return
-+	 * Fast check to avoid the get/release of the mutex. Since
-+	 * we're doing this outside the mutex lock, it might return
- 	 * false negatives, but we don't care. It'll help in 99.99% of cases
--	 * to avoid the semaphore lock. False positives simply cannot happen
--	 * because the file in on the way to be removed and nobody ( but
--	 * eventpoll ) has still a reference to this file.
-+	 * to avoid the mutex lock.
- 	 */
--	if (likely(list_empty(&file->f_ep_links)))
-+	spin_lock(&file->f_ep_lock);
-+	empty = list_empty(&file->f_ep_links);
-+	spin_unlock(&file->f_ep_lock);
-+	if (likely(empty))
- 		return;
- 
- 	/*
+ static int msg_max_limit_min = MIN_MSGMAX;
 _
 
-Patches currently in -mm which might be from tonyb@cybernetics.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-vfs-improve-comment-describing-fget_light.patch
-epoll-fix-for-epoll_wait-sometimes-returning-events-on-closed-fds.patch
-make-shm_get_stat-more-robust.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
+kbuild-check-for-select-dependency-errors-on-config-load-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+pci-enable-pcie-aer-only-after-checking-firmware-support-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
