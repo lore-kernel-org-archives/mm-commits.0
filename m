@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + cpufreq-make-cpufreq-nforce2-less-obnoxious.patch added to -mm tree
-Date: Tue, 24 Feb 2009 11:58:22 -0800
-Message-ID: <200902241958.n1OJwMbM006405@imap1.linux-foundation.org>
+Date: Tue, 24 Feb 2009 11:58:30 -0800
+Message-ID: <200902241958.n1OJwU5v006408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50037 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758182AbZBXT71 (ORCPT
+	by vger.kernel.org with ESMTP id S1759879AbZBXT7W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 14:59:27 -0500
+	Tue, 24 Feb 2009 14:59:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
