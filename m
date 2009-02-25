@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-convert-u64-to-unsigned-long-long-fix.patch added to -mm tree
-Date: Tue, 24 Feb 2009 16:31:22 -0800
-Message-ID: <200902250048.n1P0monq025292@imap1.linux-foundation.org>
+Subject: + alpha-convert-u64-to-unsigned-long-long-fix-2.patch added to -mm tree
+Date: Tue, 24 Feb 2009 16:50:23 -0800
+Message-ID: <200902250107.n1P17pxR026489@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753234AbZBYAuE (ORCPT
+	by vger.kernel.org with ESMTP id S1751540AbZBYBI0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 19:50:04 -0500
+	Tue, 24 Feb 2009 20:08:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, randy.dunlap@oracle.com
 
 
 The patch titled
-     alpha-convert-u64-to-unsigned-long-long-fix
+     alpha-convert-u64-to-unsigned-long-long-fix-2
 has been added to the -mm tree.  Its filename is
-     alpha-convert-u64-to-unsigned-long-long-fix.patch
+     alpha-convert-u64-to-unsigned-long-long-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha-convert-u64-to-unsigned-long-long-fix
+Subject: alpha-convert-u64-to-unsigned-long-long-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/alpha/kernel/pci.c: In function 'pcibios_align_resource':
-arch/alpha/kernel/pci.c:171: warning: comparison of distinct pointer types lacks a cast
+arch/alpha/kernel/core_mcpcia.c:574: error: conflicting types for 'mcpcia_machine_check'
+arch/alpha/kernel/proto.h:67: error: previous declaration of 'mcpcia_machine_check' was here
 
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
@@ -46,21 +46,21 @@ Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pci.c |    2 +-
+ arch/alpha/kernel/proto.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/kernel/pci.c~alpha-convert-u64-to-unsigned-long-long-fix arch/alpha/kernel/pci.c
---- a/arch/alpha/kernel/pci.c~alpha-convert-u64-to-unsigned-long-long-fix
-+++ a/arch/alpha/kernel/pci.c
-@@ -168,7 +168,7 @@ pcibios_align_resource(void *data, struc
- 		 */
+diff -puN arch/alpha/kernel/proto.h~alpha-convert-u64-to-unsigned-long-long-fix-2 arch/alpha/kernel/proto.h
+--- a/arch/alpha/kernel/proto.h~alpha-convert-u64-to-unsigned-long-long-fix-2
++++ a/arch/alpha/kernel/proto.h
+@@ -64,7 +64,7 @@ void io7_clear_errors(struct io7 *io7);
+ extern struct pci_ops mcpcia_pci_ops;
+ extern void mcpcia_init_arch(void);
+ extern void mcpcia_init_hoses(void);
+-extern void mcpcia_machine_check(u64, u64);
++extern void mcpcia_machine_check(unsigned long vector, unsigned long la_ptr);
+ extern void mcpcia_pci_tbi(struct pci_controller *, dma_addr_t, dma_addr_t);
  
- 		/* Align to multiple of size of minimum base.  */
--		alignto = max(0x1000UL, align);
-+		alignto = max_t(resource_size_t, 0x1000, align);
- 		start = ALIGN(start, alignto);
- 		if (hose->sparse_mem_base && size <= 7 * 16*MB) {
- 			if (((start / (16*MB)) & 0x7) == 0) {
+ /* core_polaris.c */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +102,7 @@ mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
 alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
 m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
 epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
 rtc-convert-leap_year-into-an-inline.patch
