@@ -1,127 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-enable-pcie-aer-only-after-checking-firmware-support.patch removed from -mm tree
-Date: Thu, 26 Feb 2009 11:30:33 -0800
-Message-ID: <200902261930.n1QJUXYn014437@imap1.linux-foundation.org>
+Subject: [merged] ia64-beyond-array_size-of-unwhash.patch removed from -mm tree
+Date: Thu, 26 Feb 2009 11:30:29 -0800
+Message-ID: <200902261930.n1QJUTMZ014429@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56449 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752420AbZBZTai (ORCPT
+	by vger.kernel.org with ESMTP id S1752139AbZBZTad (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Feb 2009 14:30:38 -0500
+	Thu, 26 Feb 2009 14:30:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andrew.patterson@hp.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: enable PCIe AER only after checking firmware support
+     ia64: fix access beyond ARRAY_SIZE of unw.hash
 has been removed from the -mm tree.  Its filename was
-     pci-enable-pcie-aer-only-after-checking-firmware-support.patch
+     ia64-beyond-array_size-of-unwhash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: enable PCIe AER only after checking firmware support
-From: Andrew Patterson <andrew.patterson@hp.com>
+Subject: ia64: fix access beyond ARRAY_SIZE of unw.hash
+From: Roel Kluin <roel.kluin@gmail.com>
 
-The PCIe port driver currently sets the PCIe AER error reporting bits for
-any root or switch port without first checking to see if firmware will
-grant control.  This patch moves setting these bits to the AER service
-driver aer_enable_port routine.  The bits are then set for the root port
-and any downstream switch ports after the check for firmware support
-(aer_osc_setup) is made.  The patch also unsets the bits in a similar
-fashion when the AER service driver is unloaded.
+static struct {
 
-Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+... :114
+        unsigned short hash[UNW_HASH_SIZE];
+
+... :147
+} unw = {
+
+... :228
+        .hash = { [0 ... UNW_HASH_SIZE - 1] = -1 },
+...
+};
+
+Do not go beyond ARRAY_SIZE of unw.hash
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/aer/aerdrv_core.c |   49 ++++++++++++++++++++++-----
- drivers/pci/pcie/portdrv_pci.c     |    2 -
- 2 files changed, 40 insertions(+), 11 deletions(-)
+ arch/ia64/kernel/unwind.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/pcie/aer/aerdrv_core.c~pci-enable-pcie-aer-only-after-checking-firmware-support drivers/pci/pcie/aer/aerdrv_core.c
---- a/drivers/pci/pcie/aer/aerdrv_core.c~pci-enable-pcie-aer-only-after-checking-firmware-support
-+++ a/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -108,6 +108,35 @@ int pci_cleanup_aer_correct_error_status
- }
- #endif  /*  0  */
+diff -puN arch/ia64/kernel/unwind.c~ia64-beyond-array_size-of-unwhash arch/ia64/kernel/unwind.c
+--- a/arch/ia64/kernel/unwind.c~ia64-beyond-array_size-of-unwhash
++++ a/arch/ia64/kernel/unwind.c
+@@ -2149,7 +2149,7 @@ unw_remove_unwind_table (void *handle)
  
-+
-+static void set_device_error_reporting(struct pci_dev *dev, void *data)
-+{
-+	bool enable = *((bool *)data);
-+
-+	if (dev->pcie_type != PCIE_RC_PORT &&
-+	    dev->pcie_type != PCIE_SW_UPSTREAM_PORT &&
-+	    dev->pcie_type != PCIE_SW_DOWNSTREAM_PORT)
-+		return;
-+
-+	if (enable)
-+		pci_enable_pcie_error_reporting(dev);
-+	else
-+		pci_disable_pcie_error_reporting(dev);
-+}
-+
-+/**
-+ * set_downstream_devices_error_reporting - enable/disable the error reporting
-+ * bits on the root port and its downstream ports.
-+ * @dev: pointer to root port's pci_dev data structure
-+ * @enable: true = enable error reporting, false = disable error reporting.
-+ */
-+static void set_downstream_devices_error_reporting(struct pci_dev *dev,
-+						   bool enable)
-+{
-+	set_device_error_reporting(dev, &enable);
-+	pci_walk_bus(dev->subordinate, set_device_error_reporting, &enable);
-+}
-+
- static int find_device_iter(struct device *device, void *data)
- {
- 	struct pci_dev *dev;
-@@ -525,15 +554,11 @@ void aer_enable_rootport(struct aer_rpc 
- 	pci_read_config_dword(pdev, aer_pos + PCI_ERR_UNCOR_STATUS, &reg32);
- 	pci_write_config_dword(pdev, aer_pos + PCI_ERR_UNCOR_STATUS, reg32);
+ 	/* next, remove hash table entries for this table */
  
--	/* Enable Root Port device reporting error itself */
--	pci_read_config_word(pdev, pos+PCI_EXP_DEVCTL, &reg16);
--	reg16 = reg16 |
--		PCI_EXP_DEVCTL_CERE |
--		PCI_EXP_DEVCTL_NFERE |
--		PCI_EXP_DEVCTL_FERE |
--		PCI_EXP_DEVCTL_URRE;
--	pci_write_config_word(pdev, pos+PCI_EXP_DEVCTL,
--		reg16);
-+	/*
-+	 * Enable error reporting for the root port device and downstream port
-+	 * devices.
-+	 */
-+	set_downstream_devices_error_reporting(pdev, true);
- 
- 	/* Enable Root Port's interrupt in response to error messages */
- 	pci_write_config_dword(pdev,
-@@ -553,6 +578,12 @@ static void disable_root_aer(struct aer_
- 	u32 reg32;
- 	int pos;
- 
-+	/*
-+	 * Disable error reporting for the root port device and downstream port
-+	 * devices.
-+	 */
-+	set_downstream_devices_error_reporting(pdev, false);
-+
- 	pos = pci_find_ext_capability(pdev, PCI_EXT_CAP_ID_ERR);
- 	/* Disable Root's interrupt in response to error messages */
- 	pci_write_config_dword(pdev, pos + PCI_ERR_ROOT_COMMAND, 0);
-diff -puN drivers/pci/pcie/portdrv_pci.c~pci-enable-pcie-aer-only-after-checking-firmware-support drivers/pci/pcie/portdrv_pci.c
---- a/drivers/pci/pcie/portdrv_pci.c~pci-enable-pcie-aer-only-after-checking-firmware-support
-+++ a/drivers/pci/pcie/portdrv_pci.c
-@@ -87,8 +87,6 @@ static int __devinit pcie_portdrv_probe 
- 
- 	pci_save_state(dev);
- 
--	pci_enable_pcie_error_reporting(dev);
+-	for (index = 0; index <= UNW_HASH_SIZE; ++index) {
++	for (index = 0; index < UNW_HASH_SIZE; ++index) {
+ 		tmp = unw.cache + unw.hash[index];
+ 		if (unw.hash[index] >= UNW_CACHE_SIZE
+ 		    || tmp->ip < table->start || tmp->ip >= table->end)
+_
+
+Patches currently in -mm which might be from roel.kluin@gmail.com are
+
+origin.patch
+linux-next.patch
+acpi-get_throttling_state-cannot-be-larger-state_count.patch
+drm-fix-lock_test_with_return-macro.patch
+dvb-negative-internal-sub_range-wont-get-noticed.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch
+mm-get_nid_for_pfn-returns-int.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-fix-macros.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+spi-limit-reaches-1-tested-0.patch
+rtc-wm8350-retries-will-reach-1.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
+arkfb-fix-misplaced-parentheses.patch
+uvesafb-bitwise-or-has-higher-precedence-than.patch
+vesafb-bitwise-or-has-higher-precedence-than.patch
+ufs-sector_t-cannot-be-negative.patch
+rio-addition-has-higher-precedence-than.patch
+
