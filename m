@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-free-swap-slots-on-page-deactivation.patch added to -mm tree
-Date: Thu, 26 Feb 2009 12:46:11 -0800
-Message-ID: <200902262046.n1QKkBH3020713@imap1.linux-foundation.org>
+Subject: + pm-cleanup-includes.patch added to -mm tree
+Date: Thu, 26 Feb 2009 12:48:36 -0800
+Message-ID: <200902262048.n1QKmaUx020857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753189AbZBZUrt (ORCPT
+	by vger.kernel.org with ESMTP id S1753019AbZBZUtA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Feb 2009 15:47:49 -0500
+	Thu, 26 Feb 2009 15:49:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, hugh@veritas.com, riel@redhat.com
+Cc: damm@igel.co.jp, lethal@linux-sh.org, rjw@sisk.pl
 
 
 The patch titled
-     mm: don't free swap slots on page deactivation
+     pm: cleanup includes
 has been added to the -mm tree.  Its filename is
-     mm-dont-free-swap-slots-on-page-deactivation.patch
+     pm-cleanup-includes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: don't free swap slots on page deactivation
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: pm: cleanup includes
+From: Magnus Damm <damm@igel.co.jp>
 
-The pagevec_swap_free() at the end of shrink_active_list() was introduced
-in 68a22394 "vmscan: free swap space on swap-in/activation" when
-shrink_active_list() was still rotating referenced active pages.
+Remove unused/duplicate cruft from asm/suspend.h:
 
-In 7e9cd48 "vmscan: fix pagecache reclaim referenced bit check" this was
-changed, the rotating removed but the pagevec_swap_free() after the
-rotation loop was forgotten, applying now to the pagevec of the
-deactivation loop instead.
+ - x86_32: remove unused acpi code
+ - powerpc: remove duplicate prototypes, see linux/suspend.h
 
-Now swap space is freed for deactivated pages.  And only for those that
-happen to be on the pagevec after the deactivation loop.
-
-Complete 7e9cd48 and remove the rest of the swap freeing.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/powerpc/include/asm/suspend.h |    3 ---
+ arch/x86/include/asm/suspend_32.h  |   24 ------------------------
+ 2 files changed, 27 deletions(-)
 
-diff -puN mm/vmscan.c~mm-dont-free-swap-slots-on-page-deactivation mm/vmscan.c
---- a/mm/vmscan.c~mm-dont-free-swap-slots-on-page-deactivation
-+++ a/mm/vmscan.c
-@@ -1303,9 +1303,6 @@ static void shrink_active_list(unsigned 
- 	spin_unlock_irq(&zone->lru_lock);
- 	if (buffer_heads_over_limit)
- 		pagevec_strip(&pvec);
--	if (vm_swap_full())
--		pagevec_swap_free(&pvec);
--
- 	pagevec_release(&pvec);
- }
+diff -puN arch/powerpc/include/asm/suspend.h~pm-cleanup-includes arch/powerpc/include/asm/suspend.h
+--- a/arch/powerpc/include/asm/suspend.h~pm-cleanup-includes
++++ a/arch/powerpc/include/asm/suspend.h
+@@ -3,7 +3,4 @@
  
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-linux-next.patch
-cifs-use-kzfree.patch
-md-use-kzfree.patch
-s390-use-kzfree.patch
-usb-use-kzfree.patch
-crypto-use-kzfree.patch
-vmscan-rename-scmay_swap-to-may_unmap.patch
-mm-introduce-for_each_populated_zone-macro.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch
-vmscan-respect-higher-order-in-zone_reclaim.patch
-mm-move-pagevec-stripping-to-save-unlock-relock.patch
-mm-dont-free-swap-slots-on-page-deactivation.patch
-ecryptfs-use-kzfree.patch
-memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
-
+ static inline int arch_prepare_suspend(void) { return 0; }
+ 
+-void save_processor_state(void);
+-void restore_processor_state(void);
+-
+ #endif /* __ASM_POWERPC_SUSPEND_H */
+diff -puN arch/x86/include/asm/suspend_32.h~pm-cleanup-includes arch/x86/include/asm/suspend_32.h
+--- a/arch/x86/include/asm/suspend_32.h~pm-cleanup-includes
++++ a/arch/x86/include/asm/suspend_32.h
+@@ -24,28 +24,4 @@ struct saved_context {
+ 	unsigned long return_address;
+ } __attribute__((packed));
+ 
+-#ifdef CONFIG_ACPI
+-extern unsigned long saved_eip;
+-extern unsigned long saved_esp;
+-extern unsigned long saved_ebp;
+-extern unsigned long saved_ebx;
+-extern unsigned long saved_esi;
+-extern unsigned long saved_edi;
+-
+-static inline void acpi_save_register_state(unsigned long return_point)
+-{
+-	saved_eip = return_point;
+-	asm volatile("movl %%esp,%0" : "=m" (saved_esp));
+-	asm volatile("movl %%ebp,%0" : "=m" (saved_ebp));
+-	asm volatile("movl %%ebx,%0" : "=m" (saved_ebx));
+-	asm volatile("movl %%edi,%0" : "=m" (saved_edi));
+-	asm volatile("movl %%esi,%0" : "=m" (saved_esi));
+-}
+-
+-#define acpi_restore_register_state()  do {} while (0)
+-
+-/* routines for saving/restoring kernel state */
+-extern int acpi_save_state_mem(void);
+-#endif
