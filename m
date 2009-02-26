@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-error-printed-1-too-early.patch added to -mm tree
-Date: Thu, 26 Feb 2009 14:03:27 -0800
-Message-ID: <200902262203.n1QM3RHo026880@imap1.linux-foundation.org>
+Subject: + scsi-pcmcia-nsp_cs-time_out-reaches-1.patch added to -mm tree
+Date: Thu, 26 Feb 2009 14:01:41 -0800
+Message-ID: <200902262201.n1QM1fVr026753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751329AbZBZWEB (ORCPT
+	by vger.kernel.org with ESMTP id S1752301AbZBZWJw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Feb 2009 17:04:01 -0500
+	Thu, 26 Feb 2009 17:09:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, ecashin@coraid.com
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     aoe: error printed 1 too early
+     scsi/pcmcia/nsp_cs: time_out reaches -1
 has been added to the -mm tree.  Its filename is
-     aoe-error-printed-1-too-early.patch
+     scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aoe: error printed 1 too early
+Subject: scsi/pcmcia/nsp_cs: time_out reaches -1
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With while (i-- > 0); i reaches -1 after the loop, so the test below is
-printed one too early: 0 still means success.
+With a postfix decrement timeouts will reach -1 rather than 0, so the
+errors do not appear.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: "Ed L. Cashin" <ecashin@coraid.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoedev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/pcmcia/nsp_cs.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/aoe/aoedev.c~aoe-error-printed-1-too-early drivers/block/aoe/aoedev.c
---- a/drivers/block/aoe/aoedev.c~aoe-error-printed-1-too-early
-+++ a/drivers/block/aoe/aoedev.c
-@@ -173,7 +173,7 @@ skbfree(struct sk_buff *skb)
- 		return;
- 	while (atomic_read(&skb_shinfo(skb)->dataref) != 1 && i-- > 0)
- 		msleep(Sms);
--	if (i <= 0) {
-+	if (i < 0) {
- 		printk(KERN_ERR
- 			"aoe: %s holds ref: %s\n",
- 			skb->dev ? skb->dev->name : "netif",
+diff -puN drivers/scsi/pcmcia/nsp_cs.c~scsi-pcmcia-nsp_cs-time_out-reaches-1 drivers/scsi/pcmcia/nsp_cs.c
+--- a/drivers/scsi/pcmcia/nsp_cs.c~scsi-pcmcia-nsp_cs-time_out-reaches-1
++++ a/drivers/scsi/pcmcia/nsp_cs.c
+@@ -530,7 +530,7 @@ static int nsp_negate_signal(struct scsi
+ 		if (reg == 0xff) {
+ 			break;
+ 		}
+-	} while ((time_out-- != 0) && (reg & mask) != 0);
++	} while ((--time_out != 0) && (reg & mask) != 0);
+ 
+ 	if (time_out == 0) {
+ 		nsp_msg(KERN_DEBUG, " %s signal off timeut", str);
+@@ -801,7 +801,7 @@ static void nsp_pio_read(struct scsi_cmn
+ 
+ 	data->FifoCount = ocount;
+ 
+-	if (time_out == 0) {
++	if (time_out < 0) {
+ 		nsp_msg(KERN_DEBUG, "pio read timeout resid=%d this_residual=%d buffers_residual=%d",
+ 			scsi_get_resid(SCpnt), SCpnt->SCp.this_residual,
+ 			SCpnt->SCp.buffers_residual);
+@@ -897,7 +897,7 @@ static void nsp_pio_write(struct scsi_cm
+ 
+ 	data->FifoCount = ocount;
+ 
+-	if (time_out == 0) {
++	if (time_out < 0) {
+ 		nsp_msg(KERN_DEBUG, "pio write timeout resid=0x%x",
+ 		                                        scsi_get_resid(SCpnt));
+ 	}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -87,5 +105,4 @@ vesafb-bitwise-or-has-higher-precedence-than.patch
 viafb-returns-0-two-too-early.patch
 ufs-sector_t-cannot-be-negative.patch
 rio-addition-has-higher-precedence-than.patch
-aoe-error-printed-1-too-early.patch
 
