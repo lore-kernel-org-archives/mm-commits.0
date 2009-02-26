@@ -1,70 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-convert-u64-to-unsigned-long-long-fix-2.patch added to -mm tree
-Date: Tue, 24 Feb 2009 16:50:23 -0800
-Message-ID: <200902250107.n1P17pxR026489@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 26 Feb 2009 11:27:35 -0800
+Message-ID: <200902261927.n1QJRZTO014163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751540AbZBYBI0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752278AbZBZT2I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Feb 2009 20:08:26 -0500
+	Thu, 26 Feb 2009 14:28:08 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n1QJRauK022253
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2009 11:27:37 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, randy.dunlap@oracle.com, rth@twiddle.net
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha-convert-u64-to-unsigned-long-long-fix-2
-has been added to the -mm tree.  Its filename is
-     alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha-convert-u64-to-unsigned-long-long-fix-2
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/alpha/kernel/core_mcpcia.c:574: error: conflicting types for 'mcpcia_machine_check'
-arch/alpha/kernel/proto.h:67: error: previous declaration of 'mcpcia_machine_check' was here
-
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/proto.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/inode.c          |    6 ------
+ net/core/net_namespace.c |   16 ----------------
+ 2 files changed, 22 deletions(-)
 
-diff -puN arch/alpha/kernel/proto.h~alpha-convert-u64-to-unsigned-long-long-fix-2 arch/alpha/kernel/proto.h
---- a/arch/alpha/kernel/proto.h~alpha-convert-u64-to-unsigned-long-long-fix-2
-+++ a/arch/alpha/kernel/proto.h
-@@ -64,7 +64,7 @@ void io7_clear_errors(struct io7 *io7);
- extern struct pci_ops mcpcia_pci_ops;
- extern void mcpcia_init_arch(void);
- extern void mcpcia_init_hoses(void);
--extern void mcpcia_machine_check(u64, u64);
-+extern void mcpcia_machine_check(unsigned long vector, unsigned long la_ptr);
- extern void mcpcia_pci_tbi(struct pci_controller *, dma_addr_t, dma_addr_t);
+diff -puN fs/proc/inode.c~linux-next-git-rejects fs/proc/inode.c
+--- a/fs/proc/inode.c~linux-next-git-rejects
++++ a/fs/proc/inode.c
+@@ -479,12 +479,6 @@ struct inode *proc_get_inode(struct supe
+ 			}
+ 		}
+ 		unlock_new_inode(inode);
+-<<<<<<< HEAD:fs/proc/inode.c
+-	} else {
+-	       module_put(de->owner);
+-	       de_put(de);
+-=======
+->>>>>>> FETCH_HEAD:fs/proc/inode.c
+ 	}
+ 	return inode;
+ }			
+diff -puN net/core/net_namespace.c~linux-next-git-rejects net/core/net_namespace.c
+--- a/net/core/net_namespace.c~linux-next-git-rejects
++++ a/net/core/net_namespace.c
+@@ -74,22 +74,6 @@ out_undo:
+ 	goto out;
+ }
  
- /* core_polaris.c */
+-<<<<<<< HEAD:net/core/net_namespace.c
+-static struct net_generic *net_alloc_generic(void)
+-{
+-	struct net_generic *ng;
+-	size_t generic_size = sizeof(struct net_generic) +
+-		INITIAL_NET_GEN_PTRS * sizeof(void *);
+-
+-	ng = kzalloc(generic_size, GFP_KERNEL);
+-	if (ng)
+-		ng->len = INITIAL_NET_GEN_PTRS;
+-
+-	return ng;
+-}
+-
+-=======
+->>>>>>> FETCH_HEAD:net/core/net_namespace.c
+ #ifdef CONFIG_NET_NS
+ static struct kmem_cache *net_cachep;
+ static struct workqueue_struct *netns_wq;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 i-need-old-gcc.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
