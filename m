@@ -1,76 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-returns-0-two-too-early.patch added to -mm tree
-Date: Thu, 26 Feb 2009 14:00:32 -0800
-Message-ID: <200902262200.n1QM0W2Y026670@imap1.linux-foundation.org>
+Subject: [to-be-updated] drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch removed from -mm tree
+Date: Thu, 26 Feb 2009 14:01:33 -0800
+Message-ID: <200902262201.n1QM1XQr026745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37614 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759473AbZBZWBF (ORCPT
+	by vger.kernel.org with ESMTP id S1754456AbZBZWCK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Feb 2009 17:01:05 -0500
+	Thu, 26 Feb 2009 17:02:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, josephchan@via.com.tw
+To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, yokota@netlab.is.tsukuba.ac.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: returns 0 two too early
-has been added to the -mm tree.  Its filename is
-     viafb-returns-0-two-too-early.patch
+     drivers/scsi/pcmcia/nsp_cs.c: time_out reaches -1
+has been removed from the -mm tree.  Its filename was
+     drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: returns 0 two too early
+Subject: drivers/scsi/pcmcia/nsp_cs.c: time_out reaches -1
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Otherwise this will already return 0 if iteration MAXLOOP-2 occurs in the
-first loop.
+With a postfix decrement the timeout will reach -1 rather than 0, so
+the error does not appear.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Joseph Chan <josephchan@via.com.tw>
+Cc: <yokota@netlab.is.tsukuba.ac.jp>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/accel.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/scsi/pcmcia/nsp_cs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/via/accel.c~viafb-returns-0-two-too-early drivers/video/via/accel.c
---- a/drivers/video/via/accel.c~viafb-returns-0-two-too-early
-+++ a/drivers/video/via/accel.c
-@@ -267,13 +267,17 @@ int viafb_wait_engine_idle(void)
- 	int loop = 0;
+diff -puN drivers/scsi/pcmcia/nsp_cs.c~drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1 drivers/scsi/pcmcia/nsp_cs.c
+--- a/drivers/scsi/pcmcia/nsp_cs.c~drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1
++++ a/drivers/scsi/pcmcia/nsp_cs.c
+@@ -530,7 +530,7 @@ static int nsp_negate_signal(struct scsi
+ 		if (reg == 0xff) {
+ 			break;
+ 		}
+-	} while ((time_out-- != 0) && (reg & mask) != 0);
++	} while ((--time_out != 0) && (reg & mask) != 0);
  
- 	while (!(readl(viaparinfo->io_virt + VIA_REG_STATUS) &
--			VIA_VR_QUEUE_BUSY) && (loop++ < MAXLOOP))
-+			VIA_VR_QUEUE_BUSY) && (loop < MAXLOOP)) {
-+		loop++;
- 		cpu_relax();
-+	}
- 
- 	while ((readl(viaparinfo->io_virt + VIA_REG_STATUS) &
- 		    (VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY | VIA_3D_ENG_BUSY)) &&
--		    (loop++ < MAXLOOP))
-+		    (loop < MAXLOOP)) {
-+		loop++;
- 		cpu_relax();
-+	}
- 
- 	return loop >= MAXLOOP;
- }
+ 	if (time_out == 0) {
+ 		nsp_msg(KERN_DEBUG, " %s signal off timeut", str);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -82,6 +62,7 @@ drm-fix-lock_test_with_return-macro.patch
 dvb-negative-internal-sub_range-wont-get-noticed.patch
 scsi-ncr53c8xx-div-reaches-1.patch
 drivers-scsi-pcmcia-nsp_csc-time_out-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
 mm-get_nid_for_pfn-returns-int.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
