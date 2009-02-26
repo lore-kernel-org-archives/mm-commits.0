@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-conform-l3-cache-index-disable-to-linux-standards-build-fix.patch added to -mm tree
-Date: Thu, 26 Feb 2009 14:51:11 -0800
-Message-ID: <200902262251.n1QMpCW4030968@imap1.linux-foundation.org>
+Subject: + cpuset-remove-struct-cpuset_hotplug_scanner.patch added to -mm tree
+Date: Thu, 26 Feb 2009 14:57:29 -0800
+Message-ID: <200902262257.n1QMvTlo031445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54385 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42131 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752944AbZBZWwH (ORCPT
+	by vger.kernel.org with ESMTP id S1752457AbZBZW5z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Feb 2009 17:52:07 -0500
+	Thu, 26 Feb 2009 17:57:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wli@movementarian.org, eric@lammerts.org, hpa@zytor.com, mingo@elte.hu, randy.dunlap@oracle.com, rusty@rustcorp.com.au, tglx@linutronix.de
+Cc: lizf@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
 
 
 The patch titled
-     mm: k8_northbridges[] build fix
+     cpuset: remove struct cpuset_hotplug_scanner
 has been added to the -mm tree.  Its filename is
-     x86-conform-l3-cache-index-disable-to-linux-standards-build-fix.patch
+     cpuset-remove-struct-cpuset_hotplug_scanner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: k8_northbridges[] build fix
-From: William Irwin <wli@movementarian.org>
+Subject: cpuset: remove struct cpuset_hotplug_scanner
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-k8_northbridges[] isn't a defined symbol unless arch/x86/kernel/k8.c is
-compiled, which is conditional on CONFIG_K8_NB.  This patch resolves
-the link error by making the sysfs access to the k8 northbridge
-conditional on CONFIG_K8_NB in like fashion to the k8_northbridges[]
-array itself.  The issue was encountered on a 32-bit build with the
-processor family specified as CONFIG_MCORE2=y.
+Use cgroup_scanner.data, instead of introducing cpuset_hotplug_scanner.
 
-The link error was introduced in
-	x86-conform-l3-cache-index-disable-to-linux-standards.patch
-
-Signed-off-by: William Irwin <wli@movementarian.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Eric Lammerts <eric@lammerts.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/intel_cacheinfo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/cpuset.c |   23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/intel_cacheinfo.c~x86-conform-l3-cache-index-disable-to-linux-standards-build-fix arch/x86/kernel/cpu/intel_cacheinfo.c
---- a/arch/x86/kernel/cpu/intel_cacheinfo.c~x86-conform-l3-cache-index-disable-to-linux-standards-build-fix
-+++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
-@@ -613,7 +613,7 @@ static int __cpuinit detect_cache_attrib
- 	return retval;
+diff -puN kernel/cpuset.c~cpuset-remove-struct-cpuset_hotplug_scanner kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-remove-struct-cpuset_hotplug_scanner
++++ a/kernel/cpuset.c
+@@ -128,10 +128,6 @@ static inline struct cpuset *task_cs(str
+ 	return container_of(task_subsys_state(task, cpuset_subsys_id),
+ 			    struct cpuset, css);
+ }
+-struct cpuset_hotplug_scanner {
+-	struct cgroup_scanner scan;
+-	struct cgroup *to;
+-};
+ 
+ /* bits in struct cpuset flags field */
+ typedef enum {
+@@ -1889,10 +1885,9 @@ int __init cpuset_init(void)
+ static void cpuset_do_move_task(struct task_struct *tsk,
+ 				struct cgroup_scanner *scan)
+ {
+-	struct cpuset_hotplug_scanner *chsp;
++	struct cgroup *new_cgroup = scan->data;
+ 
+-	chsp = container_of(scan, struct cpuset_hotplug_scanner, scan);
+-	cgroup_attach_task(chsp->to, tsk);
++	cgroup_attach_task(new_cgroup, tsk);
  }
  
--#ifdef CONFIG_SYSFS
-+#if defined(CONFIG_SYSFS) && defined(CONFIG_K8_NB)
+ /**
+@@ -1908,15 +1903,15 @@ static void cpuset_do_move_task(struct t
+  */
+ static void move_member_tasks_to_cpuset(struct cpuset *from, struct cpuset *to)
+ {
+-	struct cpuset_hotplug_scanner scan;
++	struct cgroup_scanner scan;
  
- #include <linux/kobject.h>
- #include <linux/sysfs.h>
-@@ -986,4 +986,4 @@ static int __cpuinit cache_sysfs_init(vo
+-	scan.scan.cg = from->css.cgroup;
+-	scan.scan.test_task = NULL; /* select all tasks in cgroup */
+-	scan.scan.process_task = cpuset_do_move_task;
+-	scan.scan.heap = NULL;
+-	scan.to = to->css.cgroup;
++	scan.cg = from->css.cgroup;
++	scan.test_task = NULL; /* select all tasks in cgroup */
++	scan.process_task = cpuset_do_move_task;
++	scan.heap = NULL;
++	scan.data = to->css.cgroup;
  
- device_initcall(cache_sysfs_init);
- 
--#endif
-+#endif /* defined(CONFIG_SYSFS) && defined(CONFIG_K8_NB) */
+-	if (cgroup_scan_tasks(&scan.scan))
++	if (cgroup_scan_tasks(&scan))
+ 		printk(KERN_ERR "move_member_tasks_to_cpuset: "
+ 				"cgroup_scan_tasks failed\n");
+ }
 _
 
-Patches currently in -mm which might be from wli@movementarian.org are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-x86-conform-l3-cache-index-disable-to-linux-standards-build-fix.patch
-epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
-epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
-epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update.patch
-epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
+linux-next.patch
+vfs-add-missing-unlock-in-sget.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+cgroups-more-documentation-for-remount-and-release_agent.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+use-css-id-in-swap_cgroup-for-saving-memory-v4.patch
+cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
+cgroups-add-data-field-to-struct-cgroup_scanner.patch
+cpuset-rewrite-update_tasks_nodemask.patch
+cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
+cpuset-remove-struct-cpuset_hotplug_scanner.patch
 
