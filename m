@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-rework-includes-remove-arch-ifdefs-v2.patch added to -mm tree
-Date: Thu, 26 Feb 2009 12:48:33 -0800
-Message-ID: <200902262048.n1QKmYTH020848@imap1.linux-foundation.org>
+Subject: + cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch added to -mm tree
+Date: Thu, 26 Feb 2009 12:51:17 -0800
+Message-ID: <200902262051.n1QKpHse021095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752976AbZBZUtA (ORCPT
+	by vger.kernel.org with ESMTP id S1752441AbZBZUvZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Feb 2009 15:49:00 -0500
+	Thu, 26 Feb 2009 15:51:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: damm@igel.co.jp, lethal@linux-sh.org, rjw@sisk.pl
+Cc: krzysztof.h1@poczta.fm, krzysztof.h1@wp.pl
 
 
 The patch titled
-     pm: rework includes, remove arch ifdefs
+     From: Krzysztof Helt <krzysztof.h1@poczta.fm>
 has been added to the -mm tree.  Its filename is
-     pm-rework-includes-remove-arch-ifdefs-v2.patch
+     cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: rework includes, remove arch ifdefs
-From: Magnus Damm <damm@igel.co.jp>
+Subject: From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Make the following header file changes:
 
- - remove arch ifdefs and asm/suspend.h from linux/suspend.h
- - add asm/suspend.h to disk.c (for arch_prepare_suspend())
- - add linux/io.h to swsusp.c (for ioremap())
- - x86 32/64 bit compile fixes
+My latest change introduced a typo
+so fix it.
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+---
+
+Where can I get m68 cross compiler for PC able
+to compile Amiga kernel?
+
+Regards,
+Krzysztof
+
+index b96bc5d..070bf5f 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/asm-offsets_32.c |    1 +
- arch/x86/kernel/asm-offsets_64.c |    1 +
- arch/x86/power/cpu_32.c          |    1 +
- arch/x86/power/cpu_64.c          |    1 +
- arch/x86/power/hibernate_64.c    |    1 +
- include/linux/suspend.h          |    3 ---
- kernel/power/disk.c              |    1 +
- kernel/power/swsusp.c            |    1 +
- 8 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/video/cirrusfb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/asm-offsets_32.c~pm-rework-includes-remove-arch-ifdefs-v2 arch/x86/kernel/asm-offsets_32.c
---- a/arch/x86/kernel/asm-offsets_32.c~pm-rework-includes-remove-arch-ifdefs-v2
-+++ a/arch/x86/kernel/asm-offsets_32.c
-@@ -18,6 +18,7 @@
- #include <asm/thread_info.h>
- #include <asm/bootparam.h>
- #include <asm/elf.h>
-+#include <asm/suspend.h>
+diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix
++++ a/drivers/video/cirrusfb.c
+@@ -2327,7 +2327,7 @@ static int __devinit cirrusfb_zorro_regi
  
- #include <xen/interface/xen.h>
+ 	ret = cirrusfb_register(info);
+ 	if (!ret)
+-		return 0
++		return 0;
  
-diff -puN arch/x86/kernel/asm-offsets_64.c~pm-rework-includes-remove-arch-ifdefs-v2 arch/x86/kernel/asm-offsets_64.c
---- a/arch/x86/kernel/asm-offsets_64.c~pm-rework-includes-remove-arch-ifdefs-v2
-+++ a/arch/x86/kernel/asm-offsets_64.c
-@@ -16,6 +16,7 @@
- #include <asm/thread_info.h>
- #include <asm/ia32.h>
- #include <asm/bootparam.h>
-+#include <asm/suspend.h>
- 
- #include <xen/interface/xen.h>
- 
-diff -puN arch/x86/power/cpu_32.c~pm-rework-includes-remove-arch-ifdefs-v2 arch/x86/power/cpu_32.c
---- a/arch/x86/power/cpu_32.c~pm-rework-includes-remove-arch-ifdefs-v2
-+++ a/arch/x86/power/cpu_32.c
-@@ -12,6 +12,7 @@
- #include <asm/mtrr.h>
- #include <asm/mce.h>
- #include <asm/xcr.h>
-+#include <asm/suspend.h>
- 
- static struct saved_context saved_context;
- 
-diff -puN arch/x86/power/cpu_64.c~pm-rework-includes-remove-arch-ifdefs-v2 arch/x86/power/cpu_64.c
---- a/arch/x86/power/cpu_64.c~pm-rework-includes-remove-arch-ifdefs-v2
-+++ a/arch/x86/power/cpu_64.c
-@@ -15,6 +15,7 @@
- #include <asm/pgtable.h>
- #include <asm/mtrr.h>
- #include <asm/xcr.h>
-+#include <asm/suspend.h>
- 
- static void fix_processor_context(void);
- 
-diff -puN arch/x86/power/hibernate_64.c~pm-rework-includes-remove-arch-ifdefs-v2 arch/x86/power/hibernate_64.c
---- a/arch/x86/power/hibernate_64.c~pm-rework-includes-remove-arch-ifdefs-v2
-+++ a/arch/x86/power/hibernate_64.c
-@@ -14,6 +14,7 @@
- #include <asm/page.h>
- #include <asm/pgtable.h>
- #include <asm/mtrr.h>
-+#include <asm/suspend.h>
- 
- /* References to section boundaries */
- extern const void __nosave_begin, __nosave_end;
-diff -puN include/linux/suspend.h~pm-rework-includes-remove-arch-ifdefs-v2 include/linux/suspend.h
---- a/include/linux/suspend.h~pm-rework-includes-remove-arch-ifdefs-v2
-+++ a/include/linux/suspend.h
-@@ -1,9 +1,6 @@
- #ifndef _LINUX_SUSPEND_H
- #define _LINUX_SUSPEND_H
- 
--#if defined(CONFIG_X86) || defined(CONFIG_FRV) || defined(CONFIG_PPC32) || defined(CONFIG_PPC64)
--#include <asm/suspend.h>
--#endif
- #include <linux/swap.h>
- #include <linux/notifier.h>
- #include <linux/init.h>
-diff -puN kernel/power/disk.c~pm-rework-includes-remove-arch-ifdefs-v2 kernel/power/disk.c
---- a/kernel/power/disk.c~pm-rework-includes-remove-arch-ifdefs-v2
-+++ a/kernel/power/disk.c
-@@ -22,6 +22,7 @@
- #include <linux/console.h>
- #include <linux/cpu.h>
- #include <linux/freezer.h>
-+#include <asm/suspend.h>
- 
- #include "power.h"
- 
-diff -puN kernel/power/swsusp.c~pm-rework-includes-remove-arch-ifdefs-v2 kernel/power/swsusp.c
---- a/kernel/power/swsusp.c~pm-rework-includes-remove-arch-ifdefs-v2
-+++ a/kernel/power/swsusp.c
-@@ -51,6 +51,7 @@
- #include <linux/highmem.h>
- #include <linux/time.h>
- #include <linux/rbtree.h>
-+#include <linux/io.h>
- 
- #include "power.h"
- 
+ 	if (btype == BT_PICASSO4 || board_addr > 0x01000000)
+ 		iounmap(info->screen_base);
 _
 
-Patches currently in -mm which might be from damm@igel.co.jp are
+Patches currently in -mm which might be from krzysztof.h1@poczta.fm are
 
-linux-next.patch
-early-platform-driver-v3.patch
-clocksource-pass-clocksource-to-read-callback.patch
-clocksource-add-enable-and-disable-callbacks.patch
-irq-free-setup_irq-interrupt-using-free_irq.patch
-pm-rework-includes-remove-arch-ifdefs-v2.patch
-pm-cleanup-includes.patch
+cirrusfb-convert-printks-to-dev_foo.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+cirrusfb-various-improvements.patch
+cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
+fbmem-fix-fb_info-lock-and-mm-mmap_sem-circular-locking-dependency.patch
+fbdev-uninline-lock_fb_info.patch
+skeletonfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sm501fb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+sunxvr500-fix-cmap-memory-leaks.patch
+tgafb-fix-cmap-memory-leak.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
+arkfb-fix-misplaced-parentheses.patch
+uvesafb-bitwise-or-has-higher-precedence-than.patch
+vesafb-bitwise-or-has-higher-precedence-than.patch
+intelfb-support-i854.patch
 
