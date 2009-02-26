@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-memcg-show-correct-file-mode.patch added to -mm tree
-Date: Thu, 26 Feb 2009 13:00:31 -0800
-Message-ID: <200902262100.n1QL0Vvi021877@imap1.linux-foundation.org>
+Subject: + sysfs-dont-block-indefinitely-for-unmapped-files.patch added to -mm tree
+Date: Thu, 26 Feb 2009 13:13:19 -0800
+Message-ID: <200902262113.n1QLDJsN022819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753662AbZBZVBv (ORCPT
+	by vger.kernel.org with ESMTP id S1754298AbZBZVNb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Feb 2009 16:01:51 -0500
+	Thu, 26 Feb 2009 16:13:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, lizf@cn.fujitsu.cn, menage@google.com
+Cc: ebiederm@aristanetworks.com, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, tj@kernel.org
 
 
 The patch titled
-     cgroup/memcg: show correct file mode
+     sysfs: don't block indefinitely for unmapped files.
 has been added to the -mm tree.  Its filename is
-     cgroup-memcg-show-correct-file-mode.patch
+     sysfs-dont-block-indefinitely-for-unmapped-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,310 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup/memcg: show correct file mode
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: sysfs: don't block indefinitely for unmapped files.
+From: Eric W. Biederman <ebiederm@aristanetworks.com>
 
-Set correct permission on memcg's file.
+Modify sysfs bin files so that we can remove the bin file while they are
+still mapped.  When the kobject is removed we unmap the bin file and
+arrange for future accesses to the mapping to receive SIGBUS.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Li Zefan <lizf@cn.fujitsu.cn>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Acked-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Implementing this prevents a nasty DOS when pci devices are hot plugged
+and unplugged.  Where if any of their resources were mmaped the kernel
+could not free up their pci resources or release their pci data
+structures.
+
+Signed-off-by: Eric W. Biederman <ebiederm@aristanetworks.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/sysfs/bin.c   |  183 ++++++++++++++++++++++++++++++++++++++++++---
+ fs/sysfs/dir.c   |    1 
+ fs/sysfs/sysfs.h |    2 
+ 3 files changed, 174 insertions(+), 12 deletions(-)
 
-diff -puN mm/memcontrol.c~cgroup-memcg-show-correct-file-mode mm/memcontrol.c
---- a/mm/memcontrol.c~cgroup-memcg-show-correct-file-mode
-+++ a/mm/memcontrol.c
-@@ -2026,6 +2026,7 @@ static struct cftype mem_cgroup_files[] 
- 		.name = "usage_in_bytes",
- 		.private = MEMFILE_PRIVATE(_MEM, RES_USAGE),
- 		.read_u64 = mem_cgroup_read,
-+		.mode = 0444
- 	},
- 	{
- 		.name = "max_usage_in_bytes",
-@@ -2048,10 +2049,12 @@ static struct cftype mem_cgroup_files[] 
- 	{
- 		.name = "stat",
- 		.read_map = mem_control_stat_show,
-+		.mode = 0444
- 	},
- 	{
- 		.name = "force_empty",
- 		.trigger = mem_cgroup_force_empty_write,
-+		.mode = 0200
- 	},
- 	{
- 		.name = "use_hierarchy",
-@@ -2071,6 +2074,7 @@ static struct cftype memsw_cgroup_files[
- 		.name = "memsw.usage_in_bytes",
- 		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
- 		.read_u64 = mem_cgroup_read,
-+		.mode = 0444
- 	},
- 	{
- 		.name = "memsw.max_usage_in_bytes",
+diff -puN fs/sysfs/bin.c~sysfs-dont-block-indefinitely-for-unmapped-files fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~sysfs-dont-block-indefinitely-for-unmapped-files
++++ a/fs/sysfs/bin.c
+@@ -21,15 +21,28 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/mutex.h>
++#include <linux/mm.h>
+ 
+ #include <asm/uaccess.h>
+ 
+ #include "sysfs.h"
+ 
++/*
++ * There's one bin_buffer for each open file.
++ *
++ * filp->private_data points to bin_buffer and
++ * sysfs_dirent->s_bin_attr.buffers points to a the bin_buffer s
++ * sysfs_dirent->s_bin_attr.buffers is protected by sysfs_bin_lock
++ */
++static DEFINE_MUTEX(sysfs_bin_lock);
++
+ struct bin_buffer {
+-	struct mutex	mutex;
+-	void		*buffer;
+-	int		mmapped;
++	struct mutex			mutex;
++	void				*buffer;
++	int				mmapped;
++	struct vm_operations_struct 	*vm_ops;
++	struct file			*file;
++	struct hlist_node		list;
+ };
+ 
+ static int
+@@ -168,29 +181,148 @@ out_free:
+ 	return count;
+ }
+ 
++static void bin_vma_open(struct vm_area_struct *vma)
++{
++	struct file *file = vma->vm_file;
++	struct bin_buffer *bb = file->private_data;
++	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
++
++	if (!bb->vm_ops || !bb->vm_ops->open)
++		return;
++
++	if (!sysfs_get_active_two(attr_sd))
++		return;
++
++	bb->vm_ops->open(vma);
++
++	sysfs_put_active_two(attr_sd);
++}
++
++static void bin_vma_close(struct vm_area_struct *vma)
++{
++	struct file *file = vma->vm_file;
++	struct bin_buffer *bb = file->private_data;
++	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
++
++	if (!bb->vm_ops || !bb->vm_ops->close)
++		return;
++
++	if (!sysfs_get_active_two(attr_sd))
++		return;
++
++	bb->vm_ops->close(vma);
++
++	sysfs_put_active_two(attr_sd);
++}
++
++static int bin_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	struct file *file = vma->vm_file;
++	struct bin_buffer *bb = file->private_data;
++	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
++	int ret;
++
++	if (!bb->vm_ops || !bb->vm_ops->fault)
++		return VM_FAULT_SIGBUS;
++
++	if (!sysfs_get_active_two(attr_sd))
++		return VM_FAULT_SIGBUS;
++
++	ret = bb->vm_ops->fault(vma, vmf);
++
++	sysfs_put_active_two(attr_sd);
++	return ret;
++}
++
++static int bin_page_mkwrite(struct vm_area_struct *vma, struct page *page)
++{
++	struct file *file = vma->vm_file;
++	struct bin_buffer *bb = file->private_data;
++	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
++	int ret;
++
++	if (!bb->vm_ops || !bb->vm_ops->page_mkwrite)
++		return -EINVAL;
++
++	if (!sysfs_get_active_two(attr_sd))
++		return -EINVAL;
++
++	ret = bb->vm_ops->page_mkwrite(vma, page);
++
++	sysfs_put_active_two(attr_sd);
++	return ret;
++}
++
++static int bin_access(struct vm_area_struct *vma, unsigned long addr,
++		  void *buf, int len, int write)
++{
++	struct file *file = vma->vm_file;
++	struct bin_buffer *bb = file->private_data;
++	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
++	int ret;
++
++	if (!bb->vm_ops || !bb->vm_ops->access)
++		return -EINVAL;
++
++	if (!sysfs_get_active_two(attr_sd))
++		return -EINVAL;
++
++	ret = bb->vm_ops->access(vma, addr, buf, len, write);
++
++	sysfs_put_active_two(attr_sd);
++	return ret;
++}
++
++static struct vm_operations_struct bin_vm_ops = {
++	.open		= bin_vma_open,
++	.close		= bin_vma_close,
++	.fault		= bin_fault,
++	.page_mkwrite	= bin_page_mkwrite,
++	.access		= bin_access,
++};
++
+ static int mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct bin_buffer *bb = file->private_data;
+ 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
+ 	struct bin_attribute *attr = attr_sd->s_bin_attr.bin_attr;
+ 	struct kobject *kobj = attr_sd->s_parent->s_dir.kobj;
++	struct vm_operations_struct *vm_ops;
+ 	int rc;
+ 
+ 	mutex_lock(&bb->mutex);
+ 
+ 	/* need attr_sd for attr, its parent for kobj */
++	rc = -ENODEV;
+ 	if (!sysfs_get_active_two(attr_sd))
+-		return -ENODEV;
++		goto out_unlock;
+ 
+ 	rc = -EINVAL;
+-	if (attr->mmap)
+-		rc = attr->mmap(kobj, attr, vma);
++	if (!attr->mmap)
++		goto out_put;
+ 
+-	if (rc == 0 && !bb->mmapped)
+-		bb->mmapped = 1;
+-	else
+-		sysfs_put_active_two(attr_sd);
++	rc = attr->mmap(kobj, attr, vma);
++	vm_ops = vma->vm_ops;
++	vma->vm_ops = &bin_vm_ops;
++	if (rc)
++		goto out_put;
++
++	rc = -EINVAL;
++	if (bb->mmapped && bb->vm_ops != vma->vm_ops)
++		goto out_put;
+ 
++#ifdef CONFIG_NUMA
++	rc = -EINVAL;
++	if (vm_ops && ((vm_ops->set_policy || vm_ops->get_policy || vm_ops->migrate)))
++		goto out_put;
++#endif
++
++	rc = 0;
++	bb->mmapped = 1;
++	bb->vm_ops = vm_ops;
++out_put:
++	sysfs_put_active_two(attr_sd);
++out_unlock:
+ 	mutex_unlock(&bb->mutex);
+ 
+ 	return rc;
+@@ -223,8 +355,13 @@ static int open(struct inode * inode, st
+ 		goto err_out;
+ 
+ 	mutex_init(&bb->mutex);
++	bb->file = file;
+ 	file->private_data = bb;
+ 
++	mutex_lock(&sysfs_bin_lock);
++	hlist_add_head(&bb->list, &attr_sd->s_bin_attr.buffers);
++	mutex_unlock(&sysfs_bin_lock);
++
+ 	/* open succeeded, put active references */
+ 	sysfs_put_active_two(attr_sd);
+ 	return 0;
+@@ -240,8 +377,10 @@ static int release(struct inode * inode,
+ 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
+ 	struct bin_buffer *bb = file->private_data;
+ 
+-	if (bb->mmapped)
+-		sysfs_put_active_two(attr_sd);
++	mutex_lock(&sysfs_bin_lock);
++	hlist_del(&bb->list);
++	mutex_unlock(&sysfs_bin_lock);
++
+ 	kfree(bb->buffer);
+ 	kfree(bb);
+ 	return 0;
+@@ -256,6 +395,26 @@ const struct file_operations bin_fops = 
+ 	.release	= release,
+ };
+ 
++
++void unmap_bin_file(struct sysfs_dirent *attr_sd)
++{
++	struct bin_buffer *bb;
++	struct hlist_node *tmp;
++
++	if (sysfs_type(attr_sd) != SYSFS_KOBJ_BIN_ATTR)
++		return;
++
++	mutex_lock(&sysfs_bin_lock);
++
++	hlist_for_each_entry(bb, tmp, &attr_sd->s_bin_attr.buffers, list) {
++		struct inode *inode = bb->file->f_path.dentry->d_inode;
++
++		unmap_mapping_range(inode->i_mapping, 0, 0, 1);
++	}
++
++	mutex_unlock(&sysfs_bin_lock);
++}
++
+ /**
+  *	sysfs_create_bin_file - create binary file for object.
+  *	@kobj:	object.
+diff -puN fs/sysfs/dir.c~sysfs-dont-block-indefinitely-for-unmapped-files fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~sysfs-dont-block-indefinitely-for-unmapped-files
++++ a/fs/sysfs/dir.c
+@@ -609,6 +609,7 @@ void sysfs_addrm_finish(struct sysfs_add
+ 
+ 		sysfs_drop_dentry(sd);
+ 		sysfs_deactivate(sd);
++		unmap_bin_file(sd);
+ 		sysfs_put(sd);
+ 	}
+ }
+diff -puN fs/sysfs/sysfs.h~sysfs-dont-block-indefinitely-for-unmapped-files fs/sysfs/sysfs.h
+--- a/fs/sysfs/sysfs.h~sysfs-dont-block-indefinitely-for-unmapped-files
++++ a/fs/sysfs/sysfs.h
+@@ -28,6 +28,7 @@ struct sysfs_elem_attr {
+ 
+ struct sysfs_elem_bin_attr {
+ 	struct bin_attribute	*bin_attr;
++	struct hlist_head	buffers;
+ };
+ 
+ /*
+@@ -164,6 +165,7 @@ int sysfs_add_file_mode(struct sysfs_dir
+  * bin.c
+  */
+ extern const struct file_operations bin_fops;
++void unmap_bin_file(struct sysfs_dirent *attr_sd);
+ 
+ /*
+  * symlink.c
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from ebiederm@aristanetworks.com are
 
 linux-next.patch
-cgroup-allow-subsys-to-set-default-mode-of-its-own-file.patch
-cgroup-memcg-show-correct-file-mode.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-vmscan-respect-higher-order-in-zone_reclaim.patch
-cgroup-css-id-support.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-cgroups-more-documentation-for-remount-and-release_agent.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
-memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
-use-css-id-in-swap_cgroup-for-saving-memory-v4.patch
+sysfs-dont-block-indefinitely-for-unmapped-files.patch
 
