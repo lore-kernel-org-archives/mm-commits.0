@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-allow-subsys-to-set-default-mode-of-its-own-file.patch added to -mm tree
-Date: Thu, 26 Feb 2009 13:00:14 -0800
-Message-ID: <200902262100.n1QL0EoR021847@imap1.linux-foundation.org>
+Subject: + cgroup-memcg-show-correct-file-mode.patch added to -mm tree
+Date: Thu, 26 Feb 2009 13:00:31 -0800
+Message-ID: <200902262100.n1QL0Vvi021877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753662AbZBZVA5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753662AbZBZVBv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Feb 2009 16:00:57 -0500
+	Thu, 26 Feb 2009 16:01:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet
 
 
 The patch titled
-     cgroups: allow subsys to set default mode of its own file
+     cgroup/memcg: show correct file mode
 has been added to the -mm tree.  Its filename is
-     cgroup-allow-subsys-to-set-default-mode-of-its-own-file.patch
+     cgroup-memcg-show-correct-file-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: allow subsys to set default mode of its own file
+Subject: cgroup/memcg: show correct file mode
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-cgroup's subsys has "readonly" files, but default permission is always
-rw-r--r--. This allows to create r--r--r-- file to subsys.
-(The user can do chmod on this read-only file. But this behavior is not
- different from current pseudo file systems as /proc.)
-
-Reason:
-
-When I wrote tools for maintaining cgroups, I couldn't find which file was
-a writable interface via cgroup file systems.  (finally, I did dirty
-approach.)
-
-IMHO, showing "this file is read-only" in explicit way is useful for
-user-land (tools).  In other story, a file whose name sounds read-only may
-have "trigger" operation and support reseting.  In this case, "writable"
-is informative.
+Set correct permission on memcg's file.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Li Zefan <lizf@cn.fujitsu.cn>
 Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Paul Menage <menage@google.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Acked-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    2 ++
- kernel/cgroup.c        |    5 ++++-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/cgroup.h~cgroup-allow-subsys-to-set-default-mode-of-its-own-file include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-allow-subsys-to-set-default-mode-of-its-own-file
-+++ a/include/linux/cgroup.h
-@@ -245,6 +245,8 @@ struct cftype {
- 	 * subsystem, followed by a period */
- 	char name[MAX_CFTYPE_NAME];
- 	int private;
-+	/* if not 0, mode is set to mode, otherwise 0644 */
-+	int mode;
- 
- 	/*
- 	 * If non-zero, defines the maximum length of string that can
-diff -puN kernel/cgroup.c~cgroup-allow-subsys-to-set-default-mode-of-its-own-file kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-allow-subsys-to-set-default-mode-of-its-own-file
-+++ a/kernel/cgroup.c
-@@ -1706,7 +1706,10 @@ int cgroup_add_file(struct cgroup *cgrp,
- 	BUG_ON(!mutex_is_locked(&dir->d_inode->i_mutex));
- 	dentry = lookup_one_len(name, dir, strlen(name));
- 	if (!IS_ERR(dentry)) {
--		error = cgroup_create_file(dentry, 0644 | S_IFREG,
-+		int mode = 0644;
-+		if (cft->mode)
-+			mode = cft->mode;
-+		error = cgroup_create_file(dentry, mode | S_IFREG,
- 						cgrp->root->sb);
- 		if (!error)
- 			dentry->d_fsdata = (void *)cft;
+diff -puN mm/memcontrol.c~cgroup-memcg-show-correct-file-mode mm/memcontrol.c
+--- a/mm/memcontrol.c~cgroup-memcg-show-correct-file-mode
++++ a/mm/memcontrol.c
+@@ -2026,6 +2026,7 @@ static struct cftype mem_cgroup_files[] 
+ 		.name = "usage_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_MEM, RES_USAGE),
+ 		.read_u64 = mem_cgroup_read,
++		.mode = 0444
+ 	},
+ 	{
+ 		.name = "max_usage_in_bytes",
+@@ -2048,10 +2049,12 @@ static struct cftype mem_cgroup_files[] 
+ 	{
+ 		.name = "stat",
+ 		.read_map = mem_control_stat_show,
++		.mode = 0444
+ 	},
+ 	{
+ 		.name = "force_empty",
+ 		.trigger = mem_cgroup_force_empty_write,
++		.mode = 0200
+ 	},
+ 	{
+ 		.name = "use_hierarchy",
+@@ -2071,6 +2074,7 @@ static struct cftype memsw_cgroup_files[
+ 		.name = "memsw.usage_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
+ 		.read_u64 = mem_cgroup_read,
++		.mode = 0444
+ 	},
+ 	{
+ 		.name = "memsw.max_usage_in_bytes",
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
