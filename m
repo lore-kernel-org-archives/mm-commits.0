@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-recursive-lock-in-free_uid-free_user_ns.patch added to -mm tree
-Date: Thu, 26 Feb 2009 12:10:18 -0800
-Message-ID: <200902262010.n1QKAIuU017684@imap1.linux-foundation.org>
+Subject: + proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch added to -mm tree
+Date: Thu, 26 Feb 2009 12:17:51 -0800
+Message-ID: <200902262017.n1QKHplJ018253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43010 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754313AbZBZUKy (ORCPT
+	by vger.kernel.org with ESMTP id S1752338AbZBZUR7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Feb 2009 15:10:54 -0500
+	Thu, 26 Feb 2009 15:17:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, serue@us.ibm.com
+Cc: serue@us.ibm.com, adobriyan@gmail.com, clg@fr.ibm.com
 
 
 The patch titled
-     Fix recursive lock in free_uid()/free_user_ns()
+     proc_sysctl: use CONFIG_PROC_SYSCTL around ipc and utsname proc_handlers
 has been added to the -mm tree.  Its filename is
-     fix-recursive-lock-in-free_uid-free_user_ns.patch
+     proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix recursive lock in free_uid()/free_user_ns()
-From: David Howells <dhowells@redhat.com>
+Subject: proc_sysctl: use CONFIG_PROC_SYSCTL around ipc and utsname proc_handlers
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-free_uid() and free_user_ns() are corecursive when CONFIG_USER_SCHED=n,
-but free_user_ns() is called from free_uid() by way of uid_hash_remove(),
-which requires uidhash_lock to be held.  free_user_ns() then calls
-free_uid() to complete the destruction.
+As pointed out by Cedric Le Goater (in response to Alexey's original
+comment wrt mqns), ipc_sysctl.c and utsname_sysctl.c are using
+CONFIG_PROC_FS, not CONFIG_PROC_SYSCTL, to determine whether to define
+the proc_handlers.  Change that.
 
-Fix this by deferring the destruction of the user_namespace.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/user_namespace.h |    1 +
- kernel/user_namespace.c        |   21 +++++++++++++++++----
- 2 files changed, 18 insertions(+), 4 deletions(-)
+ ipc/ipc_sysctl.c        |    2 +-
+ kernel/utsname_sysctl.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/user_namespace.h~fix-recursive-lock-in-free_uid-free_user_ns include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~fix-recursive-lock-in-free_uid-free_user_ns
-+++ a/include/linux/user_namespace.h
-@@ -13,6 +13,7 @@ struct user_namespace {
- 	struct kref		kref;
- 	struct hlist_head	uidhash_table[UIDHASH_SZ];
- 	struct user_struct	*creator;
-+	struct work_struct	destroyer;
- };
- 
- extern struct user_namespace init_user_ns;
-diff -puN kernel/user_namespace.c~fix-recursive-lock-in-free_uid-free_user_ns kernel/user_namespace.c
---- a/kernel/user_namespace.c~fix-recursive-lock-in-free_uid-free_user_ns
-+++ a/kernel/user_namespace.c
-@@ -60,12 +60,25 @@ int create_user_ns(struct cred *new)
- 	return 0;
+diff -puN ipc/ipc_sysctl.c~proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers ipc/ipc_sysctl.c
+--- a/ipc/ipc_sysctl.c~proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers
++++ a/ipc/ipc_sysctl.c
+@@ -26,7 +26,7 @@ static void *get_ipc(ctl_table *table)
+ 	return which;
  }
  
--void free_user_ns(struct kref *kref)
-+/*
-+ * Deferred destructor for a user namespace.  This is required because
-+ * free_user_ns() may be called with uidhash_lock held, but we need to call
-+ * back to free_uid() which will want to take the lock again.
-+ */
-+static void free_user_ns_work(struct work_struct *work)
+-#ifdef CONFIG_PROC_FS
++#ifdef CONFIG_PROC_SYSCTL
+ static int proc_ipc_dointvec(ctl_table *table, int write, struct file *filp,
+ 	void __user *buffer, size_t *lenp, loff_t *ppos)
  {
--	struct user_namespace *ns;
--
--	ns = container_of(kref, struct user_namespace, kref);
-+	struct user_namespace *ns =
-+		container_of(work, struct user_namespace, destroyer);
- 	free_uid(ns->creator);
- 	kfree(ns);
+diff -puN kernel/utsname_sysctl.c~proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers kernel/utsname_sysctl.c
+--- a/kernel/utsname_sysctl.c~proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers
++++ a/kernel/utsname_sysctl.c
+@@ -37,7 +37,7 @@ static void put_uts(ctl_table *table, in
+ 		up_write(&uts_sem);
  }
-+
-+void free_user_ns(struct kref *kref)
-+{
-+	struct user_namespace *ns =
-+		container_of(kref, struct user_namespace, kref);
-+
-+	INIT_WORK(&ns->destroyer, free_user_ns_work);
-+	schedule_work(&ns->destroyer);
-+}
- EXPORT_SYMBOL(free_user_ns);
+ 
+-#ifdef CONFIG_PROC_FS
++#ifdef CONFIG_PROC_SYSCTL
+ /*
+  *	Special case of dostring for the UTS structure. This has locks
+  *	to observe. Should this be in kernel/sys.c ????
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 fix-recursive-lock-in-free_uid-free_user_ns.patch
 linux-next.patch
-kbuild-make-it-possible-for-the-linker-to-discard-local-symbols-from-vmlinux.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-frv-duplicate-output_buffer-of-e03.patch
-nommu-present-backing-device-capabilities-for-mtd-chardevs.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat-if-possible.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-directly-fix.patch
-mtd-fix-a-bad-dependency-in-the-blackfin-code.patch
-bin_elf_fdpic-check-the-return-value-of-clear_user.patch
-mutex-subsystem-synchro-test-module.patch
+vfs-simple_set_mnt-should-return-void.patch
+relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
+proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
+pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
+namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
+namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
+namespaces-mqueue-namespace-adapt-sysctl.patch
+namespaces-mqueue-namespace-adapt-sysctl-update.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+reiser4.patch
 
