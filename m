@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hp_accel-small-documentation-updates.patch added to -mm tree
-Date: Fri, 27 Feb 2009 12:08:57 -0800
-Message-ID: <200902272008.n1RK8vJb029933@imap1.linux-foundation.org>
+Subject: + dm-crypt-fix-a-bug-of-async-cryption-complete-function-update.patch added to -mm tree
+Date: Fri, 27 Feb 2009 12:26:10 -0800
+Message-ID: <200902272026.n1RKQADd031306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35224 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53095 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756493AbZB0UJn (ORCPT
+	by vger.kernel.org with ESMTP id S1753232AbZB0U1q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Feb 2009 15:09:43 -0500
+	Fri, 27 Feb 2009 15:27:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@ucw.cz, Quoc.Pham@hp.com, eric.piel@tremplin-utc.net, pavel@suse.cz, vbotka@suse.cz
+Cc: mbroz@redhat.com, agk@redhat.com, herbert@gondor.apana.org.au, ying.huang@intel.com
 
 
 The patch titled
-     hp_accel: small documentation updates
+     dm-crypt-fix-a-bug-of-async-cryption-complete-function-update
 has been added to the -mm tree.  Its filename is
-     hp_accel-small-documentation-updates.patch
+     dm-crypt-fix-a-bug-of-async-cryption-complete-function-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp_accel: small documentation updates
-From: Pavel Machek <pavel@ucw.cz>
+Subject: dm-crypt-fix-a-bug-of-async-cryption-complete-function-update
+From: Milan Broz <mbroz@redhat.com>
 
-Fix english in Documentation, add "how to test" description.
-
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Vladimir Botka <vbotka@suse.cz>
-Cc: <Quoc.Pham@hp.com>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Signed-off-by: Milan Broz <mbroz@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/hwmon/lis3lv02d |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ drivers/md/dm-crypt.c |   26 +++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/hwmon/lis3lv02d~hp_accel-small-documentation-updates Documentation/hwmon/lis3lv02d
---- a/Documentation/hwmon/lis3lv02d~hp_accel-small-documentation-updates
-+++ a/Documentation/hwmon/lis3lv02d
-@@ -1,11 +1,11 @@
- Kernel driver lis3lv02d
--==================
-+=======================
+diff -puN drivers/md/dm-crypt.c~dm-crypt-fix-a-bug-of-async-cryption-complete-function-update drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~dm-crypt-fix-a-bug-of-async-cryption-complete-function-update
++++ a/drivers/md/dm-crypt.c
+@@ -60,7 +60,6 @@ struct dm_crypt_io {
+ };
  
- Supported chips:
+ struct dm_crypt_request {
+-	struct ablkcipher_request *req;
+ 	struct convert_context *ctx;
+ 	struct scatterlist sg_in;
+ 	struct scatterlist sg_out;
+@@ -337,6 +336,18 @@ static void crypt_convert_init(struct cr
+ 	init_completion(&ctx->restart);
+ }
  
-   * STMicroelectronics LIS3LV02DL and LIS3LV02DQ
- 
--Author:
-+Authors:
-         Yan Burman <burman.yan@gmail.com>
- 	Eric Piel <eric.piel@tremplin-utc.net>
- 
-@@ -15,7 +15,7 @@ Description
- 
- This driver provides support for the accelerometer found in various HP
- laptops sporting the feature officially called "HP Mobile Data
--Protection System 3D" or "HP 3D DriveGuard". It detect automatically
-+Protection System 3D" or "HP 3D DriveGuard". It detects automatically
- laptops with this sensor. Known models (for now the HP 2133, nc6420,
- nc2510, nc8510, nc84x0, nw9440 and nx9420) will have their axis
- automatically oriented on standard way (eg: you can directly play
-@@ -27,7 +27,7 @@ position - 3D position that the accelero
- calibrate - read: values (x, y, z) that are used as the base for input
- 		  class device operation.
-             write: forces the base to be recalibrated with the current
--		  position.
-+		   position.
- rate - reports the sampling rate of the accelerometer device in HZ
- 
- This driver also provides an absolute input class device, allowing
-@@ -48,7 +48,7 @@ For better compatibility between the var
- the accelerometer are converted into a "standard" organisation of the axes
- (aka "can play neverball out of the box"):
-  * When the laptop is horizontal the position reported is about 0 for X and Y
--and a positive value for Z
-+	and a positive value for Z
-  * If the left side is elevated, X increases (becomes positive)
-  * If the front side (where the touchpad is) is elevated, Y decreases
- 	(becomes negative)
-@@ -59,3 +59,13 @@ email to the authors to add it to the da
- laptop, please include the output of "dmidecode" plus the value of
- /sys/devices/platform/lis3lv02d/position in these four cases.
- 
-+Q&A
-+---
++static struct dm_crypt_request *dmreq_of_req(struct crypt_config *cc,
++					     struct ablkcipher_request *req)
++{
++	return (struct dm_crypt_request *)((char *)req + cc->dmreq_start);
++}
 +
-+Q: How do I safely simulate freefall? I have an HP "portable
-+workstation" which has about 3.5kg and a plastic case, so letting it
-+fall to the ground is out of question...
++static struct ablkcipher_request *req_of_dmreq(struct crypt_config *cc,
++					       struct dm_crypt_request *dmreq)
++{
++	return (struct ablkcipher_request *)((char *)dmreq - cc->dmreq_start);
++}
 +
-+A: The sensor is pretty sensitive, so your hands can do it. Lift it
-+into free space, follow the fall with your hands for like 10
-+centimeters. That should be enough to trigger the detection.
+ static int crypt_convert_block(struct crypt_config *cc,
+ 			       struct convert_context *ctx,
+ 			       struct ablkcipher_request *req)
+@@ -347,11 +358,10 @@ static int crypt_convert_block(struct cr
+ 	u8 *iv;
+ 	int r = 0;
+ 
+-	dmreq = (struct dm_crypt_request *)((char *)req + cc->dmreq_start);
++	dmreq = dmreq_of_req(cc, req);
+ 	iv = (u8 *)ALIGN((unsigned long)(dmreq + 1),
+ 			 crypto_ablkcipher_alignmask(cc->tfm) + 1);
+ 
+-	dmreq->req = req;
+ 	dmreq->ctx = ctx;
+ 	sg_init_table(&dmreq->sg_in, 1);
+ 	sg_set_page(&dmreq->sg_in, bv_in->bv_page, 1 << SECTOR_SHIFT,
+@@ -395,15 +405,13 @@ static void kcryptd_async_done(struct cr
+ static void crypt_alloc_req(struct crypt_config *cc,
+ 			    struct convert_context *ctx)
+ {
+-	struct dm_crypt_request *dmreq;
+-
+ 	if (!cc->req)
+ 		cc->req = mempool_alloc(cc->req_pool, GFP_NOIO);
+ 	ablkcipher_request_set_tfm(cc->req, cc->tfm);
+-	dmreq = (struct dm_crypt_request *)((char *)cc->req + cc->dmreq_start);
+ 	ablkcipher_request_set_callback(cc->req, CRYPTO_TFM_REQ_MAY_BACKLOG |
+-					     CRYPTO_TFM_REQ_MAY_SLEEP,
+-					     kcryptd_async_done, dmreq);
++					CRYPTO_TFM_REQ_MAY_SLEEP,
++					kcryptd_async_done,
++					dmreq_of_req(cc, cc->req));
+ }
+ 
+ /*
+@@ -838,7 +846,7 @@ static void kcryptd_async_done(struct cr
+ 		return;
+ 	}
+ 
+-	mempool_free(dmreq->req, cc->req_pool);
++	mempool_free(req_of_dmreq(cc, dmreq), cc->req_pool);
+ 
+ 	if (!atomic_dec_and_test(&ctx->pending))
+ 		return;
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from mbroz@redhat.com are
 
-hp_accel-small-documentation-updates.patch
-hp_accel-adev-is-poor-name-of-exported-symbol.patch
+linux-next.patch
+dm-crypt-fix-a-bug-of-async-cryption-complete-function.patch
+dm-crypt-fix-a-bug-of-async-cryption-complete-function-update.patch
 
