@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-twl4030-add-twl4030-pwrbutton-as-our-child.patch added to -mm tree
-Date: Fri, 27 Feb 2009 12:36:54 -0800
-Message-ID: <200902272036.n1RKasQv032223@imap1.linux-foundation.org>
+Subject: + introduce-pr_cont-macro.patch added to -mm tree
+Date: Fri, 27 Feb 2009 12:37:43 -0800
+Message-ID: <200902272037.n1RKbhCa032278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46715 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759420AbZB0UhN (ORCPT
+	by vger.kernel.org with ESMTP id S1760829AbZB0UiB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Feb 2009 15:37:13 -0500
+	Fri, 27 Feb 2009 15:38:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: felipe.balbi@nokia.com, dbrownell@users.sourceforge.net, sameo@openedhand.com
+Cc: gorcunov@gmail.com, gorcunov@openvz.org, harvey.harrison@gmail.com, hpa@zytor.com, mingo@elte.hu
 
 
 The patch titled
-     mfd: twl4030: add twl4030-pwrbutton as our child
+     introduce pr_cont() macro
 has been added to the -mm tree.  Its filename is
-     mfd-twl4030-add-twl4030-pwrbutton-as-our-child.patch
+     introduce-pr_cont-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mfd: twl4030: add twl4030-pwrbutton as our child
-From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: introduce pr_cont() macro
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Make the twl4030-pwrbutton.c driver probe with current child creation api
-for twl4030.
+We cover all log-levels by pr_...  macros except KERN_CONT one.  Add it
+for convenience.
 
-Cc: Samuel Ortiz <sameo@openedhand.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/twl4030-core.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/linux/kernel.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/mfd/twl4030-core.c~mfd-twl4030-add-twl4030-pwrbutton-as-our-child drivers/mfd/twl4030-core.c
---- a/drivers/mfd/twl4030-core.c~mfd-twl4030-add-twl4030-pwrbutton-as-our-child
-+++ a/drivers/mfd/twl4030-core.c
-@@ -101,6 +101,12 @@
- #define twl_has_usb()	false
- #endif
+diff -puN include/linux/kernel.h~introduce-pr_cont-macro include/linux/kernel.h
+--- a/include/linux/kernel.h~introduce-pr_cont-macro
++++ a/include/linux/kernel.h
+@@ -370,6 +370,8 @@ static inline char *pack_hex_byte(char *
+         printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
+ #define pr_info(fmt, ...) \
+         printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_cont(fmt, ...) \
++	printk(KERN_CONT fmt, ##__VA_ARGS__)
  
-+#if defined(CONFIG_INPUT_TWL4030_PWRBUTTON) \
-+	|| defined(CONFIG_INPUT_TWL4030_PWBUTTON_MODULE)
-+#define twl_has_pwrbutton()	true
-+#else
-+#define twl_has_pwrbutton()	false
-+#endif
- 
- /* Triton Core internal information (BEGIN) */
- 
-@@ -526,6 +532,13 @@ add_children(struct twl4030_platform_dat
- 		usb_transceiver = child;
- 	}
- 
-+	if (twl_has_pwrbutton()) {
-+		child = add_child(1, "twl4030_pwrbutton",
-+				NULL, 0, true, pdata->irq_base + 8 + 0, 0);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+	}
-+
- 	if (twl_has_regulator()) {
- 		/*
- 		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1);
+ /* If you are writing a driver, please use dev_dbg instead */
+ #if defined(DEBUG)
 _
 
-Patches currently in -mm which might be from felipe.balbi@nokia.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 linux-next.patch
-input-keyboard-introduce-lm8323-driver.patch
-input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
-input-misc-add-twl4030-pwrbutton-driver.patch
-mfd-twl4030-add-twl4030-pwrbutton-as-our-child.patch
+mm-mminit_validate_memmodel_limits-get-rid-of-redundant-test.patch
+oom_kill-dont-call-for-int_sqrt0.patch
+introduce-pr_cont-macro.patch
 
