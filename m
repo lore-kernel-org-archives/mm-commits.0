@@ -1,84 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] x86-conform-l3-cache-index-disable-to-linux-standards-build-fix.patch removed from -mm tree
-Date: Thu, 26 Feb 2009 16:16:25 -0800
-Message-ID: <200902270033.n1R0Xt09006631@imap1.linux-foundation.org>
+Subject: + sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch added to -mm tree
+Date: Thu, 26 Feb 2009 16:23:49 -0800
+Message-ID: <200902270041.n1R0fJXg007293@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752848AbZB0AfH (ORCPT
+	by vger.kernel.org with ESMTP id S1752497AbZB0Alz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Feb 2009 19:35:07 -0500
+	Thu, 26 Feb 2009 19:41:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wli@movementarian.org, eric@lammerts.org, hpa@zytor.com, mingo@elte.hu, randy.dunlap@oracle.com, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ebiederm@aristanetworks.com, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, tj@kernel.org
 
 
 The patch titled
-     mm: k8_northbridges[] build fix
-has been removed from the -mm tree.  Its filename was
-     x86-conform-l3-cache-index-disable-to-linux-standards-build-fix.patch
+     sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix
+has been added to the -mm tree.  Its filename is
+     sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: k8_northbridges[] build fix
-From: William Irwin <wli@movementarian.org>
+Subject: sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-k8_northbridges[] isn't a defined symbol unless arch/x86/kernel/k8.c is
-compiled, which is conditional on CONFIG_K8_NB.  This patch resolves
-the link error by making the sysfs access to the k8 northbridge
-conditional on CONFIG_K8_NB in like fashion to the k8_northbridges[]
-array itself.  The issue was encountered on a 32-bit build with the
-processor family specified as CONFIG_MCORE2=y.
+fs/sysfs/bin.c: In function 'release':
+fs/sysfs/bin.c:377: warning: unused variable 'attr_sd'
 
-The link error was introduced in
-	x86-conform-l3-cache-index-disable-to-linux-standards.patch
-
-Signed-off-by: William Irwin <wli@movementarian.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Eric Lammerts <eric@lammerts.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Eric W. Biederman <ebiederm@aristanetworks.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/intel_cacheinfo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/sysfs/bin.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/intel_cacheinfo.c~x86-conform-l3-cache-index-disable-to-linux-standards-build-fix arch/x86/kernel/cpu/intel_cacheinfo.c
---- a/arch/x86/kernel/cpu/intel_cacheinfo.c~x86-conform-l3-cache-index-disable-to-linux-standards-build-fix
-+++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
-@@ -613,7 +613,7 @@ static int __cpuinit detect_cache_attrib
- 	return retval;
- }
+diff -puN fs/sysfs/bin.c~sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix
++++ a/fs/sysfs/bin.c
+@@ -374,7 +374,6 @@ static int open(struct inode * inode, st
  
--#ifdef CONFIG_SYSFS
-+#if defined(CONFIG_SYSFS) && defined(CONFIG_K8_NB)
+ static int release(struct inode * inode, struct file * file)
+ {
+-	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
+ 	struct bin_buffer *bb = file->private_data;
  
- #include <linux/kobject.h>
- #include <linux/sysfs.h>
-@@ -986,4 +986,4 @@ static int __cpuinit cache_sysfs_init(vo
- 
- device_initcall(cache_sysfs_init);
- 
--#endif
-+#endif /* defined(CONFIG_SYSFS) && defined(CONFIG_K8_NB) */
+ 	mutex_lock(&sysfs_bin_lock);
 _
 
-Patches currently in -mm which might be from wli@movementarian.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-conform-l3-cache-index-disable-to-linux-standards-build-fix.patch
-epoll-keyed-wakeups-v2-add-__wake_up_locked_key-and-__wake_up_sync_key.patch
-epoll-keyed-wakeups-v2-introduce-new-_poll-wakeup-macros.patch
-epoll-keyed-wakeups-v2-make-sockets-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-update.patch
-epoll-keyed-wakeups-v2-make-eventfd-use-keyed-wakeups.patch
-epoll-keyed-wakeups-v2-make-tty-use-keyed-wakeups.patch
-x86-conform-l3-cache-index-disable-to-linux-standards-build-fix-fix.patch
+origin.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support.patch
+misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
