@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-ads7846-introduce-platform-specific-way-to-synchronize-sampling.patch added to -mm tree
-Date: Fri, 27 Feb 2009 11:54:59 -0800
-Message-ID: <200902271954.n1RJsx7k028891@imap1.linux-foundation.org>
+Subject: + libata-fix-dma_unmap_sg-misuse.patch added to -mm tree
+Date: Fri, 27 Feb 2009 11:56:05 -0800
+Message-ID: <200902271956.n1RJu5eh028965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753339AbZB0TzM (ORCPT
+	by vger.kernel.org with ESMTP id S1752080AbZB0T5r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Feb 2009 14:55:12 -0500
+	Fri, 27 Feb 2009 14:57:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.miao@marvell.com, david-b@pacbell.net, dtor@mail.ru
+Cc: fujita.tomonori@lab.ntt.co.jp, bzolnier@gmail.com, jeff@garzik.org, tj@kernel.org
 
 
 The patch titled
-     input: ads7846: introduce platform specific way to synchronize sampling
+     libata: fix dma_unmap_sg misuse
 has been added to the -mm tree.  Its filename is
-     input-ads7846-introduce-platform-specific-way-to-synchronize-sampling.patch
+     libata-fix-dma_unmap_sg-misuse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: ads7846: introduce platform specific way to synchronize sampling
-From: Eric Miao <eric.miao@marvell.com>
+Subject: libata: fix dma_unmap_sg misuse
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Noises can be introduced when LCD signals are being driven, some platforms
-provide a signal to assist the synchronization of this sampling procedure.
+libata passes the returned value of dma_map_sg() to dma_unmap_sg(),which
+is the misuse of dma_unmap_sg().
 
-Signed-off-by: Eric Miao <eric.miao@marvell.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+DMA-mapping.txt says:
+
+To unmap a scatterlist, just call:
+
+	pci_unmap_sg(pdev, sglist, nents, direction);
+
+Again, make sure DMA activity has already finished.
+
+PLEASE NOTE:  The 'nents' argument to the pci_unmap_sg call must be
+              the _same_ one you passed into the pci_map_sg call,
+	      it should _NOT_ be the 'count' value _returned_ from the
+              pci_map_sg call.
+
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Acked-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/ads7846.c |   10 ++++++++++
- include/linux/spi/ads7846.h         |    2 ++
- 2 files changed, 12 insertions(+)
+ drivers/ata/libata-core.c |    4 ++--
+ include/linux/libata.h    |    1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/touchscreen/ads7846.c~input-ads7846-introduce-platform-specific-way-to-synchronize-sampling drivers/input/touchscreen/ads7846.c
---- a/drivers/input/touchscreen/ads7846.c~input-ads7846-introduce-platform-specific-way-to-synchronize-sampling
-+++ a/drivers/input/touchscreen/ads7846.c
-@@ -127,6 +127,8 @@ struct ads7846 {
- 	void			(*filter_cleanup)(void *data);
- 	int			(*get_pendown_state)(void);
- 	int			gpio_pendown;
-+
-+	void			(*wait_for_sync)(void);
- };
+diff -puN drivers/ata/libata-core.c~libata-fix-dma_unmap_sg-misuse drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-fix-dma_unmap_sg-misuse
++++ a/drivers/ata/libata-core.c
+@@ -4612,7 +4612,7 @@ void ata_sg_clean(struct ata_queued_cmd 
+ 	VPRINTK("unmapping %u sg elements\n", qc->n_elem);
  
- /* leave chip selected when we're done, for quicker re-select? */
-@@ -511,6 +513,10 @@ static int get_pendown_state(struct ads7
- 	return !gpio_get_value(ts->gpio_pendown);
- }
+ 	if (qc->n_elem)
+-		dma_unmap_sg(ap->dev, sg, qc->n_elem, dir);
++		dma_unmap_sg(ap->dev, sg, qc->orig_n_elem, dir);
  
-+static void null_wait_for_sync(void)
-+{
-+}
-+
- /*
-  * PENIRQ only kicks the timer.  The timer only reissues the SPI transfer,
-  * to retrieve touchscreen status.
-@@ -686,6 +692,7 @@ static void ads7846_rx_val(void *ads)
- 	default:
- 		BUG();
- 	}
-+	ts->wait_for_sync();
- 	status = spi_async(ts->spi, m);
- 	if (status)
- 		dev_err(&ts->spi->dev, "spi_async --> %d\n",
-@@ -723,6 +730,7 @@ static enum hrtimer_restart ads7846_time
- 	} else {
- 		/* pen is still down, continue with the measurement */
- 		ts->msg_idx = 0;
-+		ts->wait_for_sync();
- 		status = spi_async(ts->spi, &ts->msg[0]);
- 		if (status)
- 			dev_err(&ts->spi->dev, "spi_async --> %d\n", status);
-@@ -949,6 +957,8 @@ static int __devinit ads7846_probe(struc
- 		ts->penirq_recheck_delay_usecs =
- 				pdata->penirq_recheck_delay_usecs;
+ 	qc->flags &= ~ATA_QCFLAG_DMAMAP;
+ 	qc->sg = NULL;
+@@ -4727,7 +4727,7 @@ static int ata_sg_setup(struct ata_queue
+ 		return -1;
  
-+	ts->wait_for_sync = (pdata->wait_for_sync) ? : null_wait_for_sync;
-+
- 	snprintf(ts->phys, sizeof(ts->phys), "%s/input0", dev_name(&spi->dev));
- 
- 	input_dev->name = "ADS784x Touchscreen";
-diff -puN include/linux/spi/ads7846.h~input-ads7846-introduce-platform-specific-way-to-synchronize-sampling include/linux/spi/ads7846.h
---- a/include/linux/spi/ads7846.h~input-ads7846-introduce-platform-specific-way-to-synchronize-sampling
-+++ a/include/linux/spi/ads7846.h
-@@ -51,5 +51,7 @@ struct ads7846_platform_data {
- 				 void **filter_data);
- 	int	(*filter)	(void *filter_data, int data_idx, int *val);
- 	void	(*filter_cleanup)(void *filter_data);
-+
-+	void	(*wait_for_sync)(void);
- };
- 
-_
-
-Patches currently in -mm which might be from eric.miao@marvell.com are
-
-linux-next.patch
-input-ads7846-introduce-platform-specific-way-to-synchronize-sampling.patch
-spi-pxa2xx_spi-introduces-chipselect-gpio-to-simplify-the-common-cases.patch
-
+ 	DPRINTK("%d sg elements mapped\n", n_elem);
