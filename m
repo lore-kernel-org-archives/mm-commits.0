@@ -1,84 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-vmap-fix-overflow-update.patch removed from -mm tree
-Date: Fri, 27 Feb 2009 13:58:42 -0800
-Message-ID: <200902272216.n1RMGEHb007868@imap1.linux-foundation.org>
+Subject: + mtd-nand-drop-usage-of-cpu_is_-macro.patch added to -mm tree
+Date: Fri, 27 Feb 2009 14:36:41 -0800
+Message-ID: <200902272236.n1RMafWI009437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51833 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754882AbZB0WQZ (ORCPT
+	by vger.kernel.org with ESMTP id S1758934AbZB0WhW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Feb 2009 17:16:25 -0500
+	Fri, 27 Feb 2009 17:37:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: khilman@deeprootsystems.com, david-b@pacbell.net, dwmw2@infradead.org
 
 
 The patch titled
-     mm-vmap-fix-overflow-update
-has been removed from the -mm tree.  Its filename was
-     mm-vmap-fix-overflow-update.patch
+     mtd: nand: drop usage of cpu_is_* macro
+has been added to the -mm tree.  Its filename is
+     mtd-nand-drop-usage-of-cpu_is_-macro.patch
 
-This patch was dropped because it was folded into mm-vmap-fix-overflow.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-vmap-fix-overflow-update
-From: Nick Piggin <npiggin@suse.de>
+Subject: mtd: nand: drop usage of cpu_is_* macro
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Usage of davinci-specific cpu_is macros is not allowed in drivers. 
+These options should be passed in through platform_data.
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/davinci_nand.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmap-fix-overflow-update mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmap-fix-overflow-update
-+++ a/mm/vmalloc.c
-@@ -324,6 +324,7 @@ static struct vmap_area *alloc_vmap_area
- 	unsigned long addr;
- 	int purged = 0;
+diff -puN drivers/mtd/nand/davinci_nand.c~mtd-nand-drop-usage-of-cpu_is_-macro drivers/mtd/nand/davinci_nand.c
+--- a/drivers/mtd/nand/davinci_nand.c~mtd-nand-drop-usage-of-cpu_is_-macro
++++ a/drivers/mtd/nand/davinci_nand.c
+@@ -33,7 +33,6 @@
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>
  
-+	BUG_ON(!size);
- 	BUG_ON(size & ~PAGE_MASK);
+-#include <mach/cpu.h>
+ #include <mach/nand.h>
  
- 	va = kmalloc_node(sizeof(struct vmap_area),
-@@ -335,7 +336,7 @@ retry:
- 	addr = ALIGN(vstart, align);
+ #include <asm/mach-types.h>
+@@ -392,8 +391,6 @@ static int __init nand_davinci_probe(str
+ 	/* use board-specific ECC config; else, the best available */
+ 	if (pdata)
+ 		ecc_mode = pdata->ecc_mode;
+-	else if (cpu_is_davinci_dm355())
+-		ecc_mode = NAND_ECC_HW_SYNDROME;
+ 	else
+ 		ecc_mode = NAND_ECC_HW;
  
- 	spin_lock(&vmap_area_lock);
--	if (addr + size < addr)
-+	if (addr + size - 1 < addr)
- 		goto overflow;
- 
- 	/* XXX: could have a last_hole cache */
-@@ -369,7 +370,7 @@ retry:
- 
- 		while (addr + size > first->va_start && addr + size <= vend) {
- 			addr = ALIGN(first->va_end + PAGE_SIZE, align);
--			if (addr + size < addr)
-+			if (addr + size - 1 < addr)
- 				goto overflow;
- 
- 			n = rb_next(&first->rb_node);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from khilman@deeprootsystems.com are
 
-mm-vmap-fix-overflow.patch
-mm-vmap-fix-overflow-update.patch
-mm-fix-lazy-vmap-purging-use-after-free-error.patch
 linux-next.patch
-vmap-remove-needless-lock-and-list-in-vmap.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-radix-tree-gang-set-if-tagged-operation.patch
-mm-dont-call-mark_page_accessed-in-do_swap_page.patch
-mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+mtd-nand-drop-usage-of-cpu_is_-macro.patch
 
