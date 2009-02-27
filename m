@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-gd5446-fixes.patch added to -mm tree
-Date: Fri, 27 Feb 2009 12:53:18 -0800
-Message-ID: <200902272053.n1RKrIjO001068@imap1.linux-foundation.org>
+Subject: + cirrusfb-use-24bpp-instead-of-32bpp.patch added to -mm tree
+Date: Fri, 27 Feb 2009 12:53:21 -0800
+Message-ID: <200902272053.n1RKrLYA001071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39295 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755507AbZB0Uxj (ORCPT
+	by vger.kernel.org with ESMTP id S1755507AbZB0Uxl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Feb 2009 15:53:39 -0500
+	Fri, 27 Feb 2009 15:53:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     cirrusfb: GD5446 fixes
+     cirrusfb: use 24bpp instead of 32bpp
 has been added to the -mm tree.  Its filename is
-     cirrusfb-gd5446-fixes.patch
+     cirrusfb-use-24bpp-instead-of-32bpp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,222 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: GD5446 fixes
+Subject: cirrusfb: use 24bpp instead of 32bpp
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Various fixes to make Cirrus GD5446 chip work.
+The 32bpp is supported only on the latest Cirrus Logic chips.  Use the
+24bpp which is supported at least since Alpine chips (GD543x).
 
-Another Cirrus chip works with the cirrusfb.  The gd5446 seems very
-similar to Alpine chips.
+Change 32bpp mode setting to 24bpp mode.  Change acceleration as well.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+ drivers/video/cirrusfb.c |   79 ++++++++++++++++++++-----------------
+ 1 file changed, 44 insertions(+), 35 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-gd5446-fixes drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-gd5446-fixes
+diff -puN drivers/video/cirrusfb.c~cirrusfb-use-24bpp-instead-of-32bpp drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-use-24bpp-instead-of-32bpp
 +++ a/drivers/video/cirrusfb.c
-@@ -198,9 +198,11 @@ static const struct cirrusfb_board_info_
- 		.init_sr07		= true,
- 		.init_sr1f		= false,
- 		.scrn_start_bit19	= true,
--		.sr07			= 0x20,
--		.sr07_1bpp		= 0x20,
--		.sr07_8bpp		= 0x21,
-+		.sr07			= 0xA0,
-+		.sr07_1bpp		= 0xA0,
-+		.sr07_1bpp_mux		= 0xA6,
-+		.sr07_8bpp		= 0xA1,
-+		.sr07_8bpp_mux		= 0xA7,
- 		.sr1f			= 0
- 	},
- 	[BT_ALPINE] = {
-@@ -213,8 +215,8 @@ static const struct cirrusfb_board_info_
- 		.init_sr1f		= true,
- 		.scrn_start_bit19	= true,
- 		.sr07			= 0xA0,
--		.sr07_1bpp		= 0xA1,
--		.sr07_1bpp_mux		= 0xA7,
-+		.sr07_1bpp		= 0xA0,
-+		.sr07_1bpp_mux		= 0xA6,
- 		.sr07_8bpp		= 0xA1,
- 		.sr07_8bpp_mux		= 0xA7,
- 		.sr1f			= 0x1C
-@@ -821,7 +823,7 @@ static int cirrusfb_set_par_foo(struct f
- 	/* formula: VClk = (OSC * N) / (D * (1+P)) */
- 	/* Example: VClk = (14.31818 * 91) / (23 * (1+1)) = 28.325 MHz */
+@@ -95,10 +95,10 @@
+ /* board types */
+ enum cirrus_board {
+ 	BT_NONE = 0,
+-	BT_SD64,
+-	BT_PICCOLO,
+-	BT_PICASSO,
+-	BT_SPECTRUM,
++	BT_SD64,	/* GD5434 */
++	BT_PICCOLO,	/* GD5426 */
++	BT_PICASSO,	/* GD5426 or GD5428 */
++	BT_SPECTRUM,	/* GD5426 or GD5428 */
+ 	BT_PICASSO4,	/* GD5446 */
+ 	BT_ALPINE,	/* GD543x/4x */
+ 	BT_GD5480,
+@@ -488,7 +488,7 @@ static int cirrusfb_check_pixclock(const
+ 	 * the VCLK is double the pixel clock. */
+ 	switch (var->bits_per_pixel) {
+ 	case 16:
+-	case 32:
++	case 24:
+ 		if (var->xres <= 800)
+ 			/* Xbh has this type of clock for 32-bit */
+ 			freq /= 2;
+@@ -535,11 +535,11 @@ static int cirrusfb_check_var(struct fb_
+ 		var->blue.length = 5;
+ 		break;
  
--	if (cinfo->btype == BT_ALPINE) {
-+	if (cinfo->btype == BT_ALPINE || cinfo->btype == BT_PICASSO4) {
- 		/* if freq is close to mclk or mclk/2 select mclk
- 		 * as clock source
- 		 */
-@@ -1044,9 +1046,6 @@ static int cirrusfb_set_par_foo(struct f
- 			/* ### INCOMPLETE!! */
- 			vga_wseq(regbase, CL_SEQRF, 0xb8);
- #endif
--/*	  		vga_wseq(regbase, CL_SEQR1F, 0x1c); */
--			break;
--
+-	case 32:
++	case 24:
+ 		if (isPReP) {
+-			var->red.offset = 8;
+-			var->green.offset = 16;
+-			var->blue.offset = 24;
++			var->red.offset = 0;
++			var->green.offset = 8;
++			var->blue.offset = 16;
+ 		} else {
+ 			var->red.offset = 16;
+ 			var->green.offset = 8;
+@@ -670,7 +670,7 @@ static int cirrusfb_set_par_foo(struct f
+ 		break;
+ 
+ 	case 16:
+-	case 32:
++	case 24:
+ 		info->fix.line_length = var->xres_virtual *
+ 					var->bits_per_pixel >> 3;
+ 		info->fix.visual = FB_VISUAL_TRUECOLOR;
+@@ -813,6 +813,9 @@ static int cirrusfb_set_par_foo(struct f
+ 	vga_wcrt(regbase, CL_CRT1A, tmp);
+ 
+ 	freq = PICOS2KHZ(var->pixclock);
++	if (cinfo->btype == BT_ALPINE && var->bits_per_pixel == 24)
++		freq *= 3;
++
+ 	bestclock(freq, &nom, &den, &div);
+ 
+ 	dev_dbg(info->device, "VCLK freq: %ld kHz  nom: %d  den: %d  div: %d\n",
+@@ -1140,16 +1143,16 @@ static int cirrusfb_set_par_foo(struct f
+ 
+ 	/******************************************************
+ 	 *
+-	 * 32 bpp
++	 * 24 bpp
+ 	 *
+ 	 */
+ 
+-	else if (var->bits_per_pixel == 32) {
+-		dev_dbg(info->device, "preparing for 32 bit deep display\n");
++	else if (var->bits_per_pixel == 24) {
++		dev_dbg(info->device, "preparing for 24 bit deep display\n");
+ 		switch (cinfo->btype) {
+ 		case BT_SD64:
+ 			/* Extended Sequencer Mode: 256c col. mode */
+-			vga_wseq(regbase, CL_SEQR7, 0xf9);
++			vga_wseq(regbase, CL_SEQR7, 0xf5);
+ 			/* MCLK select */
+ 			vga_wseq(regbase, CL_SEQR1F, 0x1e);
+ 			break;
+@@ -1173,11 +1176,11 @@ static int cirrusfb_set_par_foo(struct f
+ 
+ 		case BT_PICASSO4:
  		case BT_ALPINE:
+-			vga_wseq(regbase, CL_SEQR7, 0xa9);
++			vga_wseq(regbase, CL_SEQR7, 0xa5);
+ 			break;
+ 
+ 		case BT_GD5480:
+-			vga_wseq(regbase, CL_SEQR7, 0x19);
++			vga_wseq(regbase, CL_SEQR7, 0x15);
  			/* We already set SRF and SR1F */
  			break;
-@@ -1106,10 +1105,6 @@ static int cirrusfb_set_par_foo(struct f
+ 
+@@ -1185,8 +1188,8 @@ static int cirrusfb_set_par_foo(struct f
+ 		case BT_LAGUNAB:
+ 			vga_wseq(regbase, CL_SEQR7,
+ 				vga_rseq(regbase, CL_SEQR7) & ~0x01);
+-			control |= 0x6000;
+-			format |= 0x3400;
++			control |= 0x4000;
++			format |= 0x2400;
+ 			threshold |= 0x20;
  			break;
  
- 		case BT_PICASSO4:
--			vga_wseq(regbase, CL_SEQR7, 0x27);
--/*			vga_wseq(regbase, CL_SEQR1F, 0x1c);  */
--			break;
+@@ -1385,9 +1388,6 @@ static int cirrusfb_pan_display(struct f
+ 	if (info->var.bits_per_pixel == 1)
+ 		vga_wattr(cinfo->regbase, CL_AR33, xpix);
+ 
+-	if (!is_laguna(cinfo))
+-		cirrusfb_WaitBLT(cinfo->regbase);
 -
- 		case BT_ALPINE:
- 			vga_wseq(regbase, CL_SEQR7, 0xa7);
- 			break;
-@@ -1177,10 +1172,6 @@ static int cirrusfb_set_par_foo(struct f
- 			break;
- 
- 		case BT_PICASSO4:
--			vga_wseq(regbase, CL_SEQR7, 0x25);
--/*			vga_wseq(regbase, CL_SEQR1F, 0x1c);  */
--			break;
--
- 		case BT_ALPINE:
- 			vga_wseq(regbase, CL_SEQR7, 0xa9);
- 			break;
-@@ -2678,7 +2669,7 @@ static void cirrusfb_set_blitter(u8 __io
- 	vga_wgfx(regbase, CL_GR32, 0x0d);	/* BLT ROP */
- 
- 	/* and finally: GO! */
--	vga_wgfx(regbase, CL_GR31, 0x82);	/* BLT Start/status */
-+	vga_wgfx(regbase, CL_GR31, 0x02);	/* BLT Start/status */
+ 	return 0;
  }
  
- /*******************************************************************
+@@ -1492,22 +1492,18 @@ static void init_vgachip(struct fb_info 
+ 		/* disable flickerfixer */
+ 		vga_wcrt(cinfo->regbase, CL_CRT51, 0x00);
+ 		mdelay(100);
+-		/* from Klaus' NetBSD driver: */
+-		vga_wgfx(cinfo->regbase, CL_GR2F, 0x00);
+-		/* put blitter into 542x compat */
+-		vga_wgfx(cinfo->regbase, CL_GR33, 0x00);
+ 		/* mode */
+ 		vga_wgfx(cinfo->regbase, CL_GR31, 0x00);
+-		break;
+-
+-	case BT_GD5480:
++	case BT_GD5480:  /* fall through */
+ 		/* from Klaus' NetBSD driver: */
+ 		vga_wgfx(cinfo->regbase, CL_GR2F, 0x00);
++	case BT_ALPINE:  /* fall through */
++		/* put blitter into 542x compat */
++		vga_wgfx(cinfo->regbase, CL_GR33, 0x00);
+ 		break;
+ 
+ 	case BT_LAGUNA:
+ 	case BT_LAGUNAB:
+-	case BT_ALPINE:
+ 		/* Nothing to do to reset the board. */
+ 		break;
+ 
+@@ -1831,10 +1827,13 @@ static void cirrusfb_imageblit(struct fb
+ 			       const struct fb_image *image)
+ {
+ 	struct cirrusfb_info *cinfo = info->par;
++	unsigned char op = (info->var.bits_per_pixel == 24) ? 0xc : 0x4;
+ 
+ 	if (info->state != FBINFO_STATE_RUNNING)
+ 		return;
+-	if (info->flags & FBINFO_HWACCEL_DISABLED)
++	/* Alpine acceleration does not work at 24bpp ?!? */
++	if (info->flags & FBINFO_HWACCEL_DISABLED || image->depth != 1 ||
++	    (cinfo->btype == BT_ALPINE && op == 0xc))
+ 		cfb_imageblit(info, image);
+ 	else {
+ 		unsigned size = ((image->width + 7) >> 3) * image->height;
+@@ -1848,15 +1847,22 @@ static void cirrusfb_imageblit(struct fb
+ 			fg = ((u32 *)(info->pseudo_palette))[image->fg_color];
+ 			bg = ((u32 *)(info->pseudo_palette))[image->bg_color];
+ 		}
+-		cirrusfb_WaitBLT(cinfo->regbase);
+-		/* byte rounded scanlines */
+-		vga_wgfx(cinfo->regbase, CL_GR33, 0x00);
++		if (info->var.bits_per_pixel == 24) {
++			/* clear background first */
++			cirrusfb_RectFill(cinfo->regbase,
++					  info->var.bits_per_pixel,
++					  (image->dx * m) / 8, image->dy,
++					  (image->width * m) / 8,
++					  image->height,
++					  bg, bg,
++					  info->fix.line_length, 0x40);
++		}
+ 		cirrusfb_RectFill(cinfo->regbase,
+ 				  info->var.bits_per_pixel,
+ 				  (image->dx * m) / 8, image->dy,
+ 				  (image->width * m) / 8, image->height,
+ 				  fg, bg,
+-				  info->fix.line_length, 0x04);
++				  info->fix.line_length, op);
+ 		memcpy(info->screen_base, image->data, size);
+ 	}
+ }
+@@ -2743,9 +2749,12 @@ static void cirrusfb_RectFill(u8 __iomem
+ 		vga_wgfx(regbase, CL_GR11, fg_color >> 8);
+ 		op = 0x90;
+ 	}
+-	if (bits_per_pixel == 32) {
++	if (bits_per_pixel >= 24) {
+ 		vga_wgfx(regbase, CL_GR12, bg_color >> 16);
+ 		vga_wgfx(regbase, CL_GR13, fg_color >> 16);
++		op = 0xa0;
++	}
++	if (bits_per_pixel == 32) {
+ 		vga_wgfx(regbase, CL_GR14, bg_color >> 24);
+ 		vga_wgfx(regbase, CL_GR15, fg_color >> 24);
+ 		op = 0xb0;
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
