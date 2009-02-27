@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dm-crypt-fix-a-bug-of-async-cryption-complete-function-update.patch added to -mm tree
-Date: Fri, 27 Feb 2009 12:26:10 -0800
-Message-ID: <200902272026.n1RKQADd031306@imap1.linux-foundation.org>
+Subject: + hugetlb-chg-cannot-become-less-than-0.patch added to -mm tree
+Date: Fri, 27 Feb 2009 12:29:00 -0800
+Message-ID: <200902272029.n1RKT07F031457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53095 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753232AbZB0U1q (ORCPT
+	by vger.kernel.org with ESMTP id S1753657AbZB0U3h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Feb 2009 15:27:46 -0500
+	Fri, 27 Feb 2009 15:29:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mbroz@redhat.com, agk@redhat.com, herbert@gondor.apana.org.au, ying.huang@intel.com
+Cc: roel.kluin@gmail.com, agl@us.ibm.com, apw@shadowen.org, hannes@saeurebad.de, mel@csn.ul.ie
 
 
 The patch titled
-     dm-crypt-fix-a-bug-of-async-cryption-complete-function-update
+     hugetlb: chg cannot become less than 0
 has been added to the -mm tree.  Its filename is
-     dm-crypt-fix-a-bug-of-async-cryption-complete-function-update.patch
+     hugetlb-chg-cannot-become-less-than-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dm-crypt-fix-a-bug-of-async-cryption-complete-function-update
-From: Milan Broz <mbroz@redhat.com>
+Subject: hugetlb: chg cannot become less than 0
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Signed-off-by: Milan Broz <mbroz@redhat.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Alasdair G Kergon <agk@redhat.com>
+chg is unsigned, so it cannot be less than 0.
+
+Also, since region_chg returns long, let vma_needs_reservation() forward
+this to alloc_huge_page().  Store it as long as well.  all callers cast it
+to long anyway.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Johannes Weiner <hannes@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-crypt.c |   26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+ mm/hugetlb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/dm-crypt.c~dm-crypt-fix-a-bug-of-async-cryption-complete-function-update drivers/md/dm-crypt.c
---- a/drivers/md/dm-crypt.c~dm-crypt-fix-a-bug-of-async-cryption-complete-function-update
-+++ a/drivers/md/dm-crypt.c
-@@ -60,7 +60,6 @@ struct dm_crypt_io {
- };
- 
- struct dm_crypt_request {
--	struct ablkcipher_request *req;
- 	struct convert_context *ctx;
- 	struct scatterlist sg_in;
- 	struct scatterlist sg_out;
-@@ -337,6 +336,18 @@ static void crypt_convert_init(struct cr
- 	init_completion(&ctx->restart);
- }
- 
-+static struct dm_crypt_request *dmreq_of_req(struct crypt_config *cc,
-+					     struct ablkcipher_request *req)
-+{
-+	return (struct dm_crypt_request *)((char *)req + cc->dmreq_start);
-+}
-+
-+static struct ablkcipher_request *req_of_dmreq(struct crypt_config *cc,
-+					       struct dm_crypt_request *dmreq)
-+{
-+	return (struct ablkcipher_request *)((char *)dmreq - cc->dmreq_start);
-+}
-+
- static int crypt_convert_block(struct crypt_config *cc,
- 			       struct convert_context *ctx,
- 			       struct ablkcipher_request *req)
-@@ -347,11 +358,10 @@ static int crypt_convert_block(struct cr
- 	u8 *iv;
- 	int r = 0;
- 
--	dmreq = (struct dm_crypt_request *)((char *)req + cc->dmreq_start);
-+	dmreq = dmreq_of_req(cc, req);
- 	iv = (u8 *)ALIGN((unsigned long)(dmreq + 1),
- 			 crypto_ablkcipher_alignmask(cc->tfm) + 1);
- 
--	dmreq->req = req;
- 	dmreq->ctx = ctx;
- 	sg_init_table(&dmreq->sg_in, 1);
- 	sg_set_page(&dmreq->sg_in, bv_in->bv_page, 1 << SECTOR_SHIFT,
-@@ -395,15 +405,13 @@ static void kcryptd_async_done(struct cr
- static void crypt_alloc_req(struct crypt_config *cc,
- 			    struct convert_context *ctx)
+diff -puN mm/hugetlb.c~hugetlb-chg-cannot-become-less-than-0 mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-chg-cannot-become-less-than-0
++++ a/mm/hugetlb.c
+@@ -918,7 +918,7 @@ static void return_unused_surplus_pages(
+  * an instantiated the change should be committed via vma_commit_reservation.
+  * No action is required on failure.
+  */
+-static int vma_needs_reservation(struct hstate *h,
++static long vma_needs_reservation(struct hstate *h,
+ 			struct vm_area_struct *vma, unsigned long addr)
  {
--	struct dm_crypt_request *dmreq;
--
- 	if (!cc->req)
- 		cc->req = mempool_alloc(cc->req_pool, GFP_NOIO);
- 	ablkcipher_request_set_tfm(cc->req, cc->tfm);
--	dmreq = (struct dm_crypt_request *)((char *)cc->req + cc->dmreq_start);
- 	ablkcipher_request_set_callback(cc->req, CRYPTO_TFM_REQ_MAY_BACKLOG |
--					     CRYPTO_TFM_REQ_MAY_SLEEP,
--					     kcryptd_async_done, dmreq);
-+					CRYPTO_TFM_REQ_MAY_SLEEP,
-+					kcryptd_async_done,
-+					dmreq_of_req(cc, cc->req));
- }
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+@@ -933,7 +933,7 @@ static int vma_needs_reservation(struct 
+ 		return 1;
  
- /*
-@@ -838,7 +846,7 @@ static void kcryptd_async_done(struct cr
- 		return;
- 	}
+ 	} else  {
+-		int err;
++		long err;
+ 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
+ 		struct resv_map *reservations = vma_resv_map(vma);
  
--	mempool_free(dmreq->req, cc->req_pool);
-+	mempool_free(req_of_dmreq(cc, dmreq), cc->req_pool);
+@@ -969,7 +969,7 @@ static struct page *alloc_huge_page(stru
+ 	struct page *page;
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	struct inode *inode = mapping->host;
+-	unsigned int chg;
++	long chg;
  
- 	if (!atomic_dec_and_test(&ctx->pending))
- 		return;
+ 	/*
+ 	 * Processes that did not create the mapping will have no reserves and
 _
 
-Patches currently in -mm which might be from mbroz@redhat.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-dm-crypt-fix-a-bug-of-async-cryption-complete-function.patch
-dm-crypt-fix-a-bug-of-async-cryption-complete-function-update.patch
+acpi-get_throttling_state-cannot-be-larger-state_count.patch
+drm-fix-lock_test_with_return-macro.patch
+dvb-negative-internal-sub_range-wont-get-noticed.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+mm-get_nid_for_pfn-returns-int.patch
+hugetlb-chg-cannot-become-less-than-0.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-fix-macros.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+spi-limit-reaches-1-tested-0.patch
+rtc-wm8350-retries-will-reach-1.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
+arkfb-fix-misplaced-parentheses.patch
+uvesafb-bitwise-or-has-higher-precedence-than.patch
+vesafb-bitwise-or-has-higher-precedence-than.patch
+viafb-returns-0-two-too-early.patch
+ufs-sector_t-cannot-be-negative.patch
+rio-addition-has-higher-precedence-than.patch
+aoe-error-printed-1-too-early.patch
 
