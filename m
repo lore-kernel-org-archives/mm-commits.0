@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-use-24bpp-instead-of-32bpp.patch added to -mm tree
-Date: Fri, 27 Feb 2009 12:53:21 -0800
-Message-ID: <200902272053.n1RKrLYA001071@imap1.linux-foundation.org>
+Subject: + sound-pci-hda-patch_realtekc-unused-var.patch added to -mm tree
+Date: Fri, 27 Feb 2009 12:44:58 -0800
+Message-ID: <200902272102.n1RL2UHw001871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755507AbZB0Uxl (ORCPT
+	by vger.kernel.org with ESMTP id S1760206AbZB0VC6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Feb 2009 15:53:41 -0500
+	Fri, 27 Feb 2009 16:02:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: akpm@linux-foundation.org, tiwai@suse.de
 
 
 The patch titled
-     cirrusfb: use 24bpp instead of 32bpp
+     sound/pci/hda/patch_realtek.c: unused var
 has been added to the -mm tree.  Its filename is
-     cirrusfb-use-24bpp-instead-of-32bpp.patch
+     sound-pci-hda-patch_realtekc-unused-var.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,252 +34,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: use 24bpp instead of 32bpp
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: sound/pci/hda/patch_realtek.c: unused var
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The 32bpp is supported only on the latest Cirrus Logic chips.  Use the
-24bpp which is supported at least since Alpine chips (GD543x).
-
-Change 32bpp mode setting to 24bpp mode.  Change acceleration as well.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   79 ++++++++++++++++++++-----------------
- 1 file changed, 44 insertions(+), 35 deletions(-)
+ sound/pci/hda/patch_realtek.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-use-24bpp-instead-of-32bpp drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-use-24bpp-instead-of-32bpp
-+++ a/drivers/video/cirrusfb.c
-@@ -95,10 +95,10 @@
- /* board types */
- enum cirrus_board {
- 	BT_NONE = 0,
--	BT_SD64,
--	BT_PICCOLO,
--	BT_PICASSO,
--	BT_SPECTRUM,
-+	BT_SD64,	/* GD5434 */
-+	BT_PICCOLO,	/* GD5426 */
-+	BT_PICASSO,	/* GD5426 or GD5428 */
-+	BT_SPECTRUM,	/* GD5426 or GD5428 */
- 	BT_PICASSO4,	/* GD5446 */
- 	BT_ALPINE,	/* GD543x/4x */
- 	BT_GD5480,
-@@ -488,7 +488,7 @@ static int cirrusfb_check_pixclock(const
- 	 * the VCLK is double the pixel clock. */
- 	switch (var->bits_per_pixel) {
- 	case 16:
--	case 32:
-+	case 24:
- 		if (var->xres <= 800)
- 			/* Xbh has this type of clock for 32-bit */
- 			freq /= 2;
-@@ -535,11 +535,11 @@ static int cirrusfb_check_var(struct fb_
- 		var->blue.length = 5;
- 		break;
+diff -puN sound/pci/hda/patch_realtek.c~sound-pci-hda-patch_realtekc-unused-var sound/pci/hda/patch_realtek.c
+--- a/sound/pci/hda/patch_realtek.c~sound-pci-hda-patch_realtekc-unused-var
++++ a/sound/pci/hda/patch_realtek.c
+@@ -7015,7 +7015,7 @@ static void alc882_auto_init_analog_inpu
  
--	case 32:
-+	case 24:
- 		if (isPReP) {
--			var->red.offset = 8;
--			var->green.offset = 16;
--			var->blue.offset = 24;
-+			var->red.offset = 0;
-+			var->green.offset = 8;
-+			var->blue.offset = 16;
- 		} else {
- 			var->red.offset = 16;
- 			var->green.offset = 8;
-@@ -670,7 +670,7 @@ static int cirrusfb_set_par_foo(struct f
- 		break;
- 
- 	case 16:
--	case 32:
-+	case 24:
- 		info->fix.line_length = var->xres_virtual *
- 					var->bits_per_pixel >> 3;
- 		info->fix.visual = FB_VISUAL_TRUECOLOR;
-@@ -813,6 +813,9 @@ static int cirrusfb_set_par_foo(struct f
- 	vga_wcrt(regbase, CL_CRT1A, tmp);
- 
- 	freq = PICOS2KHZ(var->pixclock);
-+	if (cinfo->btype == BT_ALPINE && var->bits_per_pixel == 24)
-+		freq *= 3;
+ 	for (i = 0; i < AUTO_PIN_LAST; i++) {
+ 		hda_nid_t nid = spec->autocfg.input_pins[i];
+-		unsigned int vref;
 +
- 	bestclock(freq, &nom, &den, &div);
- 
- 	dev_dbg(info->device, "VCLK freq: %ld kHz  nom: %d  den: %d  div: %d\n",
-@@ -1140,16 +1143,16 @@ static int cirrusfb_set_par_foo(struct f
- 
- 	/******************************************************
- 	 *
--	 * 32 bpp
-+	 * 24 bpp
- 	 *
- 	 */
- 
--	else if (var->bits_per_pixel == 32) {
--		dev_dbg(info->device, "preparing for 32 bit deep display\n");
-+	else if (var->bits_per_pixel == 24) {
-+		dev_dbg(info->device, "preparing for 24 bit deep display\n");
- 		switch (cinfo->btype) {
- 		case BT_SD64:
- 			/* Extended Sequencer Mode: 256c col. mode */
--			vga_wseq(regbase, CL_SEQR7, 0xf9);
-+			vga_wseq(regbase, CL_SEQR7, 0xf5);
- 			/* MCLK select */
- 			vga_wseq(regbase, CL_SEQR1F, 0x1e);
- 			break;
-@@ -1173,11 +1176,11 @@ static int cirrusfb_set_par_foo(struct f
- 
- 		case BT_PICASSO4:
- 		case BT_ALPINE:
--			vga_wseq(regbase, CL_SEQR7, 0xa9);
-+			vga_wseq(regbase, CL_SEQR7, 0xa5);
- 			break;
- 
- 		case BT_GD5480:
--			vga_wseq(regbase, CL_SEQR7, 0x19);
-+			vga_wseq(regbase, CL_SEQR7, 0x15);
- 			/* We already set SRF and SR1F */
- 			break;
- 
-@@ -1185,8 +1188,8 @@ static int cirrusfb_set_par_foo(struct f
- 		case BT_LAGUNAB:
- 			vga_wseq(regbase, CL_SEQR7,
- 				vga_rseq(regbase, CL_SEQR7) & ~0x01);
--			control |= 0x6000;
--			format |= 0x3400;
-+			control |= 0x4000;
-+			format |= 0x2400;
- 			threshold |= 0x20;
- 			break;
- 
-@@ -1385,9 +1388,6 @@ static int cirrusfb_pan_display(struct f
- 	if (info->var.bits_per_pixel == 1)
- 		vga_wattr(cinfo->regbase, CL_AR33, xpix);
- 
--	if (!is_laguna(cinfo))
--		cirrusfb_WaitBLT(cinfo->regbase);
--
- 	return 0;
- }
- 
-@@ -1492,22 +1492,18 @@ static void init_vgachip(struct fb_info 
- 		/* disable flickerfixer */
- 		vga_wcrt(cinfo->regbase, CL_CRT51, 0x00);
- 		mdelay(100);
--		/* from Klaus' NetBSD driver: */
--		vga_wgfx(cinfo->regbase, CL_GR2F, 0x00);
--		/* put blitter into 542x compat */
--		vga_wgfx(cinfo->regbase, CL_GR33, 0x00);
- 		/* mode */
- 		vga_wgfx(cinfo->regbase, CL_GR31, 0x00);
--		break;
--
--	case BT_GD5480:
-+	case BT_GD5480:  /* fall through */
- 		/* from Klaus' NetBSD driver: */
- 		vga_wgfx(cinfo->regbase, CL_GR2F, 0x00);
-+	case BT_ALPINE:  /* fall through */
-+		/* put blitter into 542x compat */
-+		vga_wgfx(cinfo->regbase, CL_GR33, 0x00);
- 		break;
- 
- 	case BT_LAGUNA:
- 	case BT_LAGUNAB:
--	case BT_ALPINE:
- 		/* Nothing to do to reset the board. */
- 		break;
- 
-@@ -1831,10 +1827,13 @@ static void cirrusfb_imageblit(struct fb
- 			       const struct fb_image *image)
- {
- 	struct cirrusfb_info *cinfo = info->par;
-+	unsigned char op = (info->var.bits_per_pixel == 24) ? 0xc : 0x4;
- 
- 	if (info->state != FBINFO_STATE_RUNNING)
- 		return;
--	if (info->flags & FBINFO_HWACCEL_DISABLED)
-+	/* Alpine acceleration does not work at 24bpp ?!? */
-+	if (info->flags & FBINFO_HWACCEL_DISABLED || image->depth != 1 ||
-+	    (cinfo->btype == BT_ALPINE && op == 0xc))
- 		cfb_imageblit(info, image);
- 	else {
- 		unsigned size = ((image->width + 7) >> 3) * image->height;
-@@ -1848,15 +1847,22 @@ static void cirrusfb_imageblit(struct fb
- 			fg = ((u32 *)(info->pseudo_palette))[image->fg_color];
- 			bg = ((u32 *)(info->pseudo_palette))[image->bg_color];
- 		}
--		cirrusfb_WaitBLT(cinfo->regbase);
--		/* byte rounded scanlines */
--		vga_wgfx(cinfo->regbase, CL_GR33, 0x00);
-+		if (info->var.bits_per_pixel == 24) {
-+			/* clear background first */
-+			cirrusfb_RectFill(cinfo->regbase,
-+					  info->var.bits_per_pixel,
-+					  (image->dx * m) / 8, image->dy,
-+					  (image->width * m) / 8,
-+					  image->height,
-+					  bg, bg,
-+					  info->fix.line_length, 0x40);
-+		}
- 		cirrusfb_RectFill(cinfo->regbase,
- 				  info->var.bits_per_pixel,
- 				  (image->dx * m) / 8, image->dy,
- 				  (image->width * m) / 8, image->height,
- 				  fg, bg,
--				  info->fix.line_length, 0x04);
-+				  info->fix.line_length, op);
- 		memcpy(info->screen_base, image->data, size);
- 	}
- }
-@@ -2743,9 +2749,12 @@ static void cirrusfb_RectFill(u8 __iomem
- 		vga_wgfx(regbase, CL_GR11, fg_color >> 8);
- 		op = 0x90;
- 	}
--	if (bits_per_pixel == 32) {
-+	if (bits_per_pixel >= 24) {
- 		vga_wgfx(regbase, CL_GR12, bg_color >> 16);
- 		vga_wgfx(regbase, CL_GR13, fg_color >> 16);
-+		op = 0xa0;
-+	}
-+	if (bits_per_pixel == 32) {
- 		vga_wgfx(regbase, CL_GR14, bg_color >> 24);
- 		vga_wgfx(regbase, CL_GR15, fg_color >> 24);
- 		op = 0xb0;
+ 		if (!nid)
+ 			continue;
+ 		alc_set_input_pin(codec, nid, AUTO_PIN_FRONT_MIC /*i*/);
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
-cirrusfb-add-laguna-additional-overflow-register.patch
-cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
-cirrusfb-do-not-calculate-line-length-twice.patch
-cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
-cirrusfb-various-improvements.patch
-cirrusfb-laguna-chipset-8bpp-fix.patch
-cirrusfb-check_var-improvements.patch
-cirrusfb-various-laguna-fixes.patch
-cirrusfb-acceleration-improvements.patch
-cirrusfb-add-imageblit-function.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
-cirrusfb-gd5446-fixes.patch
-cirrusfb-use-24bpp-instead-of-32bpp.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-asiliantfb-fix-cmap-memory-leaks.patch
-asiliantfb-fix-cmap-memory-leaks-fix.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
+sound-pci-hda-patch_realtekc-unused-var.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
+mtd-rbtx4939-add-mtd-support.patch
+misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
