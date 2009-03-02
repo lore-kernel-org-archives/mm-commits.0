@@ -1,71 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-check-for-pxm_to_node_map-overflow.patch added to -mm tree
-Date: Mon, 02 Mar 2009 12:36:33 -0800
-Message-ID: <200903022036.n22KaXVY019857@imap1.linux-foundation.org>
+Subject: [to-be-updated] mfd-twl4030-add-twl4030-pwrbutton-as-our-child.patch removed from -mm tree
+Date: Mon, 02 Mar 2009 12:30:15 -0800
+Message-ID: <200903022030.n22KUGwc019380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56609 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750882AbZCBUhN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 15:37:13 -0500
+	by vger.kernel.org with ESMTP id S1750745AbZCBUkd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 15:40:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: gorcunov@gmail.com, gorcunov@openvz.org, lenb@kernel.org
+To: felipe.balbi@nokia.com, dbrownell@users.sourceforge.net, sameo@openedhand.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: check for pxm_to_node_map overflow
-has been added to the -mm tree.  Its filename is
-     acpi-check-for-pxm_to_node_map-overflow.patch
+     mfd: twl4030: add twl4030-pwrbutton as our child
+has been removed from the -mm tree.  Its filename was
+     mfd-twl4030-add-twl4030-pwrbutton-as-our-child.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: check for pxm_to_node_map overflow
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: mfd: twl4030: add twl4030-pwrbutton as our child
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
-It is hardly (if ever) possible but in case of broken _PXM entry we could
-reach out of pxm_to_node_map array bounds in acpi_map_pxm_to_node() call.
+Make the twl4030-pwrbutton.c driver probe with current child creation api
+for twl4030.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Samuel Ortiz <sameo@openedhand.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/numa.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mfd/twl4030-core.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN drivers/acpi/numa.c~acpi-check-for-pxm_to_node_map-overflow drivers/acpi/numa.c
---- a/drivers/acpi/numa.c~acpi-check-for-pxm_to_node_map-overflow
-+++ a/drivers/acpi/numa.c
-@@ -277,7 +277,7 @@ int acpi_get_node(acpi_handle *handle)
- 	int pxm, node = -1;
+diff -puN drivers/mfd/twl4030-core.c~mfd-twl4030-add-twl4030-pwrbutton-as-our-child drivers/mfd/twl4030-core.c
+--- a/drivers/mfd/twl4030-core.c~mfd-twl4030-add-twl4030-pwrbutton-as-our-child
++++ a/drivers/mfd/twl4030-core.c
+@@ -101,6 +101,12 @@
+ #define twl_has_usb()	false
+ #endif
  
- 	pxm = acpi_get_pxm(handle);
--	if (pxm >= 0)
-+	if (pxm >= 0 && pxm < MAX_PXM_DOMAINS)
- 		node = acpi_map_pxm_to_node(pxm);
++#if defined(CONFIG_INPUT_TWL4030_PWRBUTTON) \
++	|| defined(CONFIG_INPUT_TWL4030_PWBUTTON_MODULE)
++#define twl_has_pwrbutton()	true
++#else
++#define twl_has_pwrbutton()	false
++#endif
  
- 	return node;
+ /* Triton Core internal information (BEGIN) */
+ 
+@@ -526,6 +532,13 @@ add_children(struct twl4030_platform_dat
+ 		usb_transceiver = child;
+ 	}
+ 
++	if (twl_has_pwrbutton()) {
++		child = add_child(1, "twl4030_pwrbutton",
++				NULL, 0, true, pdata->irq_base + 8 + 0, 0);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
++	}
++
+ 	if (twl_has_regulator()) {
+ 		/*
+ 		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1);
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from felipe.balbi@nokia.com are
 
+origin.patch
 linux-next.patch
-acpi-check-for-pxm_to_node_map-overflow.patch
-mm-mminit_validate_memmodel_limits-get-rid-of-redundant-test.patch
-oom_kill-dont-call-for-int_sqrt0.patch
-introduce-pr_cont-macro.patch
+input-keyboard-introduce-lm8323-driver.patch
+input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
+mfd-twl4030-add-twl4030-pwrbutton-as-our-child.patch
 
