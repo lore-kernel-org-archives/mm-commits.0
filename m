@@ -1,90 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: + lm85-fix-the-version-check-that-broke-adt7468-probing.patch added to -mm tree
-Date: Mon, 02 Mar 2009 15:06:40 -0800
-Message-ID: <200903022306.n22N6eXs032166@imap1.linux-foundation.org>
+Subject: [failures] menu-fix-embedded-menu-snafu.patch removed from -mm tree
+Date: Mon, 02 Mar 2009 15:58:45 -0800
+Message-ID: <200903030016.n230GNIo005637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39474 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758495AbZCBXLm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 18:11:42 -0500
+	by vger.kernel.org with ESMTP id S1759719AbZCCARE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 19:17:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: djwong@us.ibm.com, khali@linux-fr.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lm85: fix the version check that broke adt7468 probing
-has been added to the -mm tree.  Its filename is
-     lm85-fix-the-version-check-that-broke-adt7468-probing.patch
+     menu: fix embedded menu snafu
+has been removed from the -mm tree.  Its filename was
+     menu-fix-embedded-menu-snafu.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lm85: fix the version check that broke adt7468 probing
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: menu: fix embedded menu snafu
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The verstep check in the lm85 driver fails because the upper nibble of the
-version register is 0x7, not 0x6, on the adt7468 chip.  Probing of all
-adt7468s was broken by 69fc1feba2d5856ff74dedb6ae9d8c490210825c, and this
-patch fixes that.  Also add in a missing i2c_device_id that accidentally
-got dropped from the original patch.
+The COMPAT_BRK kconfig symbol does not depend on EMBEDDED, but it is in
+the midst of the EMBEDDED menu symbols, so it mucks up the EMBEDDED menu. 
+Fix by moving it to just after all of the EMBEDDED menu symbols.  Also,
+surround all of the EMBEDDED symbols with "if EMBEDDED"/"endif" so that
+this EMBEDDED block is clearer.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lm85.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ init/Kconfig |   28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN drivers/hwmon/lm85.c~lm85-fix-the-version-check-that-broke-adt7468-probing drivers/hwmon/lm85.c
---- a/drivers/hwmon/lm85.c~lm85-fix-the-version-check-that-broke-adt7468-probing
-+++ a/drivers/hwmon/lm85.c
-@@ -72,6 +72,7 @@ I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm102
- #define	LM85_COMPANY_SMSC		0x5c
- #define	LM85_VERSTEP_VMASK              0xf0
- #define	LM85_VERSTEP_GENERIC		0x60
-+#define	LM85_VERSTEP_GENERIC2		0x70
- #define	LM85_VERSTEP_LM85C		0x60
- #define	LM85_VERSTEP_LM85B		0x62
- #define	LM85_VERSTEP_ADM1027		0x60
-@@ -334,6 +335,7 @@ static struct lm85_data *lm85_update_dev
- static const struct i2c_device_id lm85_id[] = {
- 	{ "adm1027", adm1027 },
- 	{ "adt7463", adt7463 },
-+	{ "adt7468", adt7468 },
- 	{ "lm85", any_chip },
- 	{ "lm85b", lm85b },
- 	{ "lm85c", lm85c },
-@@ -1153,7 +1155,8 @@ static int lm85_detect(struct i2c_client
- 			address, company, verstep);
+diff -puN init/Kconfig~menu-fix-embedded-menu-snafu init/Kconfig
+--- a/init/Kconfig~menu-fix-embedded-menu-snafu
++++ a/init/Kconfig
+@@ -683,6 +683,8 @@ menuconfig EMBEDDED
+           environments which can tolerate a "non-standard" kernel.
+           Only use this if you really know what you are doing.
  
- 		/* All supported chips have the version in common */
--		if ((verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC) {
-+		if ((verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC &&
-+		    (verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC2) {
- 			dev_dbg(&adapter->dev, "Autodetection failed: "
- 				"unsupported version\n");
- 			return -ENODEV;
++if EMBEDDED
++
+ config UID16
+ 	bool "Enable 16-bit UID system calls" if EMBEDDED
+ 	depends on ARM || BLACKFIN || CRIS || FRV || H8300 || X86_32 || M68K || (S390 && !64BIT) || SUPERH || SPARC32 || (SPARC64 && COMPAT) || UML || (X86_64 && IA32_EMULATION)
+@@ -780,18 +782,6 @@ config PCSPKR_PLATFORM
+           This option allows to disable the internal PC-Speaker
+           support, saving some memory.
+ 
+-config COMPAT_BRK
+-	bool "Disable heap randomization"
+-	default y
+-	help
+-	  Randomizing heap placement makes heap exploits harder, but it
+-	  also breaks ancient binaries (including anything libc5 based).
+-	  This option changes the bootup default to heap randomization
+-	  disabled, and can be overriden runtime by setting
+-	  /proc/sys/kernel/randomize_va_space to 2.
+-
+-	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
+-
+ config BASE_FULL
+ 	default y
+ 	bool "Enable full-sized data structures for core" if EMBEDDED
+@@ -897,6 +887,20 @@ config SLUB_DEBUG
+ 	  SLUB sysfs support. /sys/slab will not exist and there will be
+ 	  no support for cache validation etc.
+ 
++endif # EMBEDDED
++
++config COMPAT_BRK
++	bool "Disable heap randomization"
++	default y
++	help
++	  Randomizing heap placement makes heap exploits harder, but it
++	  also breaks ancient binaries (including anything libc5 based).
++	  This option changes the bootup default to heap randomization
++	  disabled, and can be overriden runtime by setting
++	  /proc/sys/kernel/randomize_va_space to 2.
++
++	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
++
+ choice
+ 	prompt "Choose SLAB allocator"
+ 	default SLUB
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-lm90-support-the-max6648-6692-chips.patch
-lm90-support-the-max6648-6692-chips-fix.patch
-lm85-fix-the-version-check-that-broke-adt7468-probing.patch
-lm85-add-vrm10-support-for-adt7468-chip.patch
+origin.patch
+menu-fix-embedded-menu-snafu.patch
+linux-next.patch
+kgdb-fix-kernel-doc-error.patch
+auditsc-fix-kernel-doc-notation.patch
+input-ad7879-touchscreen-driver.patch
+es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
+via-sdmmc-via-msp-card-reader-driver-support-update.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+esp-fix-section-mismatch-warning.patch
+qla2x-fix-printk-format-warnings.patch
+vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
+vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
+max3100-spi-uart-driver.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+alpha-convert-u64-to-unsigned-long-long.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
+filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-99.patch
+atyfb-fix-header-file-trailing-whitespace.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
+asiliantfb-fix-cmap-memory-leaks-fix.patch
+documentation-ignore-byproducts-from-latex.patch
+namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+linuxpps-core-support.patch
+linuxpps-core-support-v2.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
