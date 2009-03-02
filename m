@@ -1,60 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bluetooth-bt3c-eliminate-a-sparse-warning.patch removed from -mm tree
-Date: Mon, 02 Mar 2009 11:23:32 -0800
-Message-ID: <200903021923.n22JNWEX014427@imap1.linux-foundation.org>
+Subject: [merged] bluetooth-config_debug_lock_alloc-ifdefs-remove.patch removed from -mm tree
+Date: Mon, 02 Mar 2009 11:23:37 -0800
+Message-ID: <200903021923.n22JNbhB014433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37340 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750948AbZCBTYX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 14:24:23 -0500
+	by vger.kernel.org with ESMTP id S1752414AbZCBTY2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 14:24:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre@bitwigglers.org, hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, marcel@holtmann.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth/bt3c: eliminate a sparse warning
+     bluetooth: CONFIG_DEBUG_LOCK_ALLOC ifdefs remove
 has been removed from the -mm tree.  Its filename was
-     bluetooth-bt3c-eliminate-a-sparse-warning.patch
+     bluetooth-config_debug_lock_alloc-ifdefs-remove.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth/bt3c: eliminate a sparse warning
-From: Andre Haupt <andre@bitwigglers.org>
+Subject: bluetooth: CONFIG_DEBUG_LOCK_ALLOC ifdefs remove
+From: Dave Young <hidave.darkstar@gmail.com>
 
-This eliminates a sparse warning that symbol 'stat' shadows an earlier one.
+Due to lockdep changes the CONFIG_DEBUG_LOCK_ALLOC ifdef is not needed
+now, just remove it here.
 
-Signed-off-by: Andre Haupt <andre@bitwigglers.org>
+The following commit fixed the !lockdep build warnings:
+
+commit e8f6fbf62de37cbc2e179176ac7010d5f4396b67
+Author: Ingo Molnar <mingo@elte.hu>
+Date:   Wed Nov 12 01:38:36 2008 +0000
+
+    lockdep: include/linux/lockdep.h - fix warning in net/bluetooth/af_bluetooth.c
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/bt3c_cs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/bluetooth/af_bluetooth.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/bluetooth/bt3c_cs.c~bluetooth-bt3c-eliminate-a-sparse-warning drivers/bluetooth/bt3c_cs.c
---- a/drivers/bluetooth/bt3c_cs.c~bluetooth-bt3c-eliminate-a-sparse-warning
-+++ a/drivers/bluetooth/bt3c_cs.c
-@@ -359,9 +359,9 @@ static irqreturn_t bt3c_interrupt(int ir
- 			BT_ERR("Very strange (stat=0x%04x)", stat);
- 		} else if ((stat & 0xff) != 0xff) {
- 			if (stat & 0x0020) {
--				int stat = bt3c_read(iobase, 0x7002) & 0x10;
-+				int status = bt3c_read(iobase, 0x7002) & 0x10;
- 				BT_INFO("%s: Antenna %s", info->hdev->name,
--							stat ? "out" : "in");
-+							status ? "out" : "in");
- 			}
- 			if (stat & 0x0001)
- 				bt3c_receive(info);
+diff -puN net/bluetooth/af_bluetooth.c~bluetooth-config_debug_lock_alloc-ifdefs-remove net/bluetooth/af_bluetooth.c
+--- a/net/bluetooth/af_bluetooth.c~bluetooth-config_debug_lock_alloc-ifdefs-remove
++++ a/net/bluetooth/af_bluetooth.c
+@@ -48,7 +48,6 @@
+ static struct net_proto_family *bt_proto[BT_MAX_PROTO];
+ static DEFINE_RWLOCK(bt_proto_lock);
+ 
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+ static struct lock_class_key bt_lock_key[BT_MAX_PROTO];
+ static const char *bt_key_strings[BT_MAX_PROTO] = {
+ 	"sk_lock-AF_BLUETOOTH-BTPROTO_L2CAP",
+@@ -86,11 +85,6 @@ static inline void bt_sock_reclassify_lo
+ 			bt_slock_key_strings[proto], &bt_slock_key[proto],
+ 				bt_key_strings[proto], &bt_lock_key[proto]);
+ }
+-#else
+-static inline void bt_sock_reclassify_lock(struct socket *sock, int proto)
+-{
+-}
+-#endif
+ 
+ int bt_sock_register(int proto, struct net_proto_family *ops)
+ {
 _
 
-Patches currently in -mm which might be from andre@bitwigglers.org are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 linux-next.patch
 
