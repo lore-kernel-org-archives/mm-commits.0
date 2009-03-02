@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + iwlwifi-reduce-stack-size.patch added to -mm tree
-Date: Mon, 02 Mar 2009 14:08:16 -0800
-Message-ID: <200903022208.n22M8Ga7027433@imap1.linux-foundation.org>
+Subject: + jffs2_acl_count-tests-0-on-unsigned.patch added to -mm tree
+Date: Mon, 02 Mar 2009 14:10:33 -0800
+Message-ID: <200903022210.n22MAXYf027582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41852 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53439 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754192AbZCBWJV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 17:09:21 -0500
+	by vger.kernel.org with ESMTP id S1752464AbZCBWL3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 17:11:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: frank@f-seidel.de, linville@tuxdriver.com, reinette.chatre@intel.com
+Cc: roel.kluin@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     iwlwifi: reduce stack size
+     jffs2_acl_count() tests < 0 on unsigned
 has been added to the -mm tree.  Its filename is
-     iwlwifi-reduce-stack-size.patch
+     jffs2_acl_count-tests-0-on-unsigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iwlwifi: reduce stack size
-From: Frank Seidel <frank@f-seidel.de>
+Subject: jffs2_acl_count() tests < 0 on unsigned
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Reduce stack memory footprint of iwlwifi.  (From >1000 bytes for each
-*_table_read on i386 down to 32)
+size_t s is unsigned and cannot be less than 0.
 
-Signed-off-by: Frank Seidel <frank@f-seidel.de>
-Acked-by: Reinette Chatre <reinette.chatre@intel.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl-3945-rs.c |   11 +++++++--
- drivers/net/wireless/iwlwifi/iwl-agn-rs.c  |   23 +++++++++++++++----
- 2 files changed, 28 insertions(+), 6 deletions(-)
+ fs/jffs2/acl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl-3945-rs.c~iwlwifi-reduce-stack-size drivers/net/wireless/iwlwifi/iwl-3945-rs.c
---- a/drivers/net/wireless/iwlwifi/iwl-3945-rs.c~iwlwifi-reduce-stack-size
-+++ a/drivers/net/wireless/iwlwifi/iwl-3945-rs.c
-@@ -846,11 +846,16 @@ static ssize_t iwl3945_sta_dbgfs_stats_t
- 						  char __user *user_buf,
- 						  size_t count, loff_t *ppos)
- {
--	char buff[1024];
-+	char *buff;
- 	int desc = 0;
- 	int j;
-+	ssize_t ret;
- 	struct iwl3945_rs_sta *lq_sta = file->private_data;
+diff -puN fs/jffs2/acl.c~jffs2_acl_count-tests-0-on-unsigned fs/jffs2/acl.c
+--- a/fs/jffs2/acl.c~jffs2_acl_count-tests-0-on-unsigned
++++ a/fs/jffs2/acl.c
+@@ -38,12 +38,12 @@ static int jffs2_acl_count(size_t size)
+ 	size_t s;
  
-+	buff = kmalloc(1024, GFP_KERNEL);
-+	if (!buff)
-+		return -ENOMEM;
-+
- 	desc += sprintf(buff + desc, "tx packets=%d last rate index=%d\n"
- 			"rate=0x%X flush time %d\n",
- 			lq_sta->tx_packets,
-@@ -863,7 +868,9 @@ static ssize_t iwl3945_sta_dbgfs_stats_t
- 				lq_sta->win[j].success_counter,
- 				lq_sta->win[j].success_ratio);
- 	}
--	return simple_read_from_buffer(user_buf, count, ppos, buff, desc);
-+	ret = simple_read_from_buffer(user_buf, count, ppos, buff, desc);
-+	kfree(buff);
-+	return ret;
- }
- 
- static const struct file_operations rs_sta_dbgfs_stats_table_ops = {
-diff -puN drivers/net/wireless/iwlwifi/iwl-agn-rs.c~iwlwifi-reduce-stack-size drivers/net/wireless/iwlwifi/iwl-agn-rs.c
---- a/drivers/net/wireless/iwlwifi/iwl-agn-rs.c~iwlwifi-reduce-stack-size
-+++ a/drivers/net/wireless/iwlwifi/iwl-agn-rs.c
-@@ -2520,12 +2520,17 @@ static ssize_t rs_sta_dbgfs_scale_table_
- static ssize_t rs_sta_dbgfs_scale_table_read(struct file *file,
- 			char __user *user_buf, size_t count, loff_t *ppos)
- {
--	char buff[1024];
-+	char *buff;
- 	int desc = 0;
- 	int i = 0;
-+	ssize_t ret;
- 
- 	struct iwl_lq_sta *lq_sta = file->private_data;
- 
-+	buff = kmalloc(1024, GFP_KERNEL);
-+	if (!buff)
-+		return -ENOMEM;
-+
- 	desc += sprintf(buff+desc, "sta_id %d\n", lq_sta->lq.sta_id);
- 	desc += sprintf(buff+desc, "failed=%d success=%d rate=0%X\n",
- 			lq_sta->total_failed, lq_sta->total_success,
-@@ -2557,7 +2562,9 @@ static ssize_t rs_sta_dbgfs_scale_table_
- 		desc += sprintf(buff+desc, " rate[%d] 0x%X\n",
- 			i, le32_to_cpu(lq_sta->lq.rs_table[i].rate_n_flags));
- 
--	return simple_read_from_buffer(user_buf, count, ppos, buff, desc);
-+	ret = simple_read_from_buffer(user_buf, count, ppos, buff, desc);
-+	kfree(buff);
-+	return ret;
- }
- 
- static const struct file_operations rs_sta_dbgfs_scale_table_ops = {
-@@ -2568,11 +2575,17 @@ static const struct file_operations rs_s
- static ssize_t rs_sta_dbgfs_stats_table_read(struct file *file,
- 			char __user *user_buf, size_t count, loff_t *ppos)
- {
--	char buff[1024];
-+	char *buff;
- 	int desc = 0;
- 	int i, j;
-+	ssize_t ret;
- 
- 	struct iwl_lq_sta *lq_sta = file->private_data;
-+
-+	buff = kmalloc(1024, GFP_KERNEL);
-+	if (!buff)
-+		return -ENOMEM;
-+
- 	for (i = 0; i < LQ_SIZE; i++) {
- 		desc += sprintf(buff+desc, "%s type=%d SGI=%d FAT=%d DUP=%d\n"
- 				"rate=0x%X\n",
-@@ -2590,7 +2603,9 @@ static ssize_t rs_sta_dbgfs_stats_table_
- 				lq_sta->lq_info[i].win[j].success_ratio);
- 		}
- 	}
--	return simple_read_from_buffer(user_buf, count, ppos, buff, desc);
-+	ret = simple_read_from_buffer(user_buf, count, ppos, buff, desc);
-+	kfree(buff);
-+	return ret;
- }
- 
- static const struct file_operations rs_sta_dbgfs_stats_table_ops = {
+ 	size -= sizeof(struct jffs2_acl_header);
+-	s = size - 4 * sizeof(struct jffs2_acl_entry_short);
+-	if (s < 0) {
++	if (size < 4 * sizeof(struct jffs2_acl_entry_short)) {
+ 		if (size % sizeof(struct jffs2_acl_entry_short))
+ 			return -1;
+ 		return size / sizeof(struct jffs2_acl_entry_short);
+ 	} else {
++		s = size - 4 * sizeof(struct jffs2_acl_entry_short);
+ 		if (s % sizeof(struct jffs2_acl_entry))
+ 			return -1;
+ 		return s / sizeof(struct jffs2_acl_entry) + 4;
 _
 
-Patches currently in -mm which might be from frank@f-seidel.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
+mm-get_nid_for_pfn-returns-int.patch
 linux-next.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch
-airo-reduce-stack-memory-footprint.patch
-iwlwifi-reduce-stack-size.patch
+acpi-get_throttling_state-cannot-be-larger-state_count.patch
+drm-fix-lock_test_with_return-macro.patch
+dvb-negative-internal-sub_range-wont-get-noticed.patch
+jffs2_acl_count-tests-0-on-unsigned.patch
+scsi-ncr53c8xx-div-reaches-1.patch
+scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
+hugetlb-chg-cannot-become-less-than-0.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-fix-macros.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+spi-limit-reaches-1-tested-0.patch
+rtc-wm8350-retries-will-reach-1.patch
+fbdev-newport-newport_wait-return-0-on-timeout.patch
+drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
+arkfb-fix-misplaced-parentheses.patch
+uvesafb-bitwise-or-has-higher-precedence-than.patch
+vesafb-bitwise-or-has-higher-precedence-than.patch
+viafb-returns-0-two-too-early.patch
+ufs-sector_t-cannot-be-negative.patch
+rio-addition-has-higher-precedence-than.patch
+aoe-error-printed-1-too-early.patch
 
