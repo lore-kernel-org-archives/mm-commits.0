@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ubd-stop-defintining-major_nr-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 02 Mar 2009 12:48:00 -0800
-Message-ID: <200903022048.n22Km16G020924@imap1.linux-foundation.org>
+Subject: + mm-remove-pagevec_swap_free.patch added to -mm tree
+Date: Mon, 02 Mar 2009 13:18:43 -0800
+Message-ID: <200903022118.n22LIiDb023335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50293 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42161 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751387AbZCBUsf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 15:48:35 -0500
+	by vger.kernel.org with ESMTP id S1751941AbZCBVTU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 16:19:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@lst.de, jdike@addtoit.com
+Cc: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, hugh@veritas.com, riel@redhat.com
 
 
 The patch titled
-     ubd-stop-defintining-major_nr-checkpatch-fixes
+     mm: remove pagevec_swap_free()
 has been added to the -mm tree.  Its filename is
-     ubd-stop-defintining-major_nr-checkpatch-fixes.patch
+     mm-remove-pagevec_swap_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,165 +33,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ubd-stop-defintining-major_nr-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: remove pagevec_swap_free()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-ERROR: space required before the open brace '{'
-#38: FILE: arch/um/drivers/ubd_kern.c:301:
-+		if(fake_major != UBD_MAJOR){
+pagevec_swap_free() is now unused.
 
-ERROR: space required before the open parenthesis '('
-#38: FILE: arch/um/drivers/ubd_kern.c:301:
-+		if(fake_major != UBD_MAJOR){
-
-ERROR: space required before the open parenthesis '('
-#47: FILE: arch/um/drivers/ubd_kern.c:820:
-+	if(major == UBD_MAJOR)
-
-ERROR: space required before the open parenthesis '('
-#70: FILE: arch/um/drivers/ubd_kern.c:879:
-+	if(fake_major != UBD_MAJOR)
-
-total: 4 errors, 0 warnings, 65 lines checked
-
-./patches/ubd-stop-defintining-major_nr.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/ubd_kern.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/pagevec.h |    1 -
+ mm/swap.c               |   23 -----------------------
+ 2 files changed, 24 deletions(-)
 
-diff -puN arch/um/drivers/ubd_kern.c~ubd-stop-defintining-major_nr-checkpatch-fixes arch/um/drivers/ubd_kern.c
---- a/arch/um/drivers/ubd_kern.c~ubd-stop-defintining-major_nr-checkpatch-fixes
-+++ a/arch/um/drivers/ubd_kern.c
-@@ -298,7 +298,7 @@ static int ubd_setup_common(char *str, i
- 		}
+diff -puN include/linux/pagevec.h~mm-remove-pagevec_swap_free include/linux/pagevec.h
+--- a/include/linux/pagevec.h~mm-remove-pagevec_swap_free
++++ a/include/linux/pagevec.h
+@@ -24,7 +24,6 @@ void __pagevec_release(struct pagevec *p
+ void __pagevec_free(struct pagevec *pvec);
+ void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
+ void pagevec_strip(struct pagevec *pvec);
+-void pagevec_swap_free(struct pagevec *pvec);
+ unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+ 		pgoff_t start, unsigned nr_pages);
+ unsigned pagevec_lookup_tag(struct pagevec *pvec,
+diff -puN mm/swap.c~mm-remove-pagevec_swap_free mm/swap.c
+--- a/mm/swap.c~mm-remove-pagevec_swap_free
++++ a/mm/swap.c
+@@ -471,29 +471,6 @@ void pagevec_strip(struct pagevec *pvec)
+ }
  
- 		mutex_lock(&ubd_lock);
--		if(fake_major != UBD_MAJOR){
-+		if (fake_major != UBD_MAJOR) {
- 			*error_out = "Can't assign a fake major twice";
- 			goto out1;
- 		}
-@@ -817,7 +817,7 @@ static int ubd_disk_register(int major, 
- 	disk->first_minor = unit << UBD_SHIFT;
- 	disk->fops = &ubd_blops;
- 	set_capacity(disk, size / 512);
--	if(major == UBD_MAJOR)
-+	if (major == UBD_MAJOR)
- 		sprintf(disk->disk_name, "ubd%c", 'a' + unit);
- 	else
- 		sprintf(disk->disk_name, "ubd_fake%d", unit);
-@@ -876,7 +876,7 @@ static int ubd_add(int n, char **error_o
- 		goto out_cleanup;
- 	}
- 
--	if(fake_major != UBD_MAJOR)
-+	if (fake_major != UBD_MAJOR)
- 		ubd_disk_register(fake_major, ubd_dev->size, n,
- 				  &fake_gendisk[n]);
- 
+ /**
+- * pagevec_swap_free - try to free swap space from the pages in a pagevec
+- * @pvec: pagevec with swapcache pages to free the swap space of
+- *
+- * The caller needs to hold an extra reference to each page and
+- * not hold the page lock on the pages.  This function uses a
+- * trylock on the page lock so it may not always free the swap
+- * space associated with a page.
+- */
+-void pagevec_swap_free(struct pagevec *pvec)
+-{
+-	int i;
+-
+-	for (i = 0; i < pagevec_count(pvec); i++) {
+-		struct page *page = pvec->pages[i];
+-
+-		if (PageSwapCache(page) && trylock_page(page)) {
+-			try_to_free_swap(page);
+-			unlock_page(page);
+-		}
+-	}
+-}
+-
+-/**
+  * pagevec_lookup - gang pagecache lookup
+  * @pvec:	Where the resulting pages are placed
+  * @mapping:	The address_space to search
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-origin.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support.patch
-misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+get_mm_hiwater_xxx-trivial-s-define-inline.patch
+vmscan-rename-scmay_swap-to-may_unmap.patch
+mm-introduce-for_each_populated_zone-macro.patch
 mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-dont-call-mark_page_accessed-in-do_swap_page.patch
+mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
+mm-shrink_all_memory-use-scnr_reclaimed.patch
 mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+vmscan-clip-swap_cluster_max-in-shrink_all_memory.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
 mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-ubd-stop-defintining-major_nr-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+vmscan-respect-higher-order-in-zone_reclaim.patch
+mm-remove-pagevec_swap_free.patch
+getrusage-fill-ru_maxrss-value.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
+ia64-implement-interrupt-enabling-rwlocks.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
