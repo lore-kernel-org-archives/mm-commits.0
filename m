@@ -1,149 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [folded] input-misc-add-twl4030-pwrbutton-driver-fix.patch removed from -mm tree
-Date: Mon, 02 Mar 2009 12:29:35 -0800
-Message-ID: <200903022029.n22KTZ4k019323@imap1.linux-foundation.org>
+Subject: + hp-wmi-notify-of-a-potential-docking-state-change-on-resume.patch added to -mm tree
+Date: Mon, 02 Mar 2009 12:32:08 -0800
+Message-ID: <200903022032.n22KW9IO019506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46874 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750810AbZCBUaP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 15:30:15 -0500
+	by vger.kernel.org with ESMTP id S1753222AbZCBUc7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 15:32:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dbrownell@users.sourceforge.net, dmitry.torokhov@gmail.com, felipe.balbi@nokia.com, sameo@openedhand.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: elendil@planet.nl, lenb@kernel.org, mjg59@srcf.ucam.org
 
 
 The patch titled
-     input-misc-add-twl4030-pwrbutton-driver-fix
-has been removed from the -mm tree.  Its filename was
-     input-misc-add-twl4030-pwrbutton-driver-fix.patch
+     hp-wmi: notify of a potential docking state change on resume
+has been added to the -mm tree.  Its filename is
+     hp-wmi-notify-of-a-potential-docking-state-change-on-resume.patch
 
-This patch was dropped because it was folded into input-misc-add-twl4030-pwrbutton-driver.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input-misc-add-twl4030-pwrbutton-driver-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hp-wmi: notify of a potential docking state change on resume
+From: Frans Pop <elendil@planet.nl>
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Samuel Ortiz <sameo@openedhand.com>
+It is possible that the system gets docked or undocked while it's
+suspended. Generate an input event on resume to notify user space
+if there was a state change.
+
+As it is a switch, we can generate the event unconditionally; the
+input layer will only pass it on if there is an actual change.
+
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/twl4030-pwrbutton.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/platform/x86/hp-wmi.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN drivers/input/misc/twl4030-pwrbutton.c~input-misc-add-twl4030-pwrbutton-driver-fix drivers/input/misc/twl4030-pwrbutton.c
---- a/drivers/input/misc/twl4030-pwrbutton.c~input-misc-add-twl4030-pwrbutton-driver-fix
-+++ a/drivers/input/misc/twl4030-pwrbutton.c
-@@ -104,7 +104,7 @@ static int __devinit twl4030_pwrbutton_p
- free_input_dev:
- 	input_free_device(powerbutton_dev);
- free_irq_and_out:
--	free_irq(TWL4030_PWRIRQ_PWRBTN, NULL);
-+	free_irq(irq, NULL);
- out:
- 	return err;
+diff -puN drivers/platform/x86/hp-wmi.c~hp-wmi-notify-of-a-potential-docking-state-change-on-resume drivers/platform/x86/hp-wmi.c
+--- a/drivers/platform/x86/hp-wmi.c~hp-wmi-notify-of-a-potential-docking-state-change-on-resume
++++ a/drivers/platform/x86/hp-wmi.c
+@@ -53,6 +53,7 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE9
+ 
+ static int __init hp_wmi_bios_setup(struct platform_device *device);
+ static int __exit hp_wmi_bios_remove(struct platform_device *device);
++static int hp_wmi_resume_handler(struct platform_device *device);
+ 
+ struct bios_args {
+ 	u32 signature;
+@@ -101,6 +102,7 @@ static struct platform_driver hp_wmi_dri
+ 	},
+ 	.probe = hp_wmi_bios_setup,
+ 	.remove = hp_wmi_bios_remove,
++	.resume = hp_wmi_resume_handler,
+ };
+ 
+ static int hp_wmi_perform_query(int query, int write, int value)
+@@ -487,6 +489,29 @@ static int __exit hp_wmi_bios_remove(str
+ 	return 0;
  }
+ 
++static int hp_wmi_resume_handler(struct platform_device *device)
++{
++	struct key_entry *key;
++
++	/*
++	 * Docking state may have changed while suspended, so trigger
++	 * an input event for the current state. As this is a switch,
++	 * the input layer will only actually pass it on if the state
++	 * changed.
++	 */
++	for (key = hp_wmi_keymap; key->type != KE_END; key++) {
++		switch (key->type) {
++		case KE_SW:
++			input_report_switch(hp_wmi_input_dev, key->keycode,
++					    hp_wmi_dock_state());
++			input_sync(hp_wmi_input_dev);
++			break;
++		}
++	}
++
++	return 0;
++}
++
+ static int __init hp_wmi_init(void)
+ {
+ 	int err;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from elendil@planet.nl are
 
-origin.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
-input-misc-add-twl4030-pwrbutton-driver.patch
-input-misc-add-twl4030-pwrbutton-driver-fix.patch
-leds-add-bd2802gu-led-driver.patch
-mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support.patch
-misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+hp-wmi-notify-of-a-potential-docking-state-change-on-resume.patch
+input-keyboard-hilkbdc-fix-crash-when-removing-hilkbd-module.patch
+drivers-input-serio-hp_sdcc-fix-crash-when-removing-hp_sdc-module.patch
 
