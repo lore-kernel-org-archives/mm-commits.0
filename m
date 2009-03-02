@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + menu-fix-embedded-menu-snafu.patch added to -mm tree
-Date: Mon, 02 Mar 2009 14:23:33 -0800
-Message-ID: <200903022223.n22MNXSr028733@imap1.linux-foundation.org>
+Subject: + rtc-v3020-coding-style-cleanup.patch added to -mm tree
+Date: Mon, 02 Mar 2009 14:32:44 -0800
+Message-ID: <200903022232.n22MWiSw029482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36884 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45515 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752474AbZCBWbV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 17:31:21 -0500
+	by vger.kernel.org with ESMTP id S1754498AbZCBWeK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 17:34:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: mike@compulab.co.il, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     menu: fix embedded menu snafu
+     rtc-v3020: coding style cleanup
 has been added to the -mm tree.  Its filename is
-     menu-fix-embedded-menu-snafu.patch
+     rtc-v3020-coding-style-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: menu: fix embedded menu snafu
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: rtc-v3020: coding style cleanup
+From: Mike Rapoport <mike@compulab.co.il>
 
-The COMPAT_BRK kconfig symbol does not depend on EMBEDDED, but it is in
-the midst of the EMBEDDED menu symbols, so it mucks up the EMBEDDED menu. 
-Fix by moving it to just after all of the EMBEDDED menu symbols.  Also,
-surround all of the EMBEDDED symbols with "if EMBEDDED"/"endif" so that
-this EMBEDDED block is clearer.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ drivers/rtc/rtc-v3020.c |   40 +++++++++++++++++---------------------
+ 1 file changed, 18 insertions(+), 22 deletions(-)
 
-diff -puN init/Kconfig~menu-fix-embedded-menu-snafu init/Kconfig
---- a/init/Kconfig~menu-fix-embedded-menu-snafu
-+++ a/init/Kconfig
-@@ -683,6 +683,8 @@ menuconfig EMBEDDED
-           environments which can tolerate a "non-standard" kernel.
-           Only use this if you really know what you are doing.
+diff -puN drivers/rtc/rtc-v3020.c~rtc-v3020-coding-style-cleanup drivers/rtc/rtc-v3020.c
+--- a/drivers/rtc/rtc-v3020.c~rtc-v3020-coding-style-cleanup
++++ a/drivers/rtc/rtc-v3020.c
+@@ -28,7 +28,7 @@
+ #include <linux/rtc-v3020.h>
+ #include <linux/delay.h>
  
-+if EMBEDDED
-+
- config UID16
- 	bool "Enable 16-bit UID system calls" if EMBEDDED
- 	depends on ARM || BLACKFIN || CRIS || FRV || H8300 || X86_32 || M68K || (S390 && !64BIT) || SUPERH || SPARC32 || (SPARC64 && COMPAT) || UML || (X86_64 && IA32_EMULATION)
-@@ -780,18 +782,6 @@ config PCSPKR_PLATFORM
-           This option allows to disable the internal PC-Speaker
-           support, saving some memory.
+-#include <asm/io.h>
++#include <linux/io.h>
  
--config COMPAT_BRK
--	bool "Disable heap randomization"
--	default y
--	help
--	  Randomizing heap placement makes heap exploits harder, but it
--	  also breaks ancient binaries (including anything libc5 based).
--	  This option changes the bootup default to heap randomization
--	  disabled, and can be overriden runtime by setting
--	  /proc/sys/kernel/randomize_va_space to 2.
--
--	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
--
- config BASE_FULL
- 	default y
- 	bool "Enable full-sized data structures for core" if EMBEDDED
-@@ -897,6 +887,20 @@ config SLUB_DEBUG
- 	  SLUB sysfs support. /sys/slab will not exist and there will be
- 	  no support for cache validation etc.
+ #undef DEBUG
  
-+endif # EMBEDDED
-+
-+config COMPAT_BRK
-+	bool "Disable heap randomization"
-+	default y
-+	help
-+	  Randomizing heap placement makes heap exploits harder, but it
-+	  also breaks ancient binaries (including anything libc5 based).
-+	  This option changes the bootup default to heap randomization
-+	  disabled, and can be overriden runtime by setting
-+	  /proc/sys/kernel/randomize_va_space to 2.
-+
-+	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
-+
- choice
- 	prompt "Choose SLAB allocator"
- 	default SLUB
+@@ -63,7 +63,7 @@ static void v3020_set_reg(struct v3020 *
+ 
+ static unsigned char v3020_get_reg(struct v3020 *chip, unsigned char address)
+ {
+-	unsigned int data=0;
++	unsigned int data = 0;
+ 	int i;
+ 
+ 	for (i = 0; i < 4; i++) {
+@@ -106,16 +106,14 @@ static int v3020_read_time(struct device
+ 	tmp = v3020_get_reg(chip, V3020_YEAR);
+ 	dt->tm_year = bcd2bin(tmp)+100;
+ 
+-#ifdef DEBUG
+-	printk("\n%s : Read RTC values\n",__func__);
+-	printk("tm_hour: %i\n",dt->tm_hour);
+-	printk("tm_min : %i\n",dt->tm_min);
+-	printk("tm_sec : %i\n",dt->tm_sec);
+-	printk("tm_year: %i\n",dt->tm_year);
+-	printk("tm_mon : %i\n",dt->tm_mon);
+-	printk("tm_mday: %i\n",dt->tm_mday);
+-	printk("tm_wday: %i\n",dt->tm_wday);
+-#endif
++	dev_dbg(dev, "\n%s : Read RTC values\n", __func__);
++	dev_dbg(dev, "tm_hour: %i\n", dt->tm_hour);
++	dev_dbg(dev, "tm_min : %i\n", dt->tm_min);
++	dev_dbg(dev, "tm_sec : %i\n", dt->tm_sec);
++	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
++	dev_dbg(dev, "tm_mon : %i\n", dt->tm_mon);
++	dev_dbg(dev, "tm_mday: %i\n", dt->tm_mday);
++	dev_dbg(dev, "tm_wday: %i\n", dt->tm_wday);
+ 
+ 	return 0;
+ }
+@@ -125,15 +123,13 @@ static int v3020_set_time(struct device 
+ {
+ 	struct v3020 *chip = dev_get_drvdata(dev);
+ 
+-#ifdef DEBUG
+-	printk("\n%s : Setting RTC values\n",__func__);
+-	printk("tm_sec : %i\n",dt->tm_sec);
+-	printk("tm_min : %i\n",dt->tm_min);
+-	printk("tm_hour: %i\n",dt->tm_hour);
+-	printk("tm_mday: %i\n",dt->tm_mday);
+-	printk("tm_wday: %i\n",dt->tm_wday);
+-	printk("tm_year: %i\n",dt->tm_year);
+-#endif
++	dev_dbg(dev, "\n%s : Setting RTC values\n", __func__);
++	dev_dbg(dev, "tm_sec : %i\n", dt->tm_sec);
++	dev_dbg(dev, "tm_min : %i\n", dt->tm_min);
++	dev_dbg(dev, "tm_hour: %i\n", dt->tm_hour);
++	dev_dbg(dev, "tm_mday: %i\n", dt->tm_mday);
++	dev_dbg(dev, "tm_wday: %i\n", dt->tm_wday);
++	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
+ 
+ 	/* Write all the values to ram... */
+ 	v3020_set_reg(chip, V3020_SECONDS, 	bin2bcd(dt->tm_sec));
+@@ -191,7 +187,7 @@ static int rtc_probe(struct platform_dev
+ 	/* Test chip by doing a write/read sequence
+ 	 * to the chip ram */
+ 	v3020_set_reg(chip, V3020_SECONDS, 0x33);
+-	if(v3020_get_reg(chip, V3020_SECONDS) != 0x33) {
++	if (v3020_get_reg(chip, V3020_SECONDS) != 0x33) {
+ 		retval = -ENODEV;
+ 		goto err_io;
+ 	}
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mike@compulab.co.il are
 
-origin.patch
-menu-fix-embedded-menu-snafu.patch
 linux-next.patch
-kgdb-fix-kernel-doc-error.patch
-auditsc-fix-kernel-doc-notation.patch
-input-ad7879-touchscreen-driver.patch
-es-input-allow-certain-ev_abs-events-to-bypass-all-filtering-fix.patch
-via-sdmmc-via-msp-card-reader-driver-support-update.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-esp-fix-section-mismatch-warning.patch
-qla2x-fix-printk-format-warnings.patch
-vfs-update-fsh-to-use-inline-functions-when-no-file-locking-set.patch
-vfs-further-changes-from-macro-to-inline-function-in-fsh.patch
-max3100-spi-uart-driver.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-alpha-convert-u64-to-unsigned-long-long.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems.patch
-filesystem-freeze-allow-sysrq-emergency-thaw-to-thaw-frozen-filesystems-99.patch
-atyfb-fix-header-file-trailing-whitespace.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-fix.patch
-asiliantfb-fix-cmap-memory-leaks-fix.patch
-documentation-ignore-byproducts-from-latex.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-linuxpps-core-support.patch
-linuxpps-core-support-v2.patch
-reiser4-export-remove_from_page_cache-fix.patch
+spi_bfin5xx-remove-unused-is_dma_aligned-macro.patch
+spi-add-dma_alignment-field-to-spi_master.patch
+pxa2xx_spi-set-spi_masterdma_alignment-=-8.patch
+spi_imx-set-spi_masterdma_alignment-=-4.patch
+rtc-v3020-coding-style-cleanup.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
 
