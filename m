@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lm90-support-the-max6648-6692-chips.patch added to -mm tree
-Date: Mon, 02 Mar 2009 15:06:36 -0800
-Message-ID: <200903022306.n22N6ajL032152@imap1.linux-foundation.org>
+Subject: + lm85-fix-the-version-check-that-broke-adt7468-probing.patch added to -mm tree
+Date: Mon, 02 Mar 2009 15:06:40 -0800
+Message-ID: <200903022306.n22N6eXs032166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55505 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39474 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758220AbZCBXLX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 18:11:23 -0500
+	by vger.kernel.org with ESMTP id S1758495AbZCBXLm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 18:11:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: djwong@us.ibm.com, khali@linux-fr.org
 
 
 The patch titled
-     lm90: support the MAX6648/6692 chips
+     lm85: fix the version check that broke adt7468 probing
 has been added to the -mm tree.  Its filename is
-     lm90-support-the-max6648-6692-chips.patch
+     lm85-fix-the-version-check-that-broke-adt7468-probing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lm90: support the MAX6648/6692 chips
+Subject: lm85: fix the version check that broke adt7468 probing
 From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-The max6648 chip has nearly the same register set as the 6657 and seems to
-have a working manufacturer/chip id so we can detect it.  This patch adds
-support for it.  Tested on a Nvidia Quadro FX 1500 card.
+The verstep check in the lm85 driver fails because the upper nibble of the
+version register is 0x7, not 0x6, on the adt7468 chip.  Probing of all
+adt7468s was broken by 69fc1feba2d5856ff74dedb6ae9d8c490210825c, and this
+patch fixes that.  Also add in a missing i2c_device_id that accidentally
+got dropped from the original patch.
 
 Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/Kconfig |    4 ++--
- drivers/hwmon/lm90.c  |    7 ++++++-
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/hwmon/lm85.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/Kconfig~lm90-support-the-max6648-6692-chips drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig~lm90-support-the-max6648-6692-chips
-+++ a/drivers/hwmon/Kconfig
-@@ -543,8 +543,8 @@ config SENSORS_LM90
- 	help
- 	  If you say yes here you get support for National Semiconductor LM90,
- 	  LM86, LM89 and LM99, Analog Devices ADM1032 and ADT7461, and Maxim
--	  MAX6646, MAX6647, MAX6649, MAX6657, MAX6658, MAX6659, MAX6680 and
--	  MAX6681 sensor chips.
-+	  MAX6646, MAX6647, MAX6649, MAX6657, MAX6658, MAX6659, MAX6680,
-+	  MAX6648, MAX6692 and MAX6681 sensor chips.
+diff -puN drivers/hwmon/lm85.c~lm85-fix-the-version-check-that-broke-adt7468-probing drivers/hwmon/lm85.c
+--- a/drivers/hwmon/lm85.c~lm85-fix-the-version-check-that-broke-adt7468-probing
++++ a/drivers/hwmon/lm85.c
+@@ -72,6 +72,7 @@ I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm102
+ #define	LM85_COMPANY_SMSC		0x5c
+ #define	LM85_VERSTEP_VMASK              0xf0
+ #define	LM85_VERSTEP_GENERIC		0x60
++#define	LM85_VERSTEP_GENERIC2		0x70
+ #define	LM85_VERSTEP_LM85C		0x60
+ #define	LM85_VERSTEP_LM85B		0x62
+ #define	LM85_VERSTEP_ADM1027		0x60
+@@ -334,6 +335,7 @@ static struct lm85_data *lm85_update_dev
+ static const struct i2c_device_id lm85_id[] = {
+ 	{ "adm1027", adm1027 },
+ 	{ "adt7463", adt7463 },
++	{ "adt7468", adt7468 },
+ 	{ "lm85", any_chip },
+ 	{ "lm85b", lm85b },
+ 	{ "lm85c", lm85c },
+@@ -1153,7 +1155,8 @@ static int lm85_detect(struct i2c_client
+ 			address, company, verstep);
  
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm90.
-diff -puN drivers/hwmon/lm90.c~lm90-support-the-max6648-6692-chips drivers/hwmon/lm90.c
---- a/drivers/hwmon/lm90.c~lm90-support-the-max6648-6692-chips
-+++ a/drivers/hwmon/lm90.c
-@@ -776,7 +776,12 @@ static int lm90_detect(struct i2c_client
- 			 && (reg_config1 & 0x3f) == 0x00
- 			 && reg_convrate <= 0x07) {
- 				kind = max6646;
--			}
-+			} else
-+			/* The MAX6648/6692 chips have a working man/chip id
-+			 * and the same register set as the 6657.
-+			 */
-+			if (chip_id == 0x59 && address == 0x4C)
-+				kind = max6657;
- 		}
- 
- 		if (kind <= 0) { /* identification failed */
+ 		/* All supported chips have the version in common */
+-		if ((verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC) {
++		if ((verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC &&
++		    (verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC2) {
+ 			dev_dbg(&adapter->dev, "Autodetection failed: "
+ 				"unsupported version\n");
+ 			return -ENODEV;
 _
 
 Patches currently in -mm which might be from djwong@us.ibm.com are
