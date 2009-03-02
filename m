@@ -1,144 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sound-pci-hda-patch_realtekc-unused-var.patch removed from -mm tree
-Date: Mon, 02 Mar 2009 11:23:29 -0800
-Message-ID: <200903021923.n22JNTfS014424@imap1.linux-foundation.org>
+Subject: [merged] mm-vmap-fix-overflow.patch removed from -mm tree
+Date: Mon, 02 Mar 2009 11:23:03 -0800
+Message-ID: <200903021923.n22JN3LM014367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45249 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753487AbZCBTYI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 14:24:08 -0500
+	by vger.kernel.org with ESMTP id S1753582AbZCBTYB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 14:24:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tiwai@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, hch@lst.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sound/pci/hda/patch_realtek.c: unused var
+     mm: vmap fix overflow
 has been removed from the -mm tree.  Its filename was
-     sound-pci-hda-patch_realtekc-unused-var.patch
+     mm-vmap-fix-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound/pci/hda/patch_realtek.c: unused var
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: vmap fix overflow
+From: Nick Piggin <npiggin@suse.de>
 
-Cc: Takashi Iwai <tiwai@suse.de>
+The new vmap allocator can wrap the address and get confused in the case
+of large allocations or VMALLOC_END near the end of address space.
+
+Problem reported by Christoph Hellwig on a 32-bit XFS workload.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Reported-by: Christoph Hellwig <hch@lst.de>
+Cc: <stable@kernel.org>		[2.6.28.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/patch_realtek.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN sound/pci/hda/patch_realtek.c~sound-pci-hda-patch_realtekc-unused-var sound/pci/hda/patch_realtek.c
---- a/sound/pci/hda/patch_realtek.c~sound-pci-hda-patch_realtekc-unused-var
-+++ a/sound/pci/hda/patch_realtek.c
-@@ -7015,7 +7015,7 @@ static void alc882_auto_init_analog_inpu
+diff -puN mm/vmalloc.c~mm-vmap-fix-overflow mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmap-fix-overflow
++++ a/mm/vmalloc.c
+@@ -323,6 +323,7 @@ static struct vmap_area *alloc_vmap_area
+ 	unsigned long addr;
+ 	int purged = 0;
  
- 	for (i = 0; i < AUTO_PIN_LAST; i++) {
- 		hda_nid_t nid = spec->autocfg.input_pins[i];
--		unsigned int vref;
++	BUG_ON(!size);
+ 	BUG_ON(size & ~PAGE_MASK);
+ 
+ 	va = kmalloc_node(sizeof(struct vmap_area),
+@@ -334,6 +335,9 @@ retry:
+ 	addr = ALIGN(vstart, align);
+ 
+ 	spin_lock(&vmap_area_lock);
++	if (addr + size - 1 < addr)
++		goto overflow;
 +
- 		if (!nid)
- 			continue;
- 		alc_set_input_pin(codec, nid, AUTO_PIN_FRONT_MIC /*i*/);
+ 	/* XXX: could have a last_hole cache */
+ 	n = vmap_area_root.rb_node;
+ 	if (n) {
+@@ -365,6 +369,8 @@ retry:
+ 
+ 		while (addr + size > first->va_start && addr + size <= vend) {
+ 			addr = ALIGN(first->va_end + PAGE_SIZE, align);
++			if (addr + size - 1 < addr)
++				goto overflow;
+ 
+ 			n = rb_next(&first->rb_node);
+ 			if (n)
+@@ -375,6 +381,7 @@ retry:
+ 	}
+ found:
+ 	if (addr + size > vend) {
++overflow:
+ 		spin_unlock(&vmap_area_lock);
+ 		if (!purged) {
+ 			purge_vmap_area_lazy();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
-input-misc-add-twl4030-pwrbutton-driver-fix.patch
-leds-add-bd2802gu-led-driver.patch
-mmc-add-extended-csd-register-to-debugfs-checkpatch-fixes.patch
-mtd-rbtx4939-add-mtd-support.patch
-misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+vmap-remove-needless-lock-and-list-in-vmap.patch
 page_fault-retry-with-nopage_retry.patch
 page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+radix-tree-gang-set-if-tagged-operation.patch
+mm-dont-call-mark_page_accessed-in-do_swap_page.patch
+mm-update_page_reclaim_stat-is-called-from-page-fault-path.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page.patch
 mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
