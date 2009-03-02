@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch added to -mm tree
-Date: Mon, 02 Mar 2009 12:42:22 -0800
-Message-ID: <200903022042.n22KgMtx020500@imap1.linux-foundation.org>
+Subject: + ubd-stop-defintining-major_nr.patch added to -mm tree
+Date: Mon, 02 Mar 2009 12:45:57 -0800
+Message-ID: <200903022045.n22KjvOl020717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44277 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752309AbZCBUmo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 15:42:44 -0500
+	by vger.kernel.org with ESMTP id S1750756AbZCBUq1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 15:46:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: hch@lst.de, jdike@addtoit.com
 
 
 The patch titled
-     cirrusfb: fix compilation of Zorro code
+     ubd: stop defintining MAJOR_NR
 has been added to the -mm tree.  Its filename is
-     cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch
+     ubd-stop-defintining-major_nr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: fix compilation of Zorro code
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: ubd: stop defintining MAJOR_NR
+From: Christoph Hellwig <hch@lst.de>
 
-Add a missing comma.
+MAJOR_NR isn't needed anymore since very early 2.5 kernels.
 
-Also, push down frequencies for the SD64 card as it is based on a GD5434
-chip and cannot do more than a GD5446 chip.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/um/drivers/ubd_kern.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix3 drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-convert-printks-to-dev_foo-fix-fix3
-+++ a/drivers/video/cirrusfb.c
-@@ -137,7 +137,7 @@ static const struct cirrusfb_board_info_
- 		.maxclock		= {
- 			/* guess */
- 			/* the SD64/P4 have a higher max. videoclock */
--			140000, 140000, 140000, 140000, 140000,
-+			135100, 135100, 85500, 85500, 0
- 		},
- 		.init_sr07		= true,
- 		.init_sr1f		= true,
-@@ -2321,7 +2321,7 @@ static int __devinit cirrusfb_zorro_regi
- 	cinfo->unmap = cirrusfb_zorro_unmap;
+diff -puN arch/um/drivers/ubd_kern.c~ubd-stop-defintining-major_nr arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~ubd-stop-defintining-major_nr
++++ a/arch/um/drivers/ubd_kern.c
+@@ -17,7 +17,6 @@
+  * James McMechan
+  */
  
- 	dev_info(info->device,
--		 "Cirrus Logic chipset on Zorro bus, RAM (%lu MB) at $%lx\n"
-+		 "Cirrus Logic chipset on Zorro bus, RAM (%lu MB) at $%lx\n",
- 		 board_size / MB_, board_addr);
+-#define MAJOR_NR UBD_MAJOR
+ #define UBD_SHIFT 4
  
- 	zorro_set_drvdata(z, info);
+ #include "linux/kernel.h"
+@@ -115,7 +114,7 @@ static struct block_device_operations ub
+ };
+ 
+ /* Protected by ubd_lock */
+-static int fake_major = MAJOR_NR;
++static int fake_major = UBD_MAJOR;
+ static struct gendisk *ubd_gendisk[MAX_DEV];
+ static struct gendisk *fake_gendisk[MAX_DEV];
+ 
+@@ -299,7 +298,7 @@ static int ubd_setup_common(char *str, i
+ 		}
+ 
+ 		mutex_lock(&ubd_lock);
+-		if(fake_major != MAJOR_NR){
++		if(fake_major != UBD_MAJOR){
+ 			*error_out = "Can't assign a fake major twice";
+ 			goto out1;
+ 		}
+@@ -818,13 +817,13 @@ static int ubd_disk_register(int major, 
+ 	disk->first_minor = unit << UBD_SHIFT;
+ 	disk->fops = &ubd_blops;
+ 	set_capacity(disk, size / 512);
+-	if(major == MAJOR_NR)
++	if(major == UBD_MAJOR)
+ 		sprintf(disk->disk_name, "ubd%c", 'a' + unit);
+ 	else
+ 		sprintf(disk->disk_name, "ubd_fake%d", unit);
+ 
+ 	/* sysfs register (not for ide fake devices) */
+-	if (major == MAJOR_NR) {
++	if (major == UBD_MAJOR) {
+ 		ubd_devs[unit].pdev.id   = unit;
+ 		ubd_devs[unit].pdev.name = DRIVER_NAME;
+ 		ubd_devs[unit].pdev.dev.release = ubd_device_release;
+@@ -871,13 +870,13 @@ static int ubd_add(int n, char **error_o
+ 	ubd_dev->queue->queuedata = ubd_dev;
+ 
+ 	blk_queue_max_hw_segments(ubd_dev->queue, MAX_SG);
+-	err = ubd_disk_register(MAJOR_NR, ubd_dev->size, n, &ubd_gendisk[n]);
++	err = ubd_disk_register(UBD_MAJOR, ubd_dev->size, n, &ubd_gendisk[n]);
+ 	if(err){
+ 		*error_out = "Failed to register device";
+ 		goto out_cleanup;
+ 	}
+ 
+-	if(fake_major != MAJOR_NR)
++	if(fake_major != UBD_MAJOR)
+ 		ubd_disk_register(fake_major, ubd_dev->size, n,
+ 				  &fake_gendisk[n]);
+ 
+@@ -1059,10 +1058,10 @@ static int __init ubd_init(void)
+ 	char *error;
+ 	int i, err;
+ 
+-	if (register_blkdev(MAJOR_NR, "ubd"))
++	if (register_blkdev(UBD_MAJOR, "ubd"))
+ 		return -1;
+ 
+-	if (fake_major != MAJOR_NR) {
++	if (fake_major != UBD_MAJOR) {
+ 		char name[sizeof("ubd_nnn\0")];
+ 
+ 		snprintf(name, sizeof(name), "ubd_%d", fake_major);
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from hch@lst.de are
 
+origin.patch
 linux-next.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch
-cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
-cirrusfb-add-laguna-additional-overflow-register.patch
-cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
-cirrusfb-do-not-calculate-line-length-twice.patch
-cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
-cirrusfb-various-improvements.patch
-cirrusfb-laguna-chipset-8bpp-fix.patch
-cirrusfb-check_var-improvements.patch
-cirrusfb-various-laguna-fixes.patch
-cirrusfb-acceleration-improvements.patch
-cirrusfb-add-imageblit-function.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
-cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
-cirrusfb-gd5446-fixes.patch
-cirrusfb-use-24bpp-instead-of-32bpp.patch
-drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
-tdfxfb-fix-memory-leaks-in-removal-path.patch
-tridentfb-fix-memory-leaks-in-removal-path.patch
-vfb-fix-memory-leaks-in-removal-path.patch
-sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-68328fb-fix-cmap-memory-leaks.patch
-amba-clcd-fix-cmap-memory-leaks.patch
-amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
-asiliantfb-fix-cmap-memory-leaks.patch
-asiliantfb-fix-cmap-memory-leaks-fix.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+vfs-simple_set_mnt-should-return-void.patch
+ubd-stop-defintining-major_nr.patch
+loop-add-ioctl-to-resize-a-loop-device.patch
+kthreads-simplify-the-startup-synchronization.patch
+kthreads-rework-kthread_stop.patch
+kthreads-simplify-migration_thread-exit-path.patch
 
