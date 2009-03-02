@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + input-misc-add-twl4030-pwrbutton-driver-fix.patch added to -mm tree
-Date: Fri, 27 Feb 2009 15:45:19 -0800
-Message-ID: <200902272345.n1RNjJRE014757@imap1.linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Mon, 02 Mar 2009 11:17:49 -0800
+Message-ID: <200903021917.n22JHnf4013962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47390 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758654AbZB0XqK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Feb 2009 18:46:10 -0500
+	by vger.kernel.org with ESMTP id S1752860AbZCBTSW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 14:18:22 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n22JHn6a016710
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 2 Mar 2009 11:17:50 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dbrownell@users.sourceforge.net, dmitry.torokhov@gmail.com, felipe.balbi@nokia.com, sameo@openedhand.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     input-misc-add-twl4030-pwrbutton-driver-fix
+     linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     input-misc-add-twl4030-pwrbutton-driver-fix.patch
+     linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +37,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input-misc-add-twl4030-pwrbutton-driver-fix
+Subject: linux-next-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/twl4030-pwrbutton.c |    2 +-
+ arch/x86/kernel/entry_64.S |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/misc/twl4030-pwrbutton.c~input-misc-add-twl4030-pwrbutton-driver-fix drivers/input/misc/twl4030-pwrbutton.c
---- a/drivers/input/misc/twl4030-pwrbutton.c~input-misc-add-twl4030-pwrbutton-driver-fix
-+++ a/drivers/input/misc/twl4030-pwrbutton.c
-@@ -104,7 +104,7 @@ static int __devinit twl4030_pwrbutton_p
- free_input_dev:
- 	input_free_device(powerbutton_dev);
- free_irq_and_out:
--	free_irq(TWL4030_PWRIRQ_PWRBTN, NULL);
-+	free_irq(irq, NULL);
- out:
- 	return err;
- }
+diff -puN arch/x86/kernel/entry_64.S~linux-next-rejects arch/x86/kernel/entry_64.S
+--- a/arch/x86/kernel/entry_64.S~linux-next-rejects
++++ a/arch/x86/kernel/entry_64.S
+@@ -840,7 +840,7 @@ common_interrupt:
+ ret_from_intr:
+ 	DISABLE_INTERRUPTS(CLBR_NONE)
+ 	TRACE_IRQS_OFF
+-	decl %gs:pda_irqcount
++	decl PER_CPU_VAR(irq_count)
+ 	leaveq
+ 	CFI_DEF_CFA_REGISTER	rsp
+ 	CFI_ADJUST_CFA_OFFSET	-8
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,6 +66,7 @@ origin.patch
 i-need-old-gcc.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
+linux-next-rejects.patch
 next-remove-localversion.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
 oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
