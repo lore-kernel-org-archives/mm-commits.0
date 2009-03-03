@@ -1,240 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: + cpusets-replace-zone-allowed-functions-with-node-allowed.patch added to -mm tree
-Date: Tue, 03 Mar 2009 12:15:42 -0800
-Message-ID: <200903032015.n23KFgLR032016@imap1.linux-foundation.org>
+Subject: [to-be-updated] cgroup-allow-subsys-to-set-default-mode-of-its-own-file.patch removed from -mm tree
+Date: Tue, 03 Mar 2009 12:16:20 -0800
+Message-ID: <200903032016.n23KGK6m032076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40359 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56402 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752154AbZCCUPx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 15:15:53 -0500
+	by vger.kernel.org with ESMTP id S1752739AbZCCURG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 15:17:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, cl@linux-foundation.org, menage@google.com, randy.dunlap@oracle.com
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, lizf@cn.fujitsu.cn, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpusets: replace zone allowed functions with node allowed
-has been added to the -mm tree.  Its filename is
-     cpusets-replace-zone-allowed-functions-with-node-allowed.patch
+     cgroups: allow subsys to set default mode of its own file
+has been removed from the -mm tree.  Its filename was
+     cgroup-allow-subsys-to-set-default-mode-of-its-own-file.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusets: replace zone allowed functions with node allowed
-From: David Rientjes <rientjes@google.com>
+Subject: cgroups: allow subsys to set default mode of its own file
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-The cpuset_zone_allowed() variants are actually only a function of the
-zone's node.
+cgroup's subsys has "readonly" files, but default permission is always
+rw-r--r--. This allows to create r--r--r-- file to subsys.
+(The user can do chmod on this read-only file. But this behavior is not
+ different from current pseudo file systems as /proc.)
 
+Reason:
+
+When I wrote tools for maintaining cgroups, I couldn't find which file was
+a writable interface via cgroup file systems.  (finally, I did dirty
+approach.)
+
+IMHO, showing "this file is read-only" in explicit way is useful for
+user-land (tools).  In other story, a file whose name sounds read-only may
+have "trigger" operation and support reseting.  In this case, "writable"
+is informative.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Li Zefan <lizf@cn.fujitsu.cn>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Paul Menage <menage@google.com>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h |   33 +++++++++++++++++----
- kernel/cpuset.c        |   59 ++++++++++++++++-----------------------
- 2 files changed, 52 insertions(+), 40 deletions(-)
+ include/linux/cgroup.h |    2 ++
+ kernel/cgroup.c        |    5 ++++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/cpuset.h~cpusets-replace-zone-allowed-functions-with-node-allowed include/linux/cpuset.h
---- a/include/linux/cpuset.h~cpusets-replace-zone-allowed-functions-with-node-allowed
-+++ a/include/linux/cpuset.h
-@@ -12,6 +12,7 @@
- #include <linux/cpumask.h>
- #include <linux/nodemask.h>
- #include <linux/cgroup.h>
-+#include <linux/mm.h>
+diff -puN include/linux/cgroup.h~cgroup-allow-subsys-to-set-default-mode-of-its-own-file include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup-allow-subsys-to-set-default-mode-of-its-own-file
++++ a/include/linux/cgroup.h
+@@ -245,6 +245,8 @@ struct cftype {
+ 	 * subsystem, followed by a period */
+ 	char name[MAX_CFTYPE_NAME];
+ 	int private;
++	/* if not 0, mode is set to mode, otherwise 0644 */
++	int mode;
  
- #ifdef CONFIG_CPUSETS
- 
-@@ -29,19 +30,29 @@ void cpuset_init_current_mems_allowed(vo
- void cpuset_update_task_memory_state(void);
- int cpuset_nodemask_valid_mems_allowed(nodemask_t *nodemask);
- 
--extern int __cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask);
--extern int __cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask);
-+extern int __cpuset_node_allowed_softwall(int node, gfp_t gfp_mask);
-+extern int __cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask);
- 
--static int inline cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
-+static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
- {
- 	return number_of_cpusets <= 1 ||
--		__cpuset_zone_allowed_softwall(z, gfp_mask);
-+		__cpuset_node_allowed_softwall(node, gfp_mask);
- }
- 
--static int inline cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
-+static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
- {
- 	return number_of_cpusets <= 1 ||
--		__cpuset_zone_allowed_hardwall(z, gfp_mask);
-+		__cpuset_node_allowed_hardwall(node, gfp_mask);
-+}
-+
-+static inline int cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
-+{
-+	return cpuset_node_allowed_softwall(zone_to_nid(z), gfp_mask);
-+}
-+
-+static inline int cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
-+{
-+	return cpuset_node_allowed_hardwall(zone_to_nid(z), gfp_mask);
- }
- 
- extern int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
-@@ -112,6 +123,16 @@ static inline int cpuset_nodemask_valid_
- 	return 1;
- }
- 
-+static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
-+{
-+	return 1;
-+}
-+
-+static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
-+{
-+	return 1;
-+}
-+
- static inline int cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
- {
- 	return 1;
-diff -puN kernel/cpuset.c~cpusets-replace-zone-allowed-functions-with-node-allowed kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-replace-zone-allowed-functions-with-node-allowed
-+++ a/kernel/cpuset.c
-@@ -2180,26 +2180,24 @@ static const struct cpuset *nearest_hard
- }
- 
- /**
-- * cpuset_zone_allowed_softwall - Can we allocate on zone z's memory node?
-- * @z: is this zone on an allowed node?
-+ * cpuset_node_allowed_softwall - Can we allocate on a memory node?
-+ * @node: is this an allowed node?
-  * @gfp_mask: memory allocation flags
-  *
-- * If we're in interrupt, yes, we can always allocate.  If
-- * __GFP_THISNODE is set, yes, we can always allocate.  If zone
-- * z's node is in our tasks mems_allowed, yes.  If it's not a
-- * __GFP_HARDWALL request and this zone's nodes is in the nearest
-- * hardwalled cpuset ancestor to this tasks cpuset, yes.
-- * If the task has been OOM killed and has access to memory reserves
-- * as specified by the TIF_MEMDIE flag, yes.
-+ * If we're in interrupt, yes, we can always allocate.  If __GFP_THISNODE is
-+ * set, yes, we can always allocate.  If node is in our task's mems_allowed,
-+ * yes.  If it's not a __GFP_HARDWALL request and this node is in the nearest
-+ * hardwalled cpuset ancestor to this task's cpuset, yes.  If the task has been
-+ * OOM killed and has access to memory reserves as specified by the TIF_MEMDIE
-+ * flag, yes.
-  * Otherwise, no.
-  *
-- * If __GFP_HARDWALL is set, cpuset_zone_allowed_softwall()
-- * reduces to cpuset_zone_allowed_hardwall().  Otherwise,
-- * cpuset_zone_allowed_softwall() might sleep, and might allow a zone
-- * from an enclosing cpuset.
-+ * If __GFP_HARDWALL is set, cpuset_node_allowed_softwall() reduces to
-+ * cpuset_node_allowed_hardwall().  Otherwise, cpuset_node_allowed_softwall()
-+ * might sleep, and might allow a node from an enclosing cpuset.
-  *
-- * cpuset_zone_allowed_hardwall() only handles the simpler case of
-- * hardwall cpusets, and never sleeps.
-+ * cpuset_node_allowed_hardwall() only handles the simpler case of hardwall
-+ * cpusets, and never sleeps.
-  *
-  * The __GFP_THISNODE placement logic is really handled elsewhere,
-  * by forcibly using a zonelist starting at a specified node, and by
-@@ -2238,20 +2236,17 @@ static const struct cpuset *nearest_hard
-  *	GFP_USER     - only nodes in current tasks mems allowed ok.
-  *
-  * Rule:
-- *    Don't call cpuset_zone_allowed_softwall if you can't sleep, unless you
-+ *    Don't call cpuset_node_allowed_softwall if you can't sleep, unless you
-  *    pass in the __GFP_HARDWALL flag set in gfp_flag, which disables
-  *    the code that might scan up ancestor cpusets and sleep.
-  */
--
--int __cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
-+int __cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
- {
--	int node;			/* node that zone z is on */
- 	const struct cpuset *cs;	/* current cpuset ancestors */
- 	int allowed;			/* is allocation in zone z allowed? */
- 
- 	if (in_interrupt() || (gfp_mask & __GFP_THISNODE))
- 		return 1;
--	node = zone_to_nid(z);
- 	might_sleep_if(!(gfp_mask & __GFP_HARDWALL));
- 	if (node_isset(node, current->mems_allowed))
- 		return 1;
-@@ -2280,15 +2275,15 @@ int __cpuset_zone_allowed_softwall(struc
- }
- 
- /*
-- * cpuset_zone_allowed_hardwall - Can we allocate on zone z's memory node?
-- * @z: is this zone on an allowed node?
-+ * cpuset_node_allowed_hardwall - Can we allocate on a memory node?
-+ * @node: is this an allowed node?
-  * @gfp_mask: memory allocation flags
-  *
-- * If we're in interrupt, yes, we can always allocate.
-- * If __GFP_THISNODE is set, yes, we can always allocate.  If zone
-- * z's node is in our tasks mems_allowed, yes.   If the task has been
-- * OOM killed and has access to memory reserves as specified by the
-- * TIF_MEMDIE flag, yes.  Otherwise, no.
-+ * If we're in interrupt, yes, we can always allocate.  If __GFP_THISNODE is
-+ * set, yes, we can always allocate.  If node is in our task's mems_allowed,
-+ * yes.  If the task has been OOM killed and has access to memory reserves as
-+ * specified by the TIF_MEMDIE flag, yes.
-+ * Otherwise, no.
-  *
-  * The __GFP_THISNODE placement logic is really handled elsewhere,
-  * by forcibly using a zonelist starting at a specified node, and by
-@@ -2296,20 +2291,16 @@ int __cpuset_zone_allowed_softwall(struc
-  * any node on the zonelist except the first.  By the time any such
-  * calls get to this routine, we should just shut up and say 'yes'.
-  *
-- * Unlike the cpuset_zone_allowed_softwall() variant, above,
-- * this variant requires that the zone be in the current tasks
-+ * Unlike the cpuset_node_allowed_softwall() variant, above,
-+ * this variant requires that the node be in the current task's
-  * mems_allowed or that we're in interrupt.  It does not scan up the
-  * cpuset hierarchy for the nearest enclosing mem_exclusive cpuset.
-  * It never sleeps.
-  */
--
--int __cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
-+int __cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
- {
--	int node;			/* node that zone z is on */
--
- 	if (in_interrupt() || (gfp_mask & __GFP_THISNODE))
- 		return 1;
--	node = zone_to_nid(z);
- 	if (node_isset(node, current->mems_allowed))
- 		return 1;
  	/*
+ 	 * If non-zero, defines the maximum length of string that can
+diff -puN kernel/cgroup.c~cgroup-allow-subsys-to-set-default-mode-of-its-own-file kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-allow-subsys-to-set-default-mode-of-its-own-file
++++ a/kernel/cgroup.c
+@@ -1706,7 +1706,10 @@ int cgroup_add_file(struct cgroup *cgrp,
+ 	BUG_ON(!mutex_is_locked(&dir->d_inode->i_mutex));
+ 	dentry = lookup_one_len(name, dir, strlen(name));
+ 	if (!IS_ERR(dentry)) {
+-		error = cgroup_create_file(dentry, 0644 | S_IFREG,
++		int mode = 0644;
++		if (cft->mode)
++			mode = cft->mode;
++		error = cgroup_create_file(dentry, mode | S_IFREG,
+ 						cgrp->root->sb);
+ 		if (!error)
+ 			dentry->d_fsdata = (void *)cft;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 linux-next.patch
-oom_kill-dont-call-for-int_sqrt0.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+vmscan-respect-higher-order-in-zone_reclaim.patch
+cgroup-allow-subsys-to-set-default-mode-of-its-own-file.patch
+cgroup-memcg-show-correct-file-mode.patch
+cgroup-css-id-support.patch
+cgroup-fix-frequent-ebusy-at-rmdir.patch
+cgroups-more-documentation-for-remount-and-release_agent.patch
 memcg-use-css-id.patch
 memcg-hierarchical-stat.patch
 memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
@@ -246,5 +107,11 @@ memcg-show-memcg-information-during-oom-fix2.patch
 memcg-show-memcg-information-during-oom-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-cpusets-replace-zone-allowed-functions-with-node-allowed.patch
+memcg-remove-mem_cgroup_calc_mapped_ratio-take2.patch
+memcg-remove-mem_cgroup_reclaim_imbalance-remnants.patch
+use-css-id-in-swap_cgroup-for-saving-memory-v4.patch
+cgroups-add-data-field-to-struct-cgroup_scanner.patch
+cpuset-rewrite-update_tasks_nodemask.patch
+cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
+cpuset-remove-struct-cpuset_hotplug_scanner.patch
 
