@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-fix-statistics-counting-issues.patch added to -mm tree
-Date: Tue, 03 Mar 2009 13:22:33 -0800
-Message-ID: <200903032122.n23LMXVY004962@imap1.linux-foundation.org>
+Subject: + ipmi-add-console-oops-catcher.patch added to -mm tree
+Date: Tue, 03 Mar 2009 13:22:35 -0800
+Message-ID: <200903032122.n23LMZkj004967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756548AbZCCV0D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 16:26:03 -0500
+	by vger.kernel.org with ESMTP id S1752504AbZCCV1t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 16:27:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cminyard@mvista.com, blubkin@vmware.com
+Cc: h-shimamoto@ct.jp.nec.com, cminyard@mvista.com
 
 
 The patch titled
-     ipmi: fix statistics counting issues
+     ipmi: add console oops catcher
 has been added to the -mm tree.  Its filename is
-     ipmi-fix-statistics-counting-issues.patch
+     ipmi-add-console-oops-catcher.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,220 +33,325 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: fix statistics counting issues
-From: Corey Minyard <cminyard@mvista.com>
+Subject: ipmi: add console oops catcher
+From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 
-Bela Lubkin noticed that the statistics for send IPMB and LAN commands in
-the IPMI driver could be incremented even if an error occurred.  Move the
-increments to the proper place to avoid this.
+Console messages on oops or panic are very important to investigate
+problem.  Logging oops or panic messages to SEL is useful because SEL is a
+non volatile memory.
 
-Also add some statistics for retransmissions that failed, and some little
-helper functions to neaten up the code a little.
+Implement a console driver to log messages to SEL when oops_in_progress is
+not zero.  The first message just after oops, panic or every 10 seconds
+from last timestamp are logged as OEM event with timestamp, others are
+logged as OEM event without timestamp.
 
+Enable config IPMI_OOPS_CONSOLE and add console=ttyIPMI to kernel command
+line to log panic or oops messages to IPMI SEL.
+
+The number of entries for this output is limited by msg_limit paramter,
+and the default value is 100.
+
+Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 Signed-off-by: Corey Minyard <cminyard@mvista.com>
-Cc: Bela Lubkin <blubkin@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |   73 ++++++++++++++++++--------
- 1 file changed, 51 insertions(+), 22 deletions(-)
+ drivers/char/ipmi/Kconfig             |    7 
+ drivers/char/ipmi/Makefile            |    1 
+ drivers/char/ipmi/ipmi_oops_console.c |  256 ++++++++++++++++++++++++
+ 3 files changed, 264 insertions(+)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-statistics-counting-issues drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-statistics-counting-issues
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -285,6 +285,11 @@ enum ipmi_stat_indexes {
- 	/* Events that were received with the proper format. */
- 	IPMI_STAT_events,
+diff -puN drivers/char/ipmi/Kconfig~ipmi-add-console-oops-catcher drivers/char/ipmi/Kconfig
+--- a/drivers/char/ipmi/Kconfig~ipmi-add-console-oops-catcher
++++ a/drivers/char/ipmi/Kconfig
+@@ -61,4 +61,11 @@ config IPMI_POWEROFF
+          This enables a function to power off the system with IPMI if
+ 	 the IPMI management controller is capable of this.
  
-+	/* Retransmissions on IPMB that failed. */
-+	IPMI_STAT_dropped_rexmit_ipmb_commands,
++config IPMI_OOPS_CONSOLE
++	tristate 'IPMI oops console'
++	help
++	  This enables the IPMI oops console. IPMI oops console logs oops or
++	  panic console messsages to SEL. The number of entries for this usage
++	  is limited by msg_limit, default is 100 entries.
 +
-+	/* Retransmissions on LAN that failed. */
-+	IPMI_STAT_dropped_rexmit_lan_commands,
- 
- 	/* This *must* remain last, add new values above this. */
- 	IPMI_NUM_STATS
-@@ -445,6 +450,20 @@ static DEFINE_MUTEX(smi_watchers_mutex);
- #define ipmi_get_stat(intf, stat) \
- 	((unsigned int) atomic_read(&(intf)->stats[IPMI_STAT_ ## stat]))
- 
-+static int is_lan_addr(struct ipmi_addr *addr)
+ endif # IPMI_HANDLER
+diff -puN drivers/char/ipmi/Makefile~ipmi-add-console-oops-catcher drivers/char/ipmi/Makefile
+--- a/drivers/char/ipmi/Makefile~ipmi-add-console-oops-catcher
++++ a/drivers/char/ipmi/Makefile
+@@ -9,3 +9,4 @@ obj-$(CONFIG_IPMI_DEVICE_INTERFACE) += i
+ obj-$(CONFIG_IPMI_SI) += ipmi_si.o
+ obj-$(CONFIG_IPMI_WATCHDOG) += ipmi_watchdog.o
+ obj-$(CONFIG_IPMI_POWEROFF) += ipmi_poweroff.o
++obj-$(CONFIG_IPMI_OOPS_CONSOLE) += ipmi_oops_console.o
+diff -puN /dev/null drivers/char/ipmi/ipmi_oops_console.c
+--- /dev/null
++++ a/drivers/char/ipmi/ipmi_oops_console.c
+@@ -0,0 +1,256 @@
++/*
++ * ipmi_oops_console.c
++ *
++ * IPMI Oops Console
++ * Logging console message to SEL on oops
++ *
++ * Author: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
++ *
++ * Copyright (C) 2008 NEC Corporation
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License as published by the
++ *  Free Software Foundation; either version 2 of the License, or (at your
++ *  option) any later version.
++ *
++ *
++ *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ *  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
++ *  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
++ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
++ *  OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ *  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
++ *  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
++ *  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/ipmi.h>
++#include <linux/ipmi_smi.h>
++#include <linux/console.h>
++#include <linux/jiffies.h>
++#include <asm/atomic.h>
++
++#define PFX "IPMI oops_console: "
++
++static ipmi_user_t oops_user;
++static int oops_intf = -1;
++
++static atomic_t oops_counter;
++
++#define SEL_MSGSIZE_TIMESTAMP	(6U)
++#define SEL_MSGSIZE		(13U)
++#define DEF_LIMIT		(100)
++#define TIMESTAMP_INTERVAL	(10 * HZ)
++
++static char oops_msg[SEL_MSGSIZE_TIMESTAMP + SEL_MSGSIZE];
++static char *msg_ptr = oops_msg;
++static unsigned int msg_len;
++static unsigned long msg_jiffies;
++static int msg_count, msg_limit = DEF_LIMIT;
++
++module_param(msg_limit, int, 0644);
++MODULE_PARM_DESC(msg_limit, "Message limit. Default: 100 entries.");
++
++static void oops_smi_msg_done(struct ipmi_smi_msg *msg)
 +{
-+	return addr->addr_type == IPMI_LAN_ADDR_TYPE;
++	atomic_dec(&oops_counter);
++}
++static struct ipmi_smi_msg oops_smi_msg = {
++	.done = oops_smi_msg_done
++};
++
++static void oops_recv_msg_done(struct ipmi_recv_msg *msg)
++{
++	atomic_dec(&oops_counter);
++}
++static struct ipmi_recv_msg oops_recv_msg = {
++	.done = oops_recv_msg_done
++};
++
++static void ipmi_oops_console_log_to_sel(int timestamp)
++{
++	struct ipmi_system_interface_addr si;
++	struct kernel_ipmi_msg msg;
++	unsigned int len;
++	unsigned char data[16];
++	unsigned char my_addr;
++
++	if (!oops_user || !msg_len || msg_count >= msg_limit)
++		return;
++
++	len = min((timestamp ? SEL_MSGSIZE_TIMESTAMP : SEL_MSGSIZE), msg_len);
++
++	si.addr_type = IPMI_SYSTEM_INTERFACE_ADDR_TYPE;
++	si.channel = IPMI_BMC_CHANNEL;
++	si.lun = 0;
++
++	msg.netfn = IPMI_NETFN_STORAGE_REQUEST;
++	msg.cmd = IPMI_ADD_SEL_ENTRY_CMD;
++	msg.data = data;
++	msg.data_len = 16;
++
++	memset(data, 0, sizeof(data));
++	if (timestamp) {
++		len = min(SEL_MSGSIZE_TIMESTAMP, msg_len);
++		data[2] = 0xd1; /* OEM event with timestamp */
++		memcpy(data + 10, msg_ptr, len);
++		msg_jiffies = jiffies; /* save jiffies at timestamp */
++	} else {
++		len = min(SEL_MSGSIZE, msg_len);
++		data[2] = 0xf1; /* OEM event without timestamp */
++		memcpy(data + 3, msg_ptr, len);
++	}
++
++	preempt_disable();
++
++	if (ipmi_get_my_address(oops_user, 0, &my_addr))
++		goto out;
++
++	atomic_set(&oops_counter, 2);
++	if (ipmi_request_supply_msgs(oops_user, (struct ipmi_addr *)&si,
++				     0, &msg, NULL, &oops_smi_msg,
++				     &oops_recv_msg, 1) < 0)
++		goto out;
++	while (atomic_read(&oops_counter) > 0) {
++		ipmi_poll_interface(oops_user);
++		cpu_relax();
++	}
++
++	++msg_count;
++	msg_len -= len;
++	msg_ptr = msg_len ? &oops_msg[len] : oops_msg;
++out:
++	preempt_enable();
 +}
 +
-+static int is_ipmb_addr(struct ipmi_addr *addr)
++static void ipmi_oops_console_sync(void)
 +{
-+	return addr->addr_type == IPMI_IPMB_ADDR_TYPE;
++	if (!oops_user || !msg_len || msg_count >= msg_limit)
++		return;
++
++	if (jiffies > (msg_jiffies + TIMESTAMP_INTERVAL)) {
++		if (msg_ptr != oops_msg)
++			ipmi_oops_console_log_to_sel(0);
++		if (msg_len >= SEL_MSGSIZE_TIMESTAMP)
++			ipmi_oops_console_log_to_sel(1);
++		return;
++	}
++	if (msg_len >= SEL_MSGSIZE)
++		ipmi_oops_console_log_to_sel(0);
 +}
 +
-+static int is_ipmb_bcast_addr(struct ipmi_addr *addr)
++static void
++ipmi_oops_console_write(struct console *con, const char *s, unsigned int count)
 +{
-+	return addr->addr_type == IPMI_IPMB_BROADCAST_ADDR_TYPE;
++	unsigned int size;
++
++	if (likely(!oops_in_progress)) {
++		ipmi_oops_console_log_to_sel(0);
++		return;
++	}
++
++	if (unlikely(!oops_user))
++		return;
++
++	while (msg_count < msg_limit && count > 0) {
++		size = min(SEL_MSGSIZE - msg_len, count);
++		memcpy(msg_ptr + msg_len, s, size);
++		msg_len += size;
++		s += size;
++		count -= size;
++		ipmi_oops_console_sync();
++	}
 +}
- 
- static void free_recv_msg_list(struct list_head *q)
- {
-@@ -601,8 +620,7 @@ ipmi_addr_equal(struct ipmi_addr *addr1,
- 		return (smi_addr1->lun == smi_addr2->lun);
- 	}
- 
--	if ((addr1->addr_type == IPMI_IPMB_ADDR_TYPE)
--	    || (addr1->addr_type == IPMI_IPMB_BROADCAST_ADDR_TYPE)) {
-+	if (is_ipmb_addr(addr1) || is_ipmb_bcast_addr(addr1)) {
- 		struct ipmi_ipmb_addr *ipmb_addr1
- 		    = (struct ipmi_ipmb_addr *) addr1;
- 		struct ipmi_ipmb_addr *ipmb_addr2
-@@ -612,7 +630,7 @@ ipmi_addr_equal(struct ipmi_addr *addr1,
- 			&& (ipmb_addr1->lun == ipmb_addr2->lun));
- 	}
- 
--	if (addr1->addr_type == IPMI_LAN_ADDR_TYPE) {
-+	if (is_lan_addr(addr1)) {
- 		struct ipmi_lan_addr *lan_addr1
- 			= (struct ipmi_lan_addr *) addr1;
- 		struct ipmi_lan_addr *lan_addr2
-@@ -644,14 +662,13 @@ int ipmi_validate_addr(struct ipmi_addr 
- 	    || (addr->channel < 0))
- 		return -EINVAL;
- 
--	if ((addr->addr_type == IPMI_IPMB_ADDR_TYPE)
--	    || (addr->addr_type == IPMI_IPMB_BROADCAST_ADDR_TYPE)) {
-+	if (is_ipmb_addr(addr) || is_ipmb_bcast_addr(addr)) {
- 		if (len < sizeof(struct ipmi_ipmb_addr))
- 			return -EINVAL;
- 		return 0;
- 	}
- 
--	if (addr->addr_type == IPMI_LAN_ADDR_TYPE) {
-+	if (is_lan_addr(addr)) {
- 		if (len < sizeof(struct ipmi_lan_addr))
- 			return -EINVAL;
- 		return 0;
-@@ -1503,8 +1520,7 @@ static int i_ipmi_request(ipmi_user_t   
- 			memcpy(&(smi_msg->data[2]), msg->data, msg->data_len);
- 		smi_msg->data_size = msg->data_len + 2;
- 		ipmi_inc_stat(intf, sent_local_commands);
--	} else if ((addr->addr_type == IPMI_IPMB_ADDR_TYPE)
--		   || (addr->addr_type == IPMI_IPMB_BROADCAST_ADDR_TYPE)) {
-+	} else if (is_ipmb_addr(addr) || is_ipmb_bcast_addr(addr)) {
- 		struct ipmi_ipmb_addr *ipmb_addr;
- 		unsigned char         ipmb_seq;
- 		long                  seqid;
-@@ -1583,8 +1599,6 @@ static int i_ipmi_request(ipmi_user_t   
- 
- 			spin_lock_irqsave(&(intf->seq_lock), flags);
- 
--			ipmi_inc_stat(intf, sent_ipmb_commands);
--
- 			/*
- 			 * Create a sequence number with a 1 second
- 			 * timeout and 4 retries.
-@@ -1606,6 +1620,8 @@ static int i_ipmi_request(ipmi_user_t   
- 				goto out_err;
- 			}
- 
-+			ipmi_inc_stat(intf, sent_ipmb_commands);
 +
- 			/*
- 			 * Store the sequence number in the message,
- 			 * so that when the send message response
-@@ -1635,7 +1651,7 @@ static int i_ipmi_request(ipmi_user_t   
- 			 */
- 			spin_unlock_irqrestore(&(intf->seq_lock), flags);
- 		}
--	} else if (addr->addr_type == IPMI_LAN_ADDR_TYPE) {
-+	} else if (is_lan_addr(addr)) {
- 		struct ipmi_lan_addr  *lan_addr;
- 		unsigned char         ipmb_seq;
- 		long                  seqid;
-@@ -1696,8 +1712,6 @@ static int i_ipmi_request(ipmi_user_t   
- 
- 			spin_lock_irqsave(&(intf->seq_lock), flags);
- 
--			ipmi_inc_stat(intf, sent_lan_commands);
--
- 			/*
- 			 * Create a sequence number with a 1 second
- 			 * timeout and 4 retries.
-@@ -1719,6 +1733,8 @@ static int i_ipmi_request(ipmi_user_t   
- 				goto out_err;
- 			}
- 
-+			ipmi_inc_stat(intf, sent_lan_commands);
++static struct console oops_console = {
++	.name	= "ttyIPMI",
++	.write	= ipmi_oops_console_write,
++	.unblank = ipmi_oops_console_sync,
++	.index	= -1,
++};
 +
- 			/*
- 			 * Store the sequence number in the message,
- 			 * so that when the send message response
-@@ -1937,6 +1953,10 @@ static int stat_file_read_proc(char *pag
- 		       ipmi_get_stat(intf, invalid_events));
- 	out += sprintf(out, "events:                      %u\n",
- 		       ipmi_get_stat(intf, events));
-+	out += sprintf(out, "failed rexmit LAN msgs:      %u\n",
-+		       ipmi_get_stat(intf, dropped_rexmit_lan_commands));
-+	out += sprintf(out, "failed rexmit IPMB msgs:     %u\n",
-+		       ipmi_get_stat(intf, dropped_rexmit_ipmb_commands));
- 
- 	return (out - ((char *) page));
- }
-@@ -3730,7 +3750,7 @@ static void check_msg_timeout(ipmi_smi_t
- 		list_add_tail(&msg->link, timeouts);
- 		if (ent->broadcast)
- 			ipmi_inc_stat(intf, timed_out_ipmb_broadcasts);
--		else if (ent->recv_msg->addr.addr_type == IPMI_LAN_ADDR_TYPE)
-+		else if (is_lan_addr(&ent->recv_msg->addr))
- 			ipmi_inc_stat(intf, timed_out_lan_commands);
- 		else
- 			ipmi_inc_stat(intf, timed_out_ipmb_commands);
-@@ -3744,15 +3764,17 @@ static void check_msg_timeout(ipmi_smi_t
- 		 */
- 		ent->timeout = MAX_MSG_TIMEOUT;
- 		ent->retries_left--;
--		if (ent->recv_msg->addr.addr_type == IPMI_LAN_ADDR_TYPE)
--			ipmi_inc_stat(intf, retransmitted_lan_commands);
--		else
--			ipmi_inc_stat(intf, retransmitted_ipmb_commands);
--
- 		smi_msg = smi_from_recv_msg(intf, ent->recv_msg, slot,
- 					    ent->seqid);
--		if (!smi_msg)
-+		if (!smi_msg) {
-+			if (is_lan_addr(&ent->recv_msg->addr))
-+				ipmi_inc_stat(intf,
-+					      dropped_rexmit_lan_commands);
-+			else
-+				ipmi_inc_stat(intf,
-+					      dropped_rexmit_ipmb_commands);
- 			return;
-+		}
- 
- 		spin_unlock_irqrestore(&intf->seq_lock, *flags);
- 
-@@ -3764,10 +3786,17 @@ static void check_msg_timeout(ipmi_smi_t
- 		 * resent.
- 		 */
- 		handlers = intf->handlers;
--		if (handlers)
-+		if (handlers) {
-+			if (is_lan_addr(&ent->recv_msg->addr))
-+				ipmi_inc_stat(intf,
-+					      retransmitted_lan_commands);
-+			else
-+				ipmi_inc_stat(intf,
-+					      retransmitted_ipmb_commands);
++static void ipmi_oops_recv(struct ipmi_recv_msg *msg, void *data)
++{
++	ipmi_free_recv_msg(msg);
++}
 +
- 			intf->handlers->sender(intf->send_info,
- 					       smi_msg, 0);
--		else
-+		} else
- 			ipmi_free_smi_msg(smi_msg);
- 
- 		spin_lock_irqsave(&intf->seq_lock, *flags);
++static struct ipmi_user_hndl ipmi_handler = {
++	.ipmi_recv_hndl = ipmi_oops_recv,
++};
++
++static void ipmi_register_oops_console(int intf)
++{
++	int ret;
++
++	ret = ipmi_create_user(intf, &ipmi_handler, NULL, &oops_user);
++	if (ret < 0) {
++		printk(KERN_ERR PFX "unable to create user\n");
++		return;
++	}
++
++	oops_intf = intf;
++
++	register_console(&oops_console);
++
++	printk(KERN_INFO PFX "ready\n");
++}
++
++static void ipmi_unregister_oops_console(int intf)
++{
++	unregister_console(&oops_console);
++
++	ipmi_destroy_user(oops_user);
++	oops_user = NULL;
++	oops_intf = -1;
++}
++
++static void ipmi_new_smi(int if_num, struct device *dev)
++{
++	ipmi_register_oops_console(if_num);
++}
++
++static void ipmi_smi_gone(int if_num)
++{
++	ipmi_unregister_oops_console(if_num);
++}
++
++static struct ipmi_smi_watcher smi_watcher = {
++	.owner		= THIS_MODULE,
++	.new_smi	= ipmi_new_smi,
++	.smi_gone	= ipmi_smi_gone,
++};
++
++static int __init ipmi_oops_console_init(void)
++{
++	int ret;
++
++	ret = ipmi_smi_watcher_register(&smi_watcher);
++	if (ret) {
++		printk(KERN_ERR PFX "unable to register smi watcher\n");
++		return ret;
++	}
++
++	printk(KERN_INFO PFX "driver initialized\n");
++
++	return ret;
++}
++module_init(ipmi_oops_console_init);
++
++static void __exit ipmi_oops_console_exit(void)
++{
++	if (oops_intf >= 0)
++		ipmi_unregister_oops_console(oops_intf);
++}
++module_exit(ipmi_oops_console_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>");
++MODULE_DESCRIPTION("oops console handler based upon the IPMI interface.");
 _
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
 
-ipmi-fix-statistics-counting-issues.patch
+linux-next.patch
+softirq-introduce-statistics-for-softirq.patch
+proc-export-statistics-for-softirq-to-proc.patch
+proc-export-statistics-for-softirq-to-proc-fix.patch
+proc-update-document-for-proc-softirqs-and-proc-stat.patch
 ipmi-add-console-oops-catcher.patch
-ipmi-add-oem-message-handling.patch
 
