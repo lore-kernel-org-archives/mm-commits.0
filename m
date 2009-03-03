@@ -1,69 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] asus-laptop-restore-acpi_generate_proc_event.patch removed from -mm tree
-Date: Tue, 03 Mar 2009 11:42:50 -0800
-Message-ID: <200903031942.n23Jgo93029445@imap1.linux-foundation.org>
+Subject: [merged] karsten-has-moved.patch removed from -mm tree
+Date: Tue, 03 Mar 2009 11:42:46 -0800
+Message-ID: <200903031942.n23JgkT4029438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753738AbZCCTnb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 14:43:31 -0500
+	by vger.kernel.org with ESMTP id S1753930AbZCCTnc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 14:43:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corentincj@iksaif.net, lenb@kernel.org, mm-commits@vger.kernel.org
+To: Karsten-Keil@t-online.de, davem@davemloft.net, kkeil@linux-pingi.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asus-laptop: restore acpi_generate_proc_event()
+     Karsten has moved
 has been removed from the -mm tree.  Its filename was
-     asus-laptop-restore-acpi_generate_proc_event.patch
+     karsten-has-moved.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asus-laptop: restore acpi_generate_proc_event()
-From: Corentin Chary <corentincj@iksaif.net>
+Subject: Karsten has moved
+From: Karsten Keil <Karsten-Keil@t-online.de>
 
-Restore acpi_generate_proc_event() for backward compatibility with old
-acpi scripts.
+Since I will loose the old address soon, please change it.
 
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Karsten Keil <kkeil@linux-pingi.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/asus-laptop.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/asus-laptop.c~asus-laptop-restore-acpi_generate_proc_event drivers/platform/x86/asus-laptop.c
---- a/drivers/platform/x86/asus-laptop.c~asus-laptop-restore-acpi_generate_proc_event
-+++ a/drivers/platform/x86/asus-laptop.c
-@@ -815,6 +815,7 @@ static int asus_setkeycode(struct input_
- static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
- {
- 	static struct key_entry *key;
-+	u16 count;
+diff -puN MAINTAINERS~karsten-has-moved MAINTAINERS
+--- a/MAINTAINERS~karsten-has-moved
++++ a/MAINTAINERS
+@@ -2464,7 +2464,7 @@ S:	Maintained
  
- 	/* TODO Find a better way to handle events count. */
- 	if (!hotk)
-@@ -832,9 +833,11 @@ static void asus_hotk_notify(acpi_handle
- 		lcd_blank(FB_BLANK_POWERDOWN);
- 	}
- 
-+	count = hotk->event_count[event % 128]++;
-+	acpi_bus_generate_proc_event(hotk->device, event, count);
- 	acpi_bus_generate_netlink_event(hotk->device->pnp.device_class,
- 					dev_name(&hotk->device->dev), event,
--					hotk->event_count[event % 128]++);
-+					count);
- 
- 	if (hotk->inputdev) {
- 		key = asus_get_entry_by_scancode(event);
+ ISDN SUBSYSTEM
+ P:	Karsten Keil
+-M:	kkeil@suse.de
++M:	isdn@linux-pingi.de
+ L:	isdn4linux@listserv.isdn4linux.de (subscribers-only)
+ W:	http://www.isdn4linux.de
+ T:	git kernel.org:/pub/scm/linux/kernel/kkeil/isdn-2.6.git
 _
 
-Patches currently in -mm which might be from corentincj@iksaif.net are
+Patches currently in -mm which might be from Karsten-Keil@t-online.de are
 
-linux-next.patch
+origin.patch
 
