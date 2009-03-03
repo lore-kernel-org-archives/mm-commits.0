@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_flat-fix-data-sections-alignment.patch added to -mm tree
-Date: Tue, 03 Mar 2009 13:41:34 -0800
-Message-ID: <200903032141.n23LfZPc006347@imap1.linux-foundation.org>
+Subject: + mtd-flex-onenand-support-fix.patch added to -mm tree
+Date: Tue, 03 Mar 2009 14:38:53 -0800
+Message-ID: <200903032256.n23MuWFF012975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48529 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754624AbZCCVn1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 16:43:27 -0500
+	by vger.kernel.org with ESMTP id S1755039AbZCCW5i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 17:57:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: os@emlix.com, cooloney@kernel.org, dhowells@redhat.com, geert@linux-m68k.org, gerg@snapgear.com, hyok.choi@samsung.com, jw@emlix.com, lethal@linux-sh.org, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org, h.rohit@samsung.com, kyungmin.park@samsung.com
 
 
 The patch titled
-     binfmt_flat: fix data sections alignment
+     mtd-flex-onenand-support-fix
 has been added to the -mm tree.  Its filename is
-     binfmt_flat-fix-data-sections-alignment.patch
+     mtd-flex-onenand-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,165 +33,159 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt_flat: fix data sections alignment
-From: Oskar Schirmer <os@emlix.com>
+Subject: mtd-flex-onenand-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The flat loader uses an architecture's flat_stack_align() to align the
-stack but assumes word-alignment is enough for the data sections.
+x86_64 allmodconfig:
 
-However, on the Xtensa S6000 we need an alignment of more than wordsize
-for data that is loaded to 128bit wide registers.
+ERROR: "onenand_get_block" [drivers/mtd/onenand/onenand_sim.ko] undefined!
+ERROR: "onenand_get_addr" [drivers/mtd/onenand/onenand_sim.ko] undefined!
 
-This patch replaces the specific flat_stack_align() with a more generic
-flat_data_align() that is then used for both stack, the data and bss
-section.
-
-It also fixes m32r which was obviously kaput, aligning an uninitialized
-stack entry instead of the stack pointer.
-
-We tried to verify brain-wise that all the alignments on other archs are
-still correct but please note that we have only one xtensa-based box to
-test this patch on.  It works here with a required data alignment of 16
-bytes.
-
-Signed-off-by: Oskar Schirmer <os@emlix.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Signed-off-by: Johannes Weiner <jw@emlix.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: Hyok S. Choi <hyok.choi@samsung.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rohit Hagargundgi <h.rohit@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/flat.h      |    4 +---
- arch/blackfin/include/asm/flat.h |    2 +-
- arch/h8300/include/asm/flat.h    |    2 +-
- arch/m68k/include/asm/flat.h     |    2 +-
- arch/sh/include/asm/flat.h       |    2 +-
- fs/binfmt_flat.c                 |   28 ++++++++++++++--------------
- include/asm-m32r/flat.h          |    2 +-
- 7 files changed, 20 insertions(+), 22 deletions(-)
+ drivers/mtd/onenand/onenand_base.c |    6 ++++--
+ linux/mtd/onenand_regs.h           |    0 
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment arch/arm/include/asm/flat.h
---- a/arch/arm/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment
-+++ a/arch/arm/include/asm/flat.h
-@@ -5,9 +5,7 @@
- #ifndef __ARM_FLAT_H__
- #define __ARM_FLAT_H__
+diff -puN drivers/mtd/onenand/Kconfig~mtd-flex-onenand-support-fix drivers/mtd/onenand/Kconfig
+diff -puN drivers/mtd/onenand/onenand_base.c~mtd-flex-onenand-support-fix drivers/mtd/onenand/onenand_base.c
+--- a/drivers/mtd/onenand/onenand_base.c~mtd-flex-onenand-support-fix
++++ a/drivers/mtd/onenand/onenand_base.c
+@@ -232,13 +232,14 @@ static unsigned flexonenand_get_block(st
+ 	return blk;
+ }
  
--/* An odd number of words will be pushed after this alignment, so
--   deliberately misalign the value.  */
--#define	flat_stack_align(sp)	sp = (void *)(((unsigned long)(sp) - 4) | 4)
-+#define	flat_data_align()			8
- #define	flat_argvp_envp_on_stack()		1
- #define	flat_old_ram_flag(flags)		(flags)
- #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
-diff -puN arch/blackfin/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment arch/blackfin/include/asm/flat.h
---- a/arch/blackfin/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment
-+++ a/arch/blackfin/include/asm/flat.h
-@@ -10,7 +10,7 @@
+-inline unsigned onenand_get_block(struct onenand_chip *this, loff_t addr,
++unsigned onenand_get_block(struct onenand_chip *this, loff_t addr,
+ 					unsigned *isblkslc)
+ {
+ 	if (!FLEXONENAND(this))
+ 		return addr >> this->erase_shift;
+ 	return flexonenand_get_block(this, addr, isblkslc);
+ }
++EXPORT_SYMBOL(onenand_get_block);
  
- #include <asm/unaligned.h>
+ /**
+  * flexonenand_get_addr - Return address of the block
+@@ -265,12 +266,13 @@ static loff_t flexonenand_get_addr(struc
+ 	return ofs;
+ }
  
--#define	flat_stack_align(sp)	/* nothing needed */
-+#define	flat_data_align()			sizeof(void *)
- #define	flat_argvp_envp_on_stack()		0
- #define	flat_old_ram_flag(flags)		(flags)
+-inline loff_t onenand_get_addr(struct onenand_chip *this, int block)
++loff_t onenand_get_addr(struct onenand_chip *this, int block)
+ {
+ 	if (!FLEXONENAND(this))
+ 		return block << this->erase_shift;
+ 	return flexonenand_get_addr(this, block);
+ }
++EXPORT_SYMBOL(onenand_get_addr);
  
-diff -puN arch/h8300/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment arch/h8300/include/asm/flat.h
---- a/arch/h8300/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment
-+++ a/arch/h8300/include/asm/flat.h
-@@ -5,7 +5,7 @@
- #ifndef __H8300_FLAT_H__
- #define __H8300_FLAT_H__
- 
--#define	flat_stack_align(sp)			/* nothing needed */
-+#define	flat_data_align()			sizeof(void *)
- #define	flat_argvp_envp_on_stack()		1
- #define	flat_old_ram_flag(flags)		1
- #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
-diff -puN arch/m68k/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment arch/m68k/include/asm/flat.h
---- a/arch/m68k/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment
-+++ a/arch/m68k/include/asm/flat.h
-@@ -5,7 +5,7 @@
- #ifndef __M68KNOMMU_FLAT_H__
- #define __M68KNOMMU_FLAT_H__
- 
--#define	flat_stack_align(sp)			/* nothing needed */
-+#define	flat_data_align(sp)			sizeof(void *)
- #define	flat_argvp_envp_on_stack()		1
- #define	flat_old_ram_flag(flags)		(flags)
- #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
-diff -puN arch/sh/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment arch/sh/include/asm/flat.h
---- a/arch/sh/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment
-+++ a/arch/sh/include/asm/flat.h
-@@ -12,7 +12,7 @@
- #ifndef __ASM_SH_FLAT_H
- #define __ASM_SH_FLAT_H
- 
--#define	flat_stack_align(sp)			/* nothing needed */
-+#define	flat_data_align(sp)			sizeof(void *)
- #define	flat_argvp_envp_on_stack()		0
- #define	flat_old_ram_flag(flags)		(flags)
- #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
-diff -puN fs/binfmt_flat.c~binfmt_flat-fix-data-sections-alignment fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~binfmt_flat-fix-data-sections-alignment
-+++ a/fs/binfmt_flat.c
-@@ -115,19 +115,17 @@ static unsigned long create_flat_tables(
- 	char uninitialized_var(dummy);
- 
- 	sp = (unsigned long *) ((-(unsigned long)sizeof(char *))&(unsigned long) p);
-+	sp -= (envc + argc + 2) + 1 + (flat_argvp_envp_on_stack() ? 2 : 0);
-+	sp = (unsigned long *) ((-(unsigned long)flat_data_align())&(unsigned long) sp);
-+	argv = sp + 1 + (flat_argvp_envp_on_stack() ? 2 : 0);
-+	envp = argv + (argc + 1);
- 
--	sp -= envc+1;
--	envp = sp;
--	sp -= argc+1;
--	argv = sp;
--
--	flat_stack_align(sp);
- 	if (flat_argvp_envp_on_stack()) {
--		--sp; put_user((unsigned long) envp, sp);
--		--sp; put_user((unsigned long) argv, sp);
-+		put_user((unsigned long) envp, sp + 2);
-+		put_user((unsigned long) argv, sp + 1);
- 	}
- 
--	put_user(argc,--sp);
-+	put_user(argc,sp);
- 	current->mm->arg_start = (unsigned long) p;
- 	while (argc-->0) {
- 		put_user((unsigned long) p, argv++);
-@@ -558,7 +556,8 @@ static int load_flat_file(struct linux_b
- 			ret = realdatastart;
- 			goto err;
- 		}
--		datapos = realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long);
-+		datapos = ALIGN(realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long),
-+				flat_data_align());
- 
- 		DBG_FLT("BINFMT_FLAT: Allocated data+bss+stack (%d bytes): %x\n",
- 				(int)(data_len + bss_len + stack_len), (int)datapos);
-@@ -604,9 +603,10 @@ static int load_flat_file(struct linux_b
- 		}
- 
- 		realdatastart = textpos + ntohl(hdr->data_start);
--		datapos = realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long);
--		reloc = (unsigned long *) (textpos + ntohl(hdr->reloc_start) +
--				MAX_SHARED_LIBS * sizeof(unsigned long));
-+		datapos = ALIGN(realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long),
-+				flat_data_align());
-+
-+		reloc = (unsigned long *) (datapos+(ntohl(hdr->reloc_start)-text_len));
- 		memp = textpos;
- 		memp_size = len;
- #ifdef CONFIG_BINFMT_ZFLAT
-@@ -854,7 +854,7 @@ static int load_flat_binary(struct linux
- 	stack_len = TOP_OF_ARGS - bprm->p;             /* the strings */
- 	stack_len += (bprm->argc + 1) * sizeof(char *); /* the argv array */
- 	stack_len += (bprm->envc + 1) * sizeof(char *); /* the envp array */
+ /**
+  * onenand_get_density - [DEFAULT] Get OneNAND density
+diff -puN drivers/mtd/onenand/onenand_bbt.c~mtd-flex-onenand-support-fix drivers/mtd/onenand/onenand_bbt.c
+diff -puN drivers/mtd/onenand/onenand_sim.c~mtd-flex-onenand-support-fix drivers/mtd/onenand/onenand_sim.c
+diff -puN include/linux/mtd/onenand.h~mtd-flex-onenand-support-fix include/linux/mtd/onenand.h
+diff -puN include/linux/mtd/onenand_regs.h~mtd-flex-onenand-support-fix include/linux/mtd/onenand_regs.h
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+next-remove-localversion.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mmc-add-extended-csd-register-to-debugfs.patch
+mtd-rbtx4939-add-mtd-support.patch
+mtd-flex-onenand-support-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+ubd-stop-defintining-major_nr-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+
