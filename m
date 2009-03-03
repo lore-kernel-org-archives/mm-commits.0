@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-flex-onenand-support-fix.patch added to -mm tree
-Date: Tue, 03 Mar 2009 14:38:53 -0800
-Message-ID: <200903032256.n23MuWFF012975@imap1.linux-foundation.org>
+Subject: + git-acpi-vs-git-cpufreq.patch added to -mm tree
+Date: Tue, 03 Mar 2009 15:28:50 -0800
+Message-ID: <200903032346.n23NkR9B017461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755039AbZCCW5i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 17:57:38 -0500
+	by vger.kernel.org with ESMTP id S1753042AbZCCXrT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 18:47:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org, h.rohit@samsung.com, kyungmin.park@samsung.com
+Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk, len.brown@intel.com, ming.m.lin@intel.com, randy.dunlap@oracle.com, robert.moore@intel.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     mtd-flex-onenand-support-fix
+     git-acpi vs git-cpufreq
 has been added to the -mm tree.  Its filename is
-     mtd-flex-onenand-support-fix.patch
+     git-acpi-vs-git-cpufreq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd-flex-onenand-support-fix
+Subject: git-acpi vs git-cpufreq
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allmodconfig:
+acpi_set_register() got renamed in the acpi tree.
 
-ERROR: "onenand_get_block" [drivers/mtd/onenand/onenand_sim.ko] undefined!
-ERROR: "onenand_get_addr" [drivers/mtd/onenand/onenand_sim.ko] undefined!
-
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rohit Hagargundgi <h.rohit@samsung.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Dave Jones <davej@codemonkey.org.uk>
+Randy Dunlap <randy.dunlap@oracle.com>
+Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/onenand/onenand_base.c |    6 ++++--
- linux/mtd/onenand_regs.h           |    0 
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/longhaul.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mtd/onenand/Kconfig~mtd-flex-onenand-support-fix drivers/mtd/onenand/Kconfig
-diff -puN drivers/mtd/onenand/onenand_base.c~mtd-flex-onenand-support-fix drivers/mtd/onenand/onenand_base.c
---- a/drivers/mtd/onenand/onenand_base.c~mtd-flex-onenand-support-fix
-+++ a/drivers/mtd/onenand/onenand_base.c
-@@ -232,13 +232,14 @@ static unsigned flexonenand_get_block(st
- 	return blk;
- }
+diff -puN arch/x86/kernel/cpu/cpufreq/longhaul.c~git-acpi-vs-git-cpufreq arch/x86/kernel/cpu/cpufreq/longhaul.c
+--- a/arch/x86/kernel/cpu/cpufreq/longhaul.c~git-acpi-vs-git-cpufreq
++++ a/arch/x86/kernel/cpu/cpufreq/longhaul.c
+@@ -305,7 +305,7 @@ retry_loop:
+ 		outb(3, 0x22);
+ 	} else if ((pr != NULL) && pr->flags.bm_control) {
+ 		/* Disable bus master arbitration */
+-		acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1);
++		acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 1);
+ 	}
+ 	switch (longhaul_version) {
  
--inline unsigned onenand_get_block(struct onenand_chip *this, loff_t addr,
-+unsigned onenand_get_block(struct onenand_chip *this, loff_t addr,
- 					unsigned *isblkslc)
- {
- 	if (!FLEXONENAND(this))
- 		return addr >> this->erase_shift;
- 	return flexonenand_get_block(this, addr, isblkslc);
- }
-+EXPORT_SYMBOL(onenand_get_block);
- 
- /**
-  * flexonenand_get_addr - Return address of the block
-@@ -265,12 +266,13 @@ static loff_t flexonenand_get_addr(struc
- 	return ofs;
- }
- 
--inline loff_t onenand_get_addr(struct onenand_chip *this, int block)
-+loff_t onenand_get_addr(struct onenand_chip *this, int block)
- {
- 	if (!FLEXONENAND(this))
- 		return block << this->erase_shift;
- 	return flexonenand_get_addr(this, block);
- }
-+EXPORT_SYMBOL(onenand_get_addr);
- 
- /**
-  * onenand_get_density - [DEFAULT] Get OneNAND density
-diff -puN drivers/mtd/onenand/onenand_bbt.c~mtd-flex-onenand-support-fix drivers/mtd/onenand/onenand_bbt.c
-diff -puN drivers/mtd/onenand/onenand_sim.c~mtd-flex-onenand-support-fix drivers/mtd/onenand/onenand_sim.c
-diff -puN include/linux/mtd/onenand.h~mtd-flex-onenand-support-fix include/linux/mtd/onenand.h
-diff -puN include/linux/mtd/onenand_regs.h~mtd-flex-onenand-support-fix include/linux/mtd/onenand_regs.h
+@@ -328,7 +328,7 @@ retry_loop:
+ 	case TYPE_POWERSAVER:
+ 		if (longhaul_flags & USE_ACPI_C3) {
+ 			/* Don't allow wakeup */
+-			acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
++			acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
+ 			do_powersaver(cx->address, mults_index, dir);
+ 		} else {
+ 			do_powersaver(0, mults_index, dir);
+@@ -341,7 +341,7 @@ retry_loop:
+ 		outb(0, 0x22);
+ 	} else if ((pr != NULL) && pr->flags.bm_control) {
+ 		/* Enable bus master arbitration */
+-		acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0);
++		acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 0);
+ 	}
+ 	outb(pic2_mask, 0xA1);	/* restore mask */
+ 	outb(pic1_mask, 0x21);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +89,7 @@ i-need-old-gcc.patch
 i2c-too-much-compiler-noise.patch
 linux-next.patch
 next-remove-localversion.patch
+git-acpi-vs-git-cpufreq.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
 oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
 kernel-auditscc-fix-warning.patch
