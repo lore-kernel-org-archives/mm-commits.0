@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hppfs-hppfs_read_file-may-return-error.patch added to -mm tree
-Date: Tue, 03 Mar 2009 13:23:26 -0800
-Message-ID: <200903032123.n23LNQ4q005029@imap1.linux-foundation.org>
+Subject: + ipmi-fix-statistics-counting-issues.patch added to -mm tree
+Date: Tue, 03 Mar 2009 13:22:33 -0800
+Message-ID: <200903032122.n23LMXVY004962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50171 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753786AbZCCVXa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 16:23:30 -0500
+	by vger.kernel.org with ESMTP id S1756548AbZCCV0D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 16:26:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com
+Cc: cminyard@mvista.com, blubkin@vmware.com
 
 
 The patch titled
-     hppfs: hppfs_read_file() may return -ERROR
+     ipmi: fix statistics counting issues
 has been added to the -mm tree.  Its filename is
-     hppfs-hppfs_read_file-may-return-error.patch
+     ipmi-fix-statistics-counting-issues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,220 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hppfs: hppfs_read_file() may return -ERROR
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: ipmi: fix statistics counting issues
+From: Corey Minyard <cminyard@mvista.com>
 
-hppfs_read_file() may return (ssize_t) -ENOMEM, or -EFAULT.  When stored
-in size_t 'count', these errors will not be noticed, a large value will be
-added to *ppos.
+Bela Lubkin noticed that the statistics for send IPMB and LAN commands in
+the IPMI driver could be incremented even if an error occurred.  Move the
+increments to the proper place to avoid this.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Also add some statistics for retransmissions that failed, and some little
+helper functions to neaten up the code a little.
+
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Cc: Bela Lubkin <blubkin@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hppfs/hppfs.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_msghandler.c |   73 ++++++++++++++++++--------
+ 1 file changed, 51 insertions(+), 22 deletions(-)
 
-diff -puN fs/hppfs/hppfs.c~hppfs-hppfs_read_file-may-return-error fs/hppfs/hppfs.c
---- a/fs/hppfs/hppfs.c~hppfs-hppfs_read_file-may-return-error
-+++ a/fs/hppfs/hppfs.c
-@@ -280,7 +280,12 @@ static ssize_t hppfs_read(struct file *f
- 			       "errno = %d\n", err);
- 			return err;
- 		}
--		count = hppfs_read_file(hppfs->host_fd, buf, count);
-+		err = hppfs_read_file(hppfs->host_fd, buf, count);
-+		if (err < 0) {
-+			printk(KERN_ERR "hppfs_read: read failed: %d\n", err);
-+			return err;
-+		}
-+		count = err;
- 		if (count > 0)
- 			*ppos += count;
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-statistics-counting-issues drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-statistics-counting-issues
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -285,6 +285,11 @@ enum ipmi_stat_indexes {
+ 	/* Events that were received with the proper format. */
+ 	IPMI_STAT_events,
+ 
++	/* Retransmissions on IPMB that failed. */
++	IPMI_STAT_dropped_rexmit_ipmb_commands,
++
++	/* Retransmissions on LAN that failed. */
++	IPMI_STAT_dropped_rexmit_lan_commands,
+ 
+ 	/* This *must* remain last, add new values above this. */
+ 	IPMI_NUM_STATS
+@@ -445,6 +450,20 @@ static DEFINE_MUTEX(smi_watchers_mutex);
+ #define ipmi_get_stat(intf, stat) \
+ 	((unsigned int) atomic_read(&(intf)->stats[IPMI_STAT_ ## stat]))
+ 
++static int is_lan_addr(struct ipmi_addr *addr)
++{
++	return addr->addr_type == IPMI_LAN_ADDR_TYPE;
++}
++
++static int is_ipmb_addr(struct ipmi_addr *addr)
++{
++	return addr->addr_type == IPMI_IPMB_ADDR_TYPE;
++}
++
++static int is_ipmb_bcast_addr(struct ipmi_addr *addr)
++{
++	return addr->addr_type == IPMI_IPMB_BROADCAST_ADDR_TYPE;
++}
+ 
+ static void free_recv_msg_list(struct list_head *q)
+ {
+@@ -601,8 +620,7 @@ ipmi_addr_equal(struct ipmi_addr *addr1,
+ 		return (smi_addr1->lun == smi_addr2->lun);
  	}
+ 
+-	if ((addr1->addr_type == IPMI_IPMB_ADDR_TYPE)
+-	    || (addr1->addr_type == IPMI_IPMB_BROADCAST_ADDR_TYPE)) {
++	if (is_ipmb_addr(addr1) || is_ipmb_bcast_addr(addr1)) {
+ 		struct ipmi_ipmb_addr *ipmb_addr1
+ 		    = (struct ipmi_ipmb_addr *) addr1;
+ 		struct ipmi_ipmb_addr *ipmb_addr2
+@@ -612,7 +630,7 @@ ipmi_addr_equal(struct ipmi_addr *addr1,
+ 			&& (ipmb_addr1->lun == ipmb_addr2->lun));
+ 	}
+ 
+-	if (addr1->addr_type == IPMI_LAN_ADDR_TYPE) {
++	if (is_lan_addr(addr1)) {
+ 		struct ipmi_lan_addr *lan_addr1
+ 			= (struct ipmi_lan_addr *) addr1;
+ 		struct ipmi_lan_addr *lan_addr2
+@@ -644,14 +662,13 @@ int ipmi_validate_addr(struct ipmi_addr 
+ 	    || (addr->channel < 0))
+ 		return -EINVAL;
+ 
+-	if ((addr->addr_type == IPMI_IPMB_ADDR_TYPE)
+-	    || (addr->addr_type == IPMI_IPMB_BROADCAST_ADDR_TYPE)) {
++	if (is_ipmb_addr(addr) || is_ipmb_bcast_addr(addr)) {
+ 		if (len < sizeof(struct ipmi_ipmb_addr))
+ 			return -EINVAL;
+ 		return 0;
+ 	}
+ 
+-	if (addr->addr_type == IPMI_LAN_ADDR_TYPE) {
++	if (is_lan_addr(addr)) {
+ 		if (len < sizeof(struct ipmi_lan_addr))
+ 			return -EINVAL;
+ 		return 0;
+@@ -1503,8 +1520,7 @@ static int i_ipmi_request(ipmi_user_t   
+ 			memcpy(&(smi_msg->data[2]), msg->data, msg->data_len);
+ 		smi_msg->data_size = msg->data_len + 2;
+ 		ipmi_inc_stat(intf, sent_local_commands);
+-	} else if ((addr->addr_type == IPMI_IPMB_ADDR_TYPE)
+-		   || (addr->addr_type == IPMI_IPMB_BROADCAST_ADDR_TYPE)) {
++	} else if (is_ipmb_addr(addr) || is_ipmb_bcast_addr(addr)) {
+ 		struct ipmi_ipmb_addr *ipmb_addr;
+ 		unsigned char         ipmb_seq;
+ 		long                  seqid;
+@@ -1583,8 +1599,6 @@ static int i_ipmi_request(ipmi_user_t   
+ 
+ 			spin_lock_irqsave(&(intf->seq_lock), flags);
+ 
+-			ipmi_inc_stat(intf, sent_ipmb_commands);
+-
+ 			/*
+ 			 * Create a sequence number with a 1 second
+ 			 * timeout and 4 retries.
+@@ -1606,6 +1620,8 @@ static int i_ipmi_request(ipmi_user_t   
+ 				goto out_err;
+ 			}
+ 
++			ipmi_inc_stat(intf, sent_ipmb_commands);
++
+ 			/*
+ 			 * Store the sequence number in the message,
+ 			 * so that when the send message response
+@@ -1635,7 +1651,7 @@ static int i_ipmi_request(ipmi_user_t   
+ 			 */
+ 			spin_unlock_irqrestore(&(intf->seq_lock), flags);
+ 		}
+-	} else if (addr->addr_type == IPMI_LAN_ADDR_TYPE) {
++	} else if (is_lan_addr(addr)) {
+ 		struct ipmi_lan_addr  *lan_addr;
+ 		unsigned char         ipmb_seq;
+ 		long                  seqid;
+@@ -1696,8 +1712,6 @@ static int i_ipmi_request(ipmi_user_t   
+ 
+ 			spin_lock_irqsave(&(intf->seq_lock), flags);
+ 
+-			ipmi_inc_stat(intf, sent_lan_commands);
+-
+ 			/*
+ 			 * Create a sequence number with a 1 second
+ 			 * timeout and 4 retries.
+@@ -1719,6 +1733,8 @@ static int i_ipmi_request(ipmi_user_t   
+ 				goto out_err;
+ 			}
+ 
++			ipmi_inc_stat(intf, sent_lan_commands);
++
+ 			/*
+ 			 * Store the sequence number in the message,
+ 			 * so that when the send message response
+@@ -1937,6 +1953,10 @@ static int stat_file_read_proc(char *pag
+ 		       ipmi_get_stat(intf, invalid_events));
+ 	out += sprintf(out, "events:                      %u\n",
+ 		       ipmi_get_stat(intf, events));
++	out += sprintf(out, "failed rexmit LAN msgs:      %u\n",
++		       ipmi_get_stat(intf, dropped_rexmit_lan_commands));
++	out += sprintf(out, "failed rexmit IPMB msgs:     %u\n",
++		       ipmi_get_stat(intf, dropped_rexmit_ipmb_commands));
+ 
+ 	return (out - ((char *) page));
+ }
+@@ -3730,7 +3750,7 @@ static void check_msg_timeout(ipmi_smi_t
+ 		list_add_tail(&msg->link, timeouts);
+ 		if (ent->broadcast)
+ 			ipmi_inc_stat(intf, timed_out_ipmb_broadcasts);
+-		else if (ent->recv_msg->addr.addr_type == IPMI_LAN_ADDR_TYPE)
++		else if (is_lan_addr(&ent->recv_msg->addr))
+ 			ipmi_inc_stat(intf, timed_out_lan_commands);
+ 		else
+ 			ipmi_inc_stat(intf, timed_out_ipmb_commands);
+@@ -3744,15 +3764,17 @@ static void check_msg_timeout(ipmi_smi_t
+ 		 */
+ 		ent->timeout = MAX_MSG_TIMEOUT;
+ 		ent->retries_left--;
+-		if (ent->recv_msg->addr.addr_type == IPMI_LAN_ADDR_TYPE)
+-			ipmi_inc_stat(intf, retransmitted_lan_commands);
+-		else
+-			ipmi_inc_stat(intf, retransmitted_ipmb_commands);
+-
+ 		smi_msg = smi_from_recv_msg(intf, ent->recv_msg, slot,
+ 					    ent->seqid);
+-		if (!smi_msg)
++		if (!smi_msg) {
++			if (is_lan_addr(&ent->recv_msg->addr))
++				ipmi_inc_stat(intf,
++					      dropped_rexmit_lan_commands);
++			else
++				ipmi_inc_stat(intf,
++					      dropped_rexmit_ipmb_commands);
+ 			return;
++		}
+ 
+ 		spin_unlock_irqrestore(&intf->seq_lock, *flags);
+ 
+@@ -3764,10 +3786,17 @@ static void check_msg_timeout(ipmi_smi_t
+ 		 * resent.
+ 		 */
+ 		handlers = intf->handlers;
+-		if (handlers)
++		if (handlers) {
++			if (is_lan_addr(&ent->recv_msg->addr))
++				ipmi_inc_stat(intf,
++					      retransmitted_lan_commands);
++			else
++				ipmi_inc_stat(intf,
++					      retransmitted_ipmb_commands);
++
+ 			intf->handlers->sender(intf->send_info,
+ 					       smi_msg, 0);
+-		else
++		} else
+ 			ipmi_free_smi_msg(smi_msg);
+ 
+ 		spin_lock_irqsave(&intf->seq_lock, *flags);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
-origin.patch
-mm-get_nid_for_pfn-returns-int.patch
-linux-next.patch
-acpi-get_throttling_state-cannot-be-larger-state_count.patch
-acpi-wmic-unsigned-cannot-be-less-than-0.patch
-drm-fix-lock_test_with_return-macro.patch
-dvb-negative-internal-sub_range-wont-get-noticed.patch
-pata-rb532-cf-platform_get_irq-failure-ignored.patch
-jffs2_acl_count-tests-0-on-unsigned.patch
-scsi-ncr53c8xx-div-reaches-1.patch
-scsi-pcmcia-nsp_cs-time_out-reaches-1.patch
-watchdog-fsl_get_sys_freq-failure-not-noticed.patch
-hugetlb-chg-cannot-become-less-than-0.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-fix-macros.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-spi-limit-reaches-1-tested-0.patch
-rtc-wm8350-retries-will-reach-1.patch
-rtc-test-before-subtraction-on-unsigned.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-fbdev-newport-newport_wait-return-0-on-timeout.patch
-drivers-video-omap-hwa742c-div-reaches-max_clk_div.patch
-arkfb-fix-misplaced-parentheses.patch
-uvesafb-bitwise-or-has-higher-precedence-than.patch
-vesafb-bitwise-or-has-higher-precedence-than.patch
-viafb-returns-0-two-too-early.patch
-ufs-sector_t-cannot-be-negative.patch
-hppfs-hppfs_read_file-may-return-error.patch
-rio-addition-has-higher-precedence-than.patch
-aoe-error-printed-1-too-early.patch
+ipmi-fix-statistics-counting-issues.patch
+ipmi-add-console-oops-catcher.patch
+ipmi-add-oem-message-handling.patch
 
