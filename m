@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-add-oem-message-handling.patch added to -mm tree
-Date: Tue, 03 Mar 2009 13:22:38 -0800
-Message-ID: <200903032122.n23LMdCp004979@imap1.linux-foundation.org>
+Subject: + binfmt_flat-fix-data-sections-alignment.patch added to -mm tree
+Date: Tue, 03 Mar 2009 13:41:34 -0800
+Message-ID: <200903032141.n23LfZPc006347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48529 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754290AbZCCV1w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 16:27:52 -0500
+	by vger.kernel.org with ESMTP id S1754624AbZCCVn1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 16:43:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dannf@hp.com, cminyard@mvista.com
+Cc: os@emlix.com, cooloney@kernel.org, dhowells@redhat.com, geert@linux-m68k.org, gerg@snapgear.com, hyok.choi@samsung.com, jw@emlix.com, lethal@linux-sh.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     ipmi: add oem message handling
+     binfmt_flat: fix data sections alignment
 has been added to the -mm tree.  Its filename is
-     ipmi-add-oem-message-handling.patch
+     binfmt_flat-fix-data-sections-alignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,224 +33,165 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: add oem message handling
-From: dann frazier <dannf@hp.com>
+Subject: binfmt_flat: fix data sections alignment
+From: Oskar Schirmer <os@emlix.com>
 
-Enable userspace to receive messages that a BMC transmits using an OEM
-medium.  This is used by the HP iLO2.
+The flat loader uses an architecture's flat_stack_align() to align the
+stack but assumes word-alignment is enough for the data sections.
 
-Based on code originally written by Patrick Schoeller.
+However, on the Xtensa S6000 we need an alignment of more than wordsize
+for data that is loaded to 128bit wide registers.
 
-Signed-off-by: dann frazier <dannf@hp.com>
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
+This patch replaces the specific flat_stack_align() with a more generic
+flat_data_align() that is then used for both stack, the data and bss
+section.
+
+It also fixes m32r which was obviously kaput, aligning an uninitialized
+stack entry instead of the stack pointer.
+
+We tried to verify brain-wise that all the alignments on other archs are
+still correct but please note that we have only one xtensa-based box to
+test this patch on.  It works here with a required data alignment of 16
+bytes.
+
+Signed-off-by: Oskar Schirmer <os@emlix.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Johannes Weiner <jw@emlix.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Hyok S. Choi <hyok.choi@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |  138 +++++++++++++++++++++++++-
- include/linux/ipmi.h                |    2 
- include/linux/ipmi_msgdefs.h        |    2 
- 3 files changed, 137 insertions(+), 5 deletions(-)
+ arch/arm/include/asm/flat.h      |    4 +---
+ arch/blackfin/include/asm/flat.h |    2 +-
+ arch/h8300/include/asm/flat.h    |    2 +-
+ arch/m68k/include/asm/flat.h     |    2 +-
+ arch/sh/include/asm/flat.h       |    2 +-
+ fs/binfmt_flat.c                 |   28 ++++++++++++++--------------
+ include/asm-m32r/flat.h          |    2 +-
+ 7 files changed, 20 insertions(+), 22 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-add-oem-message-handling drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-add-oem-message-handling
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -3284,6 +3284,114 @@ static int handle_lan_get_msg_cmd(ipmi_s
- 	return rv;
- }
+diff -puN arch/arm/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment arch/arm/include/asm/flat.h
+--- a/arch/arm/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment
++++ a/arch/arm/include/asm/flat.h
+@@ -5,9 +5,7 @@
+ #ifndef __ARM_FLAT_H__
+ #define __ARM_FLAT_H__
  
-+/*
-+ * This routine will handle "Get Message" command responses with
-+ * channels that use an OEM Medium. The message format belongs to
-+ * the OEM.  See IPMI 2.0 specification, Chapter 6 and
-+ * Chapter 22, sections 22.6 and 22.24 for more details.
-+ */
-+static int handle_oem_get_msg_cmd(ipmi_smi_t          intf,
-+				  struct ipmi_smi_msg *msg)
-+{
-+	struct cmd_rcvr       *rcvr;
-+	int                   rv = 0;
-+	unsigned char         netfn;
-+	unsigned char         cmd;
-+	unsigned char         chan;
-+	ipmi_user_t           user = NULL;
-+	struct ipmi_system_interface_addr *smi_addr;
-+	struct ipmi_recv_msg  *recv_msg;
-+
-+	/*
-+	 * We expect the OEM SW to perform error checking
-+	 * so we just do some basic sanity checks
-+	 */
-+	if (msg->rsp_size < 4) {
-+		/* Message not big enough, just ignore it. */
-+		ipmi_inc_stat(intf, invalid_commands);
-+		return 0;
-+	}
-+
-+	if (msg->rsp[2] != 0) {
-+		/* An error getting the response, just ignore it. */
-+		return 0;
-+	}
-+
-+	/*
-+	 * This is an OEM Message so the OEM needs to know how
-+	 * handle the message. We do no interpretation.
-+	 */
-+	netfn = msg->rsp[0] >> 2;
-+	cmd = msg->rsp[1];
-+	chan = msg->rsp[3] & 0xf;
-+
-+	rcu_read_lock();
-+	rcvr = find_cmd_rcvr(intf, netfn, cmd, chan);
-+	if (rcvr) {
-+		user = rcvr->user;
-+		kref_get(&user->refcount);
-+	} else
-+		user = NULL;
-+	rcu_read_unlock();
-+
-+	if (user == NULL) {
-+		/* We didn't find a user, just give up. */
-+		ipmi_inc_stat(intf, unhandled_commands);
-+
-+		/*
-+		 * Don't do anything with these messages, just allow
-+		 * them to be freed.
-+		 */
-+
-+		rv = 0;
-+	} else {
-+		/* Deliver the message to the user. */
-+		ipmi_inc_stat(intf, handled_commands);
-+
-+		recv_msg = ipmi_alloc_recv_msg();
-+		if (!recv_msg) {
-+			/*
-+			 * We couldn't allocate memory for the
-+			 * message, so requeue it for handling
-+			 * later.
-+			 */
-+			rv = 1;
-+			kref_put(&user->refcount, free_user);
-+		} else {
-+			/*
-+			 * OEM Messages are expected to be delivered via
-+			 * the system interface to SMS software.  We might
-+			 * need to visit this again depending on OEM
-+			 * requirements
-+			 */
-+			smi_addr = ((struct ipmi_system_interface_addr *)
-+				    &(recv_msg->addr));
-+			smi_addr->addr_type = IPMI_SYSTEM_INTERFACE_ADDR_TYPE;
-+			smi_addr->channel = IPMI_BMC_CHANNEL;
-+			smi_addr->lun = msg->rsp[0] & 3;
-+
-+			recv_msg->user = user;
-+			recv_msg->user_msg_data = NULL;
-+			recv_msg->recv_type = IPMI_OEM_RECV_TYPE;
-+			recv_msg->msg.netfn = msg->rsp[0] >> 2;
-+			recv_msg->msg.cmd = msg->rsp[1];
-+			recv_msg->msg.data = recv_msg->msg_data;
-+
-+			/*
-+			 * The message starts at byte 4 which follows the
-+			 * the Channel Byte in the "GET MESSAGE" command
-+			 */
-+			recv_msg->msg.data_len = msg->rsp_size - 4;
-+			memcpy(recv_msg->msg_data,
-+			       &(msg->rsp[4]),
-+			       msg->rsp_size - 4);
-+			deliver_response(recv_msg);
-+		}
-+	}
-+
-+	return rv;
-+}
-+
- static void copy_event_into_recv_msg(struct ipmi_recv_msg *recv_msg,
- 				     struct ipmi_smi_msg  *msg)
- {
-@@ -3539,6 +3647,17 @@ static int handle_new_recv_msg(ipmi_smi_
- 			goto out;
+-/* An odd number of words will be pushed after this alignment, so
+-   deliberately misalign the value.  */
+-#define	flat_stack_align(sp)	sp = (void *)(((unsigned long)(sp) - 4) | 4)
++#define	flat_data_align()			8
+ #define	flat_argvp_envp_on_stack()		1
+ #define	flat_old_ram_flag(flags)		(flags)
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
+diff -puN arch/blackfin/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment arch/blackfin/include/asm/flat.h
+--- a/arch/blackfin/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment
++++ a/arch/blackfin/include/asm/flat.h
+@@ -10,7 +10,7 @@
+ 
+ #include <asm/unaligned.h>
+ 
+-#define	flat_stack_align(sp)	/* nothing needed */
++#define	flat_data_align()			sizeof(void *)
+ #define	flat_argvp_envp_on_stack()		0
+ #define	flat_old_ram_flag(flags)		(flags)
+ 
+diff -puN arch/h8300/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment arch/h8300/include/asm/flat.h
+--- a/arch/h8300/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment
++++ a/arch/h8300/include/asm/flat.h
+@@ -5,7 +5,7 @@
+ #ifndef __H8300_FLAT_H__
+ #define __H8300_FLAT_H__
+ 
+-#define	flat_stack_align(sp)			/* nothing needed */
++#define	flat_data_align()			sizeof(void *)
+ #define	flat_argvp_envp_on_stack()		1
+ #define	flat_old_ram_flag(flags)		1
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
+diff -puN arch/m68k/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment arch/m68k/include/asm/flat.h
+--- a/arch/m68k/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment
++++ a/arch/m68k/include/asm/flat.h
+@@ -5,7 +5,7 @@
+ #ifndef __M68KNOMMU_FLAT_H__
+ #define __M68KNOMMU_FLAT_H__
+ 
+-#define	flat_stack_align(sp)			/* nothing needed */
++#define	flat_data_align(sp)			sizeof(void *)
+ #define	flat_argvp_envp_on_stack()		1
+ #define	flat_old_ram_flag(flags)		(flags)
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
+diff -puN arch/sh/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment arch/sh/include/asm/flat.h
+--- a/arch/sh/include/asm/flat.h~binfmt_flat-fix-data-sections-alignment
++++ a/arch/sh/include/asm/flat.h
+@@ -12,7 +12,7 @@
+ #ifndef __ASM_SH_FLAT_H
+ #define __ASM_SH_FLAT_H
+ 
+-#define	flat_stack_align(sp)			/* nothing needed */
++#define	flat_data_align(sp)			sizeof(void *)
+ #define	flat_argvp_envp_on_stack()		0
+ #define	flat_old_ram_flag(flags)		(flags)
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
+diff -puN fs/binfmt_flat.c~binfmt_flat-fix-data-sections-alignment fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~binfmt_flat-fix-data-sections-alignment
++++ a/fs/binfmt_flat.c
+@@ -115,19 +115,17 @@ static unsigned long create_flat_tables(
+ 	char uninitialized_var(dummy);
+ 
+ 	sp = (unsigned long *) ((-(unsigned long)sizeof(char *))&(unsigned long) p);
++	sp -= (envc + argc + 2) + 1 + (flat_argvp_envp_on_stack() ? 2 : 0);
++	sp = (unsigned long *) ((-(unsigned long)flat_data_align())&(unsigned long) sp);
++	argv = sp + 1 + (flat_argvp_envp_on_stack() ? 2 : 0);
++	envp = argv + (argc + 1);
+ 
+-	sp -= envc+1;
+-	envp = sp;
+-	sp -= argc+1;
+-	argv = sp;
+-
+-	flat_stack_align(sp);
+ 	if (flat_argvp_envp_on_stack()) {
+-		--sp; put_user((unsigned long) envp, sp);
+-		--sp; put_user((unsigned long) argv, sp);
++		put_user((unsigned long) envp, sp + 2);
++		put_user((unsigned long) argv, sp + 1);
+ 	}
+ 
+-	put_user(argc,--sp);
++	put_user(argc,sp);
+ 	current->mm->arg_start = (unsigned long) p;
+ 	while (argc-->0) {
+ 		put_user((unsigned long) p, argv++);
+@@ -558,7 +556,8 @@ static int load_flat_file(struct linux_b
+ 			ret = realdatastart;
+ 			goto err;
+ 		}
+-		datapos = realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long);
++		datapos = ALIGN(realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long),
++				flat_data_align());
+ 
+ 		DBG_FLT("BINFMT_FLAT: Allocated data+bss+stack (%d bytes): %x\n",
+ 				(int)(data_len + bss_len + stack_len), (int)datapos);
+@@ -604,9 +603,10 @@ static int load_flat_file(struct linux_b
  		}
  
-+		/*
-+		** We need to make sure the channels have been initialized.
-+		** The channel_handler routine will set the "curr_channel"
-+		** equal to or greater than IPMI_MAX_CHANNELS when all the
-+		** channels for this interface have been initialized.
-+		*/
-+		if (intf->curr_channel < IPMI_MAX_CHANNELS) {
-+			requeue = 1;     /* Just put the message back for now */
-+			goto out;
-+		}
+ 		realdatastart = textpos + ntohl(hdr->data_start);
+-		datapos = realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long);
+-		reloc = (unsigned long *) (textpos + ntohl(hdr->reloc_start) +
+-				MAX_SHARED_LIBS * sizeof(unsigned long));
++		datapos = ALIGN(realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long),
++				flat_data_align());
 +
- 		switch (intf->channels[chan].medium) {
- 		case IPMI_CHANNEL_MEDIUM_IPMB:
- 			if (msg->rsp[4] & 0x04) {
-@@ -3574,11 +3693,20 @@ static int handle_new_recv_msg(ipmi_smi_
- 			break;
- 
- 		default:
--			/*
--			 * We don't handle the channel type, so just
--			 * free the message.
--			 */
--			requeue = 0;
-+			/* Check for OEM Channels.  Clients had better
-+			   register for these commands. */
-+			if ((intf->channels[chan].medium
-+			     >= IPMI_CHANNEL_MEDIUM_OEM_MIN)
-+			    && (intf->channels[chan].medium
-+				<= IPMI_CHANNEL_MEDIUM_OEM_MAX)) {
-+				requeue = handle_oem_get_msg_cmd(intf, msg);
-+			} else {
-+				/*
-+				 * We don't handle the channel type, so just
-+				 * free the message.
-+				 */
-+				requeue = 0;
-+			}
- 		}
- 
- 	} else if ((msg->rsp[0] == ((IPMI_NETFN_APP_REQUEST|1) << 2))
-diff -puN include/linux/ipmi.h~ipmi-add-oem-message-handling include/linux/ipmi.h
---- a/include/linux/ipmi.h~ipmi-add-oem-message-handling
-+++ a/include/linux/ipmi.h
-@@ -198,6 +198,8 @@ struct kernel_ipmi_msg {
- 					      response.  When you send a
- 					      response message, this will
- 					      be returned. */
-+#define IPMI_OEM_RECV_TYPE		5 /* The response for OEM Channels */
-+
- /* Note that async events and received commands do not have a completion
-    code as the first byte of the incoming data, unlike a response. */
- 
-diff -puN include/linux/ipmi_msgdefs.h~ipmi-add-oem-message-handling include/linux/ipmi_msgdefs.h
---- a/include/linux/ipmi_msgdefs.h~ipmi-add-oem-message-handling
-+++ a/include/linux/ipmi_msgdefs.h
-@@ -115,5 +115,7 @@
- #define IPMI_CHANNEL_MEDIUM_USB1	10
- #define IPMI_CHANNEL_MEDIUM_USB2	11
- #define IPMI_CHANNEL_MEDIUM_SYSINTF	12
-+#define IPMI_CHANNEL_MEDIUM_OEM_MIN	0x60
-+#define IPMI_CHANNEL_MEDIUM_OEM_MAX	0x7f
- 
- #endif /* __LINUX_IPMI_MSGDEFS_H */
-_
-
-Patches currently in -mm which might be from dannf@hp.com are
-
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-parisc-add-a-missing-include-for-linux-rtch.patch
-rtc-parisc-remove-redundant-locking.patch
-rtc-parisc-remove-struct-parisc_rtc.patch
-rtc-parisc-use-rtc_valid_tm-in-parisc_get_time.patch
-rtc-parisc-use-platform_driver_probe.patch
-rtc-parisc-declare-rtc_parisc_dev-as-static.patch
-rtc-parisc-remove-unnecessary-ret-variable.patch
-rtc-parisc-remove-a-couple-unnecessary-variables.patch
-rtc-parisc-rename-p-pointer-to-rtc.patch
-ipmi-add-oem-message-handling.patch
-
++		reloc = (unsigned long *) (datapos+(ntohl(hdr->reloc_start)-text_len));
+ 		memp = textpos;
+ 		memp_size = len;
+ #ifdef CONFIG_BINFMT_ZFLAT
+@@ -854,7 +854,7 @@ static int load_flat_binary(struct linux
+ 	stack_len = TOP_OF_ARGS - bprm->p;             /* the strings */
+ 	stack_len += (bprm->argc + 1) * sizeof(char *); /* the argv array */
+ 	stack_len += (bprm->envc + 1) * sizeof(char *); /* the envp array */
