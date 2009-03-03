@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-clean-up-ep_modify.patch added to -mm tree
-Date: Tue, 03 Mar 2009 12:09:11 -0800
-Message-ID: <200903032009.n23K9BVQ031547@imap1.linux-foundation.org>
+Subject: + cpusets-replace-zone-allowed-functions-with-node-allowed.patch added to -mm tree
+Date: Tue, 03 Mar 2009 12:15:42 -0800
+Message-ID: <200903032015.n23KFgLR032016@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50297 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752844AbZCCUJp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 15:09:45 -0500
+	by vger.kernel.org with ESMTP id S1752154AbZCCUPx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 15:15:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tonyb@cybernetics.com, davidel@xmailserver.org
+Cc: rientjes@google.com, cl@linux-foundation.org, menage@google.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     epoll: clean up ep_modify
+     cpusets: replace zone allowed functions with node allowed
 has been added to the -mm tree.  Its filename is
-     epoll-clean-up-ep_modify.patch
+     cpusets-replace-zone-allowed-functions-with-node-allowed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,218 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: clean up ep_modify
-From: Tony Battersby <tonyb@cybernetics.com>
+Subject: cpusets: replace zone allowed functions with node allowed
+From: David Rientjes <rientjes@google.com>
 
-ep_modify() doesn't need to set event.data from within the ep->lock
-spinlock as the comment suggests.  The only place event.data is used is
-ep_send_events_proc(), and this is protected by ep->mtx instead of
-ep->lock.  Also update the comment for mutex_lock() at the top of
-ep_scan_ready_list(), which mentions epoll_ctl(EPOLL_CTL_DEL) but not
-epoll_ctl(EPOLL_CTL_MOD).
+The cpuset_zone_allowed() variants are actually only a function of the
+zone's node.
 
-ep_modify() can also use spin_lock_irq() instead of spin_lock_irqsave().
-
-Signed-off-by: Tony Battersby <tonyb@cybernetics.com>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Paul Menage <menage@google.com>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ include/linux/cpuset.h |   33 +++++++++++++++++----
+ kernel/cpuset.c        |   59 ++++++++++++++++-----------------------
+ 2 files changed, 52 insertions(+), 40 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-clean-up-ep_modify fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-clean-up-ep_modify
-+++ a/fs/eventpoll.c
-@@ -435,7 +435,7 @@ static int ep_scan_ready_list(struct eve
+diff -puN include/linux/cpuset.h~cpusets-replace-zone-allowed-functions-with-node-allowed include/linux/cpuset.h
+--- a/include/linux/cpuset.h~cpusets-replace-zone-allowed-functions-with-node-allowed
++++ a/include/linux/cpuset.h
+@@ -12,6 +12,7 @@
+ #include <linux/cpumask.h>
+ #include <linux/nodemask.h>
+ #include <linux/cgroup.h>
++#include <linux/mm.h>
  
- 	/*
- 	 * We need to lock this because we could be hit by
--	 * eventpoll_release_file() and epoll_ctl(EPOLL_CTL_DEL).
-+	 * eventpoll_release_file() and epoll_ctl().
- 	 */
- 	mutex_lock(&ep->mtx);
+ #ifdef CONFIG_CPUSETS
  
-@@ -972,15 +972,14 @@ static int ep_modify(struct eventpoll *e
+@@ -29,19 +30,29 @@ void cpuset_init_current_mems_allowed(vo
+ void cpuset_update_task_memory_state(void);
+ int cpuset_nodemask_valid_mems_allowed(nodemask_t *nodemask);
+ 
+-extern int __cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask);
+-extern int __cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask);
++extern int __cpuset_node_allowed_softwall(int node, gfp_t gfp_mask);
++extern int __cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask);
+ 
+-static int inline cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
++static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
  {
- 	int pwake = 0;
- 	unsigned int revents;
--	unsigned long flags;
+ 	return number_of_cpusets <= 1 ||
+-		__cpuset_zone_allowed_softwall(z, gfp_mask);
++		__cpuset_node_allowed_softwall(node, gfp_mask);
+ }
  
- 	/*
--	 * Set the new event interest mask before calling f_op->poll(), otherwise
--	 * a potential race might occur. In fact if we do this operation inside
--	 * the lock, an event might happen between the f_op->poll() call and the
--	 * new event set registering.
-+	 * Set the new event interest mask before calling f_op->poll();
-+	 * otherwise we might miss an event that happens between the
-+	 * f_op->poll() call and the new event set registering.
- 	 */
- 	epi->event.events = event->events;
-+	epi->event.data = event->data; /* protected by mtx */
+-static int inline cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
++static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
+ {
+ 	return number_of_cpusets <= 1 ||
+-		__cpuset_zone_allowed_hardwall(z, gfp_mask);
++		__cpuset_node_allowed_hardwall(node, gfp_mask);
++}
++
++static inline int cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
++{
++	return cpuset_node_allowed_softwall(zone_to_nid(z), gfp_mask);
++}
++
++static inline int cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
++{
++	return cpuset_node_allowed_hardwall(zone_to_nid(z), gfp_mask);
+ }
  
- 	/*
- 	 * Get current event bits. We can safely use the file* here because
-@@ -988,16 +987,12 @@ static int ep_modify(struct eventpoll *e
- 	 */
- 	revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
+ extern int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
+@@ -112,6 +123,16 @@ static inline int cpuset_nodemask_valid_
+ 	return 1;
+ }
  
--	spin_lock_irqsave(&ep->lock, flags);
++static inline int cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
++{
++	return 1;
++}
++
++static inline int cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
++{
++	return 1;
++}
++
+ static inline int cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
+ {
+ 	return 1;
+diff -puN kernel/cpuset.c~cpusets-replace-zone-allowed-functions-with-node-allowed kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-replace-zone-allowed-functions-with-node-allowed
++++ a/kernel/cpuset.c
+@@ -2180,26 +2180,24 @@ static const struct cpuset *nearest_hard
+ }
+ 
+ /**
+- * cpuset_zone_allowed_softwall - Can we allocate on zone z's memory node?
+- * @z: is this zone on an allowed node?
++ * cpuset_node_allowed_softwall - Can we allocate on a memory node?
++ * @node: is this an allowed node?
+  * @gfp_mask: memory allocation flags
+  *
+- * If we're in interrupt, yes, we can always allocate.  If
+- * __GFP_THISNODE is set, yes, we can always allocate.  If zone
+- * z's node is in our tasks mems_allowed, yes.  If it's not a
+- * __GFP_HARDWALL request and this zone's nodes is in the nearest
+- * hardwalled cpuset ancestor to this tasks cpuset, yes.
+- * If the task has been OOM killed and has access to memory reserves
+- * as specified by the TIF_MEMDIE flag, yes.
++ * If we're in interrupt, yes, we can always allocate.  If __GFP_THISNODE is
++ * set, yes, we can always allocate.  If node is in our task's mems_allowed,
++ * yes.  If it's not a __GFP_HARDWALL request and this node is in the nearest
++ * hardwalled cpuset ancestor to this task's cpuset, yes.  If the task has been
++ * OOM killed and has access to memory reserves as specified by the TIF_MEMDIE
++ * flag, yes.
+  * Otherwise, no.
+  *
+- * If __GFP_HARDWALL is set, cpuset_zone_allowed_softwall()
+- * reduces to cpuset_zone_allowed_hardwall().  Otherwise,
+- * cpuset_zone_allowed_softwall() might sleep, and might allow a zone
+- * from an enclosing cpuset.
++ * If __GFP_HARDWALL is set, cpuset_node_allowed_softwall() reduces to
++ * cpuset_node_allowed_hardwall().  Otherwise, cpuset_node_allowed_softwall()
++ * might sleep, and might allow a node from an enclosing cpuset.
+  *
+- * cpuset_zone_allowed_hardwall() only handles the simpler case of
+- * hardwall cpusets, and never sleeps.
++ * cpuset_node_allowed_hardwall() only handles the simpler case of hardwall
++ * cpusets, and never sleeps.
+  *
+  * The __GFP_THISNODE placement logic is really handled elsewhere,
+  * by forcibly using a zonelist starting at a specified node, and by
+@@ -2238,20 +2236,17 @@ static const struct cpuset *nearest_hard
+  *	GFP_USER     - only nodes in current tasks mems allowed ok.
+  *
+  * Rule:
+- *    Don't call cpuset_zone_allowed_softwall if you can't sleep, unless you
++ *    Don't call cpuset_node_allowed_softwall if you can't sleep, unless you
+  *    pass in the __GFP_HARDWALL flag set in gfp_flag, which disables
+  *    the code that might scan up ancestor cpusets and sleep.
+  */
 -
--	/* Copy the data member from inside the lock */
--	epi->event.data = event->data;
+-int __cpuset_zone_allowed_softwall(struct zone *z, gfp_t gfp_mask)
++int __cpuset_node_allowed_softwall(int node, gfp_t gfp_mask)
+ {
+-	int node;			/* node that zone z is on */
+ 	const struct cpuset *cs;	/* current cpuset ancestors */
+ 	int allowed;			/* is allocation in zone z allowed? */
+ 
+ 	if (in_interrupt() || (gfp_mask & __GFP_THISNODE))
+ 		return 1;
+-	node = zone_to_nid(z);
+ 	might_sleep_if(!(gfp_mask & __GFP_HARDWALL));
+ 	if (node_isset(node, current->mems_allowed))
+ 		return 1;
+@@ -2280,15 +2275,15 @@ int __cpuset_zone_allowed_softwall(struc
+ }
+ 
+ /*
+- * cpuset_zone_allowed_hardwall - Can we allocate on zone z's memory node?
+- * @z: is this zone on an allowed node?
++ * cpuset_node_allowed_hardwall - Can we allocate on a memory node?
++ * @node: is this an allowed node?
+  * @gfp_mask: memory allocation flags
+  *
+- * If we're in interrupt, yes, we can always allocate.
+- * If __GFP_THISNODE is set, yes, we can always allocate.  If zone
+- * z's node is in our tasks mems_allowed, yes.   If the task has been
+- * OOM killed and has access to memory reserves as specified by the
+- * TIF_MEMDIE flag, yes.  Otherwise, no.
++ * If we're in interrupt, yes, we can always allocate.  If __GFP_THISNODE is
++ * set, yes, we can always allocate.  If node is in our task's mems_allowed,
++ * yes.  If the task has been OOM killed and has access to memory reserves as
++ * specified by the TIF_MEMDIE flag, yes.
++ * Otherwise, no.
+  *
+  * The __GFP_THISNODE placement logic is really handled elsewhere,
+  * by forcibly using a zonelist starting at a specified node, and by
+@@ -2296,20 +2291,16 @@ int __cpuset_zone_allowed_softwall(struc
+  * any node on the zonelist except the first.  By the time any such
+  * calls get to this routine, we should just shut up and say 'yes'.
+  *
+- * Unlike the cpuset_zone_allowed_softwall() variant, above,
+- * this variant requires that the zone be in the current tasks
++ * Unlike the cpuset_node_allowed_softwall() variant, above,
++ * this variant requires that the node be in the current task's
+  * mems_allowed or that we're in interrupt.  It does not scan up the
+  * cpuset hierarchy for the nearest enclosing mem_exclusive cpuset.
+  * It never sleeps.
+  */
 -
+-int __cpuset_zone_allowed_hardwall(struct zone *z, gfp_t gfp_mask)
++int __cpuset_node_allowed_hardwall(int node, gfp_t gfp_mask)
+ {
+-	int node;			/* node that zone z is on */
+-
+ 	if (in_interrupt() || (gfp_mask & __GFP_THISNODE))
+ 		return 1;
+-	node = zone_to_nid(z);
+ 	if (node_isset(node, current->mems_allowed))
+ 		return 1;
  	/*
- 	 * If the item is "hot" and it is not registered inside the ready
- 	 * list, push it inside.
- 	 */
- 	if (revents & event->events) {
-+		spin_lock_irq(&ep->lock);
- 		if (!ep_is_linked(&epi->rdllink)) {
- 			list_add_tail(&epi->rdllink, &ep->rdllist);
- 
-@@ -1007,8 +1002,8 @@ static int ep_modify(struct eventpoll *e
- 			if (waitqueue_active(&ep->poll_wait))
- 				pwake++;
- 		}
-+		spin_unlock_irq(&ep->lock);
- 	}
--	spin_unlock_irqrestore(&ep->lock, flags);
- 
- 	/* We have to call this outside the lock */
- 	if (pwake)
 _
 
-Patches currently in -mm which might be from tonyb@cybernetics.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-origin.patch
 linux-next.patch
-vfs-improve-comment-describing-fget_light.patch
-epoll-dont-use-current-in-irq-context.patch
-epoll-remember-the-event-if-epoll_wait-returns-efault.patch
-epoll-remove-unnecessary-xchg.patch
-epoll-clean-up-ep_modify.patch
-epoll-use-real-type-instead-of-void.patch
-make-shm_get_stat-more-robust.patch
+oom_kill-dont-call-for-int_sqrt0.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+memcg-use-css-id.patch
+memcg-hierarchical-stat.patch
+memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
+memcg-fix-oom-killer-under-memcg.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+cpusets-replace-zone-allowed-functions-with-node-allowed.patch
 
