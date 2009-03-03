@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-remove-unnecessary-xchg.patch added to -mm tree
-Date: Tue, 03 Mar 2009 12:09:09 -0800
-Message-ID: <200903032009.n23K99Qf031544@imap1.linux-foundation.org>
+Subject: + epoll-remember-the-event-if-epoll_wait-returns-efault.patch added to -mm tree
+Date: Tue, 03 Mar 2009 12:09:07 -0800
+Message-ID: <200903032009.n23K98mt031541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52804 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752674AbZCCUJo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 15:09:44 -0500
+	by vger.kernel.org with ESMTP id S1752509AbZCCUJn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 15:09:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: tonyb@cybernetics.com, davidel@xmailserver.org
 
 
 The patch titled
-     epoll: remove unnecessary xchg
+     epoll: remember the event if epoll_wait returns -EFAULT
 has been added to the -mm tree.  Its filename is
-     epoll-remove-unnecessary-xchg.patch
+     epoll-remember-the-event-if-epoll_wait-returns-efault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: remove unnecessary xchg
+Subject: epoll: remember the event if epoll_wait returns -EFAULT
 From: Tony Battersby <tonyb@cybernetics.com>
 
-xchg in ep_unregister_pollwait() is unnecessary because it is protected by
-either epmutex or ep->mtx (the same protection as ep_remove()).
-
-If xchg was necessary, it would be insufficient to protect against
-problems: if multiple concurrent calls to ep_unregister_pollwait() were
-possible then a second caller that returns without doing anything because
-nwait == 0 could return before the waitqueues are removed by the first
-caller, which looks like it could lead to problematic races with
-ep_poll_callback().
-
-So remove xchg and add comments about the locking.
+If epoll_wait returns -EFAULT, the event that was being returned when the
+fault was encountered will be forgotten.  This is not a big deal since
+EFAULT will happen only if a buggy userspace program passes in a bad
+address, in which case what happens later usually doesn't matter. 
+However, it is easy to remember the event for later, and this patch makes
+a simple change to do that.
 
 Signed-off-by: Tony Battersby <tonyb@cybernetics.com>
 Acked-by: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+ fs/eventpoll.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/eventpoll.c~epoll-remove-unnecessary-xchg fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-remove-unnecessary-xchg
+diff -puN fs/eventpoll.c~epoll-remember-the-event-if-epoll_wait-returns-efault fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-remember-the-event-if-epoll_wait-returns-efault
 +++ a/fs/eventpoll.c
-@@ -394,27 +394,21 @@ static void ep_poll_safewake(wait_queue_
- }
- 
- /*
-- * This function unregister poll callbacks from the associated file descriptor.
-- * Since this must be called without holding "ep->lock" the atomic exchange trick
-- * will protect us from multiple unregister.
-+ * This function unregisters poll callbacks from the associated file
-+ * descriptor.  Must be called with "mtx" held (or "epmutex" if called from
-+ * ep_free).
-  */
- static void ep_unregister_pollwait(struct eventpoll *ep, struct epitem *epi)
- {
--	int nwait;
- 	struct list_head *lsthead = &epi->pwqlist;
- 	struct eppoll_entry *pwq;
- 
--	/* This is called without locks, so we need the atomic exchange */
--	nwait = xchg(&epi->nwait, 0);
-+	while (!list_empty(lsthead)) {
-+		pwq = list_first_entry(lsthead, struct eppoll_entry, llink);
- 
--	if (nwait) {
--		while (!list_empty(lsthead)) {
--			pwq = list_first_entry(lsthead, struct eppoll_entry, llink);
+@@ -1054,8 +1054,10 @@ static int ep_send_events_proc(struct ev
+ 		 */
+ 		if (revents) {
+ 			if (__put_user(revents, &uevent->events) ||
+-			    __put_user(epi->event.data, &uevent->data))
++			    __put_user(epi->event.data, &uevent->data)) {
++				list_add(&epi->rdllink, head);
+ 				return eventcnt ? eventcnt : -EFAULT;
++			}
+ 			eventcnt++;
+ 			uevent++;
+ 			if (epi->event.events & EPOLLONESHOT)
+_
+
+Patches currently in -mm which might be from tonyb@cybernetics.com are
+
+origin.patch
+linux-next.patch
+vfs-improve-comment-describing-fget_light.patch
+epoll-dont-use-current-in-irq-context.patch
+epoll-remember-the-event-if-epoll_wait-returns-efault.patch
+epoll-remove-unnecessary-xchg.patch
+epoll-clean-up-ep_modify.patch
+epoll-use-real-type-instead-of-void.patch
+make-shm_get_stat-more-robust.patch
+
