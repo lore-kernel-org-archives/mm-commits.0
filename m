@@ -1,24 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [failures] menu-fix-embedded-menu-snafu.patch removed from -mm tree
-Date: Mon, 02 Mar 2009 15:58:45 -0800
-Message-ID: <200903030016.n230GNIo005637@imap1.linux-foundation.org>
+Subject: + menu-fix-embedded-menu-snafu.patch added to -mm tree
+Date: Mon, 02 Mar 2009 16:46:13 -0800
+Message-ID: <200903030046.n230kDAV008266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32845 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759719AbZCCARE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 19:17:04 -0500
+	by vger.kernel.org with ESMTP id S1751416AbZCCAqg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2009 19:46:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, torvalds@linux-foundation.org
 
 
 The patch titled
      menu: fix embedded menu snafu
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      menu-fix-embedded-menu-snafu.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -29,29 +39,31 @@ From: Randy Dunlap <randy.dunlap@oracle.com>
 The COMPAT_BRK kconfig symbol does not depend on EMBEDDED, but it is in
 the midst of the EMBEDDED menu symbols, so it mucks up the EMBEDDED menu. 
 Fix by moving it to just after all of the EMBEDDED menu symbols.  Also,
-surround all of the EMBEDDED symbols with "if EMBEDDED"/"endif" so that
-this EMBEDDED block is clearer.
+ANON_INODES has a similar problem, so move it to just above the EMBEDDED
+menu items since it is used in the EMBEDDED menu.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ init/Kconfig |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
 diff -puN init/Kconfig~menu-fix-embedded-menu-snafu init/Kconfig
 --- a/init/Kconfig~menu-fix-embedded-menu-snafu
 +++ a/init/Kconfig
-@@ -683,6 +683,8 @@ menuconfig EMBEDDED
-           environments which can tolerate a "non-standard" kernel.
-           Only use this if you really know what you are doing.
+@@ -675,6 +675,9 @@ config CC_OPTIMIZE_FOR_SIZE
+ config SYSCTL
+ 	bool
  
-+if EMBEDDED
++config ANON_INODES
++	bool
 +
- config UID16
- 	bool "Enable 16-bit UID system calls" if EMBEDDED
- 	depends on ARM || BLACKFIN || CRIS || FRV || H8300 || X86_32 || M68K || (S390 && !64BIT) || SUPERH || SPARC32 || (SPARC64 && COMPAT) || UML || (X86_64 && IA32_EMULATION)
-@@ -780,18 +782,6 @@ config PCSPKR_PLATFORM
+ menuconfig EMBEDDED
+ 	bool "Configure standard kernel features (for small systems)"
+ 	help
+@@ -780,18 +783,6 @@ config PCSPKR_PLATFORM
            This option allows to disable the internal PC-Speaker
            support, saving some memory.
  
@@ -70,12 +82,20 @@ diff -puN init/Kconfig~menu-fix-embedded-menu-snafu init/Kconfig
  config BASE_FULL
  	default y
  	bool "Enable full-sized data structures for core" if EMBEDDED
-@@ -897,6 +887,20 @@ config SLUB_DEBUG
+@@ -809,9 +800,6 @@ config FUTEX
+ 	  support for "fast userspace mutexes".  The resulting kernel may not
+ 	  run glibc-based applications correctly.
+ 
+-config ANON_INODES
+-	bool
+-
+ config EPOLL
+ 	bool "Enable eventpoll support" if EMBEDDED
+ 	default y
+@@ -897,6 +885,18 @@ config SLUB_DEBUG
  	  SLUB sysfs support. /sys/slab will not exist and there will be
  	  no support for cache validation etc.
  
-+endif # EMBEDDED
-+
 +config COMPAT_BRK
 +	bool "Disable heap randomization"
 +	default y
