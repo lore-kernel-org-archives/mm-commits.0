@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - lm90-support-the-max6648-6692-chips-fix.patch removed from -mm tree
-Date: Tue, 03 Mar 2009 01:15:31 -0800
-Message-ID: <200903030915.n239FVcT013365@imap1.linux-foundation.org>
+Subject: - drivers-hwmon-lm90c-fix-coding-style.patch removed from -mm tree
+Date: Tue, 03 Mar 2009 01:15:33 -0800
+Message-ID: <200903030915.n239FXWx013368@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42825 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750719AbZCCJPp (ORCPT
+	by vger.kernel.org with ESMTP id S1752922AbZCCJPp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 04:15:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,16 +14,16 @@ To: akpm@linux-foundation.org, djwong@us.ibm.com, khali@linux-fr.org, mm-commits
 
 
 The patch titled
-     lm90-support-the-max6648-6692-chips-fix
+     drivers/hwmon/lm90.c: fix coding style
 has been removed from the -mm tree.  Its filename was
-     lm90-support-the-max6648-6692-chips-fix.patch
+     drivers-hwmon-lm90c-fix-coding-style.patch
 
 This patch was dropped because im-too-old-for-this-shit
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lm90-support-the-max6648-6692-chips-fix
+Subject: drivers/hwmon/lm90.c: fix coding style
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Darrick J. Wong <djwong@us.ibm.com>
@@ -31,32 +31,140 @@ Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lm90.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/hwmon/lm90.c |   92 ++++++++++++++++++++---------------------
+ 1 file changed, 45 insertions(+), 47 deletions(-)
 
-diff -puN drivers/hwmon/lm90.c~lm90-support-the-max6648-6692-chips-fix drivers/hwmon/lm90.c
---- a/drivers/hwmon/lm90.c~lm90-support-the-max6648-6692-chips-fix
+diff -puN drivers/hwmon/lm90.c~drivers-hwmon-lm90c-fix-coding-style drivers/hwmon/lm90.c
+--- a/drivers/hwmon/lm90.c~drivers-hwmon-lm90c-fix-coding-style
 +++ a/drivers/hwmon/lm90.c
-@@ -776,12 +776,14 @@ static int lm90_detect(struct i2c_client
- 			 && (reg_config1 & 0x3f) == 0x00
- 			 && reg_convrate <= 0x07) {
- 				kind = max6646;
--			} else
--			/* The MAX6648/6692 chips have a working man/chip id
--			 * and the same register set as the 6657.
--			 */
--			if (chip_id == 0x59 && address == 0x4C)
-+			} else if (chip_id == 0x59 && address == 0x4C) {
-+				/*
-+				 * The MAX6648/6692 chips have a working
-+				 * man/chip id and the same register set as the
-+				 * 6657.
-+				 */
- 				kind = max6657;
-+			}
- 		}
+@@ -694,22 +694,22 @@ static int lm90_detect(struct i2c_client
+ 						LM90_REG_R_CONVRATE)) < 0)
+ 			return -ENODEV;
+ 		
+-		if ((address == 0x4C || address == 0x4D)
+-		 && man_id == 0x01) { /* National Semiconductor */
++		if ((address == 0x4C || address == 0x4D) && man_id == 0x01) {
++			/* National Semiconductor */
+ 			int reg_config2;
  
- 		if (kind <= 0) { /* identification failed */
+ 			if ((reg_config2 = i2c_smbus_read_byte_data(new_client,
+ 						LM90_REG_R_CONFIG2)) < 0)
+ 				return -ENODEV;
+ 
+-			if ((reg_config1 & 0x2A) == 0x00
+-			 && (reg_config2 & 0xF8) == 0x00
+-			 && reg_convrate <= 0x09) {
+-				if (address == 0x4C
+-				 && (chip_id & 0xF0) == 0x20) { /* LM90 */
++			if ((reg_config1 & 0x2A) == 0x00 &&
++			    (reg_config2 & 0xF8) == 0x00 &&
++			    reg_convrate <= 0x09) {
++				if (address == 0x4C &&
++				    (chip_id & 0xF0) == 0x20) { /* LM90 */
+ 					kind = lm90;
+-				} else
+-				if ((chip_id & 0xF0) == 0x30) { /* LM89/LM99 */
++				} else if ((chip_id & 0xF0) == 0x30) {
++					/* LM89/LM99 */
+ 					kind = lm99;
+ 					dev_info(&adapter->dev,
+ 						 "Assuming LM99 chip at "
+@@ -720,27 +720,24 @@ static int lm90_detect(struct i2c_client
+ 						 "loading the lm90 driver\n",
+ 						 i2c_adapter_id(adapter),
+ 						 address);
+-				} else
+-				if (address == 0x4C
+-				 && (chip_id & 0xF0) == 0x10) { /* LM86 */
++				} else if (address == 0x4C &&
++					(chip_id & 0xF0) == 0x10) { /* LM86 */
+ 					kind = lm86;
+ 				}
+ 			}
+-		} else
+-		if ((address == 0x4C || address == 0x4D)
+-		 && man_id == 0x41) { /* Analog Devices */
+-			if ((chip_id & 0xF0) == 0x40 /* ADM1032 */
+-			 && (reg_config1 & 0x3F) == 0x00
+-			 && reg_convrate <= 0x0A) {
++		} else if ((address == 0x4C || address == 0x4D) &&
++				man_id == 0x41) {
++			/* Analog Devices */
++			if ((chip_id & 0xF0) == 0x40  && /* ADM1032 */
++			    (reg_config1 & 0x3F) == 0x00 &&
++			    reg_convrate <= 0x0A) {
+ 				kind = adm1032;
+-			} else
+-			if (chip_id == 0x51 /* ADT7461 */
+-			 && (reg_config1 & 0x1B) == 0x00
+-			 && reg_convrate <= 0x0A) {
++			} else if (chip_id == 0x51 && /* ADT7461 */
++				 (reg_config1 & 0x1B) == 0x00 &&
++				 reg_convrate <= 0x0A) {
+ 				kind = adt7461;
+ 			}
+-		} else
+-		if (man_id == 0x4D) { /* Maxim */
++		} else if (man_id == 0x4D) { /* Maxim */
+ 			/*
+ 			 * The MAX6657, MAX6658 and MAX6659 do NOT have a
+ 			 * chip_id register. Reading from that address will
+@@ -750,31 +747,32 @@ static int lm90_detect(struct i2c_client
+ 			 * will be those of the previous read, so in our case
+ 			 * those of the man_id register.
+ 			 */
+-			if (chip_id == man_id
+-			 && (address == 0x4C || address == 0x4D)
+-			 && (reg_config1 & 0x1F) == (man_id & 0x0F)
+-			 && reg_convrate <= 0x09) {
++			if (chip_id == man_id &&
++			    (address == 0x4C || address == 0x4D) &&
++			    (reg_config1 & 0x1F) == (man_id & 0x0F) &&
++			    reg_convrate <= 0x09) {
+ 			 	kind = max6657;
+-			} else
+-			/* The chip_id register of the MAX6680 and MAX6681
+-			 * holds the revision of the chip.
+-			 * the lowest bit of the config1 register is unused
+-			 * and should return zero when read, so should the
+-			 * second to last bit of config1 (software reset)
+-			 */
+-			if (chip_id == 0x01
+-			 && (reg_config1 & 0x03) == 0x00
+-			 && reg_convrate <= 0x07) {
++			} else if (chip_id == 0x01 &&
++					(reg_config1 & 0x03) == 0x00 &&
++					reg_convrate <= 0x07) {
++				/*
++				 * The chip_id register of the MAX6680 and
++				 * MAX6681 holds the revision of the chip.
++				 * the lowest bit of the config1 register is
++				 * unused and should return zero when read, so
++				 * should the second to last bit of config1
++				 * (software reset)
++				 */
+ 			 	kind = max6680;
+-			} else
+-			/* The chip_id register of the MAX6646/6647/6649
+-			 * holds the revision of the chip.
+-			 * The lowest 6 bits of the config1 register are
+-			 * unused and should return zero when read.
+-			 */
+-			if (chip_id == 0x59
+-			 && (reg_config1 & 0x3f) == 0x00
+-			 && reg_convrate <= 0x07) {
++			} else if (chip_id == 0x59 &&
++					(reg_config1 & 0x3f) == 0x00 &&
++					 reg_convrate <= 0x07) {
++				/*
++				 * The chip_id register of the MAX6646/6647/6649
++				 * holds the revision of the chip.
++				 * The lowest 6 bits of the config1 register are
++				 * unused and should return zero when read.
++				 */
+ 				kind = max6646;
+ 			} else if (chip_id == 0x59 && address == 0x4C) {
+ 				/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,7 +191,6 @@ pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.pa
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 vfs-simple_set_mnt-should-return-void.patch
 __tty_open-use-the-correct-type-for-saved_flags.patch
-lm90-support-the-max6648-6692-chips-fix.patch
 drivers-hwmon-lm90c-fix-coding-style.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch
