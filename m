@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 04 Mar 2009 13:45:35 -0800
-Message-ID: <200903042145.n24LjaxU006194@imap1.linux-foundation.org>
+Subject: + input-documentation-abi-testing-game_device-sysfs-interface-document-game_device-interface-added-to-xpad-driver.patch added to -mm tree
+Date: Wed, 04 Mar 2009 13:45:37 -0800
+Message-ID: <200903042145.n24LjcrX006197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44226 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755918AbZCDVqA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 16:46:00 -0500
+	by vger.kernel.org with ESMTP id S1756976AbZCDVqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 16:46:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dtor@mail.ru, mamurph@cs.clemson.edu
+Cc: mamurph@cs.clemson.edu, dtor@mail.ru
 
 
 The patch titled
-     input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes
+     input: Documentation/ABI/testing/game_device-sysfs-interface: document game_device interface added to xpad driver
 has been added to the -mm tree.  Its filename is
-     input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+     input-documentation-abi-testing-game_device-sysfs-interface-document-game_device-interface-added-to-xpad-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,188 +33,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: input: Documentation/ABI/testing/game_device-sysfs-interface: document game_device interface added to xpad driver
+From: Mike Murphy <mamurph@cs.clemson.edu>
 
-ERROR: trailing whitespace
-#229: FILE: Documentation/input/xpad.txt:202:
-+   $
+Add documentation for the game_device sysfs interface that was added
+to the xpad driver in this patchset.
 
-ERROR: trailing whitespace
-#233: FILE: Documentation/input/xpad.txt:206:
-+  $
-
-ERROR: trailing whitespace
-#239: FILE: Documentation/input/xpad.txt:212:
-+  $
-
-ERROR: trailing whitespace
-#242: FILE: Documentation/input/xpad.txt:215:
-+  $
-
-ERROR: trailing whitespace
-#246: FILE: Documentation/input/xpad.txt:219:
-+  $
-
-ERROR: trailing whitespace
-#252: FILE: Documentation/input/xpad.txt:225:
-+  $
-
-ERROR: trailing whitespace
-#259: FILE: Documentation/input/xpad.txt:232:
-+  $
-
-ERROR: trailing whitespace
-#264: FILE: Documentation/input/xpad.txt:237:
-+  $
-
-ERROR: trailing whitespace
-#271: FILE: Documentation/input/xpad.txt:244:
-+  $
-
-ERROR: trailing whitespace
-#278: FILE: Documentation/input/xpad.txt:251:
-+  $
-
-ERROR: trailing whitespace
-#283: FILE: Documentation/input/xpad.txt:256:
-+  $
-
-total: 11 errors, 0 warnings, 309 lines checked
-
-./patches/input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Mike Murphy <mamurph@cs.clemson.edu>
+Signed-off-by: Mike Murphy <mamurph@cs.clemson.edu>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/input/xpad.txt |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/ABI/testing/game_device-sysfs-interface |   86 ++++++++++
+ 1 file changed, 86 insertions(+)
 
-diff -puN Documentation/input/xpad.txt~input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes Documentation/input/xpad.txt
---- a/Documentation/input/xpad.txt~input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes
-+++ a/Documentation/input/xpad.txt
-@@ -266,7 +266,7 @@ documented below. First, however, we pre
- 
- I have to thank ITO Takayuki for the detailed info on his site
-  http://euc.jp/periphs/xbox-controller.ja.html.
-- 
+diff -puN /dev/null Documentation/ABI/testing/game_device-sysfs-interface
+--- /dev/null
++++ a/Documentation/ABI/testing/game_device-sysfs-interface
+@@ -0,0 +1,86 @@
++What:		/sys/class/input/inputXX/game_device
++		(exact location depends on kernel and userspace rules)
++Date:		February 2009
++KernelVersion:	2.6.28
++Contact:	Mike Murphy <mamurph@cs.clemson.edu>
++Description:	The game_device subdirectory provides a mechanism for gaming
++		devices, such as joysticks and gamepads, to report information
++		and allow changes to calibration and behavior. The name of
++		this directory SHOULD be game_device for all drivers that
++		support it, and those drivers SHOULD have ABI documentation
++		in this file. However, the exact contents of the directory
++		MAY vary by device type, so that devices can expose whatever
++		properties and settings are appropriate for the hardware
++		and/or driver software.
 +
- His useful info and both the usb-skeleton as well as the iforce input driver
- (Greg Kroah-Hartmann; Vojtech Pavlik) helped a lot in rapid prototyping
- the basic functionality.
-@@ -304,7 +304,7 @@ I:  If#= 0 Alt= 0 #EPs= 2 Cls=58(unk. ) 
- E:  Ad=82(I) Atr=03(Int.) MxPS=  32 Ivl=4ms
- E:  Ad=02(O) Atr=03(Int.) MxPS=  32 Ivl=4ms
- 
---- 
-+--
- Marko Friedemann <mfr@bmx-chemnitz.de>
- 2002-07-16
-  - original doc
++
++What:		game_device interface for the xpad driver
++		(drivers/input/joystick/xpad.c)
++Date:		February 2009
++KernelVersion:	2.6.28
++Contact:	Mike Murphy <mamurph@cs.clemson.edu>
++Description:	The game_device subdirectory for the Xbox/360 controller
++		driver provides the following files for retrieving information
++		and setting properties:
++
++		left_dead_zone			uint, read/write
++		right_dead_zone			uint, read/write
++
++			Set the size of the analog stick dead zones for the
++			left and right sticks, respectively. Minimum value
++			0, default 8192, maximum 31743 (or 1024 less than
++			the stick_limit for the corresponding stick).
++
++		left_stick_limit		uint, read/write
++		right_stick_limit		uint, read/write
++
++			Set the square-axis limits of the analog left and
++			right sticks, respectively. Minimum value 1024,
++			default 32767, maximum 32767. The minimum is
++			constrained to be the size of the dead zone plus
++			1024. See Documentation/input/xpad.txt for more
++			information.
++
++		rumble_enable			bool, read/write
++
++			Enable or disable the controller's rumble effect.
++			Default 1 (enabled).
++
++		left_trigger_full_axis		bool, read/write
++		right_trigger_full_axis		bool, read/write
++
++			Enable or disable use of a full axis (-32767 to
++			+32767) for each of the left and right triggers,
++			respectively. Default 0 (disabled: use a half axis
++			from 0 to +32767).
++
++		controller_number		uint, read-only
++
++			Controller slot number (1-4) for a wireless Xbox
++			360 gaming receiver. This value will be zero for all
++			wired devices.
++
++		controller_present		bool, read-only
++
++			Controller presence indicator for a wireless Xbox
++			360 gaming receiver. Has the value 1 whenever the
++			controller is turned on and connected to the receiver
++			slot corresponding to the input device. This value
++			will always be 1 for all wired devices.
++
++		controller_type			uint, read-only
++
++			Type of controller that is connected:
++
++			0	No controller connected
++			1	Pad
++			2	Guitar
++			3	Dance pad
++			255	Other/unknown type
++
++		id				string [17], read-only
++
++			16-character (plus NUL byte) presumably unique
++			identifier for each connected WIRELESS controller.
++			Presently, this value is an empty string for all
++			wired devices.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mamurph@cs.clemson.edu are
 
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-git-acpi-vs-git-cpufreq.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-sysfs-dont-block-indefinitely-for-unmapped-files.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-mmc-add-extended-csd-register-to-debugfs.patch
-mtd-rbtx4939-add-mtd-support.patch
-mtd-flex-onenand-support-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-ubd-stop-defintining-major_nr-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+input-documentation-abi-testing-game_device-sysfs-interface-document-game_device-interface-added-to-xpad-driver.patch
 
