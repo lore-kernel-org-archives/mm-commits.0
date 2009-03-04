@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-show-correct-file-mode-fix.patch added to -mm tree
-Date: Tue, 03 Mar 2009 17:56:13 -0800
-Message-ID: <200903040156.n241uDq0029801@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 04 Mar 2009 10:32:54 -0800
+Message-ID: <200903041832.n24IWsJ0020103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750860AbZCDB4x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2009 20:56:53 -0500
+	by vger.kernel.org with ESMTP id S1753620AbZCDSd1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 13:33:27 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n24IWsdM002385
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 4 Mar 2009 10:32:55 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     cgroups: show correct file mode, fix
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     cgroups-show-correct-file-mode-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,154 +37,132 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: show correct file mode, fix
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- 'mode' should have type mode_t
-- use S_IRUGO/S_IWUSR instead of 0444/0200
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    2 +-
- kernel/cgroup.c        |   24 ++++++++++++------------
- kernel/cpuset.c        |    2 +-
- 3 files changed, 14 insertions(+), 14 deletions(-)
+ include/linux/rcupdate.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-show-correct-file-mode-fix include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-show-correct-file-mode-fix
-+++ a/include/linux/cgroup.h
-@@ -262,7 +262,7 @@ struct cftype {
- 	 * If not 0, file mode is set to this value, otherwise it will
- 	 * be figured out automatically
- 	 */
--	int mode;
-+	mode_t mode;
+diff -puN include/linux/rcupdate.h~linux-next-git-rejects include/linux/rcupdate.h
+--- a/include/linux/rcupdate.h~linux-next-git-rejects
++++ a/include/linux/rcupdate.h
+@@ -43,7 +43,6 @@
+ #include <linux/lockdep.h>
+ #include <linux/completion.h>
  
- 	/*
- 	 * If non-zero, defines the maximum length of string that can
-diff -puN kernel/cgroup.c~cgroups-show-correct-file-mode-fix kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-show-correct-file-mode-fix
-+++ a/kernel/cgroup.c
-@@ -1686,7 +1686,7 @@ static struct inode_operations cgroup_di
- 	.rename = cgroup_rename,
- };
+-<<<<<<< HEAD:include/linux/rcupdate.h
+ /**
+  * struct rcu_head - callback structure for use with RCU
+  * @next: next update requests in a list
+@@ -57,8 +56,6 @@ struct rcu_head {
+ /* Internal to kernel, but needed by rcupreempt.h. */
+ extern int rcu_scheduler_active;
  
--static int cgroup_create_file(struct dentry *dentry, int mode,
-+static int cgroup_create_file(struct dentry *dentry, mode_t mode,
- 				struct super_block *sb)
- {
- 	static struct dentry_operations cgroup_dops = {
-@@ -1732,7 +1732,7 @@ static int cgroup_create_file(struct den
-  * @mode: mode to set on new directory.
-  */
- static int cgroup_create_dir(struct cgroup *cgrp, struct dentry *dentry,
--				int mode)
-+				mode_t mode)
- {
- 	struct dentry *parent;
- 	int error = 0;
-@@ -1755,24 +1755,24 @@ static int cgroup_create_dir(struct cgro
-  * @cft: the control file in question
-  *
-  * returns cft->mode if ->mode is not 0
-- * returns 0644 if it has both a read and a write handler
-- * returns 0444 if it has only a read handler
-- * returns 0200 if it has only a write hander
-+ * returns S_IRUGO|S_IWUSR if it has both a read and a write handler
-+ * returns S_IRUGO if it has only a read handler
-+ * returns S_IWUSR if it has only a write hander
-  */
--static int cgroup_file_mode(const struct cftype *cft)
-+static mode_t cgroup_file_mode(const struct cftype *cft)
- {
--	int mode = 0;
-+	mode_t mode = 0;
- 
- 	if (cft->mode)
- 		return cft->mode;
- 
- 	if (cft->read || cft->read_u64 || cft->read_s64 ||
- 	    cft->read_map || cft->read_seq_string)
--		mode |= 0444;
-+		mode |= S_IRUGO;
- 
- 	if (cft->write || cft->write_u64 || cft->write_s64 ||
- 	    cft->write_string || cft->trigger)
--		mode |= 0200;
-+		mode |= S_IWUSR;
- 
- 	return mode;
- }
-@@ -1784,7 +1784,7 @@ int cgroup_add_file(struct cgroup *cgrp,
- 	struct dentry *dir = cgrp->dentry;
- 	struct dentry *dentry;
- 	int error;
--	int mode;
-+	mode_t mode;
- 
- 	char name[MAX_CGROUP_TYPE_NAMELEN + MAX_CFTYPE_NAME + 2] = { 0 };
- 	if (subsys && !test_bit(ROOT_NOPREFIX, &cgrp->root->flags)) {
-@@ -2378,7 +2378,7 @@ static struct cftype files[] = {
- 		.write_u64 = cgroup_tasks_write,
- 		.release = cgroup_tasks_release,
- 		.private = FILE_TASKLIST,
--		.mode = 0644,
-+		.mode = S_IRUGO | S_IWUSR,
- 	},
- 
- 	{
-@@ -2479,7 +2479,7 @@ static void cgroup_unlock_hierarchy(stru
-  * Must be called with the mutex on the parent inode held
-  */
- static long cgroup_create(struct cgroup *parent, struct dentry *dentry,
--			     int mode)
-+			     mode_t mode)
- {
- 	struct cgroup *cgrp;
- 	struct cgroupfs_root *root = parent->root;
-diff -puN kernel/cpuset.c~cgroups-show-correct-file-mode-fix kernel/cpuset.c
---- a/kernel/cpuset.c~cgroups-show-correct-file-mode-fix
-+++ a/kernel/cpuset.c
-@@ -1706,7 +1706,7 @@ static struct cftype files[] = {
- 		.read_u64 = cpuset_read_u64,
- 		.write_u64 = cpuset_write_u64,
- 		.private = FILE_MEMORY_PRESSURE,
--		.mode = 0444,
-+		.mode = S_IRUGO,
- 	},
- 
- 	{
+-=======
+->>>>>>> FETCH_HEAD:include/linux/rcupdate.h
+ #if defined(CONFIG_CLASSIC_RCU)
+ #include <linux/rcuclassic.h>
+ #elif defined(CONFIG_TREE_RCU)
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
 linux-next.patch
-vfs-add-missing-unlock-in-sget.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
-cgroup-css-id-support.patch
-cgroup-fix-frequent-ebusy-at-rmdir.patch
-cgroups-more-documentation-for-remount-and-release_agent.patch
-cgroups-show-correct-file-mode.patch
-cgroups-show-correct-file-mode-fix.patch
-memcg-use-css-id.patch
-memcg-hierarchical-stat.patch
-memcg-fix-shrinking-memory-to-return-ebusy-by-fixing-retry-algorithm.patch
-memcg-fix-oom-killer-under-memcg.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+git-acpi-vs-git-cpufreq.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+oprofile-dont-set-counter-width-from-cpuid-on-core2-checkpatch-fixes.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mmc-add-extended-csd-register-to-debugfs.patch
+mtd-rbtx4939-add-mtd-support.patch
+mtd-flex-onenand-support-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+ubd-stop-defintining-major_nr-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
 memcg-fix-oom-killer-under-memcg-fix2.patch
 memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom.patch
 memcg-show-memcg-information-during-oom-fix2.patch
 memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix.patch
 memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-use-css-id-in-swap_cgroup-for-saving-memory-v4.patch
-cpuset-fix-possible-races-in-cpu-memory-hotplug.patch
-cgroups-add-data-field-to-struct-cgroup_scanner.patch
-cpuset-rewrite-update_tasks_nodemask.patch
-cpuset-avoid-changing-cpusets-mems-when-errno-returned.patch
-cpuset-remove-struct-cpuset_hotplug_scanner.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
