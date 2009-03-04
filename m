@@ -1,51 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded] misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch removed from -mm tree
-Date: Wed, 04 Mar 2009 11:49:50 -0800
-Message-ID: <200903041949.n24Jnofh027417@imap1.linux-foundation.org>
+Subject: [folded] sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch removed from -mm tree
+Date: Wed, 04 Mar 2009 11:56:43 -0800
+Message-ID: <200903041956.n24JuinJ028137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53263 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46418 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756026AbZCDTuB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 14:50:01 -0500
+	by vger.kernel.org with ESMTP id S1755940AbZCDT5X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 14:57:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, frank@f-seidel.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@aristanetworks.com, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     misdn-l1oip-reduce-stack-memory-footprint-cleanup
+     sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix
 has been removed from the -mm tree.  Its filename was
-     misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch
+     sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
 
-This patch was dropped because it was folded into misdn-l1oip-reduce-stack-memory-footprint.patch
+This patch was dropped because it was folded into sysfs-dont-block-indefinitely-for-unmapped-files.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misdn-l1oip-reduce-stack-memory-footprint-cleanup
+Subject: sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Frank Seidel <frank@f-seidel.de>
-Cc: Karsten Keil <kkeil@suse.de>
+fs/sysfs/bin.c: In function 'release':
+fs/sysfs/bin.c:377: warning: unused variable 'attr_sd'
+
+Cc: Eric W. Biederman <ebiederm@aristanetworks.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/mISDN/l1oip_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/sysfs/bin.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/isdn/mISDN/l1oip_core.c~misdn-l1oip-reduce-stack-memory-footprint-cleanup drivers/isdn/mISDN/l1oip_core.c
---- a/drivers/isdn/mISDN/l1oip_core.c~misdn-l1oip-reduce-stack-memory-footprint-cleanup
-+++ a/drivers/isdn/mISDN/l1oip_core.c
-@@ -670,7 +670,7 @@ l1oip_socket_thread(void *data)
- 	DECLARE_COMPLETION(wait);
+diff -puN fs/sysfs/bin.c~sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix
++++ a/fs/sysfs/bin.c
+@@ -374,7 +374,6 @@ static int open(struct inode * inode, st
  
- 	/* allocate buffer memory */
--	recvbuf = kmalloc(recvbuf_size * sizeof(*recvbuf), GFP_KERNEL);
-+	recvbuf = kmalloc(recvbuf_size, GFP_KERNEL);
- 	if (!recvbuf) {
- 		printk(KERN_ERR "%s: Failed to allocate memory.\n", __func__);
- 		ret = -ENOMEM;
+ static int release(struct inode * inode, struct file * file)
+ {
+-	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
+ 	struct bin_buffer *bb = file->private_data;
+ 
+ 	mutex_lock(&sysfs_bin_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -59,6 +64,7 @@ git-acpi-vs-git-cpufreq.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
 kernel-auditscc-fix-warning.patch
 early-platform-driver-v3.patch
+sysfs-dont-block-indefinitely-for-unmapped-files.patch
 sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
 clocksource-pass-clocksource-to-read-callback.patch
 input-bcm5974-declare-alignment-usage.patch
@@ -68,7 +74,6 @@ mmc-add-extended-csd-register-to-debugfs.patch
 mtd-rbtx4939-add-mtd-support.patch
 mtd-flex-onenand-support-fix.patch
 misdn-l1oip-reduce-stack-memory-footprint.patch
-misdn-l1oip-reduce-stack-memory-footprint-cleanup.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 vfs-simple_set_mnt-should-return-void.patch
