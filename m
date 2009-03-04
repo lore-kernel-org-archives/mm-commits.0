@@ -1,153 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [folded] sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch removed from -mm tree
-Date: Wed, 04 Mar 2009 11:56:43 -0800
-Message-ID: <200903041956.n24JuinJ028137@imap1.linux-foundation.org>
+Subject: [folded] nand-fix-raw-reads-with-ecc-syndrome-layouts-cleanups.patch removed from -mm tree
+Date: Wed, 04 Mar 2009 12:00:41 -0800
+Message-ID: <200903042000.n24K0fta028674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755940AbZCDT5X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 14:57:23 -0500
+	by vger.kernel.org with ESMTP id S1756826AbZCDUBj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 15:01:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@aristanetworks.com, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix
+     Cosmetic fixes to the patch fixing raw HW_SYNDROME read/write.
 has been removed from the -mm tree.  Its filename was
-     sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
+     nand-fix-raw-reads-with-ecc-syndrome-layouts-cleanups.patch
 
-This patch was dropped because it was folded into sysfs-dont-block-indefinitely-for-unmapped-files.patch
+This patch was dropped because it was folded into nand-fix-raw-reads-with-ecc-syndrome-layouts.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Cosmetic fixes to the patch fixing raw HW_SYNDROME read/write.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-fs/sysfs/bin.c: In function 'release':
-fs/sysfs/bin.c:377: warning: unused variable 'attr_sd'
-
-Cc: Eric W. Biederman <ebiederm@aristanetworks.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/mtd/nand/nand_base.c |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN fs/sysfs/bin.c~sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix
-+++ a/fs/sysfs/bin.c
-@@ -374,7 +374,6 @@ static int open(struct inode * inode, st
+diff -puN drivers/mtd/nand/nand_base.c~nand-fix-raw-reads-with-ecc-syndrome-layouts-cleanups drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~nand-fix-raw-reads-with-ecc-syndrome-layouts-cleanups
++++ a/drivers/mtd/nand/nand_base.c
+@@ -773,10 +773,9 @@ static int nand_read_page_raw_syndrome(s
+ 	int eccsize = chip->ecc.size;
+ 	int eccbytes = chip->ecc.bytes;
+ 	uint8_t *oob = chip->oob_poi;
+-	int temp;
++	int steps, size;
  
- static int release(struct inode * inode, struct file * file)
- {
--	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
- 	struct bin_buffer *bb = file->private_data;
+-	temp = chip->ecc.steps;
+-	do {
++	for (steps = chip->ecc.steps; steps > 0; steps--) {
+ 		chip->read_buf(mtd, buf, eccsize);
+ 		buf += eccsize;
  
- 	mutex_lock(&sysfs_bin_lock);
+@@ -792,11 +791,11 @@ static int nand_read_page_raw_syndrome(s
+ 			chip->read_buf(mtd, oob, chip->ecc.postpad);
+ 			oob += chip->ecc.postpad;
+ 		}
+-	} while (--temp);
++	}
+ 
+-	temp = mtd->oobsize - (oob - chip->oob_poi);
+-	if (temp)
+-		chip->read_buf(mtd, oob, temp);
++	size = mtd->oobsize - (oob - chip->oob_poi);
++	if (size)
++		chip->read_buf(mtd, oob, size);
+ 
+ 	return 0;
+ }
+@@ -1542,7 +1541,7 @@ static void nand_write_page_raw(struct m
+  * @chip:	nand chip info structure
+  * @buf:	data buffer
+  *
+- * We need a special oob layout and handling even when ECC isn't used.
++ * We need a special oob layout and handling even when ECC isn't checked.
+  */
+ static void nand_write_page_raw_syndrome(struct mtd_info *mtd, struct nand_chip *chip,
+ 				const uint8_t *buf)
+@@ -1550,10 +1549,9 @@ static void nand_write_page_raw_syndrome
+ 	int eccsize = chip->ecc.size;
+ 	int eccbytes = chip->ecc.bytes;
+ 	uint8_t *oob = chip->oob_poi;
+-	int temp;
++	int steps, size;
+ 
+-	temp = chip->ecc.steps;
+-	do {
++	for (steps = chip->ecc.steps; steps > 0; steps--) {
+ 		chip->write_buf(mtd, buf, eccsize);
+ 		buf += eccsize;
+ 
+@@ -1569,11 +1567,11 @@ static void nand_write_page_raw_syndrome
+ 			chip->write_buf(mtd, oob, chip->ecc.postpad);
+ 			oob += chip->ecc.postpad;
+ 		}
+-	} while (--temp);
++	}
+ 
+-	temp = mtd->oobsize - (oob - chip->oob_poi);
+-	if (temp)
+-		chip->write_buf(mtd, oob, temp);
++	size = mtd->oobsize - (oob - chip->oob_poi);
++	if (size)
++		chip->write_buf(mtd, oob, size);
+ }
+ /**
+  * nand_write_page_swecc - [REPLACABLE] software ecc based page write function
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-git-acpi-vs-git-cpufreq.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-sysfs-dont-block-indefinitely-for-unmapped-files.patch
-sysfs-dont-block-indefinitely-for-unmapped-files-warning-fix.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-leds-add-bd2802gu-led-driver.patch
-mmc-add-extended-csd-register-to-debugfs.patch
-mtd-rbtx4939-add-mtd-support.patch
-mtd-flex-onenand-support-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-ubd-stop-defintining-major_nr-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
-arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
-work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+nand-fix-raw-reads-with-ecc-syndrome-layouts.patch
+nand-fix-raw-reads-with-ecc-syndrome-layouts-cleanups.patch
+nand-davinci_nand-driver.patch
+nand-fix-broken-debug-messages.patch
+mtd-we-dont-need-no-misc-devices.patch
+mtd-partitioning-utility-predicates.patch
+blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
+blackfin-spi-driver-remove-useless-asm-cplbinith.patch
+blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
+blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
+blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
+blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
+blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
+blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
+blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch
+spi-limit-reaches-1-tested-0.patch
+rtc-ds1307-true-smbus-compatibility.patch
+gpio-gpio_requestfree-now-required-feature-removal.patch
 
