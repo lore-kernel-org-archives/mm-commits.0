@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i810-fix-kernel-crash-fix-when-struct-fb_var_screeninfo-is-supplied.patch added to -mm tree
-Date: Wed, 04 Mar 2009 15:13:03 -0800
-Message-ID: <200903042313.n24ND3pW014301@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-drm_infoc-fix-warnings.patch added to -mm tree
+Date: Wed, 04 Mar 2009 15:35:03 -0800
+Message-ID: <200903042352.n24NqgYW017803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44138 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753307AbZCDXNr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 18:13:47 -0500
+	by vger.kernel.org with ESMTP id S1756836AbZCDXwv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 18:52:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: samuel.cuella@supinfo.com, jkosina@suse.cz, krzysztof.h1@poczta.fm
+Cc: akpm@linux-foundation.org, airlied@linux.ie
 
 
 The patch titled
-     i810: fix kernel crash fix when struct fb_var_screeninfo is supplied
+     drivers/gpu/drm/drm_info.c: fix warnings
 has been added to the -mm tree.  Its filename is
-     i810-fix-kernel-crash-fix-when-struct-fb_var_screeninfo-is-supplied.patch
+     drivers-gpu-drm-drm_infoc-fix-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,111 +33,163 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i810: fix kernel crash fix when struct fb_var_screeninfo is supplied
-From: Samuel CUELLA <samuel.cuella@supinfo.com>
+Subject: drivers/gpu/drm/drm_info.c: fix warnings
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Prevent the kernel from being crashed by a divide-by-zero operation when
-supplied an incorrectly filled 'struct fb_var_screeninfo' from userland.
+drivers/gpu/drm/drm_info.c: In function 'drm_vm_info':
+drivers/gpu/drm/drm_info.c:89: warning: assignment from incompatible pointer type
+drivers/gpu/drm/drm_info.c: In function 'drm_vma_info':
+drivers/gpu/drm/drm_info.c:291: warning: format '%08lx' expects type 'long unsigned int', but argument 5 has type 'phys_addr_t'
+drivers/gpu/drm/drm_info.c: In function 'drm_vm_info':
+drivers/gpu/drm/drm_info.c:101: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
 
-Previously i810_main.c:1005 (i810_check_params) was using the global
-'yres' symbol previously defined at i810_main.c:145 as a module parameter
-value holder (i810_main.c:2174).  If i810fb is compiled-in or if this
-param doesn't get a default value, this direct usage leads to a
-divide-by-zero at i810_main.c:1005 (i810_check_params).  The patch simply
-replace the 'yres' global, perhaps undefined symbol usage by a given
-parameter structure lookup.
-
-This problem occurs with directfb, mplayer -vo fbdev, SDL library.
-It was also reported ( but non solved ) at : http://mail.directfb.org/pipermail/directfb-dev/2008-March/004050.html
-Sample code to reproduce :
-
-/*Comile with gcc crashfb.c -o crashfb*/
-#include <fcntl.h>
-#include <linux/fb.h>
-#include <stdio.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <stdlib.h>
-
-#define FB "/dev/fb0"
-
-int main(){
-        int fd;
-        int rv;
-        struct fb_var_screeninfo vinfo;
-
-        fd = open(FB,O_RDWR);
-        if( fd ){
-                vinfo.xres = 800;
-                vinfo.yres = 600;
-                rv =ioctl(fd, FBIOPUT_VSCREENINFO, &vinfo);
-        }
-        return(rv);
-}
-
-Leads to this crash dump:
-divide error: 0000 [#1]
-last sysfs file: /sys/kernel/uevent_seqnum
-Modules linked in:
-
-Pid: 4058, comm: crashfb Not tainted (2.6.28 #4)
-EIP: 0060:[<c02558c8>] EFLAGS: 00010202 CPU: 0
-EIP is at i810fb_check_var+0x428/0x520
-EAX: 00400000 EBX: ce9d5e44 ECX: 001209a0 EDX: 00000000
-ESI: 00000020 EDI: 00000004 EBP: 00000000 ESP: ce9d5d0c
- DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-Process crashfb (pid: 4058, ti=ce9d4000 task=cf8af0e0 task.ti=ce9d4000)
-Stack:
- c014f993 00000000 00000001 00000000 00000000 00400000 0000001a cf811000
- 08048268 cf81123c 00000258 00000320 ffffffed cf811015 ce9d5e45 cf811000
- c0224821 ce9d5e44 ce9b09a0 00000000 00012000 00000000 c0111a89 00000001
-Call Trace:
- [<c014f993>] handle_mm_fault+0x5c3/0x650
- [<c0224821>] fb_set_var+0x61/0x2d0
- [<c0111a89>] do_page_fault+0x3a9/0x8b0
- [<c016c935>] do_lookup+0x65/0x1a0
- [<c02257aa>] fb_ioctl+0x21a/0x3c0
- [<c014f577>] handle_mm_fault+0x1a7/0x650
- [<c0225590>] fb_ioctl+0x0/0x3c0
- [<c017077f>] vfs_ioctl+0x1f/0x70
- [<c017096c>] do_vfs_ioctl+0x5c/0x430
- [<c0111a89>] do_page_fault+0x3a9/0x8b0
- [<c0170d7d>] sys_ioctl+0x3d/0x70
- [<c0103af9>] sysenter_do_call+0x12/0x25
-Code: c0 0f 44 d0 89 54 24 04 e8 b6 5a ec ff b8 ea ff ff ff 83 c4 30 5b 5e 5f 5d c3 8b 2d ac 0e 4a c0 31 d2 89 f7 8b 44 24 14 c1 ef 03 <f7> f5 31 d2 f7 f7 3b 03 89 c7 0f 83 3c fd ff ff 89 c2 89 f1 89
-EIP: [<c02558c8>] i810fb_check_var+0x428/0x520 SS:ESP 0068:ce9d5d0c
----[ end trace 1840767f449d222e ]---
-
-Despite this dump says that EIP was in 'i810fb_check_var' the divide by
-zero truly occurs in 'i810_check_params' called by 'i810fb_check_var'
-(i810_main.c:1466).
-
-Signed-off-by: Samuel CUELLA <samuel.cuella@supinfo.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/i810/i810_main.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/gpu/drm/drm_info.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/i810/i810_main.c~i810-fix-kernel-crash-fix-when-struct-fb_var_screeninfo-is-supplied drivers/video/i810/i810_main.c
---- a/drivers/video/i810/i810_main.c~i810-fix-kernel-crash-fix-when-struct-fb_var_screeninfo-is-supplied
-+++ a/drivers/video/i810/i810_main.c
-@@ -993,6 +993,8 @@ static int i810_check_params(struct fb_v
- 	struct i810fb_par *par = info->par;
- 	int line_length, vidmem, mode_valid = 0, retval = 0;
- 	u32 vyres = var->yres_virtual, vxres = var->xres_virtual;
-+	u32 yres = info->var.yres;
-+
- 	/*
- 	 *  Memory limit
- 	 */
+diff -puN drivers/gpu/drm/drm_info.c~drivers-gpu-drm-drm_infoc-fix-warnings drivers/gpu/drm/drm_info.c
+--- a/drivers/gpu/drm/drm_info.c~drivers-gpu-drm-drm_infoc-fix-warnings
++++ a/drivers/gpu/drm/drm_info.c
+@@ -72,7 +72,7 @@ int drm_vm_info(struct seq_file *m, void
+ {
+ 	struct drm_info_node *node = (struct drm_info_node *) m->private;
+ 	struct drm_device *dev = node->minor->dev;
+-	struct drm_map *map;
++	struct drm_local_map *map;
+ 	struct drm_map_list *r_list;
+ 
+ 	/* Hardcoded from _DRM_FRAME_BUFFER,
+@@ -94,9 +94,9 @@ int drm_vm_info(struct seq_file *m, void
+ 		else
+ 			type = types[map->type];
+ 
+-		seq_printf(m, "%4d 0x%08lx 0x%08lx %4.4s  0x%02x 0x%08lx ",
++		seq_printf(m, "%4d 0x%08llx 0x%08lx %4.4s  0x%02x 0x%08lx ",
+ 			   i,
+-			   map->offset,
++			   (unsigned long long)map->offset,
+ 			   map->size, type, map->flags,
+ 			   (unsigned long) r_list->user_token);
+ 		if (map->mtrr < 0)
+@@ -286,9 +286,9 @@ int drm_vma_info(struct seq_file *m, voi
+ #endif
+ 
+ 	mutex_lock(&dev->struct_mutex);
+-	seq_printf(m, "vma use count: %d, high_memory = %p, 0x%08lx\n",
+-		   atomic_read(&dev->vma_count),
+-		   high_memory, virt_to_phys(high_memory));
++	seq_printf(m, "vma use count: %d, high_memory = %p, 0x%08llx\n",
++		   atomic_read(&dev->vma_count), high_memory,
++		   (unsigned long long)virt_to_phys(high_memory));
+ 
+ 	list_for_each_entry(pt, &dev->vmalist, head) {
+ 		vma = pt->vma;
 _
 
-Patches currently in -mm which might be from samuel.cuella@supinfo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-i810-fix-kernel-crash-fix-when-struct-fb_var_screeninfo-is-supplied.patch
+i-need-old-gcc.patch
+i2c-too-much-compiler-noise.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+git-acpi-vs-git-cpufreq.patch
+thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+kernel-auditscc-fix-warning.patch
+early-platform-driver-v3.patch
+sysfs-dont-block-indefinitely-for-unmapped-files.patch
+drivers-gpu-drm-drm_infoc-fix-warnings.patch
+clocksource-pass-clocksource-to-read-callback.patch
+input-bcm5974-declare-alignment-usage.patch
+input-keyboard-introduce-lm8323-driver.patch
+drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
+leds-add-bd2802gu-led-driver.patch
+mmc-add-extended-csd-register-to-debugfs.patch
+mtd-rbtx4939-add-mtd-support.patch
+mtd-flex-onenand-support-fix.patch
+misdn-l1oip-reduce-stack-memory-footprint.patch
+pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-simple_set_mnt-should-return-void.patch
+libfs-make-simple_read_from_buffer-conventional-fix.patch
+__tty_open-use-the-correct-type-for-saved_flags.patch
+mtd_dataflash-fix-probing-of-at45db321c-chips-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics.patch
+input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume.patch
+nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
+page_fault-retry-with-nopage_retry.patch
+page_fault-retry-with-nopage_retry-fix.patch
+page_fault-retry-with-nopage_retry-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
+mm-add-proc-controls-for-pdflush-threads-fix-99.patch
+proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
+mm-introduce-for_each_populated_zone-macro-cleanup.patch
+mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
+mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
+alpha-convert-u64-to-unsigned-long-long-fix.patch
+alpha-convert-u64-to-unsigned-long-long-fix-2.patch
+alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
+ubd-stop-defintining-major_nr-checkpatch-fixes.patch
+epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
+flat-fix-data-sections-alignment-checkpatch-fixes.patch
+rtc-convert-leap_year-into-an-inline.patch
+rtc-add-platform-driver-for-efi-fix.patch
+rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+rtc-test-before-subtraction-on-unsigned-fix.patch
+drivers-video-uvesafbc-dont-use-gfp_any.patch
+cirrusfb-convert-printks-to-dev_foo-fix.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
+cirrusfb-fix-clock-doubling-fix.patch
+fbdev-uninline-lock_fb_info.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
+fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
+ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
+memcg-fix-oom-killer-under-memcg-fix2.patch
+memcg-fix-oom-killer-under-memcg-fix.patch
+memcg-show-memcg-information-during-oom-fix2.patch
+memcg-show-memcg-information-during-oom-fix.patch
+memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
+forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
+pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
+nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
+nbd-add-locking-to-nbd_ioctl-fix.patch
+namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
+edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
+kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
+arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
+vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
+nilfs2-segment-buffer-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
