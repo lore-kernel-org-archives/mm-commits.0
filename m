@@ -1,65 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded] ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 04 Mar 2009 12:09:20 -0800
-Message-ID: <200903042009.n24K9KVC029707@imap1.linux-foundation.org>
+Subject: [folded] psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch removed from -mm tree
+Date: Wed, 04 Mar 2009 12:10:00 -0800
+Message-ID: <200903042010.n24KA0vQ029761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36636 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37193 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756261AbZCDUJz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 15:09:55 -0500
+	by vger.kernel.org with ESMTP id S1755808AbZCDUKq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 15:10:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, habeck@sgi.com, jbarnes@virtuousgeek.org, jeremy@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, apw@canonical.com, arjan@infradead.org, dtor@mail.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes
+     psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix
 has been removed from the -mm tree.  Its filename was
-     ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch
+     psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
 
-This patch was dropped because it was folded into ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics.patch
+This patch was dropped because it was folded into psmouse-synaptics-ensure-we-reset-the-device-on-resume.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes
+Subject: psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#24: FILE: arch/ia64/sn/pci/pcibr/pcibr_dma.c:138:
-+^I^I    ^I^IPHYS_TO_TIODMA(paddr);$
+- make message more informative
 
-total: 1 errors, 0 warnings, 14 lines checked
+- 80-cols
 
-./patches/ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+- Should it be KERN_CRIT, or KERN_INFO??
 
-Please run checkpatch prior to sending patches
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: <habeck@sgi.com>
-Cc: Jeremy Higdon <jeremy@sgi.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/pci/pcibr/pcibr_dma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/mouse/synaptics.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/sn/pci/pcibr/pcibr_dma.c~ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes arch/ia64/sn/pci/pcibr/pcibr_dma.c
---- a/arch/ia64/sn/pci/pcibr/pcibr_dma.c~ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes
-+++ a/arch/ia64/sn/pci/pcibr/pcibr_dma.c
-@@ -135,7 +135,7 @@ pcibr_dmatrans_direct64(struct pcidev_in
- 	if (SN_DMA_ADDRTYPE(dma_flags) == SN_DMA_ADDR_PHYS)
- 		pci_addr = IS_PIC_SOFT(pcibus_info) ?
- 				PHYS_TO_DMA(paddr) :
--		    		PHYS_TO_TIODMA(paddr);
-+				PHYS_TO_TIODMA(paddr);
- 	else
- 		pci_addr = paddr;
- 	pci_addr |= dma_attributes;
+diff -puN drivers/input/mouse/synaptics.c~psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix drivers/input/mouse/synaptics.c
+--- a/drivers/input/mouse/synaptics.c~psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix
++++ a/drivers/input/mouse/synaptics.c
+@@ -71,7 +71,9 @@ int synaptics_detect(struct psmouse *psm
+ 	unsigned char param[4];
+ 
+ 	if (synaptics_resume_reset) {
+-		printk(KERN_CRIT "WARNING: synaptics was reset on resume, see synaptics_resume_reset if you have trouble on resume\n");
++		printk(KERN_CRIT "WARNING: synaptics was reset on resume. Try "
++				"using the synaptics_resume_reset module "
++				"parameter if you have trouble on resume\n");
+ 		psmouse_reset(psmouse);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,8 +84,8 @@ vfs-simple_set_mnt-should-return-void.patch
 __tty_open-use-the-correct-type-for-saved_flags.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics.patch
-ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics-checkpatch-fixes.patch
 input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
+psmouse-synaptics-ensure-we-reset-the-device-on-resume.patch
 psmouse-synaptics-ensure-we-reset-the-device-on-resume-fix.patch
 nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
 page_fault-retry-with-nopage_retry.patch
