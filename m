@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch added to -mm tree
-Date: Wed, 04 Mar 2009 14:31:29 -0800
-Message-ID: <200903042231.n24MVT6s010581@imap1.linux-foundation.org>
+Subject: + cirrusfb-fix-clock-doubling.patch added to -mm tree
+Date: Wed, 04 Mar 2009 14:34:12 -0800
+Message-ID: <200903042234.n24MYCTG010862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37794 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751120AbZCDWbg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 17:31:36 -0500
+	by vger.kernel.org with ESMTP id S1751139AbZCDWeQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 17:34:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, adobriyan@gmail.com, clg@fr.ibm.com
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     ipc namespace: initialize init_ipc_ns.count to 1
+     cirrusfb: fix clock doubling
 has been added to the -mm tree.  Its filename is
-     namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
+     cirrusfb-fix-clock-doubling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc namespace: initialize init_ipc_ns.count to 1
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: cirrusfb: fix clock doubling
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Hi Andrew,
+Cirrus' Alpine and Picasso4 chips uses DAC clock doubling to achieve full
+range of pixclock frequencies.
 
-when I sent an earlier version of the posix mqueue namespaces patchset
-you called me on setting init_ipc_ns.count to 2.  The following patch
-changes that to 1.  This is safe because the 1-count is for swapper, who
-cannot unshare the namespace.  Having init do unshare(CLONE_NEWIPC) only
-drops the count to 1.  No pre-init resources other than tasks pin (and
-therefore can decrease the refcount on) an ipc_ns.
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msgutil.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/video/cirrusfb.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN ipc/msgutil.c~namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1 ipc/msgutil.c
---- a/ipc/msgutil.c~namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1
-+++ a/ipc/msgutil.c
-@@ -26,8 +26,7 @@ DEFINE_SPINLOCK(mq_lock);
-  * and not CONFIG_IPC_NS.
-  */
- struct ipc_namespace init_ipc_ns = {
--	/* It's not for this patch to change, but should this be 1? */
--	.count		= ATOMIC_INIT(2),
-+	.count		= ATOMIC_INIT(1),
- #ifdef CONFIG_POSIX_MQUEUE
- 	.mq_queues_max   = DFLT_QUEUESMAX,
- 	.mq_msg_max      = DFLT_MSGMAX,
+diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-clock-doubling drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-fix-clock-doubling
++++ a/drivers/video/cirrusfb.c
+@@ -470,10 +470,23 @@ static int cirrusfb_check_pixclock(const
+ 	/* If the frequency is greater than we can support, we might be able
+ 	 * to use multiplexing for the video mode */
+ 	if (freq > maxclock) {
++		dev_err(info->device,
++			"Frequency greater than maxclock (%ld kHz)\n",
++			maxclock);
++		return -EINVAL;
++	}
++	/* Additional constrain: 8bpp uses DAC clock doubling
++	 * to allow maximum pixel clock */
++	if (var->bits_per_pixel == 8) {
+ 		switch (cinfo->btype) {
+ 		case BT_ALPINE:
++		case BT_PICASSO4:
++			if (freq > 85500)
++				cinfo->multiplexing = 1;
++			break;
+ 		case BT_GD5480:
+-			cinfo->multiplexing = 1;
++			if (freq > 135100)
++				cinfo->multiplexing = 1;
+ 			break;
+ 
+ 		default:
+@@ -815,6 +828,8 @@ static int cirrusfb_set_par_foo(struct f
+ 	freq = PICOS2KHZ(var->pixclock);
+ 	if (cinfo->btype == BT_ALPINE && var->bits_per_pixel == 24)
+ 		freq *= 3;
++	if (cinfo->multiplexing)
++		freq /= 2;
+ 
+ 	bestclock(freq, &nom, &den, &div);
+ 
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 linux-next.patch
-vfs-simple_set_mnt-should-return-void.patch
-relax-ns_can_attach-checks-to-allow-attaching-to-grandchild-cgroups.patch
-proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
-pids-kill-now-unused-signal_struct-__pgrp-__session-and-friends.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
-namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
-namespaces-mqueue-namespace-adapt-sysctl.patch
-namespaces-mqueue-namespace-adapt-sysctl-update.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-reiser4.patch
+cirrusfb-convert-printks-to-dev_foo-fix-fix3.patch
+cirrusfb-fix-laguna-chipset-memory-detection-and-clock-setting.patch
+cirrusfb-add-laguna-additional-overflow-register.patch
+cirrusfb-add-mmio-registers-for-laguna-chipsets.patch
+cirrusfb-do-not-calculate-line-length-twice.patch
+cirrusfb-use-5-6-5-rgb-for-16bpp-mode.patch
+cirrusfb-various-improvements.patch
+cirrusfb-laguna-chipset-8bpp-fix.patch
+cirrusfb-check_var-improvements.patch
+cirrusfb-various-laguna-fixes.patch
+cirrusfb-acceleration-improvements.patch
+cirrusfb-add-imageblit-function.patch
+cirrusfb-fix-error-paths-in-cirrusfb_xxx_register.patch
+cirrusfb-fix-error-paths-in-cirrusfb_xxx_register-fix.patch
+cirrusfb-gd5446-fixes.patch
+cirrusfb-use-24bpp-instead-of-32bpp.patch
+cirrusfb-fix-clock-doubling.patch
+cirrusfb-fix-clock-doubling-fix.patch
+drivers-video-sgivwfbc-fix-memory-leaks-in-removal-path.patch
+tdfxfb-fix-memory-leaks-in-removal-path.patch
+tridentfb-fix-memory-leaks-in-removal-path.patch
+vfb-fix-memory-leaks-in-removal-path.patch
+sstfb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+stifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+valkyriefb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+68328fb-fix-cmap-memory-leaks.patch
+amba-clcd-fix-cmap-memory-leaks.patch
+amifb-check-fb_alloc_cmap-return-value-and-handle-failure-properly.patch
+asiliantfb-fix-cmap-memory-leaks.patch
+asiliantfb-fix-cmap-memory-leaks-fix.patch
 
