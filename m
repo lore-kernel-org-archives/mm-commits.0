@@ -1,81 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] input-elantech-touchpad-driver-miss-recognising-logitech-mice.patch removed from -mm tree
-Date: Wed, 04 Mar 2009 12:39:11 -0800
-Message-ID: <200903042039.n24KdBr9032625@imap1.linux-foundation.org>
+Subject: + mfd-use-the-value-of-the-final-spin-when-reading-the-auxadc.patch added to -mm tree
+Date: Wed, 04 Mar 2009 12:45:47 -0800
+Message-ID: <200903042045.n24KjlXE000755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36135 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754535AbZCDUj5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 15:39:57 -0500
+	by vger.kernel.org with ESMTP id S1750786AbZCDUqm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 15:46:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@opmeer.net, apw@shadowen.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: broonie@opensource.wolfsonmicro.com, sameo@openedhand.com
 
 
 The patch titled
-     input: elantech touchpad driver miss-recognising logitech mice
-has been removed from the -mm tree.  Its filename was
-     input-elantech-touchpad-driver-miss-recognising-logitech-mice.patch
+     mfd: use the value of the final spin when reading the AUXADC
+has been added to the -mm tree.  Its filename is
+     mfd-use-the-value-of-the-final-spin-when-reading-the-auxadc.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: elantech touchpad driver miss-recognising logitech mice
-From: Arjan Opmeer <arjan@opmeer.net>
+Subject: mfd: use the value of the final spin when reading the AUXADC
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Some Logitech mice react to the magic knock like an Elantech touchpad would.
-This leads to those mice being misdetected as Elantech touchpads.  Add a
-version query to elantech_detect() to distinguish the two.
+Reverse the order of the tests for loop exit so we use a valid value
+before we time out.  Vanishingly unlikely to happen since we retry for
+several times the expected conversion time.
 
-Signed-off-by: Arjan Opmeer <arjan@opmeer.net>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/elantech.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ drivers/mfd/wm8350-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/mouse/elantech.c~input-elantech-touchpad-driver-miss-recognising-logitech-mice drivers/input/mouse/elantech.c
---- a/drivers/input/mouse/elantech.c~input-elantech-touchpad-driver-miss-recognising-logitech-mice
-+++ a/drivers/input/mouse/elantech.c
-@@ -567,14 +567,27 @@ int elantech_detect(struct psmouse *psmo
- 		return -1;
- 	}
+diff -puN drivers/mfd/wm8350-core.c~mfd-use-the-value-of-the-final-spin-when-reading-the-auxadc drivers/mfd/wm8350-core.c
+--- a/drivers/mfd/wm8350-core.c~mfd-use-the-value-of-the-final-spin-when-reading-the-auxadc
++++ a/drivers/mfd/wm8350-core.c
+@@ -1111,7 +1111,7 @@ int wm8350_read_auxadc(struct wm8350 *wm
+ 	do {
+ 		schedule_timeout_interruptible(1);
+ 		reg = wm8350_reg_read(wm8350, WM8350_DIGITISER_CONTROL_1);
+-	} while (--tries && (reg & WM8350_AUXADC_POLL));
++	} while ((reg & WM8350_AUXADC_POLL) && --tries);
  
--	pr_debug("elantech.c: Elantech version query result 0x%02x, 0x%02x, 0x%02x.\n",
--		 param[0], param[1], param[2]);
--
- 	if (param[0] == 0 || param[1] != 0) {
- 		pr_debug("elantech.c: Probably not a real Elantech touchpad. Aborting.\n");
- 		return -1;
- 	}
- 
-+	/*
-+	 * There are Logitech mice that react to the magic knock exactly
-+	 * like an Elantech touchpad would, so do a version query here to
-+	 * try to distinguish the two
-+	 */
-+	if (synaptics_send_cmd(psmouse, ETP_FW_VERSION_QUERY, param)) {
-+		pr_err("elantech.c: failed to query firmware version.\n");
-+		return -1;
-+	}
-+	pr_info("elantech.c: Elantech version query result 0x%02x, 0x%02x, 0x%02x.\n",
-+		param[0], param[1], param[2]);
-+	if (param[0] == 0 || param[1] != 0) {
-+		pr_info("elantech.c: Probably not a real Elantech touchpad. Aborting.\n");
-+		return -1;
-+	}
-+
- 	if (set_properties) {
- 		psmouse->vendor = "Elantech";
- 		psmouse->name = "Touchpad";
+ 	if (!tries)
+ 		dev_err(wm8350->dev, "adc chn %d read timeout\n", channel);
 _
 
-Patches currently in -mm which might be from arjan@opmeer.net are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
-input-elantech-touchpad-driver-miss-recognising-logitech-mice.patch
+linux-next.patch
+mfd-use-the-value-of-the-final-spin-when-reading-the-auxadc.patch
+mfd-add-support-for-wm8351-revision-b.patch
+rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
+rtc-wm8350-retries-will-reach-1.patch
 
