@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-drm_infoc-fix-warnings.patch added to -mm tree
-Date: Wed, 04 Mar 2009 15:35:03 -0800
-Message-ID: <200903042352.n24NqgYW017803@imap1.linux-foundation.org>
+Subject: + drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch added to -mm tree
+Date: Wed, 04 Mar 2009 15:46:01 -0800
+Message-ID: <200903050003.n2503dBV018875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36004 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756836AbZCDXwv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 18:52:51 -0500
+	by vger.kernel.org with ESMTP id S1753785AbZCEADs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 19:03:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     drivers/gpu/drm/drm_info.c: fix warnings
+     drivers/media/video/zoran/zoran_driver.c: fix printk warning
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-drm_infoc-fix-warnings.patch
+     drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/drm_info.c: fix warnings
+Subject: drivers/media/video/zoran/zoran_driver.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/gpu/drm/drm_info.c: In function 'drm_vm_info':
-drivers/gpu/drm/drm_info.c:89: warning: assignment from incompatible pointer type
-drivers/gpu/drm/drm_info.c: In function 'drm_vma_info':
-drivers/gpu/drm/drm_info.c:291: warning: format '%08lx' expects type 'long unsigned int', but argument 5 has type 'phys_addr_t'
-drivers/gpu/drm/drm_info.c: In function 'drm_vm_info':
-drivers/gpu/drm/drm_info.c:101: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
+drivers/media/video/zoran/zoran_driver.c: In function 'v4l_fbuffer_alloc':
+drivers/media/video/zoran/zoran_driver.c:235: warning: format '%lx' expects type 'long unsigned int', but argument 5 has type 'phys_addr_t'
 
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_info.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/video/zoran/zoran_driver.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_info.c~drivers-gpu-drm-drm_infoc-fix-warnings drivers/gpu/drm/drm_info.c
---- a/drivers/gpu/drm/drm_info.c~drivers-gpu-drm-drm_infoc-fix-warnings
-+++ a/drivers/gpu/drm/drm_info.c
-@@ -72,7 +72,7 @@ int drm_vm_info(struct seq_file *m, void
- {
- 	struct drm_info_node *node = (struct drm_info_node *) m->private;
- 	struct drm_device *dev = node->minor->dev;
--	struct drm_map *map;
-+	struct drm_local_map *map;
- 	struct drm_map_list *r_list;
+diff -puN drivers/media/video/zoran/zoran_driver.c~drivers-media-video-zoran-zoran_driverc-fix-printk-warning drivers/media/video/zoran/zoran_driver.c
+--- a/drivers/media/video/zoran/zoran_driver.c~drivers-media-video-zoran-zoran_driverc-fix-printk-warning
++++ a/drivers/media/video/zoran/zoran_driver.c
+@@ -234,9 +234,9 @@ v4l_fbuffer_alloc (struct file *file)
+ 			SetPageReserved(virt_to_page(mem + off));
+ 		dprintk(4,
+ 			KERN_INFO
+-			"%s: v4l_fbuffer_alloc() - V4L frame %d mem 0x%lx (bus: 0x%lx)\n",
++			"%s: v4l_fbuffer_alloc() - V4L frame %d mem 0x%lx (bus: 0x%llx)\n",
+ 			ZR_DEVNAME(zr), i, (unsigned long) mem,
+-			virt_to_bus(mem));
++			(unsigned long long)virt_to_bus(mem));
+ 	}
  
- 	/* Hardcoded from _DRM_FRAME_BUFFER,
-@@ -94,9 +94,9 @@ int drm_vm_info(struct seq_file *m, void
- 		else
- 			type = types[map->type];
- 
--		seq_printf(m, "%4d 0x%08lx 0x%08lx %4.4s  0x%02x 0x%08lx ",
-+		seq_printf(m, "%4d 0x%08llx 0x%08lx %4.4s  0x%02x 0x%08lx ",
- 			   i,
--			   map->offset,
-+			   (unsigned long long)map->offset,
- 			   map->size, type, map->flags,
- 			   (unsigned long) r_list->user_token);
- 		if (map->mtrr < 0)
-@@ -286,9 +286,9 @@ int drm_vma_info(struct seq_file *m, voi
- #endif
- 
- 	mutex_lock(&dev->struct_mutex);
--	seq_printf(m, "vma use count: %d, high_memory = %p, 0x%08lx\n",
--		   atomic_read(&dev->vma_count),
--		   high_memory, virt_to_phys(high_memory));
-+	seq_printf(m, "vma use count: %d, high_memory = %p, 0x%08llx\n",
-+		   atomic_read(&dev->vma_count), high_memory,
-+		   (unsigned long long)virt_to_phys(high_memory));
- 
- 	list_for_each_entry(pt, &dev->vmalist, head) {
- 		vma = pt->vma;
+ 	fh->v4l_buffers.allocated = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -192,4 +166,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
 
