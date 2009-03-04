@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-add-btn_touch-event.patch added to -mm tree
-Date: Wed, 04 Mar 2009 13:01:39 -0800
-Message-ID: <200903042101.n24L1dc4002218@imap1.linux-foundation.org>
+Subject: + input-use-disable_irq_nosync-for-mainstone.patch added to -mm tree
+Date: Wed, 04 Mar 2009 13:01:41 -0800
+Message-ID: <200903042101.n24L1fhj002224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754849AbZCDVC0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 16:02:26 -0500
+	by vger.kernel.org with ESMTP id S1750762AbZCDVCU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 16:02:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike@compulab.co.il, broonie@opensource.wolfsonmicro.com, dtor@mail.ru
+Cc: broonie@opensource.wolfsonmicro.com, dtor@mail.ru
 
 
 The patch titled
-     input: add BTN_TOUCH event
+     input: Use disable_irq_nosync() for Mainstone
 has been added to the -mm tree.  Its filename is
-     input-add-btn_touch-event.patch
+     input-use-disable_irq_nosync-for-mainstone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: add BTN_TOUCH event
-From: Mike Rapoport <mike@compulab.co.il>
+Subject: input: Use disable_irq_nosync() for Mainstone
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Add BTN_TOUCH event reporting to ucb1400_ts and accelerated
-mainstone-wm97xx touchscreen drivers.  Together with previously posted
-similar patch for wm97xx-core this will make all touchscreen drivers
-behave consistently wrt.  BTN_TOUCH.
+This should make no practical difference since the Mainstone can't be SMP
+but it is more correct.
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/mainstone-wm97xx.c |    1 +
- drivers/input/touchscreen/ucb1400_ts.c       |    5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/input/touchscreen/mainstone-wm97xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/mainstone-wm97xx.c~input-add-btn_touch-event drivers/input/touchscreen/mainstone-wm97xx.c
---- a/drivers/input/touchscreen/mainstone-wm97xx.c~input-add-btn_touch-event
+diff -puN drivers/input/touchscreen/mainstone-wm97xx.c~input-use-disable_irq_nosync-for-mainstone drivers/input/touchscreen/mainstone-wm97xx.c
+--- a/drivers/input/touchscreen/mainstone-wm97xx.c~input-use-disable_irq_nosync-for-mainstone
 +++ a/drivers/input/touchscreen/mainstone-wm97xx.c
-@@ -162,6 +162,7 @@ static int wm97xx_acc_pen_down(struct wm
- 		input_report_abs(wm->input_dev, ABS_X, x & 0xfff);
- 		input_report_abs(wm->input_dev, ABS_Y, y & 0xfff);
- 		input_report_abs(wm->input_dev, ABS_PRESSURE, p & 0xfff);
-+		input_report_key(wm->input_dev, BTN_TOUCH, (p != 0));
- 		input_sync(wm->input_dev);
- 		reads++;
- 	} while (reads < cinfo[sp_idx].reads);
-diff -puN drivers/input/touchscreen/ucb1400_ts.c~input-add-btn_touch-event drivers/input/touchscreen/ucb1400_ts.c
---- a/drivers/input/touchscreen/ucb1400_ts.c~input-add-btn_touch-event
-+++ a/drivers/input/touchscreen/ucb1400_ts.c
-@@ -151,12 +151,14 @@ static void ucb1400_ts_evt_add(struct in
- 	input_report_abs(idev, ABS_X, x);
- 	input_report_abs(idev, ABS_Y, y);
- 	input_report_abs(idev, ABS_PRESSURE, pressure);
-+	input_report_key(idev, BTN_TOUCH, 1);
- 	input_sync(idev);
+@@ -246,7 +246,7 @@ static void wm97xx_irq_enable(struct wm9
+ 	if (enable)
+ 		enable_irq(wm->pen_irq);
+ 	else
+-		disable_irq(wm->pen_irq);
++		disable_irq_nosync(wm->pen_irq);
  }
  
- static void ucb1400_ts_event_release(struct input_dev *idev)
- {
- 	input_report_abs(idev, ABS_PRESSURE, 0);
-+	input_report_key(idev, BTN_TOUCH, 0);
- 	input_sync(idev);
- }
- 
-@@ -377,7 +379,8 @@ static int ucb1400_ts_probe(struct platf
- 	ucb->ts_idev->id.product	= ucb->id;
- 	ucb->ts_idev->open		= ucb1400_ts_open;
- 	ucb->ts_idev->close		= ucb1400_ts_close;
--	ucb->ts_idev->evbit[0]		= BIT_MASK(EV_ABS);
-+	ucb->ts_idev->evbit[0]		= BIT_MASK(EV_ABS) | BIT_MASK(EV_KEY);
-+	ucb->ts_idev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
- 
- 	ucb1400_adc_enable(ucb->ac97);
- 	x_res = ucb1400_ts_read_xres(ucb);
+ static struct wm97xx_mach_ops mainstone_mach_ops = {
 _
 
-Patches currently in -mm which might be from mike@compulab.co.il are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
 linux-next.patch
 input-wm97xx-add-btn_touch-event-to-wm97xx-to-use-it-with-android.patch
 input-add-btn_touch-event.patch
-spi_bfin5xx-remove-unused-is_dma_aligned-macro.patch
-spi-add-dma_alignment-field-to-spi_master.patch
-pxa2xx_spi-set-spi_masterdma_alignment-=-8.patch
-spi_imx-set-spi_masterdma_alignment-=-4.patch
-rtc-v3020-coding-style-cleanup.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
+input-use-disable_irq_nosync-for-mainstone.patch
+input-accelerated-touchscreen-support-for-marvell-zylonite.patch
+input-add-wm97xx-accelerated-driver-for-avr32-at32ap700x-microprocessors.patch
+mfd-use-the-value-of-the-final-spin-when-reading-the-auxadc.patch
+mfd-add-support-for-wm8351-revision-b.patch
+rtc-convert-wm8350-use-new-alarm-and-update-operations.patch
+rtc-wm8350-retries-will-reach-1.patch
 
