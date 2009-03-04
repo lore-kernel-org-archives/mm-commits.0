@@ -1,130 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [folded] nand-fix-raw-reads-with-ecc-syndrome-layouts-cleanups.patch removed from -mm tree
-Date: Wed, 04 Mar 2009 12:00:41 -0800
-Message-ID: <200903042000.n24K0fta028674@imap1.linux-foundation.org>
+Subject: [folded] dm-crypt-fix-a-bug-of-async-cryption-complete-function-update.patch removed from -mm tree
+Date: Wed, 04 Mar 2009 12:08:03 -0800
+Message-ID: <200903042008.n24K83ai029532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47333 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756826AbZCDUBj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 15:01:39 -0500
+	by vger.kernel.org with ESMTP id S1756153AbZCDUJm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 15:09:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: mbroz@redhat.com, agk@redhat.com, herbert@gondor.apana.org.au, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Cosmetic fixes to the patch fixing raw HW_SYNDROME read/write.
+     dm-crypt-fix-a-bug-of-async-cryption-complete-function-update
 has been removed from the -mm tree.  Its filename was
-     nand-fix-raw-reads-with-ecc-syndrome-layouts-cleanups.patch
+     dm-crypt-fix-a-bug-of-async-cryption-complete-function-update.patch
 
-This patch was dropped because it was folded into nand-fix-raw-reads-with-ecc-syndrome-layouts.patch
+This patch was dropped because it was folded into dm-crypt-fix-a-bug-of-async-cryption-complete-function.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Cosmetic fixes to the patch fixing raw HW_SYNDROME read/write.
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: dm-crypt-fix-a-bug-of-async-cryption-complete-function-update
+From: Milan Broz <mbroz@redhat.com>
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Signed-off-by: Milan Broz <mbroz@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/nand_base.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ drivers/md/dm-crypt.c |   26 +++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN drivers/mtd/nand/nand_base.c~nand-fix-raw-reads-with-ecc-syndrome-layouts-cleanups drivers/mtd/nand/nand_base.c
---- a/drivers/mtd/nand/nand_base.c~nand-fix-raw-reads-with-ecc-syndrome-layouts-cleanups
-+++ a/drivers/mtd/nand/nand_base.c
-@@ -773,10 +773,9 @@ static int nand_read_page_raw_syndrome(s
- 	int eccsize = chip->ecc.size;
- 	int eccbytes = chip->ecc.bytes;
- 	uint8_t *oob = chip->oob_poi;
--	int temp;
-+	int steps, size;
+diff -puN drivers/md/dm-crypt.c~dm-crypt-fix-a-bug-of-async-cryption-complete-function-update drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~dm-crypt-fix-a-bug-of-async-cryption-complete-function-update
++++ a/drivers/md/dm-crypt.c
+@@ -60,7 +60,6 @@ struct dm_crypt_io {
+ };
  
--	temp = chip->ecc.steps;
--	do {
-+	for (steps = chip->ecc.steps; steps > 0; steps--) {
- 		chip->read_buf(mtd, buf, eccsize);
- 		buf += eccsize;
- 
-@@ -792,11 +791,11 @@ static int nand_read_page_raw_syndrome(s
- 			chip->read_buf(mtd, oob, chip->ecc.postpad);
- 			oob += chip->ecc.postpad;
- 		}
--	} while (--temp);
-+	}
- 
--	temp = mtd->oobsize - (oob - chip->oob_poi);
--	if (temp)
--		chip->read_buf(mtd, oob, temp);
-+	size = mtd->oobsize - (oob - chip->oob_poi);
-+	if (size)
-+		chip->read_buf(mtd, oob, size);
- 
- 	return 0;
+ struct dm_crypt_request {
+-	struct ablkcipher_request *req;
+ 	struct convert_context *ctx;
+ 	struct scatterlist sg_in;
+ 	struct scatterlist sg_out;
+@@ -337,6 +336,18 @@ static void crypt_convert_init(struct cr
+ 	init_completion(&ctx->restart);
  }
-@@ -1542,7 +1541,7 @@ static void nand_write_page_raw(struct m
-  * @chip:	nand chip info structure
-  * @buf:	data buffer
-  *
-- * We need a special oob layout and handling even when ECC isn't used.
-+ * We need a special oob layout and handling even when ECC isn't checked.
-  */
- static void nand_write_page_raw_syndrome(struct mtd_info *mtd, struct nand_chip *chip,
- 				const uint8_t *buf)
-@@ -1550,10 +1549,9 @@ static void nand_write_page_raw_syndrome
- 	int eccsize = chip->ecc.size;
- 	int eccbytes = chip->ecc.bytes;
- 	uint8_t *oob = chip->oob_poi;
--	int temp;
-+	int steps, size;
  
--	temp = chip->ecc.steps;
--	do {
-+	for (steps = chip->ecc.steps; steps > 0; steps--) {
- 		chip->write_buf(mtd, buf, eccsize);
- 		buf += eccsize;
++static struct dm_crypt_request *dmreq_of_req(struct crypt_config *cc,
++					     struct ablkcipher_request *req)
++{
++	return (struct dm_crypt_request *)((char *)req + cc->dmreq_start);
++}
++
++static struct ablkcipher_request *req_of_dmreq(struct crypt_config *cc,
++					       struct dm_crypt_request *dmreq)
++{
++	return (struct ablkcipher_request *)((char *)dmreq - cc->dmreq_start);
++}
++
+ static int crypt_convert_block(struct crypt_config *cc,
+ 			       struct convert_context *ctx,
+ 			       struct ablkcipher_request *req)
+@@ -347,11 +358,10 @@ static int crypt_convert_block(struct cr
+ 	u8 *iv;
+ 	int r = 0;
  
-@@ -1569,11 +1567,11 @@ static void nand_write_page_raw_syndrome
- 			chip->write_buf(mtd, oob, chip->ecc.postpad);
- 			oob += chip->ecc.postpad;
- 		}
--	} while (--temp);
-+	}
+-	dmreq = (struct dm_crypt_request *)((char *)req + cc->dmreq_start);
++	dmreq = dmreq_of_req(cc, req);
+ 	iv = (u8 *)ALIGN((unsigned long)(dmreq + 1),
+ 			 crypto_ablkcipher_alignmask(cc->tfm) + 1);
  
--	temp = mtd->oobsize - (oob - chip->oob_poi);
--	if (temp)
--		chip->write_buf(mtd, oob, temp);
-+	size = mtd->oobsize - (oob - chip->oob_poi);
-+	if (size)
-+		chip->write_buf(mtd, oob, size);
+-	dmreq->req = req;
+ 	dmreq->ctx = ctx;
+ 	sg_init_table(&dmreq->sg_in, 1);
+ 	sg_set_page(&dmreq->sg_in, bv_in->bv_page, 1 << SECTOR_SHIFT,
+@@ -395,15 +405,13 @@ static void kcryptd_async_done(struct cr
+ static void crypt_alloc_req(struct crypt_config *cc,
+ 			    struct convert_context *ctx)
+ {
+-	struct dm_crypt_request *dmreq;
+-
+ 	if (!cc->req)
+ 		cc->req = mempool_alloc(cc->req_pool, GFP_NOIO);
+ 	ablkcipher_request_set_tfm(cc->req, cc->tfm);
+-	dmreq = (struct dm_crypt_request *)((char *)cc->req + cc->dmreq_start);
+ 	ablkcipher_request_set_callback(cc->req, CRYPTO_TFM_REQ_MAY_BACKLOG |
+-					     CRYPTO_TFM_REQ_MAY_SLEEP,
+-					     kcryptd_async_done, dmreq);
++					CRYPTO_TFM_REQ_MAY_SLEEP,
++					kcryptd_async_done,
++					dmreq_of_req(cc, cc->req));
  }
- /**
-  * nand_write_page_swecc - [REPLACABLE] software ecc based page write function
+ 
+ /*
+@@ -838,7 +846,7 @@ static void kcryptd_async_done(struct cr
+ 		return;
+ 	}
+ 
+-	mempool_free(dmreq->req, cc->req_pool);
++	mempool_free(req_of_dmreq(cc, dmreq), cc->req_pool);
+ 
+ 	if (!atomic_dec_and_test(&ctx->pending))
+ 		return;
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from mbroz@redhat.com are
 
 linux-next.patch
-nand-fix-raw-reads-with-ecc-syndrome-layouts.patch
-nand-fix-raw-reads-with-ecc-syndrome-layouts-cleanups.patch
-nand-davinci_nand-driver.patch
-nand-fix-broken-debug-messages.patch
-mtd-we-dont-need-no-misc-devices.patch
-mtd-partitioning-utility-predicates.patch
-blackfin-spi-driver-fix-erroneous-spi-clock-divisor-calculation.patch
-blackfin-spi-driver-remove-useless-asm-cplbinith.patch
-blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
-blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
-blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
-blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
-blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
-blackfin-spi-driver-fix-bug-spi-controller-driver-does-not-assert-deassert-cs-correctly.patch
-blackfin-spi-driver-fix-bug-correct-usage-of-struct-spi_transfercs_change.patch
-spi-limit-reaches-1-tested-0.patch
-rtc-ds1307-true-smbus-compatibility.patch
-gpio-gpio_requestfree-now-required-feature-removal.patch
+dm-crypt-fix-a-bug-of-async-cryption-complete-function.patch
+dm-crypt-fix-a-bug-of-async-cryption-complete-function-update.patch
 
