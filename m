@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch added to -mm tree
-Date: Wed, 04 Mar 2009 15:46:01 -0800
-Message-ID: <200903050003.n2503dBV018875@imap1.linux-foundation.org>
+Subject: + arch-x86-mm-iomap_32c-fix-warning.patch added to -mm tree
+Date: Wed, 04 Mar 2009 16:35:04 -0800
+Message-ID: <200903050052.n250qhFV023240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753785AbZCEADs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 19:03:48 -0500
+	by vger.kernel.org with ESMTP id S1751431AbZCEAx0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 19:53:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     drivers/media/video/zoran/zoran_driver.c: fix printk warning
+     arch/x86/mm/iomap_32.c: fix warning
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
+     arch-x86-mm-iomap_32c-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/zoran/zoran_driver.c: fix printk warning
+Subject: arch/x86/mm/iomap_32.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/zoran/zoran_driver.c: In function 'v4l_fbuffer_alloc':
-drivers/media/video/zoran/zoran_driver.c:235: warning: format '%lx' expects type 'long unsigned int', but argument 5 has type 'phys_addr_t'
+i386 allnoconfig:
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+arch/x86/mm/iomap_32.c: In function 'is_io_mapping_possible':
+arch/x86/mm/iomap_32.c:27: warning: comparison is always false due to limited range of data type
+
+Or we could fix this with a cast..
+
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/zoran/zoran_driver.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/iomap_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/zoran/zoran_driver.c~drivers-media-video-zoran-zoran_driverc-fix-printk-warning drivers/media/video/zoran/zoran_driver.c
---- a/drivers/media/video/zoran/zoran_driver.c~drivers-media-video-zoran-zoran_driverc-fix-printk-warning
-+++ a/drivers/media/video/zoran/zoran_driver.c
-@@ -234,9 +234,9 @@ v4l_fbuffer_alloc (struct file *file)
- 			SetPageReserved(virt_to_page(mem + off));
- 		dprintk(4,
- 			KERN_INFO
--			"%s: v4l_fbuffer_alloc() - V4L frame %d mem 0x%lx (bus: 0x%lx)\n",
-+			"%s: v4l_fbuffer_alloc() - V4L frame %d mem 0x%lx (bus: 0x%llx)\n",
- 			ZR_DEVNAME(zr), i, (unsigned long) mem,
--			virt_to_bus(mem));
-+			(unsigned long long)virt_to_bus(mem));
- 	}
+diff -puN arch/x86/mm/iomap_32.c~arch-x86-mm-iomap_32c-fix-warning arch/x86/mm/iomap_32.c
+--- a/arch/x86/mm/iomap_32.c~arch-x86-mm-iomap_32c-fix-warning
++++ a/arch/x86/mm/iomap_32.c
+@@ -22,7 +22,7 @@
  
- 	fh->v4l_buffers.allocated = 1;
+ int is_io_mapping_possible(resource_size_t base, unsigned long size)
+ {
+-#ifndef CONFIG_X86_PAE
++#if !defined(CONFIG_X86_PAE) && defined(CONFIG_PHYS_ADDR_T_64BIT)
+ 	/* There is no way to map greater than 1 << 32 address without PAE */
+ 	if (base + size > 0x100000000ULL)
+ 		return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,10 +73,12 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 git-acpi-vs-git-cpufreq.patch
 thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
+arch-x86-mm-iomap_32c-fix-warning.patch
 kernel-auditscc-fix-warning.patch
 early-platform-driver-v3.patch
 sysfs-dont-block-indefinitely-for-unmapped-files.patch
 drivers-gpu-drm-drm_infoc-fix-warnings.patch
+drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
 clocksource-pass-clocksource-to-read-callback.patch
 input-bcm5974-declare-alignment-usage.patch
 input-keyboard-introduce-lm8323-driver.patch
@@ -166,5 +169,4 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-media-video-zoran-zoran_driverc-fix-printk-warning.patch
 
