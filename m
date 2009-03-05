@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + devpts-remove-graffiti.patch added to -mm tree
-Date: Thu, 05 Mar 2009 14:29:11 -0800
-Message-ID: <200903052229.n25MTBFx008714@imap1.linux-foundation.org>
+Subject: + nilfs2-super-block-operations-fix-endian-bug.patch added to -mm tree
+Date: Thu, 05 Mar 2009 14:34:18 -0800
+Message-ID: <200903052234.n25MYIiQ009170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752252AbZCEW30 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 17:29:26 -0500
+	by vger.kernel.org with ESMTP id S1753484AbZCEWew (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 17:34:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com
+Cc: konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     devpts: remove graffiti
+     nilfs2: super block operations fix endian bug
 has been added to the -mm tree.  Its filename is
-     devpts-remove-graffiti.patch
+     nilfs2-super-block-operations-fix-endian-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: remove graffiti
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: nilfs2: super block operations fix endian bug
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-Very annoying when working with containters.
+This adds a missing endian conversion of checksum field in the super
+block.  This fixes compatibility issue on big endian machines which will
+come to surface after supporting recovery of super block.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/nilfs2/super.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/devpts/inode.c~devpts-remove-graffiti fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-remove-graffiti
-+++ a/fs/devpts/inode.c
-@@ -198,9 +198,6 @@ static int mknod_ptmx(struct super_block
- 
- 	fsi->ptmx_dentry = dentry;
- 	rc = 0;
+diff -puN fs/nilfs2/super.c~nilfs2-super-block-operations-fix-endian-bug fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-super-block-operations-fix-endian-bug
++++ a/fs/nilfs2/super.c
+@@ -287,9 +287,9 @@ int nilfs_commit_super(struct nilfs_sb_i
+ 	sbp->s_free_blocks_count = cpu_to_le64(nfreeblocks);
+ 	sbp->s_wtime = cpu_to_le64(get_seconds());
+ 	sbp->s_sum = 0;
+-	sbp->s_sum = crc32_le(nilfs->ns_crc_seed, (unsigned char *)sbp,
+-			      le16_to_cpu(sbp->s_bytes));
 -
--	printk(KERN_DEBUG "Created ptmx node in devpts ino %lu\n",
--			inode->i_ino);
- out:
- 	mutex_unlock(&root->d_inode->i_mutex);
- 	return rc;
-@@ -369,8 +366,6 @@ static int new_pts_mount(struct file_sys
- 	struct pts_fs_info *fsi;
- 	struct pts_mount_opts *opts;
- 
--	printk(KERN_NOTICE "devpts: newinstance mount\n");
--
- 	err = get_sb_nodev(fs_type, flags, data, devpts_fill_super, mnt);
- 	if (err)
- 		return err;
++	sbp->s_sum = cpu_to_le32(crc32_le(nilfs->ns_crc_seed,
++					  (unsigned char *)sbp,
++					  le16_to_cpu(sbp->s_bytes)));
+ 	sbi->s_super->s_dirt = 0;
+ 	return nilfs_sync_super(sbi);
+ }
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-xtensa-fix-compilation-somewhat.patch
-devpts-remove-graffiti.patch
-linux-next.patch
-proc-tty-add-struct-tty_operations-proc_fops.patch
-proc-tty-switch-cyclades-to-proc_fops.patch
-proc-tty-switch-ip2-to-proc_fops.patch
-proc-tty-switch-istallion-to-proc_fops.patch
-proc-tty-switch-synclink_cs-to-proc_fops.patch
-proc-tty-switch-stallion-to-proc_fops.patch
-proc-tty-switch-synclink-to-proc_fops.patch
-proc-tty-switch-synclink_gt-to-proc_fops.patch
-proc-tty-switch-synclinkmp-to-proc_fops.patch
-proc-tty-switch-sdio_uart-to-proc_fops.patch
-proc-tty-switch-serial_core-to-proc_fops.patch
-proc-tty-switch-usb-serial-to-proc_fops.patch
-proc-tty-switch-ircomm-to-proc_fops.patch
-proc-tty-switch-amiserial-to-proc_fops.patch
-proc-tty-switch-ia64-simserial-to-proc_fops.patch
-proc-tty-switch-xtensa-iss-console-to-proc_fops.patch
-proc-tty-remove-struct-tty_operations-read_proc.patch
-softirq-introduce-statistics-for-softirq.patch
-proc-export-statistics-for-softirq-to-proc.patch
-proc-export-statistics-for-softirq-to-proc-fix.patch
-proc-update-document-for-proc-softirqs-and-proc-stat.patch
-proc_sysctl-use-config_proc_sysctl-around-ipc-and-utsname-proc_handlers.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper.patch
-namespaces-move-proc_net_get_sb-to-a-generic-fs-superc-helper-fix.patch
-namespaces-mqueue-ns-move-mqueue_mnt-into-struct-ipc_namespace.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues.patch
-namespaces-ipc-namespaces-implement-support-for-posix-msqueues-initialize-init_ipc_nscount-to-1.patch
-namespaces-mqueue-namespace-adapt-sysctl.patch
-namespaces-mqueue-namespace-adapt-sysctl-update.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros.patch
+nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-segment-usage-file-fix-wrong-counting-of-checkpoints-and-dirty-segments.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-super-block-operations-fix.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-buffer-fix.patch
+nilfs2-segment-constructor.patch
+nilfs2-segment-constructor-insert-checks-and-hole-block-allocation-in-page_mkwrite.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range.patch
+nilfs2-fix-miss-sync-issue-for-do_sync_mapping_range-fix.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+nilfs2-fix-problems-of-memory-allocation-in-ioctl.patch
+nilfs2-cleanup-nilfs_clear_inode.patch
+nilfs2-avoid-double-error-caused-by-nilfs_transaction_end.patch
+nilfs2-insert-explanations-in-gcinode-file.patch
+nilfs2-add-maintainer.patch
+nilfs2-fix-gc-failure-on-volumes-keeping-numerous-snapshots.patch
+nilfs2-clean-up-indirect-function-calling-conventions.patch
+nilfs2-fix-buggy-behavior-seen-in-enumerating-checkpoints.patch
+nilfs2-remove-timedwait-ioctl-command.patch
+nilfs2-use-fixed-sized-types-for-ioctl-structures.patch
+nilfs2-remove-compat-ioctl-code.patch
+nilfs2-use-unlocked_ioctl.patch
+nilfs2-extend-nilfs_sustat-ioctl-struct.patch
+nilfs2-replace-bug_on-and-bug-calls-triggerable-from-ioctl.patch
+nilfs2-super-block-operations-fix-endian-bug.patch
+nilfs2-clean-up-sketch-file.patch
+nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation.patch
+nilfs2-simplify-handling-of-active-state-of-segments.patch
+nilfs2-introduce-secondary-super-block.patch
 
