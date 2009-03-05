@@ -1,156 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch removed from -mm tree
-Date: Thu, 05 Mar 2009 11:56:23 -0800
-Message-ID: <200903051956.n25JuNxc027250@imap1.linux-foundation.org>
+Subject: [merged] arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch removed from -mm tree
+Date: Thu, 05 Mar 2009 11:56:18 -0800
+Message-ID: <200903051956.n25JuII3027240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48619 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754862AbZCET4q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 14:56:46 -0500
+	by vger.kernel.org with ESMTP id S1754849AbZCET4n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 14:56:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/cpu/mcheck/mce_amd_64.c: avoid using work_on_cpu()
+     arch/x86/kernel/acpi/cstate.c: avoid using work_on_cpu()
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
+     arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/cpu/mcheck/mce_amd_64.c: avoid using work_on_cpu()
+Subject: arch/x86/kernel/acpi/cstate.c: avoid using work_on_cpu()
 From: Andrew Morton <akpm@linux-foundation.org>
+
+A series of patches which
+
+- removes all but one callers of work_on_cpu() by switching them to
+  smp_call_function_single()
+
+- converts work_on_cpu() to create a kernel thread on demand, thus
+  avoiding the various deadlock scenarios which we keep on experiencing and
+  thinking up.
+
+All cheerfully untested.
+
+
+This patch:
 
 Atttempting to rid us of the problematic work_on_cpu().  Just use
 smp_call_fuction_single() here.
 
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/mce_amd_64.c |   40 +++++++++++++---------
- 1 file changed, 24 insertions(+), 16 deletions(-)
+ arch/x86/kernel/acpi/cstate.c |   36 +++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 12 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce_amd_64.c~arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu arch/x86/kernel/cpu/mcheck/mce_amd_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_amd_64.c~arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu
-+++ a/arch/x86/kernel/cpu/mcheck/mce_amd_64.c
-@@ -90,7 +90,8 @@ struct thresh_restart {
+diff -puN arch/x86/kernel/acpi/cstate.c~arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu arch/x86/kernel/acpi/cstate.c
+--- a/arch/x86/kernel/acpi/cstate.c~arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu
++++ a/arch/x86/kernel/acpi/cstate.c
+@@ -53,6 +53,12 @@ struct cstate_entry {
  };
+ static struct cstate_entry *cpu_cstate_entry;	/* per CPU ptr */
  
- /* must be called with correct cpu affinity */
--static long threshold_restart_bank(void *_tr)
-+/* Called via smp_call_function_single() */
-+static void threshold_restart_bank(void *_tr)
- {
- 	struct thresh_restart *tr = _tr;
- 	u32 mci_misc_hi, mci_misc_lo;
-@@ -117,7 +118,6 @@ static long threshold_restart_bank(void 
- 
- 	mci_misc_hi |= MASK_COUNT_EN_HI;
- 	wrmsr(tr->b->address, mci_misc_lo, mci_misc_hi);
--	return 0;
- }
- 
- /* cpu init entry point, called from mce.c with preempt off */
-@@ -283,7 +283,7 @@ static ssize_t store_interrupt_enable(st
- 	tr.b = b;
- 	tr.reset = 0;
- 	tr.old_limit = 0;
--	work_on_cpu(b->cpu, threshold_restart_bank, &tr);
-+	smp_call_function_single(b->cpu, threshold_restart_bank, &tr, 1);
- 
- 	return end - buf;
- }
-@@ -305,23 +305,32 @@ static ssize_t store_threshold_limit(str
- 	tr.b = b;
- 	tr.reset = 0;
- 
--	work_on_cpu(b->cpu, threshold_restart_bank, &tr);
-+	smp_call_function_single(b->cpu, threshold_restart_bank, &tr, 1);
- 
- 	return end - buf;
- }
- 
--static long local_error_count(void *_b)
-+struct threshold_block_cross_cpu {
-+	struct threshold_block *tb;
++/* Used for the cross-CPU calls */
++struct acpi_processor_cx_cross_cpu {
++	struct acpi_processor_cx *cx;
 +	long retval;
 +};
 +
-+static void local_error_count_handler(void *_tbcc)
+ static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
+ 
+ #define MWAIT_SUBSTATE_MASK	(0xf)
+@@ -67,10 +73,10 @@ static short mwait_supported[ACPI_PROCES
+ 
+ #define NATIVE_CSTATE_BEYOND_HALT	(2)
+ 
+-static long acpi_processor_ffh_cstate_probe_cpu(void *_cx)
++static void acpi_processor_ffh_cstate_probe_cpu(void *_cxcc)
  {
--	struct threshold_block *b = _b;
-+	struct threshold_block_cross_cpu *tbcc = _tbcc;
-+	struct threshold_block *b = tbcc->tb;
- 	u32 low, high;
+-	struct acpi_processor_cx *cx = _cx;
+-	long retval;
++	struct acpi_processor_cx_cross_cpu *cxcc = _cxcc;
++	struct acpi_processor_cx *cx = cxcc->cx;
+ 	unsigned int eax, ebx, ecx, edx;
+ 	unsigned int edx_part;
+ 	unsigned int cstate_type; /* C-state type and not ACPI C-state type */
+@@ -84,16 +90,16 @@ static long acpi_processor_ffh_cstate_pr
+ 	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
+ 	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
  
- 	rdmsr(b->address, low, high);
--	return (high & 0xFFF) - (THRESHOLD_MAX - b->threshold_limit);
-+	tbcc->retval = (high & 0xFFF) - (THRESHOLD_MAX - b->threshold_limit);
+-	retval = 0;
++	cxcc->retval = 0;
+ 	if (num_cstate_subtype < (cx->address & MWAIT_SUBSTATE_MASK)) {
+-		retval = -1;
++		cxcc->retval = -1;
+ 		goto out;
+ 	}
+ 
+ 	/* mwait ecx extensions INTERRUPT_BREAK should be supported for C2/C3 */
+ 	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
+ 	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK)) {
+-		retval = -1;
++		cxcc->retval = -1;
+ 		goto out;
+ 	}
+ 
+@@ -107,7 +113,7 @@ static long acpi_processor_ffh_cstate_pr
+ 			ACPI_CX_DESC_LEN, "ACPI FFH INTEL MWAIT 0x%x",
+ 			cx->address);
+ out:
+-	return retval;
++	return;
  }
  
- static ssize_t show_error_count(struct threshold_block *b, char *buf)
+ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+@@ -115,6 +121,7 @@ int acpi_processor_ffh_cstate_probe(unsi
  {
--	return sprintf(buf, "%lx\n", work_on_cpu(b->cpu, local_error_count, b));
-+	struct threshold_block_cross_cpu tbcc = { .tb = b, };
-+
-+	smp_call_function_single(b->cpu, local_error_count_handler, &tbcc, 1);
-+	return sprintf(buf, "%lx\n", tbcc.retval);
+ 	struct cstate_entry *percpu_entry;
+ 	struct cpuinfo_x86 *c = &cpu_data(cpu);
++	struct acpi_processor_cx_cross_cpu cxcc = { .cx = cx, };
+ 	long retval;
+ 
+ 	if (!cpu_cstate_entry || c->cpuid_level < CPUID_MWAIT_LEAF)
+@@ -127,13 +134,18 @@ int acpi_processor_ffh_cstate_probe(unsi
+ 	percpu_entry->states[cx->index].eax = 0;
+ 	percpu_entry->states[cx->index].ecx = 0;
+ 
+-	/* Make sure we are running on right CPU */
++	/* Run acpi_processor_ffh_cstate_probe_cpu() on the target CPU */
+ 
+-	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
++	retval = smp_call_function_single(cpu,
++				acpi_processor_ffh_cstate_probe_cpu, cx, 1);
+ 	if (retval == 0) {
+-		/* Use the hint in CST */
+-		percpu_entry->states[cx->index].eax = cx->address;
+-		percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
++		retval = cxcc.retval;
++		if (retval == 0) {
++			/* Use the hint in CST */
++			percpu_entry->states[cx->index].eax = cx->address;
++			percpu_entry->states[cx->index].ecx =
++					MWAIT_ECX_INTERRUPT_BREAK;
++		}
+ 	}
+ 	return retval;
  }
- 
- static ssize_t store_error_count(struct threshold_block *b,
-@@ -329,7 +338,7 @@ static ssize_t store_error_count(struct 
- {
- 	struct thresh_restart tr = { .b = b, .reset = 1, .old_limit = 0 };
- 
--	work_on_cpu(b->cpu, threshold_restart_bank, &tr);
-+	smp_call_function_single(b->cpu, threshold_restart_bank, &tr, 1);
- 	return 1;
- }
- 
-@@ -398,7 +407,7 @@ static __cpuinit int allocate_threshold_
- 	if ((bank >= NR_BANKS) || (block >= NR_BLOCKS))
- 		return 0;
- 
--	if (rdmsr_safe(address, &low, &high))
-+	if (rdmsr_safe_on_cpu(cpu, address, &low, &high))
- 		return 0;
- 
- 	if (!(high & MASK_VALID_HI)) {
-@@ -462,12 +471,11 @@ out_free:
- 	return err;
- }
- 
--static __cpuinit long local_allocate_threshold_blocks(void *_bank)
-+static __cpuinit long
-+local_allocate_threshold_blocks(int cpu, unsigned int bank)
- {
--	unsigned int *bank = _bank;
--
--	return allocate_threshold_blocks(smp_processor_id(), *bank, 0,
--					 MSR_IA32_MC0_MISC + *bank * 4);
-+	return allocate_threshold_blocks(cpu, bank, 0,
-+					 MSR_IA32_MC0_MISC + bank * 4);
- }
- 
- /* symlinks sibling shared banks to first core.  first core owns dir/files. */
-@@ -530,7 +538,7 @@ static __cpuinit int threshold_create_ba
- 
- 	per_cpu(threshold_banks, cpu)[bank] = b;
- 
--	err = work_on_cpu(cpu, local_allocate_threshold_blocks, &bank);
-+	err = local_allocate_threshold_blocks(cpu, bank);
- 	if (err)
- 		goto out_free;
- 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
