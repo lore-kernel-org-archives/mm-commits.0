@@ -1,176 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [folded] flat-fix-data-sections-alignment-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 05 Mar 2009 14:38:48 -0800
-Message-ID: <200903052238.n25McnE7009578@imap1.linux-foundation.org>
+Subject: + flat-fix-data-sections-alignment-update.patch added to -mm tree
+Date: Thu, 05 Mar 2009 14:40:58 -0800
+Message-ID: <200903052240.n25MexIg009742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42202 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751263AbZCEWjt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 17:39:49 -0500
+	by vger.kernel.org with ESMTP id S1753224AbZCEWmS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 17:42:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jw@emlix.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: os@emlix.com, cooloney@kernel.org, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, jw@emlix.com, lethal@linux-sh.org, rmk@arm.linux.org.uk, vapier.adi@gmail.com
 
 
 The patch titled
-     flat-fix-data-sections-alignment-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     flat-fix-data-sections-alignment-checkpatch-fixes.patch
+     flat: fix data sections alignment v3
+has been added to the -mm tree.  Its filename is
+     flat-fix-data-sections-alignment-update.patch
 
-This patch was dropped because it was folded into flat-fix-data-sections-alignment.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flat-fix-data-sections-alignment-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: flat: fix data sections alignment v3
+From: Oskar Schirmer <os@emlix.com>
 
-ERROR: space required after that ',' (ctx:VxV)
-#143: FILE: fs/binfmt_flat.c:135:
-+	put_user(argc,sp);
- 	             ^
+v3:
+- checkpatch-clean (Andrew Morton)
+- fixed the alignment space upon allocation calculation (Mike Frysinger)
+- added a comment for the use of ARCH_SLAB_MINALIGN (Paul Mundt)
 
-WARNING: line over 80 characters
-#152: FILE: fs/binfmt_flat.c:566:
-+		datapos = ALIGN(realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long),
+v2:
+- replace local flat_data_align by ARCH_SLAB_MINALIGN (Paul Mundt)
 
-WARNING: line over 80 characters
-#164: FILE: fs/binfmt_flat.c:613:
-+		datapos = ALIGN(realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long),
-
-WARNING: line over 80 characters
-#167: FILE: fs/binfmt_flat.c:616:
-+		reloc = (unsigned long *) (datapos+(ntohl(hdr->reloc_start)-text_len));
-
-total: 1 errors, 3 warnings, 121 lines checked
-
-./patches/flat-fix-data-sections-alignment.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Johannes Weiner <jw@emlix.com>
+Signed-off-by: Oskar Schirmer <os@emlix.com>
+Signed-off-by: Johannes Weiner <jw@emlix.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_flat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_flat.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN fs/binfmt_flat.c~flat-fix-data-sections-alignment-checkpatch-fixes fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~flat-fix-data-sections-alignment-checkpatch-fixes
+diff -puN fs/binfmt_flat.c~flat-fix-data-sections-alignment-update fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~flat-fix-data-sections-alignment-update
 +++ a/fs/binfmt_flat.c
-@@ -132,7 +132,7 @@ static unsigned long create_flat_tables(
- 		put_user((unsigned long) argv, sp + 1);
- 	}
+@@ -55,6 +55,12 @@
+ #define	DBG_FLT(a...)
+ #endif
  
--	put_user(argc,sp);
-+	put_user(argc, sp);
- 	current->mm->arg_start = (unsigned long) p;
- 	while (argc-->0) {
- 		put_user((unsigned long) p, argv++);
++/*
++ * User data (stack, data section and bss) needs to be aligned
++ * for the same reasons as SLAB memory is, and to the same amount.
++ * Avoid duplicating architecture specific code by using the same
++ * macro as with SLAB allocation:
++ */
+ #ifdef ARCH_SLAB_MINALIGN
+ #define FLAT_DATA_ALIGN	(ARCH_SLAB_MINALIGN)
+ #else
+@@ -563,7 +569,8 @@ static int load_flat_file(struct linux_b
+ 			ret = realdatastart;
+ 			goto err;
+ 		}
+-		datapos = ALIGN(realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long),
++		datapos = ALIGN(realdatastart +
++				MAX_SHARED_LIBS * sizeof(unsigned long),
+ 				FLAT_DATA_ALIGN);
+ 
+ 		DBG_FLT("BINFMT_FLAT: Allocated data+bss+stack (%d bytes): %x\n",
+@@ -610,10 +617,12 @@ static int load_flat_file(struct linux_b
+ 		}
+ 
+ 		realdatastart = textpos + ntohl(hdr->data_start);
+-		datapos = ALIGN(realdatastart + MAX_SHARED_LIBS * sizeof(unsigned long),
++		datapos = ALIGN(realdatastart +
++				MAX_SHARED_LIBS * sizeof(unsigned long),
+ 				FLAT_DATA_ALIGN);
+ 
+-		reloc = (unsigned long *) (datapos+(ntohl(hdr->reloc_start)-text_len));
++		reloc = (unsigned long *)
++			(datapos + (ntohl(hdr->reloc_start) - text_len));
+ 		memp = textpos;
+ 		memp_size = len;
+ #ifdef CONFIG_BINFMT_ZFLAT
+@@ -861,7 +870,7 @@ static int load_flat_binary(struct linux
+ 	stack_len = TOP_OF_ARGS - bprm->p;             /* the strings */
+ 	stack_len += (bprm->argc + 1) * sizeof(char *); /* the argv array */
+ 	stack_len += (bprm->envc + 1) * sizeof(char *); /* the envp array */
+-	stack_len += FLAT_DATA_ALIGN;
++	stack_len += FLAT_DATA_ALIGN - 1;  /* reserve for upcoming alignment */
+ 	
+ 	res = load_flat_file(bprm, &libinfo, 0, &stack_len);
+ 	if (res > (unsigned long)-4096)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from os@emlix.com are
 
-i-need-old-gcc.patch
-i2c-too-much-compiler-noise.patch
-linux-next.patch
-next-remove-localversion.patch
-git-acpi-vs-git-cpufreq.patch
-thinkpad-acpi-split-delayed-leds-stuff-clean-up-code.patch
-arch-x86-mm-iomap_32c-fix-warning.patch
-kernel-auditscc-fix-warning.patch
-early-platform-driver-v3.patch
-sysfs-dont-block-indefinitely-for-unmapped-files.patch
-drivers-gpu-drm-drm_infoc-fix-warnings.patch
-clocksource-pass-clocksource-to-read-callback.patch
-input-bcm5974-declare-alignment-usage.patch
-input-keyboard-introduce-lm8323-driver.patch
-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface-checkpatch-fixes.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality-checkpatch-fixes.patch
-leds-add-bd2802gu-led-driver.patch
-mmc-add-extended-csd-register-to-debugfs.patch
-mtd-rbtx4939-add-mtd-support.patch
-mtd-flex-onenand-support-fix.patch
-misdn-l1oip-reduce-stack-memory-footprint.patch
-drivers-net-82596c-suppress-warnings.patch
-pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-vfs-simple_set_mnt-should-return-void.patch
-libfs-make-simple_read_from_buffer-conventional-fix.patch
+xtensa-enforce-slab-alignment-to-maximum-register-width.patch
+xtensa-add-flat-support.patch
 xtensa-add-flat-support-checkpatch-fixes.patch
-__tty_open-use-the-correct-type-for-saved_flags.patch
-mtd_dataflash-fix-probing-of-at45db321c-chips-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ia64-fix-pci-dma-flag-propagation-on-sn-altix-with-pics.patch
-input-add-a-dmi-table-for-the-i8042reset-option-make-msi-wind-u-100-work.patch
-nommu-fix-a-number-of-issues-with-the-per-mm-vma-patch.patch
-page_fault-retry-with-nopage_retry.patch
-page_fault-retry-with-nopage_retry-fix.patch
-page_fault-retry-with-nopage_retry-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-fix.patch
-mm-add-proc-controls-for-pdflush-threads-fix-99.patch
-proc-pid-maps-dont-show-pgoff-of-pure-anon-vmas-checkpatch-fixes.patch
-mm-introduce-for_each_populated_zone-macro-cleanup.patch
-mm-shrink_all_memory-use-scnr_reclaimed-checkpatch-fixes.patch
-mm-add-comment-why-mark_page_accessed-would-be-better-than-pte_mkyoung-in-follow_page-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-do_pipe-drop-its-last-user-in-arch-alpha-checkpatch-fixes.patch
-alpha-convert-u64-to-unsigned-long-long-fix.patch
-alpha-convert-u64-to-unsigned-long-long-fix-2.patch
-alpha-convert-u64-to-unsigned-long-long-fix-3-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50-checkpatch-fixes.patch
-ubd-stop-defintining-major_nr-checkpatch-fixes.patch
-epoll-keyed-wakeups-v2-teach-epoll-about-hints-coming-with-the-wakeup-key-checkpatch-fixes.patch
 flat-fix-data-sections-alignment.patch
-flat-fix-data-sections-alignment-checkpatch-fixes.patch
-rtc-convert-leap_year-into-an-inline.patch
-rtc-add-platform-driver-for-efi-fix.patch
-rtc-v3020-add-ability-to-access-v3020-chip-with-gpios-fix.patch
-rtc-test-before-subtraction-on-unsigned-fix.patch
-drivers-video-uvesafbc-dont-use-gfp_any.patch
-cirrusfb-convert-printks-to-dev_foo-fix.patch
-cirrusfb-convert-printks-to-dev_foo-fix-fix2.patch
-cirrusfb-fix-clock-doubling-fix.patch
-fbdev-uninline-lock_fb_info.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-checkpatch-fixes.patch
-fbdev-update-s1d13xxxfb-to-differ-between-revisions-and-production-ids-simplification.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix.patch
-ext3-use-unsigned-instead-of-int-for-type-of-blocksize-in-fs-ext3-nameic-fix-checkpatch-fixes.patch
-memcg-fix-oom-killer-under-memcg-fix2.patch
-memcg-fix-oom-killer-under-memcg-fix.patch
-memcg-show-memcg-information-during-oom-fix2.patch
-memcg-show-memcg-information-during-oom-fix.patch
-memcg-show-memcg-information-during-oom-fix-fix-checkpatch-fixes.patch
-forget_original_parent-do-not-abuse-child-ptrace_entry-fix.patch
-pids-document-task_pgrp-task_session-is-not-safe-without-tasklist-rcu-fix.patch
-nbd-add-locking-to-nbd_ioctl-checkpatch-fixes.patch
-nbd-add-locking-to-nbd_ioctl-fix.patch
-namespaces-mqueue-namespace-adapt-sysctl-update-fix.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes.patch
-edac-new-ppc4xx-driver-module-update-checkpatch-fixes-checkpatch-fixes.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-fix.patch
-kexec-add-dmesg-log-symbols-to-proc-vmcoreinfo-lists-fix-fix-fix-checkpatch-fixes-cleanup.patch
-nilfs2-integrated-block-mapping-remove-nilfs-bmap-wrapper-macros-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-nilfs2-super-block-operations-fix.patch
-vfs-simple_set_mnt-should-return-void-fix-nilfs.patch
-nilfs2-segment-buffer-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+flat-fix-data-sections-alignment-update.patch
 
