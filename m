@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-mm-iomap_32c-fix-warning.patch added to -mm tree
-Date: Wed, 04 Mar 2009 16:35:04 -0800
-Message-ID: <200903050052.n250qhFV023240@imap1.linux-foundation.org>
+Subject: + drivers-net-82596c-suppress-warnings.patch added to -mm tree
+Date: Wed, 04 Mar 2009 17:00:10 -0800
+Message-ID: <200903050117.n251Hnro025501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751431AbZCEAx0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 19:53:26 -0500
+	by vger.kernel.org with ESMTP id S1751206AbZCEBRy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2009 20:17:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     arch/x86/mm/iomap_32.c: fix warning
+     drivers/net/82596.c: suppress warnings
 has been added to the -mm tree.  Its filename is
-     arch-x86-mm-iomap_32c-fix-warning.patch
+     drivers-net-82596c-suppress-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/mm/iomap_32.c: fix warning
+Subject: drivers/net/82596.c: suppress warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allnoconfig:
+i386 allmodconfig:
 
-arch/x86/mm/iomap_32.c: In function 'is_io_mapping_possible':
-arch/x86/mm/iomap_32.c:27: warning: comparison is always false due to limited range of data type
+drivers/net/82596.c: In function 'init_rx_bufs':
+drivers/net/82596.c:544: warning: cast to pointer from integer of different size
+drivers/net/82596.c:545: warning: cast to pointer from integer of different size
+drivers/net/82596.c:548: warning: cast to pointer from integer of different size
+drivers/net/82596.c:557: warning: cast to pointer from integer of different size
+drivers/net/82596.c:565: warning: cast to pointer from integer of different size
+drivers/net/82596.c:569: warning: cast to pointer from integer of different size
+drivers/net/82596.c:575: warning: cast to pointer from integer of different size
+drivers/net/82596.c: In function 'rebuild_rx_bufs':
+drivers/net/82596.c:606: warning: cast to pointer from integer of different size
+drivers/net/82596.c:608: warning: cast to pointer from integer of different size
+drivers/net/82596.c: In function 'init_i596_mem':
+drivers/net/82596.c:680: warning: cast to pointer from integer of different size
+drivers/net/82596.c:681: warning: cast to pointer from integer of different size
+drivers/net/82596.c: In function 'i596_rx':
+drivers/net/82596.c:818: warning: cast to pointer from integer of different size
+drivers/net/82596.c: In function 'i596_add_cmd':
+drivers/net/82596.c:975: warning: cast to pointer from integer of different size
+drivers/net/82596.c:979: warning: cast to pointer from integer of different size
+drivers/net/82596.c: In function 'i596_start_xmit':
+drivers/net/82596.c:1088: warning: cast to pointer from integer of different size
+drivers/net/82596.c:1099: warning: cast to pointer from integer of different size
+drivers/net/82596.c: In function 'i596_interrupt':
+drivers/net/82596.c:1404: warning: cast to pointer from integer of different size
 
-Or we could fix this with a cast..
+(ugh)
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/iomap_32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/82596.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86/mm/iomap_32.c~arch-x86-mm-iomap_32c-fix-warning arch/x86/mm/iomap_32.c
---- a/arch/x86/mm/iomap_32.c~arch-x86-mm-iomap_32c-fix-warning
-+++ a/arch/x86/mm/iomap_32.c
-@@ -22,7 +22,7 @@
- 
- int is_io_mapping_possible(resource_size_t base, unsigned long size)
- {
--#ifndef CONFIG_X86_PAE
-+#if !defined(CONFIG_X86_PAE) && defined(CONFIG_PHYS_ADDR_T_64BIT)
- 	/* There is no way to map greater than 1 << 32 address without PAE */
- 	if (base + size > 0x100000000ULL)
- 		return 0;
+diff -puN drivers/net/82596.c~drivers-net-82596c-suppress-warnings drivers/net/82596.c
+--- a/drivers/net/82596.c~drivers-net-82596c-suppress-warnings
++++ a/drivers/net/82596.c
+@@ -122,13 +122,13 @@ static char version[] __initdata =
+ #define ISCP_BUSY	0x00010000
+ #define MACH_IS_APRICOT	0
+ #else
+-#define WSWAPrfd(x)     ((struct i596_rfd *)(x))
+-#define WSWAPrbd(x)     ((struct i596_rbd *)(x))
+-#define WSWAPiscp(x)    ((struct i596_iscp *)(x))
+-#define WSWAPscb(x)     ((struct i596_scb *)(x))
+-#define WSWAPcmd(x)     ((struct i596_cmd *)(x))
+-#define WSWAPtbd(x)     ((struct i596_tbd *)(x))
+-#define WSWAPchar(x)    ((char *)(x))
++#define WSWAPrfd(x)     ((struct i596_rfd *)((long)x))
++#define WSWAPrbd(x)     ((struct i596_rbd *)((long)x))
++#define WSWAPiscp(x)    ((struct i596_iscp *)((long)x))
++#define WSWAPscb(x)     ((struct i596_scb *)((long)x))
++#define WSWAPcmd(x)     ((struct i596_cmd *)((long)x))
++#define WSWAPtbd(x)     ((struct i596_tbd *)((long)x))
++#define WSWAPchar(x)    ((char *)((long)x))
+ #define ISCP_BUSY	0x0001
+ #define MACH_IS_APRICOT	1
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,6 +123,7 @@ mmc-add-extended-csd-register-to-debugfs.patch
 mtd-rbtx4939-add-mtd-support.patch
 mtd-flex-onenand-support-fix.patch
 misdn-l1oip-reduce-stack-memory-footprint.patch
+drivers-net-82596c-suppress-warnings.patch
 pci-quirks-unhide-overflow-device-on-i828675p-pe-chipsets-v2-checkpatch-fixes.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 vfs-simple_set_mnt-should-return-void.patch
