@@ -1,34 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] input-wm97xx-add-btn_touch-event-to-wm97xx-to-use-it-with-android.patch removed from -mm tree
-Date: Thu, 05 Mar 2009 11:56:06 -0800
-Message-ID: <200903051956.n25Ju6Vi027216@imap1.linux-foundation.org>
+Subject: [merged] input-add-btn_touch-event.patch removed from -mm tree
+Date: Thu, 05 Mar 2009 11:56:10 -0800
+Message-ID: <200903051956.n25JuANa027219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35611 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754756AbZCET4Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 14:56:24 -0500
+	by vger.kernel.org with ESMTP id S1754862AbZCET41 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 14:56:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mike@compulab.co.il, broonie@opensource.wolfsonmicro.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: wm97xx: add BTN_TOUCH event to wm97xx to use it with Android
+     input: add BTN_TOUCH event
 has been removed from the -mm tree.  Its filename was
-     input-wm97xx-add-btn_touch-event-to-wm97xx-to-use-it-with-android.patch
+     input-add-btn_touch-event.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: wm97xx: add BTN_TOUCH event to wm97xx to use it with Android
+Subject: input: add BTN_TOUCH event
 From: Mike Rapoport <mike@compulab.co.il>
 
-Android expects BTN_TOUCH events when pen state changes.  Add BTN_TOUCH
-event reporting to allow use of wm97xx touchscreen controller wiht Android
-devices.
+Add BTN_TOUCH event reporting to ucb1400_ts and accelerated
+mainstone-wm97xx touchscreen drivers.  Together with previously posted
+similar patch for wm97xx-core this will make all touchscreen drivers
+behave consistently wrt.  BTN_TOUCH.
 
 Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
@@ -36,40 +37,49 @@ Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/wm97xx-core.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/input/touchscreen/mainstone-wm97xx.c |    1 +
+ drivers/input/touchscreen/ucb1400_ts.c       |    5 ++++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/wm97xx-core.c~input-wm97xx-add-btn_touch-event-to-wm97xx-to-use-it-with-android drivers/input/touchscreen/wm97xx-core.c
---- a/drivers/input/touchscreen/wm97xx-core.c~input-wm97xx-add-btn_touch-event-to-wm97xx-to-use-it-with-android
-+++ a/drivers/input/touchscreen/wm97xx-core.c
-@@ -409,6 +409,7 @@ static int wm97xx_read_samples(struct wm
- 			wm->pen_is_down = 0;
- 			dev_dbg(wm->dev, "pen up\n");
- 			input_report_abs(wm->input_dev, ABS_PRESSURE, 0);
-+			input_report_key(wm->input_dev, BTN_TOUCH, 0);
- 			input_sync(wm->input_dev);
- 		} else if (!(rc & RC_AGAIN)) {
- 			/* We need high frequency updates only while
-@@ -433,6 +434,7 @@ static int wm97xx_read_samples(struct wm
- 		input_report_abs(wm->input_dev, ABS_X, data.x & 0xfff);
- 		input_report_abs(wm->input_dev, ABS_Y, data.y & 0xfff);
- 		input_report_abs(wm->input_dev, ABS_PRESSURE, data.p & 0xfff);
-+		input_report_key(wm->input_dev, BTN_TOUCH, 1);
+diff -puN drivers/input/touchscreen/mainstone-wm97xx.c~input-add-btn_touch-event drivers/input/touchscreen/mainstone-wm97xx.c
+--- a/drivers/input/touchscreen/mainstone-wm97xx.c~input-add-btn_touch-event
++++ a/drivers/input/touchscreen/mainstone-wm97xx.c
+@@ -162,6 +162,7 @@ static int wm97xx_acc_pen_down(struct wm
+ 		input_report_abs(wm->input_dev, ABS_X, x & 0xfff);
+ 		input_report_abs(wm->input_dev, ABS_Y, y & 0xfff);
+ 		input_report_abs(wm->input_dev, ABS_PRESSURE, p & 0xfff);
++		input_report_key(wm->input_dev, BTN_TOUCH, (p != 0));
  		input_sync(wm->input_dev);
- 		wm->pen_is_down = 1;
- 		wm->ts_reader_interval = wm->ts_reader_min_interval;
-@@ -629,9 +631,11 @@ static int wm97xx_probe(struct device *d
- 	wm->input_dev->open = wm97xx_ts_input_open;
- 	wm->input_dev->close = wm97xx_ts_input_close;
- 	set_bit(EV_ABS, wm->input_dev->evbit);
-+	set_bit(EV_KEY, wm->input_dev->evbit);
- 	set_bit(ABS_X, wm->input_dev->absbit);
- 	set_bit(ABS_Y, wm->input_dev->absbit);
- 	set_bit(ABS_PRESSURE, wm->input_dev->absbit);
-+	set_bit(BTN_TOUCH, wm->input_dev->keybit);
- 	input_set_abs_params(wm->input_dev, ABS_X, abs_x[0], abs_x[1],
- 			     abs_x[2], 0);
- 	input_set_abs_params(wm->input_dev, ABS_Y, abs_y[0], abs_y[1],
+ 		reads++;
+ 	} while (reads < cinfo[sp_idx].reads);
+diff -puN drivers/input/touchscreen/ucb1400_ts.c~input-add-btn_touch-event drivers/input/touchscreen/ucb1400_ts.c
+--- a/drivers/input/touchscreen/ucb1400_ts.c~input-add-btn_touch-event
++++ a/drivers/input/touchscreen/ucb1400_ts.c
+@@ -151,12 +151,14 @@ static void ucb1400_ts_evt_add(struct in
+ 	input_report_abs(idev, ABS_X, x);
+ 	input_report_abs(idev, ABS_Y, y);
+ 	input_report_abs(idev, ABS_PRESSURE, pressure);
++	input_report_key(idev, BTN_TOUCH, 1);
+ 	input_sync(idev);
+ }
+ 
+ static void ucb1400_ts_event_release(struct input_dev *idev)
+ {
+ 	input_report_abs(idev, ABS_PRESSURE, 0);
++	input_report_key(idev, BTN_TOUCH, 0);
+ 	input_sync(idev);
+ }
+ 
+@@ -377,7 +379,8 @@ static int ucb1400_ts_probe(struct platf
+ 	ucb->ts_idev->id.product	= ucb->id;
+ 	ucb->ts_idev->open		= ucb1400_ts_open;
+ 	ucb->ts_idev->close		= ucb1400_ts_close;
+-	ucb->ts_idev->evbit[0]		= BIT_MASK(EV_ABS);
++	ucb->ts_idev->evbit[0]		= BIT_MASK(EV_ABS) | BIT_MASK(EV_KEY);
++	ucb->ts_idev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
+ 
+ 	ucb1400_adc_enable(ucb->ac97);
+ 	x_res = ucb1400_ts_read_xres(ucb);
 _
 
 Patches currently in -mm which might be from mike@compulab.co.il are
