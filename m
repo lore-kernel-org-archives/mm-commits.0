@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-super-block-operations-fix-endian-bug.patch added to -mm tree
-Date: Thu, 05 Mar 2009 14:34:18 -0800
-Message-ID: <200903052234.n25MYIiQ009170@imap1.linux-foundation.org>
+Subject: + nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation.patch added to -mm tree
+Date: Thu, 05 Mar 2009 14:34:22 -0800
+Message-ID: <200903052234.n25MYNqF009185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52500 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55003 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753484AbZCEWew (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 17:34:52 -0500
+	by vger.kernel.org with ESMTP id S1753708AbZCEWe5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 17:34:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2: super block operations fix endian bug
+     nilfs2: mark minor flag for checkpoint created by internal operation
 has been added to the -mm tree.  Its filename is
-     nilfs2-super-block-operations-fix-endian-bug.patch
+     nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: super block operations fix endian bug
+Subject: nilfs2: mark minor flag for checkpoint created by internal operation
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-This adds a missing endian conversion of checksum field in the super
-block.  This fixes compatibility issue on big endian machines which will
-come to surface after supporting recovery of super block.
+Nilfs creates checkpoints even for garbage collection or metadata updates
+such as checkpoint mode change.  So, user often sees checkpoints created
+only by such internal operations.
+
+This is inconvenient in some situations.  For example, application that
+monitors checkpoints and changes them to snapshots, will fall into an
+infinite loop because it cannot distinguish internally created
+checkpoints.
+
+This patch solves this sort of problem by adding a flag to checkpoint for
+identification.
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/super.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/nilfs2/segment.c       |    9 +++++++++
+ fs/nilfs2/segment.h       |    3 +++
+ include/linux/nilfs2_fs.h |    3 +++
+ 3 files changed, 15 insertions(+)
 
-diff -puN fs/nilfs2/super.c~nilfs2-super-block-operations-fix-endian-bug fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-super-block-operations-fix-endian-bug
-+++ a/fs/nilfs2/super.c
-@@ -287,9 +287,9 @@ int nilfs_commit_super(struct nilfs_sb_i
- 	sbp->s_free_blocks_count = cpu_to_le64(nfreeblocks);
- 	sbp->s_wtime = cpu_to_le64(get_seconds());
- 	sbp->s_sum = 0;
--	sbp->s_sum = crc32_le(nilfs->ns_crc_seed, (unsigned char *)sbp,
--			      le16_to_cpu(sbp->s_bytes));
--
-+	sbp->s_sum = cpu_to_le32(crc32_le(nilfs->ns_crc_seed,
-+					  (unsigned char *)sbp,
-+					  le16_to_cpu(sbp->s_bytes)));
- 	sbi->s_super->s_dirt = 0;
- 	return nilfs_sync_super(sbi);
+diff -puN fs/nilfs2/segment.c~nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation
++++ a/fs/nilfs2/segment.c
+@@ -462,6 +462,9 @@ static void nilfs_segctor_begin_finfo(st
+ 	sci->sc_binfo_ptr = sci->sc_finfo_ptr;
+ 	nilfs_segctor_map_segsum_entry(
+ 		sci, &sci->sc_binfo_ptr, sizeof(struct nilfs_finfo));
++
++	if (inode->i_sb && !test_bit(NILFS_SC_HAVE_DELTA, &sci->sc_flags))
++		set_bit(NILFS_SC_HAVE_DELTA, &sci->sc_flags);
+ 	/* skip finfo */
  }
+ 
+@@ -887,6 +890,11 @@ static int nilfs_segctor_fill_in_checkpo
+ 	raw_cp->cp_create = cpu_to_le64(sci->sc_seg_ctime);
+ 	raw_cp->cp_cno = cpu_to_le64(nilfs->ns_cno);
+ 
++	if (test_bit(NILFS_SC_HAVE_DELTA, &sci->sc_flags))
++		nilfs_checkpoint_clear_minor(raw_cp);
++	else
++		nilfs_checkpoint_set_minor(raw_cp);
++
+ 	nilfs_write_inode_common(sbi->s_ifile, &raw_cp->cp_ifile_inode, 1);
+ 	nilfs_cpfile_put_checkpoint(nilfs->ns_cpfile, nilfs->ns_cno, bh_cp);
+ 	return 0;
+@@ -2091,6 +2099,7 @@ static void nilfs_segctor_complete_write
+ 		nilfs_set_last_segment(nilfs, segbuf->sb_pseg_start,
+ 				       segbuf->sb_sum.seg_seq, nilfs->ns_cno);
+ 
++		clear_bit(NILFS_SC_HAVE_DELTA, &sci->sc_flags);
+ 		clear_bit(NILFS_SC_DIRTY, &sci->sc_flags);
+ 		set_bit(NILFS_SC_SUPER_ROOT, &sci->sc_flags);
+ 	} else
+diff -puN fs/nilfs2/segment.h~nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation fs/nilfs2/segment.h
+--- a/fs/nilfs2/segment.h~nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation
++++ a/fs/nilfs2/segment.h
+@@ -185,6 +185,9 @@ enum {
+ 	NILFS_SC_SUPER_ROOT,	/* The latest segment has a super root */
+ 	NILFS_SC_PRIOR_FLUSH,	/* Requesting immediate flush without making a
+ 				   checkpoint */
++	NILFS_SC_HAVE_DELTA,	/* Next checkpoint will have update of files
++				   other than DAT, cpfile, sufile, or files
++				   moved by GC */
+ };
+ 
+ /* sc_state */
+diff -puN include/linux/nilfs2_fs.h~nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation include/linux/nilfs2_fs.h
+--- a/include/linux/nilfs2_fs.h~nilfs2-mark-minor-flag-for-checkpoint-created-by-internal-operation
++++ a/include/linux/nilfs2_fs.h
+@@ -470,6 +470,7 @@ enum {
+ 	NILFS_CHECKPOINT_SNAPSHOT,
+ 	NILFS_CHECKPOINT_INVALID,
+ 	NILFS_CHECKPOINT_SKETCH,
++	NILFS_CHECKPOINT_MINOR,
+ };
+ 
+ #define NILFS_CHECKPOINT_FNS(flag, name)				\
+@@ -494,6 +495,7 @@ nilfs_checkpoint_##name(const struct nil
+ 
+ NILFS_CHECKPOINT_FNS(SNAPSHOT, snapshot)
+ NILFS_CHECKPOINT_FNS(INVALID, invalid)
++NILFS_CHECKPOINT_FNS(MINOR, minor)
+ 
+ /**
+  * struct nilfs_cpinfo - checkpoint information
+@@ -526,6 +528,7 @@ nilfs_cpinfo_##name(const struct nilfs_c
+ 
+ NILFS_CPINFO_FNS(SNAPSHOT, snapshot)
+ NILFS_CPINFO_FNS(INVALID, invalid)
++NILFS_CPINFO_FNS(MINOR, minor)
+ 
+ 
+ /**
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
