@@ -1,44 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch removed from -mm tree
-Date: Thu, 05 Mar 2009 11:56:18 -0800
-Message-ID: <200903051956.n25JuII3027240@imap1.linux-foundation.org>
+Subject: [merged] arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch removed from -mm tree
+Date: Thu, 05 Mar 2009 11:56:21 -0800
+Message-ID: <200903051956.n25JuLgU027245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45771 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754849AbZCET4n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 14:56:43 -0500
+	by vger.kernel.org with ESMTP id S1754879AbZCET5E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 14:57:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davej@redhat.com, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, mm-com
 
 
 The patch titled
-     arch/x86/kernel/acpi/cstate.c: avoid using work_on_cpu()
+     arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid using work_on_cpu()
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+     arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/acpi/cstate.c: avoid using work_on_cpu()
+Subject: arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid using work_on_cpu()
 From: Andrew Morton <akpm@linux-foundation.org>
-
-A series of patches which
-
-- removes all but one callers of work_on_cpu() by switching them to
-  smp_call_function_single()
-
-- converts work_on_cpu() to create a kernel thread on demand, thus
-  avoiding the various deadlock scenarios which we keep on experiencing and
-  thinking up.
-
-All cheerfully untested.
-
-
-This patch:
 
 Atttempting to rid us of the problematic work_on_cpu().  Just use
 smp_call_fuction_single() here.
@@ -48,103 +34,96 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Len Brown <len.brown@intel.com>
 Cc: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/cstate.c |   36 +++++++++++++++++++++-----------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   24 ++++++++-----------
+ 1 file changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/acpi/cstate.c~arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu arch/x86/kernel/acpi/cstate.c
---- a/arch/x86/kernel/acpi/cstate.c~arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu
-+++ a/arch/x86/kernel/acpi/cstate.c
-@@ -53,6 +53,12 @@ struct cstate_entry {
+diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-using-work_on_cpu
++++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -150,7 +150,8 @@ struct drv_cmd {
+ 	u32 val;
  };
- static struct cstate_entry *cpu_cstate_entry;	/* per CPU ptr */
  
-+/* Used for the cross-CPU calls */
-+struct acpi_processor_cx_cross_cpu {
-+	struct acpi_processor_cx *cx;
-+	long retval;
-+};
-+
- static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
- 
- #define MWAIT_SUBSTATE_MASK	(0xf)
-@@ -67,10 +73,10 @@ static short mwait_supported[ACPI_PROCES
- 
- #define NATIVE_CSTATE_BEYOND_HALT	(2)
- 
--static long acpi_processor_ffh_cstate_probe_cpu(void *_cx)
-+static void acpi_processor_ffh_cstate_probe_cpu(void *_cxcc)
+-static long do_drv_read(void *_cmd)
++/* Called via smp_call_function_single(), on the target CPU */
++static void do_drv_read(void *_cmd)
  {
--	struct acpi_processor_cx *cx = _cx;
--	long retval;
-+	struct acpi_processor_cx_cross_cpu *cxcc = _cxcc;
-+	struct acpi_processor_cx *cx = cxcc->cx;
- 	unsigned int eax, ebx, ecx, edx;
- 	unsigned int edx_part;
- 	unsigned int cstate_type; /* C-state type and not ACPI C-state type */
-@@ -84,16 +90,16 @@ static long acpi_processor_ffh_cstate_pr
- 	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
- 	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
- 
--	retval = 0;
-+	cxcc->retval = 0;
- 	if (num_cstate_subtype < (cx->address & MWAIT_SUBSTATE_MASK)) {
--		retval = -1;
-+		cxcc->retval = -1;
- 		goto out;
+ 	struct drv_cmd *cmd = _cmd;
+ 	u32 h;
+@@ -167,10 +168,10 @@ static long do_drv_read(void *_cmd)
+ 	default:
+ 		break;
  	}
- 
- 	/* mwait ecx extensions INTERRUPT_BREAK should be supported for C2/C3 */
- 	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
- 	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK)) {
--		retval = -1;
-+		cxcc->retval = -1;
- 		goto out;
- 	}
- 
-@@ -107,7 +113,7 @@ static long acpi_processor_ffh_cstate_pr
- 			ACPI_CX_DESC_LEN, "ACPI FFH INTEL MWAIT 0x%x",
- 			cx->address);
- out:
--	return retval;
-+	return;
+-	return 0;
  }
  
- int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-@@ -115,6 +121,7 @@ int acpi_processor_ffh_cstate_probe(unsi
+-static long do_drv_write(void *_cmd)
++/* Called via smp_call_function_single(), on the target CPU */
++static void do_drv_write(void *_cmd)
  {
- 	struct cstate_entry *percpu_entry;
- 	struct cpuinfo_x86 *c = &cpu_data(cpu);
-+	struct acpi_processor_cx_cross_cpu cxcc = { .cx = cx, };
- 	long retval;
- 
- 	if (!cpu_cstate_entry || c->cpuid_level < CPUID_MWAIT_LEAF)
-@@ -127,13 +134,18 @@ int acpi_processor_ffh_cstate_probe(unsi
- 	percpu_entry->states[cx->index].eax = 0;
- 	percpu_entry->states[cx->index].ecx = 0;
- 
--	/* Make sure we are running on right CPU */
-+	/* Run acpi_processor_ffh_cstate_probe_cpu() on the target CPU */
- 
--	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
-+	retval = smp_call_function_single(cpu,
-+				acpi_processor_ffh_cstate_probe_cpu, cx, 1);
- 	if (retval == 0) {
--		/* Use the hint in CST */
--		percpu_entry->states[cx->index].eax = cx->address;
--		percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
-+		retval = cxcc.retval;
-+		if (retval == 0) {
-+			/* Use the hint in CST */
-+			percpu_entry->states[cx->index].eax = cx->address;
-+			percpu_entry->states[cx->index].ecx =
-+					MWAIT_ECX_INTERRUPT_BREAK;
-+		}
+ 	struct drv_cmd *cmd = _cmd;
+ 	u32 lo, hi;
+@@ -189,23 +190,21 @@ static long do_drv_write(void *_cmd)
+ 	default:
+ 		break;
  	}
- 	return retval;
+-	return 0;
  }
+ 
+ static void drv_read(struct drv_cmd *cmd)
+ {
+ 	cmd->val = 0;
+ 
+-	work_on_cpu(cpumask_any(cmd->mask), do_drv_read, cmd);
++	smp_call_function_single(cpumask_any(cmd->mask), do_drv_read, cmd, 1);
+ }
+ 
+ static void drv_write(struct drv_cmd *cmd)
+ {
+-	unsigned int i;
++	unsigned int cpu;
+ 
+-	for_each_cpu(i, cmd->mask) {
+-		work_on_cpu(i, do_drv_write, cmd);
+-	}
++	for_each_cpu(cpu, cmd->mask)
++		smp_call_function_single(cpu, do_drv_write, cmd, 1);
+ }
+ 
+ static u32 get_cur_val(const struct cpumask *mask)
+@@ -250,7 +249,8 @@ struct perf_cur {
+ };
+ 
+ 
+-static long read_measured_perf_ctrs(void *_cur)
++/* Called via smp_call_function_single(), on the target CPU */
++static void read_measured_perf_ctrs(void *_cur)
+ {
+ 	struct perf_cur *cur = _cur;
+ 
+@@ -259,8 +259,6 @@ static long read_measured_perf_ctrs(void
+ 
+ 	wrmsr(MSR_IA32_APERF, 0, 0);
+ 	wrmsr(MSR_IA32_MPERF, 0, 0);
+-
+-	return 0;
+ }
+ 
+ /*
+@@ -283,7 +281,7 @@ static unsigned int get_measured_perf(st
+ 	unsigned int perf_percent;
+ 	unsigned int retval;
+ 
+-	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &cur))
++	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &cur, 1))
+ 		return 0;
+ 
+ #ifdef __i386__
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
