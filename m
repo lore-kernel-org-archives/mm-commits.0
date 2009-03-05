@@ -1,131 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [merged] work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch removed from -mm tree
-Date: Thu, 05 Mar 2009 11:56:25 -0800
-Message-ID: <200903051956.n25JuPND027257@imap1.linux-foundation.org>
+Subject: [merged] arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch removed from -mm tree
+Date: Thu, 05 Mar 2009 11:56:23 -0800
+Message-ID: <200903051956.n25JuNxc027250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56449 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48619 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754632AbZCET4i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 14:56:38 -0500
+	by vger.kernel.org with ESMTP id S1754862AbZCET4q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 14:56:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     work_on_cpu(): rewrite it to create a kernel thread on demand
+     arch/x86/kernel/cpu/mcheck/mce_amd_64.c: avoid using work_on_cpu()
 has been removed from the -mm tree.  Its filename was
-     work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand.patch
+     arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: work_on_cpu(): rewrite it to create a kernel thread on demand
+Subject: arch/x86/kernel/cpu/mcheck/mce_amd_64.c: avoid using work_on_cpu()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-The various implementations and proposed implementations of work_on_cpu()
-are vulnerable to various deadlocks because they all use queues of some
-form.
-
-Unrelated pieces of kernel code thus gained dependencies wherein if one
-work_on_cpu() caller holds a lock which some other work_on_cpu() callback
-also takes, the kernel could rarely deadlock.
-
-Also, the present work_on_cpu() implementation creates yet another kernel
-thread per CPU.
-
-Fix this by creating a short-lived kernel thread for each work_on_cpu()
-invokation.
-
-This is not terribly fast, but the only current caller of work_on_cpu() is
-pci_call_probe().
-
-It would be nice to find some other way of doing the node-local
-allocations in the PCI probe code so that we can zap work_on_cpu()
-altogether.  The code there is rather nasty.  I can't think of anything
-simple at this time...
+Atttempting to rid us of the problematic work_on_cpu().  Just use
+smp_call_fuction_single() here.
 
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   36 +++++++++++++++++++-----------------
- 1 file changed, 19 insertions(+), 17 deletions(-)
+ arch/x86/kernel/cpu/mcheck/mce_amd_64.c |   40 +++++++++++++---------
+ 1 file changed, 24 insertions(+), 16 deletions(-)
 
-diff -puN kernel/workqueue.c~work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand kernel/workqueue.c
---- a/kernel/workqueue.c~work_on_cpu-rewrite-it-to-create-a-kernel-thread-on-demand
-+++ a/kernel/workqueue.c
-@@ -985,20 +985,20 @@ undo:
- }
- 
- #ifdef CONFIG_SMP
--static struct workqueue_struct *work_on_cpu_wq __read_mostly;
- 
- struct work_for_cpu {
--	struct work_struct work;
-+	struct completion completion;
- 	long (*fn)(void *);
- 	void *arg;
- 	long ret;
+diff -puN arch/x86/kernel/cpu/mcheck/mce_amd_64.c~arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu arch/x86/kernel/cpu/mcheck/mce_amd_64.c
+--- a/arch/x86/kernel/cpu/mcheck/mce_amd_64.c~arch-x86-kernel-cpu-mcheck-mce_amd_64c-avoid-using-work_on_cpu
++++ a/arch/x86/kernel/cpu/mcheck/mce_amd_64.c
+@@ -90,7 +90,8 @@ struct thresh_restart {
  };
  
--static void do_work_for_cpu(struct work_struct *w)
-+static int do_work_for_cpu(void *_wfc)
+ /* must be called with correct cpu affinity */
+-static long threshold_restart_bank(void *_tr)
++/* Called via smp_call_function_single() */
++static void threshold_restart_bank(void *_tr)
  {
--	struct work_for_cpu *wfc = container_of(w, struct work_for_cpu, work);
--
-+	struct work_for_cpu *wfc = _wfc;
- 	wfc->ret = wfc->fn(wfc->arg);
-+	complete(&wfc->completion);
-+	return 0;
+ 	struct thresh_restart *tr = _tr;
+ 	u32 mci_misc_hi, mci_misc_lo;
+@@ -117,7 +118,6 @@ static long threshold_restart_bank(void 
+ 
+ 	mci_misc_hi |= MASK_COUNT_EN_HI;
+ 	wrmsr(tr->b->address, mci_misc_lo, mci_misc_hi);
+-	return 0;
  }
  
- /**
-@@ -1009,17 +1009,23 @@ static void do_work_for_cpu(struct work_
-  *
-  * This will return the value @fn returns.
-  * It is up to the caller to ensure that the cpu doesn't go offline.
-+ * The caller must not hold any locks which would prevent @fn from completing.
-  */
- long work_on_cpu(unsigned int cpu, long (*fn)(void *), void *arg)
- {
--	struct work_for_cpu wfc;
--
--	INIT_WORK(&wfc.work, do_work_for_cpu);
--	wfc.fn = fn;
--	wfc.arg = arg;
--	queue_work_on(cpu, work_on_cpu_wq, &wfc.work);
--	flush_work(&wfc.work);
--
-+	struct task_struct *sub_thread;
-+	struct work_for_cpu wfc = {
-+		.completion = COMPLETION_INITIALIZER_ONSTACK(wfc.completion),
-+		.fn = fn,
-+		.arg = arg,
-+	};
+ /* cpu init entry point, called from mce.c with preempt off */
+@@ -283,7 +283,7 @@ static ssize_t store_interrupt_enable(st
+ 	tr.b = b;
+ 	tr.reset = 0;
+ 	tr.old_limit = 0;
+-	work_on_cpu(b->cpu, threshold_restart_bank, &tr);
++	smp_call_function_single(b->cpu, threshold_restart_bank, &tr, 1);
+ 
+ 	return end - buf;
+ }
+@@ -305,23 +305,32 @@ static ssize_t store_threshold_limit(str
+ 	tr.b = b;
+ 	tr.reset = 0;
+ 
+-	work_on_cpu(b->cpu, threshold_restart_bank, &tr);
++	smp_call_function_single(b->cpu, threshold_restart_bank, &tr, 1);
+ 
+ 	return end - buf;
+ }
+ 
+-static long local_error_count(void *_b)
++struct threshold_block_cross_cpu {
++	struct threshold_block *tb;
++	long retval;
++};
 +
-+	sub_thread = kthread_create(do_work_for_cpu, &wfc, "work_for_cpu");
-+	if (IS_ERR(sub_thread))
-+		return PTR_ERR(sub_thread);
-+	kthread_bind(sub_thread, cpu);
-+	wake_up_process(sub_thread);
-+	wait_for_completion(&wfc.completion);
- 	return wfc.ret;
++static void local_error_count_handler(void *_tbcc)
+ {
+-	struct threshold_block *b = _b;
++	struct threshold_block_cross_cpu *tbcc = _tbcc;
++	struct threshold_block *b = tbcc->tb;
+ 	u32 low, high;
+ 
+ 	rdmsr(b->address, low, high);
+-	return (high & 0xFFF) - (THRESHOLD_MAX - b->threshold_limit);
++	tbcc->retval = (high & 0xFFF) - (THRESHOLD_MAX - b->threshold_limit);
  }
- EXPORT_SYMBOL_GPL(work_on_cpu);
-@@ -1035,8 +1041,4 @@ void __init init_workqueues(void)
- 	hotcpu_notifier(workqueue_cpu_callback, 0);
- 	keventd_wq = create_workqueue("events");
- 	BUG_ON(!keventd_wq);
--#ifdef CONFIG_SMP
--	work_on_cpu_wq = create_workqueue("work_on_cpu");
--	BUG_ON(!work_on_cpu_wq);
--#endif
+ 
+ static ssize_t show_error_count(struct threshold_block *b, char *buf)
+ {
+-	return sprintf(buf, "%lx\n", work_on_cpu(b->cpu, local_error_count, b));
++	struct threshold_block_cross_cpu tbcc = { .tb = b, };
++
++	smp_call_function_single(b->cpu, local_error_count_handler, &tbcc, 1);
++	return sprintf(buf, "%lx\n", tbcc.retval);
  }
+ 
+ static ssize_t store_error_count(struct threshold_block *b,
+@@ -329,7 +338,7 @@ static ssize_t store_error_count(struct 
+ {
+ 	struct thresh_restart tr = { .b = b, .reset = 1, .old_limit = 0 };
+ 
+-	work_on_cpu(b->cpu, threshold_restart_bank, &tr);
++	smp_call_function_single(b->cpu, threshold_restart_bank, &tr, 1);
+ 	return 1;
+ }
+ 
+@@ -398,7 +407,7 @@ static __cpuinit int allocate_threshold_
+ 	if ((bank >= NR_BANKS) || (block >= NR_BLOCKS))
+ 		return 0;
+ 
+-	if (rdmsr_safe(address, &low, &high))
++	if (rdmsr_safe_on_cpu(cpu, address, &low, &high))
+ 		return 0;
+ 
+ 	if (!(high & MASK_VALID_HI)) {
+@@ -462,12 +471,11 @@ out_free:
+ 	return err;
+ }
+ 
+-static __cpuinit long local_allocate_threshold_blocks(void *_bank)
++static __cpuinit long
++local_allocate_threshold_blocks(int cpu, unsigned int bank)
+ {
+-	unsigned int *bank = _bank;
+-
+-	return allocate_threshold_blocks(smp_processor_id(), *bank, 0,
+-					 MSR_IA32_MC0_MISC + *bank * 4);
++	return allocate_threshold_blocks(cpu, bank, 0,
++					 MSR_IA32_MC0_MISC + bank * 4);
+ }
+ 
+ /* symlinks sibling shared banks to first core.  first core owns dir/files. */
+@@ -530,7 +538,7 @@ static __cpuinit int threshold_create_ba
+ 
+ 	per_cpu(threshold_banks, cpu)[bank] = b;
+ 
+-	err = work_on_cpu(cpu, local_allocate_threshold_blocks, &bank);
++	err = local_allocate_threshold_blocks(cpu, bank);
+ 	if (err)
+ 		goto out_free;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
