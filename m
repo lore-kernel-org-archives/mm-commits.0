@@ -1,54 +1,319 @@
 From: akpm@linux-foundation.org
-Subject: [merged] input-use-disable_irq_nosync-for-mainstone.patch removed from -mm tree
-Date: Thu, 05 Mar 2009 11:56:12 -0800
-Message-ID: <200903051956.n25JuChT027224@imap1.linux-foundation.org>
+Subject: [merged] input-accelerated-touchscreen-support-for-marvell-zylonite.patch removed from -mm tree
+Date: Thu, 05 Mar 2009 11:56:14 -0800
+Message-ID: <200903051956.n25JuEgp027227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43727 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56771 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754768AbZCET4W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 14:56:22 -0500
+	by vger.kernel.org with ESMTP id S1754834AbZCET4Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Mar 2009 14:56:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: broonie@opensource.wolfsonmicro.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: Use disable_irq_nosync() for Mainstone
+     input: accelerated touchscreen support for Marvell Zylonite
 has been removed from the -mm tree.  Its filename was
-     input-use-disable_irq_nosync-for-mainstone.patch
+     input-accelerated-touchscreen-support-for-marvell-zylonite.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: Use disable_irq_nosync() for Mainstone
+Subject: input: accelerated touchscreen support for Marvell Zylonite
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-This should make no practical difference since the Mainstone can't be SMP
-but it is more correct.
+Implement accelerated touchscreen support for the Marvell Zylonite
+development platform, supporting pen down interrupts and continuous mode
+data transfers.
 
 Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/mainstone-wm97xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/touchscreen/Kconfig           |   13 
+ drivers/input/touchscreen/Makefile          |    1 
+ drivers/input/touchscreen/zylonite-wm97xx.c |  239 ++++++++++++++++++
+ 3 files changed, 253 insertions(+)
 
-diff -puN drivers/input/touchscreen/mainstone-wm97xx.c~input-use-disable_irq_nosync-for-mainstone drivers/input/touchscreen/mainstone-wm97xx.c
---- a/drivers/input/touchscreen/mainstone-wm97xx.c~input-use-disable_irq_nosync-for-mainstone
-+++ a/drivers/input/touchscreen/mainstone-wm97xx.c
-@@ -246,7 +246,7 @@ static void wm97xx_irq_enable(struct wm9
- 	if (enable)
- 		enable_irq(wm->pen_irq);
- 	else
--		disable_irq(wm->pen_irq);
-+		disable_irq_nosync(wm->pen_irq);
- }
+diff -puN drivers/input/touchscreen/Kconfig~input-accelerated-touchscreen-support-for-marvell-zylonite drivers/input/touchscreen/Kconfig
+--- a/drivers/input/touchscreen/Kconfig~input-accelerated-touchscreen-support-for-marvell-zylonite
++++ a/drivers/input/touchscreen/Kconfig
+@@ -353,6 +353,19 @@ config TOUCHSCREEN_WM97XX_MAINSTONE
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called mainstone-wm97xx.
  
- static struct wm97xx_mach_ops mainstone_mach_ops = {
++config TOUCHSCREEN_WM97XX_ZYLONITE
++	tristate "Zylonite accelerated touch"
++	depends on TOUCHSCREEN_WM97XX && MACH_ZYLONITE
++	select TOUCHSCREEN_WM9713
++	help
++	  Say Y here for support for streaming mode with the touchscreen
++	  on Zylonite systems.
++
++	  If unsure, say N.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called zylonite-wm97xx.
++
+ config TOUCHSCREEN_USB_COMPOSITE
+ 	tristate "USB Touchscreen Driver"
+ 	depends on USB_ARCH_HAS_HCD
+diff -puN drivers/input/touchscreen/Makefile~input-accelerated-touchscreen-support-for-marvell-zylonite drivers/input/touchscreen/Makefile
+--- a/drivers/input/touchscreen/Makefile~input-accelerated-touchscreen-support-for-marvell-zylonite
++++ a/drivers/input/touchscreen/Makefile
+@@ -36,3 +36,4 @@ wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9705)	+
+ wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9712)	+= wm9712.o
+ wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9713)	+= wm9713.o
+ obj-$(CONFIG_TOUCHSCREEN_WM97XX_MAINSTONE)	+= mainstone-wm97xx.o
++obj-$(CONFIG_TOUCHSCREEN_WM97XX_ZYLONITE)	+= zylonite-wm97xx.o
+diff -puN /dev/null drivers/input/touchscreen/zylonite-wm97xx.c
+--- /dev/null
++++ a/drivers/input/touchscreen/zylonite-wm97xx.c
+@@ -0,0 +1,239 @@
++/*
++ * zylonite-wm97xx.c  --  Zylonite Continuous Touch screen driver
++ *
++ * Copyright 2004, 2007, 2008 Wolfson Microelectronics PLC.
++ * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
++ * Parts Copyright : Ian Molton <spyro@f2s.com>
++ *                   Andrew Zabolotny <zap@homelink.ru>
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ * Notes:
++ *     This is a wm97xx extended touch driver supporting interrupt driven
++ *     and continuous operation on Marvell Zylonite development systems
++ *     (which have a WM9713 on board).
++ */
++
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/delay.h>
++#include <linux/irq.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/wm97xx.h>
++
++#include <mach/hardware.h>
++#include <mach/mfp.h>
++#include <mach/regs-ac97.h>
++
++struct continuous {
++	u16 id;    /* codec id */
++	u8 code;   /* continuous code */
++	u8 reads;  /* number of coord reads per read cycle */
++	u32 speed; /* number of coords per second */
++};
++
++#define WM_READS(sp) ((sp / HZ) + 1)
++
++static const struct continuous cinfo[] = {
++	{WM9713_ID2, 0, WM_READS(94), 94},
++	{WM9713_ID2, 1, WM_READS(120), 120},
++	{WM9713_ID2, 2, WM_READS(154), 154},
++	{WM9713_ID2, 3, WM_READS(188), 188},
++};
++
++/* continuous speed index */
++static int sp_idx;
++
++/*
++ * Pen sampling frequency (Hz) in continuous mode.
++ */
++static int cont_rate = 200;
++module_param(cont_rate, int, 0);
++MODULE_PARM_DESC(cont_rate, "Sampling rate in continuous mode (Hz)");
++
++/*
++ * Pressure readback.
++ *
++ * Set to 1 to read back pen down pressure
++ */
++static int pressure;
++module_param(pressure, int, 0);
++MODULE_PARM_DESC(pressure, "Pressure readback (1 = pressure, 0 = no pressure)");
++
++/*
++ * AC97 touch data slot.
++ *
++ * Touch screen readback data ac97 slot
++ */
++static int ac97_touch_slot = 5;
++module_param(ac97_touch_slot, int, 0);
++MODULE_PARM_DESC(ac97_touch_slot, "Touch screen data slot AC97 number");
++
++
++/* flush AC97 slot 5 FIFO machines */
++static void wm97xx_acc_pen_up(struct wm97xx *wm)
++{
++	int i;
++
++	msleep(1);
++
++	for (i = 0; i < 16; i++)
++		MODR;
++}
++
++static int wm97xx_acc_pen_down(struct wm97xx *wm)
++{
++	u16 x, y, p = 0x100 | WM97XX_ADCSEL_PRES;
++	int reads = 0;
++	static u16 last, tries;
++
++	/* When the AC97 queue has been drained we need to allow time
++	 * to buffer up samples otherwise we end up spinning polling
++	 * for samples.  The controller can't have a suitably low
++	 * threashold set to use the notifications it gives.
++	 */
++	msleep(1);
++
++	if (tries > 5) {
++		tries = 0;
++		return RC_PENUP;
++	}
++
++	x = MODR;
++	if (x == last) {
++		tries++;
++		return RC_AGAIN;
++	}
++	last = x;
++	do {
++		if (reads)
++			x = MODR;
++		y = MODR;
++		if (pressure)
++			p = MODR;
++
++		/* are samples valid */
++		if ((x & WM97XX_ADCSRC_MASK) != WM97XX_ADCSEL_X ||
++		    (y & WM97XX_ADCSRC_MASK) != WM97XX_ADCSEL_Y ||
++		    (p & WM97XX_ADCSRC_MASK) != WM97XX_ADCSEL_PRES)
++			goto up;
++
++		/* coordinate is good */
++		tries = 0;
++		input_report_abs(wm->input_dev, ABS_X, x & 0xfff);
++		input_report_abs(wm->input_dev, ABS_Y, y & 0xfff);
++		input_report_abs(wm->input_dev, ABS_PRESSURE, p & 0xfff);
++		input_report_key(wm->input_dev, BTN_TOUCH, (p != 0));
++		input_sync(wm->input_dev);
++		reads++;
++	} while (reads < cinfo[sp_idx].reads);
++up:
++	return RC_PENDOWN | RC_AGAIN;
++}
++
++static int wm97xx_acc_startup(struct wm97xx *wm)
++{
++	int idx;
++
++	/* check we have a codec */
++	if (wm->ac97 == NULL)
++		return -ENODEV;
++
++	/* Go you big red fire engine */
++	for (idx = 0; idx < ARRAY_SIZE(cinfo); idx++) {
++		if (wm->id != cinfo[idx].id)
++			continue;
++		sp_idx = idx;
++		if (cont_rate <= cinfo[idx].speed)
++			break;
++	}
++	wm->acc_rate = cinfo[sp_idx].code;
++	wm->acc_slot = ac97_touch_slot;
++	dev_info(wm->dev,
++		 "zylonite accelerated touchscreen driver, %d samples/sec\n",
++		 cinfo[sp_idx].speed);
++
++	return 0;
++}
++
++static void wm97xx_irq_enable(struct wm97xx *wm, int enable)
++{
++	if (enable)
++		enable_irq(wm->pen_irq);
++	else
++		disable_irq_nosync(wm->pen_irq);
++}
++
++static struct wm97xx_mach_ops zylonite_mach_ops = {
++	.acc_enabled = 1,
++	.acc_pen_up = wm97xx_acc_pen_up,
++	.acc_pen_down = wm97xx_acc_pen_down,
++	.acc_startup = wm97xx_acc_startup,
++	.irq_enable = wm97xx_irq_enable,
++	.irq_gpio = WM97XX_GPIO_2,
++};
++
++static int zylonite_wm97xx_probe(struct platform_device *pdev)
++{
++	struct wm97xx *wm = platform_get_drvdata(pdev);
++	int gpio_touch_irq;
++
++	if (cpu_is_pxa320())
++		gpio_touch_irq = mfp_to_gpio(MFP_PIN_GPIO15);
++	else
++		gpio_touch_irq = mfp_to_gpio(MFP_PIN_GPIO26);
++
++	wm->pen_irq = IRQ_GPIO(gpio_touch_irq);
++	set_irq_type(IRQ_GPIO(gpio_touch_irq), IRQ_TYPE_EDGE_BOTH);
++
++	wm97xx_config_gpio(wm, WM97XX_GPIO_13, WM97XX_GPIO_IN,
++			   WM97XX_GPIO_POL_HIGH,
++			   WM97XX_GPIO_STICKY,
++			   WM97XX_GPIO_WAKE);
++	wm97xx_config_gpio(wm, WM97XX_GPIO_2, WM97XX_GPIO_OUT,
++			   WM97XX_GPIO_POL_HIGH,
++			   WM97XX_GPIO_NOTSTICKY,
++			   WM97XX_GPIO_NOWAKE);
++
++	return wm97xx_register_mach_ops(wm, &zylonite_mach_ops);
++}
++
++static int zylonite_wm97xx_remove(struct platform_device *pdev)
++{
++	struct wm97xx *wm = platform_get_drvdata(pdev);
++
++	wm97xx_unregister_mach_ops(wm);
++	return 0;
++}
++
++static struct platform_driver zylonite_wm97xx_driver = {
++	.probe = zylonite_wm97xx_probe,
++	.remove = zylonite_wm97xx_remove,
++	.driver = {
++		.name = "wm97xx-touch",
++	},
++};
++
++static int __init zylonite_wm97xx_init(void)
++{
++	return platform_driver_register(&zylonite_wm97xx_driver);
++}
++
++static void __exit zylonite_wm97xx_exit(void)
++{
++	platform_driver_unregister(&zylonite_wm97xx_driver);
++}
++
++module_init(zylonite_wm97xx_init);
++module_exit(zylonite_wm97xx_exit);
++
++/* Module information */
++MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
++MODULE_DESCRIPTION("wm97xx continuous touch driver for Zylonite");
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
