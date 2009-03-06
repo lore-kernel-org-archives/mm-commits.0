@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n.patch added to -mm tree
-Date: Fri, 06 Mar 2009 14:37:30 -0800
-Message-ID: <200903062237.n26MbVw4007065@imap1.linux-foundation.org>
+Subject: + blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int.patch added to -mm tree
+Date: Fri, 06 Mar 2009 14:37:18 -0800
+Message-ID: <200903062237.n26MbI8N007039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40450 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754786AbZCFWn3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:43:29 -0500
+	by vger.kernel.org with ESMTP id S1752415AbZCFWna (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:43:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: vapier.adi@gmail.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org
 
 
 The patch titled
-     blackfin serial driver: depend on KGDB_SERIAL_CONSOLE being set to N
+     blackfin serial driver: use "unsigned long" for flags with irq functions rather than "int"
 has been added to the -mm tree.  Its filename is
-     blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n.patch
+     blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin serial driver: depend on KGDB_SERIAL_CONSOLE being set to N
+Subject: blackfin serial driver: use "unsigned long" for flags with irq functions rather than "int"
 From: Mike Frysinger <vapier.adi@gmail.com>
-
-Depend on KGDB_SERIAL_CONSOLE being set to N rather than !Y, since it can
-be built as a module.
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
@@ -45,21 +42,31 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/bfin_5xx.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/Kconfig~blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n
-+++ a/drivers/serial/Kconfig
-@@ -700,7 +700,7 @@ choice
+diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int drivers/serial/bfin_5xx.c
+--- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int
++++ a/drivers/serial/bfin_5xx.c
+@@ -403,7 +403,8 @@ static void bfin_serial_dma_rx_chars(str
  
- config SERIAL_BFIN_DMA
- 	bool "DMA mode"
--	depends on !DMA_UNCACHED_NONE && !KGDB_SERIAL_CONSOLE
-+	depends on !DMA_UNCACHED_NONE && KGDB_SERIAL_CONSOLE=n
- 	help
- 	  This driver works under DMA mode. If this option is selected, the
- 	  blackfin simple dma driver is also enabled.
+ void bfin_serial_rx_dma_timeout(struct bfin_serial_port *uart)
+ {
+-	int x_pos, pos, flags;
++	int x_pos, pos;
++	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&uart->port.lock, flags);
+ 
+@@ -1151,7 +1152,7 @@ static void
+ bfin_serial_console_write(struct console *co, const char *s, unsigned int count)
+ {
+ 	struct bfin_serial_port *uart = &bfin_serial_ports[co->index];
+-	int flags = 0;
++	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&uart->port.lock, flags);
+ 	uart_console_write(&uart->port, s, count, bfin_serial_console_putchar);
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
