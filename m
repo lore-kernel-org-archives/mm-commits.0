@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int.patch added to -mm tree
-Date: Fri, 06 Mar 2009 14:37:18 -0800
-Message-ID: <200903062237.n26MbI8N007039@imap1.linux-foundation.org>
+Subject: + blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences.patch added to -mm tree
+Date: Fri, 06 Mar 2009 14:37:32 -0800
+Message-ID: <200903062237.n26MbXmt007068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46191 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752415AbZCFWna (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:43:30 -0500
+	by vger.kernel.org with ESMTP id S1756391AbZCFWnb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:43:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: vapier.adi@gmail.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org
 
 
 The patch titled
-     blackfin serial driver: use "unsigned long" for flags with irq functions rather than "int"
+     blackfin serial driver: use the DLAB macro to hide variant differences
 has been added to the -mm tree.  Its filename is
-     blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int.patch
+     blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin serial driver: use "unsigned long" for flags with irq functions rather than "int"
+Subject: blackfin serial driver: use the DLAB macro to hide variant differences
 From: Mike Frysinger <vapier.adi@gmail.com>
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
@@ -42,31 +42,34 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/bfin_5xx.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/serial/bfin_5xx.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int drivers/serial/bfin_5xx.c
---- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int
+diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences drivers/serial/bfin_5xx.c
+--- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences
 +++ a/drivers/serial/bfin_5xx.c
-@@ -403,7 +403,8 @@ static void bfin_serial_dma_rx_chars(str
- 
- void bfin_serial_rx_dma_timeout(struct bfin_serial_port *uart)
+@@ -1250,7 +1250,7 @@ struct console __init *bfin_earlyserial_
+ void bfin_serial_debug(const char *fmt, ...)
  {
--	int x_pos, pos, flags;
-+	int x_pos, pos;
-+	unsigned long flags;
+ 	struct bfin_serial_port *uart = &bfin_serial_ports[0];
+-	unsigned short status, tmp;
++	unsigned short status;
+ 	unsigned long flags;
+ 	int i, count;
+ 	char buf[128];
+@@ -1273,11 +1273,7 @@ void bfin_serial_debug(const char *fmt, 
+ 			status = UART_GET_LSR(uart);
+ 		} while (!(status & THRE));
  
- 	spin_lock_irqsave(&uart->port.lock, flags);
- 
-@@ -1151,7 +1152,7 @@ static void
- bfin_serial_console_write(struct console *co, const char *s, unsigned int count)
- {
- 	struct bfin_serial_port *uart = &bfin_serial_ports[co->index];
--	int flags = 0;
-+	unsigned long flags;
- 
- 	spin_lock_irqsave(&uart->port.lock, flags);
- 	uart_console_write(&uart->port, s, count, bfin_serial_console_putchar);
+-#ifndef CONFIG_BF54x
+-		tmp = UART_GET_LCR(uart);
+-		tmp &= ~DLAB;
+-		UART_PUT_LCR(uart, tmp);
+-#endif
++		UART_CLEAR_DLAB(uart);
+ 		UART_PUT_CHAR(uart, buf[i]);
+ 		if (buf[i] == '\n') {
+ 			do {
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
