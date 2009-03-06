@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-serial-driver-explain-why-we-cannot-cpu_relax-in-early-serial-code.patch added to -mm tree
-Date: Fri, 06 Mar 2009 14:37:14 -0800
-Message-ID: <200903062237.n26MbEPu007025@imap1.linux-foundation.org>
+Subject: + blackfin-serial-driver-fix-a-bug-in-dma-circle-rx-buffer-handling.patch added to -mm tree
+Date: Fri, 06 Mar 2009 14:37:06 -0800
+Message-ID: <200903062237.n26Mb6kH007009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42820 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754141AbZCFWiF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:38:05 -0500
+	by vger.kernel.org with ESMTP id S1753786AbZCFWh4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:37:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier.adi@gmail.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org
+Cc: sonic.zhang@analog.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org, zhangq@sansitech.com
 
 
 The patch titled
-     blackfin serial driver: explain why we cannot cpu_relax() in early serial code
+     blackfin serial driver: fix a bug in dma circle rx buffer handling
 has been added to the -mm tree.  Its filename is
-     blackfin-serial-driver-explain-why-we-cannot-cpu_relax-in-early-serial-code.patch
+     blackfin-serial-driver-fix-a-bug-in-dma-circle-rx-buffer-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin serial driver: explain why we cannot cpu_relax() in early serial code
-From: Mike Frysinger <vapier.adi@gmail.com>
+Subject: blackfin serial driver: fix a bug in dma circle rx buffer handling
+From: Sonic Zhang <sonic.zhang@analog.com>
 
-Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Reported-by: Qian Zhang <zhangq@sansitech.com>
+Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/bfin_5xx.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/serial/bfin_5xx.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-explain-why-we-cannot-cpu_relax-in-early-serial-code drivers/serial/bfin_5xx.c
---- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-explain-why-we-cannot-cpu_relax-in-early-serial-code
+diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-fix-a-bug-in-dma-circle-rx-buffer-handling drivers/serial/bfin_5xx.c
+--- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-fix-a-bug-in-dma-circle-rx-buffer-handling
 +++ a/drivers/serial/bfin_5xx.c
-@@ -1190,6 +1190,10 @@ static __init void early_serial_putc(str
- 	unsigned timeout = 0xffff;
- 	struct bfin_serial_port *uart = (struct bfin_serial_port *)port;
+@@ -402,9 +402,11 @@ static void bfin_serial_dma_rx_chars(str
+ 	else
+ 		flg = TTY_NORMAL;
  
-+	/* We cannot cpu_relax() here as doing so on the BF561 relies
-+	 * on the per-cpu region being setup, and since this is early
-+	 * serial code, it may not yet be usable ...
-+	 */
- 	while ((!(UART_GET_LSR(uart) & THRE)) && --timeout)
- 		barrier();
- 
+-	for (i = uart->rx_dma_buf.tail; i != uart->rx_dma_buf.head; i++) {
++	for (i = uart->rx_dma_buf.tail; ; i++) {
+ 		if (i >= UART_XMIT_SIZE)
+ 			i = 0;
++		if (i == uart->rx_dma_buf.head)
++			break;
+ 		if (!uart_handle_sysrq_char(&uart->port, uart->rx_dma_buf.buf[i]))
+ 			uart_insert_char(&uart->port, status, OE,
+ 				uart->rx_dma_buf.buf[i], flg);
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from sonic.zhang@analog.com are
 
 linux-next.patch
-blackfin-nfc-driver-do-not-clobber-dmac1_perimux.patch
-blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit.patch
-blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback.patch
-blackfin-serial-driver-explain-why-we-cannot-cpu_relax-in-early-serial-code.patch
-blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int.patch
-blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags.patch
-blackfin-serial-driver-update-kgdb-uart-config-name.patch
-blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled.patch
-blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n.patch
-blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences.patch
-blackfin-serial-driver-update-path-to-gpio-header.patch
-flat-fix-data-sections-alignment-update.patch
-blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
-blackfin-spi-driver-remove-useless-asm-cplbinith.patch
-blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
-blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
-blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
-blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
-blackfin-spi-driver-add-a-few-more-dma-debug-messages.patch
-blackfin-spi-driver-do-not-check-for-spi-errors-if-dma-itself-did-not-flag-any.patch
-blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch
-blackfin-spi-driver-spi-slave-select-code-cleanup.patch
-blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
-blackfin-spi-driver-add-timeout-while-waiting-for-spif-in-dma-irq-handler.patch
-blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch
-blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions.patch
-blackfin-spi-driver-fix-null-pointer-crash.patch
-bin_elf_fdpic-check-the-return-value-of-clear_user.patch
+blackfin-serial-driver-fix-a-bug-in-dma-circle-rx-buffer-handling.patch
+blackfin-serial-driver-change-hardware-flowcontrol-from-poll-to-interrupt-driven.patch
+blackfin-serial-driver-fix-bug-serial-port-transfer-big-file-from-host-to-target-would-have-more-lines.patch
+blackfin-serial-driver-fix-compile-error-in-pio-mode.patch
+blackfin-serial-driver-fix-bug-enable-hardware-based-cts-and-rts-for-bf548.patch
 
