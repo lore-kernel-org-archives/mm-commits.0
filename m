@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-serial-driver-merge-the-upstream-adeos-xenomai.patch added to -mm tree
-Date: Fri, 06 Mar 2009 14:37:34 -0800
-Message-ID: <200903062237.n26MbY2V007071@imap1.linux-foundation.org>
+Subject: + blackfin-serial-driver-update-path-to-gpio-header.patch added to -mm tree
+Date: Fri, 06 Mar 2009 14:37:42 -0800
+Message-ID: <200903062237.n26MbhYM007088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38508 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754942AbZCFWiV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:38:21 -0500
+	by vger.kernel.org with ESMTP id S1755239AbZCFWi2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:38:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpm@xenomai.org, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org
+Cc: vapier.adi@gmail.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org
 
 
 The patch titled
-     blackfin serial driver: merge the upstream adeos/xenomai
+     blackfin serial driver: update path to gpio header
 has been added to the -mm tree.  Its filename is
-     blackfin-serial-driver-merge-the-upstream-adeos-xenomai.patch
+     blackfin-serial-driver-update-path-to-gpio-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,79 +33,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin serial driver: merge the upstream adeos/xenomai
-From: Philippe Gerum <rpm@xenomai.org>
+Subject: blackfin serial driver: update path to gpio header
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Add ipipe serial debug function for adeos.
-
-Signed-off-by: Philippe Gerum <rpm@xenomai.org>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/bfin_5xx.c |   45 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ drivers/serial/Kconfig |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-merge-the-upstream-adeos-xenomai drivers/serial/bfin_5xx.c
---- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-merge-the-upstream-adeos-xenomai
-+++ a/drivers/serial/bfin_5xx.c
-@@ -1145,6 +1145,51 @@ static void bfin_serial_console_putchar(
- 	SSYNC();
- }
+diff -puN drivers/serial/Kconfig~blackfin-serial-driver-update-path-to-gpio-header drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~blackfin-serial-driver-update-path-to-gpio-header
++++ a/drivers/serial/Kconfig
+@@ -731,7 +731,7 @@ config UART0_CTS_PIN
+ 	default 23
+ 	help
+ 	  The default pin is GPIO_GP7.
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
  
-+#ifdef CONFIG_IPIPE
-+
-+#include <stdarg.h>
-+
-+void __ipipe_serial_debug(const char *fmt, ...)
-+{
-+	struct bfin_serial_port *uart = &bfin_serial_ports[0];
-+	unsigned short status, tmp;
-+	int flags, i, count;
-+	char buf[128];
-+	va_list ap;
-+
-+	va_start(ap, fmt);
-+	vsprintf(buf, fmt, ap);
-+	va_end(ap);
-+	count = strlen(buf);
-+
-+	local_irq_save_hw(flags);
-+
-+	for (i = 0; i < count; i++) {
-+		do {
-+			status = UART_GET_LSR(uart);
-+		} while (!(status & THRE));
-+
-+#ifndef CONFIG_BF54x
-+		tmp = UART_GET_LCR(uart);
-+		tmp &= ~DLAB;
-+		UART_PUT_LCR(uart, tmp);
-+#endif
-+
-+		UART_PUT_CHAR(uart, buf[i]);
-+		if (buf[i] == '\n') {
-+			do {
-+				status = UART_GET_LSR(uart);
-+			} while (!(status & THRE));
-+			UART_PUT_CHAR(uart, '\r');
-+		}
-+	}
-+
-+	local_irq_restore_hw(flags);
-+}
-+EXPORT_SYMBOL(__ipipe_serial_debug);
-+
-+#endif /* CONFIG_IPIPE */
-+
- /*
-  * Interrupts are disabled on entering
-  */
+ config UART0_RTS_PIN
+ 	int "UART0 RTS pin"
+@@ -739,7 +739,7 @@ config UART0_RTS_PIN
+ 	default 22
+ 	help
+ 	  The default pin is GPIO_GP6.
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config SERIAL_BFIN_UART1
+ 	bool "Enable UART1"
+@@ -759,14 +759,14 @@ config UART1_CTS_PIN
+ 	depends on BFIN_UART1_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config UART1_RTS_PIN
+ 	int "UART1 RTS pin"
+ 	depends on BFIN_UART1_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config SERIAL_BFIN_UART2
+ 	bool "Enable UART2"
+@@ -786,14 +786,14 @@ config UART2_CTS_PIN
+ 	depends on BFIN_UART2_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config UART2_RTS_PIN
+ 	int "UART2 RTS pin"
+ 	depends on BFIN_UART2_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config SERIAL_BFIN_UART3
+ 	bool "Enable UART3"
+@@ -813,14 +813,14 @@ config UART3_CTS_PIN
+ 	depends on BFIN_UART3_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config UART3_RTS_PIN
+ 	int "UART3 RTS pin"
+ 	depends on BFIN_UART3_CTSRTS && !BF548
+ 	default -1
+ 	help
+-	  Refer to ./include/asm-blackfin/gpio.h to see the GPIO map.
++	  Refer to arch/blackfin/mach-*/include/mach/gpio.h to see the GPIO map.
+ 
+ config SERIAL_IMX
+ 	bool "IMX serial port support"
 _
 
-Patches currently in -mm which might be from rpm@xenomai.org are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
 linux-next.patch
-blackfin-serial-driver-merge-the-upstream-adeos-xenomai.patch
+blackfin-nfc-driver-do-not-clobber-dmac1_perimux.patch
+blackfin-nfc-driver-mark-bf5xx_nand_add_partition-as-__devinit.patch
+blackfin-nfc-driver-drop-pointless-casts-with-set_dma_callback.patch
+blackfin-serial-driver-explain-why-we-cannot-cpu_relax-in-early-serial-code.patch
+blackfin-serial-driver-use-unsigned-long-for-flags-with-irq-functions-rather-than-int.patch
+blackfin-serial-driver-irq-funcs-take-an-unsigned-long-for-flags.patch
+blackfin-serial-driver-update-kgdb-uart-config-name.patch
+blackfin-serial-driver-fix-building-when-debug-is-enabled-but-serial-console-is-disabled.patch
+blackfin-serial-driver-depend-on-kgdb_serial_console-being-set-to-n.patch
+blackfin-serial-driver-use-the-dlab-macro-to-hide-variant-differences.patch
+blackfin-serial-driver-update-path-to-gpio-header.patch
+flat-fix-data-sections-alignment-update.patch
+blackfin-spi-driver-ensure-cache-coherency-before-doing-dma.patch
+blackfin-spi-driver-remove-useless-asm-cplbinith.patch
+blackfin-spi-driver-use-len_in_bytes-when-we-care-about-the-number-of-bytes-transferred.patch
+blackfin-spi-driver-pass-dma-overflow-error-to-the-higher-level.patch
+blackfin-spi-driver-unify-duplicated-code-in-dma-read-write-paths.patch
+blackfin-spi-driver-drop-bogus-cast-and-touchup-dma-label.patch
+blackfin-spi-driver-add-a-few-more-dma-debug-messages.patch
+blackfin-spi-driver-do-not-check-for-spi-errors-if-dma-itself-did-not-flag-any.patch
+blackfin-spi-driver-use-the-properl-bit_ctl_xxx-defines.patch
+blackfin-spi-driver-spi-slave-select-code-cleanup.patch
+blackfin-spi-driver-get-dma-working-for-spi-flashes.patch
+blackfin-spi-driver-add-timeout-while-waiting-for-spif-in-dma-irq-handler.patch
+blackfin-spi-driver-tweak-magic-spi-dma-sequence-to-get-it-working-on-bf54x.patch
+blackfin-spi-driver-use-bfin_spi_-prefix-on-all-functions.patch
+blackfin-spi-driver-fix-null-pointer-crash.patch
+bin_elf_fdpic-check-the-return-value-of-clear_user.patch
 
