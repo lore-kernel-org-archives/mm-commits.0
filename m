@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-plat_nand-add-platform-probe-remove-callbacks.patch added to -mm tree
-Date: Fri, 06 Mar 2009 13:24:44 -0800
-Message-ID: <200903062124.n26LOisY000544@imap1.linux-foundation.org>
+Subject: + mtd-plat_nand-allow-platform-to-set-partitions.patch added to -mm tree
+Date: Fri, 06 Mar 2009 13:25:52 -0800
+Message-ID: <200903062125.n26LPqmH000639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42036 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754459AbZCFV0P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 16:26:15 -0500
+	by vger.kernel.org with ESMTP id S1750744AbZCFV1U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 16:27:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hsweeten@visionengravers.com, alex@digriz.org.uk, dwmw2@infradead.org
+Cc: hsweeten@visionengravers.com, dwmw2@infradead.org
 
 
 The patch titled
-     mtd: plat_nand: add platform probe/remove callbacks
+     mtd: plat_nand: allow platform to set partitions
 has been added to the -mm tree.  Its filename is
-     mtd-plat_nand-add-platform-probe-remove-callbacks.patch
+     mtd-plat_nand-allow-platform-to-set-partitions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: plat_nand: add platform probe/remove callbacks
+Subject: mtd: plat_nand: allow platform to set partitions
 From: H Hartley Sweeten <hsweeten@visionengravers.com>
 
-Add optional probe and remove callbacks to the plat_nand driver.
+Add optional callback to allow platform to initialize partitions.
 
-Some platforms may require additional setup, such as configuring the
-memory controller, before the nand device can be accessed.  This patch
-provides an optional callback to handle this setup as well as a callback
-to teardown the setup.
+Static partitions on a nand device could vary depending on the size of the
+device.  This patch allows an optional platform callback to be used to
+setup this partition information at runtime.
 
-This patch was originally submitted to linux-mtd but it was suggested I
-post it here for a broader review.
+Scan order is:
+	1) chip.part_probe_types
+	2) chip.set_parts
+	3) chip.partitions
+	4) full mtd device (fallback for no partitions)
+
+Some of the existing nand drivers could possibly be replaced by the
+plat_nand driver by using this patch.  These include autcpu12.c and
+ts7250.c drivers.
 
 Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Tested-by: Alexander Clouter <alex@digriz.org.uk>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/plat_nand.c |   13 +++++++++++--
- include/linux/mtd/nand.h     |    7 +++++++
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/plat_nand.c |    2 ++
+ include/linux/mtd/nand.h     |    3 +++
+ 2 files changed, 5 insertions(+)
 
-diff -puN drivers/mtd/nand/plat_nand.c~mtd-plat_nand-add-platform-probe-remove-callbacks drivers/mtd/nand/plat_nand.c
---- a/drivers/mtd/nand/plat_nand.c~mtd-plat_nand-add-platform-probe-remove-callbacks
+diff -puN drivers/mtd/nand/plat_nand.c~mtd-plat_nand-allow-platform-to-set-partitions drivers/mtd/nand/plat_nand.c
+--- a/drivers/mtd/nand/plat_nand.c~mtd-plat_nand-allow-platform-to-set-partitions
 +++ a/drivers/mtd/nand/plat_nand.c
-@@ -70,6 +70,13 @@ static int __init plat_nand_probe(struct
- 
- 	platform_set_drvdata(pdev, data);
- 
-+	/* Handle any platform specific setup */
-+	if (pdata->ctrl.probe) {
-+		res = pdata->ctrl.probe(pdev);
-+		if (res)
-+			goto out;
-+	}
-+
- 	/* Scan to find existance of the device */
- 	if (nand_scan(&data->mtd, 1)) {
- 		res = -ENXIO;
-@@ -99,6 +106,8 @@ static int __init plat_nand_probe(struct
- 
- 	nand_release(&data->mtd);
- out:
-+	if (pdata->ctrl.remove)
-+		pdata->ctrl.remove(pdev);
- 	platform_set_drvdata(pdev, NULL);
- 	iounmap(data->io_base);
- 	kfree(data);
-@@ -111,15 +120,15 @@ out:
- static int __devexit plat_nand_remove(struct platform_device *pdev)
- {
- 	struct plat_nand_data *data = platform_get_drvdata(pdev);
--#ifdef CONFIG_MTD_PARTITIONS
- 	struct platform_nand_data *pdata = pdev->dev.platform_data;
--#endif
- 
- 	nand_release(&data->mtd);
- #ifdef CONFIG_MTD_PARTITIONS
- 	if (data->parts && data->parts != pdata->chip.partitions)
- 		kfree(data->parts);
- #endif
-+	if (pdata->ctrl.remove)
-+		pdata->ctrl.remove(pdev);
- 	iounmap(data->io_base);
- 	kfree(data);
- 
-diff -puN include/linux/mtd/nand.h~mtd-plat_nand-add-platform-probe-remove-callbacks include/linux/mtd/nand.h
---- a/include/linux/mtd/nand.h~mtd-plat_nand-add-platform-probe-remove-callbacks
+@@ -93,6 +93,8 @@ static int __init plat_nand_probe(struct
+ 			return 0;
+ 		}
+ 	}
++	if (pdata->chip.set_parts)
++		pdata->chip.set_parts(data->mtd.size, &pdata->chip);
+ 	if (pdata->chip.partitions) {
+ 		data->parts = pdata->chip.partitions;
+ 		res = add_mtd_partitions(&data->mtd, data->parts,
+diff -puN include/linux/mtd/nand.h~mtd-plat_nand-allow-platform-to-set-partitions include/linux/mtd/nand.h
+--- a/include/linux/mtd/nand.h~mtd-plat_nand-allow-platform-to-set-partitions
 +++ a/include/linux/mtd/nand.h
-@@ -577,8 +577,13 @@ struct platform_nand_chip {
+@@ -563,6 +563,7 @@ extern int nand_do_read(struct mtd_info 
+  * @options:		Option flags, e.g. 16bit buswidth
+  * @ecclayout:		ecc layout info structure
+  * @part_probe_types:	NULL-terminated array of probe types
++ * @set_parts:		platform specific function to set partitions
+  * @priv:		hardware controller specific settings
+  */
+ struct platform_nand_chip {
+@@ -574,6 +575,8 @@ struct platform_nand_chip {
+ 	int			chip_delay;
+ 	unsigned int		options;
+ 	const char		**part_probe_types;
++	void			(*set_parts)(uint64_t size,
++					struct platform_nand_chip *chip);
  	void			*priv;
  };
  
-+/* Keep gcc happy */
-+struct platform_device;
-+
- /**
-  * struct platform_nand_ctrl - controller level device structure
-+ * @probe:		platform specific function to probe/setup hardware
-+ * @remove:		platform specific function to remove/teardown hardware
-  * @hwcontrol:		platform specific hardware control structure
-  * @dev_ready:		platform specific function to read ready/busy pin
-  * @select_chip:	platform specific chip select function
-@@ -589,6 +594,8 @@ struct platform_nand_chip {
-  * All fields are optional and depend on the hardware driver requirements
-  */
- struct platform_nand_ctrl {
-+	int		(*probe)(struct platform_device *pdev);
-+	void		(*remove)(struct platform_device *pdev);
- 	void		(*hwcontrol)(struct mtd_info *mtd, int cmd);
- 	int		(*dev_ready)(struct mtd_info *mtd);
- 	void		(*select_chip)(struct mtd_info *mtd, int chip);
 _
 
 Patches currently in -mm which might be from hsweeten@visionengravers.com are
 
 linux-next.patch
 mtd-plat_nand-add-platform-probe-remove-callbacks.patch
+mtd-plat_nand-allow-platform-to-set-partitions.patch
 auxdisplay-remove-parport-dependency.patch
 
