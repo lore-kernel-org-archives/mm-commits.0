@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-serial-driver-fix-compile-error-in-pio-mode.patch added to -mm tree
-Date: Fri, 06 Mar 2009 14:37:24 -0800
-Message-ID: <200903062237.n26MbObh007048@imap1.linux-foundation.org>
+Subject: + blackfin-serial-driver-fix-bug-up-arrow-key-works-abnormal-for-bf561-ezkit-board.patch added to -mm tree
+Date: Fri, 06 Mar 2009 14:37:37 -0800
+Message-ID: <200903062237.n26Mbbn2007080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42207 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754334AbZCFWiO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:38:14 -0500
+	by vger.kernel.org with ESMTP id S1755330AbZCFWiY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Mar 2009 17:38:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sonic.zhang@analog.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org
+Cc: graf.yang@analog.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org
 
 
 The patch titled
-     blackfin serial driver: fix compile error in PIO mode
+     blackfin serial driver: fix bug - up arrow key works abnormal for bf561 ezkit board
 has been added to the -mm tree.  Its filename is
-     blackfin-serial-driver-fix-compile-error-in-pio-mode.patch
+     blackfin-serial-driver-fix-bug-up-arrow-key-works-abnormal-for-bf561-ezkit-board.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin serial driver: fix compile error in PIO mode
-From: Sonic Zhang <sonic.zhang@analog.com>
+Subject: blackfin serial driver: fix bug - up arrow key works abnormal for bf561 ezkit board
+From: Graf Yang <graf.yang@analog.com>
 
-drivers/serial/bfin_5xx.c: In function bfin_serial_rx_chars:
-drivers/serial/bfin_5xx.c:178: error: struct uart_info has no
-member
-named tty
-make[3]: *** [drivers/serial/bfin_5xx.o] Error 1
-make[2]: *** [drivers/serial] Error 2
-make[1]: *** [drivers] Error 2
-make[1]: *** Waiting for unfinished jobs....
-make[1]: Leaving directory `/root/projects/uClinux-dist/linux-2.6.x'
-make: *** [linux] Error 1
+Subtrack ANOMALY_05000230 on quot.
 
-Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
+Signed-off-by: Graf Yang <graf.yang@analog.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/bfin_5xx.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/serial/bfin_5xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-fix-compile-error-in-pio-mode drivers/serial/bfin_5xx.c
---- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-fix-compile-error-in-pio-mode
+diff -puN drivers/serial/bfin_5xx.c~blackfin-serial-driver-fix-bug-up-arrow-key-works-abnormal-for-bf561-ezkit-board drivers/serial/bfin_5xx.c
+--- a/drivers/serial/bfin_5xx.c~blackfin-serial-driver-fix-bug-up-arrow-key-works-abnormal-for-bf561-ezkit-board
 +++ a/drivers/serial/bfin_5xx.c
-@@ -172,10 +172,10 @@ static void bfin_serial_rx_chars(struct 
- 			return;
- 		}
+@@ -789,7 +789,7 @@ bfin_serial_set_termios(struct uart_port
+ 	}
  
--	if (!uart->port.info || !uart->port.info->tty)
-+	if (!uart->port.info || !uart->port.info->port.tty)
- 		return;
- #endif
--	tty = uart->port.info->tty;
-+	tty = uart->port.info->port.tty;
+ 	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16);
+-	quot = uart_get_divisor(port, baud);
++	quot = uart_get_divisor(port, baud) - ANOMALY_05000230;
+ 	spin_lock_irqsave(&uart->port.lock, flags);
  
- 	if (ANOMALY_05000363) {
- 		/* The BF533 (and BF561) family of processors have a nice anomaly
+ 	UART_SET_ANOMALY_THRESHOLD(uart, USEC_PER_SEC / baud * 15);
 _
 
-Patches currently in -mm which might be from sonic.zhang@analog.com are
+Patches currently in -mm which might be from graf.yang@analog.com are
 
 linux-next.patch
-blackfin-serial-driver-fix-a-bug-in-dma-circle-rx-buffer-handling.patch
-blackfin-serial-driver-change-hardware-flowcontrol-from-poll-to-interrupt-driven.patch
-blackfin-serial-driver-fix-bug-serial-port-transfer-big-file-from-host-to-target-would-have-more-lines.patch
-blackfin-serial-driver-fix-compile-error-in-pio-mode.patch
-blackfin-serial-driver-fix-bug-enable-hardware-based-cts-and-rts-for-bf548.patch
+mtd-cfi-fix-bug-bonnie-error-on-bf548-nor-flash.patch
+blackfin-serial-driver-add-a-debug-function-to-serial-driver.patch
+blackfin-serial-driver-use-barrier-instead-of-cpu_relax-for-blackfin-smp-like-patch.patch
+blackfin-serial-driver-fix-bug-up-arrow-key-works-abnormal-for-bf561-ezkit-board.patch
 
